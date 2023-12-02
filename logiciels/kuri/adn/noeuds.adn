@@ -294,9 +294,6 @@ struct NoeudDéclarationVariable : BaseDéclarationVariable {
     NoeudDéclarationSymbole *declaration_vient_d_un_emploi
     int index_membre_employe
 
-    // pour les variables globales
-    NoeudExpression * [] arbre_aplatis
-
     DonneesAssignations [compressé] donnees_decl
 }
 
@@ -305,9 +302,6 @@ struct NoeudDéclarationConstante : BaseDéclarationVariable {
     @comme déclaration_constante
     @code  NoeudCodeDéclarationConstante
     @genre_valeur DROITE
-
-    /* Pour les variables globales. */
-    NoeudExpression * [] arbre_aplatis
 
     ValeurExpression valeur_expression
 }
@@ -448,7 +442,6 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 
     UniteCompilation * unité [préserve_accents]
     NoeudDéclarationCorpsFonction *corps [code enfant]
-    NoeudExpression * [] arbre_aplatis
 
     // Ceux-ci ne peuvent pas être des NoeudDéclarationVariables car la structure est partagée avec les types
     // qui utilisent des expressions simples comme paramètres
@@ -499,7 +492,6 @@ struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
     UniteCompilation * unité [préserve_accents]
     NoeudDéclarationEnteteFonction *entête [code]
     NoeudBloc *bloc [code enfant]
-    NoeudExpression * [] arbre_aplatis
     bool est_corps_texte [copie]
 
     /* Si le corps est un opérateur surchargé (macro) pour une boucle « pour »,
@@ -561,7 +553,6 @@ struct NoeudStruct : NoeudDéclarationType {
     @genre_valeur DROITE
 
     NoeudBloc *bloc [code enfant]
-    NoeudExpression * [] arbre_aplatis
 
     bool est_union [copie]
     bool est_nonsure [copie]
@@ -606,7 +597,6 @@ struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
     @code  NoeudCodeTypeOpaque
     @genre_valeur DROITE
 
-    NoeudExpression * [] arbre_aplatis
     NoeudExpression *expression_type [code enfant]
 }
 
@@ -820,8 +810,6 @@ struct NoeudDirectiveExécute : NoeudExpression {
     UniteCompilation * unité [préserve_accents]
     NoeudExpression *expression [code enfant]
 
-    NoeudExpression * [] arbre_aplatis
-
     MetaProgramme *métaprogramme
 }
 
@@ -888,7 +876,6 @@ struct NoeudDirectiveAjouteInit : NoeudExpression {
 
     UniteCompilation * unité [préserve_accents]
     NoeudExpression *expression [code enfant]
-    NoeudExpression * [] arbre_aplatis
 }
 
 struct NoeudDirectiveAjouteFini : NoeudExpression {
@@ -899,7 +886,6 @@ struct NoeudDirectiveAjouteFini : NoeudExpression {
 
     UniteCompilation * unité [préserve_accents]
     NoeudExpression *expression [code enfant]
-    NoeudExpression * [] arbre_aplatis
 }
 
 struct NoeudDirectivePréExécutable : NoeudDirectiveExécute {

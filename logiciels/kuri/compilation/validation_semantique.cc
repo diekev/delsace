@@ -34,11 +34,19 @@ Sémanticienne::Sémanticienne(Compilatrice &compilatrice) : m_compilatrice(comp
 {
 }
 
+Sémanticienne::~Sémanticienne()
+{
+    POUR (m_arbres_aplatis) {
+        memoire::deloge("ArbreAplatis", it);
+    }
+}
+
 void Sémanticienne::réinitialise()
 {
     m_tacheronne = nullptr;
     espace = nullptr;
     unite = nullptr;
+    m_arbre_courant = nullptr;
 }
 
 void Sémanticienne::définis_tacheronne(Tacheronne &tacheronne)
@@ -56,11 +64,6 @@ StatistiquesTypage &Sémanticienne::donne_stats_typage()
     return m_stats_typage;
 }
 
-UniteCompilation *Sémanticienne::donne_unité()
-{
-    return unite;
-}
-
 /* Point d'entrée pour la validation sémantique. Nous utilisons ceci au lieu de directement appeler
  * valide_semantique_noeud, puisque la validation des arbres aplatis pourrait résulter en un
  * dépassement de pile dans le cas où l'arbre aplatis contient également la fonction racine.
@@ -70,6 +73,12 @@ ResultatValidation Sémanticienne::valide(UniteCompilation *unité)
 {
     unite = unité;
     espace = unité->espace;
+
+    if (!unité->arbre_aplatis) {
+        unité->arbre_aplatis = donne_un_arbre_aplatis();
+    }
+
+    m_arbre_courant = unité->arbre_aplatis;
 
     if (racine_validation()->est_entete_fonction()) {
         return valide_entete_fonction(racine_validation()->comme_entete_fonction());
@@ -98,22 +107,22 @@ ResultatValidation Sémanticienne::valide(UniteCompilation *unité)
 
     if (racine_validation()->est_type_opaque()) {
         auto opaque = racine_validation()->comme_type_opaque();
-        return valide_arbre_aplatis(opaque, opaque->arbre_aplatis);
+        return valide_arbre_aplatis(opaque);
     }
 
     if (racine_validation()->est_declaration_variable()) {
         auto decl = racine_validation()->comme_declaration_variable();
-        return valide_arbre_aplatis(decl, decl->arbre_aplatis);
+        return valide_arbre_aplatis(decl);
     }
 
     if (racine_validation()->est_declaration_constante()) {
         auto decl = racine_validation()->comme_declaration_constante();
-        return valide_arbre_aplatis(decl, decl->arbre_aplatis);
+        return valide_arbre_aplatis(decl);
     }
 
     if (racine_validation()->est_execute()) {
         auto execute = racine_validation()->comme_execute();
-        return valide_arbre_aplatis(execute, execute->arbre_aplatis);
+        return valide_arbre_aplatis(execute);
     }
 
     if (racine_validation()->est_importe() || racine_validation()->est_charge()) {
@@ -122,12 +131,12 @@ ResultatValidation Sémanticienne::valide(UniteCompilation *unité)
 
     if (racine_validation()->est_ajoute_fini()) {
         auto ajoute_fini = racine_validation()->comme_ajoute_fini();
-        return valide_arbre_aplatis(ajoute_fini, ajoute_fini->arbre_aplatis);
+        return valide_arbre_aplatis(ajoute_fini);
     }
 
     if (racine_validation()->est_ajoute_init()) {
         auto ajoute_init = racine_validation()->comme_ajoute_init();
-        return valide_arbre_aplatis(ajoute_init, ajoute_init->arbre_aplatis);
+        return valide_arbre_aplatis(ajoute_init);
     }
 
     if (racine_validation()->est_declaration_bibliotheque()) {
@@ -493,7 +502,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             if (racine_validation() != noeud) {
                 /* avance l'index car il est inutile de revalider ce noeud */
-                unite->index_courant += 1;
+                m_arbre_courant->index_courant += 1;
                 return Attente::sur_metaprogramme(metaprogramme);
             }
 
@@ -801,13 +810,13 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 if (inst->est_saufsi_statique()) {
                     if (condition_est_vraie) {
                         // dis à l'unité de sauter les instructions jusqu'au prochain point
-                        unite->index_courant = inst->index_bloc_si_faux;
+                        m_arbre_courant->index_courant = inst->index_bloc_si_faux;
                     }
                 }
                 else {
                     if (!condition_est_vraie) {
                         // dis à l'unité de sauter les instructions jusqu'au prochain point
-                        unite->index_courant = inst->index_bloc_si_faux;
+                        m_arbre_courant->index_courant = inst->index_bloc_si_faux;
                     }
                 }
 
@@ -815,7 +824,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             }
             else {
                 // dis à l'unité de sauter les instructions jusqu'au prochain point
-                unite->index_courant = inst->index_apres;
+                m_arbre_courant->index_courant = inst->index_apres;
             }
 
             break;
@@ -910,7 +919,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             if ((expr_type->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 /* ce n'est plus la peine de revenir ici une fois que le type sera validé */
-                unite->index_courant += 1;
+                m_arbre_courant->index_courant += 1;
                 return Attente::sur_type(expr_type->type);
             }
 
@@ -1746,7 +1755,7 @@ ResultatValidation Sémanticienne::valide_entete_fonction(NoeudDeclarationEntete
 
     {
         CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
-        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+        TENTE(valide_arbre_aplatis(decl));
     }
 
     TENTE(valide_parametres_fonction(decl))
@@ -1795,7 +1804,7 @@ ResultatValidation Sémanticienne::valide_entete_operateur(NoeudDeclarationEntet
 
     {
         CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
-        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+        TENTE(valide_arbre_aplatis(decl));
     }
 
     TENTE(valide_parametres_fonction(decl));
@@ -1833,7 +1842,7 @@ ResultatValidation Sémanticienne::valide_entete_operateur_pour(
 
     {
         CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
-        TENTE(valide_arbre_aplatis(opérateur, opérateur->arbre_aplatis));
+        TENTE(valide_arbre_aplatis(opérateur));
     }
 
     TENTE(valide_parametres_fonction(opérateur));
@@ -2133,13 +2142,13 @@ ResultatValidation Sémanticienne::valide_symbole_externe(NoeudDeclarationSymbol
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_arbre_aplatis(
-    NoeudExpression *declaration, kuri::tableau<NoeudExpression *, int> &arbre_aplatis)
+ResultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declaration)
 {
-    aplatis_arbre(declaration);
+    aplatis_arbre(declaration, m_arbre_courant);
 
-    for (; unite->index_courant < arbre_aplatis.taille(); ++unite->index_courant) {
-        auto noeud_enfant = arbre_aplatis[unite->index_courant];
+    for (; m_arbre_courant->index_courant < m_arbre_courant->noeuds.taille();
+         ++m_arbre_courant->index_courant) {
+        auto noeud_enfant = m_arbre_courant->noeuds[m_arbre_courant->index_courant];
 
         if (noeud_enfant->est_declaration_type() && noeud_enfant != racine_validation()) {
             /* Les types ont leurs propres unités de compilation. */
@@ -2162,8 +2171,19 @@ ResultatValidation Sémanticienne::valide_arbre_aplatis(
             continue;
         }
 
-        TENTE(valide_semantique_noeud(noeud_enfant));
+        auto résultat = valide_semantique_noeud(noeud_enfant);
+        if (est_erreur(résultat)) {
+            m_arbres_aplatis.ajoute(m_arbre_courant);
+            return résultat;
+        }
+
+        if (est_attente(résultat)) {
+            return résultat;
+        }
     }
+
+    unite->arbre_aplatis = nullptr;
+    m_arbres_aplatis.ajoute(m_arbre_courant);
 
     return CodeRetourValidation::OK;
 }
@@ -3118,7 +3138,7 @@ ResultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonction
 
     CHRONO_TYPAGE(m_stats_typage.corps_fonctions, CORPS_FONCTION__VALIDATION);
 
-    TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+    TENTE(valide_arbre_aplatis(decl));
 
     auto bloc = decl->bloc;
     auto inst_ret = derniere_instruction(bloc);
@@ -3181,7 +3201,7 @@ ResultatValidation Sémanticienne::valide_operateur(NoeudDeclarationCorpsFonctio
     auto entete = decl->entete;
     decl->type = entete->type;
 
-    TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+    TENTE(valide_arbre_aplatis(decl));
 
     auto inst_ret = derniere_instruction(decl->bloc);
 
@@ -3699,7 +3719,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     }
 
     if (decl->est_polymorphe) {
-        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+        TENTE(valide_arbre_aplatis(decl));
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
@@ -3719,7 +3739,6 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
             auto metaprogramme = crée_metaprogramme_corps_texte(
                 decl->bloc, decl->bloc_parent, decl->lexeme);
             auto fonction = metaprogramme->fonction;
-            fonction->corps->arbre_aplatis = decl->arbre_aplatis;
             assert(fonction->corps->bloc);
 
             decl->metaprogramme_corps_texte = metaprogramme;
@@ -3745,7 +3764,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         return Attente::sur_parsage(fichier);
     }
 
-    TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+    TENTE(valide_arbre_aplatis(decl));
 
     CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
 
@@ -3929,7 +3948,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
     }
 
     if (decl->est_polymorphe) {
-        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+        TENTE(valide_arbre_aplatis(decl));
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
@@ -3949,7 +3968,6 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
             auto metaprogramme = crée_metaprogramme_corps_texte(
                 decl->bloc, decl->bloc_parent, decl->lexeme);
             auto fonction = metaprogramme->fonction;
-            fonction->corps->arbre_aplatis = decl->arbre_aplatis;
             assert(fonction->corps->bloc);
 
             decl->metaprogramme_corps_texte = metaprogramme;
@@ -3975,7 +3993,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
         return Attente::sur_parsage(fichier);
     }
 
-    TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+    TENTE(valide_arbre_aplatis(decl));
 
     CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
 
@@ -4339,7 +4357,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
          */
         if ((decl->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
             /* Ne revalide pas ce noeud. */
-            unite->index_courant += 1;
+            m_arbre_courant->index_courant += 1;
             return Attente::sur_type(decl->type);
         }
     }
@@ -5638,7 +5656,7 @@ ResultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     inst->corps_operateur_pour = corps_copie_macro;
 
     /* Inutile de revenir ici, la validation peut reprendre au noeud suivant. */
-    unite->index_courant += 1;
+    m_arbre_courant->index_courant += 1;
 
     /* Attend sur la validation sémantique du macro. */
     return Attente::sur_declaration(corps_copie_macro);
@@ -5976,6 +5994,20 @@ ResultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionIm
 
     inst->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
+}
+
+ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
+{
+    ArbreAplatis *résultat;
+    if (m_arbres_aplatis.est_vide()) {
+        résultat = memoire::loge<ArbreAplatis>("ArbreAplatis");
+    }
+    else {
+        résultat = m_arbres_aplatis.dernière();
+        m_arbres_aplatis.supprime_dernier();
+        résultat->réinitialise();
+    }
+    return résultat;
 }
 
 /** \} */

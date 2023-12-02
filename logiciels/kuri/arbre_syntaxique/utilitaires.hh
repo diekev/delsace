@@ -12,6 +12,7 @@
 
 #include "utilitaires/macros.hh"
 
+struct ArbreAplatis;
 struct AssembleuseArbre;
 struct BaseDeclarationVariable;
 struct Compilatrice;
@@ -262,7 +263,7 @@ struct DonnéesSymboleExterne {
 
 /** \} */
 
-void aplatis_arbre(NoeudExpression *declaration);
+void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis);
 
 NoeudExpressionUnaire *crée_prise_adresse(AssembleuseArbre *assem,
                                           Lexeme const *lexème,
