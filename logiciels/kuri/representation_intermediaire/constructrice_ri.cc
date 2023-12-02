@@ -1082,16 +1082,13 @@ static NoeudExpression *boucle_controlée_effective(NoeudExpression *boucle_cont
         auto noeud_pour = boucle_controlée->comme_pour();
 
         if (noeud_pour->corps_operateur_pour) {
-            /* Nous devons retourner la première boucle parent de #corps_boucle. */
-            POUR (noeud_pour->corps_operateur_pour->arbre_aplatis) {
-                if (!it->est_directive_corps_boucle()) {
-                    continue;
-                }
+            auto directive = noeud_pour->corps_operateur_pour->corps_boucle;
+            assert(directive);
 
-                auto boucle_parent = bloc_est_dans_boucle(it->bloc_parent, nullptr);
-                assert(boucle_parent);
-                return boucle_controlée_effective(boucle_parent);
-            }
+            /* Nous devons retourner la première boucle parent de #corps_boucle. */
+            auto boucle_parent = bloc_est_dans_boucle(directive->bloc_parent, nullptr);
+            assert(boucle_parent);
+            return boucle_controlée_effective(boucle_parent);
         }
     }
 

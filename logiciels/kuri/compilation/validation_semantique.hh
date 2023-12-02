@@ -110,6 +110,33 @@ struct ContexteValidationDeclaration {
     DonneesAssignations donnees_temp{};
 };
 
+/* ------------------------------------------------------------------------- */
+/** \name ArbreAplatis.
+ *
+ * Pour la validation sémantique, les arbres syntaxiques sont aplatis afin de
+ * pouvoir valider les noeuds séquentiellement. Ainsi, lorsque nous devons
+ * mettre en pause la validation, pour la reprendre ultérieurement, nous
+ * pouvons simplement retourner d'une fonction, au lieu de se soucier de
+ * dépiler toute la pile d'exécution. De même, la reprise de la validation peut
+ * se faire en itérant sur l'arbre aplatis à partir de l'index de la dernière
+ * itération connue.
+ * \{ */
+
+struct ArbreAplatis {
+    kuri::tableau<NoeudExpression *, int> noeuds{};
+    /* Index courant lors de la validation sémantique. Utilisé pour pouvoir reprendre la validation
+     * en cas d'attente. */
+    int index_courant = 0;
+
+    void réinitialise()
+    {
+        noeuds.efface();
+        index_courant = 0;
+    }
+};
+
+/** \} */
+
 struct Sémanticienne {
   private:
     Compilatrice &m_compilatrice;
@@ -124,10 +151,20 @@ struct Sémanticienne {
 
     ContexteValidationDeclaration contexte_validation_declaration{};
 
+    /* Les arbres aplatis créés. Nous en créons au besoin pour les unités de
+     * compilation quand elles entrent en validation, et récupérons la mémoire
+     * lorsque la validation est terminée. */
+    kuri::tableau<ArbreAplatis *> m_arbres_aplatis{};
+
+    /* L'arbre pour l'unité courante. */
+    ArbreAplatis *m_arbre_courant = nullptr;
+
   public:
     Sémanticienne(Compilatrice &compilatrice);
 
     EMPECHE_COPIE(Sémanticienne);
+
+    ~Sémanticienne();
 
     void réinitialise();
     void définis_tacheronne(Tacheronne &tacheronne);
@@ -142,7 +179,10 @@ struct Sémanticienne {
 
     StatistiquesTypage &donne_stats_typage();
 
-    UniteCompilation *donne_unité();
+    ArbreAplatis *donne_arbre()
+    {
+        return m_arbre_courant;
+    }
 
     double donne_temps_chargement() const
     {
@@ -179,8 +219,7 @@ struct Sémanticienne {
     ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
     ResultatValidation valide_déclaration_constante(NoeudDeclarationConstante *decl);
     ResultatValidation valide_assignation(NoeudAssignation *inst);
-    ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration,
-                                            kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
+    ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration);
     ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
     ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
     ResultatValidation valide_référence_déclaration(NoeudExpressionReference *expr,
@@ -264,4 +303,6 @@ struct Sémanticienne {
     ResultatValidation valide_dépendance_bibliothèque(NoeudDirectiveDependanceBibliotheque *noeud);
 
     ResultatValidation valide_instruction_importe(NoeudInstructionImporte *inst);
+
+    ArbreAplatis *donne_un_arbre_aplatis();
 };
