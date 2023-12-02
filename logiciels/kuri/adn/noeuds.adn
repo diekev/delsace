@@ -505,6 +505,12 @@ struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
     /* Si le corps est un opérateur surchargé (macro) pour une boucle « pour »,
      * ceci pointe vers la boucle en question. */
     NoeudPour *est_macro_boucle_pour;
+
+    /* Si le corps est un opérateur surchargé (macro) pour une boucle « pour »,
+     * ceci pointe l'instruction #corps_boucle.
+     * À FAIRE : nous pouvons en avoir plusieurs. Ceci est mis en cache pour la
+     * compilation de RI. */
+    NoeudDirectiveCorpsBoucle *corps_boucle;
 }
 
 struct NoeudDéclarationOpérateurPour : NoeudDéclarationEnteteFonction {

@@ -306,6 +306,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     noeud, "Il est impossible d'utiliser #corps_boucle en dehors d'une boucle.");
                 return CodeRetourValidation::Erreur;
             }
+            corps->corps_boucle = noeud->comme_directive_corps_boucle();
             break;
         }
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
