@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "structures/pile.hh"
 #include "structures/tableau.hh"
 
 enum class GenreNoeud : uint8_t;
@@ -61,6 +62,19 @@ struct Simplificatrice {
     NoeudExpressionAppel *m_site_pour_position_code_source = nullptr;
 
     bool m_dans_fonction = false;
+
+    /* Données pour les substitions à faire dans le corps des boucles-pour provenant
+     * d'opérateurs-pour. */
+    struct SubstitutionBouclePourOpérée {
+        /* Le paramètre de la fonction. */
+        NoeudExpression *param = nullptr;
+        /* Substitution pour la référence au paramètre de l'opérateur. */
+        NoeudExpression *référence_paramètre = nullptr;
+        /* Subsitution pour la directive #corps_boucle. */
+        NoeudBloc *corps_boucle = nullptr;
+    };
+
+    kuri::pile<SubstitutionBouclePourOpérée> m_substitutions_boucles_pour{};
 
   public:
     Simplificatrice(EspaceDeTravail *e, AssembleuseArbre *a, Typeuse &t)
