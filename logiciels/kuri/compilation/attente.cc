@@ -89,7 +89,7 @@ RAPPEL_POUR_COMMENTAIRE(type)
 
 RAPPEL_POUR_EST_RÉSOLUE(type)
 {
-    return (attente.type()->drapeaux & TYPE_FUT_VALIDE) != 0;
+    return attente.type()->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE);
 }
 
 RAPPEL_POUR_ERREUR(type)

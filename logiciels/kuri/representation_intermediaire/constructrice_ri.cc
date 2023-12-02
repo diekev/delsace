@@ -3595,7 +3595,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
     }
 
     // À FAIRE : il nous faut toutes les informations du type pour pouvoir générer les informations
-    assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) != 0, [&]() {
+    assert_rappel(type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE), [&]() {
         if (m_fonction_courante) {
             dbg() << "Dans la génération de RI pour " << m_fonction_courante->nom << " :\n"
                   << *m_fonction_courante->decl << '\n'
