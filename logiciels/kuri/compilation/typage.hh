@@ -162,28 +162,38 @@ std::ostream &operator<<(std::ostream &os, GenreType genre);
 
 bool est_type_polymorphique(Type const *type);
 
-enum {
+/* ------------------------------------------------------------------------- */
+/** \name Drapeaux pour les types.
+ * \{ */
+
+enum class DrapeauxTypes : uint32_t {
+    AUCUN = 0,
+
     /* Pour les types variadiques externes, et les structures externes opaques (sans bloc). */
-    TYPE_NE_REQUIERS_PAS_D_INITIALISATION = 1,
-    TYPE_EST_POLYMORPHIQUE = 2,
-    TYPE_FUT_VALIDE = 4,
-    INITIALISATION_TYPE_FUT_CREEE = 8,
-    POSSEDE_TYPE_POINTEUR = 16,
-    POSSEDE_TYPE_REFERENCE = 32,
-    POSSEDE_TYPE_TABLEAU_FIXE = 64,
-    POSSEDE_TYPE_TABLEAU_DYNAMIQUE = 128,
-    POSSEDE_TYPE_TYPE_DE_DONNEES = 256,
-    CODE_BINAIRE_TYPE_FUT_GENERE = 512,
-    /* DISPONIBLE = 1024, */
-    TYPE_POSSEDE_OPERATEURS_DE_BASE = 2048,
-    UNITE_POUR_INITIALISATION_FUT_CREE = 4096,
+    TYPE_NE_REQUIERS_PAS_D_INITIALISATION = (1u << 0),
+    TYPE_EST_POLYMORPHIQUE = (1u << 1),
+    TYPE_FUT_VALIDE = (1u << 2),
+    INITIALISATION_TYPE_FUT_CREEE = (1u << 3),
+    POSSEDE_TYPE_POINTEUR = (1u << 4),
+    POSSEDE_TYPE_REFERENCE = (1u << 5),
+    POSSEDE_TYPE_TABLEAU_FIXE = (1u << 6),
+    POSSEDE_TYPE_TABLEAU_DYNAMIQUE = (1u << 7),
+    POSSEDE_TYPE_TYPE_DE_DONNEES = (1u << 8),
+    CODE_BINAIRE_TYPE_FUT_GENERE = (1u << 9),
+    TYPE_POSSEDE_OPERATEURS_DE_BASE = (1u << 10),
+    UNITE_POUR_INITIALISATION_FUT_CREE = (1u << 11),
 };
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxTypes)
+
+std::ostream &operator<<(std::ostream &os, DrapeauxTypes const drapeaux);
+
+/** \} */
 
 struct Type {
     GenreType genre{};
     unsigned taille_octet = 0;
     unsigned alignement = 0;
-    int drapeaux = 0;
+    DrapeauxTypes drapeaux_type = DrapeauxTypes::AUCUN;
     unsigned index_dans_table_types = 0;
 
     kuri::chaine_statique nom_broye{};
@@ -221,6 +231,11 @@ struct Type {
 
     inline TypeCompose *comme_type_compose();
     inline const TypeCompose *comme_type_compose() const;
+
+    inline bool possède_drapeau(DrapeauxTypes drapeaux_) const
+    {
+        return (drapeaux_type & drapeaux_) != DrapeauxTypes::AUCUN;
+    }
 };
 
 struct TypePointeur : public Type {
@@ -494,7 +509,7 @@ struct TypePolymorphique : public Type {
     TypePolymorphique()
     {
         genre = GenreType::POLYMORPHIQUE;
-        drapeaux = TYPE_EST_POLYMORPHIQUE;
+        drapeaux_type = DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
     }
 
     explicit TypePolymorphique(IdentifiantCode *ident);
@@ -934,8 +949,8 @@ NoeudDeclaration *decl_pour_type(const Type *type);
 Type const *donne_type_opacifié_racine(TypeOpaque const *type_opaque);
 
 void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
-                                            int drapeau,
+                                            DrapeauxTypes drapeau,
                                             kuri::tablet<Attente, 16> &attentes);
 
 std::optional<Attente> attente_sur_type_si_drapeau_manquant(
-    kuri::ensemblon<Type *, 16> const &types, int drapeau);
+    kuri::ensemblon<Type *, 16> const &types, DrapeauxTypes drapeau);

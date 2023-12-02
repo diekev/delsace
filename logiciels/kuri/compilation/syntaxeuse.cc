@@ -3006,7 +3006,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(NoeudStru
 void Syntaxeuse::analyse_membres_structure_ou_union(NoeudStruct *decl_struct)
 {
     if (decl_struct->est_externe && ignore_point_virgule_implicite()) {
-        decl_struct->type->drapeaux |= TYPE_NE_REQUIERS_PAS_D_INITIALISATION;
+        decl_struct->type->drapeaux_type |= DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION;
         return;
     }
 
