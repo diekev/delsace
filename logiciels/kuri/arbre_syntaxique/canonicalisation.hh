@@ -35,6 +35,7 @@ struct TypeStructure;
  * \{ */
 
 struct Simplificatrice {
+  private:
     EspaceDeTravail *espace;
     AssembleuseArbre *assem;
     Typeuse &typeuse;
@@ -61,10 +62,13 @@ struct Simplificatrice {
 
     bool m_dans_fonction = false;
 
+  public:
     Simplificatrice(EspaceDeTravail *e, AssembleuseArbre *a, Typeuse &t)
         : espace(e), assem(a), typeuse(t)
     {
     }
+
+    EMPECHE_COPIE(Simplificatrice);
 
     void simplifie(NoeudExpression *noeud);
 
