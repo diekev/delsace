@@ -229,7 +229,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     if (type_vers->est_type_union()) {
         auto type_union = type_vers->comme_type_union();
 
-        if ((type_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!type_vers->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             return Attente::sur_type(type_vers);
         }
 
@@ -247,7 +247,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
     if (type_vers->est_type_eini()) {
         /* Il nous faut attendre sur le type pour pouvoir générer l'InfoType. */
-        if ((type_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!type_de->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             return Attente::sur_type(type_de);
         }
         return TypeTransformation::CONSTRUIT_EINI;
@@ -256,7 +256,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     if (type_de->est_type_union()) {
         auto type_union = type_de->comme_type_union();
 
-        if ((type_union->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!type_union->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             return Attente::sur_type(type_union);
         }
 
@@ -293,11 +293,11 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         if (type_de->est_type_reference()) {
             auto type_élément_de = type_de->comme_type_reference()->type_pointe;
 
-            if ((type_élément_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!type_élément_de->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 return Attente::sur_type(type_élément_de);
             }
 
-            if ((type_élément_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!type_élément_vers->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 return Attente::sur_type(type_élément_vers);
             }
 
@@ -311,11 +311,11 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TypeTransformation::PREND_REFERENCE;
         }
 
-        if ((type_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!type_de->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             return Attente::sur_type(type_de);
         }
 
-        if ((type_élément_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!type_élément_vers->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             return Attente::sur_type(type_élément_vers);
         }
 
@@ -402,11 +402,11 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             auto ts_de = type_pointe_de->comme_type_structure();
             auto ts_vers = type_pointe_vers->comme_type_structure();
 
-            if ((ts_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!ts_de->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 return Attente::sur_type(ts_de);
             }
 
-            if ((ts_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!ts_vers->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 return Attente::sur_type(ts_vers);
             }
 

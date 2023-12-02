@@ -612,7 +612,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
              * du besoin des types la taille de leurs tuples.
              */
             if (type_retour->est_type_tuple() && type_retour->taille_octet == 0 &&
-                (type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
+                !type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
                 calcule_taille_type_compose(type_retour->comme_type_tuple(), false, 0);
             }
         }
@@ -817,11 +817,11 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
     auto unite = crée_unite(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
     unite->type = type;
 
-    if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+    if (!type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
         unite->ajoute_attente(Attente::sur_type(type));
     }
 
-    type->drapeaux |= UNITE_POUR_INITIALISATION_FUT_CREE;
+    type->drapeaux_type |= DrapeauxTypes::UNITE_POUR_INITIALISATION_FUT_CREE;
 }
 
 UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
@@ -1513,7 +1513,7 @@ void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
 
 void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unite)
 {
-    assert((unite->type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) != 0);
+    assert(unite->type->possède_drapeau(DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE));
 
     auto fonction = unite->type->fonction_init;
     if (fonction->unité) {
