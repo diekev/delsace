@@ -296,6 +296,7 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
 /* ************************************************************************** */
 
 struct GeneratriceCodeLLVM {
+  private:
     kuri::tableau<llvm::Value *> table_valeurs{};
     kuri::tableau<llvm::BasicBlock *> table_blocs{};
     kuri::table_hachage<Atome const *, llvm::GlobalVariable *> table_globales{
@@ -306,17 +307,25 @@ struct GeneratriceCodeLLVM {
     EspaceDeTravail &m_espace;
 
     llvm::Function *m_fonction_courante = nullptr;
-    llvm::LLVMContext m_contexte_llvm{};
     llvm::Module *m_module = nullptr;
+    llvm::LLVMContext &m_contexte_llvm;
     llvm::IRBuilder<> m_builder;
     llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
 
     AtomeFonction *m_atome_fonction_principale = nullptr;
 
-    GeneratriceCodeLLVM(EspaceDeTravail &espace);
+  public:
+    GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module);
 
     GeneratriceCodeLLVM(GeneratriceCodeLLVM const &) = delete;
     GeneratriceCodeLLVM &operator=(const GeneratriceCodeLLVM &) = delete;
+
+    ~GeneratriceCodeLLVM();
+
+    void genere_code(const ProgrammeRepreInter &repr_inter);
+
+  private:
+    void initialise_optimisation(NiveauOptimisation optimisation);
 
     llvm::Type *converti_type_llvm(Type const *type);
 
@@ -326,17 +335,76 @@ struct GeneratriceCodeLLVM {
 
     void genere_code_pour_instruction(Instruction const *inst);
 
-    void genere_code(const ProgrammeRepreInter &repr_inter);
-
     llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, int64_t taille_chaine);
 
-  private:
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
 };
 
-GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace)
-    : m_espace(espace), m_builder(m_contexte_llvm)
+GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module)
+    : m_espace(espace), m_module(&module), m_contexte_llvm(m_module->getContext()),
+      m_builder(m_contexte_llvm)
 {
+    initialise_optimisation(espace.options.niveau_optimisation);
+}
+
+GeneratriceCodeLLVM::~GeneratriceCodeLLVM()
+{
+    delete manager_fonctions;
+}
+
+/**
+ * Ajoute les passes d'optimisation au manageur en fonction du niveau
+ * d'optimisation.
+ */
+static void ajoute_passes(llvm::legacy::FunctionPassManager &manager_fonctions,
+                          uint32_t niveau_optimisation,
+                          uint32_t niveau_taille)
+{
+    llvm::PassManagerBuilder builder;
+    builder.OptLevel = niveau_optimisation;
+    builder.SizeLevel = niveau_taille;
+    builder.DisableUnrollLoops = (niveau_optimisation == 0);
+
+    /* Pour plus d'informations sur les vectoriseurs, suivre le lien :
+     * http://llvm.org/docs/Vectorizers.html */
+    builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+    builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+
+    builder.populateFunctionPassManager(manager_fonctions);
+}
+
+/**
+ * Initialise le manageur de passes fonctions du contexte selon le niveau
+ * d'optimisation.
+ */
+void GeneratriceCodeLLVM::initialise_optimisation(NiveauOptimisation optimisation)
+{
+    if (manager_fonctions == nullptr) {
+        manager_fonctions = new llvm::legacy::FunctionPassManager(m_module);
+    }
+
+    switch (optimisation) {
+        case NiveauOptimisation::AUCUN:
+            break;
+        case NiveauOptimisation::O0:
+            ajoute_passes(*manager_fonctions, 0, 0);
+            break;
+        case NiveauOptimisation::O1:
+            ajoute_passes(*manager_fonctions, 1, 0);
+            break;
+        case NiveauOptimisation::O2:
+            ajoute_passes(*manager_fonctions, 2, 0);
+            break;
+        case NiveauOptimisation::Os:
+            ajoute_passes(*manager_fonctions, 2, 1);
+            break;
+        case NiveauOptimisation::Oz:
+            ajoute_passes(*manager_fonctions, 2, 2);
+            break;
+        case NiveauOptimisation::O3:
+            ajoute_passes(*manager_fonctions, 3, 0);
+            break;
+    }
 }
 
 llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
@@ -1486,61 +1554,6 @@ void issitialise_llvm()
     llvm::llvm_shutdown();
 }
 
-/**
- * Ajoute les passes d'optimisation au ménageur en fonction du niveau
- * d'optimisation.
- */
-static void ajoute_passes(llvm::legacy::FunctionPassManager &manager_fonctions,
-                          uint32_t niveau_optimisation,
-                          uint32_t niveau_taille)
-{
-    llvm::PassManagerBuilder builder;
-    builder.OptLevel = niveau_optimisation;
-    builder.SizeLevel = niveau_taille;
-    builder.DisableUnrollLoops = (niveau_optimisation == 0);
-
-    /* Pour plus d'informations sur les vectoriseurs, suivre le lien :
-     * http://llvm.org/docs/Vectorizers.html */
-    builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-    builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-
-    builder.populateFunctionPassManager(manager_fonctions);
-}
-
-/**
- * Initialise le ménageur de passes fonctions du contexte selon le niveau
- * d'optimisation.
- */
-static void initialise_optimisation(NiveauOptimisation optimisation, GeneratriceCodeLLVM &contexte)
-{
-    if (contexte.manager_fonctions == nullptr) {
-        contexte.manager_fonctions = new llvm::legacy::FunctionPassManager(contexte.m_module);
-    }
-
-    switch (optimisation) {
-        case NiveauOptimisation::AUCUN:
-            break;
-        case NiveauOptimisation::O0:
-            ajoute_passes(*contexte.manager_fonctions, 0, 0);
-            break;
-        case NiveauOptimisation::O1:
-            ajoute_passes(*contexte.manager_fonctions, 1, 0);
-            break;
-        case NiveauOptimisation::O2:
-            ajoute_passes(*contexte.manager_fonctions, 2, 0);
-            break;
-        case NiveauOptimisation::Os:
-            ajoute_passes(*contexte.manager_fonctions, 2, 1);
-            break;
-        case NiveauOptimisation::Oz:
-            ajoute_passes(*contexte.manager_fonctions, 2, 2);
-            break;
-        case NiveauOptimisation::O3:
-            ajoute_passes(*contexte.manager_fonctions, 3, 0);
-            break;
-    }
-}
-
 /* Chemin du fichier objet généré par la coulisse. */
 static kuri::chemin_systeme chemin_fichier_objet_llvm()
 {
@@ -1744,19 +1757,14 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
     auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
     m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
-    auto generatrice = GeneratriceCodeLLVM(espace);
+    llvm::LLVMContext contexte_llvm;
 
-    m_module = new llvm::Module("Module", generatrice.m_contexte_llvm);
+    m_module = new llvm::Module("Module", contexte_llvm);
     m_module->setDataLayout(m_machine_cible->createDataLayout());
     m_module->setTargetTriple(triplet_cible);
 
-    generatrice.m_module = m_module;
-
-    initialise_optimisation(espace.options.niveau_optimisation, generatrice);
-
+    auto generatrice = GeneratriceCodeLLVM(espace, *m_module);
     generatrice.genere_code(*repr_inter);
-
-    delete generatrice.manager_fonctions;
 
 #ifndef NDEBUG
     if (!valide_llvm_ir(*m_module)) {
