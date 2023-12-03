@@ -302,8 +302,6 @@ struct GeneratriceCodeLLVM {
     kuri::table_hachage<Atome const *, llvm::GlobalVariable *> table_globales{
         "Table valeurs globales LLVM"};
     kuri::table_hachage<Type const *, llvm::Type *> table_types{"Table types LLVM"};
-    kuri::table_hachage<kuri::chaine, llvm::Constant *> valeurs_chaines_globales{
-        "Table chaines LLVM"};
     EspaceDeTravail &m_espace;
 
     llvm::Function *m_fonction_courante = nullptr;
@@ -336,8 +334,6 @@ struct GeneratriceCodeLLVM {
     llvm::Value *genere_code_pour_atome(Atome const *atome, bool pour_globale);
 
     void genere_code_pour_instruction(Instruction const *inst);
-
-    llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, int64_t taille_chaine);
 
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
 };
@@ -1472,48 +1468,6 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
     }
 
     m_fonction_courante = nullptr;
-}
-
-llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chaine,
-                                                        int64_t taille_chaine)
-{
-    auto iter = valeurs_chaines_globales.valeur_ou(chaine, nullptr);
-    if (iter) {
-        return iter;
-    }
-
-    // @.chn [N x i8] c"...0"
-    auto type_tableau = m_espace.compilatrice().typeuse.type_tableau_fixe(
-        TypeBase::Z8, static_cast<int>(taille_chaine + 1));
-
-    auto constante = llvm::ConstantDataArray::getString(m_contexte_llvm, vers_std_string(chaine));
-
-    auto tableu_chaine_c = new llvm::GlobalVariable(*m_module,
-                                                    converti_type_llvm(type_tableau),
-                                                    true,
-                                                    llvm::GlobalValue::PrivateLinkage,
-                                                    constante,
-                                                    ".chn");
-
-    // prend le pointeur vers le premier élément.
-    auto idx = std::vector<llvm::Constant *>{
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(m_contexte_llvm), 0),
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(m_contexte_llvm), 0)};
-
-    auto pointeur_chaine_c = llvm::ConstantExpr::getGetElementPtr(
-        converti_type_llvm(type_tableau), tableu_chaine_c, idx, true);
-
-    auto valeur_taille = llvm::ConstantInt::get(
-        llvm::Type::getInt64Ty(m_contexte_llvm), static_cast<uint64_t>(chaine.taille()), false);
-
-    auto type_chaine = converti_type_llvm(TypeBase::CHAINE);
-
-    auto struct_chaine = llvm::ConstantStruct::get(
-        static_cast<llvm::StructType *>(type_chaine), pointeur_chaine_c, valeur_taille);
-
-    valeurs_chaines_globales.insère(chaine, struct_chaine);
-
-    return struct_chaine;
 }
 
 bool initialise_llvm()
