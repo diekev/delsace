@@ -459,6 +459,14 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(prise_adresse);
             break;
         }
+        case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
+        {
+            auto prise_référence = racine->comme_prise_reference();
+            prise_référence->drapeaux |= drapeau;
+            aplatis_arbre(prise_référence->opérande, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(prise_référence);
+            break;
+        }
         case GenreNoeud::INSTRUCTION_ARRETE:
         {
             auto inst = racine->comme_arrete();

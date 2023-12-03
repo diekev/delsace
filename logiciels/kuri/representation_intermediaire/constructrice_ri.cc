@@ -1745,6 +1745,14 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             empile_valeur(valeur);
             return;
         }
+        case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
+        {
+            assert_rappel(false, [&]() {
+                dbg() << "Prise de référence dans la RI :\n"
+                      << erreur::imprime_site(*m_espace, noeud);
+            });
+            return;
+        }
         case GenreNoeud::INSTRUCTION_RETOUR:
         {
             auto inst = noeud->comme_retourne();

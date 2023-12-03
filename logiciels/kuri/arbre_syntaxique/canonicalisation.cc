@@ -257,11 +257,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto expr_un = noeud->comme_expression_unaire();
 
-            if (expr_un->type->est_type_type_de_donnees()) {
-                expr_un->substitution = assem->crée_reference_type(expr_un->lexeme, expr_un->type);
-                return;
-            }
-
             if (expr_un->op && expr_un->op->genre == OpérateurUnaire::Genre::Complement) {
                 if (expr_un->operande->est_litterale_entier()) {
                     auto littérale = expr_un->operande->comme_litterale_entier();
@@ -301,6 +296,17 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
             simplifie(prise_adresse->opérande);
+            return;
+        }
+        case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
+        {
+            auto prise_référence = noeud->comme_prise_reference();
+            if (prise_référence->type->est_type_type_de_donnees()) {
+                prise_référence->substitution = assem->crée_reference_type(prise_référence->lexeme,
+                                                                           prise_référence->type);
+                return;
+            }
+            simplifie(prise_référence->opérande);
             return;
         }
         case GenreNoeud::EXPRESSION_TYPE_DE:

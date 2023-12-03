@@ -366,6 +366,15 @@ struct NoeudExpressionPriseAdresse : NoeudExpression {
     NoeudExpression *opérande [code enfant préserve_accents]
 }
 
+struct NoeudExpressionPriseRéférence : NoeudExpression {
+    @genre EXPRESSION_PRISE_RÉFÉRENCE
+    @comme prise_référence
+    @code  NoeudCodeExpressionPriseRéférence
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande [code enfant préserve_accents]
+}
+
 struct NoeudExpressionBinaire : NoeudExpression {
     @genre OPÉRATEUR_BINAIRE
     @comme expression_binaire

@@ -576,32 +576,6 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             auto enfant = expr->operande;
             auto type = enfant->type;
 
-            if (type == nullptr) {
-                espace->rapporte_erreur(
-                    enfant, "Erreur interne : type nul pour l'opérande d'un opérateur unaire !");
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (type->est_type_type_de_donnees() &&
-                expr->lexeme->genre == GenreLexeme::ESP_UNAIRE) {
-                CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE);
-                auto type_de_donnees = type->comme_type_type_de_donnees();
-                auto type_connu = type_de_donnees->type_connu;
-
-                if (type_connu == nullptr) {
-                    type_connu = type_de_donnees;
-                }
-
-                {
-                    CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__REFERENCE);
-                    type_connu = m_compilatrice.typeuse.type_reference_pour(type_connu);
-                }
-
-                CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE_DE_DONNEES);
-                noeud->type = m_compilatrice.typeuse.type_type_de_donnees(type_connu);
-                break;
-            }
-
             CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__OPERATEUR_UNAIRE);
             if (type->est_type_reference()) {
                 type = type_dereference_pour(type);
@@ -683,6 +657,52 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             }
 
             prise_adresse->type = m_compilatrice.typeuse.type_pointeur_pour(type_opérande);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
+        {
+            auto prise_référence = noeud->comme_prise_reference();
+            auto opérande = prise_référence->opérande;
+            auto type_opérande = opérande->type;
+
+            if (type_opérande == nullptr) {
+                espace->rapporte_erreur(
+                    prise_référence,
+                    "Erreur interne : type nul pour l'opérande d'une prise de référence !");
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_opérande->est_type_type_de_donnees()) {
+                CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE);
+                auto type_de_donnees = type_opérande->comme_type_type_de_donnees();
+                auto type_connu = type_de_donnees->type_connu;
+
+                if (type_connu == nullptr) {
+                    type_connu = type_de_donnees;
+                }
+
+                {
+                    CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__REFERENCE);
+                    type_connu = m_compilatrice.typeuse.type_reference_pour(type_connu);
+                }
+
+                CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE_DE_DONNEES);
+                noeud->type = m_compilatrice.typeuse.type_type_de_donnees(type_connu);
+                break;
+            }
+
+            if (!est_valeur_gauche(opérande->genre_valeur)) {
+                rapporte_erreur("Ne peut pas prendre la référence d'une valeur-droite.", opérande);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_opérande->est_type_reference()) {
+                prise_référence->type = type_opérande;
+            }
+            else {
+                prise_référence->type = m_compilatrice.typeuse.type_reference_pour(type_opérande);
+            }
+
             break;
         }
         case GenreNoeud::EXPRESSION_INDEXAGE:

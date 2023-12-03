@@ -559,26 +559,6 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
             ajoute_candidat(expression_polymorphique->ident, type_reçu);
         }
     }
-    else if (expression_polymorphique->est_expression_unaire()) {
-        auto expr_unaire = expression_polymorphique->comme_expression_unaire();
-
-        auto const genre_lexeme = expr_unaire->lexeme->genre;
-
-        if (genre_lexeme == GenreLexeme::ESP_UNAIRE) {
-            if (type_reçu->est_type_reference()) {
-                parse_candidats(
-                    expr_unaire->operande, site, type_reçu->comme_type_reference()->type_pointe);
-            }
-            else {
-                /* Il est possible que la référence soit implicite, donc tente d'apparier avec le
-                 * type directement. */
-                parse_candidats(expr_unaire->operande, site, type_reçu);
-            }
-        }
-        else {
-            erreur_interne(site, enchaine("opérateur unaire non géré ", genre_lexeme));
-        }
-    }
     else if (expression_polymorphique->est_prise_adresse()) {
         auto const prise_adresse = expression_polymorphique->comme_prise_adresse();
         if (type_reçu->est_type_pointeur()) {
@@ -587,6 +567,18 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
         }
         else {
             erreur_genre_type(site, type_reçu, "n'est pas un pointeur");
+        }
+    }
+    else if (expression_polymorphique->est_prise_reference()) {
+        auto const prise_référence = expression_polymorphique->comme_prise_reference();
+        if (type_reçu->est_type_reference()) {
+            parse_candidats(
+                prise_référence->opérande, site, type_reçu->comme_type_reference()->type_pointe);
+        }
+        else {
+            /* Il est possible que la référence soit implicite, donc tente d'apparier avec le
+             * type directement. */
+            parse_candidats(prise_référence->opérande, site, type_reçu);
         }
     }
     else if (expression_polymorphique->est_expression_binaire()) {
@@ -655,23 +647,15 @@ void Monomorpheuse::ajoute_candidats_depuis_expansion_variadique(
 Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_polymorphique)
 {
     profondeur_appariement_type += 1;
-    if (expression_polymorphique->est_expression_unaire()) {
-        auto expr_unaire = expression_polymorphique->comme_expression_unaire();
-
-        auto const genre_lexeme = expr_unaire->lexeme->genre;
-
-        if (genre_lexeme == GenreLexeme::ESP_UNAIRE) {
-            auto type_pointe = résoud_type_final_impl(expr_unaire->operande);
-            return typeuse().type_reference_pour(type_pointe);
-        }
-        else {
-            erreur_opérateur_non_géré(expr_unaire, genre_lexeme);
-        }
-    }
-    else if (expression_polymorphique->est_prise_adresse()) {
+    if (expression_polymorphique->est_prise_adresse()) {
         auto const prise_adresse = expression_polymorphique->comme_prise_adresse();
         auto type_pointe = résoud_type_final_impl(prise_adresse->opérande);
         return typeuse().type_pointeur_pour(type_pointe);
+    }
+    else if (expression_polymorphique->est_prise_reference()) {
+        auto const prise_référence = expression_polymorphique->comme_prise_reference();
+        auto type_pointe = résoud_type_final_impl(prise_référence->opérande);
+        return typeuse().type_reference_pour(type_pointe);
     }
     else if (expression_polymorphique->est_expression_binaire()) {
         if (expression_polymorphique->lexeme->genre == GenreLexeme::TABLEAU) {

@@ -799,6 +799,15 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
         return noeud;
     }
 
+    if (lexeme->genre == GenreLexeme::ESP_UNAIRE) {
+        auto opérande = analyse_expression(
+            {precedence, associativite}, GenreLexeme::INCONNU, lexeme_final);
+
+        auto noeud = m_tacheronne.assembleuse->crée_prise_reference(lexeme);
+        noeud->opérande = opérande;
+        return noeud;
+    }
+
     auto noeud = m_tacheronne.assembleuse->crée_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexeme)
                      ->comme_expression_unaire();
     noeud->genre = genre_noeud;
