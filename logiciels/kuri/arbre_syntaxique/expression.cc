@@ -19,13 +19,15 @@
 /* ************************************************************************** */
 
 template <typename T>
+static bool applique_négation_logique(T a)
+{
+    return !a;
+}
+
+template <typename T>
 static auto applique_operateur_unaire(GenreLexeme id, T a)
 {
     switch (id) {
-        case GenreLexeme::EXCLAMATION:
-        {
-            return T(!a);
-        }
         case GenreLexeme::TILDE:
         {
             return ~a;
@@ -377,6 +379,35 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
             }
             else if (res.valeur.est_entiere()) {
                 res.valeur = applique_operateur_unaire(inst->lexeme->genre, res.valeur.entiere());
+            }
+
+            return res;
+        }
+        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        {
+            auto négation = b->comme_negation_logique();
+            auto res = evalue_expression(compilatrice, bloc, négation->opérande);
+            if (res.est_errone) {
+                return res;
+            }
+
+            if (res.valeur.est_reelle()) {
+                res.valeur = applique_négation_logique(res.valeur.reelle());
+            }
+            else if (res.valeur.est_booleenne()) {
+                res.valeur = applique_négation_logique(res.valeur.booleenne());
+            }
+            else if (res.valeur.est_entiere()) {
+                res.valeur = applique_négation_logique(res.valeur.entiere());
+            }
+            else if (res.valeur.est_chaine()) {
+                auto chaine = res.valeur.chaine();
+                res.valeur = chaine->lexeme->chaine.taille() == 0;
+            }
+            else {
+                return erreur_evaluation(b,
+                                         "L'expression n'est pas évaluable car l'opération "
+                                         "n'est pas applicable sur le type de l'opérande.");
             }
 
             return res;

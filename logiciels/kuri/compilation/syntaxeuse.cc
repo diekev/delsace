@@ -790,6 +790,33 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
     auto precedence = precedence_pour_operateur(lexeme->genre);
     auto associativite = associativite_pour_operateur(lexeme->genre);
 
+    if (lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
+        auto opérande = analyse_expression(
+            {precedence, associativite}, GenreLexeme::INCONNU, lexeme_final);
+
+        auto noeud = m_tacheronne.assembleuse->crée_prise_adresse(lexeme);
+        noeud->opérande = opérande;
+        return noeud;
+    }
+
+    if (lexeme->genre == GenreLexeme::ESP_UNAIRE) {
+        auto opérande = analyse_expression(
+            {precedence, associativite}, GenreLexeme::INCONNU, lexeme_final);
+
+        auto noeud = m_tacheronne.assembleuse->crée_prise_reference(lexeme);
+        noeud->opérande = opérande;
+        return noeud;
+    }
+
+    if (lexeme->genre == GenreLexeme::EXCLAMATION) {
+        auto opérande = analyse_expression(
+            {precedence, associativite}, GenreLexeme::INCONNU, lexeme_final);
+
+        auto noeud = m_tacheronne.assembleuse->crée_negation_logique(lexeme);
+        noeud->opérande = opérande;
+        return noeud;
+    }
+
     auto noeud = m_tacheronne.assembleuse->crée_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexeme)
                      ->comme_expression_unaire();
     noeud->genre = genre_noeud;
@@ -2698,12 +2725,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         }
         else if (!dls::outils::est_element(genre_operateur,
                                            GenreLexeme::TILDE,
-                                           GenreLexeme::EXCLAMATION,
                                            GenreLexeme::PLUS_UNAIRE,
                                            GenreLexeme::MOINS_UNAIRE,
                                            GenreLexeme::POUR)) {
             rapporte_erreur("La surcharge d'opérateur unaire n'est possible que "
-                            "pour '+', '-', '~', '!', ou 'pour'");
+                            "pour '+', '-', '~', ou 'pour'");
             return nullptr;
         }
     }
