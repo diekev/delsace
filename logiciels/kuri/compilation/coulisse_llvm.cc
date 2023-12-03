@@ -330,6 +330,9 @@ struct GeneratriceCodeLLVM {
     void genere_code(const ProgrammeRepreInter &repr_inter);
 
     llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, int64_t taille_chaine);
+
+private:
+    void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
 };
 
 GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace)
@@ -1297,99 +1300,99 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         }
     }
 
-    // auto index_fonction = 0l;
     POUR (repr_inter.donne_fonctions()) {
-        auto atome_fonc = it;
-        table_valeurs.efface();
-        table_blocs.efface();
-
-        // index_fonction++;
-
-        if (atome_fonc->est_externe) {
+        if (it->est_externe) {
             continue;
         }
 
-        // dbg() << "Génère code pour : " << atome_fonc->nom;
-
-        auto fonction = m_module->getFunction(vers_std_string(atome_fonc->nom));
-
-        m_fonction_courante = fonction;
-        table_valeurs.efface();
-        table_blocs.efface();
-
-        /* génère d'abord tous les blocs depuis les labels */
-        for (auto inst : atome_fonc->instructions) {
-            if (inst->genre != GenreInstruction::LABEL) {
-                continue;
-            }
-
-            genere_code_pour_instruction(inst);
-        }
-
-        auto bloc_entree = table_blocs.valeur_ou(atome_fonc->instructions[0]->comme_label(),
-                                                 nullptr);
-        m_builder.SetInsertPoint(bloc_entree);
-
-        auto valeurs_args = fonction->arg_begin();
-
-        for (auto &param : atome_fonc->params_entrees) {
-            auto const &nom_argument = param->ident->nom;
-
-            auto valeur = &(*valeurs_args++);
-            valeur->setName(vers_std_string(nom_argument));
-
-            auto type = param->donne_type_alloué();
-            auto type_llvm = converti_type_llvm(type);
-
-            auto alloc = m_builder.CreateAlloca(type_llvm, 0u);
-            alloc->setAlignment(llvm::Align(type->alignement));
-
-            auto store = m_builder.CreateStore(valeur, alloc);
-            store->setAlignment(llvm::Align(type->alignement));
-
-            table_valeurs.insère(param, alloc);
-        }
-
-        /* crée une variable local pour la valeur de sortie */
-        auto type_fonction = atome_fonc->type->comme_type_fonction();
-        if (!type_fonction->type_sortie->est_type_rien()) {
-            auto param = atome_fonc->param_sortie;
-            auto type_alloué = param->donne_type_alloué();
-            auto type_llvm = converti_type_llvm(type_alloué);
-            auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
-            alloca->setAlignment(llvm::Align(type_alloué->alignement));
-            table_valeurs.insère(param, alloca);
-        }
-
-        /* Génère le code pour les accès de membres des retours multiples. */
-        if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
-            for (auto &param : atome_fonc->decl->params_sorties) {
-                genere_code_pour_instruction(
-                    param->comme_declaration_variable()->atome->comme_instruction());
-            }
-        }
-
-        // std::cerr << "Fonction " << index_fonction << " / "
-        //           << repr_inter.donne_fonctions().taille() << '\n';
-        // imprime_fonction(atome_fonc, std::cerr);
-        for (auto inst : atome_fonc->instructions) {
-            // imprime_instruction(inst, std::cerr);
-
-            if (inst->genre == GenreInstruction::LABEL) {
-                auto bloc = table_blocs.valeur_ou(inst->comme_label(), nullptr);
-                m_builder.SetInsertPoint(bloc);
-                continue;
-            }
-
-            genere_code_pour_instruction(inst);
-        }
-
-        if (manager_fonctions) {
-            manager_fonctions->run(*m_fonction_courante);
-        }
-
-        m_fonction_courante = nullptr;
+        génère_code_pour_fonction(it);
     }
+}
+
+void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome_fonc)
+{
+    table_valeurs.efface();
+    table_blocs.efface();
+
+    // dbg() << "Génère code pour : " << atome_fonc->nom;
+
+    auto fonction = m_module->getFunction(vers_std_string(atome_fonc->nom));
+
+    m_fonction_courante = fonction;
+    table_valeurs.efface();
+    table_blocs.efface();
+
+    /* génère d'abord tous les blocs depuis les labels */
+    for (auto inst : atome_fonc->instructions) {
+        if (inst->genre != GenreInstruction::LABEL) {
+            continue;
+        }
+
+        genere_code_pour_instruction(inst);
+    }
+
+    auto bloc_entree = table_blocs.valeur_ou(atome_fonc->instructions[0]->comme_label(), nullptr);
+    m_builder.SetInsertPoint(bloc_entree);
+
+    auto valeurs_args = fonction->arg_begin();
+
+    for (auto &param : atome_fonc->params_entrees) {
+        auto const &nom_argument = param->ident->nom;
+
+        auto valeur = &(*valeurs_args++);
+        valeur->setName(vers_std_string(nom_argument));
+
+        auto type = param->donne_type_alloué();
+        auto type_llvm = converti_type_llvm(type);
+
+        auto alloc = m_builder.CreateAlloca(type_llvm, 0u);
+        alloc->setAlignment(llvm::Align(type->alignement));
+
+        auto store = m_builder.CreateStore(valeur, alloc);
+        store->setAlignment(llvm::Align(type->alignement));
+
+        table_valeurs.insère(param, alloc);
+    }
+
+    /* crée une variable local pour la valeur de sortie */
+    auto type_fonction = atome_fonc->type->comme_type_fonction();
+    if (!type_fonction->type_sortie->est_type_rien()) {
+        auto param = atome_fonc->param_sortie;
+        auto type_alloué = param->donne_type_alloué();
+        auto type_llvm = converti_type_llvm(type_alloué);
+        auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
+        alloca->setAlignment(llvm::Align(type_alloué->alignement));
+        table_valeurs.insère(param, alloca);
+    }
+
+    /* Génère le code pour les accès de membres des retours multiples. */
+    if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
+        for (auto &param : atome_fonc->decl->params_sorties) {
+            genere_code_pour_instruction(
+                param->comme_declaration_variable()->atome->comme_instruction());
+        }
+    }
+
+    // std::cerr << "Fonction " << index_fonction << " / "
+    //           << repr_inter.donne_fonctions().taille() << '\n';
+    // imprime_fonction(atome_fonc, std::cerr);
+    for (auto inst : atome_fonc->instructions) {
+        // imprime_instruction(inst, std::cerr);
+
+        if (inst->genre == GenreInstruction::LABEL) {
+            auto bloc = table_blocs.valeur_ou(inst->comme_label(), nullptr);
+            m_builder.SetInsertPoint(bloc);
+            continue;
+        }
+
+        genere_code_pour_instruction(inst);
+    }
+
+    if (manager_fonctions) {
+        manager_fonctions->run(*m_fonction_courante);
+    }
+
+    m_fonction_courante = nullptr;
 }
 
 llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chaine,
