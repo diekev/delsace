@@ -854,13 +854,22 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 std::cerr << erreur::imprime_site(m_espace, inst_appel->site);
                 imprime_atome(inst_appel->appele, std::cerr);
             });
-            table_valeurs.insère(
-                inst,
-                m_builder.CreateCall(llvm::FunctionCallee(static_cast<llvm::FunctionType *>(
-                                                              valeur_fonction->getType()),
-                                                          valeur_fonction),
-                                     arguments));
 
+            llvm::Value *résultat = m_builder.CreateCall(
+                llvm::FunctionCallee(static_cast<llvm::FunctionType *>(valeur_fonction->getType()),
+                                     valeur_fonction),
+                arguments);
+
+            if (!inst_appel->type->est_type_rien()) {
+                /* Crée une temporaire sinon la valeur sera du type fonction... */
+                auto type_retour = converti_type_llvm(inst_appel->type);
+                auto alloca = m_builder.CreateAlloca(type_retour, 0u);
+                m_builder.CreateAlignedStore(
+                    résultat, alloca, llvm::MaybeAlign(inst_appel->type->alignement));
+                résultat = m_builder.CreateLoad(type_retour, alloca);
+            }
+
+            table_valeurs.insère(inst, résultat);
             break;
         }
         case GenreInstruction::BRANCHE:
