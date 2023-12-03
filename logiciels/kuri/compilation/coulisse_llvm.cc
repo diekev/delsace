@@ -1247,7 +1247,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 }
             });
 
-            // À FAIRE : type union
             table_valeurs[inst->numero] = résultat;
             break;
         }
