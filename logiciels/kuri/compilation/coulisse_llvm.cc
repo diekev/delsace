@@ -338,6 +338,9 @@ struct GeneratriceCodeLLVM {
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
 
     llvm::AllocaInst *crée_allocation(InstructionAllocation const *alloc);
+
+    llvm::Value *génère_valeur_données_constantes(
+        const AtomeConstanteDonnéesConstantes *constante);
 };
 
 GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module)
@@ -838,16 +841,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
             auto constante = atome->comme_données_constantes();
-            auto données = constante->donne_données();
-
-            std::vector<unsigned char> donnees;
-            donnees.resize(static_cast<size_t>(données.taille()));
-
-            POUR_INDEX (données) {
-                donnees[static_cast<size_t>(index_it)] = static_cast<unsigned char>(it);
-            }
-
-            auto valeur_ = llvm::ConstantDataArray::get(m_contexte_llvm, donnees);
+            auto valeur_ = génère_valeur_données_constantes(constante);
             // dbg() << "TABLEAU_DONNEES_CONSTANTES: " << *valeur_;
             return valeur_;
         }
@@ -1264,6 +1258,91 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             break;
         }
     }
+}
+
+template <typename T>
+static std::vector<T> donne_tableau_typé(const AtomeConstanteDonnéesConstantes *constante,
+                                         int taille_données)
+{
+    auto const données = constante->donne_données();
+    auto pointeur_données = reinterpret_cast<T const *>(données.begin());
+
+    std::vector<T> résultat;
+    résultat.resize(size_t(taille_données));
+
+    for (int i = 0; i < taille_données; i++) {
+        résultat[size_t(i)] = *pointeur_données++;
+    }
+
+    return résultat;
+}
+
+llvm::Value *GeneratriceCodeLLVM::génère_valeur_données_constantes(
+    const AtomeConstanteDonnéesConstantes *constante)
+{
+    auto const type_tableau = constante->type->comme_type_tableau_fixe();
+    auto const taille_tableau = type_tableau->taille;
+    auto const type_élément = type_tableau->type_pointe;
+
+    if (type_élément->est_type_entier_relatif() || type_élément->est_type_entier_constant()) {
+        if (type_élément->taille_octet == 1) {
+            auto données = donne_tableau_typé<int8_t>(constante, taille_tableau);
+            return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+        }
+
+        if (type_élément->taille_octet == 2) {
+            auto données = donne_tableau_typé<int16_t>(constante, taille_tableau);
+            return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+        }
+
+        if (type_élément->taille_octet == 4 || type_élément->est_type_entier_constant()) {
+            auto données = donne_tableau_typé<int32_t>(constante, taille_tableau);
+            return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+        }
+
+        auto données = donne_tableau_typé<int64_t>(constante, taille_tableau);
+        return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+    }
+
+    if (type_élément->est_type_entier_naturel()) {
+        if (type_élément->taille_octet == 1) {
+            auto données = donne_tableau_typé<uint8_t>(constante, taille_tableau);
+            return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+        }
+
+        if (type_élément->taille_octet == 2) {
+            auto données = donne_tableau_typé<uint16_t>(constante, taille_tableau);
+            return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+        }
+
+        if (type_élément->taille_octet == 4 || type_élément->est_type_entier_constant()) {
+            auto données = donne_tableau_typé<uint32_t>(constante, taille_tableau);
+            return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+        }
+
+        auto données = donne_tableau_typé<uint64_t>(constante, taille_tableau);
+        return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+    }
+
+    if (type_élément->est_type_reel()) {
+        if (type_élément->taille_octet == 2) {
+            assert_rappel(false, []() { dbg() << "Type r16 dans les données constantes."; });
+        }
+
+        if (type_élément->taille_octet == 4) {
+            auto données = donne_tableau_typé<float>(constante, taille_tableau);
+            return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+        }
+
+        auto données = donne_tableau_typé<double>(constante, taille_tableau);
+        return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+    }
+
+    assert_rappel(false, [&]() {
+        dbg() << "Type non pris en charge dans les données constantes : "
+              << chaine_type(type_élément);
+    });
+    return nullptr;
 }
 
 void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
