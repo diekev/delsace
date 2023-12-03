@@ -55,6 +55,47 @@ inline bool adresse_est_nulle(void *adresse)
     return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name Utilitaires locaux.
+ * \{ */
+
+static VisibilitéSymbole donne_visibilité_fonction(AtomeFonction const *fonction)
+{
+    if (!fonction->decl) {
+        return VisibilitéSymbole::INTERNE;
+    }
+
+    if (fonction->est_externe) {
+        return VisibilitéSymbole::EXPORTÉ;
+    }
+
+    return fonction->decl->visibilité_symbole;
+}
+
+static llvm::GlobalValue::LinkageTypes convertis_visibilité_symbole(
+    VisibilitéSymbole const visibilité)
+{
+    switch (visibilité) {
+        case VisibilitéSymbole::EXPORTÉ:
+        {
+            return llvm::GlobalValue::ExternalLinkage;
+        }
+        case VisibilitéSymbole::INTERNE:
+        {
+            return llvm::GlobalValue::InternalLinkage;
+        }
+    }
+    return llvm::GlobalValue::InternalLinkage;
+}
+
+static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(AtomeFonction const *fonction)
+{
+    auto visibilité = donne_visibilité_fonction(fonction);
+    return convertis_visibilité_symbole(visibilité);
+}
+
+/** \} */
+
 /* ************************************************************************** */
 
 static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Value &llvm_value)
@@ -1144,7 +1185,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         auto type_llvm = converti_type_fonction(type_fonction);
 
         llvm::Function::Create(type_llvm,
-                               llvm::Function::ExternalLinkage,
+                               donne_liaison_fonction(atome_fonc),
                                vers_std_string(atome_fonc->nom),
                                m_module);
     }
