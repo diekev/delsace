@@ -336,6 +336,8 @@ struct GeneratriceCodeLLVM {
     void genere_code_pour_instruction(Instruction const *inst);
 
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
+
+    llvm::AllocaInst *crée_allocation(InstructionAllocation const *alloc);
 };
 
 GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module)
@@ -897,11 +899,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         }
         case GenreInstruction::ALLOCATION:
         {
-            auto type_pointeur = inst->type->comme_type_pointeur();
-            auto type_llvm = converti_type_llvm(type_pointeur->type_pointe);
-            auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
-            alloca->setAlignment(llvm::Align(type_pointeur->type_pointe->alignement));
-            table_valeurs[inst->numero] = alloca;
+            auto alloc = inst->comme_alloc();
+            crée_allocation(alloc);
             break;
         }
         case GenreInstruction::APPEL:
@@ -1413,14 +1412,10 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
         auto valeur = &(*valeurs_args++);
         valeur->setName(vers_std_string(nom_argument));
 
-        auto type = param->donne_type_alloué();
-        auto type_llvm = converti_type_llvm(type);
-
-        auto alloc = m_builder.CreateAlloca(type_llvm, 0u);
-        alloc->setAlignment(llvm::Align(type->alignement));
+        auto alloc = crée_allocation(param);
 
         auto store = m_builder.CreateStore(valeur, alloc);
-        store->setAlignment(llvm::Align(type->alignement));
+        store->setAlignment(alloc->getAlign());
 
         table_valeurs[param->numero] = alloc;
     }
@@ -1429,11 +1424,7 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
     auto type_fonction = atome_fonc->type->comme_type_fonction();
     if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
-        auto type_alloué = param->donne_type_alloué();
-        auto type_llvm = converti_type_llvm(type_alloué);
-        auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
-        alloca->setAlignment(llvm::Align(type_alloué->alignement));
-        table_valeurs[param->numero] = alloca;
+        crée_allocation(param);
     }
 
     /* Génère le code pour les accès de membres des retours multiples. */
@@ -1464,6 +1455,21 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
     }
 
     m_fonction_courante = nullptr;
+}
+
+llvm::AllocaInst *GeneratriceCodeLLVM::crée_allocation(const InstructionAllocation *alloc)
+{
+    auto type_alloué = alloc->donne_type_alloué();
+    if (type_alloué->est_type_entier_constant()) {
+        type_alloué = TypeBase::Z32;
+    }
+    assert_rappel(type_alloué->alignement, [&]() { dbg() << chaine_type(type_alloué); });
+
+    auto type_llvm = converti_type_llvm(type_alloué);
+    auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
+    alloca->setAlignment(llvm::Align(type_alloué->alignement));
+    table_valeurs[alloc->numero] = alloca;
+    return alloca;
 }
 
 bool initialise_llvm()
