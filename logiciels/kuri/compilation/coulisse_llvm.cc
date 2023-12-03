@@ -293,6 +293,18 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
             }
             return CastOps::SIToFP;
         case TypeTranstypage::DEFAUT:
+            if (type_de->est_type_bool() && est_type_entier(type_vers)) {
+                return CastOps::ZExt;
+            }
+            if (est_type_entier(type_de) && est_type_entier(type_vers)) {
+                if (type_de->taille_octet < type_vers->taille_octet) {
+                    return CastOps::ZExt;
+                }
+                if (type_de->taille_octet > type_vers->taille_octet) {
+                    return CastOps::Trunc;
+                }
+            }
+            return CastOps::BitCast;
         case TypeTranstypage::BITS:
             return CastOps::BitCast;
     }
