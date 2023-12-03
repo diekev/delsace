@@ -885,6 +885,23 @@ bool est_opérateur_binaire_constant(Instruction const *inst);
  */
 bool instruction_est_racine(Instruction const *inst);
 
+/** Si l'instruction est de forme `x == 0` ou `x == nul`, retourne x.
+ *  Sinon retourne nul. */
+Atome const *est_comparaison_égal_zéro_ou_nul(Instruction const *inst);
+
+/** Si l'instruction est de forme `x != 0` ou `x != nul`, retourne x.
+ *  Sinon retourne nul. */
+Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst);
+
+struct AccèsMembreFusionné {
+    Atome *accédé = nullptr;
+    uint32_t décalage = 0;
+};
+
+/* "Fusionne" les accès de membre consécutifs (x.y.z).
+ * Retourne l'atome accédé à la fin de la chaine ainsi que le décalage total. */
+AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *accès_membre);
+
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
     InstructionStockeMem const *inst);
 

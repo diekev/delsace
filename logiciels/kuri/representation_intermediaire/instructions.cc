@@ -271,6 +271,61 @@ bool instruction_est_racine(Instruction const *inst)
                                     GenreInstruction::STOCKE_MEMOIRE);
 }
 
+static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,
+                                                     OpérateurBinaire::Genre genre_comp)
+{
+    if (!inst->est_op_binaire()) {
+        return nullptr;
+    }
+
+    auto const op_binaire = inst->comme_op_binaire();
+    if (op_binaire->op != genre_comp) {
+        return nullptr;
+    }
+
+    if (!est_constante_entière_zéro(op_binaire->valeur_droite) &&
+        !op_binaire->valeur_droite->est_constante_nulle()) {
+        return nullptr;
+    }
+
+    return op_binaire->valeur_gauche;
+}
+
+Atome const *est_comparaison_égal_zéro_ou_nul(Instruction const *inst)
+{
+    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Egal);
+}
+
+Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst)
+{
+    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Inegal);
+}
+
+AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *accès_membre)
+{
+    AccèsMembreFusionné résultat;
+
+    while (true) {
+        auto const &membre = accès_membre->donne_membre_accédé();
+
+        résultat.accédé = accès_membre->accede;
+        résultat.décalage += membre.decalage;
+
+        if (!accès_membre->accede->est_instruction()) {
+            break;
+        }
+
+        auto inst = accès_membre->accede->comme_instruction();
+        if (!inst->est_acces_membre()) {
+            break;
+        }
+
+        accès_membre = inst->comme_acces_membre();
+    }
+
+    return résultat;
+}
+
 std::ostream &operator<<(std::ostream &os, GenreInstruction genre)
 {
 #define ENUMERE_GENRE_INSTRUCTION_EX(Genre)                                                       \
