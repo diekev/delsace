@@ -303,7 +303,7 @@ static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,
     }
 
     if (!est_constante_entière_zéro(op_binaire->valeur_droite) &&
-        !op_binaire->valeur_droite->est_constante_nulle()) {
+        !est_constante_pointeur_nul(op_binaire->valeur_droite)) {
         return nullptr;
     }
 
