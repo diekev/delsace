@@ -38,7 +38,6 @@ enum class IndiceTypeOp {
     ENUMERE_GENRE_OPUNAIRE_EX(Invalide, invalide)                                                 \
     ENUMERE_GENRE_OPUNAIRE_EX(Positif, plus)                                                      \
     ENUMERE_GENRE_OPUNAIRE_EX(Complement, moins)                                                  \
-    ENUMERE_GENRE_OPUNAIRE_EX(Non_Logique, nonl)                                                  \
     ENUMERE_GENRE_OPUNAIRE_EX(Non_Binaire, nonb)
 
 struct OpérateurUnaire {

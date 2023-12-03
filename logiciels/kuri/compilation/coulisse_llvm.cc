@@ -1053,13 +1053,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                         llvm::ConstantInt::get(type_llvm, 0, type->est_type_entier_relatif()));
                     break;
                 }
-                case OpérateurUnaire::Genre::Non_Logique:
-                {
-                    auto valeur2 = m_builder.getInt1(0);
-                    valeur = m_builder.CreateICmpEQ(valeur, valeur2);
-                    valeur = m_builder.CreateXor(valeur, m_builder.getInt1(1));
-                    break;
-                }
             }
 
             table_valeurs[inst->numero] = valeur;

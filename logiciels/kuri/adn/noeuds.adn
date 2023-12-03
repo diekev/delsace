@@ -375,6 +375,15 @@ struct NoeudExpressionPriseRéférence : NoeudExpression {
     NoeudExpression *opérande [code enfant préserve_accents]
 }
 
+struct NoeudExpressionNégationLogique : NoeudExpression {
+    @genre EXPRESSION_NÉGATION_LOGIQUE
+    @comme négation_logique
+    @code  NoeudCodeExpressionNégationLogique
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande [code enfant préserve_accents]
+}
+
 struct NoeudExpressionBinaire : NoeudExpression {
     @genre OPÉRATEUR_BINAIRE
     @comme expression_binaire

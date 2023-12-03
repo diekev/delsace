@@ -309,6 +309,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(prise_référence->opérande);
             return;
         }
+        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        {
+            auto négation = noeud->comme_negation_logique();
+            simplifie(négation->opérande);
+            return;
+        }
         case GenreNoeud::EXPRESSION_TYPE_DE:
         {
             /* change simplement le genre du noeud car le type de l'expression est le type de sa

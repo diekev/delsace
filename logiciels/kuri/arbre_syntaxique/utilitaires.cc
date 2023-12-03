@@ -467,6 +467,14 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(prise_référence);
             break;
         }
+        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        {
+            auto négation = racine->comme_negation_logique();
+            négation->drapeaux |= drapeau;
+            aplatis_arbre(négation->opérande, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(négation);
+            break;
+        }
         case GenreNoeud::INSTRUCTION_ARRETE:
         {
             auto inst = racine->comme_arrete();

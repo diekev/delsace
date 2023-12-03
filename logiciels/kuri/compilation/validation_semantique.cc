@@ -583,35 +583,21 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                                                      TypeTransformation::DEREFERENCE);
             }
 
-            if (expr->type == nullptr) {
-                if (expr->lexeme->genre == GenreLexeme::EXCLAMATION) {
-                    if (!est_expression_convertible_en_bool(enfant)) {
-                        rapporte_erreur(
-                            "Ne peut pas appliquer l'opérateur « ! » au type de l'expression",
-                            enfant);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    expr->type = TypeBase::BOOL;
-                }
-                else {
-                    if (type->est_type_entier_constant()) {
-                        type = TypeBase::Z32;
-                        crée_transtypage_implicite_au_besoin(
-                            expr->operande, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type});
-                    }
-
-                    auto operateurs = m_compilatrice.operateurs.verrou_lecture();
-                    auto op = cherche_opérateur_unaire(*operateurs, type, expr->lexeme->genre);
-
-                    if (op == nullptr) {
-                        return Attente::sur_operateur(noeud);
-                    }
-
-                    expr->type = op->type_résultat;
-                    expr->op = op;
-                }
+            if (type->est_type_entier_constant()) {
+                type = TypeBase::Z32;
+                crée_transtypage_implicite_au_besoin(
+                    expr->operande, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type});
             }
+
+            auto operateurs = m_compilatrice.operateurs.verrou_lecture();
+            auto op = cherche_opérateur_unaire(*operateurs, type, expr->lexeme->genre);
+
+            if (op == nullptr) {
+                return Attente::sur_operateur(noeud);
+            }
+
+            expr->type = op->type_résultat;
+            expr->op = op;
 
             break;
         }
@@ -703,6 +689,27 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 prise_référence->type = m_compilatrice.typeuse.type_reference_pour(type_opérande);
             }
 
+            break;
+        }
+        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        {
+            auto négation = noeud->comme_negation_logique();
+            auto opérande = négation->opérande;
+            auto type = opérande->type;
+
+            if (type->est_type_reference()) {
+                type = type_dereference_pour(type);
+                crée_transtypage_implicite_au_besoin(négation->opérande,
+                                                     TypeTransformation::DEREFERENCE);
+            }
+
+            if (!est_expression_convertible_en_bool(opérande)) {
+                rapporte_erreur("Ne peut pas appliquer l'opérateur « ! » au type de l'expression",
+                                opérande);
+                return CodeRetourValidation::Erreur;
+            }
+
+            négation->type = TypeBase::BOOL;
             break;
         }
         case GenreNoeud::EXPRESSION_INDEXAGE:

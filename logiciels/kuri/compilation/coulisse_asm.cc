@@ -216,10 +216,6 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
                 {
                     break;
                 }
-                case OpérateurUnaire::Genre::Non_Logique:
-                {
-                    break;
-                }
             }
 
             break;

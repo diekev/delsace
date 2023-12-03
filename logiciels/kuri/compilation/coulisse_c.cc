@@ -1392,11 +1392,6 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                     os << '~';
                     break;
                 }
-                case OpérateurUnaire::Genre::Non_Logique:
-                {
-                    os << '!';
-                    break;
-                }
             }
 
             os << valeur;
