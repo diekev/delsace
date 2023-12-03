@@ -394,10 +394,8 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
 static bool execute_commande(kuri::chaine const &commande)
 {
     std::cout << "Compilation des tables de conversion R16...\n";
-    std::cout << "Exécution de la commande " << commande << std::endl;
 
-    const auto err = system(commande.pointeur());
-    if (err != 0) {
+    if (exécute_commande_externe(commande)) {
         std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
         return false;
     }
@@ -470,5 +468,16 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
         return false;
     }
 
+    return true;
+}
+
+bool exécute_commande_externe(kuri::chaine_statique commande)
+{
+    std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+    const auto err = system(commande.pointeur());
+    if (err != 0) {
+        return false;
+    }
     return true;
 }

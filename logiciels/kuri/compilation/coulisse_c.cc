@@ -2143,9 +2143,7 @@ bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
         }
 
         auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
-        std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-        if (system(commande.pointeur()) != 0) {
+        if (!exécute_commande_externe(commande)) {
             une_erreur_est_survenue = true;
             break;
         }
@@ -2160,12 +2158,11 @@ bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
         }
 
         auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
-        std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
         auto child_pid = fork();
         if (child_pid == 0) {
-            auto err = system(commande.pointeur());
-            exit(err == 0 ? 0 : 1);
+            auto err = exécute_commande_externe(commande);
+            exit(err == true ? 0 : 1);
         }
 
         enfants.ajoute(child_pid);
@@ -2211,9 +2208,7 @@ bool CoulisseC::crée_exécutable_impl(Compilatrice &compilatrice,
     }
 
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
-
-    std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
-    return system(commande.pointeur()) == 0;
+    return exécute_commande_externe(commande);
 #endif
 }
 

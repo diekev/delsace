@@ -1698,13 +1698,13 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
 
     /* Génère le fichier de code binaire depuis le fichier de RI LLVM. */
     auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, "\0");
-    if (system(commande.pointeur()) != 0) {
+    if (!exécute_commande_externe(commande)) {
         return false;
     }
 
     /* Génère le fichier d'instruction assembly depuis le fichier de code binaire. */
     commande = enchaine(donne_assembleur_llvm(), " ", fichier_bc, " -o ", fichier_s, "\0");
-    if (system(commande.pointeur()) != 0) {
+    if (exécute_commande_externe(commande)) {
         return false;
     }
 #endif
@@ -1724,7 +1724,7 @@ static bool valide_llvm_ir(llvm::Module &module)
     /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
      * est correcte. */
     auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, "\0");
-    return system(commande.pointeur()) == 0;
+    return exécute_commande_externe(commande);
 }
 #endif
 
@@ -1817,9 +1817,8 @@ bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
         ss << " " << chemin_execution_S;
         ss << '\0';
 
-        const auto err = system(ss.chaine().pointeur());
-
-        if (err != 0) {
+        auto const commande = ss.chaine();
+        if (!exécute_commande_externe(commande)) {
             std::cerr << "Ne peut pas créer " << chemin_execution << " !\n";
             return false;
         }
@@ -1865,10 +1864,7 @@ bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
 #endif
 
-    std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
-    const auto err = system(commande.pointeur());
-
-    if (err != 0) {
+    if (!exécute_commande_externe(commande)) {
         std::cerr << "Ne peut pas créer l'executable !\n";
         return false;
     }
