@@ -1739,7 +1739,7 @@ static bool crée_executable(EspaceDeTravail const &espace,
 
         Enchaineuse ss;
         ss << "as -o " << chemin_execution;
-        ss << chemin_execution_S;
+        ss << " " << chemin_execution_S;
         ss << '\0';
 
         const auto err = system(ss.chaine().pointeur());
@@ -1761,7 +1761,7 @@ static bool crée_executable(EspaceDeTravail const &espace,
 #if 1
     ss << "gcc ";
     ss << racine_kuri / "fichiers/point_d_entree.c";
-    ss << chemin_fichier_objet_r16(espace.options.architecture) << " ";
+    ss << " " << chemin_fichier_objet_r16(espace.options.architecture) << " ";
 
 #else
     ss << "ld ";
