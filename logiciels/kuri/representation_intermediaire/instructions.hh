@@ -879,6 +879,12 @@ bool est_stocke_alloc_incrémente(InstructionStockeMem const *inst);
  */
 bool est_opérateur_binaire_constant(Instruction const *inst);
 
+/**
+ * Retourne vrai si l'instruction est la racine d'un arbre.
+ * Utilisée par les coulisses ne générant pas le code linéairement.
+ */
+bool instruction_est_racine(Instruction const *inst);
+
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
     InstructionStockeMem const *inst);
 

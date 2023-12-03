@@ -1354,17 +1354,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     }
 
     POUR (fonction->instructions) {
-        // génère le code binaire depuis les instructions « racines » (assignation, retour,
-        // appel, et controle de flux).
-        auto est_inst_racine = dls::outils::est_element(it->genre,
-                                                        GenreInstruction::APPEL,
-                                                        GenreInstruction::BRANCHE,
-                                                        GenreInstruction::BRANCHE_CONDITION,
-                                                        GenreInstruction::LABEL,
-                                                        GenreInstruction::RETOUR,
-                                                        GenreInstruction::STOCKE_MEMOIRE);
-
-        if (!est_inst_racine) {
+        if (!instruction_est_racine(it)) {
             continue;
         }
 

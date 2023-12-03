@@ -260,6 +260,17 @@ bool est_opérateur_binaire_constant(Instruction const *inst)
     return est_valeur_constante(opérande_gauche) && est_valeur_constante(opérande_droite);
 }
 
+bool instruction_est_racine(Instruction const *inst)
+{
+    return dls::outils::est_element(inst->genre,
+                                    GenreInstruction::APPEL,
+                                    GenreInstruction::BRANCHE,
+                                    GenreInstruction::BRANCHE_CONDITION,
+                                    GenreInstruction::LABEL,
+                                    GenreInstruction::RETOUR,
+                                    GenreInstruction::STOCKE_MEMOIRE);
+}
+
 std::ostream &operator<<(std::ostream &os, GenreInstruction genre)
 {
 #define ENUMERE_GENRE_INSTRUCTION_EX(Genre)                                                       \
