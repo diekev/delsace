@@ -5,8 +5,12 @@
 
 #include "coulisse.hh"
 
+#include "structures/tableau.hh"
+
 bool initialise_llvm();
 void issitialise_llvm();
+
+struct Bibliotheque;
 
 namespace llvm {
 class LLVMContext;
@@ -16,6 +20,7 @@ class TargetMachine;
 
 struct CoulisseLLVM final : public Coulisse {
   private:
+    kuri::tableau<Bibliotheque *> m_bibliothèques{};
     llvm::LLVMContext *m_contexte_llvm = nullptr;
     llvm::Module *m_module = nullptr;
     llvm::TargetMachine *m_machine_cible = nullptr;

@@ -1728,69 +1728,6 @@ static bool valide_llvm_ir(llvm::Module &module)
 }
 #endif
 
-static bool crée_executable(EspaceDeTravail const &espace,
-                            const kuri::chaine &dest,
-                            const kuri::chemin_systeme &racine_kuri)
-{
-    /* Compile le fichier objet qui appelera 'fonction principale'. */
-    auto chemin_execution = chemin_fichier_objet_execution_llvm();
-    if (!kuri::chemin_systeme::existe(chemin_execution)) {
-        auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
-
-        Enchaineuse ss;
-        ss << "as -o " << chemin_execution;
-        ss << " " << chemin_execution_S;
-        ss << '\0';
-
-        const auto err = system(ss.chaine().pointeur());
-
-        if (err != 0) {
-            std::cerr << "Ne peut pas créer " << chemin_execution << " !\n";
-            return false;
-        }
-    }
-
-    auto chemin_objet = chemin_fichier_objet_llvm();
-
-    if (!kuri::chemin_systeme::existe(chemin_objet)) {
-        std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
-        return false;
-    }
-
-    Enchaineuse ss;
-#if 1
-    ss << "gcc ";
-    ss << racine_kuri / "fichiers/point_d_entree.c";
-    ss << " " << chemin_fichier_objet_r16(espace.options.architecture) << " ";
-
-#else
-    ss << "ld ";
-    /* ce qui chargera le programme */
-    ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
-    ss << "-m elf_x86_64 ";
-    ss << "--hash-style=gnu ";
-    ss << "-lc ";
-    ss << chemin_execution << " ";
-#endif
-
-    ss << " " << chemin_objet << " ";
-    ss << "-o " << dest;
-    ss << '\0';
-
-    auto commande = ss.chaine();
-
-    std::cout << "Exécution de la commande : " << commande << '\n';
-
-    const auto err = system(commande.pointeur());
-
-    if (err != 0) {
-        std::cerr << "Ne peut pas créer l'executable !\n";
-        return false;
-    }
-
-    return true;
-}
-
 CoulisseLLVM::~CoulisseLLVM()
 {
     delete m_module;
@@ -1845,6 +1782,8 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
     }
 #endif
 
+    m_bibliothèques = repr_inter->donne_bibliothèques_utilisées();
+
     return true;
 }
 
@@ -1868,8 +1807,69 @@ bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
                                         EspaceDeTravail &espace,
                                         Programme const * /*programme*/)
 {
-    if (!::crée_executable(
-            espace, nom_sortie_resultat_final(espace.options), compilatrice.racine_kuri)) {
+    /* Compile le fichier objet qui appelera 'fonction principale'. */
+    auto chemin_execution = chemin_fichier_objet_execution_llvm();
+    if (!kuri::chemin_systeme::existe(chemin_execution)) {
+        auto const &chemin_execution_S = compilatrice.racine_kuri / "fichiers/execution_kuri.S";
+
+        Enchaineuse ss;
+        ss << "as -o " << chemin_execution;
+        ss << " " << chemin_execution_S;
+        ss << '\0';
+
+        const auto err = system(ss.chaine().pointeur());
+
+        if (err != 0) {
+            std::cerr << "Ne peut pas créer " << chemin_execution << " !\n";
+            return false;
+        }
+    }
+
+    auto chemin_objet = chemin_fichier_objet_llvm();
+
+    if (!kuri::chemin_systeme::existe(chemin_objet)) {
+        std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
+        return false;
+    }
+
+#if 0
+    Enchaineuse ss;
+#    if 1
+    ss << "gcc ";
+    ss << compilatrice.racine_kuri / "fichiers/point_d_entree.c";
+    ss << " " << chemin_fichier_objet_r16(espace.options.architecture) << " ";
+#    else
+    ss << "ld ";
+    /* ce qui chargera le programme */
+    ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
+    ss << "-m elf_x86_64 ";
+    ss << "--hash-style=gnu ";
+    ss << "-lc ";
+    ss << chemin_execution << " ";
+#    endif
+
+    ss << " " << chemin_objet << " ";
+
+    ss << " -lc ";
+    ss << " -lm ";
+    ss << "-o " << nom_sortie_resultat_final(espace.options);
+    ss << '\0';
+
+    auto commande = ss.chaine();
+#else
+    kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
+    auto fichier_point_d_entrée_c = compilatrice.racine_kuri / "fichiers/point_d_entree.c";
+    fichiers_objet.ajoute(fichier_point_d_entrée_c);
+    fichiers_objet.ajoute(chemin_objet);
+
+    auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
+#endif
+
+    std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+    const auto err = system(commande.pointeur());
+
+    if (err != 0) {
+        std::cerr << "Ne peut pas créer l'executable !\n";
         return false;
     }
 
