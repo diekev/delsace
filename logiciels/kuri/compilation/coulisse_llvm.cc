@@ -1369,11 +1369,12 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             }
         }
 
-        //        std::cerr << "Fonction " << index_fonction << " / " <<
-        //        repr_inter.fonctions.taille()
-        //                  << '\n';
+        // std::cerr << "Fonction " << index_fonction << " / "
+        //           << repr_inter.donne_fonctions().taille() << '\n';
         // imprime_fonction(atome_fonc, std::cerr);
         for (auto inst : atome_fonc->instructions) {
+            // imprime_instruction(inst, std::cerr);
+
             if (inst->genre == GenreInstruction::LABEL) {
                 auto bloc = table_blocs.valeur_ou(inst->comme_label(), nullptr);
                 m_builder.SetInsertPoint(bloc);
