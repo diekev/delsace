@@ -80,13 +80,6 @@ n16 DLS_depuis_r64(r64 v)
 
 int __point_d_entree_systeme(int argc, char **argv);
 
-int principale();
-
-int __principale()
-{
-  return principale();
-}
-
 int main(int argc, char **argv)
 {
   return __point_d_entree_systeme(argc, argv);
