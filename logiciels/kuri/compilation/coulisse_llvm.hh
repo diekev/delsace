@@ -9,12 +9,14 @@ bool initialise_llvm();
 void issitialise_llvm();
 
 namespace llvm {
+class LLVMContext;
 class Module;
 class TargetMachine;
 }  // namespace llvm
 
 struct CoulisseLLVM final : public Coulisse {
   private:
+    llvm::LLVMContext *m_contexte_llvm = nullptr;
     llvm::Module *m_module = nullptr;
     llvm::TargetMachine *m_machine_cible = nullptr;
 

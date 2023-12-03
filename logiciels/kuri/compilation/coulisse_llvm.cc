@@ -1692,6 +1692,7 @@ CoulisseLLVM::~CoulisseLLVM()
 {
     delete m_module;
     delete m_machine_cible;
+    delete m_contexte_llvm;
 }
 
 bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
@@ -1725,9 +1726,9 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
     auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
     m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
-    llvm::LLVMContext contexte_llvm;
+    m_contexte_llvm = new llvm::LLVMContext;
 
-    m_module = new llvm::Module("Module", contexte_llvm);
+    m_module = new llvm::Module("Module", *m_contexte_llvm);
     m_module->setDataLayout(m_machine_cible->createDataLayout());
     m_module->setTargetTriple(triplet_cible);
 
