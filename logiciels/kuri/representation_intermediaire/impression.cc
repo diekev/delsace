@@ -50,13 +50,21 @@ static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const 
         {
             return "entier_vers_pointeur";
         }
-        case TypeTranstypage::REEL_VERS_ENTIER:
+        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
         {
-            return "réel_vers_entier";
+            return "réel_vers_naturel";
         }
-        case TypeTranstypage::ENTIER_VERS_REEL:
+        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
         {
-            return "entier_vers_réel";
+            return "réel_vers_relatif";
+        }
+        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+        {
+            return "naturel_vers_réel";
+        }
+        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
+        {
+            return "relatif_vers_réel";
         }
         case TypeTranstypage::BITS:
         case TypeTranstypage::DEFAUT:

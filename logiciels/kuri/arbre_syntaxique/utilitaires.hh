@@ -24,7 +24,7 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct NoeudExpressionReference;
-struct NoeudExpressionUnaire;
+struct NoeudExpressionPriseAdresse;
 struct Symbole;
 struct Type;
 struct TypePointeur;
@@ -265,10 +265,10 @@ struct DonnéesSymboleExterne {
 
 void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis);
 
-NoeudExpressionUnaire *crée_prise_adresse(AssembleuseArbre *assem,
-                                          Lexeme const *lexème,
-                                          NoeudExpression *expression,
-                                          TypePointeur *type_résultat);
+NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
+                                                Lexeme const *lexème,
+                                                NoeudExpression *expression,
+                                                TypePointeur *type_résultat);
 
 NoeudDeclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
                                                       Lexeme const *lexème);

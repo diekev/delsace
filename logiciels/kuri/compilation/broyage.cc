@@ -400,10 +400,6 @@ static const char *nom_pour_operateur(Lexeme const &lexeme)
         {
             return "non";
         }
-        case GenreLexeme::EXCLAMATION:
-        {
-            return "excl";
-        }
         case GenreLexeme::CHAPEAU:
         {
             return "oux";

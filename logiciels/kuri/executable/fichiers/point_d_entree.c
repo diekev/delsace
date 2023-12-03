@@ -16,6 +16,9 @@ typedef int   z32;
 
 /* ************* conversions ************* */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 // À FAIRE : il serait bien de bouger ces fonctions dans r16.kuri
 r32 DLS_vers_r32(n16 h)
 {
@@ -79,13 +82,9 @@ n16 DLS_depuis_r64(r64 v)
 }
 
 int __point_d_entree_systeme(int argc, char **argv);
-
-int principale();
-
-int __principale()
-{
-  return principale();
+#ifdef __cplusplus
 }
+#endif
 
 int main(int argc, char **argv)
 {

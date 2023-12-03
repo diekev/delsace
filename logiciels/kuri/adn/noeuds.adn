@@ -357,6 +357,33 @@ struct NoeudExpressionUnaire : NoeudExpression {
     OpérateurUnaire const *op
 }
 
+struct NoeudExpressionPriseAdresse : NoeudExpression {
+    @genre EXPRESSION_PRISE_ADRESSE
+    @comme prise_adresse
+    @code  NoeudCodeExpressionPriseAdresse
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande [code enfant préserve_accents]
+}
+
+struct NoeudExpressionPriseRéférence : NoeudExpression {
+    @genre EXPRESSION_PRISE_RÉFÉRENCE
+    @comme prise_référence
+    @code  NoeudCodeExpressionPriseRéférence
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande [code enfant préserve_accents]
+}
+
+struct NoeudExpressionNégationLogique : NoeudExpression {
+    @genre EXPRESSION_NÉGATION_LOGIQUE
+    @comme négation_logique
+    @code  NoeudCodeExpressionNégationLogique
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande [code enfant préserve_accents]
+}
+
 struct NoeudExpressionBinaire : NoeudExpression {
     @genre OPÉRATEUR_BINAIRE
     @comme expression_binaire

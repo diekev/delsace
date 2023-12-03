@@ -634,13 +634,21 @@ static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
         {
             break;
         }
-        case TypeTranstypage::REEL_VERS_ENTIER:
+        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
         {
-            return OP_REEL_VERS_ENTIER;
+            return OP_REEL_VERS_RELATIF;
         }
-        case TypeTranstypage::ENTIER_VERS_REEL:
+        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
         {
-            return OP_ENTIER_VERS_REEL;
+            return OP_REEL_VERS_NATUREL;
+        }
+        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
+        {
+            return OP_RELATIF_VERS_REEL;
+        }
+        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+        {
+            return OP_NATUREL_VERS_REEL;
         }
         case TypeTranstypage::AUGMENTE_REEL:
         {
@@ -995,8 +1003,10 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_DIMINUE_RELATIF:
         case OP_AUGMENTE_REEL:
         case OP_DIMINUE_REEL:
-        case OP_ENTIER_VERS_REEL:
-        case OP_REEL_VERS_ENTIER:
+        case OP_NATUREL_VERS_REEL:
+        case OP_RELATIF_VERS_REEL:
+        case OP_REEL_VERS_NATUREL:
+        case OP_REEL_VERS_RELATIF:
         {
             return instruction_2d<int, int>(chunk, décalage, os);
         }

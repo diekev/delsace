@@ -189,10 +189,6 @@ static OpérateurUnaire::Genre genre_op_unaire_pour_lexeme(GenreLexeme genre_lex
         {
             return OpérateurUnaire::Genre::Non_Binaire;
         }
-        case GenreLexeme::EXCLAMATION:
-        {
-            return OpérateurUnaire::Genre::Non_Logique;
-        }
         default:
         {
             return OpérateurUnaire::Genre::Invalide;

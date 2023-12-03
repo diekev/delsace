@@ -257,11 +257,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto expr_un = noeud->comme_expression_unaire();
 
-            if (expr_un->type->est_type_type_de_donnees()) {
-                expr_un->substitution = assem->crée_reference_type(expr_un->lexeme, expr_un->type);
-                return;
-            }
-
             if (expr_un->op && expr_un->op->genre == OpérateurUnaire::Genre::Complement) {
                 if (expr_un->operande->est_litterale_entier()) {
                     auto littérale = expr_un->operande->comme_litterale_entier();
@@ -290,6 +285,34 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
+            return;
+        }
+        case GenreNoeud::EXPRESSION_PRISE_ADRESSE:
+        {
+            auto prise_adresse = noeud->comme_prise_adresse();
+            if (prise_adresse->type->est_type_type_de_donnees()) {
+                prise_adresse->substitution = assem->crée_reference_type(prise_adresse->lexeme,
+                                                                         prise_adresse->type);
+                return;
+            }
+            simplifie(prise_adresse->opérande);
+            return;
+        }
+        case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
+        {
+            auto prise_référence = noeud->comme_prise_reference();
+            if (prise_référence->type->est_type_type_de_donnees()) {
+                prise_référence->substitution = assem->crée_reference_type(prise_référence->lexeme,
+                                                                           prise_référence->type);
+                return;
+            }
+            simplifie(prise_référence->opérande);
+            return;
+        }
+        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        {
+            auto négation = noeud->comme_negation_logique();
+            simplifie(négation->opérande);
             return;
         }
         case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -1149,9 +1172,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             if (type_itere->est_type_tableau_fixe()) {
                 auto indexage = assem->crée_indexage(inst->lexeme, expression_iteree, zero, true);
 
-                static const Lexeme lexeme_adresse = {",", {}, GenreLexeme::FOIS_UNAIRE, 0, 0, 0};
                 expr_pointeur = crée_prise_adresse(
-                    assem, &lexeme_adresse, indexage, typeuse.type_pointeur_pour(indexage->type));
+                    assem, inst->lexeme, indexage, typeuse.type_pointeur_pour(indexage->type));
             }
             else {
                 expr_pointeur = assem->crée_reference_membre(
@@ -1560,10 +1582,8 @@ NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
     auto fonction_init = crée_entête_pour_initialisation_type(
         type_expression, espace->compilatrice(), assem, typeuse);
 
-    static Lexeme lexeme_op = {};
-    lexeme_op.genre = GenreLexeme::FOIS_UNAIRE;
     auto prise_adresse = crée_prise_adresse(
-        assem, &lexeme_op, expression_à_initialiser, typeuse.type_pointeur_pour(type_expression));
+        assem, lexeme, expression_à_initialiser, typeuse.type_pointeur_pour(type_expression));
     auto appel = assem->crée_appel(lexeme, fonction_init, TypeBase::RIEN);
     appel->parametres_resolus.ajoute(prise_adresse);
 
