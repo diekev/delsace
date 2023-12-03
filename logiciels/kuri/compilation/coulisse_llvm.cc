@@ -1084,25 +1084,94 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
             auto index_membre = uint32_t(inst_acces->index);
 
-            auto type_pointe = inst_acces->donne_type_accédé();
+            llvm::Value *résultat;
 
-            if (!type_pointe->est_type_pointeur()) {
+            if (inst_acces->accede->est_instruction()) {
+                auto inst_accédée = inst_acces->accede->comme_instruction();
+                auto type_accédé = inst_acces->donne_type_accédé();
+
+                if (inst_accédée->est_alloc()) {
+                    auto index = std::vector<llvm::Value *>(2);
+                    index[0] = m_builder.getInt32(0);
+                    index[1] = m_builder.getInt32(index_membre);
+
+                    résultat = m_builder.CreateInBoundsGEP(valeur_accede, index);
+                }
+                else if (inst_accédée->est_charge()) {
+                    auto index = std::vector<llvm::Value *>(2);
+                    index[0] = m_builder.getInt32(0);
+                    index[1] = m_builder.getInt32(index_membre);
+
+                    résultat = m_builder.CreateInBoundsGEP(valeur_accede, index);
+                }
+                else if (inst_accédée->est_acces_membre()) {
+                    auto index = std::vector<llvm::Value *>(2);
+                    index[0] = m_builder.getInt32(0);
+                    index[1] = m_builder.getInt32(index_membre);
+
+                    résultat = m_builder.CreateInBoundsGEP(valeur_accede, index);
+                }
+                else if (type_accédé->est_type_pointeur()) {
+                    auto index = std::vector<llvm::Value *>(2);
+                    index[0] = m_builder.getInt32(0);
+                    index[1] = m_builder.getInt32(index_membre);
+
+                    résultat = m_builder.CreateInBoundsGEP(valeur_accede, index);
+                }
+                else if (inst_accédée->est_appel() && inst_accédée->type->est_type_pointeur()) {
+                    auto index = std::vector<llvm::Value *>(2);
+                    index[0] = m_builder.getInt32(0);
+                    index[1] = m_builder.getInt32(index_membre);
+
+                    résultat = m_builder.CreateInBoundsGEP(valeur_accede, index);
+                }
+                else if (inst_accédée->est_acces_index()) {
+                    auto index = std::vector<llvm::Value *>(2);
+                    index[0] = m_builder.getInt32(0);
+                    index[1] = m_builder.getInt32(index_membre);
+
+                    résultat = m_builder.CreateInBoundsGEP(valeur_accede, index);
+                }
+                else if (inst_accédée->est_transtype()) {
+                    auto index = std::vector<llvm::Value *>(2);
+                    index[0] = m_builder.getInt32(0);
+                    index[1] = m_builder.getInt32(index_membre);
+
+                    résultat = m_builder.CreateInBoundsGEP(valeur_accede, index);
+                }
+                else {
+                    auto index = std::vector<llvm::Value *>(1);
+                    index[0] = m_builder.getInt32(index_membre);
+
+                    résultat = m_builder.CreateGEP(valeur_accede, index);
+                }
+            }
+            else if (inst_acces->accede->est_globale()) {
                 auto index = std::vector<llvm::Value *>(2);
                 index[0] = m_builder.getInt32(0);
                 index[1] = m_builder.getInt32(index_membre);
 
-                auto valeur_membre = m_builder.CreateInBoundsGEP(valeur_accede, index);
-                table_valeurs.insère(inst, valeur_membre);
+                résultat = m_builder.CreateInBoundsGEP(valeur_accede, index);
             }
             else {
-                valeur_accede = table_globales.valeur_ou(accede, nullptr);
-
-                auto index = std::vector<llvm::Value *>(1);
-                index[0] = m_builder.getInt32(index_membre);
-
-                table_valeurs.insère(inst, m_builder.CreateGEP(valeur_accede, index));
+                assert(false);
             }
 
+            assert_rappel(résultat->getType() == converti_type_llvm(inst_acces->type), [&]() {
+                std::cerr << "Le type de l'accès est " << chaine_type(inst_acces->type) << '\n';
+                std::cerr << "Le type LLVM est ";
+                llvm::errs() << *résultat->getType() << '\n';
+                std::cerr << "Nous accédons à ";
+                if (inst_acces->accede->est_instruction()) {
+                    std::cerr << inst_acces->accede->comme_instruction()->genre << '\n';
+                }
+                else {
+                    imprime_information_atome(inst_acces->accede, std::cerr);
+                    std::cerr << '\n';
+                }
+            });
+
+            table_valeurs.insère(inst, résultat);
             // À FAIRE : type union
 
             break;
