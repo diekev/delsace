@@ -905,8 +905,9 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 std::cerr << '\n';
             });
 
-            m_builder.CreateStore(valeur, valeur_ou);
-
+            /* Crash si l'alignement n'est pas renseigné. */
+            auto alignement = llvm::MaybeAlign(inst_stocke->valeur->type->alignement);
+            m_builder.CreateAlignedStore(valeur, valeur_ou, alignement);
             break;
         }
         case GenreInstruction::LABEL:
