@@ -77,3 +77,8 @@ bool precompile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri);
 
 bool compile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri,
                        ArchitectureCible architecture_cible);
+
+/**
+ * Exécute une commande externe. Retourne vrai si la commande fut exécutée avec succès.
+ */
+bool exécute_commande_externe(kuri::chaine_statique commande);
