@@ -1581,20 +1581,6 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             assert(valeur_accédée != "");
 
-            auto type_adressé = inst_accès->donne_type_accédé();
-
-            if (type_adressé->est_type_opaque()) {
-                type_adressé = type_adressé->comme_type_opaque()->type_opacifie;
-            }
-
-            auto type_composé = type_adressé->comme_type_compose();
-
-            /* Pour les unions, l'accès de membre se fait via le type structure qui est valeur unie
-             * + index. */
-            if (type_composé->est_type_union()) {
-                type_composé = type_composé->comme_type_union()->type_structure;
-            }
-
             if (valeur_accédée.pointeur()[0] == '&') {
                 valeur_accédée = enchaine(valeur_accédée, ".");
             }
@@ -1602,7 +1588,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 valeur_accédée = enchaine("&", valeur_accédée, "->");
             }
 
-            auto const &membre = type_composé->membres[inst_accès->index];
+            auto const &membre = inst_accès->donne_membre_accédé();
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             auto nom_type = donne_nom_pour_type(membre.type);
@@ -1613,7 +1599,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             if (membre.nom == ID::chaine_vide) {
                 valeur_accédée = enchaine(valeur_accédée, "membre_invisible");
             }
-            else if (type_composé->est_type_tuple()) {
+            else if (inst_accès->donne_type_accédé()->est_type_tuple()) {
                 valeur_accédée = enchaine(valeur_accédée, "_", index_membre);
             }
             else {
