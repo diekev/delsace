@@ -357,6 +357,15 @@ struct NoeudExpressionUnaire : NoeudExpression {
     OpérateurUnaire const *op
 }
 
+struct NoeudExpressionPriseAdresse : NoeudExpression {
+    @genre EXPRESSION_PRISE_ADRESSE
+    @comme prise_adresse
+    @code  NoeudCodeExpressionPriseAdresse
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande [code enfant préserve_accents]
+}
+
 struct NoeudExpressionBinaire : NoeudExpression {
     @genre OPÉRATEUR_BINAIRE
     @comme expression_binaire

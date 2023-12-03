@@ -1397,11 +1397,6 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                     os << '!';
                     break;
                 }
-                case OpérateurUnaire::Genre::Prise_Adresse:
-                {
-                    os << '&';
-                    break;
-                }
             }
 
             os << valeur;

@@ -583,8 +583,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             }
 
             if (type->est_type_type_de_donnees() &&
-                dls::outils::est_element(
-                    expr->lexeme->genre, GenreLexeme::FOIS_UNAIRE, GenreLexeme::ESP_UNAIRE)) {
+                expr->lexeme->genre == GenreLexeme::ESP_UNAIRE) {
                 CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE);
                 auto type_de_donnees = type->comme_type_type_de_donnees();
                 auto type_connu = type_de_donnees->type_connu;
@@ -593,11 +592,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     type_connu = type_de_donnees;
                 }
 
-                if (expr->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
-                    CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__POINTEUR);
-                    type_connu = m_compilatrice.typeuse.type_pointeur_pour(type_connu);
-                }
-                else if (expr->lexeme->genre == GenreLexeme::ESP_UNAIRE) {
+                {
                     CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__REFERENCE);
                     type_connu = m_compilatrice.typeuse.type_reference_pour(type_connu);
                 }
@@ -610,26 +605,12 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__OPERATEUR_UNAIRE);
             if (type->est_type_reference()) {
                 type = type_dereference_pour(type);
-
-                /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
-                 * déréférencer. À FAIRE : ajout d'un transtypage référence -> pointeur */
-                if (expr->lexeme->genre != GenreLexeme::FOIS_UNAIRE) {
-                    crée_transtypage_implicite_au_besoin(expr->operande,
-                                                         TypeTransformation::DEREFERENCE);
-                }
+                crée_transtypage_implicite_au_besoin(expr->operande,
+                                                     TypeTransformation::DEREFERENCE);
             }
 
             if (expr->type == nullptr) {
-                if (expr->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
-                    if (!est_valeur_gauche(enfant->genre_valeur)) {
-                        rapporte_erreur("Ne peut pas prendre l'adresse d'une valeur-droite.",
-                                        enfant);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    expr->type = m_compilatrice.typeuse.type_pointeur_pour(type);
-                }
-                else if (expr->lexeme->genre == GenreLexeme::EXCLAMATION) {
+                if (expr->lexeme->genre == GenreLexeme::EXCLAMATION) {
                     if (!est_expression_convertible_en_bool(enfant)) {
                         rapporte_erreur(
                             "Ne peut pas appliquer l'opérateur « ! » au type de l'expression",
@@ -658,6 +639,50 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 }
             }
 
+            break;
+        }
+        case GenreNoeud::EXPRESSION_PRISE_ADRESSE:
+        {
+            auto prise_adresse = noeud->comme_prise_adresse();
+            auto opérande = prise_adresse->opérande;
+            auto type_opérande = opérande->type;
+
+            if (type_opérande == nullptr) {
+                espace->rapporte_erreur(
+                    opérande, "Erreur interne : type nul pour l'opérande de la prise d'adresse !");
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_opérande->est_type_type_de_donnees()) {
+                CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE);
+                auto type_de_donnees = type_opérande->comme_type_type_de_donnees();
+                auto type_connu = type_de_donnees->type_connu;
+
+                if (type_connu == nullptr) {
+                    type_connu = type_de_donnees;
+                }
+                {
+                    CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__POINTEUR);
+                    type_connu = m_compilatrice.typeuse.type_pointeur_pour(type_connu);
+                }
+
+                CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE_DE_DONNEES);
+                noeud->type = m_compilatrice.typeuse.type_type_de_donnees(type_connu);
+                break;
+            }
+
+            if (!est_valeur_gauche(opérande->genre_valeur)) {
+                rapporte_erreur("Ne peut pas prendre l'adresse d'une valeur-droite.", opérande);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_opérande->est_type_reference()) {
+                /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
+                 * déréférencer. À FAIRE : ajout d'un transtypage référence -> pointeur */
+                type_opérande = type_dereference_pour(type_opérande);
+            }
+
+            prise_adresse->type = m_compilatrice.typeuse.type_pointeur_pour(type_opérande);
             break;
         }
         case GenreNoeud::EXPRESSION_INDEXAGE:

@@ -1060,10 +1060,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                     valeur = m_builder.CreateXor(valeur, m_builder.getInt1(1));
                     break;
                 }
-                case OpérateurUnaire::Genre::Prise_Adresse:
-                {
-                    break;
-                }
             }
 
             table_valeurs[inst->numero] = valeur;

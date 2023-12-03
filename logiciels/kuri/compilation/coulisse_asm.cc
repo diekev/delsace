@@ -220,10 +220,6 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
                 {
                     break;
                 }
-                case OpérateurUnaire::Genre::Prise_Adresse:
-                {
-                    break;
-                }
             }
 
             break;

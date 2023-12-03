@@ -1650,22 +1650,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
         {
             auto expr_un = noeud->comme_expression_unaire();
 
-            /* prise d'adresse */
-            if (noeud->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
-                génère_ri_pour_noeud(expr_un->operande);
-                auto valeur = depile_valeur();
-                if (expr_un->operande->type->est_type_reference()) {
-                    valeur = m_constructrice.crée_charge_mem(noeud, valeur);
-                }
-
-                if (!expression_gauche) {
-                    valeur = crée_temporaire(noeud, valeur);
-                }
-
-                empile_valeur(valeur);
-                return;
-            }
-
             // @simplifie
             if (noeud->lexeme->genre == GenreLexeme::EXCLAMATION) {
                 auto condition = expr_un->operande;
@@ -1744,6 +1728,22 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             empile_valeur(
                 m_constructrice.crée_op_unaire(noeud, expr_un->type, expr_un->op->genre, valeur));
             break;
+        }
+        case GenreNoeud::EXPRESSION_PRISE_ADRESSE:
+        {
+            auto prise_adresse = noeud->comme_prise_adresse();
+            génère_ri_pour_noeud(prise_adresse->opérande);
+            auto valeur = depile_valeur();
+            if (prise_adresse->opérande->type->est_type_reference()) {
+                valeur = m_constructrice.crée_charge_mem(noeud, valeur);
+            }
+
+            if (!expression_gauche) {
+                valeur = crée_temporaire(noeud, valeur);
+            }
+
+            empile_valeur(valeur);
+            return;
         }
         case GenreNoeud::INSTRUCTION_RETOUR:
         {
