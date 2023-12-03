@@ -1635,101 +1635,109 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto expr_un = noeud->comme_expression_unaire();
-
-            /* prise d'adresse */
-            if (noeud->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
-                génère_ri_pour_noeud(expr_un->operande);
-                auto valeur = depile_valeur();
-                if (expr_un->operande->type->est_type_reference()) {
-                    valeur = m_constructrice.crée_charge_mem(noeud, valeur);
-                }
-
-                if (!expression_gauche) {
-                    valeur = crée_temporaire(noeud, valeur);
-                }
-
-                empile_valeur(valeur);
-                return;
-            }
-
-            // @simplifie
-            if (noeud->lexeme->genre == GenreLexeme::EXCLAMATION) {
-                auto condition = expr_un->operande;
-                auto type_condition = condition->type;
-                auto valeur = static_cast<Atome *>(nullptr);
-
-                switch (type_condition->genre) {
-                    case GenreType::ENTIER_NATUREL:
-                    case GenreType::ENTIER_RELATIF:
-                    case GenreType::ENTIER_CONSTANT:
-                    {
-                        génère_ri_pour_expression_droite(condition, nullptr);
-                        auto valeur1 = depile_valeur();
-                        auto valeur2 = m_constructrice.crée_constante_nombre_entier(type_condition,
-                                                                                    0);
-                        valeur = m_constructrice.crée_op_comparaison(
-                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
-                        break;
-                    }
-                    case GenreType::BOOL:
-                    {
-                        génère_ri_pour_expression_droite(condition, nullptr);
-                        auto valeur1 = depile_valeur();
-                        auto valeur2 = m_constructrice.crée_constante_booléenne(false);
-                        valeur = m_constructrice.crée_op_comparaison(
-                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
-                        break;
-                    }
-                    case GenreType::FONCTION:
-                    case GenreType::POINTEUR:
-                    {
-                        génère_ri_pour_expression_droite(condition, nullptr);
-                        auto valeur1 = depile_valeur();
-                        auto valeur2 = m_constructrice.crée_constante_nulle(type_condition);
-                        valeur = m_constructrice.crée_op_comparaison(
-                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
-                        break;
-                    }
-                    case GenreType::EINI:
-                    {
-                        génère_ri_pour_noeud(condition);
-                        auto pointeur = depile_valeur();
-                        auto pointeur_pointeur = m_constructrice.crée_référence_membre(
-                            noeud, pointeur, 0);
-                        auto valeur1 = m_constructrice.crée_charge_mem(noeud, pointeur_pointeur);
-                        auto valeur2 = m_constructrice.crée_constante_nulle(valeur1->type);
-                        valeur = m_constructrice.crée_op_comparaison(
-                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
-                        break;
-                    }
-                    case GenreType::CHAINE:
-                    case GenreType::TABLEAU_DYNAMIQUE:
-                    {
-                        génère_ri_pour_noeud(condition);
-                        auto pointeur = depile_valeur();
-                        auto pointeur_taille = m_constructrice.crée_référence_membre(
-                            noeud, pointeur, 1);
-                        auto valeur1 = m_constructrice.crée_charge_mem(noeud, pointeur_taille);
-                        auto valeur2 = m_constructrice.crée_z64(0);
-                        valeur = m_constructrice.crée_op_comparaison(
-                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
-                        break;
-                    }
-                    default:
-                    {
-                        break;
-                    }
-                }
-
-                empile_valeur(valeur);
-                return;
-            }
-
             génère_ri_pour_expression_droite(expr_un->operande, nullptr);
             auto valeur = depile_valeur();
             empile_valeur(
                 m_constructrice.crée_op_unaire(noeud, expr_un->type, expr_un->op->genre, valeur));
             break;
+        }
+        case GenreNoeud::EXPRESSION_PRISE_ADRESSE:
+        {
+            auto prise_adresse = noeud->comme_prise_adresse();
+            génère_ri_pour_noeud(prise_adresse->opérande);
+            auto valeur = depile_valeur();
+            if (prise_adresse->opérande->type->est_type_reference()) {
+                valeur = m_constructrice.crée_charge_mem(noeud, valeur);
+            }
+
+            if (!expression_gauche) {
+                valeur = crée_temporaire(noeud, valeur);
+            }
+
+            empile_valeur(valeur);
+            return;
+        }
+        case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
+        {
+            assert_rappel(false, [&]() {
+                dbg() << "Prise de référence dans la RI :\n"
+                      << erreur::imprime_site(*m_espace, noeud);
+            });
+            return;
+        }
+        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        {
+            // @simplifie
+            auto négation = noeud->comme_negation_logique();
+            auto condition = négation->opérande;
+            auto type_condition = condition->type;
+            auto valeur = static_cast<Atome *>(nullptr);
+
+            /* Peut être implémenté via x = 1 ^ (valeur == 0). */
+            switch (type_condition->genre) {
+                case GenreType::ENTIER_NATUREL:
+                case GenreType::ENTIER_RELATIF:
+                case GenreType::ENTIER_CONSTANT:
+                {
+                    génère_ri_pour_expression_droite(condition, nullptr);
+                    auto valeur1 = depile_valeur();
+                    auto valeur2 = m_constructrice.crée_constante_nombre_entier(type_condition, 0);
+                    valeur = m_constructrice.crée_op_comparaison(
+                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                    break;
+                }
+                case GenreType::BOOL:
+                {
+                    génère_ri_pour_expression_droite(condition, nullptr);
+                    auto valeur1 = depile_valeur();
+                    auto valeur2 = m_constructrice.crée_constante_booléenne(false);
+                    valeur = m_constructrice.crée_op_comparaison(
+                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                    break;
+                }
+                case GenreType::FONCTION:
+                case GenreType::POINTEUR:
+                {
+                    génère_ri_pour_expression_droite(condition, nullptr);
+                    auto valeur1 = depile_valeur();
+                    auto valeur2 = m_constructrice.crée_constante_nulle(type_condition);
+                    valeur = m_constructrice.crée_op_comparaison(
+                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                    break;
+                }
+                case GenreType::EINI:
+                {
+                    génère_ri_pour_noeud(condition);
+                    auto pointeur = depile_valeur();
+                    auto pointeur_pointeur = m_constructrice.crée_référence_membre(
+                        noeud, pointeur, 0);
+                    auto valeur1 = m_constructrice.crée_charge_mem(noeud, pointeur_pointeur);
+                    auto valeur2 = m_constructrice.crée_constante_nulle(valeur1->type);
+                    valeur = m_constructrice.crée_op_comparaison(
+                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                    break;
+                }
+                case GenreType::CHAINE:
+                case GenreType::TABLEAU_DYNAMIQUE:
+                {
+                    génère_ri_pour_noeud(condition);
+                    auto pointeur = depile_valeur();
+                    auto pointeur_taille = m_constructrice.crée_référence_membre(
+                        noeud, pointeur, 1);
+                    auto valeur1 = m_constructrice.crée_charge_mem(noeud, pointeur_taille);
+                    auto valeur2 = m_constructrice.crée_z64(0);
+                    valeur = m_constructrice.crée_op_comparaison(
+                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
+            }
+
+            empile_valeur(valeur);
+            return;
         }
         case GenreNoeud::INSTRUCTION_RETOUR:
         {
@@ -2396,15 +2404,25 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         case TypeTransformation::ENTIER_VERS_REEL:
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
+
+            auto type_transtypage = valeur->type->est_type_entier_naturel() ?
+                                        TypeTranstypage::ENTIER_NATUREL_VERS_REEL :
+                                        TypeTranstypage::ENTIER_RELATIF_VERS_REEL;
+
             valeur = m_constructrice.crée_transtype(
-                noeud, transformation.type_cible, valeur, TypeTranstypage::ENTIER_VERS_REEL);
+                noeud, transformation.type_cible, valeur, type_transtypage);
             break;
         }
         case TypeTransformation::REEL_VERS_ENTIER:
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
+
+            auto type_transtypage = transformation.type_cible->est_type_entier_naturel() ?
+                                        TypeTranstypage::REEL_VERS_ENTIER_NATUREL :
+                                        TypeTranstypage::REEL_VERS_ENTIER_RELATIF;
+
             valeur = m_constructrice.crée_transtype(
-                noeud, transformation.type_cible, valeur, TypeTranstypage::REEL_VERS_ENTIER);
+                noeud, transformation.type_cible, valeur, type_transtypage);
             break;
         }
         case TypeTransformation::REDUIT_TAILLE_TYPE:
@@ -2955,8 +2973,8 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
         génère_ri_pour_condition(cond2, label_si_vrai, label_si_faux);
     }
     else if (genre_lexeme == GenreLexeme::EXCLAMATION) {
-        auto expr_unaire = condition->comme_expression_unaire();
-        génère_ri_pour_condition(expr_unaire->operande, label_si_faux, label_si_vrai);
+        auto expr_unaire = condition->comme_negation_logique();
+        génère_ri_pour_condition(expr_unaire->opérande, label_si_faux, label_si_vrai);
     }
     else if (genre_lexeme == GenreLexeme::VRAI) {
         m_constructrice.crée_branche(condition, label_si_vrai);
