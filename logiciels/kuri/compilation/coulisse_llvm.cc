@@ -358,6 +358,8 @@ struct GeneratriceCodeLLVM {
 
     llvm::Value *génère_valeur_données_constantes(
         const AtomeConstanteDonnéesConstantes *constante);
+
+    void définis_valeur_instruction(Instruction const *inst, llvm::Value *valeur);
 };
 
 GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module)
@@ -948,7 +950,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 résultat = m_builder.CreateLoad(type_retour, alloca);
             }
 
-            table_valeurs[inst->numero] = résultat;
+            définis_valeur_instruction(inst, résultat);
             break;
         }
         case GenreInstruction::BRANCHE:
@@ -975,7 +977,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
             auto load = m_builder.CreateLoad(valeur, "");
             load->setAlignment(llvm::Align(charge->type->alignement));
-            table_valeurs[inst->numero] = load;
+            définis_valeur_instruction(inst, load);
             break;
         }
         case GenreInstruction::STOCKE_MEMOIRE:
@@ -1055,7 +1057,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 }
             }
 
-            table_valeurs[inst->numero] = valeur;
+            définis_valeur_instruction(inst, valeur);
             break;
         }
         case GenreInstruction::OPERATION_BINAIRE:
@@ -1109,7 +1111,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 valeur = m_builder.CreateBinOp(inst_llvm, valeur_gauche, valeur_droite);
             }
 
-            table_valeurs[inst->numero] = valeur;
+            définis_valeur_instruction(inst, valeur);
             break;
         }
         case GenreInstruction::RETOUR:
@@ -1148,7 +1150,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 valeur = m_builder.CreateGEP(valeur_accede, index);
             }
 
-            table_valeurs[inst->numero] = valeur;
+            définis_valeur_instruction(inst, valeur);
             break;
         }
         case GenreInstruction::ACCEDE_MEMBRE:
@@ -1233,21 +1235,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 assert(false);
             }
 
-            assert_rappel(résultat->getType() == converti_type_llvm(inst_acces->type), [&]() {
-                std::cerr << "Le type de l'accès est " << chaine_type(inst_acces->type) << '\n';
-                std::cerr << "Le type LLVM est ";
-                llvm::errs() << *résultat->getType() << '\n';
-                std::cerr << "Nous accédons à ";
-                if (inst_acces->accede->est_instruction()) {
-                    std::cerr << inst_acces->accede->comme_instruction()->genre << '\n';
-                }
-                else {
-                    imprime_information_atome(inst_acces->accede, std::cerr);
-                    std::cerr << '\n';
-                }
-            });
-
-            table_valeurs[inst->numero] = résultat;
+            définis_valeur_instruction(inst, résultat);
             break;
         }
         case GenreInstruction::TRANSTYPE:
@@ -1260,11 +1248,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto const cast_op = convertis_type_transtypage(
                 inst_transtype->op, type_de, type_vers);
             auto const résultat = m_builder.CreateCast(cast_op, valeur, type_llvm);
-            table_valeurs[inst->numero] = résultat;
-            assert_rappel(!adresse_est_nulle(résultat), [&]() {
-                std::cerr << erreur::imprime_site(m_espace, inst_transtype->site);
-                imprime_atome(inst_transtype->valeur, std::cerr);
-            });
+            définis_valeur_instruction(inst, résultat);
             break;
         }
     }
@@ -1353,6 +1337,31 @@ llvm::Value *GeneratriceCodeLLVM::génère_valeur_données_constantes(
               << chaine_type(type_élément);
     });
     return nullptr;
+}
+
+void GeneratriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, llvm::Value *valeur)
+{
+    assert_rappel(!adresse_est_nulle(valeur),
+                  [&]() { dbg() << erreur::imprime_site(m_espace, inst->site); });
+
+    assert_rappel(valeur->getType() == converti_type_llvm(inst->type), [&]() {
+        dbg() << "Le type de l'instruction est " << chaine_type(inst->type);
+        std::cerr << "Le type LLVM est ";
+        llvm::errs() << *valeur->getType() << '\n';
+        if (inst->est_acces_membre()) {
+            auto inst_acces = inst->comme_acces_membre();
+            std::cerr << "Nous accédons à ";
+            if (inst_acces->accede->est_instruction()) {
+                std::cerr << inst_acces->accede->comme_instruction()->genre << '\n';
+            }
+            else {
+                imprime_information_atome(inst_acces->accede, std::cerr);
+                std::cerr << '\n';
+            }
+        }
+    });
+
+    table_valeurs[inst->numero] = valeur;
 }
 
 void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
@@ -1510,7 +1519,7 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
         auto store = m_builder.CreateStore(valeur, alloc);
         store->setAlignment(alloc->getAlign());
 
-        table_valeurs[param->numero] = alloc;
+        définis_valeur_instruction(param, alloc);
     }
 
     /* crée une variable local pour la valeur de sortie */
@@ -1561,7 +1570,7 @@ llvm::AllocaInst *GeneratriceCodeLLVM::crée_allocation(const InstructionAllocat
     auto type_llvm = converti_type_llvm(type_alloué);
     auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
     alloca->setAlignment(llvm::Align(type_alloué->alignement));
-    table_valeurs[alloc->numero] = alloca;
+    définis_valeur_instruction(alloc, alloca);
     return alloca;
 }
 
