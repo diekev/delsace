@@ -312,6 +312,8 @@ struct GeneratriceCodeLLVM {
     llvm::IRBuilder<> m_builder;
     llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
 
+    AtomeFonction *m_atome_fonction_principale = nullptr;
+
     GeneratriceCodeLLVM(EspaceDeTravail &espace);
 
     GeneratriceCodeLLVM(GeneratriceCodeLLVM const &) = delete;
@@ -623,6 +625,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
         {
             // dbg() << "FONCTION";
             auto atome_fonc = atome->comme_fonction();
+
+            if (atome_fonc->decl && atome_fonc->decl->ident == ID::__principale) {
+                atome_fonc = m_atome_fonction_principale;
+            }
+
             return m_module->getFunction(vers_std_string(atome_fonc->nom));
         }
         case Atome::Genre::TRANSTYPE_CONSTANT:
@@ -1181,6 +1188,10 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
      * globales. */
     POUR (repr_inter.donne_fonctions()) {
         auto atome_fonc = it;
+
+        if (atome_fonc->decl && atome_fonc->decl->ident == ID::principale) {
+            m_atome_fonction_principale = atome_fonc;
+        }
 
         auto type_fonction = atome_fonc->type->comme_type_fonction();
         auto type_llvm = converti_type_fonction(type_fonction);
