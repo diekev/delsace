@@ -313,6 +313,8 @@ struct GeneratriceCodeLLVM {
     llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
 
     AtomeFonction *m_atome_fonction_principale = nullptr;
+    /* Pour le débogage. */
+    int m_nombre_fonctions_compilées = 0;
 
   public:
     GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module);
@@ -1371,17 +1373,18 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
     }
 
     POUR (repr_inter.donne_fonctions()) {
-        if (it->est_externe) {
-            continue;
-        }
-
+        m_nombre_fonctions_compilées++;
+        // dbg() << "[" << m_nombre_fonctions_compilées << " / "
+        //       << repr_inter.donne_fonctions().taille() << "] : " << it->nom;
         génère_code_pour_fonction(it);
     }
 }
 
 void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome_fonc)
 {
-    // dbg() << "Génère code pour : " << atome_fonc->nom;
+    if (atome_fonc->est_externe) {
+        return;
+    }
 
     auto fonction = m_module->getFunction(vers_std_string(atome_fonc->nom));
 
