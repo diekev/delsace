@@ -777,6 +777,8 @@ struct InstructionAccedeMembre : public Instruction {
     }
 
     const Type *donne_type_accédé() const;
+
+    const MembreTypeComposé &donne_membre_accédé() const;
 };
 
 struct InstructionAccedeIndex : public Instruction {
@@ -876,6 +878,35 @@ bool est_stocke_alloc_incrémente(InstructionStockeMem const *inst);
  * Retourne vrai si \a inst est un opérateur binaire dont les opérandes sont des constantes.
  */
 bool est_opérateur_binaire_constant(Instruction const *inst);
+
+/**
+ * Retourne vrai si \a atome est une constante nul, en incluant les transtypes potentiels vers un
+ * type pointeur.
+ */
+bool est_constante_pointeur_nul(Atome const *atome);
+
+/**
+ * Retourne vrai si l'instruction est la racine d'un arbre.
+ * Utilisée par les coulisses ne générant pas le code linéairement.
+ */
+bool instruction_est_racine(Instruction const *inst);
+
+/** Si l'instruction est de forme `x == 0` ou `x == nul`, retourne x.
+ *  Sinon retourne nul. */
+Atome const *est_comparaison_égal_zéro_ou_nul(Instruction const *inst);
+
+/** Si l'instruction est de forme `x != 0` ou `x != nul`, retourne x.
+ *  Sinon retourne nul. */
+Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst);
+
+struct AccèsMembreFusionné {
+    Atome *accédé = nullptr;
+    uint32_t décalage = 0;
+};
+
+/* "Fusionne" les accès de membre consécutifs (x.y.z).
+ * Retourne l'atome accédé à la fin de la chaine ainsi que le décalage total. */
+AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *accès_membre);
 
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
     InstructionStockeMem const *inst);

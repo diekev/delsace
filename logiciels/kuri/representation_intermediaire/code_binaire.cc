@@ -1354,17 +1354,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     }
 
     POUR (fonction->instructions) {
-        // génère le code binaire depuis les instructions « racines » (assignation, retour,
-        // appel, et controle de flux).
-        auto est_inst_racine = dls::outils::est_element(it->genre,
-                                                        GenreInstruction::APPEL,
-                                                        GenreInstruction::BRANCHE,
-                                                        GenreInstruction::BRANCHE_CONDITION,
-                                                        GenreInstruction::LABEL,
-                                                        GenreInstruction::RETOUR,
-                                                        GenreInstruction::STOCKE_MEMOIRE);
-
-        if (!est_inst_racine) {
+        if (!instruction_est_racine(it)) {
             continue;
         }
 
@@ -1384,77 +1374,6 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     chunk.rétrécis_capacité_sur_taille();
 
     return true;
-}
-
-static Atome const *est_comparaison_avec_zéro(Instruction const *inst,
-                                              OpérateurBinaire::Genre genre_comp)
-{
-    if (!inst->est_op_binaire()) {
-        return nullptr;
-    }
-
-    auto const op_binaire = inst->comme_op_binaire();
-    if (op_binaire->op != genre_comp) {
-        return nullptr;
-    }
-
-    if (!est_constante_entière_zéro(op_binaire->valeur_droite) &&
-        !op_binaire->valeur_droite->est_constante_nulle()) {
-        return nullptr;
-    }
-
-    return op_binaire->valeur_gauche;
-}
-
-static Atome const *est_comparaison_égal_zéro(Instruction const *inst)
-{
-    return est_comparaison_avec_zéro(inst, OpérateurBinaire::Genre::Comp_Egal);
-}
-
-static Atome const *est_comparaison_inégal_zéro(Instruction const *inst)
-{
-    return est_comparaison_avec_zéro(inst, OpérateurBinaire::Genre::Comp_Inegal);
-}
-
-struct AccèsMembreFusionné {
-    Atome *accédé = nullptr;
-    uint32_t décalage = 0;
-};
-
-/* "Fusionne" les accès de membre consécutifs (x.y.z).
- * Retourne l'atome accédé à la fin de la chaine ainsi que le décalage total. */
-static AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *membre)
-{
-    AccèsMembreFusionné résultat;
-
-    while (true) {
-        auto index_membre = membre->index;
-
-        auto type_compose = static_cast<TypeCompose *>(
-            type_dereference_pour(membre->accede->type));
-
-        if (type_compose->est_type_union()) {
-            type_compose = type_compose->comme_type_union()->type_structure;
-        }
-
-        auto décalage = type_compose->membres[index_membre].decalage;
-
-        résultat.accédé = membre->accede;
-        résultat.décalage += décalage;
-
-        if (!membre->accede->est_instruction()) {
-            break;
-        }
-
-        auto inst = membre->accede->comme_instruction();
-        if (!inst->est_acces_membre()) {
-            break;
-        }
-
-        membre = inst->comme_acces_membre();
-    }
-
-    return résultat;
 }
 
 void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *instruction,
@@ -1485,7 +1404,8 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto branche = instruction->comme_branche_cond();
-            if (auto atome = est_comparaison_égal_zéro(branche->condition->comme_instruction())) {
+            if (auto atome = est_comparaison_égal_zéro_ou_nul(
+                    branche->condition->comme_instruction())) {
                 génère_code_pour_atome(atome, chunk);
                 chunk.émets_branche_si_zéro(branche->site,
                                             patchs_labels,
@@ -1496,7 +1416,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                 break;
             }
 
-            if (auto atome = est_comparaison_inégal_zéro(
+            if (auto atome = est_comparaison_inégal_zéro_ou_nul(
                     branche->condition->comme_instruction())) {
                 génère_code_pour_atome(atome, chunk);
                 /* Utilise branche_si_zéro, mais inverse les labels. */

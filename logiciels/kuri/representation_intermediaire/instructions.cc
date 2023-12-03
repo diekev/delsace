@@ -92,6 +92,23 @@ const Type *InstructionAccedeMembre::donne_type_accédé() const
     return type_accédé->comme_type_pointeur()->type_pointe;
 }
 
+const MembreTypeComposé &InstructionAccedeMembre::donne_membre_accédé() const
+{
+    auto type_adressé = donne_type_accédé();
+    if (type_adressé->est_type_opaque()) {
+        type_adressé = type_adressé->comme_type_opaque()->type_opacifie;
+    }
+
+    auto type_composé = type_adressé->comme_type_compose();
+    /* Pour les unions, l'accès de membre se fait via le type structure qui est valeur unie
+     * + index. */
+    if (type_composé->est_type_union()) {
+        type_composé = type_composé->comme_type_union()->type_structure;
+    }
+
+    return type_composé->membres[index];
+}
+
 const Type *InstructionAccedeIndex::donne_type_accédé() const
 {
     return accede->type->comme_type_pointeur()->type_pointe;
@@ -241,6 +258,91 @@ bool est_opérateur_binaire_constant(Instruction const *inst)
     auto const opérande_droite = op_binaire->valeur_droite;
 
     return est_valeur_constante(opérande_gauche) && est_valeur_constante(opérande_droite);
+}
+
+bool est_constante_pointeur_nul(Atome const *atome)
+{
+    if (atome->est_constante_nulle()) {
+        return true;
+    }
+
+    if (!atome->est_instruction()) {
+        return false;
+    }
+
+    auto const inst = atome->comme_instruction();
+    if (!inst->est_transtype()) {
+        return false;
+    }
+
+    auto const transtype = inst->comme_transtype();
+    return transtype->type->est_type_pointeur() && est_constante_pointeur_nul(transtype->valeur);
+}
+
+bool instruction_est_racine(Instruction const *inst)
+{
+    return dls::outils::est_element(inst->genre,
+                                    GenreInstruction::APPEL,
+                                    GenreInstruction::BRANCHE,
+                                    GenreInstruction::BRANCHE_CONDITION,
+                                    GenreInstruction::LABEL,
+                                    GenreInstruction::RETOUR,
+                                    GenreInstruction::STOCKE_MEMOIRE);
+}
+
+static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,
+                                                     OpérateurBinaire::Genre genre_comp)
+{
+    if (!inst->est_op_binaire()) {
+        return nullptr;
+    }
+
+    auto const op_binaire = inst->comme_op_binaire();
+    if (op_binaire->op != genre_comp) {
+        return nullptr;
+    }
+
+    if (!est_constante_entière_zéro(op_binaire->valeur_droite) &&
+        !est_constante_pointeur_nul(op_binaire->valeur_droite)) {
+        return nullptr;
+    }
+
+    return op_binaire->valeur_gauche;
+}
+
+Atome const *est_comparaison_égal_zéro_ou_nul(Instruction const *inst)
+{
+    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Egal);
+}
+
+Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst)
+{
+    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Inegal);
+}
+
+AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *accès_membre)
+{
+    AccèsMembreFusionné résultat;
+
+    while (true) {
+        auto const &membre = accès_membre->donne_membre_accédé();
+
+        résultat.accédé = accès_membre->accede;
+        résultat.décalage += membre.decalage;
+
+        if (!accès_membre->accede->est_instruction()) {
+            break;
+        }
+
+        auto inst = accès_membre->accede->comme_instruction();
+        if (!inst->est_acces_membre()) {
+            break;
+        }
+
+        accès_membre = inst->comme_acces_membre();
+    }
+
+    return résultat;
 }
 
 std::ostream &operator<<(std::ostream &os, GenreInstruction genre)
