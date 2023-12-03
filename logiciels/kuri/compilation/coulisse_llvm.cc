@@ -280,7 +280,7 @@ struct GeneratriceCodeLLVM {
 
     llvm::FunctionType *converti_type_fonction(TypeFonction const *type, bool est_externe);
 
-    llvm::Value *genere_code_pour_atome(Atome *atome, bool pour_globale);
+    llvm::Value *genere_code_pour_atome(Atome const *atome, bool pour_globale);
 
     void genere_code_pour_instruction(Instruction const *inst);
 
@@ -588,7 +588,7 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction con
     return llvm::FunctionType::get(type_sortie_llvm, parametres, est_variadique && est_externe);
 }
 
-llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour_globale)
+llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, bool pour_globale)
 {
     // auto incrémentation_temp = LogDebug::IncrémenteuseTemporaire();
     // dbg() << __func__ << ", atome: " << static_cast<int>(atome->genre_atome);
