@@ -553,26 +553,22 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         case GenreType::UNION:
         {
             auto type_struct = type->comme_type_union();
-            auto decl_struct = type_struct->decl;
+
+            if (type_struct->type_structure) {
+                type_llvm = converti_type_llvm(type_struct->type_structure);
+                break;
+            }
+
+            assert(type_struct->est_nonsure);
+
             auto nom_nonsur = enchaine("union_nonsure.", type_struct->ident->nom);
-            auto nom = enchaine("union.", type_struct->ident->nom);
 
             // création d'une structure ne contenant que le membre le plus grand
             auto type_le_plus_grand = type_struct->type_le_plus_grand;
 
             auto type_max_llvm = converti_type_llvm(type_le_plus_grand);
-            auto type_union = llvm::StructType::create(
+            type_llvm = llvm::StructType::create(
                 m_contexte_llvm, {type_max_llvm}, vers_std_string(nom_nonsur));
-
-            if (!decl_struct->est_nonsure) {
-                // création d'une structure contenant l'union et une valeur discriminante
-                type_union = llvm::StructType::create(
-                    m_contexte_llvm,
-                    {type_union, llvm::Type::getInt32Ty(m_contexte_llvm)},
-                    vers_std_string(nom));
-            }
-
-            type_llvm = type_union;
             break;
         }
         case GenreType::STRUCTURE:
