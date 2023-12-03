@@ -755,8 +755,18 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
         }
         case Atome::Genre::INITIALISATION_TABLEAU:
         {
-            assert(false);
-            return nullptr;
+            auto const init_tableau = atome->comme_initialisation_tableau();
+            auto const type_tableau = init_tableau->type->comme_type_tableau_fixe();
+            auto type_llvm = converti_type_llvm(type_tableau);
+
+            std::vector<llvm::Constant *> valeurs(size_t(type_tableau->taille));
+
+            auto valeur = genere_code_pour_atome(init_tableau->valeur, pour_globale);
+            POUR (valeurs) {
+                it = llvm::cast<llvm::Constant>(valeur);
+            }
+
+            return llvm::ConstantArray::get(llvm::cast<llvm::ArrayType>(type_llvm), valeurs);
         }
         case Atome::Genre::INSTRUCTION:
         {
