@@ -1087,6 +1087,40 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
 void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 {
+    auto opt_données_constantes = repr_inter.donne_données_constantes();
+    if (opt_données_constantes.has_value()) {
+        auto données_constantes = opt_données_constantes.value();
+
+        POUR (données_constantes->tableaux_constants) {
+            auto valeur_globale = it.globale;
+
+            auto type = valeur_globale->donne_type_alloué();
+            auto type_llvm = converti_type_llvm(type);
+            auto nom_globale = llvm::StringRef();
+
+            if (valeur_globale->ident) {
+                nom_globale = llvm::StringRef(
+                    valeur_globale->ident->nom.pointeur(),
+                    static_cast<size_t>(valeur_globale->ident->nom.taille()));
+            }
+
+            auto valeur_initialisateur = static_cast<llvm::Constant *>(
+                genere_code_pour_atome(valeur_globale->initialisateur, true));
+
+            auto globale = new llvm::GlobalVariable(*m_module,
+                                                    type_llvm,
+                                                    valeur_globale->est_constante,
+                                                    valeur_globale->est_externe ?
+                                                        llvm::GlobalValue::ExternalLinkage :
+                                                        llvm::GlobalValue::InternalLinkage,
+                                                    valeur_initialisateur,
+                                                    nom_globale);
+
+            globale->setAlignment(llvm::Align(type->alignement));
+            table_globales.insère(valeur_globale, globale);
+        }
+    }
+
     POUR (repr_inter.donne_globales()) {
         // LogDebug::réinitialise_indentation();
         // dbg() << "Prédéclare globale (" << it << ") " << it->ident << ' ' <<
