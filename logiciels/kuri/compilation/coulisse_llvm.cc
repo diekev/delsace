@@ -278,7 +278,7 @@ struct GeneratriceCodeLLVM {
 
     llvm::Type *converti_type_llvm(Type const *type);
 
-    llvm::FunctionType *converti_type_fonction(TypeFonction const *type, bool est_externe);
+    llvm::FunctionType *converti_type_fonction(TypeFonction const *type);
 
     llvm::Value *genere_code_pour_atome(Atome const *atome, bool pour_globale);
 
@@ -337,17 +337,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         case GenreType::FONCTION:
         {
             auto type_fonc = type->comme_type_fonction();
-
-            std::vector<llvm::Type *> parametres;
-            POUR (type_fonc->types_entrees) {
-                auto type_llvm_it = converti_type_llvm(it);
-                parametres.push_back(type_llvm_it);
-            }
-
-            auto type_retour = converti_type_llvm(type_fonc->type_sortie);
-
-            type_llvm = llvm::FunctionType::get(type_retour, parametres, false);
-
+            type_llvm = converti_type_fonction(type_fonc);
             type_llvm = llvm::PointerType::get(type_llvm, 0);
             break;
         }
@@ -556,8 +546,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
     return type_llvm;
 }
 
-llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction const *type,
-                                                                bool est_externe)
+llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction const *type)
 {
     std::vector<llvm::Type *> parametres;
     parametres.reserve(static_cast<size_t>(type->types_entrees.taille()));
@@ -566,17 +555,12 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction con
 
     POUR (type->types_entrees) {
         if (it->est_type_variadique()) {
-            est_variadique = true;
-
-            /* les arguments variadiques sont transformés en un tableau */
-            if (!est_externe) {
-                auto type_var = it->comme_type_variadique();
-                auto type_tabl = m_espace.compilatrice().typeuse.type_tableau_dynamique(
-                    type_var->type_pointe);
-                parametres.push_back(converti_type_llvm(type_tabl));
+            auto type_variadique = it->comme_type_variadique();
+            /* Type variadique externe. */
+            if (type_variadique->type_pointe == nullptr) {
+                est_variadique = true;
+                break;
             }
-
-            break;
         }
 
         parametres.push_back(converti_type_llvm(it));
@@ -585,7 +569,7 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction con
     auto type_sortie_llvm = converti_type_llvm(type->type_sortie);
     assert(type_sortie_llvm);
 
-    return llvm::FunctionType::get(type_sortie_llvm, parametres, est_variadique && est_externe);
+    return llvm::FunctionType::get(type_sortie_llvm, parametres, est_variadique);
 }
 
 llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, bool pour_globale)
@@ -1157,8 +1141,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         auto atome_fonc = it;
 
         auto type_fonction = atome_fonc->type->comme_type_fonction();
-        auto type_llvm = converti_type_fonction(type_fonction,
-                                                atome_fonc->instructions.taille() == 0);
+        auto type_llvm = converti_type_fonction(type_fonction);
 
         llvm::Function::Create(type_llvm,
                                llvm::Function::ExternalLinkage,
