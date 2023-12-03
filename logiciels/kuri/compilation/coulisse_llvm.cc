@@ -1151,6 +1151,21 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         table_globales.insère(valeur_globale, globale);
     }
 
+    /* Les fonctions peuvent être référencées par les globales, créons-les avant d'intialiser les
+     * globales. */
+    POUR (repr_inter.donne_fonctions()) {
+        auto atome_fonc = it;
+
+        auto type_fonction = atome_fonc->type->comme_type_fonction();
+        auto type_llvm = converti_type_fonction(type_fonction,
+                                                atome_fonc->instructions.taille() == 0);
+
+        llvm::Function::Create(type_llvm,
+                               llvm::Function::ExternalLinkage,
+                               vers_std_string(atome_fonc->nom),
+                               m_module);
+    }
+
     POUR (repr_inter.donne_globales()) {
         // LogDebug::réinitialise_indentation();
         // dbg() << "Génère code pour globale (" << it << ") " << it->ident << ' '
@@ -1166,19 +1181,6 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         else {
             globale->setInitializer(llvm::ConstantAggregateZero::get(globale->getType()));
         }
-    }
-
-    POUR (repr_inter.donne_fonctions()) {
-        auto atome_fonc = it;
-
-        auto type_fonction = atome_fonc->type->comme_type_fonction();
-        auto type_llvm = converti_type_fonction(type_fonction,
-                                                atome_fonc->instructions.taille() == 0);
-
-        llvm::Function::Create(type_llvm,
-                               llvm::Function::ExternalLinkage,
-                               vers_std_string(atome_fonc->nom),
-                               m_module);
     }
 
     // auto index_fonction = 0l;
