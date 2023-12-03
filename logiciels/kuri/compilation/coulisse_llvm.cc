@@ -616,7 +616,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
                                                 uint64_t(acces->index));
             assert(index);
             auto accede = genere_code_pour_atome(acces->accede, pour_globale);
-            assert(accede);
+            assert_rappel(accede, [&]() {
+                dbg() << "L'accédé est de genre " << acces->accede->genre_atome << " ("
+                      << acces->accede << ")";
+                imprime_information_atome(acces->accede, std::cerr);
+            });
 
             if (acces->accede->est_globale()) {
                 auto globale = acces->accede->comme_globale();
@@ -704,8 +708,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
 
             POUR_INDEX (type->donne_membres_pour_code_machine()) {
                 static_cast<void>(it);
-                // dbg() << "Génère code pour le membre " <<
-                // type->membres[i].nom->nom;
+                // dbg() << "Génère code pour le membre " << it.nom->nom;
                 auto valeur = llvm::cast<llvm::Constant>(
                     genere_code_pour_atome(tableau_valeur[index_it], pour_globale));
 
@@ -1076,7 +1079,8 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 {
     POUR (repr_inter.donne_globales()) {
         // LogDebug::réinitialise_indentation();
-        // dbg() << "Prédéclare globale " << it.ident << ' ' << chaine_type(it.type);
+        // dbg() << "Prédéclare globale (" << it << ") " << it->ident << ' ' <<
+        // chaine_type(it->type);
         auto valeur_globale = it;
 
         auto type = valeur_globale->donne_type_alloué();
@@ -1105,7 +1109,8 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 
     POUR (repr_inter.donne_globales()) {
         // LogDebug::réinitialise_indentation();
-        // dbg() << "Génère code pour globale " << it.ident << ' ' << chaine_type(it.type);
+        // dbg() << "Génère code pour globale (" << it << ") " << it->ident << ' '
+        //       << chaine_type(it->type);
         auto valeur_globale = it;
 
         auto globale = table_globales.valeur_ou(valeur_globale, nullptr);
