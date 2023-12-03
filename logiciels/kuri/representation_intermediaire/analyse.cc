@@ -1169,25 +1169,6 @@ static bool est_opérateur_comparaison_ordre(OpérateurBinaire::Genre genre)
            genre == OpérateurBinaire::Genre::Comp_Sup_Egal;
 }
 
-static bool est_constante_pointeur_nul(Atome const *atome)
-{
-    if (atome->est_constante_nulle()) {
-        return true;
-    }
-
-    if (!atome->est_instruction()) {
-        return false;
-    }
-
-    auto const inst = atome->comme_instruction();
-    if (!inst->est_transtype()) {
-        return false;
-    }
-
-    auto const transtype = inst->comme_transtype();
-    return transtype->type->est_type_pointeur() && est_constante_pointeur_nul(transtype->valeur);
-}
-
 static bool est_comparaison_pointeur_nul(InstructionOpBinaire const *op_binaire)
 {
     auto const genre = op_binaire->op;
