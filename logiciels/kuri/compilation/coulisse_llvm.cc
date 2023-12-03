@@ -69,6 +69,13 @@ static VisibilitéSymbole donne_visibilité_fonction(AtomeFonction const *foncti
         return VisibilitéSymbole::EXPORTÉ;
     }
 
+    if (dls::outils::est_element(fonction->decl->ident,
+                                 ID::__point_d_entree_dynamique,
+                                 ID::__point_d_entree_systeme,
+                                 ID::__point_de_sortie_dynamique)) {
+        return VisibilitéSymbole::EXPORTÉ;
+    }
+
     return fonction->decl->visibilité_symbole;
 }
 
