@@ -315,6 +315,37 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::RésultatInt
         FAIS_TRANSTYPE(type2, type1)                                                              \
     }
 
+#define TRANSTYPE_EVR(type_)                                                                      \
+    if (taille_de == static_cast<int>(taille_de(type_))) {                                        \
+        auto v = dépile<type_>();                                                                 \
+        if (taille_vers == 2) {                                                                   \
+            /* @Incomplet : r16 */                                                                \
+        }                                                                                         \
+        else if (taille_vers == 4) {                                                              \
+            empile(static_cast<float>(v));                                                        \
+        }                                                                                         \
+        else if (taille_vers == 8) {                                                              \
+            empile(static_cast<double>(v));                                                       \
+        }                                                                                         \
+    }
+
+#define TRANSTYPE_RVE(type_, type1, type2, type4, type8)                                          \
+    if (taille_de == static_cast<int>(taille_de(type_))) {                                        \
+        auto v = dépile<type_>();                                                                 \
+        if (taille_vers == 1) {                                                                   \
+            empile(static_cast<type1>(v));                                                        \
+        }                                                                                         \
+        else if (taille_vers == 2) {                                                              \
+            empile(static_cast<type2>(v));                                                        \
+        }                                                                                         \
+        else if (taille_vers == 4) {                                                              \
+            empile(static_cast<type4>(v));                                                        \
+        }                                                                                         \
+        else if (taille_vers == 8) {                                                              \
+            empile(static_cast<type8>(v));                                                        \
+        }                                                                                         \
+    }
+
 /* ************************************************************************** */
 
 static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
@@ -1523,61 +1554,40 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 break;
             }
-            case OP_ENTIER_VERS_REEL:
+            case OP_NATUREL_VERS_REEL:
             {
-                // @Incomplet : on perd l'information du signe dans le nombre entier
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
-
-#define TRANSTYPE_EVR(type_)                                                                      \
-    if (taille_de == static_cast<int>(taille_de(type_))) {                                        \
-        auto v = dépile<type_>();                                                                 \
-        if (taille_vers == 2) {                                                                   \
-            /* @Incomplet : r16 */                                                                \
-        }                                                                                         \
-        else if (taille_vers == 4) {                                                              \
-            empile(static_cast<float>(v));                                                        \
-        }                                                                                         \
-        else if (taille_vers == 8) {                                                              \
-            empile(static_cast<double>(v));                                                       \
-        }                                                                                         \
-    }
-
-                TRANSTYPE_EVR(char)
-                TRANSTYPE_EVR(short)
-                TRANSTYPE_EVR(int)
+                TRANSTYPE_EVR(uint8_t)
+                TRANSTYPE_EVR(uint16_t)
+                TRANSTYPE_EVR(uint32_t)
                 TRANSTYPE_EVR(int64_t)
-
-#undef TRANSTYPE_EVR
                 break;
             }
-            case OP_REEL_VERS_ENTIER:
+            case OP_RELATIF_VERS_REEL:
             {
-                // @Incomplet : on perd l'information du signe dans le nombre entier
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
-
-#define TRANSTYPE_RVE(type_)                                                                      \
-    if (taille_de == static_cast<int>(taille_de(type_))) {                                        \
-        auto v = dépile<type_>();                                                                 \
-        if (taille_vers == 1) {                                                                   \
-            empile(static_cast<char>(v));                                                         \
-        }                                                                                         \
-        else if (taille_vers == 2) {                                                              \
-            empile(static_cast<short>(v));                                                        \
-        }                                                                                         \
-        else if (taille_vers == 4) {                                                              \
-            empile(static_cast<int>(v));                                                          \
-        }                                                                                         \
-        else if (taille_vers == 8) {                                                              \
-            empile(static_cast<int64_t>(v));                                                      \
-        }                                                                                         \
-    }
-
-                TRANSTYPE_RVE(float)
-                TRANSTYPE_RVE(double)
-
-#undef TRANSTYPE_RVE
+                TRANSTYPE_EVR(int8_t)
+                TRANSTYPE_EVR(int16_t)
+                TRANSTYPE_EVR(int32_t)
+                TRANSTYPE_EVR(int64_t)
+                break;
+            }
+            case OP_REEL_VERS_NATUREL:
+            {
+                auto taille_de = LIS_4_OCTETS();
+                auto taille_vers = LIS_4_OCTETS();
+                TRANSTYPE_RVE(float, uint8_t, uint16_t, uint32_t, uint64_t)
+                TRANSTYPE_RVE(double, uint8_t, uint16_t, uint32_t, uint64_t)
+                break;
+            }
+            case OP_REEL_VERS_RELATIF:
+            {
+                auto taille_de = LIS_4_OCTETS();
+                auto taille_vers = LIS_4_OCTETS();
+                TRANSTYPE_RVE(float, int8_t, int16_t, int32_t, int64_t)
+                TRANSTYPE_RVE(double, int8_t, int16_t, int32_t, int64_t)
                 break;
             }
             case OP_RETOURNE:

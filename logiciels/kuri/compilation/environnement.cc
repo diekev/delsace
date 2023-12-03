@@ -208,9 +208,30 @@ static void ajoute_options_pour_niveau_options(TableauOptions &résultat,
     }
 }
 
+static kuri::chaine_statique donne_compilateur_c()
+{
+#ifdef _MSC_VER
+    // return chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
+    return "cl";
+#else
+    return COMPILATEUR_C_COULISSE_C;
+#endif
+}
+
+static kuri::chaine_statique donne_compilateur_cpp()
+{
+#ifdef _MSC_VER
+    // return chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
+    return "cl";
+#else
+    return COMPILATEUR_CXX_COULISSE_C;
+#endif
+}
+
 /* Pour les options d'avertissements et d'erreurs de GCC, voir :
  * https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html */
-static TableauOptions options_pour_fichier_objet(OptionsDeCompilation const &options)
+static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilateur,
+                                                 OptionsDeCompilation const &options)
 {
     TableauOptions résultat;
 
@@ -231,7 +252,9 @@ static TableauOptions options_pour_fichier_objet(OptionsDeCompilation const &opt
     /* Désactivation des erreurs concernant le manque de "const" quand
      * on passe des variables générés temporairement par la coulisse à
      * des fonctions qui dont les paramètres ne sont pas constants. */
-    résultat.ajoute("-Wno-discarded-qualifiers");
+    if (compilateur == donne_compilateur_c()) {
+        résultat.ajoute("-Wno-discarded-qualifiers");
+    }
     /* Désactivation des avertissements de passage d'une variable au
      * lieu d'une chaine littérale à printf et al. */
     résultat.ajoute("-Wno-format-security");
@@ -264,7 +287,8 @@ static TableauOptions options_pour_fichier_objet(OptionsDeCompilation const &opt
     return résultat;
 }
 
-static TableauOptions options_pour_liaison(OptionsDeCompilation const &options)
+static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
+                                           OptionsDeCompilation const &options)
 {
     TableauOptions résultat;
 
@@ -280,7 +304,9 @@ static TableauOptions options_pour_liaison(OptionsDeCompilation const &options)
     /* Désactivation des erreurs concernant le manque de "const" quand
      * on passe des variables générés temporairement par la coulisse à
      * des fonctions qui dont les paramètres ne sont pas constants. */
-    résultat.ajoute("-Wno-discarded-qualifiers");
+    if (compilateur == donne_compilateur_c()) {
+        résultat.ajoute("-Wno-discarded-qualifiers");
+    }
     /* Désactivation des avertissements de passage d'une variable au
      * lieu d'une chaine littérale à printf et al. */
     résultat.ajoute("-Wno-format-security");
@@ -302,7 +328,7 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
                                                      kuri::chaine_statique fichier_entrée,
                                                      kuri::chaine_statique fichier_sortie)
 {
-    auto options_compilateur = options_pour_fichier_objet(options);
+    auto options_compilateur = options_pour_fichier_objet(compilateur, options);
 
     Enchaineuse enchaineuse;
     enchaineuse << compilateur << " ";
@@ -325,26 +351,6 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
     return enchaineuse.chaine();
 }
 
-static kuri::chaine_statique donne_compilateur_c()
-{
-#ifdef _MSC_VER
-    // return chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
-    return "cl";
-#else
-    return COMPILATEUR_C_COULISSE_C;
-#endif
-}
-
-static kuri::chaine_statique donne_compilateur_cpp()
-{
-#ifdef _MSC_VER
-    // return chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
-    return "cl";
-#else
-    return COMPILATEUR_CXX_COULISSE_C;
-#endif
-}
-
 kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
                                          kuri::chaine_statique fichier_entrée,
                                          kuri::chaine_statique fichier_sortie)
@@ -357,7 +363,8 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
                                    kuri::tableau_statique<Bibliotheque *> bibliotheques)
 {
-    auto options_compilateur = options_pour_liaison(options);
+    auto compilateur = donne_compilateur_cpp();
+    auto options_compilateur = options_pour_liaison(compilateur, options);
 
     Enchaineuse enchaineuse;
     enchaineuse << donne_compilateur_cpp() << " ";
@@ -467,10 +474,8 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
 static bool execute_commande(kuri::chaine const &commande)
 {
     std::cout << "Compilation des tables de conversion R16...\n";
-    std::cout << "Exécution de la commande " << commande << std::endl;
 
-    const auto err = system(commande.pointeur());
-    if (err != 0) {
+    if (exécute_commande_externe(commande)) {
         std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
         return false;
     }
@@ -543,5 +548,16 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
         return false;
     }
 
+    return true;
+}
+
+bool exécute_commande_externe(kuri::chaine_statique commande)
+{
+    std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+    const auto err = system(commande.pointeur());
+    if (err != 0) {
+        return false;
+    }
     return true;
 }

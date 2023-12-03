@@ -451,6 +451,30 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(expr);
             break;
         }
+        case GenreNoeud::EXPRESSION_PRISE_ADRESSE:
+        {
+            auto prise_adresse = racine->comme_prise_adresse();
+            prise_adresse->drapeaux |= drapeau;
+            aplatis_arbre(prise_adresse->opérande, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(prise_adresse);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
+        {
+            auto prise_référence = racine->comme_prise_reference();
+            prise_référence->drapeaux |= drapeau;
+            aplatis_arbre(prise_référence->opérande, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(prise_référence);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        {
+            auto négation = racine->comme_negation_logique();
+            négation->drapeaux |= drapeau;
+            aplatis_arbre(négation->opérande, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(négation);
+            break;
+        }
         case GenreNoeud::INSTRUCTION_ARRETE:
         {
             auto inst = racine->comme_arrete();
@@ -1049,16 +1073,11 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
 
             return false;
         }
-        case GenreNoeud::OPERATEUR_UNAIRE:
+        case GenreNoeud::EXPRESSION_PRISE_ADRESSE:
         {
-            auto op_unaire = expression->comme_expression_unaire();
-
-            /* Les prises d'adresses n'ont pas d'opérateurs. */
-            if (op_unaire->lexeme->genre != GenreLexeme::FOIS_UNAIRE) {
-                return false;
-            }
-
-            return peut_être_utilisée_pour_initialisation_constante_globale(op_unaire->operande);
+            auto prise_adresse = expression->comme_prise_adresse();
+            return peut_être_utilisée_pour_initialisation_constante_globale(
+                prise_adresse->opérande);
         }
         case GenreNoeud::EXPRESSION_PARENTHESE:
         {
@@ -2039,15 +2058,15 @@ NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexeme *lexeme,
     return crée_assignation_variable(valeur->lexeme, valeur, inc);
 }
 
-NoeudExpressionUnaire *crée_prise_adresse(AssembleuseArbre *assem,
-                                          Lexeme const *lexème,
-                                          NoeudExpression *expression,
-                                          TypePointeur *type_résultat)
+NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
+                                                Lexeme const *lexème,
+                                                NoeudExpression *expression,
+                                                TypePointeur *type_résultat)
 {
     assert(type_résultat->type_pointe == expression->type);
 
-    auto résultat = assem->crée_expression_unaire(lexème);
-    résultat->operande = expression;
+    auto résultat = assem->crée_prise_adresse(lexème);
+    résultat->opérande = expression;
     résultat->type = type_résultat;
     return résultat;
 }
@@ -2288,10 +2307,8 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         case GenreType::VARIADIQUE:
         case GenreType::UNION:
         {
-            static Lexeme lexème_op = {};
-            lexème_op.genre = GenreLexeme::FOIS_UNAIRE;
             auto prise_adresse = crée_prise_adresse(
-                assembleuse, &lexème_op, ref_param, typeuse.type_pointeur_pour(type));
+                assembleuse, &lexème_sentinel, ref_param, typeuse.type_pointeur_pour(type));
             auto fonction = crée_entête_pour_initialisation_type(
                 type, compilatrice, assembleuse, typeuse);
             auto appel = assembleuse->crée_appel(&lexème_sentinel, fonction, TypeBase::RIEN);
@@ -2405,10 +2422,8 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             auto type_opacifié = opaque->type_opacifie;
 
             // Transtype vers le type opacifié, et crée l'initialisation pour le type opacifié.
-            static Lexeme lexème_op = {};
-            lexème_op.genre = GenreLexeme::FOIS_UNAIRE;
             auto prise_adresse = crée_prise_adresse(
-                assembleuse, &lexème_op, ref_param, typeuse.type_pointeur_pour(type));
+                assembleuse, &lexème_sentinel, ref_param, typeuse.type_pointeur_pour(type));
 
             auto comme = assembleuse->crée_comme(&lexème_sentinel);
             comme->expression = prise_adresse;
