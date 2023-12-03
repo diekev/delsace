@@ -912,10 +912,10 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 imprime_atome(inst_appel->appele, std::cerr);
             });
 
-            llvm::Value *résultat = m_builder.CreateCall(
-                llvm::FunctionCallee(static_cast<llvm::FunctionType *>(valeur_fonction->getType()),
-                                     valeur_fonction),
-                arguments);
+            auto callee = llvm::FunctionCallee(
+                static_cast<llvm::FunctionType *>(valeur_fonction->getType()), valeur_fonction);
+
+            llvm::Value *résultat = m_builder.CreateCall(callee, arguments);
 
             if (!inst_appel->type->est_type_rien()) {
                 /* Crée une temporaire sinon la valeur sera du type fonction... */
