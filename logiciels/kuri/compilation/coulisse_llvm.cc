@@ -282,16 +282,14 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
             return CastOps::PtrToInt;
         case TypeTranstypage::ENTIER_VERS_POINTEUR:
             return CastOps::IntToPtr;
-        case TypeTranstypage::REEL_VERS_ENTIER:
-            if (type_vers->est_type_entier_naturel()) {
-                return CastOps::FPToUI;
-            }
+        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
             return CastOps::FPToSI;
-        case TypeTranstypage::ENTIER_VERS_REEL:
-            if (type_de->est_type_entier_naturel()) {
-                return CastOps::UIToFP;
-            }
+        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
+            return CastOps::FPToUI;
+        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
             return CastOps::SIToFP;
+        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+            return CastOps::UIToFP;
         case TypeTranstypage::DEFAUT:
             if (type_de->est_type_bool() && est_type_entier(type_vers)) {
                 return CastOps::ZExt;

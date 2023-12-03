@@ -2410,15 +2410,25 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         case TypeTransformation::ENTIER_VERS_REEL:
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
+
+            auto type_transtypage = valeur->type->est_type_entier_naturel() ?
+                                        TypeTranstypage::ENTIER_NATUREL_VERS_REEL :
+                                        TypeTranstypage::ENTIER_RELATIF_VERS_REEL;
+
             valeur = m_constructrice.crée_transtype(
-                noeud, transformation.type_cible, valeur, TypeTranstypage::ENTIER_VERS_REEL);
+                noeud, transformation.type_cible, valeur, type_transtypage);
             break;
         }
         case TypeTransformation::REEL_VERS_ENTIER:
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
+
+            auto type_transtypage = transformation.type_cible->est_type_entier_naturel() ?
+                                        TypeTranstypage::REEL_VERS_ENTIER_NATUREL :
+                                        TypeTranstypage::REEL_VERS_ENTIER_RELATIF;
+
             valeur = m_constructrice.crée_transtype(
-                noeud, transformation.type_cible, valeur, TypeTranstypage::REEL_VERS_ENTIER);
+                noeud, transformation.type_cible, valeur, type_transtypage);
             break;
         }
         case TypeTransformation::REDUIT_TAILLE_TYPE:
