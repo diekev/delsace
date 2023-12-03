@@ -1056,8 +1056,10 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         case GenreInstruction::OPERATION_BINAIRE:
         {
             auto inst_bin = inst->comme_op_binaire();
-            auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, false);
-            auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, false);
+            auto gauche = inst_bin->valeur_gauche;
+            auto droite = inst_bin->valeur_droite;
+            auto valeur_gauche = genere_code_pour_atome(gauche, false);
+            auto valeur_droite = genere_code_pour_atome(droite, false);
 
             llvm::Value *valeur = nullptr;
 
@@ -1065,7 +1067,9 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Nat) {
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
 
-                assert_rappel(inst_bin->valeur_droite->type == inst_bin->valeur_gauche->type,
+                assert_rappel(droite->type == gauche->type ||
+                                  (droite->type->est_type_type_de_donnees() &&
+                                   gauche->type->est_type_type_de_donnees()),
                               [&]() {
                                   std::cerr << erreur::imprime_site(m_espace, inst_bin->site);
                                   std::cerr << "Type à gauche "
