@@ -110,8 +110,10 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT)                                                       \
     ENUMERE_CODE_OPERATION_EX(OP_DÉCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT_REEL)                                                  \
-    ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_ENTIER)                                                \
-    ENUMERE_CODE_OPERATION_EX(OP_ENTIER_VERS_REEL)                                                \
+    ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_NATUREL)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_RELATIF)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_NATUREL_VERS_REEL)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_RELATIF_VERS_REEL)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_REMBOURRAGE)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_ADRESSAGE_CHARGE)                                        \
     ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_ADRESSAGE_ASSIGNE)                                       \
