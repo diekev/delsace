@@ -1547,6 +1547,11 @@ static kuri::chemin_systeme chemin_fichier_s_llvm()
     return kuri::chemin_systeme::chemin_temporaire("kuri.s");
 }
 
+static kuri::chaine_statique donne_assembleur_llvm()
+{
+    return "llvm-as-12";
+}
+
 static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
 {
     return llvm::StringRef(chaine.pointeur(), size_t(chaine.taille()));
@@ -1589,13 +1594,13 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
     module.print(dest, nullptr);
 
     /* Génère le fichier de code binaire depuis le fichier de RI LLVM. */
-    auto commande = enchaine("llvm-as ", fichier_ll, " -o ", fichier_bc, "\0");
+    auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, "\0");
     if (system(commande.pointeur()) != 0) {
         return false;
     }
 
     /* Génère le fichier d'instruction assembly depuis le fichier de code binaire. */
-    commande = enchaine("llvm-as ", fichier_bc, " -o ", fichier_s, "\0");
+    commande = enchaine(donne_assembleur_llvm(), " ", fichier_bc, " -o ", fichier_s, "\0");
     if (system(commande.pointeur()) != 0) {
         return false;
     }
@@ -1615,7 +1620,7 @@ static bool valide_llvm_ir(llvm::Module &module)
 
     /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
      * est correcte. */
-    auto commande = enchaine("llvm-as ", fichier_ll, " -o ", fichier_bc, "\0");
+    auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, "\0");
     return system(commande.pointeur()) == 0;
 }
 #endif
