@@ -260,6 +260,25 @@ bool est_opérateur_binaire_constant(Instruction const *inst)
     return est_valeur_constante(opérande_gauche) && est_valeur_constante(opérande_droite);
 }
 
+bool est_constante_pointeur_nul(Atome const *atome)
+{
+    if (atome->est_constante_nulle()) {
+        return true;
+    }
+
+    if (!atome->est_instruction()) {
+        return false;
+    }
+
+    auto const inst = atome->comme_instruction();
+    if (!inst->est_transtype()) {
+        return false;
+    }
+
+    auto const transtype = inst->comme_transtype();
+    return transtype->type->est_type_pointeur() && est_constante_pointeur_nul(transtype->valeur);
+}
+
 bool instruction_est_racine(Instruction const *inst)
 {
     return dls::outils::est_element(inst->genre,
