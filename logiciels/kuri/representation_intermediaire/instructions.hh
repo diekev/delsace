@@ -777,6 +777,8 @@ struct InstructionAccedeMembre : public Instruction {
     }
 
     const Type *donne_type_accédé() const;
+
+    const MembreTypeComposé &donne_membre_accédé() const;
 };
 
 struct InstructionAccedeIndex : public Instruction {

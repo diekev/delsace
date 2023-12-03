@@ -92,6 +92,23 @@ const Type *InstructionAccedeMembre::donne_type_accédé() const
     return type_accédé->comme_type_pointeur()->type_pointe;
 }
 
+const MembreTypeComposé &InstructionAccedeMembre::donne_membre_accédé() const
+{
+    auto type_adressé = donne_type_accédé();
+    if (type_adressé->est_type_opaque()) {
+        type_adressé = type_adressé->comme_type_opaque()->type_opacifie;
+    }
+
+    auto type_composé = type_adressé->comme_type_compose();
+    /* Pour les unions, l'accès de membre se fait via le type structure qui est valeur unie
+     * + index. */
+    if (type_composé->est_type_union()) {
+        type_composé = type_composé->comme_type_union()->type_structure;
+    }
+
+    return type_composé->membres[index];
+}
+
 const Type *InstructionAccedeIndex::donne_type_accédé() const
 {
     return accede->type->comme_type_pointeur()->type_pointe;

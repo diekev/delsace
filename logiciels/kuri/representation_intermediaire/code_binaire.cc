@@ -1423,35 +1423,26 @@ struct AccèsMembreFusionné {
 
 /* "Fusionne" les accès de membre consécutifs (x.y.z).
  * Retourne l'atome accédé à la fin de la chaine ainsi que le décalage total. */
-static AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *membre)
+static AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *accès_membre)
 {
     AccèsMembreFusionné résultat;
 
     while (true) {
-        auto index_membre = membre->index;
+        auto const &membre = accès_membre->donne_membre_accédé();
 
-        auto type_compose = static_cast<TypeCompose *>(
-            type_dereference_pour(membre->accede->type));
+        résultat.accédé = accès_membre->accede;
+        résultat.décalage += membre.decalage;
 
-        if (type_compose->est_type_union()) {
-            type_compose = type_compose->comme_type_union()->type_structure;
-        }
-
-        auto décalage = type_compose->membres[index_membre].decalage;
-
-        résultat.accédé = membre->accede;
-        résultat.décalage += décalage;
-
-        if (!membre->accede->est_instruction()) {
+        if (!accès_membre->accede->est_instruction()) {
             break;
         }
 
-        auto inst = membre->accede->comme_instruction();
+        auto inst = accès_membre->accede->comme_instruction();
         if (!inst->est_acces_membre()) {
             break;
         }
 
-        membre = inst->comme_acces_membre();
+        accès_membre = inst->comme_acces_membre();
     }
 
     return résultat;
