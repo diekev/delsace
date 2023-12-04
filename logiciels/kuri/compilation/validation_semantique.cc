@@ -903,56 +903,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto expr = noeud->comme_comme();
-
-            if (resoud_type_final(expr->expression_type, expr->type) ==
-                CodeRetourValidation::Erreur) {
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (noeud->type == nullptr) {
-                rapporte_erreur(
-                    "Ne peut transtyper vers un type invalide", expr, erreur::Genre::TYPE_INCONNU);
-                return CodeRetourValidation::Erreur;
-            }
-
-            auto enfant = expr->expression;
-            if (enfant->type == nullptr) {
-                rapporte_erreur(
-                    "Ne peut calculer le type d'origine", enfant, erreur::Genre::TYPE_INCONNU);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (enfant->type->est_type_reference() && !noeud->type->est_type_reference()) {
-                crée_transtypage_implicite_au_besoin(expr->expression,
-                                                     TypeTransformation::DEREFERENCE);
-            }
-
-            auto resultat = cherche_transformation_pour_transtypage(expr->expression->type,
-                                                                    noeud->type);
-
-            if (std::holds_alternative<Attente>(resultat)) {
-                return std::get<Attente>(resultat);
-            }
-
-            auto transformation = std::get<TransformationType>(resultat);
-
-            if (transformation.type == TypeTransformation::INUTILE) {
-                /* À FAIRE : ne rapporte pas d'avertissements si le transtypage se fait vers le
-                 * type monomorphé. */
-                if (fonction_courante() && !fonction_courante()->possède_drapeau(
-                                               DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-                    espace->rapporte_avertissement(expr, "Instruction de transtypage inutile.");
-                }
-            }
-
-            if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-                rapporte_erreur_type_arguments(noeud, expr->expression);
-                return CodeRetourValidation::Erreur;
-            }
-
-            expr->transformation = transformation;
-
-            break;
+            return valide_expression_comme(expr);
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NUL:
         {
@@ -6081,3 +6032,57 @@ ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
     }
     return résultat;
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression comme.
+ * \{ */
+
+ResultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
+{
+    if (resoud_type_final(expr->expression_type, expr->type) == CodeRetourValidation::Erreur) {
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (expr->type == nullptr) {
+        rapporte_erreur(
+            "Ne peut transtyper vers un type invalide", expr, erreur::Genre::TYPE_INCONNU);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto enfant = expr->expression;
+    if (enfant->type == nullptr) {
+        rapporte_erreur("Ne peut calculer le type d'origine", enfant, erreur::Genre::TYPE_INCONNU);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (enfant->type->est_type_reference() && !expr->type->est_type_reference()) {
+        crée_transtypage_implicite_au_besoin(expr->expression, TypeTransformation::DEREFERENCE);
+    }
+
+    auto resultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
+
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
+    }
+
+    auto transformation = std::get<TransformationType>(resultat);
+
+    if (transformation.type == TypeTransformation::INUTILE) {
+        /* À FAIRE : ne rapporte pas d'avertissements si le transtypage se fait vers le
+         * type monomorphé. */
+        if (fonction_courante() &&
+            !fonction_courante()->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+            espace->rapporte_avertissement(expr, "Instruction de transtypage inutile.");
+        }
+    }
+
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+        rapporte_erreur_type_arguments(expr, expr->expression);
+        return CodeRetourValidation::Erreur;
+    }
+
+    expr->transformation = transformation;
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
