@@ -756,18 +756,13 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
                 imprime_information_atome(acces->accede, std::cerr);
             });
 
-            auto index_array = std::vector<llvm::Value *>();
+            auto index_array = llvm::SmallVector<llvm::Value *>();
             auto type_accede = acces->donne_type_accédé();
-            if (type_accede->est_type_pointeur()) {
-                index_array.resize(1);
-                index_array[0] = index;
+            if (!type_accede->est_type_pointeur()) {
+                auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
+                index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
             }
-            else {
-                index_array.resize(2);
-                index_array[0] = llvm::ConstantInt::get(llvm::Type::getInt32Ty(m_contexte_llvm),
-                                                        0);
-                index_array[1] = index;
-            }
+            index_array.push_back(index);
 
             // dbg() << "ACCES_INDEX_CONSTANT: index=" << *index << ", accede=" << *accede;
 
