@@ -1275,7 +1275,7 @@ void GeneratriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, l
         dbg() << "Le type de l'instruction est " << chaine_type(inst->type);
         dbg() << "Le type LLVM est " << *valeur->getType();
         dbg() << "Le type espéré serait " << *converti_type_llvm(inst->type);
-        imprime_instruction(inst, std::cerr);
+        dbg() << imprime_arbre_instruction(inst);
         if (inst->est_acces_membre()) {
             auto inst_acces = inst->comme_acces_membre();
             std::cerr << "Nous accédons à ";
