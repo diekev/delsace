@@ -1143,23 +1143,33 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto valeur_accede = genere_code_pour_atome(inst_acces->accede, false);
             auto valeur_index = genere_code_pour_atome(inst_acces->index, false);
 
-            llvm::Value *valeur = nullptr;
-            auto type_accede = inst_acces->donne_type_accédé();
-            if (type_accede->est_type_pointeur()) {
-                auto index = std::vector<llvm::Value *>(1);
-                index[0] = valeur_index;
+            llvm::SmallVector<llvm::Value *, 2> liste_index;
 
-                // À FAIRE : ceci est sans doute faux
-                auto xx = m_builder.CreateGEP(valeur_accede, index);
-                valeur = m_builder.CreateLoad(xx);
+            auto accédé = inst_acces->accede;
+            if (accédé->est_instruction()) {
+                // dbg() << accédé->comme_instruction()->genre << " " << *valeur_accede->getType();
+
+                auto type_accédé = inst_acces->donne_type_accédé();
+                if (type_accédé->est_type_pointeur()) {
+                    /* L'accédé est le pointeur vers le pointeur, donc déréférence-le. */
+                    valeur_accede = m_builder.CreateLoad(
+                        valeur_accede->getType()->getPointerElementType(), valeur_accede);
+                }
+                else {
+                    /* Tableau fixe ou autre ; accède d'abord l'adresse de base. */
+                    liste_index.push_back(m_builder.getInt32(0));
+                }
             }
             else {
-                auto index = std::vector<llvm::Value *>(2);
-                index[0] = m_builder.getInt32(0);
-                index[1] = valeur_index;
-                valeur = m_builder.CreateGEP(valeur_accede, index);
+                // dbg() << inst_acces->accede->genre_atome << '\n';
+                /* Tableau fixe ou autre ; accède d'abord l'adresse de base. */
+                liste_index.push_back(m_builder.getInt32(0));
             }
 
+            liste_index.push_back(valeur_index);
+
+            auto valeur = m_builder.CreateInBoundsGEP(valeur_accede, liste_index);
+            // dbg() << "--> " << *valeur->getType();
             définis_valeur_instruction(inst, valeur);
             break;
         }
