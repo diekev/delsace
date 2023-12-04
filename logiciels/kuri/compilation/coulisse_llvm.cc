@@ -107,21 +107,35 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(AtomeFonction cons
 
 static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Value &llvm_value)
 {
-    llvm::errs() << llvm_value;
-    return log_debug;
+    std::string str;
+    llvm::raw_string_ostream ss(str);
+    ss << llvm_value;
+    return log_debug << str;
 }
 
 static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Constant &llvm_value)
 {
-    llvm::errs() << llvm_value;
-    return log_debug;
+    std::string str;
+    llvm::raw_string_ostream ss(str);
+    ss << llvm_value;
+    return log_debug << str;
 }
 
 static const LogDebug &operator<<(const LogDebug &log_debug,
                                   const llvm::GlobalVariable &llvm_value)
 {
-    llvm::errs() << llvm_value;
-    return log_debug;
+    std::string str;
+    llvm::raw_string_ostream ss(str);
+    ss << llvm_value;
+    return log_debug << str;
+}
+
+static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Type &llvm_value)
+{
+    std::string str;
+    llvm::raw_string_ostream ss(str);
+    ss << llvm_value;
+    return log_debug << str;
 }
 
 /* ************************************************************************** */
@@ -1074,27 +1088,23 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Nat) {
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
 
-                assert_rappel(droite->type == gauche->type ||
-                                  (droite->type->est_type_type_de_donnees() &&
-                                   gauche->type->est_type_type_de_donnees()),
-                              [&]() {
-                                  std::cerr << erreur::imprime_site(m_espace, inst_bin->site);
-                                  std::cerr << "Type à gauche "
-                                            << chaine_type(inst_bin->valeur_gauche->type) << '\n';
-                                  std::cerr << "Type à droite "
-                                            << chaine_type(inst_bin->valeur_droite->type) << '\n';
-                                  imprime_instruction(inst_bin, std::cerr);
-                                  std::cerr << '\n';
-                              });
+                assert_rappel(
+                    droite->type == gauche->type || (droite->type->est_type_type_de_donnees() &&
+                                                     gauche->type->est_type_type_de_donnees()),
+                    [&]() {
+                        dbg() << erreur::imprime_site(m_espace, inst_bin->site);
+                        dbg() << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type);
+                        dbg() << "Type à droite " << chaine_type(inst_bin->valeur_droite->type);
+                        imprime_instruction(inst_bin, std::cerr);
+                        std::cerr << '\n';
+                    });
 
                 assert_rappel(valeur_gauche->getType() == valeur_droite->getType(), [&]() {
-                    std::cerr << erreur::imprime_site(m_espace, inst_bin->site);
-                    llvm::errs() << "Type à gauche LLVM " << *valeur_gauche->getType() << '\n';
-                    llvm::errs() << "Type à droite LLVM " << *valeur_droite->getType() << '\n';
-                    std::cerr << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type)
-                              << '\n';
-                    std::cerr << "Type à droite " << chaine_type(inst_bin->valeur_droite->type)
-                              << '\n';
+                    dbg() << erreur::imprime_site(m_espace, inst_bin->site);
+                    dbg() << "Type à gauche LLVM " << *valeur_gauche->getType();
+                    dbg() << "Type à droite LLVM " << *valeur_droite->getType();
+                    dbg() << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type);
+                    dbg() << "Type à droite " << chaine_type(inst_bin->valeur_droite->type);
                     imprime_instruction(inst_bin, std::cerr);
                     std::cerr << '\n';
                 });
@@ -1346,8 +1356,7 @@ void GeneratriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, l
 
     assert_rappel(valeur->getType() == converti_type_llvm(inst->type), [&]() {
         dbg() << "Le type de l'instruction est " << chaine_type(inst->type);
-        std::cerr << "Le type LLVM est ";
-        llvm::errs() << *valeur->getType() << '\n';
+        dbg() << "Le type LLVM est " << *valeur->getType();
         if (inst->est_acces_membre()) {
             auto inst_acces = inst->comme_acces_membre();
             std::cerr << "Nous accédons à ";
