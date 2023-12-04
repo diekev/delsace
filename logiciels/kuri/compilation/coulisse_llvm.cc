@@ -756,24 +756,6 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
                 imprime_information_atome(acces->accede, std::cerr);
             });
 
-            if (acces->accede->est_globale()) {
-                auto globale = acces->accede->comme_globale();
-                assert_rappel(globale->initialisateur, [&]() {
-                    dbg() << "L'accédé est de genre " << globale->genre_atome << " (" << globale
-                          << ")";
-                    imprime_information_atome(globale, std::cerr);
-                });
-
-                auto init = genere_code_pour_atome(globale->initialisateur, pour_globale);
-                assert(init);
-                auto globale_llvm = table_globales.valeur_ou(globale, nullptr);
-
-                accede = globale_llvm;
-
-                globale_llvm->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-                globale_llvm->setInitializer(llvm::cast<llvm::Constant>(init));
-            }
-
             auto index_array = std::vector<llvm::Value *>();
             auto type_accede = acces->donne_type_accédé();
             if (type_accede->est_type_pointeur()) {
@@ -1416,6 +1398,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
                                                 nullptr,
                                                 nom_globale);
 
+        // globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
         globale->setAlignment(llvm::Align(type->alignement));
         table_globales.insère(valeur_globale, globale);
     }
