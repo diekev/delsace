@@ -109,6 +109,42 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
     return false;
 }
 
+#ifndef NDEBUG
+static bool est_type_sous_jacent_énum(Type const *gauche, Type const *droite)
+{
+    if (!gauche->est_type_enum()) {
+        return false;
+    }
+
+    auto type_énum = gauche->comme_type_enum();
+    return type_énum->type_sous_jacent == droite;
+}
+
+static bool sont_types_compatibles_pour_opérateur_binaire(Type const *gauche, Type const *droite)
+{
+    if (gauche == droite) {
+        return true;
+    }
+    if (droite->est_type_type_de_donnees() && gauche->est_type_type_de_donnees()) {
+        return true;
+    }
+    if (est_type_entier(droite) && gauche->est_type_entier_constant()) {
+        return true;
+    }
+    if (est_type_entier(gauche) && droite->est_type_entier_constant()) {
+        return true;
+    }
+    if (est_type_opacifié(gauche, droite)) {
+        return true;
+    }
+    /* Par exemple des boucles-pour sur énum.nombre_éléments. */
+    if (est_type_sous_jacent_énum(gauche, droite) || est_type_sous_jacent_énum(droite, gauche)) {
+        return true;
+    }
+    return false;
+}
+#endif
+
 /* ------------------------------------------------------------------------- */
 /** \name RegistreSymboliqueRI
  * \{ */
@@ -585,6 +621,13 @@ InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression const *s
                                                        Atome *valeur_gauche,
                                                        Atome *valeur_droite)
 {
+    assert_rappel(
+        sont_types_compatibles_pour_opérateur_binaire(valeur_gauche->type, valeur_droite->type),
+        [&]() {
+            dbg() << imprime_site(site_);
+            dbg() << "Type à gauche " << chaine_type(valeur_gauche->type);
+            dbg() << "Type à droite " << chaine_type(valeur_droite->type);
+        });
     auto inst = insts_opbinaire.ajoute_element(site_, type, op, valeur_gauche, valeur_droite);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
