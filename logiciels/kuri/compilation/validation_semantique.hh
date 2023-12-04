@@ -34,6 +34,7 @@ struct NoeudDeclarationSymbole;
 struct NoeudDiscr;
 struct NoeudEnum;
 struct NoeudExpressionBinaire;
+struct NoeudComme;
 struct NoeudExpressionLitteraleBool;
 struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
@@ -305,4 +306,6 @@ struct Sémanticienne {
     ResultatValidation valide_instruction_importe(NoeudInstructionImporte *inst);
 
     ArbreAplatis *donne_un_arbre_aplatis();
+
+    ResultatValidation valide_expression_comme(NoeudComme *expr);
 };

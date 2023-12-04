@@ -298,6 +298,17 @@ struct CompilatriceRI {
 
     RegistreAnnotations m_registre_annotations{};
 
+    /* Il est possible qu'une boucle retourne tout le temps ou soit infinie,
+     * ou qu'un arbre de décision retourne tout le temps.
+     * Dans ces cas, le label postérieur à ces controles ne sont jamais
+     * insèrer (car nous utilisons #ConstructriceRI.insère_label_si_utilisé,
+     * et ces labeles ne sont pas utilisés).
+     * Toutefois, il est possible qu'il existe du code après ces instructions.
+     * Nous devons donc tout de même insérer ces labels. Pour ce faire, nous
+     * les mettons en cache, et les insérons avant la génération de code
+     * suivant. */
+    InstructionLabel *m_label_après_controle = nullptr;
+
   public:
     double temps_generation = 0.0;
 

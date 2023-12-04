@@ -60,6 +60,14 @@ struct chaine_statique {
     {
         return chaine_statique(pointeur() + index, taille() - index);
     }
+
+    chaine_statique sous_chaine(int64_t début, int64_t fin) const
+    {
+        assert(début >= 0 && début < taille());
+        assert(fin >= 0 && fin < taille());
+        assert(début <= fin);
+        return chaine_statique(pointeur() + début, fin - début);
+    }
 };
 
 bool operator<(chaine_statique const &c1, chaine_statique const &c2);
