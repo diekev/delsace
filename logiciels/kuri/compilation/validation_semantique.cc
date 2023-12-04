@@ -6066,6 +6066,8 @@ ResultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionIm
     return CodeRetourValidation::OK;
 }
 
+/** \} */
+
 ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
 {
     ArbreAplatis *résultat;
@@ -6079,5 +6081,3 @@ ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
     }
     return résultat;
 }
-
-/** \} */
