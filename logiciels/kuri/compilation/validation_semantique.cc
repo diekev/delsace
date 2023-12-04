@@ -903,56 +903,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto expr = noeud->comme_comme();
-
-            if (resoud_type_final(expr->expression_type, expr->type) ==
-                CodeRetourValidation::Erreur) {
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (noeud->type == nullptr) {
-                rapporte_erreur(
-                    "Ne peut transtyper vers un type invalide", expr, erreur::Genre::TYPE_INCONNU);
-                return CodeRetourValidation::Erreur;
-            }
-
-            auto enfant = expr->expression;
-            if (enfant->type == nullptr) {
-                rapporte_erreur(
-                    "Ne peut calculer le type d'origine", enfant, erreur::Genre::TYPE_INCONNU);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (enfant->type->est_type_reference() && !noeud->type->est_type_reference()) {
-                crée_transtypage_implicite_au_besoin(expr->expression,
-                                                     TypeTransformation::DEREFERENCE);
-            }
-
-            auto resultat = cherche_transformation_pour_transtypage(expr->expression->type,
-                                                                    noeud->type);
-
-            if (std::holds_alternative<Attente>(resultat)) {
-                return std::get<Attente>(resultat);
-            }
-
-            auto transformation = std::get<TransformationType>(resultat);
-
-            if (transformation.type == TypeTransformation::INUTILE) {
-                /* À FAIRE : ne rapporte pas d'avertissements si le transtypage se fait vers le
-                 * type monomorphé. */
-                if (fonction_courante() && !fonction_courante()->possède_drapeau(
-                                               DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-                    espace->rapporte_avertissement(expr, "Instruction de transtypage inutile.");
-                }
-            }
-
-            if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-                rapporte_erreur_type_arguments(noeud, expr->expression);
-                return CodeRetourValidation::Erreur;
-            }
-
-            expr->transformation = transformation;
-
-            break;
+            return valide_expression_comme(expr);
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NUL:
         {
@@ -1981,6 +1932,11 @@ ResultatValidation Sémanticienne::valide_parametres_fonction(NoeudDeclarationEn
                                 param);
                 return CodeRetourValidation::Erreur;
             }
+
+            auto déclaration_variable = param->comme_declaration_variable();
+            auto &xform = déclaration_variable->donnees_decl[0].transformations[0];
+            crée_transtypage_implicite_au_besoin(param->expression, xform);
+            const_cast<TransformationType &>(xform).type = TypeTransformation::INUTILE;
         }
 
         noms.insere(variable->ident);
@@ -4388,9 +4344,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
         }
     }
 
-    /* Les paramètres de fonctions n'ont pas besoin de données pour les assignations d'expressions.
-     */
-    if (!decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
+    {
         CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__COPIE_DONNEES);
 
         decl->donnees_decl.reserve(static_cast<int>(donnees_assignations.taille()));
@@ -4473,6 +4427,8 @@ ResultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclaratio
             rapporte_erreur_assignation_type_differents(decl->type, expression->type, expression);
             return CodeRetourValidation::Erreur;
         }
+
+        crée_transtypage_implicite_au_besoin(decl->expression, transformation);
     }
     else {
         if (expression->type->est_type_entier_constant()) {
@@ -4898,6 +4854,16 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
 
     if (transformation.type == TypeTransformation::CONVERTI_ENTIER_CONSTANT) {
         expression->type = const_cast<Type *>(transformation.type_cible);
+        /* Assigne récusirvement le type à tous les entiers constants.
+         * Nous pourrions avoir une expression complexe (parenthèse + opérateurs, etc.). */
+        visite_noeud(
+            expression, PreferenceVisiteNoeud::ORIGINAL, true, [&](NoeudExpression const *noeud) {
+                if (noeud->type->est_type_entier_constant()) {
+                    const_cast<NoeudExpression *>(noeud)->type = const_cast<Type *>(
+                        transformation.type_cible);
+                }
+                return DecisionVisiteNoeud::CONTINUE;
+            });
         return;
     }
 
@@ -5273,6 +5239,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
         espace->rapporte_erreur(expr->operande_gauche,
                                 "Impossible de transtyper la valeur à gauche pour une "
                                 "assignation composée.");
+        return CodeRetourValidation::Erreur;
     }
 
     crée_transtypage_implicite_au_besoin(expr->operande_gauche, candidat.transformation_type1);
@@ -6050,6 +6017,8 @@ ResultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionIm
     return CodeRetourValidation::OK;
 }
 
+/** \} */
+
 ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
 {
     ArbreAplatis *résultat;
@@ -6062,6 +6031,72 @@ ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
         résultat->réinitialise();
     }
     return résultat;
+}
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression comme.
+ * \{ */
+
+ResultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
+{
+    if (resoud_type_final(expr->expression_type, expr->type) == CodeRetourValidation::Erreur) {
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (expr->type == nullptr) {
+        rapporte_erreur(
+            "Ne peut transtyper vers un type invalide", expr, erreur::Genre::TYPE_INCONNU);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto enfant = expr->expression;
+    if (enfant->type == nullptr) {
+        rapporte_erreur("Ne peut calculer le type d'origine", enfant, erreur::Genre::TYPE_INCONNU);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto resultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
+    }
+
+    auto transformation = std::get<TransformationType>(resultat);
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+        if (!enfant->type->est_type_reference()) {
+            rapporte_erreur_type_arguments(expr, expr->expression);
+            return CodeRetourValidation::Erreur;
+        }
+
+        /* Si nous avons une référence essaie de avec le type déréférencé. */
+
+        /* Préserve l'expression pour le message d'erreur au besoin. */
+        auto ancienne_expression = expr->expression;
+
+        crée_transtypage_implicite_au_besoin(expr->expression, TypeTransformation::DEREFERENCE);
+        resultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
+        if (std::holds_alternative<Attente>(resultat)) {
+            return std::get<Attente>(resultat);
+        }
+
+        transformation = std::get<TransformationType>(resultat);
+
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_type_arguments(expr, ancienne_expression);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    if (transformation.type == TypeTransformation::INUTILE) {
+        /* À FAIRE : ne rapporte pas d'avertissements si le transtypage se fait vers le
+         * type monomorphé. */
+        if (fonction_courante() &&
+            !fonction_courante()->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+            espace->rapporte_avertissement(expr, "Instruction de transtypage inutile.");
+        }
+    }
+
+    expr->transformation = transformation;
+    return CodeRetourValidation::OK;
 }
 
 /** \} */

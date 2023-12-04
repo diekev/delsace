@@ -232,7 +232,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
         os << atome->comme_constante_caractère()->valeur;
     }
     else if (atome->genre_atome == Atome::Genre::CONSTANTE_TAILLE_DE) {
-        auto type_de_données = atome->comme_constante_type()->type_de_données;
+        auto type_de_données = atome->comme_taille_de()->type_de_données;
         os << "taille_de(" << chaine_type(type_de_données, false) << ')';
     }
     else if (atome->genre_atome == Atome::Genre::CONSTANTE_STRUCTURE) {
@@ -446,6 +446,23 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
 {
     imprime_instruction_ex(inst, os);
     os << '\n';
+}
+
+kuri::chaine imprime_arbre_instruction(Instruction const *racine)
+{
+    kuri::tableau<Instruction const *> instructions;
+    visite_atome(const_cast<Instruction *>(racine), [&](Atome *atome) {
+        if (atome->est_instruction()) {
+            instructions.ajoute(atome->comme_instruction());
+        }
+    });
+
+    std::stringstream ss;
+    for (auto i = instructions.taille() - 1; i >= 0; i--) {
+        imprime_instruction(instructions[i], ss);
+    }
+
+    return enchaine(ss.str());
 }
 
 void imprime_fonction(AtomeFonction const *atome_fonc,
