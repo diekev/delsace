@@ -4476,6 +4476,8 @@ ResultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclaratio
             rapporte_erreur_assignation_type_differents(decl->type, expression->type, expression);
             return CodeRetourValidation::Erreur;
         }
+
+        crée_transtypage_implicite_au_besoin(decl->expression, transformation);
     }
     else {
         if (expression->type->est_type_entier_constant()) {
