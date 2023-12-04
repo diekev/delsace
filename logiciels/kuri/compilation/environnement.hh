@@ -3,9 +3,11 @@
 
 #pragma once
 
+#include <optional>
+
+#include "structures/chaine.hh"
+
 namespace kuri {
-struct chaine;
-struct chaine_statique;
 struct chemin_systeme;
 
 template <typename T>
@@ -82,3 +84,16 @@ bool compile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri,
  * Exécute une commande externe. Retourne vrai si la commande fut exécutée avec succès.
  */
 bool exécute_commande_externe(kuri::chaine_statique commande);
+
+/* Données pour les erreurs des commandes externes. */
+struct ErreurCommandeExterne {
+    kuri::chaine message{};
+};
+
+/**
+ * Exécute une commande externe et retourne le contenu de la sortie d'erreur de la commande si elle
+ * ne fut pas exécutée avec succès.
+ * En cas de succès, ne retourne rien.
+ */
+std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(
+    kuri::chaine_statique commande);
