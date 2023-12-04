@@ -676,20 +676,18 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
         }
 
         /* Nous pouvons avoir du code après un retour, par exemple le code après une discrimination
-         * dont toutes les branches retournent de la fonction.
-         * À FAIRE : déplace le diagnostique et ne génère pas la RI dans ce cas. */
+         * dont toutes les branches retournent de la fonction. */
         auto branche_ou_retour_rencontré = false;
-        auto avertissement_donné = false;
         POUR_NOMME (inst, it->instructions) {
             if (inst->est_branche_ou_retourne()) {
                 branche_ou_retour_rencontré = true;
                 continue;
             }
 
-            if (branche_ou_retour_rencontré && inst->site && !avertissement_donné) {
-                espace.rapporte_avertissement(inst->site,
-                                              "L'expression ne sera jamais évaluée.\n");
-                avertissement_donné = true;
+            if (branche_ou_retour_rencontré && inst->site) {
+                espace.rapporte_erreur(
+                    inst->site, "Erreur interne : plusieurs branches ou retour dans un bloc.\n");
+                return false;
             }
         }
 
