@@ -473,6 +473,7 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
 
 bool exécute_commande_externe(kuri::chaine_statique commande)
 {
+    assert(commande.taille() != 0 && commande.pointeur()[commande.taille() - 1] == '\0');
     std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
     const auto err = system(commande.pointeur());
