@@ -1595,7 +1595,7 @@ static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
 }
 
 #ifndef NDEBUG
-static bool valide_llvm_ir(llvm::Module &module)
+static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module)
 {
     auto const fichier_ll = chemin_fichier_ll_llvm();
     auto const fichier_bc = chemin_fichier_bc_llvm();
@@ -1607,7 +1607,7 @@ static bool valide_llvm_ir(llvm::Module &module)
     /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
      * est correcte. */
     auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, '\0');
-    return exécute_commande_externe(commande);
+    return exécute_commande_externe_erreur(commande);
 }
 #endif
 
@@ -1659,8 +1659,11 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
     generatrice.genere_code(*repr_inter);
 
 #ifndef NDEBUG
-    if (!valide_llvm_ir(*m_module)) {
-        espace.rapporte_erreur_sans_site("Erreur interne, impossible de générer le code LLVM.");
+    auto opt_erreur_validation = valide_llvm_ir(*m_module);
+    if (opt_erreur_validation.has_value()) {
+        auto erreur_validation = opt_erreur_validation.value();
+        espace.rapporte_erreur_sans_site("Erreur lors de la validation du code LLVM.")
+            .ajoute_message("La commande a retourné :\n\n", erreur_validation.message);
         return false;
     }
 #endif
