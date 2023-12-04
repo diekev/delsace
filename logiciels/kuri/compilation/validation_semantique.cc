@@ -6055,17 +6055,36 @@ ResultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
         return CodeRetourValidation::Erreur;
     }
 
-    if (enfant->type->est_type_reference() && !expr->type->est_type_reference()) {
-        crée_transtypage_implicite_au_besoin(expr->expression, TypeTransformation::DEREFERENCE);
-    }
-
     auto resultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
-
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);
     }
 
     auto transformation = std::get<TransformationType>(resultat);
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+        if (!enfant->type->est_type_reference()) {
+            rapporte_erreur_type_arguments(expr, expr->expression);
+            return CodeRetourValidation::Erreur;
+        }
+
+        /* Si nous avons une référence essaie de avec le type déréférencé. */
+
+        /* Préserve l'expression pour le message d'erreur au besoin. */
+        auto ancienne_expression = expr->expression;
+
+        crée_transtypage_implicite_au_besoin(expr->expression, TypeTransformation::DEREFERENCE);
+        resultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
+        if (std::holds_alternative<Attente>(resultat)) {
+            return std::get<Attente>(resultat);
+        }
+
+        transformation = std::get<TransformationType>(resultat);
+
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_type_arguments(expr, ancienne_expression);
+            return CodeRetourValidation::Erreur;
+        }
+    }
 
     if (transformation.type == TypeTransformation::INUTILE) {
         /* À FAIRE : ne rapporte pas d'avertissements si le transtypage se fait vers le
@@ -6074,11 +6093,6 @@ ResultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
             !fonction_courante()->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
             espace->rapporte_avertissement(expr, "Instruction de transtypage inutile.");
         }
-    }
-
-    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        rapporte_erreur_type_arguments(expr, expr->expression);
-        return CodeRetourValidation::Erreur;
     }
 
     expr->transformation = transformation;
