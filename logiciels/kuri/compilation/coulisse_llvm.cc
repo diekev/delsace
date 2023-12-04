@@ -1298,6 +1298,12 @@ void GeneratriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, l
                 std::cerr << '\n';
             }
         }
+        else if (inst->est_op_binaire()) {
+            auto op_binaire = inst->comme_op_binaire();
+            dbg() << "Nous opérons entre " << chaine_type(op_binaire->valeur_gauche->type)
+                  << " et " << chaine_type(op_binaire->valeur_droite->type);
+            dbg() << erreur::imprime_site(m_espace, op_binaire->site);
+        }
     });
 
     table_valeurs[inst->numero] = valeur;
@@ -1409,6 +1415,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         m_nombre_fonctions_compilées++;
         // dbg() << "[" << m_nombre_fonctions_compilées << " / "
         //       << repr_inter.donne_fonctions().taille() << "] : " << it->nom;
+        // imprime_fonction(it, std::cerr);
         génère_code_pour_fonction(it);
     }
 }
