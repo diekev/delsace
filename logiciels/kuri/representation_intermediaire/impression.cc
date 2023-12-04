@@ -448,6 +448,23 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
     os << '\n';
 }
 
+kuri::chaine imprime_arbre_instruction(Instruction const *racine)
+{
+    kuri::tableau<Instruction const *> instructions;
+    visite_atome(const_cast<Instruction *>(racine), [&](Atome *atome) {
+        if (atome->est_instruction()) {
+            instructions.ajoute(atome->comme_instruction());
+        }
+    });
+
+    std::stringstream ss;
+    for (auto i = instructions.taille() - 1; i >= 0; i--) {
+        imprime_instruction(instructions[i], ss);
+    }
+
+    return enchaine(ss.str());
+}
+
 void imprime_fonction(AtomeFonction const *atome_fonc,
                       std::ostream &os,
                       bool inclus_nombre_utilisations,
