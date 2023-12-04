@@ -143,6 +143,36 @@ static bool sont_types_compatibles_pour_opérateur_binaire(Type const *gauche, T
     }
     return false;
 }
+
+static bool sont_types_compatibles_pour_param_appel(Type const *paramètre, Type const *expression)
+{
+    if (paramètre == expression) {
+        return true;
+    }
+    if (paramètre->est_type_variadique()) {
+        auto type_variadique = paramètre->comme_type_variadique();
+        if (!type_variadique->type_pointe) {
+            return true;
+        }
+        return expression == type_variadique->type_tableau_dynamique;
+    }
+    if (expression == TypeBase::PTR_NUL) {
+        return paramètre->est_type_pointeur();
+    }
+    if (expression->est_type_type_de_donnees() && paramètre->est_type_type_de_donnees()) {
+        return true;
+    }
+    if (est_type_entier(expression) && paramètre->est_type_entier_constant()) {
+        return true;
+    }
+    if (est_type_entier(paramètre) && expression->est_type_entier_constant()) {
+        return true;
+    }
+    if (est_référence_compatible_pointeur(paramètre, expression)) {
+        return true;
+    }
+    return false;
+}
 #endif
 
 /* ------------------------------------------------------------------------- */
@@ -600,6 +630,30 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
                                               Atome *appelé,
                                               kuri::tableau<Atome *, int> &&args)
 {
+#ifndef NDEBUG
+    TypeFonction const *type_fonction;
+    if (appelé->type->est_type_fonction()) {
+        type_fonction = appelé->type->comme_type_fonction();
+    }
+    else {
+        type_fonction = appelé->type->comme_type_pointeur()->type_pointe->comme_type_fonction();
+    }
+
+    POUR_INDEX (type_fonction->types_entrees) {
+        assert_rappel(sont_types_compatibles_pour_param_appel(it, args[index_it]->type), [&]() {
+            dbg() << "Espéré " << chaine_type(it);
+            dbg() << "Obtenu " << chaine_type(args[index_it]->type);
+            dbg() << imprime_site(site_);
+            if (appelé->est_fonction()) {
+                auto fonction_appelé = appelé->comme_fonction();
+                if (fonction_appelé->decl) {
+                    dbg() << "Dans l'appel de " << nom_humainement_lisible(fonction_appelé->decl);
+                }
+            }
+        });
+    }
+#endif
+
     auto inst = insts_appel.ajoute_element(site_, appelé, std::move(args));
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
