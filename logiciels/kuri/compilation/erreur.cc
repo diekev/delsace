@@ -575,14 +575,17 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
         }
     }
 
-    if (genre != erreur::Genre::AVERTISSEMENT) {
-        flux << "\nErreur : ";
-    }
-    else {
-        flux << "\nAvertissement : ";
+    if (fichier) {
+        if (genre != erreur::Genre::AVERTISSEMENT) {
+            flux << "\nErreur : ";
+        }
+        else {
+            flux << "\nAvertissement : ";
+        }
+
+        imprime_ligne_avec_message(flux, site, "");
     }
 
-    imprime_ligne_avec_message(flux, site, "");
     flux << '\n';
 
     if (message) {
