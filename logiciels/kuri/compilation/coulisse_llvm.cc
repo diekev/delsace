@@ -1594,57 +1594,6 @@ static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
     return llvm::StringRef(chaine.pointeur(), size_t(chaine.taille()));
 }
 
-static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
-{
-#if 1
-    auto chemin_sortie = chemin_fichier_objet_llvm();
-    std::error_code ec;
-
-    llvm::raw_fd_ostream dest(
-        llvm::StringRef(chemin_sortie.pointeur(), size_t(chemin_sortie.taille())),
-        ec,
-        llvm::sys::fs::F_None);
-
-    if (ec) {
-        std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
-        return false;
-    }
-
-    llvm::legacy::PassManager pass;
-    auto type_fichier = llvm::CGFT_ObjectFile;
-
-    if (machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
-        std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
-        return false;
-    }
-
-    pass.run(module);
-    dest.flush();
-#else
-    auto const fichier_ll = chemin_fichier_ll_llvm();
-    auto const fichier_bc = chemin_fichier_bc_llvm();
-    auto const fichier_s = chemin_fichier_s_llvm();
-
-    // https://stackoverflow.com/questions/1419139/llvm-linking-problem?rq=1
-    std::error_code ec;
-    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
-    module.print(dest, nullptr);
-
-    /* Génère le fichier de code binaire depuis le fichier de RI LLVM. */
-    auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, "\0");
-    if (!exécute_commande_externe(commande)) {
-        return false;
-    }
-
-    /* Génère le fichier d'instruction assembly depuis le fichier de code binaire. */
-    commande = enchaine(donne_assembleur_llvm(), " ", fichier_bc, " -o ", fichier_s, "\0");
-    if (exécute_commande_externe(commande)) {
-        return false;
-    }
-#endif
-    return true;
-}
-
 #ifndef NDEBUG
 static bool valide_llvm_ir(llvm::Module &module)
 {
@@ -1726,14 +1675,52 @@ bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
                                            Programme const *programme,
                                            CompilatriceRI & /*constructrice_ri*/)
 {
-    if (espace.options.resultat != ResultatCompilation::EXECUTABLE) {
-        return true;
-    }
+#if 1
+    auto chemin_sortie = chemin_fichier_objet_llvm();
+    std::error_code ec;
 
-    if (!ecris_fichier_objet(m_machine_cible, *m_module)) {
+    llvm::raw_fd_ostream dest(
+        llvm::StringRef(chemin_sortie.pointeur(), size_t(chemin_sortie.taille())),
+        ec,
+        llvm::sys::fs::F_None);
+
+    if (ec) {
+        std::cerr << "Ne peut pas ouvrir le fichier '" << chemin_sortie << "'\n";
         return false;
     }
 
+    llvm::legacy::PassManager pass;
+    auto type_fichier = llvm::CGFT_ObjectFile;
+
+    if (m_machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
+        std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
+        return false;
+    }
+
+    pass.run(*m_module);
+    dest.flush();
+#else
+    auto const fichier_ll = chemin_fichier_ll_llvm();
+    auto const fichier_bc = chemin_fichier_bc_llvm();
+    auto const fichier_s = chemin_fichier_s_llvm();
+
+    // https://stackoverflow.com/questions/1419139/llvm-linking-problem?rq=1
+    std::error_code ec;
+    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
+    module.print(dest, nullptr);
+
+    /* Génère le fichier de code binaire depuis le fichier de RI LLVM. */
+    auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, "\0");
+    if (!exécute_commande_externe(commande)) {
+        return false;
+    }
+
+    /* Génère le fichier d'instruction assembly depuis le fichier de code binaire. */
+    commande = enchaine(donne_assembleur_llvm(), " ", fichier_bc, " -o ", fichier_s, "\0");
+    if (exécute_commande_externe(commande)) {
+        return false;
+    }
+#endif
     return true;
 }
 
