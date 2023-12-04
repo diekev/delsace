@@ -362,6 +362,8 @@ struct GeneratriceCodeLLVM {
 
     llvm::FunctionType *converti_type_fonction(TypeFonction const *type);
 
+    llvm::StructType *convertis_type_composé(TypeCompose const *type, kuri::chaine_statique nom);
+
     llvm::Value *genere_code_pour_atome(Atome const *atome, bool pour_globale);
 
     void genere_code_pour_instruction(Instruction const *inst);
@@ -472,16 +474,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::TUPLE:
         {
-            auto tuple = type->comme_type_tuple();
-
-            std::vector<llvm::Type *> types_membres;
-            types_membres.reserve(static_cast<size_t>(tuple->membres.taille()));
-            POUR (tuple->membres) {
-                types_membres.push_back(converti_type_llvm(it.type));
-            }
-
-            type_llvm = llvm::StructType::create(m_contexte_llvm, types_membres, "tuple", false);
-            break;
+            return convertis_type_composé(type->comme_type_tuple(), "tuple");
         }
         case GenreType::FONCTION:
         {
@@ -492,29 +485,11 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::EINI:
         {
-            /* type = structure { *z8, *InfoType } */
-            auto type_info_type = m_espace.compilatrice().typeuse.type_info_type_;
-
-            std::vector<llvm::Type *> types_membres(2ul);
-            types_membres[0] = llvm::Type::getInt8PtrTy(m_contexte_llvm);
-            types_membres[1] = converti_type_llvm(type_info_type)->getPointerTo();
-
-            type_llvm = llvm::StructType::create(
-                m_contexte_llvm, types_membres, "struct.eini", false);
-
-            break;
+            return convertis_type_composé(type->comme_type_eini(), "eini");
         }
         case GenreType::CHAINE:
         {
-            /* type = structure { *z8, z64 } */
-            std::vector<llvm::Type *> types_membres(2ul);
-            types_membres[0] = llvm::Type::getInt8PtrTy(m_contexte_llvm);
-            types_membres[1] = llvm::Type::getInt64Ty(m_contexte_llvm);
-
-            type_llvm = llvm::StructType::create(
-                m_contexte_llvm, types_membres, "struct.chaine", false);
-
-            break;
+            return convertis_type_composé(type->comme_type_chaine(), "chaine");
         }
         case GenreType::RIEN:
         {
@@ -611,30 +586,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::STRUCTURE:
         {
-            auto type_struct = type->comme_type_structure();
-            auto nom = enchaine("struct.", type_struct->ident->nom);
-
-            /* Pour les structures récursives, il faut créer un type
-             * opaque, dont le corps sera renseigné à la fin */
-            auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_std_string(nom));
-            table_types.insère(type, type_opaque);
-
-            std::vector<llvm::Type *> types_membres;
-            types_membres.reserve(static_cast<size_t>(type_struct->membres.taille()));
-
-            POUR (type_struct->donne_membres_pour_code_machine()) {
-                types_membres.push_back(converti_type_llvm(it.type));
-            }
-
-            auto est_compacte = false;
-            if (type_struct->decl && type_struct->decl->est_compacte) {
-                est_compacte = true;
-            }
-
-            type_opaque->setBody(types_membres, est_compacte);
-
-            /* retourne directement puisque le type a déjà été ajouté à la table de types */
-            return type_opaque;
+            return convertis_type_composé(type->comme_type_structure(), "struct");
         }
         case GenreType::VARIADIQUE:
         {
@@ -652,22 +604,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::TABLEAU_DYNAMIQUE:
         {
-            /* Pour les structures récursives, il faut créer un type
-             * opaque, dont le corps sera renseigné à la fin. */
-            auto type_opaque = llvm::StructType::create(m_contexte_llvm, "struct.tableau");
-            table_types.insère(type, type_opaque);
-
-            auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
-
-            /* type = structure { *type, n64, n64 } */
-            std::vector<llvm::Type *> types_membres(3ul);
-            types_membres[0] = llvm::PointerType::get(type_deref_llvm, 0);
-            types_membres[1] = llvm::Type::getInt64Ty(m_contexte_llvm);
-            types_membres[2] = llvm::Type::getInt64Ty(m_contexte_llvm);
-
-            type_opaque->setBody(types_membres, false);
-            /* retourne directement puisque le type a déjà été ajouté à la table de types */
-            return type_opaque;
+            return convertis_type_composé(type->comme_type_tableau_dynamique(), "tableau");
         }
         case GenreType::TABLEAU_FIXE:
         {
@@ -720,6 +657,34 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction con
     assert(type_sortie_llvm);
 
     return llvm::FunctionType::get(type_sortie_llvm, parametres, est_variadique);
+}
+
+llvm::StructType *GeneratriceCodeLLVM::convertis_type_composé(TypeCompose const *type,
+                                                              kuri::chaine_statique classe)
+{
+    auto nom = type->ident ? enchaine(classe, ".", type->ident->nom) : kuri::chaine(classe);
+
+    /* Pour les structures récursives, il faut créer un type
+     * opaque, dont le corps sera renseigné à la fin */
+    auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_std_string(nom));
+    table_types.insère(type, type_opaque);
+
+    llvm::SmallVector<llvm::Type *, 6> types_membres;
+    types_membres.reserve(static_cast<size_t>(type->membres.taille()));
+
+    POUR (type->donne_membres_pour_code_machine()) {
+        types_membres.push_back(converti_type_llvm(it.type));
+    }
+
+    auto est_compacte = false;
+    if (type->est_type_structure()) {
+        auto type_structure = type->comme_type_structure();
+        est_compacte = type_structure->decl && type_structure->decl->est_compacte;
+    }
+
+    type_opaque->setBody(types_membres, est_compacte);
+
+    return type_opaque;
 }
 
 llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, bool pour_globale)
