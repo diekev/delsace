@@ -1014,10 +1014,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 }
                 case OpérateurUnaire::Genre::Non_Binaire:
                 {
-                    auto type_llvm = converti_type_llvm(inst_un->valeur->type);
-                    valeur = m_builder.CreateXor(
-                        valeur,
-                        llvm::ConstantInt::get(type_llvm, 0, type->est_type_entier_relatif()));
+                    valeur = m_builder.CreateNot(valeur);
                     break;
                 }
             }
