@@ -6,6 +6,8 @@
 #include <iostream>
 #include <set>
 
+#include "parsage/modules.hh"
+
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
 
@@ -471,9 +473,41 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
     return true;
 }
 
+std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(
+    kuri::chaine_statique commande)
+{
+    assert(commande.taille() != 0 && commande.pointeur()[commande.taille() - 1] == '\0');
+
+    /* N'imprime pas le caractère nul. */
+    auto commande_sans_caractère_nul = commande.sous_chaine(0, commande.taille() - 1);
+
+    std::cout << "Exécution de la commande '" << commande_sans_caractère_nul << "'..."
+              << std::endl;
+
+    auto chemin_fichier_erreur = kuri::chemin_systeme::chemin_temporaire("erreur_commande.txt");
+
+    auto nouvelle_commande = enchaine(
+        commande_sans_caractère_nul, " 2> ", chemin_fichier_erreur, '\0');
+
+    auto const err = system(nouvelle_commande.pointeur());
+    if (err == 0) {
+        /* Succès. */
+        return {};
+    }
+
+    /* Lis le fichier d'erreur. */
+    auto texte = charge_contenu_fichier(vers_std_path(chemin_fichier_erreur).string());
+    auto résultat = ErreurCommandeExterne{};
+    résultat.message = kuri::chaine(&texte[0], texte.taille());
+    return résultat;
+}
+
 bool exécute_commande_externe(kuri::chaine_statique commande)
 {
-    std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+    assert(commande.taille() != 0 && commande.pointeur()[commande.taille() - 1] == '\0');
+    /* N'imprime pas le caractère nul. */
+    std::cout << "Exécution de la commande '" << commande.sous_chaine(0, commande.taille() - 1)
+              << "'..." << std::endl;
 
     const auto err = system(commande.pointeur());
     if (err != 0) {
