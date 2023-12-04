@@ -1724,6 +1724,15 @@ bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
     return true;
 }
 
+static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation const &options)
+{
+    if (options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+        return "fichiers/point_d_entree_dynamique.c";
+    }
+
+    return "fichiers/point_d_entree.c";
+}
+
 bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
                                         EspaceDeTravail &espace,
                                         Programme const * /*programme*/)
@@ -1756,7 +1765,7 @@ bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
     Enchaineuse ss;
 #    if 1
     ss << "gcc ";
-    ss << compilatrice.racine_kuri / "fichiers/point_d_entree.c";
+    ss << compilatrice.racine_kuri / donne_fichier_point_d_entree(espace.options);
     ss << " " << chemin_fichier_objet_r16(espace.options.architecture) << " ";
 #    else
     ss << "ld ";
@@ -1778,7 +1787,8 @@ bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
     auto commande = ss.chaine();
 #else
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
-    auto fichier_point_d_entrée_c = compilatrice.racine_kuri / "fichiers/point_d_entree.c";
+    auto fichier_point_d_entrée_c = compilatrice.racine_kuri /
+                                    donne_fichier_point_d_entree(espace.options);
     fichiers_objet.ajoute(fichier_point_d_entrée_c);
     fichiers_objet.ajoute(chemin_objet);
 
