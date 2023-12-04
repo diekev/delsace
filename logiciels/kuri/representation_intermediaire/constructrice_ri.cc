@@ -1112,6 +1112,23 @@ void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression const *site_
         argument = m_constructrice.crée_transtype(
             site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
     }
+    else if (type->est_type_enum()) {
+        auto type_enum = static_cast<TypeEnum const *>(type);
+        auto type_sousjacent = type_enum->type_sous_jacent;
+        auto &typeuse = m_compilatrice.typeuse;
+        auto type_ptr_ptr_rien = typeuse.type_pointeur_pour(type_sousjacent);
+        argument = m_constructrice.crée_transtype(
+            site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
+    }
+    else if (argument->type->comme_type_pointeur()->type_pointe->est_type_enum()) {
+        auto type_enum = static_cast<TypeEnum const *>(
+            argument->type->comme_type_pointeur()->type_pointe);
+        auto type_sousjacent = type_enum->type_sous_jacent;
+        auto &typeuse = m_compilatrice.typeuse;
+        auto type_ptr_ptr_rien = typeuse.type_pointeur_pour(type_sousjacent);
+        argument = m_constructrice.crée_transtype(
+            site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
+    }
 
     params[0] = argument;
     m_constructrice.crée_appel(site_, atome_fonc_init, std::move(params));
