@@ -992,7 +992,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             switch (inst_un->op) {
                 case OpérateurUnaire::Genre::Positif:
                 {
-                    valeur = m_builder.CreateLoad(valeur, "");
                     break;
                 }
                 case OpérateurUnaire::Genre::Invalide:
