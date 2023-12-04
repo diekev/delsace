@@ -1343,11 +1343,32 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 m_instructions_diffères.ajoute(noeud_bloc->bloc_parent);
             }
 
+            auto dernière_expression = NoeudExpression::nul();
+            if (!noeud_bloc->expressions->est_vide()) {
+                dernière_expression = noeud_bloc->expressions->dernière();
+            }
+
             POUR (*noeud_bloc->expressions.verrou_lecture()) {
                 if (it->est_entete_fonction()) {
                     continue;
                 }
+                if (m_label_après_controle) {
+                    m_constructrice.insère_label(m_label_après_controle);
+                    m_label_après_controle = nullptr;
+                }
+
                 génère_ri_pour_noeud(it);
+
+                /* Insère un label si nous avons des expressions après une de ces
+                 * instructions. Ce sera du code mort, mais la RI doit être bien
+                 * formée et n'avoir qu'une seule branche ou un seul retour
+                 * bloc. */
+                if (it->est_continue() || it->est_retourne() || it->est_reprends() ||
+                    it->est_arrete()) {
+                    if (it != dernière_expression) {
+                        m_constructrice.crée_label(it);
+                    }
+                }
             }
 
             auto derniere_instruction = m_fonction_courante->derniere_instruction();
@@ -1913,6 +1934,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 m_constructrice.insère_label(label_si_faux);
                 génère_ri_pour_noeud(inst_si->bloc_si_faux);
                 m_constructrice.insère_label_si_utilisé(label_apres_instruction);
+
+                if (label_apres_instruction->nombre_utilisations == 0) {
+                    m_label_après_controle = label_apres_instruction;
+                }
             }
             else {
                 m_constructrice.insère_label(label_si_vrai);
@@ -2007,6 +2032,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             }
 
             m_constructrice.insère_label_si_utilisé(label_apres_boucle);
+
+            if (label_apres_boucle->nombre_utilisations == 0) {
+                m_label_après_controle = label_apres_boucle;
+            }
 
             break;
         }
