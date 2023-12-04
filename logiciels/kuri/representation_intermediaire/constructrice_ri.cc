@@ -109,6 +109,69 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
     return false;
 }
 
+#ifndef NDEBUG
+static bool est_type_sous_jacent_énum(Type const *gauche, Type const *droite)
+{
+    if (!gauche->est_type_enum()) {
+        return false;
+    }
+
+    auto type_énum = gauche->comme_type_enum();
+    return type_énum->type_sous_jacent == droite;
+}
+
+static bool sont_types_compatibles_pour_opérateur_binaire(Type const *gauche, Type const *droite)
+{
+    if (gauche == droite) {
+        return true;
+    }
+    if (droite->est_type_type_de_donnees() && gauche->est_type_type_de_donnees()) {
+        return true;
+    }
+    if (est_type_entier(droite) && gauche->est_type_entier_constant()) {
+        return true;
+    }
+    if (est_type_entier(gauche) && droite->est_type_entier_constant()) {
+        return true;
+    }
+    if (est_type_opacifié(gauche, droite)) {
+        return true;
+    }
+    /* Par exemple des boucles-pour sur énum.nombre_éléments. */
+    if (est_type_sous_jacent_énum(gauche, droite) || est_type_sous_jacent_énum(droite, gauche)) {
+        return true;
+    }
+    return false;
+}
+
+static bool sont_types_compatibles_pour_param_appel(Type const *paramètre, Type const *expression)
+{
+    if (paramètre == expression) {
+        return true;
+    }
+    if (paramètre->est_type_variadique()) {
+        auto type_variadique = paramètre->comme_type_variadique();
+        if (!type_variadique->type_pointe) {
+            return true;
+        }
+        return expression == type_variadique->type_tableau_dynamique;
+    }
+    if (expression->est_type_type_de_donnees() && paramètre->est_type_type_de_donnees()) {
+        return true;
+    }
+    if (est_type_entier(expression) && paramètre->est_type_entier_constant()) {
+        return true;
+    }
+    if (est_type_entier(paramètre) && expression->est_type_entier_constant()) {
+        return true;
+    }
+    if (est_référence_compatible_pointeur(paramètre, expression)) {
+        return true;
+    }
+    return false;
+}
+#endif
+
 /* ------------------------------------------------------------------------- */
 /** \name RegistreSymboliqueRI
  * \{ */
@@ -564,6 +627,30 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
                                               Atome *appelé,
                                               kuri::tableau<Atome *, int> &&args)
 {
+#ifndef NDEBUG
+    TypeFonction const *type_fonction;
+    if (appelé->type->est_type_fonction()) {
+        type_fonction = appelé->type->comme_type_fonction();
+    }
+    else {
+        type_fonction = appelé->type->comme_type_pointeur()->type_pointe->comme_type_fonction();
+    }
+
+    POUR_INDEX (type_fonction->types_entrees) {
+        assert_rappel(sont_types_compatibles_pour_param_appel(it, args[index_it]->type), [&]() {
+            dbg() << "Espéré " << chaine_type(it);
+            dbg() << "Obtenu " << chaine_type(args[index_it]->type);
+            dbg() << imprime_site(site_);
+            if (appelé->est_fonction()) {
+                auto fonction_appelé = appelé->comme_fonction();
+                if (fonction_appelé->decl) {
+                    dbg() << "Dans l'appel de " << nom_humainement_lisible(fonction_appelé->decl);
+                }
+            }
+        });
+    }
+#endif
+
     auto inst = insts_appel.ajoute_element(site_, appelé, std::move(args));
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
@@ -585,6 +672,13 @@ InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression const *s
                                                        Atome *valeur_gauche,
                                                        Atome *valeur_droite)
 {
+    assert_rappel(
+        sont_types_compatibles_pour_opérateur_binaire(valeur_gauche->type, valeur_droite->type),
+        [&]() {
+            dbg() << imprime_site(site_);
+            dbg() << "Type à gauche " << chaine_type(valeur_gauche->type);
+            dbg() << "Type à droite " << chaine_type(valeur_droite->type);
+        });
     auto inst = insts_opbinaire.ajoute_element(site_, type, op, valeur_gauche, valeur_droite);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
@@ -1069,6 +1163,23 @@ void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression const *site_
         argument = m_constructrice.crée_transtype(
             site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
     }
+    else if (type->est_type_enum()) {
+        auto type_enum = static_cast<TypeEnum const *>(type);
+        auto type_sousjacent = type_enum->type_sous_jacent;
+        auto &typeuse = m_compilatrice.typeuse;
+        auto type_ptr_ptr_rien = typeuse.type_pointeur_pour(type_sousjacent);
+        argument = m_constructrice.crée_transtype(
+            site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
+    }
+    else if (argument->type->comme_type_pointeur()->type_pointe->est_type_enum()) {
+        auto type_enum = static_cast<TypeEnum const *>(
+            argument->type->comme_type_pointeur()->type_pointe);
+        auto type_sousjacent = type_enum->type_sous_jacent;
+        auto &typeuse = m_compilatrice.typeuse;
+        auto type_ptr_ptr_rien = typeuse.type_pointeur_pour(type_sousjacent);
+        argument = m_constructrice.crée_transtype(
+            site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
+    }
 
     params[0] = argument;
     m_constructrice.crée_appel(site_, atome_fonc_init, std::move(params));
@@ -1232,11 +1343,32 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 m_instructions_diffères.ajoute(noeud_bloc->bloc_parent);
             }
 
+            auto dernière_expression = NoeudExpression::nul();
+            if (!noeud_bloc->expressions->est_vide()) {
+                dernière_expression = noeud_bloc->expressions->dernière();
+            }
+
             POUR (*noeud_bloc->expressions.verrou_lecture()) {
                 if (it->est_entete_fonction()) {
                     continue;
                 }
+                if (m_label_après_controle) {
+                    m_constructrice.insère_label(m_label_après_controle);
+                    m_label_après_controle = nullptr;
+                }
+
                 génère_ri_pour_noeud(it);
+
+                /* Insère un label si nous avons des expressions après une de ces
+                 * instructions. Ce sera du code mort, mais la RI doit être bien
+                 * formée et n'avoir qu'une seule branche ou un seul retour
+                 * bloc. */
+                if (it->est_continue() || it->est_retourne() || it->est_reprends() ||
+                    it->est_arrete()) {
+                    if (it != dernière_expression) {
+                        m_constructrice.crée_label(it);
+                    }
+                }
             }
 
             auto derniere_instruction = m_fonction_courante->derniere_instruction();
@@ -1788,6 +1920,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 m_constructrice.insère_label(label_si_faux);
                 génère_ri_pour_noeud(inst_si->bloc_si_faux);
                 m_constructrice.insère_label_si_utilisé(label_apres_instruction);
+
+                if (label_apres_instruction->nombre_utilisations == 0) {
+                    m_label_après_controle = label_apres_instruction;
+                }
             }
             else {
                 m_constructrice.insère_label(label_si_vrai);
@@ -1882,6 +2018,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             }
 
             m_constructrice.insère_label_si_utilisé(label_apres_boucle);
+
+            if (label_apres_boucle->nombre_utilisations == 0) {
+                m_label_après_controle = label_apres_boucle;
+            }
 
             break;
         }

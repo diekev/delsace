@@ -11,9 +11,10 @@ struct AtomeFonction;
 struct Instruction;
 
 namespace kuri {
+struct chaine;
 template <typename T, typename TypeIndex>
 struct tableau;
-}
+}  // namespace kuri
 
 void imprime_information_atome(Atome const *atome, std::ostream &os);
 
@@ -33,3 +34,5 @@ void imprime_instructions(
     bool inclus_nombre_utilisations = false,
     bool surligne_inutilisees = false,
     std::function<void(Instruction const &, std::ostream &)> rappel = nullptr);
+
+kuri::chaine imprime_arbre_instruction(Instruction const *racine);
