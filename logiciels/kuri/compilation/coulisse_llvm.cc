@@ -1606,7 +1606,7 @@ static bool valide_llvm_ir(llvm::Module &module)
 
     /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
      * est correcte. */
-    auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, "\0");
+    auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, '\0');
     return exécute_commande_externe(commande);
 }
 #endif
