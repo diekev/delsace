@@ -232,7 +232,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
         os << atome->comme_constante_caractère()->valeur;
     }
     else if (atome->genre_atome == Atome::Genre::CONSTANTE_TAILLE_DE) {
-        auto type_de_données = atome->comme_constante_type()->type_de_données;
+        auto type_de_données = atome->comme_taille_de()->type_de_données;
         os << "taille_de(" << chaine_type(type_de_données, false) << ')';
     }
     else if (atome->genre_atome == Atome::Genre::CONSTANTE_STRUCTURE) {
