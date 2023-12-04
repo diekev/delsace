@@ -1570,6 +1570,10 @@ llvm::AllocaInst *GeneratriceCodeLLVM::crée_allocation(const InstructionAllocat
     auto type_llvm = converti_type_llvm(type_alloué);
     auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
     alloca->setAlignment(llvm::Align(type_alloué->alignement));
+    if (alloc->ident) {
+        alloca->setName(vers_std_string(alloc->ident->nom));
+    }
+
     définis_valeur_instruction(alloc, alloca);
     return alloca;
 }
