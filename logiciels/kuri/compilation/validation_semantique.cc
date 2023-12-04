@@ -5273,6 +5273,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
         espace->rapporte_erreur(expr->operande_gauche,
                                 "Impossible de transtyper la valeur à gauche pour une "
                                 "assignation composée.");
+        return CodeRetourValidation::Erreur;
     }
 
     crée_transtypage_implicite_au_besoin(expr->operande_gauche, candidat.transformation_type1);
