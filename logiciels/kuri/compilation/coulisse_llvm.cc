@@ -652,6 +652,11 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::TABLEAU_DYNAMIQUE:
         {
+            /* Pour les structures récursives, il faut créer un type
+             * opaque, dont le corps sera renseigné à la fin. */
+            auto type_opaque = llvm::StructType::create(m_contexte_llvm, "struct.tableau");
+            table_types.insère(type, type_opaque);
+
             auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
 
             /* type = structure { *type, n64, n64 } */
@@ -660,9 +665,9 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             types_membres[1] = llvm::Type::getInt64Ty(m_contexte_llvm);
             types_membres[2] = llvm::Type::getInt64Ty(m_contexte_llvm);
 
-            type_llvm = llvm::StructType::create(
-                m_contexte_llvm, types_membres, "struct.tableau", false);
-            break;
+            type_opaque->setBody(types_membres, false);
+            /* retourne directement puisque le type a déjà été ajouté à la table de types */
+            return type_opaque;
         }
         case GenreType::TABLEAU_FIXE:
         {
