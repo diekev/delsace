@@ -758,6 +758,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
 
             if (acces->accede->est_globale()) {
                 auto globale = acces->accede->comme_globale();
+                assert_rappel(globale->initialisateur, [&]() {
+                    dbg() << "L'accédé est de genre " << globale->genre_atome << " (" << globale
+                          << ")";
+                    imprime_information_atome(globale, std::cerr);
+                });
 
                 auto init = genere_code_pour_atome(globale->initialisateur, pour_globale);
                 assert(init);
