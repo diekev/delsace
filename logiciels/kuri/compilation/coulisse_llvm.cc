@@ -1140,7 +1140,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 else if (type_accédé->est_type_pointeur()) {
                     liste_index.push_back(m_builder.getInt32(0));
                 }
-                else if (inst_accédée->est_appel() && inst_accédée->type->est_type_pointeur()) {
+                else if (inst_accédée->est_appel() && (inst_accédée->type->est_type_pointeur() ||
+                                                       inst_accédée->type->est_type_reference())) {
                     liste_index.push_back(m_builder.getInt32(0));
                 }
                 else if (inst_accédée->est_acces_index()) {
