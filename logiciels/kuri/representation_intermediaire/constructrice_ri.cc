@@ -156,9 +156,6 @@ static bool sont_types_compatibles_pour_param_appel(Type const *paramètre, Type
         }
         return expression == type_variadique->type_tableau_dynamique;
     }
-    if (expression == TypeBase::PTR_NUL) {
-        return paramètre->est_type_pointeur();
-    }
     if (expression->est_type_type_de_donnees() && paramètre->est_type_type_de_donnees()) {
         return true;
     }

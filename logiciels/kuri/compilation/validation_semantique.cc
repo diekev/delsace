@@ -1981,6 +1981,11 @@ ResultatValidation Sémanticienne::valide_parametres_fonction(NoeudDeclarationEn
                                 param);
                 return CodeRetourValidation::Erreur;
             }
+
+            auto déclaration_variable = param->comme_declaration_variable();
+            auto &xform = déclaration_variable->donnees_decl[0].transformations[0];
+            crée_transtypage_implicite_au_besoin(param->expression, xform);
+            const_cast<TransformationType &>(xform).type = TypeTransformation::INUTILE;
         }
 
         noms.insere(variable->ident);
@@ -4388,9 +4393,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
         }
     }
 
-    /* Les paramètres de fonctions n'ont pas besoin de données pour les assignations d'expressions.
-     */
-    if (!decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
+    {
         CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__COPIE_DONNEES);
 
         decl->donnees_decl.reserve(static_cast<int>(donnees_assignations.taille()));
