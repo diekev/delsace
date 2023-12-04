@@ -4898,6 +4898,16 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
 
     if (transformation.type == TypeTransformation::CONVERTI_ENTIER_CONSTANT) {
         expression->type = const_cast<Type *>(transformation.type_cible);
+        /* Assigne récusirvement le type à tous les entiers constants.
+         * Nous pourrions avoir une expression complexe (parenthèse + opérateurs, etc.). */
+        visite_noeud(
+            expression, PreferenceVisiteNoeud::ORIGINAL, true, [&](NoeudExpression const *noeud) {
+                if (noeud->type->est_type_entier_constant()) {
+                    const_cast<NoeudExpression *>(noeud)->type = const_cast<Type *>(
+                        transformation.type_cible);
+                }
+                return DecisionVisiteNoeud::CONTINUE;
+            });
         return;
     }
 
