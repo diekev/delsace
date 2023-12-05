@@ -990,7 +990,6 @@ void GeneratriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst
         {
             auto inst_un = inst->comme_op_unaire();
             auto valeur = génère_code_pour_atome(inst_un->valeur, false);
-            auto type = inst_un->valeur->type;
 
             switch (inst_un->op) {
                 case OpérateurUnaire::Genre::Positif:
@@ -1003,16 +1002,7 @@ void GeneratriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst
                 }
                 case OpérateurUnaire::Genre::Complement:
                 {
-                    auto type_llvm = converti_type_llvm(inst_un->valeur->type);
-                    if (est_type_entier(type)) {
-                        auto zero = llvm::ConstantInt::get(
-                            type_llvm, 0, type->est_type_entier_relatif());
-                        valeur = m_builder.CreateSub(zero, valeur);
-                    }
-                    else {
-                        auto zero = llvm::ConstantFP::get(type_llvm, 0.0);
-                        valeur = m_builder.CreateFSub(zero, valeur);
-                    }
+                    valeur = m_builder.CreateNeg(valeur);
                     break;
                 }
                 case OpérateurUnaire::Genre::Non_Binaire:
