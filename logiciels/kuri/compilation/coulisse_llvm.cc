@@ -1360,9 +1360,10 @@ void GeneratriceCodeLLVM::genere_code()
 
     POUR (données_module.fonctions) {
         m_nombre_fonctions_compilées++;
-        // dbg() << "[" << m_nombre_fonctions_compilées << " / "
-        //       << repr_inter.donne_fonctions().taille() << "] : " << it->nom;
-        // imprime_fonction(it, std::cerr);
+        // dbg() << "[" << m_nombre_fonctions_compilées << " / " <<
+        // données_module.globales.taille()
+        //       << "] :\n"
+        //       << imprime_fonction(it);
         génère_code_pour_fonction(it);
     }
 }
@@ -1429,11 +1430,8 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
         }
     }
 
-    // std::cerr << "Fonction " << index_fonction << " / "
-    //           << repr_inter.donne_fonctions().taille() << '\n';
-    // imprime_fonction(atome_fonc, std::cerr);
     for (auto inst : atome_fonc->instructions) {
-        // imprime_instruction(inst, std::cerr);
+        // dbg() << imprime_instruction(inst);
 
         if (inst->genre == GenreInstruction::LABEL) {
             auto bloc = table_blocs[inst->comme_label()->id];
