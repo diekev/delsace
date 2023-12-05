@@ -236,7 +236,7 @@ static void marque_chemins_atteignables(NoeudDependance &noeud)
 
 void GrapheDependance::reduction_transitive()
 {
-    std::cout << "Réduction transitive du graphe..." << std::endl;
+    info() << "Réduction transitive du graphe...";
 
     auto relations_supprimees = 0;
     auto relations_totales = 0;
@@ -274,8 +274,8 @@ void GrapheDependance::reduction_transitive()
         cible.relations({}, std::move(relations_filtrees));
     }
 
-    std::cout << "Nombre de relations supprimées : " << relations_supprimees << " sur "
-              << relations_totales << std::endl;
+    info() << "Nombre de relations supprimées : " << relations_supprimees << " sur "
+           << relations_totales;
 }
 
 void GrapheDependance::prepare_visite()

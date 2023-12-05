@@ -281,23 +281,27 @@ static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*
         }
     }
 
-    std::cout << "Utilisation : kuri [options...] FICHIER\n";
-    std::cout << "Options :\n";
+    Enchaineuse sortie;
+
+    sortie << "Utilisation : kuri [options...] FICHIER\n";
+    sortie << "Options :\n";
 
     POUR (descriptions_arguments) {
         auto nom = donne_nom_pour_aide(it);
-        std::cout << "\t" << nom;
+        sortie << "\t" << nom;
 
         auto const taille_nom = calcule_taille_utf8(nom);
         auto const taille_restante = taille_max_nom_pour_aide - taille_nom;
         auto const taille_marge = taille_restante + 2;
 
         for (int i = 0; i < taille_marge; i++) {
-            std::cout << ' ';
+            sortie << ' ';
         }
 
-        std::cout << it.description_pour_aide << ".\n";
+        sortie << it.description_pour_aide << ".\n";
     }
+
+    info() << sortie.chaine();
 
     return ActionParsageArgument::ARRÊTE_POUR_AIDE;
 }
@@ -447,9 +451,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
 
 /** \} */
 
-static bool compile_fichier(Compilatrice &compilatrice,
-                            kuri::chaine_statique chemin_fichier,
-                            std::ostream &os)
+static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique chemin_fichier)
 {
     auto debut_compilation = dls::chrono::compte_seconde();
 
@@ -479,8 +481,7 @@ static bool compile_fichier(Compilatrice &compilatrice,
     auto dossier = chemin.chemin_parent();
     kuri::chemin_systeme::change_chemin_courant(dossier);
 
-    os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..."
-       << std::endl;
+    info() << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'...";
 
     auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, dossier);
     compilatrice.module_racine_compilation = module;
@@ -552,7 +553,7 @@ static bool compile_fichier(Compilatrice &compilatrice,
 
     imprime_stats(compilatrice, stats, debut_compilation);
 
-    os << "Nettoyage..." << std::endl;
+    info() << "Nettoyage...";
 
     POUR (tacheronnes) {
         memoire::deloge("Tacheronne", it);
@@ -669,11 +670,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::ostream &os = std::cout;
-
     auto compilatrice = Compilatrice(opt_racine_kuri.value(), opt_arguments.value());
 
-    if (!compile_fichier(compilatrice, chemin_fichier, os)) {
+    if (!compile_fichier(compilatrice, chemin_fichier)) {
         return 1;
     }
 

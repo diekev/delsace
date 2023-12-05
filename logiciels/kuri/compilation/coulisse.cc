@@ -13,6 +13,7 @@
 #include "coulisse_mv.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
@@ -117,7 +118,7 @@ void Coulisse::détruit(Coulisse *coulisse)
 bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
 {
     if (!est_coulisse_métaprogramme()) {
-        std::cout << "Génération du code..." << std::endl;
+        info() << "Génération du code...";
     }
     auto début_génération_code = dls::chrono::compte_seconde();
     if (!génère_code_impl(args)) {
@@ -126,7 +127,7 @@ bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
     temps_génération_code = début_génération_code.temps();
 
     if (!est_coulisse_métaprogramme()) {
-        std::cout << "Création du fichier objet..." << std::endl;
+        info() << "Création du fichier objet...";
     }
     auto args_fichier_objet = crée_args_création_fichier_objet(
         *args.compilatrice, *args.espace, args.programme, *args.compilatrice_ri);
@@ -143,7 +144,7 @@ bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
 bool Coulisse::crée_exécutable(ArgsLiaisonObjets const &args)
 {
     if (!est_coulisse_métaprogramme()) {
-        std::cout << "Liaison du programme..." << std::endl;
+        info() << "Liaison du programme...";
     }
     auto début_exécutable = dls::chrono::compte_seconde();
     if (!crée_exécutable_impl(args)) {

@@ -10,6 +10,29 @@
 static Indentation __indente_globale;
 static std::mutex __mutex_flux{};
 
+LogInfo::LogInfo()
+{
+    __mutex_flux.lock();
+    os << chaine_indentations(__indente_globale.v);
+}
+
+LogInfo::~LogInfo()
+{
+    os << std::endl;
+    __mutex_flux.unlock();
+}
+
+LogInfo info()
+{
+    return {};
+}
+
+const LogInfo &operator<<(const LogInfo &log_info, Indentation indentation)
+{
+    log_info.os << chaine_indentations(indentation.v);
+    return log_info;
+}
+
 LogDebug dbg()
 {
     return {};
