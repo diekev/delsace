@@ -1284,15 +1284,8 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
             if (inst->etat == EST_A_SUPPRIMER) {
                 std::cerr << "La fonction est " << nom_humainement_lisible(fonction.decl) << '\n';
                 std::cerr << *fonction.decl << '\n';
-
-                std::cerr << "L'instruction supprimée est ";
-                imprime_instruction(inst, std::cerr);
-                std::cerr << "\n";
-
-                std::cerr << "L'utilisateur est ";
-                imprime_instruction(it, std::cerr);
-                std::cerr << "\n";
-
+                std::cerr << "L'instruction supprimée est " << imprime_instruction(inst) << "\n";
+                std::cerr << "L'utilisateur est " << imprime_instruction(it) << "\n";
                 espace.rapporte_erreur(
                     inst->site,
                     "Erreur interne : la fonction référence une instruction supprimée");
@@ -1884,7 +1877,7 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
 #endif
 
     if (atome->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS)) {
-        imprime_fonction(atome, std::cerr);
+        std::cerr << imprime_fonction(atome);
     }
 }
 

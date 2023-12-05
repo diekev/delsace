@@ -390,11 +390,8 @@ struct Substitutrice {
         assert(substitut);
 
         if (log_actif) {
-            std::cerr << "Subtitut : ";
-            imprime_atome(original, std::cerr);
-            std::cerr << " avec ";
-            imprime_atome(substitut, std::cerr);
-            std::cerr << '\n';
+            std::cerr << "Subtitut : " << imprime_atome(original) << " avec "
+                      << imprime_atome(substitut) << '\n';
         }
 
         POUR (substitutions) {
@@ -809,7 +806,7 @@ bool supprime_code_mort(kuri::tableau<Bloc *, int> &blocs)
 
     POUR (blocs) {
         if (log_actif) {
-            imprime_bloc(it, 0, std::cerr, true);
+            std::cerr << imprime_bloc(it, 0, true);
         }
 
         code_mort_supprime |= supprime_code_mort(it->instructions);
@@ -822,7 +819,7 @@ static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
 {
     while (true) {
         if (log_actif) {
-            imprime_blocs(blocs, std::cerr);
+            std::cerr << imprime_blocs(blocs);
         }
 
         //		auto drapeaux = analyse_blocs(blocs);

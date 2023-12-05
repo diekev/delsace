@@ -4,10 +4,10 @@
 #pragma once
 
 #include <functional>
-#include <iosfwd>
 
 struct Atome;
 struct AtomeFonction;
+struct Enchaineuse;
 struct Instruction;
 
 namespace kuri {
@@ -16,23 +16,31 @@ template <typename T, typename TypeIndex>
 struct tableau;
 }  // namespace kuri
 
-void imprime_information_atome(Atome const *atome, std::ostream &os);
+[[nodiscard]] kuri::chaine imprime_information_atome(Atome const *atome);
 
-void imprime_atome(Atome const *atome, std::ostream &os);
+[[nodiscard]] kuri::chaine imprime_atome(Atome const *atome);
 
 int numérote_instructions(AtomeFonction const &fonction);
 
-void imprime_fonction(AtomeFonction const *atome_fonc,
-                      std::ostream &os,
-                      bool inclus_nombre_utilisations = false,
-                      bool surligne_inutilisees = false,
-                      std::function<void(Instruction const &, std::ostream &)> rappel = nullptr);
-void imprime_instruction(Instruction const *inst, std::ostream &os);
-void imprime_instructions(
-    kuri::tableau<Instruction *, int> const &instructions,
-    std::ostream &os,
+[[nodiscard]] kuri::chaine imprime_fonction(
+    AtomeFonction const *atome_fonc,
     bool inclus_nombre_utilisations = false,
     bool surligne_inutilisees = false,
-    std::function<void(Instruction const &, std::ostream &)> rappel = nullptr);
+    std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
-kuri::chaine imprime_arbre_instruction(Instruction const *racine);
+[[nodiscard]] kuri::chaine imprime_instruction(Instruction const *inst);
+
+void imprime_instructions(
+    kuri::tableau<Instruction *, int> const &instructions,
+    Enchaineuse &os,
+    bool inclus_nombre_utilisations = false,
+    bool surligne_inutilisees = false,
+    std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
+
+[[nodiscard]] kuri::chaine imprime_instructions(
+    kuri::tableau<Instruction *, int> const &instructions,
+    bool inclus_nombre_utilisations = false,
+    bool surligne_inutilisees = false,
+    std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
+
+[[nodiscard]] kuri::chaine imprime_arbre_instruction(Instruction const *racine);

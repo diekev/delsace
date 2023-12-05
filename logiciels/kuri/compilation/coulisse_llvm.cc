@@ -725,8 +725,8 @@ llvm::Value *GeneratriceCodeLLVM::génère_code_pour_atome(Atome const *atome, b
             auto accede = génère_code_pour_atome(acces->accede, pour_globale);
             assert_rappel(accede, [&]() {
                 dbg() << "L'accédé est de genre " << acces->accede->genre_atome << " ("
-                      << acces->accede << ")";
-                imprime_information_atome(acces->accede, std::cerr);
+                      << acces->accede << ")\n"
+                      << imprime_information_atome(acces->accede);
             });
 
             auto index_array = llvm::SmallVector<llvm::Value *>();
@@ -896,8 +896,8 @@ void GeneratriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst
 
             auto valeur_fonction = génère_code_pour_atome(inst_appel->appele, false);
             assert_rappel(!adresse_est_nulle(valeur_fonction), [&]() {
-                std::cerr << erreur::imprime_site(m_espace, inst_appel->site);
-                imprime_atome(inst_appel->appele, std::cerr);
+                dbg() << erreur::imprime_site(m_espace, inst_appel->site) << '\n'
+                      << imprime_atome(inst_appel->appele);
             });
 
             auto type_fonction =
@@ -957,18 +957,14 @@ void GeneratriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst
             auto valeur_ou = génère_code_pour_atome(ou, false);
 
             assert_rappel(!adresse_est_nulle(valeur_ou), [&]() {
-                std::cerr << erreur::imprime_site(m_espace, inst_stocke->site);
-                imprime_atome(inst_stocke, std::cerr);
-                std::cerr << '\n';
-                imprime_information_atome(inst_stocke->ou, std::cerr);
-                std::cerr << '\n';
+                dbg() << erreur::imprime_site(m_espace, inst_stocke->site) << '\n'
+                      << imprime_atome(inst_stocke) << '\n'
+                      << imprime_information_atome(inst_stocke->ou);
             });
             assert_rappel(!adresse_est_nulle(valeur), [&]() {
-                std::cerr << erreur::imprime_site(m_espace, inst_stocke->site);
-                imprime_atome(inst_stocke, std::cerr);
-                std::cerr << '\n';
-                imprime_information_atome(inst_stocke->valeur, std::cerr);
-                std::cerr << '\n';
+                dbg() << erreur::imprime_site(m_espace, inst_stocke->site) << '\n'
+                      << imprime_atome(inst_stocke) << '\n'
+                      << imprime_information_atome(inst_stocke->valeur);
             });
 
             /* Crash si l'alignement n'est pas renseigné. */
@@ -1030,13 +1026,12 @@ void GeneratriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
 
                 assert_rappel(valeur_gauche->getType() == valeur_droite->getType(), [&]() {
-                    dbg() << erreur::imprime_site(m_espace, inst_bin->site);
-                    dbg() << "Type à gauche LLVM " << *valeur_gauche->getType();
-                    dbg() << "Type à droite LLVM " << *valeur_droite->getType();
-                    dbg() << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type);
-                    dbg() << "Type à droite " << chaine_type(inst_bin->valeur_droite->type);
-                    imprime_instruction(inst_bin, std::cerr);
-                    std::cerr << '\n';
+                    dbg() << erreur::imprime_site(m_espace, inst_bin->site) << '\n'
+                          << "Type à gauche LLVM " << *valeur_gauche->getType() << '\n'
+                          << "Type à droite LLVM " << *valeur_droite->getType() << '\n'
+                          << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type) << '\n'
+                          << "Type à droite " << chaine_type(inst_bin->valeur_droite->type) << '\n'
+                          << imprime_instruction(inst_bin);
                 });
 
                 valeur = m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite);
@@ -1273,8 +1268,7 @@ void GeneratriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, l
                 std::cerr << inst_acces->accede->comme_instruction()->genre << '\n';
             }
             else {
-                imprime_information_atome(inst_acces->accede, std::cerr);
-                std::cerr << '\n';
+                std::cerr << imprime_information_atome(inst_acces->accede) << '\n';
             }
         }
         else if (inst->est_op_binaire()) {

@@ -2218,7 +2218,7 @@ void CompilatriceRI::génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *d
     m_fonction_courante->ri_generee = true;
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS)) {
-        imprime_fonction(atome_fonc, std::cerr);
+        std::cerr << imprime_fonction(atome_fonc);
     }
 
     m_fonction_courante->instructions.rétrécis_capacité_sur_taille();
