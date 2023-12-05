@@ -9,6 +9,7 @@
 
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
+#include "compilation/log.hh"
 
 #include "structures/ensemble.hh"
 #include "structures/file.hh"
@@ -48,14 +49,15 @@ static bool détecte_retour_manquant(EspaceDeTravail &espace,
         return false;
     }
 
-#if 0
+#if 1
     // La génération de RI peut mettre des labels après des instructions « si » ou « discr » qui
     // sont les seules instructions de la fonction, donc nous pouvons avoir des blocs vides en fin
     // de fonctions. Mais ce peut également être du code mort après un retour.
     POUR (fonction_et_blocs.blocs) {
         if (!visiteuse.a_visité(it)) {
-            imprime_fonction(atome, std::cerr);
-            imprime_blocs(fonction_et_blocs.blocs, std::cerr);
+            auto atome = fonction_et_blocs.fonction;
+            dbg() << imprime_fonction(atome);
+            dbg() << imprime_blocs(fonction_et_blocs.blocs);
             espace
                 .rapporte_erreur(atome->decl,
                                  "Erreur interne, un ou plusieurs blocs n'ont pas été visité !")
@@ -601,7 +603,7 @@ static bool detecte_declarations_inutilisees_compte_utilisation(EspaceDeTravail 
 
 #    if 0
     if (allocs_inutilisees.taille() != 0) {
-        imprime_fonction(atome, std::cerr, false, true);
+        dbg() << imprime_fonction(atome, false, true);
     }
 #    endif
 
@@ -995,27 +997,29 @@ static void rapporte_erreur_stockage_invalide(
 #undef IMPRIME_INFORMATIONS
 
 #ifdef IMPRIME_INFORMATIONS
+    Enchaineuse sortie;
     auto const valeur = stockage.valeur;
-    std::cerr << "Stockage d'un pointeur de " << source << " vers " << destination << '\n';
+    sortie << "Stockage d'un pointeur de " << source << " vers " << destination << '\n';
 
-    std::cerr << "--------- Instruction défaillante :\n";
-    imprime_instruction(&stockage, std::cerr);
-    std::cerr << "\n";
-    std::cerr << "--------- Dernière valeur :\n";
+    sortie << "--------- Instruction défaillante :\n";
+    sortie << imprime_instruction(&stockage);
+    sortie << "\n";
+    sortie << "--------- Dernière valeur :\n";
     if (valeur->est_instruction()) {
-        imprime_instruction(valeur->comme_instruction(), std::cerr);
+        sortie << imprime_instruction(valeur->comme_instruction());
     }
     else {
-        imprime_atome(valeur, std::cerr);
+        sortie << imprime_atome(valeur);
     }
-    std::cerr << "\n";
-    std::cerr << "--------- Fonction défaillante :\n";
+    sortie << "\n";
+    sortie << "--------- Fonction défaillante :\n";
     imprime_fonction(
-        &fonction, std::cerr, false, false, [&](const Instruction &instruction, std::ostream &os) {
+        &fonction, sortie, false, false, [&](const Instruction &instruction, Enchaineuse &os) {
             os << " " << sources[instruction.numero]
                << " (si charge : " << sources_pour_charge[instruction.numero] << ")";
         });
-    std::cerr << "\n";
+    sortie << "\n";
+    dbg() << sortie.chaine();
 #else
     static_cast<void>(fonction);
     static_cast<void>(source);
@@ -1588,17 +1592,10 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
             auto inst = atome_courant->comme_instruction();
 
             if (inst->etat == EST_A_SUPPRIMER) {
-                std::cerr << "La fonction est " << nom_humainement_lisible(fonction.decl) << '\n';
-                std::cerr << *fonction.decl << '\n';
-
-                std::cerr << "L'instruction supprimée est ";
-                imprime_instruction(inst, std::cerr);
-                std::cerr << "\n";
-
-                std::cerr << "L'utilisateur est ";
-                imprime_instruction(it, std::cerr);
-                std::cerr << "\n";
-
+                dbg() << "La fonction est " << nom_humainement_lisible(fonction.decl) << '\n'
+                      << *fonction.decl << '\n'
+                      << "L'instruction supprimée est " << imprime_instruction(inst) << "\n"
+                      << "L'utilisateur est " << imprime_instruction(it);
                 espace.rapporte_erreur(
                     inst->site,
                     "Erreur interne : la fonction référence une instruction supprimée");
@@ -2190,7 +2187,7 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
 #endif
 
     if (atome->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS)) {
-        imprime_fonction(atome, std::cerr);
+        dbg() << imprime_fonction(atome);
     }
 }
 

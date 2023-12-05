@@ -13,6 +13,7 @@
 
 #include "bibliotheque.hh"
 #include "coulisse.hh"  // Pour nom_sortie_resultat_final.
+#include "log.hh"
 #include "options.hh"
 
 /* Pour Linux, nous préfixons avec "lib", sauf si nous avons un chemin. */
@@ -395,10 +396,10 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
 
 static bool execute_commande(kuri::chaine const &commande)
 {
-    std::cout << "Compilation des tables de conversion R16...\n";
+    info() << "Compilation des tables de conversion R16...";
 
-    if (exécute_commande_externe(commande)) {
-        std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
+    if (!exécute_commande_externe(commande)) {
+        dbg() << "Impossible de compiler les tables de conversion R16 !";
         return false;
     }
 
@@ -436,7 +437,7 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
     }
 
     if (!kuri::chemin_systeme::existe(chemin_objet)) {
-        std::cerr << "Le fichier compilé « " << chemin_objet << " » n'existe pas !\n";
+        dbg() << "Le fichier compilé « " << chemin_objet << " » n'existe pas !";
         return false;
     }
 
@@ -466,7 +467,7 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
     }
 
     if (!kuri::chemin_systeme::existe(chemin_objet)) {
-        std::cerr << "Le fichier compilé « " << chemin_objet << " » n'existe pas !\n";
+        dbg() << "Le fichier compilé « " << chemin_objet << " » n'existe pas !";
         return false;
     }
 
@@ -481,8 +482,7 @@ std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(
     /* N'imprime pas le caractère nul. */
     auto commande_sans_caractère_nul = commande.sous_chaine(0, commande.taille() - 1);
 
-    std::cout << "Exécution de la commande '" << commande_sans_caractère_nul << "'..."
-              << std::endl;
+    info() << "Exécution de la commande '" << commande_sans_caractère_nul << "'...";
 
     auto chemin_fichier_erreur = kuri::chemin_systeme::chemin_temporaire("erreur_commande.txt");
 
@@ -506,8 +506,8 @@ bool exécute_commande_externe(kuri::chaine_statique commande)
 {
     assert(commande.taille() != 0 && commande.pointeur()[commande.taille() - 1] == '\0');
     /* N'imprime pas le caractère nul. */
-    std::cout << "Exécution de la commande '" << commande.sous_chaine(0, commande.taille() - 1)
-              << "'..." << std::endl;
+    info() << "Exécution de la commande '" << commande.sous_chaine(0, commande.taille() - 1)
+           << "'...";
 
     const auto err = system(commande.pointeur());
     if (err != 0) {

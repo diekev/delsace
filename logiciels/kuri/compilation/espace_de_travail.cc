@@ -15,6 +15,7 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "coulisse.hh"
+#include "log.hh"
 #include "programme.hh"
 #include "statistiques/statistiques.hh"
 
@@ -230,7 +231,7 @@ Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &me
 {
 #define IMPRIME_CHANGEMENT_DE_PHASE(nom_espace)                                                   \
     if (nom == nom_espace) {                                                                      \
-        std::cerr << __func__ << " : " << nouvelle_phase << ", id " << id_phase << '\n';          \
+        dbg() << __func__ << " : " << nouvelle_phase << ", id " << id_phase;                      \
     }
 
     if (phase == PhaseCompilation::COMPILATION_TERMINEE) {
@@ -262,7 +263,7 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
 void EspaceDeTravail::rapporte_avertissement(const NoeudExpression *site,
                                              kuri::chaine_statique message) const
 {
-    std::cerr << genere_entete_erreur(
+    dbg() << genere_entete_erreur(
         this, site_source_pour(site), erreur::Genre::AVERTISSEMENT, message);
 }
 
@@ -271,7 +272,7 @@ void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier,
                                              kuri::chaine const &message) const
 {
     const Fichier *f = m_compilatrice.fichier(chemin_fichier);
-    std::cerr << genere_entete_erreur(
+    dbg() << genere_entete_erreur(
         this, SiteSource(f, ligne - 1), erreur::Genre::AVERTISSEMENT, message);
 }
 
