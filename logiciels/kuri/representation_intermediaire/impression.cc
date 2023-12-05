@@ -572,11 +572,11 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
     return sortie.chaine();
 }
 
-static void imprime_fonction(AtomeFonction const *atome_fonc,
-                             Enchaineuse &os,
-                             bool inclus_nombre_utilisations,
-                             bool surligne_inutilisees,
-                             std::function<void(const Instruction &, Enchaineuse &)> rappel)
+void imprime_fonction(AtomeFonction const *atome_fonc,
+                      Enchaineuse &os,
+                      bool inclus_nombre_utilisations,
+                      bool surligne_inutilisees,
+                      std::function<void(const Instruction &, Enchaineuse &)> rappel)
 {
     os << "fonction " << atome_fonc->nom;
 

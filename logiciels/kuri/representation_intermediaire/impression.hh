@@ -22,6 +22,12 @@ struct tableau;
 
 int numérote_instructions(AtomeFonction const &fonction);
 
+void imprime_fonction(AtomeFonction const *atome_fonc,
+                      Enchaineuse &sortie,
+                      bool inclus_nombre_utilisations = false,
+                      bool surligne_inutilisees = false,
+                      std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
+
 [[nodiscard]] kuri::chaine imprime_fonction(
     AtomeFonction const *atome_fonc,
     bool inclus_nombre_utilisations = false,

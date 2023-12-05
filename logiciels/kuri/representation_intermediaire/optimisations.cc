@@ -390,8 +390,8 @@ struct Substitutrice {
         assert(substitut);
 
         if (log_actif) {
-            std::cerr << "Subtitut : " << imprime_atome(original) << " avec "
-                      << imprime_atome(substitut) << '\n';
+            dbg() << "Subtitut : " << imprime_atome(original) << " avec "
+                  << imprime_atome(substitut);
         }
 
         POUR (substitutions) {
@@ -619,15 +619,13 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
     }
 
 #ifdef DEBOGUE_ENLIGNAGE
-    std::cerr << "===== avant enlignage =====\n";
-    imprime_fonction(atome_fonc, std::cerr);
+    dbg() << "===== avant enlignage =====\n" << imprime_fonction(atome_fonc);
 #endif
 
     atome_fonc->instructions = std::move(nouvelle_instructions);
 
 #ifdef DEBOGUE_ENLIGNAGE
-    std::cerr << "===== après enlignage =====\n";
-    imprime_fonction(atome_fonc, std::cerr);
+    dbg() << "===== après enlignage =====\n" << imprime_fonction(atome_fonc);
 #endif
 
     return nombre_fonctions_enlignees != 0;
@@ -806,7 +804,7 @@ bool supprime_code_mort(kuri::tableau<Bloc *, int> &blocs)
 
     POUR (blocs) {
         if (log_actif) {
-            std::cerr << imprime_bloc(it, 0, true);
+            dbg() << imprime_bloc(it, 0, true);
         }
 
         code_mort_supprime |= supprime_code_mort(it->instructions);
@@ -819,7 +817,7 @@ static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
 {
     while (true) {
         if (log_actif) {
-            std::cerr << imprime_blocs(blocs);
+            dbg() << imprime_blocs(blocs);
         }
 
         //		auto drapeaux = analyse_blocs(blocs);
@@ -871,7 +869,7 @@ void optimise_code(EspaceDeTravail &espace,
 {
     // if (atome_fonc->nom ==
     // "_KF9Fondation14imprime_chaine_P0__E2_8contexte19KsContexteProgramme6format8Kschaine4args8KtKseini_S1_8Kschaine")
-    // { 	std::cerr << "========= optimisation pour " << atome_fonc->nom << " =========\n";
+    // { 	dbg() << "========= optimisation pour " << atome_fonc->nom << " =========";
     //	active_log();
     //}
 
