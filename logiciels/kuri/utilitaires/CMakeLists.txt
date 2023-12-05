@@ -15,11 +15,13 @@ set(SOURCES
     calcul.cc
     compteuse_cas.cc
     macros.cc
+    poule_de_taches.cc
 
     algorithmes.hh
     calcul.hh
     compteuse_cas.hh
     macros.hh
+    poule_de_taches.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

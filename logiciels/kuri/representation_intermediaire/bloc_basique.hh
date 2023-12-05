@@ -15,6 +15,10 @@ struct InstructionLabel;
 
 enum class GenreInstruction : uint32_t;
 
+namespace kuri {
+struct chaine;
+}
+
 struct Bloc {
     InstructionLabel *label = nullptr;
 
@@ -69,12 +73,11 @@ struct Bloc {
     void ajoute_parent(Bloc *parent);
 };
 
-void imprime_bloc(const Bloc *bloc,
-                  int decalage_instruction,
-                  std::ostream &os,
-                  bool surligne_inutilisees = false);
+[[nodiscard]] kuri::chaine imprime_bloc(const Bloc *bloc,
+                                        int decalage_instruction,
+                                        bool surligne_inutilisees = false);
 
-void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os);
+[[nodiscard]] kuri::chaine imprime_blocs(const kuri::tableau<Bloc *, int> &blocs);
 
 void construit_liste_variables_utilisées(Bloc *bloc);
 
