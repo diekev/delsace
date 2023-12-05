@@ -140,14 +140,17 @@ static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Type &l
 
 /* ************************************************************************** */
 
-auto vers_std_string(kuri::chaine const &chn)
+static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
 {
-    return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
+    return llvm::StringRef(chaine.pointeur(), size_t(chaine.taille()));
 }
 
-auto vers_std_string(dls::vue_chaine_compacte const &chn)
+static llvm::StringRef vers_string_ref(IdentifiantCode const *ident)
 {
-    return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
+    if (!ident) {
+        return {};
+    }
+    return vers_string_ref(ident->nom);
 }
 
 static auto inst_llvm_depuis_operateur(OpérateurBinaire::Genre genre)
@@ -581,7 +584,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
 
             auto type_max_llvm = converti_type_llvm(type_le_plus_grand);
             type_llvm = llvm::StructType::create(
-                m_contexte_llvm, {type_max_llvm}, vers_std_string(nom_nonsur));
+                m_contexte_llvm, {type_max_llvm}, vers_string_ref(nom_nonsur));
             break;
         }
         case GenreType::STRUCTURE:
@@ -666,7 +669,7 @@ llvm::StructType *GeneratriceCodeLLVM::convertis_type_composé(TypeCompose const
 
     /* Pour les structures récursives, il faut créer un type
      * opaque, dont le corps sera renseigné à la fin */
-    auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_std_string(nom));
+    auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_string_ref(nom));
     table_types.insère(type, type_opaque);
 
     llvm::SmallVector<llvm::Type *, 6> types_membres;
@@ -702,7 +705,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
                 atome_fonc = m_atome_fonction_principale;
             }
 
-            return m_module->getFunction(vers_std_string(atome_fonc->nom));
+            return m_module->getFunction(vers_string_ref(atome_fonc->nom));
         }
         case Atome::Genre::TRANSTYPE_CONSTANT:
         {
@@ -1306,13 +1309,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 
             auto type = valeur_globale->donne_type_alloué();
             auto type_llvm = converti_type_llvm(type);
-            auto nom_globale = llvm::StringRef();
-
-            if (valeur_globale->ident) {
-                nom_globale = llvm::StringRef(
-                    valeur_globale->ident->nom.pointeur(),
-                    static_cast<size_t>(valeur_globale->ident->nom.taille()));
-            }
+            auto nom_globale = vers_string_ref(valeur_globale->ident);
 
             auto valeur_initialisateur = static_cast<llvm::Constant *>(
                 genere_code_pour_atome(valeur_globale->initialisateur, true));
@@ -1339,14 +1336,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 
         auto type = valeur_globale->donne_type_alloué();
         auto type_llvm = converti_type_llvm(type);
-
-        auto nom_globale = llvm::StringRef();
-
-        if (valeur_globale->ident) {
-            nom_globale = llvm::StringRef(
-                valeur_globale->ident->nom.pointeur(),
-                static_cast<size_t>(valeur_globale->ident->nom.taille()));
-        }
+        auto nom_globale = vers_string_ref(valeur_globale->ident);
 
         auto globale = new llvm::GlobalVariable(*m_module,
                                                 type_llvm,
@@ -1376,7 +1366,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 
         llvm::Function::Create(type_llvm,
                                donne_liaison_fonction(atome_fonc),
-                               vers_std_string(atome_fonc->nom),
+                               vers_string_ref(atome_fonc->nom),
                                m_module);
     }
 
@@ -1412,7 +1402,7 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
         return;
     }
 
-    auto fonction = m_module->getFunction(vers_std_string(atome_fonc->nom));
+    auto fonction = m_module->getFunction(vers_string_ref(atome_fonc->nom));
 
     m_fonction_courante = fonction;
 
@@ -1442,10 +1432,8 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
     auto valeurs_args = fonction->arg_begin();
 
     for (auto &param : atome_fonc->params_entrees) {
-        auto const &nom_argument = param->ident->nom;
-
         auto valeur = &(*valeurs_args++);
-        valeur->setName(vers_std_string(nom_argument));
+        valeur->setName(vers_string_ref(param->ident));
 
         auto alloc = crée_allocation(param);
 
@@ -1503,9 +1491,7 @@ llvm::AllocaInst *GeneratriceCodeLLVM::crée_allocation(const InstructionAllocat
     auto type_llvm = converti_type_llvm(type_alloué);
     auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
     alloca->setAlignment(llvm::Align(type_alloué->alignement));
-    if (alloc->ident) {
-        alloca->setName(vers_std_string(alloc->ident->nom));
-    }
+    alloca->setName(vers_string_ref(alloc->ident));
 
     définis_valeur_instruction(alloc, alloca);
     return alloca;
@@ -1573,11 +1559,6 @@ static kuri::chemin_systeme chemin_fichier_ll_llvm()
 static kuri::chaine_statique donne_assembleur_llvm()
 {
     return "llvm-as-12";
-}
-
-static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
-{
-    return llvm::StringRef(chaine.pointeur(), size_t(chaine.taille()));
 }
 
 #ifndef NDEBUG
@@ -1664,10 +1645,7 @@ bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & 
     auto chemin_sortie = chemin_fichier_objet_llvm();
     std::error_code ec;
 
-    llvm::raw_fd_ostream dest(
-        llvm::StringRef(chemin_sortie.pointeur(), size_t(chemin_sortie.taille())),
-        ec,
-        llvm::sys::fs::F_None);
+    llvm::raw_fd_ostream dest(vers_string_ref(chemin_sortie), ec, llvm::sys::fs::F_None);
 
     if (ec) {
         std::cerr << "Ne peut pas ouvrir le fichier '" << chemin_sortie << "'\n";
