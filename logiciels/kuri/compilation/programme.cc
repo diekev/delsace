@@ -1483,8 +1483,7 @@ static Type const *donne_type_élément(AtomeConstanteDonnéesConstantes const *
     return tableau->type->comme_type_tableau_fixe()->type_pointe;
 }
 
-std::optional<const ProgrammeRepreInter::DonnéesConstantes *> ProgrammeRepreInter::
-    donne_données_constantes() const
+std::optional<const DonnéesConstantes *> ProgrammeRepreInter::donne_données_constantes() const
 {
     if (m_données_constantes.tableaux_constants.est_vide()) {
         return {};
