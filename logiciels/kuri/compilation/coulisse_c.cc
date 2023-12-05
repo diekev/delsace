@@ -6,7 +6,6 @@
 #include <fstream>
 #include <iostream>
 #include <set>
-#include <sys/wait.h>
 
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/tableau_page.hh"
@@ -17,12 +16,15 @@
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
+#include "utilitaires/poule_de_taches.hh"
+
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "broyage.hh"
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "programme.hh"
 #include "typage.hh"
 
@@ -2093,98 +2095,77 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
 /** \} */
 
-bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
-                                 EspaceDeTravail &espace,
-                                 Programme const *programme,
-                                 CompilatriceRI &compilatrice_ri,
-                                 Broyeuse &broyeuse)
+bool CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
 {
+    auto &compilatrice_ri = *args.compilatrice_ri;
+    auto &espace = *args.espace;
+    auto const &programme = *args.programme;
+
     m_bibliothèques.efface();
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = représentation_intermédiaire_programme(
-        espace, compilatrice_ri, *programme);
+        espace, compilatrice_ri, programme);
 
     if (!repr_inter_programme.has_value()) {
         return false;
     }
 
-    auto génératrice = GénératriceCodeC(espace, broyeuse);
+    auto génératrice = GénératriceCodeC(espace, *args.broyeuse);
     génératrice.génère_code(*repr_inter_programme, *this);
     m_bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
     return true;
 }
 
-bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
-                                        EspaceDeTravail &espace,
-                                        Programme const *programme,
-                                        CompilatriceRI &compilatrice_ri)
+bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args)
 {
+    auto &espace = *args.espace;
+
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
 #else
-    auto une_erreur_est_survenue = false;
-
 #    ifndef NDEBUG
-    POUR (m_fichiers) {
-        kuri::chaine nom_sortie = it.chemin_fichier_objet;
-        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
-            nom_sortie = nom_sortie_resultat_final(espace.options);
-        }
-
-        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
-        if (!exécute_commande_externe(commande)) {
-            une_erreur_est_survenue = true;
-            break;
-        }
-    }
+    auto poule_de_tâches = kuri::PouleDeTâchesEnSérie{};
 #    else
-    kuri::tablet<pid_t, 16> enfants;
-
-    POUR (m_fichiers) {
-        kuri::chaine nom_sortie = it.chemin_fichier_objet;
-        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
-            nom_sortie = nom_sortie_resultat_final(espace.options);
-        }
-
-        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
-
-        auto child_pid = fork();
-        if (child_pid == 0) {
-            auto err = exécute_commande_externe(commande);
-            exit(err == true ? 0 : 1);
-        }
-
-        enfants.ajoute(child_pid);
-    }
-
-    POUR (enfants) {
-        int etat;
-        if (waitpid(it, &etat, 0) != it) {
-            une_erreur_est_survenue = true;
-            continue;
-        }
-
-        if (!WIFEXITED(etat)) {
-            une_erreur_est_survenue = true;
-            continue;
-        }
-
-        if (WEXITSTATUS(etat) != 0) {
-            une_erreur_est_survenue = true;
-            continue;
-        }
-    }
+    auto poule_de_tâches = kuri::PouleDeTâchesSousProcessus{};
 #    endif
 
-    return !une_erreur_est_survenue;
+    POUR (m_fichiers) {
+        poule_de_tâches.ajoute_tâche([&]() {
+            kuri::chaine nom_sortie = it.chemin_fichier_objet;
+            if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
+                nom_sortie = nom_sortie_resultat_final(espace.options);
+            }
+
+            auto commande = commande_pour_fichier_objet(
+                espace.options, it.chemin_fichier, nom_sortie);
+            auto err = exécute_commande_externe_erreur(commande);
+            if (err.has_value()) {
+                it.erreur_fichier_objet = err.value().message;
+            }
+        });
+    }
+
+    poule_de_tâches.attends_sur_tâches();
+
+    POUR (m_fichiers) {
+        if (it.erreur_fichier_objet.taille() == 0) {
+            continue;
+        }
+
+        dbg() << it.erreur_fichier_objet;
+        return false;
+    }
+
+    return true;
 #endif
 }
 
-bool CoulisseC::crée_exécutable_impl(Compilatrice &compilatrice,
-                                     EspaceDeTravail &espace,
-                                     Programme const * /*programme*/)
+bool CoulisseC::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
+    auto &compilatrice = *args.compilatrice;
+    auto &espace = *args.espace;
+
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
 #else

@@ -13,6 +13,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "portee.hh"
 #include "transformation_type.hh"
 #include "typage.hh"
@@ -720,23 +721,26 @@ RésultatRésolutionType Monomorpheuse::résoud_type_final(
 
 void Monomorpheuse::logue() const
 {
-    std::cerr << "------------------------------------------------\n";
-    std::cerr << "Monomorphisation de " << polymorphe->ident->nom << '\n';
-    std::cerr << erreur::imprime_site(espace, polymorphe);
+    Enchaineuse sortie;
+    sortie << "------------------------------------------------\n";
+    sortie << "Monomorphisation de " << polymorphe->ident->nom << '\n';
+    sortie << erreur::imprime_site(espace, polymorphe);
 
     POUR (candidats) {
-        std::cerr << "Candidat " << it << '\n';
+        sortie << "Candidat " << it << '\n';
     }
 
     if (a_une_erreur()) {
-        std::cerr << "Erreur de monomorphisation : " << erreur_courante->message() << '\n';
+        sortie << "Erreur de monomorphisation : " << erreur_courante->message() << '\n';
     }
 
-    std::cerr << "\n";
-    std::cerr << "Résultat :\n";
+    sortie << "\n";
+    sortie << "Résultat :\n";
     POUR (résultat_pour_monomorphisation()) {
-        std::cerr << "-- " << it << '\n';
+        sortie << "-- " << it << '\n';
     }
+
+    dbg() << sortie.chaine();
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(

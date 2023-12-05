@@ -11,6 +11,7 @@
 #include "statistiques/statistiques.hh"
 
 #include "erreur.h"
+#include "log.hh"
 #include "metaprogramme.hh"
 #include "typage.hh"
 
@@ -192,10 +193,10 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 		}
 
 		auto decl_fonction = it.fonction();
-		std::cerr << "Fonction inutilisée : " << decl_fonction->nom_broye << '\n';
+        dbg() << "Fonction inutilisée : " << decl_fonction->nom_broye;
 	}
 
-	std::cerr << (nombre_fonctions - nombre_utilisees) << " fonctions sont inutilisées sur " << nombre_fonctions << '\n';
+    dbg() << (nombre_fonctions - nombre_utilisees) << " fonctions sont inutilisées sur " << nombre_fonctions;
 #endif
 }
 
@@ -235,7 +236,7 @@ static void marque_chemins_atteignables(NoeudDependance &noeud)
 
 void GrapheDependance::reduction_transitive()
 {
-    std::cout << "Réduction transitive du graphe..." << std::endl;
+    info() << "Réduction transitive du graphe...";
 
     auto relations_supprimees = 0;
     auto relations_totales = 0;
@@ -273,8 +274,8 @@ void GrapheDependance::reduction_transitive()
         cible.relations({}, std::move(relations_filtrees));
     }
 
-    std::cout << "Nombre de relations supprimées : " << relations_supprimees << " sur "
-              << relations_totales << std::endl;
+    info() << "Nombre de relations supprimées : " << relations_supprimees << " sur "
+           << relations_totales;
 }
 
 void GrapheDependance::prepare_visite()
@@ -322,8 +323,7 @@ NoeudDependance *GrapheDependance::garantie_noeud_dépendance(EspaceDeTravail *e
      * les constantes. */
     if (noeud->est_declaration_variable()) {
         assert_rappel(noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
-            std::cerr << erreur::imprime_site(*espace, noeud);
-            std::cerr << *noeud;
+            dbg() << erreur::imprime_site(*espace, noeud) << '\n' << *noeud;
         });
         return crée_noeud_globale(noeud->comme_declaration_variable());
     }
@@ -412,31 +412,36 @@ void DonneesDependance::fusionne(const DonneesDependance &autre)
 
 static void imprime_dépendances(NoeudDependance const *noeud_dep,
                                 kuri::chaine_statique nom,
-                                void const *adresse)
+                                void const *adresse,
+                                Enchaineuse &sortie)
 {
-    std::cerr << nom << " (" << adresse << ") a " << noeud_dep->relations().taille()
-              << " relations\n";
+    sortie << nom << " (" << adresse << ") a " << noeud_dep->relations().taille()
+           << " relations\n";
 
     POUR (noeud_dep->relations().plage()) {
         if (it.noeud_fin->est_type()) {
-            std::cerr << "- type " << chaine_type(it.noeud_fin->type()) << '\n';
+            sortie << "- type " << chaine_type(it.noeud_fin->type()) << '\n';
         }
         else if (it.noeud_fin->est_fonction()) {
-            std::cerr << "- fonction " << nom_humainement_lisible(it.noeud_fin->fonction())
-                      << '\n';
+            sortie << "- fonction " << nom_humainement_lisible(it.noeud_fin->fonction()) << '\n';
         }
         else if (it.noeud_fin->est_globale()) {
-            std::cerr << "- globale\n" << nom_humainement_lisible(it.noeud_fin->globale()) << '\n';
+            sortie << "- globale " << nom_humainement_lisible(it.noeud_fin->globale()) << '\n';
         }
     }
 }
 
-void imprime_dépendances(NoeudDeclarationSymbole const *symbole)
+kuri::chaine imprime_dépendances(NoeudDeclarationSymbole const *symbole)
 {
-    imprime_dépendances(symbole->noeud_dependance, nom_humainement_lisible(symbole), symbole);
+    Enchaineuse sortie;
+    imprime_dépendances(
+        symbole->noeud_dependance, nom_humainement_lisible(symbole), symbole, sortie);
+    return sortie.chaine();
 }
 
-void imprime_dépendances(Type const *type)
+kuri::chaine imprime_dépendances(Type const *type)
 {
-    imprime_dépendances(type->noeud_dependance, chaine_type(type), type);
+    Enchaineuse sortie;
+    imprime_dépendances(type->noeud_dependance, chaine_type(type), type, sortie);
+    return sortie.chaine();
 }

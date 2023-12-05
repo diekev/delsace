@@ -13,6 +13,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "programme.hh"
 
 /*
@@ -128,16 +129,14 @@ bool ÉtatChargementFichiers::tous_les_fichiers_à_parser_le_sont() const
 
 void ÉtatChargementFichiers::imprime_état() const
 {
-    std::cerr << "--------------------------------------------\n";
-    std::cerr << nombre_d_unités_pour_raison[int(RaisonDEtre::CHARGEMENT_FICHIER)].compte
-              << " fichier(s) à charger\n";
-    std::cerr << nombre_d_unités_pour_raison[int(RaisonDEtre::LEXAGE_FICHIER)].compte
-              << " fichier(s) à lexer\n";
-    std::cerr << nombre_d_unités_pour_raison[int(RaisonDEtre::PARSAGE_FICHIER)].compte
-              << " fichier(s) à parser\n";
-
-    std::cerr << "File d'attente chargement est vide : "
-              << (file_unités_charge_ou_importe == nullptr) << '\n';
+    dbg() << "--------------------------------------------\n"
+          << nombre_d_unités_pour_raison[int(RaisonDEtre::CHARGEMENT_FICHIER)].compte
+          << " fichier(s) à charger\n"
+          << nombre_d_unités_pour_raison[int(RaisonDEtre::LEXAGE_FICHIER)].compte
+          << " fichier(s) à lexer\n"
+          << nombre_d_unités_pour_raison[int(RaisonDEtre::PARSAGE_FICHIER)].compte
+          << " fichier(s) à parser\n"
+          << "File d'attente chargement est vide : " << (file_unités_charge_ou_importe == nullptr);
 }
 
 /** \} */
@@ -1322,8 +1321,8 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     DÉBUTE_STAT(TYPAGE_TERMINÉ);
     assert(unite->noeud);
     assert_rappel(unite->noeud->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [&] {
-        std::cerr << "Le noeud de genre " << unite->noeud->genre << " ne fut pas validé !\n";
-        std::cerr << erreur::imprime_site(*unite->espace, unite->noeud);
+        dbg() << "Le noeud de genre " << unite->noeud->genre << " ne fut pas validé !\n"
+              << erreur::imprime_site(*unite->espace, unite->noeud);
     });
 
     auto espace = unite->espace;
@@ -1390,8 +1389,8 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 {
     assert(unite->noeud);
     assert_rappel(unite->noeud->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&] {
-        std::cerr << "Le noeud de genre " << unite->noeud->genre << " n'eu pas de RI générée !\n";
-        std::cerr << erreur::imprime_site(*unite->espace, unite->noeud);
+        dbg() << "Le noeud de genre " << unite->noeud->genre << " n'eu pas de RI générée !\n"
+              << erreur::imprime_site(*unite->espace, unite->noeud);
     });
 
     auto espace = unite->espace;

@@ -11,6 +11,7 @@
 #include "statistiques/statistiques.hh"
 
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
 #include "validation_semantique.hh"
@@ -166,8 +167,8 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
         default:
         {
             assert_rappel(false, [=]() {
-                std::cerr << "Lexème inattendu lors de la résolution du genre d'opérateur : "
-                          << chaine_du_genre_de_lexème(genre_lexeme) << '\n';
+                dbg() << "Lexème inattendu lors de la résolution du genre d'opérateur : "
+                      << chaine_du_genre_de_lexème(genre_lexeme);
             });
             return OpérateurBinaire::Genre::Invalide;
         }

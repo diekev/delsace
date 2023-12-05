@@ -15,6 +15,8 @@
 #include "parsage/modules.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
+
+#include "log.hh"
 #include "typage.hh"
 
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique const &nom)
@@ -103,8 +105,8 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
     switch (type->genre) {
         case GenreType::POLYMORPHIQUE:
         {
-            assert_rappel(
-                false, [&]() { std::cerr << "Obtenu un type polymorphique dans le broyage !\n"; });
+            assert_rappel(false,
+                          [&]() { dbg() << "Obtenu un type polymorphique dans le broyage !"; });
             break;
         }
         case GenreType::EINI:
@@ -323,8 +325,8 @@ static const char *nom_pour_operateur(Lexeme const &lexeme)
         default:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "Lexème inattendu pour les opérateurs dans le broyage de nom : "
-                          << chaine_du_genre_de_lexème(lexeme.genre) << "\n";
+                dbg() << "Lexème inattendu pour les opérateurs dans le broyage de nom : "
+                      << chaine_du_genre_de_lexème(lexeme.genre);
             });
             break;
         }

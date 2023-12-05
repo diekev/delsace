@@ -287,12 +287,12 @@ void Chunk::émets_assignation(ContexteGénérationCodeBinaire contexte,
 {
 #if 0  // ndef CMAKE_BUILD_TYPE_PROFILE
     assert_rappel(type->taille_octet, [&]() {
-        std::cerr << "Le type est " << chaine_type(type) << '\n';
+        dbg() << "Le type est " << chaine_type(type) << '\n';
 
         auto fonction = contexte.fonction;
         if (fonction) {
-            std::cerr << "La fonction est " << nom_humainement_lisible(fonction) << '\n';
-            std::cerr << *fonction << '\n';
+            dbg() << "La fonction est " << nom_humainement_lisible(fonction) << '\n';
+            dbg() << *fonction << '\n';
         }
 
         erreur::imprime_site(*contexte.espace, site);
@@ -314,12 +314,12 @@ void Chunk::émets_assignation_locale(NoeudExpression const *site, int pointeur,
 {
 #if 0  // ndef CMAKE_BUILD_TYPE_PROFILE
     assert_rappel(type->taille_octet, [&]() {
-        std::cerr << "Le type est " << chaine_type(type) << '\n';
+        dbg() << "Le type est " << chaine_type(type) << '\n';
 
         auto fonction = contexte.fonction;
         if (fonction) {
-            std::cerr << "La fonction est " << nom_humainement_lisible(fonction) << '\n';
-            std::cerr << *fonction << '\n';
+            dbg() << "La fonction est " << nom_humainement_lisible(fonction) << '\n';
+            dbg() << *fonction << '\n';
         }
 
         erreur::imprime_site(*contexte.espace, site);
@@ -1035,11 +1035,11 @@ static void désassemble(const Chunk &chunk, kuri::chaine_statique nom, Enchaine
     }
 }
 
-void désassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
+kuri::chaine désassemble(const Chunk &chunk, kuri::chaine_statique nom)
 {
     Enchaineuse enchaineuse;
     désassemble(chunk, nom, enchaineuse);
-    os << enchaineuse.chaine();
+    return enchaineuse.chaine();
 }
 
 ffi_type *converti_type_ffi(Type const *type)
@@ -1256,7 +1256,7 @@ bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inte
         /* Les fonction d'initialisation de globales n'ont pas de déclarations. */
         if (it->decl) {
             if (it->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS)) {
-                désassemble(it->données_exécution->chunk, it->nom, std::cerr);
+                dbg() << désassemble(it->données_exécution->chunk, it->nom);
             }
         }
     }
