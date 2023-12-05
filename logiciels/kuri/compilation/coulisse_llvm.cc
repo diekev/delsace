@@ -1257,26 +1257,12 @@ void GeneratriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, l
                   [&]() { dbg() << erreur::imprime_site(m_espace, inst->site); });
 
     assert_rappel(valeur->getType() == converti_type_llvm(inst->type), [&]() {
-        dbg() << "Le type de l'instruction est " << chaine_type(inst->type);
-        dbg() << "Le type LLVM est " << *valeur->getType();
-        dbg() << "Le type espéré serait " << *converti_type_llvm(inst->type);
-        dbg() << imprime_arbre_instruction(inst);
-        if (inst->est_acces_membre()) {
-            auto inst_acces = inst->comme_acces_membre();
-            std::cerr << "Nous accédons à ";
-            if (inst_acces->accede->est_instruction()) {
-                std::cerr << inst_acces->accede->comme_instruction()->genre << '\n';
-            }
-            else {
-                std::cerr << imprime_information_atome(inst_acces->accede) << '\n';
-            }
-        }
-        else if (inst->est_op_binaire()) {
-            auto op_binaire = inst->comme_op_binaire();
-            dbg() << "Nous opérons entre " << chaine_type(op_binaire->valeur_gauche->type)
-                  << " et " << chaine_type(op_binaire->valeur_droite->type);
-            dbg() << erreur::imprime_site(m_espace, op_binaire->site);
-        }
+        dbg() << "Le type de l'instruction est " << chaine_type(inst->type) << '\n'
+              << "Le type LLVM est " << *valeur->getType() << '\n'
+              << "Le type espéré serait " << *converti_type_llvm(inst->type) << '\n'
+              << imprime_arbre_instruction(inst) << '\n'
+              << imprime_commentaire_instruction(inst) << '\n'
+              << erreur::imprime_site(m_espace, inst->site);
     });
 
     table_valeurs[inst->numero] = valeur;

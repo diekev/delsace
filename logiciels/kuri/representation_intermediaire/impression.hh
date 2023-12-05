@@ -44,3 +44,5 @@ void imprime_instructions(
     std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
 [[nodiscard]] kuri::chaine imprime_arbre_instruction(Instruction const *racine);
+
+[[nodiscard]] kuri::chaine imprime_commentaire_instruction(Instruction const *inst);

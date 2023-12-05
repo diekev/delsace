@@ -618,3 +618,28 @@ static void imprime_fonction(AtomeFonction const *atome_fonc,
     imprime_fonction(atome_fonc, sortie, inclus_nombre_utilisations, surligne_inutilisees, rappel);
     return sortie.chaine();
 }
+
+[[nodiscard]] kuri::chaine imprime_commentaire_instruction(Instruction const *inst)
+{
+    Enchaineuse sortie;
+    if (inst->est_acces_membre()) {
+        auto inst_acces = inst->comme_acces_membre();
+        sortie << "Nous accédons à ";
+        if (inst_acces->accede->est_instruction()) {
+            sortie << inst_acces->accede->comme_instruction()->genre << '\n';
+        }
+        else {
+            imprime_information_atome(inst_acces->accede, sortie);
+            sortie << '\n';
+        }
+    }
+    else if (inst->est_op_binaire()) {
+        auto op_binaire = inst->comme_op_binaire();
+        sortie << "Nous opérons entre " << chaine_type(op_binaire->valeur_gauche->type) << " et "
+               << chaine_type(op_binaire->valeur_droite->type) << '\n';
+    }
+    else {
+        sortie << "Nous avec avons une instruction de genre " << inst->genre << '\n';
+    }
+    return sortie.chaine();
+}
