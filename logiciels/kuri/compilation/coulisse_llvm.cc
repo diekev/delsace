@@ -4,6 +4,8 @@
 #include "coulisse_llvm.hh"
 
 #include <iostream>
+#include <sys/wait.h>
+#include <thread>
 
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push
@@ -338,25 +340,26 @@ struct GeneratriceCodeLLVM {
     kuri::table_hachage<Type const *, llvm::Type *> table_types{"Table types LLVM"};
     EspaceDeTravail &m_espace;
 
+    DonnéesModule &données_module;
+
     llvm::Function *m_fonction_courante = nullptr;
     llvm::Module *m_module = nullptr;
     llvm::LLVMContext &m_contexte_llvm;
     llvm::IRBuilder<> m_builder;
     llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
 
-    AtomeFonction *m_atome_fonction_principale = nullptr;
     /* Pour le débogage. */
     int m_nombre_fonctions_compilées = 0;
 
   public:
-    GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module);
+    GeneratriceCodeLLVM(EspaceDeTravail &espace, DonnéesModule &module);
 
     GeneratriceCodeLLVM(GeneratriceCodeLLVM const &) = delete;
     GeneratriceCodeLLVM &operator=(const GeneratriceCodeLLVM &) = delete;
 
     ~GeneratriceCodeLLVM();
 
-    void genere_code(const ProgrammeRepreInter &repr_inter);
+    void genere_code();
 
   private:
     void initialise_optimisation(NiveauOptimisation optimisation);
@@ -379,11 +382,14 @@ struct GeneratriceCodeLLVM {
         const AtomeConstanteDonnéesConstantes *constante);
 
     void définis_valeur_instruction(Instruction const *inst, llvm::Value *valeur);
+
+    llvm::Function *donne_ou_crée_déclaration_fonction(AtomeFonction const *fonction);
+    llvm::GlobalVariable *donne_ou_crée_déclaration_globale(AtomeGlobale const *globale);
 };
 
-GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module)
-    : m_espace(espace), m_module(&module), m_contexte_llvm(m_module->getContext()),
-      m_builder(m_contexte_llvm)
+GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace, DonnéesModule &module)
+    : m_espace(espace), données_module(module), m_module(module.module),
+      m_contexte_llvm(m_module->getContext()), m_builder(m_contexte_llvm)
 {
     initialise_optimisation(espace.options.niveau_optimisation);
 }
@@ -699,13 +705,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
         case Atome::Genre::FONCTION:
         {
             // dbg() << "FONCTION";
-            auto atome_fonc = atome->comme_fonction();
-
-            if (atome_fonc->decl && atome_fonc->decl->ident == ID::__principale) {
-                atome_fonc = m_atome_fonction_principale;
-            }
-
-            return m_module->getFunction(vers_string_ref(atome_fonc->nom));
+            return donne_ou_crée_déclaration_fonction(atome->comme_fonction());
         }
         case Atome::Genre::TRANSTYPE_CONSTANT:
         {
@@ -855,7 +855,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
         }
         case Atome::Genre::GLOBALE:
         {
-            auto valeur = table_globales.valeur_ou(atome, nullptr);
+            auto valeur = donne_ou_crée_déclaration_globale(atome->comme_globale());
             // dbg() << "GLOBALE: " << *valeur;
             return valeur;
         }
@@ -1298,85 +1298,72 @@ void GeneratriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, l
     table_valeurs[inst->numero] = valeur;
 }
 
-void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
+llvm::Function *GeneratriceCodeLLVM::donne_ou_crée_déclaration_fonction(
+    const AtomeFonction *fonction)
 {
-    auto opt_données_constantes = repr_inter.donne_données_constantes();
-    if (opt_données_constantes.has_value()) {
-        auto données_constantes = opt_données_constantes.value();
+    auto nom = vers_string_ref(fonction->nom);
+
+    if (fonction->decl && fonction->decl->ident == ID::__principale) {
+        nom = "principale";
+    }
+
+    auto existante = m_module->getFunction(nom);
+    if (existante) {
+        return existante;
+    }
+
+    auto type_fonction = fonction->type->comme_type_fonction();
+    auto type_llvm = converti_type_fonction(type_fonction);
+    // auto liaison = donne_liaison_fonction(fonction);
+    auto liaison = llvm::GlobalValue::ExternalLinkage;
+
+    return llvm::Function::Create(type_llvm, liaison, nom, m_module);
+}
+
+llvm::GlobalVariable *GeneratriceCodeLLVM::donne_ou_crée_déclaration_globale(
+    const AtomeGlobale *globale)
+{
+    auto existante = table_globales.valeur_ou(globale, nullptr);
+    if (existante) {
+        return existante;
+    }
+
+    auto type = globale->donne_type_alloué();
+    auto type_llvm = converti_type_llvm(type);
+    auto nom_globale = vers_string_ref(globale->ident);
+    //    auto liaison = globale->est_externe ? llvm::GlobalValue::ExternalLinkage :
+    //                                          llvm::GlobalValue::InternalLinkage;
+    auto liaison = llvm::GlobalValue::ExternalLinkage;
+    auto résultat = new llvm::GlobalVariable(
+        *m_module, type_llvm, globale->est_constante, liaison, nullptr, nom_globale);
+
+    résultat->setAlignment(llvm::Align(type->alignement));
+    table_globales.insère(globale, résultat);
+    return résultat;
+}
+
+void GeneratriceCodeLLVM::genere_code()
+{
+    if (données_module.données_constantes) {
+        auto données_constantes = données_module.données_constantes;
 
         POUR (données_constantes->tableaux_constants) {
             auto valeur_globale = it.globale;
-
-            auto type = valeur_globale->donne_type_alloué();
-            auto type_llvm = converti_type_llvm(type);
-            auto nom_globale = vers_string_ref(valeur_globale->ident);
-
             auto valeur_initialisateur = static_cast<llvm::Constant *>(
                 genere_code_pour_atome(valeur_globale->initialisateur, true));
 
-            auto globale = new llvm::GlobalVariable(*m_module,
-                                                    type_llvm,
-                                                    valeur_globale->est_constante,
-                                                    valeur_globale->est_externe ?
-                                                        llvm::GlobalValue::ExternalLinkage :
-                                                        llvm::GlobalValue::InternalLinkage,
-                                                    valeur_initialisateur,
-                                                    nom_globale);
-
-            globale->setAlignment(llvm::Align(type->alignement));
-            table_globales.insère(valeur_globale, globale);
+            auto globale = donne_ou_crée_déclaration_globale(valeur_globale);
+            globale->setInitializer(valeur_initialisateur);
         }
     }
 
-    POUR (repr_inter.donne_globales()) {
-        // LogDebug::réinitialise_indentation();
-        // dbg() << "Prédéclare globale (" << it << ") " << it->ident << ' ' <<
-        // chaine_type(it->type);
-        auto valeur_globale = it;
-
-        auto type = valeur_globale->donne_type_alloué();
-        auto type_llvm = converti_type_llvm(type);
-        auto nom_globale = vers_string_ref(valeur_globale->ident);
-
-        auto globale = new llvm::GlobalVariable(*m_module,
-                                                type_llvm,
-                                                valeur_globale->est_constante,
-                                                valeur_globale->est_externe ?
-                                                    llvm::GlobalValue::ExternalLinkage :
-                                                    llvm::GlobalValue::InternalLinkage,
-                                                nullptr,
-                                                nom_globale);
-
-        // globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-        globale->setAlignment(llvm::Align(type->alignement));
-        table_globales.insère(valeur_globale, globale);
-    }
-
-    /* Les fonctions peuvent être référencées par les globales, créons-les avant d'intialiser les
-     * globales. */
-    POUR (repr_inter.donne_fonctions()) {
-        auto atome_fonc = it;
-
-        if (atome_fonc->decl && atome_fonc->decl->ident == ID::principale) {
-            m_atome_fonction_principale = atome_fonc;
-        }
-
-        auto type_fonction = atome_fonc->type->comme_type_fonction();
-        auto type_llvm = converti_type_fonction(type_fonction);
-
-        llvm::Function::Create(type_llvm,
-                               donne_liaison_fonction(atome_fonc),
-                               vers_string_ref(atome_fonc->nom),
-                               m_module);
-    }
-
-    POUR (repr_inter.donne_globales()) {
+    POUR (données_module.globales) {
         // LogDebug::réinitialise_indentation();
         // dbg() << "Génère code pour globale (" << it << ") " << it->ident << ' '
         //       << chaine_type(it->type);
         auto valeur_globale = it;
 
-        auto globale = table_globales.valeur_ou(valeur_globale, nullptr);
+        auto globale = donne_ou_crée_déclaration_globale(valeur_globale);
         if (valeur_globale->initialisateur) {
             auto valeur_initialisateur = static_cast<llvm::Constant *>(
                 genere_code_pour_atome(valeur_globale->initialisateur, true));
@@ -1387,7 +1374,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         }
     }
 
-    POUR (repr_inter.donne_fonctions()) {
+    POUR (données_module.fonctions) {
         m_nombre_fonctions_compilées++;
         // dbg() << "[" << m_nombre_fonctions_compilées << " / "
         //       << repr_inter.donne_fonctions().taille() << "] : " << it->nom;
@@ -1402,7 +1389,7 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
         return;
     }
 
-    auto fonction = m_module->getFunction(vers_string_ref(atome_fonc->nom));
+    auto fonction = donne_ou_crée_déclaration_fonction(atome_fonc);
 
     m_fonction_courante = fonction;
 
@@ -1539,9 +1526,10 @@ void issitialise_llvm()
 }
 
 /* Chemin du fichier objet généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_objet_llvm()
+static kuri::chemin_systeme chemin_fichier_objet_llvm(int index)
 {
-    return chemin_fichier_objet_temporaire_pour("kuri");
+    auto nom_de_base = enchaine("kuri", index);
+    return chemin_fichier_objet_temporaire_pour(nom_de_base);
 }
 
 #ifndef NDEBUG
@@ -1580,9 +1568,12 @@ static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module)
 
 CoulisseLLVM::~CoulisseLLVM()
 {
-    delete m_module;
+    POUR (m_modules) {
+        delete it->module;
+        delete it->contexte_llvm;
+        memoire::deloge("DonnéesModule", it);
+    }
     delete m_machine_cible;
-    delete m_contexte_llvm;
 }
 
 bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
@@ -1616,22 +1607,22 @@ bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
     auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
     m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
-    m_contexte_llvm = new llvm::LLVMContext;
+    crée_modules(*repr_inter, triplet_cible);
 
-    m_module = new llvm::Module("Module", *m_contexte_llvm);
-    m_module->setDataLayout(m_machine_cible->createDataLayout());
-    m_module->setTargetTriple(triplet_cible);
-
-    auto generatrice = GeneratriceCodeLLVM(espace, *m_module);
-    generatrice.genere_code(*repr_inter);
+    POUR (m_modules) {
+        auto generatrice = GeneratriceCodeLLVM(espace, *it);
+        generatrice.genere_code();
+    }
 
 #ifndef NDEBUG
-    auto opt_erreur_validation = valide_llvm_ir(*m_module);
-    if (opt_erreur_validation.has_value()) {
-        auto erreur_validation = opt_erreur_validation.value();
-        espace.rapporte_erreur_sans_site("Erreur lors de la validation du code LLVM.")
-            .ajoute_message("La commande a retourné :\n\n", erreur_validation.message);
-        return false;
+    POUR (m_modules) {
+        auto opt_erreur_validation = valide_llvm_ir(*it->module);
+        if (opt_erreur_validation.has_value()) {
+            auto erreur_validation = opt_erreur_validation.value();
+            espace.rapporte_erreur_sans_site("Erreur lors de la validation du code LLVM.")
+                .ajoute_message("La commande a retourné :\n\n", erreur_validation.message);
+            return false;
+        }
     }
 #endif
 
@@ -1642,27 +1633,61 @@ bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
 
 bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & /*args*/)
 {
-    auto chemin_sortie = chemin_fichier_objet_llvm();
-    std::error_code ec;
-
-    llvm::raw_fd_ostream dest(vers_string_ref(chemin_sortie), ec, llvm::sys::fs::F_None);
-
-    if (ec) {
-        std::cerr << "Ne peut pas ouvrir le fichier '" << chemin_sortie << "'\n";
-        return false;
+#ifndef NDEBUG
+    POUR (m_modules) {
+        if (!crée_fichier_objet(it)) {
+            return false;
+        }
     }
 
-    llvm::legacy::PassManager pass;
-    auto type_fichier = llvm::CGFT_ObjectFile;
-
-    if (m_machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
-        std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
-        return false;
-    }
-
-    pass.run(*m_module);
-    dest.flush();
     return true;
+#else
+#    if 0
+    auto threads = kuri::tablet<std::thread *, 6>();
+    POUR (m_modules) {
+        auto thread = new std::thread([&]() { crée_fichier_objet(it); });
+        threads.ajoute(thread);
+    }
+    POUR (threads) {
+        it->join();
+        delete it;
+    }
+#    else
+    kuri::tablet<pid_t, 16> enfants;
+
+    POUR (m_modules) {
+        auto child_pid = fork();
+        if (child_pid == 0) {
+            auto résultat = crée_fichier_objet(it);
+            exit(résultat ? 0 : 1);
+        }
+
+        enfants.ajoute(child_pid);
+    }
+
+    bool une_erreur_est_survenue = false;
+
+    POUR (enfants) {
+        int etat;
+        if (waitpid(it, &etat, 0) != it) {
+            une_erreur_est_survenue = true;
+            continue;
+        }
+
+        if (!WIFEXITED(etat)) {
+            une_erreur_est_survenue = true;
+            continue;
+        }
+
+        if (WEXITSTATUS(etat) != EXIT_SUCCESS) {
+            une_erreur_est_survenue = true;
+            continue;
+        }
+    }
+
+    return !une_erreur_est_survenue;
+#    endif
+#endif
 }
 
 static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation const &options)
@@ -1679,18 +1704,14 @@ bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
     auto &compilatrice = *args.compilatrice;
     auto &espace = *args.espace;
 
-    auto chemin_objet = chemin_fichier_objet_llvm();
-
-    if (!kuri::chemin_systeme::existe(chemin_objet)) {
-        std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
-        return false;
-    }
-
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     auto fichier_point_d_entrée_c = compilatrice.racine_kuri /
                                     donne_fichier_point_d_entree(espace.options);
     fichiers_objet.ajoute(fichier_point_d_entrée_c);
-    fichiers_objet.ajoute(chemin_objet);
+
+    POUR (m_modules) {
+        fichiers_objet.ajoute(it->chemin_fichier_objet);
+    }
 
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
 
@@ -1700,4 +1721,86 @@ bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
     }
 
     return true;
+}
+
+bool CoulisseLLVM::crée_fichier_objet(DonnéesModule *module)
+{
+    std::error_code ec;
+    llvm::raw_fd_ostream dest(
+        vers_string_ref(module->chemin_fichier_objet), ec, llvm::sys::fs::F_None);
+
+    if (ec) {
+        std::cerr << "Ne peut pas ouvrir le fichier '" << module->chemin_fichier_objet << "'\n";
+        return false;
+    }
+
+    llvm::legacy::PassManager pass;
+    auto type_fichier = llvm::CGFT_ObjectFile;
+
+    if (m_machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
+        std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
+        return false;
+    }
+
+    pass.run(*module->module);
+    dest.flush();
+    return kuri::chemin_systeme::existe(module->chemin_fichier_objet);
+}
+
+void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
+                                const std::string &triplet_cible)
+{
+    /* Crée un module pour les globales. */
+    auto module = crée_un_module("Globales", triplet_cible);
+
+    auto opt_données_constantes = repr_inter.donne_données_constantes();
+    if (opt_données_constantes.has_value()) {
+        module->données_constantes = opt_données_constantes.value();
+    }
+    module->globales = repr_inter.donne_globales();
+
+    /* Crée des modules pour les fonctions. */
+    constexpr int nombre_instructions_par_module = 10000;
+    int nombre_instructions = 0;
+    int index_première_fonction = 0;
+    auto fonctions = repr_inter.donne_fonctions();
+    for (int i = 0; i < fonctions.taille(); i++) {
+        auto fonction = fonctions[i];
+        nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
+
+        if (nombre_instructions < nombre_instructions_par_module && i != fonctions.taille() - 1) {
+            continue;
+        }
+
+        auto pointeur_fonction = fonctions.begin() + index_première_fonction;
+        auto taille = i - index_première_fonction + 1;
+
+        auto fonctions_du_modules = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
+                                                                            taille);
+
+        module = crée_un_module("Fonction", triplet_cible);
+        module->fonctions = fonctions_du_modules;
+
+        nombre_instructions = 0;
+        index_première_fonction = i + 1;
+    }
+}
+
+DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
+                                            const std::string &triplet_cible)
+{
+    auto résultat = memoire::loge<DonnéesModule>("DonnéesModule");
+    résultat->contexte_llvm = new llvm::LLVMContext;
+
+    auto nom_module = enchaine(nom, m_modules.taille());
+
+    résultat->module = new llvm::Module(vers_string_ref(nom_module), *résultat->contexte_llvm);
+    résultat->module->setDataLayout(m_machine_cible->createDataLayout());
+    résultat->module->setTargetTriple(triplet_cible);
+
+    résultat->chemin_fichier_objet = chemin_fichier_objet_llvm(int32_t(m_modules.taille()));
+
+    m_modules.ajoute(résultat);
+
+    return résultat;
 }
