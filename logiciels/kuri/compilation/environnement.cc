@@ -397,7 +397,7 @@ static bool execute_commande(kuri::chaine const &commande)
 {
     std::cout << "Compilation des tables de conversion R16...\n";
 
-    if (exécute_commande_externe(commande)) {
+    if (!exécute_commande_externe(commande)) {
         std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
         return false;
     }
