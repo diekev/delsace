@@ -1558,12 +1558,6 @@ static kuri::chemin_systeme chemin_fichier_objet_llvm()
     return chemin_fichier_objet_temporaire_pour("kuri");
 }
 
-/* Chemin du fichier objet "execution_kuri" généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_objet_execution_llvm()
-{
-    return chemin_fichier_objet_temporaire_pour("execution_kuri");
-}
-
 /* Chemin du fichier de code binaire LLVM généré par la coulisse. */
 static kuri::chemin_systeme chemin_fichier_bc_llvm()
 {
@@ -1574,12 +1568,6 @@ static kuri::chemin_systeme chemin_fichier_bc_llvm()
 static kuri::chemin_systeme chemin_fichier_ll_llvm()
 {
     return kuri::chemin_systeme::chemin_temporaire("kuri.ll");
-}
-
-/* Chemin du fichier ".s" généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_s_llvm()
-{
-    return kuri::chemin_systeme::chemin_temporaire("kuri.s");
 }
 
 static kuri::chaine_statique donne_assembleur_llvm()
@@ -1673,7 +1661,6 @@ bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
 
 bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & /*args*/)
 {
-#if 1
     auto chemin_sortie = chemin_fichier_objet_llvm();
     std::error_code ec;
 
@@ -1697,28 +1684,6 @@ bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & 
 
     pass.run(*m_module);
     dest.flush();
-#else
-    auto const fichier_ll = chemin_fichier_ll_llvm();
-    auto const fichier_bc = chemin_fichier_bc_llvm();
-    auto const fichier_s = chemin_fichier_s_llvm();
-
-    // https://stackoverflow.com/questions/1419139/llvm-linking-problem?rq=1
-    std::error_code ec;
-    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
-    module.print(dest, nullptr);
-
-    /* Génère le fichier de code binaire depuis le fichier de RI LLVM. */
-    auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, "\0");
-    if (!exécute_commande_externe(commande)) {
-        return false;
-    }
-
-    /* Génère le fichier d'instruction assembly depuis le fichier de code binaire. */
-    commande = enchaine(donne_assembleur_llvm(), " ", fichier_bc, " -o ", fichier_s, "\0");
-    if (exécute_commande_externe(commande)) {
-        return false;
-    }
-#endif
     return true;
 }
 
@@ -1736,23 +1701,6 @@ bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
     auto &compilatrice = *args.compilatrice;
     auto &espace = *args.espace;
 
-    /* Compile le fichier objet qui appelera 'fonction principale'. */
-    auto chemin_execution = chemin_fichier_objet_execution_llvm();
-    if (!kuri::chemin_systeme::existe(chemin_execution)) {
-        auto const &chemin_execution_S = compilatrice.racine_kuri / "fichiers/execution_kuri.S";
-
-        Enchaineuse ss;
-        ss << "as -o " << chemin_execution;
-        ss << " " << chemin_execution_S;
-        ss << '\0';
-
-        auto const commande = ss.chaine();
-        if (!exécute_commande_externe(commande)) {
-            std::cerr << "Ne peut pas créer " << chemin_execution << " !\n";
-            return false;
-        }
-    }
-
     auto chemin_objet = chemin_fichier_objet_llvm();
 
     if (!kuri::chemin_systeme::existe(chemin_objet)) {
@@ -1760,31 +1708,6 @@ bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
         return false;
     }
 
-#if 0
-    Enchaineuse ss;
-#    if 1
-    ss << "gcc ";
-    ss << compilatrice.racine_kuri / donne_fichier_point_d_entree(espace.options);
-    ss << " " << chemin_fichier_objet_r16(espace.options.architecture) << " ";
-#    else
-    ss << "ld ";
-    /* ce qui chargera le programme */
-    ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
-    ss << "-m elf_x86_64 ";
-    ss << "--hash-style=gnu ";
-    ss << "-lc ";
-    ss << chemin_execution << " ";
-#    endif
-
-    ss << " " << chemin_objet << " ";
-
-    ss << " -lc ";
-    ss << " -lm ";
-    ss << "-o " << nom_sortie_resultat_final(espace.options);
-    ss << '\0';
-
-    auto commande = ss.chaine();
-#else
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     auto fichier_point_d_entrée_c = compilatrice.racine_kuri /
                                     donne_fichier_point_d_entree(espace.options);
@@ -1792,7 +1715,6 @@ bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
     fichiers_objet.ajoute(chemin_objet);
 
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
-#endif
 
     if (!exécute_commande_externe(commande)) {
         std::cerr << "Ne peut pas créer l'executable !\n";
