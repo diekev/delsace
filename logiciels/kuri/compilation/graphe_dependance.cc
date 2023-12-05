@@ -412,31 +412,36 @@ void DonneesDependance::fusionne(const DonneesDependance &autre)
 
 static void imprime_dépendances(NoeudDependance const *noeud_dep,
                                 kuri::chaine_statique nom,
-                                void const *adresse)
+                                void const *adresse,
+                                Enchaineuse &sortie)
 {
-    std::cerr << nom << " (" << adresse << ") a " << noeud_dep->relations().taille()
-              << " relations\n";
+    sortie << nom << " (" << adresse << ") a " << noeud_dep->relations().taille()
+           << " relations\n";
 
     POUR (noeud_dep->relations().plage()) {
         if (it.noeud_fin->est_type()) {
-            std::cerr << "- type " << chaine_type(it.noeud_fin->type()) << '\n';
+            sortie << "- type " << chaine_type(it.noeud_fin->type()) << '\n';
         }
         else if (it.noeud_fin->est_fonction()) {
-            std::cerr << "- fonction " << nom_humainement_lisible(it.noeud_fin->fonction())
-                      << '\n';
+            sortie << "- fonction " << nom_humainement_lisible(it.noeud_fin->fonction()) << '\n';
         }
         else if (it.noeud_fin->est_globale()) {
-            std::cerr << "- globale\n" << nom_humainement_lisible(it.noeud_fin->globale()) << '\n';
+            sortie << "- globale " << nom_humainement_lisible(it.noeud_fin->globale()) << '\n';
         }
     }
 }
 
-void imprime_dépendances(NoeudDeclarationSymbole const *symbole)
+kuri::chaine imprime_dépendances(NoeudDeclarationSymbole const *symbole)
 {
-    imprime_dépendances(symbole->noeud_dependance, nom_humainement_lisible(symbole), symbole);
+    Enchaineuse sortie;
+    imprime_dépendances(
+        symbole->noeud_dependance, nom_humainement_lisible(symbole), symbole, sortie);
+    return sortie.chaine();
 }
 
-void imprime_dépendances(Type const *type)
+kuri::chaine imprime_dépendances(Type const *type)
 {
-    imprime_dépendances(type->noeud_dependance, chaine_type(type), type);
+    Enchaineuse sortie;
+    imprime_dépendances(type->noeud_dependance, chaine_type(type), type, sortie);
+    return sortie.chaine();
 }
