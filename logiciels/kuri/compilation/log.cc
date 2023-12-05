@@ -3,9 +3,12 @@
 
 #include "log.hh"
 
+#include <mutex>
+
 #include "structures/chaine_statique.hh"
 
 static Indentation __indente_globale;
+static std::mutex __mutex_flux{};
 
 LogDebug dbg()
 {
@@ -14,12 +17,14 @@ LogDebug dbg()
 
 LogDebug::LogDebug()
 {
+    __mutex_flux.lock();
     os << chaine_indentations(__indente_globale.v);
 }
 
 LogDebug::~LogDebug()
 {
     os << "\n";
+    __mutex_flux.unlock();
 }
 
 void LogDebug::réinitialise_indentation()
