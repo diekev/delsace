@@ -6,7 +6,6 @@
 #include <fstream>
 #include <iostream>
 #include <set>
-#include <sys/wait.h>
 
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/tableau_page.hh"
@@ -16,6 +15,8 @@
 
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
+
+#include "utilitaires/poule_de_taches.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "broyage.hh"
@@ -2122,61 +2123,40 @@ bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
 #else
-    auto une_erreur_est_survenue = false;
-
 #    ifndef NDEBUG
-    POUR (m_fichiers) {
-        kuri::chaine nom_sortie = it.chemin_fichier_objet;
-        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
-            nom_sortie = nom_sortie_resultat_final(espace.options);
-        }
-
-        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
-        if (!exécute_commande_externe(commande)) {
-            une_erreur_est_survenue = true;
-            break;
-        }
-    }
+    auto poule_de_tâches = kuri::PouleDeTâchesEnSérie{};
 #    else
-    kuri::tablet<pid_t, 16> enfants;
-
-    POUR (m_fichiers) {
-        kuri::chaine nom_sortie = it.chemin_fichier_objet;
-        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
-            nom_sortie = nom_sortie_resultat_final(espace.options);
-        }
-
-        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
-
-        auto child_pid = fork();
-        if (child_pid == 0) {
-            auto err = exécute_commande_externe(commande);
-            exit(err == true ? 0 : 1);
-        }
-
-        enfants.ajoute(child_pid);
-    }
-
-    POUR (enfants) {
-        int etat;
-        if (waitpid(it, &etat, 0) != it) {
-            une_erreur_est_survenue = true;
-            continue;
-        }
-
-        if (!WIFEXITED(etat)) {
-            une_erreur_est_survenue = true;
-            continue;
-        }
-
-        if (WEXITSTATUS(etat) != 0) {
-            une_erreur_est_survenue = true;
-            continue;
-        }
-    }
+    auto poule_de_tâches = kuri::PouleDeTâchesSousProcessus{};
 #    endif
 
-    return !une_erreur_est_survenue;
+    POUR (m_fichiers) {
+        poule_de_tâches.ajoute_tâche([&]() {
+            kuri::chaine nom_sortie = it.chemin_fichier_objet;
+            if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
+                nom_sortie = nom_sortie_resultat_final(espace.options);
+            }
+
+            auto commande = commande_pour_fichier_objet(
+                espace.options, it.chemin_fichier, nom_sortie);
+            auto err = exécute_commande_externe_erreur(commande);
+            if (err.has_value()) {
+                it.erreur_fichier_objet = err.value().message;
+            }
+        });
+    }
+
+    poule_de_tâches.attends_sur_tâches();
+
+    POUR (m_fichiers) {
+        if (it.erreur_fichier_objet.taille() == 0) {
+            continue;
+        }
+
+        std::cerr << it.erreur_fichier_objet << '\n';
+        return false;
+    }
+
+    return true;
 #endif
 }
 

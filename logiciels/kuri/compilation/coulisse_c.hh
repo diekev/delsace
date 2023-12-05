@@ -15,6 +15,7 @@ struct CoulisseC final : public Coulisse {
     struct FichierC {
         kuri::chaine chemin_fichier{};
         kuri::chaine chemin_fichier_objet{};
+        kuri::chaine erreur_fichier_objet{};
     };
 
     kuri::tableau<FichierC> m_fichiers{};
