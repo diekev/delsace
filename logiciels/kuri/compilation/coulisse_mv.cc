@@ -11,6 +11,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "metaprogramme.hh"
 #include "programme.hh"
 
@@ -108,8 +109,7 @@ bool CoulisseMV::crée_exécutable_impl(const ArgsLiaisonObjets &args)
         }
 
         *reinterpret_cast<void **>(adresse_destination) = adresse_source;
-        // std::cerr << "Écris adresse : " << adresse_source << ", à " << adresse_destination <<
-        // '\n';
+        // dbg() << "Écris adresse : " << adresse_source << ", à " << adresse_destination;
     }
 
     return true;

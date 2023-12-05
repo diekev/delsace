@@ -15,6 +15,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "numerique.hh"
 #include "portee.hh"
 #include "tacheronne.hh"
@@ -2607,7 +2608,7 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
     CHRONO_TYPAGE(m_stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
 
     assert_rappel(bloc_recherche != nullptr,
-                  [&]() { std::cerr << erreur::imprime_site(*espace, expr); });
+                  [&]() { dbg() << erreur::imprime_site(*espace, expr); });
 
     /* Les membres des énums sont des déclarations mais n'ont pas de type, et ne sont pas validées.
      * Pour de telles déclarations, la logique ici nous forcerait à attendre sur ces déclarations
@@ -2792,7 +2793,7 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
         // polymorphiques
         assert_rappel(decl->type || decl->est_entete_fonction() || decl->est_declaration_module(),
-                      [&]() { std::cerr << erreur::imprime_site(*espace, expr); });
+                      [&]() { dbg() << erreur::imprime_site(*espace, expr); });
         expr->declaration_referee = decl;
         expr->type = decl->type;
 
@@ -4897,7 +4898,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
         }
         else {
             assert_rappel(false, [&]() {
-                std::cerr << "Type Transformation non géré : " << transformation.type << '\n';
+                dbg() << "Type Transformation non géré : " << transformation.type;
             });
         }
     }

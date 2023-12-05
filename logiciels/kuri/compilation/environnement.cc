@@ -13,6 +13,7 @@
 
 #include "bibliotheque.hh"
 #include "coulisse.hh"  // Pour nom_sortie_resultat_final.
+#include "log.hh"
 #include "options.hh"
 
 /* Pour Linux, nous préfixons avec "lib", sauf si nous avons un chemin. */
@@ -398,7 +399,7 @@ static bool execute_commande(kuri::chaine const &commande)
     std::cout << "Compilation des tables de conversion R16...\n";
 
     if (!exécute_commande_externe(commande)) {
-        std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
+        dbg() << "Impossible de compiler les tables de conversion R16 !";
         return false;
     }
 
@@ -436,7 +437,7 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
     }
 
     if (!kuri::chemin_systeme::existe(chemin_objet)) {
-        std::cerr << "Le fichier compilé « " << chemin_objet << " » n'existe pas !\n";
+        dbg() << "Le fichier compilé « " << chemin_objet << " » n'existe pas !";
         return false;
     }
 
@@ -466,7 +467,7 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
     }
 
     if (!kuri::chemin_systeme::existe(chemin_objet)) {
-        std::cerr << "Le fichier compilé « " << chemin_objet << " » n'existe pas !\n";
+        dbg() << "Le fichier compilé « " << chemin_objet << " » n'existe pas !";
         return false;
     }
 

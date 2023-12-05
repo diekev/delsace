@@ -1456,7 +1456,7 @@ bool initialise_llvm()
 {
     if (llvm::InitializeNativeTarget() || llvm::InitializeNativeTargetAsmParser() ||
         llvm::InitializeNativeTargetAsmPrinter()) {
-        std::cerr << "Ne peut pas initialiser LLVM !\n";
+        dbg() << "Ne peut pas initialiser LLVM !";
         return false;
     }
 
@@ -1560,7 +1560,7 @@ bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
     auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
 
     if (!cible) {
-        std::cerr << erreur << '\n';
+        dbg() << erreur;
         return false;
     }
 
@@ -1622,7 +1622,7 @@ bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & 
             continue;
         }
 
-        std::cerr << it->erreur_fichier_objet << "\n";
+        dbg() << it->erreur_fichier_objet;
         return false;
     }
 
@@ -1655,7 +1655,7 @@ bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
 
     if (!exécute_commande_externe(commande)) {
-        std::cerr << "Ne peut pas créer l'executable !\n";
+        dbg() << "Ne peut pas créer l'executable !";
         return false;
     }
 

@@ -24,6 +24,7 @@
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "programme.hh"
 #include "typage.hh"
 
@@ -2152,7 +2153,7 @@ bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args
             continue;
         }
 
-        std::cerr << it.erreur_fichier_objet << '\n';
+        dbg() << it.erreur_fichier_objet;
         return false;
     }
 

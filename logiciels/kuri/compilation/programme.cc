@@ -22,6 +22,7 @@
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
+#include "log.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
 
@@ -127,12 +128,12 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
 #else
     if (!m_pour_metaprogramme) {
         if (raison == RaisonAjoutType::DÉPENDANCE_DIRECTE) {
-            std::cerr << "Dépendence   directe de " << nom_humainement_lisible(noeud) << " : "
-                      << chaine_type(type) << '\n';
+            dbg() << "Dépendence   directe de " << nom_humainement_lisible(noeud) << " : "
+                  << chaine_type(type);
         }
         else {
-            std::cerr << "Dépendence indirecte de " << nom_humainement_lisible(noeud) << " : "
-                      << chaine_type(type) << '\n';
+            dbg() << "Dépendence indirecte de " << nom_humainement_lisible(noeud) << " : "
+                  << chaine_type(type);
         }
     }
 #endif
@@ -201,8 +202,8 @@ bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
                              ID::fini_execution_kuri,
                              ID::init_globales_kuri)) {
                 assert_rappel(it->unité, [&]() {
-                    std::cerr << "Aucune unité pour de compilation pour :\n";
-                    std::cerr << erreur::imprime_site(*m_espace, it);
+                    dbg() << "Aucune unité pour de compilation pour :\n"
+                          << erreur::imprime_site(*m_espace, it);
                 });
                 diagnostique.ri_déclaration_à_générer = it;
                 return false;
@@ -828,12 +829,11 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     /* Extrait les atomes pour les fonctions. */
     POUR (m_programme.fonctions()) {
         assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
-            std::cerr << "La RI ne fut pas généré pour:\n";
-            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
+            dbg() << "La RI ne fut pas généré pour:\n"
+                  << erreur::imprime_site(*m_programme.espace(), it);
         });
         assert_rappel(it->atome, [&]() {
-            std::cerr << "Aucun atome pour:\n";
-            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
+            dbg() << "Aucun atome pour:\n" << erreur::imprime_site(*m_programme.espace(), it);
         });
 
         auto atome_fonction = it->atome->comme_fonction();
@@ -875,14 +875,14 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     /* Extrait les atomes pour les globales. */
     POUR (m_programme.globales()) {
         assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
-            std::cerr << "La RI ne fut pas généré pour:\n";
-            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
+            dbg() << "La RI ne fut pas généré pour:\n"
+                  << erreur::imprime_site(*m_programme.espace(), it);
         });
         assert_rappel(it->atome, [&]() {
-            std::cerr << "Aucun atome pour:\n";
-            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
-            std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
-            std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
+            dbg() << "Aucun atome pour:\n"
+                  << erreur::imprime_site(*m_programme.espace(), it) << '\n'
+                  << "Taille données decl  : " << it->donnees_decl.taille() << '\n'
+                  << "Possède substitution : " << (it->substitution != nullptr);
         });
         ajoute_globale(it->atome->comme_globale(), true);
     }
@@ -1300,14 +1300,13 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
             auto fonction = it->comme_entete_fonction();
             if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
                 if (!fonction->monomorphisations || fonction->monomorphisations->taille() == 0) {
-                    std::cerr << "Fonction inutilisée : " << nom_humainement_lisible(fonction)
-                              << '\n';
+                    dbg() << "Fonction inutilisée : " << nom_humainement_lisible(fonction);
                 }
                 continue;
             }
 
             if (!fonction->atome) {
-                std::cerr << "Fonction sans atome : " << nom_humainement_lisible(fonction) << '\n';
+                dbg() << "Fonction sans atome : " << nom_humainement_lisible(fonction);
                 continue;
             }
 
@@ -1315,7 +1314,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
                 continue;
             }
 
-            std::cerr << "Fonction inutilisée : " << nom_humainement_lisible(fonction) << '\n';
+            dbg() << "Fonction inutilisée : " << nom_humainement_lisible(fonction);
         }
     });
 #endif

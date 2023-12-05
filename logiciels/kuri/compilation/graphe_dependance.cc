@@ -11,6 +11,7 @@
 #include "statistiques/statistiques.hh"
 
 #include "erreur.h"
+#include "log.hh"
 #include "metaprogramme.hh"
 #include "typage.hh"
 
@@ -192,10 +193,10 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 		}
 
 		auto decl_fonction = it.fonction();
-		std::cerr << "Fonction inutilisée : " << decl_fonction->nom_broye << '\n';
+        dbg() << "Fonction inutilisée : " << decl_fonction->nom_broye;
 	}
 
-	std::cerr << (nombre_fonctions - nombre_utilisees) << " fonctions sont inutilisées sur " << nombre_fonctions << '\n';
+    dbg() << (nombre_fonctions - nombre_utilisees) << " fonctions sont inutilisées sur " << nombre_fonctions;
 #endif
 }
 
@@ -322,8 +323,7 @@ NoeudDependance *GrapheDependance::garantie_noeud_dépendance(EspaceDeTravail *e
      * les constantes. */
     if (noeud->est_declaration_variable()) {
         assert_rappel(noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
-            std::cerr << erreur::imprime_site(*espace, noeud);
-            std::cerr << *noeud;
+            dbg() << erreur::imprime_site(*espace, noeud) << '\n' << *noeud;
         });
         return crée_noeud_globale(noeud->comme_declaration_variable());
     }

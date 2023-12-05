@@ -18,6 +18,7 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
+#include "log.hh"
 #include "numerique.hh"
 #include "typage.hh"
 
@@ -462,8 +463,7 @@ static inline int precedence_pour_operateur(GenreLexeme genre_operateur)
 {
     int precedence = table_precedence_lexemes[static_cast<size_t>(genre_operateur)];
     assert_rappel(precedence != -1, [&]() {
-        std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_operateur)
-                  << '\n';
+        dbg() << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_operateur);
     });
     return precedence;
 }
@@ -472,8 +472,7 @@ static inline Associativite associativite_pour_operateur(GenreLexeme genre_opera
 {
     auto associativite = table_associativite_lexemes[static_cast<size_t>(genre_operateur)];
     assert_rappel(associativite != static_cast<Associativite>(-1), [&]() {
-        std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_operateur)
-                  << '\n';
+        dbg() << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_operateur);
     });
     return associativite;
 }
@@ -777,9 +776,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
         default:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "Lexème inattendu comme opérateur unaire : "
-                          << chaine_du_lexème(lexeme->genre) << '\n';
-                std::cerr << crée_message_erreur("");
+                dbg() << "Lexème inattendu comme opérateur unaire : "
+                      << chaine_du_lexème(lexeme->genre) << '\n'
+                      << crée_message_erreur("");
             });
             return nullptr;
         }
@@ -1631,9 +1630,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         default:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "Lexème inattendu comme expression secondaire : "
-                          << chaine_du_lexème(lexeme->genre) << '\n';
-                std::cerr << crée_message_erreur("");
+                dbg() << "Lexème inattendu comme expression secondaire : "
+                      << chaine_du_lexème(lexeme->genre) << '\n'
+                      << crée_message_erreur("");
             });
             return nullptr;
         }
@@ -1769,9 +1768,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         default:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "Lexème inattendu comme instruction : "
-                          << chaine_du_lexème(lexeme->genre) << '\n';
-                std::cerr << crée_message_erreur("");
+                dbg() << "Lexème inattendu comme instruction : " << chaine_du_lexème(lexeme->genre)
+                      << '\n'
+                      << crée_message_erreur("");
             });
             return nullptr;
         }
