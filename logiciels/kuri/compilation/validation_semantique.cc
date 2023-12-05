@@ -15,6 +15,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "numerique.hh"
 #include "portee.hh"
 #include "tacheronne.hh"
@@ -271,6 +272,10 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
         if (est_type_booleen_implicite(type->comme_type_opaque()->type_opacifie)) {
             return true;
         }
+    }
+
+    while (expression->est_parenthese()) {
+        expression = expression->comme_parenthese()->expression;
     }
 
     return est_type_booleen_implicite(type) ||
@@ -2396,6 +2401,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
                 espace->rapporte_erreur(
                     it.expression,
                     "L'expressoin doit avoir un nom si elle suit une autre ayant déjà un nom");
+                return CodeRetourValidation::Erreur;
             }
 
             if (expressions[index_courant] != nullptr) {
@@ -2454,7 +2460,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
             for (auto &membre : type_tuple->membres) {
                 if (variables.est_vide()) {
                     espace->rapporte_erreur(it, "Trop d'expressions de retour");
-                    break;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 TENTE(valide_typage_et_ajoute(donnees, variables.defile(), it, membre.type));
@@ -2597,7 +2603,7 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
     CHRONO_TYPAGE(m_stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
 
     assert_rappel(bloc_recherche != nullptr,
-                  [&]() { std::cerr << erreur::imprime_site(*espace, expr); });
+                  [&]() { dbg() << erreur::imprime_site(*espace, expr); });
 
     /* Les membres des énums sont des déclarations mais n'ont pas de type, et ne sont pas validées.
      * Pour de telles déclarations, la logique ici nous forcerait à attendre sur ces déclarations
@@ -2782,7 +2788,7 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
         // polymorphiques
         assert_rappel(decl->type || decl->est_entete_fonction() || decl->est_declaration_module(),
-                      [&]() { std::cerr << erreur::imprime_site(*espace, expr); });
+                      [&]() { dbg() << erreur::imprime_site(*espace, expr); });
         expr->declaration_referee = decl;
         expr->type = decl->type;
 
@@ -4887,7 +4893,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
         }
         else {
             assert_rappel(false, [&]() {
-                std::cerr << "Type Transformation non géré : " << transformation.type << '\n';
+                dbg() << "Type Transformation non géré : " << transformation.type;
             });
         }
     }
@@ -4914,6 +4920,14 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     expression = noeud_comme;
 }
 
+static bool est_accès_énum_drapeau(NoeudExpression const *expression)
+{
+    while (expression->est_parenthese()) {
+        expression = expression->comme_parenthese()->expression;
+    }
+    return expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
+}
+
 ResultatValidation Sémanticienne::valide_operateur_binaire(NoeudExpressionBinaire *expr)
 {
     CHRONO_TYPAGE(m_stats_typage.operateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
@@ -4937,16 +4951,14 @@ ResultatValidation Sémanticienne::valide_operateur_binaire(NoeudExpressionBinai
         return valide_operateur_binaire_chaine(expr);
     }
 
-    if (enfant1->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU) &&
-        enfant2->est_litterale_bool()) {
+    if (est_accès_énum_drapeau(enfant1) && enfant2->est_litterale_bool()) {
         return valide_comparaison_enum_drapeau_bool(
-            expr, enfant1->comme_reference_membre(), enfant2->comme_litterale_bool());
+            expr, enfant1, enfant2->comme_litterale_bool());
     }
 
-    if (enfant2->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU) &&
-        enfant1->est_litterale_bool()) {
+    if (est_accès_énum_drapeau(enfant2) && enfant1->est_litterale_bool()) {
         return valide_comparaison_enum_drapeau_bool(
-            expr, enfant2->comme_reference_membre(), enfant1->comme_litterale_bool());
+            expr, enfant2, enfant1->comme_litterale_bool());
     }
 
     return valide_operateur_binaire_generique(expr);
@@ -5273,6 +5285,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
                                     bits_max - 1,
                                     " pour le type ",
                                     chaine_type(type1));
+                return CodeRetourValidation::Erreur;
             }
         }
     }
@@ -5280,9 +5293,11 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
     return CodeRetourValidation::OK;
 }
 
+/* Note : l'expr_acces_enum n'est pas un NoeudExpressionMembre car nous pouvons avoir des
+ * parenthèses. */
 ResultatValidation Sémanticienne::valide_comparaison_enum_drapeau_bool(
     NoeudExpressionBinaire *expr,
-    NoeudExpressionMembre * /*expr_acces_enum*/,
+    NoeudExpression * /*expr_acces_enum*/,
     NoeudExpressionLitteraleBool *expr_bool)
 {
     auto type_op = expr->lexeme->genre;

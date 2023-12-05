@@ -21,6 +21,10 @@ struct NoeudExpression;
 struct Statistiques;
 struct Type;
 
+namespace kuri {
+struct chaine;
+}
+
 /**
  * GrapheDependance de dépendance entre les fonctions et les types.
  */
@@ -218,5 +222,5 @@ struct GrapheDependance {
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);
 
 /* Impression des dépendances directes. */
-void imprime_dépendances(NoeudDeclarationSymbole const *symbole);
-void imprime_dépendances(Type const *type);
+[[nodiscard]] kuri::chaine imprime_dépendances(NoeudDeclarationSymbole const *symbole);
+[[nodiscard]] kuri::chaine imprime_dépendances(Type const *type);

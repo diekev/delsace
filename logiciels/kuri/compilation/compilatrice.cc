@@ -21,6 +21,7 @@
 #include "espace_de_travail.hh"
 #include "intrinseques.hh"
 #include "ipa.hh"
+#include "log.hh"
 #include "portee.hh"
 #include "programme.hh"
 
@@ -341,7 +342,7 @@ void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
         m_code_erreur = genre;
     }
 
-    std::cerr << message << '\n';
+    dbg() << message;
 }
 
 bool Compilatrice::possède_erreur(const EspaceDeTravail *espace) const

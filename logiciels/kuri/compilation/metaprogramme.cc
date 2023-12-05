@@ -17,6 +17,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "programme.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
@@ -188,8 +189,7 @@ void MetaProgramme::vidange_log_sur_disque(TypeLogMétaprogramme type_log)
 
     auto chemin_fichier_entete = kuri::chemin_systeme::chemin_temporaire(nom_fichier);
 
-    std::cout << "Écriture du log de métaprogramme " << chemin_fichier_entete << "..."
-              << std::endl;
+    info() << "Écriture du log de métaprogramme " << chemin_fichier_entete << "...";
 
     std::ofstream of(vers_std_path(chemin_fichier_entete));
     logueuse->imprime_dans_flux(of);

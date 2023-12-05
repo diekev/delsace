@@ -7,6 +7,7 @@
 
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
+#include "compilation/log.hh"
 #include "compilation/typage.hh"
 
 #include "parsage/outils_lexemes.hh"
@@ -1458,9 +1459,9 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
     }
     else {
         assert_rappel(false, [&]() {
-            std::cerr << erreur::imprime_site(*espace, expr);
-            std::cerr << "Expression invalide pour la simplification de l'assignation implicite "
-                         "d'un bloc si !\n";
+            dbg() << "Expression invalide pour la simplification de l'assignation implicite "
+                     "d'un bloc si !\n"
+                  << erreur::imprime_site(*espace, expr);
         });
     }
 }
