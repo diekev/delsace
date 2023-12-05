@@ -12,10 +12,60 @@ struct EspaceDeTravail;
 struct OptionsDeCompilation;
 struct Programme;
 
+/* Arguments pour la génération de code.
+ *
+ * compilatrice est requise pour :
+ * - les chemins de compilations (racine_kuri)
+ *
+ * compilatrice_ri est requise pour :
+ * - générer la fonction principale du programme
+ */
+struct ArgsGénérationCode {
+    Compilatrice *compilatrice = nullptr;
+    EspaceDeTravail *espace = nullptr;
+    Programme const *programme = nullptr;
+    CompilatriceRI *compilatrice_ri = nullptr;
+    Broyeuse *broyeuse = nullptr;
+};
+
+ArgsGénérationCode crée_args_génération_code(Compilatrice &compilatrice,
+                                             EspaceDeTravail &espace,
+                                             Programme const *programme,
+                                             CompilatriceRI &compilatrice_ri,
+                                             Broyeuse &broyeuse);
+
+/* Arguments pour la création des fichiers d'objets. */
+struct ArgsCréationFichiersObjets {
+    Compilatrice *compilatrice = nullptr;
+    EspaceDeTravail *espace = nullptr;
+    Programme const *programme = nullptr;
+    CompilatriceRI *compilatrice_ri = nullptr;
+};
+
+ArgsCréationFichiersObjets crée_args_création_fichier_objet(Compilatrice &compilatrice,
+                                                            EspaceDeTravail &espace,
+                                                            Programme const *programme,
+                                                            CompilatriceRI &compilatrice_ri);
+
+/* Arguments pour la liaison de l'exécutable depuis le fichier objet.
+ *
+ * compilatrice est requise pour :
+ * - les chemins de compilations (racine_kuri, bibliothèques, definitions, chemins)
+ */
+struct ArgsLiaisonObjets {
+    Compilatrice *compilatrice = nullptr;
+    EspaceDeTravail *espace = nullptr;
+    Programme const *programme = nullptr;
+};
+
+ArgsLiaisonObjets crée_args_liaison_objets(Compilatrice &compilatrice,
+                                           EspaceDeTravail &espace,
+                                           Programme *programme);
+
 struct Coulisse {
-    double temps_generation_code = 0.0;
+    double temps_génération_code = 0.0;
     double temps_fichier_objet = 0.0;
-    double temps_executable = 0.0;
+    double temps_exécutable = 0.0;
 
     virtual ~Coulisse();
 
@@ -23,46 +73,20 @@ struct Coulisse {
 
     static Coulisse *crée_pour_metaprogramme();
 
-    static void detruit(Coulisse *coulisse);
+    static void détruit(Coulisse *coulisse);
 
-    /* Crée un fichier objet.
-     *
-     * compilatrice est requise pour :
-     * - les chemins de compilations (racine_kuri)
-     *
-     * compilatrice_ri est requise pour :
-     * - générer la fonction principale du programme
-     */
-    bool crée_fichier_objet(Compilatrice &compilatrice,
-                            EspaceDeTravail &espace,
-                            Programme const *programme,
-                            CompilatriceRI &compilatrice_ri,
-                            Broyeuse &);
+    /* Génère le code machine. */
+    bool crée_fichier_objet(ArgsGénérationCode const &args);
 
-    /* Crée l'exécutable depuis le fichier objet.
-     *
-     * compilatrice est requise pour :
-     * - les chemins de compilations (racine_kuri, bibliothèques, definitions, chemins)
-     */
-    bool crée_exécutable(Compilatrice &compilatrice,
-                         EspaceDeTravail &espace,
-                         Programme *programme);
+    /* Crée l'exécutable depuis le fichier objet. */
+    bool crée_exécutable(ArgsLiaisonObjets const &args);
 
   protected:
-    virtual bool génère_code_impl(Compilatrice &compilatrice,
-                                  EspaceDeTravail &espace,
-                                  Programme const *programme,
-                                  CompilatriceRI &compilatrice_ri,
-                                  Broyeuse &) = 0;
+    virtual bool génère_code_impl(ArgsGénérationCode const &args) = 0;
 
-    virtual bool crée_fichier_objet_impl(Compilatrice &compilatrice,
-                                         EspaceDeTravail &espace,
-                                         Programme const *programme,
-                                         CompilatriceRI &compilatrice_ri) = 0;
+    virtual bool crée_fichier_objet_impl(ArgsCréationFichiersObjets const &args) = 0;
 
-    virtual bool crée_exécutable_impl(Compilatrice &compilatrice,
-                                      EspaceDeTravail &espace,
-                                      Programme const *programme) = 0;
+    virtual bool crée_exécutable_impl(ArgsLiaisonObjets const &args) = 0;
 
   private:
     bool est_coulisse_métaprogramme() const;
