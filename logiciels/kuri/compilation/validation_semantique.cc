@@ -273,6 +273,10 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
         }
     }
 
+    while (expression->est_parenthese()) {
+        expression = expression->comme_parenthese()->expression;
+    }
+
     return est_type_booleen_implicite(type) ||
            expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
 }
@@ -4920,6 +4924,14 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     expression = noeud_comme;
 }
 
+static bool est_accès_énum_drapeau(NoeudExpression const *expression)
+{
+    while (expression->est_parenthese()) {
+        expression = expression->comme_parenthese()->expression;
+    }
+    return expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
+}
+
 ResultatValidation Sémanticienne::valide_operateur_binaire(NoeudExpressionBinaire *expr)
 {
     CHRONO_TYPAGE(m_stats_typage.operateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
@@ -4943,16 +4955,14 @@ ResultatValidation Sémanticienne::valide_operateur_binaire(NoeudExpressionBinai
         return valide_operateur_binaire_chaine(expr);
     }
 
-    if (enfant1->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU) &&
-        enfant2->est_litterale_bool()) {
+    if (est_accès_énum_drapeau(enfant1) && enfant2->est_litterale_bool()) {
         return valide_comparaison_enum_drapeau_bool(
-            expr, enfant1->comme_reference_membre(), enfant2->comme_litterale_bool());
+            expr, enfant1, enfant2->comme_litterale_bool());
     }
 
-    if (enfant2->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU) &&
-        enfant1->est_litterale_bool()) {
+    if (est_accès_énum_drapeau(enfant2) && enfant1->est_litterale_bool()) {
         return valide_comparaison_enum_drapeau_bool(
-            expr, enfant2->comme_reference_membre(), enfant1->comme_litterale_bool());
+            expr, enfant2, enfant1->comme_litterale_bool());
     }
 
     return valide_operateur_binaire_generique(expr);
@@ -5287,9 +5297,11 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
     return CodeRetourValidation::OK;
 }
 
+/* Note : l'expr_acces_enum n'est pas un NoeudExpressionMembre car nous pouvons avoir des
+ * parenthèses. */
 ResultatValidation Sémanticienne::valide_comparaison_enum_drapeau_bool(
     NoeudExpressionBinaire *expr,
-    NoeudExpressionMembre * /*expr_acces_enum*/,
+    NoeudExpression * /*expr_acces_enum*/,
     NoeudExpressionLitteraleBool *expr_bool)
 {
     auto type_op = expr->lexeme->genre;
