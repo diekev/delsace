@@ -15,6 +15,7 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "intrinseques.hh"
+#include "log.hh"
 #include "monomorpheuse.hh"
 #include "monomorphisations.hh"
 #include "portee.hh"
@@ -265,7 +266,7 @@ static void trouve_candidates_pour_expression(
         if (fonction_courante->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
             auto site_monomorphisation = fonction_courante->site_monomorphisation;
             assert_rappel(site_monomorphisation->lexeme,
-                          [&]() { std::cerr << erreur::imprime_site(espace, appelée); });
+                          [&]() { dbg() << erreur::imprime_site(espace, appelée); });
             auto fichier_site = espace.compilatrice().fichier(
                 site_monomorphisation->lexeme->fichier);
 
@@ -862,8 +863,8 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
 
         if (!param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             assert_rappel(false, []() {
-                std::cerr << "Les types polymorphiques ne sont pas supportés sur les "
-                             "structures pour le moment\n";
+                dbg() << "Les types polymorphiques ne sont pas supportés sur les "
+                         "structures pour le moment.";
             });
             continue;
         }
