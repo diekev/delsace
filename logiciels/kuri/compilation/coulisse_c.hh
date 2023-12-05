@@ -22,18 +22,9 @@ struct CoulisseC final : public Coulisse {
     FichierC &ajoute_fichier_c();
 
   private:
-    bool génère_code_impl(Compilatrice &compilatrice,
-                          EspaceDeTravail &espace,
-                          Programme const *programme,
-                          CompilatriceRI &compilatrice_ri,
-                          Broyeuse &) override;
+    bool génère_code_impl(ArgsGénérationCode const &args) override;
 
-    bool crée_fichier_objet_impl(Compilatrice &compilatrice,
-                                 EspaceDeTravail &espace,
-                                 Programme const *programme,
-                                 CompilatriceRI &compilatrice_ri) override;
+    bool crée_fichier_objet_impl(ArgsCréationFichiersObjets const &args) override;
 
-    bool crée_exécutable_impl(Compilatrice &compilatrice,
-                              EspaceDeTravail &espace,
-                              Programme const *programme) override;
+    bool crée_exécutable_impl(ArgsLiaisonObjets const &args) override;
 };

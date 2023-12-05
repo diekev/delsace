@@ -388,11 +388,9 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 auto coulisse = programme->coulisse();
-                if (coulisse->crée_fichier_objet(compilatrice,
-                                                 *tache.unite->espace,
-                                                 programme,
-                                                 constructrice_ri,
-                                                 broyeuse)) {
+                auto args = crée_args_génération_code(
+                    compilatrice, *tache.unite->espace, programme, constructrice_ri, broyeuse);
+                if (coulisse->crée_fichier_objet(args)) {
                     compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
                 temps_generation_code += coulisse->temps_generation_code;
@@ -405,7 +403,8 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 auto coulisse = programme->coulisse();
-                if (coulisse->crée_exécutable(compilatrice, *tache.espace, programme)) {
+                auto args = crée_args_liaison_objets(compilatrice, *tache.espace, programme);
+                if (coulisse->crée_exécutable(args)) {
                     compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
                 temps_executable += coulisse->temps_executable;

@@ -2093,33 +2093,32 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
 /** \} */
 
-bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
-                                 EspaceDeTravail &espace,
-                                 Programme const *programme,
-                                 CompilatriceRI &compilatrice_ri,
-                                 Broyeuse &broyeuse)
+bool CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
 {
+    auto &compilatrice_ri = *args.compilatrice_ri;
+    auto &espace = *args.espace;
+    auto const &programme = *args.programme;
+
     m_bibliothèques.efface();
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = représentation_intermédiaire_programme(
-        espace, compilatrice_ri, *programme);
+        espace, compilatrice_ri, programme);
 
     if (!repr_inter_programme.has_value()) {
         return false;
     }
 
-    auto génératrice = GénératriceCodeC(espace, broyeuse);
+    auto génératrice = GénératriceCodeC(espace, *args.broyeuse);
     génératrice.génère_code(*repr_inter_programme, *this);
     m_bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
     return true;
 }
 
-bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
-                                        EspaceDeTravail &espace,
-                                        Programme const *programme,
-                                        CompilatriceRI &compilatrice_ri)
+bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args)
 {
+    auto &espace = *args.espace;
+
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
 #else
@@ -2181,10 +2180,11 @@ bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
 #endif
 }
 
-bool CoulisseC::crée_exécutable_impl(Compilatrice &compilatrice,
-                                     EspaceDeTravail &espace,
-                                     Programme const * /*programme*/)
+bool CoulisseC::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
+    auto &compilatrice = *args.compilatrice;
+    auto &espace = *args.espace;
+
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
 #else

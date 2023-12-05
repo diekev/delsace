@@ -1616,15 +1616,15 @@ CoulisseLLVM::~CoulisseLLVM()
     delete m_contexte_llvm;
 }
 
-bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
-                                    EspaceDeTravail &espace,
-                                    Programme const *programme,
-                                    CompilatriceRI &compilatrice_ri,
-                                    Broyeuse &)
+bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
 {
     if (!initialise_llvm()) {
         return false;
     }
+
+    auto &compilatrice_ri = *args.compilatrice_ri;
+    auto &espace = *args.espace;
+    auto const &programme = *args.programme;
 
     auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
@@ -1636,7 +1636,7 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
         return false;
     }
 
-    auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, *programme);
+    auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, programme);
     if (!repr_inter.has_value()) {
         return false;
     }
@@ -1671,10 +1671,7 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
     return true;
 }
 
-bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
-                                           EspaceDeTravail &espace,
-                                           Programme const *programme,
-                                           CompilatriceRI & /*constructrice_ri*/)
+bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & /*args*/)
 {
 #if 1
     auto chemin_sortie = chemin_fichier_objet_llvm();
@@ -1734,10 +1731,11 @@ static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation c
     return "fichiers/point_d_entree.c";
 }
 
-bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
-                                        EspaceDeTravail &espace,
-                                        Programme const * /*programme*/)
+bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
+    auto &compilatrice = *args.compilatrice;
+    auto &espace = *args.espace;
+
     /* Compile le fichier objet qui appelera 'fonction principale'. */
     auto chemin_execution = chemin_fichier_objet_execution_llvm();
     if (!kuri::chemin_systeme::existe(chemin_execution)) {

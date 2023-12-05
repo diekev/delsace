@@ -14,19 +14,20 @@
 #include "metaprogramme.hh"
 #include "programme.hh"
 
-bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
-                                  EspaceDeTravail &espace,
-                                  Programme const *programme,
-                                  CompilatriceRI &compilatrice_ri,
-                                  Broyeuse &)
+bool CoulisseMV::génère_code_impl(const ArgsGénérationCode &args)
 {
+    auto &compilatrice = *args.compilatrice;
+    auto &compilatrice_ri = *args.compilatrice_ri;
+    auto &espace = *args.espace;
+    auto const &programme = *args.programme;
+
     auto opt_repr_inter = représentation_intermédiaire_programme(
-        espace, compilatrice_ri, *programme);
+        espace, compilatrice_ri, programme);
     if (!opt_repr_inter.has_value()) {
         return false;
     }
     auto &repr_inter = opt_repr_inter.value();
-    auto métaprogramme = programme->pour_métaprogramme();
+    auto métaprogramme = programme.pour_métaprogramme();
     assert(métaprogramme);
 
     /* Génère les infos type manquants. Les globales représentant des infos types sont substitutées
@@ -51,18 +52,16 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
     return compilatrice_cb.génère_code(repr_inter);
 }
 
-bool CoulisseMV::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
-                                         EspaceDeTravail & /*espace*/,
-                                         Programme const * /*programme*/,
-                                         CompilatriceRI & /*compilatrice_ri*/)
+bool CoulisseMV::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & /*args*/)
 {
     return true;
 }
 
-bool CoulisseMV::crée_exécutable_impl(Compilatrice &compilatrice,
-                                      EspaceDeTravail &espace,
-                                      Programme const *programme)
+bool CoulisseMV::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
+    auto &compilatrice = *args.compilatrice;
+    auto programme = args.programme;
+
     std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
 
     auto métaprogramme = programme->pour_métaprogramme();
