@@ -10,6 +10,7 @@
 #include "compilation/environnement.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/gestionnaire_code.hh"
+#include "compilation/log.hh"
 #include "compilation/tacheronne.hh"
 
 #include "statistiques/statistiques.hh"
@@ -49,7 +50,7 @@ static void valide_blocs_modules(EspaceDeTravail const &espace)
 		}
 
 		if (module->bloc != bloc) {
-			std::cerr << "Une fonction n'est pas le bon bloc parent !\n";
+            dbg() << "Une fonction n'est pas le bon bloc parent !";
 		}
 	}
 }
@@ -281,23 +282,27 @@ static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*
         }
     }
 
-    std::cout << "Utilisation : kuri [options...] FICHIER\n";
-    std::cout << "Options :\n";
+    Enchaineuse sortie;
+
+    sortie << "Utilisation : kuri [options...] FICHIER\n";
+    sortie << "Options :\n";
 
     POUR (descriptions_arguments) {
         auto nom = donne_nom_pour_aide(it);
-        std::cout << "\t" << nom;
+        sortie << "\t" << nom;
 
         auto const taille_nom = calcule_taille_utf8(nom);
         auto const taille_restante = taille_max_nom_pour_aide - taille_nom;
         auto const taille_marge = taille_restante + 2;
 
         for (int i = 0; i < taille_marge; i++) {
-            std::cout << ' ';
+            sortie << ' ';
         }
 
-        std::cout << it.description_pour_aide << ".\n";
+        sortie << it.description_pour_aide << ".\n";
     }
+
+    info() << sortie.chaine();
 
     return ActionParsageArgument::ARRÊTE_POUR_AIDE;
 }
@@ -313,7 +318,7 @@ static ActionParsageArgument gère_argument_emets_fichiers_utilises(ParseuseArgu
 {
     auto arg = parseuse.donne_argument_suivant();
     if (!arg.has_value()) {
-        std::cerr << "Argument manquant après --emets_fichiers_utilises\n";
+        dbg() << "Argument manquant après --emets_fichiers_utilises.";
         return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
     }
     résultat.chemin_fichier_utilises = arg.value();
@@ -360,7 +365,7 @@ static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &pa
 {
     auto arg = parseuse.donne_argument_suivant();
     if (!arg.has_value()) {
-        std::cerr << "Argument manquant après --format_profile\n";
+        dbg() << "Argument manquant après --format_profile.";
         return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
     }
 
@@ -375,14 +380,14 @@ static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &pa
         return ActionParsageArgument::CONTINUE;
     }
 
-    std::cerr << "Type de format de profile \"" << arg.value() << "\" inconnu\n";
+    dbg() << "Type de format de profile \"" << arg.value() << "\" inconnu.";
     return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
 }
 
 static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **argv)
 {
     if (argc < 2) {
-        std::cerr << "Utilisation : " << argv[0] << " [options...] FICHIER\n";
+        dbg() << "Utilisation : " << argv[0] << " [options...] FICHIER.";
         return {};
     }
 
@@ -409,13 +414,13 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
                 return resultat;
             }
 
-            std::cerr << "Argument '" << arg.value() << "' inconnu. Arrêt de la compilation.\n";
+            dbg() << "Argument '" << arg.value() << "' inconnu. Arrêt de la compilation.";
             return {};
         }
 
         if (!desc->fonction) {
-            std::cerr << "Erreur interne : l'argument '" << arg.value()
-                      << "' ne peut être géré. Arrêt de la compilation.\n";
+            dbg() << "Erreur interne : l'argument '" << arg.value()
+                  << "' ne peut être géré. Arrêt de la compilation.";
             return {};
         }
 
@@ -447,9 +452,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
 
 /** \} */
 
-static bool compile_fichier(Compilatrice &compilatrice,
-                            kuri::chaine_statique chemin_fichier,
-                            std::ostream &os)
+static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique chemin_fichier)
 {
     auto debut_compilation = dls::chrono::compte_seconde();
 
@@ -479,8 +482,7 @@ static bool compile_fichier(Compilatrice &compilatrice,
     auto dossier = chemin.chemin_parent();
     kuri::chemin_systeme::change_chemin_courant(dossier);
 
-    os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..."
-       << std::endl;
+    info() << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'...";
 
     auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, dossier);
     compilatrice.module_racine_compilation = module;
@@ -555,7 +557,7 @@ static bool compile_fichier(Compilatrice &compilatrice,
 
     imprime_stats(compilatrice, stats, debut_compilation);
 
-    os << "Nettoyage..." << std::endl;
+    info() << "Nettoyage...";
 
     POUR (tacheronnes) {
         memoire::deloge("Tacheronne", it);
@@ -609,9 +611,8 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
 {
     auto opt_chemin_executable = détermine_chemin_exécutable();
     if (!opt_chemin_executable.has_value()) {
-        std::cerr
-            << "Impossible de déterminer la racine d'exécution de Kuri depuis le système !\n";
-        std::cerr << "Compilation avortée.\n";
+        dbg() << "Impossible de déterminer la racine d'exécution de Kuri depuis le système !"
+              << "Compilation avortée.";
         return {};
     }
 
@@ -630,11 +631,10 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
     /* Essayons alors la variable d'environnement. */
     auto racine_env = getenv("RACINE_KURI");
     if (racine_env == nullptr) {
-        std::cerr
-            << "Impossible de déterminer la racine d'exécution de Kuri depuis l'environnement !\n";
-        std::cerr << "Veuillez vous assurer que RACINE_KURI fait partie de l'environnement "
-                     "d'exécution et pointe vers une installation valide de Kuri.\n";
-        std::cerr << "Compilation avortée.\n";
+        dbg() << "Impossible de déterminer la racine d'exécution de Kuri depuis l'environnement.";
+        dbg() << "Veuillez vous assurer que RACINE_KURI fait partie de l'environnement "
+                 "d'exécution et pointe vers une installation valide de Kuri.";
+        dbg() << "Compilation avortée.";
         return {};
     }
 
@@ -642,12 +642,12 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
     dossier_manquant = dossier_manquant_racine_execution(racine);
 
     if (dossier_manquant.has_value()) {
-        std::cerr << "Racine d'exécution de Kuri invalide !\n";
-        std::cerr << "Le dossier \"" << dossier_manquant.value() << "\" n'existe pas !\n";
-        std::cerr << "Veuillez vérifier que votre installation est correcte.\n";
-        std::cerr << "NOTE : le chemin racine utilisé provient de la variable d'environnement « "
-                     "RACINE_KURI ».\n";
-        std::cerr << "Compilation avortée.\n";
+        dbg() << "Racine d'exécution de Kuri invalide !";
+        dbg() << "Le dossier \"" << dossier_manquant.value() << "\" n'existe pas !";
+        dbg() << "Veuillez vérifier que votre installation est correcte.";
+        dbg() << "NOTE : le chemin racine utilisé provient de la variable d'environnement « "
+                 "RACINE_KURI ».";
+        dbg() << "Compilation avortée.";
         return {};
     }
 
@@ -670,15 +670,13 @@ int main(int argc, char *argv[])
 
     auto const chemin_fichier = argv[argc - 1];
     if (!kuri::chemin_systeme::existe(chemin_fichier)) {
-        std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
+        dbg() << "Impossible d'ouvrir le fichier : " << chemin_fichier;
         return 1;
     }
 
-    std::ostream &os = std::cout;
-
     auto compilatrice = Compilatrice(opt_racine_kuri.value(), opt_arguments.value());
 
-    if (!compile_fichier(compilatrice, chemin_fichier, os)) {
+    if (!compile_fichier(compilatrice, chemin_fichier)) {
         return 1;
     }
 

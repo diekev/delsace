@@ -1874,7 +1874,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto decalage = LIS_4_OCTETS();
                 auto adresse_de = dépile<char *>();
                 empile(adresse_de + decalage);
-                // std::cerr << "adresse_de : " << static_cast<void *>(adresse_de) << '\n';
+                // dbg() << "adresse_de : " << static_cast<void *>(adresse_de);
                 break;
             }
             case OP_RÉFÉRENCE_MEMBRE_LOCALE:
@@ -1893,12 +1893,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto index = dépile<int64_t>();
                 auto nouvelle_adresse = adresse + index * taille_données;
                 empile(nouvelle_adresse);
-                //				std::cerr << "nouvelle_adresse : " << static_cast<void
-                //*>(nouvelle_adresse) << '\n'; 				std::cerr << "index            : "
-                //<< index
-                //<<
-                //'\n'; 				std::cerr << "taille_données   : " << taille_données <<
-                //'\n';
+                // dbg() << "nouvelle_adresse : " << static_cast<void *>(nouvelle_adresse) << '\n'
+                //       << "index            : " << index << '\n'
+                //       << "taille_données   : " << taille_données;
                 break;
             }
             case OP_STAT_INSTRUCTION:
@@ -2012,9 +2009,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
 void MachineVirtuelle::imprime_trace_appel(NoeudExpression const *site)
 {
-    std::cerr << erreur::imprime_site(*m_métaprogramme->unite->espace, site);
+    dbg() << erreur::imprime_site(*m_métaprogramme->unite->espace, site);
     for (int i = profondeur_appel - 1; i >= 0; --i) {
-        std::cerr << erreur::imprime_site(*m_métaprogramme->unite->espace, frames[i].site);
+        dbg() << erreur::imprime_site(*m_métaprogramme->unite->espace, frames[i].site);
     }
 }
 

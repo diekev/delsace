@@ -76,7 +76,7 @@ static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const 
     return "erreur";
 }
 
-void imprime_information_atome(Atome const *atome, std::ostream &os)
+static void imprime_information_atome(Atome const *atome, Enchaineuse &os)
 {
     switch (atome->genre_atome) {
         case Atome::Genre::GLOBALE:
@@ -181,7 +181,14 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
     }
 }
 
-static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_operande)
+[[nodiscard]] kuri::chaine imprime_information_atome(Atome const *atome)
+{
+    Enchaineuse sortie;
+    imprime_information_atome(atome, sortie);
+    return sortie.chaine();
+}
+
+static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_operande)
 {
     if (atome->genre_atome == Atome::Genre::GLOBALE) {
         auto globale = atome->comme_globale();
@@ -292,12 +299,14 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
     }
 }
 
-void imprime_atome(Atome const *atome, std::ostream &os)
+[[nodiscard]] kuri::chaine imprime_atome(Atome const *atome)
 {
-    imprime_atome_ex(atome, os, false);
+    Enchaineuse sortie;
+    imprime_atome_ex(atome, sortie, false);
+    return sortie.chaine();
 }
 
-void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
+static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
         case GenreInstruction::INVALIDE:
@@ -442,10 +451,12 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
     }
 }
 
-void imprime_instruction(Instruction const *inst, std::ostream &os)
+[[nodiscard]] kuri::chaine imprime_instruction(Instruction const *inst)
 {
-    imprime_instruction_ex(inst, os);
-    os << '\n';
+    Enchaineuse sortie;
+    imprime_instruction_ex(inst, sortie);
+    sortie << '\n';
+    return sortie.chaine();
 }
 
 kuri::chaine imprime_arbre_instruction(Instruction const *racine)
@@ -457,48 +468,13 @@ kuri::chaine imprime_arbre_instruction(Instruction const *racine)
         }
     });
 
-    std::stringstream ss;
+    Enchaineuse sortie;
     for (auto i = instructions.taille() - 1; i >= 0; i--) {
-        imprime_instruction(instructions[i], ss);
+        imprime_instruction_ex(instructions[i], sortie);
+        sortie << '\n';
     }
 
-    return enchaine(ss.str());
-}
-
-void imprime_fonction(AtomeFonction const *atome_fonc,
-                      std::ostream &os,
-                      bool inclus_nombre_utilisations,
-                      bool surligne_inutilisees,
-                      std::function<void(const Instruction &, std::ostream &)> rappel)
-{
-    os << "fonction " << atome_fonc->nom;
-
-    auto virgule = "(";
-
-    for (auto param : atome_fonc->params_entrees) {
-        os << virgule;
-        os << param->ident->nom << ' ';
-
-        auto type_pointeur = param->type->comme_type_pointeur();
-        os << chaine_type(type_pointeur->type_pointe, false);
-
-        virgule = ", ";
-    }
-
-    if (atome_fonc->params_entrees.taille() == 0) {
-        os << virgule;
-    }
-
-    auto type_fonction = atome_fonc->type->comme_type_fonction();
-
-    os << ") -> ";
-    os << chaine_type(type_fonction->type_sortie, false);
-    os << '\n';
-
-    numérote_instructions(*atome_fonc);
-
-    imprime_instructions(
-        atome_fonc->instructions, os, inclus_nombre_utilisations, surligne_inutilisees, rappel);
+    return sortie.chaine();
 }
 
 int numérote_instructions(AtomeFonction const &fonction)
@@ -529,10 +505,10 @@ int numérote_instructions(AtomeFonction const &fonction)
 }
 
 void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
-                          std::ostream &os,
+                          Enchaineuse &os,
                           bool inclus_nombre_utilisations,
                           bool surligne_inutilisees,
-                          std::function<void(const Instruction &, std::ostream &)> rappel)
+                          std::function<void(const Instruction &, Enchaineuse &)> rappel)
 {
     auto max_utilisations = 0;
 
@@ -582,4 +558,88 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
     }
 
     os << '\n';
+}
+
+[[nodiscard]] kuri::chaine imprime_instructions(
+    kuri::tableau<Instruction *, int> const &instructions,
+    bool inclus_nombre_utilisations,
+    bool surligne_inutilisees,
+    std::function<void(Instruction const &, Enchaineuse &)> rappel)
+{
+    Enchaineuse sortie;
+    imprime_instructions(
+        instructions, sortie, inclus_nombre_utilisations, surligne_inutilisees, rappel);
+    return sortie.chaine();
+}
+
+void imprime_fonction(AtomeFonction const *atome_fonc,
+                      Enchaineuse &os,
+                      bool inclus_nombre_utilisations,
+                      bool surligne_inutilisees,
+                      std::function<void(const Instruction &, Enchaineuse &)> rappel)
+{
+    os << "fonction " << atome_fonc->nom;
+
+    auto virgule = "(";
+
+    for (auto param : atome_fonc->params_entrees) {
+        os << virgule;
+        os << param->ident->nom << ' ';
+
+        auto type_pointeur = param->type->comme_type_pointeur();
+        os << chaine_type(type_pointeur->type_pointe, false);
+
+        virgule = ", ";
+    }
+
+    if (atome_fonc->params_entrees.taille() == 0) {
+        os << virgule;
+    }
+
+    auto type_fonction = atome_fonc->type->comme_type_fonction();
+
+    os << ") -> ";
+    os << chaine_type(type_fonction->type_sortie, false);
+    os << '\n';
+
+    numérote_instructions(*atome_fonc);
+
+    imprime_instructions(
+        atome_fonc->instructions, os, inclus_nombre_utilisations, surligne_inutilisees, rappel);
+}
+
+[[nodiscard]] kuri::chaine imprime_fonction(
+    AtomeFonction const *atome_fonc,
+    bool inclus_nombre_utilisations,
+    bool surligne_inutilisees,
+    std::function<void(Instruction const &, Enchaineuse &)> rappel)
+{
+    Enchaineuse sortie;
+    imprime_fonction(atome_fonc, sortie, inclus_nombre_utilisations, surligne_inutilisees, rappel);
+    return sortie.chaine();
+}
+
+[[nodiscard]] kuri::chaine imprime_commentaire_instruction(Instruction const *inst)
+{
+    Enchaineuse sortie;
+    if (inst->est_acces_membre()) {
+        auto inst_acces = inst->comme_acces_membre();
+        sortie << "Nous accédons à ";
+        if (inst_acces->accede->est_instruction()) {
+            sortie << inst_acces->accede->comme_instruction()->genre << '\n';
+        }
+        else {
+            imprime_information_atome(inst_acces->accede, sortie);
+            sortie << '\n';
+        }
+    }
+    else if (inst->est_op_binaire()) {
+        auto op_binaire = inst->comme_op_binaire();
+        sortie << "Nous opérons entre " << chaine_type(op_binaire->valeur_gauche->type) << " et "
+               << chaine_type(op_binaire->valeur_droite->type) << '\n';
+    }
+    else {
+        sortie << "Nous avec avons une instruction de genre " << inst->genre << '\n';
+    }
+    return sortie.chaine();
 }
