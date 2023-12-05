@@ -49,7 +49,7 @@ static bool détecte_retour_manquant(EspaceDeTravail &espace,
         return false;
     }
 
-#if 1
+#if 0
     // La génération de RI peut mettre des labels après des instructions « si » ou « discr » qui
     // sont les seules instructions de la fonction, donc nous pouvons avoir des blocs vides en fin
     // de fonctions. Mais ce peut également être du code mort après un retour.
