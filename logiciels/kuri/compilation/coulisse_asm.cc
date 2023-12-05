@@ -454,26 +454,23 @@ void GeneratriceCodeASM::genere_code(kuri::tableau_statique<AtomeGlobale *> glob
     }
 }
 
-bool CoulisseASM::génère_code_impl(Compilatrice & /*compilatrice*/,
-                                   EspaceDeTravail & /*espace*/,
-                                   Programme const * /*programme*/,
-                                   CompilatriceRI & /*compilatrice_ri*/,
-                                   Broyeuse &)
+bool CoulisseASM::génère_code_impl(const ArgsGénérationCode & /*args*/)
 {
     return true;
 }
 
-bool CoulisseASM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
-                                          EspaceDeTravail &espace,
-                                          Programme const *programme,
-                                          CompilatriceRI &compilatrice_ri)
+bool CoulisseASM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args)
 {
+    auto &compilatrice_ri = *args.compilatrice_ri;
+    auto &espace = *args.espace;
+    auto const &programme = *args.programme;
+
     std::ostream &fichier_sortie = std::cerr;
     Enchaineuse enchaineuse;
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = représentation_intermédiaire_programme(
-        espace, compilatrice_ri, *programme);
+        espace, compilatrice_ri, programme);
 
     if (!repr_inter_programme.has_value()) {
         return false;
@@ -493,9 +490,7 @@ bool CoulisseASM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
     return true;
 }
 
-bool CoulisseASM::crée_exécutable_impl(Compilatrice & /*compilatrice*/,
-                                       EspaceDeTravail & /*espace*/,
-                                       Programme const * /* programme */)
+bool CoulisseASM::crée_exécutable_impl(const ArgsLiaisonObjets & /*args*/)
 {
     return false;
 }
