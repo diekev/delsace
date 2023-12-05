@@ -4,8 +4,8 @@
 #include "coulisse_llvm.hh"
 
 #include <iostream>
-#include <sys/wait.h>
-#include <thread>
+
+#include "utilitaires/poule_de_taches.hh"
 
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push
@@ -1634,60 +1634,31 @@ bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
 bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & /*args*/)
 {
 #ifndef NDEBUG
+    auto poule_de_tâches = kuri::PouleDeTâchesEnSérie{};
+#else
+#    if 0
+    auto poule_de_tâches = kuri::PouleDeTâchesMoultFils{};
+#    else
+    auto poule_de_tâches = kuri::PouleDeTâchesSousProcessus{};
+#    endif
+#endif
+
     POUR (m_modules) {
-        if (!crée_fichier_objet(it)) {
-            return false;
+        poule_de_tâches.ajoute_tâche([&]() { crée_fichier_objet(it); });
+    }
+
+    poule_de_tâches.attends_sur_tâches();
+
+    POUR (m_modules) {
+        if (it->erreur_fichier_objet.taille() == 0) {
+            continue;
         }
+
+        std::cerr << it->erreur_fichier_objet << "\n";
+        return false;
     }
 
     return true;
-#else
-#    if 0
-    auto threads = kuri::tablet<std::thread *, 6>();
-    POUR (m_modules) {
-        auto thread = new std::thread([&]() { crée_fichier_objet(it); });
-        threads.ajoute(thread);
-    }
-    POUR (threads) {
-        it->join();
-        delete it;
-    }
-#    else
-    kuri::tablet<pid_t, 16> enfants;
-
-    POUR (m_modules) {
-        auto child_pid = fork();
-        if (child_pid == 0) {
-            auto résultat = crée_fichier_objet(it);
-            exit(résultat ? 0 : 1);
-        }
-
-        enfants.ajoute(child_pid);
-    }
-
-    bool une_erreur_est_survenue = false;
-
-    POUR (enfants) {
-        int etat;
-        if (waitpid(it, &etat, 0) != it) {
-            une_erreur_est_survenue = true;
-            continue;
-        }
-
-        if (!WIFEXITED(etat)) {
-            une_erreur_est_survenue = true;
-            continue;
-        }
-
-        if (WEXITSTATUS(etat) != EXIT_SUCCESS) {
-            une_erreur_est_survenue = true;
-            continue;
-        }
-    }
-
-    return !une_erreur_est_survenue;
-#    endif
-#endif
 }
 
 static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation const &options)
@@ -1723,28 +1694,33 @@ bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
     return true;
 }
 
-bool CoulisseLLVM::crée_fichier_objet(DonnéesModule *module)
+void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module)
 {
     std::error_code ec;
     llvm::raw_fd_ostream dest(
         vers_string_ref(module->chemin_fichier_objet), ec, llvm::sys::fs::F_None);
 
     if (ec) {
-        std::cerr << "Ne peut pas ouvrir le fichier '" << module->chemin_fichier_objet << "'\n";
-        return false;
+        module->erreur_fichier_objet = enchaine(
+            "Ne peut pas ouvrir le fichier '", module->chemin_fichier_objet, "'");
+        return;
     }
 
     llvm::legacy::PassManager pass;
     auto type_fichier = llvm::CGFT_ObjectFile;
 
     if (m_machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
-        std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
-        return false;
+        module->erreur_fichier_objet = "La machine cible ne peut pas émettre ce type de fichier";
+        return;
     }
 
     pass.run(*module->module);
     dest.flush();
-    return kuri::chemin_systeme::existe(module->chemin_fichier_objet);
+    if (!kuri::chemin_systeme::existe(module->chemin_fichier_objet)) {
+        module->erreur_fichier_objet = enchaine(
+            "Le fichier '", module->chemin_fichier_objet, "' ne fut pas écrit.");
+        return;
+    }
 }
 
 void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,

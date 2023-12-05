@@ -32,6 +32,8 @@ struct DonnéesModule {
     const DonnéesConstantes *données_constantes = nullptr;
     kuri::tableau_statique<AtomeGlobale *> globales{};
     kuri::tableau_statique<AtomeFonction *> fonctions{};
+
+    kuri::chaine erreur_fichier_objet{};
 };
 
 struct CoulisseLLVM final : public Coulisse {
@@ -51,7 +53,7 @@ struct CoulisseLLVM final : public Coulisse {
 
     bool crée_exécutable_impl(ArgsLiaisonObjets const &args) override;
 
-    bool crée_fichier_objet(DonnéesModule *module);
+    void crée_fichier_objet(DonnéesModule *module);
 
     void crée_modules(ProgrammeRepreInter const &repr_inter, const std::string &triplet_cible);
 
