@@ -88,7 +88,7 @@ Coulisse *Coulisse::crée_pour_metaprogramme()
     return memoire::loge<CoulisseMV>("CoulisseMV");
 }
 
-void Coulisse::detruit(Coulisse *coulisse)
+void Coulisse::détruit(Coulisse *coulisse)
 {
     if (dynamic_cast<CoulisseC *>(coulisse)) {
         auto c = dynamic_cast<CoulisseC *>(coulisse);
@@ -123,7 +123,7 @@ bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
     if (!génère_code_impl(args)) {
         return false;
     }
-    temps_generation_code = début_génération_code.temps();
+    temps_génération_code = début_génération_code.temps();
 
     if (!est_coulisse_métaprogramme()) {
         std::cout << "Création du fichier objet..." << std::endl;
@@ -150,7 +150,7 @@ bool Coulisse::crée_exécutable(ArgsLiaisonObjets const &args)
         args.espace->rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
         return false;
     }
-    temps_executable = début_exécutable.temps();
+    temps_exécutable = début_exécutable.temps();
 
     return true;
 }

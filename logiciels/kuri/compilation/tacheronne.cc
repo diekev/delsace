@@ -393,7 +393,7 @@ void Tacheronne::gere_tache()
                 if (coulisse->crée_fichier_objet(args)) {
                     compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
-                temps_generation_code += coulisse->temps_generation_code;
+                temps_generation_code += coulisse->temps_génération_code;
                 temps_fichier_objet += coulisse->temps_fichier_objet;
                 break;
             }
@@ -407,7 +407,7 @@ void Tacheronne::gere_tache()
                 if (coulisse->crée_exécutable(args)) {
                     compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
-                temps_executable += coulisse->temps_executable;
+                temps_executable += coulisse->temps_exécutable;
                 break;
             }
             case GenreTache::CONVERSION_NOEUD_CODE:

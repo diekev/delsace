@@ -63,9 +63,9 @@ ArgsLiaisonObjets crée_args_liaison_objets(Compilatrice &compilatrice,
                                            Programme *programme);
 
 struct Coulisse {
-    double temps_generation_code = 0.0;
+    double temps_génération_code = 0.0;
     double temps_fichier_objet = 0.0;
-    double temps_executable = 0.0;
+    double temps_exécutable = 0.0;
 
     virtual ~Coulisse();
 
@@ -73,7 +73,7 @@ struct Coulisse {
 
     static Coulisse *crée_pour_metaprogramme();
 
-    static void detruit(Coulisse *coulisse);
+    static void détruit(Coulisse *coulisse);
 
     /* Génère le code machine. */
     bool crée_fichier_objet(ArgsGénérationCode const &args);

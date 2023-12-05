@@ -54,7 +54,7 @@ Programme *Programme::crée_pour_metaprogramme(EspaceDeTravail *espace,
 
 Programme::~Programme()
 {
-    Coulisse::detruit(m_coulisse);
+    Coulisse::détruit(m_coulisse);
 }
 
 void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
@@ -313,7 +313,7 @@ kuri::ensemble<Module *> Programme::modules_utilises() const
 void Programme::ajourne_pour_nouvelles_options_espace()
 {
     /* Recrée la coulisse. */
-    Coulisse::detruit(m_coulisse);
+    Coulisse::détruit(m_coulisse);
     m_coulisse = Coulisse::crée_pour_options(espace()->options);
 
     auto index = 0;
