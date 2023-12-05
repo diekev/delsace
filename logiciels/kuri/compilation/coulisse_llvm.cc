@@ -1544,6 +1544,7 @@ static kuri::chemin_systeme chemin_fichier_objet_llvm()
     return chemin_fichier_objet_temporaire_pour("kuri");
 }
 
+#ifndef NDEBUG
 /* Chemin du fichier de code binaire LLVM généré par la coulisse. */
 static kuri::chemin_systeme chemin_fichier_bc_llvm()
 {
@@ -1561,7 +1562,6 @@ static kuri::chaine_statique donne_assembleur_llvm()
     return "llvm-as-12";
 }
 
-#ifndef NDEBUG
 static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module)
 {
     auto const fichier_ll = chemin_fichier_ll_llvm();
