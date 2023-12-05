@@ -37,6 +37,24 @@ struct Indentation {
     }
 };
 
+struct LogInfo {
+    std::ostream &os = std::cout;
+
+    LogInfo();
+    ~LogInfo();
+};
+
+LogInfo info();
+
+const LogInfo &operator<<(const LogInfo &log_info, Indentation indentation);
+
+template <typename T>
+const LogInfo &operator<<(const LogInfo &log_info, T valeur)
+{
+    log_info.os << valeur;
+    return log_info;
+}
+
 struct LogDebug {
     std::ostream &os = std::cerr;
 

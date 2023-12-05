@@ -13,9 +13,49 @@
 #include "coulisse_mv.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
+
+ArgsGénérationCode crée_args_génération_code(Compilatrice &compilatrice,
+                                             EspaceDeTravail &espace,
+                                             Programme const *programme,
+                                             CompilatriceRI &compilatrice_ri,
+                                             Broyeuse &broyeuse)
+{
+    auto résultat = ArgsGénérationCode{};
+    résultat.compilatrice = &compilatrice;
+    résultat.espace = &espace;
+    résultat.programme = programme;
+    résultat.compilatrice_ri = &compilatrice_ri;
+    résultat.broyeuse = &broyeuse;
+    return résultat;
+}
+
+ArgsCréationFichiersObjets crée_args_création_fichier_objet(Compilatrice &compilatrice,
+                                                            EspaceDeTravail &espace,
+                                                            Programme const *programme,
+                                                            CompilatriceRI &compilatrice_ri)
+{
+    auto résultat = ArgsCréationFichiersObjets{};
+    résultat.compilatrice = &compilatrice;
+    résultat.espace = &espace;
+    résultat.programme = programme;
+    résultat.compilatrice_ri = &compilatrice_ri;
+    return résultat;
+}
+
+ArgsLiaisonObjets crée_args_liaison_objets(Compilatrice &compilatrice,
+                                           EspaceDeTravail &espace,
+                                           Programme *programme)
+{
+    auto résultat = ArgsLiaisonObjets{};
+    résultat.compilatrice = &compilatrice;
+    résultat.espace = &espace;
+    résultat.programme = programme;
+    return résultat;
+}
 
 Coulisse::~Coulisse() = default;
 
@@ -49,7 +89,7 @@ Coulisse *Coulisse::crée_pour_metaprogramme()
     return memoire::loge<CoulisseMV>("CoulisseMV");
 }
 
-void Coulisse::detruit(Coulisse *coulisse)
+void Coulisse::détruit(Coulisse *coulisse)
 {
     if (dynamic_cast<CoulisseC *>(coulisse)) {
         auto c = dynamic_cast<CoulisseC *>(coulisse);
@@ -75,27 +115,25 @@ void Coulisse::detruit(Coulisse *coulisse)
     }
 }
 
-bool Coulisse::crée_fichier_objet(Compilatrice &compilatrice,
-                                  EspaceDeTravail &espace,
-                                  Programme const *programme,
-                                  CompilatriceRI &compilatrice_ri,
-                                  Broyeuse &broyeuse)
+bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
 {
     if (!est_coulisse_métaprogramme()) {
-        std::cout << "Génération du code..." << std::endl;
+        info() << "Génération du code...";
     }
     auto début_génération_code = dls::chrono::compte_seconde();
-    if (!génère_code_impl(compilatrice, espace, programme, compilatrice_ri, broyeuse)) {
+    if (!génère_code_impl(args)) {
         return false;
     }
-    temps_generation_code = début_génération_code.temps();
+    temps_génération_code = début_génération_code.temps();
 
     if (!est_coulisse_métaprogramme()) {
-        std::cout << "Création du fichier objet..." << std::endl;
+        info() << "Création du fichier objet...";
     }
+    auto args_fichier_objet = crée_args_création_fichier_objet(
+        *args.compilatrice, *args.espace, args.programme, *args.compilatrice_ri);
     auto debut_fichier_objet = dls::chrono::compte_seconde();
-    if (!crée_fichier_objet_impl(compilatrice, espace, programme, compilatrice_ri)) {
-        espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
+    if (!crée_fichier_objet_impl(args_fichier_objet)) {
+        args.espace->rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
         return false;
     }
     temps_fichier_objet = debut_fichier_objet.temps();
@@ -103,19 +141,17 @@ bool Coulisse::crée_fichier_objet(Compilatrice &compilatrice,
     return true;
 }
 
-bool Coulisse::crée_exécutable(Compilatrice &compilatrice,
-                               EspaceDeTravail &espace,
-                               Programme *programme)
+bool Coulisse::crée_exécutable(ArgsLiaisonObjets const &args)
 {
     if (!est_coulisse_métaprogramme()) {
-        std::cout << "Liaison du programme..." << std::endl;
+        info() << "Liaison du programme...";
     }
     auto début_exécutable = dls::chrono::compte_seconde();
-    if (!crée_exécutable_impl(compilatrice, espace, programme)) {
-        espace.rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
+    if (!crée_exécutable_impl(args)) {
+        args.espace->rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
         return false;
     }
-    temps_executable = début_exécutable.temps();
+    temps_exécutable = début_exécutable.temps();
 
     return true;
 }

@@ -14,6 +14,7 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "graphe_dependance.hh"
+#include "log.hh"
 #include "operateurs.hh"
 
 #include "statistiques/statistiques.hh"
@@ -468,8 +469,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
         }
         else {
             assert_rappel(false, [&]() {
-                std::cerr << "Genre de type non-géré : " << chaine_du_lexème(donnees.dt[0])
-                          << '\n';
+                dbg() << "Genre de type non-géré : " << chaine_du_lexème(donnees.dt[0]);
             });
         }
 
@@ -1777,7 +1777,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
 
     POUR (type->donne_membres_pour_code_machine()) {
         assert_rappel(it.type->taille_octet != 0, [&] {
-            std::cerr << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »\n";
+            dbg() << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »";
         });
 
         if (!COMPACTE) {
@@ -1785,7 +1785,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
             auto alignement_type = it.type->alignement;
 
             assert_rappel(it.type->alignement != 0, [&] {
-                std::cerr << "Alignement de 0 pour le type « " << chaine_type(it.type) << " »\n";
+                dbg() << "Alignement de 0 pour le type « " << chaine_type(it.type) << " »";
             });
 
             alignement_max = std::max(alignement_type, alignement_max);
@@ -1838,12 +1838,12 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
             max_alignement = std::max(type_membre->alignement, max_alignement);
 
             assert_rappel(it.type->alignement != 0, [&] {
-                std::cerr << "Dans le calcul de la taille du type : " << chaine_type(type) << '\n';
-                std::cerr << "Alignement de 0 pour le type « " << chaine_type(it.type) << " »\n";
+                dbg() << "Dans le calcul de la taille du type : " << chaine_type(type) << '\n'
+                      << "Alignement de 0 pour le type « " << chaine_type(it.type) << " »";
             });
 
             assert_rappel(it.type->taille_octet != 0, [&] {
-                std::cerr << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »\n";
+                dbg() << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »";
             });
 
             if (taille > taille_union) {
@@ -2455,5 +2455,5 @@ Trie::Noeud *Trie::ajoute_enfant(Noeud *parent, const Type *type, bool est_sorti
 
 void imprime_genre_type_pour_assert(GenreType genre)
 {
-    std::cerr << "Le type est " << genre << "\n";
+    dbg() << "Le type est " << genre;
 }

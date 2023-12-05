@@ -380,7 +380,7 @@ struct Chunk {
     void rétrécis_capacité_sur_taille();
 };
 
-void désassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
+[[nodiscard]] kuri::chaine désassemble(Chunk const &chunk, kuri::chaine_statique nom);
 int64_t désassemble_instruction(Chunk const &chunk, int64_t decalage, Enchaineuse &os);
 
 struct Globale {

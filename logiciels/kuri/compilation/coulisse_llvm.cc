@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include "utilitaires/poule_de_taches.hh"
+
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wclass-memaccess"
@@ -140,14 +142,17 @@ static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Type &l
 
 /* ************************************************************************** */
 
-auto vers_std_string(kuri::chaine const &chn)
+static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
 {
-    return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
+    return llvm::StringRef(chaine.pointeur(), size_t(chaine.taille()));
 }
 
-auto vers_std_string(dls::vue_chaine_compacte const &chn)
+static llvm::StringRef vers_string_ref(IdentifiantCode const *ident)
 {
-    return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
+    if (!ident) {
+        return {};
+    }
+    return vers_string_ref(ident->nom);
 }
 
 static auto inst_llvm_depuis_operateur(OpérateurBinaire::Genre genre)
@@ -335,25 +340,26 @@ struct GeneratriceCodeLLVM {
     kuri::table_hachage<Type const *, llvm::Type *> table_types{"Table types LLVM"};
     EspaceDeTravail &m_espace;
 
+    DonnéesModule &données_module;
+
     llvm::Function *m_fonction_courante = nullptr;
     llvm::Module *m_module = nullptr;
     llvm::LLVMContext &m_contexte_llvm;
     llvm::IRBuilder<> m_builder;
     llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
 
-    AtomeFonction *m_atome_fonction_principale = nullptr;
     /* Pour le débogage. */
     int m_nombre_fonctions_compilées = 0;
 
   public:
-    GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module);
+    GeneratriceCodeLLVM(EspaceDeTravail &espace, DonnéesModule &module);
 
     GeneratriceCodeLLVM(GeneratriceCodeLLVM const &) = delete;
     GeneratriceCodeLLVM &operator=(const GeneratriceCodeLLVM &) = delete;
 
     ~GeneratriceCodeLLVM();
 
-    void genere_code(const ProgrammeRepreInter &repr_inter);
+    void genere_code();
 
   private:
     void initialise_optimisation(NiveauOptimisation optimisation);
@@ -364,9 +370,9 @@ struct GeneratriceCodeLLVM {
 
     llvm::StructType *convertis_type_composé(TypeCompose const *type, kuri::chaine_statique nom);
 
-    llvm::Value *genere_code_pour_atome(Atome const *atome, bool pour_globale);
+    llvm::Value *génère_code_pour_atome(Atome const *atome, bool pour_globale);
 
-    void genere_code_pour_instruction(Instruction const *inst);
+    void génère_code_pour_instruction(Instruction const *inst);
 
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
 
@@ -376,11 +382,14 @@ struct GeneratriceCodeLLVM {
         const AtomeConstanteDonnéesConstantes *constante);
 
     void définis_valeur_instruction(Instruction const *inst, llvm::Value *valeur);
+
+    llvm::Function *donne_ou_crée_déclaration_fonction(AtomeFonction const *fonction);
+    llvm::GlobalVariable *donne_ou_crée_déclaration_globale(AtomeGlobale const *globale);
 };
 
-GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace, llvm::Module &module)
-    : m_espace(espace), m_module(&module), m_contexte_llvm(m_module->getContext()),
-      m_builder(m_contexte_llvm)
+GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace, DonnéesModule &module)
+    : m_espace(espace), données_module(module), m_module(module.module),
+      m_contexte_llvm(m_module->getContext()), m_builder(m_contexte_llvm)
 {
     initialise_optimisation(espace.options.niveau_optimisation);
 }
@@ -581,7 +590,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
 
             auto type_max_llvm = converti_type_llvm(type_le_plus_grand);
             type_llvm = llvm::StructType::create(
-                m_contexte_llvm, {type_max_llvm}, vers_std_string(nom_nonsur));
+                m_contexte_llvm, {type_max_llvm}, vers_string_ref(nom_nonsur));
             break;
         }
         case GenreType::STRUCTURE:
@@ -666,7 +675,7 @@ llvm::StructType *GeneratriceCodeLLVM::convertis_type_composé(TypeCompose const
 
     /* Pour les structures récursives, il faut créer un type
      * opaque, dont le corps sera renseigné à la fin */
-    auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_std_string(nom));
+    auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_string_ref(nom));
     table_types.insère(type, type_opaque);
 
     llvm::SmallVector<llvm::Type *, 6> types_membres;
@@ -687,7 +696,7 @@ llvm::StructType *GeneratriceCodeLLVM::convertis_type_composé(TypeCompose const
     return type_opaque;
 }
 
-llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, bool pour_globale)
+llvm::Value *GeneratriceCodeLLVM::génère_code_pour_atome(Atome const *atome, bool pour_globale)
 {
     // auto incrémentation_temp = LogDebug::IncrémenteuseTemporaire();
     // dbg() << __func__ << ", atome: " << static_cast<int>(atome->genre_atome);
@@ -696,18 +705,12 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
         case Atome::Genre::FONCTION:
         {
             // dbg() << "FONCTION";
-            auto atome_fonc = atome->comme_fonction();
-
-            if (atome_fonc->decl && atome_fonc->decl->ident == ID::__principale) {
-                atome_fonc = m_atome_fonction_principale;
-            }
-
-            return m_module->getFunction(vers_std_string(atome_fonc->nom));
+            return donne_ou_crée_déclaration_fonction(atome->comme_fonction());
         }
         case Atome::Genre::TRANSTYPE_CONSTANT:
         {
             auto transtype_const = atome->comme_transtype_constant();
-            auto valeur = genere_code_pour_atome(transtype_const->valeur, pour_globale);
+            auto valeur = génère_code_pour_atome(transtype_const->valeur, pour_globale);
             auto valeur_ = llvm::ConstantExpr::getBitCast(llvm::cast<llvm::Constant>(valeur),
                                                           converti_type_llvm(atome->type));
             // dbg() << "TRANSTYPE_CONSTANT: " << *valeur_;
@@ -719,11 +722,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
             auto index = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
                                                 uint64_t(acces->index));
             assert(index);
-            auto accede = genere_code_pour_atome(acces->accede, pour_globale);
+            auto accede = génère_code_pour_atome(acces->accede, pour_globale);
             assert_rappel(accede, [&]() {
                 dbg() << "L'accédé est de genre " << acces->accede->genre_atome << " ("
-                      << acces->accede << ")";
-                imprime_information_atome(acces->accede, std::cerr);
+                      << acces->accede << ")\n"
+                      << imprime_information_atome(acces->accede);
             });
 
             auto index_array = llvm::SmallVector<llvm::Value *>();
@@ -796,7 +799,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
                 static_cast<void>(it);
                 // dbg() << "Génère code pour le membre " << it.nom->nom;
                 auto valeur = llvm::cast<llvm::Constant>(
-                    genere_code_pour_atome(tableau_valeur[index_it], pour_globale));
+                    génère_code_pour_atome(tableau_valeur[index_it], pour_globale));
 
                 tableau_membre.push_back(valeur);
             }
@@ -813,7 +816,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
             valeurs.reserve(static_cast<size_t>(éléments.taille()));
 
             POUR (éléments) {
-                auto valeur = genere_code_pour_atome(it, pour_globale);
+                auto valeur = génère_code_pour_atome(it, pour_globale);
                 valeurs.push_back(llvm::cast<llvm::Constant>(valeur));
             }
 
@@ -838,7 +841,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
 
             std::vector<llvm::Constant *> valeurs(size_t(type_tableau->taille));
 
-            auto valeur = genere_code_pour_atome(init_tableau->valeur, pour_globale);
+            auto valeur = génère_code_pour_atome(init_tableau->valeur, pour_globale);
             POUR (valeurs) {
                 it = llvm::cast<llvm::Constant>(valeur);
             }
@@ -852,7 +855,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
         }
         case Atome::Genre::GLOBALE:
         {
-            auto valeur = table_globales.valeur_ou(atome, nullptr);
+            auto valeur = donne_ou_crée_déclaration_globale(atome->comme_globale());
             // dbg() << "GLOBALE: " << *valeur;
             return valeur;
         }
@@ -866,7 +869,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome const *atome, boo
     return nullptr;
 }
 
-void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
+void GeneratriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst)
 {
     // auto incrémentation_temp = LogDebug::IncrémenteuseTemporaire();
     // dbg() << __func__;
@@ -888,13 +891,13 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto arguments = std::vector<llvm::Value *>();
 
             POUR (inst_appel->args) {
-                arguments.push_back(genere_code_pour_atome(it, false));
+                arguments.push_back(génère_code_pour_atome(it, false));
             }
 
-            auto valeur_fonction = genere_code_pour_atome(inst_appel->appele, false);
+            auto valeur_fonction = génère_code_pour_atome(inst_appel->appele, false);
             assert_rappel(!adresse_est_nulle(valeur_fonction), [&]() {
-                std::cerr << erreur::imprime_site(m_espace, inst_appel->site);
-                imprime_atome(inst_appel->appele, std::cerr);
+                dbg() << erreur::imprime_site(m_espace, inst_appel->site) << '\n'
+                      << imprime_atome(inst_appel->appele);
             });
 
             auto type_fonction =
@@ -928,7 +931,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto inst_branche = inst->comme_branche_cond();
-            auto condition = genere_code_pour_atome(inst_branche->condition, false);
+            auto condition = génère_code_pour_atome(inst_branche->condition, false);
             auto bloc_si_vrai = table_blocs[inst_branche->label_si_vrai->id];
             auto bloc_si_faux = table_blocs[inst_branche->label_si_faux->id];
             m_builder.CreateCondBr(condition, bloc_si_vrai, bloc_si_faux);
@@ -938,7 +941,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         {
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
-            auto valeur = genere_code_pour_atome(charge, false);
+            auto valeur = génère_code_pour_atome(charge, false);
             assert(valeur != nullptr);
 
             auto load = m_builder.CreateLoad(valeur, "");
@@ -949,23 +952,19 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto inst_stocke = inst->comme_stocke_mem();
-            auto valeur = genere_code_pour_atome(inst_stocke->valeur, false);
+            auto valeur = génère_code_pour_atome(inst_stocke->valeur, false);
             auto ou = inst_stocke->ou;
-            auto valeur_ou = genere_code_pour_atome(ou, false);
+            auto valeur_ou = génère_code_pour_atome(ou, false);
 
             assert_rappel(!adresse_est_nulle(valeur_ou), [&]() {
-                std::cerr << erreur::imprime_site(m_espace, inst_stocke->site);
-                imprime_atome(inst_stocke, std::cerr);
-                std::cerr << '\n';
-                imprime_information_atome(inst_stocke->ou, std::cerr);
-                std::cerr << '\n';
+                dbg() << erreur::imprime_site(m_espace, inst_stocke->site) << '\n'
+                      << imprime_atome(inst_stocke) << '\n'
+                      << imprime_information_atome(inst_stocke->ou);
             });
             assert_rappel(!adresse_est_nulle(valeur), [&]() {
-                std::cerr << erreur::imprime_site(m_espace, inst_stocke->site);
-                imprime_atome(inst_stocke, std::cerr);
-                std::cerr << '\n';
-                imprime_information_atome(inst_stocke->valeur, std::cerr);
-                std::cerr << '\n';
+                dbg() << erreur::imprime_site(m_espace, inst_stocke->site) << '\n'
+                      << imprime_atome(inst_stocke) << '\n'
+                      << imprime_information_atome(inst_stocke->valeur);
             });
 
             /* Crash si l'alignement n'est pas renseigné. */
@@ -986,8 +985,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         case GenreInstruction::OPERATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
-            auto valeur = genere_code_pour_atome(inst_un->valeur, false);
-            auto type = inst_un->valeur->type;
+            auto valeur = génère_code_pour_atome(inst_un->valeur, false);
 
             switch (inst_un->op) {
                 case OpérateurUnaire::Genre::Positif:
@@ -1000,16 +998,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 }
                 case OpérateurUnaire::Genre::Complement:
                 {
-                    auto type_llvm = converti_type_llvm(inst_un->valeur->type);
-                    if (est_type_entier(type)) {
-                        auto zero = llvm::ConstantInt::get(
-                            type_llvm, 0, type->est_type_entier_relatif());
-                        valeur = m_builder.CreateSub(zero, valeur);
-                    }
-                    else {
-                        auto zero = llvm::ConstantFP::get(type_llvm, 0.0);
-                        valeur = m_builder.CreateFSub(zero, valeur);
-                    }
+                    valeur = m_builder.CreateNeg(valeur);
                     break;
                 }
                 case OpérateurUnaire::Genre::Non_Binaire:
@@ -1027,8 +1016,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto inst_bin = inst->comme_op_binaire();
             auto gauche = inst_bin->valeur_gauche;
             auto droite = inst_bin->valeur_droite;
-            auto valeur_gauche = genere_code_pour_atome(gauche, false);
-            auto valeur_droite = genere_code_pour_atome(droite, false);
+            auto valeur_gauche = génère_code_pour_atome(gauche, false);
+            auto valeur_droite = génère_code_pour_atome(droite, false);
 
             llvm::Value *valeur = nullptr;
 
@@ -1037,13 +1026,12 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
 
                 assert_rappel(valeur_gauche->getType() == valeur_droite->getType(), [&]() {
-                    dbg() << erreur::imprime_site(m_espace, inst_bin->site);
-                    dbg() << "Type à gauche LLVM " << *valeur_gauche->getType();
-                    dbg() << "Type à droite LLVM " << *valeur_droite->getType();
-                    dbg() << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type);
-                    dbg() << "Type à droite " << chaine_type(inst_bin->valeur_droite->type);
-                    imprime_instruction(inst_bin, std::cerr);
-                    std::cerr << '\n';
+                    dbg() << erreur::imprime_site(m_espace, inst_bin->site) << '\n'
+                          << "Type à gauche LLVM " << *valeur_gauche->getType() << '\n'
+                          << "Type à droite LLVM " << *valeur_droite->getType() << '\n'
+                          << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type) << '\n'
+                          << "Type à droite " << chaine_type(inst_bin->valeur_droite->type) << '\n'
+                          << imprime_instruction(inst_bin);
                 });
 
                 valeur = m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite);
@@ -1066,7 +1054,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto inst_retour = inst->comme_retour();
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
-                auto valeur_retour = genere_code_pour_atome(atome, false);
+                auto valeur_retour = génère_code_pour_atome(atome, false);
                 m_builder.CreateRet(valeur_retour);
             }
             else {
@@ -1077,8 +1065,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         case GenreInstruction::ACCEDE_INDEX:
         {
             auto inst_acces = inst->comme_acces_index();
-            auto valeur_accede = genere_code_pour_atome(inst_acces->accede, false);
-            auto valeur_index = genere_code_pour_atome(inst_acces->index, false);
+            auto valeur_accede = génère_code_pour_atome(inst_acces->accede, false);
+            auto valeur_index = génère_code_pour_atome(inst_acces->index, false);
 
             llvm::SmallVector<llvm::Value *, 2> liste_index;
 
@@ -1115,7 +1103,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto inst_acces = inst->comme_acces_membre();
 
             auto accede = inst_acces->accede;
-            auto valeur_accede = genere_code_pour_atome(accede, false);
+            auto valeur_accede = génère_code_pour_atome(accede, false);
 
             auto index_membre = uint32_t(inst_acces->index);
 
@@ -1165,7 +1153,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         case GenreInstruction::TRANSTYPE:
         {
             auto const inst_transtype = inst->comme_transtype();
-            auto const valeur = genere_code_pour_atome(inst_transtype->valeur, false);
+            auto const valeur = génère_code_pour_atome(inst_transtype->valeur, false);
             auto const type_de = inst_transtype->valeur->type;
             auto const type_vers = inst_transtype->type;
             auto const type_llvm = converti_type_llvm(type_vers);
@@ -1269,127 +1257,86 @@ void GeneratriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, l
                   [&]() { dbg() << erreur::imprime_site(m_espace, inst->site); });
 
     assert_rappel(valeur->getType() == converti_type_llvm(inst->type), [&]() {
-        dbg() << "Le type de l'instruction est " << chaine_type(inst->type);
-        dbg() << "Le type LLVM est " << *valeur->getType();
-        dbg() << "Le type espéré serait " << *converti_type_llvm(inst->type);
-        dbg() << imprime_arbre_instruction(inst);
-        if (inst->est_acces_membre()) {
-            auto inst_acces = inst->comme_acces_membre();
-            std::cerr << "Nous accédons à ";
-            if (inst_acces->accede->est_instruction()) {
-                std::cerr << inst_acces->accede->comme_instruction()->genre << '\n';
-            }
-            else {
-                imprime_information_atome(inst_acces->accede, std::cerr);
-                std::cerr << '\n';
-            }
-        }
-        else if (inst->est_op_binaire()) {
-            auto op_binaire = inst->comme_op_binaire();
-            dbg() << "Nous opérons entre " << chaine_type(op_binaire->valeur_gauche->type)
-                  << " et " << chaine_type(op_binaire->valeur_droite->type);
-            dbg() << erreur::imprime_site(m_espace, op_binaire->site);
-        }
+        dbg() << "Le type de l'instruction est " << chaine_type(inst->type) << '\n'
+              << "Le type LLVM est " << *valeur->getType() << '\n'
+              << "Le type espéré serait " << *converti_type_llvm(inst->type) << '\n'
+              << imprime_arbre_instruction(inst) << '\n'
+              << imprime_commentaire_instruction(inst) << '\n'
+              << erreur::imprime_site(m_espace, inst->site);
     });
 
     table_valeurs[inst->numero] = valeur;
 }
 
-void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
+llvm::Function *GeneratriceCodeLLVM::donne_ou_crée_déclaration_fonction(
+    const AtomeFonction *fonction)
 {
-    auto opt_données_constantes = repr_inter.donne_données_constantes();
-    if (opt_données_constantes.has_value()) {
-        auto données_constantes = opt_données_constantes.value();
+    auto nom = vers_string_ref(fonction->nom);
+
+    if (fonction->decl && fonction->decl->ident == ID::__principale) {
+        nom = "principale";
+    }
+
+    auto existante = m_module->getFunction(nom);
+    if (existante) {
+        return existante;
+    }
+
+    auto type_fonction = fonction->type->comme_type_fonction();
+    auto type_llvm = converti_type_fonction(type_fonction);
+    // auto liaison = donne_liaison_fonction(fonction);
+    auto liaison = llvm::GlobalValue::ExternalLinkage;
+
+    return llvm::Function::Create(type_llvm, liaison, nom, m_module);
+}
+
+llvm::GlobalVariable *GeneratriceCodeLLVM::donne_ou_crée_déclaration_globale(
+    const AtomeGlobale *globale)
+{
+    auto existante = table_globales.valeur_ou(globale, nullptr);
+    if (existante) {
+        return existante;
+    }
+
+    auto type = globale->donne_type_alloué();
+    auto type_llvm = converti_type_llvm(type);
+    auto nom_globale = vers_string_ref(globale->ident);
+    //    auto liaison = globale->est_externe ? llvm::GlobalValue::ExternalLinkage :
+    //                                          llvm::GlobalValue::InternalLinkage;
+    auto liaison = llvm::GlobalValue::ExternalLinkage;
+    auto résultat = new llvm::GlobalVariable(
+        *m_module, type_llvm, globale->est_constante, liaison, nullptr, nom_globale);
+
+    résultat->setAlignment(llvm::Align(type->alignement));
+    table_globales.insère(globale, résultat);
+    return résultat;
+}
+
+void GeneratriceCodeLLVM::genere_code()
+{
+    if (données_module.données_constantes) {
+        auto données_constantes = données_module.données_constantes;
 
         POUR (données_constantes->tableaux_constants) {
             auto valeur_globale = it.globale;
-
-            auto type = valeur_globale->donne_type_alloué();
-            auto type_llvm = converti_type_llvm(type);
-            auto nom_globale = llvm::StringRef();
-
-            if (valeur_globale->ident) {
-                nom_globale = llvm::StringRef(
-                    valeur_globale->ident->nom.pointeur(),
-                    static_cast<size_t>(valeur_globale->ident->nom.taille()));
-            }
-
             auto valeur_initialisateur = static_cast<llvm::Constant *>(
-                genere_code_pour_atome(valeur_globale->initialisateur, true));
+                génère_code_pour_atome(valeur_globale->initialisateur, true));
 
-            auto globale = new llvm::GlobalVariable(*m_module,
-                                                    type_llvm,
-                                                    valeur_globale->est_constante,
-                                                    valeur_globale->est_externe ?
-                                                        llvm::GlobalValue::ExternalLinkage :
-                                                        llvm::GlobalValue::InternalLinkage,
-                                                    valeur_initialisateur,
-                                                    nom_globale);
-
-            globale->setAlignment(llvm::Align(type->alignement));
-            table_globales.insère(valeur_globale, globale);
+            auto globale = donne_ou_crée_déclaration_globale(valeur_globale);
+            globale->setInitializer(valeur_initialisateur);
         }
     }
 
-    POUR (repr_inter.donne_globales()) {
-        // LogDebug::réinitialise_indentation();
-        // dbg() << "Prédéclare globale (" << it << ") " << it->ident << ' ' <<
-        // chaine_type(it->type);
-        auto valeur_globale = it;
-
-        auto type = valeur_globale->donne_type_alloué();
-        auto type_llvm = converti_type_llvm(type);
-
-        auto nom_globale = llvm::StringRef();
-
-        if (valeur_globale->ident) {
-            nom_globale = llvm::StringRef(
-                valeur_globale->ident->nom.pointeur(),
-                static_cast<size_t>(valeur_globale->ident->nom.taille()));
-        }
-
-        auto globale = new llvm::GlobalVariable(*m_module,
-                                                type_llvm,
-                                                valeur_globale->est_constante,
-                                                valeur_globale->est_externe ?
-                                                    llvm::GlobalValue::ExternalLinkage :
-                                                    llvm::GlobalValue::InternalLinkage,
-                                                nullptr,
-                                                nom_globale);
-
-        // globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-        globale->setAlignment(llvm::Align(type->alignement));
-        table_globales.insère(valeur_globale, globale);
-    }
-
-    /* Les fonctions peuvent être référencées par les globales, créons-les avant d'intialiser les
-     * globales. */
-    POUR (repr_inter.donne_fonctions()) {
-        auto atome_fonc = it;
-
-        if (atome_fonc->decl && atome_fonc->decl->ident == ID::principale) {
-            m_atome_fonction_principale = atome_fonc;
-        }
-
-        auto type_fonction = atome_fonc->type->comme_type_fonction();
-        auto type_llvm = converti_type_fonction(type_fonction);
-
-        llvm::Function::Create(type_llvm,
-                               donne_liaison_fonction(atome_fonc),
-                               vers_std_string(atome_fonc->nom),
-                               m_module);
-    }
-
-    POUR (repr_inter.donne_globales()) {
+    POUR (données_module.globales) {
         // LogDebug::réinitialise_indentation();
         // dbg() << "Génère code pour globale (" << it << ") " << it->ident << ' '
         //       << chaine_type(it->type);
         auto valeur_globale = it;
 
-        auto globale = table_globales.valeur_ou(valeur_globale, nullptr);
+        auto globale = donne_ou_crée_déclaration_globale(valeur_globale);
         if (valeur_globale->initialisateur) {
             auto valeur_initialisateur = static_cast<llvm::Constant *>(
-                genere_code_pour_atome(valeur_globale->initialisateur, true));
+                génère_code_pour_atome(valeur_globale->initialisateur, true));
             globale->setInitializer(valeur_initialisateur);
         }
         else {
@@ -1397,11 +1344,12 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         }
     }
 
-    POUR (repr_inter.donne_fonctions()) {
+    POUR (données_module.fonctions) {
         m_nombre_fonctions_compilées++;
-        // dbg() << "[" << m_nombre_fonctions_compilées << " / "
-        //       << repr_inter.donne_fonctions().taille() << "] : " << it->nom;
-        // imprime_fonction(it, std::cerr);
+        // dbg() << "[" << m_nombre_fonctions_compilées << " / " <<
+        // données_module.globales.taille()
+        //       << "] :\n"
+        //       << imprime_fonction(it);
         génère_code_pour_fonction(it);
     }
 }
@@ -1412,7 +1360,7 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
         return;
     }
 
-    auto fonction = m_module->getFunction(vers_std_string(atome_fonc->nom));
+    auto fonction = donne_ou_crée_déclaration_fonction(atome_fonc);
 
     m_fonction_courante = fonction;
 
@@ -1433,7 +1381,7 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
             continue;
         }
 
-        genere_code_pour_instruction(inst);
+        génère_code_pour_instruction(inst);
     }
 
     auto bloc_entree = table_blocs[atome_fonc->instructions[0]->comme_label()->id];
@@ -1442,10 +1390,8 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
     auto valeurs_args = fonction->arg_begin();
 
     for (auto &param : atome_fonc->params_entrees) {
-        auto const &nom_argument = param->ident->nom;
-
         auto valeur = &(*valeurs_args++);
-        valeur->setName(vers_std_string(nom_argument));
+        valeur->setName(vers_string_ref(param->ident));
 
         auto alloc = crée_allocation(param);
 
@@ -1465,16 +1411,13 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
     /* Génère le code pour les accès de membres des retours multiples. */
     if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
         for (auto &param : atome_fonc->decl->params_sorties) {
-            genere_code_pour_instruction(
+            génère_code_pour_instruction(
                 param->comme_declaration_variable()->atome->comme_instruction());
         }
     }
 
-    // std::cerr << "Fonction " << index_fonction << " / "
-    //           << repr_inter.donne_fonctions().taille() << '\n';
-    // imprime_fonction(atome_fonc, std::cerr);
     for (auto inst : atome_fonc->instructions) {
-        // imprime_instruction(inst, std::cerr);
+        // dbg() << imprime_instruction(inst);
 
         if (inst->genre == GenreInstruction::LABEL) {
             auto bloc = table_blocs[inst->comme_label()->id];
@@ -1482,7 +1425,7 @@ void GeneratriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome
             continue;
         }
 
-        genere_code_pour_instruction(inst);
+        génère_code_pour_instruction(inst);
     }
 
     if (manager_fonctions) {
@@ -1503,9 +1446,7 @@ llvm::AllocaInst *GeneratriceCodeLLVM::crée_allocation(const InstructionAllocat
     auto type_llvm = converti_type_llvm(type_alloué);
     auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
     alloca->setAlignment(llvm::Align(type_alloué->alignement));
-    if (alloc->ident) {
-        alloca->setName(vers_std_string(alloc->ident->nom));
-    }
+    alloca->setName(vers_string_ref(alloc->ident));
 
     définis_valeur_instruction(alloc, alloca);
     return alloca;
@@ -1515,7 +1456,7 @@ bool initialise_llvm()
 {
     if (llvm::InitializeNativeTarget() || llvm::InitializeNativeTargetAsmParser() ||
         llvm::InitializeNativeTargetAsmPrinter()) {
-        std::cerr << "Ne peut pas initialiser LLVM !\n";
+        dbg() << "Ne peut pas initialiser LLVM !";
         return false;
     }
 
@@ -1553,17 +1494,13 @@ void issitialise_llvm()
 }
 
 /* Chemin du fichier objet généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_objet_llvm()
+static kuri::chemin_systeme chemin_fichier_objet_llvm(int index)
 {
-    return chemin_fichier_objet_temporaire_pour("kuri");
+    auto nom_de_base = enchaine("kuri", index);
+    return chemin_fichier_objet_temporaire_pour(nom_de_base);
 }
 
-/* Chemin du fichier objet "execution_kuri" généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_objet_execution_llvm()
-{
-    return chemin_fichier_objet_temporaire_pour("execution_kuri");
-}
-
+#ifndef NDEBUG
 /* Chemin du fichier de code binaire LLVM généré par la coulisse. */
 static kuri::chemin_systeme chemin_fichier_bc_llvm()
 {
@@ -1576,23 +1513,11 @@ static kuri::chemin_systeme chemin_fichier_ll_llvm()
     return kuri::chemin_systeme::chemin_temporaire("kuri.ll");
 }
 
-/* Chemin du fichier ".s" généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_s_llvm()
-{
-    return kuri::chemin_systeme::chemin_temporaire("kuri.s");
-}
-
 static kuri::chaine_statique donne_assembleur_llvm()
 {
     return "llvm-as-12";
 }
 
-static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
-{
-    return llvm::StringRef(chaine.pointeur(), size_t(chaine.taille()));
-}
-
-#ifndef NDEBUG
 static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module)
 {
     auto const fichier_ll = chemin_fichier_ll_llvm();
@@ -1611,20 +1536,23 @@ static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module)
 
 CoulisseLLVM::~CoulisseLLVM()
 {
-    delete m_module;
+    POUR (m_modules) {
+        delete it->module;
+        delete it->contexte_llvm;
+        memoire::deloge("DonnéesModule", it);
+    }
     delete m_machine_cible;
-    delete m_contexte_llvm;
 }
 
-bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
-                                    EspaceDeTravail &espace,
-                                    Programme const *programme,
-                                    CompilatriceRI &compilatrice_ri,
-                                    Broyeuse &)
+bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
 {
     if (!initialise_llvm()) {
         return false;
     }
+
+    auto &compilatrice_ri = *args.compilatrice_ri;
+    auto &espace = *args.espace;
+    auto const &programme = *args.programme;
 
     auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
@@ -1632,11 +1560,11 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
     auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
 
     if (!cible) {
-        std::cerr << erreur << '\n';
+        dbg() << erreur;
         return false;
     }
 
-    auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, *programme);
+    auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, programme);
     if (!repr_inter.has_value()) {
         return false;
     }
@@ -1647,22 +1575,22 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
     auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
     m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
-    m_contexte_llvm = new llvm::LLVMContext;
+    crée_modules(*repr_inter, triplet_cible);
 
-    m_module = new llvm::Module("Module", *m_contexte_llvm);
-    m_module->setDataLayout(m_machine_cible->createDataLayout());
-    m_module->setTargetTriple(triplet_cible);
-
-    auto generatrice = GeneratriceCodeLLVM(espace, *m_module);
-    generatrice.genere_code(*repr_inter);
+    POUR (m_modules) {
+        auto generatrice = GeneratriceCodeLLVM(espace, *it);
+        generatrice.genere_code();
+    }
 
 #ifndef NDEBUG
-    auto opt_erreur_validation = valide_llvm_ir(*m_module);
-    if (opt_erreur_validation.has_value()) {
-        auto erreur_validation = opt_erreur_validation.value();
-        espace.rapporte_erreur_sans_site("Erreur lors de la validation du code LLVM.")
-            .ajoute_message("La commande a retourné :\n\n", erreur_validation.message);
-        return false;
+    POUR (m_modules) {
+        auto opt_erreur_validation = valide_llvm_ir(*it->module);
+        if (opt_erreur_validation.has_value()) {
+            auto erreur_validation = opt_erreur_validation.value();
+            espace.rapporte_erreur_sans_site("Erreur lors de la validation du code LLVM.")
+                .ajoute_message("La commande a retourné :\n\n", erreur_validation.message);
+            return false;
+        }
     }
 #endif
 
@@ -1671,57 +1599,33 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
     return true;
 }
 
-bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
-                                           EspaceDeTravail &espace,
-                                           Programme const *programme,
-                                           CompilatriceRI & /*constructrice_ri*/)
+bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & /*args*/)
 {
-#if 1
-    auto chemin_sortie = chemin_fichier_objet_llvm();
-    std::error_code ec;
-
-    llvm::raw_fd_ostream dest(
-        llvm::StringRef(chemin_sortie.pointeur(), size_t(chemin_sortie.taille())),
-        ec,
-        llvm::sys::fs::F_None);
-
-    if (ec) {
-        std::cerr << "Ne peut pas ouvrir le fichier '" << chemin_sortie << "'\n";
-        return false;
-    }
-
-    llvm::legacy::PassManager pass;
-    auto type_fichier = llvm::CGFT_ObjectFile;
-
-    if (m_machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
-        std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
-        return false;
-    }
-
-    pass.run(*m_module);
-    dest.flush();
+#ifndef NDEBUG
+    auto poule_de_tâches = kuri::PouleDeTâchesEnSérie{};
 #else
-    auto const fichier_ll = chemin_fichier_ll_llvm();
-    auto const fichier_bc = chemin_fichier_bc_llvm();
-    auto const fichier_s = chemin_fichier_s_llvm();
-
-    // https://stackoverflow.com/questions/1419139/llvm-linking-problem?rq=1
-    std::error_code ec;
-    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
-    module.print(dest, nullptr);
-
-    /* Génère le fichier de code binaire depuis le fichier de RI LLVM. */
-    auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, "\0");
-    if (!exécute_commande_externe(commande)) {
-        return false;
-    }
-
-    /* Génère le fichier d'instruction assembly depuis le fichier de code binaire. */
-    commande = enchaine(donne_assembleur_llvm(), " ", fichier_bc, " -o ", fichier_s, "\0");
-    if (exécute_commande_externe(commande)) {
-        return false;
-    }
+#    if 0
+    auto poule_de_tâches = kuri::PouleDeTâchesMoultFils{};
+#    else
+    auto poule_de_tâches = kuri::PouleDeTâchesSousProcessus{};
+#    endif
 #endif
+
+    POUR (m_modules) {
+        poule_de_tâches.ajoute_tâche([&]() { crée_fichier_objet(it); });
+    }
+
+    poule_de_tâches.attends_sur_tâches();
+
+    POUR (m_modules) {
+        if (it->erreur_fichier_objet.taille() == 0) {
+            continue;
+        }
+
+        dbg() << it->erreur_fichier_objet;
+        return false;
+    }
+
     return true;
 }
 
@@ -1734,72 +1638,113 @@ static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation c
     return "fichiers/point_d_entree.c";
 }
 
-bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
-                                        EspaceDeTravail &espace,
-                                        Programme const * /*programme*/)
+bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
-    /* Compile le fichier objet qui appelera 'fonction principale'. */
-    auto chemin_execution = chemin_fichier_objet_execution_llvm();
-    if (!kuri::chemin_systeme::existe(chemin_execution)) {
-        auto const &chemin_execution_S = compilatrice.racine_kuri / "fichiers/execution_kuri.S";
+    auto &compilatrice = *args.compilatrice;
+    auto &espace = *args.espace;
 
-        Enchaineuse ss;
-        ss << "as -o " << chemin_execution;
-        ss << " " << chemin_execution_S;
-        ss << '\0';
-
-        auto const commande = ss.chaine();
-        if (!exécute_commande_externe(commande)) {
-            std::cerr << "Ne peut pas créer " << chemin_execution << " !\n";
-            return false;
-        }
-    }
-
-    auto chemin_objet = chemin_fichier_objet_llvm();
-
-    if (!kuri::chemin_systeme::existe(chemin_objet)) {
-        std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
-        return false;
-    }
-
-#if 0
-    Enchaineuse ss;
-#    if 1
-    ss << "gcc ";
-    ss << compilatrice.racine_kuri / donne_fichier_point_d_entree(espace.options);
-    ss << " " << chemin_fichier_objet_r16(espace.options.architecture) << " ";
-#    else
-    ss << "ld ";
-    /* ce qui chargera le programme */
-    ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
-    ss << "-m elf_x86_64 ";
-    ss << "--hash-style=gnu ";
-    ss << "-lc ";
-    ss << chemin_execution << " ";
-#    endif
-
-    ss << " " << chemin_objet << " ";
-
-    ss << " -lc ";
-    ss << " -lm ";
-    ss << "-o " << nom_sortie_resultat_final(espace.options);
-    ss << '\0';
-
-    auto commande = ss.chaine();
-#else
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     auto fichier_point_d_entrée_c = compilatrice.racine_kuri /
                                     donne_fichier_point_d_entree(espace.options);
     fichiers_objet.ajoute(fichier_point_d_entrée_c);
-    fichiers_objet.ajoute(chemin_objet);
+
+    POUR (m_modules) {
+        fichiers_objet.ajoute(it->chemin_fichier_objet);
+    }
 
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
-#endif
 
     if (!exécute_commande_externe(commande)) {
-        std::cerr << "Ne peut pas créer l'executable !\n";
+        dbg() << "Ne peut pas créer l'executable !";
         return false;
     }
 
     return true;
+}
+
+void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module)
+{
+    std::error_code ec;
+    llvm::raw_fd_ostream dest(
+        vers_string_ref(module->chemin_fichier_objet), ec, llvm::sys::fs::F_None);
+
+    if (ec) {
+        module->erreur_fichier_objet = enchaine(
+            "Ne peut pas ouvrir le fichier '", module->chemin_fichier_objet, "'");
+        return;
+    }
+
+    llvm::legacy::PassManager pass;
+    auto type_fichier = llvm::CGFT_ObjectFile;
+
+    if (m_machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
+        module->erreur_fichier_objet = "La machine cible ne peut pas émettre ce type de fichier";
+        return;
+    }
+
+    pass.run(*module->module);
+    dest.flush();
+    if (!kuri::chemin_systeme::existe(module->chemin_fichier_objet)) {
+        module->erreur_fichier_objet = enchaine(
+            "Le fichier '", module->chemin_fichier_objet, "' ne fut pas écrit.");
+        return;
+    }
+}
+
+void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
+                                const std::string &triplet_cible)
+{
+    /* Crée un module pour les globales. */
+    auto module = crée_un_module("Globales", triplet_cible);
+
+    auto opt_données_constantes = repr_inter.donne_données_constantes();
+    if (opt_données_constantes.has_value()) {
+        module->données_constantes = opt_données_constantes.value();
+    }
+    module->globales = repr_inter.donne_globales();
+
+    /* Crée des modules pour les fonctions. */
+    constexpr int nombre_instructions_par_module = 10000;
+    int nombre_instructions = 0;
+    int index_première_fonction = 0;
+    auto fonctions = repr_inter.donne_fonctions();
+    for (int i = 0; i < fonctions.taille(); i++) {
+        auto fonction = fonctions[i];
+        nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
+
+        if (nombre_instructions < nombre_instructions_par_module && i != fonctions.taille() - 1) {
+            continue;
+        }
+
+        auto pointeur_fonction = fonctions.begin() + index_première_fonction;
+        auto taille = i - index_première_fonction + 1;
+
+        auto fonctions_du_modules = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
+                                                                            taille);
+
+        module = crée_un_module("Fonction", triplet_cible);
+        module->fonctions = fonctions_du_modules;
+
+        nombre_instructions = 0;
+        index_première_fonction = i + 1;
+    }
+}
+
+DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
+                                            const std::string &triplet_cible)
+{
+    auto résultat = memoire::loge<DonnéesModule>("DonnéesModule");
+    résultat->contexte_llvm = new llvm::LLVMContext;
+
+    auto nom_module = enchaine(nom, m_modules.taille());
+
+    résultat->module = new llvm::Module(vers_string_ref(nom_module), *résultat->contexte_llvm);
+    résultat->module->setDataLayout(m_machine_cible->createDataLayout());
+    résultat->module->setTargetTriple(triplet_cible);
+
+    résultat->chemin_fichier_objet = chemin_fichier_objet_llvm(int32_t(m_modules.taille()));
+
+    m_modules.ajoute(résultat);
+
+    return résultat;
 }

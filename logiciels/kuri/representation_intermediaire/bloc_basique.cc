@@ -237,10 +237,10 @@ void Bloc::ajoute_parent(Bloc *parent)
     parents.ajoute(parent);
 }
 
-void imprime_bloc(Bloc const *bloc,
-                  int decalage_instruction,
-                  std::ostream &os,
-                  bool surligne_inutilisees)
+static void imprime_bloc(Bloc const *bloc,
+                         int decalage_instruction,
+                         bool surligne_inutilisees,
+                         Enchaineuse &os)
 {
     os << "Bloc " << bloc->label->id << ' ';
 
@@ -271,15 +271,29 @@ void imprime_bloc(Bloc const *bloc,
     imprime_instructions(bloc->instructions, os, false, surligne_inutilisees);
 }
 
-void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os)
+kuri::chaine imprime_bloc(Bloc const *bloc, int decalage_instruction, bool surligne_inutilisees)
+{
+    Enchaineuse sortie;
+    imprime_bloc(bloc, decalage_instruction, surligne_inutilisees, sortie);
+    return sortie.chaine();
+}
+
+static void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, Enchaineuse &os)
 {
     os << "=================== Blocs ===================\n";
 
     int decalage_instruction = 0;
     POUR (blocs) {
-        imprime_bloc(it, decalage_instruction, os);
+        imprime_bloc(it, decalage_instruction, false, os);
         decalage_instruction += it->instructions.taille();
     }
+}
+
+kuri::chaine imprime_blocs(const kuri::tableau<Bloc *, int> &blocs)
+{
+    Enchaineuse sortie;
+    imprime_blocs(blocs, sortie);
+    return sortie.chaine();
 }
 
 void construit_liste_variables_utilisées(Bloc *bloc)

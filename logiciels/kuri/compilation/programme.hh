@@ -285,6 +285,24 @@ void imprime_contenu_programme(Programme const &programme, uint32_t quoi, std::o
 /** \name Représentation intermédiaire Programme.
  * \{ */
 
+struct DonnéesTableauxConstants {
+    AtomeGlobale *globale = nullptr;
+    AtomeConstanteDonnéesConstantes const *tableau = nullptr;
+    /* Décalage en octet du premier élément au sein des données constantes. Ceci pointe à
+     * l'adresse suivant le rembourrage potentielle. */
+    int64_t décalage_dans_données_constantes = 0;
+    /* Rembourrage requis pour s'assurer que les données sont alignées à une adresse correcte.
+     * Les coulisses sont responsables d'ajouter ce rembourrage aux données constantes _avant_
+     * les données de ce tableau. */
+    int64_t rembourrage = 0;
+};
+
+struct DonnéesConstantes {
+    kuri::tableau<DonnéesTableauxConstants> tableaux_constants{};
+    int64_t taille_données_tableaux_constants = 0;
+    uint32_t alignement_désiré = 0;
+};
+
 /* La représentation intermédiaire des fonctions et globles contenues dans un Programme, ainsi que
  * tous les types utilisées. */
 struct ProgrammeRepreInter {
@@ -322,25 +340,6 @@ struct ProgrammeRepreInter {
     std::pair<int, int> partitions_fonctions[NOMBRE_PARTITIONS_FONCTIONS];
 
     kuri::tableau<Type *> types{};
-
-  public:
-    struct DonnéesTableauxConstants {
-        AtomeGlobale *globale = nullptr;
-        AtomeConstanteDonnéesConstantes const *tableau = nullptr;
-        /* Décalage en octet du premier élément au sein des données constantes. Ceci pointe à
-         * l'adresse suivant le rembourrage potentielle. */
-        int64_t décalage_dans_données_constantes = 0;
-        /* Rembourrage requis pour s'assurer que les données sont alignées à une adresse correcte.
-         * Les coulisses sont responsables d'ajouter ce rembourrage aux données constantes _avant_
-         * les données de ce tableau. */
-        int64_t rembourrage = 0;
-    };
-
-    struct DonnéesConstantes {
-        kuri::tableau<DonnéesTableauxConstants> tableaux_constants{};
-        int64_t taille_données_tableaux_constants = 0;
-        uint32_t alignement_désiré = 0;
-    };
 
   private:
     mutable DonnéesConstantes m_données_constantes{};
