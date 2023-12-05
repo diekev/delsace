@@ -2401,6 +2401,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
                 espace->rapporte_erreur(
                     it.expression,
                     "L'expressoin doit avoir un nom si elle suit une autre ayant déjà un nom");
+                return CodeRetourValidation::Erreur;
             }
 
             if (expressions[index_courant] != nullptr) {
@@ -2459,7 +2460,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
             for (auto &membre : type_tuple->membres) {
                 if (variables.est_vide()) {
                     espace->rapporte_erreur(it, "Trop d'expressions de retour");
-                    break;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 TENTE(valide_typage_et_ajoute(donnees, variables.defile(), it, membre.type));
@@ -5278,6 +5279,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
                                     bits_max - 1,
                                     " pour le type ",
                                     chaine_type(type1));
+                return CodeRetourValidation::Erreur;
             }
         }
     }
