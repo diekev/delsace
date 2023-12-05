@@ -820,8 +820,7 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
     }
 
     assert_rappel(false, [&]() {
-        std::cerr << "Noeud non-géré pour l'aplatissement de l'arbre : " << declaration->genre
-                  << '\n';
+        dbg() << "Noeud non-géré pour l'aplatissement de l'arbre : " << declaration->genre;
     });
 }
 
@@ -1213,9 +1212,7 @@ static void ajoute_à_ensemble_de_surcharge(NoeudDeclaration *decl, NoeudDeclara
         return;
     }
 
-    assert_rappel(false, [&]() {
-        std::cerr << "Pas d'ensemble de surcharges pour " << decl->genre << '\n';
-    });
+    assert_rappel(false, [&]() { dbg() << "Pas d'ensemble de surcharges pour " << decl->genre; });
 }
 
 void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
@@ -2860,8 +2857,7 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     }
 
     assert_rappel(false, [&]() {
-        std::cerr << "Noeud non-géré pour l'adresse de l'unité de compilation " << noeud->genre
-                  << '\n';
+        dbg() << "Noeud non-géré pour l'adresse de l'unité de compilation " << noeud->genre;
     });
     return nullptr;
 }
