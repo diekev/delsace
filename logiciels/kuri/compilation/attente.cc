@@ -474,7 +474,7 @@ RAPPEL_POUR_COMMENTAIRE(ri)
 RAPPEL_POUR_EST_RÉSOLUE(ri)
 {
     auto ri_attendue = attente.ri();
-    return (*ri_attendue && (*ri_attendue)->ri_generee);
+    return (*ri_attendue && (*ri_attendue)->possède_drapeau(DrapeauxAtome::RI_FUT_GÉNÉRÉE));
 }
 
 InfoTypeAttente info_type_attente_sur_ri = {NOM_RAPPEL_POUR_UNITÉ(ri),

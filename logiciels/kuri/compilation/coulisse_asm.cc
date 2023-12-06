@@ -393,7 +393,7 @@ void GeneratriceCodeASM::genere_code(kuri::tableau_statique<AtomeGlobale *> glob
     // dépendances cycliques, mais aussi pour prendre en compte les cas où
     // les globales utilises des fonctions dans leurs initialisations
     POUR (fonctions) {
-        if (it->nombre_utilisations == 0) {
+        if (!it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             continue;
         }
 
@@ -411,7 +411,7 @@ void GeneratriceCodeASM::genere_code(kuri::tableau_statique<AtomeGlobale *> glob
 
     // définis enfin les fonction
     POUR (fonctions) {
-        if (it->nombre_utilisations == 0) {
+        if (!it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             continue;
         }
 
