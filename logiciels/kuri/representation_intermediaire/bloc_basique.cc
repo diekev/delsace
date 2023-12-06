@@ -215,6 +215,31 @@ void Bloc::déconnecte_pour_branche_morte(Bloc *parent)
     }
 }
 
+void Bloc::tag_instruction_à_supprimer(Instruction *inst)
+{
+    inst->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
+    instructions_à_supprimer = true;
+}
+
+bool Bloc::supprime_instructions_à_supprimer()
+{
+    if (!instructions_à_supprimer) {
+        return false;
+    }
+
+    auto nouvelle_fin = std::stable_partition(
+        instructions.debut(), instructions.fin(), [](Instruction *inst) {
+            return !inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
+        });
+
+    auto nouvelle_taille = std::distance(instructions.debut(), nouvelle_fin);
+    instructions.redimensionne(static_cast<int>(nouvelle_taille));
+
+    instructions_à_supprimer = false;
+    fonction_et_blocs->marque_instructions_modifiés();
+    return true;
+}
+
 void Bloc::enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc const *bloc)
 {
     for (auto i = 0; i < tableau.taille(); ++i) {
@@ -268,7 +293,7 @@ static void imprime_bloc(Bloc const *bloc,
         it->numero = decalage_instruction++;
     }
 
-    imprime_instructions(bloc->instructions, os, false, surligne_inutilisees);
+    imprime_instructions(bloc->instructions, os, surligne_inutilisees);
 }
 
 kuri::chaine imprime_bloc(Bloc const *bloc, int decalage_instruction, bool surligne_inutilisees)
@@ -362,6 +387,54 @@ static void détruit_blocs(kuri::tableau<Bloc *, int> &blocs)
     blocs.efface();
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name Graphe.
+ * \{ */
+
+void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
+{
+    connexions.ajoute({a, b, index_bloc});
+
+    if (connexions_pour_inst.possède(a)) {
+        auto &idx = connexions_pour_inst.trouve_ref(a);
+        idx.ajoute(static_cast<int>(connexions.taille() - 1));
+    }
+    else {
+        kuri::tablet<int, 4> idx;
+        idx.ajoute(static_cast<int>(connexions.taille() - 1));
+        connexions_pour_inst.insère(a, idx);
+    }
+}
+
+void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int index_bloc)
+{
+    POUR (instructions) {
+        visite_opérandes_instruction(
+            it, [&](Atome *atome_courant) { ajoute_connexion(atome_courant, it, index_bloc); });
+    }
+}
+
+bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const
+{
+    auto idx = connexions_pour_inst.valeur_ou(inst, {});
+    POUR (idx) {
+        auto &connexion = connexions[it];
+        if (index_bloc != connexion.index_bloc) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void Graphe::réinitialise()
+{
+    connexions_pour_inst.reinitialise();
+    connexions.efface();
+}
+
+/** \} */
+
 FonctionEtBlocs::~FonctionEtBlocs()
 {
     détruit_blocs(blocs);
@@ -378,7 +451,8 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
         it->numero = numero_instruction++;
 
         if (it->est_label()) {
-            crée_bloc_pour_label(blocs, blocs_libres, it->comme_label());
+            auto bloc = crée_bloc_pour_label(blocs, blocs_libres, it->comme_label());
+            bloc->fonction_et_blocs = this;
         }
     }
 
@@ -439,6 +513,9 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
 
 void FonctionEtBlocs::réinitialise()
 {
+    graphe.réinitialise();
+    graphe_nécessite_ajournement = true;
+
     fonction = nullptr;
     les_blocs_ont_été_modifiés = false;
 
@@ -453,6 +530,12 @@ void FonctionEtBlocs::réinitialise()
 void FonctionEtBlocs::marque_blocs_modifiés()
 {
     les_blocs_ont_été_modifiés = true;
+    graphe_nécessite_ajournement = true;
+}
+
+void FonctionEtBlocs::marque_instructions_modifiés()
+{
+    graphe_nécessite_ajournement = true;
 }
 
 static void marque_blocs_atteignables(VisiteuseBlocs &visiteuse)
@@ -487,7 +570,7 @@ void FonctionEtBlocs::supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse)
     }
 
     blocs.redimensionne(nombre_de_nouveaux_blocs);
-    les_blocs_ont_été_modifiés = true;
+    marque_blocs_modifiés();
 }
 
 void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
@@ -498,6 +581,22 @@ void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
 
     transfère_instructions_blocs_à_fonction(blocs, fonction);
     les_blocs_ont_été_modifiés = false;
+}
+
+Graphe &FonctionEtBlocs::donne_graphe_ajourné()
+{
+    if (!graphe_nécessite_ajournement) {
+        return graphe;
+    }
+
+    graphe.réinitialise();
+
+    POUR (blocs) {
+        graphe.construit(it->instructions, it->donne_id());
+    }
+
+    graphe_nécessite_ajournement = false;
+    return graphe;
 }
 
 /* ------------------------------------------------------------------------- */

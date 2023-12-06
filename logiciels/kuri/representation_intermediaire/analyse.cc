@@ -49,7 +49,7 @@ static bool détecte_retour_manquant(EspaceDeTravail &espace,
         return false;
     }
 
-#if 1
+#if 0
     // La génération de RI peut mettre des labels après des instructions « si » ou « discr » qui
     // sont les seules instructions de la fonction, donc nous pouvons avoir des blocs vides en fin
     // de fonctions. Mais ce peut également être du code mort après un retour.
@@ -77,7 +77,7 @@ static bool détecte_retour_manquant(EspaceDeTravail &espace,
 
 static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
 {
-    racine->nombre_utilisations += 1;
+    racine->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
 
     switch (racine->genre_atome) {
         case Atome::Genre::GLOBALE:
@@ -102,16 +102,13 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
         case Atome::Genre::INSTRUCTION:
         {
             auto inst = racine->comme_instruction();
-            visite_opérandes_instruction(
-                inst, [](Atome *atome_locale) { atome_locale->nombre_utilisations += 1; });
+            visite_opérandes_instruction(inst, [](Atome *atome_locale) {
+                atome_locale->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+            });
             break;
         }
     }
 }
-
-enum {
-    EST_PARAMETRE_FONCTION = (1 << 1),
-};
 
 static Atome const *déréférence_instruction(Instruction const *inst)
 {
@@ -165,8 +162,8 @@ static bool paramètre_ou_globale_fut_utilisé(Atome *atome)
          * d'une globale. */
         /* À FAIRE(analyse_ri) : le contexte implicite parasite également la détection d'une
          * expression non-utilisée. */
-        if ((visite->etat & EST_PARAMETRE_FONCTION) || visite->est_globale() ||
-            visite->nombre_utilisations != 0) {
+        if ((visite->possède_drapeau(DrapeauxAtome::EST_PARAMÈTRE_FONCTION)) ||
+            visite->est_globale() || visite->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             resultat = true;
         }
     });
@@ -178,7 +175,7 @@ void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructi
     for (auto i = instructions.taille() - 1; i >= 0; --i) {
         auto it = instructions[i];
 
-        if (it->nombre_utilisations != 0) {
+        if (it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             continue;
         }
 
@@ -206,8 +203,8 @@ void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructi
                 auto stocke = it->comme_stocke_mem();
                 auto cible = cible_finale_stockage(stocke);
 
-                if ((cible->etat & EST_PARAMETRE_FONCTION) || cible->nombre_utilisations != 0 ||
-                    cible->est_globale()) {
+                if ((cible->possède_drapeau(DrapeauxAtome::EST_PARAMÈTRE_FONCTION)) ||
+                    cible->possède_drapeau(DrapeauxAtome::EST_UTILISÉ) || cible->est_globale()) {
                     incrémente_nombre_utilisations_récursif(stocke);
                 }
                 else {
@@ -253,10 +250,10 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
     }
 
     POUR (atome->params_entrees) {
-        it->etat = EST_PARAMETRE_FONCTION;
+        it->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
     }
 
-    atome->param_sortie->etat = EST_PARAMETRE_FONCTION;
+    atome->param_sortie->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
 
     POUR (atome->instructions) {
         if (!it->est_alloc()) {
@@ -955,7 +952,7 @@ static bool fonction_est_pure(AtomeFonction const *fonction)
     }
 
     POUR (fonction->params_entrees) {
-        it->etat = EST_PARAMETRE_FONCTION;
+        it->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
     }
 
     POUR (fonction->instructions) {
@@ -998,65 +995,6 @@ static bool fonction_est_pure(AtomeFonction const *fonction)
 
 /** \} */
 
-/** ******************************************************************************************
- * \name Graphe
- * \{
- */
-
-void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
-{
-    connexions.ajoute({a, b, index_bloc});
-
-    if (connexions_pour_inst.possède(a)) {
-        auto &idx = connexions_pour_inst.trouve_ref(a);
-        idx.ajoute(static_cast<int>(connexions.taille() - 1));
-    }
-    else {
-        kuri::tablet<int, 4> idx;
-        idx.ajoute(static_cast<int>(connexions.taille() - 1));
-        connexions_pour_inst.insère(a, idx);
-    }
-}
-
-void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int index_bloc)
-{
-    POUR (instructions) {
-        visite_opérandes_instruction(
-            it, [&](Atome *atome_courant) { ajoute_connexion(atome_courant, it, index_bloc); });
-    }
-}
-
-bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const
-{
-    auto idx = connexions_pour_inst.valeur_ou(inst, {});
-    POUR (idx) {
-        auto &connexion = connexions[it];
-        if (index_bloc != connexion.index_bloc) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void Graphe::réinitialise()
-{
-    connexions_pour_inst.reinitialise();
-    connexions.efface();
-}
-
-template <typename Fonction>
-void Graphe::visite_utilisateurs(Instruction const *inst, Fonction rappel) const
-{
-    auto idx = connexions_pour_inst.valeur_ou(inst, {});
-    POUR (idx) {
-        auto &connexion = connexions[it];
-        rappel(connexion.utilisateur);
-    }
-}
-
-/** \} */
-
 /* Puisque les init_de peuvent être partagées, et alors requierent un transtypage, cette fonction
  * retourne le décalage + 1 à utiliser si la fonction est une fonction d'initialisation.
  * Retourne :
@@ -1095,10 +1033,6 @@ static int est_appel_initialisation(Instruction const *inst0, Instruction const 
     if (a == b) {                                                                                 \
         a = c;                                                                                    \
     }
-
-enum {
-    EST_A_SUPPRIMER = 123,
-};
 
 static bool remplace_instruction_par_atome(Atome *utilisateur,
                                            Instruction const *à_remplacer,
@@ -1156,21 +1090,8 @@ static bool remplace_instruction_par_atome(Atome *utilisateur,
     return true;
 }
 
-/* Supprime du bloc les instructions dont l'état est EST_A_SUPPRIMER. */
-static void supprime_instructions_à_supprimer(Bloc *bloc)
-{
-    auto nouvelle_fin = std::stable_partition(
-        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
-            return inst->etat != EST_A_SUPPRIMER;
-        });
-
-    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
-    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
-}
-
 static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
 {
-    auto instructions_à_supprimer = false;
     for (int i = 0; i < bloc->instructions.taille() - 3; i++) {
         auto inst0 = bloc->instructions[i + 0];
         auto inst1 = bloc->instructions[i + 1];
@@ -1217,19 +1138,13 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
                 return;
             }
 
-            inst0->etat = EST_A_SUPPRIMER;
-            inst1->etat = EST_A_SUPPRIMER;
-            inst2->etat = EST_A_SUPPRIMER;
-            instructions_à_supprimer = true;
+            bloc->tag_instruction_à_supprimer(inst0);
+            bloc->tag_instruction_à_supprimer(inst1);
+            bloc->tag_instruction_à_supprimer(inst2);
         });
     }
 
-    if (!instructions_à_supprimer) {
-        return false;
-    }
-
-    supprime_instructions_à_supprimer(bloc);
-    return true;
+    return bloc->supprime_instructions_à_supprimer();
 }
 
 static std::optional<int> trouve_stockage_dans_bloc(Bloc const *bloc,
@@ -1285,7 +1200,7 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
 
             auto inst = atome_courant->comme_instruction();
 
-            if (inst->etat == EST_A_SUPPRIMER) {
+            if (inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER)) {
                 dbg() << "La fonction est " << nom_humainement_lisible(fonction.decl) << '\n'
                       << *fonction.decl << '\n'
                       << "L'instruction supprimée est " << imprime_instruction(inst) << "\n"
@@ -1298,18 +1213,9 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
     }
 }
 
-static void réinitialise_graphe(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
+static void supprime_allocations_temporaires(FonctionEtBlocs &fonction_et_blocs)
 {
-    graphe.réinitialise();
-
-    POUR (fonction_et_blocs.blocs) {
-        graphe.construit(it->instructions, it->donne_id());
-    }
-}
-
-static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
-{
-    réinitialise_graphe(graphe, fonction_et_blocs);
+    auto &graphe = fonction_et_blocs.donne_graphe_ajourné();
 
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
@@ -1634,7 +1540,6 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
         return false;
     }
 
-    auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
         if (!est_opérateur_binaire_constant(inst)) {
             continue;
@@ -1651,25 +1556,19 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
                 return;
             }
 
-            inst->etat = EST_A_SUPPRIMER;
+            bloc->tag_instruction_à_supprimer(inst);
         });
-
-        instructions_à_supprimer |= inst->etat == EST_A_SUPPRIMER;
     }
 
-    if (!instructions_à_supprimer) {
-        return false;
-    }
-
-    supprime_instructions_à_supprimer(bloc);
-    return instructions_à_supprimer;
+    return bloc->supprime_instructions_à_supprimer();
 }
 
 static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
-                                           Graphe &graphe,
                                            ConstructriceRI &constructrice,
                                            bool *branche_conditionnelle_fut_changée)
 {
+    auto &graphe = fonction_et_blocs.donne_graphe_ajourné();
+
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
         bloc_modifié |= supprime_op_binaires_constants(
@@ -1765,7 +1664,6 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
         return false;
     }
 
-    auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
         if (!inst->est_op_binaire()) {
             continue;
@@ -1783,24 +1681,18 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
                 return;
             }
 
-            inst->etat = EST_A_SUPPRIMER;
+            bloc->tag_instruction_à_supprimer(inst);
         });
-
-        instructions_à_supprimer |= inst->etat == EST_A_SUPPRIMER;
     }
 
-    if (!instructions_à_supprimer) {
-        return false;
-    }
-
-    supprime_instructions_à_supprimer(bloc);
-    return instructions_à_supprimer;
+    return bloc->supprime_instructions_à_supprimer();
 }
 
 static void supprime_op_binaires_inutiles(FonctionEtBlocs &fonction_et_blocs,
-                                          Graphe &graphe,
                                           bool *branche_conditionnelle_fut_changée)
 {
+    auto &graphe = fonction_et_blocs.donne_graphe_ajourné();
+
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
         bloc_modifié |= supprime_op_binaires_inutiles(
@@ -1849,22 +1741,18 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
 
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
-    supprime_allocations_temporaires(graphe, fonction_et_blocs);
+    supprime_allocations_temporaires(fonction_et_blocs);
 
     /* À faire après la supressions des allocations temporaires. */
     if (!détecte_opérateurs_binaires_suspicieux(espace, fonction_et_blocs)) {
         return;
     }
 
-    réinitialise_graphe(graphe, fonction_et_blocs);
-
     auto branche_conditionnelle_fut_changée = false;
     supprime_op_binaires_constants(
-        fonction_et_blocs, graphe, constructrice, &branche_conditionnelle_fut_changée);
+        fonction_et_blocs, constructrice, &branche_conditionnelle_fut_changée);
 
-    réinitialise_graphe(graphe, fonction_et_blocs);
-
-    supprime_op_binaires_inutiles(fonction_et_blocs, graphe, &branche_conditionnelle_fut_changée);
+    supprime_op_binaires_inutiles(fonction_et_blocs, &branche_conditionnelle_fut_changée);
 
     if (branche_conditionnelle_fut_changée) {
         supprime_branches_inutiles(fonction_et_blocs, visiteuse);
@@ -1887,6 +1775,5 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
 
 void ContexteAnalyseRI::reinitialise()
 {
-    graphe.réinitialise();
     fonction_et_blocs.réinitialise();
 }

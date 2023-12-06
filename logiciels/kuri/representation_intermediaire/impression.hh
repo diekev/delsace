@@ -24,13 +24,11 @@ int numérote_instructions(AtomeFonction const &fonction);
 
 void imprime_fonction(AtomeFonction const *atome_fonc,
                       Enchaineuse &sortie,
-                      bool inclus_nombre_utilisations = false,
                       bool surligne_inutilisees = false,
                       std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
 [[nodiscard]] kuri::chaine imprime_fonction(
     AtomeFonction const *atome_fonc,
-    bool inclus_nombre_utilisations = false,
     bool surligne_inutilisees = false,
     std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
@@ -39,13 +37,11 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 void imprime_instructions(
     kuri::tableau<Instruction *, int> const &instructions,
     Enchaineuse &os,
-    bool inclus_nombre_utilisations = false,
     bool surligne_inutilisees = false,
     std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
 [[nodiscard]] kuri::chaine imprime_instructions(
     kuri::tableau<Instruction *, int> const &instructions,
-    bool inclus_nombre_utilisations = false,
     bool surligne_inutilisees = false,
     std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 

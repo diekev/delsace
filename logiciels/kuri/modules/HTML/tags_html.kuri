@@ -99,6 +99,7 @@ TAG_rt : *ChaineInternée
 TAG_rtc : *ChaineInternée
 TAG_ruby : *ChaineInternée
 TAG_s : *ChaineInternée
+TAG_span : *ChaineInternée
 TAG_script : *ChaineInternée
 TAG_section : *ChaineInternée
 TAG_select : *ChaineInternée
