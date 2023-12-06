@@ -386,6 +386,54 @@ static void détruit_blocs(kuri::tableau<Bloc *, int> &blocs)
     blocs.efface();
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name Graphe.
+ * \{ */
+
+void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
+{
+    connexions.ajoute({a, b, index_bloc});
+
+    if (connexions_pour_inst.possède(a)) {
+        auto &idx = connexions_pour_inst.trouve_ref(a);
+        idx.ajoute(static_cast<int>(connexions.taille() - 1));
+    }
+    else {
+        kuri::tablet<int, 4> idx;
+        idx.ajoute(static_cast<int>(connexions.taille() - 1));
+        connexions_pour_inst.insère(a, idx);
+    }
+}
+
+void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int index_bloc)
+{
+    POUR (instructions) {
+        visite_opérandes_instruction(
+            it, [&](Atome *atome_courant) { ajoute_connexion(atome_courant, it, index_bloc); });
+    }
+}
+
+bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const
+{
+    auto idx = connexions_pour_inst.valeur_ou(inst, {});
+    POUR (idx) {
+        auto &connexion = connexions[it];
+        if (index_bloc != connexion.index_bloc) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void Graphe::réinitialise()
+{
+    connexions_pour_inst.reinitialise();
+    connexions.efface();
+}
+
+/** \} */
+
 FonctionEtBlocs::~FonctionEtBlocs()
 {
     détruit_blocs(blocs);
@@ -463,6 +511,7 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
 
 void FonctionEtBlocs::réinitialise()
 {
+    graphe.réinitialise();
     fonction = nullptr;
     les_blocs_ont_été_modifiés = false;
 
@@ -522,6 +571,17 @@ void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
 
     transfère_instructions_blocs_à_fonction(blocs, fonction);
     les_blocs_ont_été_modifiés = false;
+}
+
+Graphe &FonctionEtBlocs::donne_graphe_ajourné()
+{
+    graphe.réinitialise();
+
+    POUR (blocs) {
+        graphe.construit(it->instructions, it->donne_id());
+    }
+
+    return graphe;
 }
 
 /* ------------------------------------------------------------------------- */

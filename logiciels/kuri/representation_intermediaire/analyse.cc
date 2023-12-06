@@ -995,65 +995,6 @@ static bool fonction_est_pure(AtomeFonction const *fonction)
 
 /** \} */
 
-/** ******************************************************************************************
- * \name Graphe
- * \{
- */
-
-void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
-{
-    connexions.ajoute({a, b, index_bloc});
-
-    if (connexions_pour_inst.possède(a)) {
-        auto &idx = connexions_pour_inst.trouve_ref(a);
-        idx.ajoute(static_cast<int>(connexions.taille() - 1));
-    }
-    else {
-        kuri::tablet<int, 4> idx;
-        idx.ajoute(static_cast<int>(connexions.taille() - 1));
-        connexions_pour_inst.insère(a, idx);
-    }
-}
-
-void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int index_bloc)
-{
-    POUR (instructions) {
-        visite_opérandes_instruction(
-            it, [&](Atome *atome_courant) { ajoute_connexion(atome_courant, it, index_bloc); });
-    }
-}
-
-bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const
-{
-    auto idx = connexions_pour_inst.valeur_ou(inst, {});
-    POUR (idx) {
-        auto &connexion = connexions[it];
-        if (index_bloc != connexion.index_bloc) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void Graphe::réinitialise()
-{
-    connexions_pour_inst.reinitialise();
-    connexions.efface();
-}
-
-template <typename Fonction>
-void Graphe::visite_utilisateurs(Instruction const *inst, Fonction rappel) const
-{
-    auto idx = connexions_pour_inst.valeur_ou(inst, {});
-    POUR (idx) {
-        auto &connexion = connexions[it];
-        rappel(connexion.utilisateur);
-    }
-}
-
-/** \} */
-
 /* Puisque les init_de peuvent être partagées, et alors requierent un transtypage, cette fonction
  * retourne le décalage + 1 à utiliser si la fonction est une fonction d'initialisation.
  * Retourne :
@@ -1272,18 +1213,9 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
     }
 }
 
-static void réinitialise_graphe(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
+static void supprime_allocations_temporaires(FonctionEtBlocs &fonction_et_blocs)
 {
-    graphe.réinitialise();
-
-    POUR (fonction_et_blocs.blocs) {
-        graphe.construit(it->instructions, it->donne_id());
-    }
-}
-
-static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
-{
-    réinitialise_graphe(graphe, fonction_et_blocs);
+    auto &graphe = fonction_et_blocs.donne_graphe_ajourné();
 
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
@@ -1632,10 +1564,11 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
 }
 
 static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
-                                           Graphe &graphe,
                                            ConstructriceRI &constructrice,
                                            bool *branche_conditionnelle_fut_changée)
 {
+    auto &graphe = fonction_et_blocs.donne_graphe_ajourné();
+
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
         bloc_modifié |= supprime_op_binaires_constants(
@@ -1756,9 +1689,10 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
 }
 
 static void supprime_op_binaires_inutiles(FonctionEtBlocs &fonction_et_blocs,
-                                          Graphe &graphe,
                                           bool *branche_conditionnelle_fut_changée)
 {
+    auto &graphe = fonction_et_blocs.donne_graphe_ajourné();
+
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
         bloc_modifié |= supprime_op_binaires_inutiles(
@@ -1807,22 +1741,18 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
 
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
-    supprime_allocations_temporaires(graphe, fonction_et_blocs);
+    supprime_allocations_temporaires(fonction_et_blocs);
 
     /* À faire après la supressions des allocations temporaires. */
     if (!détecte_opérateurs_binaires_suspicieux(espace, fonction_et_blocs)) {
         return;
     }
 
-    réinitialise_graphe(graphe, fonction_et_blocs);
-
     auto branche_conditionnelle_fut_changée = false;
     supprime_op_binaires_constants(
-        fonction_et_blocs, graphe, constructrice, &branche_conditionnelle_fut_changée);
+        fonction_et_blocs, constructrice, &branche_conditionnelle_fut_changée);
 
-    réinitialise_graphe(graphe, fonction_et_blocs);
-
-    supprime_op_binaires_inutiles(fonction_et_blocs, graphe, &branche_conditionnelle_fut_changée);
+    supprime_op_binaires_inutiles(fonction_et_blocs, &branche_conditionnelle_fut_changée);
 
     if (branche_conditionnelle_fut_changée) {
         supprime_branches_inutiles(fonction_et_blocs, visiteuse);
@@ -1845,6 +1775,5 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
 
 void ContexteAnalyseRI::reinitialise()
 {
-    graphe.réinitialise();
     fonction_et_blocs.réinitialise();
 }

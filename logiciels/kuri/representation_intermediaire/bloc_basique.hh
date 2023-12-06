@@ -5,13 +5,13 @@
 
 #include "structures/ensemble.hh"
 #include "structures/file.hh"
+#include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
+#include "structures/tablet.hh"
 
-struct AtomeFonction;
+#include "instructions.hh"
+
 struct EspaceDeTravail;
-struct Instruction;
-struct InstructionAllocation;
-struct InstructionLabel;
 
 enum class GenreInstruction : uint32_t;
 
@@ -89,12 +89,53 @@ void construit_liste_variables_utilisées(Bloc *bloc);
 
 struct VisiteuseBlocs;
 
+/* ------------------------------------------------------------------------- */
+/** \name Graphe.
+ *  Contiens les connexions entre les instructions et leurs atomes.
+ * \{ */
+
+struct Graphe {
+  private:
+    struct Connexion {
+        Atome *utilise;
+        Atome *utilisateur;
+        int index_bloc;
+    };
+
+    kuri::tableau<Connexion> connexions{};
+    mutable kuri::table_hachage<Atome const *, kuri::tablet<int, 4>> connexions_pour_inst{""};
+
+  public:
+    /* a est utilisé par b */
+    void ajoute_connexion(Atome *a, Atome *b, int index_bloc);
+
+    void construit(kuri::tableau<Instruction *, int> const &instructions, int index_bloc);
+
+    bool est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const;
+
+    template <typename Fonction>
+    void visite_utilisateurs(Instruction const *inst, Fonction rappel) const
+    {
+        auto idx = connexions_pour_inst.valeur_ou(inst, {});
+        POUR (idx) {
+            auto &connexion = connexions[it];
+            rappel(connexion.utilisateur);
+        }
+    }
+
+    void réinitialise();
+};
+
+/** \} */
+
 struct FonctionEtBlocs {
     AtomeFonction *fonction = nullptr;
     kuri::tableau<Bloc *, int> blocs{};
     kuri::tableau<Bloc *, int> blocs_libres{};
 
   private:
+    Graphe graphe{};
+
     bool les_blocs_ont_été_modifiés = false;
 
   public:
@@ -114,6 +155,8 @@ struct FonctionEtBlocs {
      * supprimé ou fusionné dans un autre).
      */
     void ajourne_instructions_fonction_si_nécessaire();
+
+    Graphe &donne_graphe_ajourné();
 };
 
 /* ------------------------------------------------------------------------- */
