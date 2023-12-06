@@ -268,7 +268,7 @@ static void imprime_bloc(Bloc const *bloc,
         it->numero = decalage_instruction++;
     }
 
-    imprime_instructions(bloc->instructions, os, false, surligne_inutilisees);
+    imprime_instructions(bloc->instructions, os, surligne_inutilisees);
 }
 
 kuri::chaine imprime_bloc(Bloc const *bloc, int decalage_instruction, bool surligne_inutilisees)

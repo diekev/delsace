@@ -603,7 +603,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
                            adresse_retour);
         nombre_fonctions_enlignees += 1;
 
-        atome_fonc_appelee->nombre_utilisations -= 1;
+        // atome_fonc_appelee->nombre_utilisations -= 1;
 
         nouvelle_instructions.ajoute(label_post);
 
@@ -702,7 +702,7 @@ static void determine_assignations_inutiles(Bloc *bloc)
                     it.second = stocke;
                 }
                 else {
-                    it.second->nombre_utilisations -= 1;
+                    // it.second->nombre_utilisations -= 1;
                     it.second = stocke;
                 }
 
@@ -732,7 +732,9 @@ static bool supprime_code_mort(kuri::tableau<Instruction *, int> &instructions)
     }
 
     /* rassemble toutes les instructions utilisées au début du tableau d'instructions */
-    auto predicat = [](Instruction *inst) { return inst->nombre_utilisations != 0; };
+    auto predicat = [](Instruction *inst) {
+        return inst->possède_drapeau(DrapeauxAtome::EST_UTILISÉ);
+    };
     auto iter = std::stable_partition(instructions.begin(), instructions.end(), predicat);
 
     if (iter != instructions.end()) {
@@ -778,7 +780,7 @@ bool supprime_code_mort(kuri::tableau<Bloc *, int> &blocs)
 {
     POUR (blocs) {
         for (auto inst : it->instructions) {
-            inst->nombre_utilisations = 0;
+            inst->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
         }
     }
 

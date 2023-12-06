@@ -77,7 +77,7 @@ static bool détecte_retour_manquant(EspaceDeTravail &espace,
 
 static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
 {
-    racine->nombre_utilisations += 1;
+    racine->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
 
     switch (racine->genre_atome) {
         case Atome::Genre::GLOBALE:
@@ -102,16 +102,13 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
         case Atome::Genre::INSTRUCTION:
         {
             auto inst = racine->comme_instruction();
-            visite_opérandes_instruction(
-                inst, [](Atome *atome_locale) { atome_locale->nombre_utilisations += 1; });
+            visite_opérandes_instruction(inst, [](Atome *atome_locale) {
+                atome_locale->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+            });
             break;
         }
     }
 }
-
-enum {
-    EST_PARAMETRE_FONCTION = (1 << 1),
-};
 
 static Atome const *déréférence_instruction(Instruction const *inst)
 {
@@ -165,8 +162,8 @@ static bool paramètre_ou_globale_fut_utilisé(Atome *atome)
          * d'une globale. */
         /* À FAIRE(analyse_ri) : le contexte implicite parasite également la détection d'une
          * expression non-utilisée. */
-        if ((visite->etat & EST_PARAMETRE_FONCTION) || visite->est_globale() ||
-            visite->nombre_utilisations != 0) {
+        if ((visite->possède_drapeau(DrapeauxAtome::EST_PARAMÈTRE_FONCTION)) ||
+            visite->est_globale() || visite->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             resultat = true;
         }
     });
@@ -178,7 +175,7 @@ void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructi
     for (auto i = instructions.taille() - 1; i >= 0; --i) {
         auto it = instructions[i];
 
-        if (it->nombre_utilisations != 0) {
+        if (it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             continue;
         }
 
@@ -206,8 +203,8 @@ void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructi
                 auto stocke = it->comme_stocke_mem();
                 auto cible = cible_finale_stockage(stocke);
 
-                if ((cible->etat & EST_PARAMETRE_FONCTION) || cible->nombre_utilisations != 0 ||
-                    cible->est_globale()) {
+                if ((cible->possède_drapeau(DrapeauxAtome::EST_PARAMÈTRE_FONCTION)) ||
+                    cible->possède_drapeau(DrapeauxAtome::EST_UTILISÉ) || cible->est_globale()) {
                     incrémente_nombre_utilisations_récursif(stocke);
                 }
                 else {
@@ -253,10 +250,10 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
     }
 
     POUR (atome->params_entrees) {
-        it->etat = EST_PARAMETRE_FONCTION;
+        it->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
     }
 
-    atome->param_sortie->etat = EST_PARAMETRE_FONCTION;
+    atome->param_sortie->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
 
     POUR (atome->instructions) {
         if (!it->est_alloc()) {
@@ -955,7 +952,7 @@ static bool fonction_est_pure(AtomeFonction const *fonction)
     }
 
     POUR (fonction->params_entrees) {
-        it->etat = EST_PARAMETRE_FONCTION;
+        it->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
     }
 
     POUR (fonction->instructions) {
@@ -1096,10 +1093,6 @@ static int est_appel_initialisation(Instruction const *inst0, Instruction const 
         a = c;                                                                                    \
     }
 
-enum {
-    EST_A_SUPPRIMER = 123,
-};
-
 static bool remplace_instruction_par_atome(Atome *utilisateur,
                                            Instruction const *à_remplacer,
                                            Atome *nouvelle_valeur,
@@ -1161,7 +1154,7 @@ static void supprime_instructions_à_supprimer(Bloc *bloc)
 {
     auto nouvelle_fin = std::stable_partition(
         bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
-            return inst->etat != EST_A_SUPPRIMER;
+            return !inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
         });
 
     auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
@@ -1217,9 +1210,9 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
                 return;
             }
 
-            inst0->etat = EST_A_SUPPRIMER;
-            inst1->etat = EST_A_SUPPRIMER;
-            inst2->etat = EST_A_SUPPRIMER;
+            inst0->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
+            inst1->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
+            inst2->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
             instructions_à_supprimer = true;
         });
     }
@@ -1285,7 +1278,7 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
 
             auto inst = atome_courant->comme_instruction();
 
-            if (inst->etat == EST_A_SUPPRIMER) {
+            if (inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER)) {
                 dbg() << "La fonction est " << nom_humainement_lisible(fonction.decl) << '\n'
                       << *fonction.decl << '\n'
                       << "L'instruction supprimée est " << imprime_instruction(inst) << "\n"
@@ -1651,10 +1644,10 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
                 return;
             }
 
-            inst->etat = EST_A_SUPPRIMER;
+            inst->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
         });
 
-        instructions_à_supprimer |= inst->etat == EST_A_SUPPRIMER;
+        instructions_à_supprimer |= inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
     }
 
     if (!instructions_à_supprimer) {
@@ -1783,10 +1776,10 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
                 return;
             }
 
-            inst->etat = EST_A_SUPPRIMER;
+            inst->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
         });
 
-        instructions_à_supprimer |= inst->etat == EST_A_SUPPRIMER;
+        instructions_à_supprimer |= inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
     }
 
     if (!instructions_à_supprimer) {

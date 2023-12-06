@@ -67,6 +67,20 @@ enum class VisibilitéSymbole : uint8_t;
     O(INSTRUCTION, Instruction, instruction)                                                      \
     O(GLOBALE, AtomeGlobale, globale)
 
+enum class DrapeauxAtome : uint8_t {
+    ZÉRO = 0,
+    EST_À_SUPPRIMER = (1 << 0),
+    EST_PARAMÈTRE_FONCTION = (1 << 1),
+    /* Vrai si l'atome est celui d'une instruction chargeable (qui possède une adresse en mémoire).
+     */
+    EST_CHARGEABLE = (1 << 2),
+    /* Utilisé pour détecter si nous devons ou non compléter la RI, dans le cas ou une fonction ou
+       une globale fut créée préemptivement. */
+    RI_FUT_GÉNÉRÉE = (1 << 3),
+    EST_UTILISÉ = (1 << 4),
+};
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxAtome)
+
 struct Atome {
     enum class Genre {
 #define ENUMERE_GENRE_ATOME_EX(__genre, __type, __ident) __genre,
@@ -77,14 +91,7 @@ struct Atome {
     Type const *type = nullptr;
 
     Genre genre_atome{};
-    // vrai si l'atome est celui d'une instruction chargeable
-    bool est_chargeable = false;
-    bool ri_generee = false;
-
-    int nombre_utilisations = 0;
-
-    // machine à état utilisée pour déterminer si un atome a été utilisé ou non
-    int etat = 0;
+    DrapeauxAtome drapeaux = DrapeauxAtome::ZÉRO;
 
 #define ENUMERE_GENRE_ATOME_EX(__genre, __type, __ident)                                          \
     inline __type *comme_##__ident();                                                             \
@@ -97,6 +104,11 @@ struct Atome {
     {
         return genre_atome >= Genre::CONSTANTE_ENTIÈRE &&
                genre_atome <= Genre::CONSTANTE_TAILLE_DE;
+    }
+
+    inline bool possède_drapeau(DrapeauxAtome d) const
+    {
+        return (drapeaux & d) != DrapeauxAtome::ZÉRO;
     }
 };
 
@@ -295,7 +307,7 @@ struct AtomeGlobale : public AtomeConstante {
     AtomeGlobale()
     {
         genre_atome = Genre::GLOBALE;
-        est_chargeable = true;
+        drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
     IdentifiantCode *ident = nullptr;
@@ -565,7 +577,7 @@ struct InstructionAllocation : public Instruction {
     {
         site = site_;
         genre = GenreInstruction::ALLOCATION;
-        est_chargeable = true;
+        drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
     IdentifiantCode *ident = nullptr;
@@ -653,7 +665,6 @@ struct InstructionChargeMem : public Instruction {
     {
         site = site_;
         genre = GenreInstruction::CHARGE_MEMOIRE;
-        est_chargeable = true;
     }
 
     Atome *chargee = nullptr;
@@ -665,7 +676,9 @@ struct InstructionChargeMem : public Instruction {
     {
         this->type = type_;
         this->chargee = chargee_;
-        this->est_chargeable = type->est_type_pointeur();
+        if (type->est_type_pointeur()) {
+            drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
+        }
     }
 };
 
@@ -756,7 +769,7 @@ struct InstructionAccedeMembre : public Instruction {
     {
         site = site_;
         genre = GenreInstruction::ACCEDE_MEMBRE;
-        est_chargeable = true;
+        drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
     Atome *accede = nullptr;
@@ -786,7 +799,7 @@ struct InstructionAccedeIndex : public Instruction {
     {
         site = site_;
         genre = GenreInstruction::ACCEDE_INDEX;
-        est_chargeable = true;
+        drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
     Atome *accede = nullptr;
@@ -830,7 +843,7 @@ struct InstructionTranstype : public Instruction {
     {
         site = site_;
         genre = GenreInstruction::TRANSTYPE;
-        est_chargeable = false;  // À FAIRE : uniquement si la valeur est un pointeur
+        // À FAIRE : est chargeable si la valeur est un pointeur
     }
 
     Atome *valeur = nullptr;
