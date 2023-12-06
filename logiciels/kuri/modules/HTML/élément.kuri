@@ -62,6 +62,21 @@ est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
     retourne nul
 }
 
+est_élément_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
+{
+    si noeud.genre != GenreNoeud.Élément {
+        retourne nul
+    }
+
+    élément := noeud comme *Élément
+
+    si élément.texte == tag {
+        retourne élément
+    }
+
+    retourne nul
+}
+
 est_compatible_html5 :: fonc (élément: *Élément) -> bool
 {
     discr élément.texte {
