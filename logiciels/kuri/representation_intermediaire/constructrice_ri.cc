@@ -490,7 +490,7 @@ InstructionBranche *ConstructriceRI::crée_branche(NoeudExpression const *site_,
 {
     auto inst = insts_branche.ajoute_element(site_, label);
 
-    label->nombre_utilisations += 1;
+    label->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
 
     if (!crée_seulement) {
         m_fonction_courante->instructions.ajoute(inst);
@@ -508,8 +508,8 @@ InstructionBrancheCondition *ConstructriceRI::crée_branche_condition(
     auto inst = insts_branche_condition.ajoute_element(
         site_, valeur, label_si_vrai, label_si_faux);
 
-    label_si_vrai->nombre_utilisations += 1;
-    label_si_faux->nombre_utilisations += 1;
+    label_si_vrai->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+    label_si_faux->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
 
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
@@ -549,7 +549,7 @@ void ConstructriceRI::insère_label(InstructionLabel *label)
 
 void ConstructriceRI::insère_label_si_utilisé(InstructionLabel *label)
 {
-    if (label->nombre_utilisations == 0) {
+    if (!label->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
         return;
     }
 
@@ -1124,7 +1124,7 @@ AtomeConstante *CompilatriceRI::crée_tableau_global(const Type *type,
 
 Atome *CompilatriceRI::crée_charge_mem_si_chargeable(NoeudExpression const *site_, Atome *source)
 {
-    if (source->est_chargeable) {
+    if (source->possède_drapeau(DrapeauxAtome::EST_CHARGEABLE)) {
         return m_constructrice.crée_charge_mem(site_, source);
     }
     return source;
@@ -1133,7 +1133,7 @@ Atome *CompilatriceRI::crée_charge_mem_si_chargeable(NoeudExpression const *sit
 Atome *CompilatriceRI::crée_temporaire_si_non_chargeable(NoeudExpression const *site_,
                                                          Atome *source)
 {
-    if (source->est_chargeable) {
+    if (source->possède_drapeau(DrapeauxAtome::EST_CHARGEABLE)) {
         return source;
     }
 
@@ -1935,7 +1935,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 génère_ri_pour_noeud(inst_si->bloc_si_faux);
                 m_constructrice.insère_label_si_utilisé(label_apres_instruction);
 
-                if (label_apres_instruction->nombre_utilisations == 0) {
+                if (!label_apres_instruction->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
                     m_label_après_controle = label_apres_instruction;
                 }
             }
@@ -2033,7 +2033,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
 
             m_constructrice.insère_label_si_utilisé(label_apres_boucle);
 
-            if (label_apres_boucle->nombre_utilisations == 0) {
+            if (!label_apres_boucle->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
                 m_label_après_controle = label_apres_boucle;
             }
 
@@ -2203,7 +2203,7 @@ void CompilatriceRI::génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *d
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
         decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
-        atome_fonc->ri_generee = true;
+        atome_fonc->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
         return;
     }
 
@@ -2215,7 +2215,7 @@ void CompilatriceRI::génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *d
 
     decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
     decl->corps->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
-    m_fonction_courante->ri_generee = true;
+    m_fonction_courante->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS)) {
         dbg() << imprime_fonction(atome_fonc);
@@ -2967,7 +2967,6 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
                                                           false),
                 membre_erreur,
                 TypeTranstypage::BITS);
-            membre_erreur->est_chargeable = true;
             auto decl_expr_piegee =
                 noeud->expression_piegee->comme_reference_declaration()->declaration_referee;
             static_cast<NoeudDeclarationSymbole *>(decl_expr_piegee)->atome = membre_erreur;
@@ -2982,7 +2981,6 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
                                                       false),
             valeur_expression,
             TypeTranstypage::BITS);
-        valeur_expression->est_chargeable = true;
     }
 
     empile_valeur(valeur_expression);
@@ -3045,7 +3043,6 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
             m_compilatrice.typeuse.type_pointeur_pour(type_membre, false),
             ptr_union,
             TypeTranstypage::BITS);
-        ptr_union->est_chargeable = true;
         empile_valeur(ptr_union);
         return;
     }
@@ -3087,7 +3084,6 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
             m_compilatrice.typeuse.type_pointeur_pour(type_membre, false),
             pointeur_membre,
             TypeTranstypage::BITS);
-        pointeur_membre->est_chargeable = true;
     }
 
     empile_valeur(pointeur_membre);
@@ -4135,12 +4131,12 @@ void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable 
                 }
             }
 
-            atome->ri_generee = true;
+            atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
             atome->initialisateur = valeur;
         }
     }
 
-    decl->atome->ri_generee = true;
+    decl->atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
     decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
 }
 
