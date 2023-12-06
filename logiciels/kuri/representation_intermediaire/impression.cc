@@ -506,33 +506,14 @@ int numérote_instructions(AtomeFonction const &fonction)
 
 void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
                           Enchaineuse &os,
-                          bool inclus_nombre_utilisations,
                           bool surligne_inutilisees,
                           std::function<void(const Instruction &, Enchaineuse &)> rappel)
 {
-    auto max_utilisations = 0;
-
-    POUR (instructions) {
-        max_utilisations = std::max(max_utilisations, it->nombre_utilisations);
-    }
-
     using dls::num::nombre_de_chiffres;
 
     POUR (instructions) {
-        if (surligne_inutilisees && it->nombre_utilisations == 0) {
+        if (surligne_inutilisees && !it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             os << "\033[0;31m";
-        }
-
-        if (inclus_nombre_utilisations) {
-            auto nombre_zero_avant_numero = nombre_de_chiffres(max_utilisations) -
-                                            nombre_de_chiffres(it->nombre_utilisations);
-            os << '(';
-
-            for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
-                os << ' ';
-            }
-
-            os << it->nombre_utilisations << ") ";
         }
 
         auto nombre_zero_avant_numero = nombre_de_chiffres(instructions.taille()) -
@@ -552,7 +533,7 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
 
         os << '\n';
 
-        if (surligne_inutilisees && it->nombre_utilisations == 0) {
+        if (surligne_inutilisees && !it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             os << "\033[0m";
         }
     }
@@ -562,19 +543,16 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
 
 [[nodiscard]] kuri::chaine imprime_instructions(
     kuri::tableau<Instruction *, int> const &instructions,
-    bool inclus_nombre_utilisations,
     bool surligne_inutilisees,
     std::function<void(Instruction const &, Enchaineuse &)> rappel)
 {
     Enchaineuse sortie;
-    imprime_instructions(
-        instructions, sortie, inclus_nombre_utilisations, surligne_inutilisees, rappel);
+    imprime_instructions(instructions, sortie, surligne_inutilisees, rappel);
     return sortie.chaine();
 }
 
 void imprime_fonction(AtomeFonction const *atome_fonc,
                       Enchaineuse &os,
-                      bool inclus_nombre_utilisations,
                       bool surligne_inutilisees,
                       std::function<void(const Instruction &, Enchaineuse &)> rappel)
 {
@@ -604,18 +582,16 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
     numérote_instructions(*atome_fonc);
 
-    imprime_instructions(
-        atome_fonc->instructions, os, inclus_nombre_utilisations, surligne_inutilisees, rappel);
+    imprime_instructions(atome_fonc->instructions, os, surligne_inutilisees, rappel);
 }
 
 [[nodiscard]] kuri::chaine imprime_fonction(
     AtomeFonction const *atome_fonc,
-    bool inclus_nombre_utilisations,
     bool surligne_inutilisees,
     std::function<void(Instruction const &, Enchaineuse &)> rappel)
 {
     Enchaineuse sortie;
-    imprime_fonction(atome_fonc, sortie, inclus_nombre_utilisations, surligne_inutilisees, rappel);
+    imprime_fonction(atome_fonc, sortie, surligne_inutilisees, rappel);
     return sortie.chaine();
 }
 
