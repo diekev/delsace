@@ -36,6 +36,7 @@ struct Bloc {
     bool est_atteignable = false;
 
   private:
+    bool instructions_à_supprimer = false;
     uint32_t masque_instructions = 0;
 
   public:
@@ -66,6 +67,11 @@ struct Bloc {
     /* Enlève la relation parent/enfant de ce bloc avec le bloc parent passé en paramètre.
      * Si le parent était le seul parent, déconnecte également ce bloc de ses enfants. */
     void déconnecte_pour_branche_morte(Bloc *parent);
+
+    void tag_instruction_à_supprimer(Instruction *inst);
+
+    /* Supprime du bloc les instructions dont l'état est EST_A_SUPPRIMER. */
+    bool supprime_instructions_à_supprimer();
 
   private:
     void enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, const Bloc *bloc);

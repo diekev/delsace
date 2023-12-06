@@ -215,6 +215,30 @@ void Bloc::déconnecte_pour_branche_morte(Bloc *parent)
     }
 }
 
+void Bloc::tag_instruction_à_supprimer(Instruction *inst)
+{
+    inst->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
+    instructions_à_supprimer = true;
+}
+
+bool Bloc::supprime_instructions_à_supprimer()
+{
+    if (!instructions_à_supprimer) {
+        return false;
+    }
+
+    auto nouvelle_fin = std::stable_partition(
+        instructions.debut(), instructions.fin(), [](Instruction *inst) {
+            return !inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
+        });
+
+    auto nouvelle_taille = std::distance(instructions.debut(), nouvelle_fin);
+    instructions.redimensionne(static_cast<int>(nouvelle_taille));
+
+    instructions_à_supprimer = false;
+    return true;
+}
+
 void Bloc::enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc const *bloc)
 {
     for (auto i = 0; i < tableau.taille(); ++i) {

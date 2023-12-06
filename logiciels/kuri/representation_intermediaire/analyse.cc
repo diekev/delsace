@@ -1149,21 +1149,8 @@ static bool remplace_instruction_par_atome(Atome *utilisateur,
     return true;
 }
 
-/* Supprime du bloc les instructions dont l'état est EST_A_SUPPRIMER. */
-static void supprime_instructions_à_supprimer(Bloc *bloc)
-{
-    auto nouvelle_fin = std::stable_partition(
-        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
-            return !inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
-        });
-
-    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
-    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
-}
-
 static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
 {
-    auto instructions_à_supprimer = false;
     for (int i = 0; i < bloc->instructions.taille() - 3; i++) {
         auto inst0 = bloc->instructions[i + 0];
         auto inst1 = bloc->instructions[i + 1];
@@ -1210,19 +1197,13 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
                 return;
             }
 
-            inst0->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
-            inst1->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
-            inst2->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
-            instructions_à_supprimer = true;
+            bloc->tag_instruction_à_supprimer(inst0);
+            bloc->tag_instruction_à_supprimer(inst1);
+            bloc->tag_instruction_à_supprimer(inst2);
         });
     }
 
-    if (!instructions_à_supprimer) {
-        return false;
-    }
-
-    supprime_instructions_à_supprimer(bloc);
-    return true;
+    return bloc->supprime_instructions_à_supprimer();
 }
 
 static std::optional<int> trouve_stockage_dans_bloc(Bloc const *bloc,
@@ -1627,7 +1608,6 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
         return false;
     }
 
-    auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
         if (!est_opérateur_binaire_constant(inst)) {
             continue;
@@ -1644,18 +1624,11 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
                 return;
             }
 
-            inst->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
+            bloc->tag_instruction_à_supprimer(inst);
         });
-
-        instructions_à_supprimer |= inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
     }
 
-    if (!instructions_à_supprimer) {
-        return false;
-    }
-
-    supprime_instructions_à_supprimer(bloc);
-    return instructions_à_supprimer;
+    return bloc->supprime_instructions_à_supprimer();
 }
 
 static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
@@ -1758,7 +1731,6 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
         return false;
     }
 
-    auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
         if (!inst->est_op_binaire()) {
             continue;
@@ -1776,18 +1748,11 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
                 return;
             }
 
-            inst->drapeaux |= DrapeauxAtome::EST_À_SUPPRIMER;
+            bloc->tag_instruction_à_supprimer(inst);
         });
-
-        instructions_à_supprimer |= inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
     }
 
-    if (!instructions_à_supprimer) {
-        return false;
-    }
-
-    supprime_instructions_à_supprimer(bloc);
-    return instructions_à_supprimer;
+    return bloc->supprime_instructions_à_supprimer();
 }
 
 static void supprime_op_binaires_inutiles(FonctionEtBlocs &fonction_et_blocs,
