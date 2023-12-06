@@ -12,6 +12,7 @@
 #include "instructions.hh"
 
 struct EspaceDeTravail;
+struct FonctionEtBlocs;
 
 enum class GenreInstruction : uint32_t;
 
@@ -20,6 +21,8 @@ struct chaine;
 }
 
 struct Bloc {
+    FonctionEtBlocs *fonction_et_blocs = nullptr;
+
     InstructionLabel *label = nullptr;
 
     kuri::tableau<Instruction *, int> instructions{};
@@ -137,6 +140,8 @@ struct FonctionEtBlocs {
     Graphe graphe{};
 
     bool les_blocs_ont_été_modifiés = false;
+    /* Vrai par défaut pour le construire au moins 1 fois. */
+    bool graphe_nécessite_ajournement = true;
 
   public:
     ~FonctionEtBlocs();
@@ -146,6 +151,8 @@ struct FonctionEtBlocs {
     void réinitialise();
 
     void marque_blocs_modifiés();
+
+    void marque_instructions_modifiés();
 
     void supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse);
 

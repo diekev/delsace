@@ -236,6 +236,7 @@ bool Bloc::supprime_instructions_à_supprimer()
     instructions.redimensionne(static_cast<int>(nouvelle_taille));
 
     instructions_à_supprimer = false;
+    fonction_et_blocs->marque_instructions_modifiés();
     return true;
 }
 
@@ -450,7 +451,8 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
         it->numero = numero_instruction++;
 
         if (it->est_label()) {
-            crée_bloc_pour_label(blocs, blocs_libres, it->comme_label());
+            auto bloc = crée_bloc_pour_label(blocs, blocs_libres, it->comme_label());
+            bloc->fonction_et_blocs = this;
         }
     }
 
@@ -512,6 +514,8 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
 void FonctionEtBlocs::réinitialise()
 {
     graphe.réinitialise();
+    graphe_nécessite_ajournement = true;
+
     fonction = nullptr;
     les_blocs_ont_été_modifiés = false;
 
@@ -526,6 +530,12 @@ void FonctionEtBlocs::réinitialise()
 void FonctionEtBlocs::marque_blocs_modifiés()
 {
     les_blocs_ont_été_modifiés = true;
+    graphe_nécessite_ajournement = true;
+}
+
+void FonctionEtBlocs::marque_instructions_modifiés()
+{
+    graphe_nécessite_ajournement = true;
 }
 
 static void marque_blocs_atteignables(VisiteuseBlocs &visiteuse)
@@ -560,7 +570,7 @@ void FonctionEtBlocs::supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse)
     }
 
     blocs.redimensionne(nombre_de_nouveaux_blocs);
-    les_blocs_ont_été_modifiés = true;
+    marque_blocs_modifiés();
 }
 
 void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
@@ -575,12 +585,17 @@ void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
 
 Graphe &FonctionEtBlocs::donne_graphe_ajourné()
 {
+    if (!graphe_nécessite_ajournement) {
+        return graphe;
+    }
+
     graphe.réinitialise();
 
     POUR (blocs) {
         graphe.construit(it->instructions, it->donne_id());
     }
 
+    graphe_nécessite_ajournement = false;
     return graphe;
 }
 
