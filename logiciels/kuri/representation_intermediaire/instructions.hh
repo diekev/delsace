@@ -843,7 +843,6 @@ struct InstructionTranstype : public Instruction {
     {
         site = site_;
         genre = GenreInstruction::TRANSTYPE;
-        // À FAIRE : est chargeable si la valeur est un pointeur
     }
 
     Atome *valeur = nullptr;
@@ -860,6 +859,9 @@ struct InstructionTranstype : public Instruction {
         this->type = type_;
         this->valeur = valeur_;
         this->op = op_;
+        if (type->est_type_pointeur()) {
+            drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
+        }
     }
 };
 

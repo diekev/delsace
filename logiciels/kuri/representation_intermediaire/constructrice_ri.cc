@@ -2967,7 +2967,6 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
                                                           false),
                 membre_erreur,
                 TypeTranstypage::BITS);
-            membre_erreur->drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
             auto decl_expr_piegee =
                 noeud->expression_piegee->comme_reference_declaration()->declaration_referee;
             static_cast<NoeudDeclarationSymbole *>(decl_expr_piegee)->atome = membre_erreur;
@@ -2982,7 +2981,6 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
                                                       false),
             valeur_expression,
             TypeTranstypage::BITS);
-        valeur_expression->drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
     empile_valeur(valeur_expression);
@@ -3045,7 +3043,6 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
             m_compilatrice.typeuse.type_pointeur_pour(type_membre, false),
             ptr_union,
             TypeTranstypage::BITS);
-        ptr_union->drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
         empile_valeur(ptr_union);
         return;
     }
@@ -3087,7 +3084,6 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
             m_compilatrice.typeuse.type_pointeur_pour(type_membre, false),
             pointeur_membre,
             TypeTranstypage::BITS);
-        pointeur_membre->drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
     empile_valeur(pointeur_membre);
