@@ -13,8 +13,8 @@
 
 #include "bibliotheque.hh"
 #include "coulisse.hh"  // Pour nom_sortie_resultat_final.
-#include "log.hh"
 #include "options.hh"
+#include "utilitaires/log.hh"
 
 /* Pour Linux, nous préfixons avec "lib", sauf si nous avons un chemin. */
 static kuri::chaine_statique préfixe_lib_pour_linux(kuri::chaine_statique nom_base)
@@ -474,8 +474,15 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
     return true;
 }
 
-std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(
-    kuri::chaine_statique commande)
+kuri::chaine donne_contenu_fichier_erreur(kuri::chaine_statique chemin)
+{
+    /* Lis le fichier d'erreur. */
+    auto texte = charge_contenu_fichier(vers_std_path(chemin).string());
+    return kuri::chaine(&texte[0], texte.taille());
+}
+
+bool exécute_commande_externe_erreur(kuri::chaine_statique commande,
+                                     kuri::chaine_statique chemin_fichier_erreur)
 {
     assert(commande.taille() != 0 && commande.pointeur()[commande.taille() - 1] == '\0');
 
@@ -484,21 +491,30 @@ std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(
 
     info() << "Exécution de la commande '" << commande_sans_caractère_nul << "'...";
 
-    auto chemin_fichier_erreur = kuri::chemin_systeme::chemin_temporaire("erreur_commande.txt");
-
     auto nouvelle_commande = enchaine(
         commande_sans_caractère_nul, " 2> ", chemin_fichier_erreur, '\0');
 
     auto const err = system(nouvelle_commande.pointeur());
     if (err == 0) {
+        static_cast<void>(kuri::chemin_systeme::supprime(chemin_fichier_erreur));
         /* Succès. */
-        return {};
+        return true;
     }
 
-    /* Lis le fichier d'erreur. */
-    auto texte = charge_contenu_fichier(vers_std_path(chemin_fichier_erreur).string());
-    auto résultat = ErreurCommandeExterne{};
-    résultat.message = kuri::chaine(&texte[0], texte.taille());
+    return false;
+}
+
+std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(
+    kuri::chaine_statique commande)
+{
+    auto chemin_fichier_erreur = kuri::chemin_systeme::chemin_temporaire("erreur_commande.txt");
+    std::optional<ErreurCommandeExterne> résultat;
+
+    if (!exécute_commande_externe_erreur(commande, chemin_fichier_erreur)) {
+        résultat = ErreurCommandeExterne{donne_contenu_fichier_erreur(chemin_fichier_erreur)};
+        static_cast<void>(kuri::chemin_systeme::supprime(chemin_fichier_erreur));
+    }
+
     return résultat;
 }
 

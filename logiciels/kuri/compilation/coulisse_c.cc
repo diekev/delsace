@@ -24,9 +24,9 @@
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
-#include "log.hh"
 #include "programme.hh"
 #include "typage.hh"
+#include "utilitaires/log.hh"
 
 #include "representation_intermediaire/impression.hh"
 
@@ -72,6 +72,8 @@ static bool transtypage_est_utile(InstructionTranstype const *transtype)
 /** \name Déclaration de GénératriceCodeC.
  * \{ */
 
+struct ConvertisseuseTypeC;
+
 struct GénératriceCodeC {
     kuri::tableau<kuri::chaine_statique> table_valeurs{};
     kuri::table_hachage<Atome const *, kuri::chaine_statique> table_globales{"Valeurs globales C"};
@@ -82,6 +84,8 @@ struct GénératriceCodeC {
     AtomeFonction const *m_fonction_courante = nullptr;
 
     Broyeuse &broyeuse;
+
+    ConvertisseuseTypeC *m_convertisseuse_type_c = nullptr;
 
     /* Les atomes pour les chaines peuvent être générés plusieurs fois (notamment
      * pour celles des noms des fonctions pour les traces d'appel), donc nous suffixons les noms
@@ -120,6 +124,8 @@ struct GénératriceCodeC {
 
     EMPECHE_COPIE(GénératriceCodeC);
 
+    ~GénératriceCodeC();
+
     kuri::chaine_statique génère_code_pour_atome(Atome const *atome,
                                                  Enchaineuse &os,
                                                  bool pour_globale);
@@ -130,17 +136,15 @@ struct GénératriceCodeC {
 
     void déclare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc, bool pour_entête);
 
-    void génère_code(ProgrammeRepreInter const &repr_inter, CoulisseC &coulisse, Enchaineuse &os);
+    void génère_code(CoulisseC::FichierC const &fichier);
 
-    void génère_code(const ProgrammeRepreInter &repr_inter_programme, CoulisseC &coulisse);
-
-    void génère_code_entête(ProgrammeRepreInter const &repr_inter, Enchaineuse &os);
+    void génère_code_entête(CoulisseC::FichierC const &fichier, Enchaineuse &os);
+    void génère_code_source(CoulisseC::FichierC const &fichier, Enchaineuse &os);
 
     void génère_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
-    void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
 
     void génère_code_pour_tableaux_données_constantes(Enchaineuse &os,
-                                                      const ProgrammeRepreInter &repr_inter,
+                                                      DonnéesConstantes const *données_constantes,
                                                       bool pour_entête);
 
     kuri::chaine_statique donne_nom_pour_instruction(Instruction const *instruction);
@@ -941,6 +945,12 @@ static void déclare_visibilité_globale(Enchaineuse &os,
 GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
     : m_espace(espace), broyeuse(broyeuse_)
 {
+    m_convertisseuse_type_c = memoire::loge<ConvertisseuseTypeC>("Conver", broyeuse, *this);
+}
+
+GénératriceCodeC::~GénératriceCodeC()
+{
+    memoire::deloge("Conver", m_convertisseuse_type_c);
 }
 
 kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *atome,
@@ -1593,6 +1603,15 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
         if (pour_entête && atome_fonc->decl && !atome_fonc->est_externe) {
             os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
         }
+
+        if (atome_fonc->decl) {
+            if (atome_fonc->decl->ident == ID::__point_d_entree_dynamique) {
+                os << " __attribute__((constructor)) ";
+            }
+            else if (atome_fonc->decl->ident == ID::__point_de_sortie_dynamique) {
+                os << " __attribute__((destructor)) ";
+            }
+        }
     }
 
     auto type_fonction = atome_fonc->type->comme_type_fonction();
@@ -1644,34 +1663,33 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
     os << ")";
 }
 
-void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_inter, Enchaineuse &os)
+void GénératriceCodeC::génère_code_entête(CoulisseC::FichierC const &fichier, Enchaineuse &os)
 {
     /* Commençons par rassembler les tableaux de données constantes. */
-    auto données_constantes = repr_inter.donne_données_constantes();
-    if (données_constantes.has_value()) {
-        POUR (données_constantes.value()->tableaux_constants) {
+    if (fichier.données_constantes) {
+        POUR (fichier.données_constantes->tableaux_constants) {
             auto nom_globale = enchaine("&DC[", it.décalage_dans_données_constantes, "]");
             table_globales.insère(it.globale, nom_globale);
         }
     }
 
     /* Déclarons les globales. */
-    POUR (repr_inter.donne_globales()) {
+    POUR (fichier.globales) {
         déclare_globale(os, it, true);
         os << ";\n";
     }
 
-    génère_code_pour_tableaux_données_constantes(os, repr_inter, true);
+    génère_code_pour_tableaux_données_constantes(os, fichier.données_constantes, true);
 
     /* Déclarons ensuite les fonctions. */
-    POUR (repr_inter.donne_fonctions()) {
+    POUR (fichier.fonctions) {
         numérote_instructions(*it);
         déclare_fonction(os, it, true);
         os << ";\n\n";
     }
 
     /* Définissons ensuite les fonctions devant être enlignées. */
-    POUR (repr_inter.donne_fonctions_enlignées()) {
+    POUR (fichier.fonctions_enlignées) {
         génère_code_fonction(it, os);
     }
 }
@@ -1717,17 +1735,6 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     m_fonction_courante = nullptr;
 
     os << "}\n\n";
-}
-
-void GénératriceCodeC::vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os)
-{
-    auto fichier = coulisse.ajoute_fichier_c();
-    std::ofstream of;
-    of.open(
-        std::string(fichier.chemin_fichier.pointeur(), size_t(fichier.chemin_fichier.taille())));
-    os.imprime_dans_flux(of);
-    of.close();
-    os.réinitialise();
 }
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_instruction(const Instruction *instruction)
@@ -1820,14 +1827,11 @@ bool GénératriceCodeC::préserve_symboles() const
     return m_espace.compilatrice().arguments.préserve_symboles;
 }
 
-void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
-                                   CoulisseC &coulisse,
-                                   Enchaineuse &os)
+void GénératriceCodeC::génère_code_source(CoulisseC::FichierC const &fichier, Enchaineuse &os)
 {
-    os.réinitialise();
     os << "#include \"compilation_kuri.h\"\n";
 
-    génère_code_pour_tableaux_données_constantes(os, repr_inter, false);
+    génère_code_pour_tableaux_données_constantes(os, fichier.données_constantes, false);
 
     /* À FAIRE : les types de pointeurs de fonctions ne peuvent être convertis vers des types de
      * pointeurs d'objets. Nous devrons avoir des types distincts et supprimer *rien. En attendant,
@@ -1848,7 +1852,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
     os << désactive_pedantic;
 
     /* Définis les globales. */
-    POUR (repr_inter.donne_globales_internes()) {
+    POUR (fichier.globales) {
         auto valeur_initialisateur = kuri::chaine_statique();
 
         if (it->initialisateur) {
@@ -1865,79 +1869,45 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
     }
     os << active_pedantic;
 
-    /* Vide l'enchaineuse sauf si nous compilons un fichier objet car nous devons n'avoir qu'un
-     * seul fichier "*.o". */
-    if (m_espace.options.resultat != ResultatCompilation::FICHIER_OBJET) {
-        vide_enchaineuse_dans_fichier(coulisse, os);
-        os << "#include \"compilation_kuri.h\"\n";
-    }
-
-    /* Nombre maximum d'instructions par fichier, afin d'avoir une taille cohérente entre tous les
-     * fichiers. */
-    constexpr auto nombre_instructions_max_par_fichier = 50000;
-    int nombre_instructions = 0;
-
     /* Définis les fonctions. */
-    POUR (repr_inter.donne_fonctions_horslignées()) {
+    POUR (fichier.fonctions) {
         génère_code_fonction(it, os);
-        nombre_instructions += it->instructions.taille();
-
-        /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions, sauf si nous
-         * compilons un fichier objet car nous devons n'avoir qu'un seul fichier "*.o". */
-        if (m_espace.options.resultat != ResultatCompilation::FICHIER_OBJET &&
-            nombre_instructions > nombre_instructions_max_par_fichier) {
-            vide_enchaineuse_dans_fichier(coulisse, os);
-            os << "#include \"compilation_kuri.h\"\n";
-            nombre_instructions = 0;
-        }
-    }
-
-    if (m_espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        os << "static __attribute__((constructor)) void "
-              "initialise_kuri()\n{\n__point_d_entree_dynamique();\n}\n";
-        os << "static __attribute__((destructor)) void "
-              "issitialise_kuri()\n{\n__point_de_sortie_dynamique();\n}\n";
-    }
-
-    if (nombre_instructions != 0) {
-        vide_enchaineuse_dans_fichier(coulisse, os);
     }
 }
 
-void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_programme,
-                                   CoulisseC &coulisse)
+void GénératriceCodeC::génère_code(CoulisseC::FichierC const &fichier)
 {
     Enchaineuse enchaineuse;
-    ConvertisseuseTypeC convertisseuse_type_c(broyeuse, *this);
-    génère_code_début_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
 
-    POUR (repr_inter_programme.donne_types()) {
-        convertisseuse_type_c.génère_typedef(it, enchaineuse);
+    if (fichier.est_entête) {
+        génère_code_début_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
+
+        POUR (fichier.types) {
+            m_convertisseuse_type_c->génère_typedef(it, enchaineuse);
+        }
+
+        POUR (fichier.types) {
+            m_convertisseuse_type_c->génère_code_pour_type(it, enchaineuse);
+        }
+
+        génère_code_entête(fichier, enchaineuse);
+    }
+    else {
+        génère_code_source(fichier, enchaineuse);
     }
 
-    POUR (repr_inter_programme.donne_types()) {
-        convertisseuse_type_c.génère_code_pour_type(it, enchaineuse);
-    }
-
-    génère_code_entête(repr_inter_programme, enchaineuse);
-
-    auto chemin_fichier_entete = kuri::chemin_systeme::chemin_temporaire("compilation_kuri.h");
-    std::ofstream of(vers_std_path(chemin_fichier_entete));
+    std::ofstream of(vers_std_path(fichier.chemin_fichier));
     enchaineuse.imprime_dans_flux(of);
     of.close();
-
-    génère_code(repr_inter_programme, coulisse, enchaineuse);
 }
 
 void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
-    Enchaineuse &os, ProgrammeRepreInter const &repr_inter, bool pour_entête)
+    Enchaineuse &os, DonnéesConstantes const *données_constantes, bool pour_entête)
 {
-    auto opt_données_constantes = repr_inter.donne_données_constantes();
-    if (!opt_données_constantes.has_value()) {
+    if (!données_constantes) {
         return;
     }
 
-    auto données_constantes = opt_données_constantes.value();
     POUR (données_constantes->tableaux_constants) {
         auto nom_globale = enchaine("&DC[", it.décalage_dans_données_constantes, "]");
         table_globales.insère(it.globale, nom_globale);
@@ -1987,7 +1957,7 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
 /** \} */
 
-bool CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
+std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
 {
     auto &compilatrice_ri = *args.compilatrice_ri;
     auto &espace = *args.espace;
@@ -2000,21 +1970,39 @@ bool CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
         espace, compilatrice_ri, programme);
 
     if (!repr_inter_programme.has_value()) {
-        return false;
+        return ErreurCoulisse{"Impossible d'obtenir la représentation intermédiaire du programme"};
+    }
+
+    crée_fichiers(*repr_inter_programme, espace.options);
+
+    POUR (m_fichiers) {
+        if (!kuri::chemin_systeme::supprime(it.chemin_fichier)) {
+            return ErreurCoulisse{"Impossible de supprimer les vieux fichiers sources."};
+        }
     }
 
     auto génératrice = GénératriceCodeC(espace, *args.broyeuse);
-    génératrice.génère_code(*repr_inter_programme, *this);
+
+    POUR (m_fichiers) {
+        génératrice.génère_code(it);
+
+        if (!kuri::chemin_systeme::existe(it.chemin_fichier)) {
+            auto message = enchaine("Impossible d'écrire le fichier '", it.chemin_fichier, "'");
+            return ErreurCoulisse{message};
+        }
+    }
+
     m_bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
-    return true;
+    return {};
 }
 
-bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args)
+std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
+    const ArgsCréationFichiersObjets &args)
 {
     auto &espace = *args.espace;
 
 #ifdef CMAKE_BUILD_TYPE_PROFILE
-    return true;
+    return {};
 #else
 #    ifndef NDEBUG
     auto poule_de_tâches = kuri::PouleDeTâchesEnSérie{};
@@ -2023,6 +2011,19 @@ bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args
 #    endif
 
     POUR (m_fichiers) {
+        if (it.est_entête) {
+            continue;
+        }
+
+        if (!kuri::chemin_systeme::supprime(it.chemin_fichier_objet)) {
+            return ErreurCoulisse{"Impossible de supprimer les vieux fichiers objets."};
+        }
+    }
+
+    POUR (m_fichiers) {
+        if (it.est_entête) {
+            continue;
+        }
         poule_de_tâches.ajoute_tâche([&]() {
             kuri::chaine nom_sortie = it.chemin_fichier_objet;
             if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
@@ -2031,59 +2032,166 @@ bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args
 
             auto commande = commande_pour_fichier_objet(
                 espace.options, it.chemin_fichier, nom_sortie);
-            auto err = exécute_commande_externe_erreur(commande);
-            if (err.has_value()) {
-                it.erreur_fichier_objet = err.value().message;
-            }
+            exécute_commande_externe_erreur(commande, it.chemin_fichier_erreur_objet);
         });
     }
 
     poule_de_tâches.attends_sur_tâches();
 
     POUR (m_fichiers) {
-        if (it.erreur_fichier_objet.taille() == 0) {
+        if (it.est_entête) {
             continue;
         }
+        if (kuri::chemin_systeme::existe(it.chemin_fichier_erreur_objet)) {
+            auto contenu = donne_contenu_fichier_erreur(it.chemin_fichier_erreur_objet);
+            auto message = enchaine(
+                "Impossible de créer le fichier objet. Le compilateur C a retourné :\n\n",
+                contenu);
+            static_cast<void>(kuri::chemin_systeme::supprime(it.chemin_fichier_erreur_objet));
+            return ErreurCoulisse{message};
+        }
 
-        dbg() << it.erreur_fichier_objet;
-        return false;
+        if (!kuri::chemin_systeme::existe(it.chemin_fichier_objet)) {
+            auto message = enchaine(
+                "Le fichier objet '", it.chemin_fichier_objet, "' ne fut pas écris.");
+            return ErreurCoulisse{message};
+        }
     }
 
-    return true;
+    return {};
 #endif
 }
 
-bool CoulisseC::crée_exécutable_impl(const ArgsLiaisonObjets &args)
+std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
     auto &compilatrice = *args.compilatrice;
     auto &espace = *args.espace;
 
 #ifdef CMAKE_BUILD_TYPE_PROFILE
-    return true;
+    return {};
 #else
     if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {
-        return false;
+        return ErreurCoulisse{"Impossible de compiler l'objet pour r16."};
     }
 
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     POUR (m_fichiers) {
+        if (it.est_entête) {
+            continue;
+        }
         fichiers_objet.ajoute(it.chemin_fichier_objet);
     }
 
+    auto nom_sortie = nom_sortie_resultat_final(espace.options);
+    if (!kuri::chemin_systeme::supprime(nom_sortie)) {
+        return ErreurCoulisse{"Impossible de supprimer le vieux compilat."};
+    }
+
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
-    return exécute_commande_externe(commande);
+    auto err_commande = exécute_commande_externe_erreur(commande);
+    if (err_commande.has_value()) {
+        auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
+                                err_commande.value().message);
+        return ErreurCoulisse{message};
+    }
+
+    if (!kuri::chemin_systeme::existe(nom_sortie)) {
+        return ErreurCoulisse{"Le compilat ne fut pas créé."};
+    }
+
+    return {};
 #endif
 }
 
-CoulisseC::FichierC &CoulisseC::ajoute_fichier_c()
+void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
+                              OptionsDeCompilation const &options)
 {
-    auto nom_base_fichier = kuri::chemin_systeme::chemin_temporaire(
-        enchaine("compilation_kuri", m_fichiers.taille()));
+    const DonnéesConstantes *données_constantes = nullptr;
+    auto opt_données_constantes = repr_inter.donne_données_constantes();
+    if (opt_données_constantes.has_value()) {
+        données_constantes = opt_données_constantes.value();
+    }
 
-    auto nom_fichier = enchaine(nom_base_fichier, ".c");
-    auto nom_fichier_objet = nom_fichier_objet_pour(nom_base_fichier);
+    /* Crée le fichier d'entête. */
+    auto &entête = ajoute_fichier_c(true);
+    entête.données_constantes = données_constantes;
+    entête.types = repr_inter.donne_types();
+    entête.globales = repr_inter.donne_globales();
+    entête.fonctions = repr_inter.donne_fonctions();
+    entête.fonctions_enlignées = repr_inter.donne_fonctions_enlignées();
 
-    FichierC résultat = {nom_fichier, nom_fichier_objet};
+    /* Crée les fichiers sources. */
+
+    /* Si nous compilons un fichier objet, mets tout le code dans un seul fichier, car nous ne
+     * pouvons assembler plusieurs fichiers objets en un seul. */
+    if (options.resultat == ResultatCompilation::FICHIER_OBJET) {
+        auto &fichier = ajoute_fichier_c(false);
+        fichier.données_constantes = données_constantes;
+        fichier.types = repr_inter.donne_types();
+        fichier.globales = repr_inter.donne_globales_internes();
+        fichier.fonctions = repr_inter.donne_fonctions_horslignées();
+        return;
+    }
+
+    /* Crée un fichier source pour les globales. */
+    auto &fichier_globales = ajoute_fichier_c(false);
+    fichier_globales.données_constantes = données_constantes;
+    fichier_globales.globales = repr_inter.donne_globales_internes();
+
+    /* Distribue les fonctions internes horslignées dans plusieurs fichiers. */
+
+    /* Nombre maximum d'instructions par fichier, afin d'avoir une taille cohérente entre tous les
+     * fichiers. */
+    constexpr auto nombre_instructions_max_par_fichier = 50000;
+    int nombre_instructions = 0;
+    int index_première_fonction = 0;
+    auto fonctions = repr_inter.donne_fonctions_horslignées();
+    int nombre_fonctions = 0;
+
+    POUR_INDEX (fonctions) {
+        nombre_instructions += it->instructions.taille();
+        if (nombre_instructions <= nombre_instructions_max_par_fichier &&
+            index_it != fonctions.taille() - 1) {
+            nombre_fonctions++;
+            continue;
+        }
+
+        auto pointeur_fonction = fonctions.begin() + index_première_fonction;
+        auto taille = index_it - index_première_fonction + 1;
+
+        nombre_fonctions += 1;
+
+        auto fonctions_du_fichier = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
+                                                                            taille);
+
+        auto &fichier = ajoute_fichier_c(false);
+        fichier.fonctions = fonctions_du_fichier;
+
+        nombre_instructions = 0;
+        index_première_fonction = index_it + 1;
+    }
+}
+
+CoulisseC::FichierC &CoulisseC::ajoute_fichier_c(bool entête)
+{
+    kuri::chaine nom_fichier;
+    kuri::chaine nom_fichier_objet;
+    kuri::chaine nom_fichier_erreur;
+
+    if (entête) {
+        nom_fichier = kuri::chemin_systeme::chemin_temporaire("compilation_kuri.h").donne_chaine();
+    }
+    else {
+        auto nom_base_fichier = kuri::chemin_systeme::chemin_temporaire(
+            enchaine("compilation_kuri", m_fichiers.taille()));
+
+        nom_fichier = enchaine(nom_base_fichier, ".c");
+        nom_fichier_objet = nom_fichier_objet_pour(nom_base_fichier);
+        nom_fichier_erreur = enchaine(nom_base_fichier, "_erreur.txt");
+    }
+
+    FichierC résultat = {nom_fichier, nom_fichier_objet, nom_fichier_erreur};
+    résultat.est_entête = entête;
     m_fichiers.ajoute(résultat);
     return m_fichiers.dernière();
 }

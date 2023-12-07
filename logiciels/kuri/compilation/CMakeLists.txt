@@ -68,7 +68,6 @@ set(SOURCES
     gestionnaire_code.hh
     graphe_dependance.hh
     interface_module_kuri.hh
-    log.hh
     messagere.hh
     metaprogramme.hh
     monomorpheuse.hh
@@ -102,7 +101,6 @@ set(SOURCES
     gestionnaire_code.cc
     graphe_dependance.cc
     interface_module_kuri.cc
-    log.cc
     messagere.cc
     metaprogramme.cc
     monomorpheuse.cc

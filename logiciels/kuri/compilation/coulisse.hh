@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "structures/chaine.hh"
 
 class Broyeuse;
@@ -62,6 +64,10 @@ ArgsLiaisonObjets crée_args_liaison_objets(Compilatrice &compilatrice,
                                            EspaceDeTravail &espace,
                                            Programme *programme);
 
+struct ErreurCoulisse {
+    kuri::chaine message;
+};
+
 struct Coulisse {
     double temps_génération_code = 0.0;
     double temps_fichier_objet = 0.0;
@@ -82,11 +88,12 @@ struct Coulisse {
     bool crée_exécutable(ArgsLiaisonObjets const &args);
 
   protected:
-    virtual bool génère_code_impl(ArgsGénérationCode const &args) = 0;
+    virtual std::optional<ErreurCoulisse> génère_code_impl(ArgsGénérationCode const &args) = 0;
 
-    virtual bool crée_fichier_objet_impl(ArgsCréationFichiersObjets const &args) = 0;
+    virtual std::optional<ErreurCoulisse> crée_fichier_objet_impl(
+        ArgsCréationFichiersObjets const &args) = 0;
 
-    virtual bool crée_exécutable_impl(ArgsLiaisonObjets const &args) = 0;
+    virtual std::optional<ErreurCoulisse> crée_exécutable_impl(ArgsLiaisonObjets const &args) = 0;
 
   private:
     bool est_coulisse_métaprogramme() const;

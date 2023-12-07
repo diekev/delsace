@@ -14,6 +14,9 @@ ADN pour les directives
 // noms des fonctions d'initialisation des types
 // noms des fonctions d'initialisation des globales
 
+compilatrice_notifie_fonctions_parsées
+    // envoie un message pour toutes les fonctions parsées qui n'ont pas encore eu de message
+
 // -----------------------------------
 // Noms des types
 
@@ -118,6 +121,44 @@ Test pour les retours de pointeurs
 - passe les drapeaux de fonction aux métaprogrammes
 
 discr énumérations : ignore les noms qui ont des valeurs similaires, rapporte erreur si deux noms de valeurs égales sont utilisés en même temps
+
+// -----------------------------------
+// Table des types
+
+ajout de TableDesTypes + AtomeConstanteIndexTableType + suppression Type.index_dans_table_des_types
+
+struct TableDesTypes {
+    private:
+        kuri::tableau<Type const *> m_types{};
+
+        kuri::table_hachage<Type const *, int32_t> m_index_pour_types{};
+
+    public:
+        kuri::tableau<Type const *> donne_copie_table() const;
+
+        void ajoute_type(Type const *type)
+        {
+            if (m_index_pour_types.possède(type)) {
+                return;
+            }
+
+            auto index = int32_t(m_types.taille());
+            m_types.ajoute(type);
+            m_index_pour_types.insère(type, m_index);
+        }
+
+        std::optional<int32_t> donne_index_pour_type(Type const *type)
+        {
+            bool trouvé = false;
+            int32_t index = m_index_pour_types.trouve(type, trouvé);
+
+            if (!trouvé) {
+                return {};
+            }
+
+            return index;
+        }
+};
 
 // -----------------------------------
 // Avertissements

@@ -14,12 +14,14 @@ set(SOURCES
     algorithmes.cc
     calcul.cc
     compteuse_cas.cc
+    log.cc
     macros.cc
     poule_de_taches.cc
 
     algorithmes.hh
     calcul.hh
     compteuse_cas.hh
+    log.hh
     macros.hh
     poule_de_taches.hh
 )
