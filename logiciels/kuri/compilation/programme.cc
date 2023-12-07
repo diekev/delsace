@@ -1093,17 +1093,18 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
 
         it->index_dans_table_types = index_type++;
 
-        if (!it->atome_info_type) {
-            if (atome_table_des_types) {
-                /* Si la table des types est requise, créons un InfoType. */
-                auto info_type = m_compilatrice_ri.crée_info_type(it, nullptr);
-                ajoute_globale(info_type, true);
-            }
-            else {
-                /* La table n'est pas requise, ignorons-le. */
-                continue;
-            }
+        if (it->atome_info_type) {
+            continue;
         }
+
+        if (!atome_table_des_types) {
+            /* La table n'est pas requise, ignorons-le. */
+            continue;
+        }
+
+        /* Si la table des types est requise, créons un InfoType. */
+        auto info_type = m_compilatrice_ri.crée_info_type(it, nullptr);
+        ajoute_globale(info_type, true);
     }
 
     if (!atome_table_des_types) {
