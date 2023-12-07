@@ -25,6 +25,11 @@ struct chemin_systeme {
     chemin_systeme(chaine_statique chemin);
     chemin_systeme(chaine chemin);
 
+    chaine_statique donne_chaine() const
+    {
+        return donnees;
+    }
+
     /**
      * Retourne le nom de fichier à la fin du chemin.
      */
