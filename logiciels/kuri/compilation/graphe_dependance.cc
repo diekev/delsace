@@ -11,7 +11,7 @@
 #include "statistiques/statistiques.hh"
 
 #include "erreur.h"
-#include "log.hh"
+#include "utilitaires/log.hh"
 #include "metaprogramme.hh"
 #include "typage.hh"
 

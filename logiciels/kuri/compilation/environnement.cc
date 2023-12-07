@@ -13,7 +13,7 @@
 
 #include "bibliotheque.hh"
 #include "coulisse.hh"  // Pour nom_sortie_resultat_final.
-#include "log.hh"
+#include "utilitaires/log.hh"
 #include "options.hh"
 
 /* Pour Linux, nous préfixons avec "lib", sauf si nous avons un chemin. */

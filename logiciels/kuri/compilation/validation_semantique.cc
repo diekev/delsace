@@ -15,7 +15,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
-#include "log.hh"
+#include "utilitaires/log.hh"
 #include "numerique.hh"
 #include "portee.hh"
 #include "tacheronne.hh"

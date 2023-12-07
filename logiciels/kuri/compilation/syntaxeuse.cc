@@ -18,7 +18,7 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
-#include "log.hh"
+#include "utilitaires/log.hh"
 #include "numerique.hh"
 #include "typage.hh"
 

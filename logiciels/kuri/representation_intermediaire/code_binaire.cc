@@ -16,7 +16,7 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
-#include "compilation/log.hh"
+#include "utilitaires/log.hh"
 #include "compilation/operateurs.hh"
 #include "compilation/programme.hh"
 

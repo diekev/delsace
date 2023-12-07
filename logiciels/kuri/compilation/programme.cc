@@ -22,7 +22,7 @@
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
-#include "log.hh"
+#include "utilitaires/log.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
 

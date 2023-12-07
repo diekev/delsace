@@ -16,7 +16,7 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "log.hh"
+#include "utilitaires/log.hh"
 #include "typage.hh"
 
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique const &nom)

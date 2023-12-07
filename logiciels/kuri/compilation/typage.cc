@@ -14,7 +14,7 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "graphe_dependance.hh"
-#include "log.hh"
+#include "utilitaires/log.hh"
 #include "operateurs.hh"
 
 #include "statistiques/statistiques.hh"
