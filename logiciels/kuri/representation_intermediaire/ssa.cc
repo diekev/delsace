@@ -5,6 +5,7 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "utilitaires/algorithmes.hh"
 #include "utilitaires/log.hh"
 
 #include "parsage/identifiant.hh"
@@ -112,11 +113,23 @@ ENUMERE_GENRE_VALEUR_SSA(PRODECLARE_VALEURS)
     }                                                                                             \
     EMPECHE_COPIE(nom_classe)
 
+enum class DrapeauxValeur : uint8_t {
+    ZÉRO,
+    EST_UTILISÉE = (1u << 0),
+};
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxValeur)
+
 struct Valeur {
     GenreValeur genre{};
+    DrapeauxValeur drapeaux = DrapeauxValeur::ZÉRO;
     uint32_t numéro = 0;
 
     ENUMERE_GENRE_VALEUR_SSA(DECLARE_FONCTIONS_DISCRIMINATION)
+
+    inline bool est_controle_de_flux() const
+    {
+        return this->est_branche() || this->est_branche_cond() || this->est_retour();
+    }
 };
 
 #undef DECLARE_FONCTIONS_DISCRIMINATION
@@ -369,6 +382,85 @@ void NoeudPhi::remplace_dans_utisateur(Valeur *utilisateur, Valeur *par)
                 if (it == this) {
                     phi->définis_opérande(index_it, it);
                 }
+            }
+            break;
+        }
+    }
+}
+
+static void visite_valeur(Valeur *valeur,
+                          kuri::ensemble<Valeur *> &visitées,
+                          std::function<void(Valeur *)> const &rappel)
+{
+    if (visitées.possède(valeur)) {
+        return;
+    }
+
+    rappel(valeur);
+
+    visitées.insère(valeur);
+
+    switch (valeur->genre) {
+        case GenreValeur::INDÉFINIE:
+        case GenreValeur::FONCTION:
+        case GenreValeur::GLOBALE:
+        case GenreValeur::CONSTANTE:
+        case GenreValeur::BRANCHE:
+        {
+            break;
+        }
+        case GenreValeur::BRANCHE_COND:
+        {
+            auto branche = valeur->comme_branche_cond();
+            visite_valeur(branche->donne_condition(), visitées, rappel);
+            break;
+        }
+        case GenreValeur::RETOUR:
+        {
+            auto retour = valeur->comme_retour();
+            visite_valeur(retour->donne_valeur(), visitées, rappel);
+            break;
+        }
+        case GenreValeur::ACCÈS_MEMBRE:
+        {
+            auto accès_membre = valeur->comme_accès_membre();
+            visite_valeur(accès_membre->donne_accédée(), visitées, rappel);
+            break;
+        }
+        case GenreValeur::ACCÈS_INDEX:
+        {
+            auto accès_index = valeur->comme_accès_index();
+            visite_valeur(accès_index->donne_accédée(), visitées, rappel);
+            visite_valeur(accès_index->donne_index(), visitées, rappel);
+            break;
+        }
+        case GenreValeur::APPEL:
+        {
+            auto appel = valeur->comme_appel();
+            visite_valeur(appel->donne_valeur_appelée(), visitées, rappel);
+            POUR_INDEX (appel->donne_arguments()) {
+                visite_valeur(it, visitées, rappel);
+            }
+            break;
+        }
+        case GenreValeur::OPÉRATEUR_BINAIRE:
+        {
+            auto op_binaire = valeur->comme_opérateur_binaire();
+            visite_valeur(op_binaire->donne_gauche(), visitées, rappel);
+            visite_valeur(op_binaire->donne_droite(), visitées, rappel);
+            break;
+        }
+        case GenreValeur::OPÉRATEUR_UNAIRE:
+        {
+            auto op_unaire = valeur->comme_opérateur_unaire();
+            visite_valeur(op_unaire->donne_droite(), visitées, rappel);
+            break;
+        }
+        case GenreValeur::PHI:
+        {
+            auto phi = valeur->comme_phi();
+            POUR_INDEX (phi->opérandes) {
+                visite_valeur(it, visitées, rappel);
             }
             break;
         }
@@ -983,6 +1075,21 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
     }
 }
 
+static void imprime_bloc(Bloc *bloc)
+{
+    dbg() << "bloc: " << bloc->label->id;
+    dbg() << imprime_valeurs(bloc->valeurs);
+}
+
+static void imprime_blocs(FonctionEtBlocs &fonction_et_blocs)
+{
+    dbg() << "------------------------------------------------";
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        imprime_bloc(bloc);
+    }
+    dbg() << "------------------------------------------------";
+}
+
 static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
                                        VisiteuseBlocs &visiteuse)
 {
@@ -1052,6 +1159,12 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
             continue;
         }
 
+        if (it->enfants.taille() == 0) {
+            // le bloc est orphelin car toutes les branches ont été optimisées ?
+            imprime_bloc(it);
+            continue;
+        }
+
         auto bloc_enfant = it->enfants[0];
         if (bloc_enfant->parents.taille() != 1) {
             continue;
@@ -1061,7 +1174,7 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
         bloc_enfant->instructions.efface();
         bloc_enfant->valeurs.efface();
         /* Regère ce bloc au cas où le nouvelle enfant serait également une branche. */
-        if (it->valeurs.dernière()->est_branche()) {
+        if (it->valeurs.dernière()->est_branche() || it->valeurs.dernière()->est_branche_cond()) {
             i -= 1;
         }
         bloc_modifié = true;
@@ -1072,6 +1185,44 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
     }
 
     fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
+}
+
+static void supprime_valeurs_inutilisées(FonctionEtBlocs &fonction_et_blocs)
+{
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (valeur->est_controle_de_flux()) {
+                valeur->drapeaux |= DrapeauxValeur::EST_UTILISÉE;
+            }
+
+            kuri::ensemble<Valeur *> visitées;
+            visite_valeur(valeur, visitées, [&](Valeur *opérande) {
+                if (valeur == opérande) {
+                    return;
+                }
+
+                opérande->drapeaux |= DrapeauxValeur::EST_UTILISÉE;
+            });
+        }
+    }
+
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        auto partition = kuri::partition_stable(bloc->valeurs, [](Valeur const *v) {
+            return (v->drapeaux & DrapeauxValeur::EST_UTILISÉE) != DrapeauxValeur::ZÉRO;
+        });
+
+        bloc->valeurs.redimensionne(partition.vrai.taille());
+    }
+
+    auto numéro = 1u;
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (valeur->est_controle_de_flux()) {
+                continue;
+            }
+            valeur->numéro = numéro++;
+        }
+    }
 }
 
 void convertis_ssa(EspaceDeTravail &espace,
@@ -1131,11 +1282,12 @@ void convertis_ssa(EspaceDeTravail &espace,
         }
     }
 
+    imprime_blocs(fonction_et_blocs);
+
     auto visiteuse = VisiteuseBlocs(fonction_et_blocs);
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
-    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
-        dbg() << "bloc: " << bloc->label->id;
-        dbg() << imprime_valeurs(bloc->valeurs);
-    }
+    supprime_valeurs_inutilisées(fonction_et_blocs);
+
+    imprime_blocs(fonction_et_blocs);
 }
