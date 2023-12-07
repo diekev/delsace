@@ -2303,20 +2303,18 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             // valeur est déjà une constante, change simplement le type
             if (est_valeur_constante(valeur)) {
+                auto constante_entière = valeur->comme_constante_entière();
+                auto valeur_entière = constante_entière->valeur;
+
                 if (transformation.type_cible->est_type_reel()) {
-                    /* Change le type de l'atome si devons convertir vers un nombre réel. */
-
-                    auto constante_entière = valeur->comme_constante_entière();
-                    auto valeur_entière = constante_entière->valeur;
-
-                    static_assert(sizeof(AtomeConstanteEntière) == sizeof(AtomeConstanteRéelle));
-                    valeur->genre_atome = Atome::Genre::CONSTANTE_RÉELLE;
-                    auto constante_réelle = reinterpret_cast<AtomeConstanteRéelle *>(
-                        constante_entière);
-                    constante_réelle->valeur = static_cast<double>(valeur_entière);
+                    auto valeur_réelle = static_cast<double>(valeur_entière);
+                    valeur = m_constructrice.crée_constante_nombre_réel(transformation.type_cible,
+                                                                        valeur_réelle);
                 }
-
-                valeur->type = transformation.type_cible;
+                else {
+                    valeur = m_constructrice.crée_constante_nombre_entier(
+                        transformation.type_cible, valeur_entière);
+                }
             }
             // nous avons une temporaire créée lors d'une opération binaire
             else {
