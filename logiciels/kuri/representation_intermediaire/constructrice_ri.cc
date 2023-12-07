@@ -397,6 +397,11 @@ AtomeConstanteTailleDe *ConstructriceRI::crée_constante_taille_de(Type const *p
     return constantes_taille_de.ajoute_element(TypeBase::N32, pointeur_type);
 }
 
+AtomeIndexTableType *ConstructriceRI::crée_index_table_type(const Type *pointeur_type)
+{
+    return constantes_index_table_type.ajoute_element(TypeBase::N32, pointeur_type);
+}
+
 AtomeConstante *ConstructriceRI::crée_z32(uint64_t valeur)
 {
     return crée_constante_nombre_entier(TypeBase::Z32, valeur);
@@ -978,6 +983,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     AJOUTE_ENTREE(constantes_tableaux)
     AJOUTE_ENTREE(constantes_données_constantes)
     AJOUTE_ENTREE(constantes_types)
+    AJOUTE_ENTREE(constantes_index_table_type)
     AJOUTE_ENTREE(constantes_taille_de)
     AJOUTE_ENTREE(initialisations_tableau)
     AJOUTE_ENTREE(non_initialisations)
@@ -3842,7 +3848,7 @@ void CompilatriceRI::remplis_membres_de_bases_info_type(kuri::tableau<AtomeConst
      * du code machine. */
     valeurs[1] = m_constructrice.crée_constante_taille_de(pour_type);
     // L'index dans la table des types sera mis en place lors de la génération du code machine.
-    valeurs[2] = m_constructrice.crée_z32(0);
+    valeurs[2] = m_constructrice.crée_index_table_type(pour_type);
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type_défaut(unsigned index, Type const *pour_type)
