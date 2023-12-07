@@ -1603,6 +1603,15 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
         if (pour_entête && atome_fonc->decl && !atome_fonc->est_externe) {
             os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
         }
+
+        if (atome_fonc->decl) {
+            if (atome_fonc->decl->ident == ID::__point_d_entree_dynamique) {
+                os << " __attribute__((constructor)) ";
+            }
+            else if (atome_fonc->decl->ident == ID::__point_de_sortie_dynamique) {
+                os << " __attribute__((destructor)) ";
+            }
+        }
     }
 
     auto type_fonction = atome_fonc->type->comme_type_fonction();
@@ -1863,13 +1872,6 @@ void GénératriceCodeC::génère_code_source(CoulisseC::FichierC const &fichier
     /* Définis les fonctions. */
     POUR (fichier.fonctions) {
         génère_code_fonction(it, os);
-    }
-
-    if (m_espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        os << "static __attribute__((constructor)) void "
-              "initialise_kuri()\n{\n__point_d_entree_dynamique();\n}\n";
-        os << "static __attribute__((destructor)) void "
-              "issitialise_kuri()\n{\n__point_de_sortie_dynamique();\n}\n";
     }
 }
 
