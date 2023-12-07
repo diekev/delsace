@@ -85,6 +85,17 @@ bool compile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri,
  */
 bool exécute_commande_externe(kuri::chaine_statique commande);
 
+kuri::chaine donne_contenu_fichier_erreur(kuri::chaine_statique chemin);
+
+/**
+ * Exécute une commande externe et detourne le contenu de la sortie d'erreur de la commande vers le
+ * \a chemin_fichier_erreur. Retourne faux si la commande échoue.
+ * Cette fonction suppose que le fichier n'est pas à préserver, et donc supprime le fichier si la
+ * commande réussie.
+ */
+bool exécute_commande_externe_erreur(kuri::chaine_statique commande,
+                                     kuri::chaine_statique chemin_fichier_erreur);
+
 /* Données pour les erreurs des commandes externes. */
 struct ErreurCommandeExterne {
     kuri::chaine message{};
