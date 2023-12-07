@@ -138,6 +138,12 @@ struct chemin_systeme {
      * récursivement pointé par chemin.
      */
     static tablet<chemin_systeme, 16> fichiers_du_dossier_recursif(chaine_statique chemin);
+
+    /**
+     * Supprime le fichier au chemin spécifié. Retourne faux si le fichier ne fut supprimé, ou si
+     * le chemin n'est pas l'adresse d'un fichier régulier.
+     */
+    [[nodiscard]] static bool supprime(chaine_statique chemin);
 };
 
 chemin_systeme operator/(chemin_systeme const &chemin, chaine_statique chn);
