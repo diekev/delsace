@@ -89,6 +89,7 @@ struct ConstructriceRI {
     tableau_page<AtomeConstanteDonnéesConstantes> constantes_données_constantes{};
     tableau_page<AtomeConstanteType> constantes_types{};
     tableau_page<AtomeConstanteTailleDe> constantes_taille_de{};
+    tableau_page<AtomeIndexTableType> constantes_index_table_type{};
     tableau_page<AtomeInitialisationTableau> initialisations_tableau{};
     tableau_page<AtomeNonInitialisation> non_initialisations{};
     tableau_page<InstructionAllocation> insts_allocation{};
@@ -150,6 +151,7 @@ struct ConstructriceRI {
     AtomeConstanteEntière *crée_constante_nombre_entier(Type const *type, uint64_t valeur);
     AtomeConstanteType *crée_constante_type(Type const *pointeur_type);
     AtomeConstanteTailleDe *crée_constante_taille_de(Type const *pointeur_type);
+    AtomeIndexTableType *crée_index_table_type(Type const *pointeur_type);
     AtomeConstante *crée_z32(uint64_t valeur);
     AtomeConstante *crée_z64(uint64_t valeur);
     AtomeConstanteNulle *crée_constante_nulle(Type const *type);
