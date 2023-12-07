@@ -1087,7 +1087,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
     POUR (m_résultat.types) {
         if (est_type_tuple_ou_fonction_init_tuple(it)) {
             /* Ignore les tuples, nous ne devrions pas avoir de variables de ce type (aucune
-             * varible de type type_de_données(tuple) n'est possible). */
+             * variable de type type_de_données(tuple) n'est possible). */
             continue;
         }
 
