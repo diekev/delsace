@@ -1246,11 +1246,6 @@ static bool est_appel_init_contexte(InstructionAppel const *inst_appel)
 void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
-        case GenreInstruction::INVALIDE:
-        {
-            os << "  invalide\n";
-            break;
-        }
         case GenreInstruction::ALLOCATION:
         {
             auto type_pointeur = inst->type->comme_type_pointeur();

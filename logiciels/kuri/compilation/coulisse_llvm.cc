@@ -881,10 +881,6 @@ void GeneratriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst
     // dbg() << __func__;
 
     switch (inst->genre) {
-        case GenreInstruction::INVALIDE:
-        {
-            break;
-        }
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = inst->comme_alloc();

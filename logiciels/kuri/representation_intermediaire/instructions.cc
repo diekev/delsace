@@ -517,7 +517,6 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                     break;
                 }
                 case GenreInstruction::ALLOCATION:
-                case GenreInstruction::INVALIDE:
                 case GenreInstruction::BRANCHE:
                 case GenreInstruction::LABEL:
                 {
@@ -613,7 +612,6 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
             break;
         }
         case GenreInstruction::ALLOCATION:
-        case GenreInstruction::INVALIDE:
         case GenreInstruction::BRANCHE:
         case GenreInstruction::LABEL:
         {

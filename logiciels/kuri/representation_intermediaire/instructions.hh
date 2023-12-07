@@ -431,7 +431,6 @@ struct AtomeFonction : public AtomeConstante {
 };
 
 #define ENUMERE_GENRE_INSTRUCTION(O)                                                              \
-    O(INVALIDE)                                                                                   \
     O(APPEL)                                                                                      \
     O(ALLOCATION)                                                                                 \
     O(OPERATION_BINAIRE)                                                                          \
@@ -455,7 +454,7 @@ enum class GenreInstruction : uint32_t {
 std::ostream &operator<<(std::ostream &os, GenreInstruction genre);
 
 struct Instruction : public Atome {
-    GenreInstruction genre = GenreInstruction::INVALIDE;
+    GenreInstruction genre{};
     int numero = 0;
     NoeudExpression const *site = nullptr;
 

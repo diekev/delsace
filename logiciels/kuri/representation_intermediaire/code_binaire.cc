@@ -1391,10 +1391,6 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                                                            bool pour_operande)
 {
     switch (instruction->genre) {
-        case GenreInstruction::INVALIDE:
-        {
-            return;
-        }
         case GenreInstruction::LABEL:
         {
             auto label = instruction->comme_label();

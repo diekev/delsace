@@ -315,11 +315,6 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
 static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
-        case GenreInstruction::INVALIDE:
-        {
-            os << "  invalide";
-            break;
-        }
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = inst->comme_alloc();
