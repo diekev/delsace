@@ -15,7 +15,7 @@
 #include "programme.hh"
 #include "utilitaires/log.hh"
 
-bool CoulisseMV::génère_code_impl(const ArgsGénérationCode &args)
+std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérationCode &args)
 {
     auto &compilatrice = *args.compilatrice;
     auto &compilatrice_ri = *args.compilatrice_ri;
@@ -25,7 +25,7 @@ bool CoulisseMV::génère_code_impl(const ArgsGénérationCode &args)
     auto opt_repr_inter = représentation_intermédiaire_programme(
         espace, compilatrice_ri, programme);
     if (!opt_repr_inter.has_value()) {
-        return false;
+        return ErreurCoulisse{"Impossible d'obtenir la représentation intermédiaire du programme"};
     }
     auto &repr_inter = opt_repr_inter.value();
     auto métaprogramme = programme.pour_métaprogramme();
@@ -50,15 +50,20 @@ bool CoulisseMV::génère_code_impl(const ArgsGénérationCode &args)
     std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
 
     auto compilatrice_cb = CompilatriceCodeBinaire(&espace, métaprogramme);
-    return compilatrice_cb.génère_code(repr_inter);
+    if (!compilatrice_cb.génère_code(repr_inter)) {
+        return ErreurCoulisse{"Impossible de générer le code binaire."};
+    }
+
+    return {};
 }
 
-bool CoulisseMV::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & /*args*/)
+std::optional<ErreurCoulisse> CoulisseMV::crée_fichier_objet_impl(
+    const ArgsCréationFichiersObjets & /*args*/)
 {
-    return true;
+    return {};
 }
 
-bool CoulisseMV::crée_exécutable_impl(const ArgsLiaisonObjets &args)
+std::optional<ErreurCoulisse> CoulisseMV::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
     auto &compilatrice = *args.compilatrice;
     auto programme = args.programme;
@@ -112,5 +117,5 @@ bool CoulisseMV::crée_exécutable_impl(const ArgsLiaisonObjets &args)
         // dbg() << "Écris adresse : " << adresse_source << ", à " << adresse_destination;
     }
 
-    return true;
+    return {};
 }

@@ -1544,10 +1544,10 @@ CoulisseLLVM::~CoulisseLLVM()
     delete m_machine_cible;
 }
 
-bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
+std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
 {
     if (!initialise_llvm()) {
-        return false;
+        return ErreurCoulisse{"Impossible d'intialiser LLVM."};
     }
 
     auto &compilatrice_ri = *args.compilatrice_ri;
@@ -1560,13 +1560,19 @@ bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
     auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
 
     if (!cible) {
-        dbg() << erreur;
-        return false;
+        auto message_erreur = enchaine("Erreur lors la recherche de la cible selon le triplet '",
+                                       triplet_cible,
+                                       "'.\n",
+                                       "LLVM dis '",
+                                       erreur,
+                                       "'.");
+
+        return ErreurCoulisse{message_erreur};
     }
 
     auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, programme);
     if (!repr_inter.has_value()) {
-        return false;
+        return ErreurCoulisse{"Impossible d'obtenir la représentation intermédiaire du programme"};
     }
 
     auto CPU = "generic";
@@ -1587,19 +1593,21 @@ bool CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
         auto opt_erreur_validation = valide_llvm_ir(*it->module);
         if (opt_erreur_validation.has_value()) {
             auto erreur_validation = opt_erreur_validation.value();
-            espace.rapporte_erreur_sans_site("Erreur lors de la validation du code LLVM.")
-                .ajoute_message("La commande a retourné :\n\n", erreur_validation.message);
-            return false;
+            auto message_erreur = enchaine("Erreur lors de la validation du code LLVM.\n",
+                                           "La commande a retourné :\n\n",
+                                           erreur_validation.message);
+            return ErreurCoulisse{message_erreur};
         }
     }
 #endif
 
     m_bibliothèques = repr_inter->donne_bibliothèques_utilisées();
 
-    return true;
+    return {};
 }
 
-bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & /*args*/)
+std::optional<ErreurCoulisse> CoulisseLLVM::crée_fichier_objet_impl(
+    const ArgsCréationFichiersObjets & /*args*/)
 {
 #ifndef NDEBUG
     auto poule_de_tâches = kuri::PouleDeTâchesEnSérie{};
@@ -1622,11 +1630,10 @@ bool CoulisseLLVM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets & 
             continue;
         }
 
-        dbg() << it->erreur_fichier_objet;
-        return false;
+        return ErreurCoulisse{it->erreur_fichier_objet};
     }
 
-    return true;
+    return {};
 }
 
 static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation const &options)
@@ -1638,7 +1645,7 @@ static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation c
     return "fichiers/point_d_entree.c";
 }
 
-bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
+std::optional<ErreurCoulisse> CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
     auto &compilatrice = *args.compilatrice;
     auto &espace = *args.espace;
@@ -1655,11 +1662,10 @@ bool CoulisseLLVM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
 
     if (!exécute_commande_externe(commande)) {
-        dbg() << "Ne peut pas créer l'executable !";
-        return false;
+        return ErreurCoulisse{"Ne peut pas créer l'executable !"};
     }
 
-    return true;
+    return {};
 }
 
 void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module)

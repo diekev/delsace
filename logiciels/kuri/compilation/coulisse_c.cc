@@ -1957,7 +1957,7 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
 /** \} */
 
-bool CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
+std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
 {
     auto &compilatrice_ri = *args.compilatrice_ri;
     auto &espace = *args.espace;
@@ -1970,15 +1970,14 @@ bool CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
         espace, compilatrice_ri, programme);
 
     if (!repr_inter_programme.has_value()) {
-        return false;
+        return ErreurCoulisse{"Impossible d'obtenir la représentation intermédiaire du programme"};
     }
 
     crée_fichiers(*repr_inter_programme, espace.options);
 
     POUR (m_fichiers) {
         if (!kuri::chemin_systeme::supprime(it.chemin_fichier)) {
-            dbg() << "Impossible de supprimer les vieux fichiers sources.";
-            return false;
+            return ErreurCoulisse{"Impossible de supprimer les vieux fichiers sources."};
         }
     }
 
@@ -1988,21 +1987,22 @@ bool CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
         génératrice.génère_code(it);
 
         if (!kuri::chemin_systeme::existe(it.chemin_fichier)) {
-            dbg() << "Impossible d'écrire le fichier '" << it.chemin_fichier << "'";
-            return false;
+            auto message = enchaine("Impossible d'écrire le fichier '", it.chemin_fichier, "'");
+            return ErreurCoulisse{message};
         }
     }
 
     m_bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
-    return true;
+    return {};
 }
 
-bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args)
+std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
+    const ArgsCréationFichiersObjets &args)
 {
     auto &espace = *args.espace;
 
 #ifdef CMAKE_BUILD_TYPE_PROFILE
-    return true;
+    return {};
 #else
 #    ifndef NDEBUG
     auto poule_de_tâches = kuri::PouleDeTâchesEnSérie{};
@@ -2016,8 +2016,7 @@ bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args
         }
 
         if (!kuri::chemin_systeme::supprime(it.chemin_fichier_objet)) {
-            dbg() << "Impossible de supprimer les vieux fichiers objets.";
-            return false;
+            return ErreurCoulisse{"Impossible de supprimer les vieux fichiers objets."};
         }
     }
 
@@ -2047,30 +2046,33 @@ bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args
             continue;
         }
         if (it.erreur_fichier_objet.taille() != 0) {
-            dbg() << it.erreur_fichier_objet;
-            return false;
+            auto message = enchaine(
+                "Impossible de créer le fichier objet. Le compilateur C a retourné :\n\n",
+                it.erreur_fichier_objet);
+            return ErreurCoulisse{message};
         }
 
         if (!kuri::chemin_systeme::existe(it.chemin_fichier_objet)) {
-            dbg() << "Le fichier objet '" << it.chemin_fichier_objet << "' ne fut pas écris.";
-            return false;
+            auto message = enchaine(
+                "Le fichier objet '", it.chemin_fichier_objet, "' ne fut pas écris.");
+            return ErreurCoulisse{message};
         }
     }
 
-    return true;
+    return {};
 #endif
 }
 
-bool CoulisseC::crée_exécutable_impl(const ArgsLiaisonObjets &args)
+std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
     auto &compilatrice = *args.compilatrice;
     auto &espace = *args.espace;
 
 #ifdef CMAKE_BUILD_TYPE_PROFILE
-    return true;
+    return {};
 #else
     if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {
-        return false;
+        return ErreurCoulisse{"Impossible de compiler l'objet pour r16."};
     }
 
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
@@ -2083,21 +2085,22 @@ bool CoulisseC::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 
     auto nom_sortie = nom_sortie_resultat_final(espace.options);
     if (!kuri::chemin_systeme::supprime(nom_sortie)) {
-        dbg() << "Impossible de supprimer le vieux compilat.";
-        return false;
+        return ErreurCoulisse{"Impossible de supprimer le vieux compilat."};
     }
 
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
-    if (!exécute_commande_externe(commande)) {
-        return false;
+    auto err_commande = exécute_commande_externe_erreur(commande);
+    if (err_commande.has_value()) {
+        auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
+                                err_commande.value().message);
+        return ErreurCoulisse{message};
     }
 
     if (!kuri::chemin_systeme::existe(nom_sortie)) {
-        dbg() << "Le compilat ne fut pas créé.";
-        return false;
+        return ErreurCoulisse{"Le compilat ne fut pas créé."};
     }
 
-    return true;
+    return {};
 #endif
 }
 
