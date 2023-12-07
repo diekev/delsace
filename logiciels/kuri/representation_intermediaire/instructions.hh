@@ -42,6 +42,7 @@ enum class VisibilitéSymbole : uint8_t;
     O(CONSTANTE_TABLEAU_FIXE, AtomeConstanteTableauFixe, constante_tableau)                       \
     O(CONSTANTE_DONNÉES_CONSTANTES, AtomeConstanteDonnéesConstantes, données_constantes)          \
     O(CONSTANTE_TYPE, AtomeConstanteType, constante_type)                                         \
+    O(CONSTANTE_INDEX_TABLE_TYPE, AtomeIndexTableType, index_table_type)                          \
     O(CONSTANTE_TAILLE_DE, AtomeConstanteTailleDe, taille_de)                                     \
     O(INITIALISATION_TABLEAU, AtomeInitialisationTableau, initialisation_tableau)                 \
     O(NON_INITIALISATION, AtomeNonInitialisation, non_initialisation)                             \
@@ -257,6 +258,19 @@ struct AtomeConstanteType : public AtomeConstante {
     }
 
     EMPECHE_COPIE(AtomeConstanteType);
+};
+
+struct AtomeIndexTableType : public AtomeConstante {
+    Type const *type_de_données = nullptr;
+
+    AtomeIndexTableType(Type const *type_, Type const *type_de_données_)
+        : type_de_données(type_de_données_)
+    {
+        type = type_;
+        genre_atome = Genre::CONSTANTE_INDEX_TABLE_TYPE;
+    }
+
+    EMPECHE_COPIE(AtomeIndexTableType);
 };
 
 struct AtomeConstanteTailleDe : public AtomeConstante {

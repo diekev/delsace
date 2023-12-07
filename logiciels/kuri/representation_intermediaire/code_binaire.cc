@@ -1862,6 +1862,14 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
 
             break;
         }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            /* Nous utilisons directement InfoType* créer pour les NoeudCode. Nous ne devions pas
+             * être ici. */
+            assert_rappel(false,
+                          []() { dbg() << "CONSTANTE_INDEX_TABLE_TYPE dans le code binaire."; });
+            break;
+        }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
             break;
@@ -1978,6 +1986,14 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         {
             auto type = atome->comme_taille_de()->type_de_données;
             assigne(destination, type->taille_octet);
+            break;
+        }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            /* Nous utilisons directement InfoType* créer pour les NoeudCode. Nous ne devions pas
+             * être ici. */
+            assert_rappel(false,
+                          []() { dbg() << "CONSTANTE_INDEX_TABLE_TYPE dans le code binaire."; });
             break;
         }
         case Atome::Genre::CONSTANTE_RÉELLE:

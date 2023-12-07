@@ -80,6 +80,10 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
         {
             return "";
         }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            return "";
+        }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
             auto constante_réelle = atome->comme_constante_réelle();

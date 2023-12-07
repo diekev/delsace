@@ -146,6 +146,12 @@ static void imprime_information_atome(Atome const *atome, Enchaineuse &os)
             os << " représentant une valeur constante TAILLE_DE";
             break;
         }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante CONSTANTE_INDEX_TABLE_TYPE";
+            break;
+        }
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             os << "constante de type " << chaine_type(atome->type, false);

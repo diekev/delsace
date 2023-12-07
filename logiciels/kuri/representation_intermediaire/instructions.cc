@@ -402,6 +402,7 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         case Atome::Genre::NON_INITIALISATION:
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
         {
             /* Pas de sous-atome. */
             break;
