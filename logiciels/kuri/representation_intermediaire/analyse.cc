@@ -78,6 +78,7 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         case Atome::Genre::INITIALISATION_TABLEAU:
         case Atome::Genre::NON_INITIALISATION:
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
         {
             break;
         }
