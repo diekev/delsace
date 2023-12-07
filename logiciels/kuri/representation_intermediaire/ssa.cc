@@ -105,6 +105,13 @@ ENUMERE_GENRE_VALEUR_SSA(PRODECLARE_VALEURS)
         return static_cast<nom_classe const *>(this);                                             \
     }
 
+#define CONSTRUCTEUR_VALEUR(nom_classe, nom_genre)                                                \
+    nom_classe()                                                                                  \
+    {                                                                                             \
+        genre = GenreValeur::nom_genre;                                                           \
+    }                                                                                             \
+    EMPECHE_COPIE(nom_classe)
+
 struct Valeur {
     GenreValeur genre{};
     uint32_t numéro = 0;
@@ -119,9 +126,7 @@ struct NoeudPhi : public Valeur {
     kuri::tableau<Valeur *> opérandes{};
     kuri::tableau<Valeur *> utilisateurs{};
 
-    NoeudPhi();
-
-    EMPECHE_COPIE(NoeudPhi);
+    CONSTRUCTEUR_VALEUR(NoeudPhi, PHI);
 
     void appendOperand(Valeur *valeur);
 
@@ -147,82 +152,48 @@ static void ajoute_utilisateur_si_phi(Valeur *phi_potentiel, Valeur *utilisateur
 }
 
 struct ValeurIndéfinie : public Valeur {
-    ValeurIndéfinie()
-    {
-        genre = GenreValeur::INDÉFINIE;
-    }
+    CONSTRUCTEUR_VALEUR(ValeurIndéfinie, INDÉFINIE);
 };
 
 struct ValeurBranche : public Valeur {
-    ValeurBranche()
-    {
-        genre = GenreValeur::BRANCHE;
-    }
+    CONSTRUCTEUR_VALEUR(ValeurBranche, BRANCHE);
+
     InstructionBranche const *inst = nullptr;
 };
 
 struct ValeurBrancheCond : public Valeur {
-    ValeurBrancheCond()
-    {
-        genre = GenreValeur::BRANCHE_COND;
-    }
-    EMPECHE_COPIE(ValeurBrancheCond);
+    CONSTRUCTEUR_VALEUR(ValeurBrancheCond, BRANCHE_COND);
 
     MEMBRE_VALEUR(condition)
     InstructionBrancheCondition const *inst = nullptr;
 };
 
 struct ValeurRetour : public Valeur {
-    ValeurRetour()
-    {
-        genre = GenreValeur::RETOUR;
-    }
-
-    EMPECHE_COPIE(ValeurRetour);
+    CONSTRUCTEUR_VALEUR(ValeurRetour, RETOUR);
 
     MEMBRE_VALEUR(valeur)
 };
 
 struct ValeurConstante : public Valeur {
-    ValeurConstante()
-    {
-        genre = GenreValeur::CONSTANTE;
-    }
-
-    EMPECHE_COPIE(ValeurConstante);
+    CONSTRUCTEUR_VALEUR(ValeurConstante, CONSTANTE);
 
     AtomeConstante const *atome = nullptr;
 };
 
 struct ValeurFonction : public Valeur {
-    ValeurFonction()
-    {
-        genre = GenreValeur::FONCTION;
-    }
-
-    EMPECHE_COPIE(ValeurFonction);
+    CONSTRUCTEUR_VALEUR(ValeurFonction, FONCTION);
 
     AtomeFonction const *atome = nullptr;
 };
 
 struct ValeurGlobale : public Valeur {
-    ValeurGlobale()
-    {
-        genre = GenreValeur::GLOBALE;
-    }
-
-    EMPECHE_COPIE(ValeurGlobale);
+    CONSTRUCTEUR_VALEUR(ValeurGlobale, GLOBALE);
 
     AtomeGlobale const *atome = nullptr;
 };
 
 struct ValeurOpérateurBinaire : public Valeur {
-    ValeurOpérateurBinaire()
-    {
-        genre = GenreValeur::OPÉRATEUR_BINAIRE;
-    }
-
-    EMPECHE_COPIE(ValeurOpérateurBinaire);
+    CONSTRUCTEUR_VALEUR(ValeurOpérateurBinaire, OPÉRATEUR_BINAIRE);
 
     MEMBRE_VALEUR(gauche)
     MEMBRE_VALEUR(droite)
@@ -230,46 +201,26 @@ struct ValeurOpérateurBinaire : public Valeur {
 };
 
 struct ValeurOpérateurUnaire : public Valeur {
-    ValeurOpérateurUnaire()
-    {
-        genre = GenreValeur::OPÉRATEUR_UNAIRE;
-    }
-
-    EMPECHE_COPIE(ValeurOpérateurUnaire);
+    CONSTRUCTEUR_VALEUR(ValeurOpérateurUnaire, OPÉRATEUR_UNAIRE);
 
     MEMBRE_VALEUR(droite)
 };
 
 struct ValeurAccèdeMembre : public Valeur {
-    ValeurAccèdeMembre()
-    {
-        genre = GenreValeur::ACCÈS_MEMBRE;
-    }
-
-    EMPECHE_COPIE(ValeurAccèdeMembre);
+    CONSTRUCTEUR_VALEUR(ValeurAccèdeMembre, ACCÈS_MEMBRE);
 
     MEMBRE_VALEUR(accédée)
 };
 
 struct ValeurAccèdeIndex : public Valeur {
-    ValeurAccèdeIndex()
-    {
-        genre = GenreValeur::ACCÈS_INDEX;
-    }
-
-    EMPECHE_COPIE(ValeurAccèdeIndex);
+    CONSTRUCTEUR_VALEUR(ValeurAccèdeIndex, ACCÈS_INDEX);
 
     MEMBRE_VALEUR(accédée)
     MEMBRE_VALEUR(index)
 };
 
 struct ValeurAppel : public Valeur {
-    ValeurAppel()
-    {
-        genre = GenreValeur::APPEL;
-    }
-
-    EMPECHE_COPIE(ValeurAppel);
+    CONSTRUCTEUR_VALEUR(ValeurAppel, APPEL);
 
     MEMBRE_VALEUR(valeur_appelée)
 
@@ -288,11 +239,6 @@ struct ValeurAppel : public Valeur {
         return arguments;
     }
 };
-
-NoeudPhi::NoeudPhi()
-{
-    genre = GenreValeur::PHI;
-}
 
 void NoeudPhi::appendOperand(Valeur *valeur)
 {
