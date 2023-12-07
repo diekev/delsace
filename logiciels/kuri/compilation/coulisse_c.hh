@@ -7,7 +7,12 @@
 
 #include "structures/tableau.hh"
 
+struct AtomeFonction;
+struct AtomeGlobale;
 struct Bibliotheque;
+struct DonnéesConstantes;
+struct ProgrammeRepreInter;
+struct Type;
 
 struct CoulisseC final : public Coulisse {
     kuri::tableau<Bibliotheque *> m_bibliothèques{};
@@ -16,16 +21,26 @@ struct CoulisseC final : public Coulisse {
         kuri::chaine chemin_fichier{};
         kuri::chaine chemin_fichier_objet{};
         kuri::chaine erreur_fichier_objet{};
+
+        const DonnéesConstantes *données_constantes = nullptr;
+        kuri::tableau_statique<Type *> types{};
+        kuri::tableau_statique<AtomeGlobale *> globales{};
+        kuri::tableau_statique<AtomeFonction *> fonctions{};
+        kuri::tableau_statique<AtomeFonction *> fonctions_enlignées{};
+
+        bool est_entête = false;
     };
 
+  private:
     kuri::tableau<FichierC> m_fichiers{};
 
-    FichierC &ajoute_fichier_c();
-
-  private:
     bool génère_code_impl(ArgsGénérationCode const &args) override;
 
     bool crée_fichier_objet_impl(ArgsCréationFichiersObjets const &args) override;
 
     bool crée_exécutable_impl(ArgsLiaisonObjets const &args) override;
+
+    void crée_fichiers(ProgrammeRepreInter const &repr_inter, OptionsDeCompilation const &options);
+
+    FichierC &ajoute_fichier_c(bool entête);
 };
