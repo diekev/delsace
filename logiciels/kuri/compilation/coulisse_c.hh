@@ -20,7 +20,7 @@ struct CoulisseC final : public Coulisse {
     struct FichierC {
         kuri::chaine chemin_fichier{};
         kuri::chaine chemin_fichier_objet{};
-        kuri::chaine erreur_fichier_objet{};
+        kuri::chaine chemin_fichier_erreur_objet{};
 
         const DonnéesConstantes *données_constantes = nullptr;
         kuri::tableau_statique<Type *> types{};

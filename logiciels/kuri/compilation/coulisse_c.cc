@@ -2032,10 +2032,7 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
 
             auto commande = commande_pour_fichier_objet(
                 espace.options, it.chemin_fichier, nom_sortie);
-            auto err = exécute_commande_externe_erreur(commande);
-            if (err.has_value()) {
-                it.erreur_fichier_objet = err.value().message;
-            }
+            exécute_commande_externe_erreur(commande, it.chemin_fichier_erreur_objet);
         });
     }
 
@@ -2045,10 +2042,12 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
         if (it.est_entête) {
             continue;
         }
-        if (it.erreur_fichier_objet.taille() != 0) {
+        if (kuri::chemin_systeme::existe(it.chemin_fichier_erreur_objet)) {
+            auto contenu = donne_contenu_fichier_erreur(it.chemin_fichier_erreur_objet);
             auto message = enchaine(
                 "Impossible de créer le fichier objet. Le compilateur C a retourné :\n\n",
-                it.erreur_fichier_objet);
+                contenu);
+            static_cast<void>(kuri::chemin_systeme::supprime(it.chemin_fichier_erreur_objet));
             return ErreurCoulisse{message};
         }
 
@@ -2177,6 +2176,7 @@ CoulisseC::FichierC &CoulisseC::ajoute_fichier_c(bool entête)
 {
     kuri::chaine nom_fichier;
     kuri::chaine nom_fichier_objet;
+    kuri::chaine nom_fichier_erreur;
 
     if (entête) {
         nom_fichier = kuri::chemin_systeme::chemin_temporaire("compilation_kuri.h").donne_chaine();
@@ -2187,9 +2187,10 @@ CoulisseC::FichierC &CoulisseC::ajoute_fichier_c(bool entête)
 
         nom_fichier = enchaine(nom_base_fichier, ".c");
         nom_fichier_objet = nom_fichier_objet_pour(nom_base_fichier);
+        nom_fichier_erreur = enchaine(nom_base_fichier, "_erreur.txt");
     }
 
-    FichierC résultat = {nom_fichier, nom_fichier_objet};
+    FichierC résultat = {nom_fichier, nom_fichier_objet, nom_fichier_erreur};
     résultat.est_entête = entête;
     m_fichiers.ajoute(résultat);
     return m_fichiers.dernière();
