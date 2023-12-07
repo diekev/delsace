@@ -17,10 +17,10 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
-#include "log.hh"
 #include "programme.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
+#include "utilitaires/log.hh"
 
 int DonnéesConstantesExécutions::ajoute_globale(Type const *type,
                                                 IdentifiantCode *ident,

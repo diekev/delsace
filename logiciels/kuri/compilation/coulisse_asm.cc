@@ -454,12 +454,13 @@ void GeneratriceCodeASM::genere_code(kuri::tableau_statique<AtomeGlobale *> glob
     }
 }
 
-bool CoulisseASM::génère_code_impl(const ArgsGénérationCode & /*args*/)
+std::optional<ErreurCoulisse> CoulisseASM::génère_code_impl(const ArgsGénérationCode & /*args*/)
 {
-    return true;
+    return {};
 }
 
-bool CoulisseASM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args)
+std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
+    const ArgsCréationFichiersObjets &args)
 {
     auto &compilatrice_ri = *args.compilatrice_ri;
     auto &espace = *args.espace;
@@ -473,7 +474,7 @@ bool CoulisseASM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &ar
         espace, compilatrice_ri, programme);
 
     if (!repr_inter_programme.has_value()) {
-        return false;
+        return ErreurCoulisse{"Impossible d'obtenir la représentation intermédiaire du programme"};
     }
 
     // genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
@@ -487,10 +488,10 @@ bool CoulisseASM::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &ar
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
 
-    return true;
+    return {};
 }
 
-bool CoulisseASM::crée_exécutable_impl(const ArgsLiaisonObjets & /*args*/)
+std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiaisonObjets & /*args*/)
 {
-    return false;
+    return ErreurCoulisse{"La création de compilat n'est pas encore implémenté."};
 }
