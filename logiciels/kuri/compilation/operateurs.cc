@@ -845,3 +845,97 @@ void enregistre_opérateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &r
     registre.op_comp_diff_types = registre.ajoute_basique(
         GenreLexeme::DIFFERENCE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 }
+
+kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op)
+{
+    switch (op) {
+        case OpérateurBinaire::Genre::Addition:
+        case OpérateurBinaire::Genre::Addition_Reel:
+        {
+            return "+";
+        }
+        case OpérateurBinaire::Genre::Soustraction:
+        case OpérateurBinaire::Genre::Soustraction_Reel:
+        {
+            return "-";
+        }
+        case OpérateurBinaire::Genre::Multiplication:
+        case OpérateurBinaire::Genre::Multiplication_Reel:
+        {
+            return "*";
+        }
+        case OpérateurBinaire::Genre::Division_Naturel:
+        case OpérateurBinaire::Genre::Division_Relatif:
+        case OpérateurBinaire::Genre::Division_Reel:
+        {
+            return "/";
+        }
+        case OpérateurBinaire::Genre::Reste_Naturel:
+        case OpérateurBinaire::Genre::Reste_Relatif:
+        {
+            return "%";
+        }
+        case OpérateurBinaire::Genre::Comp_Egal:
+        case OpérateurBinaire::Genre::Comp_Egal_Reel:
+        {
+            return "==";
+        }
+        case OpérateurBinaire::Genre::Comp_Inegal:
+        case OpérateurBinaire::Genre::Comp_Inegal_Reel:
+        {
+            return "!=";
+        }
+        case OpérateurBinaire::Genre::Comp_Inf:
+        case OpérateurBinaire::Genre::Comp_Inf_Nat:
+        case OpérateurBinaire::Genre::Comp_Inf_Reel:
+        {
+            return "<";
+        }
+        case OpérateurBinaire::Genre::Comp_Inf_Egal:
+        case OpérateurBinaire::Genre::Comp_Inf_Egal_Nat:
+        case OpérateurBinaire::Genre::Comp_Inf_Egal_Reel:
+        {
+            return "<=";
+        }
+        case OpérateurBinaire::Genre::Comp_Sup:
+        case OpérateurBinaire::Genre::Comp_Sup_Nat:
+        case OpérateurBinaire::Genre::Comp_Sup_Reel:
+        {
+            return ">";
+        }
+        case OpérateurBinaire::Genre::Comp_Sup_Egal:
+        case OpérateurBinaire::Genre::Comp_Sup_Egal_Nat:
+        case OpérateurBinaire::Genre::Comp_Sup_Egal_Reel:
+        {
+            return ">=";
+        }
+        case OpérateurBinaire::Genre::Et_Binaire:
+        {
+            return "&";
+        }
+        case OpérateurBinaire::Genre::Ou_Binaire:
+        {
+            return "|";
+        }
+        case OpérateurBinaire::Genre::Ou_Exclusif:
+        {
+            return "^";
+        }
+        case OpérateurBinaire::Genre::Dec_Gauche:
+        {
+            return "<<";
+        }
+        case OpérateurBinaire::Genre::Dec_Droite_Arithm:
+        case OpérateurBinaire::Genre::Dec_Droite_Logique:
+        {
+            return ">>";
+        }
+        case OpérateurBinaire::Genre::Invalide:
+        case OpérateurBinaire::Genre::Indexage:
+        {
+            return "invalide";
+        }
+    }
+
+    return "invalide";
+}

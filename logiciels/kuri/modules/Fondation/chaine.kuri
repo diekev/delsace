@@ -122,9 +122,11 @@ divise :: fonc (ligne: chaine, séparation: z8, résultat: *[]chaine, réinitial
     }
 }
 
-divise :: fonc (chn: chaine, séparation: chaine) -> []chaine
+divise :: fonc (chn: chaine, séparation: chaine, résultat: *[]chaine, réinitialise_résultat := vrai)
 {
-    résultat : []chaine
+    si réinitialise_résultat {
+        résultat.taille = 0
+    }
 
     index_début : z64 = 0
     index_fin : z64 = 0
@@ -137,17 +139,22 @@ divise :: fonc (chn: chaine, séparation: chaine) -> []chaine
         }
 
         c := sous_chaine(chn, index_début, index_fin)
-        tableau_ajoute(*résultat, c)
+        tableau_ajoute(résultat, c)
 
         index_début = index_fin + séparation.taille
     }
 
     si index_début < chn.taille {
         c := sous_chaine(chn, index_début, chn.taille)
-        tableau_ajoute(*résultat, c)
+        tableau_ajoute(résultat, c)
     }
+}
 
-    retourne résultat
+divise :: fonc (ligne: chaine, séparation: chaine) -> []chaine
+{
+    mots : []chaine
+    divise(ligne, séparation, *mots)
+    retourne mots
 }
 
 divise_depuis_le_début :: fonc (entrée: chaine, séparateur: chaine, nombre_max := -1) -> []chaine

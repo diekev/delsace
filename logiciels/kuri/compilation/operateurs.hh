@@ -27,6 +27,10 @@ struct TypeEnum;
 struct TypeFonction;
 struct TypePointeur;
 
+namespace kuri {
+struct chaine_statique;
+}
+
 enum class IndiceTypeOp {
     ENTIER_NATUREL,
     ENTIER_RELATIF,
@@ -262,3 +266,5 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
                                                             Type *type1,
                                                             Type *type2,
                                                             GenreLexeme type_op);
+
+kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op);
