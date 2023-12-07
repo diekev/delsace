@@ -49,24 +49,6 @@ static bool détecte_retour_manquant(EspaceDeTravail &espace,
         return false;
     }
 
-#if 0
-    // La génération de RI peut mettre des labels après des instructions « si » ou « discr » qui
-    // sont les seules instructions de la fonction, donc nous pouvons avoir des blocs vides en fin
-    // de fonctions. Mais ce peut également être du code mort après un retour.
-    POUR (fonction_et_blocs.blocs) {
-        if (!visiteuse.a_visité(it)) {
-            auto atome = fonction_et_blocs.fonction;
-            dbg() << imprime_fonction(atome);
-            dbg() << imprime_blocs(fonction_et_blocs.blocs);
-            espace
-                .rapporte_erreur(atome->decl,
-                                 "Erreur interne, un ou plusieurs blocs n'ont pas été visité !")
-                .ajoute_message("Le premier bloc non visité est le bloc ", it->label->id);
-            return false;
-        }
-    }
-#endif
-
     return true;
 }
 
