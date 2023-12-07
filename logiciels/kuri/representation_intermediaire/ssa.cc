@@ -128,7 +128,9 @@ struct NoeudPhi : public Valeur {
 
     CONSTRUCTEUR_VALEUR(NoeudPhi, PHI);
 
-    void appendOperand(Valeur *valeur);
+    void ajoute_opérande(Valeur *valeur);
+
+    void définis_opérande(int index, Valeur *v);
 
     [[nodiscard]] kuri::tableau<Valeur *> supprime_utilisateur(Valeur *utilisateur);
 
@@ -234,16 +236,28 @@ struct ValeurAppel : public Valeur {
         ajoute_utilisateur_si_phi(v, this);
     }
 
+    void définis_argument(int index, Valeur *v)
+    {
+        arguments[index] = v;
+        ajoute_utilisateur_si_phi(v, this);
+    }
+
     kuri::tableau_statique<Valeur *> donne_arguments() const
     {
         return arguments;
     }
 };
 
-void NoeudPhi::appendOperand(Valeur *valeur)
+void NoeudPhi::ajoute_opérande(Valeur *valeur)
 {
     opérandes.ajoute(valeur);
     ajoute_utilisateur_si_phi(valeur, this);
+}
+
+void NoeudPhi::définis_opérande(int index, Valeur *v)
+{
+    opérandes[index] = v;
+    ajoute_utilisateur_si_phi(v, this);
 }
 
 kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(Valeur *utilisateur)
@@ -322,9 +336,9 @@ void NoeudPhi::remplace_dans_utisateur(Valeur *utilisateur, Valeur *par)
             if (appel->donne_valeur_appelée() == this) {
                 appel->définis_valeur_appelée(par);
             }
-            POUR (appel->donne_arguments()) {
+            POUR_INDEX (appel->donne_arguments()) {
                 if (it == this) {
-                    it = par;
+                    appel->définis_argument(index_it, par);
                 }
             }
             break;
@@ -351,9 +365,9 @@ void NoeudPhi::remplace_dans_utisateur(Valeur *utilisateur, Valeur *par)
         case GenreValeur::PHI:
         {
             auto phi = utilisateur->comme_phi();
-            POUR (phi->opérandes) {
+            POUR_INDEX (phi->opérandes) {
                 if (it == this) {
-                    it = par;
+                    phi->définis_opérande(index_it, it);
                 }
             }
             break;
@@ -512,9 +526,6 @@ static kuri::chaine imprime_valeurs(kuri::tableau_statique<Valeur *> valeurs)
 
 using namespace SSA;
 
-class TrackeuseValeur {
-};
-
 struct ConvertisseuseSSA {
   private:
     // À FAIRE : utilise drapeau
@@ -625,7 +636,7 @@ struct ConvertisseuseSSA {
     {
         dbg() << __func__;
         POUR (phi->bloc->parents) {
-            phi->appendOperand(readVariable(variable, it));
+            phi->ajoute_opérande(readVariable(variable, it));
         }
 
         return tryRemoveTrivialPhi(phi);
@@ -707,7 +718,12 @@ struct ConvertisseuseSSA {
         phis_incomplets.ajoute({bloc, variable, valeur});
     }
 
-  private:
+    void ajoute_valeur_au_bloc(Valeur *v, Bloc *bloc)
+    {
+        v->numéro = ++nombre_valeurs;
+        bloc->valeurs.ajoute(v);
+    }
+
     Valeur *donne_valeur_pour_atome(Bloc *bloc, Atome const *atome)
     {
         switch (atome->genre_atome) {
@@ -725,8 +741,7 @@ struct ConvertisseuseSSA {
             {
                 auto résultat = readVariable(atome, bloc);
                 if (résultat->genre == SSA::GenreValeur::PHI && résultat->numéro == 0) {
-                    résultat->numéro = ++nombre_valeurs;
-                    bloc->valeurs.ajoute(résultat);
+                    ajoute_valeur_au_bloc(résultat, bloc);
                 }
                 return résultat;
             }
@@ -773,8 +788,7 @@ struct ConvertisseuseSSA {
             case Atome::Genre::CONSTANTE_STRUCTURE:
             {
                 auto résultat = m_constantes.ajoute_element();
-                résultat->numéro = ++nombre_valeurs;
-                bloc->valeurs.ajoute(résultat);
+                ajoute_valeur_au_bloc(résultat, bloc);
                 return résultat;
             }
             case Atome::Genre::CONSTANTE_CARACTÈRE:
@@ -799,9 +813,8 @@ struct ConvertisseuseSSA {
                     }
                 }
                 auto résultat = m_constantes_booléennes.ajoute_element();
-                résultat->numéro = ++nombre_valeurs;
                 résultat->atome = constante_booléenne;
-                bloc->valeurs.ajoute(résultat);
+                ajoute_valeur_au_bloc(résultat, bloc);
                 return résultat;
             }
             case Atome::Genre::CONSTANTE_RÉELLE:
@@ -821,9 +834,8 @@ struct ConvertisseuseSSA {
                     }
                 }
                 auto résultat = m_constantes_entières.ajoute_element();
-                résultat->numéro = ++nombre_valeurs;
                 résultat->atome = constante_entière;
-                bloc->valeurs.ajoute(résultat);
+                ajoute_valeur_au_bloc(résultat, bloc);
                 return résultat;
             }
         }
@@ -911,11 +923,10 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             }
 
             auto résultat = m_opérateurs_binaires.ajoute_element();
-            résultat->numéro = ++nombre_valeurs;
             résultat->définis_gauche(valeur_gauche);
             résultat->définis_droite(valeur_droite);
             résultat->inst = op_binaire;
-            bloc->valeurs.ajoute(résultat);
+            ajoute_valeur_au_bloc(résultat, bloc);
 
             writeVariable(inst, bloc, résultat);
             break;
