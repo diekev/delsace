@@ -125,7 +125,7 @@ discr énumérations : ignore les noms qui ont des valeurs similaires, rapporte 
 // -----------------------------------
 // Table des types
 
-ajout de TableDesTypes + AtomeConstanteIndexTableType + suppression Type.index_dans_table_des_types
+ajout de TableDesTypes + suppression Type.index_dans_table_des_types
 
 struct TableDesTypes {
     private:

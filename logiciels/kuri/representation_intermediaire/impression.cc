@@ -146,6 +146,12 @@ static void imprime_information_atome(Atome const *atome, Enchaineuse &os)
             os << " représentant une valeur constante TAILLE_DE";
             break;
         }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante CONSTANTE_INDEX_TABLE_TYPE";
+            break;
+        }
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             os << "constante de type " << chaine_type(atome->type, false);
@@ -309,11 +315,6 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
 static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
-        case GenreInstruction::INVALIDE:
-        {
-            os << "  invalide";
-            break;
-        }
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = inst->comme_alloc();

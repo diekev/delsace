@@ -260,10 +260,6 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_label;
                 break;
             }
-            case GenreInstruction::INVALIDE:
-            {
-                break;
-            }
         }
 
         if (nouvelle_inst) {

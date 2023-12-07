@@ -1022,6 +1022,11 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto type = atome->comme_taille_de()->type_de_données;
             return enchaine(type->taille_octet);
         }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            auto type = atome->comme_index_table_type()->type_de_données;
+            return enchaine(type->index_dans_table_types);
+        }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
             auto constante_réelle = atome->comme_constante_réelle();
@@ -1241,11 +1246,6 @@ static bool est_appel_init_contexte(InstructionAppel const *inst_appel)
 void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
-        case GenreInstruction::INVALIDE:
-        {
-            os << "  invalide\n";
-            break;
-        }
         case GenreInstruction::ALLOCATION:
         {
             auto type_pointeur = inst->type->comme_type_pointeur();

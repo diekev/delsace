@@ -758,6 +758,12 @@ llvm::Value *GeneratriceCodeLLVM::génère_code_pour_atome(Atome const *atome, b
             auto type = atome->comme_taille_de()->type_de_données;
             return llvm::ConstantInt::get(converti_type_llvm(atome->type), type->taille_octet);
         }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            auto type = atome->comme_index_table_type()->type_de_données;
+            return llvm::ConstantInt::get(converti_type_llvm(atome->type),
+                                          type->index_dans_table_types);
+        }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
             auto constante_réelle = atome->comme_constante_réelle();
@@ -875,10 +881,6 @@ void GeneratriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst
     // dbg() << __func__;
 
     switch (inst->genre) {
-        case GenreInstruction::INVALIDE:
-        {
-            break;
-        }
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = inst->comme_alloc();

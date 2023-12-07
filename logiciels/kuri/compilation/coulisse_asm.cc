@@ -80,6 +80,10 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
         {
             return "";
         }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            return "";
+        }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
             auto constante_réelle = atome->comme_constante_réelle();
@@ -136,10 +140,6 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
 void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
-        case GenreInstruction::INVALIDE:
-        {
-            break;
-        }
         case GenreInstruction::ALLOCATION:
         {
             /* il faut faire de la place sur la pile
