@@ -18,9 +18,9 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
-#include "log.hh"
 #include "numerique.hh"
 #include "typage.hh"
+#include "utilitaires/log.hh"
 
 enum {
     OPERATEUR_EST_SURCHARGEABLE = (1 << 0),

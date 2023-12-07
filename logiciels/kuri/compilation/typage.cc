@@ -15,8 +15,8 @@
 #include "compilatrice.hh"
 #include "gestionnaire_code.hh"
 #include "graphe_dependance.hh"
-#include "log.hh"
 #include "operateurs.hh"
+#include "utilitaires/log.hh"
 
 #include "statistiques/statistiques.hh"
 

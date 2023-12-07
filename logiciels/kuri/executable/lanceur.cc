@@ -10,8 +10,8 @@
 #include "compilation/environnement.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/gestionnaire_code.hh"
-#include "compilation/log.hh"
 #include "compilation/tacheronne.hh"
+#include "utilitaires/log.hh"
 
 #include "statistiques/statistiques.hh"
 

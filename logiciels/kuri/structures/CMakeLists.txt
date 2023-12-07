@@ -30,6 +30,7 @@ set(BIBLIOTHEQUES
     dls::memoire
     dls::outils
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
+    kuri::utilitaires
 )
 
 set(SOURCES
