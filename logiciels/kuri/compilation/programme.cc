@@ -1087,36 +1087,24 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
     POUR (m_résultat.types) {
         if (est_type_tuple_ou_fonction_init_tuple(it)) {
             /* Ignore les tuples, nous ne devrions pas avoir de variables de ce type (aucune
-             * varible de type type_de_données(tuple) n'est possible). */
+             * variable de type type_de_données(tuple) n'est possible). */
             continue;
         }
 
         it->index_dans_table_types = index_type++;
 
-        if (!it->atome_info_type) {
-            if (atome_table_des_types) {
-                /* Si la table des types est requise, créons un InfoType. */
-                auto info_type = m_compilatrice_ri.crée_info_type(it, nullptr);
-                ajoute_globale(info_type, true);
-            }
-            else {
-                /* La table n'est pas requise, ignorons-le. */
-                continue;
-            }
+        if (it->atome_info_type) {
+            continue;
         }
 
-        auto atome = it->atome_info_type;
-        auto initialisateur = atome->initialisateur->comme_constante_structure();
-        auto membres = initialisateur->donne_atomes_membres();
-
-        if (!est_structure_info_type_défaut(it->genre)) {
-            /* Accède info.base */
-            auto atome_base = membres[0]->comme_constante_structure();
-            membres = atome_base->donne_atomes_membres();
+        if (!atome_table_des_types) {
+            /* La table n'est pas requise, ignorons-le. */
+            continue;
         }
 
-        auto atome_index_dans_table_types = membres[2]->comme_constante_entière();
-        atome_index_dans_table_types->valeur = it->index_dans_table_types;
+        /* Si la table des types est requise, créons un InfoType. */
+        auto info_type = m_compilatrice_ri.crée_info_type(it, nullptr);
+        ajoute_globale(info_type, true);
     }
 
     if (!atome_table_des_types) {

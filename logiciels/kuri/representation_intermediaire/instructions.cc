@@ -347,7 +347,7 @@ AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *acc
 
 std::ostream &operator<<(std::ostream &os, GenreInstruction genre)
 {
-#define ENUMERE_GENRE_INSTRUCTION_EX(Genre)                                                       \
+#define ENUMERE_GENRE_INSTRUCTION_EX(Genre, nom_classe, ident)                                    \
     case GenreInstruction::Genre:                                                                 \
     {                                                                                             \
         os << #Genre;                                                                             \
@@ -402,6 +402,7 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         case Atome::Genre::NON_INITIALISATION:
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
         {
             /* Pas de sous-atome. */
             break;
@@ -516,7 +517,6 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                     break;
                 }
                 case GenreInstruction::ALLOCATION:
-                case GenreInstruction::INVALIDE:
                 case GenreInstruction::BRANCHE:
                 case GenreInstruction::LABEL:
                 {
@@ -612,7 +612,6 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
             break;
         }
         case GenreInstruction::ALLOCATION:
-        case GenreInstruction::INVALIDE:
         case GenreInstruction::BRANCHE:
         case GenreInstruction::LABEL:
         {
