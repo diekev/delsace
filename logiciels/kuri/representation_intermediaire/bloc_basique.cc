@@ -159,6 +159,11 @@ void Bloc::fusionne_enfant(Bloc *enfant)
         this->ajoute_instruction(it);
     }
 
+    this->valeurs.supprime_dernier();
+    POUR (enfant->valeurs) {
+        this->valeurs.ajoute(it);
+    }
+
     this->variables_declarees.reserve(enfant->variables_declarees.taille() +
                                       this->variables_declarees.taille());
     POUR (enfant->variables_declarees) {
@@ -237,6 +242,17 @@ bool Bloc::supprime_instructions_à_supprimer()
 
     instructions_à_supprimer = false;
     fonction_et_blocs->marque_instructions_modifiés();
+    return true;
+}
+
+bool Bloc::tous_les_parents_furent_remplis() const
+{
+    POUR (parents) {
+        if (!it->fut_remplis) {
+            return false;
+        }
+    }
+
     return true;
 }
 

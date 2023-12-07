@@ -31,3 +31,6 @@ struct ContexteAnalyseRI {
 };
 
 void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructions);
+
+AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
+                                         ConstructriceRI &constructrice);

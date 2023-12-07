@@ -20,6 +20,10 @@ namespace kuri {
 struct chaine;
 }
 
+namespace SSA {
+struct Valeur;
+}
+
 struct Bloc {
     FonctionEtBlocs *fonction_et_blocs = nullptr;
 
@@ -37,6 +41,9 @@ struct Bloc {
     kuri::tableau<InstructionAllocation const *, int> variables_utilisees{};
 
     bool est_atteignable = false;
+
+    kuri::tableau<SSA::Valeur *> valeurs{};
+    bool fut_remplis = false;
 
   private:
     bool instructions_à_supprimer = false;
@@ -75,6 +82,8 @@ struct Bloc {
 
     /* Supprime du bloc les instructions dont l'état est EST_A_SUPPRIMER. */
     bool supprime_instructions_à_supprimer();
+
+    bool tous_les_parents_furent_remplis() const;
 
   private:
     void enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, const Bloc *bloc);

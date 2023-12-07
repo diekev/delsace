@@ -20,6 +20,8 @@
 #include "impression.hh"
 #include "instructions.hh"
 
+#include "ssa.hh"
+
 /* ********************************************************************************************* */
 
 /* Détecte le manque de retour. Toutes les fonctions, y compris celles ne retournant rien doivent
@@ -468,7 +470,8 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
  * Remplace les branches conditionnelles dont les cibles sont le même bloc par une branche
  * inconditionnelle.
  */
-void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
+static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
+                                       VisiteuseBlocs &visiteuse)
 {
     auto bloc_modifié = false;
 
@@ -1383,8 +1386,8 @@ struct Calculatrice {
     }
 };
 
-static AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
-                                                ConstructriceRI &constructrice)
+AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
+                                         ConstructriceRI &constructrice)
 {
     auto const opérande_gauche = inst->valeur_gauche;
     auto const opérande_droite = inst->valeur_droite;
@@ -1720,6 +1723,8 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
                                    AtomeFonction *atome)
 {
     reinitialise();
+
+    convertis_ssa(espace, atome, constructrice);
 
     if (!fonction_et_blocs.convertis_en_blocs(espace, atome)) {
         return;
