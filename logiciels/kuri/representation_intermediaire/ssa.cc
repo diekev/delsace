@@ -5,7 +5,7 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "compilation/log.hh"
+#include "utilitaires/log.hh"
 
 #include "parsage/identifiant.hh"
 
@@ -770,6 +770,11 @@ struct ConvertisseuseSSA {
                 ATOME_NON_IMPLEMENTE;
                 return nullptr;
             }
+            case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+            {
+                ATOME_NON_IMPLEMENTE;
+                return nullptr;
+            }
             case Atome::Genre::CONSTANTE_TYPE:
             {
                 ATOME_NON_IMPLEMENTE;
@@ -850,7 +855,6 @@ struct ConvertisseuseSSA {
 void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction const *inst)
 {
     switch (inst->genre) {
-        case GenreInstruction::INVALIDE:
         case GenreInstruction::LABEL:
         {
             break;
