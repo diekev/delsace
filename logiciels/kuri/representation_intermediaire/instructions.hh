@@ -13,24 +13,8 @@
 
 #include "utilitaires/macros.hh"
 
-struct AccedeIndexConstant;
-struct AtomeConstanteBooléenne;
-struct AtomeConstanteCaractère;
-struct AtomeConstanteDonnéesConstantes;
-struct AtomeConstanteEntière;
-struct AtomeConstanteNulle;
-struct AtomeConstanteRéelle;
-struct AtomeConstanteStructure;
-struct AtomeConstanteTableauFixe;
-struct AtomeConstanteTailleDe;
-struct AtomeConstanteType;
-struct AtomeFonction;
-struct AtomeInitialisationTableau;
-struct AtomeNonInitialisation;
-struct TranstypeConstant;
 struct DonnéesExécutionFonction;
 struct IdentifiantCode;
-struct Instruction;
 struct InstructionAccedeIndex;
 struct InstructionAccedeMembre;
 struct InstructionAllocation;
@@ -66,6 +50,10 @@ enum class VisibilitéSymbole : uint8_t;
     O(FONCTION, AtomeFonction, fonction)                                                          \
     O(INSTRUCTION, Instruction, instruction)                                                      \
     O(GLOBALE, AtomeGlobale, globale)
+
+#define PREDECLARE_CLASSE_ATOME(genre_, nom_classe, ident) struct nom_classe;
+ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
+#undef PREDECLARE_CLASSE_ATOME
 
 enum class DrapeauxAtome : uint8_t {
     ZÉRO = 0,
