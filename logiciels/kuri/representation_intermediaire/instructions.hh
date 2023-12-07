@@ -15,19 +15,6 @@
 
 struct DonnéesExécutionFonction;
 struct IdentifiantCode;
-struct InstructionAccedeIndex;
-struct InstructionAccedeMembre;
-struct InstructionAllocation;
-struct InstructionAppel;
-struct InstructionBranche;
-struct InstructionBrancheCondition;
-struct InstructionChargeMem;
-struct InstructionLabel;
-struct InstructionOpBinaire;
-struct InstructionOpUnaire;
-struct InstructionRetour;
-struct InstructionStockeMem;
-struct InstructionTranstype;
 struct Type;
 
 enum class VisibilitéSymbole : uint8_t;
@@ -55,6 +42,25 @@ enum class VisibilitéSymbole : uint8_t;
 #define PREDECLARE_CLASSE_ATOME(genre_, nom_classe, ident) struct nom_classe;
 ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
 #undef PREDECLARE_CLASSE_ATOME
+
+#define ENUMERE_GENRE_INSTRUCTION(O)                                                              \
+    O(APPEL, InstructionAppel, appel)                                                             \
+    O(ALLOCATION, InstructionAllocation, alloc)                                                   \
+    O(OPERATION_BINAIRE, InstructionOpBinaire, op_binaire)                                        \
+    O(OPERATION_UNAIRE, InstructionOpUnaire, op_unaire)                                           \
+    O(CHARGE_MEMOIRE, InstructionChargeMem, charge)                                               \
+    O(STOCKE_MEMOIRE, InstructionStockeMem, stocke_mem)                                           \
+    O(LABEL, InstructionLabel, label)                                                             \
+    O(BRANCHE, InstructionBranche, branche)                                                       \
+    O(BRANCHE_CONDITION, InstructionBrancheCondition, branche_cond)                               \
+    O(RETOUR, InstructionRetour, retour)                                                          \
+    O(ACCEDE_MEMBRE, InstructionAccedeMembre, acces_membre)                                       \
+    O(ACCEDE_INDEX, InstructionAccedeIndex, acces_index)                                          \
+    O(TRANSTYPE, InstructionTranstype, transtype)
+
+#define PREDECLARE_CLASSE_INSTRUCTION(genre_, nom_classe, ident) struct nom_classe;
+ENUMERE_GENRE_INSTRUCTION(PREDECLARE_CLASSE_INSTRUCTION)
+#undef PREDECLARE_CLASSE_INSTRUCTION
 
 enum class DrapeauxAtome : uint8_t {
     ZÉRO = 0,
@@ -430,23 +436,28 @@ struct AtomeFonction : public AtomeConstante {
     EMPECHE_COPIE(AtomeFonction);
 };
 
-#define ENUMERE_GENRE_INSTRUCTION(O)                                                              \
-    O(APPEL)                                                                                      \
-    O(ALLOCATION)                                                                                 \
-    O(OPERATION_BINAIRE)                                                                          \
-    O(OPERATION_UNAIRE)                                                                           \
-    O(CHARGE_MEMOIRE)                                                                             \
-    O(STOCKE_MEMOIRE)                                                                             \
-    O(LABEL)                                                                                      \
-    O(BRANCHE)                                                                                    \
-    O(BRANCHE_CONDITION)                                                                          \
-    O(RETOUR)                                                                                     \
-    O(ACCEDE_MEMBRE)                                                                              \
-    O(ACCEDE_INDEX)                                                                               \
-    O(TRANSTYPE)
+#define DECLARE_FONCTIONS_DISCRIMINATION_INSTRUCTION(genre_, nom_classe, ident)                   \
+    inline bool est_##ident() const                                                               \
+    {                                                                                             \
+        return this->genre == GenreInstruction::genre_;                                           \
+    }                                                                                             \
+    inline nom_classe *comme_##ident();                                                           \
+    inline nom_classe const *comme_##ident() const;
+
+#define DEFINIS_FONCTIONS_DISCRIMINATION_INSTRUCTION(genre_, nom_classe, ident)                   \
+    inline nom_classe *Instruction::comme_##ident()                                               \
+    {                                                                                             \
+        assert(est_##ident());                                                                    \
+        return static_cast<nom_classe *>(this);                                                   \
+    }                                                                                             \
+    inline nom_classe const *Instruction::comme_##ident() const                                   \
+    {                                                                                             \
+        assert(est_##ident());                                                                    \
+        return static_cast<nom_classe const *>(this);                                             \
+    }
 
 enum class GenreInstruction : uint32_t {
-#define ENUMERE_GENRE_INSTRUCTION_EX(Genre) Genre,
+#define ENUMERE_GENRE_INSTRUCTION_EX(Genre, nom_classe, ident) Genre,
     ENUMERE_GENRE_INSTRUCTION(ENUMERE_GENRE_INSTRUCTION_EX)
 #undef ENUMERE_GENRE_INSTRUCTION_EX
 };
@@ -463,83 +474,14 @@ struct Instruction : public Atome {
         genre_atome = Genre::INSTRUCTION;
     }
 
-#define COMME_INST(Type, Genre)                                                                   \
-    inline Type *comme_##Genre();                                                                 \
-    inline Type const *comme_##Genre() const
-
-    COMME_INST(InstructionAccedeIndex, acces_index);
-    COMME_INST(InstructionAccedeMembre, acces_membre);
-    COMME_INST(InstructionAllocation, alloc);
-    COMME_INST(InstructionAppel, appel);
-    COMME_INST(InstructionBranche, branche);
-    COMME_INST(InstructionBrancheCondition, branche_cond);
-    COMME_INST(InstructionChargeMem, charge);
-    COMME_INST(InstructionLabel, label);
-    COMME_INST(InstructionOpBinaire, op_binaire);
-    COMME_INST(InstructionOpUnaire, op_unaire);
-    COMME_INST(InstructionRetour, retour);
-    COMME_INST(InstructionStockeMem, stocke_mem);
-    COMME_INST(InstructionTranstype, transtype);
-
-    inline bool est_acces_index() const
-    {
-        return genre == GenreInstruction::ACCEDE_INDEX;
-    }
-    inline bool est_acces_membre() const
-    {
-        return genre == GenreInstruction::ACCEDE_MEMBRE;
-    }
-    inline bool est_alloc() const
-    {
-        return genre == GenreInstruction::ALLOCATION;
-    }
-    inline bool est_appel() const
-    {
-        return genre == GenreInstruction::APPEL;
-    }
-    inline bool est_branche() const
-    {
-        return genre == GenreInstruction::BRANCHE;
-    }
-    inline bool est_branche_cond() const
-    {
-        return genre == GenreInstruction::BRANCHE_CONDITION;
-    }
-    inline bool est_charge() const
-    {
-        return genre == GenreInstruction::CHARGE_MEMOIRE;
-    }
-    inline bool est_label() const
-    {
-        return genre == GenreInstruction::LABEL;
-    }
-    inline bool est_op_binaire() const
-    {
-        return genre == GenreInstruction::OPERATION_BINAIRE;
-    }
-    inline bool est_op_unaire() const
-    {
-        return genre == GenreInstruction::OPERATION_UNAIRE;
-    }
-    inline bool est_retour() const
-    {
-        return genre == GenreInstruction::RETOUR;
-    }
-    inline bool est_stocke_mem() const
-    {
-        return genre == GenreInstruction::STOCKE_MEMOIRE;
-    }
-    inline bool est_transtype() const
-    {
-        return genre == GenreInstruction::TRANSTYPE;
-    }
+#define ENUMERE_GENRE_INSTRUCTION_EX(Genre, nom_classe, ident) Genre,
+    ENUMERE_GENRE_INSTRUCTION(DECLARE_FONCTIONS_DISCRIMINATION_INSTRUCTION)
+#undef ENUMERE_GENRE_INSTRUCTION_EX
 
     inline bool est_branche_ou_retourne() const
     {
         return est_branche() || est_branche_cond() || est_retour();
     }
-
-#undef COMME_INST
 };
 
 struct InstructionAppel : public Instruction {
@@ -947,33 +889,7 @@ InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
 ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
 #undef ENUMERE_GENRE_ATOME_EX
 
-#define COMME_INST(Type, Genre)                                                                   \
-    inline Type *Instruction::comme_##Genre()                                                     \
-    {                                                                                             \
-        assert(est_##Genre());                                                                    \
-        return static_cast<Type *>(this);                                                         \
-    }                                                                                             \
-    inline Type const *Instruction::comme_##Genre() const                                         \
-    {                                                                                             \
-        assert(est_##Genre());                                                                    \
-        return static_cast<Type const *>(this);                                                   \
-    }
-
-COMME_INST(InstructionAccedeIndex, acces_index)
-COMME_INST(InstructionAccedeMembre, acces_membre)
-COMME_INST(InstructionAllocation, alloc)
-COMME_INST(InstructionAppel, appel)
-COMME_INST(InstructionBranche, branche)
-COMME_INST(InstructionBrancheCondition, branche_cond)
-COMME_INST(InstructionChargeMem, charge)
-COMME_INST(InstructionLabel, label)
-COMME_INST(InstructionOpBinaire, op_binaire)
-COMME_INST(InstructionOpUnaire, op_unaire)
-COMME_INST(InstructionRetour, retour)
-COMME_INST(InstructionStockeMem, stocke_mem)
-COMME_INST(InstructionTranstype, transtype)
-
-#undef COMME_INST
+ENUMERE_GENRE_INSTRUCTION(DEFINIS_FONCTIONS_DISCRIMINATION_INSTRUCTION)
 
 struct VisiteuseAtome {
     /* Les atomes peuvent avoir des dépendances cycliques, donc tenons trace de ceux qui ont été

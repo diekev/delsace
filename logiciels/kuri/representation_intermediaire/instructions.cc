@@ -347,7 +347,7 @@ AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *acc
 
 std::ostream &operator<<(std::ostream &os, GenreInstruction genre)
 {
-#define ENUMERE_GENRE_INSTRUCTION_EX(Genre)                                                       \
+#define ENUMERE_GENRE_INSTRUCTION_EX(Genre, nom_classe, ident)                                    \
     case GenreInstruction::Genre:                                                                 \
     {                                                                                             \
         os << #Genre;                                                                             \
