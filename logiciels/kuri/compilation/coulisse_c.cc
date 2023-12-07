@@ -2023,6 +2023,13 @@ bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args
 #    endif
 
     POUR (m_fichiers) {
+        if (!kuri::chemin_systeme::supprime(it.chemin_fichier_objet)) {
+            dbg() << "Impossible de supprimer les vieux fichiers objets.";
+            return false;
+        }
+    }
+
+    POUR (m_fichiers) {
         poule_de_tâches.ajoute_tâche([&]() {
             kuri::chaine nom_sortie = it.chemin_fichier_objet;
             if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
@@ -2041,12 +2048,15 @@ bool CoulisseC::crée_fichier_objet_impl(const ArgsCréationFichiersObjets &args
     poule_de_tâches.attends_sur_tâches();
 
     POUR (m_fichiers) {
-        if (it.erreur_fichier_objet.taille() == 0) {
-            continue;
+        if (it.erreur_fichier_objet.taille() != 0) {
+            dbg() << it.erreur_fichier_objet;
+            return false;
         }
 
-        dbg() << it.erreur_fichier_objet;
-        return false;
+        if (!kuri::chemin_systeme::existe(it.chemin_fichier_objet)) {
+            dbg() << "Le fichier objet '" << it.chemin_fichier_objet << "' ne fut pas écris.";
+            return false;
+        }
     }
 
     return true;
