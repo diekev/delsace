@@ -2079,8 +2079,23 @@ bool CoulisseC::crée_exécutable_impl(const ArgsLiaisonObjets &args)
         fichiers_objet.ajoute(it.chemin_fichier_objet);
     }
 
+    auto nom_sortie = nom_sortie_resultat_final(espace.options);
+    if (!kuri::chemin_systeme::supprime(nom_sortie)) {
+        dbg() << "Impossible de supprimer le vieux compilat.";
+        return false;
+    }
+
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
-    return exécute_commande_externe(commande);
+    if (!exécute_commande_externe(commande)) {
+        return false;
+    }
+
+    if (!kuri::chemin_systeme::existe(nom_sortie)) {
+        dbg() << "Le compilat ne fut pas créé.";
+        return false;
+    }
+
+    return true;
 #endif
 }
 
