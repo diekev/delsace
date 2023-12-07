@@ -356,19 +356,44 @@ InstructionAllocation *ConstructriceRI::crée_allocation(NoeudExpression const *
     return inst;
 }
 
+/* Nous ne pouvons dédupliquer les constantes car la mise à jour des index dans la table de types
+ * les modifie... */
+#undef DEDUPLIQUE_CONSTANTE
+
 AtomeConstanteEntière *ConstructriceRI::crée_constante_nombre_entier(Type const *type,
                                                                      uint64_t valeur)
 {
+#ifdef DEDUPLIQUE_CONSTANTE
+    POUR_TABLEAU_PAGE (constantes_entières) {
+        if (it.type == type && it.valeur == valeur) {
+            return &it;
+        }
+    }
+#endif
     return constantes_entières.ajoute_element(type, valeur);
 }
 
 AtomeConstanteType *ConstructriceRI::crée_constante_type(Type const *pointeur_type)
 {
+#ifdef DEDUPLIQUE_CONSTANTE
+    POUR_TABLEAU_PAGE (constantes_types) {
+        if (it.type_de_données == pointeur_type) {
+            return &it;
+        }
+    }
+#endif
     return constantes_types.ajoute_element(m_typeuse.type_type_de_donnees_, pointeur_type);
 }
 
 AtomeConstanteTailleDe *ConstructriceRI::crée_constante_taille_de(Type const *pointeur_type)
 {
+#ifdef DEDUPLIQUE_CONSTANTE
+    POUR_TABLEAU_PAGE (constantes_taille_de) {
+        if (it.type_de_données == pointeur_type) {
+            return &it;
+        }
+    }
+#endif
     return constantes_taille_de.ajoute_element(TypeBase::N32, pointeur_type);
 }
 
@@ -470,6 +495,13 @@ AtomeConstante *ConstructriceRI::crée_initialisation_tableau_global(
 
 AtomeConstanteBooléenne *ConstructriceRI::crée_constante_booléenne(bool valeur)
 {
+#ifdef DEDUPLIQUE_CONSTANTE
+    POUR_TABLEAU_PAGE (constantes_booléennes) {
+        if (it.valeur == valeur) {
+            return &it;
+        }
+    }
+#endif
     return constantes_booléennes.ajoute_element(TypeBase::BOOL, valeur);
 }
 
@@ -481,6 +513,13 @@ AtomeConstanteCaractère *ConstructriceRI::crée_constante_caractère(Type const
 
 AtomeConstanteNulle *ConstructriceRI::crée_constante_nulle(Type const *type)
 {
+#ifdef DEDUPLIQUE_CONSTANTE
+    POUR_TABLEAU_PAGE (constantes_nulles) {
+        if (it.type == type) {
+            return &it;
+        }
+    }
+#endif
     return constantes_nulles.ajoute_element(type);
 }
 
