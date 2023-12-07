@@ -47,11 +47,12 @@ struct CoulisseLLVM final : public Coulisse {
     ~CoulisseLLVM();
 
   private:
-    bool génère_code_impl(ArgsGénérationCode const &args) override;
+    std::optional<ErreurCoulisse> génère_code_impl(ArgsGénérationCode const &args) override;
 
-    bool crée_fichier_objet_impl(ArgsCréationFichiersObjets const &args) override;
+    std::optional<ErreurCoulisse> crée_fichier_objet_impl(
+        ArgsCréationFichiersObjets const &args) override;
 
-    bool crée_exécutable_impl(ArgsLiaisonObjets const &args) override;
+    std::optional<ErreurCoulisse> crée_exécutable_impl(ArgsLiaisonObjets const &args) override;
 
     void crée_fichier_objet(DonnéesModule *module);
 

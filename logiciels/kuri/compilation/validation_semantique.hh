@@ -235,7 +235,8 @@ struct Sémanticienne {
     ResultatValidation valide_operateur_binaire_tableau(NoeudExpressionBinaire *expr);
     ResultatValidation valide_operateur_binaire_type(NoeudExpressionBinaire *expr);
     ResultatValidation valide_operateur_binaire_generique(NoeudExpressionBinaire *expr);
-    ResultatValidation valide_comparaison_enum_drapeau_bool(NoeudExpressionBinaire *expr,
+    ResultatValidation valide_comparaison_enum_drapeau_bool(
+        NoeudExpressionBinaire *expr,
         NoeudExpression *expr_acces_enum,
         NoeudExpressionLitteraleBool *expr_bool);
 

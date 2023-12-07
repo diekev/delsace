@@ -7,7 +7,7 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "compilation/log.hh"
+#include "utilitaires/log.hh"
 
 #include "parsage/identifiant.hh"
 

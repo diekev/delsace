@@ -13,7 +13,7 @@
 #include "coulisse_mv.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
-#include "log.hh"
+#include "utilitaires/log.hh"
 
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
@@ -121,7 +121,10 @@ bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
         info() << "Génération du code...";
     }
     auto début_génération_code = dls::chrono::compte_seconde();
-    if (!génère_code_impl(args)) {
+    auto err = génère_code_impl(args);
+    if (err.has_value()) {
+        args.espace->rapporte_erreur_sans_site("Impossible de générer le code machine.")
+            .ajoute_message(err.value().message);
         return false;
     }
     temps_génération_code = début_génération_code.temps();
@@ -132,8 +135,10 @@ bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
     auto args_fichier_objet = crée_args_création_fichier_objet(
         *args.compilatrice, *args.espace, args.programme, *args.compilatrice_ri);
     auto debut_fichier_objet = dls::chrono::compte_seconde();
-    if (!crée_fichier_objet_impl(args_fichier_objet)) {
-        args.espace->rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
+    err = crée_fichier_objet_impl(args_fichier_objet);
+    if (err.has_value()) {
+        args.espace->rapporte_erreur_sans_site("Impossible de générer les fichiers objets.")
+            .ajoute_message(err.value().message);
         return false;
     }
     temps_fichier_objet = debut_fichier_objet.temps();
@@ -147,8 +152,10 @@ bool Coulisse::crée_exécutable(ArgsLiaisonObjets const &args)
         info() << "Liaison du programme...";
     }
     auto début_exécutable = dls::chrono::compte_seconde();
-    if (!crée_exécutable_impl(args)) {
-        args.espace->rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
+    auto err = crée_exécutable_impl(args);
+    if (err.has_value()) {
+        args.espace->rapporte_erreur_sans_site("Impossible de générer le compilat.")
+            .ajoute_message(err.value().message);
         return false;
     }
     temps_exécutable = début_exécutable.temps();

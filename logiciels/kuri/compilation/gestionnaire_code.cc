@@ -13,8 +13,8 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
-#include "log.hh"
 #include "programme.hh"
+#include "utilitaires/log.hh"
 
 #include "plateforme/windows.h"
 

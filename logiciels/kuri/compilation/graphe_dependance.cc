@@ -11,9 +11,9 @@
 #include "statistiques/statistiques.hh"
 
 #include "erreur.h"
-#include "log.hh"
 #include "metaprogramme.hh"
 #include "typage.hh"
+#include "utilitaires/log.hh"
 
 const char *chaine_type_relation(TypeRelation type)
 {

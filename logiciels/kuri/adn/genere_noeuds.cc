@@ -215,7 +215,7 @@ struct GeneratriceCodeCPP {
     void genere_fichier_source_arbre_syntaxique(FluxSortieCPP &os)
     {
         os << "#include \"noeud_expression.hh\"\n";
-        os << "#include \"compilation/log.hh\"\n";
+        os << "#include \"utilitaires/log.hh\"\n";
         os << "#include \"structures/chaine_statique.hh\"\n";
         os << "#include \"structures/enchaineuse.hh\"\n";
         os << "#include \"parsage/identifiant.hh\"\n";

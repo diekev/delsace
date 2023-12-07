@@ -21,9 +21,9 @@
 #include "espace_de_travail.hh"
 #include "intrinseques.hh"
 #include "ipa.hh"
-#include "log.hh"
 #include "portee.hh"
 #include "programme.hh"
+#include "utilitaires/log.hh"
 
 /* ************************************************************************** */
 

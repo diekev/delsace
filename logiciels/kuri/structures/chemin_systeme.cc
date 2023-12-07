@@ -7,6 +7,8 @@
 #    include <windows.h>
 #endif
 
+#include "utilitaires/log.hh"
+
 namespace kuri {
 
 #ifdef _MSC_VER
@@ -264,6 +266,27 @@ tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier_recursif(chaine_s
     }
 
     return resultat;
+}
+
+bool chemin_systeme::supprime(chaine_statique chemin)
+{
+    auto const std_path = vers_std_path(chemin);
+    if (!std::filesystem::exists(std_path)) {
+        /* Pas d'erreur si le fichier n'existe pas. */
+        return true;
+    }
+
+    if (!std::filesystem::is_regular_file(std_path)) {
+        return false;
+    }
+
+    auto ec = std::error_code();
+    if (!std::filesystem::remove(std_path, ec)) {
+        dbg() << ec.message();
+        return false;
+    }
+
+    return true;
 }
 
 static chemin_systeme concatene_chemins(chaine_statique base, chaine_statique feuille)

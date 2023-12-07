@@ -14,8 +14,8 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
-#include "compilation/log.hh"
 #include "compilation/metaprogramme.hh"
+#include "utilitaires/log.hh"
 
 #include "parsage/identifiant.hh"
 

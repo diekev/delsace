@@ -11,9 +11,9 @@
 #include "statistiques/statistiques.hh"
 
 #include "espace_de_travail.hh"
-#include "log.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
+#include "utilitaires/log.hh"
 #include "validation_semantique.hh"
 
 #include "plateforme/windows.h"

@@ -9,7 +9,7 @@
 #include "compilation/coulisse_llvm.hh"
 #include "compilation/environnement.hh"
 #include "compilation/espace_de_travail.hh"
-#include "compilation/log.hh"
+#include "utilitaires/log.hh"
 #include "compilation/tacheronne.hh"
 
 #include "statistiques/statistiques.hh"

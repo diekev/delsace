@@ -15,11 +15,11 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
-#include "log.hh"
 #include "numerique.hh"
 #include "portee.hh"
 #include "tacheronne.hh"
 #include "unite_compilation.hh"
+#include "utilitaires/log.hh"
 
 /* ************************************************************************** */
 

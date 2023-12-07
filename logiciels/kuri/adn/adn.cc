@@ -167,7 +167,8 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\t\tauto param = params[static_cast<int>(i)];\n";
 
             os << "\t\tif (param->est_empl()) {\n";
-            os << "\t\t\treturn param->comme_empl()->expression->comme_base_declaration_variable();\n";
+            os << "\t\t\treturn "
+                  "param->comme_empl()->expression->comme_base_declaration_variable();\n";
             os << "\t\t}\n";
 
             os << "\t\treturn param->comme_base_declaration_variable();\n";
