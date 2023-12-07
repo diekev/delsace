@@ -44,8 +44,8 @@
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
-#include "utilitaires/log.hh"
 #include "programme.hh"
+#include "utilitaires/log.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/impression.hh"

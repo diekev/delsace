@@ -5,8 +5,8 @@
 
 #include "parsage/identifiant.hh"
 
-#include "utilitaires/log.hh"
 #include "typage.hh"
+#include "utilitaires/log.hh"
 
 std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item)
 {

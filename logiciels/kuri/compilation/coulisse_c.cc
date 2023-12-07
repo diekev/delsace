@@ -24,9 +24,9 @@
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
-#include "utilitaires/log.hh"
 #include "programme.hh"
 #include "typage.hh"
+#include "utilitaires/log.hh"
 
 #include "representation_intermediaire/impression.hh"
 

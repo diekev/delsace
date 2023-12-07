@@ -22,9 +22,9 @@
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
-#include "utilitaires/log.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
+#include "utilitaires/log.hh"
 
 /* ------------------------------------------------------------------------- */
 /** \name Programme.

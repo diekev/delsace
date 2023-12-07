@@ -11,9 +11,9 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
-#include "utilitaires/log.hh"
 #include "metaprogramme.hh"
 #include "programme.hh"
+#include "utilitaires/log.hh"
 
 bool CoulisseMV::génère_code_impl(const ArgsGénérationCode &args)
 {

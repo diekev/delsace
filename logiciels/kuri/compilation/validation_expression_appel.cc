@@ -15,10 +15,10 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "intrinseques.hh"
-#include "utilitaires/log.hh"
 #include "monomorpheuse.hh"
 #include "monomorphisations.hh"
 #include "portee.hh"
+#include "utilitaires/log.hh"
 #include "validation_semantique.hh"
 
 /* ------------------------------------------------------------------------- */

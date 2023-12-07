@@ -13,8 +13,8 @@
 
 #include "bibliotheque.hh"
 #include "coulisse.hh"  // Pour nom_sortie_resultat_final.
-#include "utilitaires/log.hh"
 #include "options.hh"
+#include "utilitaires/log.hh"
 
 /* Pour Linux, nous préfixons avec "lib", sauf si nous avons un chemin. */
 static kuri::chaine_statique préfixe_lib_pour_linux(kuri::chaine_statique nom_base)
