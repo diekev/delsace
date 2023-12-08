@@ -4709,7 +4709,10 @@ CodeRetourValidation Sémanticienne::resoud_type_final(NoeudExpression *expressi
     }
 
     if (!type_var->est_type_type_de_donnees()) {
-        rapporte_erreur("attendu un type de données", expression_type);
+        espace
+            ->rapporte_erreur(expression_type,
+                              "L'expression du type n'est pas un type de données.")
+            .ajoute_message("L'expression est de type : ", chaine_type(type_var), "\n");
         return CodeRetourValidation::Erreur;
     }
 
