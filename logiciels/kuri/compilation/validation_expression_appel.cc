@@ -1363,6 +1363,9 @@ static NoeudBloc *bloc_constantes_pour(NoeudExpression const *noeud)
     if (noeud->est_type_structure()) {
         return noeud->comme_type_structure()->bloc_constantes;
     }
+    assert_rappel(false, [&]() {
+        dbg() << "[bloc_constantes_pour] Obtenu un noeud de genre " << noeud->genre;
+    });
     return nullptr;
 }
 
