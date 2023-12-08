@@ -1,0 +1,92 @@
+importe Fondation
+
+// Registres :
+// nombre minimum de registres pour calculer un résultat https://en.wikipedia.org/wiki/Strahler_number
+// utilisation efficiente des registres https://en.wikipedia.org/wiki/Sethi%E2%80%93Ullman_algorithm
+// https://en.wikipedia.org/wiki/Register_allocation
+
+principale :: fonc () -> z32
+{
+    assert(constantes_avec_si() == 4)
+    assert(constantes_sans_branches() == 0)
+    assert(boucle_pour_sur_scalaire() == 15)
+    assert(boucle_pour_sur_tableau_fixe() == 15)
+    assert(condition_constante_redondante() == 1)
+    forme_statique_à_affectation_unique()
+    retourne 0
+}
+
+/* Exemple de https://en.wikipedia.org/wiki/Constant_folding */
+/* INCORRECT le phi de la branche n'est pas supprimé, le résultat est mauvais. */
+constantes_avec_si :: fonc () -> z32
+{
+    a := 30
+    b := 9 - (a / 5)
+    c := b * 4
+
+    si (c > 10) {
+        c = c - 10
+    }
+
+    retourne c * (60 / a)
+}
+
+/* Exemple de https://en.wikipedia.org/wiki/Constant_folding */
+constantes_sans_branches :: fonc () -> z32
+{
+    x := 14
+    y := 7 - x / 2
+    retourne y * (28 / x + 2)
+}
+
+boucle_pour_sur_scalaire :: fonc () -> z32
+{
+    a := 0
+    pour 15 {
+        a += 1
+    }
+    retourne a
+}
+
+boucle_pour_sur_tableau_fixe :: fonc () -> z32
+{
+    a := 0
+    b := [0, 1, 2, 3, 4, 5]
+    pour b {
+        a += it
+    }
+    retourne a
+}
+
+condition_constante_redondante :: fonc () -> z32
+{
+    a := 5
+
+    si a == 5 {
+        si a == 5 {
+            retourne 1
+        }
+    }
+
+    retourne 0
+}
+
+/* Exemple de https://fr.wikipedia.org/wiki/Static_single_assignment_form */
+forme_statique_à_affectation_unique :: fonc () #fsau
+{
+    x := 5
+    x -= 3
+    y : z32
+    w : z32
+
+    si x < 3 {
+        y = x * 2
+        w = y
+    }
+    sinon {
+        y = x - 3
+    }
+
+    w = x - y
+    z := x + y
+}
