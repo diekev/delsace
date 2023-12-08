@@ -2576,6 +2576,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             else if (ident_directive == ID::exporte) {
                 noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
             }
+            else if (ident_directive == ID::fsau) {
+                drapeaux_fonction |= DrapeauxNoeudFonction::FSAU;
+            }
             else {
                 rapporte_erreur("Directive de fonction inconnue.");
             }

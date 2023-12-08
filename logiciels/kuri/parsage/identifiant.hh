@@ -153,7 +153,8 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(info_fonction, "info_fonction")                             \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(info_appel, "info_appel")                                   \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(profondeur, "profondeur")                                   \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(trace_appel, "trace_appel")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(trace_appel, "trace_appel")                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fsau, "fsau")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;

@@ -25,9 +25,43 @@
 #define ATOME_NON_IMPLEMENTE                                                                      \
     assert_rappel(false, [&]() { dbg() << "Atome non-géré " << atome->genre_atome; })
 
-// https://pp.ipd.kit.edu/uploads/publikationen/braun13cc.pdf
+// CONSTRUCTION SSA https://pp.ipd.kit.edu/uploads/publikationen/braun13cc.pdf
+// ARRAY SSA https://dl.acm.org/doi/pdf/10.1145/268946.268956
 
 namespace SSA {
+
+struct TablesDesRelations {
+    struct Index {
+        int32_t premier_utilisateur = -1;
+        int32_t premier_bloc = -1;
+    };
+    kuri::tableau<Index, int32_t> m_index{};
+
+    struct UtilisateurValeur {
+        Valeur *utilisateur = nullptr;
+        int32_t précédent = -1;
+        int32_t suivant = -1;
+    };
+    kuri::tableau<UtilisateurValeur, int32_t> m_utilisateurs{};
+
+  public:
+    void remplace_ou_ajoute_utilisateur(Valeur *utilisée, Valeur *ancien, Valeur *par);
+    void ajoute_utilisateur(Valeur *utilisée, Valeur *par);
+
+    bool est_utilisée(const Valeur *valeur) const;
+
+    void supprime(const Valeur *valeur);
+
+    kuri::tablet<Valeur *, 6> donne_utilisateurs(Valeur const *valeur) const;
+
+    void supprime_utilisateur(Valeur *utilisée, const Valeur *par);
+
+  private:
+    int32_t donne_index_pour_valeur(Valeur *valeur);
+
+    void déconnecte(UtilisateurValeur *utilisateur);
+    void supprime_utilisateur(int32_t index, const Valeur *par);
+};
 
 #define ENUMERE_GENRE_VALEUR_SSA(O)                                                               \
     O(INDÉFINIE, ValeurIndéfinie, indéfinie)                                                      \
@@ -76,10 +110,11 @@ ENUMERE_GENRE_VALEUR_SSA(PRODECLARE_VALEURS)
     Valeur *nom = nullptr;                                                                        \
                                                                                                   \
   public:                                                                                         \
-    void définis_##nom(Valeur *v)                                                                 \
+    void définis_##nom(TablesDesRelations &table, Valeur *v)                                      \
     {                                                                                             \
+        auto ancien_##nom = nom;                                                                  \
         nom = v;                                                                                  \
-        ajoute_utilisateur_si_phi(v, this);                                                       \
+        table.remplace_ou_ajoute_utilisateur(v, ancien_##nom, this);                              \
     }                                                                                             \
     Valeur *donne_##nom() const                                                                   \
     {                                                                                             \
@@ -123,6 +158,7 @@ struct Valeur {
     GenreValeur genre{};
     DrapeauxValeur drapeaux = DrapeauxValeur::ZÉRO;
     uint32_t numéro = 0;
+    int32_t index_relations = -1;
 
     ENUMERE_GENRE_VALEUR_SSA(DECLARE_FONCTIONS_DISCRIMINATION)
 
@@ -137,34 +173,21 @@ struct Valeur {
 struct NoeudPhi : public Valeur {
     Bloc *bloc = nullptr;
     kuri::tableau<Valeur *> opérandes{};
-    kuri::tableau<Valeur *> utilisateurs{};
 
     CONSTRUCTEUR_VALEUR(NoeudPhi, PHI);
 
-    void ajoute_opérande(Valeur *valeur);
+    void ajoute_opérande(TablesDesRelations &table, Valeur *valeur);
 
-    void définis_opérande(int index, Valeur *v);
+    void définis_opérande(TablesDesRelations &table, int index, Valeur *v);
 
-    [[nodiscard]] kuri::tableau<Valeur *> supprime_utilisateur(Valeur *utilisateur);
+    [[nodiscard]] kuri::tableau<Valeur *> supprime_utilisateur(TablesDesRelations &table,
+                                                               Valeur *utilisateur);
 
-    void replaceBy(Valeur *valeur);
-
-    void ajoute_utilisateur(Valeur *utilisateur)
-    {
-        utilisateurs.ajoute(utilisateur);
-    }
+    void replaceBy(TablesDesRelations &table, Valeur *valeur);
 
   private:
-    void remplace_dans_utisateur(Valeur *utilisateur, Valeur *par);
+    void remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilisateur, Valeur *par);
 };
-
-static void ajoute_utilisateur_si_phi(Valeur *phi_potentiel, Valeur *utilisateur)
-{
-    if (!phi_potentiel->est_phi()) {
-        return;
-    }
-    phi_potentiel->comme_phi()->utilisateurs.ajoute(utilisateur);
-}
 
 struct ValeurIndéfinie : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurIndéfinie, INDÉFINIE);
@@ -243,16 +266,17 @@ struct ValeurAppel : public Valeur {
     kuri::tableau<Valeur *> arguments{};
 
   public:
-    void ajoute_argument(Valeur *v)
+    void ajoute_argument(TablesDesRelations &table, Valeur *v)
     {
         arguments.ajoute(v);
-        ajoute_utilisateur_si_phi(v, this);
+        table.ajoute_utilisateur(v, this);
     }
 
-    void définis_argument(int index, Valeur *v)
+    void définis_argument(TablesDesRelations &table, int index, Valeur *v)
     {
+        auto ancien = arguments[index];
         arguments[index] = v;
-        ajoute_utilisateur_si_phi(v, this);
+        table.remplace_ou_ajoute_utilisateur(v, ancien, this);
     }
 
     kuri::tableau_statique<Valeur *> donne_arguments() const
@@ -261,20 +285,24 @@ struct ValeurAppel : public Valeur {
     }
 };
 
-void NoeudPhi::ajoute_opérande(Valeur *valeur)
+void NoeudPhi::ajoute_opérande(TablesDesRelations &table, Valeur *valeur)
 {
     opérandes.ajoute(valeur);
-    ajoute_utilisateur_si_phi(valeur, this);
+    table.ajoute_utilisateur(valeur, this);
 }
 
-void NoeudPhi::définis_opérande(int index, Valeur *v)
+void NoeudPhi::définis_opérande(TablesDesRelations &table, int index, Valeur *v)
 {
+    auto ancien = opérandes[index];
     opérandes[index] = v;
-    ajoute_utilisateur_si_phi(v, this);
+    table.remplace_ou_ajoute_utilisateur(v, ancien, this);
 }
 
-kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(Valeur *utilisateur)
+kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TablesDesRelations &table,
+                                                       Valeur *utilisateur)
 {
+    auto utilisateurs = table.donne_utilisateurs(this);
+
     dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
     kuri::tableau<Valeur *> résultat;
     POUR (utilisateurs) {
@@ -288,19 +316,22 @@ kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(Valeur *utilisateur)
     return résultat;
 }
 
-void NoeudPhi::replaceBy(Valeur *valeur)
+void NoeudPhi::replaceBy(TablesDesRelations &table, Valeur *valeur)
 {
+    auto utilisateurs = table.donne_utilisateurs(this);
     dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
     POUR (utilisateurs) {
         if (it == this) {
             continue;
         }
 
-        remplace_dans_utisateur(it, valeur);
+        remplace_dans_utisateur(table, it, valeur);
     }
+
+    table.supprime(this);
 }
 
-void NoeudPhi::remplace_dans_utisateur(Valeur *utilisateur, Valeur *par)
+void NoeudPhi::remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilisateur, Valeur *par)
 {
     switch (utilisateur->genre) {
         case GenreValeur::INDÉFINIE:
@@ -315,31 +346,31 @@ void NoeudPhi::remplace_dans_utisateur(Valeur *utilisateur, Valeur *par)
         {
             auto branche = utilisateur->comme_branche_cond();
             assert(branche->donne_condition() == this);
-            branche->définis_condition(par);
+            branche->définis_condition(table, par);
             break;
         }
         case GenreValeur::RETOUR:
         {
             auto retour = utilisateur->comme_retour();
             assert(retour->donne_valeur() == this);
-            retour->définis_valeur(par);
+            retour->définis_valeur(table, par);
             break;
         }
         case GenreValeur::ACCÈS_MEMBRE:
         {
             auto accès_membre = utilisateur->comme_accès_membre();
             assert(accès_membre->donne_accédée() == this);
-            accès_membre->définis_accédée(par);
+            accès_membre->définis_accédée(table, par);
             break;
         }
         case GenreValeur::ACCÈS_INDEX:
         {
             auto accès_index = utilisateur->comme_accès_index();
             if (accès_index->donne_accédée() == this) {
-                accès_index->définis_accédée(par);
+                accès_index->définis_accédée(table, par);
             }
             if (accès_index->donne_index() == this) {
-                accès_index->définis_index(par);
+                accès_index->définis_index(table, par);
             }
             break;
         }
@@ -347,11 +378,11 @@ void NoeudPhi::remplace_dans_utisateur(Valeur *utilisateur, Valeur *par)
         {
             auto appel = utilisateur->comme_appel();
             if (appel->donne_valeur_appelée() == this) {
-                appel->définis_valeur_appelée(par);
+                appel->définis_valeur_appelée(table, par);
             }
             POUR_INDEX (appel->donne_arguments()) {
                 if (it == this) {
-                    appel->définis_argument(index_it, par);
+                    appel->définis_argument(table, index_it, par);
                 }
             }
             break;
@@ -360,10 +391,10 @@ void NoeudPhi::remplace_dans_utisateur(Valeur *utilisateur, Valeur *par)
         {
             auto op_binaire = utilisateur->comme_opérateur_binaire();
             if (op_binaire->donne_gauche() == this) {
-                op_binaire->définis_gauche(par);
+                op_binaire->définis_gauche(table, par);
             }
             if (op_binaire->donne_droite() == this) {
-                op_binaire->définis_droite(par);
+                op_binaire->définis_droite(table, par);
             }
             break;
         }
@@ -371,7 +402,7 @@ void NoeudPhi::remplace_dans_utisateur(Valeur *utilisateur, Valeur *par)
         {
             auto op_unaire = utilisateur->comme_opérateur_unaire();
             if (op_unaire->donne_droite() == this) {
-                op_unaire->définis_droite(par);
+                op_unaire->définis_droite(table, par);
             }
             break;
         }
@@ -380,7 +411,7 @@ void NoeudPhi::remplace_dans_utisateur(Valeur *utilisateur, Valeur *par)
             auto phi = utilisateur->comme_phi();
             POUR_INDEX (phi->opérandes) {
                 if (it == this) {
-                    phi->définis_opérande(index_it, it);
+                    phi->définis_opérande(table, index_it, it);
                 }
             }
             break;
@@ -461,6 +492,75 @@ static void visite_valeur(Valeur *valeur,
             auto phi = valeur->comme_phi();
             POUR_INDEX (phi->opérandes) {
                 visite_valeur(it, visitées, rappel);
+            }
+            break;
+        }
+    }
+}
+
+static void visite_opérande(Valeur *valeur, std::function<void(Valeur *)> const &rappel)
+{
+    switch (valeur->genre) {
+        case GenreValeur::INDÉFINIE:
+        case GenreValeur::FONCTION:
+        case GenreValeur::GLOBALE:
+        case GenreValeur::CONSTANTE:
+        case GenreValeur::BRANCHE:
+        {
+            break;
+        }
+        case GenreValeur::BRANCHE_COND:
+        {
+            auto branche = valeur->comme_branche_cond();
+            rappel(branche->donne_condition());
+            break;
+        }
+        case GenreValeur::RETOUR:
+        {
+            auto retour = valeur->comme_retour();
+            rappel(retour->donne_valeur());
+            break;
+        }
+        case GenreValeur::ACCÈS_MEMBRE:
+        {
+            auto accès_membre = valeur->comme_accès_membre();
+            rappel(accès_membre->donne_accédée());
+            break;
+        }
+        case GenreValeur::ACCÈS_INDEX:
+        {
+            auto accès_index = valeur->comme_accès_index();
+            rappel(accès_index->donne_accédée());
+            rappel(accès_index->donne_index());
+            break;
+        }
+        case GenreValeur::APPEL:
+        {
+            auto appel = valeur->comme_appel();
+            rappel(appel->donne_valeur_appelée());
+            POUR_INDEX (appel->donne_arguments()) {
+                rappel(it);
+            }
+            break;
+        }
+        case GenreValeur::OPÉRATEUR_BINAIRE:
+        {
+            auto op_binaire = valeur->comme_opérateur_binaire();
+            rappel(op_binaire->donne_gauche());
+            rappel(op_binaire->donne_droite());
+            break;
+        }
+        case GenreValeur::OPÉRATEUR_UNAIRE:
+        {
+            auto op_unaire = valeur->comme_opérateur_unaire();
+            rappel(op_unaire->donne_droite());
+            break;
+        }
+        case GenreValeur::PHI:
+        {
+            auto phi = valeur->comme_phi();
+            POUR_INDEX (phi->opérandes) {
+                rappel(it);
             }
             break;
         }
@@ -595,7 +695,7 @@ static void imprime_valeur(Valeur const *valeur, Enchaineuse &sortie)
             auto phi = valeur->comme_phi();
             sortie << "phi ";
             imprime_tableau(phi->opérandes, "<", ">", sortie);
-            imprime_tableau(phi->utilisateurs, " (", ")", sortie);
+            // imprime_tableau(phi->utilisateurs, " (", ")", sortie);
             break;
         }
     }
@@ -653,12 +753,19 @@ struct ConvertisseuseSSA {
 
     ConstructriceRI &m_constructrice;
 
+    TablesDesRelations m_table_relations{};
+
   public:
     ConvertisseuseSSA(ConstructriceRI &constructrice_ri) : m_constructrice(constructrice_ri)
     {
     }
 
     void crée_valeurs_depuis_instruction(Bloc *bloc, Instruction const *inst);
+
+    TablesDesRelations &donne_table_des_relations()
+    {
+        return m_table_relations;
+    }
 
   public:
     // algorithme 1 : local value numbering
@@ -728,7 +835,7 @@ struct ConvertisseuseSSA {
     {
         dbg() << __func__;
         POUR (phi->bloc->parents) {
-            phi->ajoute_opérande(readVariable(variable, it));
+            phi->ajoute_opérande(m_table_relations, readVariable(variable, it));
         }
 
         return tryRemoveTrivialPhi(phi);
@@ -762,10 +869,10 @@ struct ConvertisseuseSSA {
         }
 
         /* Remémore tous les utilisateurs sauf le phi lui-même. */
-        auto users = phi->supprime_utilisateur(phi);
+        auto users = phi->supprime_utilisateur(m_table_relations, phi);
 
         /* Dévie toutes les utilisations de phi vers same et supprime phi. */
-        phi->replaceBy(same);
+        phi->replaceBy(m_table_relations, same);
 
         /* Essaie de supprimer tous les utilisateurs de phi, qui peuvent être devenus triviaux. */
         POUR_NOMME (use, users) {
@@ -963,7 +1070,8 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             auto inst_branche = inst->comme_branche_cond();
             auto branche = m_branches_cond.ajoute_element();
             branche->inst = inst_branche;
-            branche->définis_condition(readVariable(inst_branche->condition, bloc));
+            branche->définis_condition(m_table_relations,
+                                       readVariable(inst_branche->condition, bloc));
             bloc->valeurs.ajoute(branche);
             break;
         }
@@ -1019,8 +1127,8 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             }
 
             auto résultat = m_opérateurs_binaires.ajoute_element();
-            résultat->définis_gauche(valeur_gauche);
-            résultat->définis_droite(valeur_droite);
+            résultat->définis_gauche(m_table_relations, valeur_gauche);
+            résultat->définis_droite(m_table_relations, valeur_droite);
             résultat->inst = op_binaire;
             ajoute_valeur_au_bloc(résultat, bloc);
 
@@ -1052,7 +1160,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             auto retour = inst->comme_retour();
             auto valeur = m_retours.ajoute_element();
             if (retour->valeur) {
-                valeur->définis_valeur(readVariable(retour->valeur, bloc));
+                valeur->définis_valeur(m_table_relations, readVariable(retour->valeur, bloc));
             }
             bloc->valeurs.ajoute(valeur);
             break;
@@ -1088,6 +1196,19 @@ static void imprime_blocs(FonctionEtBlocs &fonction_et_blocs)
         imprime_bloc(bloc);
     }
     dbg() << "------------------------------------------------";
+}
+
+static void numérote_valeurs(FonctionEtBlocs &fonction_et_blocs)
+{
+    auto numéro = 1u;
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (valeur->est_controle_de_flux()) {
+                continue;
+            }
+            valeur->numéro = numéro++;
+        }
+    }
 }
 
 static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
@@ -1187,22 +1308,22 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
     fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
 }
 
-static void supprime_valeurs_inutilisées(FonctionEtBlocs &fonction_et_blocs)
+static void supprime_valeurs_inutilisées(FonctionEtBlocs &fonction_et_blocs,
+                                         TablesDesRelations &table_des_relations)
 {
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
             if (valeur->est_controle_de_flux()) {
                 valeur->drapeaux |= DrapeauxValeur::EST_UTILISÉE;
+                continue;
             }
 
-            kuri::ensemble<Valeur *> visitées;
-            visite_valeur(valeur, visitées, [&](Valeur *opérande) {
-                if (valeur == opérande) {
-                    return;
-                }
-
-                opérande->drapeaux |= DrapeauxValeur::EST_UTILISÉE;
-            });
+            if (table_des_relations.est_utilisée(valeur)) {
+                valeur->drapeaux |= DrapeauxValeur::EST_UTILISÉE;
+            }
+            else {
+                table_des_relations.supprime(valeur);
+            }
         }
     }
 
@@ -1213,14 +1334,72 @@ static void supprime_valeurs_inutilisées(FonctionEtBlocs &fonction_et_blocs)
 
         bloc->valeurs.redimensionne(partition.vrai.taille());
     }
+}
 
-    auto numéro = 1u;
+struct PhiValeurIncrémentée {
+    NoeudPhi *phi = nullptr;
+    Valeur *valeur = nullptr;
+    Valeur *incrément = nullptr;
+};
+
+static bool est_incrément_de_phi(NoeudPhi const *phi, Valeur const *valeur)
+{
+    if (!valeur->est_opérateur_binaire()) {
+        return false;
+    }
+
+    auto op_binaire = valeur->comme_opérateur_binaire();
+    if (op_binaire->inst->op != OpérateurBinaire::Genre::Addition) {
+        return false;
+    }
+
+    if (op_binaire->donne_gauche() != phi) {
+        return false;
+    }
+
+    return true;
+}
+
+static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
+                                         TablesDesRelations &table)
+{
+    kuri::tablet<PhiValeurIncrémentée, 6> phis_incréments;
+
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
-            if (valeur->est_controle_de_flux()) {
+            if (!valeur->est_phi()) {
                 continue;
             }
-            valeur->numéro = numéro++;
+
+            auto phi = valeur->comme_phi();
+
+            if (phi->opérandes.taille() != 2) {
+                continue;
+            }
+
+            auto op1 = phi->opérandes[0];
+            auto op2 = phi->opérandes[1];
+
+            if (est_incrément_de_phi(phi, op2)) {
+                dbg() << "EST INCRÉMENT DE PHI";
+                auto incrément = op2->comme_opérateur_binaire()->donne_droite();
+
+                auto remplacé = false;
+
+                POUR_NOMME (inc_existant, phis_incréments) {
+                    if (inc_existant.valeur == op1 && inc_existant.incrément == incrément) {
+                        dbg() << "PEUT REMPLACER v" << valeur->numéro << " par v"
+                              << inc_existant.phi->numéro;
+                        remplacé = true;
+
+                        phi->replaceBy(table, inc_existant.phi);
+                    }
+                }
+
+                if (!remplacé) {
+                    phis_incréments.ajoute({phi, op1, incrément});
+                }
+            }
         }
     }
 }
@@ -1229,7 +1408,7 @@ void convertis_ssa(EspaceDeTravail &espace,
                    AtomeFonction *fonction,
                    ConstructriceRI &constructrice)
 {
-    if (!fonction->decl || fonction->decl->ident != ID::principale) {
+    if (!fonction->decl || !fonction->decl->possède_drapeau(DrapeauxNoeudFonction::FSAU)) {
         return;
     }
 
@@ -1282,12 +1461,228 @@ void convertis_ssa(EspaceDeTravail &espace,
         }
     }
 
+    TablesDesRelations &table_des_relations = convertisseuse_ssa.donne_table_des_relations();
+
     imprime_blocs(fonction_et_blocs);
 
     auto visiteuse = VisiteuseBlocs(fonction_et_blocs);
-    supprime_branches_inutiles(fonction_et_blocs, visiteuse);
+    // supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
-    supprime_valeurs_inutilisées(fonction_et_blocs);
+    détecte_expressions_communes(fonction_et_blocs, table_des_relations);
 
+    supprime_valeurs_inutilisées(fonction_et_blocs, table_des_relations);
+
+    numérote_valeurs(fonction_et_blocs);
     imprime_blocs(fonction_et_blocs);
+
+    //    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+    //        POUR_NOMME (valeur, bloc->valeurs) {
+    //            visite_opérande(valeur, [&](Valeur *opérande) {
+    //                table_des_relations.ajoute_utilisateur(opérande, valeur);
+    //            });
+    //        }
+    //    }
+
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (valeur->est_controle_de_flux()) {
+                continue;
+            }
+
+            auto utilisateurs = table_des_relations.donne_utilisateurs(valeur);
+
+            dbg() << "v" << valeur->numéro << ", utilisateurs : ";
+            POUR (utilisateurs) {
+                if (it->est_controle_de_flux()) {
+                    dbg() << "-- " << it->genre;
+                }
+                else {
+                    dbg() << "-- v" << it->numéro;
+                }
+            }
+        }
+    }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Implémentation de la table des relations.
+ * \{ */
+
+void TablesDesRelations::remplace_ou_ajoute_utilisateur(Valeur *utilisée,
+                                                        Valeur *ancien,
+                                                        Valeur *par)
+{
+    if (ancien) {
+        supprime_utilisateur(ancien, par);
+    }
+
+    ajoute_utilisateur(utilisée, par);
+}
+
+void TablesDesRelations::ajoute_utilisateur(Valeur *utilisée, Valeur *par)
+{
+    int32_t index_données_utilisée = donne_index_pour_valeur(utilisée);
+
+    auto &index = m_index[index_données_utilisée];
+
+    auto info = UtilisateurValeur{par, -1, -1};
+
+    if (index.premier_utilisateur == -1) {
+        /* Insère un nouvelle utilisateur. */
+        index.premier_utilisateur = m_utilisateurs.taille();
+    }
+    else {
+        /* Trouve le dernier utilisateur. */
+        auto utilisateur = &m_utilisateurs[index.premier_utilisateur];
+        info.précédent = index.premier_utilisateur;
+        while (utilisateur->suivant != -1) {
+            info.précédent = utilisateur->suivant;
+            utilisateur = &m_utilisateurs[utilisateur->suivant];
+        }
+
+        utilisateur->suivant = m_utilisateurs.taille();
+    }
+
+    // dbg() << __func__ << " : "
+    //       << "précédent " << info.précédent << " suivant " << info.suivant;
+
+    m_utilisateurs.ajoute(info);
+}
+
+bool TablesDesRelations::est_utilisée(const Valeur *valeur) const
+{
+    auto const index_données_utilisation = valeur->index_relations;
+    if (index_données_utilisation == -1) {
+        return false;
+    }
+    return m_index[index_données_utilisation].premier_utilisateur != -1;
+}
+
+void TablesDesRelations::supprime(const Valeur *valeur)
+{
+    /* Supprime la valeur de la liste des utilisateurs des valeurs qu'elle utilise. */
+    for (int i = 0; i < m_index.taille(); i++) {
+        if (m_index[i].premier_utilisateur == -1) {
+            continue;
+        }
+
+        supprime_utilisateur(i, valeur);
+    }
+}
+
+kuri::tablet<Valeur *, 6> TablesDesRelations::donne_utilisateurs(const Valeur *valeur) const
+{
+    kuri::tablet<Valeur *, 6> résultat;
+
+    auto const index_données_utilisation = valeur->index_relations;
+    // assert(index_données_utilisation != -1);
+    if (index_données_utilisation == -1) {
+        return résultat;
+    }
+
+    auto &index = m_index[index_données_utilisation];
+
+    auto index_utilisateur = index.premier_utilisateur;
+    while (index_utilisateur != -1) {
+        auto utilisateur = m_utilisateurs[index_utilisateur].utilisateur;
+        résultat.ajoute(utilisateur);
+        index_utilisateur = m_utilisateurs[index_utilisateur].suivant;
+    }
+
+    return résultat;
+}
+
+void TablesDesRelations::supprime_utilisateur(Valeur *utilisée, Valeur const *par)
+{
+    int32_t index_données_utilisée = utilisée->index_relations;
+    assert(index_données_utilisée);
+    supprime_utilisateur(index_données_utilisée, par);
+}
+
+void TablesDesRelations::supprime_utilisateur(int32_t index_données_utilisée, Valeur const *par)
+{
+    auto &index = m_index[index_données_utilisée];
+
+    kuri::tablet<int32_t, 6> index_libres{};
+
+    auto index_utilisateur = index.premier_utilisateur;
+    assert(index_utilisateur != -1);
+    while (index_utilisateur != -1) {
+        auto utilisateur = &m_utilisateurs[index_utilisateur];
+        auto sauvegarde = index_utilisateur;
+        index_utilisateur = utilisateur->suivant;
+
+        if (utilisateur->utilisateur == par) {
+            déconnecte(utilisateur);
+
+            if (sauvegarde == index.premier_utilisateur) {
+                index.premier_utilisateur = index_utilisateur;
+            }
+
+            index_libres.ajoute(sauvegarde);
+        }
+    }
+
+    // if (index.premier_utilisateur == -1) {
+    //     dbg() << __func__ << " : n'est plus utilisée";
+    // }
+    // dbg() << __func__ << " : index libres " << index_libres.taille();
+}
+
+void TablesDesRelations::déconnecte(UtilisateurValeur *utilisateur)
+{
+    if (utilisateur->précédent != -1) {
+        auto précédent = &m_utilisateurs[utilisateur->précédent];
+        précédent->suivant = utilisateur->suivant;
+    }
+
+    if (utilisateur->suivant != -1) {
+        auto suivant = &m_utilisateurs[utilisateur->suivant];
+        suivant->précédent = utilisateur->précédent;
+    }
+
+    utilisateur->utilisateur = nullptr;
+    utilisateur->précédent = -1;
+    utilisateur->suivant = -1;
+}
+
+int32_t TablesDesRelations::donne_index_pour_valeur(Valeur *valeur)
+{
+    if (valeur->index_relations != -1) {
+        return valeur->index_relations;
+    }
+
+    valeur->index_relations = m_index.taille();
+    m_index.ajoute({});
+    return valeur->index_relations;
+}
+
+/** \} */
+
+/*
+
+  Pour la rétroconversion vers RI.
+
+bloc: 0                 %0  label 0
+  v1 = 0                %1    alloue z32 a
+                        %2    stocke *z32 %1, z32 0
+  br %1                 %3    branche %4
+
+bloc: 1                 %4  label 1
+  v2 = 15
+  v3 = 1
+  v4 = phi <v1, v6>     %5    charge z32 %1
+  v5 = v4 >= v2         %6    supeg bool %5, 15
+  si v5 %4 sinon %5     %7    si %6 alors %8 sinon %11
+
+bloc: 4                 %8  label 4
+  ret v4                %9    charge z32 %1
+                        %10   retourne %9
+
+bloc: 5                 %11 label 5
+  v6 = v4 + v3          %12   charge z32 %1
+                        %13   ajt z32 %12, 1
+                        %14   stocke *z32 %1, z32 %13
+  br %1                 %15   branche %4
+
+*/
