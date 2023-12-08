@@ -62,6 +62,7 @@ enum {
     CANDIDATE_EST_CUISSON_FONCTION,
     CANDIDATE_EST_APPEL_POINTEUR,
     CANDIDATE_EST_INITIALISATION_STRUCTURE,
+    CANDIDATE_EST_MONORPHISATION_STRUCTURE,
     CANDIDATE_EST_TYPE_POLYMORPHIQUE,
     CANDIDATE_EST_APPEL_INIT_DE,
     CANDIDATE_EST_INITIALISATION_OPAQUE,
@@ -291,7 +292,7 @@ struct CandidateAppariement {
                               std::move(transformations));
     }
 
-    static CandidateAppariement initialisation_structure(
+    static CandidateAppariement monomorphisation_structure(
         double poids,
         NoeudExpression const *noeud_decl,
         Type const *type,
@@ -299,7 +300,7 @@ struct CandidateAppariement {
         kuri::tableau<TransformationType, int> &&transformations,
         kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
     {
-        auto candidate = crée_candidate(CANDIDATE_EST_INITIALISATION_STRUCTURE,
+        auto candidate = crée_candidate(CANDIDATE_EST_MONORPHISATION_STRUCTURE,
                                         poids,
                                         noeud_decl,
                                         type,

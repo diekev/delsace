@@ -912,7 +912,7 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
             std::move(items_monomorphisation));
     }
 
-    return CandidateAppariement::initialisation_structure(
+    return CandidateAppariement::monomorphisation_structure(
         1.0,
         déclaration_type_composé,
         déclaration_type_composé->type->comme_type_compose(),
@@ -1363,6 +1363,9 @@ static NoeudBloc *bloc_constantes_pour(NoeudExpression const *noeud)
     if (noeud->est_type_structure()) {
         return noeud->comme_type_structure()->bloc_constantes;
     }
+    assert_rappel(false, [&]() {
+        dbg() << "[bloc_constantes_pour] Obtenu un noeud de genre " << noeud->genre;
+    });
     return nullptr;
 }
 
@@ -1804,47 +1807,44 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->expression = const_cast<NoeudDeclarationEnteteFonction *>(decl_fonction_appelée);
         expr->expression->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     }
-    else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
-        if (candidate->noeud_decl &&
-            candidate->noeud_decl->comme_type_structure()->est_polymorphe) {
-            auto decl_struct = candidate->noeud_decl->comme_type_structure();
+    else if (candidate->note == CANDIDATE_EST_MONORPHISATION_STRUCTURE) {
+        auto decl_struct = candidate->noeud_decl->comme_type_structure();
 
-            auto copie = monomorphise_au_besoin(
-                contexte, espace, decl_struct, std::move(candidate->items_monomorphisation));
-            expr->type = espace.compilatrice().typeuse.type_type_de_donnees(copie->type);
+        auto copie = monomorphise_au_besoin(
+            contexte, espace, decl_struct, std::move(candidate->items_monomorphisation));
+        expr->type = espace.compilatrice().typeuse.type_type_de_donnees(copie->type);
 
-            /* il est possible d'utiliser un type avant sa validation final, par exemple en
-             * paramètre d'une fonction de rappel qui est membre de la structure */
-            if (!copie->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE) &&
-                copie->type != contexte.union_ou_structure_courante()) {
-                // saute l'expression pour ne plus revenir
-                contexte.donne_arbre()->index_courant += 1;
-                compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
-                copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
-                return Attente::sur_type(copie->type);
-            }
-            expr->noeud_fonction_appelee = copie;
+        /* il est possible d'utiliser un type avant sa validation final, par exemple en
+         * paramètre d'une fonction de rappel qui est membre de la structure */
+        if (!copie->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE) &&
+            copie->type != contexte.union_ou_structure_courante()) {
+            // saute l'expression pour ne plus revenir
+            contexte.donne_arbre()->index_courant += 1;
+            compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
+            copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+            return Attente::sur_type(copie->type);
         }
-        else {
-            expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
-            expr->type = const_cast<Type *>(candidate->type);
+        expr->noeud_fonction_appelee = copie;
+    }
+    else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
+        expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
+        expr->type = const_cast<Type *>(candidate->type);
 
-            for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
-                if (expr->parametres_resolus[i] != nullptr) {
-                    contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
-                                                                  candidate->transformations[i]);
-                }
+        for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
+            if (expr->parametres_resolus[i] != nullptr) {
+                contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+                                                              candidate->transformations[i]);
             }
-            expr->noeud_fonction_appelee = const_cast<NoeudExpression *>(candidate->noeud_decl);
+        }
+        expr->noeud_fonction_appelee = const_cast<NoeudExpression *>(candidate->noeud_decl);
 
-            if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
-                espace.rapporte_erreur(
-                    expr,
-                    "La valeur de l'expression de construction de structure n'est pas "
-                    "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
-                    "ou l'utiliser comme type ?");
-                return CodeRetourValidation::Erreur;
-            }
+        if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+            espace.rapporte_erreur(
+                expr,
+                "La valeur de l'expression de construction de structure n'est pas "
+                "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
+                "ou l'utiliser comme type ?");
+            return CodeRetourValidation::Erreur;
         }
     }
     else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
