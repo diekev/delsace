@@ -1808,7 +1808,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->expression = const_cast<NoeudDeclarationEnteteFonction *>(decl_fonction_appelée);
         expr->expression->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     }
-    else if (candidate->note == CANDIDATE_EST_MONORPHISATION_STRUCTURE) {
+    else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_STRUCTURE) {
         auto decl_struct = candidate->noeud_decl->comme_type_structure();
 
         auto copie = monomorphise_au_besoin(
