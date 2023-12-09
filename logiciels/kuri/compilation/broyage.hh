@@ -8,7 +8,8 @@
 
 struct IdentifiantCode;
 struct NoeudDeclarationEnteteFonction;
-struct Type;
+struct NoeudDeclarationType;
+using Type = NoeudDeclarationType;
 
 namespace kuri {
 template <typename T, uint64_t>
