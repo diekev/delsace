@@ -15,8 +15,10 @@ struct MetaProgramme;
 struct NoeudDeclaration;
 struct NoeudExpression;
 struct NoeudExpressionReference;
-struct Type;
 struct UniteCompilation;
+struct NoeudDeclarationType;
+
+using Type = NoeudDeclarationType;
 
 namespace kuri {
 struct chaine;

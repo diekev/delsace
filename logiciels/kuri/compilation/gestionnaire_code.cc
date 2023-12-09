@@ -419,14 +419,14 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 }
 
                 switch (type_indexe->genre) {
-                    case GenreType::VARIADIQUE:
-                    case GenreType::TABLEAU_DYNAMIQUE:
+                    case GenreNoeud::VARIADIQUE:
+                    case GenreNoeud::TABLEAU_DYNAMIQUE:
                     {
                         assert(interface->decl_panique_tableau);
                         ajoute_fonction(interface->decl_panique_tableau);
                         break;
                     }
-                    case GenreType::TABLEAU_FIXE:
+                    case GenreNoeud::TABLEAU_FIXE:
                     {
                         assert(interface->decl_panique_tableau);
                         if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
@@ -434,7 +434,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                         }
                         break;
                     }
-                    case GenreType::CHAINE:
+                    case GenreNoeud::CHAINE:
                     {
                         assert(interface->decl_panique_chaine);
                         if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
@@ -553,28 +553,24 @@ static void rassemble_dependances(NoeudExpression *racine,
     rassembleuse.rassemble_dependances();
 }
 
-static bool type_requiers_typage(NoeudDeclaration const *decl)
+static bool type_requiers_typage(NoeudDeclarationType const *type)
 {
-    if (!decl) {
+    if (type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
-    if (decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-        return false;
-    }
-
-    if (decl->comme_declaration_type()->unité) {
+    if (type->unité) {
         /* Déjà en cours. */
         return false;
     }
 
     /* Inutile de typer les unions anonymes, ceci fut fait lors de la validation
      * sémantique. */
-    if (decl->type->est_type_union() && decl->type->comme_type_union()->est_anonyme) {
+    if (type->est_type_union() && type->comme_type_union()->est_anonyme) {
         return false;
     }
 
-    if (decl->type->est_type_structure() && decl->type->comme_type_structure()->union_originelle) {
+    if (type->est_type_structure() && type->comme_type_structure()->union_originelle) {
         /* Les structures pour les unions n'en ont pas besoin. */
         return false;
     }
@@ -607,9 +603,8 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
 
     /* Requiers le typage de tous les types utilisés. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        auto decl = decl_pour_type(type);
-        if (type_requiers_typage(decl)) {
-            gestionnaire.requiers_typage(espace, decl);
+        if (type_requiers_typage(type)) {
+            gestionnaire.requiers_typage(espace, type);
         }
 
         gestionnaire.requiers_initialisation_type(espace, type);
@@ -840,7 +835,7 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
     auto unite = crée_unite(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
     unite->type = type;
 
-    if (!type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+    if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         unite->ajoute_attente(Attente::sur_type(type));
     }
 
@@ -976,9 +971,8 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
 {
     if (attente.est<AttenteSurType>()) {
         Type *type = const_cast<Type *>(attente.type());
-        auto decl = decl_pour_type(type);
-        if (type_requiers_typage(decl)) {
-            requiers_typage(espace, decl);
+        if (type_requiers_typage(type)) {
+            requiers_typage(espace, type);
         }
         /* Ceci est pour gérer les requêtes de fonctions d'initialisation avant la génération de
          * RI. */
@@ -1226,8 +1220,8 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     }
 
     if (noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
-        !noeud->est_type_enum() && !noeud->est_declaration_bibliotheque() &&
-        !noeud->est_declaration_constante()) {
+        !noeud->est_type_enum() && !noeud->est_type_union() &&
+        !noeud->est_declaration_bibliotheque() && !noeud->est_declaration_constante()) {
         if (noeud->est_execute()) {
             /* Les #exécutes globales sont gérées via les métaprogrammes. */
             return false;
