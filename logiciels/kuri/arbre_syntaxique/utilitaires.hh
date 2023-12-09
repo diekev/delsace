@@ -4,6 +4,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <optional>
 
 #include "compilation/transformation_type.hh"
 
@@ -21,14 +22,18 @@ struct IdentifiantCode;
 struct Lexeme;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationType;
+struct NoeudDeclarationTypeCompose;
+struct NoeudDeclarationTypePointeur;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct NoeudExpressionReference;
 struct NoeudExpressionPriseAdresse;
 struct Symbole;
-struct Type;
-struct TypePointeur;
+using Type = NoeudDeclarationType;
+using TypePointeur = NoeudDeclarationTypePointeur;
 struct Typeuse;
+using TypeCompose = NoeudDeclarationTypeCompose;
 
 namespace kuri {
 struct chaine;
@@ -154,6 +159,32 @@ enum class VisibilitéSymbole : uint8_t {
 };
 
 std::ostream &operator<<(std::ostream &os, VisibilitéSymbole visibilité);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Drapeaux pour les types.
+ * \{ */
+
+enum class DrapeauxTypes : uint32_t {
+    AUCUN = 0,
+
+    /* Pour les types variadiques externes, et les structures externes opaques (sans bloc). */
+    TYPE_NE_REQUIERS_PAS_D_INITIALISATION = (1u << 0),
+    TYPE_EST_POLYMORPHIQUE = (1u << 1),
+    INITIALISATION_TYPE_FUT_CREEE = (1u << 2),
+    POSSEDE_TYPE_POINTEUR = (1u << 3),
+    POSSEDE_TYPE_REFERENCE = (1u << 4),
+    POSSEDE_TYPE_TABLEAU_FIXE = (1u << 5),
+    POSSEDE_TYPE_TABLEAU_DYNAMIQUE = (1u << 6),
+    POSSEDE_TYPE_TYPE_DE_DONNEES = (1u << 7),
+    // CODE_BINAIRE_TYPE_FUT_GENERE = 512,
+    TYPE_POSSEDE_OPERATEURS_DE_BASE = (1u << 8),
+    UNITE_POUR_INITIALISATION_FUT_CREE = (1u << 9),
+};
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxTypes)
+
+std::ostream &operator<<(std::ostream &os, DrapeauxTypes const drapeaux);
 
 /** \} */
 
@@ -323,3 +354,76 @@ bool est_déclaration_polymorphique(NoeudDeclaration const *decl);
 void imprime_membres_blocs_récursifs(NoeudBloc const *bloc);
 
 UniteCompilation **donne_adresse_unité(NoeudExpression *noeud);
+
+struct IdentifiantCode;
+
+struct MembreTypeComposé {
+    enum {
+        // si le membre est une constante (par exemple, la définition d'une énumération, ou une
+        // simple valeur)
+        EST_CONSTANT = (1 << 0),
+        // si le membre est défini par la compilatrice (par exemple, « nombre_éléments » des
+        // énumérations)
+        EST_IMPLICITE = (1 << 1),
+        // si le membre provient d'une instruction empl
+        PROVIENT_D_UN_EMPOI = (1 << 2),
+        // si le membre est employé
+        EST_UN_EMPLOI = (1 << 3),
+        // si l'expression du membre est sur-écrite dans la définition de la structure (x = y,
+        // pour x déclaré en amont)
+        POSSÈDE_EXPRESSION_SPÉCIALE = (1 << 4),
+
+        MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
+    };
+
+    BaseDeclarationVariable *decl = nullptr;
+    Type *type = nullptr;
+    IdentifiantCode *nom = nullptr;
+    unsigned decalage = 0;
+    int valeur = 0;                                       // pour les énumérations
+    NoeudExpression *expression_valeur_defaut = nullptr;  // pour les membres des structures
+    int drapeaux = 0;
+    uint32_t rembourrage = 0;
+
+    inline bool possède_drapeau(int drapeau) const
+    {
+        return (drapeaux & drapeau) != 0;
+    }
+
+    inline bool est_implicite() const
+    {
+        return possède_drapeau(EST_IMPLICITE);
+    }
+
+    inline bool est_constant() const
+    {
+        return possède_drapeau(EST_CONSTANT);
+    }
+
+    inline bool est_utilisable_pour_discrimination() const
+    {
+        return !est_implicite() && !est_constant();
+    }
+
+    inline bool ne_doit_pas_être_dans_code_machine() const
+    {
+        return possède_drapeau(MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE);
+    }
+
+    inline bool expression_initialisation_est_spéciale() const
+    {
+        return possède_drapeau(POSSÈDE_EXPRESSION_SPÉCIALE);
+    }
+
+    inline bool est_un_emploi() const
+    {
+        return possède_drapeau(EST_UN_EMPLOI);
+    }
+};
+
+using MembreTypeCompose = MembreTypeComposé;
+
+struct InformationMembreTypeCompose {
+    MembreTypeComposé membre{};
+    int index_membre = -1;
+};

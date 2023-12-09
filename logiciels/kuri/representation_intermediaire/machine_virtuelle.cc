@@ -356,7 +356,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
             os << "valeur de type " << chaine_type(type) << " non prise en charge";
             break;
         }
-        case GenreType::TUPLE:
+        case GenreNoeud::TUPLE:
         {
             auto type_tuple = type->comme_type_tuple();
             POUR (type_tuple->membres) {
@@ -364,7 +364,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
             }
             break;
         }
-        case GenreType::ENTIER_RELATIF:
+        case GenreNoeud::ENTIER_RELATIF:
         {
             if (type->taille_octet == 1) {
                 os << *reinterpret_cast<char *>(pointeur);
@@ -381,9 +381,10 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
 
             break;
         }
-        case GenreType::ENUM:
-        case GenreType::ERREUR:
-        case GenreType::ENTIER_NATUREL:
+        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::ENTIER_NATUREL:
         {
             if (type->taille_octet == 1) {
                 os << *pointeur;
@@ -400,12 +401,12 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
 
             break;
         }
-        case GenreType::BOOL:
+        case GenreNoeud::BOOL:
         {
             os << (*reinterpret_cast<bool *>(pointeur) ? "vrai" : "faux");
             break;
         }
-        case GenreType::REEL:
+        case GenreNoeud::REEL:
         {
             if (type->taille_octet == 4) {
                 os << *reinterpret_cast<float *>(pointeur);
@@ -416,13 +417,13 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
 
             break;
         }
-        case GenreType::FONCTION:
-        case GenreType::POINTEUR:
+        case GenreNoeud::FONCTION:
+        case GenreNoeud::POINTEUR:
         {
             os << *reinterpret_cast<void **>(pointeur);
             break;
         }
-        case GenreType::STRUCTURE:
+        case GenreNoeud::DECLARATION_STRUCTURE:
         {
             auto type_structure = type->comme_type_structure();
 
@@ -442,7 +443,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
 
             break;
         }
-        case GenreType::CHAINE:
+        case GenreNoeud::CHAINE:
         {
             auto valeur_pointeur = pointeur;
             auto valeur_chaine = *reinterpret_cast<int64_t *>(pointeur + 8);

@@ -10,6 +10,7 @@
 struct Annotation;
 struct Compilatrice;
 struct NoeudBloc;
+struct NoeudDeclarationClasse;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationSymbole;
 struct NoeudDeclarationVariable;
@@ -17,6 +18,7 @@ struct NoeudExpression;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
 struct NoeudStruct;
+struct NoeudUnion;
 struct Tacheronne;
 struct UniteCompilation;
 
@@ -89,10 +91,10 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_declaration_structure(NoeudExpression *gauche);
     NoeudExpression *analyse_declaration_union(NoeudExpression *gauche);
     void analyse_directives_structure(NoeudStruct *noeud);
-    void analyse_directives_union(NoeudStruct *noeud);
-    void analyse_paramètres_polymorphiques_structure_ou_union(NoeudStruct *noeud);
-    void analyse_membres_structure_ou_union(NoeudStruct *decl_struct);
-    NoeudBloc *analyse_bloc_membres_structure_ou_union(NoeudStruct *decl_struct);
+    void analyse_directives_union(NoeudUnion *noeud);
+    void analyse_paramètres_polymorphiques_structure_ou_union(NoeudDeclarationClasse *noeud);
+    void analyse_membres_structure_ou_union(NoeudDeclarationClasse *decl_struct);
+    NoeudBloc *analyse_bloc_membres_structure_ou_union(NoeudDeclarationClasse *decl_struct);
 
     NoeudExpression *analyse_instruction();
     NoeudExpression *analyse_instruction_boucle();

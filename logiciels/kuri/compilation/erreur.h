@@ -12,8 +12,10 @@
 struct EspaceDeTravail;
 struct NoeudExpression;
 struct SiteSource;
-struct Type;
-struct TypeCompose;
+struct NoeudDeclarationType;
+struct NoeudDeclarationTypeCompose;
+using Type = NoeudDeclarationType;
+using TypeCompose = NoeudDeclarationTypeCompose;
 
 namespace erreur {
 

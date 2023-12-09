@@ -16,6 +16,8 @@
 #include "representation_intermediaire/machine_virtuelle.hh"
 #include "representation_intermediaire/optimisations.hh"
 
+#include "utilitaires/log.hh"
+
 std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
 {
     const char *virgule = "";
@@ -443,7 +445,7 @@ void Tacheronne::gere_tache()
                              });
 
                 auto attente_possible = attente_sur_type_si_drapeau_manquant(
-                    types_utilises, DrapeauxTypes::TYPE_FUT_VALIDE);
+                    types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
                 if (attente_possible) {
                     compilatrice.gestionnaire_code->mets_en_attente(tache.unite,
                                                                     attente_possible.value());
@@ -711,11 +713,11 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
     DétectriceFuiteDeMémoire &détectrice_fuites_de_mémoire)
 {
     switch (type->genre) {
-        case GenreType::EINI:
-        case GenreType::POINTEUR:
-        case GenreType::POLYMORPHIQUE:
-        case GenreType::REFERENCE:
-        case GenreType::VARIADIQUE:
+        case GenreNoeud::EINI:
+        case GenreNoeud::POINTEUR:
+        case GenreNoeud::POLYMORPHIQUE:
+        case GenreNoeud::REFERENCE:
+        case GenreNoeud::VARIADIQUE:
         {
             espace
                 ->rapporte_erreur(directive,
@@ -723,11 +725,11 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
                 .ajoute_message("Le type est : ", chaine_type(type), "\n");
             break;
         }
-        case GenreType::RIEN:
+        case GenreNoeud::RIEN:
         {
             break;
         }
-        case GenreType::TUPLE:
+        case GenreNoeud::TUPLE:
         {
             // pour les tuples de retours, nous les convertissons en expression-virgule
             auto tuple = type->comme_type_tuple();
@@ -746,9 +748,9 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
             return virgule;
         }
-        case GenreType::OCTET:
-        case GenreType::ENTIER_CONSTANT:
-        case GenreType::ENTIER_RELATIF:
+        case GenreNoeud::OCTET:
+        case GenreNoeud::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_RELATIF:
         {
             uint64_t valeur = 0;
 
@@ -767,9 +769,10 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
             return assembleuse->crée_litterale_entier(lexeme, type, valeur);
         }
-        case GenreType::ENUM:
-        case GenreType::ERREUR:
-        case GenreType::ENTIER_NATUREL:
+        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENTIER_NATUREL:
         {
             uint64_t valeur = 0;
             if (type->taille_octet == 1) {
@@ -787,7 +790,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
             return assembleuse->crée_litterale_entier(lexeme, type, valeur);
         }
-        case GenreType::BOOL:
+        case GenreNoeud::BOOL:
         {
             auto valeur = *reinterpret_cast<bool *>(pointeur);
             auto noeud_syntaxique = assembleuse->crée_litterale_bool(lexeme);
@@ -795,7 +798,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             noeud_syntaxique->type = type;
             return noeud_syntaxique;
         }
-        case GenreType::REEL:
+        case GenreNoeud::REEL:
         {
             double valeur = 0.0;
 
@@ -809,7 +812,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
             return assembleuse->crée_litterale_reel(lexeme, type, valeur);
         }
-        case GenreType::STRUCTURE:
+        case GenreNoeud::DECLARATION_STRUCTURE:
         {
             auto type_structure = type->comme_type_structure();
 
@@ -829,7 +832,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
             return construction_structure;
         }
-        case GenreType::UNION:
+        case GenreNoeud::DECLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
             auto construction_union = assembleuse->crée_construction_structure(lexeme, type_union);
@@ -866,7 +869,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
             return construction_union;
         }
-        case GenreType::CHAINE:
+        case GenreNoeud::CHAINE:
         {
             auto valeur_pointeur = pointeur;
             auto valeur_chaine = *reinterpret_cast<int64_t *>(pointeur + 8);
@@ -888,13 +891,13 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
             return lit_chaine;
         }
-        case GenreType::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNEES:
         {
             auto type_de_donnees = *reinterpret_cast<Type **>(pointeur);
             type_de_donnees = compilatrice.typeuse.type_type_de_donnees(type_de_donnees);
             return assembleuse->crée_reference_type(lexeme, type_de_donnees);
         }
-        case GenreType::FONCTION:
+        case GenreNoeud::FONCTION:
         {
             auto fonction = *reinterpret_cast<AtomeFonction **>(pointeur);
 
@@ -906,7 +909,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             return assembleuse->crée_reference_declaration(
                 lexeme, const_cast<NoeudDeclarationEnteteFonction *>(fonction->decl));
         }
-        case GenreType::OPAQUE:
+        case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             auto expr = noeud_syntaxique_depuis_resultat(espace,
@@ -925,7 +928,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
             return comme;
         }
-        case GenreType::TABLEAU_FIXE:
+        case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_tableau = type->comme_type_tableau_fixe();
 
@@ -949,7 +952,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             construction->expression = virgule;
             return construction;
         }
-        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             auto type_tableau = type->comme_type_tableau_dynamique();
 
@@ -986,6 +989,11 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             }
 
             return comme;
+        }
+        default:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            break;
         }
     }
 

@@ -15,7 +15,8 @@
 
 struct DonnéesExécutionFonction;
 struct IdentifiantCode;
-struct Type;
+struct NoeudDeclarationType;
+using Type = NoeudDeclarationType;
 
 enum class VisibilitéSymbole : uint8_t;
 

@@ -53,7 +53,19 @@ static const char *copie_extra_bloc = R"(
             })";
 
 static const char *copie_extra_structure = R"(
-            nracine->type = nullptr;
+            nracine->type = nracine->comme_type_structure();
+            if (orig->bloc_constantes) {
+                /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
+                 * sont placés par la Syntaxeuse directement dans les membres. */
+                POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
+                    auto copie_membre = copie_noeud(it);
+                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_constante());
+                }
+            }
+)";
+
+static const char *copie_extra_union = R"(
+            nracine->type = nracine->comme_type_union();
             if (orig->bloc_constantes) {
                 /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
                  * sont placés par la Syntaxeuse directement dans les membres. */
@@ -65,7 +77,7 @@ static const char *copie_extra_structure = R"(
 )";
 
 static const char *copie_extra_énum = R"(
-            nracine->type = nullptr;
+            nracine->type = nracine->comme_type_enum();
 )";
 
 /* Les déclarations référées doivent être copiées avec soin : il ne faut copier les déclarations
@@ -640,10 +652,14 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             else if (nom_genre.nom_cpp() == "DECLARATION_STRUCTURE") {
                 os << copie_extra_structure;
             }
+            else if (nom_genre.nom_cpp() == "DECLARATION_UNION") {
+                os << copie_extra_union;
+            }
             else if (nom_genre.nom_cpp() == "INSTRUCTION_COMPOSEE") {
                 os << copie_extra_bloc << "\n";
             }
-            else if (nom_genre.nom_cpp() == "DECLARATION_ENUM") {
+            else if (nom_genre.nom_cpp() == "DECLARATION_ENUM" ||
+                     nom_genre.nom_cpp() == "ERREUR" || nom_genre.nom_cpp() == "ENUM_DRAPEAU") {
                 os << copie_extra_énum << "\n";
             }
 
@@ -862,7 +878,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
               "&gerante_chaine, NoeudCode *racine);\n\n";
         os << "\tNoeudCode *convertis_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression "
               "*racine);\n\n";
-        os << "\tInfoType *crée_info_type_pour(Type *type);\n\n";
+        os << "\tInfoType *crée_info_type_pour(Typeuse &typeuse, Type *type);\n\n";
         os << "\tType *convertis_info_type(Typeuse &typeuse, InfoType *type);\n\n";
         os << "\tvoid rassemble_statistiques(Statistiques &stats) const;\n\n";
         os << "\tint64_t memoire_utilisee() const;\n";
@@ -1009,7 +1025,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 });
 
             os << "\t\t\tn->genre = racine_typee->genre;\n";
-            os << "\t\t\tn->type = crée_info_type_pour(racine_typee->type);\n";
+            os << "\t\t\tn->type = crée_info_type_pour(espace->compilatrice().typeuse, "
+                  "racine_typee->type);\n";
             os << "\t\t\tif (racine_typee->ident) { n->nom = racine_typee->ident->nom; } else if "
                   "(racine_typee->lexeme) { n->nom = racine_typee->lexeme->chaine; }\n";
 
@@ -1267,7 +1284,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         os << "#pragma once\n";
         os << "#include \"allocatrice.hh\"\n";
         os << "#include \"structures/pile.hh\"\n";
-        os << "struct TypeCompose;\n";
+        os << "struct NoeudDeclarationTypeCompose;\n";
+        os << "using TypeCompose = NoeudDeclarationTypeCompose;\n";
         os << "struct AssembleuseArbre {\n";
         os << "private:\n";
         os << "\tAllocatriceNoeud &m_allocatrice;\n";
@@ -1507,6 +1525,10 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         os << "\ttableau_page<DonnéesSymboleExterne> m_données_symbole_externe{};\n";
         os << "\ttableau_page<Monomorphisations> m_monomorphisations_fonctions{};\n";
         os << "\ttableau_page<Monomorphisations> m_monomorphisations_structs{};\n";
+        os << "\ttableau_page<Monomorphisations> m_monomorphisations_unions{};\n";
+
+        // XXX - réusinage types
+        os << "\tfriend struct Typeuse;\n";
 
         os << "\n";
         os << "public:\n";
@@ -1569,6 +1591,11 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
     Monomorphisations *crée_monomorphisations_struct()
     {
         return m_monomorphisations_structs.ajoute_element();
+    }
+
+    Monomorphisations *crée_monomorphisations_union()
+    {
+        return m_monomorphisations_unions.ajoute_element();
     }
 )";
 

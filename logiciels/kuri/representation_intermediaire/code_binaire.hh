@@ -27,8 +27,9 @@ struct InstructionAppel;
 struct MetaProgramme;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
+struct NoeudDeclarationType;
 struct ProgrammeRepreInter;
-struct Type;
+using Type = NoeudDeclarationType;
 
 namespace kuri {
 struct chaine_statique;

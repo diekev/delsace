@@ -1045,22 +1045,22 @@ kuri::chaine désassemble(const Chunk &chunk, kuri::chaine_statique nom)
 ffi_type *converti_type_ffi(Type const *type)
 {
     switch (type->genre) {
-        case GenreType::POLYMORPHIQUE:
+        case GenreNoeud::POLYMORPHIQUE:
         {
             assert_rappel(false, [&]() { dbg() << "Type polymorphique dans la conversion FFI"; });
             return static_cast<ffi_type *>(nullptr);
         }
-        case GenreType::TUPLE:
+        case GenreNoeud::TUPLE:
         {
             assert_rappel(false, [&]() { dbg() << "Type tuple dans la conversion FFI"; });
             return static_cast<ffi_type *>(nullptr);
         }
-        case GenreType::BOOL:
-        case GenreType::OCTET:
+        case GenreNoeud::BOOL:
+        case GenreNoeud::OCTET:
         {
             return &ffi_type_uint8;
         }
-        case GenreType::CHAINE:
+        case GenreNoeud::CHAINE:
         {
             static ffi_type *types_elements[] = {&ffi_type_pointer, &ffi_type_sint64, nullptr};
 
@@ -1068,7 +1068,7 @@ ffi_type *converti_type_ffi(Type const *type)
 
             return &type_ffi_chaine;
         }
-        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             static ffi_type *types_elements[] = {
                 &ffi_type_pointer, &ffi_type_sint64, &ffi_type_sint64, nullptr};
@@ -1077,7 +1077,7 @@ ffi_type *converti_type_ffi(Type const *type)
 
             return &type_ffi_tableau;
         }
-        case GenreType::EINI:
+        case GenreNoeud::EINI:
         {
             static ffi_type *types_elements[] = {&ffi_type_pointer, &ffi_type_pointer, nullptr};
 
@@ -1085,11 +1085,11 @@ ffi_type *converti_type_ffi(Type const *type)
 
             return &type_ffi_eini;
         }
-        case GenreType::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_CONSTANT:
         {
             return &ffi_type_sint32;
         }
-        case GenreType::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_NATUREL:
         {
             if (type->taille_octet == 1) {
                 return &ffi_type_uint8;
@@ -1109,7 +1109,7 @@ ffi_type *converti_type_ffi(Type const *type)
 
             break;
         }
-        case GenreType::ENTIER_RELATIF:
+        case GenreNoeud::ENTIER_RELATIF:
         {
             if (type->taille_octet == 1) {
                 return &ffi_type_sint8;
@@ -1129,7 +1129,7 @@ ffi_type *converti_type_ffi(Type const *type)
 
             break;
         }
-        case GenreType::REEL:
+        case GenreNoeud::REEL:
         {
             if (type->taille_octet == 2) {
                 return &ffi_type_uint16;
@@ -1145,27 +1145,27 @@ ffi_type *converti_type_ffi(Type const *type)
 
             break;
         }
-        case GenreType::RIEN:
+        case GenreNoeud::RIEN:
         {
             return &ffi_type_void;
         }
-        case GenreType::POINTEUR:
-        case GenreType::REFERENCE:
-        case GenreType::FONCTION:
+        case GenreNoeud::POINTEUR:
+        case GenreNoeud::REFERENCE:
+        case GenreNoeud::FONCTION:
         {
             return &ffi_type_pointer;
         }
-        case GenreType::STRUCTURE:
+        case GenreNoeud::DECLARATION_STRUCTURE:
         {
             // non supporté pour le moment, nous devrions uniquement passer des pointeurs
             break;
         }
-        case GenreType::OPAQUE:
+        case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             return converti_type_ffi(type_opaque->type_opacifie);
         }
-        case GenreType::UNION:
+        case GenreNoeud::DECLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
 
@@ -1176,19 +1176,25 @@ ffi_type *converti_type_ffi(Type const *type)
             // non supporté
             break;
         }
-        case GenreType::ENUM:
-        case GenreType::ERREUR:
+        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
         {
             return converti_type_ffi(static_cast<TypeEnum const *>(type)->type_sous_jacent);
         }
-        case GenreType::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNEES:
         {
             return &ffi_type_sint64;
         }
-        case GenreType::VARIADIQUE:
-        case GenreType::TABLEAU_FIXE:
+        case GenreNoeud::VARIADIQUE:
+        case GenreNoeud::TABLEAU_FIXE:
         {
             // ces types là ne sont pas supporté dans FFI
+            break;
+        }
+        default:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
             break;
         }
     }

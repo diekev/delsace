@@ -30,7 +30,7 @@ struct NoeudExpression {
     DrapeauxNoeud drapeaux
     Lexeme const * lexème [code]
     IdentifiantCode * ident [code]
-    Type * type [code]
+    NoeudDéclarationType * type [code]
 
     NoeudBloc * bloc_parent [copie]
 
@@ -566,6 +566,27 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
 
     UniteCompilation * unité [préserve_accents]
 
+    InfoType * info_type [mutable]
+    AtomeGlobale *atome_info_type [mutable]
+
+    /* La fonction sous-jacente de init_de(type). */
+    NoeudDéclarationEnteteFonction *fonction_init
+
+    /* À FAIRE : remplace par infos. */
+    unsigned taille_octet = 0
+    unsigned alignement = 0
+
+    unsigned index_dans_table_types = 0
+
+    DrapeauxTypes drapeaux_type
+
+    chaine nom_broye
+
+    /* À FAIRE: déplace ceci dans une table? */
+    NoeudDéclarationTypePointeur *type_pointeur
+
+    TableOpérateurs *table_opérateurs [préserve_accents]
+
     /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
      * identifiant. Ceci n'est mis en place que pour le premier symbole
      * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
@@ -573,37 +594,92 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
     NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
 }
 
-struct NoeudStruct : NoeudDéclarationType {
-    @genre DÉCLARATION_STRUCTURE
-    @comme type_structure
-    @code  NoeudCodeStructure
-    @genre_valeur DROITE
+struct NoeudDéclarationTypeComposé : NoeudDéclarationType {
+    @comme type_composé
+    @code NoeudCodeDéclarationTypeComposé
 
-    NoeudBloc *bloc [code enfant]
+    MembreTypeComposé [] membres
 
-    bool est_union [copie]
-    bool est_nonsure [copie]
-    bool est_externe [copie]
-    bool est_polymorphe [copie]
-    bool est_monomorphisation
-    bool est_corps_texte [copie]
-    bool est_compacte [copie]
+    /* Le nom final, contenant les informations de portée (p.e. ModuleStructure, pour Structure ::
+     * struct dans le module Module). */
+    chaine nom_portable_
 
-    uint32_t alignement_desire
+    /* Le nom de la hierarchie, sans le nom du module. Chaque nom est séparé par des points.
+     * Ceci est le nom qui sera utilisé dans les infos types.
+     * À FAIRE : remplace ceci par l'utilisation d'un pointeur dans les infos-types contenant la
+     * type parent. */
+    chaine nom_hiérarchique_ [préserve_accents]
+
+    int nombre_de_membres_réels = 0 [préserve_accents]
+}
+
+struct NoeudDéclarationClasse : NoeudDéclarationTypeComposé {
+    @comme déclaration_classe
+    @code  NoeudCodeDéclarationClasse
 
     NoeudBloc *bloc_constantes [copie]
+    NoeudBloc *bloc [code enfant]
 
     /* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
-    NoeudStruct *polymorphe_de_base
+    NoeudDéclarationClasse const *polymorphe_de_base
 
     Monomorphisations *monomorphisations
 
     MetaProgramme *metaprogramme_corps_texte
 
+    bool est_externe [copie]
+    bool est_polymorphe [copie]
+    bool est_monomorphisation [copie]
+    bool est_corps_texte [copie]
+    bool est_anonyme
+
     Annotation [] annotations [code copie]
 }
 
-struct NoeudEnum : NoeudDéclarationType {
+struct NoeudStruct : NoeudDéclarationClasse {
+    @genre DÉCLARATION_STRUCTURE
+    @comme type_structure
+    @code  NoeudCodeStructure
+    @genre_valeur DROITE
+
+    uint32_t alignement_desire
+    bool est_compacte [copie]
+
+    /* Stocke les membres pour avoir accès à leurs décalages. */
+    MembreTypeComposé * [] types_employés [préserve_accents]
+
+    NoeudUnion * union_originelle
+}
+
+struct NoeudUnion : NoeudDéclarationClasse {
+    @genre DÉCLARATION_UNION
+    @comme type_union
+    @code  NoeudCodeUnion
+    @genre_valeur DROITE
+
+    uint32_t décalage_index
+    bool est_nonsure [copie]
+    bool est_compacte [copie]
+
+    NoeudDéclarationType * type_le_plus_grand
+    NoeudStruct * type_structure
+}
+
+struct NoeudChaine : NoeudDéclarationTypeComposé {
+    @genre CHAINE
+    @comme type_chaine
+    @code  NoeudCodeChaine
+    @genre_valeur DROITE
+}
+
+struct NoeudEini : NoeudDéclarationTypeComposé {
+    @genre EINI
+    @comme type_eini
+    @code  NoeudCodeEini
+    @genre_valeur DROITE
+}
+
+struct NoeudEnum : NoeudDéclarationTypeComposé {
     @genre DÉCLARATION_ÉNUM
     @comme type_énum
     @code  NoeudCodeÉnum
@@ -614,8 +690,22 @@ struct NoeudEnum : NoeudDéclarationType {
 
     Annotation [] annotations [code copie]
 
-    bool est_erreur [copie]
-    bool est_énum_drapeau [copie préserve_accents]
+    /* Données pour le type résolu. */
+    NoeudDéclarationType *type_sous_jacent [code enfant]
+}
+
+struct NoeudDéclarationTypeErreur : NoeudEnum {
+    @genre ERREUR
+    @comme type_erreur
+    @code  NoeudCodeErreur
+    @genre_valeur DROITE
+}
+
+struct NoeudDéclarationTypeEnumDrapeau : NoeudEnum {
+    @genre ENUM_DRAPEAU
+    @comme type_enum_drapeau
+    @code  NoeudCodeEnumDrapeau
+    @genre_valeur DROITE
 }
 
 struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
@@ -625,6 +715,162 @@ struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
     @genre_valeur DROITE
 
     NoeudExpression *expression_type [code enfant]
+
+    /* Données pour le type résolu. */
+    NoeudDéclarationType *type_opacifié [code]
+
+    NoeudDéclarationTypeOpaque const *polymorphe_de_base
+
+    /* Le nom final, contenant les informations de portée (p.e. ModuleStructure, pour Structure ::
+     * struct dans le module Module). */
+    chaine nom_portable_
+
+    /* Le nom de la hierarchie, sans le nom du module. Chaque nom est séparé par des points.
+     * Ceci est le nom qui sera utilisé dans les infos types.
+     * À FAIRE : remplace ceci par l'utilisation d'un pointeur dans les infos-types contenant la
+     * type parent. */
+    chaine nom_hiérarchique_ [préserve_accents]
+}
+
+struct NoeudDéclarationTypePointeur : NoeudDéclarationType {
+    @genre POINTEUR
+    @comme type_pointeur
+    @code  NoeudCodeTypePointeur
+    @genre_valeur DROITE
+
+    /* Données pour le type résolu. */
+    NoeudDéclarationType *type_pointé [code enfant]
+}
+
+struct NoeudDéclarationTypeRéférence : NoeudDéclarationType {
+    @genre RÉFÉRENCE
+    @comme type_référence
+    @code  NoeudCodeTypeRéférence
+    @genre_valeur DROITE
+
+    /* Données pour le type résolu. */
+    NoeudDéclarationType *type_pointé [code enfant]
+}
+
+struct NoeudDéclarationTypeRéel : NoeudDéclarationType {
+    @genre RÉEL
+    @comme type_réel
+    @code  NoeudCodeTypeRéel
+    @genre_valeur DROITE
+}
+
+struct NoeudDéclarationTypeEntierNaturel : NoeudDéclarationType {
+    @genre ENTIER_NATUREL
+    @comme type_entier_naturel
+    @code  NoeudCodeTypeEntierNaturel
+    @genre_valeur DROITE
+}
+
+struct NoeudDéclarationTypeEntierRelatif : NoeudDéclarationType {
+    @genre ENTIER_RELATIF
+    @comme type_entier_relatif
+    @code  NoeudCodeTypeEntierRelatif
+    @genre_valeur DROITE
+}
+
+struct NoeudDéclarationTypeEntierConstant : NoeudDéclarationType {
+    @genre ENTIER_CONSTANT
+    @comme type_entier_constant
+    @code  NoeudCodeTypeEntierConstant
+    @genre_valeur DROITE
+}
+
+struct NoeudDéclarationTypeOctet : NoeudDéclarationType {
+    @genre OCTET
+    @comme type_octet
+    @code  NoeudCodeTypeOctet
+    @genre_valeur DROITE
+}
+
+struct NoeudDéclarationTypeBool : NoeudDéclarationType {
+    @genre BOOL
+    @comme type_bool
+    @code  NoeudCodeTypeBool
+    @genre_valeur DROITE
+}
+
+struct NoeudDéclarationTypeRien : NoeudDéclarationType {
+    @genre RIEN
+    @comme type_rien
+    @code  NoeudCodeTypeRien
+    @genre_valeur INVALIDE
+}
+
+struct NoeudDéclarationTypeTableauFixe : NoeudDéclarationTypeComposé {
+    @genre TABLEAU_FIXE
+    @comme type_tableau_fixe
+    @code  NoeudCodeTypeTableauFixe
+    @genre_valeur DROITE
+
+    /* Données pour le type résolu. */
+    NoeudDéclarationType *type_pointé [code enfant]
+    int taille [code]
+}
+
+struct NoeudDéclarationTypeTableauDynamique : NoeudDéclarationTypeComposé {
+    @genre TABLEAU_DYNAMIQUE
+    @comme type_tableau_dynamique
+    @code  NoeudCodeTypeTableauDynamique
+    @genre_valeur DROITE
+
+    /* Données pour le type résolu. */
+    NoeudDéclarationType *type_pointé [code enfant]
+}
+
+struct NoeudDéclarationTypeFonction : NoeudDéclarationType {
+    @genre FONCTION
+    @comme type_fonction
+    @code  NoeudCodeTypeFonction
+    @genre_valeur DROITE
+
+    NoeudDéclarationType * [] types_entrées [code enfant]
+    NoeudDéclarationType * type_sortie [code enfant]
+}
+
+struct NoeudDéclarationTypeVariadique : NoeudDéclarationTypeComposé {
+    @genre VARIADIQUE
+    @comme type_variadique
+    @code  NoeudCodeTypeVariadique
+    @genre_valeur DROITE
+
+    /* Données pour le type résolu. */
+    NoeudDéclarationType *type_pointé [code enfant]
+    /* Type tableau dynamique pour la génération de code, si le type est ...z32, le type
+     * tableau dynamique sera []z32. */
+    NoeudDéclarationTypeTableauDynamique *type_tableau_dynamique [code]
+}
+
+struct NoeudDéclarationTypeTypeDeDonnées : NoeudDéclarationType {
+    @genre TYPE_DE_DONNÉES
+    @comme type_type_de_données
+    @code  NoeudCodeTypeDeDonnées
+    @genre_valeur DROITE
+
+    /* Données pour le type résolu. */
+
+    /* Le type pour lequel ce type_de_données existe.
+     * Si l'expression est, par exemple, « z32 », ceci pointera vers la déclaration de z32.
+     * Sinon le pointeur sera nul. */
+    NoeudDéclarationType *type_connu [code enfant]
+}
+
+struct NoeudDéclarationTypePolymorphique : NoeudDéclarationType {
+    @genre POLYMORPHIQUE
+    @comme type_polymorphique
+    @code  NoeudCodeTypePolymorphique
+    @genre_valeur DROITE
+}
+
+struct NoeudDéclarationTypeTuple : NoeudDéclarationTypeComposé {
+    @genre TUPLE
+    @comme type_tuple
+    @code  NoeudCodeTypeTuple
+    @genre_valeur DROITE
 }
 
 struct NoeudSi : NoeudExpression {

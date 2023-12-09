@@ -753,11 +753,11 @@ InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression cons
 
     assert_rappel(
         dls::outils::est_element(
-            type_élément->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE) ||
+            type_élément->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE) ||
             (type_élément->est_type_opaque() &&
              dls::outils::est_element(type_élément->comme_type_opaque()->type_opacifie->genre,
-                                      GenreType::POINTEUR,
-                                      GenreType::TABLEAU_FIXE)),
+                                      GenreNoeud::POINTEUR,
+                                      GenreNoeud::TABLEAU_FIXE)),
         [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
     auto type = m_typeuse.type_pointeur_pour(type_dereference_pour(type_élément), false);
@@ -791,7 +791,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpressi
         type_élément = type_élément->comme_type_opaque()->type_opacifie;
     }
 
-    assert_rappel(est_type_compose(type_élément), [&]() {
+    assert_rappel(type_élément->est_type_compose(), [&]() {
         dbg() << "Type accédé : '" << chaine_type(type_élément) << "'\n" << imprime_site(site_);
     });
 
@@ -848,7 +848,7 @@ AccedeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante
     auto type_pointeur = accédé->type->comme_type_pointeur();
     assert_rappel(
         dls::outils::est_element(
-            type_pointeur->type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE),
+            type_pointeur->type_pointe->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE),
         [=]() { dbg() << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'"; });
 
     auto type = m_typeuse.type_pointeur_pour(type_dereference_pour(type_pointeur->type_pointe),
@@ -860,35 +860,35 @@ AccedeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante
 AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type const *type)
 {
     switch (type->genre) {
-        case GenreType::RIEN:
-        case GenreType::POLYMORPHIQUE:
+        case GenreNoeud::RIEN:
+        case GenreNoeud::POLYMORPHIQUE:
         {
             return nullptr;
         }
-        case GenreType::BOOL:
+        case GenreNoeud::BOOL:
         {
             return crée_constante_booléenne(false);
         }
         /* Les seules réféences pouvant être nulles sont celles générées par la compilatrice pour
          * les boucles pour. */
-        case GenreType::REFERENCE:
-        case GenreType::POINTEUR:
-        case GenreType::FONCTION:
+        case GenreNoeud::REFERENCE:
+        case GenreNoeud::POINTEUR:
+        case GenreNoeud::FONCTION:
         {
             return crée_constante_nulle(type);
         }
-        case GenreType::OCTET:
-        case GenreType::ENTIER_NATUREL:
-        case GenreType::ENTIER_RELATIF:
-        case GenreType::TYPE_DE_DONNEES:
+        case GenreNoeud::OCTET:
+        case GenreNoeud::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_RELATIF:
+        case GenreNoeud::TYPE_DE_DONNEES:
         {
             return crée_constante_nombre_entier(type, 0);
         }
-        case GenreType::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_CONSTANT:
         {
             return crée_constante_nombre_entier(TypeBase::Z32, 0);
         }
-        case GenreType::REEL:
+        case GenreNoeud::REEL:
         {
             if (type->taille_octet == 2) {
                 return crée_constante_nombre_entier(TypeBase::N16, 0);
@@ -896,13 +896,13 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
 
             return crée_constante_nombre_réel(type, 0.0);
         }
-        case GenreType::TABLEAU_FIXE:
+        case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_tableau = type->comme_type_tableau_fixe();
             auto valeur = crée_initialisation_défaut_pour_type(type_tableau->type_pointe);
             return crée_initialisation_tableau(type_tableau, valeur);
         }
-        case GenreType::UNION:
+        case GenreNoeud::DECLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
 
@@ -918,12 +918,12 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
 
             return crée_constante_structure(type, std::move(valeurs));
         }
-        case GenreType::CHAINE:
-        case GenreType::EINI:
-        case GenreType::STRUCTURE:
-        case GenreType::TABLEAU_DYNAMIQUE:
-        case GenreType::VARIADIQUE:
-        case GenreType::TUPLE:
+        case GenreNoeud::CHAINE:
+        case GenreNoeud::EINI:
+        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::VARIADIQUE:
+        case GenreNoeud::TUPLE:
         {
             auto type_composé = static_cast<TypeCompose const *>(type);
             auto valeurs = kuri::tableau<AtomeConstante *>();
@@ -936,18 +936,24 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
 
             return crée_constante_structure(type, std::move(valeurs));
         }
-        case GenreType::ENUM:
-        case GenreType::ERREUR:
+        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
             return crée_constante_nombre_entier(type_enum, 0);
         }
-        case GenreType::OPAQUE:
+        case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             auto valeur = crée_initialisation_défaut_pour_type(type_opaque->type_opacifie);
             valeur->type = type_opaque;
             return valeur;
+        }
+        default:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            return nullptr;
         }
     }
 
@@ -1275,6 +1281,26 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
+        case GenreNoeud::OCTET:
+        case GenreNoeud::REEL:
+        case GenreNoeud::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_RELATIF:
+        case GenreNoeud::ENTIER_NATUREL:
+        case GenreNoeud::CHAINE:
+        case GenreNoeud::POINTEUR:
+        case GenreNoeud::REFERENCE:
+        case GenreNoeud::EINI:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::BOOL:
+        case GenreNoeud::RIEN:
+        case GenreNoeud::TABLEAU_FIXE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::FONCTION:
+        case GenreNoeud::VARIADIQUE:
+        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::POLYMORPHIQUE:
+        case GenreNoeud::TUPLE:
         {
             break;
         }
@@ -1288,6 +1314,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
         }
         /* Les déclarations de structures doivent passer par les fonctions d'initialisation. */
         case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DECLARATION_UNION:
         {
             /* Il est possible d'avoir des déclarations de structures dans les fonctions, donc il
              * est possible d'en avoir une ici. */
@@ -1866,9 +1893,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
 
             /* Peut être implémenté via x = 1 ^ (valeur == 0). */
             switch (type_condition->genre) {
-                case GenreType::ENTIER_NATUREL:
-                case GenreType::ENTIER_RELATIF:
-                case GenreType::ENTIER_CONSTANT:
+                case GenreNoeud::ENTIER_NATUREL:
+                case GenreNoeud::ENTIER_RELATIF:
+                case GenreNoeud::ENTIER_CONSTANT:
                 {
                     génère_ri_pour_expression_droite(condition, nullptr);
                     auto valeur1 = depile_valeur();
@@ -1877,7 +1904,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
                     break;
                 }
-                case GenreType::BOOL:
+                case GenreNoeud::BOOL:
                 {
                     génère_ri_pour_expression_droite(condition, nullptr);
                     auto valeur1 = depile_valeur();
@@ -1886,8 +1913,8 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
                     break;
                 }
-                case GenreType::FONCTION:
-                case GenreType::POINTEUR:
+                case GenreNoeud::FONCTION:
+                case GenreNoeud::POINTEUR:
                 {
                     génère_ri_pour_expression_droite(condition, nullptr);
                     auto valeur1 = depile_valeur();
@@ -1896,7 +1923,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
                     break;
                 }
-                case GenreType::EINI:
+                case GenreNoeud::EINI:
                 {
                     génère_ri_pour_noeud(condition);
                     auto pointeur = depile_valeur();
@@ -1908,8 +1935,8 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
                     break;
                 }
-                case GenreType::CHAINE:
-                case GenreType::TABLEAU_DYNAMIQUE:
+                case GenreNoeud::CHAINE:
+                case GenreNoeud::TABLEAU_DYNAMIQUE:
                 {
                     génère_ri_pour_noeud(condition);
                     auto pointeur = depile_valeur();
@@ -2723,7 +2750,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
                     break;
                 }
-                case GenreType::POINTEUR:
+                case GenreNoeud::POINTEUR:
                 {
                     auto type_pointe = noeud->type->comme_type_pointeur()->type_pointe;
                     valeur = m_constructrice.crée_transtype(
@@ -2733,7 +2760,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                     valeur_taille = m_constructrice.crée_z64(taille_type);
                     break;
                 }
-                case GenreType::CHAINE:
+                case GenreNoeud::CHAINE:
                 {
                     valeur_pointeur = m_constructrice.crée_reference_membre_et_charge(
                         noeud, valeur, 0);
@@ -2743,7 +2770,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                         noeud, valeur, 1);
                     break;
                 }
-                case GenreType::TABLEAU_DYNAMIQUE:
+                case GenreNoeud::TABLEAU_DYNAMIQUE:
                 {
                     auto type_pointer = noeud->type->comme_type_tableau_dynamique()->type_pointe;
 
@@ -2765,7 +2792,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
                     break;
                 }
-                case GenreType::TABLEAU_FIXE:
+                case GenreNoeud::TABLEAU_FIXE:
                 {
                     auto type_tabl = noeud->type->comme_type_tableau_fixe();
                     auto type_pointe = type_tabl->type_pointe;
@@ -3196,9 +3223,9 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
     }
 
     switch (type_condition->genre) {
-        case GenreType::ENTIER_NATUREL:
-        case GenreType::ENTIER_RELATIF:
-        case GenreType::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_RELATIF:
+        case GenreNoeud::ENTIER_CONSTANT:
         {
             génère_ri_pour_expression_droite(condition, nullptr);
             auto valeur1 = depile_valeur();
@@ -3207,14 +3234,14 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
                 condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
             break;
         }
-        case GenreType::BOOL:
+        case GenreNoeud::BOOL:
         {
             génère_ri_pour_expression_droite(condition, nullptr);
             valeur = depile_valeur();
             break;
         }
-        case GenreType::FONCTION:
-        case GenreType::POINTEUR:
+        case GenreNoeud::FONCTION:
+        case GenreNoeud::POINTEUR:
         {
             génère_ri_pour_expression_droite(condition, nullptr);
             auto valeur1 = depile_valeur();
@@ -3223,7 +3250,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
                 condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
             break;
         }
-        case GenreType::EINI:
+        case GenreNoeud::EINI:
         {
             génère_ri_pour_noeud(const_cast<NoeudExpression *>(condition));
             auto pointeur = depile_valeur();
@@ -3234,8 +3261,8 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
                 condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
             break;
         }
-        case GenreType::CHAINE:
-        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::CHAINE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             génère_ri_pour_noeud(const_cast<NoeudExpression *>(condition));
             auto pointeur = depile_valeur();
@@ -3384,23 +3411,23 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
     }
 
     switch (type->genre) {
-        case GenreType::POLYMORPHIQUE:
-        case GenreType::TUPLE:
+        case GenreNoeud::POLYMORPHIQUE:
+        case GenreNoeud::TUPLE:
         {
             assert_rappel(false, []() { dbg() << "Obtenu un type tuple ou polymophique"; });
             break;
         }
-        case GenreType::BOOL:
+        case GenreNoeud::BOOL:
         {
             type->atome_info_type = crée_info_type_défaut(IDInfoType::BOOLEEN, type);
             break;
         }
-        case GenreType::OCTET:
+        case GenreNoeud::OCTET:
         {
             type->atome_info_type = crée_info_type_défaut(IDInfoType::OCTET, type);
             break;
         }
-        case GenreType::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_CONSTANT:
         {
             auto type_z32 = TypeBase::Z32;
             if (type_z32->atome_info_type) {
@@ -3412,12 +3439,12 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             }
             break;
         }
-        case GenreType::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_NATUREL:
         {
             type->atome_info_type = crée_info_type_entier(type, false);
             break;
         }
-        case GenreType::ENTIER_RELATIF:
+        case GenreNoeud::ENTIER_RELATIF:
         {
             auto type_z32 = TypeBase::Z32;
 
@@ -3436,13 +3463,13 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             }
             break;
         }
-        case GenreType::REEL:
+        case GenreNoeud::REEL:
         {
             type->atome_info_type = crée_info_type_défaut(IDInfoType::REEL, type);
             break;
         }
-        case GenreType::REFERENCE:
-        case GenreType::POINTEUR:
+        case GenreNoeud::REFERENCE:
+        case GenreNoeud::POINTEUR:
         {
             auto type_deref = type_dereference_pour(type);
 
@@ -3463,8 +3490,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_compilatrice.typeuse.type_info_type_pointeur, std::move(valeurs));
             break;
         }
-        case GenreType::ENUM:
-        case GenreType::ERREUR:
+        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::ERREUR:
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
 
@@ -3518,14 +3546,15 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             valeurs[1] = crée_chaine(donne_nom_hiérarchique(const_cast<TypeEnum *>(type_enum)));
             valeurs[2] = tableau_valeurs;
             valeurs[3] = tableau_noms;
-            valeurs[4] = m_constructrice.crée_constante_booléenne(type_enum->est_drapeau);
+            valeurs[4] = m_constructrice.crée_constante_booléenne(
+                type_enum->est_type_enum_drapeau());
             valeurs[5] = crée_info_type(type_enum->type_sous_jacent, site);
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_enum, std::move(valeurs));
             break;
         }
-        case GenreType::UNION:
+        case GenreNoeud::DECLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
 
@@ -3576,20 +3605,14 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             valeurs[3] = info_type_plus_grand;
             valeurs[4] = m_constructrice.crée_z64(type_union->decalage_index);
             valeurs[5] = m_constructrice.crée_constante_booléenne(!type_union->est_nonsure);
-            if (type_union->decl) {
-                valeurs[6] = crée_tableau_annotations_pour_info_membre(
-                    type_union->decl->annotations);
-            }
-            else {
-                valeurs[6] = crée_tableau_annotations_pour_info_membre({});
-            }
+            valeurs[6] = crée_tableau_annotations_pour_info_membre(type_union->annotations);
 
             globale->initialisateur = m_constructrice.crée_constante_structure(type_info_union,
                                                                                std::move(valeurs));
 
             break;
         }
-        case GenreType::STRUCTURE:
+        case GenreNoeud::DECLARATION_STRUCTURE:
         {
             auto type_struct = type->comme_type_structure();
 
@@ -3645,19 +3668,13 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 donne_nom_hiérarchique(const_cast<TypeStructure *>(type_struct)));
             valeurs[2] = tableau_membre;
             valeurs[3] = tableau_structs_employees;
-            if (type_struct->decl) {
-                valeurs[4] = crée_tableau_annotations_pour_info_membre(
-                    type_struct->decl->annotations);
-            }
-            else {
-                valeurs[4] = crée_tableau_annotations_pour_info_membre({});
-            }
+            valeurs[4] = crée_tableau_annotations_pour_info_membre(type_struct->annotations);
 
             globale->initialisateur = m_constructrice.crée_constante_structure(type_info_struct,
                                                                                std::move(valeurs));
             break;
         }
-        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             auto type_deref = type_dereference_pour(type);
             auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
@@ -3677,7 +3694,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_compilatrice.typeuse.type_info_type_tableau, std::move(valeurs));
             break;
         }
-        case GenreType::TABLEAU_FIXE:
+        case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_tableau = type->comme_type_tableau_fixe();
 
@@ -3692,7 +3709,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_compilatrice.typeuse.type_info_type_tableau, std::move(valeurs));
             break;
         }
-        case GenreType::FONCTION:
+        case GenreNoeud::FONCTION:
         {
             auto type_fonction = type->comme_type_fonction();
 
@@ -3735,27 +3752,27 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_compilatrice.typeuse.type_info_type_fonction, std::move(valeurs));
             break;
         }
-        case GenreType::EINI:
+        case GenreNoeud::EINI:
         {
             type->atome_info_type = crée_info_type_défaut(IDInfoType::EINI, type);
             break;
         }
-        case GenreType::RIEN:
+        case GenreNoeud::RIEN:
         {
             type->atome_info_type = crée_info_type_défaut(IDInfoType::RIEN, type);
             break;
         }
-        case GenreType::CHAINE:
+        case GenreNoeud::CHAINE:
         {
             type->atome_info_type = crée_info_type_défaut(IDInfoType::CHAINE, type);
             break;
         }
-        case GenreType::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNEES:
         {
             type->atome_info_type = crée_info_type_défaut(IDInfoType::TYPE_DE_DONNEES, type);
             break;
         }
-        case GenreType::OPAQUE:
+        case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             auto type_opacifie = type_opaque->type_opacifie;
@@ -3771,7 +3788,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_compilatrice.typeuse.type_info_type_opaque, std::move(valeurs));
             break;
         }
-        case GenreType::VARIADIQUE:
+        case GenreNoeud::VARIADIQUE:
         {
             auto type_variadique = type->comme_type_variadique();
             auto type_élément = type_variadique->type_pointe;
@@ -3789,12 +3806,17 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_compilatrice.typeuse.type_info_type_variadique, std::move(valeurs));
             break;
         }
+        default:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            break;
+        }
     }
 
     // À FAIRE : il nous faut toutes les informations du type pour pouvoir générer les informations
-    //    assert_rappel(type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE), [type]() {
-    //        dbg() << "Info type pour " << chaine_type(type) << " est incomplet";
-    //    });
+    // assert_rappel(type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [type]() {
+    //     dbg() << "Info type pour " << chaine_type(type) << " est incomplet";
+    // });
 
     type->atome_info_type->est_info_type_de = type;
 

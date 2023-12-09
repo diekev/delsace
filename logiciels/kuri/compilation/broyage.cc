@@ -103,43 +103,43 @@ int64_t Broyeuse::mémoire_utilisée() const
 static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 {
     switch (type->genre) {
-        case GenreType::POLYMORPHIQUE:
+        case GenreNoeud::POLYMORPHIQUE:
         {
             assert_rappel(false,
                           [&]() { dbg() << "Obtenu un type polymorphique dans le broyage !"; });
             break;
         }
-        case GenreType::EINI:
+        case GenreNoeud::EINI:
         {
             enchaineuse << "Kseini";
             break;
         }
-        case GenreType::CHAINE:
+        case GenreNoeud::CHAINE:
         {
             enchaineuse << "Kschaine";
             break;
         }
-        case GenreType::RIEN:
+        case GenreNoeud::RIEN:
         {
             enchaineuse << "Ksrien";
             break;
         }
-        case GenreType::BOOL:
+        case GenreNoeud::BOOL:
         {
             enchaineuse << "Ksbool";
             break;
         }
-        case GenreType::OCTET:
+        case GenreNoeud::OCTET:
         {
             enchaineuse << "Ksoctet";
             break;
         }
-        case GenreType::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_CONSTANT:
         {
             enchaineuse << "Ksz32";
             break;
         }
-        case GenreType::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_NATUREL:
         {
             if (type->taille_octet == 1) {
                 enchaineuse << "Ksn8";
@@ -156,7 +156,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 
             break;
         }
-        case GenreType::ENTIER_RELATIF:
+        case GenreNoeud::ENTIER_RELATIF:
         {
             if (type->taille_octet == 1) {
                 enchaineuse << "Ksz8";
@@ -173,7 +173,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 
             break;
         }
-        case GenreType::REEL:
+        case GenreNoeud::REEL:
         {
             if (type->taille_octet == 2) {
                 enchaineuse << "Ksr16";
@@ -187,13 +187,13 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 
             break;
         }
-        case GenreType::REFERENCE:
+        case GenreNoeud::REFERENCE:
         {
             enchaineuse << "KR";
             nom_broye_type(enchaineuse, type->comme_type_reference()->type_pointe);
             break;
         }
-        case GenreType::POINTEUR:
+        case GenreNoeud::POINTEUR:
         {
             enchaineuse << "KP";
 
@@ -208,7 +208,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 
             break;
         }
-        case GenreType::UNION:
+        case GenreNoeud::DECLARATION_UNION:
         {
             auto type_union = static_cast<TypeUnion const *>(type);
             enchaineuse << "Ks";
@@ -216,14 +216,13 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 
             // ajout du pointeur au nom afin de différencier les différents types anonymes ou
             // monomorphisations
-            if (type_union->est_anonyme ||
-                (type_union->decl && type_union->decl->est_monomorphisation)) {
+            if (type_union->est_anonyme || type_union->est_monomorphisation) {
                 enchaineuse << type_union;
             }
 
             break;
         }
-        case GenreType::STRUCTURE:
+        case GenreNoeud::DECLARATION_STRUCTURE:
         {
             auto type_structure = static_cast<TypeStructure const *>(type);
             enchaineuse << "Ks";
@@ -232,14 +231,13 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 
             // ajout du pointeur au nom afin de différencier les différents types anonymes ou
             // monomorphisations
-            if (type_structure->est_anonyme ||
-                (type_structure->decl && type_structure->decl->est_monomorphisation)) {
+            if (type_structure->est_anonyme || type_structure->est_monomorphisation) {
                 enchaineuse << type_structure;
             }
 
             break;
         }
-        case GenreType::VARIADIQUE:
+        case GenreNoeud::VARIADIQUE:
         {
             auto type_pointe = type->comme_type_variadique()->type_pointe;
 
@@ -254,13 +252,13 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 
             break;
         }
-        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             enchaineuse << "Kt";
             nom_broye_type(enchaineuse, type->comme_type_tableau_dynamique()->type_pointe);
             break;
         }
-        case GenreType::TABLEAU_FIXE:
+        case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_tabl = type->comme_type_tableau_fixe();
 
@@ -269,26 +267,27 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
             nom_broye_type(enchaineuse, type_tabl->type_pointe);
             break;
         }
-        case GenreType::FONCTION:
+        case GenreNoeud::FONCTION:
         {
             enchaineuse << "Kf";
             enchaineuse << type;
             break;
         }
-        case GenreType::ENUM:
-        case GenreType::ERREUR:
+        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
         {
             auto type_enum = static_cast<TypeEnum *>(type);
             enchaineuse << "Ks";
             broye_nom_simple(enchaineuse, donne_nom_portable(type_enum));
             break;
         }
-        case GenreType::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNEES:
         {
             enchaineuse << "Kstype_de_donnees";
             break;
         }
-        case GenreType::OPAQUE:
+        case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             enchaineuse << "Ks";
@@ -297,9 +296,14 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
             nom_broye_type(enchaineuse, type_opaque->type_opacifie);
             break;
         }
-        case GenreType::TUPLE:
+        case GenreNoeud::TUPLE:
         {
             enchaineuse << "Kl" << type;
+            break;
+        }
+        default:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
             break;
         }
     }

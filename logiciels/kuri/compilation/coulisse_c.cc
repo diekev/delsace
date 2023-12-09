@@ -269,18 +269,19 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 #endif
 
     switch (type->genre) {
-        case GenreType::POLYMORPHIQUE:
+        case GenreNoeud::POLYMORPHIQUE:
         {
             /* Aucun typedef. */
             return;
         }
-        case GenreType::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_CONSTANT:
         {
             type_c.typedef_ = "int32_t";
             break;
         }
-        case GenreType::ERREUR:
-        case GenreType::ENUM:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::DECLARATION_ENUM:
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
             génère_typedef(type_enum->type_sous_jacent, enchaineuse);
@@ -289,7 +290,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             type_c.typedef_ = nom_broye_type_donnees;
             break;
         }
-        case GenreType::OPAQUE:
+        case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             génère_typedef(type_opaque->type_opacifie, enchaineuse);
@@ -298,17 +299,17 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             type_c.typedef_ = nom_broye_type_opacifie;
             break;
         }
-        case GenreType::BOOL:
+        case GenreNoeud::BOOL:
         {
             type_c.typedef_ = "uint8_t";
             break;
         }
-        case GenreType::OCTET:
+        case GenreNoeud::OCTET:
         {
             type_c.typedef_ = "uint8_t";
             break;
         }
-        case GenreType::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_NATUREL:
         {
             if (type->taille_octet == 1) {
                 type_c.typedef_ = "uint8_t";
@@ -325,7 +326,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 
             break;
         }
-        case GenreType::ENTIER_RELATIF:
+        case GenreNoeud::ENTIER_RELATIF:
         {
             if (type->taille_octet == 1) {
                 type_c.typedef_ = "int8_t";
@@ -342,12 +343,12 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 
             break;
         }
-        case GenreType::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNEES:
         {
             type_c.typedef_ = "int64_t";
             break;
         }
-        case GenreType::REEL:
+        case GenreNoeud::REEL:
         {
             if (type->taille_octet == 2) {
                 type_c.typedef_ = "uint16_t";
@@ -361,7 +362,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 
             break;
         }
-        case GenreType::REFERENCE:
+        case GenreNoeud::REFERENCE:
         {
             auto type_pointe = type->comme_type_reference()->type_pointe;
             génère_typedef(type_pointe, enchaineuse);
@@ -369,7 +370,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
             break;
         }
-        case GenreType::POINTEUR:
+        case GenreNoeud::POINTEUR:
         {
             auto type_pointe = type->comme_type_pointeur()->type_pointe;
 
@@ -384,11 +385,11 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 
             break;
         }
-        case GenreType::STRUCTURE:
+        case GenreNoeud::DECLARATION_STRUCTURE:
         {
             auto type_struct = type->comme_type_structure();
 
-            if (type_struct->decl && type_struct->decl->est_polymorphe) {
+            if (type_struct->est_polymorphe) {
                 /* Aucun typedef. */
                 type_c.typedef_ = ".";
                 return;
@@ -400,7 +401,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             if (type_struct->est_anonyme) {
                 type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
             }
-            else if (type_struct->decl && type_struct->decl->est_monomorphisation) {
+            else if (type_struct->est_monomorphisation) {
                 type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
             }
             else {
@@ -409,7 +410,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 
             break;
         }
-        case GenreType::UNION:
+        case GenreNoeud::DECLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
             POUR (type_union->membres) {
@@ -422,12 +423,11 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
                 type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
             }
             else {
-                auto decl = type_union->decl;
-                if (decl->est_nonsure || decl->est_externe) {
+                if (type_union->est_nonsure || type_union->est_externe) {
                     auto type_le_plus_grand = type_union->type_le_plus_grand;
                     type_c.typedef_ = génératrice_code.donne_nom_pour_type(type_le_plus_grand);
                 }
-                else if (type_union->decl && type_union->decl->est_monomorphisation) {
+                else if (type_union->est_monomorphisation) {
                     type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
                 }
                 else {
@@ -437,12 +437,12 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 
             break;
         }
-        case GenreType::TABLEAU_FIXE:
+        case GenreNoeud::TABLEAU_FIXE:
         {
             type_c.typedef_ = enchaine("struct TableauFixe_", type_c.nom);
             break;
         }
-        case GenreType::VARIADIQUE:
+        case GenreNoeud::VARIADIQUE:
         {
             auto variadique = type->comme_type_variadique();
             /* Garantie la génération du typedef pour les types tableaux des variadiques. */
@@ -461,7 +461,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             type_c.typedef_ = ".";
             return;
         }
-        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             auto type_pointe = type->comme_type_tableau_dynamique()->type_pointe;
 
@@ -475,7 +475,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             type_c.typedef_ = enchaine("struct Tableau_", type_c.nom);
             break;
         }
-        case GenreType::FONCTION:
+        case GenreNoeud::FONCTION:
         {
             auto type_fonc = type->comme_type_fonction();
 
@@ -537,24 +537,29 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
              * directement. */
             return;
         }
-        case GenreType::EINI:
+        case GenreNoeud::EINI:
         {
             type_c.typedef_ = "eini";
             break;
         }
-        case GenreType::RIEN:
+        case GenreNoeud::RIEN:
         {
             type_c.typedef_ = "void";
             break;
         }
-        case GenreType::CHAINE:
+        case GenreNoeud::CHAINE:
         {
             type_c.typedef_ = "chaine";
             break;
         }
-        case GenreType::TUPLE:
+        case GenreNoeud::TUPLE:
         {
             type_c.typedef_ = enchaine("struct ", type_c.nom);
+            break;
+        }
+        default:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
             break;
         }
     }
@@ -584,7 +589,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
     if (type->est_type_structure()) {
         auto type_struct = type->comme_type_structure();
 
-        if (type_struct->decl && type_struct->decl->est_polymorphe) {
+        if (type_struct->est_polymorphe) {
             return;
         }
 
@@ -730,15 +735,13 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
     auto nom_broyé = broyeuse.broye_nom_simple(
         donne_nom_portable(const_cast<TypeStructure *>(type_structure)));
 
-    if (type_structure->decl && type_structure->decl->est_monomorphisation) {
+    if (type_structure->est_monomorphisation) {
         nom_broyé = enchaine(nom_broyé, type_structure);
     }
 
-    if (type_structure->decl && type_structure->decl->est_externe) {
-        if (type_structure->membres.taille() == 0) {
-            enchaineuse << "typedef struct " << nom_broyé << " " << nom_broyé << ";\n\n";
-            return;
-        }
+    if (type_structure->est_externe && type_structure->membres.taille() == 0) {
+        enchaineuse << "typedef struct " << nom_broyé << " " << nom_broyé << ";\n\n";
+        return;
     }
 
     if (quoi == STRUCTURE) {
@@ -775,15 +778,12 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
 #endif
     enchaineuse << "} ";
 
-    if (type_structure->decl) {
-        if (type_structure->decl->est_compacte) {
-            enchaineuse << " __attribute__((packed)) ";
-        }
+    if (type_structure->est_compacte) {
+        enchaineuse << " __attribute__((packed)) ";
+    }
 
-        if (type_structure->decl->alignement_desire != 0) {
-            enchaineuse << " __attribute__((aligned(" << type_structure->decl->alignement_desire
-                        << "))) ";
-        }
+    if (type_structure->alignement_desire != 0) {
+        enchaineuse << " __attribute__((aligned(" << type_structure->alignement_desire << "))) ";
     }
 
     enchaineuse << nom_broyé;
