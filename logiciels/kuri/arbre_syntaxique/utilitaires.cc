@@ -2199,6 +2199,12 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
         return type->fonction_init;
     }
 
+    if (type->est_type_enum()) {
+        /* Les fonctions pour les types de bases durent être créées au début de la compilation. */
+        assert(type->comme_type_enum()->type_sous_jacent->fonction_init);
+        return type->comme_type_enum()->type_sous_jacent->fonction_init;
+    }
+
     auto type_param = typeuse.type_pointeur_pour(type);
     if (type->est_type_union() && !type->comme_type_union()->est_nonsure) {
         type_param = typeuse.type_pointeur_pour(type, false, false);
