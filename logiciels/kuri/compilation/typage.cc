@@ -28,7 +28,39 @@
 
 std::ostream &operator<<(std::ostream &os, DrapeauxTypes const drapeaux)
 {
-    os << static_cast<uint32_t>(drapeaux);
+    if (drapeaux == DrapeauxTypes(0)) {
+        os << "AUCUN";
+        return os;
+    }
+
+#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
+    if ((drapeaux & DrapeauxTypes::drapeau) != DrapeauxTypes(0)) {                                \
+        identifiants.ajoute(#drapeau);                                                            \
+    }
+
+    kuri::tablet<kuri::chaine_statique, 32> identifiants;
+
+    SI_DRAPEAU_UTILISE(TYPE_NE_REQUIERS_PAS_D_INITIALISATION)
+    SI_DRAPEAU_UTILISE(TYPE_EST_POLYMORPHIQUE)
+    SI_DRAPEAU_UTILISE(TYPE_FUT_VALIDE)
+    SI_DRAPEAU_UTILISE(INITIALISATION_TYPE_FUT_CREEE)
+    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_POINTEUR)
+    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_REFERENCE)
+    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_TABLEAU_FIXE)
+    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_TABLEAU_DYNAMIQUE)
+    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_TYPE_DE_DONNEES)
+    SI_DRAPEAU_UTILISE(CODE_BINAIRE_TYPE_FUT_GENERE)
+    SI_DRAPEAU_UTILISE(TYPE_POSSEDE_OPERATEURS_DE_BASE)
+    SI_DRAPEAU_UTILISE(UNITE_POUR_INITIALISATION_FUT_CREE)
+
+    auto virgule = "";
+
+    POUR (identifiants) {
+        os << virgule << it;
+        virgule = " | ";
+    }
+
+#undef SI_DRAPEAU_UTILISE
     return os;
 }
 
