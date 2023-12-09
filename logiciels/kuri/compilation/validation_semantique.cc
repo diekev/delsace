@@ -1091,6 +1091,9 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 case GenreType::POLYMORPHIQUE:
                 case GenreType::TUPLE:
                 {
+                    assert_rappel(false, [&]() {
+                        dbg() << "Type illégal pour info type : " << chaine_type(expr->type);
+                    });
                     break;
                 }
                 case GenreType::EINI:
@@ -1155,6 +1158,10 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     break;
                 }
             }
+
+            assert_rappel(type_info_type, [&]() {
+                dbg() << "InfoType nul pour type : " << chaine_type(expr->type);
+            });
 
             noeud->type = m_compilatrice.typeuse.type_pointeur_pour(type_info_type);
 
