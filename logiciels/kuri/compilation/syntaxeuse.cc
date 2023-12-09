@@ -2890,7 +2890,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     }
 
     analyse_paramètres_polymorphiques_structure_ou_union(noeud_decl);
-    analyse_directives_structure_ou_union(noeud_decl);
+    analyse_directives_structure(noeud_decl);
     analyse_membres_structure_ou_union(noeud_decl);
     analyse_annotations(noeud_decl->annotations);
 
@@ -2927,7 +2927,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_union(NoeudExpression *gauche)
     }
 
     analyse_paramètres_polymorphiques_structure_ou_union(noeud_decl);
-    analyse_directives_structure_ou_union(noeud_decl);
+    analyse_directives_union(noeud_decl);
     analyse_membres_structure_ou_union(noeud_decl);
     analyse_annotations(noeud_decl->annotations);
 
@@ -2944,7 +2944,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_union(NoeudExpression *gauche)
     return noeud_decl;
 }
 
-void Syntaxeuse::analyse_directives_structure_ou_union(NoeudStruct *noeud)
+void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
 {
     while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
@@ -2956,17 +2956,11 @@ void Syntaxeuse::analyse_directives_structure_ou_union(NoeudStruct *noeud)
         }
         else if (ident_directive == ID::externe) {
             noeud->est_externe = true;
-            // #externe implique nonsûr
-            noeud->est_nonsure = noeud->est_union;
         }
         else if (ident_directive == ID::corps_texte) {
             noeud->est_corps_texte = true;
         }
         else if (ident_directive == ID::compacte) {
-            if (noeud->est_union) {
-                rapporte_erreur("Directive « compacte » impossible pour une union\n");
-            }
-
             noeud->est_compacte = true;
         }
         else if (ident_directive == ID::aligne) {
@@ -2984,6 +2978,29 @@ void Syntaxeuse::analyse_directives_structure_ou_union(NoeudStruct *noeud)
         }
         else {
             rapporte_erreur("Directive de structure inconnue.");
+        }
+
+        consomme();
+    }
+}
+
+void Syntaxeuse::analyse_directives_union(NoeudStruct *noeud)
+{
+    while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
+        consomme();
+
+        auto ident_directive = lexeme_courant()->ident;
+
+        if (ident_directive == ID::externe) {
+            noeud->est_externe = true;
+            /* #externe implique nonsûr */
+            noeud->est_nonsure = true;
+        }
+        else if (ident_directive == ID::corps_texte) {
+            noeud->est_corps_texte = true;
+        }
+        else {
+            rapporte_erreur("Directive impossible pour une union");
         }
 
         consomme();
