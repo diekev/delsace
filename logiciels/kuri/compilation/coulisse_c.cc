@@ -1532,15 +1532,26 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
     table_globales.insère(valeur_globale, enchaine("&", nom_globale));
 }
 
-static bool paramètre_est_marqué_comme_inutilisée(NoeudDeclarationEnteteFonction const *entête,
-                                                  int index)
+static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *fonction, int index)
 {
+    auto const entête = fonction->decl;
     if (!entête) {
         return false;
     }
 
+    if (fonction->est_externe) {
+        return false;
+    }
+
     auto const param = entête->parametre_entree(index);
-    return param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE);
+    if (param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
+        return true;
+    }
+
+    /* À FAIRE : il est possible qu'une fonction soit vidée car un "retourne" est la première
+     * expression (pour désactiver le code), il faudra détecter ce cas dans la RI ou lors de la
+     * validation sémantique et marquer les paramètres comme inutilisés. */
+    return fonction->instructions.taille() == 2;
 }
 
 /* Pour garantir que les déclarations des fonctions externes correspondent à ce qu'elles doivent
@@ -1621,8 +1632,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
     auto virgule = "(";
 
     POUR_INDEX (atome_fonc->params_entrees) {
-        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc->decl,
-                                                                             index_it);
+        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc, index_it);
 
         os << virgule;
 

@@ -3,12 +3,13 @@
  * Catégorie : [syntaxage, directive exéctive, déclaration constante]
  */
 
-a :: #exécute 4 * 5
+importe Fondation
+
+/* À FAIRE(langage) : typage des entiers constants */
+a :: #exécute (4 comme z32 * 5 comme z32)
 
 principale :: fonc () -> z32
 {
-    saufsi a == 20 {
-        retourne 1
-    }
+    assert(a == 20)
     retourne 0
 }
