@@ -12,8 +12,8 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
-#include "utilitaires/log.hh"
 #include "compilation/typage.hh"
+#include "utilitaires/log.hh"
 
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
@@ -2197,6 +2197,12 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
 {
     if (type->fonction_init) {
         return type->fonction_init;
+    }
+
+    if (type->est_type_enum()) {
+        /* Les fonctions pour les types de bases durent être créées au début de la compilation. */
+        assert(type->comme_type_enum()->type_sous_jacent->fonction_init);
+        return type->comme_type_enum()->type_sous_jacent->fonction_init;
     }
 
     auto type_param = typeuse.type_pointeur_pour(type);
