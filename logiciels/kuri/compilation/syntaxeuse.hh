@@ -88,7 +88,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
     /* Structures et unions. */
     NoeudExpression *analyse_declaration_structure(NoeudExpression *gauche);
     NoeudExpression *analyse_declaration_union(NoeudExpression *gauche);
-    void analyse_directives_structure_ou_union(NoeudStruct *noeud);
+    void analyse_directives_structure(NoeudStruct *noeud);
+    void analyse_directives_union(NoeudStruct *noeud);
     void analyse_paramètres_polymorphiques_structure_ou_union(NoeudStruct *noeud);
     void analyse_membres_structure_ou_union(NoeudStruct *decl_struct);
     NoeudBloc *analyse_bloc_membres_structure_ou_union(NoeudStruct *decl_struct);

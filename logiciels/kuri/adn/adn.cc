@@ -124,7 +124,13 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         }
 
         POUR (m_membres) {
-            os << "\t" << *it.type << ' ' << it.nom.nom_cpp();
+            os << "\t";
+
+            if (it.est_mutable) {
+                os << "mutable ";
+            }
+
+            os << *it.type << ' ' << it.nom.nom_cpp();
 
             if (it.valeur_defaut != "") {
                 os << " = ";
@@ -958,6 +964,9 @@ void SyntaxeuseADN::parse_struct()
                 }
                 else if (apparie("préserve_accents")) {
                     membre.nom.préserve_accents();
+                }
+                else if (apparie("mutable")) {
+                    membre.est_mutable = true;
                 }
                 else {
                     rapporte_erreur("attribut inconnu");
