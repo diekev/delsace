@@ -5,6 +5,8 @@
  * Catégorie : [validation sémantique, expression appel, fonction polymorphique]
  */
 
+importe Fondation
+
 /* $T et []$T sont ambigües, il faudrait un système plus subtil, où le nombre
  * de déréférencement de types est pris en compte.
  */
@@ -31,30 +33,14 @@ principale :: fonc () -> z32
     tabl_dyn : []z32 = tabl
     tabl_dyn_2 := vole_données_(tabl_dyn)
 
-    saufsi tabl_dyn.pointeur == nul {
-        retourne 1
-    }
+    assert(tabl_dyn.pointeur == nul)
+    assert(tabl_dyn.taille == 0)
+    assert(tabl_dyn.capacité == 0)
 
-    saufsi tabl_dyn.taille == 0 {
-        retourne 1
-    }
-
-    saufsi tabl_dyn.capacité == 0 {
-        retourne 1
-    }
-
-    saufsi tabl_dyn_2.pointeur == *tabl[0] {
-        retourne 1
-    }
-
-    saufsi tabl_dyn_2.taille == 5 {
-        retourne 1
-    }
-
+    assert(tabl_dyn_2.pointeur == *tabl[0])
+    assert(tabl_dyn_2.taille == 5)
     /* Les conversions de tableau fixes en dynamique n'ont pas de capacité. */
-    saufsi tabl_dyn_2.capacité == 0 {
-        retourne 1
-    }
+    assert(tabl_dyn_2.capacité == 0)
 
     retourne 0
 }
