@@ -586,143 +586,193 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         return;
     }
 
-    if (type->est_type_structure()) {
-        auto type_struct = type->comme_type_structure();
-
-        if (type_struct->est_polymorphe) {
+    switch (type->genre) {
+        case GenreNoeud::POLYMORPHIQUE:
+        case GenreNoeud::ENTIER_CONSTANT:
+        case GenreNoeud::BOOL:
+        case GenreNoeud::OCTET:
+        case GenreNoeud::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_RELATIF:
+        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::REEL:
+        case GenreNoeud::EINI:
+        case GenreNoeud::RIEN:
+        case GenreNoeud::CHAINE:
+        {
+            /* Rien à faire pour ces types-là. */
             return;
         }
-
-        type_c.code_machine_fut_généré = true;
-        POUR (type_struct->membres) {
-            if (it.type->est_type_pointeur()) {
-                continue;
-            }
-            /* Une fonction peut retourner via un tuple la structure dont nous essayons de
-             * générer le type. Évitons de générer le code du tuple avant la génération du code
-             * de cette structure. */
-            if (it.type->est_type_fonction()) {
-                continue;
-            }
-            génère_code_pour_type(it.type, enchaineuse);
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::DECLARATION_ENUM:
+        {
+            auto type_enum = type->comme_type_enum();
+            génère_code_pour_type(type_enum->type_sous_jacent, enchaineuse);
+            break;
         }
-
-        auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-        génère_déclaration_structure(enchaineuse, type_struct, quoi);
-
-        POUR (type_struct->membres) {
-            if (it.type->est_type_pointeur()) {
-                génère_code_pour_type(it.type->comme_type_pointeur()->type_pointe, enchaineuse);
-                continue;
-            }
+        case GenreNoeud::DECLARATION_OPAQUE:
+        {
+            auto opaque = type->comme_type_opaque();
+            génère_code_pour_type(opaque->type_opacifie, enchaineuse);
+            break;
         }
-    }
-    else if (type->est_type_tuple()) {
-        auto type_tuple = type->comme_type_tuple();
+        case GenreNoeud::REFERENCE:
+        {
+            génère_code_pour_type(type->comme_type_reference()->type_pointe, enchaineuse);
+            break;
+        }
+        case GenreNoeud::POINTEUR:
+        {
+            génère_code_pour_type(type->comme_type_pointeur()->type_pointe, enchaineuse);
+            break;
+        }
+        case GenreNoeud::DECLARATION_STRUCTURE:
+        {
+            auto type_struct = type->comme_type_structure();
 
-        if (type_tuple->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
+            if (type_struct->est_polymorphe) {
+                return;
+            }
+
+            type_c.code_machine_fut_généré = true;
+            POUR (type_struct->membres) {
+                if (it.type->est_type_pointeur()) {
+                    continue;
+                }
+                /* Une fonction peut retourner via un tuple la structure dont nous essayons de
+                 * générer le type. Évitons de générer le code du tuple avant la génération du code
+                 * de cette structure. */
+                if (it.type->est_type_fonction()) {
+                    continue;
+                }
+                génère_code_pour_type(it.type, enchaineuse);
+            }
+
+            auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
+            génère_déclaration_structure(enchaineuse, type_struct, quoi);
+
+            POUR (type_struct->membres) {
+                if (it.type->est_type_pointeur()) {
+                    génère_code_pour_type(it.type->comme_type_pointeur()->type_pointe,
+                                          enchaineuse);
+                    continue;
+                }
+            }
+
+            break;
+        }
+        case GenreNoeud::DECLARATION_UNION:
+        {
+            auto type_union = type->comme_type_union();
+            type_c.code_machine_fut_généré = true;
+            POUR (type_union->membres) {
+                génère_code_pour_type(it.type, enchaineuse);
+            }
+            génère_code_pour_type(type_union->type_structure, enchaineuse);
+            break;
+        }
+        case GenreNoeud::TABLEAU_FIXE:
+        {
+            auto tableau_fixe = type->comme_type_tableau_fixe();
+            génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
+            auto const &nom_broyé = génératrice_code.donne_nom_pour_type(type);
+            enchaineuse << "typedef struct TableauFixe_" << nom_broyé << "{\n  "
+                        << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointe);
+            enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];\n";
+            enchaineuse << " } TableauFixe_" << nom_broyé << ";\n\n";
+            break;
+        }
+        case GenreNoeud::VARIADIQUE:
+        {
+            auto variadique = type->comme_type_variadique();
+            génère_code_pour_type(variadique->type_pointe, enchaineuse);
+            génère_code_pour_type(variadique->type_tableau_dynamique, enchaineuse);
             return;
         }
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
+        {
+            auto tableau_dynamique = type->comme_type_tableau_dynamique();
+            auto type_élément = tableau_dynamique->type_pointe;
 
-        type_c.code_machine_fut_généré = true;
-        POUR (type_tuple->membres) {
-            génère_code_pour_type(it.type, enchaineuse);
-        }
+            if (type_élément == nullptr) {
+                return;
+            }
 
-        auto nom_broyé = génératrice_code.donne_nom_pour_type(type_tuple);
+            génère_code_pour_type(type_élément, enchaineuse);
 
-        enchaineuse << "typedef struct " << nom_broyé << " {\n";
+            if (!type_c.code_machine_fut_généré) {
+                auto const &nom_broye = génératrice_code.donne_nom_pour_type(type);
+                enchaineuse << "typedef struct Tableau_" << nom_broye;
+                enchaineuse << "{\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-        enchaineuse << "  union {\n";
-        enchaineuse << "    uint8_t d[" << type->taille_octet << "];\n";
-        enchaineuse << "    struct {\n";
+                enchaineuse << "  union {\n";
+                enchaineuse << "    uint8_t d[" << type->taille_octet << "];\n";
+                enchaineuse << "    struct {\n";
 #endif
-        POUR_INDEX (type_tuple->membres) {
-            enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << " _"
-                        << index_it << ";\n";
-        }
+                enchaineuse << "      " << génératrice_code.donne_nom_pour_type(type_élément)
+                            << " *pointeur;\n";
+                enchaineuse << "      int64_t taille;\n"
+                            << "      int64_t " << broyeuse.broye_nom_simple(ID::capacite)
+                            << ";\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-        enchaineuse << "    };\n";  // struct
-        enchaineuse << "  };\n";    // union
+                enchaineuse << "    };\n";  // struct
+                enchaineuse << "  };\n";    // union
 #endif
-
-        enchaineuse << "} " << nom_broyé << ";\n";
-    }
-    else if (type->est_type_union()) {
-        auto type_union = type->comme_type_union();
-        type_c.code_machine_fut_généré = true;
-        POUR (type_union->membres) {
-            génère_code_pour_type(it.type, enchaineuse);
+                enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
+            }
+            break;
         }
-        génère_code_pour_type(type_union->type_structure, enchaineuse);
-    }
-    else if (type->est_type_enum()) {
-        auto type_enum = type->comme_type_enum();
-        génère_code_pour_type(type_enum->type_sous_jacent, enchaineuse);
-    }
-    else if (type->est_type_tableau_fixe()) {
-        auto tableau_fixe = type->comme_type_tableau_fixe();
-        génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
-        auto const &nom_broyé = génératrice_code.donne_nom_pour_type(type);
-        enchaineuse << "typedef struct TableauFixe_" << nom_broyé << "{\n  "
-                    << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointe);
-        enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];\n";
-        enchaineuse << " } TableauFixe_" << nom_broyé << ";\n\n";
-    }
-    else if (type->est_type_tableau_dynamique()) {
-        auto tableau_dynamique = type->comme_type_tableau_dynamique();
-        auto type_élément = tableau_dynamique->type_pointe;
-
-        if (type_élément == nullptr) {
-            return;
+        case GenreNoeud::FONCTION:
+        {
+            auto type_fonction = type->comme_type_fonction();
+            POUR (type_fonction->types_entrees) {
+                génère_code_pour_type(it, enchaineuse);
+            }
+            génère_code_pour_type(type_fonction->type_sortie, enchaineuse);
+            break;
         }
+        case GenreNoeud::TUPLE:
+        {
+            auto type_tuple = type->comme_type_tuple();
 
-        génère_code_pour_type(type_élément, enchaineuse);
+            if (type_tuple->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
+                return;
+            }
 
-        if (!type_c.code_machine_fut_généré) {
-            auto const &nom_broye = génératrice_code.donne_nom_pour_type(type);
-            enchaineuse << "typedef struct Tableau_" << nom_broye;
-            enchaineuse << "{\n";
+            type_c.code_machine_fut_généré = true;
+            POUR (type_tuple->membres) {
+                génère_code_pour_type(it.type, enchaineuse);
+            }
+
+            auto nom_broyé = génératrice_code.donne_nom_pour_type(type_tuple);
+
+            enchaineuse << "typedef struct " << nom_broyé << " {\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             enchaineuse << "  union {\n";
             enchaineuse << "    uint8_t d[" << type->taille_octet << "];\n";
             enchaineuse << "    struct {\n";
 #endif
-            enchaineuse << "      " << génératrice_code.donne_nom_pour_type(type_élément)
-                        << " *pointeur;\n";
-            enchaineuse << "      int64_t taille;\n"
-                        << "      int64_t " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
+            POUR_INDEX (type_tuple->membres) {
+                enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << " _"
+                            << index_it << ";\n";
+            }
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             enchaineuse << "    };\n";  // struct
             enchaineuse << "  };\n";    // union
 #endif
-            enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
+
+            enchaineuse << "} " << nom_broyé << ";\n";
+            break;
         }
-    }
-    else if (type->est_type_opaque()) {
-        auto opaque = type->comme_type_opaque();
-        génère_code_pour_type(opaque->type_opacifie, enchaineuse);
-    }
-    else if (type->est_type_fonction()) {
-        auto type_fonction = type->comme_type_fonction();
-        POUR (type_fonction->types_entrees) {
-            génère_code_pour_type(it, enchaineuse);
+        default:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            break;
         }
-        génère_code_pour_type(type_fonction->type_sortie, enchaineuse);
-    }
-    else if (type->est_type_pointeur()) {
-        génère_code_pour_type(type->comme_type_pointeur()->type_pointe, enchaineuse);
-    }
-    else if (type->est_type_reference()) {
-        génère_code_pour_type(type->comme_type_reference()->type_pointe, enchaineuse);
-    }
-    else if (type->est_type_variadique()) {
-        génère_code_pour_type(type->comme_type_variadique()->type_pointe, enchaineuse);
-        génère_code_pour_type(type->comme_type_variadique()->type_tableau_dynamique, enchaineuse);
     }
 
     type_c.code_machine_fut_généré = true;
