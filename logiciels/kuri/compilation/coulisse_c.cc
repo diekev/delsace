@@ -37,7 +37,7 @@
 #undef IMPRIME_COMMENTAIRE
 
 /* Noms de base pour le code généré. Une seule lettre pour minimiser le code. */
-static const char *nom_base_chaine = "C";
+// static const char *nom_base_chaine = "C";
 static const char *nom_base_fonction = "F";
 static const char *nom_base_globale = "G";
 static const char *nom_base_label = "L";
@@ -888,8 +888,10 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
 #  define VARIABLE_INUTILISEE
 #endif
 
-#ifndef bool
+#ifndef __cplusplus
+#  ifndef bool
 typedef uint8_t bool;
+#  endif
 #endif
 
 #define __point_d_entree_systeme main
@@ -1155,6 +1157,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 résultat << virgule;
                 virgule_placee = true;
 
+#if 0
                 if (!pour_init_tableau) {
                     résultat << ".";
                     if (it.nom == ID::chaine_vide) {
@@ -1165,6 +1168,9 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                     }
                     résultat << " = ";
                 }
+#else
+                static_cast<void>(it);
+#endif
                 résultat << génère_code_pour_atome(tableau_valeur[index_it], os, pour_globale);
 
                 virgule = ", ";
@@ -1176,14 +1182,23 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
 
             résultat << " }";
 
-            if (pour_globale) {
-                return stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
-            }
+            auto chaine_constante = stockage_chn.ajoute_chaine_statique(
+                résultat.chaine_statique());
 
-            auto nom = enchaine(nom_base_chaine, index_chaine++);
-            os << "  " << donne_nom_pour_type(type) << " " << nom << " = " << résultat.chaine()
-               << ";\n";
-            return nom;
+            //            if (pour_globale) {
+            //                return chaine_constante;
+            //            }
+
+            résultat.réinitialise();
+
+            résultat << donne_nom_pour_type(type) << chaine_constante;
+            chaine_constante = stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
+
+            //            auto nom = enchaine(nom_base_chaine, index_chaine++);
+            //            os << "  " << donne_nom_pour_type(type) << " " << nom << " = " <<
+            //            résultat.chaine()
+            //               << ";\n";
+            return chaine_constante;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
         {
@@ -1293,6 +1308,25 @@ static bool est_appel_init_contexte(InstructionAppel const *inst_appel)
     return fonction->decl->ident == ID::__init_contexte_kuri;
 }
 
+static bool est_type_structure_info_type(Typeuse const &typeuse, Type const *type)
+{
+    if (!type->est_type_pointeur()) {
+        return false;
+    }
+
+    auto const type_élément = type->comme_type_pointeur()->type_pointe;
+    return dls::outils::est_element(type_élément,
+                                    typeuse.type_info_type_,
+                                    typeuse.type_info_type_enum,
+                                    typeuse.type_info_type_structure,
+                                    typeuse.type_info_type_union,
+                                    typeuse.type_info_type_membre_structure,
+                                    typeuse.type_info_type_entier,
+                                    typeuse.type_info_type_tableau,
+                                    typeuse.type_info_type_pointeur,
+                                    typeuse.type_info_type_fonction);
+}
+
 void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
@@ -1306,6 +1340,11 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             if (est_ignorée) {
                 os << "VARIABLE_INUTILISEE ";
             }
+
+            //            if (est_type_structure_info_type(m_espace.compilatrice().typeuse,
+            //            type_alloué)) {
+            //                os << "const ";
+            //            }
 
             os << donne_nom_pour_type(type_alloué);
             auto nom = donne_nom_pour_instruction(inst);
@@ -1330,7 +1369,8 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto type_fonction = inst_appel->appele->type->comme_type_fonction();
             if (!type_fonction->type_sortie->est_type_rien()) {
                 auto nom_ret = donne_nom_pour_instruction(inst);
-                os << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
+                // os << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
+                os << "  " << nom_ret << " = ";
                 table_valeurs[inst->numero] = nom_ret;
             }
 
@@ -1433,7 +1473,8 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto valeur = génère_code_pour_atome(inst_un->valeur, os, false);
             auto nom = donne_nom_pour_instruction(inst);
 
-            os << "  " << donne_nom_pour_type(inst_un->type) << " " << nom << " = ";
+            // os << "  " << donne_nom_pour_type(inst_un->type) << " " << nom << " = ";
+            os << "  " << nom << " = ";
 
             switch (inst_un->op) {
                 case OpérateurUnaire::Genre::Positif:
@@ -1469,7 +1510,8 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto valeur_droite = génère_code_pour_atome(inst_bin->valeur_droite, os, false);
             auto nom = donne_nom_pour_instruction(inst);
 
-            os << "  " << donne_nom_pour_type(inst_bin->type) << " " << nom << " = ";
+            // os << "  " << donne_nom_pour_type(inst_bin->type) << " " << nom << " = ";
+            os << "  " << nom << " = ";
 
             os << valeur_gauche << " " << donne_chaine_lexème_pour_op_binaire(inst_bin->op) << " "
                << valeur_droite << ";\n";
@@ -1788,7 +1830,34 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
         }
     }
 
+    /* Nous devons prédéclarer toutes les variables car, à cause des destructeurs, nous pouvons
+     * avoir des locales entre différents goto, même si les variable ne seront jamais créées à
+     * cause du saut. */
     for (auto inst : atome_fonc->instructions) {
+        if (inst->est_alloc()) {
+            génère_code_pour_instruction(inst, os);
+            continue;
+        }
+        if (inst->est_op_binaire() || inst->est_op_unaire()) {
+            auto nom = donne_nom_pour_instruction(inst);
+            os << "  " << donne_nom_pour_type(inst->type) << " " << nom << ";\n";
+            continue;
+        }
+        if (inst->est_appel()) {
+            auto type_fonction_appelé = inst->comme_appel()->appele->type->comme_type_fonction();
+            if (!type_fonction_appelé->type_sortie->est_type_rien()) {
+                auto nom_ret = donne_nom_pour_instruction(inst);
+                os << donne_nom_pour_type(inst->type) << ' ' << nom_ret << ";\n";
+            }
+            continue;
+        }
+    }
+
+    for (auto inst : atome_fonc->instructions) {
+        if (inst->est_alloc()) {
+            /* Déjà géré. */
+            continue;
+        }
         génère_code_pour_instruction(inst, os);
     }
 
@@ -1977,8 +2046,8 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
         os << "extern ";
     }
 
-    os << "_Alignas(" << données_constantes->alignement_désiré << ") ";
     os << "const uint8_t DC[" << données_constantes->taille_données_tableaux_constants << "]";
+    os << " alignas(" << données_constantes->alignement_désiré << ") ";
 
     if (pour_entête) {
         os << ";\n";

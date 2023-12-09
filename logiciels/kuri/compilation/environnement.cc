@@ -162,7 +162,7 @@ static void ajoute_options_pour_niveau_options(TableauOptions &résultat,
 
 static kuri::chaine_statique donne_compilateur_c()
 {
-    return COMPILATEUR_C_COULISSE_C;
+    return COMPILATEUR_CXX_COULISSE_C;
 }
 
 static kuri::chaine_statique donne_compilateur_cpp()
@@ -203,6 +203,7 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
 
     /* Arrête après une seule erreur. */
     résultat.ajoute("-Wfatal-errors");
+    résultat.ajoute("-fpermissive");
 
     /* Nous devons gérer ce cas nous-même. C'est alors une erreur si la coulisse C se retrouve avec
      * un paramètre inutilisé. */
