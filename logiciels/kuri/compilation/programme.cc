@@ -138,9 +138,8 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     }
 #endif
 
-    auto decl = decl_pour_type(type);
-    if (decl && decl->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
-        m_dépendances_manquantes.insère(decl);
+    if (type->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
+        m_dépendances_manquantes.insère(type);
     }
 }
 
@@ -174,7 +173,7 @@ bool Programme::typages_termines(DiagnostiqueÉtatCompilation &diagnostique) con
 
     if (elements_sont_sales[TYPES][POUR_TYPAGE]) {
         POUR (m_types) {
-            if (!it->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+            if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.type_à_valider = it;
                 return false;
             }
@@ -581,37 +580,42 @@ struct VisiteuseType {
         }
 
         switch (type->genre) {
-            case GenreType::EINI:
+            default:
+            {
+                assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+                break;
+            }
+            case GenreNoeud::EINI:
             {
                 break;
             }
-            case GenreType::CHAINE:
+            case GenreNoeud::CHAINE:
             {
                 break;
             }
-            case GenreType::RIEN:
-            case GenreType::BOOL:
-            case GenreType::OCTET:
-            case GenreType::ENTIER_CONSTANT:
-            case GenreType::ENTIER_NATUREL:
-            case GenreType::ENTIER_RELATIF:
-            case GenreType::REEL:
+            case GenreNoeud::RIEN:
+            case GenreNoeud::BOOL:
+            case GenreNoeud::OCTET:
+            case GenreNoeud::ENTIER_CONSTANT:
+            case GenreNoeud::ENTIER_NATUREL:
+            case GenreNoeud::ENTIER_RELATIF:
+            case GenreNoeud::REEL:
             {
                 break;
             }
-            case GenreType::REFERENCE:
+            case GenreNoeud::REFERENCE:
             {
                 auto reference = type->comme_type_reference();
                 visite_type(reference->type_pointe, rappel);
                 break;
             }
-            case GenreType::POINTEUR:
+            case GenreNoeud::POINTEUR:
             {
                 auto pointeur = type->comme_type_pointeur();
                 visite_type(pointeur->type_pointe, rappel);
                 break;
             }
-            case GenreType::UNION:
+            case GenreNoeud::DECLARATION_UNION:
             {
                 auto type_union = type->comme_type_union();
                 POUR (type_union->membres) {
@@ -619,7 +623,7 @@ struct VisiteuseType {
                 }
                 break;
             }
-            case GenreType::STRUCTURE:
+            case GenreNoeud::DECLARATION_STRUCTURE:
             {
                 auto type_structure = type->comme_type_structure();
                 POUR (type_structure->membres) {
@@ -627,25 +631,25 @@ struct VisiteuseType {
                 }
                 break;
             }
-            case GenreType::TABLEAU_DYNAMIQUE:
+            case GenreNoeud::TABLEAU_DYNAMIQUE:
             {
                 auto tableau = type->comme_type_tableau_dynamique();
                 visite_type(tableau->type_pointe, rappel);
                 break;
             }
-            case GenreType::TABLEAU_FIXE:
+            case GenreNoeud::TABLEAU_FIXE:
             {
                 auto tableau = type->comme_type_tableau_fixe();
                 visite_type(tableau->type_pointe, rappel);
                 break;
             }
-            case GenreType::VARIADIQUE:
+            case GenreNoeud::VARIADIQUE:
             {
                 auto variadique = type->comme_type_variadique();
                 visite_type(variadique->type_pointe, rappel);
                 break;
             }
-            case GenreType::FONCTION:
+            case GenreNoeud::FONCTION:
             {
                 auto fonction = type->comme_type_fonction();
                 POUR (fonction->types_entrees) {
@@ -654,28 +658,29 @@ struct VisiteuseType {
                 visite_type(fonction->type_sortie, rappel);
                 break;
             }
-            case GenreType::ENUM:
-            case GenreType::ERREUR:
+            case GenreNoeud::DECLARATION_ENUM:
+            case GenreNoeud::ERREUR:
+            case GenreNoeud::ENUM_DRAPEAU:
             {
                 auto type_enum = static_cast<TypeEnum *>(type);
                 visite_type(type_enum->type_sous_jacent, rappel);
                 break;
             }
-            case GenreType::TYPE_DE_DONNEES:
+            case GenreNoeud::TYPE_DE_DONNEES:
             {
                 break;
             }
-            case GenreType::POLYMORPHIQUE:
+            case GenreNoeud::POLYMORPHIQUE:
             {
                 break;
             }
-            case GenreType::OPAQUE:
+            case GenreNoeud::DECLARATION_OPAQUE:
             {
                 auto type_opaque = type->comme_type_opaque();
                 visite_type(type_opaque->type_opacifie, rappel);
                 break;
             }
-            case GenreType::TUPLE:
+            case GenreNoeud::TUPLE:
             {
                 auto type_tuple = type->comme_type_tuple();
                 POUR (type_tuple->membres) {
