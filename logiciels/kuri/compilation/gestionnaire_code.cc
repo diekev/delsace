@@ -553,6 +553,35 @@ static void rassemble_dependances(NoeudExpression *racine,
     rassembleuse.rassemble_dependances();
 }
 
+static bool type_requiers_typage(NoeudDeclaration const *decl)
+{
+    if (!decl) {
+        return false;
+    }
+
+    if (decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        return false;
+    }
+
+    if (decl->comme_declaration_type()->unité) {
+        /* Déjà en cours. */
+        return false;
+    }
+
+    /* Inutile de typer les unions anonymes, ceci fut fait lors de la validation
+     * sémantique. */
+    if (decl->type->est_type_union() && decl->type->comme_type_union()->est_anonyme) {
+        return false;
+    }
+
+    if (decl->type->est_type_structure() && decl->type->comme_type_structure()->union_originelle) {
+        /* Les structures pour les unions n'en ont pas besoin. */
+        return false;
+    }
+
+    return true;
+}
+
 /* Requiers le typage de toutes les dépendances. */
 static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
                                             DonneesDependance const &dependances,
@@ -579,13 +608,8 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     /* Requiers le typage de tous les types utilisés. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         auto decl = decl_pour_type(type);
-        if (decl && !decl->comme_declaration_type()->unité) {
-            // Inutile de typer les unions anonymes, ceci fut fait lors de la validation
-            // sémantique.
-            if (!(type->est_type_union() && type->comme_type_union()->est_anonyme) &&
-                !(type->est_type_structure() && type->comme_type_structure()->union_originelle)) {
-                gestionnaire.requiers_typage(espace, decl);
-            }
+        if (type_requiers_typage(decl)) {
+            gestionnaire.requiers_typage(espace, decl);
         }
 
         gestionnaire.requiers_initialisation_type(espace, type);
@@ -953,7 +977,7 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
     if (attente.est<AttenteSurType>()) {
         Type *type = const_cast<Type *>(attente.type());
         auto decl = decl_pour_type(type);
-        if (decl && decl->comme_declaration_type()->unité == nullptr) {
+        if (type_requiers_typage(decl)) {
             requiers_typage(espace, decl);
         }
         /* Ceci est pour gérer les requêtes de fonctions d'initialisation avant la génération de
