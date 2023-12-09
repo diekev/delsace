@@ -18,8 +18,11 @@ struct NoeudExpressionConstructionTableau;
 struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
 struct NoeudInstructionTente;
-struct TypeEnum;
-struct TypeTableauFixe;
+
+struct NoeudEnum;
+using TypeEnum = NoeudEnum;
+struct NoeudDeclarationTypeTableauFixe;
+using TypeTableauFixe = NoeudDeclarationTypeTableauFixe;
 
 /* ------------------------------------------------------------------------- */
 /** \name RegistreSymboliqueRI

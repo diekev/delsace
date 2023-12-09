@@ -15,7 +15,9 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
 struct NoeudExpressionLitteraleChaine;
 struct NoeudExpressionConstructionTableau;
-struct Type;
+struct NoeudDeclarationType;
+
+using Type = NoeudDeclarationType;
 
 /* ************************************************************************** */
 

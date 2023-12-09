@@ -43,12 +43,19 @@ struct NoeudPour;
 struct NoeudRetour;
 struct NoeudSi;
 struct NoeudStruct;
+struct NoeudUnion;
 struct Tacheronne;
 struct TransformationType;
-struct TypeCompose;
-struct TypeEnum;
-struct TypeTableauFixe;
 struct UniteCompilation;
+
+struct NoeudEnum;
+struct NoeudDeclarationTypeCompose;
+struct NoeudDeclarationType;
+struct NoeudDeclarationTypeTableauFixe;
+using Type = NoeudDeclarationType;
+using TypeCompose = NoeudDeclarationTypeCompose;
+using TypeEnum = NoeudEnum;
+using TypeTableauFixe = NoeudDeclarationTypeTableauFixe;
 
 namespace erreur {
 enum class Genre : int;
@@ -212,11 +219,11 @@ struct Sémanticienne {
     ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 
     template <int N>
-    ResultatValidation valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
+    ResultatValidation valide_enum_impl(NoeudEnum *decl);
     ResultatValidation valide_enum(NoeudEnum *);
 
     ResultatValidation valide_structure(NoeudStruct *);
-    ResultatValidation valide_union(NoeudStruct *);
+    ResultatValidation valide_union(NoeudUnion *);
     ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
     ResultatValidation valide_déclaration_constante(NoeudDeclarationConstante *decl);
     ResultatValidation valide_assignation(NoeudAssignation *inst);

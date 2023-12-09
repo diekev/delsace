@@ -709,12 +709,14 @@ static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
 
     auto type1 = noeud->operande_gauche->type;
     auto type1_est_énum = est_énum_ou_référence_énum(type1);
-    if (type1_est_énum && !type1_est_énum->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+    if (type1_est_énum &&
+        !type1_est_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type1_est_énum);
     }
     auto type2 = noeud->operande_droite->type;
     auto type2_est_énum = est_énum_ou_référence_énum(type2);
-    if (type2_est_énum && !type2_est_énum->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+    if (type2_est_énum &&
+        !type2_est_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type2_est_énum);
     }
     return Attente::sur_operateur(noeud);

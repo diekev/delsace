@@ -24,7 +24,8 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct Statistiques;
-struct Type;
+struct NoeudDeclarationType;
+using Type = NoeudDeclarationType;
 
 /* ------------------------------------------------------------------------- */
 /** \name ÉtatCompilation.

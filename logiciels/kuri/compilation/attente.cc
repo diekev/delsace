@@ -71,14 +71,8 @@ RAPPEL_POUR_UNITÉ(type)
     }
 
     assert(attente.est_valide());
-    auto decl = decl_pour_type(type_attendu);
-    if (!decl) {
-        /* « decl » peut être nulle si nous attendons sur la fonction d'initialisation d'un
-         * type n'étant pas encore typé/parsé (par exemple les types de l'interface Kuri). */
-        return nullptr;
-    }
 
-    return decl->comme_declaration_type()->unité;
+    return type_attendu->unité;
 }
 
 RAPPEL_POUR_COMMENTAIRE(type)
@@ -89,7 +83,7 @@ RAPPEL_POUR_COMMENTAIRE(type)
 
 RAPPEL_POUR_EST_RÉSOLUE(type)
 {
-    return attente.type()->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE);
+    return attente.type()->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 }
 
 RAPPEL_POUR_ERREUR(type)

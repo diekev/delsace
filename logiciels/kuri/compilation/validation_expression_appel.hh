@@ -24,7 +24,8 @@ struct ItemMonomorphisation;
 struct NoeudDeclaration;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
-struct Type;
+struct NoeudDeclarationType;
+using Type = NoeudDeclarationType;
 
 struct IdentifiantEtExpression {
     IdentifiantCode *ident;
@@ -234,14 +235,12 @@ struct CandidateAppariement {
 
     static CandidateAppariement initialisation_opaque(
         double poids,
-        NoeudExpression const *noeud_decl,
         Type const *type,
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations);
 
     static CandidateAppariement monomorphisation_opaque(
         double poids,
-        NoeudExpression const *noeud_decl,
         Type const *type,
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations);

@@ -256,14 +256,13 @@ CandidateAppariement CandidateAppariement::appel_init_de(
 
 CandidateAppariement CandidateAppariement::initialisation_opaque(
     double poids,
-    const NoeudExpression *noeud_decl,
-    const Type *type,
+    Type const *type,
     kuri::tablet<NoeudExpression *, 10> &&exprs,
     kuri::tableau<TransformationType, int> &&transformations)
 {
     return crée_candidate(CANDIDATE_EST_INITIALISATION_OPAQUE,
                           poids,
-                          noeud_decl,
+                          type,
                           type,
                           std::move(exprs),
                           std::move(transformations));
@@ -271,14 +270,13 @@ CandidateAppariement CandidateAppariement::initialisation_opaque(
 
 CandidateAppariement CandidateAppariement::monomorphisation_opaque(
     double poids,
-    const NoeudExpression *noeud_decl,
-    const Type *type,
+    Type const *type,
     kuri::tablet<NoeudExpression *, 10> &&exprs,
     kuri::tableau<TransformationType, int> &&transformations)
 {
     return crée_candidate(CANDIDATE_EST_MONOMORPHISATION_OPAQUE,
                           poids,
-                          noeud_decl,
+                          type,
                           type,
                           std::move(exprs),
                           std::move(transformations));
@@ -1170,17 +1168,11 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
     }
 
     if (est_type_argument_polymorphique) {
-        auto type_poly = espace.compilatrice().typeuse.crée_polymorphique(nullptr);
-
-        type_poly->est_structure_poly = true;
-        type_poly->structure = déclaration_type_composé->comme_type_structure();
+        auto type_poly = espace.compilatrice().typeuse.type_type_de_donnees(
+            déclaration_type_composé->type);
 
         return CandidateAppariement::type_polymorphique(
-            1.0,
-            espace.compilatrice().typeuse.type_type_de_donnees(type_poly),
-            {},
-            {},
-            std::move(items_monomorphisation));
+            1.0, type_poly, {}, {}, std::move(items_monomorphisation));
     }
 
     return CandidateAppariement::monomorphisation_structure(
@@ -1259,8 +1251,6 @@ static ResultatAppariement apparie_appel_structure(
     NoeudStruct const *decl_struct,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
-    assert(!decl_struct->est_union);
-
     if (decl_struct->est_polymorphe) {
         return apparie_construction_type_composé_polymorphique(
             espace, expr, arguments, decl_struct, decl_struct->bloc_constantes);
@@ -1273,7 +1263,7 @@ static ResultatAppariement apparie_appel_structure(
 static ResultatAppariement apparie_construction_union(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
-    NoeudStruct const *decl_struct,
+    NoeudUnion const *decl_struct,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     if (decl_struct->est_polymorphe) {
@@ -1314,12 +1304,11 @@ static ResultatAppariement apparie_construction_opaque_polymorphique(
     if (arg->type->est_type_type_de_donnees()) {
         auto exprs = kuri::crée_tablet<NoeudExpression *, 10>(arg);
         return CandidateAppariement::monomorphisation_opaque(
-            1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
+            1.0, type_opaque, std::move(exprs), {});
     }
 
     auto exprs = kuri::crée_tablet<NoeudExpression *, 10>(arg);
-    return CandidateAppariement::initialisation_opaque(
-        1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
+    return CandidateAppariement::initialisation_opaque(1.0, type_opaque, std::move(exprs), {});
 }
 
 static ResultatAppariement apparie_construction_opaque_depuis_structure(
@@ -1330,7 +1319,7 @@ static ResultatAppariement apparie_construction_opaque_depuis_structure(
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     auto résultat_appariement_structure = apparie_appel_structure(
-        espace, expr, type_structure->decl, arguments);
+        espace, expr, type_structure, arguments);
 
     if (std::holds_alternative<ErreurAppariement>(résultat_appariement_structure)) {
         return résultat_appariement_structure;
@@ -1400,11 +1389,8 @@ static ResultatAppariement apparie_construction_opaque(
     auto transformations = kuri::tableau<TransformationType, int>(1);
     transformations[0] = poids_xform.transformation;
 
-    return CandidateAppariement::initialisation_opaque(poids_xform.poids,
-                                                       type_opaque->decl,
-                                                       type_opaque,
-                                                       std::move(exprs),
-                                                       std::move(transformations));
+    return CandidateAppariement::initialisation_opaque(
+        poids_xform.poids, type_opaque, std::move(exprs), std::move(transformations));
 }
 
 /* ************************************************************************** */
@@ -1460,14 +1446,12 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             }
 
             if (type_connu->est_type_structure()) {
-                candidates.ajoute(
-                    {CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_structure()->decl});
+                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_structure()});
                 return CodeRetourValidation::OK;
             }
 
             if (type_connu->est_type_union()) {
-                candidates.ajoute(
-                    {CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_union()->decl});
+                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_union()});
                 return CodeRetourValidation::OK;
             }
 
@@ -1496,12 +1480,12 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             auto type = appelée->type->comme_type_type_de_donnees()->type_connu;
 
             if (type->est_type_structure()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type->comme_type_structure()->decl});
+                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type->comme_type_structure()});
                 return CodeRetourValidation::OK;
             }
 
             if (type->est_type_union()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type->comme_type_union()->decl});
+                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type->comme_type_union()});
                 return CodeRetourValidation::OK;
             }
         }
@@ -1530,18 +1514,22 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
             if (decl->est_type_structure()) {
                 auto decl_struct = decl->comme_type_structure();
 
-                if (!decl->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
-                    return Attente::sur_type(decl->type);
+                if (!decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                    return Attente::sur_type(decl_struct);
                 }
 
-                if (decl_struct->est_union) {
-                    état->résultats.ajoute(
-                        apparie_construction_union(espace, expr, decl_struct, état->args));
+                état->résultats.ajoute(
+                    apparie_appel_structure(espace, expr, decl_struct, état->args));
+            }
+            else if (decl->est_type_union()) {
+                auto decl_union = decl->comme_type_union();
+
+                if (!decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                    return Attente::sur_type(decl_union);
                 }
-                else {
-                    état->résultats.ajoute(
-                        apparie_appel_structure(espace, expr, decl_struct, état->args));
-                }
+
+                état->résultats.ajoute(
+                    apparie_construction_union(espace, expr, decl_union, état->args));
             }
             else if (decl->est_type_opaque()) {
                 auto decl_opaque = decl->comme_type_opaque();
@@ -1581,13 +1569,12 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                         auto type_struct = type_connu->comme_type_structure();
 
                         état->résultats.ajoute(
-                            apparie_appel_structure(espace, expr, type_struct->decl, état->args));
+                            apparie_appel_structure(espace, expr, type_struct, état->args));
                     }
                     else if (type_connu->est_type_union()) {
                         auto type_union = type_connu->comme_type_union();
-
-                        état->résultats.ajoute(apparie_construction_union(
-                            espace, expr, type_union->decl, état->args));
+                        état->résultats.ajoute(
+                            apparie_construction_union(espace, expr, type_union, état->args));
                     }
                     else if (type_connu->est_type_opaque()) {
                         auto type_opaque = type_connu->comme_type_opaque();
@@ -1631,8 +1618,8 @@ static NoeudBloc *bloc_constantes_pour(NoeudExpression const *noeud)
     if (noeud->est_entete_fonction()) {
         return noeud->comme_entete_fonction()->bloc_constantes;
     }
-    if (noeud->est_type_structure()) {
-        return noeud->comme_type_structure()->bloc_constantes;
+    if (noeud->est_declaration_classe()) {
+        return noeud->comme_declaration_classe()->bloc_constantes;
     }
     assert_rappel(false, [&]() {
         dbg() << "[bloc_constantes_pour] Obtenu un noeud de genre " << noeud->genre;
@@ -1721,10 +1708,10 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
     return {entête, true};
 }
 
-static NoeudStruct *monomorphise_au_besoin(
+static NoeudDeclarationClasse *monomorphise_au_besoin(
     Sémanticienne &contexte,
     EspaceDeTravail &espace,
-    NoeudStruct const *decl_struct,
+    NoeudDeclarationClasse const *decl_struct,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
     auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.donne_assembleuse(),
@@ -1732,7 +1719,7 @@ static NoeudStruct *monomorphise_au_besoin(
                                                           decl_struct->monomorphisations,
                                                           std::move(items_monomorphisation));
 
-    auto structure = copie->comme_type_structure();
+    auto structure = copie->comme_declaration_classe();
 
     if (!copie_nouvelle) {
         return structure;
@@ -1740,14 +1727,7 @@ static NoeudStruct *monomorphise_au_besoin(
 
     structure->est_polymorphe = false;
     structure->est_monomorphisation = true;
-    structure->polymorphe_de_base = const_cast<NoeudStruct *>(decl_struct);
-
-    if (decl_struct->est_union) {
-        structure->type = espace.compilatrice().typeuse.reserve_type_union(structure);
-    }
-    else {
-        structure->type = espace.compilatrice().typeuse.reserve_type_structure(structure);
-    }
+    structure->polymorphe_de_base = decl_struct;
 
     espace.compilatrice().gestionnaire_code->requiers_typage(&espace, structure);
 
@@ -2079,7 +2059,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->expression->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_STRUCTURE) {
-        auto decl_struct = candidate->noeud_decl->comme_type_structure();
+        auto decl_struct = candidate->noeud_decl->comme_declaration_classe();
 
         auto copie = monomorphise_au_besoin(
             contexte, espace, decl_struct, std::move(candidate->items_monomorphisation));
@@ -2087,8 +2067,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         /* il est possible d'utiliser un type avant sa validation final, par exemple en
          * paramètre d'une fonction de rappel qui est membre de la structure */
-        if (!copie->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE) &&
-            copie->type != contexte.union_ou_structure_courante()) {
+        if (!copie->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE) &&
+            copie != contexte.union_ou_structure_courante()) {
             // saute l'expression pour ne plus revenir
             contexte.donne_arbre()->index_courant += 1;
             compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
@@ -2120,10 +2100,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
         expr->type = const_cast<Type *>(candidate->type);
-        expr->noeud_fonction_appelee = const_cast<NoeudStruct *>(
-            expr->type->comme_type_type_de_donnees()
-                ->type_connu->comme_type_polymorphique()
-                ->structure);
+        expr->noeud_fonction_appelee =
+            (expr->type->comme_type_type_de_donnees()->type_connu->comme_declaration_type());
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
         if (expr->type == nullptr) {
@@ -2173,7 +2151,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto type_opaque = candidate->type->comme_type_opaque();
         if (type_opaque->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             type_opaque = espace.compilatrice().typeuse.monomorphe_opaque(
-                type_opaque->decl, candidate->exprs[0]->type);
+                type_opaque, candidate->exprs[0]->type);
         }
         else {
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
@@ -2184,7 +2162,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         expr->type = const_cast<TypeOpaque *>(type_opaque);
         expr->aide_generation_code = CONSTRUIT_OPAQUE;
-        expr->noeud_fonction_appelee = type_opaque->decl;
+        expr->noeud_fonction_appelee = const_cast<TypeOpaque *>(type_opaque);
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE_DEPUIS_STRUCTURE) {
         if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
@@ -2204,7 +2182,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         expr->type = const_cast<TypeOpaque *>(type_opaque);
         expr->aide_generation_code = CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE;
-        expr->noeud_fonction_appelee = type_opaque->decl;
+        expr->noeud_fonction_appelee = const_cast<TypeOpaque *>(type_opaque);
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {
         auto type_opaque = candidate->type->comme_type_opaque();
@@ -2213,10 +2191,10 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         /* différencie entre Type($T) et Type(T) où T dans le deuxième cas est connu */
         if (!type_opacifie->type_connu->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             type_opaque = espace.compilatrice().typeuse.monomorphe_opaque(
-                type_opaque->decl, type_opacifie->type_connu);
+                type_opaque, type_opacifie->type_connu);
         }
 
-        expr->noeud_fonction_appelee = type_opaque->decl;
+        expr->noeud_fonction_appelee = const_cast<TypeOpaque *>(type_opaque);
         expr->type = espace.compilatrice().typeuse.type_type_de_donnees(
             const_cast<TypeOpaque *>(type_opaque));
         expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;

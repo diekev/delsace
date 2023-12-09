@@ -24,8 +24,10 @@ struct NoeudPour;
 struct NoeudRetiens;
 struct NoeudRetour;
 struct NoeudSi;
+struct NoeudStruct;
 struct Typeuse;
-struct TypeStructure;
+
+using TypeStructure = NoeudStruct;
 
 /* ------------------------------------------------------------------------- */
 /** \name Canonicalisation des arbres syntaxiques.

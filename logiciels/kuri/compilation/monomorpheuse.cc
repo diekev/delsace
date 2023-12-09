@@ -378,7 +378,7 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_structure(const NoeudStr
         return;
     }
 
-    auto decl_struct = decl_pour_type(type_reçu)->comme_type_structure();
+    auto decl_struct = type_reçu->comme_declaration_classe();
     if (decl_struct->polymorphe_de_base != structure) {
         erreur_genre_type(nullptr, type_reçu, "n'est pas une forme du polymorphe");
         return;
@@ -424,7 +424,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
         return;
     }
 
-    auto structure_construite = declaration_appelee->comme_type_structure();
+    auto structure_construite = declaration_appelee->comme_declaration_classe();
     if (!structure_construite->est_polymorphe) {
         return;
     }
@@ -434,7 +434,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
         return;
     }
 
-    auto decl_struct_type = decl_pour_type(type_reçu)->comme_type_structure();
+    auto decl_struct_type = type_reçu->comme_declaration_classe();
     if (decl_struct_type->polymorphe_de_base != structure_construite) {
         erreur_genre_type(site, type_reçu, "n'est pas une forme du polymorphe");
         return;
@@ -803,7 +803,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
         return résoud_type_final_pour_construction_opaque(construction);
     }
 
-    auto structure_construite = declaration_appelee->comme_type_structure();
+    auto structure_construite = declaration_appelee->comme_declaration_classe();
     if (!structure_construite->est_polymorphe) {
         return structure_construite->type;
     }

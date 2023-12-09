@@ -19,7 +19,8 @@ struct NoeudDeclarationVariable;
 struct NoeudDependance;
 struct NoeudExpression;
 struct Statistiques;
-struct Type;
+struct NoeudDeclarationType;
+using Type = NoeudDeclarationType;
 
 namespace kuri {
 struct chaine;

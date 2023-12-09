@@ -475,53 +475,53 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
     }
 
     switch (type->genre) {
-        case GenreType::POLYMORPHIQUE:
+        case GenreNoeud::POLYMORPHIQUE:
         {
             type_llvm = nullptr;
             table_types.insère(type, type_llvm);
             break;
         }
-        case GenreType::TUPLE:
+        case GenreNoeud::TUPLE:
         {
             return convertis_type_composé(type->comme_type_tuple(), "tuple");
         }
-        case GenreType::FONCTION:
+        case GenreNoeud::FONCTION:
         {
             auto type_fonc = type->comme_type_fonction();
             type_llvm = converti_type_fonction(type_fonc);
             type_llvm = llvm::PointerType::get(type_llvm, 0);
             break;
         }
-        case GenreType::EINI:
+        case GenreNoeud::EINI:
         {
             return convertis_type_composé(type->comme_type_eini(), "eini");
         }
-        case GenreType::CHAINE:
+        case GenreNoeud::CHAINE:
         {
             return convertis_type_composé(type->comme_type_chaine(), "chaine");
         }
-        case GenreType::RIEN:
+        case GenreNoeud::RIEN:
         {
             type_llvm = llvm::Type::getVoidTy(m_contexte_llvm);
             break;
         }
-        case GenreType::BOOL:
+        case GenreNoeud::BOOL:
         {
             type_llvm = llvm::Type::getInt1Ty(m_contexte_llvm);
             break;
         }
-        case GenreType::OCTET:
+        case GenreNoeud::OCTET:
         {
             type_llvm = llvm::Type::getInt8Ty(m_contexte_llvm);
             break;
         }
-        case GenreType::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_CONSTANT:
         {
             type_llvm = llvm::Type::getInt32Ty(m_contexte_llvm);
             break;
         }
-        case GenreType::ENTIER_NATUREL:
-        case GenreType::ENTIER_RELATIF:
+        case GenreNoeud::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_RELATIF:
         {
             if (type->taille_octet == 1) {
                 type_llvm = llvm::Type::getInt8Ty(m_contexte_llvm);
@@ -538,12 +538,12 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
 
             break;
         }
-        case GenreType::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNEES:
         {
             type_llvm = llvm::Type::getInt64Ty(m_contexte_llvm);
             break;
         }
-        case GenreType::REEL:
+        case GenreNoeud::REEL:
         {
             if (type->taille_octet == 2) {
                 type_llvm = llvm::Type::getInt16Ty(m_contexte_llvm);
@@ -557,8 +557,8 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
 
             break;
         }
-        case GenreType::REFERENCE:
-        case GenreType::POINTEUR:
+        case GenreNoeud::REFERENCE:
+        case GenreNoeud::POINTEUR:
         {
             auto type_deref = type_dereference_pour(type);
 
@@ -572,7 +572,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             type_llvm = llvm::PointerType::get(type_deref_llvm, 0);
             break;
         }
-        case GenreType::UNION:
+        case GenreNoeud::DECLARATION_UNION:
         {
             auto type_struct = type->comme_type_union();
 
@@ -593,11 +593,11 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
                 m_contexte_llvm, {type_max_llvm}, vers_string_ref(nom_nonsur));
             break;
         }
-        case GenreType::STRUCTURE:
+        case GenreNoeud::DECLARATION_STRUCTURE:
         {
             return convertis_type_composé(type->comme_type_structure(), "struct");
         }
-        case GenreType::VARIADIQUE:
+        case GenreNoeud::VARIADIQUE:
         {
             auto type_var = type->comme_type_variadique();
 
@@ -611,11 +611,11 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
 
             break;
         }
-        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             return convertis_type_composé(type->comme_type_tableau_dynamique(), "tableau");
         }
-        case GenreType::TABLEAU_FIXE:
+        case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
             auto const taille = type->comme_type_tableau_fixe()->taille;
@@ -623,17 +623,23 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<uint64_t>(taille));
             break;
         }
-        case GenreType::ENUM:
-        case GenreType::ERREUR:
+        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
             type_llvm = converti_type_llvm(type_enum->type_sous_jacent);
             break;
         }
-        case GenreType::OPAQUE:
+        case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             type_llvm = converti_type_llvm(type_opaque->type_opacifie);
+            break;
+        }
+        default:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
             break;
         }
     }
@@ -688,7 +694,7 @@ llvm::StructType *GeneratriceCodeLLVM::convertis_type_composé(TypeCompose const
     auto est_compacte = false;
     if (type->est_type_structure()) {
         auto type_structure = type->comme_type_structure();
-        est_compacte = type_structure->decl && type_structure->decl->est_compacte;
+        est_compacte = type_structure->est_compacte;
     }
 
     type_opaque->setBody(types_membres, est_compacte);
