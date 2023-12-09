@@ -105,7 +105,8 @@ struct IdentifiantADN {
     void préserve_accents_si_nom_le_requiers()
     {
         if (nom == "OpérateurUnaire" || nom == "OpérateurBinaire" || nom == "VisibilitéSymbole" ||
-            nom == "DonnéesSymboleExterne") {
+            nom == "DonnéesSymboleExterne" || nom == "MembreTypeComposé" ||
+            nom == "TableOpérateurs") {
             préserve_accents();
         }
     }
@@ -308,7 +309,6 @@ struct Typeuse {
         crée_type_nominal("float", "r32");
         crée_type_nominal("double", "r64");
         crée_type_nominal("bool", "bool");
-        crée_type_nominal("Type", "InfoType");
         m_type_rien = crée_type_nominal("void", "rien");
     }
 

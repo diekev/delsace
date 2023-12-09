@@ -12,6 +12,8 @@
 
 #include "statistiques/statistiques.hh"
 
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
 

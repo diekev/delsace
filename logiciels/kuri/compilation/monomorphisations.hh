@@ -12,7 +12,8 @@
 
 struct Enchaineuse;
 struct IdentifiantCode;
-struct Type;
+struct NoeudDeclarationType;
+using Type = NoeudDeclarationType;
 
 struct ItemMonomorphisation {
     const IdentifiantCode *ident = nullptr;
