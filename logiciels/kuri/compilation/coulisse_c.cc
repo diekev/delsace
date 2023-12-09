@@ -1298,16 +1298,16 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
     switch (inst->genre) {
         case GenreInstruction::ALLOCATION:
         {
-            auto type_pointeur = inst->type->comme_type_pointeur();
+            auto const alloc = inst->comme_alloc();
+            auto const type_alloué = alloc->donne_type_alloué();
             os << "  ";
 
-            auto const alloc = inst->comme_alloc();
             auto const est_ignorée = alloc->ident == ID::_;
             if (est_ignorée) {
                 os << "VARIABLE_INUTILISEE ";
             }
 
-            os << donne_nom_pour_type(type_pointeur->type_pointe);
+            os << donne_nom_pour_type(type_alloué);
             auto nom = donne_nom_pour_instruction(inst);
             os << ' ' << nom;
             os << ";\n";
