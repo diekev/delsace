@@ -33,6 +33,277 @@ static constexpr double POIDS_POUR_ARGUMENT_VARIADIQUE = 0.95;
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name ErreurAppariement
+ * \{ */
+
+ErreurAppariement ErreurAppariement::mécomptage_arguments(const NoeudExpression *site,
+                                                          int64_t nombre_requis,
+                                                          int64_t nombre_obtenu)
+{
+    auto erreur = crée_erreur(MECOMPTAGE_ARGS, site);
+    erreur.nombre_arguments.nombre_obtenu = nombre_obtenu;
+    erreur.nombre_arguments.nombre_requis = nombre_requis;
+    return erreur;
+}
+
+ErreurAppariement ErreurAppariement::métypage_argument(const NoeudExpression *site,
+                                                       Type *type_attendu,
+                                                       Type *type_obtenu)
+{
+    auto erreur = crée_erreur(METYPAGE_ARG, site);
+    erreur.type_arguments.type_attendu = type_attendu;
+    erreur.type_arguments.type_obtenu = type_obtenu;
+    return erreur;
+}
+
+ErreurAppariement ErreurAppariement::monomorphisation(
+    const NoeudExpression *site, ErreurMonomorphisation erreur_monomorphisation)
+{
+    auto erreur = crée_erreur(MONOMORPHISATION, site);
+    erreur.erreur_monomorphisation = erreur_monomorphisation;
+    return erreur;
+}
+
+ErreurAppariement ErreurAppariement::type_non_fonction(const NoeudExpression *site, Type *type)
+{
+    auto erreur = crée_erreur(TYPE_N_EST_PAS_FONCTION, site);
+    erreur.type = type;
+    return erreur;
+}
+
+ErreurAppariement ErreurAppariement::ménommage_arguments(const NoeudExpression *site,
+                                                         IdentifiantCode *ident)
+{
+    auto erreur = crée_erreur(MENOMMAGE_ARG, site);
+    erreur.nom_arg = ident->nom;
+    return erreur;
+}
+
+ErreurAppariement ErreurAppariement::renommage_argument(const NoeudExpression *site,
+                                                        IdentifiantCode *ident)
+{
+    auto erreur = crée_erreur(RENOMMAGE_ARG, site);
+    erreur.nom_arg = ident->nom;
+    return erreur;
+}
+
+ErreurAppariement ErreurAppariement::dépendance_non_satisfaite(const NoeudExpression *site,
+                                                               Attente attente)
+{
+    auto erreur = crée_erreur(ERREUR_DEPENDANCE, site);
+    erreur.attente = attente;
+    return erreur;
+}
+
+ErreurAppariement ErreurAppariement::crée_erreur(int raison, const NoeudExpression *site)
+{
+    ErreurAppariement erreur;
+    erreur.raison = raison;
+    erreur.site_erreur = site;
+    return erreur;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name CandidateAppariement
+ * \{ */
+
+CandidateAppariement CandidateAppariement::appel_fonction(
+    double poids,
+    const NoeudExpression *noeud_decl,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations)
+{
+    return crée_candidate(CANDIDATE_EST_APPEL_FONCTION,
+                          poids,
+                          noeud_decl,
+                          type,
+                          std::move(exprs),
+                          std::move(transformations));
+}
+
+CandidateAppariement CandidateAppariement::appel_fonction(
+    double poids,
+    const NoeudExpression *noeud_decl,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations,
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+{
+    auto candidate = crée_candidate(CANDIDATE_EST_APPEL_FONCTION,
+                                    poids,
+                                    noeud_decl,
+                                    type,
+                                    std::move(exprs),
+                                    std::move(transformations));
+    candidate.items_monomorphisation = std::move(items_monomorphisation);
+    return candidate;
+}
+
+CandidateAppariement CandidateAppariement::cuisson_fonction(
+    double poids,
+    const NoeudExpression *noeud_decl,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations,
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+{
+    auto candidate = crée_candidate(CANDIDATE_EST_CUISSON_FONCTION,
+                                    poids,
+                                    noeud_decl,
+                                    type,
+                                    std::move(exprs),
+                                    std::move(transformations));
+    candidate.items_monomorphisation = std::move(items_monomorphisation);
+    return candidate;
+}
+
+CandidateAppariement CandidateAppariement::appel_pointeur(
+    double poids,
+    const NoeudExpression *noeud_decl,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations)
+{
+    return crée_candidate(CANDIDATE_EST_APPEL_POINTEUR,
+                          poids,
+                          noeud_decl,
+                          type,
+                          std::move(exprs),
+                          std::move(transformations));
+}
+
+CandidateAppariement CandidateAppariement::initialisation_structure(
+    double poids,
+    const NoeudExpression *noeud_decl,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations)
+{
+    return crée_candidate(CANDIDATE_EST_INITIALISATION_STRUCTURE,
+                          poids,
+                          noeud_decl,
+                          type,
+                          std::move(exprs),
+                          std::move(transformations));
+}
+
+CandidateAppariement CandidateAppariement::monomorphisation_structure(
+    double poids,
+    const NoeudExpression *noeud_decl,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations,
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+{
+    auto candidate = crée_candidate(CANDIDATE_EST_MONOMORPHISATION_STRUCTURE,
+                                    poids,
+                                    noeud_decl,
+                                    type,
+                                    std::move(exprs),
+                                    std::move(transformations));
+    candidate.items_monomorphisation = std::move(items_monomorphisation);
+    return candidate;
+}
+
+CandidateAppariement CandidateAppariement::type_polymorphique(
+    double poids,
+    Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations)
+{
+    return crée_candidate(CANDIDATE_EST_TYPE_POLYMORPHIQUE,
+                          poids,
+                          nullptr,
+                          type,
+                          std::move(exprs),
+                          std::move(transformations));
+}
+
+CandidateAppariement CandidateAppariement::type_polymorphique(
+    double poids,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations,
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+{
+    auto candidate = crée_candidate(CANDIDATE_EST_TYPE_POLYMORPHIQUE,
+                                    poids,
+                                    nullptr,
+                                    type,
+                                    std::move(exprs),
+                                    std::move(transformations));
+    candidate.items_monomorphisation = std::move(items_monomorphisation);
+    return candidate;
+}
+
+CandidateAppariement CandidateAppariement::appel_init_de(
+    double poids,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations)
+{
+    return crée_candidate(CANDIDATE_EST_APPEL_INIT_DE,
+                          poids,
+                          nullptr,
+                          type,
+                          std::move(exprs),
+                          std::move(transformations));
+}
+
+CandidateAppariement CandidateAppariement::initialisation_opaque(
+    double poids,
+    const NoeudExpression *noeud_decl,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations)
+{
+    return crée_candidate(CANDIDATE_EST_INITIALISATION_OPAQUE,
+                          poids,
+                          noeud_decl,
+                          type,
+                          std::move(exprs),
+                          std::move(transformations));
+}
+
+CandidateAppariement CandidateAppariement::monomorphisation_opaque(
+    double poids,
+    const NoeudExpression *noeud_decl,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations)
+{
+    return crée_candidate(CANDIDATE_EST_MONOMORPHISATION_OPAQUE,
+                          poids,
+                          noeud_decl,
+                          type,
+                          std::move(exprs),
+                          std::move(transformations));
+}
+
+CandidateAppariement CandidateAppariement::crée_candidate(
+    int note,
+    double poids,
+    const NoeudExpression *noeud_decl,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations)
+{
+    CandidateAppariement candidate;
+    candidate.note = note;
+    candidate.poids_args = poids;
+    candidate.type = type;
+    candidate.exprs = std::move(exprs);
+    candidate.transformations = std::move(transformations);
+    candidate.noeud_decl = noeud_decl;
+    return candidate;
+}
+
+/** \} */
+
 enum class ChoseÀApparier : int8_t {
     FONCTION_EXTERNE,
     FONCTION_INTERNE,

@@ -78,9 +78,121 @@ int AtomeFonction::nombre_d_instructions_avec_entrées_sorties() const
     return résultat;
 }
 
+InstructionAppel::InstructionAppel(NoeudExpression const *site_, Atome *appele_)
+    : InstructionAppel(site_)
+{
+    auto type_fonction = appele_->type->comme_type_fonction();
+    this->type = type_fonction->type_sortie;
+
+    this->appele = appele_;
+}
+
+InstructionAppel::InstructionAppel(NoeudExpression const *site_,
+                                   Atome *appele_,
+                                   kuri::tableau<Atome *, int> &&args_)
+    : InstructionAppel(site_, appele_)
+{
+    this->args = std::move(args_);
+}
+
+InstructionAllocation::InstructionAllocation(NoeudExpression const *site_,
+                                             Type const *type_,
+                                             IdentifiantCode *ident_)
+    : InstructionAllocation(site_)
+{
+    this->type = type_;
+    this->ident = ident_;
+}
+
 const Type *InstructionAllocation::donne_type_alloué() const
 {
     return type->comme_type_pointeur()->type_pointe;
+}
+
+InstructionRetour::InstructionRetour(NoeudExpression const *site_, Atome *valeur_)
+    : InstructionRetour(site_)
+{
+    this->valeur = valeur_;
+}
+
+InstructionOpBinaire::InstructionOpBinaire(NoeudExpression const *site_,
+                                           Type const *type_,
+                                           OpérateurBinaire::Genre op_,
+                                           Atome *valeur_gauche_,
+                                           Atome *valeur_droite_)
+    : InstructionOpBinaire(site_)
+{
+    this->type = type_;
+    this->op = op_;
+    this->valeur_gauche = valeur_gauche_;
+    this->valeur_droite = valeur_droite_;
+}
+
+InstructionOpUnaire::InstructionOpUnaire(NoeudExpression const *site_,
+                                         Type const *type_,
+                                         OpérateurUnaire::Genre op_,
+                                         Atome *valeur_)
+    : InstructionOpUnaire(site_)
+{
+    this->type = type_;
+    this->op = op_;
+    this->valeur = valeur_;
+}
+
+InstructionChargeMem::InstructionChargeMem(NoeudExpression const *site_,
+                                           Type const *type_,
+                                           Atome *chargee_)
+    : InstructionChargeMem(site_)
+{
+    this->type = type_;
+    this->chargee = chargee_;
+    if (type->est_type_pointeur()) {
+        drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
+    }
+}
+
+InstructionStockeMem::InstructionStockeMem(NoeudExpression const *site_,
+                                           Type const *type_,
+                                           Atome *ou_,
+                                           Atome *valeur_)
+    : InstructionStockeMem(site_)
+{
+    this->type = type_;
+    this->ou = ou_;
+    this->valeur = valeur_;
+}
+
+InstructionLabel::InstructionLabel(NoeudExpression const *site_, int id_) : InstructionLabel(site_)
+{
+    this->id = id_;
+}
+
+InstructionBranche::InstructionBranche(NoeudExpression const *site_, InstructionLabel *label_)
+    : InstructionBranche(site_)
+{
+    this->label = label_;
+}
+
+InstructionBrancheCondition::InstructionBrancheCondition(NoeudExpression const *site_,
+                                                         Atome *condition_,
+                                                         InstructionLabel *label_si_vrai_,
+                                                         InstructionLabel *label_si_faux_)
+    : InstructionBrancheCondition(site_)
+{
+    this->condition = condition_;
+    this->label_si_vrai = label_si_vrai_;
+    this->label_si_faux = label_si_faux_;
+}
+
+InstructionAccedeMembre::InstructionAccedeMembre(NoeudExpression const *site_,
+                                                 Type const *type_,
+                                                 Atome *accede_,
+                                                 int index_)
+    : InstructionAccedeMembre(site_)
+{
+    this->type = type_;
+    this->accede = accede_;
+    this->index = index_;
 }
 
 const Type *InstructionAccedeMembre::donne_type_accédé() const
@@ -109,9 +221,34 @@ const MembreTypeComposé &InstructionAccedeMembre::donne_membre_accédé() const
     return type_composé->membres[index];
 }
 
+InstructionAccedeIndex::InstructionAccedeIndex(NoeudExpression const *site_,
+                                               Type const *type_,
+                                               Atome *accede_,
+                                               Atome *index_)
+    : InstructionAccedeIndex(site_)
+{
+    this->type = type_;
+    this->accede = accede_;
+    this->index = index_;
+}
+
 const Type *InstructionAccedeIndex::donne_type_accédé() const
 {
     return accede->type->comme_type_pointeur()->type_pointe;
+}
+
+InstructionTranstype::InstructionTranstype(NoeudExpression const *site_,
+                                           Type const *type_,
+                                           Atome *valeur_,
+                                           TypeTranstypage op_)
+    : InstructionTranstype(site_)
+{
+    this->type = type_;
+    this->valeur = valeur_;
+    this->op = op_;
+    if (type->est_type_pointeur()) {
+        drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
+    }
 }
 
 bool est_valeur_constante(Atome const *atome)

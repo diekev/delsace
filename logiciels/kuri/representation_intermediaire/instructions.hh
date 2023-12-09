@@ -498,21 +498,11 @@ struct InstructionAppel : public Instruction {
 
     EMPECHE_COPIE(InstructionAppel);
 
-    InstructionAppel(NoeudExpression const *site_, Atome *appele_) : InstructionAppel(site_)
-    {
-        auto type_fonction = appele_->type->comme_type_fonction();
-        this->type = type_fonction->type_sortie;
-
-        this->appele = appele_;
-    }
+    InstructionAppel(NoeudExpression const *site_, Atome *appele_);
 
     InstructionAppel(NoeudExpression const *site_,
                      Atome *appele_,
-                     kuri::tableau<Atome *, int> &&args_)
-        : InstructionAppel(site_, appele_)
-    {
-        this->args = std::move(args_);
-    }
+                     kuri::tableau<Atome *, int> &&args_);
 };
 
 struct InstructionAllocation : public Instruction {
@@ -525,12 +515,9 @@ struct InstructionAllocation : public Instruction {
 
     IdentifiantCode *ident = nullptr;
 
-    InstructionAllocation(NoeudExpression const *site_, Type const *type_, IdentifiantCode *ident_)
-        : InstructionAllocation(site_)
-    {
-        this->type = type_;
-        this->ident = ident_;
-    }
+    InstructionAllocation(NoeudExpression const *site_,
+                          Type const *type_,
+                          IdentifiantCode *ident_);
 
     const Type *donne_type_alloué() const;
 };
@@ -546,10 +533,7 @@ struct InstructionRetour : public Instruction {
 
     EMPECHE_COPIE(InstructionRetour);
 
-    InstructionRetour(NoeudExpression const *site_, Atome *valeur_) : InstructionRetour(site_)
-    {
-        this->valeur = valeur_;
-    }
+    InstructionRetour(NoeudExpression const *site_, Atome *valeur_);
 };
 
 struct InstructionOpBinaire : public Instruction {
@@ -569,14 +553,7 @@ struct InstructionOpBinaire : public Instruction {
                          Type const *type_,
                          OpérateurBinaire::Genre op_,
                          Atome *valeur_gauche_,
-                         Atome *valeur_droite_)
-        : InstructionOpBinaire(site_)
-    {
-        this->type = type_;
-        this->op = op_;
-        this->valeur_gauche = valeur_gauche_;
-        this->valeur_droite = valeur_droite_;
-    }
+                         Atome *valeur_droite_);
 };
 
 struct InstructionOpUnaire : public Instruction {
@@ -594,13 +571,7 @@ struct InstructionOpUnaire : public Instruction {
     InstructionOpUnaire(NoeudExpression const *site_,
                         Type const *type_,
                         OpérateurUnaire::Genre op_,
-                        Atome *valeur_)
-        : InstructionOpUnaire(site_)
-    {
-        this->type = type_;
-        this->op = op_;
-        this->valeur = valeur_;
-    }
+                        Atome *valeur_);
 };
 
 struct InstructionChargeMem : public Instruction {
@@ -614,15 +585,7 @@ struct InstructionChargeMem : public Instruction {
 
     EMPECHE_COPIE(InstructionChargeMem);
 
-    InstructionChargeMem(NoeudExpression const *site_, Type const *type_, Atome *chargee_)
-        : InstructionChargeMem(site_)
-    {
-        this->type = type_;
-        this->chargee = chargee_;
-        if (type->est_type_pointeur()) {
-            drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
-        }
-    }
+    InstructionChargeMem(NoeudExpression const *site_, Type const *type_, Atome *chargee_);
 };
 
 struct InstructionStockeMem : public Instruction {
@@ -640,13 +603,7 @@ struct InstructionStockeMem : public Instruction {
     InstructionStockeMem(NoeudExpression const *site_,
                          Type const *type_,
                          Atome *ou_,
-                         Atome *valeur_)
-        : InstructionStockeMem(site_)
-    {
-        this->type = type_;
-        this->ou = ou_;
-        this->valeur = valeur_;
-    }
+                         Atome *valeur_);
 };
 
 struct InstructionLabel : public Instruction {
@@ -658,10 +615,7 @@ struct InstructionLabel : public Instruction {
 
     int id = 0;
 
-    InstructionLabel(NoeudExpression const *site_, int id_) : InstructionLabel(site_)
-    {
-        this->id = id_;
-    }
+    InstructionLabel(NoeudExpression const *site_, int id_);
 };
 
 struct InstructionBranche : public Instruction {
@@ -675,11 +629,7 @@ struct InstructionBranche : public Instruction {
 
     EMPECHE_COPIE(InstructionBranche);
 
-    InstructionBranche(NoeudExpression const *site_, InstructionLabel *label_)
-        : InstructionBranche(site_)
-    {
-        this->label = label_;
-    }
+    InstructionBranche(NoeudExpression const *site_, InstructionLabel *label_);
 };
 
 struct InstructionBrancheCondition : public Instruction {
@@ -698,13 +648,7 @@ struct InstructionBrancheCondition : public Instruction {
     InstructionBrancheCondition(NoeudExpression const *site_,
                                 Atome *condition_,
                                 InstructionLabel *label_si_vrai_,
-                                InstructionLabel *label_si_faux_)
-        : InstructionBrancheCondition(site_)
-    {
-        this->condition = condition_;
-        this->label_si_vrai = label_si_vrai_;
-        this->label_si_faux = label_si_faux_;
-    }
+                                InstructionLabel *label_si_faux_);
 };
 
 struct InstructionAccedeMembre : public Instruction {
@@ -724,13 +668,7 @@ struct InstructionAccedeMembre : public Instruction {
     InstructionAccedeMembre(NoeudExpression const *site_,
                             Type const *type_,
                             Atome *accede_,
-                            int index_)
-        : InstructionAccedeMembre(site_)
-    {
-        this->type = type_;
-        this->accede = accede_;
-        this->index = index_;
-    }
+                            int index_);
 
     const Type *donne_type_accédé() const;
 
@@ -753,13 +691,7 @@ struct InstructionAccedeIndex : public Instruction {
     InstructionAccedeIndex(NoeudExpression const *site_,
                            Type const *type_,
                            Atome *accede_,
-                           Atome *index_)
-        : InstructionAccedeIndex(site_)
-    {
-        this->type = type_;
-        this->accede = accede_;
-        this->index = index_;
-    }
+                           Atome *index_);
 
     const Type *donne_type_accédé() const;
 };
@@ -796,16 +728,7 @@ struct InstructionTranstype : public Instruction {
     InstructionTranstype(NoeudExpression const *site_,
                          Type const *type_,
                          Atome *valeur_,
-                         TypeTranstypage op_)
-        : InstructionTranstype(site_)
-    {
-        this->type = type_;
-        this->valeur = valeur_;
-        this->op = op_;
-        if (type->est_type_pointeur()) {
-            drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
-        }
-    }
+                         TypeTranstypage op_);
 };
 
 bool est_valeur_constante(Atome const *atome);
