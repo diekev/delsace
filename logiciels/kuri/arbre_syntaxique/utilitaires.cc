@@ -12,8 +12,8 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
-#include "utilitaires/log.hh"
 #include "compilation/typage.hh"
+#include "utilitaires/log.hh"
 
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
