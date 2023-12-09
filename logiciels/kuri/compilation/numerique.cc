@@ -3,7 +3,7 @@
 
 #include "numerique.hh"
 
-#include "typage.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 
 bool est_hors_des_limites(int64_t valeur, Type *type)
 {
