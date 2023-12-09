@@ -12,7 +12,9 @@ struct AtomeGlobale;
 struct Bibliotheque;
 struct DonnéesConstantes;
 struct ProgrammeRepreInter;
-struct Type;
+
+struct NoeudDeclarationType;
+using Type = NoeudDeclarationType;
 
 struct CoulisseC final : public Coulisse {
     kuri::tableau<Bibliotheque *> m_bibliothèques{};

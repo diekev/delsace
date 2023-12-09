@@ -101,10 +101,12 @@ ResultatValidation Sémanticienne::valide(UniteCompilation *unité)
 
     if (racine_validation()->est_type_structure()) {
         auto structure = racine_validation()->comme_type_structure();
-        if (structure->est_union) {
-            return valide_union(structure);
-        }
         return valide_structure(structure);
+    }
+
+    if (racine_validation()->est_type_union()) {
+        auto type_union = racine_validation()->comme_type_union();
+        return valide_union(type_union);
     }
 
     if (racine_validation()->est_type_opaque()) {
@@ -739,13 +741,13 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             }
 
             switch (type1->genre) {
-                case GenreType::VARIADIQUE:
-                case GenreType::TABLEAU_DYNAMIQUE:
+                case GenreNoeud::VARIADIQUE:
+                case GenreNoeud::TABLEAU_DYNAMIQUE:
                 {
                     expr->type = type_dereference_pour(type1);
                     break;
                 }
-                case GenreType::TABLEAU_FIXE:
+                case GenreNoeud::TABLEAU_FIXE:
                 {
                     auto type_tabl = type1->comme_type_tableau_fixe();
                     expr->type = type_dereference_pour(type1);
@@ -766,12 +768,12 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
                     break;
                 }
-                case GenreType::POINTEUR:
+                case GenreNoeud::POINTEUR:
                 {
                     expr->type = type_dereference_pour(type1);
                     break;
                 }
-                case GenreType::CHAINE:
+                case GenreNoeud::CHAINE:
                 {
                     expr->type = TypeBase::Z8;
                     break;
@@ -926,7 +928,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 return CodeRetourValidation::Erreur;
             }
 
-            if (!expr_type->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+            if (!expr_type->type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 /* ce n'est plus la peine de revenir ici une fois que le type sera validé */
                 m_arbre_courant->index_courant += 1;
                 return Attente::sur_type(expr_type->type);
@@ -1082,7 +1084,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             kuri::ensemblon<Type *, 16> types_utilises;
             types_utilises.insere(type);
             auto attente_possible = attente_sur_type_si_drapeau_manquant(
-                types_utilises, DrapeauxTypes::TYPE_FUT_VALIDE);
+                types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
             if (attente_possible && attente_possible->est<AttenteSurType>() &&
                 attente_possible->type() != racine_validation()->type) {
@@ -1094,73 +1096,81 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             auto type_info_type = Type::nul();
 
             switch (expr->type->genre) {
-                case GenreType::POLYMORPHIQUE:
-                case GenreType::TUPLE:
+                case GenreNoeud::POLYMORPHIQUE:
+                case GenreNoeud::TUPLE:
                 {
                     assert_rappel(false, [&]() {
                         dbg() << "Type illégal pour info type : " << chaine_type(expr->type);
                     });
                     break;
                 }
-                case GenreType::EINI:
-                case GenreType::CHAINE:
-                case GenreType::RIEN:
-                case GenreType::BOOL:
-                case GenreType::OCTET:
-                case GenreType::TYPE_DE_DONNEES:
-                case GenreType::REEL:
+                case GenreNoeud::EINI:
+                case GenreNoeud::CHAINE:
+                case GenreNoeud::RIEN:
+                case GenreNoeud::BOOL:
+                case GenreNoeud::OCTET:
+                case GenreNoeud::TYPE_DE_DONNEES:
+                case GenreNoeud::REEL:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_;
                     break;
                 }
-                case GenreType::ENTIER_CONSTANT:
-                case GenreType::ENTIER_NATUREL:
-                case GenreType::ENTIER_RELATIF:
+                case GenreNoeud::ENTIER_CONSTANT:
+                case GenreNoeud::ENTIER_NATUREL:
+                case GenreNoeud::ENTIER_RELATIF:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_entier;
                     break;
                 }
-                case GenreType::REFERENCE:
-                case GenreType::POINTEUR:
+                case GenreNoeud::REFERENCE:
+                case GenreNoeud::POINTEUR:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_pointeur;
                     break;
                 }
-                case GenreType::STRUCTURE:
+                case GenreNoeud::DECLARATION_STRUCTURE:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_structure;
                     break;
                 }
-                case GenreType::UNION:
+                case GenreNoeud::DECLARATION_UNION:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_union;
                     break;
                 }
-                case GenreType::TABLEAU_DYNAMIQUE:
-                case GenreType::TABLEAU_FIXE:
+                case GenreNoeud::TABLEAU_DYNAMIQUE:
+                case GenreNoeud::TABLEAU_FIXE:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_tableau;
                     break;
                 }
-                case GenreType::FONCTION:
+                case GenreNoeud::FONCTION:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_fonction;
                     break;
                 }
-                case GenreType::ENUM:
-                case GenreType::ERREUR:
+                case GenreNoeud::DECLARATION_ENUM:
+                case GenreNoeud::ERREUR:
+                case GenreNoeud::ENUM_DRAPEAU:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_enum;
                     break;
                 }
-                case GenreType::OPAQUE:
+                case GenreNoeud::DECLARATION_OPAQUE:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_opaque;
                     break;
                 }
-                case GenreType::VARIADIQUE:
+                case GenreNoeud::VARIADIQUE:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_variadique;
+                    break;
+                }
+                default:
+                {
+                    assert_rappel(false, [&]() {
+                        dbg() << "Noeud non-géré pour type : " << expr->type->genre;
+                    });
                     break;
                 }
             }
@@ -1232,12 +1242,16 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
             auto noeud_struct = noeud->comme_type_structure();
-            if (noeud_struct->est_union) {
-                return valide_union(noeud_struct);
-            }
             return valide_structure(noeud_struct);
         }
+        case GenreNoeud::DECLARATION_UNION:
+        {
+            auto noeud_union = noeud->comme_type_union();
+            return valide_union(noeud_union);
+        }
         case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::ERREUR:
         {
             return valide_enum(noeud->comme_type_enum());
         }
@@ -1310,9 +1324,9 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             }
             else {
                 if (!dls::outils::est_element(type_expr->genre,
-                                              GenreType::TABLEAU_FIXE,
-                                              GenreType::TABLEAU_DYNAMIQUE,
-                                              GenreType::VARIADIQUE)) {
+                                              GenreNoeud::TABLEAU_FIXE,
+                                              GenreNoeud::TABLEAU_DYNAMIQUE,
+                                              GenreNoeud::VARIADIQUE)) {
                     espace
                         ->rapporte_erreur(expr,
                                           "Type invalide pour l'expansion variadique, je requiers "
@@ -1348,7 +1362,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             // - si union -> voir si l'union est sûre et contient une erreur, dépaquete celle-ci
             // dans le génération de code
 
-            if (!inst->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+            if (!inst->type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_type(inst->type);
             }
 
@@ -1483,7 +1497,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 return CodeRetourValidation::Erreur;
             }
 
-            if (!type_employe->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+            if (!type_employe->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_type(type_employe);
             }
 
@@ -1574,6 +1588,12 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             noeud->type = TypeBase::CHAINE;
             break;
         }
+        default:
+        {
+            assert_rappel(false,
+                          [&]() { dbg() << "Noeud géré pour validation : " << noeud->genre; });
+            break;
+        }
     }
 
     return CodeRetourValidation::OK;
@@ -1629,8 +1649,8 @@ ResultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *ex
         }
     }
 
-    if (est_type_compose(type)) {
-        if (!type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+    if (type->est_type_compose()) {
+        if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
             return Attente::sur_type(type);
         }
 
@@ -1670,7 +1690,7 @@ ResultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *ex
              */
             if (structure->type->est_type_enum() &&
                 structure->genre_valeur != GenreValeur::DROITE) {
-                if (type->est_type_enum() && static_cast<TypeEnum *>(type)->est_drapeau) {
+                if (type->est_type_enum_drapeau()) {
                     if (!membre_est_implicite) {
                         expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
                         expression_membre->drapeaux |= DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU;
@@ -2637,24 +2657,24 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
 
         if (type_discriminée->est_type_enum()) {
             auto type_énum = type_discriminée->comme_type_enum();
-            if (!type_énum->decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(type_énum->decl);
+            if (!type_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(type_énum);
             }
 
             bloc_recherche_original = bloc_recherche;
-            bloc_recherche = type_énum->decl->bloc;
+            bloc_recherche = type_énum->bloc;
             recherche_est_pour_expression_discrimination_énum = true;
         }
         else if (type_discriminée->est_type_union()) {
             auto type_union = type_discriminée->comme_type_union();
-            if (type_union->decl &&
-                !type_union->decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(type_union->decl);
+            if (!type_union->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(type_union);
             }
 
-            if (type_union->decl) {
+            /* Les unions anonymes n'ont pas de bloc. */
+            if (type_union->bloc) {
                 bloc_recherche_original = bloc_recherche;
-                bloc_recherche = type_union->decl->bloc;
+                bloc_recherche = type_union->bloc;
             }
         }
     }
@@ -2857,7 +2877,7 @@ ResultatValidation Sémanticienne::valide_type_opaque(NoeudDeclarationTypeOpaque
             return CodeRetourValidation::Erreur;
         }
 
-        if (!type_opacifie->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+        if (!type_opacifie->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
             return Attente::sur_type(type_opacifie);
         }
     }
@@ -2865,9 +2885,19 @@ ResultatValidation Sémanticienne::valide_type_opaque(NoeudDeclarationTypeOpaque
         type_opacifie = m_compilatrice.typeuse.crée_polymorphique(decl->expression_type->ident);
     }
 
-    auto type_opaque = m_compilatrice.typeuse.crée_opaque(decl, type_opacifie);
-    decl->type = type_opaque;
+    decl->type = decl;
+    decl->type_opacifie = type_opacifie;
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+    if (type_opacifie->est_type_polymorphique()) {
+        decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
+    }
+    else {
+        decl->alignement = type_opacifie->alignement;
+        decl->taille_octet = type_opacifie->taille_octet;
+        m_compilatrice.graphe_dependance->connecte_type_type(decl, type_opacifie);
+    }
+
     return CodeRetourValidation::OK;
 }
 
@@ -3251,19 +3281,20 @@ enum {
 };
 
 template <int N>
-ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum)
+ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl)
 {
-    type_enum->taille_octet = type_enum->type_sous_jacent->taille_octet;
-    type_enum->alignement = type_enum->type_sous_jacent->alignement;
+    decl->type = decl;
+    decl->taille_octet = decl->type_sous_jacent->taille_octet;
+    decl->alignement = decl->type_sous_jacent->alignement;
 
-    m_compilatrice.operateurs->ajoute_opérateur_basique_enum(type_enum);
+    m_compilatrice.operateurs->ajoute_opérateur_basique_enum(decl);
 
     auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 32>();
 
     auto derniere_valeur = ValeurExpression();
     assert(!derniere_valeur.est_valide());
 
-    auto &membres = type_enum->membres;
+    auto &membres = decl->membres;
     membres.reserve(decl->bloc->expressions->taille());
     decl->bloc->reserve_membres(decl->bloc->expressions->taille());
 
@@ -3278,7 +3309,7 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl, TypeEnum *t
         }
 
         auto decl_expr = it->comme_declaration_constante();
-        decl_expr->type = type_enum;
+        decl_expr->type = decl;
 
         decl->bloc->ajoute_membre(decl_expr);
 
@@ -3357,16 +3388,16 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl, TypeEnum *t
             }
         }
 
-        if (est_hors_des_limites(valeur.entiere(), type_enum->type_sous_jacent)) {
+        if (est_hors_des_limites(valeur.entiere(), decl->type_sous_jacent)) {
             auto e = espace->rapporte_erreur(
                 decl_expr, "Valeur hors des limites pour le type de l'énumération");
             e.ajoute_message("Le type des données de l'énumération est « ",
-                             chaine_type(type_enum->type_sous_jacent),
+                             chaine_type(decl->type_sous_jacent),
                              " ».");
             e.ajoute_message("Les valeurs légales pour un tel type se trouvent entre ",
-                             valeur_min(type_enum->type_sous_jacent),
+                             valeur_min(decl->type_sous_jacent),
                              " et ",
-                             valeur_max(type_enum->type_sous_jacent),
+                             valeur_max(decl->type_sous_jacent),
                              ".\n");
             e.ajoute_message("Or, la valeur courante est de ", valeur.entiere(), ".\n");
             return CodeRetourValidation::Erreur;
@@ -3379,7 +3410,7 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl, TypeEnum *t
             valeurs_legales |= valeur.entiere();
         }
 
-        membres.ajoute({nullptr, type_enum, var->ident, 0, static_cast<int>(valeur.entiere())});
+        membres.ajoute({nullptr, decl, var->ident, 0, static_cast<int>(valeur.entiere())});
 
         derniere_valeur = valeur;
     }
@@ -3392,14 +3423,14 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl, TypeEnum *t
                     nullptr,
                     MembreTypeComposé::EST_IMPLICITE});
     membres.ajoute({nullptr,
-                    type_enum,
+                    decl,
                     ID::min,
                     0,
                     static_cast<int>(valeur_enum_min),
                     nullptr,
                     MembreTypeComposé::EST_IMPLICITE});
     membres.ajoute({nullptr,
-                    type_enum,
+                    decl,
                     ID::max,
                     0,
                     static_cast<int>(valeur_enum_max),
@@ -3408,61 +3439,44 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl, TypeEnum *t
 
     if (N == VALIDE_ENUM_DRAPEAU) {
         membres.ajoute({nullptr,
-                        type_enum,
+                        decl,
                         ID::valeurs_legales,
                         0,
                         static_cast<int>(valeurs_legales),
                         nullptr,
                         MembreTypeComposé::EST_IMPLICITE});
         membres.ajoute({nullptr,
-                        type_enum,
+                        decl,
                         ID::valeurs_illegales,
                         0,
                         static_cast<int>(~valeurs_legales),
                         nullptr,
                         MembreTypeComposé::EST_IMPLICITE});
-        membres.ajoute(
-            {nullptr, type_enum, ID::zero, 0, 0, nullptr, MembreTypeComposé::EST_IMPLICITE});
+        membres.ajoute({nullptr, decl, ID::zero, 0, 0, nullptr, MembreTypeComposé::EST_IMPLICITE});
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
     return CodeRetourValidation::OK;
 }
 
 ResultatValidation Sémanticienne::valide_enum(NoeudEnum *decl)
 {
     CHRONO_TYPAGE(m_stats_typage.enumerations, ENUMERATION__VALIDATION);
-    auto type_enum = static_cast<TypeEnum *>(decl->type);
 
-    if (!type_enum) {
-        if (decl->est_erreur) {
-            auto type = m_compilatrice.typeuse.reserve_type_erreur(decl);
-            type->est_erreur = true;
-            decl->type = type;
-        }
-        else {
-            auto type = m_compilatrice.typeuse.reserve_type_enum(decl);
-            type->est_drapeau = decl->est_énum_drapeau;
-            decl->type = type;
-        }
-        type_enum = static_cast<TypeEnum *>(decl->type);
-    }
-
-    if (type_enum->est_erreur) {
-        type_enum->type_sous_jacent = TypeBase::Z32;
+    if (decl->est_type_erreur()) {
+        decl->type_sous_jacent = TypeBase::Z32;
     }
     else if (decl->expression_type != nullptr) {
         TENTE(valide_semantique_noeud(decl->expression_type));
 
-        if (resoud_type_final(decl->expression_type, type_enum->type_sous_jacent) ==
+        if (resoud_type_final(decl->expression_type, decl->type_sous_jacent) ==
             CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
 
         /* les énum_drapeaux doivent être des types naturels pour éviter les problèmes
          * d'arithmétiques binaire */
-        if (type_enum->est_drapeau && !type_enum->type_sous_jacent->est_type_entier_naturel()) {
+        if (decl->est_type_enum_drapeau() && !decl->type_sous_jacent->est_type_entier_naturel()) {
             espace
                 ->rapporte_erreur(decl->expression_type,
                                   "Les énum_drapeaux doivent être de type entier naturel (n8, "
@@ -3478,31 +3492,30 @@ ResultatValidation Sémanticienne::valide_enum(NoeudEnum *decl)
             return CodeRetourValidation::Erreur;
         }
 
-        if (!est_type_entier(type_enum->type_sous_jacent)) {
+        if (!est_type_entier(decl->type_sous_jacent)) {
             espace
                 ->rapporte_erreur(decl->expression_type,
                                   "Le type de données d'une énumération doit être de type entier.")
-                .ajoute_message(
-                    "NOTE : le type est ", chaine_type(type_enum->type_sous_jacent), ".\n");
+                .ajoute_message("NOTE : le type est ", chaine_type(decl->type_sous_jacent), ".\n");
             return CodeRetourValidation::Erreur;
         }
     }
-    else if (type_enum->est_drapeau) {
-        type_enum->type_sous_jacent = TypeBase::N32;
+    else if (decl->est_type_enum_drapeau()) {
+        decl->type_sous_jacent = TypeBase::N32;
     }
     else {
-        type_enum->type_sous_jacent = TypeBase::Z32;
+        decl->type_sous_jacent = TypeBase::Z32;
     }
 
-    if (type_enum->est_erreur) {
-        return valide_enum_impl<VALIDE_ENUM_ERREUR>(decl, type_enum);
+    if (decl->est_type_erreur()) {
+        return valide_enum_impl<VALIDE_ENUM_ERREUR>(decl);
     }
 
-    if (type_enum->est_drapeau) {
-        return valide_enum_impl<VALIDE_ENUM_DRAPEAU>(decl, type_enum);
+    if (decl->est_type_enum_drapeau()) {
+        return valide_enum_impl<VALIDE_ENUM_DRAPEAU>(decl);
     }
 
-    return valide_enum_impl<VALIDE_ENUM_NORMAL>(decl, type_enum);
+    return valide_enum_impl<VALIDE_ENUM_NORMAL>(decl);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3691,7 +3704,7 @@ static ResultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail 
             continue;
         }
 
-        if (!it.type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+        if (!it.type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
             return Attente::sur_type(it.type);
         }
 
@@ -3726,18 +3739,11 @@ static ResultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail 
  */
 ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 {
-    /* Les structures copiées n'ont pas de types (la copie ne fait que copier le pointeur, ce qui
-     * nous ferait modifier l'original). */
-    if (decl->type == nullptr) {
-        decl->type = m_compilatrice.typeuse.reserve_type_structure(decl);
-    }
-
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
-        decl->type->drapeaux_type |= (DrapeauxTypes::TYPE_FUT_VALIDE |
-                                      DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
-                                      DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
+        decl->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
+                                DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
         return CodeRetourValidation::OK;
     }
 
@@ -3751,7 +3757,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
         // nous validerons les membres lors de la monomorphisation
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
+        decl->type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
     }
 
@@ -3947,27 +3953,19 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 #endif
     }
 
-    decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
+ResultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 {
-    /* Les structures copiées n'ont pas de types (la copie ne fait que copier le pointeur, ce qui
-     * nous ferait modifier l'original). */
-    if (decl->type == nullptr) {
-        decl->type = m_compilatrice.typeuse.reserve_type_union(decl);
-    }
-
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
-        decl->type->drapeaux_type |= (DrapeauxTypes::TYPE_FUT_VALIDE |
-                                      DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
-                                      DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
+        decl->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
+                                DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
         return CodeRetourValidation::OK;
     }
 
@@ -3976,12 +3974,12 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
-                m_tacheronne->allocatrice_noeud.crée_monomorphisations_struct();
+                m_tacheronne->allocatrice_noeud.crée_monomorphisations_union();
         }
 
         // nous validerons les membres lors de la monomorphisation
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
+        decl->type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
     }
 
@@ -4108,7 +4106,6 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
 
     return CodeRetourValidation::OK;
 }
@@ -4377,7 +4374,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
 
         /* Pour la génération de RI pour les globales, nous devons attendre que le type fut validé.
          */
-        if (!decl->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+        if (!decl->type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
             /* Ne revalide pas ce noeud. */
             m_arbre_courant->index_courant += 1;
             return Attente::sur_type(decl->type);
@@ -5109,7 +5106,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_tableau(NoeudExpress
     if (taille_tableau != 0) {
         // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
         // via un membre
-        if (!type_connu->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+        if (!type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
             return Attente::sur_type(type_connu);
         }
 
@@ -5164,11 +5161,11 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_type(NoeudExpression
                 return CodeRetourValidation::Erreur;
             }
 
-            if (!type_type1->type_connu->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+            if (!type_type1->type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_type(type_type1->type_connu);
             }
 
-            if (!type_type2->type_connu->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+            if (!type_type2->type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_type(type_type2->type_connu);
             }
 
@@ -5176,23 +5173,9 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_type(NoeudExpression
             membres[0] = {nullptr, type_type1->type_connu, ID::_0};
             membres[1] = {nullptr, type_type2->type_connu, ID::_1};
 
-            auto type_union = m_compilatrice.typeuse.union_anonyme(membres);
+            auto type_union = m_compilatrice.typeuse.union_anonyme(
+                expr->lexeme, expr->bloc_parent, membres);
             expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_union);
-
-            // @concurrence critique
-            if (type_union->decl == nullptr) {
-                auto decl_struct = m_tacheronne->assembleuse->crée_type_structure(expr->lexeme);
-                decl_struct->bloc_parent = expr->bloc_parent;
-                decl_struct->type = type_union;
-                decl_struct->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-                type_union->decl = decl_struct;
-                /* Partage la déclaration avec la structure pour que la définition de noms
-                 * portables fonctionne peut importer si c'est la structure est utiliser ou
-                 * l'union. */
-                if (type_union->type_structure) {
-                    type_union->type_structure->decl = type_union->decl;
-                }
-            }
 
             return CodeRetourValidation::OK;
         }

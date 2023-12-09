@@ -16,11 +16,12 @@ struct Fichier;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDirectiveExecute;
-struct NoeudStruct;
+struct NoeudDeclarationType;
+struct NoeudDeclarationClasse;
 struct Programme;
 struct Statistiques;
-struct Type;
 struct UniteCompilation;
+using Type = NoeudDeclarationType;
 
 enum {
     DONNÉES_CONSTANTES,
@@ -123,7 +124,7 @@ struct MetaProgramme {
     /* non-nuls pour les corps-textes */
     NoeudBloc *corps_texte = nullptr;
     NoeudDeclarationEnteteFonction *corps_texte_pour_fonction = nullptr;
-    NoeudStruct *corps_texte_pour_structure = nullptr;
+    NoeudDeclarationClasse *corps_texte_pour_structure = nullptr;
     Fichier *fichier = nullptr;
 
     /* la fonction qui sera exécutée */

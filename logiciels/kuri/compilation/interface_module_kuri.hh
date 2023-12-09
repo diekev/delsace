@@ -9,8 +9,9 @@
 #include "parsage/identifiant.hh"
 
 struct NoeudDeclarationEnteteFonction;
-struct Type;
 struct Typeuse;
+struct NoeudDeclarationType;
+using Type = NoeudDeclarationType;
 
 #define ENUMERE_TYPE_INTERFACE_MODULE_KURI(O)                                                     \
     O(type_info_type_, ID::InfoType)                                                              \
