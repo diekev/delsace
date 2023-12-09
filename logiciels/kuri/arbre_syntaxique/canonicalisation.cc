@@ -7,8 +7,8 @@
 
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
-#include "utilitaires/log.hh"
 #include "compilation/typage.hh"
+#include "utilitaires/log.hh"
 
 #include "parsage/outils_lexemes.hh"
 

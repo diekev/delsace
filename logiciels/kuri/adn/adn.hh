@@ -380,6 +380,8 @@ struct Membre {
     bool est_code = false;
     bool est_enfant = false;
     bool est_a_copier = false;
+    /* Si vrai, ajoute "mutable" à la déclaration du membre dans le code C++. */
+    bool est_mutable = false;
 
     bool valeur_defaut_est_acces = false;
     kuri::chaine_statique valeur_defaut = "";
