@@ -21,11 +21,17 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationOperateurPour;
 struct NoeudExpressionBinaire;
 struct Statistiques;
-struct Type;
 struct Typeuse;
-struct TypeEnum;
-struct TypeFonction;
-struct TypePointeur;
+
+struct NoeudDeclarationType;
+struct NoeudEnum;
+struct NoeudDeclarationTypeFonction;
+struct NoeudDeclarationTypePointeur;
+
+using Type = NoeudDeclarationType;
+using TypeEnum = NoeudEnum;
+using TypeFonction = NoeudDeclarationTypeFonction;
+using TypePointeur = NoeudDeclarationTypePointeur;
 
 namespace kuri {
 struct chaine_statique;

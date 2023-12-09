@@ -43,6 +43,13 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
     }
 
     switch (noeud->genre) {
+        default:
+        {
+            assert_rappel(false, [&]() {
+                dbg() << "Noeud non-géré pour simplification : " << noeud->genre;
+            });
+            break;
+        }
         case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
         case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         case GenreNoeud::DECLARATION_MODULE:
@@ -942,6 +949,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::DECLARATION_OPAQUE:
         case GenreNoeud::EXPRESSION_INFO_DE:
         case GenreNoeud::EXPRESSION_INIT_DE:
@@ -2270,10 +2279,9 @@ void Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
 
 static int valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident)
 {
-    auto decl_enum = type_enum->decl;
     auto index_membre = 0;
 
-    POUR (*decl_enum->bloc->membres.verrou_lecture()) {
+    POUR (*type_enum->bloc->membres.verrou_lecture()) {
         if (it->ident == ident) {
             break;
         }

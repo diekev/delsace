@@ -227,10 +227,9 @@ ResultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *ty
 {
     auto expression = inst->expression_discriminee;
     auto type_union = type->comme_type_union();
-    auto déclaration_union = type_union->decl;
     inst->op = TypeBase::Z32->table_opérateurs->opérateur_egt;
 
-    if (déclaration_union->est_nonsure) {
+    if (type_union->est_nonsure) {
         rapporte_erreur("« discr » ne peut prendre une union nonsûre", expression);
         return CodeRetourValidation::Erreur;
     }
@@ -517,7 +516,7 @@ ResultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
         type = type->comme_type_reference()->type_pointe;
     }
 
-    if (!type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
+    if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type);
     }
 

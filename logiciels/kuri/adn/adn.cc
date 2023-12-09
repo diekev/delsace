@@ -207,6 +207,21 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                   "*expr) const;\n";
             os << "\tvoid ajoute_expression(NoeudExpression *expr);\n";
         }
+        else if (m_nom.nom_cpp() == "NoeudDeclarationType") {
+            os << "\tinline bool possède_drapeau(DrapeauxNoeud drapeaux_) const\n";
+            os << "\t{\n";
+            os << "\t\treturn (drapeaux & drapeaux_) != DrapeauxNoeud::AUCUN;\n";
+            os << "\t}\n";
+            os << "\tinline bool possède_drapeau(DrapeauxTypes drapeaux_) const\n";
+            os << "\t{\n";
+            os << "\t\treturn (drapeaux_type & drapeaux_) != DrapeauxTypes::AUCUN;\n";
+            os << "\t}\n";
+        }
+        else if (m_nom.nom_cpp() == "NoeudDeclarationTypeCompose") {
+            os << "\tkuri::tableau_statique<const MembreTypeComposé> "
+                  "donne_membres_pour_code_machine() "
+                  "const;\n";
+        }
 
         // Prodéclare les fonctions de discrimination.
         if (est_racine_hiérarchie()) {
@@ -352,6 +367,12 @@ void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
         if (it.type->est_pointeur() &&
             it.type->comme_pointeur()->type_pointe->est_nominal("IdentifiantCode")) {
             os << "\tnom: chaine\n";
+            continue;
+        }
+
+        if (it.type->est_pointeur() &&
+            it.type->comme_pointeur()->type_pointe->est_nominal("NoeudDeclarationType")) {
+            os << "\t" << it.nom.nom_kuri() << ": *InfoType\n";
             continue;
         }
 
