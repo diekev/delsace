@@ -153,7 +153,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
             // ajout du pointeur au nom afin de différencier les différents types anonymes ou
             // monomorphisations
             if (type_union->est_anonyme || type_union->est_monomorphisation) {
-                enchaineuse << type_union;
+                enchaineuse << type_union->type_structure;
             }
 
             break;

@@ -222,8 +222,7 @@ struct ConvertisseuseTypeC {
     void génère_code_pour_type(Type const *type, Enchaineuse &enchaineuse);
 
     void génère_déclaration_structure(Enchaineuse &enchaineuse,
-                                      TypeStructure const *type_structure,
-                                      int quoi);
+                                      TypeStructure const *type_structure);
 };
 
 /** \} */
@@ -395,19 +394,12 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
                 return;
             }
 
-            auto nom_struct = broyeuse.broye_nom_simple(donne_nom_portable(type_struct));
-
-            // struct anomyme
-            if (type_struct->est_anonyme) {
-                type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
+            auto nom_type = génératrice_code.donne_nom_pour_type(type_struct);
+            if (génératrice_code.préserve_symboles()) {
+                /* Enlève le "Ks" au début. */
+                nom_type = nom_type.sous_chaine(2);
             }
-            else if (type_struct->est_monomorphisation) {
-                type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
-            }
-            else {
-                type_c.typedef_ = enchaine("struct ", nom_struct);
-            }
-
+            type_c.typedef_ = enchaine("struct ", nom_type);
             break;
         }
         case GenreNoeud::DECLARATION_UNION:
@@ -417,24 +409,19 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
                 génère_typedef(it.type, enchaineuse);
             }
 
-            auto nom_union = broyeuse.broye_nom_simple(donne_nom_portable(type_union));
-
-            if (type_union->est_anonyme) {
-                type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
-            }
-            else {
-                if (type_union->est_nonsure || type_union->est_externe) {
-                    auto type_le_plus_grand = type_union->type_le_plus_grand;
-                    type_c.typedef_ = génératrice_code.donne_nom_pour_type(type_le_plus_grand);
-                }
-                else if (type_union->est_monomorphisation) {
-                    type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
-                }
-                else {
-                    type_c.typedef_ = enchaine("struct ", nom_union);
-                }
+            if (type_union->est_nonsure || type_union->est_externe) {
+                /* Utilise directement le type le plus grand. */
+                auto type_le_plus_grand = type_union->type_le_plus_grand;
+                type_c.typedef_ = génératrice_code.donne_nom_pour_type(type_le_plus_grand);
+                break;
             }
 
+            auto nom_type = génératrice_code.donne_nom_pour_type(type_union);
+            if (génératrice_code.préserve_symboles()) {
+                /* Enlève le "Ks" au début. */
+                nom_type = nom_type.sous_chaine(2);
+            }
+            type_c.typedef_ = enchaine("struct ", nom_type);
             break;
         }
         case GenreNoeud::TABLEAU_FIXE:
@@ -540,11 +527,6 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
     enchaineuse << "typedef " << type_c.typedef_ << ' ' << type_c.nom << ";\n";
 }
 
-enum {
-    STRUCTURE,
-    STRUCTURE_ANONYME,
-};
-
 void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse &enchaineuse)
 {
     if (!type) {
@@ -621,8 +603,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
                 génère_code_pour_type(it.type, enchaineuse);
             }
 
-            auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-            génère_déclaration_structure(enchaineuse, type_struct, quoi);
+            génère_déclaration_structure(enchaineuse, type_struct);
 
             POUR (type_struct->membres) {
                 if (it.type->est_type_pointeur()) {
@@ -752,29 +733,20 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 }
 
 void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineuse,
-                                                       const TypeStructure *type_structure,
-                                                       int quoi)
+                                                       const TypeStructure *type_structure)
 {
-    auto nom_broyé = broyeuse.broye_nom_simple(
-        donne_nom_portable(const_cast<TypeStructure *>(type_structure)));
-
-    if (type_structure->est_monomorphisation) {
-        nom_broyé = enchaine(nom_broyé, type_structure);
+    auto nom_type = génératrice_code.donne_nom_pour_type(type_structure);
+    auto nom_type_broyé = nom_type;
+    if (génératrice_code.préserve_symboles()) {
+        nom_type = nom_type.sous_chaine(2);
     }
 
     if (type_structure->est_externe && type_structure->membres.taille() == 0) {
-        enchaineuse << "typedef struct " << nom_broyé << " " << nom_broyé << ";\n\n";
+        enchaineuse << "typedef struct " << nom_type << " " << nom_type_broyé << ";\n\n";
         return;
     }
 
-    if (quoi == STRUCTURE) {
-        enchaineuse << "typedef struct " << nom_broyé << "{\n";
-    }
-    else if (quoi == STRUCTURE_ANONYME) {
-        enchaineuse << "typedef struct " << nom_broyé;
-        enchaineuse << type_structure;
-        enchaineuse << "{\n";
-    }
+    enchaineuse << "typedef struct " << nom_type << " {\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
     enchaineuse << "union {\n";
@@ -809,13 +781,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
         enchaineuse << " __attribute__((aligned(" << type_structure->alignement_desire << "))) ";
     }
 
-    enchaineuse << nom_broyé;
-
-    if (quoi == STRUCTURE_ANONYME) {
-        enchaineuse << type_structure;
-    }
-
-    enchaineuse << ";\n\n";
+    enchaineuse << nom_type << ";\n\n";
 }
 
 /** \} */
@@ -1843,6 +1809,14 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
         }
 
         type = type_tableau;
+    }
+
+    if (type->est_type_union()) {
+        /* Utilise le type de la structure pour ne pas avoir des noms différents. */
+        auto type_union = type->comme_type_union();
+        if (!type_union->est_nonsure) {
+            type = type_union->type_structure;
+        }
     }
 
     auto trouvé = false;
