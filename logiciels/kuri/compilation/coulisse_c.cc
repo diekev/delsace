@@ -207,7 +207,7 @@ struct ConvertisseuseTypeC {
 
     bool typedef_fut_généré(const Type *type_kuri);
 
-    void génère_typedef(Type *type, Enchaineuse &enchaineuse);
+    void génère_typedef(const Type *type, Enchaineuse &enchaineuse);
 
     /* Pour la génération de code pour les types, nous devons d'abord nous assurer que tous les
      * types ont un typedef afin de simplifier la génération de code pour les déclaration de
@@ -251,7 +251,7 @@ bool ConvertisseuseTypeC::typedef_fut_généré(Type const *type_kuri)
     return type_c.typedef_ != "";
 }
 
-void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
+void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchaineuse)
 {
     if (type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         return;
