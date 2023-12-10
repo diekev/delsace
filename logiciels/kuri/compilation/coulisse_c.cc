@@ -420,7 +420,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         }
         case GenreNoeud::TABLEAU_FIXE:
         {
-            type_c.typedef_ = enchaine("struct TableauFixe_", type_c.nom);
+            génère_typedef_pour_type_composé(type_c, type->comme_type_tableau_fixe(), enchaineuse);
             break;
         }
         case GenreNoeud::VARIADIQUE:
@@ -518,6 +518,10 @@ static kuri::chaine_statique donne_préfixe_struct_pour_type(
 {
     if (type->est_type_tableau_dynamique()) {
         return "Tableau_";
+    }
+
+    if (type->est_type_tableau_fixe()) {
+        return "TableauFixe_";
     }
 
     return "";
@@ -646,11 +650,17 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         {
             auto tableau_fixe = type->comme_type_tableau_fixe();
             génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
-            auto const &nom_broyé = génératrice_code.donne_nom_pour_type(type);
-            enchaineuse << "typedef struct TableauFixe_" << nom_broyé << " {\n  "
+            auto nom_broyé = génératrice_code.donne_nom_pour_type(type);
+            kuri::chaine_statique préfixe = "";
+            if (génératrice_code.préserve_symboles()) {
+                nom_broyé = nom_broyé.sous_chaine(2);
+                préfixe = donne_préfixe_struct_pour_type(tableau_fixe);
+            }
+
+            enchaineuse << "typedef struct " << préfixe << nom_broyé << " {\n  "
                         << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointe);
             enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];\n";
-            enchaineuse << "} TableauFixe_" << nom_broyé << ";\n\n";
+            enchaineuse << "} " << préfixe << nom_broyé << ";\n\n";
             break;
         }
         case GenreNoeud::VARIADIQUE:
