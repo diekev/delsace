@@ -17,6 +17,9 @@ ADN pour les directives
 compilatrice_notifie_fonctions_parsées
     // envoie un message pour toutes les fonctions parsées qui n'ont pas encore eu de message
 
+Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un seul pointeur
+--> ident := compilatrice_donne_identifiant_pour("...")
+
 // -----------------------------------
 // Noms des types
 
@@ -384,8 +387,6 @@ déclaration d'énum, de structures, et d'unions anonymes :
         a : struct { x, y, z }  // il faudra définir comment initialisé via une expression
         b : énum ...
 
-- explore représenter les types comme de noeuds_syntaxiques afin de simplifier les appariements de gabarits
-
 - impression des types via imprime (requiers une table de types)
     voir cas dans Jorjala/LCC
 
@@ -414,6 +415,14 @@ etc..
 révision des transtypages :
     - instruction comme -> convertis les bits, les types doivent avoir la même taille en octet
     - instruction vers -> convertis le type, les types doivent être parenté, ou la conversion valide selon les règles du langage
+
+sûreté de type pour les adresse
+    /* Représente l'adresse d'une fonction. */
+    adresse_fonction -> void(*)()
+    /* Représente l'adresse d'un objet */
+    adresse_objet -> void*
+    /* Représente une adresse sous forme d'entier. */
+    adresse_plate -> n64
 
 // --------------------------- Discriminations
 
