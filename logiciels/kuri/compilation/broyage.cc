@@ -110,81 +110,17 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
             break;
         }
         case GenreNoeud::EINI:
-        {
-            enchaineuse << "Kseini";
-            break;
-        }
         case GenreNoeud::CHAINE:
-        {
-            enchaineuse << "Kschaine";
-            break;
-        }
         case GenreNoeud::RIEN:
-        {
-            enchaineuse << "Ksrien";
-            break;
-        }
         case GenreNoeud::BOOL:
-        {
-            enchaineuse << "Ksbool";
-            break;
-        }
         case GenreNoeud::OCTET:
-        {
-            enchaineuse << "Ksoctet";
-            break;
-        }
         case GenreNoeud::ENTIER_CONSTANT:
-        {
-            enchaineuse << "Ksz32";
-            break;
-        }
         case GenreNoeud::ENTIER_NATUREL:
-        {
-            if (type->taille_octet == 1) {
-                enchaineuse << "Ksn8";
-            }
-            else if (type->taille_octet == 2) {
-                enchaineuse << "Ksn16";
-            }
-            else if (type->taille_octet == 4) {
-                enchaineuse << "Ksn32";
-            }
-            else if (type->taille_octet == 8) {
-                enchaineuse << "Ksn64";
-            }
-
-            break;
-        }
         case GenreNoeud::ENTIER_RELATIF:
-        {
-            if (type->taille_octet == 1) {
-                enchaineuse << "Ksz8";
-            }
-            else if (type->taille_octet == 2) {
-                enchaineuse << "Ksz16";
-            }
-            else if (type->taille_octet == 4) {
-                enchaineuse << "Ksz32";
-            }
-            else if (type->taille_octet == 8) {
-                enchaineuse << "Ksz64";
-            }
-
-            break;
-        }
         case GenreNoeud::REEL:
+        case GenreNoeud::TYPE_DE_DONNEES:
         {
-            if (type->taille_octet == 2) {
-                enchaineuse << "Ksr16";
-            }
-            else if (type->taille_octet == 4) {
-                enchaineuse << "Ksr32";
-            }
-            else if (type->taille_octet == 8) {
-                enchaineuse << "Ksr64";
-            }
-
+            enchaineuse << "Ks" << type->ident->nom;
             break;
         }
         case GenreNoeud::REFERENCE:
@@ -280,11 +216,6 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
             auto type_enum = static_cast<TypeEnum *>(type);
             enchaineuse << "Ks";
             broye_nom_simple(enchaineuse, donne_nom_portable(type_enum));
-            break;
-        }
-        case GenreNoeud::TYPE_DE_DONNEES:
-        {
-            enchaineuse << "Kstype_de_donnees";
             break;
         }
         case GenreNoeud::DECLARATION_OPAQUE:
