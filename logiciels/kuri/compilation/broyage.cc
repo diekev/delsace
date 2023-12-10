@@ -157,12 +157,12 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
             }
             else if (type_union->est_monomorphisation) {
                 POUR (*type_union->bloc_constantes->membres.verrou_lecture()) {
-                    auto type = it->type;
-                    if (type->est_type_type_de_donnees()) {
-                        type = type->comme_type_type_de_donnees()->type_connu;
+                    auto type_membre = it->type;
+                    if (type_membre->est_type_type_de_donnees()) {
+                        type_membre = type_membre->comme_type_type_de_donnees()->type_connu;
                     }
 
-                    broye_nom_type(enchaineuse, type);
+                    broye_nom_type(enchaineuse, type_membre);
                 }
             }
 
@@ -182,12 +182,12 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
             }
             else if (type_structure->est_monomorphisation) {
                 POUR (*type_structure->bloc_constantes->membres.verrou_lecture()) {
-                    auto type = it->type;
-                    if (type->est_type_type_de_donnees()) {
-                        type = type->comme_type_type_de_donnees()->type_connu;
+                    auto type_membre = it->type;
+                    if (type_membre->est_type_type_de_donnees()) {
+                        type_membre = type_membre->comme_type_type_de_donnees()->type_connu;
                     }
 
-                    broye_nom_type(enchaineuse, type);
+                    broye_nom_type(enchaineuse, type_membre);
                 }
             }
 
