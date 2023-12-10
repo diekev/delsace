@@ -828,17 +828,17 @@ void ConvertisseuseTypeC::génère_déclaration_structure_cpp(
     enchaineuse << "  }\n";
 
     /* Fin déclaration structure. */
-    enchaineuse << "} ";
+    enchaineuse << "}";
 
     if (type_composé->est_type_structure()) {
         auto type_structure = type_composé->comme_type_structure();
         if (type_structure->est_compacte) {
-            enchaineuse << " __attribute__((packed)) ";
+            enchaineuse << " __attribute__((packed))";
         }
 
         if (type_structure->alignement_desire != 0) {
             enchaineuse << " __attribute__((aligned(" << type_structure->alignement_desire
-                        << "))) ";
+                        << ")))";
         }
     }
 
@@ -1661,6 +1661,11 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
     }
     else {
         if (atome_fonc->decl &&
+            atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSBROYAGE)) {
+            os << "extern \"C\" ";
+        }
+
+        if (atome_fonc->decl &&
             atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
             os << "TOUJOURS_HORSLIGNE ";
         }
@@ -1782,6 +1787,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
         auto type_pointeur = param->type->comme_type_pointeur();
+        os << "  ";
         os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
         os << donne_nom_pour_instruction(param);
         os << ";\n";
@@ -1814,7 +1820,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
             auto type_fonction_appelé = inst->comme_appel()->appele->type->comme_type_fonction();
             if (!type_fonction_appelé->type_sortie->est_type_rien()) {
                 auto nom_ret = donne_nom_pour_instruction(inst);
-                os << donne_nom_pour_type(inst->type) << ' ' << nom_ret << ";\n";
+                os << "  " << donne_nom_pour_type(inst->type) << ' ' << nom_ret << ";\n";
             }
             continue;
         }
