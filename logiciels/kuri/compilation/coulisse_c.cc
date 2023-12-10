@@ -1060,8 +1060,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             }
 
             auto nom = enchaine(nom_base_chaine, index_chaine++);
-            os << "  " << donne_nom_pour_type(type) << " " << nom << " = " << résultat.chaine()
-               << ";\n";
+            os << "  const " << donne_nom_pour_type(type) << " " << nom << " = "
+               << résultat.chaine() << ";\n";
             return nom;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
@@ -1209,7 +1209,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto type_fonction = inst_appel->appele->type->comme_type_fonction();
             if (!type_fonction->type_sortie->est_type_rien()) {
                 auto nom_ret = donne_nom_pour_instruction(inst);
-                os << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
+                os << "const " << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
                 table_valeurs[inst->numero] = nom_ret;
             }
 
@@ -1312,7 +1312,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto valeur = génère_code_pour_atome(inst_un->valeur, os, false);
             auto nom = donne_nom_pour_instruction(inst);
 
-            os << "  " << donne_nom_pour_type(inst_un->type) << " " << nom << " = ";
+            os << "  const " << donne_nom_pour_type(inst_un->type) << " " << nom << " = ";
 
             switch (inst_un->op) {
                 case OpérateurUnaire::Genre::Positif:
@@ -1348,7 +1348,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto valeur_droite = génère_code_pour_atome(inst_bin->valeur_droite, os, false);
             auto nom = donne_nom_pour_instruction(inst);
 
-            os << "  " << donne_nom_pour_type(inst_bin->type) << " " << nom << " = ";
+            os << "  const " << donne_nom_pour_type(inst_bin->type) << " " << nom << " = ";
 
             os << valeur_gauche << " " << donne_chaine_lexème_pour_op_binaire(inst_bin->op) << " "
                << valeur_droite << ";\n";
