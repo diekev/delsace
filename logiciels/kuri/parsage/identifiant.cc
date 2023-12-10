@@ -77,13 +77,13 @@ IdentifiantCode *TableIdentifiant::ajoute_identifiant(const dls::vue_chaine_comp
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) IdentifiantCode *x;
-ENUMERE_IDENTIFIANTS_COMMUNS
+#include "identifiant.def"
 #undef ENUMERE_IDENTIFIANT_COMMUN_SIMPLE
 }  // namespace ID
 
 void initialise_identifiants(TableIdentifiant &table)
 {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) ID::x = table.identifiant_pour_chaine(y);
-    ENUMERE_IDENTIFIANTS_COMMUNS
+#include "identifiant.def"
 #undef ENUMERE_IDENTIFIANT_COMMUN_SIMPLE
 }
