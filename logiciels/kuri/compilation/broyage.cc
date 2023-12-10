@@ -250,6 +250,10 @@ kuri::chaine_statique Broyeuse::nom_broyé_type(Type *type)
     ::nom_broye_type(stockage_temp, type);
 
     type->nom_broye = chaine_finale_pour_stockage_temp();
+    stockage_temp.réinitialise();
+
+    /* Pour supprimer les accents dans les types fondementaux. */
+    type->nom_broye = broye_nom_simple(type->nom_broye);
 
     return type->nom_broye;
 }
