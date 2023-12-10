@@ -2334,6 +2334,57 @@ void CompilatriceRI::génère_ri_transformee_pour_noeud(NoeudExpression const *n
     transforme_valeur(noeud, valeur, transformation, place);
 }
 
+static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src, Type const *dst)
+{
+    // À FAIRE(transtypage) : tous les cas
+    if (dst->est_type_entier_naturel()) {
+        if (src->est_type_enum()) {
+            src = src->comme_type_enum()->type_sous_jacent;
+
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF;
+            }
+            else if (src->taille_octet > dst->taille_octet) {
+                return TypeTranstypage::DIMINUE_RELATIF;
+            }
+        }
+        else if (src->est_type_erreur()) {
+            src = src->comme_type_erreur()->type_sous_jacent;
+
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF;
+            }
+            else if (src->taille_octet > dst->taille_octet) {
+                return TypeTranstypage::DIMINUE_RELATIF;
+            }
+        }
+    }
+    else if (dst->est_type_entier_relatif()) {
+        if (src->est_type_enum()) {
+            src = src->comme_type_enum()->type_sous_jacent;
+
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF;
+            }
+            else if (src->taille_octet > dst->taille_octet) {
+                return TypeTranstypage::DIMINUE_RELATIF;
+            }
+        }
+        else if (src->est_type_erreur()) {
+            src = src->comme_type_erreur()->type_sous_jacent;
+
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF;
+            }
+            else if (src->taille_octet > dst->taille_octet) {
+                return TypeTranstypage::DIMINUE_RELATIF;
+            }
+        }
+    }
+
+    return TypeTranstypage::DEFAUT;
+}
+
 void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                                        Atome *valeur,
                                        TransformationType const &transformation,
@@ -2517,53 +2568,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             auto type_valeur = valeur->type;
             auto type_cible = transformation.type_cible;
-            auto type_transtypage = TypeTranstypage::DEFAUT;
-
-            // À FAIRE(transtypage) : tous les cas
-            if (type_cible->est_type_entier_naturel()) {
-                if (type_valeur->est_type_enum()) {
-                    type_valeur = type_valeur->comme_type_enum()->type_sous_jacent;
-
-                    if (type_valeur->taille_octet < type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
-                    }
-                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
-                    }
-                }
-                else if (type_valeur->est_type_erreur()) {
-                    type_valeur = type_valeur->comme_type_erreur()->type_sous_jacent;
-
-                    if (type_valeur->taille_octet < type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
-                    }
-                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
-                    }
-                }
-            }
-            else if (type_cible->est_type_entier_relatif()) {
-                if (type_valeur->est_type_enum()) {
-                    type_valeur = type_valeur->comme_type_enum()->type_sous_jacent;
-
-                    if (type_valeur->taille_octet < type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
-                    }
-                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
-                    }
-                }
-                else if (type_valeur->est_type_erreur()) {
-                    type_valeur = type_valeur->comme_type_erreur()->type_sous_jacent;
-
-                    if (type_valeur->taille_octet < type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
-                    }
-                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
-                    }
-                }
-            }
+            auto type_transtypage = donne_type_transtypage_pour_défaut(type_valeur, type_cible);
 
             valeur = m_constructrice.crée_transtype(noeud, type_cible, valeur, type_transtypage);
             break;
