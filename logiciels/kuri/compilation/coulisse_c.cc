@@ -209,6 +209,10 @@ struct ConvertisseuseTypeC {
 
     void génère_typedef(const Type *type, Enchaineuse &enchaineuse);
 
+    void génère_typedef_pour_type_composé(TypeC &type_c,
+                                          const TypeCompose *type_composé,
+                                          Enchaineuse &enchaineuse);
+
     /* Pour la génération de code pour les types, nous devons d'abord nous assurer que tous les
      * types ont un typedef afin de simplifier la génération de code pour les déclaration de
      * variables : avec un typedef `int *a[3]` devient simplement `Tableau3PointeurInt a;`
@@ -394,12 +398,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
                 return;
             }
 
-            auto nom_type = génératrice_code.donne_nom_pour_type(type_struct);
-            if (génératrice_code.préserve_symboles()) {
-                /* Enlève le "Ks" au début. */
-                nom_type = nom_type.sous_chaine(2);
-            }
-            type_c.typedef_ = enchaine("struct ", nom_type);
+            génère_typedef_pour_type_composé(type_c, type_struct, enchaineuse);
             break;
         }
         case GenreNoeud::DECLARATION_UNION:
@@ -416,12 +415,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
                 break;
             }
 
-            auto nom_type = génératrice_code.donne_nom_pour_type(type_union);
-            if (génératrice_code.préserve_symboles()) {
-                /* Enlève le "Ks" au début. */
-                nom_type = nom_type.sous_chaine(2);
-            }
-            type_c.typedef_ = enchaine("struct ", nom_type);
+            génère_typedef_pour_type_composé(type_c, type_union, enchaineuse);
             break;
         }
         case GenreNoeud::TABLEAU_FIXE:
@@ -459,14 +453,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
                 return;
             }
 
-            POUR (tableau_dynamique->membres) {
-                génère_typedef(it.type, enchaineuse);
-            }
-            auto nom_type = génératrice_code.donne_nom_pour_type(type);
-            if (génératrice_code.préserve_symboles()) {
-                nom_type = nom_type.sous_chaine(2);
-            }
-            type_c.typedef_ = enchaine("struct Tableau_", nom_type);
+            génère_typedef_pour_type_composé(type_c, tableau_dynamique, enchaineuse);
             break;
         }
         case GenreNoeud::FONCTION:
@@ -511,23 +498,9 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         }
         case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
-        {
-            auto nom_type = génératrice_code.donne_nom_pour_type(type);
-            if (génératrice_code.préserve_symboles()) {
-                /* Enlève le "Ks" au début. */
-                nom_type = nom_type.sous_chaine(2);
-            }
-            type_c.typedef_ = enchaine("struct ", nom_type);
-            break;
-        }
         case GenreNoeud::TUPLE:
         {
-            auto nom_type = génératrice_code.donne_nom_pour_type(type);
-            if (génératrice_code.préserve_symboles()) {
-                /* Enlève le "Kl" au début. */
-                nom_type = nom_type.sous_chaine(2);
-            }
-            type_c.typedef_ = enchaine("struct ", nom_type);
+            génère_typedef_pour_type_composé(type_c, type->comme_type_compose(), enchaineuse);
             break;
         }
         default:
@@ -538,6 +511,36 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
     }
 
     enchaineuse << "typedef " << type_c.typedef_ << ' ' << type_c.nom << ";\n";
+}
+
+static kuri::chaine_statique donne_préfixe_struct_pour_type(
+    NoeudDeclarationTypeCompose const *type)
+{
+    if (type->est_type_tableau_dynamique()) {
+        return "Tableau_";
+    }
+
+    return "";
+}
+
+void ConvertisseuseTypeC::génère_typedef_pour_type_composé(TypeC &type_c,
+                                                           const TypeCompose *type_composé,
+                                                           Enchaineuse &enchaineuse)
+{
+    if (type_composé->est_type_tableau_dynamique()) {
+        /* Le type du membre des éléments peut manquer. */
+        POUR (type_composé->membres) {
+            génère_typedef(it.type, enchaineuse);
+        }
+    }
+    auto nom_type = génératrice_code.donne_nom_pour_type(type_composé);
+    kuri::chaine_statique préfixe = "";
+    if (génératrice_code.préserve_symboles()) {
+        /* Enlève le préfixe du broyage ("Ks", "Kt", etc.). */
+        nom_type = nom_type.sous_chaine(2);
+        préfixe = donne_préfixe_struct_pour_type(type_composé);
+    }
+    type_c.typedef_ = enchaine("struct ", préfixe, nom_type);
 }
 
 void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse &enchaineuse)
@@ -597,7 +600,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::TUPLE:
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
-            auto type_composé = type->comme_type_structure();
+            auto type_composé = type->comme_type_compose();
 
             if (type_composé->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
                 return;
@@ -695,23 +698,15 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
     type_c.code_machine_fut_généré = true;
 }
 
-static kuri::chaine_statique donne_préfixe_struct_pour_type(
-    NoeudDeclarationTypeCompose const *type)
-{
-    if (type->est_type_tableau_dynamique()) {
-        return "Tableau_";
-    }
-
-    return "";
-}
-
 void ConvertisseuseTypeC::génère_déclaration_structure(
     Enchaineuse &enchaineuse, const NoeudDeclarationTypeCompose *type_composé)
 {
     auto nom_type = génératrice_code.donne_nom_pour_type(type_composé);
+    kuri::chaine_statique préfixe = "";
     auto nom_type_broyé = nom_type;
     if (génératrice_code.préserve_symboles()) {
         nom_type = nom_type.sous_chaine(2);
+        préfixe = donne_préfixe_struct_pour_type(type_composé);
     }
 
     if (type_composé->est_type_structure()) {
@@ -721,8 +716,6 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
             return;
         }
     }
-
-    auto préfixe = donne_préfixe_struct_pour_type(type_composé);
 
     enchaineuse << "typedef struct " << préfixe << nom_type << " {\n";
 
