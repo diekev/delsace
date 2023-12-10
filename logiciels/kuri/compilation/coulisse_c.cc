@@ -222,7 +222,7 @@ struct ConvertisseuseTypeC {
     void génère_code_pour_type(Type const *type, Enchaineuse &enchaineuse);
 
     void génère_déclaration_structure(Enchaineuse &enchaineuse,
-                                      TypeStructure const *type_structure);
+                                      const NoeudDeclarationTypeCompose *type_composé);
 };
 
 /** \} */
@@ -514,7 +514,12 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         }
         case GenreNoeud::TUPLE:
         {
-            type_c.typedef_ = enchaine("struct ", type_c.nom);
+            auto nom_type = génératrice_code.donne_nom_pour_type(type);
+            if (génératrice_code.préserve_symboles()) {
+                /* Enlève le "Kl" au début. */
+                nom_type = nom_type.sous_chaine(2);
+            }
+            type_c.typedef_ = enchaine("struct ", nom_type);
             break;
         }
         default:
@@ -581,16 +586,17 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             génère_code_pour_type(type->comme_type_pointeur()->type_pointe, enchaineuse);
             break;
         }
+        case GenreNoeud::TUPLE:
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
-            auto type_struct = type->comme_type_structure();
+            auto type_composé = type->comme_type_structure();
 
-            if (type_struct->est_polymorphe) {
+            if (type_composé->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
                 return;
             }
 
             type_c.code_machine_fut_généré = true;
-            POUR (type_struct->membres) {
+            POUR (type_composé->membres) {
                 if (it.type->est_type_pointeur()) {
                     continue;
                 }
@@ -603,9 +609,9 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
                 génère_code_pour_type(it.type, enchaineuse);
             }
 
-            génère_déclaration_structure(enchaineuse, type_struct);
+            génère_déclaration_structure(enchaineuse, type_composé);
 
-            POUR (type_struct->membres) {
+            POUR (type_composé->membres) {
                 if (it.type->est_type_pointeur()) {
                     génère_code_pour_type(it.type->comme_type_pointeur()->type_pointe,
                                           enchaineuse);
@@ -687,41 +693,6 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             génère_code_pour_type(type_fonction->type_sortie, enchaineuse);
             break;
         }
-        case GenreNoeud::TUPLE:
-        {
-            auto type_tuple = type->comme_type_tuple();
-
-            if (type_tuple->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-                return;
-            }
-
-            type_c.code_machine_fut_généré = true;
-            POUR (type_tuple->membres) {
-                génère_code_pour_type(it.type, enchaineuse);
-            }
-
-            auto nom_broyé = génératrice_code.donne_nom_pour_type(type_tuple);
-
-            enchaineuse << "typedef struct " << nom_broyé << " {\n";
-
-#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-            enchaineuse << "  union {\n";
-            enchaineuse << "    uint8_t d[" << type->taille_octet << "];\n";
-            enchaineuse << "    struct {\n";
-#endif
-            POUR_INDEX (type_tuple->membres) {
-                enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << " _"
-                            << index_it << ";\n";
-            }
-
-#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-            enchaineuse << "    };\n";  // struct
-            enchaineuse << "  };\n";    // union
-#endif
-
-            enchaineuse << "} " << nom_broyé << ";\n";
-            break;
-        }
         default:
         {
             assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
@@ -732,29 +703,32 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
     type_c.code_machine_fut_généré = true;
 }
 
-void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineuse,
-                                                       const TypeStructure *type_structure)
+void ConvertisseuseTypeC::génère_déclaration_structure(
+    Enchaineuse &enchaineuse, const NoeudDeclarationTypeCompose *type_composé)
 {
-    auto nom_type = génératrice_code.donne_nom_pour_type(type_structure);
+    auto nom_type = génératrice_code.donne_nom_pour_type(type_composé);
     auto nom_type_broyé = nom_type;
     if (génératrice_code.préserve_symboles()) {
         nom_type = nom_type.sous_chaine(2);
     }
 
-    if (type_structure->est_externe && type_structure->membres.taille() == 0) {
-        enchaineuse << "typedef struct " << nom_type << " " << nom_type_broyé << ";\n\n";
-        return;
+    if (type_composé->est_type_structure()) {
+        auto type_structure = type_composé->comme_type_structure();
+        if (type_structure->est_externe && type_structure->membres.taille() == 0) {
+            enchaineuse << "typedef struct " << nom_type << " " << nom_type_broyé << ";\n\n";
+            return;
+        }
     }
 
     enchaineuse << "typedef struct " << nom_type << " {\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
     enchaineuse << "union {\n";
-    enchaineuse << "    uint8_t d[" << type_structure->taille_octet << "];\n";
+    enchaineuse << "    uint8_t d[" << type_composé->taille_octet << "];\n";
     enchaineuse << "    struct {\n";
 #endif
 
-    POUR (type_structure->donne_membres_pour_code_machine()) {
+    POUR (type_composé->donne_membres_pour_code_machine()) {
         enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
 
         /* Cas pour les structures vides. */
@@ -773,12 +747,16 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
 #endif
     enchaineuse << "} ";
 
-    if (type_structure->est_compacte) {
-        enchaineuse << " __attribute__((packed)) ";
-    }
+    if (type_composé->est_type_structure()) {
+        auto type_structure = type_composé->comme_type_structure();
+        if (type_structure->est_compacte) {
+            enchaineuse << " __attribute__((packed)) ";
+        }
 
-    if (type_structure->alignement_desire != 0) {
-        enchaineuse << " __attribute__((aligned(" << type_structure->alignement_desire << "))) ";
+        if (type_structure->alignement_desire != 0) {
+            enchaineuse << " __attribute__((aligned(" << type_structure->alignement_desire
+                        << "))) ";
+        }
     }
 
     enchaineuse << nom_type << ";\n\n";

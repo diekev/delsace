@@ -152,8 +152,18 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
 
             // ajout du pointeur au nom afin de différencier les différents types anonymes ou
             // monomorphisations
-            if (type_union->est_anonyme || type_union->est_monomorphisation) {
+            if (type_union->est_anonyme) {
                 enchaineuse << type_union->type_structure;
+            }
+            else if (type_union->est_monomorphisation) {
+                POUR (*type_union->bloc_constantes->membres.verrou_lecture()) {
+                    auto type = it->type;
+                    if (type->est_type_type_de_donnees()) {
+                        type = type->comme_type_type_de_donnees()->type_connu;
+                    }
+
+                    broye_nom_type(enchaineuse, type);
+                }
             }
 
             break;
@@ -167,8 +177,18 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
 
             // ajout du pointeur au nom afin de différencier les différents types anonymes ou
             // monomorphisations
-            if (type_structure->est_anonyme || type_structure->est_monomorphisation) {
+            if (type_structure->est_anonyme) {
                 enchaineuse << type_structure;
+            }
+            else if (type_structure->est_monomorphisation) {
+                POUR (*type_structure->bloc_constantes->membres.verrou_lecture()) {
+                    auto type = it->type;
+                    if (type->est_type_type_de_donnees()) {
+                        type = type->comme_type_type_de_donnees()->type_connu;
+                    }
+
+                    broye_nom_type(enchaineuse, type);
+                }
             }
 
             break;
@@ -238,7 +258,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         }
         case GenreNoeud::TUPLE:
         {
-            enchaineuse << "Kl" << type;
+            enchaineuse << "KlTuple" << type;
             break;
         }
         default:
