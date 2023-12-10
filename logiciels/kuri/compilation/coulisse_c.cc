@@ -497,19 +497,20 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
              * directement. */
             return;
         }
-        case GenreNoeud::EINI:
-        {
-            type_c.typedef_ = "eini";
-            break;
-        }
         case GenreNoeud::RIEN:
         {
             type_c.typedef_ = "void";
             break;
         }
+        case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
         {
-            type_c.typedef_ = "chaine";
+            auto nom_type = génératrice_code.donne_nom_pour_type(type);
+            if (génératrice_code.préserve_symboles()) {
+                /* Enlève le "Ks" au début. */
+                nom_type = nom_type.sous_chaine(2);
+            }
+            type_c.typedef_ = enchaine("struct ", nom_type);
             break;
         }
         case GenreNoeud::TUPLE:
@@ -555,9 +556,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::ENTIER_RELATIF:
         case GenreNoeud::TYPE_DE_DONNEES:
         case GenreNoeud::REEL:
-        case GenreNoeud::EINI:
         case GenreNoeud::RIEN:
-        case GenreNoeud::CHAINE:
         {
             /* Rien à faire pour ces types-là. */
             return;
@@ -586,6 +585,8 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             génère_code_pour_type(type->comme_type_pointeur()->type_pointe, enchaineuse);
             break;
         }
+        case GenreNoeud::EINI:
+        case GenreNoeud::CHAINE:
         case GenreNoeud::TUPLE:
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
@@ -818,45 +819,6 @@ typedef int8_t ** KPKPKsz8;
 
     enchaineuse << préambule;
 
-    /* Déclaration des types de bases*/
-
-#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-    auto const types_chaine_et_eini = R"(
-typedef struct chaine {
-    union {
-        uint8_t d[16];
-        struct {
-            char *pointeur;
-            int64_t taille;
-        };
-    };
-} chaine;
-
-typedef struct eini {
-    union {
-        uint8_t d[16];
-        struct {
-            void *pointeur;
-            struct KuriInfoType *info;
-        };
-    };
-} eini;
-)";
-#else
-    auto const types_chaine_et_eini = R"(
-typedef struct chaine {
-    char *pointeur;
-    int64_t taille;
-} chaine;
-
-typedef struct eini {
-    void *pointeur;
-    struct KuriInfoType *info;
-} eini;
-)";
-#endif
-
-    enchaineuse << types_chaine_et_eini;
     /* Pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      * de LibC dont les arguments variadiques ne sont pas typés. */
     enchaineuse << "#define Kv ...\n\n";
