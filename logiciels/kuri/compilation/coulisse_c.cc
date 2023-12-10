@@ -223,6 +223,9 @@ struct ConvertisseuseTypeC {
 
     void génère_déclaration_structure(Enchaineuse &enchaineuse,
                                       const NoeudDeclarationTypeCompose *type_composé);
+
+    void génère_déclaration_structure_cpp(Enchaineuse &enchaineuse,
+                                          const NoeudDeclarationTypeCompose *type_composé);
 };
 
 /** \} */
@@ -707,6 +710,9 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 void ConvertisseuseTypeC::génère_déclaration_structure(
     Enchaineuse &enchaineuse, const NoeudDeclarationTypeCompose *type_composé)
 {
+    génère_déclaration_structure_cpp(enchaineuse, type_composé);
+    return;
+
     auto nom_type = génératrice_code.donne_nom_pour_type(type_composé);
     auto nom_type_broyé = nom_type;
     if (génératrice_code.préserve_symboles()) {
@@ -761,6 +767,82 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
     }
 
     enchaineuse << nom_type << ";\n\n";
+}
+
+void ConvertisseuseTypeC::génère_déclaration_structure_cpp(
+    Enchaineuse &enchaineuse, const NoeudDeclarationTypeCompose *type_composé)
+{
+    auto nom_type = génératrice_code.donne_nom_pour_type(type_composé);
+    auto nom_type_broyé = nom_type;
+    if (génératrice_code.préserve_symboles()) {
+        nom_type = nom_type.sous_chaine(2);
+    }
+
+    if (type_composé->est_type_structure()) {
+        auto type_structure = type_composé->comme_type_structure();
+        if (type_structure->est_externe && type_structure->membres.taille() == 0) {
+            enchaineuse << "typedef struct " << nom_type << " " << nom_type_broyé << ";\n\n";
+            return;
+        }
+    }
+
+    enchaineuse << "struct " << nom_type << " {\n";
+    enchaineuse << "  uint8_t d[" << type_composé->taille_octet << "];\n";
+
+    /* Constructeurs. */
+    enchaineuse << "  " << nom_type << "() = default;\n";
+    enchaineuse << "  " << nom_type;
+
+    auto virgule = "(";
+    auto virgule_placée = false;
+    POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
+        if (it.nom == ID::chaine_vide) {
+            continue;
+        }
+
+        auto const type_membre = génératrice_code.donne_nom_pour_type(it.type);
+        auto nom_membre = broyeuse.broye_nom_simple(it.nom);
+
+        virgule_placée = true;
+        enchaineuse << virgule << type_membre << " " << nom_membre << "_" << index_it;
+        virgule = ", ";
+    }
+
+    if (!virgule_placée) {
+        enchaineuse << virgule;
+    }
+    enchaineuse << ")\n";
+
+    enchaineuse << "  {\n";
+    POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
+        if (it.nom == ID::chaine_vide) {
+            continue;
+        }
+
+        auto const type_membre = génératrice_code.donne_nom_pour_type(it.type);
+        auto nom_membre = broyeuse.broye_nom_simple(it.nom);
+        enchaineuse << "    "
+                    << "*(" << type_membre << "*)(&d[" << it.decalage << "]) = " << nom_membre
+                    << "_" << index_it << ";\n";
+    }
+    enchaineuse << "  }\n";
+
+    /* Fin déclaration structure. */
+    enchaineuse << "} ";
+
+    if (type_composé->est_type_structure()) {
+        auto type_structure = type_composé->comme_type_structure();
+        if (type_structure->est_compacte) {
+            enchaineuse << " __attribute__((packed)) ";
+        }
+
+        if (type_structure->alignement_desire != 0) {
+            enchaineuse << " __attribute__((aligned(" << type_structure->alignement_desire
+                        << "))) ";
+        }
+    }
+
+    enchaineuse << ";\n\n";
 }
 
 /** \} */
@@ -861,10 +943,11 @@ static void déclare_visibilité_globale(Enchaineuse &os,
         os << donne_chaine_pour_visibilité(valeur_globale->donne_visibilité_symbole());
     }
 
+    if (pour_entête) {
+        os << "extern ";
+    }
+
     if (valeur_globale->est_constante) {
-        if (pour_entête) {
-            os << "extern ";
-        }
         os << "const ";
     }
 }
@@ -1582,8 +1665,13 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
             os << "TOUJOURS_HORSLIGNE ";
         }
 
-        if (pour_entête && atome_fonc->decl && !atome_fonc->est_externe) {
-            os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
+        if (pour_entête && atome_fonc->decl) {
+            if (atome_fonc->est_externe) {
+                os << "extern \"C\" ";
+            }
+            else {
+                os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
+            }
         }
 
         if (atome_fonc->decl) {
