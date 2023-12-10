@@ -209,6 +209,10 @@ struct ConvertisseuseTypeC {
 
     void génère_typedef(const Type *type, Enchaineuse &enchaineuse);
 
+    void génère_typedef_pour_type_composé(TypeC &type_c,
+                                          const TypeCompose *type_composé,
+                                          Enchaineuse &enchaineuse);
+
     /* Pour la génération de code pour les types, nous devons d'abord nous assurer que tous les
      * types ont un typedef afin de simplifier la génération de code pour les déclaration de
      * variables : avec un typedef `int *a[3]` devient simplement `Tableau3PointeurInt a;`
@@ -394,12 +398,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
                 return;
             }
 
-            auto nom_type = génératrice_code.donne_nom_pour_type(type_struct);
-            if (génératrice_code.préserve_symboles()) {
-                /* Enlève le "Ks" au début. */
-                nom_type = nom_type.sous_chaine(2);
-            }
-            type_c.typedef_ = enchaine("struct ", nom_type);
+            génère_typedef_pour_type_composé(type_c, type_struct, enchaineuse);
             break;
         }
         case GenreNoeud::DECLARATION_UNION:
@@ -416,17 +415,12 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
                 break;
             }
 
-            auto nom_type = génératrice_code.donne_nom_pour_type(type_union);
-            if (génératrice_code.préserve_symboles()) {
-                /* Enlève le "Ks" au début. */
-                nom_type = nom_type.sous_chaine(2);
-            }
-            type_c.typedef_ = enchaine("struct ", nom_type);
+            génère_typedef_pour_type_composé(type_c, type_union, enchaineuse);
             break;
         }
         case GenreNoeud::TABLEAU_FIXE:
         {
-            type_c.typedef_ = enchaine("struct TableauFixe_", type_c.nom);
+            génère_typedef_pour_type_composé(type_c, type->comme_type_tableau_fixe(), enchaineuse);
             break;
         }
         case GenreNoeud::VARIADIQUE:
@@ -450,7 +444,8 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
-            auto type_pointe = type->comme_type_tableau_dynamique()->type_pointe;
+            auto tableau_dynamique = type->comme_type_tableau_dynamique();
+            auto type_pointe = tableau_dynamique->type_pointe;
 
             if (type_pointe == nullptr) {
                 /* Aucun typedef. */
@@ -458,8 +453,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
                 return;
             }
 
-            génère_typedef(type_pointe, enchaineuse);
-            type_c.typedef_ = enchaine("struct Tableau_", type_c.nom);
+            génère_typedef_pour_type_composé(type_c, tableau_dynamique, enchaineuse);
             break;
         }
         case GenreNoeud::FONCTION:
@@ -504,23 +498,9 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         }
         case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
-        {
-            auto nom_type = génératrice_code.donne_nom_pour_type(type);
-            if (génératrice_code.préserve_symboles()) {
-                /* Enlève le "Ks" au début. */
-                nom_type = nom_type.sous_chaine(2);
-            }
-            type_c.typedef_ = enchaine("struct ", nom_type);
-            break;
-        }
         case GenreNoeud::TUPLE:
         {
-            auto nom_type = génératrice_code.donne_nom_pour_type(type);
-            if (génératrice_code.préserve_symboles()) {
-                /* Enlève le "Kl" au début. */
-                nom_type = nom_type.sous_chaine(2);
-            }
-            type_c.typedef_ = enchaine("struct ", nom_type);
+            génère_typedef_pour_type_composé(type_c, type->comme_type_compose(), enchaineuse);
             break;
         }
         default:
@@ -531,6 +511,40 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
     }
 
     enchaineuse << "typedef " << type_c.typedef_ << ' ' << type_c.nom << ";\n";
+}
+
+static kuri::chaine_statique donne_préfixe_struct_pour_type(
+    NoeudDeclarationTypeCompose const *type)
+{
+    if (type->est_type_tableau_dynamique()) {
+        return "Tableau_";
+    }
+
+    if (type->est_type_tableau_fixe()) {
+        return "TableauFixe_";
+    }
+
+    return "";
+}
+
+void ConvertisseuseTypeC::génère_typedef_pour_type_composé(TypeC &type_c,
+                                                           const TypeCompose *type_composé,
+                                                           Enchaineuse &enchaineuse)
+{
+    if (type_composé->est_type_tableau_dynamique()) {
+        /* Le type du membre des éléments peut manquer. */
+        POUR (type_composé->membres) {
+            génère_typedef(it.type, enchaineuse);
+        }
+    }
+    auto nom_type = génératrice_code.donne_nom_pour_type(type_composé);
+    kuri::chaine_statique préfixe = "";
+    if (génératrice_code.préserve_symboles()) {
+        /* Enlève le préfixe du broyage ("Ks", "Kt", etc.). */
+        nom_type = nom_type.sous_chaine(2);
+        préfixe = donne_préfixe_struct_pour_type(type_composé);
+    }
+    type_c.typedef_ = enchaine("struct ", préfixe, nom_type);
 }
 
 void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse &enchaineuse)
@@ -590,7 +604,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::TUPLE:
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
-            auto type_composé = type->comme_type_structure();
+            auto type_composé = type->comme_type_compose();
 
             if (type_composé->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
                 return;
@@ -636,11 +650,17 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         {
             auto tableau_fixe = type->comme_type_tableau_fixe();
             génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
-            auto const &nom_broyé = génératrice_code.donne_nom_pour_type(type);
-            enchaineuse << "typedef struct TableauFixe_" << nom_broyé << "{\n  "
+            auto nom_broyé = génératrice_code.donne_nom_pour_type(type);
+            kuri::chaine_statique préfixe = "";
+            if (génératrice_code.préserve_symboles()) {
+                nom_broyé = nom_broyé.sous_chaine(2);
+                préfixe = donne_préfixe_struct_pour_type(tableau_fixe);
+            }
+
+            enchaineuse << "typedef struct " << préfixe << nom_broyé << " {\n  "
                         << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointe);
             enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];\n";
-            enchaineuse << " } TableauFixe_" << nom_broyé << ";\n\n";
+            enchaineuse << "} " << préfixe << nom_broyé << ";\n\n";
             break;
         }
         case GenreNoeud::VARIADIQUE:
@@ -662,26 +682,10 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             génère_code_pour_type(type_élément, enchaineuse);
 
             if (!type_c.code_machine_fut_généré) {
-                auto const &nom_broye = génératrice_code.donne_nom_pour_type(type);
-                enchaineuse << "typedef struct Tableau_" << nom_broye;
-                enchaineuse << "{\n";
-
-#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-                enchaineuse << "  union {\n";
-                enchaineuse << "    uint8_t d[" << type->taille_octet << "];\n";
-                enchaineuse << "    struct {\n";
-#endif
-                enchaineuse << "      " << génératrice_code.donne_nom_pour_type(type_élément)
-                            << " *pointeur;\n";
-                enchaineuse << "      int64_t taille;\n"
-                            << "      int64_t " << broyeuse.broye_nom_simple(ID::capacite)
-                            << ";\n";
-
-#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-                enchaineuse << "    };\n";  // struct
-                enchaineuse << "  };\n";    // union
-#endif
-                enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
+                POUR (tableau_dynamique->membres) {
+                    génère_code_pour_type(it.type, enchaineuse);
+                }
+                génère_déclaration_structure(enchaineuse, tableau_dynamique);
             }
             break;
         }
@@ -708,9 +712,11 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
     Enchaineuse &enchaineuse, const NoeudDeclarationTypeCompose *type_composé)
 {
     auto nom_type = génératrice_code.donne_nom_pour_type(type_composé);
+    kuri::chaine_statique préfixe = "";
     auto nom_type_broyé = nom_type;
     if (génératrice_code.préserve_symboles()) {
         nom_type = nom_type.sous_chaine(2);
+        préfixe = donne_préfixe_struct_pour_type(type_composé);
     }
 
     if (type_composé->est_type_structure()) {
@@ -721,10 +727,10 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
         }
     }
 
-    enchaineuse << "typedef struct " << nom_type << " {\n";
+    enchaineuse << "typedef struct " << préfixe << nom_type << " {\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-    enchaineuse << "union {\n";
+    enchaineuse << "  union {\n";
     enchaineuse << "    uint8_t d[" << type_composé->taille_octet << "];\n";
     enchaineuse << "    struct {\n";
 #endif
@@ -760,7 +766,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
         }
     }
 
-    enchaineuse << nom_type << ";\n\n";
+    enchaineuse << préfixe << nom_type << ";\n\n";
 }
 
 /** \} */
@@ -859,10 +865,11 @@ static void déclare_visibilité_globale(Enchaineuse &os,
         os << donne_chaine_pour_visibilité(valeur_globale->donne_visibilité_symbole());
     }
 
+    if (pour_entête) {
+        os << "extern ";
+    }
+
     if (valeur_globale->est_constante) {
-        if (pour_entête) {
-            os << "extern ";
-        }
         os << "const ";
     }
 }
@@ -1060,8 +1067,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             }
 
             auto nom = enchaine(nom_base_chaine, index_chaine++);
-            os << "  " << donne_nom_pour_type(type) << " " << nom << " = " << résultat.chaine()
-               << ";\n";
+            os << "  const " << donne_nom_pour_type(type) << " " << nom << " = "
+               << résultat.chaine() << ";\n";
             return nom;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
@@ -1209,7 +1216,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto type_fonction = inst_appel->appele->type->comme_type_fonction();
             if (!type_fonction->type_sortie->est_type_rien()) {
                 auto nom_ret = donne_nom_pour_instruction(inst);
-                os << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
+                os << "const " << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
                 table_valeurs[inst->numero] = nom_ret;
             }
 
@@ -1312,7 +1319,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto valeur = génère_code_pour_atome(inst_un->valeur, os, false);
             auto nom = donne_nom_pour_instruction(inst);
 
-            os << "  " << donne_nom_pour_type(inst_un->type) << " " << nom << " = ";
+            os << "  const " << donne_nom_pour_type(inst_un->type) << " " << nom << " = ";
 
             switch (inst_un->op) {
                 case OpérateurUnaire::Genre::Positif:
@@ -1348,7 +1355,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto valeur_droite = génère_code_pour_atome(inst_bin->valeur_droite, os, false);
             auto nom = donne_nom_pour_instruction(inst);
 
-            os << "  " << donne_nom_pour_type(inst_bin->type) << " " << nom << " = ";
+            os << "  const " << donne_nom_pour_type(inst_bin->type) << " " << nom << " = ";
 
             os << valeur_gauche << " " << donne_chaine_lexème_pour_op_binaire(inst_bin->op) << " "
                << valeur_droite << ";\n";
@@ -1652,6 +1659,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
         auto type_pointeur = param->type->comme_type_pointeur();
+        os << "  ";
         os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
         os << donne_nom_pour_instruction(param);
         os << ";\n";
