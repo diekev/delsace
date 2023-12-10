@@ -485,9 +485,6 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 
             génère_typedef(type_fonc->type_sortie, enchaineuse);
 
-            auto nouveau_nom_broye = Enchaineuse();
-            nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
-
             auto const &nom_broye_sortie = génératrice_code.donne_nom_pour_type(
                 type_fonc->type_sortie);
 
@@ -506,7 +503,6 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 
                 enchaineuse_tmp << virgule;
                 enchaineuse_tmp << nom_broye_dt;
-                nouveau_nom_broye << nom_broye_dt;
                 virgule = ",";
             }
 
@@ -515,23 +511,12 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
                 virgule = ",";
             }
 
-            nouveau_nom_broye << 1;
-            nouveau_nom_broye << nom_broye_sortie;
-
             enchaineuse_tmp << ")";
             auto suffixe = stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
 
-            if (génératrice_code.préserve_symboles()) {
-                type->nom_broye = stockage_chn.ajoute_chaine_statique(
-                    nouveau_nom_broye.chaine_statique());
-            }
-            else {
-                type->nom_broye = génératrice_code.donne_nom_pour_type(type);
-            }
+            type_c.nom = génératrice_code.donne_nom_pour_type(type);
 
-            type_c.nom = type->nom_broye;
-
-            type_c.typedef_ = enchaine(prefixe, type->nom_broye, ")", suffixe);
+            type_c.typedef_ = enchaine(prefixe, type_c.nom, ")", suffixe);
             enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
             /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
              * directement. */

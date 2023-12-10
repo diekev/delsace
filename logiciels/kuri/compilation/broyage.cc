@@ -205,8 +205,17 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         }
         case GenreNoeud::FONCTION:
         {
+            auto const type_fonction = type->comme_type_fonction();
             enchaineuse << "Kf";
-            enchaineuse << type;
+            enchaineuse << type_fonction->types_entrees.taille();
+
+            POUR (type_fonction->types_entrees) {
+                nom_broye_type(enchaineuse, it);
+            }
+
+            enchaineuse << 1;
+            nom_broye_type(enchaineuse, type_fonction->type_sortie);
+
             break;
         }
         case GenreNoeud::DECLARATION_ENUM:
