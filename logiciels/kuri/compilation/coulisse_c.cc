@@ -450,7 +450,8 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
-            auto type_pointe = type->comme_type_tableau_dynamique()->type_pointe;
+            auto tableau_dynamique = type->comme_type_tableau_dynamique();
+            auto type_pointe = tableau_dynamique->type_pointe;
 
             if (type_pointe == nullptr) {
                 /* Aucun typedef. */
@@ -458,8 +459,14 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
                 return;
             }
 
-            génère_typedef(type_pointe, enchaineuse);
-            type_c.typedef_ = enchaine("struct Tableau_", type_c.nom);
+            POUR (tableau_dynamique->membres) {
+                génère_typedef(it.type, enchaineuse);
+            }
+            auto nom_type = génératrice_code.donne_nom_pour_type(type);
+            if (génératrice_code.préserve_symboles()) {
+                nom_type = nom_type.sous_chaine(2);
+            }
+            type_c.typedef_ = enchaine("struct Tableau_", nom_type);
             break;
         }
         case GenreNoeud::FONCTION:
@@ -662,25 +669,10 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             génère_code_pour_type(type_élément, enchaineuse);
 
             if (!type_c.code_machine_fut_généré) {
-                auto const &nom_broye = génératrice_code.donne_nom_pour_type(type);
-                enchaineuse << "typedef struct Tableau_" << nom_broye << " {\n";
-
-#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-                enchaineuse << "  union {\n";
-                enchaineuse << "    uint8_t d[" << type->taille_octet << "];\n";
-                enchaineuse << "    struct {\n";
-#endif
-                enchaineuse << "      " << génératrice_code.donne_nom_pour_type(type_élément)
-                            << " *pointeur;\n";
-                enchaineuse << "      int64_t taille;\n"
-                            << "      int64_t " << broyeuse.broye_nom_simple(ID::capacite)
-                            << ";\n";
-
-#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-                enchaineuse << "    };\n";  // struct
-                enchaineuse << "  };\n";    // union
-#endif
-                enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
+                POUR (tableau_dynamique->membres) {
+                    génère_code_pour_type(it.type, enchaineuse);
+                }
+                génère_déclaration_structure(enchaineuse, tableau_dynamique);
             }
             break;
         }
@@ -703,6 +695,16 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
     type_c.code_machine_fut_généré = true;
 }
 
+static kuri::chaine_statique donne_préfixe_struct_pour_type(
+    NoeudDeclarationTypeCompose const *type)
+{
+    if (type->est_type_tableau_dynamique()) {
+        return "Tableau_";
+    }
+
+    return "";
+}
+
 void ConvertisseuseTypeC::génère_déclaration_structure(
     Enchaineuse &enchaineuse, const NoeudDeclarationTypeCompose *type_composé)
 {
@@ -720,7 +722,9 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
         }
     }
 
-    enchaineuse << "typedef struct " << nom_type << " {\n";
+    auto préfixe = donne_préfixe_struct_pour_type(type_composé);
+
+    enchaineuse << "typedef struct " << préfixe << nom_type << " {\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
     enchaineuse << "  union {\n";
@@ -759,7 +763,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
         }
     }
 
-    enchaineuse << nom_type << ";\n\n";
+    enchaineuse << préfixe << nom_type << ";\n\n";
 }
 
 /** \} */
