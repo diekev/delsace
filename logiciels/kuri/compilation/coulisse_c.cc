@@ -637,10 +637,10 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             auto tableau_fixe = type->comme_type_tableau_fixe();
             génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
             auto const &nom_broyé = génératrice_code.donne_nom_pour_type(type);
-            enchaineuse << "typedef struct TableauFixe_" << nom_broyé << "{\n  "
+            enchaineuse << "typedef struct TableauFixe_" << nom_broyé << " {\n  "
                         << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointe);
             enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];\n";
-            enchaineuse << " } TableauFixe_" << nom_broyé << ";\n\n";
+            enchaineuse << "} TableauFixe_" << nom_broyé << ";\n\n";
             break;
         }
         case GenreNoeud::VARIADIQUE:
@@ -663,8 +663,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 
             if (!type_c.code_machine_fut_généré) {
                 auto const &nom_broye = génératrice_code.donne_nom_pour_type(type);
-                enchaineuse << "typedef struct Tableau_" << nom_broye;
-                enchaineuse << "{\n";
+                enchaineuse << "typedef struct Tableau_" << nom_broye << " {\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
                 enchaineuse << "  union {\n";
@@ -724,7 +723,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
     enchaineuse << "typedef struct " << nom_type << " {\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-    enchaineuse << "union {\n";
+    enchaineuse << "  union {\n";
     enchaineuse << "    uint8_t d[" << type_composé->taille_octet << "];\n";
     enchaineuse << "    struct {\n";
 #endif
@@ -1652,6 +1651,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
         auto type_pointeur = param->type->comme_type_pointeur();
+        os << "  ";
         os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
         os << donne_nom_pour_instruction(param);
         os << ";\n";
