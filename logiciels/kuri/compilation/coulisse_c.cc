@@ -485,39 +485,27 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 
             génère_typedef(type_fonc->type_sortie, enchaineuse);
 
-            auto const &nom_broye_sortie = génératrice_code.donne_nom_pour_type(
-                type_fonc->type_sortie);
+            auto type_sortie = génératrice_code.donne_nom_pour_type(type_fonc->type_sortie);
 
-            /* Crée le préfixe. */
             enchaineuse_tmp.réinitialise();
-            enchaineuse_tmp << nom_broye_sortie << " (*";
-            auto prefixe = stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
-
-            /* Réinitialise pour le suffixe. */
-            enchaineuse_tmp.réinitialise();
+            enchaineuse_tmp << type_sortie << " (*" << type_c.nom << ")";
 
             auto virgule = "(";
 
             POUR (type_fonc->types_entrees) {
-                auto const &nom_broye_dt = génératrice_code.donne_nom_pour_type(it);
-
-                enchaineuse_tmp << virgule;
-                enchaineuse_tmp << nom_broye_dt;
+                auto type_entrée = génératrice_code.donne_nom_pour_type(it);
+                enchaineuse_tmp << virgule << type_entrée;
                 virgule = ",";
             }
 
             if (type_fonc->types_entrees.taille() == 0) {
                 enchaineuse_tmp << virgule;
-                virgule = ",";
             }
-
             enchaineuse_tmp << ")";
-            auto suffixe = stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
 
-            type_c.nom = génératrice_code.donne_nom_pour_type(type);
-
-            type_c.typedef_ = enchaine(prefixe, type_c.nom, ")", suffixe);
-            enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
+            auto typedef_ = stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+            type_c.typedef_ = typedef_;
+            enchaineuse << "typedef " << type_c.typedef_ << ";\n";
             /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
              * directement. */
             return;
