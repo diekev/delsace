@@ -260,7 +260,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return Attente::sur_type(type_union);
         }
 
-        POUR_INDEX (type_union->membres) {
+        POUR_INDEX (type_union->donne_membres_pour_code_machine()) {
             if (it.type != type_vers || type_union->est_nonsure) {
                 continue;
             }
