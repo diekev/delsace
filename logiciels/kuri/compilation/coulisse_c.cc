@@ -865,10 +865,11 @@ static void déclare_visibilité_globale(Enchaineuse &os,
         os << donne_chaine_pour_visibilité(valeur_globale->donne_visibilité_symbole());
     }
 
+    if (pour_entête) {
+        os << "extern ";
+    }
+
     if (valeur_globale->est_constante) {
-        if (pour_entête) {
-            os << "extern ";
-        }
         os << "const ";
     }
 }
