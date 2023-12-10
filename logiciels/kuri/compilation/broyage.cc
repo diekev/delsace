@@ -100,7 +100,7 @@ int64_t Broyeuse::mémoire_utilisée() const
  * *z8 devient KPKsz8
  * &[]Foo devient KRKtKsFoo
  */
-static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
+static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
 {
     switch (type->genre) {
         case GenreNoeud::POLYMORPHIQUE:
@@ -126,7 +126,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         case GenreNoeud::REFERENCE:
         {
             enchaineuse << "KR";
-            nom_broye_type(enchaineuse, type->comme_type_reference()->type_pointe);
+            broye_nom_type(enchaineuse, type->comme_type_reference()->type_pointe);
             break;
         }
         case GenreNoeud::POINTEUR:
@@ -139,7 +139,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
                 enchaineuse << "nul";
             }
             else {
-                nom_broye_type(enchaineuse, type_pointe);
+                broye_nom_type(enchaineuse, type_pointe);
             }
 
             break;
@@ -180,7 +180,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
             // les arguments variadiques sont transformés en tableaux, donc utilise Kt
             if (type_pointe != nullptr) {
                 enchaineuse << "Kt";
-                nom_broye_type(enchaineuse, type_pointe);
+                broye_nom_type(enchaineuse, type_pointe);
             }
             else {
                 enchaineuse << "Kv";
@@ -191,7 +191,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             enchaineuse << "Kt";
-            nom_broye_type(enchaineuse, type->comme_type_tableau_dynamique()->type_pointe);
+            broye_nom_type(enchaineuse, type->comme_type_tableau_dynamique()->type_pointe);
             break;
         }
         case GenreNoeud::TABLEAU_FIXE:
@@ -200,7 +200,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 
             enchaineuse << "KT";
             enchaineuse << type_tabl->taille;
-            nom_broye_type(enchaineuse, type_tabl->type_pointe);
+            broye_nom_type(enchaineuse, type_tabl->type_pointe);
             break;
         }
         case GenreNoeud::FONCTION:
@@ -210,11 +210,11 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
             enchaineuse << type_fonction->types_entrees.taille();
 
             POUR (type_fonction->types_entrees) {
-                nom_broye_type(enchaineuse, it);
+                broye_nom_type(enchaineuse, it);
             }
 
             enchaineuse << 1;
-            nom_broye_type(enchaineuse, type_fonction->type_sortie);
+            broye_nom_type(enchaineuse, type_fonction->type_sortie);
 
             break;
         }
@@ -233,7 +233,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
             enchaineuse << "Ks";
             broye_nom_simple(enchaineuse, donne_nom_portable(type_opaque));
             /* inclus le nom du type opacifié afin de prendre en compte les monomorphisations */
-            nom_broye_type(enchaineuse, type_opaque->type_opacifie);
+            broye_nom_type(enchaineuse, type_opaque->type_opacifie);
             break;
         }
         case GenreNoeud::TUPLE:
@@ -256,7 +256,7 @@ kuri::chaine_statique Broyeuse::nom_broyé_type(Type *type)
     }
 
     stockage_temp.réinitialise();
-    ::nom_broye_type(stockage_temp, type);
+    ::broye_nom_type(stockage_temp, type);
 
     type->nom_broye = chaine_finale_pour_stockage_temp();
     stockage_temp.réinitialise();
