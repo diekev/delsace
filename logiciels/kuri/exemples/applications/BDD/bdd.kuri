@@ -43,14 +43,14 @@ copie_chaine_vers_tableau :: fonc (tabl: *z8, chn: chaine) -> rien
     copie_mem_nonsur(src = chn.pointeur, dst = tabl, taille = chn.taille)
 }
 
-sérialise_ligne :: fonc (ligne: *Ligne, dest: *rien) -> rien
+sérialise_ligne :: fonc (ligne: *Ligne, dest: *octet) -> rien
 {
     copie_mem_nonsur(src = *ligne.id, dst = dest, taille = TAILLE_ID)
     copie_mem_nonsur(src = *ligne.nom[0], dst = dest + DÉCALAGE_NOM, taille = TAILLE_NOM)
     copie_mem_nonsur(src = *ligne.courriel[0], dst = dest + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
 }
 
-désérialise_ligne :: fonc (src: *rien, ligne: *Ligne) -> rien
+désérialise_ligne :: fonc (src: *octet, ligne: *Ligne) -> rien
 {
     copie_mem_nonsur(dst = *ligne.id, src = src, taille = TAILLE_ID)
     copie_mem_nonsur(dst = *ligne.nom[0], src = src + DÉCALAGE_NOM, taille = TAILLE_NOM)

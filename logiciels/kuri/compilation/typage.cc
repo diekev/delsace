@@ -95,6 +95,7 @@ static DonneesTypeCommun donnees_types_communs[] = {
 static TypeCompose *crée_type_eini()
 {
     auto type = memoire::loge<TypeCompose>("TypeCompose");
+    type->ident = ID::eini;
     type->genre = GenreNoeud::EINI;
     type->taille_octet = 16;
     type->alignement = 8;
@@ -104,15 +105,17 @@ static TypeCompose *crée_type_eini()
 static TypeCompose *crée_type_chaine()
 {
     auto type = memoire::loge<TypeCompose>("TypeCompose");
+    type->ident = ID::chaine;
     type->genre = GenreNoeud::CHAINE;
     type->taille_octet = 16;
     type->alignement = 8;
     return type;
 }
 
-static Type *crée_type_entier(unsigned taille_octet, bool est_naturel)
+static Type *crée_type_entier(IdentifiantCode *ident, unsigned taille_octet, bool est_naturel)
 {
     auto type = memoire::loge<Type>("Type");
+    type->ident = ident;
     type->genre = est_naturel ? GenreNoeud::ENTIER_NATUREL : GenreNoeud::ENTIER_RELATIF;
     type->taille_octet = taille_octet;
     type->alignement = taille_octet;
@@ -123,14 +126,16 @@ static Type *crée_type_entier(unsigned taille_octet, bool est_naturel)
 static Type *crée_type_entier_constant()
 {
     auto type = memoire::loge<Type>("Type");
+    type->ident = ID::entier_constant;
     type->genre = GenreNoeud::ENTIER_CONSTANT;
     type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
     return type;
 }
 
-static Type *crée_type_reel(unsigned taille_octet)
+static Type *crée_type_reel(IdentifiantCode *ident, unsigned taille_octet)
 {
     auto type = memoire::loge<Type>("Type");
+    type->ident = ident;
     type->genre = GenreNoeud::REEL;
     type->taille_octet = taille_octet;
     type->alignement = taille_octet;
@@ -141,6 +146,7 @@ static Type *crée_type_reel(unsigned taille_octet)
 static Type *crée_type_rien()
 {
     auto type = memoire::loge<Type>("Type");
+    type->ident = ID::rien;
     type->genre = GenreNoeud::RIEN;
     type->taille_octet = 0;
     type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -150,6 +156,7 @@ static Type *crée_type_rien()
 static Type *crée_type_bool()
 {
     auto type = memoire::loge<Type>("Type");
+    type->ident = ID::bool_;
     type->genre = GenreNoeud::BOOL;
     type->taille_octet = 1;
     type->alignement = 1;
@@ -160,6 +167,7 @@ static Type *crée_type_bool()
 static Type *crée_type_octet()
 {
     auto type = memoire::loge<Type>("Type");
+    type->ident = ID::octet;
     type->genre = GenreNoeud::OCTET;
     type->taille_octet = 1;
     type->alignement = 1;
@@ -279,6 +287,7 @@ static void initialise_type_variadique(TypeVariadique *résultat,
 
 static void initialise_type_type_de_données(TypeTypeDeDonnees *résultat, Type *type_connu_)
 {
+    résultat->ident = ID::type_de_données;
     // un type 'type' est un genre de pointeur déguisé, donc donnons lui les mêmes caractéristiques
     résultat->taille_octet = 8;
     résultat->alignement = 8;
@@ -324,47 +333,47 @@ static Type *crée_type_pour_lexeme(GenreLexeme lexeme)
         }
         case GenreLexeme::N8:
         {
-            return crée_type_entier(1, true);
+            return crée_type_entier(ID::n8, 1, true);
         }
         case GenreLexeme::Z8:
         {
-            return crée_type_entier(1, false);
+            return crée_type_entier(ID::z8, 1, false);
         }
         case GenreLexeme::N16:
         {
-            return crée_type_entier(2, true);
+            return crée_type_entier(ID::n16, 2, true);
         }
         case GenreLexeme::Z16:
         {
-            return crée_type_entier(2, false);
+            return crée_type_entier(ID::z16, 2, false);
         }
         case GenreLexeme::N32:
         {
-            return crée_type_entier(4, true);
+            return crée_type_entier(ID::n32, 4, true);
         }
         case GenreLexeme::Z32:
         {
-            return crée_type_entier(4, false);
+            return crée_type_entier(ID::z32, 4, false);
         }
         case GenreLexeme::N64:
         {
-            return crée_type_entier(8, true);
+            return crée_type_entier(ID::n64, 8, true);
         }
         case GenreLexeme::Z64:
         {
-            return crée_type_entier(8, false);
+            return crée_type_entier(ID::z64, 8, false);
         }
         case GenreLexeme::R16:
         {
-            return crée_type_reel(2);
+            return crée_type_reel(ID::r16, 2);
         }
         case GenreLexeme::R32:
         {
-            return crée_type_reel(4);
+            return crée_type_reel(ID::r32, 4);
         }
         case GenreLexeme::R64:
         {
-            return crée_type_reel(8);
+            return crée_type_reel(ID::r64, 8);
         }
         case GenreLexeme::RIEN:
         {
@@ -1319,103 +1328,16 @@ static void chaine_type(Enchaineuse &enchaineuse,
 
     switch (type->genre) {
         case GenreNoeud::EINI:
-        {
-            enchaineuse.ajoute("eini");
-            return;
-        }
         case GenreNoeud::CHAINE:
-        {
-            enchaineuse.ajoute("chaine");
-            return;
-        }
         case GenreNoeud::RIEN:
-        {
-            enchaineuse.ajoute("rien");
-            return;
-        }
         case GenreNoeud::BOOL:
-        {
-            enchaineuse.ajoute("bool");
-            return;
-        }
         case GenreNoeud::OCTET:
-        {
-            enchaineuse.ajoute("octet");
-            return;
-        }
         case GenreNoeud::ENTIER_CONSTANT:
-        {
-            enchaineuse.ajoute("entier_constant");
-            return;
-        }
         case GenreNoeud::ENTIER_NATUREL:
-        {
-            if (type->taille_octet == 1) {
-                enchaineuse.ajoute("n8");
-                return;
-            }
-
-            if (type->taille_octet == 2) {
-                enchaineuse.ajoute("n16");
-                return;
-            }
-
-            if (type->taille_octet == 4) {
-                enchaineuse.ajoute("n32");
-                return;
-            }
-
-            if (type->taille_octet == 8) {
-                enchaineuse.ajoute("n64");
-                return;
-            }
-
-            enchaineuse.ajoute("invalide");
-            return;
-        }
         case GenreNoeud::ENTIER_RELATIF:
-        {
-            if (type->taille_octet == 1) {
-                enchaineuse.ajoute("z8");
-                return;
-            }
-
-            if (type->taille_octet == 2) {
-                enchaineuse.ajoute("z16");
-                return;
-            }
-
-            if (type->taille_octet == 4) {
-                enchaineuse.ajoute("z32");
-                return;
-            }
-
-            if (type->taille_octet == 8) {
-                enchaineuse.ajoute("z64");
-                return;
-            }
-
-            enchaineuse.ajoute("invalide");
-            return;
-        }
         case GenreNoeud::REEL:
         {
-            if (type->taille_octet == 2) {
-                enchaineuse.ajoute("r16");
-                return;
-            }
-
-            if (type->taille_octet == 4) {
-                enchaineuse.ajoute("r32");
-                return;
-            }
-
-            if (type->taille_octet == 8) {
-                enchaineuse.ajoute("r64");
-                return;
-            }
-
-            enchaineuse.ajoute("invalide");
+            enchaineuse.ajoute(type->ident->nom);
             return;
         }
         case GenreNoeud::REFERENCE:
