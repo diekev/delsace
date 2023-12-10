@@ -2211,7 +2211,21 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
         }
 
         if (entete->ident) {
-            return entete->ident->nom;
+            Enchaineuse enchaineuse;
+            enchaineuse << entete->ident->nom;
+
+            auto virgule = "(";
+            for (int i = 0; i < entete->params.taille(); i++) {
+                auto const param = entete->parametre_entree(i);
+                enchaineuse << virgule << chaine_type(param->type);
+                virgule = ", ";
+            }
+            if (entete->params.taille() == 0) {
+                enchaineuse << "(";
+            }
+            enchaineuse << ") -> " << chaine_type(entete->param_sortie->type);
+
+            return enchaineuse.chaine();
         }
 
         return "fonction anonyme";
