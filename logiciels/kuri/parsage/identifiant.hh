@@ -153,7 +153,25 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(info_fonction, "info_fonction")                             \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(info_appel, "info_appel")                                   \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(profondeur, "profondeur")                                   \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(trace_appel, "trace_appel")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(trace_appel, "trace_appel")                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(eini, "eini")                                               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chaine, "chaine")                                           \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(rien, "rien")                                               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bool_, "bool")                                              \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(octet, "octet")                                             \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(z8, "z8")                                                   \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(z16, "z16")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(z32, "z32")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(z64, "z64")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(n8, "n8")                                                   \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(n16, "n16")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(n32, "n32")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(n64, "n64")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(r16, "r16")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(r32, "r32")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(r64, "r64")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(type_de_données, "type_de_données")                         \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(entier_constant, "entier_constant")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;
