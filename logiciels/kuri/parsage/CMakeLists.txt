@@ -29,6 +29,8 @@ set(SOURCES
     outils_lexemes.cc
     site_source.cc
 
+    identifiant.def
+
     base_syntaxeuse.hh
     empreinte_parfaite.hh
     gerante_chaine.hh
