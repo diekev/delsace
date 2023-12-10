@@ -2336,53 +2336,81 @@ void CompilatriceRI::génère_ri_transformee_pour_noeud(NoeudExpression const *n
 
 static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src, Type const *dst)
 {
-    // À FAIRE(transtypage) : tous les cas
-    if (dst->est_type_entier_naturel()) {
-        if (src->est_type_enum()) {
-            src = src->comme_type_enum()->type_sous_jacent;
+#ifndef NDEBUG
+    auto const src_originale = src;
+    auto const dst_originale = dst;
+#endif
 
-            if (src->taille_octet < dst->taille_octet) {
-                return TypeTranstypage::AUGMENTE_RELATIF;
-            }
-            else if (src->taille_octet > dst->taille_octet) {
-                return TypeTranstypage::DIMINUE_RELATIF;
-            }
-        }
-        else if (src->est_type_erreur()) {
-            src = src->comme_type_erreur()->type_sous_jacent;
-
-            if (src->taille_octet < dst->taille_octet) {
-                return TypeTranstypage::AUGMENTE_RELATIF;
-            }
-            else if (src->taille_octet > dst->taille_octet) {
-                return TypeTranstypage::DIMINUE_RELATIF;
-            }
-        }
-    }
-    else if (dst->est_type_entier_relatif()) {
-        if (src->est_type_enum()) {
-            src = src->comme_type_enum()->type_sous_jacent;
-
-            if (src->taille_octet < dst->taille_octet) {
-                return TypeTranstypage::AUGMENTE_RELATIF;
-            }
-            else if (src->taille_octet > dst->taille_octet) {
-                return TypeTranstypage::DIMINUE_RELATIF;
-            }
-        }
-        else if (src->est_type_erreur()) {
-            src = src->comme_type_erreur()->type_sous_jacent;
-
-            if (src->taille_octet < dst->taille_octet) {
-                return TypeTranstypage::AUGMENTE_RELATIF;
-            }
-            else if (src->taille_octet > dst->taille_octet) {
-                return TypeTranstypage::DIMINUE_RELATIF;
-            }
-        }
+    if (src->est_type_entier_constant()) {
+        /* Entier constant vers énum. */
+        src = TypeBase::Z32;
     }
 
-    return TypeTranstypage::DEFAUT;
+    if (src->taille_octet == dst->taille_octet) {
+        /* Cas simple : les types ont les mêmes tailles, transtype la représentation binaire. */
+        return TypeTranstypage::BITS;
+    }
+
+    if (src->est_type_enum()) {
+        auto type_énum = src->comme_type_enum();
+        src = type_énum->type_sous_jacent;
+    }
+
+    if (dst->est_type_enum()) {
+        auto type_énum = dst->comme_type_enum();
+        dst = type_énum->type_sous_jacent;
+    }
+
+    if (src->est_type_entier_naturel()) {
+        if (dst->est_type_entier_naturel()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_NATUREL;
+            }
+
+            return TypeTranstypage::DIMINUE_NATUREL;
+        }
+
+        if (dst->est_type_entier_relatif()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF;
+            }
+
+            return TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF;
+        }
+
+        if (dst->est_type_bool()) {
+            return TypeTranstypage::DIMINUE_NATUREL;
+        }
+    }
+
+    if (src->est_type_entier_relatif()) {
+        if (dst->est_type_entier_relatif()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF;
+            }
+
+            return TypeTranstypage::DIMINUE_RELATIF;
+        }
+
+        if (dst->est_type_entier_naturel()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL;
+            }
+
+            return TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL;
+        }
+
+        if (dst->est_type_bool()) {
+            return TypeTranstypage::DIMINUE_RELATIF;
+        }
+    }
+
+    assert_rappel(false, [&]() {
+        dbg() << "Type transtypage défaut non-géré : " << chaine_type(src_originale) << " -> "
+              << chaine_type(dst_originale);
+    });
+
+    return TypeTranstypage::BITS;
 }
 
 void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
