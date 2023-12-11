@@ -628,7 +628,6 @@ static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
 {
     switch (genre) {
         case TypeTranstypage::BITS:
-        case TypeTranstypage::DEFAUT:
         case TypeTranstypage::POINTEUR_VERS_ENTIER:
         case TypeTranstypage::ENTIER_VERS_POINTEUR:
         {
@@ -655,10 +654,12 @@ static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
             return OP_AUGMENTE_REEL;
         }
         case TypeTranstypage::AUGMENTE_NATUREL:
+        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
         {
             return OP_AUGMENTE_NATUREL;
         }
         case TypeTranstypage::AUGMENTE_RELATIF:
+        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
         {
             return OP_AUGMENTE_RELATIF;
         }
@@ -667,10 +668,12 @@ static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
             return OP_DIMINUE_REEL;
         }
         case TypeTranstypage::DIMINUE_NATUREL:
+        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
         {
             return OP_DIMINUE_NATUREL;
         }
         case TypeTranstypage::DIMINUE_RELATIF:
+        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
         {
             return OP_DIMINUE_RELATIF;
         }
