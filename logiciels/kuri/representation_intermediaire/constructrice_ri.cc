@@ -2717,6 +2717,10 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             /* copie le pointeur de la valeur vers le type eini */
             auto ptr_eini = m_constructrice.crée_référence_membre(noeud, alloc_eini, 0);
 
+            if (valeur->type->est_type_entier_constant()) {
+                valeur->type = TypeBase::Z32;
+            }
+
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
             auto transtype = m_constructrice.crée_transtype(
