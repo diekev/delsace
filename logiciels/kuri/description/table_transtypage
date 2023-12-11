@@ -1,0 +1,93 @@
+bool <-> z8  => convertis_bits explicite
+bool -> z16 => augmente_taille explicite
+bool -> z32 => augmente_taille explicite
+bool -> z64 => augmente_taille explicite
+bool <-> n8  => convertis_bits explicite
+bool -> n16 => augmente_taille explicite
+bool -> n32 => augmente_taille explicite
+bool -> n64 => augmente_taille explicite
+bool -> octet => convertis_bits explicite
+
+z16 -> bool => diminue_taille explicite
+n16 -> bool => diminue_taille explicite
+z32 -> bool => diminue_taille explicite
+n32 -> bool => diminue_taille explicite
+z64 -> bool => diminue_taille explicite
+n64 -> bool => diminue_taille explicite
+
+z8 <-> n8 => convertis_bits explicite
+z16 <-> n16 => convertis_bits explicite
+z32 <-> n32 => convertis_bits explicite
+z64 <-> n64 => convertis_bits explicite
+
+z8 <-> énum.z8 => convertis_bits explicite
+z16 <-> énum.z16 => convertis_bits explicite
+z32 <-> énum.z32 => convertis_bits explicite
+z64 <-> énum.z64 => convertis_bits explicite
+n8 <-> énum.n8 => convertis_bits explicite
+n16 <-> énum.n16 => convertis_bits explicite
+n32 <-> énum.n32 => convertis_bits explicite
+n64 <-> énum.n64 => convertis_bits explicite
+
+r16 -> r32 => augmente_taille
+r16 -> r64 => augmente_taille
+r32 -> r64 => augmente_taille
+
+r32 -> r16 => diminue_taille explicite
+r64 -> r32 => diminue_taille explicite
+r64 -> r32 => diminue_taille explicite
+
+z8 -> z16 => augmente_taille
+z8 -> z32 => augmente_taille
+z8 -> z64 => augmente_taille
+z16 -> z32 => augmente_taille
+z16 -> z64 => augmente_taille
+z32 -> z64 => augmente_taille
+
+n8 -> n16 => augmente_taille
+n8 -> n32 => augmente_taille
+n8 -> n64 => augmente_taille
+n16 -> n32 => augmente_taille
+n16 -> n64 => augmente_taille
+n32 -> n64 => augmente_taille
+
+z64 -> z8 => diminue_taille explicite
+z64 -> z16 => diminue_taille explicite
+z64 -> z32 => diminue_taille explicite
+z32 -> z8 => diminue_taille explicite
+z32 -> z16 => diminue_taille explicite
+z16 -> z8 => diminue_taille explicite
+
+n64 -> n8 => diminue_taille explicite
+n64 -> n16 => diminue_taille explicite
+n64 -> n32 => diminue_taille explicite
+n32 -> n8 => diminue_taille explicite
+n32 -> n16 => diminue_taille explicite
+n16 -> n8 => diminue_taille explicite
+
+entier -> réel => entier_vers_réel explicite
+réel -> entier => réel_vers_entier explicite
+
+%type -> &%type => référence
+&%type -> %type => déréférence
+
+%type <-> opaque.%type => convertis_bits explicite
+
+*rien <-> *%type => convertis_bits
+*nul <-> *%type => convertis_bits
+*octet <-> *%type => convertis_bits
+
+*rien <-> fonc => convertis_bits
+
+*%type1 -> *%type2 => convertis_vers_base @est_type_base(%type2, %type1)
+*%type1 -> *%type2 => convertis_vers_dérivé @est_type_base(%type1, %type2)
+
+%type -> eini convertis_eini
+eini -> %type extrait_eini
+
+[N]%type -> []%type => convertis_tableau_fixe
+
+%type -> []octet => convertis_tableau_octet
+
+%type -> union => crée_union @est_type_membre(%type)
+union -> %type => extrait_union @est_type_membre(%type)
