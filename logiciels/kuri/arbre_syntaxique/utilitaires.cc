@@ -747,6 +747,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_TENTE:
         {
             auto inst = racine->comme_tente();
+            inst->drapeaux |= drapeau;
 
             if (inst->expression_piegee) {
                 drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
