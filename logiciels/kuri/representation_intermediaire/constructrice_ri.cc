@@ -1619,7 +1619,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         auto valeur = m_constructrice.crée_référence_membre(
                             expression, valeur_tuple, i);
                         transforme_valeur(expression, valeur, transformation, pointeur);
-                        depile_valeur();
                     }
                 }
                 else {
@@ -1632,7 +1631,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         auto pointeur = depile_valeur();
 
                         transforme_valeur(expression, valeur, transformation, pointeur);
-                        depile_valeur();
                     }
                 }
             }
@@ -2317,6 +2315,19 @@ void CompilatriceRI::génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *d
 
     m_fonction_courante->instructions.rétrécis_capacité_sur_taille();
 
+    assert_rappel(m_pile.taille() == 0, [&]() {
+        dbg() << __func__ << " : " << m_pile.taille() << ", " << m_fonction_courante->nom;
+        dbg() << imprime_fonction(m_fonction_courante);
+        POUR (m_pile) {
+            if (it->est_instruction()) {
+                dbg() << "-- " << imprime_instruction(it->comme_instruction());
+            }
+            else {
+                dbg() << "-- " << it->genre_atome;
+            }
+        }
+    });
+
     définis_fonction_courante(nullptr);
 }
 
@@ -2965,11 +2976,14 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         }
     }
 
-    if (place && !place_fut_utilisee) {
-        m_constructrice.crée_stocke_mem(noeud, place, valeur);
+    if (place) {
+        if (!place_fut_utilisee) {
+            m_constructrice.crée_stocke_mem(noeud, place, valeur);
+        }
     }
-
-    empile_valeur(valeur);
+    else {
+        empile_valeur(valeur);
+    }
 }
 
 Atome *CompilatriceRI::crée_transtype_entre_base_et_dérivé(
@@ -4313,7 +4327,6 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable c
                         auto valeur = m_constructrice.crée_référence_membre(
                             expression, valeur_tuple, i);
                         transforme_valeur(expression, valeur, transformation, pointeur);
-                        depile_valeur();
                     }
                 }
                 else {
@@ -4329,7 +4342,6 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable c
                             ->atome = pointeur;
 
                         transforme_valeur(expression, valeur, transformation, pointeur);
-                        depile_valeur();
                     }
                 }
             }
