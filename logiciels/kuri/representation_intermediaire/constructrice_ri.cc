@@ -1615,6 +1615,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         auto &transformation = it.transformations[i];
                         génère_ri_pour_noeud(var);
                         auto pointeur = depile_valeur();
+                        /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
+                         */
+                        pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
 
                         auto valeur = m_constructrice.crée_référence_membre(
                             expression, valeur_tuple, i);
@@ -1629,6 +1632,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         auto &transformation = it.transformations[i];
                         génère_ri_pour_noeud(var);
                         auto pointeur = depile_valeur();
+                        /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
+                         */
+                        pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
 
                         transforme_valeur(expression, valeur, transformation, pointeur);
                     }
@@ -2451,8 +2457,6 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                                        TransformationType const &transformation,
                                        Atome *place)
 {
-    auto place_fut_utilisee = false;
-
     auto transforme_avec_fonction = [this](NoeudExpression const *noeud_,
                                            Atome *valeur_,
                                            NoeudDeclarationEnteteFonction *fonction) {
@@ -2465,6 +2469,8 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
         return m_constructrice.crée_appel(noeud_, atome_fonction, std::move(args));
     };
+
+    assert(!place || !place->possède_drapeau(DrapeauxAtome::EST_UTILISÉ));
 
     switch (transformation.type) {
         case TypeTransformation::IMPOSSIBLE:
@@ -2573,7 +2579,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 valeur = m_constructrice.crée_charge_mem(noeud, alloc);
             }
             else {
-                place_fut_utilisee = true;
+                place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
             }
             break;
         }
@@ -2777,7 +2783,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 valeur = m_constructrice.crée_charge_mem(noeud, alloc_eini);
             }
             else {
-                place_fut_utilisee = true;
+                place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
             }
 
             break;
@@ -2902,7 +2908,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 valeur = m_constructrice.crée_charge_mem(noeud, tabl_octet);
             }
             else {
-                place_fut_utilisee = true;
+                place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
             }
 
             break;
@@ -2922,7 +2928,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             }
             else {
-                place_fut_utilisee = true;
+                place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
             }
 
             break;
@@ -2977,7 +2983,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
     }
 
     if (place) {
-        if (!place_fut_utilisee) {
+        if (!place->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             m_constructrice.crée_stocke_mem(noeud, place, valeur);
         }
     }
