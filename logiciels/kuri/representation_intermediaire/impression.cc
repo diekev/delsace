@@ -22,9 +22,17 @@ static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const 
         {
             return "augmente_naturel";
         }
+        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
+        {
+            return "augmente_naturel_vers_relatif";
+        }
         case TypeTranstypage::AUGMENTE_RELATIF:
         {
             return "augmente_relatif";
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
+        {
+            return "augmente_relatif_vers_naturel";
         }
         case TypeTranstypage::AUGMENTE_REEL:
         {
@@ -34,9 +42,17 @@ static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const 
         {
             return "diminue_naturel";
         }
+        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
+        {
+            return "diminue_naturel_vers_relatif";
+        }
         case TypeTranstypage::DIMINUE_RELATIF:
         {
             return "diminue_relatif";
+        }
+        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
+        {
+            return "diminue_relatif_vers_naturel";
         }
         case TypeTranstypage::DIMINUE_REEL:
         {
@@ -67,7 +83,6 @@ static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const 
             return "relatif_vers_réel";
         }
         case TypeTranstypage::BITS:
-        case TypeTranstypage::DEFAUT:
         {
             return "transtype_bits";
         }

@@ -2320,6 +2320,85 @@ void CompilatriceRI::génère_ri_transformee_pour_noeud(NoeudExpression const *n
     transforme_valeur(noeud, valeur, transformation, place);
 }
 
+static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src, Type const *dst)
+{
+#ifndef NDEBUG
+    auto const src_originale = src;
+    auto const dst_originale = dst;
+#endif
+
+    if (src->est_type_entier_constant()) {
+        /* Entier constant vers énum. */
+        src = TypeBase::Z32;
+    }
+
+    if (src->taille_octet == dst->taille_octet) {
+        /* Cas simple : les types ont les mêmes tailles, transtype la représentation binaire. */
+        return TypeTranstypage::BITS;
+    }
+
+    if (src->est_type_enum()) {
+        auto type_énum = src->comme_type_enum();
+        src = type_énum->type_sous_jacent;
+    }
+
+    if (dst->est_type_enum()) {
+        auto type_énum = dst->comme_type_enum();
+        dst = type_énum->type_sous_jacent;
+    }
+
+    if (src->est_type_entier_naturel()) {
+        if (dst->est_type_entier_naturel()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_NATUREL;
+            }
+
+            return TypeTranstypage::DIMINUE_NATUREL;
+        }
+
+        if (dst->est_type_entier_relatif()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF;
+            }
+
+            return TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF;
+        }
+
+        if (dst->est_type_bool()) {
+            return TypeTranstypage::DIMINUE_NATUREL;
+        }
+    }
+
+    if (src->est_type_entier_relatif()) {
+        if (dst->est_type_entier_relatif()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF;
+            }
+
+            return TypeTranstypage::DIMINUE_RELATIF;
+        }
+
+        if (dst->est_type_entier_naturel()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL;
+            }
+
+            return TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL;
+        }
+
+        if (dst->est_type_bool()) {
+            return TypeTranstypage::DIMINUE_RELATIF;
+        }
+    }
+
+    assert_rappel(false, [&]() {
+        dbg() << "Type transtypage défaut non-géré : " << chaine_type(src_originale) << " -> "
+              << chaine_type(dst_originale);
+    });
+
+    return TypeTranstypage::BITS;
+}
+
 void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                                        Atome *valeur,
                                        TransformationType const &transformation,
@@ -2503,53 +2582,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             auto type_valeur = valeur->type;
             auto type_cible = transformation.type_cible;
-            auto type_transtypage = TypeTranstypage::DEFAUT;
-
-            // À FAIRE(transtypage) : tous les cas
-            if (type_cible->est_type_entier_naturel()) {
-                if (type_valeur->est_type_enum()) {
-                    type_valeur = type_valeur->comme_type_enum()->type_sous_jacent;
-
-                    if (type_valeur->taille_octet < type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
-                    }
-                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
-                    }
-                }
-                else if (type_valeur->est_type_erreur()) {
-                    type_valeur = type_valeur->comme_type_erreur()->type_sous_jacent;
-
-                    if (type_valeur->taille_octet < type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
-                    }
-                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
-                    }
-                }
-            }
-            else if (type_cible->est_type_entier_relatif()) {
-                if (type_valeur->est_type_enum()) {
-                    type_valeur = type_valeur->comme_type_enum()->type_sous_jacent;
-
-                    if (type_valeur->taille_octet < type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
-                    }
-                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
-                    }
-                }
-                else if (type_valeur->est_type_erreur()) {
-                    type_valeur = type_valeur->comme_type_erreur()->type_sous_jacent;
-
-                    if (type_valeur->taille_octet < type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
-                    }
-                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
-                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
-                    }
-                }
-            }
+            auto type_transtypage = donne_type_transtypage_pour_défaut(type_valeur, type_cible);
 
             valeur = m_constructrice.crée_transtype(noeud, type_cible, valeur, type_transtypage);
             break;
