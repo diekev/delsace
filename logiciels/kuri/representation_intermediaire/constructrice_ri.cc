@@ -2177,6 +2177,29 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
+            if (taille_tableau == 1) {
+                /* Crée une temporaire scalaire. */
+                auto tmp = m_constructrice.crée_allocation(noeud, noeud->type, nullptr);
+                auto expression = noeud_tableau->expressions[0];
+                génère_ri_pour_expression_droite(expression, tmp);
+
+                /* Crée un tableau dynamique. */
+                auto type_tableau_dyn = m_compilatrice.typeuse.type_tableau_dynamique(noeud->type);
+                auto alloc_tableau_dyn = m_constructrice.crée_allocation(
+                    noeud, type_tableau_dyn, nullptr);
+
+                /* Le pointeur du tableau doit être vers la temporaire. */
+                auto ptr_pointeur_donnees = m_constructrice.crée_référence_membre(
+                    noeud, alloc_tableau_dyn, 0);
+                m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_donnees, tmp);
+
+                auto ptr_taille = m_constructrice.crée_référence_membre(
+                    noeud, alloc_tableau_dyn, 1);
+                m_constructrice.crée_stocke_mem(noeud, ptr_taille, m_constructrice.crée_z64(1));
+                empile_valeur(alloc_tableau_dyn);
+                return;
+            }
+
             auto type_tableau_fixe = m_compilatrice.typeuse.type_tableau_fixe(noeud->type,
                                                                               taille_tableau);
             auto pointeur_tableau = m_constructrice.crée_allocation(
