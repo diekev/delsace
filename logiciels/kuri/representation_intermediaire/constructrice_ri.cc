@@ -3118,6 +3118,11 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
         }
 
         m_constructrice.insère_label(label_si_faux);
+
+        if (gen_tente.type_variable->est_type_rien()) {
+            return;
+        }
+
         valeur_expression = m_constructrice.crée_référence_membre(noeud, valeur_union, 0);
         valeur_expression = m_constructrice.crée_transtype(
             noeud,
