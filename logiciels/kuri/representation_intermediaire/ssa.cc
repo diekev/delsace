@@ -7,6 +7,7 @@
 
 #include "utilitaires/algorithmes.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/type_opaque.hh"
 
 #include "parsage/identifiant.hh"
 
@@ -30,17 +31,26 @@
 
 namespace SSA {
 
+CREE_TYPE_OPAQUE(index_table_utilisateur, int32_t);
+static const index_table_utilisateur index_utilisateur_invalide = index_table_utilisateur(-1);
+
+CREE_TYPE_OPAQUE(index_table_bloc, int32_t);
+static const index_table_bloc index_bloc_invalide = index_table_bloc(-1);
+
+CREE_TYPE_OPAQUE(index_table_relation, int32_t);
+static const index_table_relation index_relation_invalide = index_table_relation(-1);
+
 struct TablesDesRelations {
     struct Index {
-        int32_t premier_utilisateur = -1;
-        int32_t premier_bloc = -1;
+        index_table_utilisateur premier_utilisateur = index_utilisateur_invalide;
+        index_table_bloc premier_bloc = index_bloc_invalide;
     };
     kuri::tableau<Index, int32_t> m_index{};
 
     struct UtilisateurValeur {
         Valeur *utilisateur = nullptr;
-        int32_t précédent = -1;
-        int32_t suivant = -1;
+        index_table_utilisateur précédent = index_utilisateur_invalide;
+        index_table_utilisateur suivant = index_utilisateur_invalide;
     };
     kuri::tableau<UtilisateurValeur, int32_t> m_utilisateurs{};
 
@@ -57,10 +67,10 @@ struct TablesDesRelations {
     void supprime_utilisateur(Valeur *utilisée, const Valeur *par);
 
   private:
-    int32_t donne_index_pour_valeur(Valeur *valeur);
+    index_table_relation donne_index_pour_valeur(Valeur *valeur);
 
     void déconnecte(UtilisateurValeur *utilisateur);
-    void supprime_utilisateur(int32_t index, const Valeur *par);
+    void supprime_utilisateur(index_table_relation index, const Valeur *par);
 };
 
 #define ENUMERE_GENRE_VALEUR_SSA(O)                                                               \
@@ -158,7 +168,7 @@ struct Valeur {
     GenreValeur genre{};
     DrapeauxValeur drapeaux = DrapeauxValeur::ZÉRO;
     uint32_t numéro = 0;
-    int32_t index_relations = -1;
+    index_table_relation index_relations = index_relation_invalide;
 
     ENUMERE_GENRE_VALEUR_SSA(DECLARE_FONCTIONS_DISCRIMINATION)
 
@@ -1521,26 +1531,26 @@ void TablesDesRelations::remplace_ou_ajoute_utilisateur(Valeur *utilisée,
 
 void TablesDesRelations::ajoute_utilisateur(Valeur *utilisée, Valeur *par)
 {
-    int32_t index_données_utilisée = donne_index_pour_valeur(utilisée);
+    auto index_données_utilisée = donne_index_pour_valeur(utilisée);
 
-    auto &index = m_index[index_données_utilisée];
+    auto &index = m_index[int32_t(index_données_utilisée)];
 
-    auto info = UtilisateurValeur{par, -1, -1};
+    auto info = UtilisateurValeur{par, index_utilisateur_invalide, index_utilisateur_invalide};
 
-    if (index.premier_utilisateur == -1) {
+    if (index.premier_utilisateur == index_utilisateur_invalide) {
         /* Insère un nouvelle utilisateur. */
-        index.premier_utilisateur = m_utilisateurs.taille();
+        index.premier_utilisateur = index_table_utilisateur(m_utilisateurs.taille());
     }
     else {
         /* Trouve le dernier utilisateur. */
-        auto utilisateur = &m_utilisateurs[index.premier_utilisateur];
+        auto utilisateur = &m_utilisateurs[int32_t(index.premier_utilisateur)];
         info.précédent = index.premier_utilisateur;
-        while (utilisateur->suivant != -1) {
+        while (utilisateur->suivant != index_utilisateur_invalide) {
             info.précédent = utilisateur->suivant;
-            utilisateur = &m_utilisateurs[utilisateur->suivant];
+            utilisateur = &m_utilisateurs[int32_t(utilisateur->suivant)];
         }
 
-        utilisateur->suivant = m_utilisateurs.taille();
+        utilisateur->suivant = index_table_utilisateur(m_utilisateurs.taille());
     }
 
     // dbg() << __func__ << " : "
@@ -1552,21 +1562,22 @@ void TablesDesRelations::ajoute_utilisateur(Valeur *utilisée, Valeur *par)
 bool TablesDesRelations::est_utilisée(const Valeur *valeur) const
 {
     auto const index_données_utilisation = valeur->index_relations;
-    if (index_données_utilisation == -1) {
+    if (index_données_utilisation == index_relation_invalide) {
         return false;
     }
-    return m_index[index_données_utilisation].premier_utilisateur != -1;
+    return m_index[int32_t(index_données_utilisation)].premier_utilisateur !=
+           index_utilisateur_invalide;
 }
 
 void TablesDesRelations::supprime(const Valeur *valeur)
 {
     /* Supprime la valeur de la liste des utilisateurs des valeurs qu'elle utilise. */
     for (int i = 0; i < m_index.taille(); i++) {
-        if (m_index[i].premier_utilisateur == -1) {
+        if (m_index[i].premier_utilisateur == index_utilisateur_invalide) {
             continue;
         }
 
-        supprime_utilisateur(i, valeur);
+        supprime_utilisateur(index_table_relation(i), valeur);
     }
 }
 
@@ -1576,17 +1587,17 @@ kuri::tablet<Valeur *, 6> TablesDesRelations::donne_utilisateurs(const Valeur *v
 
     auto const index_données_utilisation = valeur->index_relations;
     // assert(index_données_utilisation != -1);
-    if (index_données_utilisation == -1) {
+    if (index_données_utilisation == index_relation_invalide) {
         return résultat;
     }
 
-    auto &index = m_index[index_données_utilisation];
+    auto &index = m_index[int32_t(index_données_utilisation)];
 
     auto index_utilisateur = index.premier_utilisateur;
-    while (index_utilisateur != -1) {
-        auto utilisateur = m_utilisateurs[index_utilisateur].utilisateur;
+    while (index_utilisateur != index_utilisateur_invalide) {
+        auto utilisateur = m_utilisateurs[int32_t(index_utilisateur)].utilisateur;
         résultat.ajoute(utilisateur);
-        index_utilisateur = m_utilisateurs[index_utilisateur].suivant;
+        index_utilisateur = m_utilisateurs[int32_t(index_utilisateur)].suivant;
     }
 
     return résultat;
@@ -1594,21 +1605,22 @@ kuri::tablet<Valeur *, 6> TablesDesRelations::donne_utilisateurs(const Valeur *v
 
 void TablesDesRelations::supprime_utilisateur(Valeur *utilisée, Valeur const *par)
 {
-    int32_t index_données_utilisée = utilisée->index_relations;
-    assert(index_données_utilisée);
+    auto index_données_utilisée = utilisée->index_relations;
+    assert(index_données_utilisée != index_relation_invalide);
     supprime_utilisateur(index_données_utilisée, par);
 }
 
-void TablesDesRelations::supprime_utilisateur(int32_t index_données_utilisée, Valeur const *par)
+void TablesDesRelations::supprime_utilisateur(index_table_relation index_données_utilisée,
+                                              Valeur const *par)
 {
-    auto &index = m_index[index_données_utilisée];
+    auto &index = m_index[int32_t(index_données_utilisée)];
 
-    kuri::tablet<int32_t, 6> index_libres{};
+    kuri::tablet<index_table_utilisateur, 6> index_libres{};
 
     auto index_utilisateur = index.premier_utilisateur;
-    assert(index_utilisateur != -1);
-    while (index_utilisateur != -1) {
-        auto utilisateur = &m_utilisateurs[index_utilisateur];
+    assert(index_utilisateur != index_utilisateur_invalide);
+    while (index_utilisateur != index_utilisateur_invalide) {
+        auto utilisateur = &m_utilisateurs[int32_t(index_utilisateur)];
         auto sauvegarde = index_utilisateur;
         index_utilisateur = utilisateur->suivant;
 
@@ -1631,28 +1643,28 @@ void TablesDesRelations::supprime_utilisateur(int32_t index_données_utilisée, 
 
 void TablesDesRelations::déconnecte(UtilisateurValeur *utilisateur)
 {
-    if (utilisateur->précédent != -1) {
-        auto précédent = &m_utilisateurs[utilisateur->précédent];
+    if (utilisateur->précédent != index_utilisateur_invalide) {
+        auto précédent = &m_utilisateurs[int32_t(utilisateur->précédent)];
         précédent->suivant = utilisateur->suivant;
     }
 
-    if (utilisateur->suivant != -1) {
-        auto suivant = &m_utilisateurs[utilisateur->suivant];
+    if (utilisateur->suivant != index_utilisateur_invalide) {
+        auto suivant = &m_utilisateurs[int32_t(utilisateur->suivant)];
         suivant->précédent = utilisateur->précédent;
     }
 
     utilisateur->utilisateur = nullptr;
-    utilisateur->précédent = -1;
-    utilisateur->suivant = -1;
+    utilisateur->précédent = index_utilisateur_invalide;
+    utilisateur->suivant = index_utilisateur_invalide;
 }
 
-int32_t TablesDesRelations::donne_index_pour_valeur(Valeur *valeur)
+index_table_relation TablesDesRelations::donne_index_pour_valeur(Valeur *valeur)
 {
-    if (valeur->index_relations != -1) {
+    if (valeur->index_relations != index_relation_invalide) {
         return valeur->index_relations;
     }
 
-    valeur->index_relations = m_index.taille();
+    valeur->index_relations = index_table_relation(m_index.taille());
     m_index.ajoute({});
     return valeur->index_relations;
 }
