@@ -4469,11 +4469,9 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(
 
     auto index = 0ul;
     POUR (feuilles->expressions) {
-        génère_ri_pour_expression_droite(it, nullptr);
-        auto valeur = depile_valeur();
         auto index_tableau = m_constructrice.crée_accès_index(
             expr, pointeur_tableau, m_constructrice.crée_z64(index++));
-        m_constructrice.crée_stocke_mem(expr, index_tableau, valeur);
+        génère_ri_pour_expression_droite(it, index_tableau);
     }
 
     empile_valeur(pointeur_tableau);
