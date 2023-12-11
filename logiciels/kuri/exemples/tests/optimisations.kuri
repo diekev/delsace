@@ -13,6 +13,7 @@ principale :: fonc () -> z32
     assert(boucle_pour_sur_tableau_fixe() == 15)
     assert(condition_constante_redondante() == 1)
     forme_statique_à_affectation_unique()
+    fonction_avec_imprime()
     retourne 0
 }
 
@@ -39,7 +40,7 @@ constantes_sans_branches :: fonc () -> z32
     retourne y * (28 / x + 2)
 }
 
-boucle_pour_sur_scalaire :: fonc () -> z32 #fsau
+boucle_pour_sur_scalaire :: fonc () -> z32
 {
     a := 0
     pour 15 {
@@ -89,4 +90,9 @@ forme_statique_à_affectation_unique :: fonc ()
 
     w = x - y
     z := x + y
+}
+
+fonction_avec_imprime :: fonc () #fsau
+{
+    imprime("% % % % %\n", 1, 3.5, "Seattle", 9, 1)
 }
