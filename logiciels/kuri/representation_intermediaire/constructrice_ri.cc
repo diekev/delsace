@@ -2517,7 +2517,10 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
-            auto alloc = m_constructrice.crée_allocation(noeud, type_union, nullptr);
+            auto alloc = place;
+            if (!alloc) {
+                alloc = m_constructrice.crée_allocation(noeud, type_union, nullptr);
+            }
 
             if (type_union->est_nonsure) {
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);
@@ -2555,7 +2558,12 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 m_constructrice.crée_stocke_mem(noeud, acces_membre, index);
             }
 
-            valeur = m_constructrice.crée_charge_mem(noeud, alloc);
+            if (place == nullptr) {
+                valeur = m_constructrice.crée_charge_mem(noeud, alloc);
+            }
+            else {
+                place_fut_utilisee = true;
+            }
             break;
         }
         case TypeTransformation::EXTRAIT_UNION:
@@ -2868,9 +2876,10 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 }
             }
 
-            /* alloue de l'espace pour ce type */
-            auto tabl_octet = m_constructrice.crée_allocation(
-                noeud, TypeBase::TABL_OCTET, nullptr);
+            auto tabl_octet = place;
+            if (!tabl_octet) {
+                tabl_octet = m_constructrice.crée_allocation(noeud, TypeBase::TABL_OCTET, nullptr);
+            }
 
             auto pointeur_tabl_octet = m_constructrice.crée_référence_membre(noeud, tabl_octet, 0);
             m_constructrice.crée_stocke_mem(noeud, pointeur_tabl_octet, valeur_pointeur);
@@ -2878,7 +2887,13 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             auto taille_tabl_octet = m_constructrice.crée_référence_membre(noeud, tabl_octet, 1);
             m_constructrice.crée_stocke_mem(noeud, taille_tabl_octet, valeur_taille);
 
-            valeur = m_constructrice.crée_charge_mem(noeud, tabl_octet);
+            if (!place) {
+                valeur = m_constructrice.crée_charge_mem(noeud, tabl_octet);
+            }
+            else {
+                place_fut_utilisee = true;
+            }
+
             break;
         }
         case TypeTransformation::CONVERTI_TABLEAU:
