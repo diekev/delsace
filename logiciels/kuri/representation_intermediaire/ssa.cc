@@ -78,6 +78,7 @@ struct TablesDesRelations {
     O(CONSTANTE, ValeurConstante, constante)                                                      \
     O(FONCTION, ValeurFonction, fonction)                                                         \
     O(GLOBALE, ValeurGlobale, globale)                                                            \
+    O(LOCALE, ValeurLocale, locale)                                                               \
     O(APPEL, ValeurAppel, appel)                                                                  \
     O(ACCÈS_MEMBRE, ValeurAccèdeMembre, accès_membre)                                             \
     O(ACCÈS_INDEX, ValeurAccèdeIndex, accès_index)                                                \
@@ -85,8 +86,7 @@ struct TablesDesRelations {
     O(OPÉRATEUR_UNAIRE, ValeurOpérateurUnaire, opérateur_unaire)                                  \
     O(BRANCHE, ValeurBranche, branche)                                                            \
     O(BRANCHE_COND, ValeurBrancheCond, branche_cond)                                              \
-    O(RETOUR, ValeurRetour, retour)                                                               \
-    O(PHI, NoeudPhi, phi)
+    O(RETOUR, ValeurRetour, retour) O(PHI, NoeudPhi, phi)
 
 enum class GenreValeur : uint8_t {
 #define ENUMERE_GENRE_VALEUR_SSA_EX(genre, nom_classe, ident) genre,
@@ -201,6 +201,13 @@ struct NoeudPhi : public Valeur {
 
 struct ValeurIndéfinie : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurIndéfinie, INDÉFINIE);
+};
+
+struct ValeurLocale : public Valeur {
+    CONSTRUCTEUR_VALEUR(ValeurLocale, LOCALE);
+
+    InstructionAllocation const *alloc = nullptr;
+    MEMBRE_VALEUR(valeur)
 };
 
 struct ValeurBranche : public Valeur {
@@ -366,6 +373,13 @@ void NoeudPhi::remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilis
             retour->définis_valeur(table, par);
             break;
         }
+        case GenreValeur::LOCALE:
+        {
+            auto locale = utilisateur->comme_locale();
+            assert(locale->donne_valeur() == this);
+            locale->définis_valeur(table, par);
+            break;
+        }
         case GenreValeur::ACCÈS_MEMBRE:
         {
             auto accès_membre = utilisateur->comme_accès_membre();
@@ -462,6 +476,12 @@ static void visite_valeur(Valeur *valeur,
             visite_valeur(retour->donne_valeur(), visitées, rappel);
             break;
         }
+        case GenreValeur::LOCALE:
+        {
+            auto locale = valeur->comme_locale();
+            visite_valeur(locale->donne_valeur(), visitées, rappel);
+            break;
+        }
         case GenreValeur::ACCÈS_MEMBRE:
         {
             auto accès_membre = valeur->comme_accès_membre();
@@ -529,6 +549,12 @@ static void visite_opérande(Valeur *valeur, std::function<void(Valeur *)> const
         {
             auto retour = valeur->comme_retour();
             rappel(retour->donne_valeur());
+            break;
+        }
+        case GenreValeur::LOCALE:
+        {
+            auto locale = valeur->comme_locale();
+            rappel(locale->donne_valeur());
             break;
         }
         case GenreValeur::ACCÈS_MEMBRE:
@@ -634,6 +660,15 @@ static void imprime_valeur(Valeur const *valeur, Enchaineuse &sortie)
         {
             auto constante = valeur->comme_constante();
             sortie << imprime_atome(constante->atome);
+            break;
+        }
+        case GenreValeur::LOCALE:
+        {
+            auto locale = valeur->comme_locale();
+            auto alloc = locale->alloc;
+            imprime_nom_valeur(locale->donne_valeur(), sortie);
+
+            sortie << " (" << (alloc->ident ? alloc->ident->nom : "tmp") << ")";
             break;
         }
         case GenreValeur::BRANCHE:
@@ -760,6 +795,7 @@ struct ConvertisseuseSSA {
     tableau_page<SSA::ValeurBranche> m_branches{};
     tableau_page<SSA::ValeurBrancheCond> m_branches_cond{};
     tableau_page<SSA::NoeudPhi> m_noeuds_phi{};
+    tableau_page<SSA::ValeurLocale> m_locales{};
 
     ConstructriceRI &m_constructrice;
 
@@ -1161,8 +1197,24 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto stocke = inst->comme_stocke_mem();
+            auto destination = stocke->ou;
             auto valeur_stockée = donne_valeur_pour_atome(bloc, stocke->valeur);
-            writeVariable(stocke->ou, bloc, valeur_stockée);
+
+            if (destination->est_instruction()) {
+                auto inst_dest = destination->comme_instruction();
+                if (inst_dest->est_alloc()) {
+                    auto alloc = inst_dest->comme_alloc();
+                    dbg() << "Nouvelle version de " << (alloc->ident ? alloc->ident->nom : "tmp");
+
+                    auto locale = m_locales.ajoute_element();
+                    locale->alloc = alloc;
+                    locale->définis_valeur(m_table_relations, valeur_stockée);
+                    ajoute_valeur_au_bloc(locale, bloc);
+                    valeur_stockée = locale;
+                }
+            }
+
+            writeVariable(destination, bloc, valeur_stockée);
             break;
         }
         case GenreInstruction::RETOUR:
