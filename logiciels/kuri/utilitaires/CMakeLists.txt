@@ -17,6 +17,7 @@ set(SOURCES
     log.cc
     macros.cc
     poule_de_taches.cc
+    type_opaque.cc
 
     algorithmes.hh
     calcul.hh
@@ -24,6 +25,7 @@ set(SOURCES
     log.hh
     macros.hh
     poule_de_taches.hh
+    type_opaque.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
