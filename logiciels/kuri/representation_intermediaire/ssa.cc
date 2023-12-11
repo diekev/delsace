@@ -79,9 +79,11 @@ struct TablesDesRelations {
     O(FONCTION, ValeurFonction, fonction)                                                         \
     O(GLOBALE, ValeurGlobale, globale)                                                            \
     O(LOCALE, ValeurLocale, locale)                                                               \
+    O(ADRESSE_DE, ValeurAdresseDe, adresse_de)                                                    \
     O(APPEL, ValeurAppel, appel)                                                                  \
     O(ACCÈS_MEMBRE, ValeurAccèdeMembre, accès_membre)                                             \
     O(ACCÈS_INDEX, ValeurAccèdeIndex, accès_index)                                                \
+    O(ÉCRIS_INDEX, ValeurÉcrisIndex, écris_index)                                                 \
     O(OPÉRATEUR_BINAIRE, ValeurOpérateurBinaire, opérateur_binaire)                               \
     O(OPÉRATEUR_UNAIRE, ValeurOpérateurUnaire, opérateur_unaire)                                  \
     O(BRANCHE, ValeurBranche, branche)                                                            \
@@ -139,15 +141,17 @@ ENUMERE_GENRE_VALEUR_SSA(PRODECLARE_VALEURS)
     nom_classe *comme_##ident();                                                                  \
     nom_classe const *comme_##ident() const;
 
-#define DEFINIS_FONCTIONS_DISCRIMINATION(genre, nom_classe, ident)                                \
+#define DEFINIS_FONCTIONS_DISCRIMINATION(genre_, nom_classe, ident)                               \
     nom_classe *Valeur::comme_##ident()                                                           \
     {                                                                                             \
-        assert(est_##ident());                                                                    \
+        assert_rappel(est_##ident(),                                                              \
+                      [&]() { dbg() << "La valeur est de genre " << this->genre; });              \
         return static_cast<nom_classe *>(this);                                                   \
     }                                                                                             \
     nom_classe const *Valeur::comme_##ident() const                                               \
     {                                                                                             \
-        assert(est_##ident());                                                                    \
+        assert_rappel(est_##ident(),                                                              \
+                      [&]() { dbg() << "La valeur est de genre " << this->genre; });              \
         return static_cast<nom_classe const *>(this);                                             \
     }
 
@@ -162,8 +166,41 @@ enum class DrapeauxValeur : uint8_t {
     ZÉRO,
     EST_UTILISÉE = (1u << 0),
     PARTICIPE_AU_FLOT_DU_PROGRAMME = (1u << 1),
+    /* Pour les accès index ou membre qui ne crée pas de nouvelle valeur mais qui modifie
+     * simplement leurs accédés. */
+    NE_PRODUIS_PAS_DE_VALEUR = (1u << 2),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxValeur)
+
+static std::ostream &operator<<(std::ostream &os, DrapeauxValeur drapeaux)
+{
+    if (drapeaux == DrapeauxValeur::ZÉRO) {
+        os << "AUCUN";
+        return os;
+    }
+
+#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
+    if ((drapeaux & DrapeauxValeur::drapeau) != DrapeauxValeur::ZÉRO) {                           \
+        identifiants.ajoute(#drapeau);                                                            \
+    }
+
+    kuri::tablet<kuri::chaine_statique, 32> identifiants;
+
+    SI_DRAPEAU_UTILISE(EST_UTILISÉE)
+    SI_DRAPEAU_UTILISE(PARTICIPE_AU_FLOT_DU_PROGRAMME)
+    SI_DRAPEAU_UTILISE(NE_PRODUIS_PAS_DE_VALEUR)
+
+    auto virgule = "";
+
+    POUR (identifiants) {
+        os << virgule << it;
+        virgule = " | ";
+    }
+
+#undef SI_DRAPEAU_UTILISE
+
+    return os;
+}
 
 struct Valeur {
     GenreValeur genre{};
@@ -177,6 +214,16 @@ struct Valeur {
     {
         return this->est_branche() || this->est_branche_cond() || this->est_retour();
     }
+
+    void replaceBy(TablesDesRelations &table, Valeur *valeur);
+
+    inline bool possède_drapeau(DrapeauxValeur drapeau) const
+    {
+        return (drapeaux & drapeau) != DrapeauxValeur::ZÉRO;
+    }
+
+  private:
+    void remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilisateur, Valeur *par);
 };
 
 #undef DECLARE_FONCTIONS_DISCRIMINATION
@@ -193,11 +240,6 @@ struct NoeudPhi : public Valeur {
 
     [[nodiscard]] kuri::tableau<Valeur *> supprime_utilisateur(TablesDesRelations &table,
                                                                Valeur *utilisateur);
-
-    void replaceBy(TablesDesRelations &table, Valeur *valeur);
-
-  private:
-    void remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilisateur, Valeur *par);
 };
 
 struct ValeurIndéfinie : public Valeur {
@@ -209,6 +251,13 @@ struct ValeurLocale : public Valeur {
 
     InstructionAllocation const *alloc = nullptr;
     MEMBRE_VALEUR(valeur)
+};
+
+struct ValeurAdresseDe : public Valeur {
+    CONSTRUCTEUR_VALEUR(ValeurAdresseDe, ADRESSE_DE);
+
+    Atome const *de = nullptr;
+    MEMBRE_VALEUR(valeur);
 };
 
 struct ValeurBranche : public Valeur {
@@ -275,6 +324,14 @@ struct ValeurAccèdeIndex : public Valeur {
     MEMBRE_VALEUR(index)
 };
 
+struct ValeurÉcrisIndex : public Valeur {
+    CONSTRUCTEUR_VALEUR(ValeurÉcrisIndex, ÉCRIS_INDEX);
+
+    MEMBRE_VALEUR(accédée)
+    MEMBRE_VALEUR(index)
+    MEMBRE_VALEUR(valeur);
+};
+
 struct ValeurAppel : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurAppel, APPEL);
 
@@ -334,7 +391,7 @@ kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TablesDesRelations &table
     return résultat;
 }
 
-void NoeudPhi::replaceBy(TablesDesRelations &table, Valeur *valeur)
+void Valeur::replaceBy(TablesDesRelations &table, Valeur *valeur)
 {
     auto utilisateurs = table.donne_utilisateurs(this);
     // dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
@@ -349,7 +406,7 @@ void NoeudPhi::replaceBy(TablesDesRelations &table, Valeur *valeur)
     table.supprime(this);
 }
 
-void NoeudPhi::remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilisateur, Valeur *par)
+void Valeur::remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilisateur, Valeur *par)
 {
     switch (utilisateur->genre) {
         case GenreValeur::INDÉFINIE:
@@ -381,6 +438,13 @@ void NoeudPhi::remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilis
             locale->définis_valeur(table, par);
             break;
         }
+        case GenreValeur::ADRESSE_DE:
+        {
+            auto adresse_de = utilisateur->comme_adresse_de();
+            assert(adresse_de->donne_valeur() == this);
+            adresse_de->définis_valeur(table, par);
+            break;
+        }
         case GenreValeur::ACCÈS_MEMBRE:
         {
             auto accès_membre = utilisateur->comme_accès_membre();
@@ -396,6 +460,20 @@ void NoeudPhi::remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilis
             }
             if (accès_index->donne_index() == this) {
                 accès_index->définis_index(table, par);
+            }
+            break;
+        }
+        case GenreValeur::ÉCRIS_INDEX:
+        {
+            auto écris_index = utilisateur->comme_écris_index();
+            if (écris_index->donne_accédée() == this) {
+                écris_index->définis_accédée(table, par);
+            }
+            if (écris_index->donne_index() == this) {
+                écris_index->définis_index(table, par);
+            }
+            if (écris_index->donne_valeur() == this) {
+                écris_index->définis_valeur(table, par);
             }
             break;
         }
@@ -483,6 +561,12 @@ static void visite_valeur(Valeur *valeur,
             visite_valeur(locale->donne_valeur(), visitées, rappel);
             break;
         }
+        case GenreValeur::ADRESSE_DE:
+        {
+            auto adresse_de = valeur->comme_adresse_de();
+            visite_valeur(adresse_de->donne_valeur(), visitées, rappel);
+            break;
+        }
         case GenreValeur::ACCÈS_MEMBRE:
         {
             auto accès_membre = valeur->comme_accès_membre();
@@ -494,6 +578,14 @@ static void visite_valeur(Valeur *valeur,
             auto accès_index = valeur->comme_accès_index();
             visite_valeur(accès_index->donne_accédée(), visitées, rappel);
             visite_valeur(accès_index->donne_index(), visitées, rappel);
+            break;
+        }
+        case GenreValeur::ÉCRIS_INDEX:
+        {
+            auto écris_index = valeur->comme_écris_index();
+            visite_valeur(écris_index->donne_accédée(), visitées, rappel);
+            visite_valeur(écris_index->donne_index(), visitées, rappel);
+            visite_valeur(écris_index->donne_valeur(), visitées, rappel);
             break;
         }
         case GenreValeur::APPEL:
@@ -558,6 +650,12 @@ static void visite_opérande(Valeur *valeur, std::function<void(Valeur *)> const
             rappel(locale->donne_valeur());
             break;
         }
+        case GenreValeur::ADRESSE_DE:
+        {
+            auto adresse_de = valeur->comme_adresse_de();
+            rappel(adresse_de->donne_valeur());
+            break;
+        }
         case GenreValeur::ACCÈS_MEMBRE:
         {
             auto accès_membre = valeur->comme_accès_membre();
@@ -569,6 +667,14 @@ static void visite_opérande(Valeur *valeur, std::function<void(Valeur *)> const
             auto accès_index = valeur->comme_accès_index();
             rappel(accès_index->donne_accédée());
             rappel(accès_index->donne_index());
+            break;
+        }
+        case GenreValeur::ÉCRIS_INDEX:
+        {
+            auto écris_index = valeur->comme_écris_index();
+            rappel(écris_index->donne_accédée());
+            rappel(écris_index->donne_index());
+            rappel(écris_index->donne_valeur());
             break;
         }
         case GenreValeur::APPEL:
@@ -637,7 +743,8 @@ static void imprime_tableau(kuri::tableau_statique<Valeur *> tableau,
 
 static void imprime_valeur(Valeur const *valeur, Enchaineuse &sortie)
 {
-    if (valeur->numéro != 0) {
+    if (valeur->numéro != 0 &&
+        !valeur->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
         sortie << "v" << valeur->numéro << " = ";
     }
 
@@ -670,6 +777,13 @@ static void imprime_valeur(Valeur const *valeur, Enchaineuse &sortie)
             imprime_nom_valeur(locale->donne_valeur(), sortie);
 
             sortie << " (" << (alloc->ident ? alloc->ident->nom : "tmp") << ")";
+            break;
+        }
+        case GenreValeur::ADRESSE_DE:
+        {
+            auto adresse_de = valeur->comme_adresse_de();
+            sortie << "adresse_de ";
+            imprime_nom_valeur(adresse_de->donne_valeur(), sortie);
             break;
         }
         case GenreValeur::BRANCHE:
@@ -714,6 +828,18 @@ static void imprime_valeur(Valeur const *valeur, Enchaineuse &sortie)
             sortie << "]";
             break;
         }
+        case GenreValeur::ÉCRIS_INDEX:
+        {
+            auto écris_index = valeur->comme_écris_index();
+            sortie << "écris_index(";
+            imprime_nom_valeur(écris_index->donne_accédée(), sortie);
+            sortie << ", ";
+            imprime_nom_valeur(écris_index->donne_index(), sortie);
+            sortie << ", ";
+            imprime_nom_valeur(écris_index->donne_valeur(), sortie);
+            sortie << ")";
+            break;
+        }
         case GenreValeur::APPEL:
         {
             auto appel = valeur->comme_appel();
@@ -754,6 +880,7 @@ static kuri::chaine imprime_valeurs(kuri::tableau_statique<Valeur *> valeurs)
     POUR (valeurs) {
         sortie << "  ";
         imprime_valeur(it, sortie);
+        // sortie << " [" << it->drapeaux << "]";
         sortie << "\n";
     }
 
@@ -797,6 +924,10 @@ struct ConvertisseuseSSA {
     tableau_page<SSA::ValeurBrancheCond> m_branches_cond{};
     tableau_page<SSA::NoeudPhi> m_noeuds_phi{};
     tableau_page<SSA::ValeurLocale> m_locales{};
+    tableau_page<SSA::ValeurÉcrisIndex> m_écris_index{};
+    tableau_page<SSA::ValeurIndéfinie> m_indéfinies{};
+    tableau_page<SSA::ValeurAdresseDe> m_adresse_de{};
+    tableau_page<SSA::ValeurAccèdeIndex> m_accès_index{};
 
     ConstructriceRI &m_constructrice;
 
@@ -1133,6 +1264,13 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         }
         case GenreInstruction::ALLOCATION:
         {
+            auto alloc = inst->comme_alloc();
+            auto valeur = m_indéfinies.ajoute_element();
+            auto locale = m_locales.ajoute_element();
+            locale->alloc = alloc;
+            locale->définis_valeur(m_table_relations, valeur);
+            ajoute_valeur_au_bloc(locale, bloc);
+            writeVariable(alloc, bloc, locale);
             break;
         }
         case GenreInstruction::OPERATION_BINAIRE:
@@ -1204,17 +1342,78 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             auto destination = stocke->ou;
             auto valeur_stockée = donne_valeur_pour_atome(bloc, stocke->valeur);
 
+            if (stocke->valeur->est_instruction()) {
+                auto inst_stockée = stocke->valeur->comme_instruction();
+                if (inst_stockée->est_alloc() || inst_stockée->est_acces_index() ||
+                    inst_stockée->est_acces_membre()) {
+                    auto adresse_de = m_adresse_de.ajoute_element();
+                    adresse_de->définis_valeur(m_table_relations, valeur_stockée);
+                    ajoute_valeur_au_bloc(adresse_de, bloc);
+                    valeur_stockée = adresse_de;
+                }
+            }
+
             if (destination->est_instruction()) {
                 auto inst_dest = destination->comme_instruction();
                 if (inst_dest->est_alloc()) {
                     auto alloc = inst_dest->comme_alloc();
-                    dbg() << "Nouvelle version de " << (alloc->ident ? alloc->ident->nom : "tmp");
 
-                    auto locale = m_locales.ajoute_element();
-                    locale->alloc = alloc;
-                    locale->définis_valeur(m_table_relations, valeur_stockée);
-                    ajoute_valeur_au_bloc(locale, bloc);
-                    valeur_stockée = locale;
+                    dbg() << "Cherche alloc " << (alloc->ident ? alloc->ident->nom : "tmp");
+                    auto valeur_alloc = readVariable(alloc, bloc);
+                    if (valeur_alloc->est_locale() &&
+                        valeur_alloc->comme_locale()->donne_valeur()->est_indéfinie()) {
+                        dbg() << "Première version de "
+                              << (alloc->ident ? alloc->ident->nom : "tmp");
+                        valeur_alloc->comme_locale()->définis_valeur(m_table_relations,
+                                                                     valeur_stockée);
+                        valeur_stockée = valeur_alloc;
+                    }
+                    else {
+                        dbg() << "Nouvelle version de "
+                              << (alloc->ident ? alloc->ident->nom : "tmp");
+                        auto locale = m_locales.ajoute_element();
+                        locale->alloc = alloc;
+                        locale->définis_valeur(m_table_relations, valeur_stockée);
+                        ajoute_valeur_au_bloc(locale, bloc);
+                        valeur_stockée = locale;
+                    }
+                }
+                else if (inst_dest->est_acces_index()) {
+                    auto accès_index = inst_dest->comme_acces_index();
+                    if (accès_index->accede->est_instruction()) {
+                        auto inst_accédé = accès_index->accede->comme_instruction();
+                        if (inst_accédé->est_alloc()) {
+                            auto alloc = inst_accédé->comme_alloc();
+                            dbg() << "Nouvelle version de "
+                                  << (alloc->ident ? alloc->ident->nom : "tmp");
+
+                            auto valeur_alloc = readVariable(alloc, bloc);
+                            auto valeur_index = donne_valeur_pour_atome(bloc, accès_index->index);
+
+                            auto écris_index = m_écris_index.ajoute_element();
+                            écris_index->définis_accédée(m_table_relations, valeur_alloc);
+                            écris_index->définis_index(m_table_relations, valeur_index);
+                            écris_index->définis_valeur(m_table_relations, valeur_stockée);
+                            ajoute_valeur_au_bloc(écris_index, bloc);
+
+                            auto locale = m_locales.ajoute_element();
+                            locale->alloc = alloc;
+                            locale->définis_valeur(m_table_relations, écris_index);
+                            ajoute_valeur_au_bloc(locale, bloc);
+                            valeur_stockée = locale;
+
+                            destination = alloc;
+                        }
+                        else {
+                            INSTRUCTION_NON_IMPLEMENTEE;
+                        }
+                    }
+                    else {
+                        INSTRUCTION_NON_IMPLEMENTEE;
+                    }
+                }
+                else {
+                    INSTRUCTION_NON_IMPLEMENTEE;
                 }
             }
 
@@ -1239,7 +1438,15 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         }
         case GenreInstruction::ACCEDE_INDEX:
         {
-            INSTRUCTION_NON_IMPLEMENTEE;
+            auto inst_accès = inst->comme_acces_index();
+            auto valeur_accédée = donne_valeur_pour_atome(bloc, inst_accès->accede);
+            auto valeur_index = donne_valeur_pour_atome(bloc, inst_accès->index);
+
+            auto valeur_accès = m_accès_index.ajoute_element();
+            valeur_accès->définis_accédée(m_table_relations, valeur_accédée);
+            valeur_accès->définis_index(m_table_relations, valeur_index);
+            ajoute_valeur_au_bloc(valeur_accès, bloc);
+            writeVariable(inst_accès, bloc, valeur_accès);
             break;
         }
         case GenreInstruction::TRANSTYPE:
@@ -1270,7 +1477,9 @@ static void numérote_valeurs(FonctionEtBlocs &fonction_et_blocs)
     auto numéro = 1u;
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
-            if (valeur->est_controle_de_flux()) {
+            if (valeur->est_controle_de_flux() ||
+                valeur->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
+                valeur->numéro = 0;
                 continue;
             }
             valeur->numéro = numéro++;
@@ -1497,13 +1706,114 @@ static void supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs)
         }
     }
 
+    /* Deuxième passe pour les index. */
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (!valeur->est_écris_index() ||
+                !valeur->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
+                continue;
+            }
+
+            auto écris_index = valeur->comme_écris_index();
+            auto accédée = écris_index->donne_accédée();
+            if (!accédée->possède_drapeau(DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME)) {
+                continue;
+            }
+
+            valeur->drapeaux |= DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME;
+
+            kuri::ensemble<Valeur *> visitées;
+            visite_valeur(valeur, visitées, [](Valeur *opérande) {
+                opérande->drapeaux |= DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME;
+            });
+        }
+    }
+
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         auto partition = kuri::partition_stable(bloc->valeurs, [](Valeur const *v) {
-            return (v->drapeaux & DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME) !=
-                   DrapeauxValeur::ZÉRO;
+            if (v->possède_drapeau(DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME)) {
+                return true;
+            }
+
+            return false;
         });
 
         bloc->valeurs.redimensionne(partition.vrai.taille());
+    }
+}
+
+static void simplifie_écris_index(SSA::ValeurÉcrisIndex *écris_index, TablesDesRelations &table)
+{
+    if (écris_index->donne_accédée()->est_locale()) {
+        auto locale = écris_index->donne_accédée()->comme_locale();
+        if (locale->donne_valeur()->est_écris_index()) {
+            auto écris_index_précédent = locale->donne_valeur()->comme_écris_index();
+            auto ancêtre_accédé = écris_index_précédent->donne_accédée();
+
+            écris_index->définis_accédée(table, ancêtre_accédé);
+        }
+
+        /* Dans tous les cas nous ne produisons pas de valeurs. */
+        écris_index->drapeaux |= DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR;
+    }
+}
+
+static void simplifie_locale(SSA::ValeurLocale *locale, TablesDesRelations &table)
+{
+    auto valeur_locale = locale->donne_valeur();
+    if (valeur_locale->est_écris_index() &&
+        valeur_locale->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
+        auto écris_index = valeur_locale->comme_écris_index();
+        locale->replaceBy(table, écris_index->donne_accédée());
+    }
+}
+
+static bool est_constante_zéro(SSA::Valeur const *valeur)
+{
+    if (!valeur->est_constante()) {
+        return false;
+    }
+
+    return est_constante_entière_zéro(valeur->comme_constante()->atome);
+}
+
+static void simplifie_accès_index(SSA::ValeurAccèdeIndex *accès_index, TablesDesRelations &table)
+{
+    auto accédée = accès_index->donne_accédée();
+
+    if (accédée->est_adresse_de()) {
+        auto adresse_de = accédée->comme_adresse_de();
+        if (adresse_de->donne_valeur()->est_accès_index()) {
+            auto sous_accès_index = adresse_de->donne_valeur()->comme_accès_index();
+            auto index = sous_accès_index->donne_index();
+            if (est_constante_zéro(index)) {
+                /* À FAIRE : généralise en remplaçant par une addition pour l'index. */
+                /* (&v[0])[idx] -> v[idx] */
+                accès_index->définis_accédée(table, sous_accès_index->donne_accédée());
+            }
+        }
+    }
+}
+
+static void simplifie_accès_index(FonctionEtBlocs &fonction_et_blocs, TablesDesRelations &table)
+{
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (valeur->est_écris_index()) {
+                simplifie_écris_index(valeur->comme_écris_index(), table);
+                continue;
+            }
+
+            if (valeur->est_locale()) {
+                simplifie_locale(valeur->comme_locale(), table);
+                continue;
+            }
+
+            if (valeur->est_accès_index()) {
+                simplifie_accès_index(valeur->comme_accès_index(), table);
+                continue;
+            }
+        }
     }
 }
 
@@ -1526,6 +1836,10 @@ void convertis_ssa(EspaceDeTravail &espace,
 
     kuri::file<Bloc *> blocs;
     blocs.enfile(fonction_et_blocs.blocs[0]);
+
+    /* Insère la valeur de retour dans le premier bloc. */
+    convertisseuse_ssa.crée_valeurs_depuis_instruction(fonction_et_blocs.blocs[0],
+                                                       fonction->param_sortie);
 
     while (!blocs.est_vide()) {
         auto bloc = blocs.defile();
@@ -1572,6 +1886,7 @@ void convertis_ssa(EspaceDeTravail &espace,
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
     détecte_expressions_communes(fonction_et_blocs, table_des_relations);
+    simplifie_accès_index(fonction_et_blocs, table_des_relations);
 
     supprime_valeurs_inutilisées(fonction_et_blocs, table_des_relations);
     supprime_code_inutile(fonction_et_blocs);
@@ -1589,7 +1904,8 @@ void convertis_ssa(EspaceDeTravail &espace,
 
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
-            if (valeur->est_controle_de_flux()) {
+            if (valeur->est_controle_de_flux() ||
+                valeur->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
                 continue;
             }
 
@@ -1597,7 +1913,8 @@ void convertis_ssa(EspaceDeTravail &espace,
 
             dbg() << "v" << valeur->numéro << ", utilisateurs : ";
             POUR (utilisateurs) {
-                if (it->est_controle_de_flux()) {
+                if (it->est_controle_de_flux() ||
+                    it->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
                     dbg() << "-- " << it->genre;
                 }
                 else {
