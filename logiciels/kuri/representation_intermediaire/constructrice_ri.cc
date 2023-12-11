@@ -1198,6 +1198,20 @@ InstructionAllocation *CompilatriceRI::crée_temporaire(NoeudExpression const *s
     return résultat;
 }
 
+void CompilatriceRI::crée_temporaire_ou_mets_dans_place(NoeudExpression const *site_,
+                                                        Atome *source,
+                                                        Atome *place)
+{
+    if (place) {
+        m_constructrice.crée_stocke_mem(site_, place, source);
+        place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+        return;
+    }
+
+    auto alloc = crée_temporaire(site_, source);
+    empile_valeur(alloc);
+}
+
 void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression const *site_,
                                                    Type const *type,
                                                    Atome *argument)
@@ -1261,10 +1275,10 @@ static NoeudExpression *boucle_controlée_effective(NoeudExpression *boucle_cont
     return boucle_controlée;
 }
 
-void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
+void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place)
 {
     if (noeud->substitution) {
-        génère_ri_pour_noeud(noeud->substitution);
+        génère_ri_pour_noeud(noeud->substitution, place);
         return;
     }
 
@@ -1521,23 +1535,29 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             });
 
             auto type_fonction = atome_fonc->type->comme_type_fonction();
-            InstructionAllocation *adresse_retour = nullptr;
+            Atome *adresse_retour = nullptr;
 
             if (!type_fonction->type_sortie->est_type_rien()) {
-                adresse_retour = m_constructrice.crée_allocation(
-                    expr_appel, type_fonction->type_sortie, nullptr);
+                adresse_retour = place;
+                if (!adresse_retour) {
+                    adresse_retour = m_constructrice.crée_allocation(
+                        expr_appel, type_fonction->type_sortie, nullptr);
+                }
             }
 
             auto valeur = m_constructrice.crée_appel(expr_appel, atome_fonc, std::move(args));
-            valeur->adresse_retour = adresse_retour;
 
             if (adresse_retour) {
-                m_constructrice.crée_stocke_mem(noeud, valeur->adresse_retour, valeur);
-                empile_valeur(adresse_retour);
+                m_constructrice.crée_stocke_mem(noeud, adresse_retour, valeur);
+                if (adresse_retour != place) {
+                    empile_valeur(adresse_retour);
+                }
+                else {
+                    place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+                }
                 return;
             }
 
-            empile_valeur(valeur);
             break;
         }
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
@@ -1616,11 +1636,13 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         auto &transformation = it.transformations[i];
                         génère_ri_pour_noeud(var);
                         auto pointeur = depile_valeur();
+                        /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
+                         */
+                        pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
 
                         auto valeur = m_constructrice.crée_référence_membre(
                             expression, valeur_tuple, i);
                         transforme_valeur(expression, valeur, transformation, pointeur);
-                        depile_valeur();
                     }
                 }
                 else {
@@ -1631,9 +1653,11 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                         auto &transformation = it.transformations[i];
                         génère_ri_pour_noeud(var);
                         auto pointeur = depile_valeur();
+                        /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
+                         */
+                        pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
 
                         transforme_valeur(expression, valeur, transformation, pointeur);
-                        depile_valeur();
                     }
                 }
             }
@@ -1691,8 +1715,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            auto alloc = crée_temporaire(noeud, constante);
-            empile_valeur(alloc);
+            crée_temporaire_ou_mets_dans_place(noeud, constante, place);
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
@@ -1725,13 +1748,12 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             auto resultat = m_constructrice.crée_op_binaire(
                 noeud, noeud->type, expr_bin->op->genre, valeur_gauche, valeur_droite);
 
-            auto alloc = crée_temporaire(noeud, resultat);
-            empile_valeur(alloc);
+            crée_temporaire_ou_mets_dans_place(noeud, resultat, place);
             break;
         }
         case GenreNoeud::EXPRESSION_LOGIQUE:
         {
-            génère_ri_pour_expression_logique(noeud->comme_expression_logique(), nullptr);
+            génère_ri_pour_expression_logique(noeud->comme_expression_logique(), place);
             break;
         }
         case GenreNoeud::EXPRESSION_INDEXAGE:
@@ -2159,9 +2181,18 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 break;
             }
 
-            auto alloc = m_constructrice.crée_allocation(noeud, inst->type, nullptr);
+            auto alloc = place;
+            if (!alloc) {
+                alloc = m_constructrice.crée_allocation(noeud, inst->type, nullptr);
+            }
+
             génère_ri_transformee_pour_noeud(expr, alloc, inst->transformation);
-            empile_valeur(alloc);
+            if (alloc != place) {
+                empile_valeur(alloc);
+            }
+            else {
+                place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+            }
             break;
         }
         case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
@@ -2174,6 +2205,29 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 auto init = m_constructrice.crée_initialisation_défaut_pour_type(type_tableau_dyn);
                 auto alloc = crée_temporaire(noeud, init);
                 empile_valeur(alloc);
+                return;
+            }
+
+            if (taille_tableau == 1) {
+                /* Crée une temporaire scalaire. */
+                auto tmp = m_constructrice.crée_allocation(noeud, noeud->type, nullptr);
+                auto expression = noeud_tableau->expressions[0];
+                génère_ri_pour_expression_droite(expression, tmp);
+
+                /* Crée un tableau dynamique. */
+                auto type_tableau_dyn = m_compilatrice.typeuse.type_tableau_dynamique(noeud->type);
+                auto alloc_tableau_dyn = m_constructrice.crée_allocation(
+                    noeud, type_tableau_dyn, nullptr);
+
+                /* Le pointeur du tableau doit être vers la temporaire. */
+                auto ptr_pointeur_donnees = m_constructrice.crée_référence_membre(
+                    noeud, alloc_tableau_dyn, 0);
+                m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_donnees, tmp);
+
+                auto ptr_taille = m_constructrice.crée_référence_membre(
+                    noeud, alloc_tableau_dyn, 1);
+                m_constructrice.crée_stocke_mem(noeud, ptr_taille, m_constructrice.crée_z64(1));
+                empile_valeur(alloc_tableau_dyn);
                 return;
             }
 
@@ -2197,7 +2251,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
             auto expr = noeud->comme_construction_tableau();
-            génère_ri_pour_construction_tableau(expr);
+            génère_ri_pour_construction_tableau(expr, place);
             break;
         }
         case GenreNoeud::EXPRESSION_INFO_DE:
@@ -2208,9 +2262,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
 
             /* utilise une temporaire pour simplifier la compilation d'expressions du style :
              * info_de(z32).id */
-            auto alloc = crée_temporaire(noeud, valeur);
-
-            empile_valeur(alloc);
+            crée_temporaire_ou_mets_dans_place(noeud, valeur, place);
             break;
         }
         case GenreNoeud::EXPRESSION_INIT_DE:
@@ -2240,8 +2292,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);
                 // déréférence le pointeur
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);
-                auto alloc = crée_temporaire(noeud, valeur);
-                empile_valeur(alloc);
+                crée_temporaire_ou_mets_dans_place(noeud, valeur, place);
                 return;
             }
 
@@ -2258,7 +2309,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::EXPANSION_VARIADIQUE:
         {
             génère_ri_pour_expression_droite(noeud->comme_expansion_variadique()->expression,
-                                             nullptr);
+                                             place);
             break;
         }
         case GenreNoeud::INSTRUCTION_TENTE:
@@ -2295,6 +2346,19 @@ void CompilatriceRI::génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *d
 
     m_fonction_courante->instructions.rétrécis_capacité_sur_taille();
 
+    assert_rappel(m_pile.taille() == 0, [&]() {
+        dbg() << __func__ << " : " << m_pile.taille() << ", " << m_fonction_courante->nom;
+        dbg() << imprime_fonction(m_fonction_courante);
+        POUR (m_pile) {
+            if (it->est_instruction()) {
+                dbg() << "-- " << imprime_instruction(it->comme_instruction());
+            }
+            else {
+                dbg() << "-- " << it->genre_atome;
+            }
+        }
+    });
+
     définis_fonction_courante(nullptr);
 }
 
@@ -2302,16 +2366,22 @@ void CompilatriceRI::génère_ri_pour_expression_droite(NoeudExpression const *n
 {
     auto ancienne_expression_gauche = expression_gauche;
     expression_gauche = false;
-    génère_ri_pour_noeud(const_cast<NoeudExpression *>(noeud));
-    auto atome = depile_valeur();
+
+    assert(!place || !place->possède_drapeau(DrapeauxAtome::EST_UTILISÉ));
+
+    génère_ri_pour_noeud(const_cast<NoeudExpression *>(noeud), place);
     expression_gauche = ancienne_expression_gauche;
 
-    atome = crée_charge_mem_si_chargeable(noeud, atome);
-
     if (place) {
-        m_constructrice.crée_stocke_mem(noeud, place, atome);
+        if (!place->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
+            auto atome = depile_valeur();
+            atome = crée_charge_mem_si_chargeable(noeud, atome);
+            m_constructrice.crée_stocke_mem(noeud, place, atome);
+        }
     }
     else {
+        auto atome = depile_valeur();
+        atome = crée_charge_mem_si_chargeable(noeud, atome);
         empile_valeur(atome);
     }
 }
@@ -2418,8 +2488,6 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                                        TransformationType const &transformation,
                                        Atome *place)
 {
-    auto place_fut_utilisee = false;
-
     auto transforme_avec_fonction = [this](NoeudExpression const *noeud_,
                                            Atome *valeur_,
                                            NoeudDeclarationEnteteFonction *fonction) {
@@ -2432,6 +2500,8 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
         return m_constructrice.crée_appel(noeud_, atome_fonction, std::move(args));
     };
+
+    assert(!place || !place->possède_drapeau(DrapeauxAtome::EST_UTILISÉ));
 
     switch (transformation.type) {
         case TypeTransformation::IMPOSSIBLE:
@@ -2495,7 +2565,10 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
-            auto alloc = m_constructrice.crée_allocation(noeud, type_union, nullptr);
+            auto alloc = place;
+            if (!alloc) {
+                alloc = m_constructrice.crée_allocation(noeud, type_union, nullptr);
+            }
 
             if (type_union->est_nonsure) {
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);
@@ -2533,7 +2606,12 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 m_constructrice.crée_stocke_mem(noeud, acces_membre, index);
             }
 
-            valeur = m_constructrice.crée_charge_mem(noeud, alloc);
+            if (place == nullptr) {
+                valeur = m_constructrice.crée_charge_mem(noeud, alloc);
+            }
+            else {
+                place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+            }
             break;
         }
         case TypeTransformation::EXTRAIT_UNION:
@@ -2717,6 +2795,10 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             /* copie le pointeur de la valeur vers le type eini */
             auto ptr_eini = m_constructrice.crée_référence_membre(noeud, alloc_eini, 0);
 
+            if (valeur->type->est_type_entier_constant()) {
+                valeur->type = TypeBase::Z32;
+            }
+
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
             auto transtype = m_constructrice.crée_transtype(
@@ -2732,7 +2814,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 valeur = m_constructrice.crée_charge_mem(noeud, alloc_eini);
             }
             else {
-                place_fut_utilisee = true;
+                place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
             }
 
             break;
@@ -2842,9 +2924,10 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 }
             }
 
-            /* alloue de l'espace pour ce type */
-            auto tabl_octet = m_constructrice.crée_allocation(
-                noeud, TypeBase::TABL_OCTET, nullptr);
+            auto tabl_octet = place;
+            if (!tabl_octet) {
+                tabl_octet = m_constructrice.crée_allocation(noeud, TypeBase::TABL_OCTET, nullptr);
+            }
 
             auto pointeur_tabl_octet = m_constructrice.crée_référence_membre(noeud, tabl_octet, 0);
             m_constructrice.crée_stocke_mem(noeud, pointeur_tabl_octet, valeur_pointeur);
@@ -2852,7 +2935,13 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             auto taille_tabl_octet = m_constructrice.crée_référence_membre(noeud, tabl_octet, 1);
             m_constructrice.crée_stocke_mem(noeud, taille_tabl_octet, valeur_taille);
 
-            valeur = m_constructrice.crée_charge_mem(noeud, tabl_octet);
+            if (!place) {
+                valeur = m_constructrice.crée_charge_mem(noeud, tabl_octet);
+            }
+            else {
+                place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+            }
+
             break;
         }
         case TypeTransformation::CONVERTI_TABLEAU:
@@ -2870,7 +2959,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             }
             else {
-                place_fut_utilisee = true;
+                place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
             }
 
             break;
@@ -2924,11 +3013,14 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         }
     }
 
-    if (place && !place_fut_utilisee) {
-        m_constructrice.crée_stocke_mem(noeud, place, valeur);
+    if (place) {
+        if (!place->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
+            m_constructrice.crée_stocke_mem(noeud, place, valeur);
+        }
     }
-
-    empile_valeur(valeur);
+    else {
+        empile_valeur(valeur);
+    }
 }
 
 Atome *CompilatriceRI::crée_transtype_entre_base_et_dérivé(
@@ -3014,7 +3106,9 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
 
         m_constructrice.insère_label(label_si_faux);
 
-        empile_valeur(valeur_expression);
+        if (noeud->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+            empile_valeur(valeur_expression);
+        }
         return;
     }
     else if (noeud->expression_appelee->type->est_type_union()) {
@@ -3077,6 +3171,11 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
         }
 
         m_constructrice.insère_label(label_si_faux);
+
+        if (gen_tente.type_variable->est_type_rien()) {
+            return;
+        }
+
         valeur_expression = m_constructrice.crée_référence_membre(noeud, valeur_union, 0);
         valeur_expression = m_constructrice.crée_transtype(
             noeud,
@@ -3326,22 +3425,27 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
     auto label_si_faux = m_constructrice.réserve_label(noeud);
     auto label_apres_faux = m_constructrice.réserve_label(noeud);
 
-    if (place == nullptr) {
-        place = m_constructrice.crée_allocation(noeud, TypeBase::BOOL, nullptr);
+    auto destination = place;
+    if (destination == nullptr) {
+        destination = m_constructrice.crée_allocation(noeud, TypeBase::BOOL, nullptr);
     }
 
     génère_ri_pour_condition(noeud, label_si_vrai, label_si_faux);
 
     m_constructrice.insère_label(label_si_vrai);
-    m_constructrice.crée_stocke_mem(noeud, place, m_constructrice.crée_constante_booléenne(true));
+    m_constructrice.crée_stocke_mem(
+        noeud, destination, m_constructrice.crée_constante_booléenne(true));
     m_constructrice.crée_branche(noeud, label_apres_faux);
 
     m_constructrice.insère_label(label_si_faux);
-    m_constructrice.crée_stocke_mem(noeud, place, m_constructrice.crée_constante_booléenne(false));
+    m_constructrice.crée_stocke_mem(
+        noeud, destination, m_constructrice.crée_constante_booléenne(false));
 
     m_constructrice.insère_label(label_apres_faux);
 
-    empile_valeur(place);
+    if (destination != place) {
+        empile_valeur(destination);
+    }
 }
 
 void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
@@ -4265,7 +4369,6 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable c
                         auto valeur = m_constructrice.crée_référence_membre(
                             expression, valeur_tuple, i);
                         transforme_valeur(expression, valeur, transformation, pointeur);
-                        depile_valeur();
                     }
                 }
                 else {
@@ -4281,7 +4384,6 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable c
                             ->atome = pointeur;
 
                         transforme_valeur(expression, valeur, transformation, pointeur);
-                        depile_valeur();
                     }
                 }
             }
@@ -4400,7 +4502,7 @@ static void remplis_données_constantes_réelles(char *données_constantes,
 }
 
 void CompilatriceRI::génère_ri_pour_construction_tableau(
-    NoeudExpressionConstructionTableau const *expr)
+    NoeudExpressionConstructionTableau const *expr, Atome *place)
 {
     auto feuilles = expr->expression->comme_virgule();
 
@@ -4443,18 +4545,24 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(
         return;
     }
 
-    auto pointeur_tableau = m_constructrice.crée_allocation(expr, expr->type, nullptr);
+    auto pointeur_tableau = place;
+    if (!pointeur_tableau) {
+        pointeur_tableau = m_constructrice.crée_allocation(expr, expr->type, nullptr);
+    }
 
     auto index = 0ul;
     POUR (feuilles->expressions) {
-        génère_ri_pour_expression_droite(it, nullptr);
-        auto valeur = depile_valeur();
         auto index_tableau = m_constructrice.crée_accès_index(
             expr, pointeur_tableau, m_constructrice.crée_z64(index++));
-        m_constructrice.crée_stocke_mem(expr, index_tableau, valeur);
+        génère_ri_pour_expression_droite(it, index_tableau);
     }
 
-    empile_valeur(pointeur_tableau);
+    if (pointeur_tableau != place) {
+        empile_valeur(pointeur_tableau);
+    }
+    else {
+        place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+    }
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction *pour_fonction)
