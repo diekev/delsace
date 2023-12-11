@@ -40,7 +40,7 @@ static const index_table_bloc index_bloc_invalide = index_table_bloc(-1);
 CREE_TYPE_OPAQUE(index_table_relation, int32_t);
 static const index_table_relation index_relation_invalide = index_table_relation(-1);
 
-struct TablesDesRelations {
+struct TableDesRelations {
     struct Index {
         index_table_utilisateur premier_utilisateur = index_utilisateur_invalide;
         index_table_bloc premier_bloc = index_bloc_invalide;
@@ -122,7 +122,7 @@ ENUMERE_GENRE_VALEUR_SSA(PRODECLARE_VALEURS)
     Valeur *nom = nullptr;                                                                        \
                                                                                                   \
   public:                                                                                         \
-    void définis_##nom(TablesDesRelations &table, Valeur *v)                                      \
+    void définis_##nom(TableDesRelations &table, Valeur *v)                                       \
     {                                                                                             \
         auto ancien_##nom = nom;                                                                  \
         nom = v;                                                                                  \
@@ -215,7 +215,7 @@ struct Valeur {
         return this->est_branche() || this->est_branche_cond() || this->est_retour();
     }
 
-    void replaceBy(TablesDesRelations &table, Valeur *valeur);
+    void replaceBy(TableDesRelations &table, Valeur *valeur);
 
     inline bool possède_drapeau(DrapeauxValeur drapeau) const
     {
@@ -223,7 +223,7 @@ struct Valeur {
     }
 
   private:
-    void remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilisateur, Valeur *par);
+    void remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par);
 };
 
 #undef DECLARE_FONCTIONS_DISCRIMINATION
@@ -234,11 +234,11 @@ struct NoeudPhi : public Valeur {
 
     CONSTRUCTEUR_VALEUR(NoeudPhi, PHI);
 
-    void ajoute_opérande(TablesDesRelations &table, Valeur *valeur);
+    void ajoute_opérande(TableDesRelations &table, Valeur *valeur);
 
-    void définis_opérande(TablesDesRelations &table, int index, Valeur *v);
+    void définis_opérande(TableDesRelations &table, int index, Valeur *v);
 
-    [[nodiscard]] kuri::tableau<Valeur *> supprime_utilisateur(TablesDesRelations &table,
+    [[nodiscard]] kuri::tableau<Valeur *> supprime_utilisateur(TableDesRelations &table,
                                                                Valeur *utilisateur);
 };
 
@@ -341,13 +341,13 @@ struct ValeurAppel : public Valeur {
     kuri::tableau<Valeur *> arguments{};
 
   public:
-    void ajoute_argument(TablesDesRelations &table, Valeur *v)
+    void ajoute_argument(TableDesRelations &table, Valeur *v)
     {
         arguments.ajoute(v);
         table.ajoute_utilisateur(v, this);
     }
 
-    void définis_argument(TablesDesRelations &table, int index, Valeur *v)
+    void définis_argument(TableDesRelations &table, int index, Valeur *v)
     {
         auto ancien = arguments[index];
         arguments[index] = v;
@@ -360,20 +360,20 @@ struct ValeurAppel : public Valeur {
     }
 };
 
-void NoeudPhi::ajoute_opérande(TablesDesRelations &table, Valeur *valeur)
+void NoeudPhi::ajoute_opérande(TableDesRelations &table, Valeur *valeur)
 {
     opérandes.ajoute(valeur);
     table.ajoute_utilisateur(valeur, this);
 }
 
-void NoeudPhi::définis_opérande(TablesDesRelations &table, int index, Valeur *v)
+void NoeudPhi::définis_opérande(TableDesRelations &table, int index, Valeur *v)
 {
     auto ancien = opérandes[index];
     opérandes[index] = v;
     table.remplace_ou_ajoute_utilisateur(v, ancien, this);
 }
 
-kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TablesDesRelations &table,
+kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TableDesRelations &table,
                                                        Valeur *utilisateur)
 {
     auto utilisateurs = table.donne_utilisateurs(this);
@@ -391,7 +391,7 @@ kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TablesDesRelations &table
     return résultat;
 }
 
-void Valeur::replaceBy(TablesDesRelations &table, Valeur *valeur)
+void Valeur::replaceBy(TableDesRelations &table, Valeur *valeur)
 {
     auto utilisateurs = table.donne_utilisateurs(this);
     // dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
@@ -406,7 +406,7 @@ void Valeur::replaceBy(TablesDesRelations &table, Valeur *valeur)
     table.supprime(this);
 }
 
-void Valeur::remplace_dans_utisateur(TablesDesRelations &table, Valeur *utilisateur, Valeur *par)
+void Valeur::remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par)
 {
     switch (utilisateur->genre) {
         case GenreValeur::INDÉFINIE:
@@ -931,7 +931,7 @@ struct ConvertisseuseSSA {
 
     ConstructriceRI &m_constructrice;
 
-    TablesDesRelations m_table_relations{};
+    TableDesRelations m_table_relations{};
 
   public:
     ConvertisseuseSSA(ConstructriceRI &constructrice_ri) : m_constructrice(constructrice_ri)
@@ -940,7 +940,7 @@ struct ConvertisseuseSSA {
 
     void crée_valeurs_depuis_instruction(Bloc *bloc, Instruction const *inst);
 
-    TablesDesRelations &donne_table_des_relations()
+    TableDesRelations &donne_table_des_relations()
     {
         return m_table_relations;
     }
@@ -1585,7 +1585,7 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
 }
 
 static void supprime_valeurs_inutilisées(FonctionEtBlocs &fonction_et_blocs,
-                                         TablesDesRelations &table_des_relations)
+                                         TableDesRelations &table_des_relations)
 {
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
@@ -1645,7 +1645,7 @@ static bool est_incrément_de_phi(NoeudPhi const *phi, Valeur const *valeur)
 }
 
 static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
-                                         TablesDesRelations &table)
+                                         TableDesRelations &table)
 {
     kuri::tablet<PhiValeurIncrémentée, 6> phis_incréments;
 
@@ -1742,7 +1742,7 @@ static void supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs)
     }
 }
 
-static void simplifie_écris_index(SSA::ValeurÉcrisIndex *écris_index, TablesDesRelations &table)
+static void simplifie_écris_index(SSA::ValeurÉcrisIndex *écris_index, TableDesRelations &table)
 {
     if (écris_index->donne_accédée()->est_locale()) {
         auto locale = écris_index->donne_accédée()->comme_locale();
@@ -1758,7 +1758,7 @@ static void simplifie_écris_index(SSA::ValeurÉcrisIndex *écris_index, TablesD
     }
 }
 
-static void simplifie_locale(SSA::ValeurLocale *locale, TablesDesRelations &table)
+static void simplifie_locale(SSA::ValeurLocale *locale, TableDesRelations &table)
 {
     auto valeur_locale = locale->donne_valeur();
     if (valeur_locale->est_écris_index() &&
@@ -1777,7 +1777,7 @@ static bool est_constante_zéro(SSA::Valeur const *valeur)
     return est_constante_entière_zéro(valeur->comme_constante()->atome);
 }
 
-static void simplifie_accès_index(SSA::ValeurAccèdeIndex *accès_index, TablesDesRelations &table)
+static void simplifie_accès_index(SSA::ValeurAccèdeIndex *accès_index, TableDesRelations &table)
 {
     auto accédée = accès_index->donne_accédée();
 
@@ -1795,7 +1795,7 @@ static void simplifie_accès_index(SSA::ValeurAccèdeIndex *accès_index, Tables
     }
 }
 
-static void simplifie_accès_index(FonctionEtBlocs &fonction_et_blocs, TablesDesRelations &table)
+static void simplifie_accès_index(FonctionEtBlocs &fonction_et_blocs, TableDesRelations &table)
 {
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
@@ -1878,7 +1878,7 @@ void convertis_ssa(EspaceDeTravail &espace,
         }
     }
 
-    TablesDesRelations &table_des_relations = convertisseuse_ssa.donne_table_des_relations();
+    TableDesRelations &table_des_relations = convertisseuse_ssa.donne_table_des_relations();
 
     imprime_blocs(fonction_et_blocs);
 
@@ -1929,9 +1929,9 @@ void convertis_ssa(EspaceDeTravail &espace,
 /** \name Implémentation de la table des relations.
  * \{ */
 
-void TablesDesRelations::remplace_ou_ajoute_utilisateur(Valeur *utilisée,
-                                                        Valeur *ancien,
-                                                        Valeur *par)
+void TableDesRelations::remplace_ou_ajoute_utilisateur(Valeur *utilisée,
+                                                       Valeur *ancien,
+                                                       Valeur *par)
 {
     if (ancien) {
         supprime_utilisateur(ancien, par);
@@ -1940,7 +1940,7 @@ void TablesDesRelations::remplace_ou_ajoute_utilisateur(Valeur *utilisée,
     ajoute_utilisateur(utilisée, par);
 }
 
-void TablesDesRelations::ajoute_utilisateur(Valeur *utilisée, Valeur *par)
+void TableDesRelations::ajoute_utilisateur(Valeur *utilisée, Valeur *par)
 {
     auto index_données_utilisée = donne_index_pour_valeur(utilisée);
 
@@ -1970,7 +1970,7 @@ void TablesDesRelations::ajoute_utilisateur(Valeur *utilisée, Valeur *par)
     m_utilisateurs.ajoute(info);
 }
 
-bool TablesDesRelations::est_utilisée(const Valeur *valeur) const
+bool TableDesRelations::est_utilisée(const Valeur *valeur) const
 {
     auto const index_données_utilisation = valeur->index_relations;
     if (index_données_utilisation == index_relation_invalide) {
@@ -1980,7 +1980,7 @@ bool TablesDesRelations::est_utilisée(const Valeur *valeur) const
            index_utilisateur_invalide;
 }
 
-void TablesDesRelations::supprime(const Valeur *valeur)
+void TableDesRelations::supprime(const Valeur *valeur)
 {
     /* Supprime la valeur de la liste des utilisateurs des valeurs qu'elle utilise. */
     for (int i = 0; i < m_index.taille(); i++) {
@@ -1992,7 +1992,7 @@ void TablesDesRelations::supprime(const Valeur *valeur)
     }
 }
 
-kuri::tablet<Valeur *, 6> TablesDesRelations::donne_utilisateurs(const Valeur *valeur) const
+kuri::tablet<Valeur *, 6> TableDesRelations::donne_utilisateurs(const Valeur *valeur) const
 {
     kuri::tablet<Valeur *, 6> résultat;
 
@@ -2014,15 +2014,15 @@ kuri::tablet<Valeur *, 6> TablesDesRelations::donne_utilisateurs(const Valeur *v
     return résultat;
 }
 
-void TablesDesRelations::supprime_utilisateur(Valeur *utilisée, Valeur const *par)
+void TableDesRelations::supprime_utilisateur(Valeur *utilisée, Valeur const *par)
 {
     auto index_données_utilisée = utilisée->index_relations;
     assert(index_données_utilisée != index_relation_invalide);
     supprime_utilisateur(index_données_utilisée, par);
 }
 
-void TablesDesRelations::supprime_utilisateur(index_table_relation index_données_utilisée,
-                                              Valeur const *par)
+void TableDesRelations::supprime_utilisateur(index_table_relation index_données_utilisée,
+                                             Valeur const *par)
 {
     auto &index = m_index[int32_t(index_données_utilisée)];
 
@@ -2052,7 +2052,7 @@ void TablesDesRelations::supprime_utilisateur(index_table_relation index_donnée
     // dbg() << __func__ << " : index libres " << index_libres.taille();
 }
 
-void TablesDesRelations::déconnecte(UtilisateurValeur *utilisateur)
+void TableDesRelations::déconnecte(UtilisateurValeur *utilisateur)
 {
     if (utilisateur->précédent != index_utilisateur_invalide) {
         auto précédent = &m_utilisateurs[int32_t(utilisateur->précédent)];
@@ -2069,7 +2069,7 @@ void TablesDesRelations::déconnecte(UtilisateurValeur *utilisateur)
     utilisateur->suivant = index_utilisateur_invalide;
 }
 
-index_table_relation TablesDesRelations::donne_index_pour_valeur(Valeur *valeur)
+index_table_relation TableDesRelations::donne_index_pour_valeur(Valeur *valeur)
 {
     if (valeur->index_relations != index_relation_invalide) {
         return valeur->index_relations;
