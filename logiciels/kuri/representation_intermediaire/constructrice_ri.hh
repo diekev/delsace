@@ -369,6 +369,11 @@ struct CompilatriceRI {
     Atome *crée_charge_mem_si_chargeable(NoeudExpression const *site_, Atome *source);
     Atome *crée_temporaire_si_non_chargeable(NoeudExpression const *site_, Atome *source);
     InstructionAllocation *crée_temporaire(NoeudExpression const *site_, Atome *source);
+    /** Crée une temporaire pour \a source si \a place est nul et empile la valeur. Si \a place est
+     * non-nulle, stocke la valeur directement dans celle-ci. */
+    void crée_temporaire_ou_mets_dans_place(NoeudExpression const *site_,
+                                            Atome *source,
+                                            Atome *place);
 
     void crée_appel_fonction_init_type(NoeudExpression const *site_,
                                        Type const *type,
@@ -377,7 +382,7 @@ struct CompilatriceRI {
     AtomeFonction *genere_fonction_init_globales_et_appel(
         kuri::tableau_statique<AtomeGlobale *> globales, AtomeFonction *fonction_pour);
 
-    void génère_ri_pour_noeud(NoeudExpression *noeud);
+    void génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place = nullptr);
     void génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
     void génère_ri_pour_fonction_métaprogramme(NoeudDeclarationEnteteFonction *fonction);
     void génère_ri_pour_expression_droite(NoeudExpression const *noeud, Atome *place);
@@ -398,7 +403,8 @@ struct CompilatriceRI {
     void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl);
-    void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau const *expr);
+    void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau const *expr,
+                                             Atome *place);
 
     void transforme_valeur(NoeudExpression const *noeud,
                            Atome *valeur,
