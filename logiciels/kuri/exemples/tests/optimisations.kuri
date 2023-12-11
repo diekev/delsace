@@ -39,7 +39,7 @@ constantes_sans_branches :: fonc () -> z32
     retourne y * (28 / x + 2)
 }
 
-boucle_pour_sur_scalaire :: fonc () -> z32
+boucle_pour_sur_scalaire :: fonc () -> z32 #fsau
 {
     a := 0
     pour 15 {
@@ -72,7 +72,7 @@ condition_constante_redondante :: fonc () -> z32
 }
 
 /* Exemple de https://fr.wikipedia.org/wiki/Static_single_assignment_form */
-forme_statique_à_affectation_unique :: fonc () #fsau
+forme_statique_à_affectation_unique :: fonc ()
 {
     x := 5
     x -= 3

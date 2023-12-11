@@ -161,6 +161,7 @@ ENUMERE_GENRE_VALEUR_SSA(PRODECLARE_VALEURS)
 enum class DrapeauxValeur : uint8_t {
     ZÉRO,
     EST_UTILISÉE = (1u << 0),
+    PARTICIPE_AU_FLOT_DU_PROGRAMME = (1u << 1),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxValeur)
 
@@ -1410,6 +1411,14 @@ struct PhiValeurIncrémentée {
 
 static bool est_incrément_de_phi(NoeudPhi const *phi, Valeur const *valeur)
 {
+#if 1
+    if (!valeur->est_locale()) {
+        return false;
+    }
+
+    valeur = valeur->comme_locale()->donne_valeur();
+#endif
+
     if (!valeur->est_opérateur_binaire()) {
         return false;
     }
@@ -1443,11 +1452,12 @@ static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
                 continue;
             }
 
-            auto op1 = phi->opérandes[0];
+            auto op1 = phi->opérandes[0]->comme_locale()->donne_valeur();
             auto op2 = phi->opérandes[1];
 
             if (est_incrément_de_phi(phi, op2)) {
                 dbg() << "EST INCRÉMENT DE PHI";
+                op2 = op2->comme_locale()->donne_valeur();
                 auto incrément = op2->comme_opérateur_binaire()->donne_droite();
 
                 auto remplacé = false;
@@ -1467,6 +1477,33 @@ static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
                 }
             }
         }
+    }
+}
+
+static void supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs)
+{
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (!valeur->est_controle_de_flux()) {
+                continue;
+            }
+
+            valeur->drapeaux |= DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME;
+
+            kuri::ensemble<Valeur *> visitées;
+            visite_valeur(valeur, visitées, [](Valeur *opérande) {
+                opérande->drapeaux |= DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME;
+            });
+        }
+    }
+
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        auto partition = kuri::partition_stable(bloc->valeurs, [](Valeur const *v) {
+            return (v->drapeaux & DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME) !=
+                   DrapeauxValeur::ZÉRO;
+        });
+
+        bloc->valeurs.redimensionne(partition.vrai.taille());
     }
 }
 
@@ -1532,11 +1569,12 @@ void convertis_ssa(EspaceDeTravail &espace,
     imprime_blocs(fonction_et_blocs);
 
     auto visiteuse = VisiteuseBlocs(fonction_et_blocs);
-    // supprime_branches_inutiles(fonction_et_blocs, visiteuse);
+    supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
     détecte_expressions_communes(fonction_et_blocs, table_des_relations);
 
     supprime_valeurs_inutilisées(fonction_et_blocs, table_des_relations);
+    supprime_code_inutile(fonction_et_blocs);
 
     numérote_valeurs(fonction_et_blocs);
     imprime_blocs(fonction_et_blocs);
