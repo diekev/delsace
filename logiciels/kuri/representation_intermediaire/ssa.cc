@@ -313,7 +313,7 @@ kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TablesDesRelations &table
 {
     auto utilisateurs = table.donne_utilisateurs(this);
 
-    dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
+    // dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
     kuri::tableau<Valeur *> résultat;
     POUR (utilisateurs) {
         if (it == utilisateur) {
@@ -329,7 +329,7 @@ kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TablesDesRelations &table
 void NoeudPhi::replaceBy(TablesDesRelations &table, Valeur *valeur)
 {
     auto utilisateurs = table.donne_utilisateurs(this);
-    dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
+    // dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
     POUR (utilisateurs) {
         if (it == this) {
             continue;
@@ -818,19 +818,19 @@ struct ConvertisseuseSSA {
         Valeur *résultat = nullptr;
 
         if (!m_sealed_blocks.possède(bloc)) {
-            dbg() << "[" << __func__ << "] : !m_sealed_blocks.possède(bloc)";
+            // dbg() << "[" << __func__ << "] : !m_sealed_blocks.possède(bloc)";
             /* Graphe de controle incomplet. */
             auto phi = crée_noeud_phi(bloc);
             ajoute_phi_incomplet(bloc, variable, phi);
             résultat = phi;
         }
         else if (bloc->parents.taille() == 1) {
-            dbg() << "[" << __func__ << "] : bloc->parents.taille() == 1";
+            // dbg() << "[" << __func__ << "] : bloc->parents.taille() == 1";
             /* Optimisation du cas commun d'un ancêtre : aucun Phi n'est nécessaire. */
             résultat = readVariable(variable, bloc->parents[0]);
         }
         else {
-            dbg() << "[" << __func__ << "] : else";
+            // dbg() << "[" << __func__ << "] : else";
             /* Brise les cycles potentiels avec des phis sans-opérandes. */
             auto phi = crée_noeud_phi(bloc);
             writeVariable(variable, bloc, phi);
@@ -843,7 +843,7 @@ struct ConvertisseuseSSA {
 
     Valeur *addPhiOperands(Atome const *variable, NoeudPhi *phi)
     {
-        dbg() << __func__;
+        // dbg() << __func__;
         POUR (phi->bloc->parents) {
             phi->ajoute_opérande(m_table_relations, readVariable(variable, it));
         }
@@ -859,13 +859,13 @@ struct ConvertisseuseSSA {
 
         POUR_NOMME (op, phi->opérandes) {
             if (op == same || op == phi) {
-                dbg() << "[" << __func__ << "] : op == same || op == phi";
+                // dbg() << "[" << __func__ << "] : op == same || op == phi";
                 /* Valeur unique ou auto-référence. */
                 continue;
             }
 
             if (same != nullptr) {
-                dbg() << "[" << __func__ << "] : same != nullptr";
+                // dbg() << "[" << __func__ << "] : same != nullptr";
                 /* Le phi fusionne au moins 2 valeurs : non-trivial. */
                 return phi;
             }
@@ -900,7 +900,7 @@ struct ConvertisseuseSSA {
             return;
         }
 
-        dbg() << __func__ << " : phis_incomplets " << phis_incomplets.taille();
+        // dbg() << __func__ << " : phis_incomplets " << phis_incomplets.taille();
         POUR (phis_incomplets) {
             if (it.bloc != bloc) {
                 continue;
