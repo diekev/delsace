@@ -260,7 +260,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return Attente::sur_type(type_union);
         }
 
-        POUR_INDEX (type_union->membres) {
+        POUR_INDEX (type_union->donne_membres_pour_code_machine()) {
             if (it.type != type_vers || type_union->est_nonsure) {
                 continue;
             }
@@ -551,108 +551,6 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
      * donne un mi-poids à l'argument */
     return PoidsTransformation{transformation, 0.5};
 }
-
-#if 0
-static bool transformation_impossible(
-		EspaceDeTravail &espace,
-		Sémanticienne &contexte,
-		Type *type_de,
-		Type *type_vers,
-		TransformationType &transformation)
-{
-	transformation = TypeTransformation::IMPOSSIBLE;
-	return false;
-}
-
-static bool transformation_inutile(
-		EspaceDeTravail &espace,
-		Sémanticienne &contexte,
-		Type *type_de,
-		Type *type_vers,
-		TransformationType &transformation)
-{
-	transformation = TypeTransformation::INUTILE;
-	return false;
-}
-
-static bool tansformation_type_vers_eini(
-		EspaceDeTravail &espace,
-		Sémanticienne &contexte,
-		Type *type_de,
-		Type *type_vers,
-		TransformationType &transformation)
-{
-
-}
-
-template <typename T, int N>
-struct matrice {
-	T donnees[N][N];
-
-	constexpr void remplis(T d)
-	{
-		for (auto i = 0; i < N; ++i) {
-			for (auto j = 0; j < N; ++j) {
-				donnees[i][j] = d;
-			}
-		}
-	}
-
-	constexpr T *operator[](int64_t i)
-	{
-		return donnees[i];
-	}
-};
-
-#    define comme_int(x) static_cast<int>(GenreType::x)
-
-static constexpr auto table_transformation_type = [] {
-	using type_fonction = bool(*)(EspaceDeTravail &, Sémanticienne &, Type *, Type *, TransformationType &);
-
-	matrice<type_fonction, static_cast<int>(GenreType::TOTAL)> table{};
-	table.remplis(transformation_impossible);
-
-	/*
-	ENUMERE_GENRE_TYPE_EX(ENTIER_NATUREL) \
-	ENUMERE_GENRE_TYPE_EX(ENTIER_RELATIF) \
-	ENUMERE_GENRE_TYPE_EX(ENTIER_CONSTANT) \
-	ENUMERE_GENRE_TYPE_EX(REEL) \
-	ENUMERE_GENRE_TYPE_EX(EINI) \
-	ENUMERE_GENRE_TYPE_EX(ENUM) \
-	ENUMERE_GENRE_TYPE_EX(ERREUR)
-	 */
-
-	/* transformations entre types similaires */
-
-	table[comme_int(OCTET)][comme_int(OCTET)] = transformation_inutile;
-	table[comme_int(RIEN)][comme_int(RIEN)] = transformation_inutile;
-	table[comme_int(BOOL)][comme_int(BOOL)] = transformation_inutile;
-	table[comme_int(CHAINE)][comme_int(CHAINE)] = transformation_inutile;
-	table[comme_int(EINI)][comme_int(EINI)] = transformation_inutile;
-	table[comme_int(TYPE_DE_DONNEES)][comme_int(TYPE_DE_DONNEES)] = transformation_inutile;
-	table[comme_int(ENTIER_NATUREL)][comme_int(ENTIER_NATUREL)] = transformation_entre_naturel;
-	table[comme_int(ENTIER_RELATIF)][comme_int(ENTIER_RELATIF)] = transformation_entre_relatif;
-	table[comme_int(ENTIER_CONSTANT)][comme_int(ENTIER_CONSTANT)] = transformation_inutile;
-	table[comme_int(REEL)][comme_int(REEL)] = transformation_entre_reel;
-	table[comme_int(POINTEUR)][comme_int(POINTEUR)] = transformation_entre_pointeur;
-	table[comme_int(REFERENCE)][comme_int(REFERENCE)] = transformation_inutile;
-	table[comme_int(TABLEAU_FIXE)][comme_int(TABLEAU_FIXE)] = transformation_entre_tableau_fixe;
-	table[comme_int(TABLEAU_DYNAMIQUE)][comme_int(TABLEAU_DYNAMIQUE)] = transformation_entre_tableau_dyn;
-
-	/* transformations entre types différents */
-	table[comme_int(POINTEUR)][comme_int(FONCTION)] = transformation_pointeur_vers_fonction;
-	table[comme_int(ENTIER_CONSTANT)][comme_int(ENTIER_NATUREL)] = transformation_vers_type_cible;
-	table[comme_int(ENTIER_CONSTANT)][comme_int(ENTIER_RELATIF)] = transformation_vers_type_cible;
-	table[comme_int(ENTIER_CONSTANT)][comme_int(REEL)] = transformation_vers_type_cible;
-	table[comme_int(ENTIER_CONSTANT)][comme_int(POINTEUR)] = transformation_vers_type_cible;
-	table[comme_int(ENUM)][comme_int(ENTIER_NATUREL)] = transformation_enum_vers_entier;
-	table[comme_int(ENUM)][comme_int(ENTIER_RELATIF)] = transformation_enum_vers_entier;
-	table[comme_int(ERREUR)][comme_int(ENTIER_RELATIF)] = transformation_enum_vers_entier;
-	table[comme_int(ERREUR)][comme_int(ENTIER_RELATIF)] = transformation_enum_vers_entier;
-
-	return table;
-}();
-#endif
 
 std::ostream &operator<<(std::ostream &os, TransformationType type)
 {
