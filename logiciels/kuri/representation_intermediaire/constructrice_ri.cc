@@ -1537,7 +1537,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            empile_valeur(valeur);
             break;
         }
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
