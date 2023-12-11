@@ -988,6 +988,9 @@ struct ConvertisseuseSSA {
                 if (résultat->genre == SSA::GenreValeur::PHI && résultat->numéro == 0) {
                     ajoute_valeur_au_bloc(résultat, bloc);
                 }
+                else if (résultat->est_locale()) {
+                    return résultat->comme_locale()->donne_valeur();
+                }
                 return résultat;
             }
             case Atome::Genre::ACCÈS_INDEX_CONSTANT:
@@ -1116,8 +1119,8 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             auto inst_branche = inst->comme_branche_cond();
             auto branche = m_branches_cond.ajoute_element();
             branche->inst = inst_branche;
-            branche->définis_condition(m_table_relations,
-                                       readVariable(inst_branche->condition, bloc));
+            auto valeur = donne_valeur_pour_atome(bloc, inst_branche->condition);
+            branche->définis_condition(m_table_relations, valeur);
             bloc->valeurs.ajoute(branche);
             break;
         }
@@ -1190,7 +1193,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         case GenreInstruction::CHARGE_MEMOIRE:
         {
             auto charge = inst->comme_charge();
-            auto valeur = readVariable(charge->chargee, bloc);
+            auto valeur = donne_valeur_pour_atome(bloc, charge->chargee);
             writeVariable(charge, bloc, valeur);
             break;
         }
@@ -1222,7 +1225,8 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             auto retour = inst->comme_retour();
             auto valeur = m_retours.ajoute_element();
             if (retour->valeur) {
-                valeur->définis_valeur(m_table_relations, readVariable(retour->valeur, bloc));
+                valeur->définis_valeur(m_table_relations,
+                                       donne_valeur_pour_atome(bloc, retour->valeur));
             }
             bloc->valeurs.ajoute(valeur);
             break;
