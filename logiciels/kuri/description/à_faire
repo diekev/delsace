@@ -623,7 +623,9 @@ ajoute :: fonc (x: z32, y: z32) -> z32
 À faire (32-bits)
 -----------------
 - proprement définir les types (taille des entiers et des pointeurs)
-
+    size_t -> type de sizeof -> type_taille_de
+    intptr_t|uintpt_t -> adresse_plate
+    ptrdiff_t -> type signé de la soustractions de 2 pointeurs -> diff_adresse
 
 Idées
 -----
