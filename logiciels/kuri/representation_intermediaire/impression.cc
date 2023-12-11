@@ -232,9 +232,16 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
     }
     else if (atome->genre_atome == Atome::Genre::TRANSTYPE_CONSTANT) {
         auto transtype_const = atome->comme_transtype_constant();
-        os << "  transtype ";
+        if (!pour_operande) {
+            os << "  ";
+        }
+        os << "transtype ";
         imprime_atome_ex(transtype_const->valeur, os, true);
-        os << " vers " << chaine_type(transtype_const->type, false) << '\n';
+        os << " vers " << chaine_type(transtype_const->type, false);
+
+        if (!pour_operande) {
+            os << '\n';
+        }
     }
     else if (atome->genre_atome == Atome::Genre::ACCÈS_INDEX_CONSTANT) {
         auto acces = static_cast<AccedeIndexConstant const *>(atome);
