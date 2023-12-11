@@ -3367,22 +3367,27 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
     auto label_si_faux = m_constructrice.réserve_label(noeud);
     auto label_apres_faux = m_constructrice.réserve_label(noeud);
 
-    if (place == nullptr) {
-        place = m_constructrice.crée_allocation(noeud, TypeBase::BOOL, nullptr);
+    auto destination = place;
+    if (destination == nullptr) {
+        destination = m_constructrice.crée_allocation(noeud, TypeBase::BOOL, nullptr);
     }
 
     génère_ri_pour_condition(noeud, label_si_vrai, label_si_faux);
 
     m_constructrice.insère_label(label_si_vrai);
-    m_constructrice.crée_stocke_mem(noeud, place, m_constructrice.crée_constante_booléenne(true));
+    m_constructrice.crée_stocke_mem(
+        noeud, destination, m_constructrice.crée_constante_booléenne(true));
     m_constructrice.crée_branche(noeud, label_apres_faux);
 
     m_constructrice.insère_label(label_si_faux);
-    m_constructrice.crée_stocke_mem(noeud, place, m_constructrice.crée_constante_booléenne(false));
+    m_constructrice.crée_stocke_mem(
+        noeud, destination, m_constructrice.crée_constante_booléenne(false));
 
     m_constructrice.insère_label(label_apres_faux);
 
-    empile_valeur(place);
+    if (destination != place) {
+        empile_valeur(destination);
+    }
 }
 
 void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
