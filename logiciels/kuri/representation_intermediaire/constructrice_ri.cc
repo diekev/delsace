@@ -3055,7 +3055,9 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
 
         m_constructrice.insère_label(label_si_faux);
 
-        empile_valeur(valeur_expression);
+        if (noeud->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+            empile_valeur(valeur_expression);
+        }
         return;
     }
     else if (noeud->expression_appelee->type->est_type_union()) {
