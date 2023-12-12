@@ -123,6 +123,7 @@ struct FonctionEtBlocs {
     kuri::tableau<Bloc *, int> blocs_libres{};
 
   private:
+    kuri::tableau<Bloc *, int> table_blocs{};
     Graphe graphe{};
 
     bool les_blocs_ont_été_modifiés = false;
