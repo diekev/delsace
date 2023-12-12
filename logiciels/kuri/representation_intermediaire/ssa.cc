@@ -914,20 +914,13 @@ struct ConvertisseuseSSA {
 
     uint32_t nombre_valeurs = 0;
 
-    tableau_page<SSA::ValeurGlobale> m_globales{};
-    tableau_page<SSA::ValeurConstante> m_constantes{};
-    tableau_page<SSA::ValeurConstante> m_constantes_entières{};
-    tableau_page<SSA::ValeurConstante> m_constantes_booléennes{};
-    tableau_page<SSA::ValeurOpérateurBinaire> m_opérateurs_binaires{};
-    tableau_page<SSA::ValeurRetour> m_retours{};
-    tableau_page<SSA::ValeurBranche> m_branches{};
-    tableau_page<SSA::ValeurBrancheCond> m_branches_cond{};
-    tableau_page<SSA::NoeudPhi> m_noeuds_phi{};
-    tableau_page<SSA::ValeurLocale> m_locales{};
-    tableau_page<SSA::ValeurÉcrisIndex> m_écris_index{};
-    tableau_page<SSA::ValeurIndéfinie> m_indéfinies{};
-    tableau_page<SSA::ValeurAdresseDe> m_adresse_de{};
-    tableau_page<SSA::ValeurAccèdeIndex> m_accès_index{};
+#define ENUMERE_GENRE_VALEUR_SSA_EX(genre, nom_classe, ident)                                     \
+    tableau_page<SSA::nom_classe> m_##ident{};
+    ENUMERE_GENRE_VALEUR_SSA(ENUMERE_GENRE_VALEUR_SSA_EX)
+#undef ENUMERE_GENRE_VALEUR_SSA_EX
+
+    tableau_page<SSA::ValeurConstante> m_constante_entières{};
+    tableau_page<SSA::ValeurConstante> m_constante_booléennes{};
 
     ConstructriceRI &m_constructrice;
 
@@ -1085,7 +1078,7 @@ struct ConvertisseuseSSA {
   private:
     NoeudPhi *crée_noeud_phi(Bloc *bloc)
     {
-        auto résultat = m_noeuds_phi.ajoute_element();
+        auto résultat = m_phi.ajoute_element();
         résultat->bloc = bloc;
         return résultat;
     }
@@ -1172,7 +1165,7 @@ struct ConvertisseuseSSA {
             }
             case Atome::Genre::CONSTANTE_STRUCTURE:
             {
-                auto résultat = m_constantes.ajoute_element();
+                auto résultat = m_constante.ajoute_element();
                 ajoute_valeur_au_bloc(résultat, bloc);
                 return résultat;
             }
@@ -1190,14 +1183,14 @@ struct ConvertisseuseSSA {
             {
                 auto constante_booléenne = atome->comme_constante_booléenne();
 
-                POUR_TABLEAU_PAGE (m_constantes_booléennes) {
+                POUR_TABLEAU_PAGE (m_constante_booléennes) {
                     auto existante = it.atome->comme_constante_booléenne();
                     if (existante->type == constante_booléenne->type &&
                         existante->valeur == constante_booléenne->valeur) {
                         return &it;
                     }
                 }
-                auto résultat = m_constantes_booléennes.ajoute_element();
+                auto résultat = m_constante_booléennes.ajoute_element();
                 résultat->atome = constante_booléenne;
                 ajoute_valeur_au_bloc(résultat, bloc);
                 return résultat;
@@ -1211,14 +1204,14 @@ struct ConvertisseuseSSA {
             {
                 auto constante_entière = atome->comme_constante_entière();
 
-                POUR_TABLEAU_PAGE (m_constantes_entières) {
+                POUR_TABLEAU_PAGE (m_constante_entières) {
                     auto existante = it.atome->comme_constante_entière();
                     if (existante->type == constante_entière->type &&
                         existante->valeur == constante_entière->valeur) {
                         return &it;
                     }
                 }
-                auto résultat = m_constantes_entières.ajoute_element();
+                auto résultat = m_constante_entières.ajoute_element();
                 résultat->atome = constante_entière;
                 ajoute_valeur_au_bloc(résultat, bloc);
                 return résultat;
@@ -1241,7 +1234,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         }
         case GenreInstruction::BRANCHE:
         {
-            auto branche = m_branches.ajoute_element();
+            auto branche = m_branche.ajoute_element();
             branche->inst = inst->comme_branche();
             bloc->valeurs.ajoute(branche);
             break;
@@ -1249,7 +1242,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto inst_branche = inst->comme_branche_cond();
-            auto branche = m_branches_cond.ajoute_element();
+            auto branche = m_branche_cond.ajoute_element();
             branche->inst = inst_branche;
             auto valeur = donne_valeur_pour_atome(bloc, inst_branche->condition);
             branche->définis_condition(m_table_relations, valeur);
@@ -1265,8 +1258,8 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = inst->comme_alloc();
-            auto valeur = m_indéfinies.ajoute_element();
-            auto locale = m_locales.ajoute_element();
+            auto valeur = m_indéfinie.ajoute_element();
+            auto locale = m_locale.ajoute_element();
             locale->alloc = alloc;
             locale->définis_valeur(m_table_relations, valeur);
             ajoute_valeur_au_bloc(locale, bloc);
@@ -1279,7 +1272,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             auto valeur_gauche = donne_valeur_pour_atome(bloc, op_binaire->valeur_gauche);
             auto valeur_droite = donne_valeur_pour_atome(bloc, op_binaire->valeur_droite);
 
-            POUR_TABLEAU_PAGE (m_opérateurs_binaires) {
+            POUR_TABLEAU_PAGE (m_opérateur_binaire) {
                 if (it.donne_droite() != valeur_droite) {
                     continue;
                 }
@@ -1314,7 +1307,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
                 }
             }
 
-            auto résultat = m_opérateurs_binaires.ajoute_element();
+            auto résultat = m_opérateur_binaire.ajoute_element();
             résultat->définis_gauche(m_table_relations, valeur_gauche);
             résultat->définis_droite(m_table_relations, valeur_droite);
             résultat->inst = op_binaire;
@@ -1371,7 +1364,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
                     else {
                         dbg() << "Nouvelle version de "
                               << (alloc->ident ? alloc->ident->nom : "tmp");
-                        auto locale = m_locales.ajoute_element();
+                        auto locale = m_locale.ajoute_element();
                         locale->alloc = alloc;
                         locale->définis_valeur(m_table_relations, valeur_stockée);
                         ajoute_valeur_au_bloc(locale, bloc);
@@ -1396,7 +1389,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
                             écris_index->définis_valeur(m_table_relations, valeur_stockée);
                             ajoute_valeur_au_bloc(écris_index, bloc);
 
-                            auto locale = m_locales.ajoute_element();
+                            auto locale = m_locale.ajoute_element();
                             locale->alloc = alloc;
                             locale->définis_valeur(m_table_relations, écris_index);
                             ajoute_valeur_au_bloc(locale, bloc);
@@ -1423,7 +1416,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         case GenreInstruction::RETOUR:
         {
             auto retour = inst->comme_retour();
-            auto valeur = m_retours.ajoute_element();
+            auto valeur = m_retour.ajoute_element();
             if (retour->valeur) {
                 valeur->définis_valeur(m_table_relations,
                                        donne_valeur_pour_atome(bloc, retour->valeur));
