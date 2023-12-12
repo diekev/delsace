@@ -969,10 +969,10 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto type = constante_réelle->type;
 
             if (type->taille_octet == 4) {
-                return enchaine("(float)", constante_réelle->valeur);
+                return enchaine(constante_réelle->valeur, "f");
             }
 
-            return enchaine("(double)", constante_réelle->valeur);
+            return enchaine(constante_réelle->valeur);
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
