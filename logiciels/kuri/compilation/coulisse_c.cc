@@ -1707,15 +1707,12 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_instruction(const Instr
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_globale(const AtomeGlobale *valeur_globale,
                                                                bool pour_entête)
 {
-    if (préserve_symboles()) {
-        if (valeur_globale->ident) {
-            return broyeuse.broye_nom_simple(valeur_globale->ident);
-        }
+    if (valeur_globale->est_externe) {
+        return valeur_globale->ident->nom;
     }
-    else {
-        if (valeur_globale->est_externe) {
-            return valeur_globale->ident->nom;
-        }
+
+    if (préserve_symboles()) {
+        return broyeuse.broye_nom_simple(valeur_globale->ident);
     }
 
     if (!pour_entête) {

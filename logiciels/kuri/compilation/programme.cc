@@ -1136,8 +1136,9 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
 
     auto &typeuse = m_espace.compilatrice().typeuse;
     auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
+    auto ident = m_espace.compilatrice().donne_identifiant_pour_globale("données_table_des_types");
     atome_table_des_types->initialisateur = m_compilatrice_ri.crée_tableau_global(
-        type_pointeur_info_type, std::move(table_des_types));
+        *ident, type_pointeur_info_type, std::move(table_des_types));
 
     auto initialisateur = atome_table_des_types->initialisateur->comme_constante_structure();
     auto membres_init = initialisateur->donne_atomes_membres();
