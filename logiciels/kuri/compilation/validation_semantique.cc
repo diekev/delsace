@@ -4914,6 +4914,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE) {
         auto noeud_comme = m_tacheronne->assembleuse->crée_comme(expression->lexeme);
+        noeud_comme->bloc_parent = expression->bloc_parent;
         noeud_comme->type = m_compilatrice.typeuse.type_reference_pour(expression->type);
         noeud_comme->expression = expression;
         noeud_comme->transformation = TypeTransformation::PREND_REFERENCE;
@@ -4924,6 +4925,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     }
 
     auto noeud_comme = m_tacheronne->assembleuse->crée_comme(expression->lexeme);
+    noeud_comme->bloc_parent = expression->bloc_parent;
     noeud_comme->type = const_cast<Type *>(type_cible);
     noeud_comme->expression = expression;
     noeud_comme->transformation = tfm;
