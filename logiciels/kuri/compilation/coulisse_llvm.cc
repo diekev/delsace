@@ -997,7 +997,12 @@ void GeneratriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst
                 }
                 case OpérateurUnaire::Genre::Complement:
                 {
-                    valeur = m_builder.CreateNeg(valeur);
+                    if (inst_un->type->est_type_reel()) {
+                        valeur = m_builder.CreateFNeg(valeur);
+                    }
+                    else {
+                        valeur = m_builder.CreateNeg(valeur);
+                    }
                     break;
                 }
                 case OpérateurUnaire::Genre::Non_Binaire:
