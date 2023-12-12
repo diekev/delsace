@@ -1339,7 +1339,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 auto nom_ret = donne_nom_pour_instruction(inst);
                 // os << "const " << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " =
                 // ";
-                os << "  " << nom_ret << " = ";
+                os << nom_ret << " = ";
                 table_valeurs[inst->numero] = nom_ret;
             }
 
