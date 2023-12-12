@@ -735,13 +735,17 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
     enchaineuse << "    struct {\n";
 #endif
 
-    POUR (type_composé->donne_membres_pour_code_machine()) {
+    POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
         enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
 
         /* Cas pour les structures vides. */
         if (it.nom == ID::chaine_vide) {
             enchaineuse << "membre_invisible"
                         << ";\n";
+        }
+        else if (!it.nom) {
+            /* Les membres des tuples n'ont pas de nom. */
+            enchaineuse << "_" << index_it << ";\n";
         }
         else {
             enchaineuse << broyeuse.broye_nom_simple(it.nom) << ";\n";
