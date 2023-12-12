@@ -230,6 +230,10 @@ struct ConvertisseuseTypeC {
 
     void génère_déclaration_structure_cpp(Enchaineuse &enchaineuse,
                                           const NoeudDeclarationTypeCompose *type_composé);
+
+    void génère_constructeur_cpp(kuri::chaine_statique nom_type,
+                                 Enchaineuse &enchaineuse,
+                                 const NoeudDeclarationTypeCompose *type_composé);
 };
 
 /** \} */
@@ -760,6 +764,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 #endif
     enchaineuse << "} ";
 
+    auto alignement = type_composé->alignement;
     if (type_composé->est_type_structure()) {
         auto type_structure = type_composé->comme_type_structure();
         if (type_structure->est_compacte) {
@@ -767,10 +772,10 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
         }
 
         if (type_structure->alignement_desire != 0) {
-            enchaineuse << " __attribute__((aligned(" << type_structure->alignement_desire
-                        << "))) ";
+            alignement = type_structure->alignement_desire;
         }
     }
+    enchaineuse << " __attribute__((aligned(" << alignement << "))) ";
 
     enchaineuse << préfixe << nom_type << ";\n\n";
 }
@@ -796,12 +801,43 @@ void ConvertisseuseTypeC::génère_déclaration_structure_cpp(
     enchaineuse << "  uint8_t d[" << type_composé->taille_octet << "];\n";
 
     /* Constructeurs. */
+    génère_constructeur_cpp(nom_type, enchaineuse, type_composé);
+
+    /* Fin déclaration structure. */
+    enchaineuse << "}";
+
+    auto alignement = type_composé->alignement;
+    if (type_composé->est_type_structure()) {
+        auto type_structure = type_composé->comme_type_structure();
+        if (type_structure->est_compacte) {
+            enchaineuse << " __attribute__((packed)) ";
+        }
+
+        if (type_structure->alignement_desire != 0) {
+            alignement = type_structure->alignement_desire;
+        }
+    }
+    enchaineuse << " __attribute__((aligned(" << alignement << "))) ";
+
+    enchaineuse << ";\n\n";
+}
+
+void ConvertisseuseTypeC::génère_constructeur_cpp(kuri::chaine_statique nom_type,
+                                                  Enchaineuse &enchaineuse,
+                                                  const NoeudDeclarationTypeCompose *type_composé)
+{
+    auto membres = type_composé->donne_membres_pour_code_machine();
     enchaineuse << "  " << nom_type << "() = default;\n";
+
+    if (membres.taille() == 1 && membres[0].nom == ID::chaine_vide) {
+        return;
+    }
+
     enchaineuse << "  " << nom_type;
 
     auto virgule = "(";
     auto virgule_placée = false;
-    POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
+    POUR_INDEX (membres) {
         if (it.nom == ID::chaine_vide) {
             continue;
         }
@@ -820,7 +856,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure_cpp(
     enchaineuse << ")\n";
 
     enchaineuse << "  {\n";
-    POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
+    POUR_INDEX (membres) {
         if (it.nom == ID::chaine_vide) {
             continue;
         }
@@ -832,23 +868,6 @@ void ConvertisseuseTypeC::génère_déclaration_structure_cpp(
                     << "_" << index_it << ";\n";
     }
     enchaineuse << "  }\n";
-
-    /* Fin déclaration structure. */
-    enchaineuse << "}";
-
-    if (type_composé->est_type_structure()) {
-        auto type_structure = type_composé->comme_type_structure();
-        if (type_structure->est_compacte) {
-            enchaineuse << " __attribute__((packed))";
-        }
-
-        if (type_structure->alignement_desire != 0) {
-            enchaineuse << " __attribute__((aligned(" << type_structure->alignement_desire
-                        << ")))";
-        }
-    }
-
-    enchaineuse << ";\n\n";
 }
 
 /** \} */
