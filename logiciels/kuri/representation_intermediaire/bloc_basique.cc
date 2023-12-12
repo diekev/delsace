@@ -639,7 +639,8 @@ void transfère_instructions_blocs_à_fonction(kuri::tableau_statique<Bloc *> bl
     if (supprimées != 0) {
         instructions_supprimées += supprimées;
         dbg() << "Supprimé " << instructions_supprimées << " / " << instructions_totales
-              << " instructions";
+              << " instructions ("
+              << (double(instructions_supprimées) / double(instructions_totales)) << "%)";
     }
 #endif
 }
