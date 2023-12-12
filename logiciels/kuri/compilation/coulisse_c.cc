@@ -745,13 +745,17 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
     enchaineuse << "    struct {\n";
 #endif
 
-    POUR (type_composé->donne_membres_pour_code_machine()) {
+    POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
         enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
 
         /* Cas pour les structures vides. */
         if (it.nom == ID::chaine_vide) {
             enchaineuse << "membre_invisible"
                         << ";\n";
+        }
+        else if (!it.nom) {
+            /* Les membres des tuples n'ont pas de nom. */
+            enchaineuse << "_" << index_it << ";\n";
         }
         else {
             enchaineuse << broyeuse.broye_nom_simple(it.nom) << ";\n";
@@ -1072,10 +1076,10 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto type = constante_réelle->type;
 
             if (type->taille_octet == 4) {
-                return enchaine("(float)", constante_réelle->valeur);
+                return enchaine(constante_réelle->valeur, "f");
             }
 
-            return enchaine("(double)", constante_réelle->valeur);
+            return enchaine(constante_réelle->valeur);
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
