@@ -5839,7 +5839,7 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
     }
 
     for (auto i = 1; i < expressions_finales.taille(); i++) {
-        auto const expr = expressions_finales[i];
+        auto expr = expressions_finales[i];
         if (!type_est_valide_pour_assignation_via_si(expr, espace)) {
             return CodeRetourValidation::Erreur;
         }
@@ -5862,6 +5862,16 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
                                 " »");
 
             return CodeRetourValidation::Erreur;
+        }
+
+        crée_transtypage_implicite_au_besoin(expr, transformation);
+
+        if (transformation.type != TypeTransformation::INUTILE) {
+            auto bloc = expr->bloc_parent;
+            assert_rappel(bloc, [&]() { dbg() << erreur::imprime_site(*espace, expr); });
+            /* Remplace l'expression. */
+            bloc->expressions->supprime_dernier();
+            bloc->expressions->ajoute(expr);
         }
     }
 
