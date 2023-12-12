@@ -12,27 +12,6 @@
 
 /* ********************************************************************************************* */
 
-static InstructionAllocation const *alloc_ou_nul(Atome const *atome)
-{
-    if (!atome->est_instruction()) {
-        return nullptr;
-    }
-
-    auto inst = atome->comme_instruction();
-
-    if (inst->est_alloc()) {
-        return inst->comme_alloc();
-    }
-
-    if (inst->est_acces_membre()) {
-        return alloc_ou_nul(inst->comme_acces_membre()->accede);
-    }
-
-    return nullptr;
-}
-
-/* ********************************************************************************************* */
-
 static uint32_t donne_drapeau_masque_pour_instruction(GenreInstruction genre)
 {
     return 1u << uint32_t(genre);
@@ -68,38 +47,6 @@ void Bloc::ajoute_enfant(Bloc *enfant)
     enfants.ajoute(enfant);
 }
 
-void Bloc::remplace_enfant(Bloc *enfant, Bloc *par)
-{
-    enlève_du_tableau(enfants, enfant);
-    ajoute_enfant(par);
-    enfant->enlève_parent(this);
-    par->ajoute_parent(this);
-
-    auto inst = instructions.dernière();
-
-    if (inst->est_branche()) {
-        auto branche = inst->comme_branche();
-        branche->label = par->label;
-        return;
-    }
-
-    if (inst->est_branche_cond()) {
-        auto branche_cond = inst->comme_branche_cond();
-        auto label_si_vrai = branche_cond->label_si_vrai;
-        auto label_si_faux = branche_cond->label_si_faux;
-
-        if (label_si_vrai == enfant->label) {
-            branche_cond->label_si_vrai = par->label;
-        }
-
-        if (label_si_faux == enfant->label) {
-            branche_cond->label_si_faux = par->label;
-        }
-
-        return;
-    }
-}
-
 void Bloc::remplace_parent(Bloc *parent, Bloc *par)
 {
     enlève_du_tableau(parents, parent);
@@ -117,39 +64,6 @@ void Bloc::enlève_enfant(Bloc *enfant)
     enlève_du_tableau(enfants, enfant);
 }
 
-bool Bloc::peut_fusionner_enfant()
-{
-    if (enfants.taille() == 0) {
-        return false;
-    }
-
-    if (enfants.taille() > 1) {
-        return false;
-    }
-
-    auto enfant = enfants[0];
-    if (enfant->parents.taille() > 1) {
-        return false;
-    }
-
-    return true;
-}
-
-void Bloc::utilise_variable(InstructionAllocation const *variable)
-{
-    if (!variable) {
-        return;
-    }
-
-    for (auto var : this->variables_utilisees) {
-        if (var == variable) {
-            return;
-        }
-    }
-
-    this->variables_utilisees.ajoute(variable);
-}
-
 void Bloc::fusionne_enfant(Bloc *enfant)
 {
     this->instructions.supprime_dernier();
@@ -157,16 +71,6 @@ void Bloc::fusionne_enfant(Bloc *enfant)
 
     POUR (enfant->instructions) {
         this->ajoute_instruction(it);
-    }
-
-    this->variables_declarees.reserve(enfant->variables_declarees.taille() +
-                                      this->variables_declarees.taille());
-    POUR (enfant->variables_declarees) {
-        this->variables_declarees.ajoute(it);
-    }
-
-    POUR (enfant->variables_utilisees) {
-        this->utilise_variable(it);
     }
 
     /* Supprime la référence à l'enfant dans la hiérarchie. */
@@ -177,11 +81,6 @@ void Bloc::fusionne_enfant(Bloc *enfant)
     POUR (enfant->enfants) {
         this->ajoute_enfant(it);
         it->remplace_parent(enfant, this);
-    }
-
-    /* À FAIRE : c'est quoi ça ? */
-    POUR (this->enfants) {
-        it->enlève_parent(enfant);
     }
 
     enfant->instructions.efface();
@@ -195,8 +94,6 @@ void Bloc::réinitialise()
     instructions.efface();
     parents.efface();
     enfants.efface();
-    variables_declarees.efface();
-    variables_utilisees.efface();
 }
 
 void Bloc::déconnecte_pour_branche_morte(Bloc *parent)
@@ -319,31 +216,6 @@ kuri::chaine imprime_blocs(const kuri::tableau<Bloc *, int> &blocs)
     Enchaineuse sortie;
     imprime_blocs(blocs, sortie);
     return sortie.chaine();
-}
-
-void construit_liste_variables_utilisées(Bloc *bloc)
-{
-    POUR (bloc->instructions) {
-        if (it->est_alloc()) {
-            auto alloc = it->comme_alloc();
-            bloc->variables_declarees.ajoute(alloc);
-            continue;
-        }
-
-        if (it->est_stocke_mem()) {
-            auto stocke = it->comme_stocke_mem();
-            bloc->utilise_variable(alloc_ou_nul(stocke->ou));
-        }
-        else if (it->est_acces_membre()) {
-            auto membre = it->comme_acces_membre();
-            bloc->utilise_variable(alloc_ou_nul(membre->accede));
-        }
-        else if (it->est_op_binaire()) {
-            auto op = it->comme_op_binaire();
-            bloc->utilise_variable(alloc_ou_nul(op->valeur_gauche));
-            bloc->utilise_variable(alloc_ou_nul(op->valeur_droite));
-        }
-    }
 }
 
 static Bloc *trouve_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
