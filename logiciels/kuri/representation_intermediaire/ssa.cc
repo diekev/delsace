@@ -88,7 +88,8 @@ struct TableDesRelations {
     O(OPÉRATEUR_UNAIRE, ValeurOpérateurUnaire, opérateur_unaire)                                  \
     O(BRANCHE, ValeurBranche, branche)                                                            \
     O(BRANCHE_COND, ValeurBrancheCond, branche_cond)                                              \
-    O(RETOUR, ValeurRetour, retour) O(PHI, NoeudPhi, phi)
+    O(RETOUR, ValeurRetour, retour)                                                               \
+    O(PHI, NoeudPhi, phi)
 
 enum class GenreValeur : uint8_t {
 #define ENUMERE_GENRE_VALEUR_SSA_EX(genre, nom_classe, ident) genre,
