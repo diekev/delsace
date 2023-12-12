@@ -314,6 +314,11 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
         case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
             return CastOps::UIToFP;
         case TypeTranstypage::BITS:
+            if (type_de->est_type_bool() && est_type_entier(type_vers)) {
+                /* LLVM représente les bool avec i1, nous devons transtyper en augmentant la taille
+                 * du type. */
+                return CastOps::ZExt;
+            }
             return CastOps::BitCast;
     }
 
