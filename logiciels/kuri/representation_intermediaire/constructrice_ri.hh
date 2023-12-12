@@ -60,7 +60,8 @@ struct RegistreSymboliqueRI {
      */
     AtomeFonction *trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl);
 
-    AtomeGlobale *crée_globale(Type const *type,
+    AtomeGlobale *crée_globale(IdentifiantCode &ident,
+                               Type const *type,
                                AtomeConstante *initialisateur,
                                bool est_externe,
                                bool est_constante);
@@ -135,7 +136,8 @@ struct ConstructriceRI {
 
     AtomeFonction *trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl);
 
-    AtomeGlobale *crée_globale(Type const *type,
+    AtomeGlobale *crée_globale(IdentifiantCode &ident,
+                               Type const *type,
                                AtomeConstante *initialisateur,
                                bool est_externe,
                                bool est_constante);
@@ -171,9 +173,10 @@ struct ConstructriceRI {
     AtomeInitialisationTableau *crée_initialisation_tableau(Type const *type,
                                                             AtomeConstante const *valeur);
     AtomeNonInitialisation *crée_non_initialisation();
-    AtomeConstante *crée_tableau_global(Type const *type,
+    AtomeConstante *crée_tableau_global(IdentifiantCode &ident,
+                                        Type const *type,
                                         kuri::tableau<AtomeConstante *> &&valeurs);
-    AtomeConstante *crée_tableau_global(AtomeConstante *tableau_fixe);
+    AtomeConstante *crée_tableau_global(IdentifiantCode &ident, AtomeConstante *tableau_fixe);
     AtomeConstante *crée_initialisation_tableau_global(AtomeGlobale *globale_tableau_fixe,
                                                        TypeTableauFixe const *type_tableau_fixe);
 
@@ -314,6 +317,15 @@ struct CompilatriceRI {
      * suivant. */
     InstructionLabel *m_label_après_controle = nullptr;
 
+    /* Un seul tableau pour toutes les structures n'ayant pas d'employées. */
+    AtomeConstante *m_tableau_structs_employées_vide = nullptr;
+
+    /* Un seul tableau pour toutes les fonctions n'ayant pas d'entrées. */
+    AtomeConstante *m_tableau_types_entrées_vide = nullptr;
+
+    /* Un seul tableau pour toutes les fonctions ne retournant « rien ». */
+    AtomeConstante *m_tableau_types_sorties_rien = nullptr;
+
   public:
     double temps_generation = 0.0;
 
@@ -351,7 +363,8 @@ struct CompilatriceRI {
     AtomeGlobale *crée_info_type(Type const *type, NoeudExpression const *site);
     AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
 
-    AtomeConstante *crée_tableau_global(Type const *type,
+    AtomeConstante *crée_tableau_global(IdentifiantCode &ident,
+                                        Type const *type,
                                         kuri::tableau<AtomeConstante *> &&valeurs);
 
     void génère_ri_pour_initialisation_globales(EspaceDeTravail *espace,
@@ -422,6 +435,15 @@ struct CompilatriceRI {
                                          kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeGlobale *crée_info_type_membre_structure(MembreTypeComposé const &membre,
                                                   NoeudExpression const *site);
+
+    AtomeConstante *donne_tableau_pour_structs_employées(TypeStructure const *type_structure,
+                                                         NoeudExpression const *site);
+
+    AtomeConstante *donne_tableau_pour_types_entrées(TypeFonction const *type_fonction,
+                                                     NoeudExpression const *site);
+
+    AtomeConstante *donne_tableau_pour_type_sortie(TypeFonction const *type_fonction,
+                                                   NoeudExpression const *site);
 
     Atome *converti_vers_tableau_dyn(NoeudExpression const *noeud,
                                      Atome *pointeur_tableau_fixe,
