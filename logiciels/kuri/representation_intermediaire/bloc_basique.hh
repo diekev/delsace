@@ -30,12 +30,6 @@ struct Bloc {
     kuri::tableau<Bloc *, int> parents{};
     kuri::tableau<Bloc *, int> enfants{};
 
-    /* les variables déclarées dans ce bloc */
-    kuri::tableau<InstructionAllocation const *, int> variables_declarees{};
-
-    /* les variables utilisées dans ce bloc */
-    kuri::tableau<InstructionAllocation const *, int> variables_utilisees{};
-
     bool est_atteignable = false;
 
   private:
@@ -51,17 +45,11 @@ struct Bloc {
 
     void ajoute_enfant(Bloc *enfant);
 
-    void remplace_enfant(Bloc *enfant, Bloc *par);
-
     void remplace_parent(Bloc *parent, Bloc *par);
 
     void enlève_parent(Bloc *parent);
 
     void enlève_enfant(Bloc *enfant);
-
-    bool peut_fusionner_enfant();
-
-    void utilise_variable(const InstructionAllocation *variable);
 
     void fusionne_enfant(Bloc *enfant);
 
@@ -87,8 +75,6 @@ struct Bloc {
                                         bool surligne_inutilisees = false);
 
 [[nodiscard]] kuri::chaine imprime_blocs(const kuri::tableau<Bloc *, int> &blocs);
-
-void construit_liste_variables_utilisées(Bloc *bloc);
 
 struct VisiteuseBlocs;
 
@@ -137,6 +123,7 @@ struct FonctionEtBlocs {
     kuri::tableau<Bloc *, int> blocs_libres{};
 
   private:
+    kuri::tableau<Bloc *, int> table_blocs{};
     Graphe graphe{};
 
     bool les_blocs_ont_été_modifiés = false;
