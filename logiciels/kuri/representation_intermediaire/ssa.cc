@@ -316,6 +316,9 @@ struct ValeurAccèdeMembre : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurAccèdeMembre, ACCÈS_MEMBRE);
 
     MEMBRE_VALEUR(accédée)
+    int32_t index = 0;
+
+    InstructionAccedeMembre const *inst = nullptr;
 };
 
 struct ValeurAccèdeIndex : public Valeur {
@@ -1434,7 +1437,15 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         }
         case GenreInstruction::ACCEDE_MEMBRE:
         {
-            INSTRUCTION_NON_IMPLEMENTEE;
+            auto inst_accès = inst->comme_acces_membre();
+            auto valeur_accédée = donne_valeur_pour_atome(bloc, inst_accès->accede);
+
+            auto valeur_accès = m_accès_membre.ajoute_element();
+            valeur_accès->définis_accédée(m_table_relations, valeur_accédée);
+            valeur_accès->index = inst_accès->index;
+            valeur_accès->inst = inst_accès;
+            ajoute_valeur_au_bloc(valeur_accès, bloc);
+            writeVariable(inst_accès, bloc, valeur_accès);
             break;
         }
         case GenreInstruction::ACCEDE_INDEX:
