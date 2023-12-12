@@ -317,6 +317,15 @@ struct CompilatriceRI {
      * suivant. */
     InstructionLabel *m_label_après_controle = nullptr;
 
+    /* Un seul tableau pour toutes les structures n'ayant pas d'employées. */
+    AtomeConstante *m_tableau_structs_employées_vide = nullptr;
+
+    /* Un seul tableau pour toutes les fonctions n'ayant pas d'entrées. */
+    AtomeConstante *m_tableau_types_entrées_vide = nullptr;
+
+    /* Un seul tableau pour toutes les fonctions ne retournant « rien ». */
+    AtomeConstante *m_tableau_types_sorties_rien = nullptr;
+
   public:
     double temps_generation = 0.0;
 
@@ -426,6 +435,15 @@ struct CompilatriceRI {
                                          kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeGlobale *crée_info_type_membre_structure(MembreTypeComposé const &membre,
                                                   NoeudExpression const *site);
+
+    AtomeConstante *donne_tableau_pour_structs_employées(TypeStructure const *type_structure,
+                                                         NoeudExpression const *site);
+
+    AtomeConstante *donne_tableau_pour_types_entrées(TypeFonction const *type_fonction,
+                                                     NoeudExpression const *site);
+
+    AtomeConstante *donne_tableau_pour_type_sortie(TypeFonction const *type_fonction,
+                                                   NoeudExpression const *site);
 
     Atome *converti_vers_tableau_dyn(NoeudExpression const *noeud,
                                      Atome *pointeur_tableau_fixe,

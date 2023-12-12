@@ -3813,20 +3813,8 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto tableau_membre = m_constructrice.crée_tableau_global(
                 *ident_valeurs, type_membre, std::move(valeurs_membres));
 
-            kuri::tableau<AtomeConstante *> valeurs_structs_employees;
-            valeurs_structs_employees.reserve(type_struct->types_employés.taille());
-            POUR (type_struct->types_employés) {
-                valeurs_structs_employees.ajoute(crée_info_type(it->type, site));
-            }
-
-            auto ident_structs_employées = m_compilatrice.donne_identifiant_pour_globale(
-                "structs_employées");
-            auto type_pointeur_info_struct = m_compilatrice.typeuse.type_pointeur_pour(
-                type_info_struct, false);
-            auto tableau_structs_employees = m_constructrice.crée_tableau_global(
-                *ident_structs_employées,
-                type_pointeur_info_struct,
-                std::move(valeurs_structs_employees));
+            auto tableau_structs_employées = donne_tableau_pour_structs_employées(type_struct,
+                                                                                  site);
 
             /* { membres basiques, nom, membres } */
             auto valeurs = kuri::tableau<AtomeConstante *>(5);
@@ -3834,7 +3822,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             valeurs[1] = crée_chaine(
                 donne_nom_hiérarchique(const_cast<TypeStructure *>(type_struct)));
             valeurs[2] = tableau_membre;
-            valeurs[3] = tableau_structs_employees;
+            valeurs[3] = tableau_structs_employées;
             valeurs[4] = crée_tableau_annotations_pour_info_membre(type_struct->annotations);
 
             globale->initialisateur = m_constructrice.crée_constante_structure(type_info_struct,
@@ -3880,42 +3868,12 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         {
             auto type_fonction = type->comme_type_fonction();
 
-            kuri::tableau<AtomeConstante *> types_entree;
-            types_entree.reserve(type_fonction->types_entrees.taille());
-            POUR (type_fonction->types_entrees) {
-                types_entree.ajoute(crée_info_type_avec_transtype(it, site));
-            }
-
-            kuri::tableau<AtomeConstante *> types_sortie;
-            auto type_sortie = type_fonction->type_sortie;
-            if (type_sortie->est_type_tuple()) {
-                auto tuple = type_sortie->comme_type_tuple();
-
-                types_sortie.reserve(tuple->membres.taille());
-                POUR (tuple->membres) {
-                    types_sortie.ajoute(crée_info_type_avec_transtype(it.type, site));
-                }
-            }
-            else {
-                types_sortie.reserve(1);
-                types_sortie.ajoute(
-                    crée_info_type_avec_transtype(type_fonction->type_sortie, site));
-            }
-
-            auto ident_types_entrée = m_compilatrice.donne_identifiant_pour_globale(
-                "types_entrée");
-            auto ident_types_sortie = m_compilatrice.donne_identifiant_pour_globale(
-                "types_sortie");
-            auto type_membre = m_compilatrice.typeuse.type_pointeur_pour(
-                m_compilatrice.typeuse.type_info_type_, false);
-            auto tableau_types_entree = m_constructrice.crée_tableau_global(
-                *ident_types_entrée, type_membre, std::move(types_entree));
-            auto tableau_types_sortie = m_constructrice.crée_tableau_global(
-                *ident_types_sortie, type_membre, std::move(types_sortie));
+            auto tableau_types_entrée = donne_tableau_pour_types_entrées(type_fonction, site);
+            auto tableau_types_sortie = donne_tableau_pour_type_sortie(type_fonction, site);
 
             auto valeurs = kuri::tableau<AtomeConstante *>(4);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::FONCTION, type);
-            valeurs[1] = tableau_types_entree;
+            valeurs[1] = tableau_types_entrée;
             valeurs[2] = tableau_types_sortie;
             valeurs[3] = m_constructrice.crée_constante_booléenne(false);
 
@@ -4101,6 +4059,104 @@ AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeC
     }
 
     return crée_globale_info_type(type_struct_membre, std::move(valeurs));
+}
+
+AtomeConstante *CompilatriceRI::donne_tableau_pour_structs_employées(
+    const TypeStructure *type_structure, NoeudExpression const *site)
+{
+    if (type_structure->types_employés.taille() == 0 && m_tableau_structs_employées_vide) {
+        return m_tableau_structs_employées_vide;
+    }
+
+    kuri::tableau<AtomeConstante *> valeurs_structs_employees;
+    valeurs_structs_employees.reserve(type_structure->types_employés.taille());
+
+    POUR (type_structure->types_employés) {
+        valeurs_structs_employees.ajoute(crée_info_type(it->type, site));
+    }
+
+    /* À FAIRE : déduplique les autres tableaux. */
+
+    auto type_info_struct = m_compilatrice.typeuse.type_info_type_structure;
+
+    auto ident_structs_employées = m_compilatrice.donne_identifiant_pour_globale(
+        "structs_employées");
+    auto type_pointeur_info_struct = m_compilatrice.typeuse.type_pointeur_pour(type_info_struct,
+                                                                               false);
+    auto résultat = m_constructrice.crée_tableau_global(
+        *ident_structs_employées, type_pointeur_info_struct, std::move(valeurs_structs_employees));
+
+    if (type_structure->types_employés.taille() == 0) {
+        m_tableau_structs_employées_vide = résultat;
+    }
+
+    return résultat;
+}
+
+AtomeConstante *CompilatriceRI::donne_tableau_pour_types_entrées(const TypeFonction *type_fonction,
+                                                                 const NoeudExpression *site)
+{
+    if (type_fonction->types_entrees.est_vide() && m_tableau_types_entrées_vide) {
+        return m_tableau_types_entrées_vide;
+    }
+
+    kuri::tableau<AtomeConstante *> types_entree;
+    types_entree.reserve(type_fonction->types_entrees.taille());
+    POUR (type_fonction->types_entrees) {
+        types_entree.ajoute(crée_info_type_avec_transtype(it, site));
+    }
+
+    /* À FAIRE : déduplique les autres tableaux. */
+
+    auto type_élément = m_compilatrice.typeuse.type_pointeur_pour(
+        m_compilatrice.typeuse.type_info_type_, false);
+
+    auto ident = m_compilatrice.donne_identifiant_pour_globale("types_entrée");
+    auto résultat = m_constructrice.crée_tableau_global(
+        *ident, type_élément, std::move(types_entree));
+
+    if (type_fonction->types_entrees.est_vide()) {
+        m_tableau_types_entrées_vide = résultat;
+    }
+
+    return résultat;
+}
+
+AtomeConstante *CompilatriceRI::donne_tableau_pour_type_sortie(const TypeFonction *type_fonction,
+                                                               const NoeudExpression *site)
+{
+    auto const type_sortie = type_fonction->type_sortie;
+    if (type_sortie->est_type_rien() && m_tableau_types_sorties_rien) {
+        return m_tableau_types_sorties_rien;
+    }
+
+    kuri::tableau<AtomeConstante *> types_sortie;
+    if (type_sortie->est_type_tuple()) {
+        auto tuple = type_sortie->comme_type_tuple();
+
+        types_sortie.reserve(tuple->membres.taille());
+        POUR (tuple->membres) {
+            types_sortie.ajoute(crée_info_type_avec_transtype(it.type, site));
+        }
+    }
+    else {
+        types_sortie.reserve(1);
+        types_sortie.ajoute(crée_info_type_avec_transtype(type_fonction->type_sortie, site));
+    }
+
+    /* À FAIRE : déduplique les autres tableaux. */
+
+    auto ident = m_compilatrice.donne_identifiant_pour_globale("types_sortie");
+    auto type_élément = m_compilatrice.typeuse.type_pointeur_pour(
+        m_compilatrice.typeuse.type_info_type_, false);
+    auto résultat = m_constructrice.crée_tableau_global(
+        *ident, type_élément, std::move(types_sortie));
+
+    if (type_sortie->est_type_rien()) {
+        m_tableau_types_sorties_rien = résultat;
+    }
+
+    return résultat;
 }
 
 Atome *CompilatriceRI::converti_vers_tableau_dyn(NoeudExpression const *noeud,
