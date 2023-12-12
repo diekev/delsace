@@ -267,8 +267,10 @@ AtomeGlobale *RegistreSymboliqueRI::trouve_ou_insère_globale(NoeudDeclaration *
     auto decl_var = decl->comme_declaration_variable();
 
     if (decl_var->atome == nullptr) {
-        auto globale = crée_globale(decl->type, nullptr, false, false);
+        auto est_externe = decl->possède_drapeau(DrapeauxNoeud::EST_EXTERNE);
+        auto globale = crée_globale(decl->type, nullptr, est_externe, false);
         globale->decl = decl_var;
+        globale->ident = decl_var->ident;
         decl_var->atome = globale;
     }
 
@@ -4270,12 +4272,8 @@ void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable 
     POUR (decl->donnees_decl.plage()) {
         for (auto i = 0; i < it.variables.taille(); ++i) {
             auto var = it.variables[i];
-            auto est_externe = decl->possède_drapeau(DrapeauxNoeud::EST_EXTERNE);
             auto valeur = static_cast<AtomeConstante *>(nullptr);
             auto atome = m_constructrice.trouve_ou_insère_globale(decl);
-            atome->est_externe = est_externe;
-            atome->est_constante = false;
-            atome->ident = var->ident;
 
             auto expression = it.expression;
             if (expression && expression->substitution) {
