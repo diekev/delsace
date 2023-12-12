@@ -161,7 +161,7 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
 
     if constexpr (std::is_floating_point_v<T>) {
         char tampon[128];
-        auto const n = snprintf(tampon, 128, "%.19f", valeur);
+        auto const n = snprintf(tampon, 128, "%.19f", double(valeur));
         enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
         return enchaineuse;
     }
