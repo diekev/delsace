@@ -89,7 +89,8 @@ struct TableDesRelations {
     O(BRANCHE, ValeurBranche, branche)                                                            \
     O(BRANCHE_COND, ValeurBrancheCond, branche_cond)                                              \
     O(RETOUR, ValeurRetour, retour)                                                               \
-    O(PHI, NoeudPhi, phi)
+    O(PHI, NoeudPhi, phi)                                                                         \
+    O(TRANSTYPAGE, ValeurTranstypage, transtypage)
 
 enum class GenreValeur : uint8_t {
 #define ENUMERE_GENRE_VALEUR_SSA_EX(genre, nom_classe, ident) genre,
@@ -334,6 +335,13 @@ struct ValeurÉcrisIndex : public Valeur {
     MEMBRE_VALEUR(accédée)
     MEMBRE_VALEUR(index)
     MEMBRE_VALEUR(valeur);
+};
+
+struct ValeurTranstypage : public Valeur {
+    CONSTRUCTEUR_VALEUR(ValeurTranstypage, TRANSTYPAGE);
+
+    MEMBRE_VALEUR(valeur);
+    InstructionTranstype const *inst = nullptr;
 };
 
 struct ValeurAppel : public Valeur {
@@ -629,6 +637,12 @@ static void visite_valeur(Valeur *valeur,
             }
             break;
         }
+        case GenreValeur::TRANSTYPAGE:
+        {
+            auto transtypage = valeur->comme_transtypage();
+            visite_valeur(transtypage->donne_valeur(), visitées, rappel);
+            break;
+        }
     }
 }
 
@@ -716,6 +730,12 @@ static void visite_opérande(Valeur *valeur, std::function<void(Valeur *)> const
             POUR_INDEX (phi->opérandes) {
                 rappel(it);
             }
+            break;
+        }
+        case GenreValeur::TRANSTYPAGE:
+        {
+            auto transtypage = valeur->comme_transtypage();
+            rappel(transtypage->donne_valeur());
             break;
         }
     }
@@ -879,6 +899,13 @@ static void imprime_valeur(Valeur const *valeur, Enchaineuse &sortie)
             sortie << "phi ";
             imprime_tableau(phi->opérandes, "<", ">", sortie);
             // imprime_tableau(phi->utilisateurs, " (", ")", sortie);
+            break;
+        }
+        case GenreValeur::TRANSTYPAGE:
+        {
+            auto transtypage = valeur->comme_transtypage();
+            sortie << "transtype ";
+            imprime_nom_valeur(transtypage->donne_valeur(), sortie);
             break;
         }
     }
@@ -1463,7 +1490,27 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         }
         case GenreInstruction::TRANSTYPE:
         {
-            INSTRUCTION_NON_IMPLEMENTEE;
+            auto inst_transtype = inst->comme_transtype();
+            auto valeur_transtypée = donne_valeur_pour_atome(bloc, inst_transtype->valeur);
+
+            POUR_TABLEAU_PAGE (m_transtypage) {
+                if (it.donne_valeur() != valeur_transtypée) {
+                    continue;
+                }
+
+                if (it.inst->type != inst_transtype->type) {
+                    continue;
+                }
+
+                writeVariable(inst_transtype, bloc, &it);
+                return;
+            }
+
+            auto transtypage = m_transtypage.ajoute_element();
+            transtypage->inst = inst_transtype;
+            transtypage->définis_valeur(m_table_relations, valeur_transtypée);
+            ajoute_valeur_au_bloc(transtypage, bloc);
+            writeVariable(inst_transtype, bloc, transtypage);
             break;
         }
     }
