@@ -1704,6 +1704,19 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
 {
     reinitialise();
 
+#if 0
+    POUR (atome->instructions) {
+        if (!it->type) {
+            continue;
+        }
+        assert_rappel(!it->type->est_type_entier_constant(), [&]() {
+            dbg() << "Entier constant dans " << atome->nom;
+            dbg() << imprime_arbre_instruction(it);
+            dbg() << imprime_fonction(atome);
+        });
+    }
+#endif
+
     if (!fonction_et_blocs.convertis_en_blocs(espace, atome)) {
         return;
     }

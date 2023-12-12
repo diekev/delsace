@@ -201,8 +201,8 @@ struct GeneratriceCodeCPP {
 
         // Calcul de l'étendue
         os << "struct Etendue {\n";
-        os << "\tint64_t pos_min = 0;\n";
-        os << "\tint64_t pos_max = 0;\n";
+        os << "\tint64_t pos_min = std::numeric_limits<int64_t>::max();\n";
+        os << "\tint64_t pos_max = std::numeric_limits<int64_t>::min();\n";
         os << "\n";
         os << "\tvoid fusionne(Etendue autre)\n";
         os << "\t{\n";
