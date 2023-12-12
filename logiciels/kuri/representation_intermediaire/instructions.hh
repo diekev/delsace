@@ -338,12 +338,14 @@ struct AtomeGlobale : public AtomeConstante {
 
     EMPECHE_COPIE(AtomeGlobale);
 
-    AtomeGlobale(Type const *type_,
+    AtomeGlobale(IdentifiantCode *ident_,
+                 Type const *type_,
                  AtomeConstante *initialisateur_,
                  bool est_externe_,
                  bool est_constante_)
         : AtomeGlobale()
     {
+        this->ident = ident_;
         this->type = type_;
         this->initialisateur = initialisateur_;
         this->est_externe = est_externe_;
