@@ -1310,9 +1310,8 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
     auto type = globale->donne_type_alloué();
     auto type_llvm = convertis_type_llvm(type);
     auto nom_globale = vers_string_ref(globale->ident);
-    //    auto liaison = globale->est_externe ? llvm::GlobalValue::ExternalLinkage :
-    //                                          llvm::GlobalValue::InternalLinkage;
-    auto liaison = llvm::GlobalValue::ExternalLinkage;
+    auto liaison = globale->est_externe ? llvm::GlobalValue::ExternalLinkage :
+                                          llvm::GlobalValue::InternalLinkage;
     auto résultat = new llvm::GlobalVariable(
         *m_module, type_llvm, globale->est_constante, liaison, nullptr, nom_globale);
 
@@ -1717,7 +1716,11 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
         module->données_constantes = opt_données_constantes.value();
     }
     module->globales = repr_inter.donne_globales();
+    module->fonctions = repr_inter.donne_fonctions();
 
+    /* À FAIRE : pour la compilation en plusieurs fichiers il faudra proprement
+     * gérer les liaisons des globales, ainsi que leurs données des noms uniques. */
+#if 0
     /* Crée des modules pour les fonctions. */
     constexpr int nombre_instructions_par_module = 10000;
     int nombre_instructions = 0;
@@ -1743,6 +1746,7 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
         nombre_instructions = 0;
         index_première_fonction = i + 1;
     }
+#endif
 }
 
 DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
