@@ -60,7 +60,8 @@ struct RegistreSymboliqueRI {
      */
     AtomeFonction *trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl);
 
-    AtomeGlobale *crée_globale(Type const *type,
+    AtomeGlobale *crée_globale(IdentifiantCode *ident,
+                               Type const *type,
                                AtomeConstante *initialisateur,
                                bool est_externe,
                                bool est_constante);
@@ -135,7 +136,8 @@ struct ConstructriceRI {
 
     AtomeFonction *trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl);
 
-    AtomeGlobale *crée_globale(Type const *type,
+    AtomeGlobale *crée_globale(IdentifiantCode *ident,
+                               Type const *type,
                                AtomeConstante *initialisateur,
                                bool est_externe,
                                bool est_constante);

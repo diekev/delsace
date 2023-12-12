@@ -242,12 +242,14 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     return atome_fonc;
 }
 
-AtomeGlobale *RegistreSymboliqueRI::crée_globale(Type const *type,
+AtomeGlobale *RegistreSymboliqueRI::crée_globale(IdentifiantCode *ident,
+                                                 Type const *type,
                                                  AtomeConstante *initialisateur,
                                                  bool est_externe,
                                                  bool est_constante)
 {
-    return globales.ajoute_element(m_typeuse.type_pointeur_pour(const_cast<Type *>(type), false),
+    return globales.ajoute_element(ident,
+                                   m_typeuse.type_pointeur_pour(const_cast<Type *>(type), false),
                                    initialisateur,
                                    est_externe,
                                    est_constante);
@@ -268,9 +270,8 @@ AtomeGlobale *RegistreSymboliqueRI::trouve_ou_insère_globale(NoeudDeclaration *
 
     if (decl_var->atome == nullptr) {
         auto est_externe = decl->possède_drapeau(DrapeauxNoeud::EST_EXTERNE);
-        auto globale = crée_globale(decl->type, nullptr, est_externe, false);
+        auto globale = crée_globale(decl_var->ident, decl->type, nullptr, est_externe, false);
         globale->decl = decl_var;
-        globale->ident = decl_var->ident;
         decl_var->atome = globale;
     }
 
@@ -321,12 +322,13 @@ AtomeFonction *ConstructriceRI::trouve_ou_insère_fonction(NoeudDeclarationEntet
     return m_registre.trouve_ou_insère_fonction(decl);
 }
 
-AtomeGlobale *ConstructriceRI::crée_globale(Type const *type,
+AtomeGlobale *ConstructriceRI::crée_globale(IdentifiantCode *ident,
+                                            Type const *type,
                                             AtomeConstante *initialisateur,
                                             bool est_externe,
                                             bool est_constante)
 {
-    return m_registre.crée_globale(type, initialisateur, est_externe, est_constante);
+    return m_registre.crée_globale(ident, type, initialisateur, est_externe, est_constante);
 }
 
 AtomeGlobale *ConstructriceRI::trouve_globale(NoeudDeclaration *decl)
@@ -473,7 +475,8 @@ AtomeConstante *ConstructriceRI::crée_tableau_global(Type const *type,
 AtomeConstante *ConstructriceRI::crée_tableau_global(AtomeConstante *tableau_fixe)
 {
     auto type_tableau_fixe = tableau_fixe->type->comme_type_tableau_fixe();
-    auto globale_tableau_fixe = crée_globale(type_tableau_fixe, tableau_fixe, false, true);
+    auto globale_tableau_fixe = crée_globale(
+        nullptr, type_tableau_fixe, tableau_fixe, false, true);
     return crée_initialisation_tableau_global(globale_tableau_fixe, type_tableau_fixe);
 }
 
@@ -3702,7 +3705,8 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             // pour éviter de recréer plusieurs fois le même info type.
             auto type_info_union = m_compilatrice.typeuse.type_info_type_union;
 
-            auto globale = m_constructrice.crée_globale(type_info_union, nullptr, false, true);
+            auto globale = m_constructrice.crée_globale(
+                nullptr, type_info_union, nullptr, false, true);
             type->atome_info_type = globale;
 
             // ------------------------------------
@@ -3760,7 +3764,8 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             // pour éviter de recréer plusieurs fois le même info type.
             auto type_info_struct = m_compilatrice.typeuse.type_info_type_structure;
 
-            auto globale = m_constructrice.crée_globale(type_info_struct, nullptr, false, true);
+            auto globale = m_constructrice.crée_globale(
+                nullptr, type_info_struct, nullptr, false, true);
             type->atome_info_type = globale;
 
             // ------------------------------------
@@ -4035,7 +4040,7 @@ AtomeGlobale *CompilatriceRI::crée_globale_info_type(Type const *type_info_type
 {
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_type,
                                                                    std::move(valeurs));
-    return m_constructrice.crée_globale(type_info_type, initialisateur, false, true);
+    return m_constructrice.crée_globale(nullptr, type_info_type, initialisateur, false, true);
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeComposé &membre,
@@ -4118,7 +4123,8 @@ AtomeConstante *CompilatriceRI::crée_chaine(kuri::chaine_statique chaine)
         auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
             type_tableau, const_cast<char *>(chaine.pointeur()), chaine.taille());
 
-        auto globale_tableau = m_constructrice.crée_globale(type_tableau, tableau, false, true);
+        auto globale_tableau = m_constructrice.crée_globale(
+            nullptr, type_tableau, tableau, false, true);
         auto pointeur_chaine = m_constructrice.crée_accès_index_constant(globale_tableau, 0);
         auto taille_chaine = m_constructrice.crée_z64(static_cast<uint64_t>(chaine.taille()));
 
@@ -4297,7 +4303,7 @@ void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable 
                     /* Crée une globale pour le tableau fixe, et utilise celle-ci afin
                      * d'initialiser le tableau dynamique. */
                     auto globale_tableau = m_constructrice.crée_globale(
-                        expression->type, nullptr, false, false);
+                        nullptr, expression->type, nullptr, false, false);
 
                     /* La construction du tableau devra se faire via la fonction
                      * d'initialisation des globales. */
@@ -4579,10 +4585,9 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_fonction_trace_appel,
                                                                    std::move(valeurs));
 
+    auto ident = m_compilatrice.donne_identifiant_pour_globale("info_fonction_trace_appel");
     pour_fonction->info_trace_appel = m_constructrice.crée_globale(
-        type_info_fonction_trace_appel, initialisateur, false, true);
-    pour_fonction->info_trace_appel->ident = m_compilatrice.donne_identifiant_pour_globale(
-        "info_fonction_trace_appel");
+        ident, type_info_fonction_trace_appel, initialisateur, false, true);
 
     crée_trace_appel(pour_fonction);
 
@@ -4618,10 +4623,9 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_appel_trace_appel,
                                                                    std::move(valeurs));
 
+    auto ident = m_compilatrice.donne_identifiant_pour_globale("info_appel_trace_appel");
     pour_appel->info_trace_appel = m_constructrice.crée_globale(
-        type_info_appel_trace_appel, initialisateur, false, true);
-    pour_appel->info_trace_appel->ident = m_compilatrice.donne_identifiant_pour_globale(
-        "info_appel_trace_appel");
+        ident, type_info_appel_trace_appel, initialisateur, false, true);
 
     return pour_appel->info_trace_appel;
 }
