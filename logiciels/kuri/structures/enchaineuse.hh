@@ -159,6 +159,13 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
         return enchaineuse;
     }
 
+    if constexpr (std::is_floating_point_v<T>) {
+        char tampon[128];
+        auto const n = snprintf(tampon, 128, "%.19f", double(valeur));
+        enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
+        return enchaineuse;
+    }
+
     dls::flux_chaine flux;
     flux << valeur;
 

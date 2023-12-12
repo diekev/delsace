@@ -484,6 +484,7 @@ Typeuse::~Typeuse()
     memoire::deloge("TypeCompose", type_chaine);
     auto type_eini = TypeBase::EINI->comme_type_compose();
     memoire::deloge("TypeCompose", type_eini);
+    memoire::deloge("AllocatriceNoeud", alloc);
 }
 
 void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
