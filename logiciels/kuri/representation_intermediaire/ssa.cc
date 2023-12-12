@@ -515,9 +515,16 @@ void Valeur::remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisate
             auto phi = utilisateur->comme_phi();
             POUR_INDEX (phi->opérandes) {
                 if (it == this) {
-                    phi->définis_opérande(table, index_it, it);
+                    phi->définis_opérande(table, index_it, par);
                 }
             }
+            break;
+        }
+        case GenreValeur::TRANSTYPAGE:
+        {
+            auto transtypage = utilisateur->comme_transtypage();
+            assert(transtypage->donne_valeur() == this);
+            transtypage->définis_valeur(table, par);
             break;
         }
     }
