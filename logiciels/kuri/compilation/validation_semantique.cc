@@ -4914,6 +4914,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE) {
         auto noeud_comme = m_tacheronne->assembleuse->crée_comme(expression->lexeme);
+        noeud_comme->bloc_parent = expression->bloc_parent;
         noeud_comme->type = m_compilatrice.typeuse.type_reference_pour(expression->type);
         noeud_comme->expression = expression;
         noeud_comme->transformation = TypeTransformation::PREND_REFERENCE;
@@ -4924,6 +4925,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     }
 
     auto noeud_comme = m_tacheronne->assembleuse->crée_comme(expression->lexeme);
+    noeud_comme->bloc_parent = expression->bloc_parent;
     noeud_comme->type = const_cast<Type *>(type_cible);
     noeud_comme->expression = expression;
     noeud_comme->transformation = tfm;
@@ -5837,7 +5839,7 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
     }
 
     for (auto i = 1; i < expressions_finales.taille(); i++) {
-        auto const expr = expressions_finales[i];
+        auto expr = expressions_finales[i];
         if (!type_est_valide_pour_assignation_via_si(expr, espace)) {
             return CodeRetourValidation::Erreur;
         }
@@ -5860,6 +5862,16 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
                                 " »");
 
             return CodeRetourValidation::Erreur;
+        }
+
+        crée_transtypage_implicite_au_besoin(expr, transformation);
+
+        if (transformation.type != TypeTransformation::INUTILE) {
+            auto bloc = expr->bloc_parent;
+            assert_rappel(bloc, [&]() { dbg() << erreur::imprime_site(*espace, expr); });
+            /* Remplace l'expression. */
+            bloc->expressions->supprime_dernier();
+            bloc->expressions->ajoute(expr);
         }
     }
 
