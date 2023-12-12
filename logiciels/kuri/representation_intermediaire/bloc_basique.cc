@@ -12,27 +12,6 @@
 
 /* ********************************************************************************************* */
 
-static InstructionAllocation const *alloc_ou_nul(Atome const *atome)
-{
-    if (!atome->est_instruction()) {
-        return nullptr;
-    }
-
-    auto inst = atome->comme_instruction();
-
-    if (inst->est_alloc()) {
-        return inst->comme_alloc();
-    }
-
-    if (inst->est_acces_membre()) {
-        return alloc_ou_nul(inst->comme_acces_membre()->accede);
-    }
-
-    return nullptr;
-}
-
-/* ********************************************************************************************* */
-
 static uint32_t donne_drapeau_masque_pour_instruction(GenreInstruction genre)
 {
     return 1u << uint32_t(genre);
@@ -68,38 +47,6 @@ void Bloc::ajoute_enfant(Bloc *enfant)
     enfants.ajoute(enfant);
 }
 
-void Bloc::remplace_enfant(Bloc *enfant, Bloc *par)
-{
-    enlève_du_tableau(enfants, enfant);
-    ajoute_enfant(par);
-    enfant->enlève_parent(this);
-    par->ajoute_parent(this);
-
-    auto inst = instructions.dernière();
-
-    if (inst->est_branche()) {
-        auto branche = inst->comme_branche();
-        branche->label = par->label;
-        return;
-    }
-
-    if (inst->est_branche_cond()) {
-        auto branche_cond = inst->comme_branche_cond();
-        auto label_si_vrai = branche_cond->label_si_vrai;
-        auto label_si_faux = branche_cond->label_si_faux;
-
-        if (label_si_vrai == enfant->label) {
-            branche_cond->label_si_vrai = par->label;
-        }
-
-        if (label_si_faux == enfant->label) {
-            branche_cond->label_si_faux = par->label;
-        }
-
-        return;
-    }
-}
-
 void Bloc::remplace_parent(Bloc *parent, Bloc *par)
 {
     enlève_du_tableau(parents, parent);
@@ -117,39 +64,6 @@ void Bloc::enlève_enfant(Bloc *enfant)
     enlève_du_tableau(enfants, enfant);
 }
 
-bool Bloc::peut_fusionner_enfant()
-{
-    if (enfants.taille() == 0) {
-        return false;
-    }
-
-    if (enfants.taille() > 1) {
-        return false;
-    }
-
-    auto enfant = enfants[0];
-    if (enfant->parents.taille() > 1) {
-        return false;
-    }
-
-    return true;
-}
-
-void Bloc::utilise_variable(InstructionAllocation const *variable)
-{
-    if (!variable) {
-        return;
-    }
-
-    for (auto var : this->variables_utilisees) {
-        if (var == variable) {
-            return;
-        }
-    }
-
-    this->variables_utilisees.ajoute(variable);
-}
-
 void Bloc::fusionne_enfant(Bloc *enfant)
 {
     this->instructions.supprime_dernier();
@@ -157,16 +71,6 @@ void Bloc::fusionne_enfant(Bloc *enfant)
 
     POUR (enfant->instructions) {
         this->ajoute_instruction(it);
-    }
-
-    this->variables_declarees.reserve(enfant->variables_declarees.taille() +
-                                      this->variables_declarees.taille());
-    POUR (enfant->variables_declarees) {
-        this->variables_declarees.ajoute(it);
-    }
-
-    POUR (enfant->variables_utilisees) {
-        this->utilise_variable(it);
     }
 
     /* Supprime la référence à l'enfant dans la hiérarchie. */
@@ -177,11 +81,6 @@ void Bloc::fusionne_enfant(Bloc *enfant)
     POUR (enfant->enfants) {
         this->ajoute_enfant(it);
         it->remplace_parent(enfant, this);
-    }
-
-    /* À FAIRE : c'est quoi ça ? */
-    POUR (this->enfants) {
-        it->enlève_parent(enfant);
     }
 
     enfant->instructions.efface();
@@ -195,8 +94,6 @@ void Bloc::réinitialise()
     instructions.efface();
     parents.efface();
     enfants.efface();
-    variables_declarees.efface();
-    variables_utilisees.efface();
 }
 
 void Bloc::déconnecte_pour_branche_morte(Bloc *parent)
@@ -321,51 +218,18 @@ kuri::chaine imprime_blocs(const kuri::tableau<Bloc *, int> &blocs)
     return sortie.chaine();
 }
 
-void construit_liste_variables_utilisées(Bloc *bloc)
-{
-    POUR (bloc->instructions) {
-        if (it->est_alloc()) {
-            auto alloc = it->comme_alloc();
-            bloc->variables_declarees.ajoute(alloc);
-            continue;
-        }
-
-        if (it->est_stocke_mem()) {
-            auto stocke = it->comme_stocke_mem();
-            bloc->utilise_variable(alloc_ou_nul(stocke->ou));
-        }
-        else if (it->est_acces_membre()) {
-            auto membre = it->comme_acces_membre();
-            bloc->utilise_variable(alloc_ou_nul(membre->accede));
-        }
-        else if (it->est_op_binaire()) {
-            auto op = it->comme_op_binaire();
-            bloc->utilise_variable(alloc_ou_nul(op->valeur_gauche));
-            bloc->utilise_variable(alloc_ou_nul(op->valeur_droite));
-        }
-    }
-}
-
-static Bloc *trouve_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
+static Bloc *trouve_bloc_pour_label(kuri::tableau<Bloc *, int> &table_blocs,
                                     InstructionLabel const *label)
 {
-    POUR (blocs) {
-        if (it->label == label) {
-            return it;
-        }
-    }
-    return nullptr;
+    return table_blocs[label->numero];
 }
 
 static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
                                   kuri::tableau<Bloc *, int> &blocs_libres,
+                                  kuri::tableau<Bloc *, int> &table_blocs,
                                   InstructionLabel *label)
 {
-    auto bloc = trouve_bloc_pour_label(blocs, label);
-    if (bloc) {
-        return bloc;
-    }
-
+    Bloc *bloc;
     if (!blocs_libres.est_vide()) {
         bloc = blocs_libres.dernière();
         blocs_libres.supprime_dernier();
@@ -376,6 +240,7 @@ static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
 
     bloc->label = label;
     blocs.ajoute(bloc);
+    table_blocs[label->numero] = bloc;
     return bloc;
 }
 
@@ -447,11 +312,13 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
 
     auto numero_instruction = atome_fonc->params_entrees.taille();
 
+    table_blocs.redimensionne(atome_fonc->instructions.taille() + numero_instruction);
+
     POUR (atome_fonc->instructions) {
         it->numero = numero_instruction++;
 
         if (it->est_label()) {
-            auto bloc = crée_bloc_pour_label(blocs, blocs_libres, it->comme_label());
+            auto bloc = crée_bloc_pour_label(blocs, blocs_libres, table_blocs, it->comme_label());
             bloc->fonction_et_blocs = this;
         }
     }
@@ -459,7 +326,7 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
     Bloc *bloc_courant = nullptr;
     POUR (atome_fonc->instructions) {
         if (it->est_label()) {
-            bloc_courant = trouve_bloc_pour_label(blocs, it->comme_label());
+            bloc_courant = trouve_bloc_pour_label(table_blocs, it->comme_label());
 
             if (!bloc_courant) {
                 espace.rapporte_erreur(it->site, "Erreur interne, aucun bloc pour le label");
@@ -472,7 +339,7 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
         bloc_courant->ajoute_instruction(it);
 
         if (it->est_branche()) {
-            auto bloc_cible = trouve_bloc_pour_label(blocs, it->comme_branche()->label);
+            auto bloc_cible = trouve_bloc_pour_label(table_blocs, it->comme_branche()->label);
 
             if (!bloc_cible) {
                 espace.rapporte_erreur(
@@ -488,8 +355,8 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
             auto label_si_vrai = it->comme_branche_cond()->label_si_vrai;
             auto label_si_faux = it->comme_branche_cond()->label_si_faux;
 
-            auto bloc_si_vrai = trouve_bloc_pour_label(blocs, label_si_vrai);
-            auto bloc_si_faux = trouve_bloc_pour_label(blocs, label_si_faux);
+            auto bloc_si_vrai = trouve_bloc_pour_label(table_blocs, label_si_vrai);
+            auto bloc_si_faux = trouve_bloc_pour_label(table_blocs, label_si_faux);
 
             if (!bloc_si_vrai) {
                 espace.rapporte_erreur(
@@ -639,7 +506,8 @@ void transfère_instructions_blocs_à_fonction(kuri::tableau_statique<Bloc *> bl
     if (supprimées != 0) {
         instructions_supprimées += supprimées;
         dbg() << "Supprimé " << instructions_supprimées << " / " << instructions_totales
-              << " instructions";
+              << " instructions ("
+              << (double(instructions_supprimées) / double(instructions_totales)) << "%)";
     }
 #endif
 }
