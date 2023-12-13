@@ -4433,56 +4433,7 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable c
     POUR (decl->donnees_decl.plage()) {
         auto expression = it.expression;
 
-        if (expression) {
-            if (expression->genre != GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
-                auto ancienne_expression_gauche = expression_gauche;
-                expression_gauche = false;
-                génère_ri_pour_noeud(expression);
-                expression_gauche = ancienne_expression_gauche;
-
-                if (it.multiple_retour) {
-                    auto valeur_tuple = depile_valeur();
-
-                    for (auto i = 0; i < it.variables.taille(); ++i) {
-                        auto var = it.variables[i];
-                        auto &transformation = it.transformations[i];
-                        auto pointeur = m_constructrice.crée_allocation(
-                            var, var->type, var->ident);
-                        static_cast<NoeudDeclarationSymbole *>(
-                            var->comme_reference_declaration()->declaration_referee)
-                            ->atome = pointeur;
-
-                        auto valeur = m_constructrice.crée_référence_membre(
-                            expression, valeur_tuple, i);
-                        transforme_valeur(expression, valeur, transformation, pointeur);
-                    }
-                }
-                else {
-                    auto valeur = depile_valeur();
-
-                    for (auto i = 0; i < it.variables.taille(); ++i) {
-                        auto var = it.variables[i];
-                        auto &transformation = it.transformations[i];
-                        auto pointeur = m_constructrice.crée_allocation(
-                            var, var->type, var->ident);
-                        static_cast<NoeudDeclarationSymbole *>(
-                            var->comme_reference_declaration()->declaration_referee)
-                            ->atome = pointeur;
-
-                        transforme_valeur(expression, valeur, transformation, pointeur);
-                    }
-                }
-            }
-            else {
-                for (auto &var : it.variables.plage()) {
-                    auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
-                    static_cast<NoeudDeclarationSymbole *>(
-                        var->comme_reference_declaration()->declaration_referee)
-                        ->atome = pointeur;
-                }
-            }
-        }
-        else {
+        if (!expression) {
             for (auto &var : it.variables.plage()) {
                 auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
                 auto type_var = var->type;
@@ -4499,6 +4450,54 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable c
                 static_cast<NoeudDeclarationSymbole *>(
                     var->comme_reference_declaration()->declaration_referee)
                     ->atome = pointeur;
+            }
+
+            continue;
+        }
+
+        if (expression->est_non_initialisation()) {
+            for (auto &var : it.variables.plage()) {
+                auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
+                static_cast<NoeudDeclarationSymbole *>(
+                    var->comme_reference_declaration()->declaration_referee)
+                    ->atome = pointeur;
+            }
+
+            continue;
+        }
+
+        auto ancienne_expression_gauche = expression_gauche;
+        expression_gauche = false;
+        génère_ri_pour_noeud(expression);
+        expression_gauche = ancienne_expression_gauche;
+
+        if (it.multiple_retour) {
+            auto valeur_tuple = depile_valeur();
+
+            for (auto i = 0; i < it.variables.taille(); ++i) {
+                auto var = it.variables[i];
+                auto &transformation = it.transformations[i];
+                auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
+                static_cast<NoeudDeclarationSymbole *>(
+                    var->comme_reference_declaration()->declaration_referee)
+                    ->atome = pointeur;
+
+                auto valeur = m_constructrice.crée_référence_membre(expression, valeur_tuple, i);
+                transforme_valeur(expression, valeur, transformation, pointeur);
+            }
+        }
+        else {
+            auto valeur = depile_valeur();
+
+            for (auto i = 0; i < it.variables.taille(); ++i) {
+                auto var = it.variables[i];
+                auto &transformation = it.transformations[i];
+                auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
+                static_cast<NoeudDeclarationSymbole *>(
+                    var->comme_reference_declaration()->declaration_referee)
+                    ->atome = pointeur;
+
+                transforme_valeur(expression, valeur, transformation, pointeur);
             }
         }
     }
