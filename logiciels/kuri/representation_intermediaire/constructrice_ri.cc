@@ -4418,6 +4418,48 @@ void CompilatriceRI::génère_ri_pour_assignation_variable(
         return depile_valeur();
     };
 
+    if (données_exprs.taille() == 1 && données_exprs[0].variables.taille() == 1) {
+        /* Cas simple : a = b ou a := b */
+
+        auto expression = données_exprs[0].expression;
+        auto variable = données_exprs[0].variables[0];
+        auto transformation = données_exprs[0].transformations[0];
+
+        if (!expression) {
+            auto pointeur = donne_atome_pour_var(variable);
+            auto type_var = variable->type;
+            if (est_type_fondamental(type_var)) {
+                m_constructrice.crée_stocke_mem(
+                    variable,
+                    pointeur,
+                    m_constructrice.crée_initialisation_défaut_pour_type(type_var));
+            }
+            else {
+                crée_appel_fonction_init_type(variable, type_var, pointeur);
+            }
+            return;
+        }
+
+        if (expression->est_non_initialisation()) {
+            return;
+        }
+
+        auto pointeur = donne_atome_pour_var(variable);
+        /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
+         */
+        pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
+
+        if (transformation == TypeTransformation::INUTILE) {
+            génère_ri_pour_expression_droite(expression, pointeur);
+            return;
+        }
+
+        génère_ri_transformee_pour_noeud(expression, pointeur, transformation);
+        return;
+    }
+
+    /* Cas complexe a, b = fonction() */
+
     POUR (données_exprs.plage()) {
         auto expression = it.expression;
 
