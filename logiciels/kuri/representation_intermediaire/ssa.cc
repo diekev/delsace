@@ -931,9 +931,6 @@ using namespace SSA;
 
 struct ConvertisseuseSSA {
   private:
-    // À FAIRE : utilise drapeau
-    kuri::ensemble<Bloc *> m_sealed_blocks{};
-
     struct DéfinitionVariableBloc {
         Atome const *variable = nullptr;
         Bloc *bloc = nullptr;
@@ -1018,8 +1015,9 @@ struct ConvertisseuseSSA {
     {
         Valeur *résultat = nullptr;
 
-        if (!m_sealed_blocks.possède(bloc)) {
-            // dbg() << "[" << __func__ << "] : !m_sealed_blocks.possède(bloc)";
+        if (!bloc->possède_drapeau(DrapeauxBlocBasique::EST_SCELLÉ)) {
+            // dbg() << "[" << __func__ << "] :
+            // !bloc->possède_drapeau(DrapeauxBlocBasique::EST_SCELLÉ)";
             /* Graphe de controle incomplet. */
             auto phi = crée_noeud_phi(bloc);
             ajoute_phi_incomplet(bloc, variable, phi);
@@ -1097,7 +1095,7 @@ struct ConvertisseuseSSA {
 
     void sealBlock(Bloc *bloc)
     {
-        if (m_sealed_blocks.possède(bloc)) {
+        if (bloc->possède_drapeau(DrapeauxBlocBasique::EST_SCELLÉ)) {
             return;
         }
 
@@ -1110,7 +1108,7 @@ struct ConvertisseuseSSA {
             addPhiOperands(it.variable, it.résultat);
         }
 
-        m_sealed_blocks.insère(bloc);
+        bloc->drapeaux |= DrapeauxBlocBasique::EST_SCELLÉ;
     }
 
     // --------------------------------------------
@@ -2004,12 +2002,12 @@ void convertis_ssa(EspaceDeTravail &espace,
 
         if (bloc->tous_les_parents_furent_remplis()) {
             convertisseuse_ssa.sealBlock(bloc);
-            if (bloc->fut_remplis) {
+            if (bloc->possède_drapeau(DrapeauxBlocBasique::EST_REMPLIS)) {
                 continue;
             }
         }
 
-        if (!bloc->fut_remplis) {
+        if (!bloc->possède_drapeau(DrapeauxBlocBasique::EST_REMPLIS)) {
             dbg() << "Remplis bloc " << bloc->label->id;
 
             POUR_NOMME (inst, bloc->instructions) {
@@ -2019,14 +2017,14 @@ void convertis_ssa(EspaceDeTravail &espace,
                 (void)convertisseuse_ssa.génère_valeur_pour_instruction(
                     bloc, inst, UtilisationAtome::RACINE);
             }
-            bloc->fut_remplis = true;
+            bloc->drapeaux |= DrapeauxBlocBasique::EST_REMPLIS;
         }
 
         if (!bloc->tous_les_parents_furent_remplis()) {
             blocs.enfile(bloc);
             // dbg() << "empile bloc " << bloc << " car tous les parents ne furent pas remplis";
             POUR (bloc->parents) {
-                if (it->fut_remplis) {
+                if (it->possède_drapeau(DrapeauxBlocBasique::EST_REMPLIS)) {
                     continue;
                 }
 

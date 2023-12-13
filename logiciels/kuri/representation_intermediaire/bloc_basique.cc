@@ -145,7 +145,7 @@ bool Bloc::supprime_instructions_à_supprimer()
 bool Bloc::tous_les_parents_furent_remplis() const
 {
     POUR (parents) {
-        if (!it->fut_remplis) {
+        if (!it->possède_drapeau(DrapeauxBlocBasique::EST_REMPLIS)) {
             return false;
         }
     }

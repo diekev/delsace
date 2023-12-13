@@ -24,6 +24,13 @@ namespace SSA {
 struct Valeur;
 }
 
+enum class DrapeauxBlocBasique : uint32_t {
+    ZÉRO = 0,
+    EST_REMPLIS = (1u << 0),
+    EST_SCELLÉ = (1u << 1),
+};
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxBlocBasique)
+
 struct Bloc {
     FonctionEtBlocs *fonction_et_blocs = nullptr;
 
@@ -37,7 +44,12 @@ struct Bloc {
     bool est_atteignable = false;
 
     kuri::tableau<SSA::Valeur *> valeurs{};
-    bool fut_remplis = false;
+    DrapeauxBlocBasique drapeaux = DrapeauxBlocBasique::ZÉRO;
+
+    inline bool possède_drapeau(DrapeauxBlocBasique drapeau) const
+    {
+        return (drapeaux & drapeau) != DrapeauxBlocBasique::ZÉRO;
+    }
 
   private:
     bool instructions_à_supprimer = false;
