@@ -929,6 +929,65 @@ static kuri::chaine imprime_valeurs(kuri::tableau_statique<Valeur *> valeurs)
 
 using namespace SSA;
 
+enum class UtilisationAtome : uint32_t {
+    AUCUNE = 0,
+    RACINE = (1u << 0),
+    POUR_GLOBALE = (1u << 1),
+    POUR_BRANCHE_CONDITION = (1u << 2),
+
+    /* Opérandes de stocke. */
+    POUR_SOURCE_ÉCRITURE = (1u << 3),
+    POUR_DESTINATION_ÉCRITURE = (1u << 4),
+
+    /* Opérande d'un opérateur binaire ou unaire. */
+    POUR_OPÉRATEUR = (1u << 5),
+
+    /* Opérande de charge. */
+    POUR_LECTURE = (1u << 6),
+
+    POUR_OPÉRANDE = (POUR_BRANCHE_CONDITION | POUR_SOURCE_ÉCRITURE | POUR_DESTINATION_ÉCRITURE),
+};
+DEFINIS_OPERATEURS_DRAPEAU(UtilisationAtome)
+
+static bool est_drapeau_actif(UtilisationAtome const utilisation, UtilisationAtome const drapeau)
+{
+    return (utilisation & drapeau) != UtilisationAtome::AUCUNE;
+}
+
+static std::ostream &operator<<(std::ostream &os, UtilisationAtome utilisation)
+{
+    if (utilisation == UtilisationAtome::AUCUNE) {
+        os << "AUCUNE";
+        return os;
+    }
+
+#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
+    if ((utilisation & UtilisationAtome::drapeau) != UtilisationAtome::AUCUNE) {                  \
+        identifiants.ajoute(#drapeau);                                                            \
+    }
+
+    kuri::tablet<kuri::chaine_statique, 32> identifiants;
+
+    SI_DRAPEAU_UTILISE(RACINE)
+    SI_DRAPEAU_UTILISE(POUR_GLOBALE)
+    SI_DRAPEAU_UTILISE(POUR_BRANCHE_CONDITION)
+    SI_DRAPEAU_UTILISE(POUR_SOURCE_ÉCRITURE)
+    SI_DRAPEAU_UTILISE(POUR_DESTINATION_ÉCRITURE)
+    SI_DRAPEAU_UTILISE(POUR_OPÉRATEUR)
+    SI_DRAPEAU_UTILISE(POUR_LECTURE)
+
+    auto virgule = "";
+
+    POUR (identifiants) {
+        os << virgule << it;
+        virgule = " | ";
+    }
+
+#undef SI_DRAPEAU_UTILISE
+
+    return os;
+}
+
 struct ConvertisseuseSSA {
   private:
     // À FAIRE : utilise drapeau
@@ -969,7 +1028,9 @@ struct ConvertisseuseSSA {
     {
     }
 
-    void crée_valeurs_depuis_instruction(Bloc *bloc, Instruction const *inst);
+    [[nodiscard]] Valeur *génère_valeur_pour_instruction(Bloc *bloc,
+                                                         Instruction const *inst,
+                                                         const UtilisationAtome utilisation);
 
     TableDesRelations &donne_table_des_relations()
     {
@@ -1132,7 +1193,9 @@ struct ConvertisseuseSSA {
         bloc->valeurs.ajoute(v);
     }
 
-    Valeur *donne_valeur_pour_atome(Bloc *bloc, Atome const *atome)
+    Valeur *donne_valeur_pour_atome(Bloc *bloc,
+                                    Atome const *atome,
+                                    UtilisationAtome const utilisation)
     {
         switch (atome->genre_atome) {
             case Atome::Genre::GLOBALE:
@@ -1147,14 +1210,8 @@ struct ConvertisseuseSSA {
             }
             case Atome::Genre::INSTRUCTION:
             {
-                auto résultat = readVariable(atome, bloc);
-                if (résultat->genre == SSA::GenreValeur::PHI && résultat->numéro == 0) {
-                    ajoute_valeur_au_bloc(résultat, bloc);
-                }
-                else if (résultat->est_locale()) {
-                    return résultat->comme_locale()->donne_valeur();
-                }
-                return résultat;
+                return génère_valeur_pour_instruction(
+                    bloc, atome->comme_instruction(), utilisation);
             }
             case Atome::Genre::ACCÈS_INDEX_CONSTANT:
             {
@@ -1263,29 +1320,43 @@ struct ConvertisseuseSSA {
     Valeur *crée_opérateur_binaire();
 };
 
-void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction const *inst)
+#define DEBOGUE_UTILISATION_INSTRUCTION                                                           \
+    if (inst->est_alloc()) {                                                                      \
+        auto alloc = inst->comme_alloc();                                                         \
+        dbg() << __func__ << " : " << inst->genre << " ("                                         \
+              << (alloc->ident ? alloc->ident->nom : "tmp") << ")"                                \
+              << ", " << utilisation;                                                             \
+    }                                                                                             \
+    else {                                                                                        \
+        dbg() << __func__ << " : " << inst->genre << ", " << utilisation;                         \
+    }
+
+Valeur *ConvertisseuseSSA::génère_valeur_pour_instruction(Bloc *bloc,
+                                                          Instruction const *inst,
+                                                          UtilisationAtome const utilisation)
 {
     switch (inst->genre) {
         case GenreInstruction::LABEL:
         {
-            break;
+            return nullptr;
         }
         case GenreInstruction::BRANCHE:
         {
             auto branche = m_branche.ajoute_element();
             branche->inst = inst->comme_branche();
             bloc->valeurs.ajoute(branche);
-            break;
+            return nullptr;
         }
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto inst_branche = inst->comme_branche_cond();
             auto branche = m_branche_cond.ajoute_element();
             branche->inst = inst_branche;
-            auto valeur = donne_valeur_pour_atome(bloc, inst_branche->condition);
+            auto valeur = donne_valeur_pour_atome(
+                bloc, inst_branche->condition, UtilisationAtome::POUR_BRANCHE_CONDITION);
             branche->définis_condition(m_table_relations, valeur);
             bloc->valeurs.ajoute(branche);
-            break;
+            return nullptr;
         }
         case GenreInstruction::APPEL:
         {
@@ -1295,20 +1366,49 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         }
         case GenreInstruction::ALLOCATION:
         {
+            DEBOGUE_UTILISATION_INSTRUCTION
+
             auto alloc = inst->comme_alloc();
-            auto valeur = m_indéfinie.ajoute_element();
-            auto locale = m_locale.ajoute_element();
-            locale->alloc = alloc;
-            locale->définis_valeur(m_table_relations, valeur);
-            ajoute_valeur_au_bloc(locale, bloc);
-            writeVariable(alloc, bloc, locale);
-            break;
+
+            if (est_drapeau_actif(utilisation, UtilisationAtome::POUR_DESTINATION_ÉCRITURE)) {
+                /* Nous devons créer une nouvelle version de la variable. */
+                auto locale = m_locale.ajoute_element();
+                locale->alloc = alloc;
+                ajoute_valeur_au_bloc(locale, bloc);
+                writeVariable(alloc, bloc, locale);
+                return locale;
+            }
+
+            if (est_drapeau_actif(utilisation, UtilisationAtome::RACINE)) {
+                auto valeur = m_indéfinie.ajoute_element();
+                ajoute_valeur_au_bloc(valeur, bloc);
+
+                /* Nous devons créer une nouvelle version de la variable. */
+                auto locale = m_locale.ajoute_element();
+                locale->alloc = alloc;
+                locale->définis_valeur(m_table_relations, valeur);
+                ajoute_valeur_au_bloc(locale, bloc);
+                writeVariable(alloc, bloc, locale);
+                return locale;
+            }
+
+            /* Lis la valeur. */
+            auto résultat = readVariable(inst, bloc);
+            if (résultat->est_phi() && résultat->numéro == 0) {
+                ajoute_valeur_au_bloc(résultat, bloc);
+            }
+
+            return résultat;
         }
         case GenreInstruction::OPERATION_BINAIRE:
         {
             auto op_binaire = inst->comme_op_binaire();
-            auto valeur_gauche = donne_valeur_pour_atome(bloc, op_binaire->valeur_gauche);
-            auto valeur_droite = donne_valeur_pour_atome(bloc, op_binaire->valeur_droite);
+            auto valeur_gauche = donne_valeur_pour_atome(
+                bloc, op_binaire->valeur_gauche, UtilisationAtome::POUR_OPÉRATEUR);
+            auto valeur_droite = donne_valeur_pour_atome(
+                bloc, op_binaire->valeur_droite, UtilisationAtome::POUR_OPÉRATEUR);
+
+            DEBOGUE_UTILISATION_INSTRUCTION
 
             POUR_TABLEAU_PAGE (m_opérateur_binaire) {
                 if (it.donne_droite() != valeur_droite) {
@@ -1324,12 +1424,23 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
                 }
 
                 writeVariable(inst, bloc, &it);
-                return;
+                return &it;
             }
 
-            if (valeur_gauche->est_constante() && valeur_droite->est_constante()) {
-                auto const_gauche = valeur_gauche->comme_constante();
-                auto const_droite = valeur_droite->comme_constante();
+            /* Essaie de propager les constantes. */
+            auto constante_gauche = valeur_gauche;
+            if (constante_gauche->est_locale()) {
+                constante_gauche = constante_gauche->comme_locale()->donne_valeur();
+            }
+
+            auto constante_droite = valeur_droite;
+            if (constante_droite->est_locale()) {
+                constante_droite = constante_droite->comme_locale()->donne_valeur();
+            }
+
+            if (constante_gauche->est_constante() && constante_droite->est_constante()) {
+                auto const_gauche = constante_gauche->comme_constante();
+                auto const_droite = constante_droite->comme_constante();
 
                 InstructionOpBinaire tmp(inst->site);
                 tmp.type = inst->type;
@@ -1339,9 +1450,10 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
 
                 auto résultat_possible = évalue_opérateur_binaire(&tmp, m_constructrice);
                 if (résultat_possible) {
-                    auto valeur = donne_valeur_pour_atome(bloc, résultat_possible);
+                    auto valeur = donne_valeur_pour_atome(
+                        bloc, résultat_possible, UtilisationAtome::POUR_OPÉRATEUR);
                     writeVariable(inst, bloc, valeur);
-                    return;
+                    return valeur;
                 }
             }
 
@@ -1352,7 +1464,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             ajoute_valeur_au_bloc(résultat, bloc);
 
             writeVariable(inst, bloc, résultat);
-            break;
+            return résultat;
         }
         case GenreInstruction::OPERATION_UNAIRE:
         {
@@ -1362,15 +1474,34 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
         }
         case GenreInstruction::CHARGE_MEMOIRE:
         {
+            DEBOGUE_UTILISATION_INSTRUCTION
             auto charge = inst->comme_charge();
-            auto valeur = donne_valeur_pour_atome(bloc, charge->chargee);
+            auto valeur = donne_valeur_pour_atome(
+                bloc, charge->chargee, UtilisationAtome::POUR_LECTURE);
             writeVariable(charge, bloc, valeur);
-            break;
+            return valeur;
         }
         case GenreInstruction::STOCKE_MEMOIRE:
         {
-            auto stocke = inst->comme_stocke_mem();
-            auto destination = stocke->ou;
+            auto const stocke = inst->comme_stocke_mem();
+            auto const source = stocke->valeur;
+            auto const destination = stocke->ou;
+
+            auto valeur_source = donne_valeur_pour_atome(
+                bloc, source, UtilisationAtome::POUR_SOURCE_ÉCRITURE);
+            auto valeur_destination = donne_valeur_pour_atome(
+                bloc, destination, UtilisationAtome::POUR_DESTINATION_ÉCRITURE);
+
+            DEBOGUE_UTILISATION_INSTRUCTION
+
+            if (valeur_destination->est_locale()) {
+                auto locale = valeur_destination->comme_locale();
+                assert(locale->donne_valeur() == nullptr);
+                locale->définis_valeur(m_table_relations, valeur_source);
+            }
+
+            writeVariable(destination, bloc, valeur_destination);
+#if 0
             auto valeur_stockée = donne_valeur_pour_atome(bloc, stocke->valeur);
 
             if (stocke->valeur->est_instruction()) {
@@ -1449,23 +1580,26 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             }
 
             writeVariable(destination, bloc, valeur_stockée);
-            break;
+#endif
+            return nullptr;
         }
         case GenreInstruction::RETOUR:
         {
             auto retour = inst->comme_retour();
             auto valeur = m_retour.ajoute_element();
             if (retour->valeur) {
-                valeur->définis_valeur(m_table_relations,
-                                       donne_valeur_pour_atome(bloc, retour->valeur));
+                valeur->définis_valeur(
+                    m_table_relations,
+                    donne_valeur_pour_atome(bloc, retour->valeur, UtilisationAtome::POUR_LECTURE));
             }
             bloc->valeurs.ajoute(valeur);
-            break;
+            return nullptr;
         }
         case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto inst_accès = inst->comme_acces_membre();
-            auto valeur_accédée = donne_valeur_pour_atome(bloc, inst_accès->accede);
+            auto valeur_accédée = donne_valeur_pour_atome(
+                bloc, inst_accès->accede, UtilisationAtome::POUR_LECTURE);
 
             auto valeur_accès = m_accès_membre.ajoute_element();
             valeur_accès->définis_accédée(m_table_relations, valeur_accédée);
@@ -1473,25 +1607,28 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             valeur_accès->inst = inst_accès;
             ajoute_valeur_au_bloc(valeur_accès, bloc);
             writeVariable(inst_accès, bloc, valeur_accès);
-            break;
+            return valeur_accès;
         }
         case GenreInstruction::ACCEDE_INDEX:
         {
             auto inst_accès = inst->comme_acces_index();
-            auto valeur_accédée = donne_valeur_pour_atome(bloc, inst_accès->accede);
-            auto valeur_index = donne_valeur_pour_atome(bloc, inst_accès->index);
+            auto valeur_accédée = donne_valeur_pour_atome(
+                bloc, inst_accès->accede, UtilisationAtome::POUR_LECTURE);
+            auto valeur_index = donne_valeur_pour_atome(
+                bloc, inst_accès->index, UtilisationAtome::POUR_LECTURE);
 
             auto valeur_accès = m_accès_index.ajoute_element();
             valeur_accès->définis_accédée(m_table_relations, valeur_accédée);
             valeur_accès->définis_index(m_table_relations, valeur_index);
             ajoute_valeur_au_bloc(valeur_accès, bloc);
             writeVariable(inst_accès, bloc, valeur_accès);
-            break;
+            return valeur_accès;
         }
         case GenreInstruction::TRANSTYPE:
         {
             auto inst_transtype = inst->comme_transtype();
-            auto valeur_transtypée = donne_valeur_pour_atome(bloc, inst_transtype->valeur);
+            auto valeur_transtypée = donne_valeur_pour_atome(
+                bloc, inst_transtype->valeur, UtilisationAtome::POUR_LECTURE);
 
             POUR_TABLEAU_PAGE (m_transtypage) {
                 if (it.donne_valeur() != valeur_transtypée) {
@@ -1503,7 +1640,7 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
                 }
 
                 writeVariable(inst_transtype, bloc, &it);
-                return;
+                return &it;
             }
 
             auto transtypage = m_transtypage.ajoute_element();
@@ -1511,9 +1648,10 @@ void ConvertisseuseSSA::crée_valeurs_depuis_instruction(Bloc *bloc, Instruction
             transtypage->définis_valeur(m_table_relations, valeur_transtypée);
             ajoute_valeur_au_bloc(transtypage, bloc);
             writeVariable(inst_transtype, bloc, transtypage);
-            break;
+            return transtypage;
         }
     }
+    return nullptr;
 }
 
 static void imprime_bloc(Bloc *bloc)
@@ -1897,8 +2035,8 @@ void convertis_ssa(EspaceDeTravail &espace,
     blocs.enfile(fonction_et_blocs.blocs[0]);
 
     /* Insère la valeur de retour dans le premier bloc. */
-    convertisseuse_ssa.crée_valeurs_depuis_instruction(fonction_et_blocs.blocs[0],
-                                                       fonction->param_sortie);
+    (void)convertisseuse_ssa.génère_valeur_pour_instruction(
+        fonction_et_blocs.blocs[0], fonction->param_sortie, UtilisationAtome::RACINE);
 
     while (!blocs.est_vide()) {
         auto bloc = blocs.defile();
@@ -1913,8 +2051,14 @@ void convertis_ssa(EspaceDeTravail &espace,
         }
 
         if (!bloc->fut_remplis) {
+            dbg() << "Remplis bloc " << bloc->label->id;
+
             POUR_NOMME (inst, bloc->instructions) {
-                convertisseuse_ssa.crée_valeurs_depuis_instruction(bloc, inst);
+                if (!instruction_est_racine(inst)) {
+                    continue;
+                }
+                (void)convertisseuse_ssa.génère_valeur_pour_instruction(
+                    bloc, inst, UtilisationAtome::RACINE);
             }
             bloc->fut_remplis = true;
         }
