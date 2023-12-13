@@ -2014,6 +2014,24 @@ static void simplifie_accès_index(FonctionEtBlocs &fonction_et_blocs, TableDesR
     }
 }
 
+static void propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRelations &table)
+{
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (!valeur->est_locale()) {
+                continue;
+            }
+
+            auto locale = valeur->comme_locale();
+
+            auto valeur_locale = locale->donne_valeur();
+            if (valeur_locale->est_locale()) {
+                locale->définis_valeur(table, valeur_locale->comme_locale()->donne_valeur());
+            }
+        }
+    }
+}
+
 void convertis_ssa(EspaceDeTravail &espace,
                    AtomeFonction *fonction,
                    ConstructriceRI &constructrice)
@@ -2088,6 +2106,7 @@ void convertis_ssa(EspaceDeTravail &espace,
     auto visiteuse = VisiteuseBlocs(fonction_et_blocs);
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
+    propage_temporaires(fonction_et_blocs, table_des_relations);
     détecte_expressions_communes(fonction_et_blocs, table_des_relations);
     simplifie_accès_index(fonction_et_blocs, table_des_relations);
 
