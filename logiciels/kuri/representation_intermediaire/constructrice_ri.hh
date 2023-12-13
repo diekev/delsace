@@ -7,8 +7,8 @@
 
 #include "structures/tablet.hh"
 
+class Broyeuse;
 struct Annotation;
-struct Broyeuse;
 struct Compilatrice;
 struct ConstructriceRI;
 struct NoeudBloc;
