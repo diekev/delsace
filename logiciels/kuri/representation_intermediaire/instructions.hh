@@ -838,3 +838,37 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
 
 bool est_tableau_données_constantes(AtomeConstante const *constante);
 bool est_globale_pour_tableau_données_constantes(AtomeGlobale const *globale);
+
+/* ------------------------------------------------------------------------- */
+/** \name Drapeaux pour déterminer où est utilisé un atome.
+ *  Peut être utilisé par les générateurs de code.
+ * \{ */
+
+enum class UtilisationAtome : uint32_t {
+    AUCUNE = 0,
+    RACINE = (1u << 0),
+    POUR_GLOBALE = (1u << 1),
+    POUR_BRANCHE_CONDITION = (1u << 2),
+
+    /* Opérandes de stocke. */
+    POUR_SOURCE_ÉCRITURE = (1u << 3),
+    POUR_DESTINATION_ÉCRITURE = (1u << 4),
+
+    /* Opérande d'un opérateur binaire ou unaire. */
+    POUR_OPÉRATEUR = (1u << 5),
+
+    /* Opérande de charge. */
+    POUR_LECTURE = (1u << 6),
+
+    POUR_OPÉRANDE = (POUR_BRANCHE_CONDITION | POUR_SOURCE_ÉCRITURE | POUR_DESTINATION_ÉCRITURE),
+};
+DEFINIS_OPERATEURS_DRAPEAU(UtilisationAtome)
+
+inline bool est_drapeau_actif(UtilisationAtome const utilisation, UtilisationAtome const drapeau)
+{
+    return (utilisation & drapeau) != UtilisationAtome::AUCUNE;
+}
+
+std::ostream &operator<<(std::ostream &os, UtilisationAtome const utilisation);
+
+/** \} */
