@@ -775,3 +775,43 @@ bool est_globale_pour_tableau_données_constantes(AtomeGlobale const *globale)
 
     return est_tableau_données_constantes(globale->initialisateur);
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name UtilisationAtome.
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, UtilisationAtome const utilisation)
+{
+    if (utilisation == UtilisationAtome::AUCUNE) {
+        os << "AUCUNE";
+        return os;
+    }
+
+#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
+    if ((utilisation & UtilisationAtome::drapeau) != UtilisationAtome::AUCUNE) {                  \
+        identifiants.ajoute(#drapeau);                                                            \
+    }
+
+    kuri::tablet<kuri::chaine_statique, 32> identifiants;
+
+    SI_DRAPEAU_UTILISE(RACINE)
+    SI_DRAPEAU_UTILISE(POUR_GLOBALE)
+    SI_DRAPEAU_UTILISE(POUR_BRANCHE_CONDITION)
+    SI_DRAPEAU_UTILISE(POUR_SOURCE_ÉCRITURE)
+    SI_DRAPEAU_UTILISE(POUR_DESTINATION_ÉCRITURE)
+    SI_DRAPEAU_UTILISE(POUR_OPÉRATEUR)
+    SI_DRAPEAU_UTILISE(POUR_LECTURE)
+
+    auto virgule = "";
+
+    POUR (identifiants) {
+        os << virgule << it;
+        virgule = " | ";
+    }
+
+#undef SI_DRAPEAU_UTILISE
+
+    return os;
+}
+
+/** \} */

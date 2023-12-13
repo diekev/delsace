@@ -929,65 +929,6 @@ static kuri::chaine imprime_valeurs(kuri::tableau_statique<Valeur *> valeurs)
 
 using namespace SSA;
 
-enum class UtilisationAtome : uint32_t {
-    AUCUNE = 0,
-    RACINE = (1u << 0),
-    POUR_GLOBALE = (1u << 1),
-    POUR_BRANCHE_CONDITION = (1u << 2),
-
-    /* Opérandes de stocke. */
-    POUR_SOURCE_ÉCRITURE = (1u << 3),
-    POUR_DESTINATION_ÉCRITURE = (1u << 4),
-
-    /* Opérande d'un opérateur binaire ou unaire. */
-    POUR_OPÉRATEUR = (1u << 5),
-
-    /* Opérande de charge. */
-    POUR_LECTURE = (1u << 6),
-
-    POUR_OPÉRANDE = (POUR_BRANCHE_CONDITION | POUR_SOURCE_ÉCRITURE | POUR_DESTINATION_ÉCRITURE),
-};
-DEFINIS_OPERATEURS_DRAPEAU(UtilisationAtome)
-
-static bool est_drapeau_actif(UtilisationAtome const utilisation, UtilisationAtome const drapeau)
-{
-    return (utilisation & drapeau) != UtilisationAtome::AUCUNE;
-}
-
-static std::ostream &operator<<(std::ostream &os, UtilisationAtome utilisation)
-{
-    if (utilisation == UtilisationAtome::AUCUNE) {
-        os << "AUCUNE";
-        return os;
-    }
-
-#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
-    if ((utilisation & UtilisationAtome::drapeau) != UtilisationAtome::AUCUNE) {                  \
-        identifiants.ajoute(#drapeau);                                                            \
-    }
-
-    kuri::tablet<kuri::chaine_statique, 32> identifiants;
-
-    SI_DRAPEAU_UTILISE(RACINE)
-    SI_DRAPEAU_UTILISE(POUR_GLOBALE)
-    SI_DRAPEAU_UTILISE(POUR_BRANCHE_CONDITION)
-    SI_DRAPEAU_UTILISE(POUR_SOURCE_ÉCRITURE)
-    SI_DRAPEAU_UTILISE(POUR_DESTINATION_ÉCRITURE)
-    SI_DRAPEAU_UTILISE(POUR_OPÉRATEUR)
-    SI_DRAPEAU_UTILISE(POUR_LECTURE)
-
-    auto virgule = "";
-
-    POUR (identifiants) {
-        os << virgule << it;
-        virgule = " | ";
-    }
-
-#undef SI_DRAPEAU_UTILISE
-
-    return os;
-}
-
 struct ConvertisseuseSSA {
   private:
     // À FAIRE : utilise drapeau
