@@ -7,10 +7,11 @@
 
 #include "structures/tablet.hh"
 
+class Broyeuse;
 struct Annotation;
-struct Broyeuse;
 struct Compilatrice;
 struct ConstructriceRI;
+struct DonneesAssignations;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
@@ -418,6 +419,8 @@ struct CompilatriceRI {
     void génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl);
     void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau const *expr,
                                              Atome *place);
+    void génère_ri_pour_assignation_variable(
+        kuri::tableau_compresse<DonneesAssignations, int> const &données_exprs);
 
     void transforme_valeur(NoeudExpression const *noeud,
                            Atome *valeur,
