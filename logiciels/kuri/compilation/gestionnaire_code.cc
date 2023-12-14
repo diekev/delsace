@@ -831,11 +831,12 @@ UniteCompilation *GestionnaireCode::crée_unite_pour_message(EspaceDeTravail *es
 void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Type *type)
 {
     std::unique_lock verrou(m_mutex);
-    if ((type->drapeaux & INITIALISATION_TYPE_FUT_REQUISE) != 0) {
+
+    if (!requiers_création_fonction_initialisation(type)) {
         return;
     }
 
-    if (!requiers_création_fonction_initialisation(type)) {
+    if (type->possède_drapeau(DrapeauxTypes::INITIALISATION_TYPE_FUT_REQUISE)) {
         return;
     }
 
@@ -844,7 +845,7 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
         return;
     }
 
-    type->drapeaux |= INITIALISATION_TYPE_FUT_REQUISE;
+    type->drapeaux_type |= DrapeauxTypes::INITIALISATION_TYPE_FUT_REQUISE;
 
     auto unite = crée_unite(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
     unite->type = type;
