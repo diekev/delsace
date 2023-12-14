@@ -1861,7 +1861,7 @@ static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
     }
 }
 
-static void supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs)
+static void supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs, TableDesRelations &table)
 {
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
@@ -1911,6 +1911,10 @@ static void supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs)
         });
 
         bloc->valeurs.redimensionne(partition.vrai.taille());
+
+        POUR (partition.faux) {
+            table.supprime(it);
+        }
     }
 }
 
@@ -2091,7 +2095,7 @@ void convertis_ssa(EspaceDeTravail &espace,
 
     // Redondant avec supprime_code_inutile, ne prends pas en compte les accès_index
     // supprime_valeurs_inutilisées(fonction_et_blocs, table_des_relations);
-    supprime_code_inutile(fonction_et_blocs);
+    supprime_code_inutile(fonction_et_blocs, table_des_relations);
 
     numérote_valeurs(fonction_et_blocs);
     imprime_blocs(fonction_et_blocs);
