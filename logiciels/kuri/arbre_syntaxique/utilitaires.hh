@@ -92,6 +92,8 @@ enum class DrapeauxNoeud : uint32_t {
     /* La déclaration est celle d'une variable déclarée dans une expression virgule
      * (p.e. a, b := ...). */
     EST_DÉCLARATION_EXPRESSION_VIRGULE = (1u << 30),  // decl var
+
+    FUT_SIMPLIFIÉ = (1u << 31),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
@@ -178,9 +180,9 @@ enum class DrapeauxTypes : uint32_t {
     POSSEDE_TYPE_TABLEAU_FIXE = (1u << 5),
     POSSEDE_TYPE_TABLEAU_DYNAMIQUE = (1u << 6),
     POSSEDE_TYPE_TYPE_DE_DONNEES = (1u << 7),
-    // CODE_BINAIRE_TYPE_FUT_GENERE = 512,
     TYPE_POSSEDE_OPERATEURS_DE_BASE = (1u << 8),
     UNITE_POUR_INITIALISATION_FUT_CREE = (1u << 9),
+    INITIALISATION_TYPE_FUT_REQUISE = (1u << 2),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxTypes)
 
