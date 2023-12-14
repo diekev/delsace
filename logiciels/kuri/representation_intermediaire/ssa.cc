@@ -204,6 +204,50 @@ static std::ostream &operator<<(std::ostream &os, DrapeauxValeur drapeaux)
     return os;
 }
 
+enum class DrapeauxRemplacement : uint32_t {
+    AUCUN = 0,
+    IGNORE_PHI = (1u << 0),
+    IGNORE_ÉCRIS_INDEX = (1u << 1),
+    IGNORE_ACCÈS_INDEX = (1u << 2),
+};
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxRemplacement)
+
+static bool est_drapeau_actif(DrapeauxRemplacement const drapeaux,
+                              DrapeauxRemplacement const drapeau)
+{
+    return (drapeaux & drapeau) != DrapeauxRemplacement::AUCUN;
+}
+
+static std::ostream &operator<<(std::ostream &os, DrapeauxRemplacement drapeaux)
+{
+    if (drapeaux == DrapeauxRemplacement::AUCUN) {
+        os << "AUCUN";
+        return os;
+    }
+
+#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
+    if ((drapeaux & DrapeauxRemplacement::drapeau) != DrapeauxRemplacement::AUCUN) {              \
+        identifiants.ajoute(#drapeau);                                                            \
+    }
+
+    kuri::tablet<kuri::chaine_statique, 32> identifiants;
+
+    SI_DRAPEAU_UTILISE(IGNORE_PHI)
+    SI_DRAPEAU_UTILISE(IGNORE_ÉCRIS_INDEX)
+    SI_DRAPEAU_UTILISE(IGNORE_ACCÈS_INDEX)
+
+    auto virgule = "";
+
+    POUR (identifiants) {
+        os << virgule << it;
+        virgule = " | ";
+    }
+
+#undef SI_DRAPEAU_UTILISE
+
+    return os;
+}
+
 struct Valeur {
     GenreValeur genre{};
     DrapeauxValeur drapeaux = DrapeauxValeur::ZÉRO;
@@ -217,7 +261,9 @@ struct Valeur {
         return this->est_branche() || this->est_branche_cond() || this->est_retour();
     }
 
-    void remplace_par(TableDesRelations &table, Valeur *valeur, bool sauf_opérandes_phi);
+    void remplace_par(TableDesRelations &table,
+                      Valeur *valeur,
+                      DrapeauxRemplacement const drapeaux_remplacement);
 
     inline bool possède_drapeau(DrapeauxValeur drapeau) const
     {
@@ -225,10 +271,7 @@ struct Valeur {
     }
 
   private:
-    void remplace_dans_utisateur(TableDesRelations &table,
-                                 Valeur *utilisateur,
-                                 Valeur *par,
-                                 bool sauf_opérandes_phi);
+    void remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par);
 };
 
 #undef DECLARE_FONCTIONS_DISCRIMINATION
@@ -406,34 +449,46 @@ kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TableDesRelations &table,
     return résultat;
 }
 
-void Valeur::remplace_par(TableDesRelations &table, Valeur *valeur, bool sauf_opérandes_phi)
+void Valeur::remplace_par(TableDesRelations &table,
+                          Valeur *valeur,
+                          DrapeauxRemplacement const drapeaux_remplacement)
 {
     auto utilisateurs = table.donne_utilisateurs(this);
     // dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
 
-    auto utilisée_dans_phi = false;
+    auto nombre_utilisateurs = utilisateurs.taille();
 
     POUR (utilisateurs) {
         if (it == this) {
+            nombre_utilisateurs -= 1;
             continue;
         }
 
-        utilisée_dans_phi |= it->est_phi();
+        if (est_drapeau_actif(drapeaux_remplacement, DrapeauxRemplacement::IGNORE_PHI) &&
+            it->est_phi()) {
+            continue;
+        }
 
-        remplace_dans_utisateur(table, it, valeur, sauf_opérandes_phi);
+        if (est_drapeau_actif(drapeaux_remplacement, DrapeauxRemplacement::IGNORE_ACCÈS_INDEX) &&
+            it->est_accès_index()) {
+            continue;
+        }
+
+        if (est_drapeau_actif(drapeaux_remplacement, DrapeauxRemplacement::IGNORE_ÉCRIS_INDEX) &&
+            it->est_écris_index()) {
+            continue;
+        }
+
+        remplace_dans_utisateur(table, it, valeur);
+        nombre_utilisateurs -= 1;
     }
 
-    if (utilisée_dans_phi && sauf_opérandes_phi) {
-        return;
+    if (nombre_utilisateurs == 0) {
+        table.supprime(this);
     }
-
-    table.supprime(this);
 }
 
-void Valeur::remplace_dans_utisateur(TableDesRelations &table,
-                                     Valeur *utilisateur,
-                                     Valeur *par,
-                                     bool sauf_opérandes_phi)
+void Valeur::remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par)
 {
     switch (utilisateur->genre) {
         case GenreValeur::INDÉFINIE:
@@ -538,10 +593,6 @@ void Valeur::remplace_dans_utisateur(TableDesRelations &table,
         }
         case GenreValeur::PHI:
         {
-            if (sauf_opérandes_phi) {
-                return;
-            }
-
             auto phi = utilisateur->comme_phi();
 
             POUR_INDEX (phi->opérandes) {
@@ -1101,7 +1152,7 @@ struct ConvertisseuseSSA {
         auto users = phi->supprime_utilisateur(m_table_relations, phi);
 
         /* Dévie toutes les utilisations de phi vers same et supprime phi. */
-        phi->remplace_par(m_table_relations, same, false);
+        phi->remplace_par(m_table_relations, same, DrapeauxRemplacement::AUCUN);
 
         /* Essaie de supprimer tous les utilisateurs de phi, qui peuvent être devenus triviaux. */
         POUR_NOMME (use, users) {
@@ -1798,7 +1849,7 @@ static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
                               << inc_existant.phi->numéro;
                         remplacé = true;
 
-                        phi->remplace_par(table, inc_existant.phi, false);
+                        phi->remplace_par(table, inc_existant.phi, DrapeauxRemplacement::AUCUN);
                     }
                 }
 
@@ -1885,7 +1936,7 @@ static void simplifie_locale(SSA::ValeurLocale *locale, TableDesRelations &table
     if (valeur_locale->est_écris_index() &&
         valeur_locale->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
         auto écris_index = valeur_locale->comme_écris_index();
-        locale->remplace_par(table, écris_index->donne_accédée(), false);
+        locale->remplace_par(table, écris_index->donne_accédée(), DrapeauxRemplacement::AUCUN);
     }
 }
 
@@ -1946,13 +1997,16 @@ static void propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
                 continue;
             }
 
-            auto locale = valeur->comme_locale();
+            auto const locale = valeur->comme_locale();
+            auto const valeur_locale = locale->donne_valeur();
+            auto drapeaux = DrapeauxRemplacement::IGNORE_PHI;
 
-            if (locale->donne_valeur()->est_indéfinie()) {
-                continue;
+            if (valeur_locale->est_indéfinie() || valeur_locale->est_écris_index()) {
+                drapeaux |= DrapeauxRemplacement::IGNORE_ACCÈS_INDEX |
+                            DrapeauxRemplacement::IGNORE_ÉCRIS_INDEX;
             }
 
-            locale->remplace_par(table, locale->donne_valeur(), true);
+            locale->remplace_par(table, valeur_locale, drapeaux);
         }
     }
 }
@@ -2032,9 +2086,8 @@ void convertis_ssa(EspaceDeTravail &espace,
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
     détecte_expressions_communes(fonction_et_blocs, table_des_relations);
-    simplifie_accès_index(fonction_et_blocs, table_des_relations);
-    // Après simplifie_accès_index car interfère avec les accès d'index.
     propage_temporaires(fonction_et_blocs, table_des_relations);
+    simplifie_accès_index(fonction_et_blocs, table_des_relations);
 
     // Redondant avec supprime_code_inutile, ne prends pas en compte les accès_index
     // supprime_valeurs_inutilisées(fonction_et_blocs, table_des_relations);
