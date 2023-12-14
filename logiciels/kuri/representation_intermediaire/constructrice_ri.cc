@@ -3412,6 +3412,9 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
     if (destination != place) {
         empile_valeur(destination);
     }
+    else {
+        place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+    }
 }
 
 void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
