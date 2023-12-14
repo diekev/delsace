@@ -2467,10 +2467,13 @@ void simplifie_arbre(EspaceDeTravail *espace,
                      Typeuse &typeuse,
                      NoeudExpression *arbre)
 {
+    assert_rappel(!arbre->possède_drapeau(DrapeauxNoeud::FUT_SIMPLIFIÉ),
+                  [&]() { dbg() << nom_humainement_lisible(arbre); });
     auto simplificatrice = Simplificatrice(espace, assem, typeuse);
     assert(assem->bloc_courant() == nullptr);
     simplificatrice.simplifie(arbre);
     assert(assem->bloc_courant() == nullptr);
+    arbre->drapeaux |= DrapeauxNoeud::FUT_SIMPLIFIÉ;
 }
 
 /** \} */
