@@ -60,7 +60,7 @@ struct TransformationType {
 
     TransformationType() = default;
 
-    TransformationType(TypeTransformation type_) : type(type_)
+    explicit TransformationType(TypeTransformation type_) : type(type_)
     {
     }
 

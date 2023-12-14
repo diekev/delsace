@@ -512,7 +512,7 @@ ResultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
 
     if (type->est_type_reference()) {
         crée_transtypage_implicite_au_besoin(inst->expression_discriminee,
-                                             TypeTransformation::DEREFERENCE);
+                                             TransformationType(TypeTransformation::DEREFERENCE));
         type = type->comme_type_reference()->type_pointe;
     }
 
