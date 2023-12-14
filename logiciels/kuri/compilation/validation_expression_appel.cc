@@ -789,7 +789,7 @@ static ResultatAppariement apparie_appel_init_de(
     auto exprs = kuri::crée_tablet<NoeudExpression *, 10>(args[0].expr);
 
     auto transformations = kuri::tableau<TransformationType, int>(1);
-    transformations[0] = {TypeTransformation::INUTILE};
+    transformations[0] = TransformationType{TypeTransformation::INUTILE};
 
     return CandidateAppariement::appel_init_de(
         1.0, expr->type, std::move(exprs), std::move(transformations));
