@@ -4455,7 +4455,7 @@ void CompilatriceRI::génère_ri_pour_assignation_variable(
         assert_rappel(expression->type,
                       [&]() { dbg() << "Aucun type pour " << expression->genre; });
 
-        if (transformation == TypeTransformation::INUTILE) {
+        if (transformation.type == TypeTransformation::INUTILE) {
             génère_ri_pour_expression_droite(expression, pointeur);
             return;
         }
