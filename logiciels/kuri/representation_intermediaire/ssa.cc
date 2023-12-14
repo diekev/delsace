@@ -1551,6 +1551,7 @@ Valeur *ConvertisseuseSSA::génère_valeur_pour_instruction(Bloc *bloc,
                     m_table_relations,
                     donne_valeur_pour_atome(bloc, retour->valeur, UtilisationAtome::POUR_LECTURE));
             }
+            DEBOGUE_UTILISATION_INSTRUCTION
             bloc->valeurs.ajoute(valeur);
             return nullptr;
         }
@@ -1559,6 +1560,8 @@ Valeur *ConvertisseuseSSA::génère_valeur_pour_instruction(Bloc *bloc,
             auto inst_accès = inst->comme_acces_membre();
             auto valeur_accédée = donne_valeur_pour_atome(
                 bloc, inst_accès->accede, UtilisationAtome::POUR_LECTURE);
+
+            DEBOGUE_UTILISATION_INSTRUCTION
 
             auto valeur_accès = m_accès_membre.ajoute_element();
             valeur_accès->définis_accédée(m_table_relations, valeur_accédée);
@@ -1576,6 +1579,7 @@ Valeur *ConvertisseuseSSA::génère_valeur_pour_instruction(Bloc *bloc,
             auto valeur_index = donne_valeur_pour_atome(
                 bloc, inst_accès->index, UtilisationAtome::POUR_LECTURE);
 
+            DEBOGUE_UTILISATION_INSTRUCTION
             auto valeur_accès = m_accès_index.ajoute_element();
             valeur_accès->définis_accédée(m_table_relations, valeur_accédée);
             valeur_accès->définis_index(m_table_relations, valeur_index);
@@ -1588,6 +1592,8 @@ Valeur *ConvertisseuseSSA::génère_valeur_pour_instruction(Bloc *bloc,
             auto inst_transtype = inst->comme_transtype();
             auto valeur_transtypée = donne_valeur_pour_atome(
                 bloc, inst_transtype->valeur, UtilisationAtome::POUR_LECTURE);
+
+            DEBOGUE_UTILISATION_INSTRUCTION
 
             POUR_TABLEAU_PAGE (m_transtypage) {
                 if (it.donne_valeur() != valeur_transtypée) {
