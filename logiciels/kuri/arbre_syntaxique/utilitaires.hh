@@ -92,6 +92,8 @@ enum class DrapeauxNoeud : uint32_t {
     /* La déclaration est celle d'une variable déclarée dans une expression virgule
      * (p.e. a, b := ...). */
     EST_DÉCLARATION_EXPRESSION_VIRGULE = (1u << 30),  // decl var
+
+    FUT_SIMPLIFIÉ = (1u << 31),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
