@@ -827,10 +827,16 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
         return;
     }
 
+    if (type->possède_drapeau(DrapeauxTypes::INITIALISATION_TYPE_FUT_REQUISE)) {
+        return;
+    }
+
     if (m_validation_doit_attendre_sur_lexage) {
         m_fonctions_init_type_requises.ajoute({espace, type});
         return;
     }
+
+    type->drapeaux_type |= DrapeauxTypes::INITIALISATION_TYPE_FUT_REQUISE;
 
     auto unite = crée_unite(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
     unite->type = type;
