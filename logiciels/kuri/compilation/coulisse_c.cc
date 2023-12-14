@@ -37,7 +37,7 @@
 #undef IMPRIME_COMMENTAIRE
 
 /* Noms de base pour le code généré. Une seule lettre pour minimiser le code. */
-// static const char *nom_base_chaine = "C";
+static const char *nom_base_chaine = "C";
 static const char *nom_base_fonction = "F";
 static const char *nom_base_globale = "G";
 static const char *nom_base_label = "L";
@@ -73,6 +73,8 @@ static bool transtypage_est_utile(InstructionTranstype const *transtype)
  * \{ */
 
 struct ConvertisseuseTypeC;
+
+enum class ModeGénérationCode : uint8_t { C, CPP };
 
 struct GénératriceCodeC {
     kuri::tableau<kuri::chaine_statique> table_valeurs{};
@@ -111,6 +113,8 @@ struct GénératriceCodeC {
     /* Définis si la génération de code d'atome est pour l'initialisation d'un tableau fixe.
      * Utilisé notamment pour ne pas imprimer les noms dans les structures constantes. */
     bool pour_init_tableau = false;
+
+    ModeGénérationCode mode_génération = ModeGénérationCode::CPP;
 
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
@@ -1148,8 +1152,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 résultat << virgule;
                 virgule_placee = true;
 
-#if 0
-                if (!pour_init_tableau) {
+                if (mode_génération == ModeGénérationCode::C && !pour_init_tableau) {
                     résultat << ".";
                     if (it.nom == ID::chaine_vide) {
                         résultat << "membre_invisible";
@@ -1159,9 +1162,6 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                     }
                     résultat << " = ";
                 }
-#else
-                static_cast<void>(it);
-#endif
                 résultat << génère_code_pour_atome(tableau_valeur[index_it], os, pour_globale);
 
                 virgule = ", ";
@@ -1184,6 +1184,18 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
 
             résultat << donne_nom_pour_type(type) << chaine_constante;
             chaine_constante = stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
+
+#if 0
+            if (mode_génération == ModeGénérationCode::C && !pour_globale) {
+                auto nom = enchaine(nom_base_chaine, index_chaine++);
+                os << "  const " << donne_nom_pour_type(type) << " " << nom << " = "
+                   << résultat.chaine() << ";\n";
+            }
+            else if (mode_génération == ModeGénérationCode::CPP) {
+                /* Appel du constructeur : Type{...} */
+                os << donne_nom_pour_type(type);
+            }
+#endif
 
             //            auto nom = enchaine(nom_base_chaine, index_chaine++);
             //            os << "  const " << donne_nom_pour_type(type) << " " << nom << " = " <<
