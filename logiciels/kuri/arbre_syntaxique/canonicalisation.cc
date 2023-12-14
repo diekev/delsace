@@ -1215,7 +1215,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 auto noeud_comme = assem->crée_comme(it->lexeme);
                 noeud_comme->type = it->type;
                 noeud_comme->expression = indexage;
-                noeud_comme->transformation = TypeTransformation::PREND_REFERENCE;
+                noeud_comme->transformation = TransformationType(
+                    TypeTransformation::PREND_REFERENCE);
                 noeud_comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
                 expression_assignee = noeud_comme;

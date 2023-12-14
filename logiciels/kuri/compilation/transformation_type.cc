@@ -50,13 +50,13 @@ template <bool POUR_TRANSTYPAGE>
 ResultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers)
 {
     if (type_de == type_vers) {
-        return TypeTransformation::INUTILE;
+        return TransformationType(TypeTransformation::INUTILE);
     }
 
     /* nous avons un type de données pour chaque type connu lors de la
      * compilation, donc testons manuellement la compatibilité */
     if (type_de->est_type_type_de_donnees() && type_vers->est_type_type_de_donnees()) {
-        return TypeTransformation::INUTILE;
+        return TransformationType(TypeTransformation::INUTILE);
     }
 
     // À FAIRE(r16)
@@ -98,7 +98,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                 return TransformationType{TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
             }
 
-            return TypeTransformation::INUTILE;
+            return TransformationType(TypeTransformation::INUTILE);
         }
 
         if (type_de->est_type_enum()) {
@@ -144,7 +144,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             }
         }
 
-        return TypeTransformation::IMPOSSIBLE;
+        return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
     if (type_de->est_type_entier_relatif() && type_vers->est_type_entier_relatif()) {
@@ -158,7 +158,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             }
         }
 
-        return TypeTransformation::IMPOSSIBLE;
+        return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
     if (POUR_TRANSTYPAGE) {
@@ -195,7 +195,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                 return TransformationType{TypeTransformation::R16_VERS_R64, type_vers};
             }
 
-            return TypeTransformation::IMPOSSIBLE;
+            return TransformationType(TypeTransformation::IMPOSSIBLE);
         }
 
         if (POUR_TRANSTYPAGE) {
@@ -209,7 +209,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                     return TransformationType{TypeTransformation::R64_VERS_R16, type_vers};
                 }
 
-                return TypeTransformation::IMPOSSIBLE;
+                return TransformationType(TypeTransformation::IMPOSSIBLE);
             }
         }
 
@@ -223,7 +223,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             }
         }
 
-        return TypeTransformation::IMPOSSIBLE;
+        return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
     if (type_vers->est_type_union()) {
@@ -242,7 +242,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                                       std::get<IndexMembre>(resultat).valeur};
         }
 
-        return TypeTransformation::IMPOSSIBLE;
+        return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
     if (type_vers->est_type_eini()) {
@@ -250,7 +250,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         if (!type_de->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
             return Attente::sur_type(type_de);
         }
-        return TypeTransformation::CONSTRUIT_EINI;
+        return TransformationType(TypeTransformation::CONSTRUIT_EINI);
     }
 
     if (type_de->est_type_union()) {
@@ -268,7 +268,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TransformationType{TypeTransformation::EXTRAIT_UNION, type_vers, index_it};
         }
 
-        return TypeTransformation::IMPOSSIBLE;
+        return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
     if (type_de->est_type_eini()) {
@@ -284,7 +284,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
         /* Nous savons que les types sont différents, donc si l'un des deux est un
          * pointeur fonction, nous pouvons retourner faux. */
-        return TypeTransformation::IMPOSSIBLE;
+        return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
     if (type_vers->est_type_reference()) {
@@ -308,7 +308,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
 
         if (type_élément_vers == type_de) {
-            return TypeTransformation::PREND_REFERENCE;
+            return TransformationType(TypeTransformation::PREND_REFERENCE);
         }
 
         if (!type_de->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -328,7 +328,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
     if (type_de->est_type_reference()) {
         if (type_de->comme_type_reference()->type_pointe == type_vers) {
-            return TypeTransformation::DEREFERENCE;
+            return TransformationType(TypeTransformation::DEREFERENCE);
         }
     }
 
@@ -341,22 +341,22 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                 auto type_pointe_de = type_de->comme_type_pointeur()->type_pointe;
 
                 if (type_pointe_de == nullptr) {
-                    return TypeTransformation::IMPOSSIBLE;
+                    return TransformationType(TypeTransformation::IMPOSSIBLE);
                 }
             }
 
-            return TypeTransformation::CONSTRUIT_TABL_OCTET;
+            return TransformationType(TypeTransformation::CONSTRUIT_TABL_OCTET);
         }
 
         if (!type_de->est_type_tableau_fixe()) {
-            return TypeTransformation::IMPOSSIBLE;
+            return TransformationType(TypeTransformation::IMPOSSIBLE);
         }
 
         if (type_pointe == type_de->comme_type_tableau_fixe()->type_pointe) {
-            return TypeTransformation::CONVERTI_TABLEAU;
+            return TransformationType(TypeTransformation::CONVERTI_TABLEAU);
         }
 
-        return TypeTransformation::IMPOSSIBLE;
+        return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
     if (type_vers->est_type_pointeur() && type_de->est_type_fonction()) {
@@ -384,12 +384,12 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
         /* x : *nul = y */
         if (type_pointe_vers == nullptr) {
-            return TypeTransformation::INUTILE;
+            return TransformationType(TypeTransformation::INUTILE);
         }
 
         /* x : *rien = y; */
         if (type_pointe_vers->est_type_rien()) {
-            return TypeTransformation::CONVERTI_VERS_PTR_RIEN;
+            return TransformationType(TypeTransformation::CONVERTI_VERS_PTR_RIEN);
         }
 
         /* x : *octet = y; */
@@ -446,7 +446,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
         /* Tout autre conversion est impossible. */
         if (transformation.type != TypeTransformation::INUTILE) {
-            return TypeTransformation::IMPOSSIBLE;
+            return TransformationType(TypeTransformation::IMPOSSIBLE);
         }
 
         return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
@@ -479,7 +479,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
     }
 
-    return TypeTransformation::IMPOSSIBLE;
+    return TransformationType(TypeTransformation::IMPOSSIBLE);
 }
 
 ResultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers)
