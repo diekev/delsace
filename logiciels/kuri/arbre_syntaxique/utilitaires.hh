@@ -38,7 +38,7 @@ using TypeCompose = NoeudDeclarationTypeCompose;
 namespace kuri {
 struct chaine;
 template <typename T, uint64_t>
-struct tablet;
+class tablet;
 }  // namespace kuri
 
 /* ------------------------------------------------------------------------- */
