@@ -918,6 +918,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto fichier = compilatrice.fichier(noeud->lexeme->fichier);
                 littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
                     fichier->chemin());
+                littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
             }
             else if (noeud->ident == ID::chemin_de_ce_module) {
@@ -928,6 +929,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto fichier = compilatrice.fichier(noeud->lexeme->fichier);
                 littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
                     fichier->module->chemin());
+                littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
             }
             else if (noeud->ident == ID::nom_de_cette_fonction) {
@@ -938,6 +940,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
                     fonction_courante->ident->nom);
+                littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
             }
             else if (noeud->ident == ID::type_de_cette_fonction ||
@@ -1212,7 +1215,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 auto noeud_comme = assem->crée_comme(it->lexeme);
                 noeud_comme->type = it->type;
                 noeud_comme->expression = indexage;
-                noeud_comme->transformation = TypeTransformation::PREND_REFERENCE;
+                noeud_comme->transformation = TransformationType(
+                    TypeTransformation::PREND_REFERENCE);
                 noeud_comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
                 expression_assignee = noeud_comme;
@@ -1690,6 +1694,7 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
     auto valeur_chemin_fichier = assem->crée_litterale_chaine(lexeme);
     valeur_chemin_fichier->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
     valeur_chemin_fichier->valeur = compilatrice.gerante_chaine->ajoute_chaine(fichier->chemin());
+    valeur_chemin_fichier->type = TypeBase::CHAINE;
 
     /* PositionCodeSource.fonction */
     auto nom_fonction = kuri::chaine_statique("");
@@ -1700,6 +1705,7 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
     auto valeur_nom_fonction = assem->crée_litterale_chaine(lexeme);
     valeur_nom_fonction->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
     valeur_nom_fonction->valeur = compilatrice.gerante_chaine->ajoute_chaine(nom_fonction);
+    valeur_nom_fonction->type = TypeBase::CHAINE;
 
     /* PositionCodeSource.ligne */
     auto pos = position_lexeme(*lexeme_site);

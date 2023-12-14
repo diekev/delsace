@@ -1626,49 +1626,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
         {
             auto expr_ass = noeud->comme_assignation_variable();
-
-            POUR (expr_ass->donnees_exprs.plage()) {
-                auto expression = it.expression;
-
-                auto ancienne_expression_gauche = expression_gauche;
-                expression_gauche = false;
-                génère_ri_pour_noeud(expression);
-                expression_gauche = ancienne_expression_gauche;
-
-                if (it.multiple_retour) {
-                    auto valeur_tuple = depile_valeur();
-
-                    for (auto i = 0; i < it.variables.taille(); ++i) {
-                        auto var = it.variables[i];
-                        auto &transformation = it.transformations[i];
-                        génère_ri_pour_noeud(var);
-                        auto pointeur = depile_valeur();
-                        /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
-                         */
-                        pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
-
-                        auto valeur = m_constructrice.crée_référence_membre(
-                            expression, valeur_tuple, i);
-                        transforme_valeur(expression, valeur, transformation, pointeur);
-                    }
-                }
-                else {
-                    auto valeur = depile_valeur();
-
-                    for (auto i = 0; i < it.variables.taille(); ++i) {
-                        auto var = it.variables[i];
-                        auto &transformation = it.transformations[i];
-                        génère_ri_pour_noeud(var);
-                        auto pointeur = depile_valeur();
-                        /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
-                         */
-                        pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
-
-                        transforme_valeur(expression, valeur, transformation, pointeur);
-                    }
-                }
-            }
-
+            génère_ri_pour_assignation_variable(expr_ass->donnees_exprs);
             break;
         }
         case GenreNoeud::DECLARATION_VARIABLE:
@@ -3440,6 +3398,9 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
     if (destination != place) {
         empile_valeur(destination);
     }
+    else {
+        place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+    }
 }
 
 void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
@@ -4416,61 +4377,88 @@ void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable 
 
 void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl)
 {
+    /* Crée d'abord les allocations. */
     POUR (decl->donnees_decl.plage()) {
-        auto expression = it.expression;
+        POUR_NOMME (var, it.variables.plage()) {
+            auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
+            auto decl_var = var->comme_reference_declaration()
+                                ->declaration_referee->comme_declaration_symbole();
+            decl_var->atome = pointeur;
+        }
+    }
 
-        if (expression) {
-            if (expression->genre != GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
-                auto ancienne_expression_gauche = expression_gauche;
-                expression_gauche = false;
-                génère_ri_pour_noeud(expression);
-                expression_gauche = ancienne_expression_gauche;
+    /* Génère le code pour les expressions. */
+    génère_ri_pour_assignation_variable(decl->donnees_decl);
+}
 
-                if (it.multiple_retour) {
-                    auto valeur_tuple = depile_valeur();
-
-                    for (auto i = 0; i < it.variables.taille(); ++i) {
-                        auto var = it.variables[i];
-                        auto &transformation = it.transformations[i];
-                        auto pointeur = m_constructrice.crée_allocation(
-                            var, var->type, var->ident);
-                        static_cast<NoeudDeclarationSymbole *>(
-                            var->comme_reference_declaration()->declaration_referee)
-                            ->atome = pointeur;
-
-                        auto valeur = m_constructrice.crée_référence_membre(
-                            expression, valeur_tuple, i);
-                        transforme_valeur(expression, valeur, transformation, pointeur);
-                    }
-                }
-                else {
-                    auto valeur = depile_valeur();
-
-                    for (auto i = 0; i < it.variables.taille(); ++i) {
-                        auto var = it.variables[i];
-                        auto &transformation = it.transformations[i];
-                        auto pointeur = m_constructrice.crée_allocation(
-                            var, var->type, var->ident);
-                        static_cast<NoeudDeclarationSymbole *>(
-                            var->comme_reference_declaration()->declaration_referee)
-                            ->atome = pointeur;
-
-                        transforme_valeur(expression, valeur, transformation, pointeur);
-                    }
-                }
-            }
-            else {
-                for (auto &var : it.variables.plage()) {
-                    auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
-                    static_cast<NoeudDeclarationSymbole *>(
-                        var->comme_reference_declaration()->declaration_referee)
-                        ->atome = pointeur;
-                }
+void CompilatriceRI::génère_ri_pour_assignation_variable(
+    kuri::tableau_compresse<DonneesAssignations, int> const &données_exprs)
+{
+    auto donne_atome_pour_var = [&](NoeudExpression *var) {
+        if (var->est_reference_declaration()) {
+            auto référence = var->comme_reference_declaration();
+            auto decl_var = référence->declaration_referee->comme_declaration_symbole();
+            if (decl_var->atome) {
+                return decl_var->atome;
             }
         }
-        else {
-            for (auto &var : it.variables.plage()) {
-                auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
+
+        génère_ri_pour_noeud(var);
+        return depile_valeur();
+    };
+
+    if (données_exprs.taille() == 1 && données_exprs[0].variables.taille() == 1) {
+        /* Cas simple : a = b ou a := b */
+
+        auto expression = données_exprs[0].expression;
+        auto variable = données_exprs[0].variables[0];
+        auto transformation = données_exprs[0].transformations[0];
+
+        if (!expression) {
+            auto pointeur = donne_atome_pour_var(variable);
+            auto type_var = variable->type;
+            if (est_type_fondamental(type_var)) {
+                m_constructrice.crée_stocke_mem(
+                    variable,
+                    pointeur,
+                    m_constructrice.crée_initialisation_défaut_pour_type(type_var));
+            }
+            else {
+                crée_appel_fonction_init_type(variable, type_var, pointeur);
+            }
+            return;
+        }
+
+        if (expression->est_non_initialisation()) {
+            return;
+        }
+
+        auto pointeur = donne_atome_pour_var(variable);
+        /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
+         */
+        pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
+
+        assert_rappel(expression->type,
+                      [&]() { dbg() << "Aucun type pour " << expression->genre; });
+
+        if (transformation.type == TypeTransformation::INUTILE) {
+            génère_ri_pour_expression_droite(expression, pointeur);
+            return;
+        }
+
+        génère_ri_transformee_pour_noeud(expression, pointeur, transformation);
+        return;
+    }
+
+    /* Cas complexe a, b = fonction() */
+
+    POUR (données_exprs.plage()) {
+        auto expression = it.expression;
+
+        if (!expression) {
+            /* Cas pour les déclarations. */
+            POUR_NOMME (var, it.variables.plage()) {
+                auto pointeur = donne_atome_pour_var(var);
                 auto type_var = var->type;
                 if (est_type_fondamental(type_var)) {
                     m_constructrice.crée_stocke_mem(
@@ -4481,10 +4469,48 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable c
                 else {
                     crée_appel_fonction_init_type(var, type_var, pointeur);
                 }
+            }
 
-                static_cast<NoeudDeclarationSymbole *>(
-                    var->comme_reference_declaration()->declaration_referee)
-                    ->atome = pointeur;
+            continue;
+        }
+
+        if (expression->est_non_initialisation()) {
+            /* Cas pour les déclarations. */
+            continue;
+        }
+
+        auto ancienne_expression_gauche = expression_gauche;
+        expression_gauche = false;
+        génère_ri_pour_noeud(expression);
+        expression_gauche = ancienne_expression_gauche;
+
+        if (it.multiple_retour) {
+            auto valeur_tuple = depile_valeur();
+
+            for (auto i = 0; i < it.variables.taille(); ++i) {
+                auto var = it.variables[i];
+                auto pointeur = donne_atome_pour_var(var);
+                auto &transformation = it.transformations[i];
+                /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
+                 */
+                pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
+
+                auto valeur = m_constructrice.crée_référence_membre(expression, valeur_tuple, i);
+                transforme_valeur(expression, valeur, transformation, pointeur);
+            }
+        }
+        else {
+            auto valeur = depile_valeur();
+
+            for (auto i = 0; i < it.variables.taille(); ++i) {
+                auto var = it.variables[i];
+                auto pointeur = donne_atome_pour_var(var);
+                auto &transformation = it.transformations[i];
+                /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
+                 */
+                pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
+
+                transforme_valeur(expression, valeur, transformation, pointeur);
             }
         }
     }
