@@ -4452,6 +4452,9 @@ void CompilatriceRI::génère_ri_pour_assignation_variable(
          */
         pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
 
+        assert_rappel(expression->type,
+                      [&]() { dbg() << "Aucun type pour " << expression->genre; });
+
         if (transformation == TypeTransformation::INUTILE) {
             génère_ri_pour_expression_droite(expression, pointeur);
             return;
