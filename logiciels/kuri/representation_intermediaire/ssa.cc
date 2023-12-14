@@ -1148,6 +1148,7 @@ struct ConvertisseuseSSA {
 
     void ajoute_valeur_au_bloc(Valeur *v, Bloc *bloc)
     {
+        assert(v->numéro == 0);
         v->numéro = ++nombre_valeurs;
         bloc->valeurs.ajoute(v);
     }
@@ -1453,93 +1454,29 @@ Valeur *ConvertisseuseSSA::génère_valeur_pour_instruction(Bloc *bloc,
 
             DEBOGUE_UTILISATION_INSTRUCTION
 
-            if (valeur_destination->est_locale()) {
-                auto locale = valeur_destination->comme_locale();
-                assert(locale->donne_valeur() == nullptr);
-                locale->définis_valeur(m_table_relations, valeur_source);
-            }
-
-            writeVariable(destination, bloc, valeur_destination);
-#if 0
-            auto valeur_stockée = donne_valeur_pour_atome(bloc, stocke->valeur);
-
             if (stocke->valeur->est_instruction()) {
                 auto inst_stockée = stocke->valeur->comme_instruction();
                 if (inst_stockée->est_alloc() || inst_stockée->est_acces_index() ||
                     inst_stockée->est_acces_membre()) {
                     auto adresse_de = m_adresse_de.ajoute_element();
-                    adresse_de->définis_valeur(m_table_relations, valeur_stockée);
+                    adresse_de->définis_valeur(m_table_relations, valeur_source);
                     ajoute_valeur_au_bloc(adresse_de, bloc);
-                    valeur_stockée = adresse_de;
+                    valeur_source = adresse_de;
                 }
             }
 
-            if (destination->est_instruction()) {
-                auto inst_dest = destination->comme_instruction();
-                if (inst_dest->est_alloc()) {
-                    auto alloc = inst_dest->comme_alloc();
-
-                    dbg() << "Cherche alloc " << (alloc->ident ? alloc->ident->nom : "tmp");
-                    auto valeur_alloc = readVariable(alloc, bloc);
-                    if (valeur_alloc->est_locale() &&
-                        valeur_alloc->comme_locale()->donne_valeur()->est_indéfinie()) {
-                        dbg() << "Première version de "
-                              << (alloc->ident ? alloc->ident->nom : "tmp");
-                        valeur_alloc->comme_locale()->définis_valeur(m_table_relations,
-                                                                     valeur_stockée);
-                        valeur_stockée = valeur_alloc;
-                    }
-                    else {
-                        dbg() << "Nouvelle version de "
-                              << (alloc->ident ? alloc->ident->nom : "tmp");
-                        auto locale = m_locale.ajoute_element();
-                        locale->alloc = alloc;
-                        locale->définis_valeur(m_table_relations, valeur_stockée);
-                        ajoute_valeur_au_bloc(locale, bloc);
-                        valeur_stockée = locale;
-                    }
-                }
-                else if (inst_dest->est_acces_index()) {
-                    auto accès_index = inst_dest->comme_acces_index();
-                    if (accès_index->accede->est_instruction()) {
-                        auto inst_accédé = accès_index->accede->comme_instruction();
-                        if (inst_accédé->est_alloc()) {
-                            auto alloc = inst_accédé->comme_alloc();
-                            dbg() << "Nouvelle version de "
-                                  << (alloc->ident ? alloc->ident->nom : "tmp");
-
-                            auto valeur_alloc = readVariable(alloc, bloc);
-                            auto valeur_index = donne_valeur_pour_atome(bloc, accès_index->index);
-
-                            auto écris_index = m_écris_index.ajoute_element();
-                            écris_index->définis_accédée(m_table_relations, valeur_alloc);
-                            écris_index->définis_index(m_table_relations, valeur_index);
-                            écris_index->définis_valeur(m_table_relations, valeur_stockée);
-                            ajoute_valeur_au_bloc(écris_index, bloc);
-
-                            auto locale = m_locale.ajoute_element();
-                            locale->alloc = alloc;
-                            locale->définis_valeur(m_table_relations, écris_index);
-                            ajoute_valeur_au_bloc(locale, bloc);
-                            valeur_stockée = locale;
-
-                            destination = alloc;
-                        }
-                        else {
-                            INSTRUCTION_NON_IMPLEMENTEE;
-                        }
-                    }
-                    else {
-                        INSTRUCTION_NON_IMPLEMENTEE;
-                    }
-                }
-                else {
-                    INSTRUCTION_NON_IMPLEMENTEE;
-                }
+            if (valeur_destination->est_locale()) {
+                auto locale = valeur_destination->comme_locale();
+                assert(locale->donne_valeur() == nullptr);
+                locale->définis_valeur(m_table_relations, valeur_source);
+            }
+            else if (valeur_destination->est_écris_index()) {
+                auto écris_index = valeur_destination->comme_écris_index();
+                assert(écris_index->donne_valeur() == nullptr);
+                écris_index->définis_valeur(m_table_relations, valeur_source);
             }
 
-            writeVariable(destination, bloc, valeur_stockée);
-#endif
+            writeVariable(destination, bloc, valeur_destination);
             return nullptr;
         }
         case GenreInstruction::RETOUR:
@@ -1558,8 +1495,7 @@ Valeur *ConvertisseuseSSA::génère_valeur_pour_instruction(Bloc *bloc,
         case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto inst_accès = inst->comme_acces_membre();
-            auto valeur_accédée = donne_valeur_pour_atome(
-                bloc, inst_accès->accede, UtilisationAtome::POUR_LECTURE);
+            auto valeur_accédée = donne_valeur_pour_atome(bloc, inst_accès->accede, utilisation);
 
             DEBOGUE_UTILISATION_INSTRUCTION
 
@@ -1580,11 +1516,34 @@ Valeur *ConvertisseuseSSA::génère_valeur_pour_instruction(Bloc *bloc,
                 bloc, inst_accès->index, UtilisationAtome::POUR_LECTURE);
 
             DEBOGUE_UTILISATION_INSTRUCTION
+
+            if (est_drapeau_actif(utilisation, UtilisationAtome::POUR_DESTINATION_ÉCRITURE)) {
+                if (!valeur_accédée->est_locale()) {
+                    INSTRUCTION_NON_IMPLEMENTEE;
+                }
+
+                auto écris_index = m_écris_index.ajoute_element();
+                écris_index->définis_accédée(m_table_relations, valeur_accédée);
+                écris_index->définis_index(m_table_relations, valeur_index);
+                ajoute_valeur_au_bloc(écris_index, bloc);
+
+                auto locale = valeur_accédée->comme_locale();
+                /* À FAIRE : nous pourrions ne pas toujours créer de nouvelles locales. */
+                auto nouvelle_locale = m_locale.ajoute_element();
+                nouvelle_locale->alloc = locale->alloc;
+                nouvelle_locale->définis_valeur(m_table_relations, écris_index);
+                ajoute_valeur_au_bloc(nouvelle_locale, bloc);
+
+                writeVariable(locale->alloc, bloc, nouvelle_locale);
+                return écris_index;
+            }
+
             auto valeur_accès = m_accès_index.ajoute_element();
             valeur_accès->définis_accédée(m_table_relations, valeur_accédée);
             valeur_accès->définis_index(m_table_relations, valeur_index);
             ajoute_valeur_au_bloc(valeur_accès, bloc);
             writeVariable(inst_accès, bloc, valeur_accès);
+
             return valeur_accès;
         }
         case GenreInstruction::TRANSTYPE:
@@ -1988,6 +1947,11 @@ static void propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
             }
 
             auto locale = valeur->comme_locale();
+
+            if (locale->donne_valeur()->est_indéfinie()) {
+                continue;
+            }
+
             locale->replaceBy(table, locale->donne_valeur(), true);
         }
     }
@@ -2033,7 +1997,7 @@ void convertis_ssa(EspaceDeTravail &espace,
             dbg() << "Remplis bloc " << bloc->label->id;
 
             POUR_NOMME (inst, bloc->instructions) {
-                if (!instruction_est_racine(inst)) {
+                if (!instruction_est_racine(inst) && !inst->est_alloc()) {
                     continue;
                 }
                 (void)convertisseuse_ssa.génère_valeur_pour_instruction(
@@ -2067,11 +2031,13 @@ void convertis_ssa(EspaceDeTravail &espace,
     auto visiteuse = VisiteuseBlocs(fonction_et_blocs);
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
-    propage_temporaires(fonction_et_blocs, table_des_relations);
     détecte_expressions_communes(fonction_et_blocs, table_des_relations);
     simplifie_accès_index(fonction_et_blocs, table_des_relations);
+    // Après simplifie_accès_index car interfère avec les accès d'index.
+    propage_temporaires(fonction_et_blocs, table_des_relations);
 
-    supprime_valeurs_inutilisées(fonction_et_blocs, table_des_relations);
+    // Redondant avec supprime_code_inutile, ne prends pas en compte les accès_index
+    // supprime_valeurs_inutilisées(fonction_et_blocs, table_des_relations);
     supprime_code_inutile(fonction_et_blocs);
 
     numérote_valeurs(fonction_et_blocs);
