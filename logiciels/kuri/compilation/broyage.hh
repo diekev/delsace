@@ -13,7 +13,7 @@ using Type = NoeudDeclarationType;
 
 namespace kuri {
 template <typename T, uint64_t>
-struct tablet;
+class tablet;
 }
 
 /**
