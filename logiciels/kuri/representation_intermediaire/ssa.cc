@@ -217,7 +217,7 @@ struct Valeur {
         return this->est_branche() || this->est_branche_cond() || this->est_retour();
     }
 
-    void replaceBy(TableDesRelations &table, Valeur *valeur, bool sauf_opérandes_phi);
+    void remplace_par(TableDesRelations &table, Valeur *valeur, bool sauf_opérandes_phi);
 
     inline bool possède_drapeau(DrapeauxValeur drapeau) const
     {
@@ -406,7 +406,7 @@ kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TableDesRelations &table,
     return résultat;
 }
 
-void Valeur::replaceBy(TableDesRelations &table, Valeur *valeur, bool sauf_opérandes_phi)
+void Valeur::remplace_par(TableDesRelations &table, Valeur *valeur, bool sauf_opérandes_phi)
 {
     auto utilisateurs = table.donne_utilisateurs(this);
     // dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
@@ -1101,7 +1101,7 @@ struct ConvertisseuseSSA {
         auto users = phi->supprime_utilisateur(m_table_relations, phi);
 
         /* Dévie toutes les utilisations de phi vers same et supprime phi. */
-        phi->replaceBy(m_table_relations, same, false);
+        phi->remplace_par(m_table_relations, same, false);
 
         /* Essaie de supprimer tous les utilisateurs de phi, qui peuvent être devenus triviaux. */
         POUR_NOMME (use, users) {
@@ -1798,7 +1798,7 @@ static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
                               << inc_existant.phi->numéro;
                         remplacé = true;
 
-                        phi->replaceBy(table, inc_existant.phi, false);
+                        phi->remplace_par(table, inc_existant.phi, false);
                     }
                 }
 
@@ -1885,7 +1885,7 @@ static void simplifie_locale(SSA::ValeurLocale *locale, TableDesRelations &table
     if (valeur_locale->est_écris_index() &&
         valeur_locale->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
         auto écris_index = valeur_locale->comme_écris_index();
-        locale->replaceBy(table, écris_index->donne_accédée(), false);
+        locale->remplace_par(table, écris_index->donne_accédée(), false);
     }
 }
 
@@ -1952,7 +1952,7 @@ static void propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
                 continue;
             }
 
-            locale->replaceBy(table, locale->donne_valeur(), true);
+            locale->remplace_par(table, locale->donne_valeur(), true);
         }
     }
 }
