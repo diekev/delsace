@@ -217,7 +217,7 @@ struct Valeur {
         return this->est_branche() || this->est_branche_cond() || this->est_retour();
     }
 
-    void replaceBy(TableDesRelations &table, Valeur *valeur);
+    void replaceBy(TableDesRelations &table, Valeur *valeur, bool sauf_opérandes_phi);
 
     inline bool possède_drapeau(DrapeauxValeur drapeau) const
     {
@@ -225,7 +225,10 @@ struct Valeur {
     }
 
   private:
-    void remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par);
+    void remplace_dans_utisateur(TableDesRelations &table,
+                                 Valeur *utilisateur,
+                                 Valeur *par,
+                                 bool sauf_opérandes_phi);
 };
 
 #undef DECLARE_FONCTIONS_DISCRIMINATION
@@ -403,22 +406,34 @@ kuri::tableau<Valeur *> NoeudPhi::supprime_utilisateur(TableDesRelations &table,
     return résultat;
 }
 
-void Valeur::replaceBy(TableDesRelations &table, Valeur *valeur)
+void Valeur::replaceBy(TableDesRelations &table, Valeur *valeur, bool sauf_opérandes_phi)
 {
     auto utilisateurs = table.donne_utilisateurs(this);
     // dbg() << "[" << __func__ << "] : utilisateurs " << utilisateurs.taille();
+
+    auto utilisée_dans_phi = false;
+
     POUR (utilisateurs) {
         if (it == this) {
             continue;
         }
 
-        remplace_dans_utisateur(table, it, valeur);
+        utilisée_dans_phi |= it->est_phi();
+
+        remplace_dans_utisateur(table, it, valeur, sauf_opérandes_phi);
+    }
+
+    if (utilisée_dans_phi && sauf_opérandes_phi) {
+        return;
     }
 
     table.supprime(this);
 }
 
-void Valeur::remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par)
+void Valeur::remplace_dans_utisateur(TableDesRelations &table,
+                                     Valeur *utilisateur,
+                                     Valeur *par,
+                                     bool sauf_opérandes_phi)
 {
     switch (utilisateur->genre) {
         case GenreValeur::INDÉFINIE:
@@ -523,7 +538,12 @@ void Valeur::remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisate
         }
         case GenreValeur::PHI:
         {
+            if (sauf_opérandes_phi) {
+                return;
+            }
+
             auto phi = utilisateur->comme_phi();
+
             POUR_INDEX (phi->opérandes) {
                 if (it == this) {
                     phi->définis_opérande(table, index_it, par);
@@ -1081,7 +1101,7 @@ struct ConvertisseuseSSA {
         auto users = phi->supprime_utilisateur(m_table_relations, phi);
 
         /* Dévie toutes les utilisations de phi vers same et supprime phi. */
-        phi->replaceBy(m_table_relations, same);
+        phi->replaceBy(m_table_relations, same, false);
 
         /* Essaie de supprimer tous les utilisateurs de phi, qui peuvent être devenus triviaux. */
         POUR_NOMME (use, users) {
@@ -1813,7 +1833,7 @@ static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
                               << inc_existant.phi->numéro;
                         remplacé = true;
 
-                        phi->replaceBy(table, inc_existant.phi);
+                        phi->replaceBy(table, inc_existant.phi, false);
                     }
                 }
 
@@ -1900,7 +1920,7 @@ static void simplifie_locale(SSA::ValeurLocale *locale, TableDesRelations &table
     if (valeur_locale->est_écris_index() &&
         valeur_locale->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
         auto écris_index = valeur_locale->comme_écris_index();
-        locale->replaceBy(table, écris_index->donne_accédée());
+        locale->replaceBy(table, écris_index->donne_accédée(), false);
     }
 }
 
@@ -1962,11 +1982,7 @@ static void propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
             }
 
             auto locale = valeur->comme_locale();
-
-            auto valeur_locale = locale->donne_valeur();
-            if (valeur_locale->est_locale()) {
-                locale->définis_valeur(table, valeur_locale->comme_locale()->donne_valeur());
-            }
+            locale->replaceBy(table, locale->donne_valeur(), true);
         }
     }
 }
