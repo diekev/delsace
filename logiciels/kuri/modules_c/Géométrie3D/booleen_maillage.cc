@@ -16,8 +16,8 @@ namespace geo {
 
 static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage const &maillage)
 {
-    std::unique_ptr<EnrichedPolyhedron> resultat = std::make_unique<EnrichedPolyhedron>();
-    auto point_map = get(boost::vertex_point, *resultat);
+    std::unique_ptr<EnrichedPolyhedron> résultat = std::make_unique<EnrichedPolyhedron>();
+    auto point_map = get(boost::vertex_point, *résultat);
 
     /* Exporte les points. */
     using vertex_descriptor = boost::graph_traits<EnrichedPolyhedron>::vertex_descriptor;
@@ -26,7 +26,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage con
 
     for (int64_t i = 0; i < maillage.nombreDePoints(); i++) {
         auto point = maillage.pointPourIndex(i);
-        auto vd = CGAL::add_vertex(*resultat);
+        auto vd = CGAL::add_vertex(*résultat);
         put(point_map, vd, Point3d(point.x, point.y, point.z));
         vertices.ajoute(vd);
     }
@@ -47,20 +47,20 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage con
             face_vertices.push_back(vertices[temp_access_index_sommet[j]]);
         }
 
-        auto face = CGAL::Euler::add_face(face_vertices, *resultat);
+        auto face = CGAL::Euler::add_face(face_vertices, *résultat);
 
         if (face == boost::graph_traits<EnrichedPolyhedron>::null_face()) {
             std::cerr << "Erreur lors de la construction de la face !\n";
         }
     }
 
-    return resultat;
+    return résultat;
 }
 
 static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(CelluleVoronoi const &cellule)
 {
-    std::unique_ptr<EnrichedPolyhedron> resultat = std::make_unique<EnrichedPolyhedron>();
-    auto point_map = get(boost::vertex_point, *resultat);
+    std::unique_ptr<EnrichedPolyhedron> résultat = std::make_unique<EnrichedPolyhedron>();
+    auto point_map = get(boost::vertex_point, *résultat);
 
     /* Exporte les points. */
     using vertex_descriptor = boost::graph_traits<EnrichedPolyhedron>::vertex_descriptor;
@@ -71,7 +71,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(CelluleVoron
         auto px = static_cast<float>(cellule.verts[i * 3]);
         auto py = static_cast<float>(cellule.verts[i * 3 + 1]);
         auto pz = static_cast<float>(cellule.verts[i * 3 + 2]);
-        auto vd = CGAL::add_vertex(*resultat);
+        auto vd = CGAL::add_vertex(*résultat);
         put(point_map, vd, Point3d(px, py, pz));
         vertices.ajoute(vd);
     }
@@ -94,7 +94,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(CelluleVoron
             face_vertices.push_back(vertices[cellule.poly_indices[skip + j + 1]]);
         }
 
-        auto face = CGAL::Euler::add_face(face_vertices, *resultat);
+        auto face = CGAL::Euler::add_face(face_vertices, *résultat);
 
         if (face == boost::graph_traits<EnrichedPolyhedron>::null_face()) {
             std::cerr << "Erreur lors de la construction de la face !\n";
@@ -102,7 +102,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(CelluleVoron
         skip += (nombre_sommets + 1);
     }
 
-    return resultat;
+    return résultat;
 }
 
 void convertis_vers_maillage(EnrichedPolyhedron &polyhedre, Maillage &maillage)

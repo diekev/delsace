@@ -322,7 +322,7 @@ void Programme::ajourne_pour_nouvelles_options_espace()
     POUR (m_fonctions) {
         /* Supprime le point d'entrée. */
         if (it == espace()->fonction_point_d_entree &&
-            espace()->options.resultat != ResultatCompilation::EXECUTABLE) {
+            espace()->options.résultat != ResultatCompilation::EXECUTABLE) {
             std::swap(m_fonctions[index], m_fonctions[m_fonctions.taille() - 1]);
             m_fonctions.redimensionne(m_fonctions.taille() - 1);
             break;
@@ -934,7 +934,7 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
 
     génère_table_des_types();
 
-    switch (m_espace.options.resultat) {
+    switch (m_espace.options.résultat) {
         case ResultatCompilation::RIEN:
         {
             break;

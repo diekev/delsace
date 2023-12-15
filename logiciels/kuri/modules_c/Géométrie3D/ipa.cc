@@ -286,23 +286,23 @@ void GEO3D_distribue_points_poisson_2d(struct ParametresDistributionPoisson2D *p
 
 void GEO3D_construit_maillage_alpha(struct AdaptriceMaillage *points,
                                     const float rayon,
-                                    struct AdaptriceMaillage *maillage_resultat)
+                                    struct AdaptriceMaillage *maillage_résultat)
 {
     RETOURNE_SI_NUL(points)
-    RETOURNE_SI_NUL(maillage_resultat)
+    RETOURNE_SI_NUL(maillage_résultat)
     geo::Maillage points_ = geo::Maillage::enveloppe(points);
-    geo::Maillage maillage_resultat_ = geo::Maillage::enveloppe(maillage_resultat);
-    geo::construit_maillage_alpha(points_, rayon, maillage_resultat_);
+    geo::Maillage maillage_résultat_ = geo::Maillage::enveloppe(maillage_résultat);
+    geo::construit_maillage_alpha(points_, rayon, maillage_résultat_);
 }
 
 void GEO3D_triangulation_delaunay_2d_points_3d(struct AdaptriceMaillage *points,
-                                               struct AdaptriceMaillage *resultat)
+                                               struct AdaptriceMaillage *résultat)
 {
     RETOURNE_SI_NUL(points)
-    RETOURNE_SI_NUL(resultat)
+    RETOURNE_SI_NUL(résultat)
     geo::Maillage points_ = geo::Maillage::enveloppe(points);
-    geo::Maillage maillage_resultat_ = geo::Maillage::enveloppe(resultat);
-    geo::triangulation_delaunay_2d_points_3d(points_, maillage_resultat_);
+    geo::Maillage maillage_résultat_ = geo::Maillage::enveloppe(résultat);
+    geo::triangulation_delaunay_2d_points_3d(points_, maillage_résultat_);
 }
 
 void GEO3D_simule_erosion_vent(struct ParametresErosionVent *params,

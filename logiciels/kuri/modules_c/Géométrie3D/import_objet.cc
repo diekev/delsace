@@ -208,27 +208,27 @@ struct ParsatTableauIndexSurPolygone {
 static ParsatTableauIndexSurPolygone parse_tableau_index(
     const kuri::tableau<kuri::tableau<int>> &valeurs)
 {
-    auto resultat = ParsatTableauIndexSurPolygone();
+    auto résultat = ParsatTableauIndexSurPolygone();
 
     for (const auto &tableau : valeurs) {
         if (tableau.est_vide()) {
-            resultat.valide = false;
-            return resultat;
+            résultat.valide = false;
+            return résultat;
         }
 
-        resultat.nombre_de_sommets += static_cast<int>(tableau.taille());
+        résultat.nombre_de_sommets += static_cast<int>(tableau.taille());
 
         int premier_index = tableau[0];
         for (const auto &index : tableau) {
-            resultat.index_max = std::max(resultat.index_max, index);
+            résultat.index_max = std::max(résultat.index_max, index);
 
             if (premier_index != index) {
-                resultat.donnees_variantes_sur_polygone = true;
+                résultat.donnees_variantes_sur_polygone = true;
             }
         }
     }
 
-    return resultat;
+    return résultat;
 }
 
 void charge_fichier_OBJ(Maillage &maillage, std::string const &chemin)

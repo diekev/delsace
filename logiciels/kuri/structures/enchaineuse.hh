@@ -79,26 +79,26 @@ struct Enchaineuse {
 template <typename T>
 unsigned nombre_chiffre_base_10_pro(T v)
 {
-    unsigned resultat = 1;
+    unsigned résultat = 1;
 
     for (;;) {
         if (PROBABLE(v < 10)) {
-            return resultat;
+            return résultat;
         }
 
         if (PROBABLE(v < 100)) {
-            return resultat + 1;
+            return résultat + 1;
         }
 
         if (PROBABLE(v < 1000)) {
-            return resultat + 2;
+            return résultat + 2;
         }
 
         if (PROBABLE(v < 10000)) {
-            return resultat + 3;
+            return résultat + 3;
         }
 
-        resultat += 4;
+        résultat += 4;
         v /= 10000;
     }
 }

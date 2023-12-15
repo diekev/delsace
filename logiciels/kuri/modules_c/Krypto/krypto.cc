@@ -288,7 +288,7 @@ int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a,
     volatile const unsigned char *droite;
     volatile const unsigned char *gauche;
     volatile uint64_t longueur;
-    volatile unsigned char resultat;
+    volatile unsigned char résultat;
 
     /* loop count depends on length of b */
     longueur = taille_b;
@@ -299,18 +299,18 @@ int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a,
      * volatice forces reevaluation */
     if (taille_a == longueur) {
         gauche = *((volatile const unsigned char **)&a);
-        resultat = 0;
+        résultat = 0;
     }
 
     if (taille_a != longueur) {
         gauche = b;
-        resultat = 1;
+        résultat = 1;
     }
 
     for (uint64_t i = 0; i < longueur; ++i) {
-        resultat = resultat | (*gauche++ ^ *droite++);
+        résultat = résultat | (*gauche++ ^ *droite++);
     }
 
-    return (resultat == 0 ? 0 : 1);
+    return (résultat == 0 ? 0 : 1);
 }
 }
