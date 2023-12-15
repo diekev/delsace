@@ -1710,10 +1710,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto valeur_gauche = depile_valeur();
             génère_ri_pour_expression_droite(expr_bin->operande_droite, nullptr);
             auto valeur_droite = depile_valeur();
-            auto resultat = m_constructrice.crée_op_binaire(
+            auto résultat = m_constructrice.crée_op_binaire(
                 noeud, noeud->type, expr_bin->op->genre, valeur_gauche, valeur_droite);
 
-            crée_temporaire_ou_mets_dans_place(noeud, resultat, place);
+            crée_temporaire_ou_mets_dans_place(noeud, résultat, place);
             break;
         }
         case GenreNoeud::EXPRESSION_LOGIQUE:

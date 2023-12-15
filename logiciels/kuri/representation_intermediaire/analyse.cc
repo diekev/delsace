@@ -138,8 +138,8 @@ static Atome const *cible_finale_stockage(InstructionStockeMem const *stocke)
 /* Retourne vrai si un paramètre ou une globale fut utilisée lors de la production de l'atome. */
 static bool paramètre_ou_globale_fut_utilisé(Atome *atome)
 {
-    auto resultat = false;
-    visite_atome(atome, [&resultat](Atome const *visite) {
+    auto résultat = false;
+    visite_atome(atome, [&résultat](Atome const *visite) {
         /* À FAIRE(analyse_ri) : utiliser nombre_utilisations nous donne des faux-négatifs : une
          * variable non-utilisée peut être marquée comme utilisée si elle dépend d'un paramètre ou
          * d'une globale. */
@@ -147,10 +147,10 @@ static bool paramètre_ou_globale_fut_utilisé(Atome *atome)
          * expression non-utilisée. */
         if ((visite->possède_drapeau(DrapeauxAtome::EST_PARAMÈTRE_FONCTION)) ||
             visite->est_globale() || visite->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
-            resultat = true;
+            résultat = true;
         }
     });
-    return resultat;
+    return résultat;
 }
 
 void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructions)

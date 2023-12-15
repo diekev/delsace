@@ -265,7 +265,7 @@ RAPPEL_POUR_ERREUR(opérateur)
         auto type2 = expression_operation->operande_droite->type;
 
         auto candidats = kuri::tablet<OpérateurCandidat, 10>();
-        auto resultat = cherche_candidats_opérateurs(
+        auto résultat = cherche_candidats_opérateurs(
             *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
 
         Erreur e = espace->rapporte_erreur(operateur_attendu,
@@ -273,7 +273,7 @@ RAPPEL_POUR_ERREUR(opérateur)
                                            "n'arrive pas à déterminer quel opérateur appeler.",
                                            erreur::Genre::TYPE_INCONNU);
 
-        if (!resultat.has_value()) {
+        if (!résultat.has_value()) {
             POUR (candidats) {
                 auto op = it.op;
                 if (!op || !op->decl) {
@@ -371,35 +371,35 @@ RAPPEL_POUR_UNITÉ(métaprogramme)
 RAPPEL_POUR_COMMENTAIRE(métaprogramme)
 {
     auto metaprogramme_attendu = attente.metaprogramme();
-    auto resultat = Enchaineuse();
-    resultat << "métaprogramme";
+    auto résultat = Enchaineuse();
+    résultat << "métaprogramme";
 
     if (metaprogramme_attendu->corps_texte) {
-        resultat << " #corps_texte pour ";
+        résultat << " #corps_texte pour ";
 
         if (metaprogramme_attendu->corps_texte_pour_fonction) {
-            resultat << metaprogramme_attendu->corps_texte_pour_fonction->ident->nom;
+            résultat << metaprogramme_attendu->corps_texte_pour_fonction->ident->nom;
         }
         else if (metaprogramme_attendu->corps_texte_pour_structure) {
-            resultat << metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
+            résultat << metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
         }
         else {
-            resultat << " ERREUR COMPILATRICE";
+            résultat << " ERREUR COMPILATRICE";
         }
     }
     else if (metaprogramme_attendu->directive) {
         auto directive = metaprogramme_attendu->directive;
         auto expression = directive->expression;
         auto appel = expression->comme_appel();
-        resultat << " " << appel->expression->ident->nom;
+        résultat << " " << appel->expression->ident->nom;
     }
     else {
-        resultat << " " << metaprogramme_attendu;
+        résultat << " " << metaprogramme_attendu;
     }
 
-    resultat << " (fut exécuté : " << metaprogramme_attendu->fut_execute << ")\n";
+    résultat << " (fut exécuté : " << metaprogramme_attendu->fut_execute << ")\n";
 
-    return resultat.chaine();
+    return résultat.chaine();
 }
 
 RAPPEL_POUR_EST_RÉSOLUE(métaprogramme)
@@ -527,48 +527,48 @@ RAPPEL_POUR_UNITÉ(message)
 RAPPEL_POUR_COMMENTAIRE(message)
 {
     auto message = attente.message().message;
-    auto resultat = Enchaineuse();
-    resultat << "message " << message->genre;
+    auto résultat = Enchaineuse();
+    résultat << "message " << message->genre;
 
     switch (message->genre) {
         case GenreMessage::FICHIER_OUVERT:
         case GenreMessage::FICHIER_FERME:
         {
             auto message_fichier = static_cast<MessageFichier *>(message);
-            resultat << " " << message_fichier->chemin;
+            résultat << " " << message_fichier->chemin;
             break;
         }
         case GenreMessage::MODULE_OUVERT:
         case GenreMessage::MODULE_FERME:
         {
             auto message_module = static_cast<MessageModule *>(message);
-            resultat << " " << message_module->chemin;
+            résultat << " " << message_module->chemin;
             break;
         }
         case GenreMessage::TYPAGE_CODE_TERMINE:
         {
             auto message_code = static_cast<MessageTypageCodeTermine *>(message);
             if (message_code->code) {
-                resultat << " " << message_code->code->nom;
+                résultat << " " << message_code->code->nom;
             }
             else {
-                resultat << " noeud code non encore généré";
+                résultat << " noeud code non encore généré";
             }
             break;
         }
         case GenreMessage::PHASE_COMPILATION:
         {
             auto message_phase = static_cast<MessagePhaseCompilation *>(message);
-            resultat << " " << message_phase->phase;
+            résultat << " " << message_phase->phase;
             break;
         }
     }
 
-    resultat << " (espace \"" << message->espace->nom
+    résultat << " (espace \"" << message->espace->nom
              << "\"); message reçu : " << (message->message_recu ? "oui" : "non") << "; adresse "
              << message;
 
-    return resultat.chaine();
+    return résultat.chaine();
 }
 
 RAPPEL_POUR_EST_RÉSOLUE(message)
