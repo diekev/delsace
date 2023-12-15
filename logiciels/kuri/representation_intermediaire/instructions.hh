@@ -603,10 +603,7 @@ struct InstructionStockeMem : public Instruction {
 
     EMPECHE_COPIE(InstructionStockeMem);
 
-    InstructionStockeMem(NoeudExpression const *site_,
-                         Type const *type_,
-                         Atome *ou_,
-                         Atome *valeur_);
+    InstructionStockeMem(NoeudExpression const *site_, Atome *ou_, Atome *valeur_);
 };
 
 struct InstructionLabel : public Instruction {

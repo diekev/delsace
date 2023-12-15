@@ -631,8 +631,7 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
               << imprime_site(site_);
     });
 
-    auto type = valeur->type;
-    auto inst = insts_stocke_memoire.ajoute_element(site_, type, ou, valeur);
+    auto inst = insts_stocke_memoire.ajoute_element(site_, ou, valeur);
 
     if (!crée_seulement) {
         m_fonction_courante->instructions.ajoute(inst);
