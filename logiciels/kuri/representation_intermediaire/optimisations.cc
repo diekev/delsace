@@ -46,6 +46,8 @@
  - a <= b && b <= c -> (b - a) >= (c - a)
  */
 
+static bool log_actif = false;
+
 enum {
     PROPRE = 0,
 
@@ -883,5 +885,5 @@ void optimise_code(EspaceDeTravail &espace,
 
     transfère_instructions_blocs_à_fonction(fonction_et_blocs.blocs, atome_fonc);
 
-    desactive_log();
+    // desactive_log();
 }

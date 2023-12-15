@@ -87,15 +87,3 @@ kuri::chaine_statique chaine_indentations(int indentations)
     static std::string chaine = std::string(1024, '\t');
     return {chaine.c_str(), static_cast<int64_t>(indentations)};
 }
-
-bool log_actif = false;
-
-void active_log()
-{
-    log_actif = true;
-}
-
-void desactive_log()
-{
-    log_actif = false;
-}
