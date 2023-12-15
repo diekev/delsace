@@ -10,77 +10,77 @@
 static Indentation __indente_globale;
 static std::mutex __mutex_flux{};
 
-LogInfo::LogInfo()
+/* ------------------------------------------------------------------------- */
+/** \name Logueuse.
+ * \{ */
+
+Logueuse::Logueuse(std::ostream &flux_sortie) : os(flux_sortie)
 {
     __mutex_flux.lock();
     os << chaine_indentations(__indente_globale.v);
 }
 
-LogInfo::~LogInfo()
-{
-    os << std::endl;
-    __mutex_flux.unlock();
-}
-
-LogInfo info()
-{
-    return {};
-}
-
-const LogInfo &operator<<(const LogInfo &log_info, Indentation indentation)
-{
-    log_info.os << chaine_indentations(indentation.v);
-    return log_info;
-}
-
-LogDebug dbg()
-{
-    return {};
-}
-
-LogDebug::LogDebug()
-{
-    __mutex_flux.lock();
-    os << chaine_indentations(__indente_globale.v);
-}
-
-LogDebug::~LogDebug()
+Logueuse::~Logueuse()
 {
     os << "\n";
     __mutex_flux.unlock();
 }
 
-void LogDebug::réinitialise_indentation()
+void Logueuse::réinitialise_indentation()
 {
     __indente_globale.v = 0;
 }
 
-void LogDebug::indente()
+void Logueuse::indente()
 {
     __indente_globale.incrémente();
 }
 
-void LogDebug::désindente()
+void Logueuse::désindente()
 {
     __indente_globale.décrémente();
 }
 
-const LogDebug &operator<<(const LogDebug &log_debug, Indentation indentation)
+const Logueuse &operator<<(const Logueuse &log_debug, Indentation indentation)
 {
     log_debug.os << chaine_indentations(indentation.v);
     return log_debug;
 }
 
-LogDebug::IncrémenteuseTemporaire::IncrémenteuseTemporaire()
+Logueuse::IncrémenteuseTemporaire::IncrémenteuseTemporaire()
 {
     indentation_courante = __indente_globale.v;
     __indente_globale.incrémente();
 }
 
-LogDebug::IncrémenteuseTemporaire::~IncrémenteuseTemporaire()
+Logueuse::IncrémenteuseTemporaire::~IncrémenteuseTemporaire()
 {
     __indente_globale.v = indentation_courante;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Logage d'erreurs, d'informations de débogage.
+ * \{ */
+
+Logueuse dbg()
+{
+    return Logueuse(std::cerr);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Logage d'informations.
+ * \{ */
+
+Logueuse info()
+{
+    return Logueuse(std::cout);
+}
+
+/** \} */
 
 kuri::chaine_statique chaine_indentations(int indentations)
 {
