@@ -443,8 +443,8 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
         auto espace = compilatrice.espace_defaut_compilation();
 
         auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, "");
-        auto resultat = compilatrice.trouve_ou_crée_fichier(module, "", "", true);
-        auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(resultat));
+        auto résultat = compilatrice.trouve_ou_crée_fichier(module, "", "", true);
+        auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
         fichier->charge_tampon(lng::tampon_source("texte_test"));
         fichier->lexèmes = lexemes;
         fichier->fut_lexé = true;

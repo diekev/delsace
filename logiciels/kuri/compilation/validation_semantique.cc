@@ -29,7 +29,7 @@
         return var;                                                                               \
     }
 
-#define TENTE(x) TENTE_IMPL(VARIABLE_ANONYME(resultat), x)
+#define TENTE(x) TENTE_IMPL(VARIABLE_ANONYME(résultat), x)
 
 Sémanticienne::Sémanticienne(Compilatrice &compilatrice) : m_compilatrice(compilatrice)
 {
@@ -779,14 +779,14 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 }
                 default:
                 {
-                    auto resultat = trouve_opérateur_pour_expression(
+                    auto résultat = trouve_opérateur_pour_expression(
                         *espace, expr, type1, type2, GenreLexeme::CROCHET_OUVRANT);
 
-                    if (std::holds_alternative<Attente>(resultat)) {
-                        return std::get<Attente>(resultat);
+                    if (std::holds_alternative<Attente>(résultat)) {
+                        return std::get<Attente>(résultat);
                     }
 
-                    auto candidat = std::get<OpérateurCandidat>(resultat);
+                    auto candidat = std::get<OpérateurCandidat>(résultat);
                     expr->type = candidat.op->type_résultat;
                     expr->op = candidat.op;
                     expr->permute_operandes = candidat.permute_opérandes;
@@ -1847,14 +1847,14 @@ ResultatValidation Sémanticienne::valide_entete_operateur(NoeudDeclarationEntet
 
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__TYPES_OPERATEURS);
     auto type_fonc = decl->type->comme_type_fonction();
-    auto type_resultat = type_fonc->type_sortie;
+    auto type_résultat = type_fonc->type_sortie;
 
-    if (type_resultat == TypeBase::RIEN) {
+    if (type_résultat == TypeBase::RIEN) {
         rapporte_erreur("Un opérateur ne peut retourner 'rien'", decl);
         return CodeRetourValidation::Erreur;
     }
 
-    if (est_opérateur_bool(decl->lexeme->genre) && type_resultat != TypeBase::BOOL) {
+    if (est_opérateur_bool(decl->lexeme->genre) && type_résultat != TypeBase::BOOL) {
         rapporte_erreur("Un opérateur de comparaison doit retourner 'bool'", decl);
         return CodeRetourValidation::Erreur;
     }
@@ -2106,7 +2106,7 @@ ResultatValidation Sémanticienne::valide_definition_unique_operateur(
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__REDEFINITION_OPERATEUR);
     auto operateurs = m_compilatrice.operateurs.verrou_ecriture();
     auto type_fonc = decl->type->comme_type_fonction();
-    auto type_resultat = type_fonc->type_sortie;
+    auto type_résultat = type_fonc->type_sortie;
 
     if (decl->params.taille() == 1) {
         auto &iter_op = operateurs->trouve_unaire(decl->lexeme->genre);
@@ -2128,7 +2128,7 @@ ResultatValidation Sémanticienne::valide_definition_unique_operateur(
             }
         }
 
-        operateurs->ajoute_perso_unaire(decl->lexeme->genre, type1, type_resultat, decl);
+        operateurs->ajoute_perso_unaire(decl->lexeme->genre, type1, type_résultat, decl);
         return CodeRetourValidation::OK;
     }
 
@@ -2151,7 +2151,7 @@ ResultatValidation Sémanticienne::valide_definition_unique_operateur(
         }
     }
 
-    operateurs->ajoute_perso(decl->lexeme->genre, type1, type2, type_resultat, decl);
+    operateurs->ajoute_perso(decl->lexeme->genre, type1, type2, type_résultat, decl);
     return CodeRetourValidation::OK;
 }
 
@@ -2452,13 +2452,13 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
                                           NoeudExpression *variable,
                                           NoeudExpression *expression,
                                           Type *type_de_l_expression) -> ResultatValidation {
-        auto resultat = cherche_transformation(type_de_l_expression, variable->type);
+        auto résultat = cherche_transformation(type_de_l_expression, variable->type);
 
-        if (std::holds_alternative<Attente>(resultat)) {
-            return std::get<Attente>(resultat);
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
         }
 
-        auto transformation = std::get<TransformationType>(resultat);
+        auto transformation = std::get<TransformationType>(résultat);
 
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             rapporte_erreur_assignation_type_differents(
@@ -4227,13 +4227,13 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
             }
         }
         else {
-            auto resultat = cherche_transformation(type_de_l_expression, variable->type);
+            auto résultat = cherche_transformation(type_de_l_expression, variable->type);
 
-            if (std::holds_alternative<Attente>(resultat)) {
-                return std::get<Attente>(resultat);
+            if (std::holds_alternative<Attente>(résultat)) {
+                return std::get<Attente>(résultat);
             }
 
-            auto transformation = std::get<TransformationType>(resultat);
+            auto transformation = std::get<TransformationType>(résultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     variable->type, type_de_l_expression, expression);
@@ -4428,13 +4428,13 @@ ResultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclaratio
     }
 
     if (decl->type) {
-        auto resultat = cherche_transformation(expression->type, decl->type);
+        auto résultat = cherche_transformation(expression->type, decl->type);
 
-        if (std::holds_alternative<Attente>(resultat)) {
-            return std::get<Attente>(resultat);
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
         }
 
-        auto transformation = std::get<TransformationType>(resultat);
+        auto transformation = std::get<TransformationType>(résultat);
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             rapporte_erreur_assignation_type_differents(decl->type, expression->type, expression);
             return CodeRetourValidation::Erreur;
@@ -4542,13 +4542,13 @@ ResultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
 
         if (var_est_reference && expr_est_reference) {
             // déréférence les deux côtés
-            auto resultat = cherche_transformation(type_de_l_expression, var->type);
+            auto résultat = cherche_transformation(type_de_l_expression, var->type);
 
-            if (std::holds_alternative<Attente>(resultat)) {
-                return std::get<Attente>(resultat);
+            if (std::holds_alternative<Attente>(résultat)) {
+                return std::get<Attente>(résultat);
             }
 
-            transformation = std::get<TransformationType>(resultat);
+            transformation = std::get<TransformationType>(résultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4563,13 +4563,13 @@ ResultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
             // déréférence var
             type_de_la_variable = type_de_la_variable->comme_type_reference()->type_pointe;
 
-            auto resultat = cherche_transformation(type_de_l_expression, type_de_la_variable);
+            auto résultat = cherche_transformation(type_de_l_expression, type_de_la_variable);
 
-            if (std::holds_alternative<Attente>(resultat)) {
-                return std::get<Attente>(resultat);
+            if (std::holds_alternative<Attente>(résultat)) {
+                return std::get<Attente>(résultat);
             }
 
-            transformation = std::get<TransformationType>(resultat);
+            transformation = std::get<TransformationType>(résultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4581,13 +4581,13 @@ ResultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
         }
         else if (expr_est_reference) {
             // déréférence expr
-            auto resultat = cherche_transformation(type_de_l_expression, var->type);
+            auto résultat = cherche_transformation(type_de_l_expression, var->type);
 
-            if (std::holds_alternative<Attente>(resultat)) {
-                return std::get<Attente>(resultat);
+            if (std::holds_alternative<Attente>(résultat)) {
+                return std::get<Attente>(résultat);
             }
 
-            transformation = std::get<TransformationType>(resultat);
+            transformation = std::get<TransformationType>(résultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4595,13 +4595,13 @@ ResultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
             }
         }
         else {
-            auto resultat = cherche_transformation(type_de_l_expression, var->type);
+            auto résultat = cherche_transformation(type_de_l_expression, var->type);
 
-            if (std::holds_alternative<Attente>(resultat)) {
-                return std::get<Attente>(resultat);
+            if (std::holds_alternative<Attente>(résultat)) {
+                return std::get<Attente>(résultat);
             }
 
-            transformation = std::get<TransformationType>(resultat);
+            transformation = std::get<TransformationType>(résultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4811,13 +4811,13 @@ void Sémanticienne::rapporte_erreur_fonction_nulctx(const NoeudExpression *appl
 ResultatValidation Sémanticienne::crée_transtypage_implicite_si_possible(
     NoeudExpression *&expression, Type *type_cible, const RaisonTranstypageImplicite raison)
 {
-    auto resultat = cherche_transformation(expression->type, type_cible);
+    auto résultat = cherche_transformation(expression->type, type_cible);
 
-    if (std::holds_alternative<Attente>(resultat)) {
-        return std::get<Attente>(resultat);
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
     }
 
-    auto transformation = std::get<TransformationType>(resultat);
+    auto transformation = std::get<TransformationType>(résultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
         kuri::chaine_statique message_principal;
         kuri::chaine_statique message_type_désiré;
@@ -5042,14 +5042,14 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_chaine(NoeudExpressi
     auto const expression_comparée = expr->operande_droite;
     auto const type_droite = expression_comparée->type;
 
-    auto resultat = trouve_opérateur_pour_expression(
+    auto résultat = trouve_opérateur_pour_expression(
         *espace, expr, type_gauche, type_droite, type_op);
 
-    if (std::holds_alternative<Attente>(resultat)) {
-        return std::get<Attente>(resultat);
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
     }
 
-    auto candidat = std::get<OpérateurCandidat>(resultat);
+    auto candidat = std::get<OpérateurCandidat>(résultat);
 
     expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
     expr->type = TypeBase::BOOL;
@@ -5233,13 +5233,13 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
         }
     }
 
-    auto resultat = trouve_opérateur_pour_expression(*espace, expr, type1, type2, type_op);
+    auto résultat = trouve_opérateur_pour_expression(*espace, expr, type1, type2, type_op);
 
-    if (std::holds_alternative<Attente>(resultat)) {
-        return std::get<Attente>(resultat);
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
     }
 
-    auto candidat = std::get<OpérateurCandidat>(resultat);
+    auto candidat = std::get<OpérateurCandidat>(résultat);
 
     expr->type = candidat.op->type_résultat;
     expr->op = candidat.op;
@@ -5259,13 +5259,13 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
     if (assignation_composee) {
         expr->drapeaux |= DrapeauxNoeud::EST_ASSIGNATION_COMPOSEE;
 
-        auto resultat_tfm = cherche_transformation(expr->type, type1);
+        auto résultat_tfm = cherche_transformation(expr->type, type1);
 
-        if (std::holds_alternative<Attente>(resultat_tfm)) {
-            return std::get<Attente>(resultat_tfm);
+        if (std::holds_alternative<Attente>(résultat_tfm)) {
+            return std::get<Attente>(résultat_tfm);
         }
 
-        auto transformation = std::get<TransformationType>(resultat_tfm);
+        auto transformation = std::get<TransformationType>(résultat_tfm);
 
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
@@ -5274,15 +5274,15 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
     }
 
     if (est_decalage_bits(expr->lexeme->genre)) {
-        auto resultat_decalage = evalue_expression(
+        auto résultat_decalage = evalue_expression(
             m_compilatrice, expr->bloc_parent, expr->operande_droite);
         /* Un résultat erroné veut dire que l'expression n'est pas constante.
          * À FAIRE : granularise pour différencier les expressions non-constantes des erreurs
          * réelles. */
-        if (!resultat_decalage.est_errone) {
+        if (!résultat_decalage.est_errone) {
             auto const bits_max = nombre_de_bits_pour_type(type1);
-            auto const decalage = resultat_decalage.valeur.entiere();
-            if (resultat_decalage.valeur.entiere() >= bits_max) {
+            auto const decalage = résultat_decalage.valeur.entiere();
+            if (résultat_decalage.valeur.entiere() >= bits_max) {
                 espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")
                     .ajoute_message("Le nombre de bits de décalage est de ", decalage, "\n")
                     .ajoute_message("Alors que le nombre maximum de bits de décalage est de ",
@@ -5314,13 +5314,13 @@ ResultatValidation Sémanticienne::valide_comparaison_enum_drapeau_bool(
     }
 
     auto type_bool = expr_bool->type;
-    auto resultat = trouve_opérateur_pour_expression(*espace, expr, type_bool, type_bool, type_op);
+    auto résultat = trouve_opérateur_pour_expression(*espace, expr, type_bool, type_bool, type_op);
 
-    if (std::holds_alternative<Attente>(resultat)) {
-        return std::get<Attente>(resultat);
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
     }
 
-    auto candidat = std::get<OpérateurCandidat>(resultat);
+    auto candidat = std::get<OpérateurCandidat>(résultat);
     expr->op = candidat.op;
     expr->type = type_bool;
     return CodeRetourValidation::OK;
@@ -6079,12 +6079,12 @@ ResultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
         return CodeRetourValidation::Erreur;
     }
 
-    auto resultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
-    if (std::holds_alternative<Attente>(resultat)) {
-        return std::get<Attente>(resultat);
+    auto résultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
     }
 
-    auto transformation = std::get<TransformationType>(resultat);
+    auto transformation = std::get<TransformationType>(résultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
         if (!enfant->type->est_type_reference()) {
             rapporte_erreur_type_arguments(expr, expr->expression);
@@ -6098,12 +6098,12 @@ ResultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
 
         crée_transtypage_implicite_au_besoin(expr->expression,
                                              TransformationType(TypeTransformation::DEREFERENCE));
-        resultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
-        if (std::holds_alternative<Attente>(resultat)) {
-            return std::get<Attente>(resultat);
+        résultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
         }
 
-        transformation = std::get<TransformationType>(resultat);
+        transformation = std::get<TransformationType>(résultat);
 
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             rapporte_erreur_type_arguments(expr, ancienne_expression);

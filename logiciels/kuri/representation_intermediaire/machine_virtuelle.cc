@@ -2240,14 +2240,14 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
             // RÀF
         }
         else if (res == RésultatInterprétation::ERREUR) {
-            métaprogramme->resultat = MetaProgramme::RésultatExécution::ERREUR;
+            métaprogramme->résultat = MetaProgramme::RésultatExécution::ERREUR;
             m_métaprogrammes_terminés.ajoute(métaprogramme);
             std::swap(m_métaprogrammes[i], m_métaprogrammes[nombre_métaprogrammes - 1]);
             nombre_métaprogrammes -= 1;
             i -= 1;
         }
         else if (res == RésultatInterprétation::TERMINÉ) {
-            métaprogramme->resultat = MetaProgramme::RésultatExécution::SUCCÈS;
+            métaprogramme->résultat = MetaProgramme::RésultatExécution::SUCCÈS;
             m_métaprogrammes_terminés.ajoute(métaprogramme);
             std::swap(m_métaprogrammes[i], m_métaprogrammes[nombre_métaprogrammes - 1]);
             nombre_métaprogrammes -= 1;

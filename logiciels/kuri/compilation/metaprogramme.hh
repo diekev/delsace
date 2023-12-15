@@ -135,7 +135,7 @@ struct MetaProgramme {
     bool fut_execute = false;
     bool a_rapporté_une_erreur = false;
 
-    RésultatExécution resultat{};
+    RésultatExécution résultat{};
 
     DonnéesExécution *données_exécution = nullptr;
 

@@ -829,10 +829,10 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
             }
 
             auto type_llvm = convertis_type_llvm(atome->type);
-            auto resultat = llvm::ConstantArray::get(llvm::cast<llvm::ArrayType>(type_llvm),
+            auto résultat = llvm::ConstantArray::get(llvm::cast<llvm::ArrayType>(type_llvm),
                                                      valeurs);
-            // dbg() << "TABLEAU_FIXE : " << *resultat;
-            return resultat;
+            // dbg() << "TABLEAU_FIXE : " << *résultat;
+            return résultat;
         }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
@@ -1646,7 +1646,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_fichier_objet_impl(
 
 static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation const &options)
 {
-    if (options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+    if (options.résultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         return "fichiers/point_d_entree_dynamique.c";
     }
 

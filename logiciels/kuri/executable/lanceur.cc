@@ -390,7 +390,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
         return {};
     }
 
-    auto resultat = ArgumentsCompilatrice();
+    auto résultat = ArgumentsCompilatrice();
     auto arguments_pour_métaprogrammes = false;
 
     auto parseuse_arguments = ParseuseArguments(argc, argv, 1);
@@ -402,7 +402,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
         }
 
         if (arguments_pour_métaprogrammes) {
-            resultat.arguments_pour_métaprogrammes.ajoute(arg.value());
+            résultat.arguments_pour_métaprogrammes.ajoute(arg.value());
             continue;
         }
 
@@ -410,7 +410,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
         if (!desc.has_value()) {
             if (parseuse_arguments.a_consommé_tous_les_arguments()) {
                 /* C'est peut-être le fichier, ce cas est géré en dehors de cet fonction. */
-                return resultat;
+                return résultat;
             }
 
             dbg() << "Argument '" << arg.value() << "' inconnu. Arrêt de la compilation.";
@@ -423,7 +423,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
             return {};
         }
 
-        auto action = desc->fonction(parseuse_arguments, resultat);
+        auto action = desc->fonction(parseuse_arguments, résultat);
         switch (action) {
             case ActionParsageArgument::CONTINUE:
             {
@@ -446,7 +446,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
         }
     }
 
-    return resultat;
+    return résultat;
 }
 
 /** \} */

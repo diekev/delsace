@@ -1463,7 +1463,7 @@ void GestionnaireCode::execution_terminee(UniteCompilation *unite)
 
 static bool programme_requiers_liaison_exécutable(OptionsDeCompilation const &options)
 {
-    switch (options.resultat) {
+    switch (options.résultat) {
         case ResultatCompilation::RIEN:
         case ResultatCompilation::FICHIER_OBJET:
         {
@@ -1763,7 +1763,7 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
     };
 
     // Ne compile le point d'entrée que pour les exécutables
-    if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
+    if (espace->options.résultat == ResultatCompilation::EXECUTABLE) {
         if (espace->fonction_point_d_entree != nullptr) {
             return;
         }
@@ -1772,7 +1772,7 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
         assert(point_d_entree);
         espace->fonction_point_d_entree = copie_et_valide_point_d_entree(point_d_entree);
     }
-    else if (espace->options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+    else if (espace->options.résultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         if (espace->fonction_point_d_entree_dynamique == nullptr) {
             auto point_d_entree = m_compilatrice->fonction_point_d_entree_dynamique;
             assert(point_d_entree);
@@ -1791,7 +1791,7 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
 void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDeTravail *espace,
                                                                         Programme *programme)
 {
-    if (espace->options.resultat == ResultatCompilation::RIEN) {
+    if (espace->options.résultat == ResultatCompilation::RIEN) {
         espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
         return;
     }
@@ -1908,7 +1908,7 @@ void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *es
     auto programme = espace->programme;
     programme->ajourne_pour_nouvelles_options_espace();
     /* À FAIRE : gère proprement tous les cas. */
-    if (espace->options.resultat == ResultatCompilation::RIEN) {
+    if (espace->options.résultat == ResultatCompilation::RIEN) {
         espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
     }
 }

@@ -317,9 +317,9 @@ struct Typeuse {
             }
         }
 
-        auto resultat = types_pointeurs.ajoute_element();
-        resultat->type_pointe = type_pointe;
-        return resultat;
+        auto résultat = types_pointeurs.ajoute_element();
+        résultat->type_pointe = type_pointe;
+        return résultat;
     }
 
     TypeTableau *crée_type_tableau(Type *type_pointe, bool compresse, bool synchrone)
@@ -331,11 +331,11 @@ struct Typeuse {
             }
         }
 
-        auto resultat = types_tableaux.ajoute_element();
-        resultat->type_pointe = type_pointe;
-        resultat->est_compresse = compresse;
-        resultat->est_synchrone = synchrone;
-        return resultat;
+        auto résultat = types_tableaux.ajoute_element();
+        résultat->type_pointe = type_pointe;
+        résultat->est_compresse = compresse;
+        résultat->est_synchrone = synchrone;
+        return résultat;
     }
 
     TypeNominal *crée_type_nominal(kuri::chaine_statique nom_cpp)
@@ -351,11 +351,11 @@ struct Typeuse {
             }
         }
 
-        auto resultat = types_nominaux.ajoute_element();
-        resultat->nom_cpp = nom_cpp;
-        resultat->nom_kuri = nom_kuri;
-        resultat->identifiant = nom_cpp;
-        return resultat;
+        auto résultat = types_nominaux.ajoute_element();
+        résultat->nom_cpp = nom_cpp;
+        résultat->nom_kuri = nom_kuri;
+        résultat->identifiant = nom_cpp;
+        return résultat;
     }
 };
 

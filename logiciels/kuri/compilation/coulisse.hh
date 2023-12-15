@@ -104,4 +104,4 @@ struct Coulisse {
 kuri::chaine nom_sortie_fichier_objet(OptionsDeCompilation const &ops);
 
 /* Retourne le nom de sortie pour le fichier final (exécutable ou bibliothèque). */
-kuri::chaine nom_sortie_resultat_final(OptionsDeCompilation const &ops);
+kuri::chaine nom_sortie_résultat_final(OptionsDeCompilation const &ops);
