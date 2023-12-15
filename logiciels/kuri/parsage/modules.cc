@@ -75,14 +75,14 @@ Module *SystèmeModule::module(const IdentifiantCode *nom) const
     return nullptr;
 }
 
-ResultatFichier SystèmeModule::trouve_ou_crée_fichier(Module *module,
+RésultatFichier SystèmeModule::trouve_ou_crée_fichier(Module *module,
                                                       kuri::chaine_statique nom,
                                                       kuri::chaine_statique chemin)
 {
     auto fichier = table_fichiers.valeur_ou(chemin, nullptr);
 
     if (fichier) {
-        return FichierExistant(*fichier);
+        return FichierExistant(fichier);
     }
 
     return crée_fichier(module, nom, chemin);
@@ -102,7 +102,7 @@ FichierNeuf SystèmeModule::crée_fichier(Module *module,
 
     table_fichiers.insère(df->chemin(), df);
 
-    return FichierNeuf(*df);
+    return FichierNeuf(df);
 }
 
 void SystèmeModule::rassemble_stats(Statistiques &stats) const

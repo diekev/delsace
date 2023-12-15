@@ -163,9 +163,9 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
         auto resultat = this->trouve_ou_crée_fichier(
             module, it.nom_fichier_sans_extension(), it, importe_kuri);
 
-        if (resultat.est<FichierNeuf>()) {
-            gestionnaire_code->requiers_chargement(espace,
-                                                   resultat.resultat<FichierNeuf>().fichier);
+        if (std::holds_alternative<FichierNeuf>(resultat)) {
+            auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(resultat));
+            gestionnaire_code->requiers_chargement(espace, fichier);
         }
     }
 #else
@@ -190,14 +190,14 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
         auto resultat = this->trouve_ou_crée_fichier(
             module, "constantes", "constantes.kuri", false);
 
-        if (resultat.est<FichierNeuf>()) {
-            auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier;
+        if (std::holds_alternative<FichierNeuf>(resultat)) {
+            auto donnees_fichier = static_cast<Fichier *>(std::get<FichierNeuf>(resultat));
             if (!donnees_fichier->fut_chargé) {
                 const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
                 donnees_fichier->charge_tampon(lng::tampon_source(source));
             }
 
-            gestionnaire_code->requiers_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
+            gestionnaire_code->requiers_lexage(espace, donnees_fichier);
         }
     }
 
@@ -245,8 +245,9 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
 
     auto resultat = this->trouve_ou_crée_fichier(module, nom, opt_chemin.value(), importe_kuri);
 
-    if (resultat.est<FichierNeuf>()) {
-        gestionnaire_code->requiers_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
+    if (std::holds_alternative<FichierNeuf>(resultat)) {
+        auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(resultat));
+        gestionnaire_code->requiers_chargement(espace, fichier);
     }
 }
 
@@ -419,9 +420,9 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     auto resultat = this->trouve_ou_crée_fichier(
         module, nom_fichier, chemin_fichier, importe_kuri);
 
-    assert(resultat.est<FichierNeuf>());
+    assert(std::holds_alternative<FichierNeuf>(resultat));
 
-    auto fichier = resultat.resultat<FichierNeuf>().fichier;
+    auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(resultat));
     fichier->source = SourceFichier::CHAINE_AJOUTÉE;
     fichier->décalage_fichier = decalage;
     fichier->site = site;
@@ -477,22 +478,22 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
     auto resultat = this->trouve_ou_crée_fichier(
         module, chemin_absolu.nom_fichier_sans_extension(), chemin_absolu, importe_kuri);
 
-    if (resultat.est<FichierExistant>()) {
-        auto donnees_fichier = resultat.resultat<FichierExistant>().fichier;
-        auto tableau = converti_tableau_lexemes(donnees_fichier->lexèmes);
+    if (std::holds_alternative<FichierExistant>(resultat)) {
+        auto fichier = static_cast<Fichier *>(std::get<FichierExistant>(resultat));
+        auto tableau = converti_tableau_lexemes(fichier->lexèmes);
         m_tableaux_lexemes.ajoute(tableau);
         return m_tableaux_lexemes.dernière();
     }
 
-    auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier;
+    auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(resultat));
     auto tampon = charge_contenu_fichier({chemin_absolu.pointeur(), chemin_absolu.taille()});
-    donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+    fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
     auto lexeuse = Lexeuse(
-        contexte_lexage(espace), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
+        contexte_lexage(espace), fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
     lexeuse.performe_lexage();
 
-    auto tableau = converti_tableau_lexemes(donnees_fichier->lexèmes);
+    auto tableau = converti_tableau_lexemes(fichier->lexèmes);
     m_tableaux_lexemes.ajoute(tableau);
     return m_tableaux_lexemes.dernière();
 }
@@ -538,22 +539,22 @@ Module *Compilatrice::module(const IdentifiantCode *nom_module) const
     return sys_module->module(nom_module);
 }
 
-ResultatFichier Compilatrice::trouve_ou_crée_fichier(Module *module,
+RésultatFichier Compilatrice::trouve_ou_crée_fichier(Module *module,
                                                      kuri::chaine_statique nom_fichier,
                                                      kuri::chaine_statique chemin,
                                                      bool importe_kuri_)
 {
-    auto resultat_fichier = sys_module->trouve_ou_crée_fichier(module, nom_fichier, chemin);
+    auto résultat_fichier = sys_module->trouve_ou_crée_fichier(module, nom_fichier, chemin);
 
-    if (resultat_fichier.est<FichierNeuf>()) {
-        auto fichier_neuf = resultat_fichier.resultat<FichierNeuf>().fichier;
+    if (std::holds_alternative<FichierNeuf>(résultat_fichier)) {
+        auto fichier_neuf = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
         if (importe_kuri_ && module->nom() != ID::Kuri) {
             assert(module_kuri);
             fichier_neuf->modules_importés.insere(module_kuri);
         }
     }
 
-    return resultat_fichier;
+    return résultat_fichier;
 }
 
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
@@ -573,9 +574,9 @@ Fichier *Compilatrice::crée_fichier_pour_metaprogramme(MetaProgramme *metaprogr
     auto fichier_racine = this->fichier(metaprogramme_->corps_texte->lexeme->fichier);
     auto module = fichier_racine->module;
     auto nom_fichier = enchaine(metaprogramme_);
-    auto resultat_fichier = this->trouve_ou_crée_fichier(module, nom_fichier, nom_fichier, false);
-    assert(resultat_fichier.est<FichierNeuf>());
-    auto resultat = resultat_fichier.resultat<FichierNeuf>().fichier;
+    auto résultat_fichier = this->trouve_ou_crée_fichier(module, nom_fichier, nom_fichier, false);
+    assert(std::holds_alternative<FichierNeuf>(résultat_fichier));
+    auto resultat = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
     resultat->métaprogramme_corps_texte = metaprogramme_;
     resultat->source = SourceFichier::CHAINE_AJOUTÉE;
     metaprogramme_->fichier = resultat;

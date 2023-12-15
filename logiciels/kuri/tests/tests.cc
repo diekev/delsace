@@ -117,7 +117,7 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
     /* Ne nomme pas le module, car c'est le module racine. */
     auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, "");
     auto resultat = compilatrice.trouve_ou_crée_fichier(module, "", "", false);
-    auto fichier = resultat.resultat<FichierNeuf>().fichier;
+    auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(resultat));
     fichier->charge_tampon(std::move(tampon));
 
     compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);

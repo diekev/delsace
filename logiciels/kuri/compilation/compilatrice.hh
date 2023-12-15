@@ -226,7 +226,7 @@ struct Compilatrice {
      * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
      * fichier ainsi créé ou un pointeur vers un fichier existant.
      */
-    ResultatFichier trouve_ou_crée_fichier(Module *module,
+    RésultatFichier trouve_ou_crée_fichier(Module *module,
                                            kuri::chaine_statique nom_fichier,
                                            kuri::chaine_statique chemin,
                                            bool importe_kuri);
