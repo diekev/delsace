@@ -23,7 +23,13 @@ Logueuse::Logueuse(std::ostream &flux_sortie) : os(flux_sortie)
 
 Logueuse::~Logueuse()
 {
-    os << "\n";
+    if (&os == &std::cout) {
+        os << std::endl;
+    }
+    else {
+        os << "\n";
+    }
+
     __mutex_flux.unlock();
 }
 
