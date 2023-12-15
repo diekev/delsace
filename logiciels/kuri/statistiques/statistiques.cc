@@ -44,7 +44,6 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
                             stats.stats_fichiers.totaux.mémoire_lexèmes +
                             stats.stats_arbre.totaux.memoire + stats.memoire_compilatrice +
                             stats.stats_graphe_dependance.totaux.memoire +
-                            stats.stats_types.totaux.memoire +
                             stats.stats_operateurs.totaux.memoire + stats.memoire_ri;
 
     auto memoire_consommee = memoire::consommee();
@@ -83,7 +82,6 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
                           ""});
     tableau.ajoute_ligne(
         {"- Nombre Opérateurs", formatte_nombre(stats.stats_operateurs.totaux.compte), ""});
-    tableau.ajoute_ligne({"- Nombre Types", formatte_nombre(stats.stats_types.totaux.compte), ""});
 
     tableau.ajoute_ligne({"Mémoire", "", ""});
     tableau.ajoute_ligne({"- Suivie", formatte_nombre(mem_totale), "o"});
@@ -102,7 +100,6 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
     tableau.ajoute_ligne({"- Code binaire", formatte_nombre(stats.mémoire_code_binaire), "o"});
     tableau.ajoute_ligne(
         {"- Tampon", formatte_nombre(stats.stats_fichiers.totaux.mémoire_tampons), "o"});
-    tableau.ajoute_ligne({"- Types", formatte_nombre(stats.stats_types.totaux.memoire), "o"});
     tableau.ajoute_ligne(
         {"Nombre allocations", formatte_nombre(memoire::nombre_allocations()), ""});
     tableau.ajoute_ligne(
@@ -280,8 +277,6 @@ void imprime_stats_detaillee(Statistiques const &stats)
     imprime_stats_tableau(stats.stats_ri);
     std::cout << "Operateurs :\n";
     imprime_stats_tableau(stats.stats_operateurs);
-    std::cout << "Types :\n";
-    imprime_stats_tableau(stats.stats_types);
     std::cout << "Fichiers :\n";
     imprime_stats_fichier(stats.stats_fichiers);
     std::cout << "Tableaux :\n";

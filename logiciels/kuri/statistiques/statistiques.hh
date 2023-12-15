@@ -188,7 +188,6 @@ struct EntreesStats {
 using StatistiquesFichiers = EntreesStats<EntreeFichier>;
 using StatistiquesArbre = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesGraphe = EntreesStats<EntreeNombreMemoire>;
-using StatistiquesTypes = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesOperateurs = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesNoeudCode = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesMessage = EntreesStats<EntreeNombreMemoire>;
@@ -220,7 +219,6 @@ struct Statistiques {
     StatistiquesFichiers stats_fichiers{"Fichiers"};
     StatistiquesArbre stats_arbre{"Arbre Syntaxique"};
     StatistiquesGraphe stats_graphe_dependance{"Graphe Dépendances"};
-    StatistiquesTypes stats_types{"Types"};
     StatistiquesOperateurs stats_operateurs{"Opérateurs"};
     StatistiquesNoeudCode stats_noeuds_code{"Noeuds Code"};
     StatistiquesMessage stats_messages{"Messages"};
