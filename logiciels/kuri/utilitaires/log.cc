@@ -3,6 +3,7 @@
 
 #include "log.hh"
 
+#include <iostream>
 #include <mutex>
 
 #include "structures/chaine_statique.hh"

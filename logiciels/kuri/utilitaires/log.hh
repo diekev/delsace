@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <iosfwd>
 
 namespace kuri {
 struct chaine_statique;
