@@ -94,20 +94,6 @@ Logueuse info();
 
 /** \} */
 
-struct LogConditionel {
-    std::ostream &os;
-    bool actif = false;
-};
-
-template <typename T>
-LogConditionel &operator<<(LogConditionel &log, T valeur)
-{
-    if (log.actif) {
-        log.os << valeur;
-    }
-    return log;
-}
-
 kuri::chaine_statique chaine_indentations(int indentations);
 
 extern bool log_actif;
