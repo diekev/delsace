@@ -33,112 +33,33 @@ static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const 
 
 static void imprime_information_atome(Atome const *atome, Enchaineuse &os)
 {
-    switch (atome->genre_atome) {
-        case Atome::Genre::GLOBALE:
-        {
-            auto globale = atome->comme_globale();
-            os << "globale " << (globale->ident ? globale->ident->nom : "anonyme") << " de type "
-               << chaine_type(atome->type, false);
-            break;
+    os << atome->genre_atome;
+
+    if (atome->est_globale()) {
+        auto globale = atome->comme_globale();
+        if (globale->ident) {
+            os << " nommée " << globale->ident->nom;
         }
-        case Atome::Genre::TRANSTYPE_CONSTANT:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant un transtypage constant";
-            break;
+        else {
+            os << " anonyme";
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant un indexage constant";
-            break;
+    }
+    else if (atome->est_fonction()) {
+        auto fonction = atome->comme_fonction();
+        if (fonction->decl) {
+            os << ' ' << nom_humainement_lisible(fonction->decl);
         }
-        case Atome::Genre::CONSTANTE_NULLE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante NULLE";
-            break;
+        else {
+            os << ' ' << fonction->nom;
         }
-        case Atome::Genre::CONSTANTE_TYPE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante TYPE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_RÉELLE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante REELLE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_ENTIÈRE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante ENTIERE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_BOOLÉENNE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante BOOLEENNE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_CARACTÈRE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante CARACTERE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante TABLEAU_DONNEES_CONSTANTES";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_TAILLE_DE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante TAILLE_DE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante CONSTANTE_INDEX_TABLE_TYPE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_STRUCTURE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante STRUCTURE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante TABLEAU_FIXE";
-            break;
-        }
-        case Atome::Genre::INITIALISATION_TABLEAU:
-        {
-            os << "constante d'initialisation de tableau fixe";
-            break;
-        }
-        case Atome::Genre::NON_INITIALISATION:
-        {
-            os << "non-initialisation";
-            break;
-        }
-        case Atome::Genre::INSTRUCTION:
-        {
-            os << "instruction";
-            break;
-        }
-        case Atome::Genre::FONCTION:
-        {
-            os << "fonction";
-            break;
-        }
+    }
+    else if (atome->est_instruction()) {
+        auto inst = atome->comme_instruction();
+        os << " de genre " << inst->genre;
+    }
+
+    if (atome->type) {
+        os << " de type " << chaine_type(atome->type, false);
     }
 }
 
