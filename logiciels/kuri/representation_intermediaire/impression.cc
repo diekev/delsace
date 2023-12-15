@@ -17,77 +17,17 @@
 
 static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type)
 {
-    switch (type) {
-        case TypeTranstypage::AUGMENTE_NATUREL:
-        {
-            return "augmente_naturel";
-        }
-        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
-        {
-            return "augmente_naturel_vers_relatif";
-        }
-        case TypeTranstypage::AUGMENTE_RELATIF:
-        {
-            return "augmente_relatif";
-        }
-        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
-        {
-            return "augmente_relatif_vers_naturel";
-        }
-        case TypeTranstypage::AUGMENTE_REEL:
-        {
-            return "augmente_réel";
-        }
-        case TypeTranstypage::DIMINUE_NATUREL:
-        {
-            return "diminue_naturel";
-        }
-        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
-        {
-            return "diminue_naturel_vers_relatif";
-        }
-        case TypeTranstypage::DIMINUE_RELATIF:
-        {
-            return "diminue_relatif";
-        }
-        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
-        {
-            return "diminue_relatif_vers_naturel";
-        }
-        case TypeTranstypage::DIMINUE_REEL:
-        {
-            return "diminue_réel";
-        }
-        case TypeTranstypage::POINTEUR_VERS_ENTIER:
-        {
-            return "pointeur_vers_entier";
-        }
-        case TypeTranstypage::ENTIER_VERS_POINTEUR:
-        {
-            return "entier_vers_pointeur";
-        }
-        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
-        {
-            return "réel_vers_naturel";
-        }
-        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
-        {
-            return "réel_vers_relatif";
-        }
-        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
-        {
-            return "naturel_vers_réel";
-        }
-        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
-        {
-            return "relatif_vers_réel";
-        }
-        case TypeTranstypage::BITS:
-        {
-            return "transtype_bits";
-        }
+#define ENUMERE_TYPE_TRANSTYPAGE_EX(genre, ident)                                                 \
+    case TypeTranstypage::genre:                                                                  \
+    {                                                                                             \
+        return #ident;                                                                            \
     }
 
+    switch (type) {
+        ENUMERE_TYPE_TRANSTYPAGE(ENUMERE_TYPE_TRANSTYPAGE_EX)
+    }
+
+#undef ENUMERE_TYPE_TRANSTYPAGE_EX
     return "erreur";
 }
 
