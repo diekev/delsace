@@ -827,11 +827,15 @@ Instruction *ConstructriceRI::crée_reference_membre_et_charge(NoeudExpression c
     return crée_charge_mem(site_, inst);
 }
 
-InstructionTranstype *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
-                                                      Type const *type,
-                                                      Atome *valeur,
-                                                      TypeTranstypage op)
+Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
+                                       Type const *type,
+                                       Atome *valeur,
+                                       TypeTranstypage op)
 {
+    if (valeur->est_constante_nulle()) {
+        return crée_constante_nulle(type);
+    }
+
     // dbg() << __func__ << ", type : " << chaine_type(type) << ", valeur " <<
     // chaine_type(valeur->type);
     auto inst = insts_transtype.ajoute_element(site_, type, valeur, op);
@@ -3129,8 +3133,7 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
                                            m_compilatrice.interface_kuri->decl_panique_erreur));
         }
         else {
-            Instruction *membre_erreur = m_constructrice.crée_référence_membre(
-                noeud, valeur_union, 0);
+            Atome *membre_erreur = m_constructrice.crée_référence_membre(noeud, valeur_union, 0);
             membre_erreur = m_constructrice.crée_transtype(
                 noeud,
                 m_compilatrice.typeuse.type_pointeur_pour(const_cast<Type *>(gen_tente.type_piege),
@@ -3251,7 +3254,7 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
         m_constructrice.insère_label(label_si_faux);
     }
 
-    Instruction *pointeur_membre = m_constructrice.crée_référence_membre(noeud, ptr_union, 0);
+    Atome *pointeur_membre = m_constructrice.crée_référence_membre(noeud, ptr_union, 0);
 
     if (type_membre != type_union->type_le_plus_grand) {
         pointeur_membre = m_constructrice.crée_transtype(

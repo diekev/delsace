@@ -235,10 +235,10 @@ struct ConstructriceRI {
                                                  Atome *accédé,
                                                  int index);
 
-    InstructionTranstype *crée_transtype(NoeudExpression const *site_,
-                                         Type const *type,
-                                         Atome *valeur,
-                                         TypeTranstypage op);
+    Atome *crée_transtype(NoeudExpression const *site_,
+                          Type const *type,
+                          Atome *valeur,
+                          TypeTranstypage op);
 
     TranstypeConstant *crée_transtype_constant(Type const *type, AtomeConstante *valeur);
     AccedeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, int64_t index);
