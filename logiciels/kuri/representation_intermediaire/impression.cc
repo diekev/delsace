@@ -17,188 +17,49 @@
 
 static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type)
 {
-    switch (type) {
-        case TypeTranstypage::AUGMENTE_NATUREL:
-        {
-            return "augmente_naturel";
-        }
-        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
-        {
-            return "augmente_naturel_vers_relatif";
-        }
-        case TypeTranstypage::AUGMENTE_RELATIF:
-        {
-            return "augmente_relatif";
-        }
-        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
-        {
-            return "augmente_relatif_vers_naturel";
-        }
-        case TypeTranstypage::AUGMENTE_REEL:
-        {
-            return "augmente_réel";
-        }
-        case TypeTranstypage::DIMINUE_NATUREL:
-        {
-            return "diminue_naturel";
-        }
-        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
-        {
-            return "diminue_naturel_vers_relatif";
-        }
-        case TypeTranstypage::DIMINUE_RELATIF:
-        {
-            return "diminue_relatif";
-        }
-        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
-        {
-            return "diminue_relatif_vers_naturel";
-        }
-        case TypeTranstypage::DIMINUE_REEL:
-        {
-            return "diminue_réel";
-        }
-        case TypeTranstypage::POINTEUR_VERS_ENTIER:
-        {
-            return "pointeur_vers_entier";
-        }
-        case TypeTranstypage::ENTIER_VERS_POINTEUR:
-        {
-            return "entier_vers_pointeur";
-        }
-        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
-        {
-            return "réel_vers_naturel";
-        }
-        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
-        {
-            return "réel_vers_relatif";
-        }
-        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
-        {
-            return "naturel_vers_réel";
-        }
-        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
-        {
-            return "relatif_vers_réel";
-        }
-        case TypeTranstypage::BITS:
-        {
-            return "transtype_bits";
-        }
+#define ENUMERE_TYPE_TRANSTYPAGE_EX(genre, ident)                                                 \
+    case TypeTranstypage::genre:                                                                  \
+    {                                                                                             \
+        return #ident;                                                                            \
     }
 
+    switch (type) {
+        ENUMERE_TYPE_TRANSTYPAGE(ENUMERE_TYPE_TRANSTYPAGE_EX)
+    }
+
+#undef ENUMERE_TYPE_TRANSTYPAGE_EX
     return "erreur";
 }
 
 static void imprime_information_atome(Atome const *atome, Enchaineuse &os)
 {
-    switch (atome->genre_atome) {
-        case Atome::Genre::GLOBALE:
-        {
-            auto globale = atome->comme_globale();
-            os << "globale " << (globale->ident ? globale->ident->nom : "anonyme") << " de type "
-               << chaine_type(atome->type, false);
-            break;
+    os << atome->genre_atome;
+
+    if (atome->est_globale()) {
+        auto globale = atome->comme_globale();
+        if (globale->ident) {
+            os << " nommée " << globale->ident->nom;
         }
-        case Atome::Genre::TRANSTYPE_CONSTANT:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant un transtypage constant";
-            break;
+        else {
+            os << " anonyme";
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant un indexage constant";
-            break;
+    }
+    else if (atome->est_fonction()) {
+        auto fonction = atome->comme_fonction();
+        if (fonction->decl) {
+            os << ' ' << nom_humainement_lisible(fonction->decl);
         }
-        case Atome::Genre::CONSTANTE_NULLE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante NULLE";
-            break;
+        else {
+            os << ' ' << fonction->nom;
         }
-        case Atome::Genre::CONSTANTE_TYPE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante TYPE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_RÉELLE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante REELLE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_ENTIÈRE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante ENTIERE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_BOOLÉENNE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante BOOLEENNE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_CARACTÈRE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante CARACTERE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante TABLEAU_DONNEES_CONSTANTES";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_TAILLE_DE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante TAILLE_DE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante CONSTANTE_INDEX_TABLE_TYPE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_STRUCTURE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante STRUCTURE";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
-        {
-            os << "constante de type " << chaine_type(atome->type, false);
-            os << " représentant une valeur constante TABLEAU_FIXE";
-            break;
-        }
-        case Atome::Genre::INITIALISATION_TABLEAU:
-        {
-            os << "constante d'initialisation de tableau fixe";
-            break;
-        }
-        case Atome::Genre::NON_INITIALISATION:
-        {
-            os << "non-initialisation";
-            break;
-        }
-        case Atome::Genre::INSTRUCTION:
-        {
-            os << "instruction";
-            break;
-        }
-        case Atome::Genre::FONCTION:
-        {
-            os << "fonction";
-            break;
-        }
+    }
+    else if (atome->est_instruction()) {
+        auto inst = atome->comme_instruction();
+        os << " de genre " << inst->genre;
+    }
+
+    if (atome->type) {
+        os << " de type " << chaine_type(atome->type, false);
     }
 }
 
