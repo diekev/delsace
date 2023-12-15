@@ -73,7 +73,7 @@ int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
 /* ************************************************************************** */
 
 Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
-    : ordonnanceuse(this), messagere(this), gestionnaire_code(this),
+    : ordonnanceuse(this), messagère(this), gestionnaire_code(this),
       gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
       racine_kuri(chemin_racine_kuri), typeuse(graphe_dependance, this->operateurs),
       registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
@@ -154,18 +154,18 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 
     module->importé = true;
 
-    messagere->ajoute_message_module_ouvert(espace, module);
+    messagère->ajoute_message_module_ouvert(espace, module);
 
 #if 1
     auto fichiers = kuri::chemin_systeme::fichiers_du_dossier(chemin_absolu);
 
     POUR (fichiers) {
-        auto resultat = this->trouve_ou_crée_fichier(
+        auto résultat = this->trouve_ou_crée_fichier(
             module, it.nom_fichier_sans_extension(), it, importe_kuri);
 
-        if (resultat.est<FichierNeuf>()) {
-            gestionnaire_code->requiers_chargement(espace,
-                                                   resultat.resultat<FichierNeuf>().fichier);
+        if (std::holds_alternative<FichierNeuf>(résultat)) {
+            auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+            gestionnaire_code->requiers_chargement(espace, fichier);
         }
     }
 #else
@@ -179,29 +179,29 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
         return nullptr;
     }
 
-    auto resultat = this->trouve_ou_crée_fichier(
+    auto résultat = this->trouve_ou_crée_fichier(
         module, "module", chemin_fichier_module, importe_kuri);
-    if (resultat.est<FichierNeuf>()) {
-        gestionnaire_code->requiers_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
+    if (résultat.est<FichierNeuf>()) {
+        gestionnaire_code->requiers_chargement(espace, résultat.résultat<FichierNeuf>().fichier);
     }
 #endif
 
     if (module->nom() == ID::Kuri) {
-        auto resultat = this->trouve_ou_crée_fichier(
+        auto résultat = this->trouve_ou_crée_fichier(
             module, "constantes", "constantes.kuri", false);
 
-        if (resultat.est<FichierNeuf>()) {
-            auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier;
+        if (std::holds_alternative<FichierNeuf>(résultat)) {
+            auto donnees_fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
             if (!donnees_fichier->fut_chargé) {
                 const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
                 donnees_fichier->charge_tampon(lng::tampon_source(source));
             }
 
-            gestionnaire_code->requiers_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
+            gestionnaire_code->requiers_lexage(espace, donnees_fichier);
         }
     }
 
-    messagere->ajoute_message_module_fermé(espace, module);
+    messagère->ajoute_message_module_fermé(espace, module);
 
     return module;
 }
@@ -243,10 +243,11 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
         return;
     }
 
-    auto resultat = this->trouve_ou_crée_fichier(module, nom, opt_chemin.value(), importe_kuri);
+    auto résultat = this->trouve_ou_crée_fichier(module, nom, opt_chemin.value(), importe_kuri);
 
-    if (resultat.est<FichierNeuf>()) {
-        gestionnaire_code->requiers_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
+    if (std::holds_alternative<FichierNeuf>(résultat)) {
+        auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+        gestionnaire_code->requiers_chargement(espace, fichier);
     }
 }
 
@@ -265,7 +266,7 @@ int64_t Compilatrice::memoire_utilisee() const
         résultat += it->memoire_utilisee();
     }
 
-    résultat += messagere->mémoire_utilisée();
+    résultat += messagère->mémoire_utilisée();
 
     résultat += sys_module->mémoire_utilisée();
 
@@ -296,7 +297,7 @@ int64_t Compilatrice::memoire_utilisee() const
 
 void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 {
-    stats.memoire_compilatrice = memoire_utilisee();
+    stats.mémoire_compilatrice = memoire_utilisee();
 
     POUR ((*espaces_de_travail.verrou_lecture())) {
         it->rassemble_statistiques(stats);
@@ -416,12 +417,12 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     auto nom_fichier = enchaine("chaine_ajoutée",
                                 chaines_ajoutées_à_la_compilation->nombre_de_chaines());
     auto chemin_fichier = enchaine(".", nom_fichier);
-    auto resultat = this->trouve_ou_crée_fichier(
+    auto résultat = this->trouve_ou_crée_fichier(
         module, nom_fichier, chemin_fichier, importe_kuri);
 
-    assert(resultat.est<FichierNeuf>());
+    assert(std::holds_alternative<FichierNeuf>(résultat));
 
-    auto fichier = resultat.resultat<FichierNeuf>().fichier;
+    auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
     fichier->source = SourceFichier::CHAINE_AJOUTÉE;
     fichier->décalage_fichier = decalage;
     fichier->site = site;
@@ -438,11 +439,11 @@ void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
 
 Message const *Compilatrice::attend_message()
 {
-    auto messagere_ = messagere.verrou_ecriture();
-    if (!messagere_->possède_message()) {
+    auto messagère_ = messagère.verrou_ecriture();
+    if (!messagère_->possède_message()) {
         return nullptr;
     }
-    return messagere_->defile();
+    return messagère_->defile();
 }
 
 EspaceDeTravail *Compilatrice::espace_defaut_compilation()
@@ -453,12 +454,12 @@ EspaceDeTravail *Compilatrice::espace_defaut_compilation()
 static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(
     kuri::tableau<Lexeme, int> const &lexemes)
 {
-    auto resultat = kuri::tableau<kuri::Lexeme>(lexemes.taille());
+    auto résultat = kuri::tableau<kuri::Lexeme>(lexemes.taille());
     auto index_résultat = 0;
     POUR (lexemes) {
-        resultat[index_résultat++] = {static_cast<int>(it.genre), it.chaine};
+        résultat[index_résultat++] = {static_cast<int>(it.genre), it.chaine};
     }
-    return resultat;
+    return résultat;
 }
 
 kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail *espace,
@@ -474,25 +475,25 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
 
     auto module = this->module(ID::chaine_vide);
 
-    auto resultat = this->trouve_ou_crée_fichier(
+    auto résultat = this->trouve_ou_crée_fichier(
         module, chemin_absolu.nom_fichier_sans_extension(), chemin_absolu, importe_kuri);
 
-    if (resultat.est<FichierExistant>()) {
-        auto donnees_fichier = resultat.resultat<FichierExistant>().fichier;
-        auto tableau = converti_tableau_lexemes(donnees_fichier->lexèmes);
+    if (std::holds_alternative<FichierExistant>(résultat)) {
+        auto fichier = static_cast<Fichier *>(std::get<FichierExistant>(résultat));
+        auto tableau = converti_tableau_lexemes(fichier->lexèmes);
         m_tableaux_lexemes.ajoute(tableau);
         return m_tableaux_lexemes.dernière();
     }
 
-    auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier;
+    auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
     auto tampon = charge_contenu_fichier({chemin_absolu.pointeur(), chemin_absolu.taille()});
-    donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+    fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
     auto lexeuse = Lexeuse(
-        contexte_lexage(espace), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
+        contexte_lexage(espace), fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
     lexeuse.performe_lexage();
 
-    auto tableau = converti_tableau_lexemes(donnees_fichier->lexèmes);
+    auto tableau = converti_tableau_lexemes(fichier->lexèmes);
     m_tableaux_lexemes.ajoute(tableau);
     return m_tableaux_lexemes.dernière();
 }
@@ -501,17 +502,17 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
     EspaceDeTravail *espace)
 {
     auto entetes = gestionnaire_code->fonctions_parsees();
-    auto resultat = kuri::tableau<NoeudCodeEnteteFonction *>();
-    resultat.reserve(entetes.taille());
+    auto résultat = kuri::tableau<NoeudCodeEnteteFonction *>();
+    résultat.reserve(entetes.taille());
     POUR (entetes) {
         if (it->est_operateur || it->est_coroutine ||
             it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
             continue;
         }
         auto code_entete = convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, it);
-        resultat.ajoute(code_entete->comme_entete_fonction());
+        résultat.ajoute(code_entete->comme_entete_fonction());
     }
-    m_tableaux_code_fonctions.ajoute(resultat);
+    m_tableaux_code_fonctions.ajoute(résultat);
     return m_tableaux_code_fonctions.dernière();
 }
 
@@ -538,22 +539,22 @@ Module *Compilatrice::module(const IdentifiantCode *nom_module) const
     return sys_module->module(nom_module);
 }
 
-ResultatFichier Compilatrice::trouve_ou_crée_fichier(Module *module,
+RésultatFichier Compilatrice::trouve_ou_crée_fichier(Module *module,
                                                      kuri::chaine_statique nom_fichier,
                                                      kuri::chaine_statique chemin,
                                                      bool importe_kuri_)
 {
-    auto resultat_fichier = sys_module->trouve_ou_crée_fichier(module, nom_fichier, chemin);
+    auto résultat_fichier = sys_module->trouve_ou_crée_fichier(module, nom_fichier, chemin);
 
-    if (resultat_fichier.est<FichierNeuf>()) {
-        auto fichier_neuf = resultat_fichier.resultat<FichierNeuf>().fichier;
+    if (std::holds_alternative<FichierNeuf>(résultat_fichier)) {
+        auto fichier_neuf = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
         if (importe_kuri_ && module->nom() != ID::Kuri) {
             assert(module_kuri);
             fichier_neuf->modules_importés.insere(module_kuri);
         }
     }
 
-    return resultat_fichier;
+    return résultat_fichier;
 }
 
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
@@ -573,16 +574,16 @@ Fichier *Compilatrice::crée_fichier_pour_metaprogramme(MetaProgramme *metaprogr
     auto fichier_racine = this->fichier(metaprogramme_->corps_texte->lexeme->fichier);
     auto module = fichier_racine->module;
     auto nom_fichier = enchaine(metaprogramme_);
-    auto resultat_fichier = this->trouve_ou_crée_fichier(module, nom_fichier, nom_fichier, false);
-    assert(resultat_fichier.est<FichierNeuf>());
-    auto resultat = resultat_fichier.resultat<FichierNeuf>().fichier;
-    resultat->métaprogramme_corps_texte = metaprogramme_;
-    resultat->source = SourceFichier::CHAINE_AJOUTÉE;
-    metaprogramme_->fichier = resultat;
+    auto résultat_fichier = this->trouve_ou_crée_fichier(module, nom_fichier, nom_fichier, false);
+    assert(std::holds_alternative<FichierNeuf>(résultat_fichier));
+    auto résultat = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
+    résultat->métaprogramme_corps_texte = metaprogramme_;
+    résultat->source = SourceFichier::CHAINE_AJOUTÉE;
+    metaprogramme_->fichier = résultat;
     /* Hérite des modules importés par le fichier où se trouve le métaprogramme afin de pouvoir
      * également accéder aux symboles de ces modules. */
-    resultat->modules_importés = fichier_racine->modules_importés;
-    return resultat;
+    résultat->modules_importés = fichier_racine->modules_importés;
+    return résultat;
 }
 
 const Fichier *Compilatrice::fichier(int64_t index) const
@@ -602,9 +603,9 @@ Fichier *Compilatrice::fichier(kuri::chaine_statique chemin) const
 
 MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
 {
-    auto resultat = metaprogrammes->ajoute_element();
-    resultat->programme = Programme::crée_pour_metaprogramme(espace, resultat);
-    return resultat;
+    auto résultat = metaprogrammes->ajoute_element();
+    résultat->programme = Programme::crée_pour_metaprogramme(espace, résultat);
+    return résultat;
 }
 
 /* ************************************************************************** */

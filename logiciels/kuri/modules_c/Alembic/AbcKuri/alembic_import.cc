@@ -574,13 +574,13 @@ static void traverse_propriete_composee(
 static std::set<std::string> liste_attributs_requis(ConvertisseuseImportAttributs *convertisseuse,
                                                     const AbcGeom::ICompoundProperty &attributs)
 {
-    std::set<std::string> resultat;
+    std::set<std::string> résultat;
 
     if (convertisseuse->lis_tous_les_attributs(convertisseuse)) {
         traverse_propriete_composee(attributs, [&](const auto & /*parent*/, const auto &entete) {
-            resultat.insert(entete.getName());
+            résultat.insert(entete.getName());
         });
-        return resultat;
+        return résultat;
     }
 
     const int nombre_attributs_requis = convertisseuse->nombre_attributs_requis(convertisseuse);
@@ -597,10 +597,10 @@ static std::set<std::string> liste_attributs_requis(ConvertisseuseImportAttribut
             continue;
         }
 
-        resultat.insert(nom_attribut);
+        résultat.insert(nom_attribut);
     }
 
-    return resultat;
+    return résultat;
 }
 
 enum {
