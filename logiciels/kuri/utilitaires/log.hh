@@ -94,4 +94,8 @@ Logueuse info();
 
 /** \} */
 
+/**
+ * Retourne une chaine de caractères de tabulation d'une taille égale à \a
+ * indentations.
+ */
 kuri::chaine_statique chaine_indentations(int indentations);
