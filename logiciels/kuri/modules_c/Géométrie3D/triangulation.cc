@@ -27,7 +27,7 @@ inline bool possede(std::set<T> const &s, T v)
     return s.find(v) != s.end();
 }
 
-void calcule_enveloppe_convexe(const Maillage &maillage_pour, Maillage &resultat)
+void calcule_enveloppe_convexe(const Maillage &maillage_pour, Maillage &résultat)
 {
     std::vector<Triangulation::Point> points;
     points.reserve(maillage_pour.nombreDePoints() * 3);
@@ -88,17 +88,17 @@ void calcule_enveloppe_convexe(const Maillage &maillage_pour, Maillage &resultat
     }
 
     /* Copie les points. */
-    resultat.reserveNombreDePoints(points_finaux.size());
+    résultat.reserveNombreDePoints(points_finaux.size());
     for (auto &v : points_finaux) {
         auto p = v->point();
-        resultat.ajouteUnPoint(p[0], p[1], p[2]);
+        résultat.ajouteUnPoint(p[0], p[1], p[2]);
     }
 
     /* Crée les polygones. */
     std::vector<int> sommets;
     sommets.resize(cur_dim + 1);
 
-    resultat.reserveNombreDePolygones(cellules.size());
+    résultat.reserveNombreDePolygones(cellules.size());
     for (auto &cell : cellules) {
         int n = 0;
         for (int j = 0; j <= cur_dim; j++) {
@@ -112,13 +112,13 @@ void calcule_enveloppe_convexe(const Maillage &maillage_pour, Maillage &resultat
             sommets[n++] = index_des_sommets[v];
         }
 
-        resultat.ajouteUnPolygone(sommets.data(), n);
+        résultat.ajouteUnPolygone(sommets.data(), n);
     }
 }
 
 /* ************************************************************************** */
 
-void triangulation_delaunay_2d_points_3d(Maillage const &points, Maillage &resultat)
+void triangulation_delaunay_2d_points_3d(Maillage const &points, Maillage &résultat)
 {
     if (points.nombreDePoints() == 0) {
         return;
@@ -136,14 +136,14 @@ void triangulation_delaunay_2d_points_3d(Maillage const &points, Maillage &resul
 
     for (auto i = 0; i < points.nombreDePoints(); i++) {
         auto point = points.pointPourIndex(i);
-        resultat.ajouteUnPoint(point);
+        résultat.ajouteUnPoint(point);
     }
 
     for (std::size_t i = 0; i < d.triangles.size(); i += 3) {
         int poly[3] = {static_cast<int>(d.triangles[i]),
                        static_cast<int>(d.triangles[i + 1]),
                        static_cast<int>(d.triangles[i + 2])};
-        resultat.ajouteUnPolygone(poly, 3);
+        résultat.ajouteUnPolygone(poly, 3);
     }
 }
 

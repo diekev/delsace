@@ -196,7 +196,7 @@ tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier(chaine_statique c
 {
     auto const std_path = vers_std_path(chemin);
 
-    tablet<chemin_systeme, 16> resultat;
+    tablet<chemin_systeme, 16> résultat;
 
     for (auto const &entree : std::filesystem::directory_iterator(std_path)) {
         auto chemin_entree = entree.path();
@@ -204,17 +204,17 @@ tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier(chaine_statique c
             continue;
         }
 
-        resultat.ajoute(vers_chemin_systeme(chemin_entree));
+        résultat.ajoute(vers_chemin_systeme(chemin_entree));
     }
 
-    return resultat;
+    return résultat;
 }
 
 tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier_recursif(chaine_statique chemin)
 {
     auto const std_path = vers_std_path(chemin);
 
-    tablet<chemin_systeme, 16> resultat;
+    tablet<chemin_systeme, 16> résultat;
 
     for (auto const &entree : std::filesystem::recursive_directory_iterator(std_path)) {
         auto chemin_entree = entree.path();
@@ -222,10 +222,10 @@ tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier_recursif(chaine_s
             continue;
         }
 
-        resultat.ajoute(vers_chemin_systeme(chemin_entree));
+        résultat.ajoute(vers_chemin_systeme(chemin_entree));
     }
 
-    return resultat;
+    return résultat;
 }
 
 bool chemin_systeme::supprime(chaine_statique chemin)
