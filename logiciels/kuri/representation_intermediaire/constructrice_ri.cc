@@ -2772,7 +2772,15 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             /* copie le pointeur vers les infos du type du eini */
             auto tpe_eini = m_constructrice.crée_référence_membre(noeud, alloc_eini, 1);
-            auto info_type = crée_info_type_avec_transtype(noeud->type, noeud);
+            Atome *info_type = crée_info_type(noeud->type, noeud);
+
+            auto pointeur_type_info_type = m_compilatrice.typeuse.type_pointeur_pour(
+                m_compilatrice.typeuse.type_info_type_, false, false);
+            if (info_type->type != pointeur_type_info_type) {
+                info_type = m_constructrice.crée_transtype(
+                    noeud, pointeur_type_info_type, info_type, TypeTranstypage::BITS);
+            }
+
             m_constructrice.crée_stocke_mem(noeud, tpe_eini, info_type);
 
             if (place == nullptr) {
