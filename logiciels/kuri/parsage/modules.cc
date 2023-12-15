@@ -111,7 +111,7 @@ void SystèmeModule::rassemble_stats(Statistiques &stats) const
 
     auto &stats_fichiers = stats.stats_fichiers;
     POUR_TABLEAU_PAGE (fichiers) {
-        auto entrée = EntreeFichier();
+        auto entrée = EntréeFichier();
         entrée.chemin = it.chemin();
         entrée.nom = it.nom();
         entrée.nombre_lignes = it.tampon().nombre_lignes();

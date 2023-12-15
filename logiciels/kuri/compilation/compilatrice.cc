@@ -296,7 +296,7 @@ int64_t Compilatrice::memoire_utilisee() const
 
 void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 {
-    stats.memoire_compilatrice = memoire_utilisee();
+    stats.mémoire_compilatrice = memoire_utilisee();
 
     POUR ((*espaces_de_travail.verrou_lecture())) {
         it->rassemble_statistiques(stats);

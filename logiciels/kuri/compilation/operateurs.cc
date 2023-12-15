@@ -516,7 +516,7 @@ void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
         mémoire_tables += it.mémoire_utilisée();
     }
 
-    auto &stats_ops = stats.stats_operateurs;
+    auto &stats_ops = stats.stats_opérateurs;
     stats_ops.fusionne_entrée({"OpérateurUnaire", nombre_unaires, memoire_unaires});
     stats_ops.fusionne_entrée({"OpérateurBinaire", nombre_binaires, memoire_binaires});
     stats_ops.fusionne_entrée({"TableOpérateurs", nombre_tables, mémoire_tables});

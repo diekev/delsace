@@ -9,8 +9,8 @@
 #include "compilation/coulisse_llvm.hh"
 #include "compilation/environnement.hh"
 #include "compilation/espace_de_travail.hh"
-#include "utilitaires/log.hh"
 #include "compilation/tacheronne.hh"
+#include "utilitaires/log.hh"
 
 #include "statistiques/statistiques.hh"
 
@@ -93,7 +93,7 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
         it->rassemble_statistiques(stats);
     }
 
-    stats.memoire_ri = stats.stats_ri.totaux.memoire;
+    stats.mémoire_ri = stats.stats_ri.totaux.mémoire;
 }
 
 static void imprime_stats(Compilatrice const &compilatrice,
@@ -107,7 +107,7 @@ static void imprime_stats(Compilatrice const &compilatrice,
     imprime_stats(stats, debut_compilation);
     compilatrice.gestionnaire_code->imprime_stats();
 #ifdef STATISTIQUES_DETAILLEES
-    imprime_stats_detaillee(stats);
+    imprime_stats_détaillées(stats);
 #endif
 }
 

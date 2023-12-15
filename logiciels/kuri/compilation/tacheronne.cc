@@ -1002,22 +1002,22 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
 void Tacheronne::rassemble_statistiques(Statistiques &stats)
 {
-    stats.temps_executable = std::max(stats.temps_executable, temps_executable);
+    stats.temps_exécutable = std::max(stats.temps_exécutable, temps_executable);
     stats.temps_fichier_objet = std::max(stats.temps_fichier_objet, temps_fichier_objet);
-    stats.temps_generation_code = std::max(stats.temps_generation_code, temps_generation_code);
+    stats.temps_génération_code = std::max(stats.temps_génération_code, temps_generation_code);
     stats.temps_ri = std::max(stats.temps_ri, constructrice_ri.temps_generation);
     stats.temps_lexage = std::max(stats.temps_lexage, temps_lexage);
     stats.temps_parsage = std::max(stats.temps_parsage, temps_parsage);
     stats.temps_typage = std::max(stats.temps_typage, temps_validation);
-    stats.temps_scene = std::max(stats.temps_scene, temps_scene);
+    stats.temps_scène = std::max(stats.temps_scène, temps_scene);
     stats.temps_chargement = std::max(stats.temps_chargement, temps_chargement);
     stats.temps_tampons = std::max(stats.temps_tampons, temps_tampons);
 
     constructrice_ri.rassemble_statistiques(stats);
     allocatrice_noeud.rassemble_statistiques(stats);
 
-    stats.memoire_compilatrice += lexemes_extra.memoire_utilisee();
-    stats.memoire_compilatrice += convertisseuse_noeud_code.memoire_utilisee();
+    stats.mémoire_compilatrice += lexemes_extra.memoire_utilisee();
+    stats.mémoire_compilatrice += convertisseuse_noeud_code.memoire_utilisee();
 
     if (mv) {
         mv->rassemble_statistiques(stats);

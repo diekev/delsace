@@ -2306,10 +2306,10 @@ void MachineVirtuelle::déloge_données_exécution(DonnéesExécution *&données
 
 void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
 {
-    stats.memoire_mv += données_exécution.memoire_utilisee();
-    stats.nombre_metaprogrammes_executes += nombre_de_métaprogrammes_exécutés;
-    stats.temps_metaprogrammes += temps_exécution_métaprogammes;
-    stats.instructions_executees += instructions_exécutées;
+    stats.mémoire_mv += données_exécution.memoire_utilisee();
+    stats.nombre_métaprogrammes_exécutés += nombre_de_métaprogrammes_exécutés;
+    stats.temps_métaprogrammes += temps_exécution_métaprogammes;
+    stats.instructions_exécutées += instructions_exécutées;
 }
 
 std::ostream &operator<<(std::ostream &os, PatchDonnéesConstantes const &patch)
