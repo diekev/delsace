@@ -152,12 +152,10 @@ InstructionChargeMem::InstructionChargeMem(NoeudExpression const *site_,
 }
 
 InstructionStockeMem::InstructionStockeMem(NoeudExpression const *site_,
-                                           Type const *type_,
                                            Atome *ou_,
                                            Atome *valeur_)
     : InstructionStockeMem(site_)
 {
-    this->type = type_;
     this->ou = ou_;
     this->valeur = valeur_;
 }
