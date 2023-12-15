@@ -603,10 +603,7 @@ struct InstructionStockeMem : public Instruction {
 
     EMPECHE_COPIE(InstructionStockeMem);
 
-    InstructionStockeMem(NoeudExpression const *site_,
-                         Type const *type_,
-                         Atome *ou_,
-                         Atome *valeur_);
+    InstructionStockeMem(NoeudExpression const *site_, Atome *ou_, Atome *valeur_);
 };
 
 struct InstructionLabel : public Instruction {
@@ -699,24 +696,29 @@ struct InstructionAccedeIndex : public Instruction {
     const Type *donne_type_accédé() const;
 };
 
+#define ENUMERE_TYPE_TRANSTYPAGE(O)                                                               \
+    O(AUGMENTE_NATUREL, augmente_naturel)                                                         \
+    O(AUGMENTE_RELATIF, augmente_relatif)                                                         \
+    O(AUGMENTE_REEL, augmente_réel)                                                               \
+    O(DIMINUE_NATUREL, diminue_naturel)                                                           \
+    O(DIMINUE_RELATIF, diminue_relatif)                                                           \
+    O(DIMINUE_REEL, diminue_réel)                                                                 \
+    O(AUGMENTE_NATUREL_VERS_RELATIF, augmente_naturel_vers_relatif)                               \
+    O(AUGMENTE_RELATIF_VERS_NATUREL, augmente_relatif_vers_naturel)                               \
+    O(DIMINUE_NATUREL_VERS_RELATIF, diminue_naturel_vers_relatif)                                 \
+    O(DIMINUE_RELATIF_VERS_NATUREL, diminue_relatif_vers_naturel)                                 \
+    O(POINTEUR_VERS_ENTIER, pointeur_vers_entier)                                                 \
+    O(ENTIER_VERS_POINTEUR, entier_vers_pointeur)                                                 \
+    O(REEL_VERS_ENTIER_RELATIF, réel_vers_relatif)                                                \
+    O(REEL_VERS_ENTIER_NATUREL, réel_vers_naturel)                                                \
+    O(ENTIER_RELATIF_VERS_REEL, relatif_vers_réel)                                                \
+    O(ENTIER_NATUREL_VERS_REEL, naturel_vers_réel)                                                \
+    O(BITS, transtype_bits)
+
 enum TypeTranstypage {
-    AUGMENTE_NATUREL,
-    AUGMENTE_RELATIF,
-    AUGMENTE_REEL,
-    DIMINUE_NATUREL,
-    DIMINUE_RELATIF,
-    DIMINUE_REEL,
-    AUGMENTE_NATUREL_VERS_RELATIF,
-    AUGMENTE_RELATIF_VERS_NATUREL,
-    DIMINUE_NATUREL_VERS_RELATIF,
-    DIMINUE_RELATIF_VERS_NATUREL,
-    POINTEUR_VERS_ENTIER,
-    ENTIER_VERS_POINTEUR,
-    REEL_VERS_ENTIER_RELATIF,
-    REEL_VERS_ENTIER_NATUREL,
-    ENTIER_RELATIF_VERS_REEL,
-    ENTIER_NATUREL_VERS_REEL,
-    BITS,
+#define ENUMERE_TYPE_TRANSTYPAGE_EX(genre, ident) genre,
+    ENUMERE_TYPE_TRANSTYPAGE(ENUMERE_TYPE_TRANSTYPAGE_EX)
+#undef ENUMERE_TYPE_TRANSTYPAGE_EX
 };
 
 struct InstructionTranstype : public Instruction {

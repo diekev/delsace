@@ -213,7 +213,7 @@ struct CopieuseInstruction {
                 auto n_valeur = copie_atome(transtype->valeur);
                 auto n_transtype = constructrice.crée_transtype(
                     inst->site, inst->type, n_valeur, op);
-                nouvelle_inst = n_transtype;
+                nouvelle_inst = n_transtype->comme_instruction()->comme_transtype();
                 break;
             }
             case GenreInstruction::BRANCHE_CONDITION:
