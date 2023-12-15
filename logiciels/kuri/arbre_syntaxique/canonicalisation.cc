@@ -1408,7 +1408,7 @@ NoeudExpression *Simplificatrice::crée_expression_pour_op_chainee(
         return exprs.depile();
     }
 
-    auto resultat = NoeudExpression::nul();
+    auto résultat = NoeudExpression::nul();
 
     while (true) {
         auto a = exprs.depile();
@@ -1419,14 +1419,14 @@ NoeudExpression *Simplificatrice::crée_expression_pour_op_chainee(
         et->opérande_droite = b;
 
         if (exprs.est_vide()) {
-            resultat = et;
+            résultat = et;
             break;
         }
 
         exprs.empile(et);
     }
 
-    return resultat;
+    return résultat;
 }
 
 NoeudExpression *Simplificatrice::cree_indexage(const Lexeme *lexeme,

@@ -19,6 +19,6 @@ void distribue_poisson_2d(ParametresDistributionPoisson2D const &params,
 
 void construit_maillage_alpha(Maillage const &points,
                               const float rayon,
-                              Maillage &maillage_resultat);
+                              Maillage &maillage_résultat);
 
 }  // namespace geo
