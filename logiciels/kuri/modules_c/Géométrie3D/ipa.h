@@ -399,10 +399,10 @@ void GEO3D_distribue_points_poisson_2d(struct ParametresDistributionPoisson2D *p
 
 void GEO3D_construit_maillage_alpha(struct AdaptriceMaillage *points,
                                     const float rayon,
-                                    struct AdaptriceMaillage *maillage_resultat);
+                                    struct AdaptriceMaillage *maillage_résultat);
 
 void GEO3D_triangulation_delaunay_2d_points_3d(struct AdaptriceMaillage *points,
-                                               struct AdaptriceMaillage *resultat);
+                                               struct AdaptriceMaillage *résultat);
 
 /* ************************************* */
 

@@ -74,21 +74,21 @@ struct EspaceDeTravail {
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-    void tache_ajoutee(GenreTache genre_tache, dls::outils::Synchrone<Messagère> &messagere);
+    void tache_ajoutee(GenreTache genre_tache, dls::outils::Synchrone<Messagère> &messagère);
     void tache_terminee(GenreTache genre_tache,
-                        dls::outils::Synchrone<Messagère> &messagere,
+                        dls::outils::Synchrone<Messagère> &messagère,
                         bool peut_envoyer_changement_de_phase);
 
     void progresse_phase_pour_tache_terminee(GenreTache genre_tache,
-                                             dls::outils::Synchrone<Messagère> &messagere,
+                                             dls::outils::Synchrone<Messagère> &messagère,
                                              bool peut_envoyer_changement_de_phase);
     void regresse_phase_pour_tache_ajoutee(GenreTache genre_tache,
-                                           dls::outils::Synchrone<Messagère> &messagere);
+                                           dls::outils::Synchrone<Messagère> &messagère);
 
     bool peut_generer_code_final() const;
     bool parsage_termine() const;
 
-    Message *change_de_phase(dls::outils::Synchrone<Messagère> &messagere,
+    Message *change_de_phase(dls::outils::Synchrone<Messagère> &messagère,
                              PhaseCompilation nouvelle_phase);
 
     PhaseCompilation phase_courante() const

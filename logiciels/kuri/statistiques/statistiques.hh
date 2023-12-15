@@ -11,65 +11,65 @@
 #undef STATISTIQUES_DETAILLEES
 
 #ifdef STATISTIQUES_DETAILLEES
-#    define CHRONO_TYPAGE(entree_stats, index)                                                    \
+#    define CHRONO_TYPAGE(entrée_stats, index)                                                    \
         dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)([&](double temps) {      \
-            entree_stats.fusionne_entrée(index, {"", temps});                                     \
+            entrée_stats.fusionne_entrée(index, {"", temps});                                     \
         })
 #else
-#    define CHRONO_TYPAGE(entree_stats, nom)
+#    define CHRONO_TYPAGE(entrée_stats, nom)
 #endif
 
 #if defined __cpp_concepts && __cpp_concepts >= 201507
 template <typename T>
-concept TypeEntreesStats = requires(T a, T b)
+concept TypeEntréesStats = requires(T a, T b)
 {
     a += b;
 };
 #else
-#    define TypeEntreesStats typename
+#    define TypeEntréesStats typename
 #endif
 
-struct EntreeNombreMemoire {
+struct EntréeNombreMémoire {
     kuri::chaine_statique nom = "";
     int64_t compte = 0;
-    int64_t memoire = 0;
+    int64_t mémoire = 0;
 
-    EntreeNombreMemoire &operator+=(EntreeNombreMemoire const &autre)
+    EntréeNombreMémoire &operator+=(EntréeNombreMémoire const &autre)
     {
         compte += autre.compte;
-        memoire += autre.memoire;
+        mémoire += autre.mémoire;
         return *this;
     }
 
-    bool peut_fusionner_avec(EntreeNombreMemoire const &autre) const
+    bool peut_fusionner_avec(EntréeNombreMémoire const &autre) const
     {
         return autre.nom == nom;
     }
 };
 
-struct EntreeTaille {
+struct EntréeTaille {
     kuri::chaine_statique nom = "";
     int64_t taille = 0;
 
-    EntreeTaille &operator+=(EntreeTaille const &autre)
+    EntréeTaille &operator+=(EntréeTaille const &autre)
     {
         taille = std::max(taille, autre.taille);
         return *this;
     }
 
-    bool peut_fusionner_avec(EntreeTaille const &autre) const
+    bool peut_fusionner_avec(EntréeTaille const &autre) const
     {
         return autre.nom == nom;
     }
 };
 
-struct EntreeTailleTableau {
+struct EntréeTailleTableau {
     kuri::chaine_statique nom = "";
     int64_t taille_max = 0;
     int64_t taille_min = std::numeric_limits<int64_t>::max();
     kuri::tableau<int64_t> valeurs{};
 
-    EntreeTailleTableau &operator+=(EntreeTailleTableau const &autre)
+    EntréeTailleTableau &operator+=(EntréeTailleTableau const &autre)
     {
         if (valeurs.est_vide()) {
             valeurs.ajoute(taille_max);
@@ -83,13 +83,13 @@ struct EntreeTailleTableau {
         return *this;
     }
 
-    bool peut_fusionner_avec(EntreeTailleTableau const &autre) const
+    bool peut_fusionner_avec(EntréeTailleTableau const &autre) const
     {
         return autre.nom == nom;
     }
 };
 
-struct EntreeFichier {
+struct EntréeFichier {
     kuri::chaine_statique chemin = "";
     kuri::chaine_statique nom = "";
     int64_t mémoire_lexèmes = 0;
@@ -101,7 +101,7 @@ struct EntreeFichier {
     double temps_chargement = 0.0;
     double temps_tampon = 0.0;
 
-    EntreeFichier &operator+=(EntreeFichier const &autre)
+    EntréeFichier &operator+=(EntréeFichier const &autre)
     {
         mémoire_lexèmes += autre.mémoire_lexèmes;
         nombre_lignes += autre.nombre_lignes;
@@ -114,103 +114,102 @@ struct EntreeFichier {
         return *this;
     }
 
-    bool peut_fusionner_avec(EntreeFichier const &autre) const
+    bool peut_fusionner_avec(EntréeFichier const &autre) const
     {
         return autre.chemin == chemin;
     }
 };
 
-struct EntreeTemps {
+struct EntréeTemps {
     const char *nom{};
     double temps = 0.0;
 
-    EntreeTemps &operator+=(EntreeTemps const &autre)
+    EntréeTemps &operator+=(EntréeTemps const &autre)
     {
         temps += autre.temps;
         return *this;
     }
 
-    bool peut_fusionner_avec(EntreeTemps const &autre) const
+    bool peut_fusionner_avec(EntréeTemps const &autre) const
     {
         return autre.nom == nom;
     }
 };
 
-template <TypeEntreesStats T>
-struct EntreesStats {
+template <TypeEntréesStats T>
+struct EntréesStats {
     kuri::chaine_statique nom{};
     /* Mutable pour pouvoir le trier avant l'impression. */
-    mutable kuri::tableau<T, int> entrees{};
+    mutable kuri::tableau<T, int> entrées{};
     T totaux{};
 
-    explicit EntreesStats(kuri::chaine_statique nom_) : nom(nom_)
+    explicit EntréesStats(kuri::chaine_statique nom_) : nom(nom_)
     {
     }
 
-    EntreesStats(kuri::chaine_statique nom_, std::initializer_list<const char *> &&noms_entrees)
+    EntréesStats(kuri::chaine_statique nom_, std::initializer_list<const char *> &&noms_entrées)
         : nom(nom_)
     {
-        entrees.reserve(static_cast<int>(noms_entrees.size()));
-        for (auto nom_entree : noms_entrees) {
+        entrées.reserve(static_cast<int>(noms_entrées.size()));
+        for (auto nom_entrée : noms_entrées) {
             T e;
-            e.nom = nom_entree;
-            entrees.ajoute(e);
+            e.nom = nom_entrée;
+            entrées.ajoute(e);
         }
     }
 
-    void ajoute_entree(T const &entree)
+    void ajoute_entrée(T const &entrée)
     {
-        totaux += entree;
-        entrees.ajoute(entree);
+        totaux += entrée;
+        entrées.ajoute(entrée);
     }
 
-    void fusionne_entrée(T const &entree)
+    void fusionne_entrée(T const &entrée)
     {
-        totaux += entree;
+        totaux += entrée;
 
-        for (auto &e : entrees) {
-            if (e.peut_fusionner_avec(entree)) {
-                e += entree;
+        for (auto &e : entrées) {
+            if (e.peut_fusionner_avec(entrée)) {
+                e += entrée;
                 return;
             }
         }
 
-        entrees.ajoute(entree);
+        entrées.ajoute(entrée);
     }
 
-    void fusionne_entrée(int index, T const &entree)
+    void fusionne_entrée(int index, T const &entrée)
     {
-        totaux += entree;
-        entrees[index] += entree;
+        totaux += entrée;
+        entrées[index] += entrée;
     }
 };
 
-using StatistiquesFichiers = EntreesStats<EntreeFichier>;
-using StatistiquesArbre = EntreesStats<EntreeNombreMemoire>;
-using StatistiquesGraphe = EntreesStats<EntreeNombreMemoire>;
-using StatistiquesTypes = EntreesStats<EntreeNombreMemoire>;
-using StatistiquesOperateurs = EntreesStats<EntreeNombreMemoire>;
-using StatistiquesNoeudCode = EntreesStats<EntreeNombreMemoire>;
-using StatistiquesMessage = EntreesStats<EntreeNombreMemoire>;
-using StatistiquesRI = EntreesStats<EntreeNombreMemoire>;
-using StatistiquesTableaux = EntreesStats<EntreeTailleTableau>;
+using StatistiquesFichiers = EntréesStats<EntréeFichier>;
+using StatistiquesArbre = EntréesStats<EntréeNombreMémoire>;
+using StatistiquesGraphe = EntréesStats<EntréeNombreMémoire>;
+using StatistiquesOperateurs = EntréesStats<EntréeNombreMémoire>;
+using StatistiquesNoeudCode = EntréesStats<EntréeNombreMémoire>;
+using StatistiquesMessage = EntréesStats<EntréeNombreMémoire>;
+using StatistiquesRI = EntréesStats<EntréeNombreMémoire>;
+using StatistiquesTableaux = EntréesStats<EntréeTailleTableau>;
 
 struct Statistiques {
     int64_t nombre_modules = 0l;
     int64_t nombre_identifiants = 0l;
-    int64_t nombre_metaprogrammes_executes = 0l;
-    int64_t memoire_compilatrice = 0l;
-    int64_t memoire_ri = 0l;
+    int64_t nombre_métaprogrammes_exécutés = 0l;
+    int64_t mémoire_compilatrice = 0l;
+    int64_t mémoire_ri = 0l;
     int64_t mémoire_code_binaire = 0l;
-    int64_t memoire_mv = 0l;
-    int64_t memoire_bibliotheques = 0l;
-    int64_t instructions_executees = 0l;
-    double temps_generation_code = 0.0;
+    int64_t mémoire_mv = 0l;
+    int64_t mémoire_bibliothèques = 0l;
+    int64_t instructions_exécutées = 0l;
+    double temps_génération_code = 0.0;
     double temps_fichier_objet = 0.0;
-    double temps_executable = 0.0;
+    double temps_exécutable = 0.0;
     double temps_ri = 0.0;
-    double temps_metaprogrammes = 0.0;
-    double temps_scene = 0.0;
+    double temps_métaprogrammes = 0.0;
+    double temps_scène = 0.0;
     double temps_lexage = 0.0;
     double temps_parsage = 0.0;
     double temps_typage = 0.0;
@@ -220,8 +219,7 @@ struct Statistiques {
     StatistiquesFichiers stats_fichiers{"Fichiers"};
     StatistiquesArbre stats_arbre{"Arbre Syntaxique"};
     StatistiquesGraphe stats_graphe_dependance{"Graphe Dépendances"};
-    StatistiquesTypes stats_types{"Types"};
-    StatistiquesOperateurs stats_operateurs{"Opérateurs"};
+    StatistiquesOperateurs stats_opérateurs{"Opérateurs"};
     StatistiquesNoeudCode stats_noeuds_code{"Noeuds Code"};
     StatistiquesMessage stats_messages{"Messages"};
     StatistiquesRI stats_ri{"Représentation Intermédiaire"};
@@ -305,23 +303,23 @@ DEFINIS_ENUM(STRUCTURE)
 DEFINIS_ENUM(ASSIGNATION)
 
 struct StatistiquesTypage {
-    EntreesStats<EntreeTemps> validation_decl{"Déclarations Variables",
+    EntréesStats<EntréeTemps> validation_decl{"Déclarations Variables",
                                               INIT_NOMS_ENTREES(DECLARATION_VARIABLES)};
-    EntreesStats<EntreeTemps> validation_appel{"Appels", INIT_NOMS_ENTREES(VALIDATION_APPEL)};
-    EntreesStats<EntreeTemps> ref_decl{"Références Déclarations",
+    EntréesStats<EntréeTemps> validation_appel{"Appels", INIT_NOMS_ENTREES(VALIDATION_APPEL)};
+    EntréesStats<EntréeTemps> ref_decl{"Références Déclarations",
                                        INIT_NOMS_ENTREES(REFERENCE_DECLARATION)};
-    EntreesStats<EntreeTemps> operateurs_unaire{"Opérateurs Unaire",
+    EntréesStats<EntréeTemps> opérateurs_unaire{"Opérateurs Unaire",
                                                 INIT_NOMS_ENTREES(OPERATEUR_UNAIRE)};
-    EntreesStats<EntreeTemps> operateurs_binaire{"Opérateurs Binaire",
+    EntréesStats<EntréeTemps> opérateurs_binaire{"Opérateurs Binaire",
                                                  INIT_NOMS_ENTREES(OPERATEUR_BINAIRE)};
-    EntreesStats<EntreeTemps> entetes_fonctions{"Entêtes Fonctions",
+    EntréesStats<EntréeTemps> entêtes_fonctions{"Entêtes Fonctions",
                                                 INIT_NOMS_ENTREES(ENTETE_FONCTION)};
-    EntreesStats<EntreeTemps> corps_fonctions{"Corps Fonctions",
+    EntréesStats<EntréeTemps> corps_fonctions{"Corps Fonctions",
                                               INIT_NOMS_ENTREES(CORPS_FONCTION)};
-    EntreesStats<EntreeTemps> enumerations{"Énumérations", INIT_NOMS_ENTREES(ENUMERATION)};
-    EntreesStats<EntreeTemps> structures{"Structures", INIT_NOMS_ENTREES(STRUCTURE)};
-    EntreesStats<EntreeTemps> assignations{"Assignations", INIT_NOMS_ENTREES(ASSIGNATION)};
-    EntreesStats<EntreeTemps> finalisation{"Finalisation", INIT_NOMS_ENTREES(FINALISATION)};
+    EntréesStats<EntréeTemps> énumérations{"Énumérations", INIT_NOMS_ENTREES(ENUMERATION)};
+    EntréesStats<EntréeTemps> structures{"Structures", INIT_NOMS_ENTREES(STRUCTURE)};
+    EntréesStats<EntréeTemps> assignations{"Assignations", INIT_NOMS_ENTREES(ASSIGNATION)};
+    EntréesStats<EntréeTemps> finalisation{"Finalisation", INIT_NOMS_ENTREES(FINALISATION)};
 
     void imprime_stats();
 };
@@ -340,14 +338,14 @@ DEFINIS_ENUM(GESTIONNAIRE_CODE)
 
 /* Stats pour le GestionnaireCode */
 struct StatistiquesGestion {
-    EntreesStats<EntreeTemps> stats{"Gestionnaire Code", INIT_NOMS_ENTREES(GESTIONNAIRE_CODE)};
+    EntréesStats<EntréeTemps> stats{"Gestionnaire Code", INIT_NOMS_ENTREES(GESTIONNAIRE_CODE)};
 
     void imprime_stats();
 };
 
-void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_compilation);
+void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début_compilation);
 
-void imprime_stats_detaillee(Statistiques const &stats);
+void imprime_stats_détaillées(Statistiques const &stats);
 
 #undef EXTRAIT_CHAINE_ENUM
 #undef EXTRAIT_IDENT_ENUM

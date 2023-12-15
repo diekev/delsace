@@ -361,14 +361,14 @@ const RegistreDesOpérateurs::type_conteneur_unaire &RegistreDesOpérateurs::tro
 
 OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(GenreLexeme id,
                                                         Type *type,
-                                                        Type *type_resultat,
+                                                        Type *type_résultat,
                                                         IndiceTypeOp indice_type)
 {
-    return ajoute_basique(id, type, type, type_resultat, indice_type);
+    return ajoute_basique(id, type, type, type_résultat, indice_type);
 }
 
 OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(
-    GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type)
+    GenreLexeme id, Type *type1, Type *type2, Type *type_résultat, IndiceTypeOp indice_type)
 {
     assert(type1);
     assert(type2);
@@ -378,7 +378,7 @@ OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(
     auto op = opérateurs_binaires[index_op_binaire(id)].ajoute_element();
     op->type1 = type1;
     op->type2 = type2;
-    op->type_résultat = type_resultat;
+    op->type_résultat = type_résultat;
     op->est_commutatif = est_commutatif(id);
     op->est_basique = true;
     op->genre = genre_op_binaire_pour_lexeme(id, indice_type);
@@ -388,11 +388,11 @@ OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(
 
 OpérateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexeme id,
                                                               Type *type,
-                                                              Type *type_resultat)
+                                                              Type *type_résultat)
 {
     auto op = opérateurs_unaires[index_op_unaire(id)].ajoute_element();
     op->type_opérande = type;
-    op->type_résultat = type_resultat;
+    op->type_résultat = type_résultat;
     op->est_basique = true;
     op->genre = genre_op_unaire_pour_lexeme(id);
     return op;
@@ -401,14 +401,14 @@ OpérateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexeme id,
 void RegistreDesOpérateurs::ajoute_perso(GenreLexeme id,
                                          Type *type1,
                                          Type *type2,
-                                         Type *type_resultat,
+                                         Type *type_résultat,
                                          NoeudDeclarationEnteteFonction *decl)
 {
     auto table = donne_ou_crée_table_opérateurs(type1);
     auto op = opérateurs_binaires[index_op_binaire(id)].ajoute_element();
     op->type1 = type1;
     op->type2 = type2;
-    op->type_résultat = type_resultat;
+    op->type_résultat = type_résultat;
     op->est_commutatif = est_commutatif(id);
     op->est_basique = false;
     op->decl = decl;
@@ -417,12 +417,12 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexeme id,
 
 void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexeme id,
                                                 Type *type,
-                                                Type *type_resultat,
+                                                Type *type_résultat,
                                                 NoeudDeclarationEnteteFonction *decl)
 {
     auto op = opérateurs_unaires[index_op_unaire(id)].ajoute_element();
     op->type_opérande = type;
-    op->type_résultat = type_resultat;
+    op->type_résultat = type_résultat;
     op->est_basique = false;
     op->déclaration = decl;
     op->genre = genre_op_unaire_pour_lexeme(id);
@@ -516,7 +516,7 @@ void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
         mémoire_tables += it.mémoire_utilisée();
     }
 
-    auto &stats_ops = stats.stats_operateurs;
+    auto &stats_ops = stats.stats_opérateurs;
     stats_ops.fusionne_entrée({"OpérateurUnaire", nombre_unaires, memoire_unaires});
     stats_ops.fusionne_entrée({"OpérateurBinaire", nombre_binaires, memoire_binaires});
     stats_ops.fusionne_entrée({"TableOpérateurs", nombre_tables, mémoire_tables});

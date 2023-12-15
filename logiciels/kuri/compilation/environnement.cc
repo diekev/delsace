@@ -12,7 +12,7 @@
 #include "structures/enchaineuse.hh"
 
 #include "bibliotheque.hh"
-#include "coulisse.hh"  // Pour nom_sortie_resultat_final.
+#include "coulisse.hh"  // Pour nom_sortie_résultat_final.
 #include "options.hh"
 #include "utilitaires/log.hh"
 
@@ -179,7 +179,7 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
 
     résultat.ajoute("-c");
 
-    if (options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE ||
+    if (options.résultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE ||
         options.code_independent_de_position) {
         /* Un fichier objet pour une bibliothèque dynamique doit compiler du code indépendant de la
          * position. */
@@ -230,7 +230,7 @@ static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
 {
     TableauOptions résultat;
 
-    if (options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+    if (options.résultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         résultat.ajoute("-shared");
         résultat.ajoute("-fPIC");
     }
@@ -352,7 +352,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
      */
     enchaineuse << " -Wl,-Bdynamic";
 
-    enchaineuse << " -o " << nom_sortie_resultat_final(options);
+    enchaineuse << " -o " << nom_sortie_résultat_final(options);
 
     /* Terminateur nul afin de pouvoir passer la commande à #system. */
     enchaineuse << '\0';
@@ -457,7 +457,7 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
 
     OptionsDeCompilation options;
     options.architecture = architecture_cible;
-    options.resultat = ResultatCompilation::FICHIER_OBJET;
+    options.résultat = ResultatCompilation::FICHIER_OBJET;
     options.code_independent_de_position = true;
 
     const auto commande = commande_pour_fichier_objet_r16(options, chemin_fichier, chemin_objet);

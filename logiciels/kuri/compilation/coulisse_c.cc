@@ -1105,8 +1105,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             }
 
             if (résultat.nombre_tampons() > 1) {
-                auto chaine_resultat = résultat.chaine();
-                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_resultat);
+                auto chaine_résultat = résultat.chaine();
+                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_résultat);
                 return chaines_trop_larges_pour_stockage_chn.dernière();
             }
 
@@ -1152,8 +1152,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             enchaineuse_tmp << "{ " << valeur << " }";
 
             if (enchaineuse_tmp.nombre_tampons() > 1) {
-                auto chaine_resultat = enchaineuse_tmp.chaine();
-                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_resultat);
+                auto chaine_résultat = enchaineuse_tmp.chaine();
+                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_résultat);
                 return chaines_trop_larges_pour_stockage_chn.dernière();
             }
 
@@ -1982,8 +1982,8 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
         }
         poule_de_tâches.ajoute_tâche([&]() {
             kuri::chaine nom_sortie = it.chemin_fichier_objet;
-            if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
-                nom_sortie = nom_sortie_resultat_final(espace.options);
+            if (espace.options.résultat == ResultatCompilation::FICHIER_OBJET) {
+                nom_sortie = nom_sortie_résultat_final(espace.options);
             }
 
             auto commande = commande_pour_fichier_objet(
@@ -2038,7 +2038,7 @@ std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaiso
         fichiers_objet.ajoute(it.chemin_fichier_objet);
     }
 
-    auto nom_sortie = nom_sortie_resultat_final(espace.options);
+    auto nom_sortie = nom_sortie_résultat_final(espace.options);
     if (!kuri::chemin_systeme::supprime(nom_sortie)) {
         return ErreurCoulisse{"Impossible de supprimer le vieux compilat."};
     }
@@ -2080,7 +2080,7 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
 
     /* Si nous compilons un fichier objet, mets tout le code dans un seul fichier, car nous ne
      * pouvons assembler plusieurs fichiers objets en un seul. */
-    if (options.resultat == ResultatCompilation::FICHIER_OBJET) {
+    if (options.résultat == ResultatCompilation::FICHIER_OBJET) {
         auto &fichier = ajoute_fichier_c(false);
         fichier.données_constantes = données_constantes;
         fichier.types = repr_inter.donne_types();

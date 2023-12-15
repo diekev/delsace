@@ -183,14 +183,14 @@ static void calcul_normaux(Terrain &terrain, int const ordre)
 
 static wlk::desc_grille_2d descripteur_terrain(AdaptriceTerrain &terrain)
 {
-    wlk::desc_grille_2d resultat;
-    terrain.accede_resolution(&terrain, &resultat.resolution.x, &resultat.resolution.y);
+    wlk::desc_grille_2d résultat;
+    terrain.accede_resolution(&terrain, &résultat.resolution.x, &résultat.resolution.y);
 
 #if 0
-    resultat.etendue.max.x = static_cast<float>(resultat.resolution.x);
-    resultat.etendue.max.y = static_cast<float>(resultat.resolution.y);
-    resultat.type_donnees = wlk::type_grille::R32;
-    resultat.taille_pixel = 1.0;
+    résultat.etendue.max.x = static_cast<float>(résultat.resolution.x);
+    résultat.etendue.max.y = static_cast<float>(résultat.resolution.y);
+    résultat.type_donnees = wlk::type_grille::R32;
+    résultat.taille_pixel = 1.0;
 #else
 
     dls::math::vec3f position;
@@ -199,13 +199,13 @@ static wlk::desc_grille_2d descripteur_terrain(AdaptriceTerrain &terrain)
     dls::math::vec2f taille;
     terrain.accede_taille(&terrain, &taille.x, &taille.y);
 
-    resultat.etendue.min.x = position.x - (taille.x * 0.5f);
-    resultat.etendue.min.y = position.y - (taille.y * 0.5f);
-    resultat.etendue.max.x = position.x + (taille.x * 0.5f);
-    resultat.etendue.max.y = position.y + (taille.y * 0.5f);
-    resultat.taille_pixel = static_cast<double>(taille.x) / resultat.resolution.x;
+    résultat.etendue.min.x = position.x - (taille.x * 0.5f);
+    résultat.etendue.min.y = position.y - (taille.y * 0.5f);
+    résultat.etendue.max.x = position.x + (taille.x * 0.5f);
+    résultat.etendue.max.y = position.y + (taille.y * 0.5f);
+    résultat.taille_pixel = static_cast<double>(taille.x) / résultat.resolution.x;
 #endif
-    return resultat;
+    return résultat;
 }
 
 static void copie_donnees_calque(AdaptriceTerrain &terrain, wlk::grille_dense_2d<float> &grille)
@@ -245,9 +245,9 @@ static wlk::grille_dense_2d<float> grille_depuis_terrain(AdaptriceTerrain &terra
 {
     auto desc = descripteur_terrain(terrain);
 
-    auto resultat = wlk::grille_dense_2d<float>(desc);
-    copie_donnees_calque(terrain, resultat);
-    return resultat;
+    auto résultat = wlk::grille_dense_2d<float>(desc);
+    copie_donnees_calque(terrain, résultat);
+    return résultat;
 }
 
 void simule_erosion_vent(ParametresErosionVent &params,
@@ -368,14 +368,14 @@ void incline_terrain(ParametresInclinaisonTerrain const &params, AdaptriceTerrai
 
             auto normal = calcul_normal(temp, pos_monde);
             // produit_scalaire(normal, dls::math::vec3f(0.0f, 1.0f, 0.0f);
-            auto resultat = normal.z;
-            resultat = resultat * facteur + decalage;
+            auto résultat = normal.z;
+            résultat = résultat * facteur + decalage;
 
             if (inverse) {
-                resultat = (1.0f - resultat);
+                résultat = (1.0f - résultat);
             }
 
-            pointeur_donnees[index] *= resultat;
+            pointeur_donnees[index] *= résultat;
         }
     }
 }
@@ -1083,11 +1083,11 @@ struct DelegueTraverse {
             v1 = v2;
         }
 
-        auto resultat = dls::phys::esectd();
-        resultat.touche = touche;
-        resultat.distance = distance;
-        ajourne_entresection(resultat);
-        return resultat;
+        auto résultat = dls::phys::esectd();
+        résultat.touche = touche;
+        résultat.distance = distance;
+        ajourne_entresection(résultat);
+        return résultat;
     }
 
     void ajourne_entresection(dls::phys::esectd const &esect) const

@@ -233,13 +233,13 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return Attente::sur_type(type_vers);
         }
 
-        auto resultat = trouve_index_membre_unique_type_compatible(type_union, type_de);
+        auto résultat = trouve_index_membre_unique_type_compatible(type_union, type_de);
 
         /* Nous pouvons construire une union depuis nul si un seul membre est un pointeur. */
-        if (std::holds_alternative<IndexMembre>(resultat)) {
+        if (std::holds_alternative<IndexMembre>(résultat)) {
             return TransformationType{TypeTransformation::CONSTRUIT_UNION,
                                       type_vers,
-                                      std::get<IndexMembre>(resultat).valeur};
+                                      std::get<IndexMembre>(résultat).valeur};
         }
 
         return TransformationType(TypeTransformation::IMPOSSIBLE);
@@ -495,13 +495,13 @@ ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_
 
 ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type const *type_de)
 {
-    auto resultat = cherche_transformation<false>(type_de, type_vers);
+    auto résultat = cherche_transformation<false>(type_de, type_vers);
 
-    if (std::holds_alternative<Attente>(resultat)) {
-        return std::get<Attente>(resultat);
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
     }
 
-    auto transformation = std::get<TransformationType>(resultat);
+    auto transformation = std::get<TransformationType>(résultat);
 
     if (transformation.type == TypeTransformation::INUTILE) {
         /* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
@@ -526,13 +526,13 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
                                                   Type const *type_de,
                                                   NoeudExpression const *noeud)
 {
-    auto resultat = cherche_transformation<false>(type_de, type_vers);
+    auto résultat = cherche_transformation<false>(type_de, type_vers);
 
-    if (std::holds_alternative<Attente>(resultat)) {
-        return std::get<Attente>(resultat);
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
     }
 
-    auto transformation = std::get<TransformationType>(resultat);
+    auto transformation = std::get<TransformationType>(résultat);
 
     if (transformation.type == TypeTransformation::INUTILE) {
         return PoidsTransformation{transformation, 1.0};

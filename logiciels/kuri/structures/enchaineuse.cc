@@ -147,19 +147,19 @@ kuri::chaine Enchaineuse::chaine() const
         return "";
     }
 
-    auto resultat = kuri::chaine();
-    resultat.redimensionne(taille);
+    auto résultat = kuri::chaine();
+    résultat.redimensionne(taille);
 
     auto tampon = &m_tampon_base;
     auto decalage = 0;
 
     while (tampon) {
-        memcpy(&resultat[decalage], &tampon->donnees[0], static_cast<size_t>(tampon->occupe));
+        memcpy(&résultat[decalage], &tampon->donnees[0], static_cast<size_t>(tampon->occupe));
         decalage += tampon->occupe;
         tampon = tampon->suivant;
     }
 
-    return resultat;
+    return résultat;
 }
 
 kuri::chaine_statique Enchaineuse::chaine_statique() const

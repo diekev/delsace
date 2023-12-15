@@ -4,10 +4,10 @@
 #pragma once
 
 #include "biblinternes/langage/tampon_source.hh"
-#include "biblinternes/outils/resultat.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
 #include <mutex>
+#include <variant>
 
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
@@ -17,6 +17,7 @@
 #include "structures/tablet.hh"
 
 #include "utilitaires/macros.hh"
+#include "utilitaires/type_opaque.hh"
 
 #include "lexemes.hh"
 
@@ -144,35 +145,10 @@ struct Fichier {
     }
 };
 
-template <int i>
-struct EnveloppeFichier {
-    Fichier *fichier = nullptr;
+CREE_TYPE_OPAQUE(FichierExistant, Fichier *);
+CREE_TYPE_OPAQUE(FichierNeuf, Fichier *);
 
-    EnveloppeFichier(Fichier &f) : fichier(&f)
-    {
-    }
-};
-
-using FichierExistant = EnveloppeFichier<0>;
-using FichierNeuf = EnveloppeFichier<1>;
-
-enum class TagPourRésultatFichier {
-    INVALIDE,
-    NOUVEAU_FICHIER,
-    FICHIER_EXISTANT,
-};
-
-template <>
-struct tag_pour_donnees<TagPourRésultatFichier, FichierExistant> {
-    static constexpr auto tag = TagPourRésultatFichier::FICHIER_EXISTANT;
-};
-
-template <>
-struct tag_pour_donnees<TagPourRésultatFichier, FichierNeuf> {
-    static constexpr auto tag = TagPourRésultatFichier::NOUVEAU_FICHIER;
-};
-
-using ResultatFichier = Resultat<FichierExistant, FichierNeuf, TagPourRésultatFichier>;
+using RésultatFichier = std::variant<FichierExistant, FichierNeuf>;
 
 struct Module {
     /* le nom du module, qui est le nom du dossier où se trouve les fichiers */
@@ -227,7 +203,7 @@ struct SystèmeModule {
 
     Module *module(const IdentifiantCode *nom) const;
 
-    ResultatFichier trouve_ou_crée_fichier(Module *module,
+    RésultatFichier trouve_ou_crée_fichier(Module *module,
                                            kuri::chaine_statique nom,
                                            kuri::chaine_statique chemin);
 

@@ -47,7 +47,7 @@ struct OptionsDeCompilation {
     chaine_statique nom_sortie = "a.out"
 
     TypeCoulisse coulisse = .C
-    RésultatCompilation résultat = .EXÉCUTABLE
+    RésultatCompilation résultat = .EXÉCUTABLE [préserve_accents]
     ArchitectureCible architecture = .X64
     NiveauOptimisation niveau_optimisation = .AUCUN
     CompilationPour compilation_pour = .PRODUCTION

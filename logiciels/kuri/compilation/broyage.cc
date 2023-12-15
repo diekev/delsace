@@ -526,6 +526,6 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
 
 kuri::chaine_statique Broyeuse::chaine_finale_pour_stockage_temp()
 {
-    auto resultat_temp = stockage_temp.chaine_statique();
-    return stockage_chaines.ajoute_chaine_statique(resultat_temp);
+    auto résultat_temp = stockage_temp.chaine_statique();
+    return stockage_chaines.ajoute_chaine_statique(résultat_temp);
 }

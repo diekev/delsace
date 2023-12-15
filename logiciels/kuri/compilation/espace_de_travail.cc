@@ -53,24 +53,24 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 }
 
 void EspaceDeTravail::tache_ajoutee(GenreTache genre_tache,
-                                    dls::outils::Synchrone<Messagère> &messagere)
+                                    dls::outils::Synchrone<Messagère> &messagère)
 {
     nombre_de_taches[size_t(genre_tache)] += 1;
-    regresse_phase_pour_tache_ajoutee(genre_tache, messagere);
+    regresse_phase_pour_tache_ajoutee(genre_tache, messagère);
 }
 
 void EspaceDeTravail::tache_terminee(GenreTache genre_tache,
-                                     dls::outils::Synchrone<Messagère> &messagere,
+                                     dls::outils::Synchrone<Messagère> &messagère,
                                      bool peut_envoyer_changement_de_phase)
 {
     nombre_de_taches[size_t(genre_tache)] -= 1;
     assert(nombre_de_taches[size_t(genre_tache)] >= 0);
-    progresse_phase_pour_tache_terminee(genre_tache, messagere, peut_envoyer_changement_de_phase);
+    progresse_phase_pour_tache_terminee(genre_tache, messagère, peut_envoyer_changement_de_phase);
 }
 
 void EspaceDeTravail::progresse_phase_pour_tache_terminee(
     GenreTache genre_tache,
-    dls::outils::Synchrone<Messagère> &messagere,
+    dls::outils::Synchrone<Messagère> &messagère,
     bool peut_envoyer_changement_de_phase)
 {
     PhaseCompilation nouvelle_phase = phase;
@@ -98,7 +98,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
                  * n'ont pas de RI, donc avançons jusqu'à GENERATION_CODE_TERMINEE. */
                 if (nombre_de_taches[size_t(GenreTache::GENERATION_RI)] == 0) {
                     /* Notifie pour le changement de phase précédent. */
-                    change_de_phase(messagere, nouvelle_phase);
+                    change_de_phase(messagère, nouvelle_phase);
                     nouvelle_phase = PhaseCompilation::GENERATION_CODE_TERMINEE;
                 }
             }
@@ -129,12 +129,12 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
     }
 
     if (nouvelle_phase != phase) {
-        change_de_phase(messagere, nouvelle_phase);
+        change_de_phase(messagère, nouvelle_phase);
     }
 }
 
 void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
-    GenreTache genre_tache, dls::outils::Synchrone<Messagère> &messagere)
+    GenreTache genre_tache, dls::outils::Synchrone<Messagère> &messagère)
 {
     PhaseCompilation nouvelle_phase = phase;
     switch (genre_tache) {
@@ -188,7 +188,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
 
     if (nouvelle_phase != phase) {
         id_phase += 1;
-        change_de_phase(messagere, nouvelle_phase);
+        change_de_phase(messagère, nouvelle_phase);
     }
 }
 
@@ -226,7 +226,7 @@ void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
     os << "nombre_taches_optimisation : " << NOMBRE_DE_TACHES(OPTIMISATION) << '\n';
 }
 
-Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &messagere,
+Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &messagère,
                                           PhaseCompilation nouvelle_phase)
 {
 #define IMPRIME_CHANGEMENT_DE_PHASE(nom_espace)                                                   \
@@ -244,7 +244,7 @@ Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &me
     }
 
     phase = nouvelle_phase;
-    return messagere->ajoute_message_phase_compilation(this);
+    return messagère->ajoute_message_phase_compilation(this);
 
 #undef IMPRIME_CHANGEMENT_DE_PHASE
 }

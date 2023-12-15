@@ -582,11 +582,11 @@ class tablet {
 template <typename T, size_t N, typename... Ts>
 auto crée_tablet(T arg, Ts &&...args)
 {
-    tablet<T, N> resultat;
-    resultat.reserve(1 + static_cast<int64_t>(sizeof...(Ts)));
-    resultat.ajoute(arg);
-    ((resultat.ajoute(args)), ...);
-    return resultat;
+    tablet<T, N> résultat;
+    résultat.reserve(1 + static_cast<int64_t>(sizeof...(Ts)));
+    résultat.ajoute(arg);
+    ((résultat.ajoute(args)), ...);
+    return résultat;
 }
 
 template <typename T, uint64_t N, typename TypeIndex>
