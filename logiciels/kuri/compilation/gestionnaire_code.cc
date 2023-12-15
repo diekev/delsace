@@ -39,10 +39,10 @@ compilation
 #    define TERMINE_STAT(stat)
 #endif
 
-#define TACHE_AJOUTEE(genre) espace->tache_ajoutee(GenreTache::genre, m_compilatrice->messagere)
+#define TACHE_AJOUTEE(genre) espace->tache_ajoutee(GenreTache::genre, m_compilatrice->messagère)
 #define TACHE_TERMINEE(genre, envoyer_changement_de_phase)                                        \
     espace->tache_terminee(                                                                       \
-        GenreTache::genre, m_compilatrice->messagere, envoyer_changement_de_phase)
+        GenreTache::genre, m_compilatrice->messagère, envoyer_changement_de_phase)
 
 /* ------------------------------------------------------------------------- */
 /** \name État chargement fichiers
@@ -1126,7 +1126,7 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 
     auto espace = unite->espace;
     TACHE_TERMINEE(CHARGEMENT, true);
-    m_compilatrice->messagere->ajoute_message_fichier_fermé(espace, unite->fichier->chemin());
+    m_compilatrice->messagère->ajoute_message_fichier_fermé(espace, unite->fichier->chemin());
 
     /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
     unite->mute_raison_d_être(RaisonDEtre::LEXAGE_FICHIER);
@@ -1370,7 +1370,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     }
 
     /* Envoi un message, nous attendrons dessus si nécessaire. */
-    const auto message = m_compilatrice->messagere->ajoute_message_typage_code(espace, noeud);
+    const auto message = m_compilatrice->messagère->ajoute_message_typage_code(espace, noeud);
     const auto doit_envoyer_en_ri = noeud_requiers_generation_ri(noeud);
     if (doit_envoyer_en_ri) {
         TACHE_AJOUTEE(GENERATION_RI);
@@ -1495,12 +1495,12 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
         TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
 
         if (programme_requiers_liaison_exécutable(espace->options)) {
-            espace->change_de_phase(m_compilatrice->messagere,
+            espace->change_de_phase(m_compilatrice->messagère,
                                     PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
             requiers_liaison_executable(espace, unite->programme);
         }
         else {
-            espace->change_de_phase(m_compilatrice->messagere,
+            espace->change_de_phase(m_compilatrice->messagère,
                                     PhaseCompilation::COMPILATION_TERMINEE);
         }
     }
@@ -1523,7 +1523,7 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
     }
     else {
         TACHE_TERMINEE(LIAISON_PROGRAMME, true);
-        espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+        espace->change_de_phase(m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINEE);
     }
 
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
@@ -1686,10 +1686,10 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
              * À FAIRE : même si un message est ajouté, purge_message provoque
              * une compilation infinie. */
             if (!espace->options.continue_si_erreur) {
-                m_compilatrice->messagere->purge_messages();
+                m_compilatrice->messagère->purge_messages();
             }
 
-            espace->change_de_phase(m_compilatrice->messagere,
+            espace->change_de_phase(m_compilatrice->messagère,
                                     PhaseCompilation::COMPILATION_TERMINEE);
 
             if (!espace->options.continue_si_erreur) {
@@ -1792,7 +1792,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
                                                                         Programme *programme)
 {
     if (espace->options.résultat == ResultatCompilation::RIEN) {
-        espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+        espace->change_de_phase(m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINEE);
         return;
     }
 
@@ -1854,7 +1854,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
 
     /* Tous les métaprogrammes furent exécutés, et la RI pour les fonctions
      * d'initialisation/finition sont générées : nous pouvons générer le code machine. */
-    auto message = espace->change_de_phase(m_compilatrice->messagere,
+    auto message = espace->change_de_phase(m_compilatrice->messagère,
                                            PhaseCompilation::AVANT_GENERATION_OBJET);
 
     /* Nous avions déjà créé une unité pour générer le code machine, mais un métaprogramme a sans
@@ -1887,7 +1887,7 @@ void GestionnaireCode::flush_metaprogrammes_en_attente_de_crée_contexte()
 
 void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
 {
-    m_compilatrice->messagere->termine_interception(espace);
+    m_compilatrice->messagère->termine_interception(espace);
 
     kuri::tableau<UniteCompilation *> nouvelles_unites;
 
@@ -1909,7 +1909,7 @@ void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *es
     programme->ajourne_pour_nouvelles_options_espace();
     /* À FAIRE : gère proprement tous les cas. */
     if (espace->options.résultat == ResultatCompilation::RIEN) {
-        espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+        espace->change_de_phase(m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINEE);
     }
 }
 

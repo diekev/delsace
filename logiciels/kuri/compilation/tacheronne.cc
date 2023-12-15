@@ -464,7 +464,7 @@ void Tacheronne::gere_tache()
             {
                 assert(dls::outils::possede_drapeau(drapeaux,
                                                     DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
-                compilatrice.messagere->envoie_message(tache.unite->message);
+                compilatrice.messagère->envoie_message(tache.unite->message);
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 break;
             }

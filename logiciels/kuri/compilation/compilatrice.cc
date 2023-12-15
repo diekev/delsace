@@ -73,7 +73,7 @@ int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
 /* ************************************************************************** */
 
 Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
-    : ordonnanceuse(this), messagere(this), gestionnaire_code(this),
+    : ordonnanceuse(this), messagère(this), gestionnaire_code(this),
       gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
       racine_kuri(chemin_racine_kuri), typeuse(graphe_dependance, this->operateurs),
       registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
@@ -154,7 +154,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 
     module->importé = true;
 
-    messagere->ajoute_message_module_ouvert(espace, module);
+    messagère->ajoute_message_module_ouvert(espace, module);
 
 #if 1
     auto fichiers = kuri::chemin_systeme::fichiers_du_dossier(chemin_absolu);
@@ -201,7 +201,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
         }
     }
 
-    messagere->ajoute_message_module_fermé(espace, module);
+    messagère->ajoute_message_module_fermé(espace, module);
 
     return module;
 }
@@ -266,7 +266,7 @@ int64_t Compilatrice::memoire_utilisee() const
         résultat += it->memoire_utilisee();
     }
 
-    résultat += messagere->mémoire_utilisée();
+    résultat += messagère->mémoire_utilisée();
 
     résultat += sys_module->mémoire_utilisée();
 
@@ -439,11 +439,11 @@ void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
 
 Message const *Compilatrice::attend_message()
 {
-    auto messagere_ = messagere.verrou_ecriture();
-    if (!messagere_->possède_message()) {
+    auto messagère_ = messagère.verrou_ecriture();
+    if (!messagère_->possède_message()) {
         return nullptr;
     }
-    return messagere_->defile();
+    return messagère_->defile();
 }
 
 EspaceDeTravail *Compilatrice::espace_defaut_compilation()

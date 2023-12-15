@@ -652,8 +652,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto espace_recu = dépile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
-        auto &messagere = compilatrice.messagere;
-        messagere->commence_interception(espace_recu);
+        auto &messagère = compilatrice.messagère;
+        messagère->commence_interception(espace_recu);
 
         espace_recu->metaprogramme = m_métaprogramme;
         static_cast<void>(espace_recu);

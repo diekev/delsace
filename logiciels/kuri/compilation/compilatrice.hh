@@ -84,7 +84,7 @@ struct Compilatrice {
 
     dls::outils::Synchrone<GeranteChaine> gerante_chaine{};
 
-    dls::outils::Synchrone<Messagère> messagere{};
+    dls::outils::Synchrone<Messagère> messagère{};
 
     dls::outils::Synchrone<GestionnaireCode> gestionnaire_code{};
 
