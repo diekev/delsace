@@ -13,15 +13,15 @@
 
 #include "outils_independants_des_lexemes.hh"
 
-struct FluxSortieKuri {
-  private:
+template <typename Tag>
+class FluxSortie {
     std::ostream &m_os;
 
     template <typename T>
-    friend FluxSortieKuri &operator<<(FluxSortieKuri &flux, const T &valeur);
+    friend FluxSortie &operator<<(FluxSortie &flux, const T &valeur);
 
   public:
-    explicit FluxSortieKuri(std::ostream &os) : m_os(os)
+    explicit FluxSortie(std::ostream &os) : m_os(os)
     {
     }
 
@@ -29,37 +29,27 @@ struct FluxSortieKuri {
     {
         return m_os;
     }
+};
+
+struct FluxSortieKuri : public FluxSortie<FluxSortieKuri> {
+    using FluxSortie::FluxSortie;
 };
 
 template <typename T>
 FluxSortieKuri &operator<<(FluxSortieKuri &flux, const T &valeur)
 {
-    flux.m_os << valeur;
+    static_cast<std::ostream &>(flux) << valeur;
     return flux;
 }
 
-struct FluxSortieCPP {
-  private:
-    std::ostream &m_os;
-
-    template <typename T>
-    friend FluxSortieCPP &operator<<(FluxSortieCPP &flux, const T &valeur);
-
-  public:
-    explicit FluxSortieCPP(std::ostream &os) : m_os(os)
-    {
-    }
-
-    operator std::ostream &()
-    {
-        return m_os;
-    }
+struct FluxSortieCPP : public FluxSortie<FluxSortieCPP> {
+    using FluxSortie::FluxSortie;
 };
 
 template <typename T>
 FluxSortieCPP &operator<<(FluxSortieCPP &flux, const T &valeur)
 {
-    flux.m_os << valeur;
+    static_cast<std::ostream &>(flux) << valeur;
     return flux;
 }
 
