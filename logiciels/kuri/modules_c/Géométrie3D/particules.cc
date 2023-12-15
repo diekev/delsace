@@ -50,14 +50,14 @@ struct Triangle {
         auto const v12 = (v1 + v2) * 0.5f;
         auto const v20 = (v2 + v0) * 0.5f;
 
-        std::array<Triangle, 4> resultat = {
+        std::array<Triangle, 4> résultat = {
             Triangle{v0, v01, v20, index_orig},
             Triangle{v01, v1, v12, index_orig},
             Triangle{v12, v2, v20, index_orig},
             Triangle{v20, v01, v12, index_orig},
         };
 
-        return resultat;
+        return résultat;
     }
 };
 
@@ -324,23 +324,23 @@ struct DonneesAiresTriangles {
 
 static DonneesAiresTriangles calcule_donnees_aires(dls::tableau<Triangle> const &triangles)
 {
-    DonneesAiresTriangles resultat;
-    resultat.aire_par_triangle.reserve(triangles.taille());
+    DonneesAiresTriangles résultat;
+    résultat.aire_par_triangle.reserve(triangles.taille());
 
     /* Calcule les informations sur les aires. */
     for (auto const &triangle : triangles) {
         auto aire = static_cast<float>(calcule_aire(triangle));
-        resultat.aire_minimum = std::min(resultat.aire_minimum, aire);
-        resultat.aire_maximum = std::max(resultat.aire_maximum, aire);
-        resultat.aire_totale += aire;
-        resultat.aire_par_triangle.ajoute(aire);
+        résultat.aire_minimum = std::min(résultat.aire_minimum, aire);
+        résultat.aire_maximum = std::max(résultat.aire_maximum, aire);
+        résultat.aire_totale += aire;
+        résultat.aire_par_triangle.ajoute(aire);
 
-        extrait_min_max(triangle.v0, resultat.limites_min, resultat.limites_max);
-        extrait_min_max(triangle.v1, resultat.limites_min, resultat.limites_max);
-        extrait_min_max(triangle.v2, resultat.limites_min, resultat.limites_max);
+        extrait_min_max(triangle.v0, résultat.limites_min, résultat.limites_max);
+        extrait_min_max(triangle.v1, résultat.limites_min, résultat.limites_max);
+        extrait_min_max(triangle.v2, résultat.limites_min, résultat.limites_max);
     }
 
-    return resultat;
+    return résultat;
 }
 
 struct PointCree {
@@ -357,7 +357,7 @@ struct CouverturePonctuelle {
 static CouverturePonctuelle determine_couverture_ponctuelle(
     ParametreDistributionParticules const &params, float const aire_totale)
 {
-    CouverturePonctuelle resultat;
+    CouverturePonctuelle résultat;
 
     switch (params.determination_quantite_points) {
         case DET_QT_PNT_PAR_DISTANCE:
@@ -366,21 +366,21 @@ static CouverturePonctuelle determine_couverture_ponctuelle(
             auto const aire_cercle = constantes<float>::PI * (distance * distance);
             auto const nombre_points = static_cast<int64_t>((aire_totale * DENSITE_CERCLE) /
                                                             aire_cercle);
-            resultat.distance_minimale = distance;
-            resultat.nombre_requis = nombre_points;
+            résultat.distance_minimale = distance;
+            résultat.nombre_requis = nombre_points;
             break;
         }
         case DET_QT_PNT_PAR_NOMBRE_ABSOLU:
         {
             auto const nombre_points = params.nombre_absolu;
-            resultat.distance_minimale = sqrt(((aire_totale * DENSITE_CERCLE) / (nombre_points)) /
+            résultat.distance_minimale = sqrt(((aire_totale * DENSITE_CERCLE) / (nombre_points)) /
                                               constantes<float>::PI);
-            resultat.nombre_requis = nombre_points;
+            résultat.nombre_requis = nombre_points;
             break;
         }
     }
 
-    return resultat;
+    return résultat;
 }
 
 class RayonnementUniforme {
@@ -424,8 +424,8 @@ static dls::tableau<PointCree> distribue_particules_sur_surface(
 {
     auto debut = compte_tick_ms();
 
-    auto resultat = dls::tableau<PointCree>();
-    resultat.reserve(couverture.nombre_requis);
+    auto résultat = dls::tableau<PointCree>();
+    résultat.reserve(couverture.nombre_requis);
 
     /* Tant qu'il reste des triangles à remplir, ou des points à distribuer. */
     auto points_restants = couverture.nombre_requis;
@@ -449,7 +449,7 @@ static dls::tableau<PointCree> distribue_particules_sur_surface(
         if (ok) {
             grille_particule.ajoute(point);
             /* Le rayon est la moitié de la distance entre les points. */
-            resultat.ajoute({point, triangle->index_orig, distance * 0.5f});
+            résultat.ajoute({point, triangle->index_orig, distance * 0.5f});
             debut = compte_tick_ms();
             points_restants--;
         }
@@ -485,7 +485,7 @@ static dls::tableau<PointCree> distribue_particules_sur_surface(
         }
     }
 
-    return resultat;
+    return résultat;
 }
 
 void distribue_particules_sur_surface(ParametreDistributionParticules const &params,
@@ -544,10 +544,10 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
                                              dls::math::point3d(donnees_aires.limites_max),
                                              distance);
 
-    dls::tableau<PointCree> resultat;
+    dls::tableau<PointCree> résultat;
 
     if (params.type_rayonnement == TypeRayonnementPoint::RAYONNEMENT_UNIFORME) {
-        resultat = distribue_particules_sur_surface(
+        résultat = distribue_particules_sur_surface(
             gestionnaire_fragments,
             grille_particule,
             couverture,
@@ -556,7 +556,7 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
             RayonnementUniforme(couverture.distance_minimale));
     }
     else {
-        resultat = distribue_particules_sur_surface(
+        résultat = distribue_particules_sur_surface(
             gestionnaire_fragments,
             grille_particule,
             couverture,
@@ -566,7 +566,7 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
     }
 
     // À FAIRE : transfère les attributs.
-    for (auto const &point : resultat) {
+    for (auto const &point : résultat) {
         points_resultants.ajouteUnPoint(point.position);
     }
 
@@ -576,7 +576,7 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
         AttributReel attr_rayon = points_resultants.ajouteAttributPoint<R32>(nom_attr_rayon);
 
         if (attr_rayon) {
-            for (auto const &point : resultat) {
+            for (auto const &point : résultat) {
                 attr_rayon.ecris_reel(index_point++, point.rayon);
             }
         }
@@ -836,15 +836,15 @@ static dls::tableau<int> trouve_points_voisins(arbre_3df const &points,
                                                const int index_point,
                                                const float radius)
 {
-    dls::tableau<int> resultat;
+    dls::tableau<int> résultat;
     points.cherche_points(
         point, radius, [&](int64_t index, dls::math::vec3f const &, float, float &) {
             if (index == index_point) {
                 return;
             }
-            resultat.ajoute(index);
+            résultat.ajoute(index);
         });
-    return resultat;
+    return résultat;
 }
 
 static bool tous_les_autres_points_sont_exclus(Maillage const &points,
@@ -868,7 +868,7 @@ static bool tous_les_autres_points_sont_exclus(Maillage const &points,
 }
 
 static void construit_triangle(Maillage const &points,
-                               Maillage &maillage_resultat,
+                               Maillage &maillage_résultat,
                                int i,
                                float const radius,
                                dls::tableau<int> const &N1,
@@ -891,7 +891,7 @@ static void construit_triangle(Maillage const &points,
             }
 
             int poly[3] = {i, N1[j], N1[k]};
-            maillage_resultat.ajouteUnPolygone(poly, 3);
+            maillage_résultat.ajouteUnPolygone(poly, 3);
             /* Ne retournons de suite, il peut y avoir d'autres triangles. */
         }
     }
@@ -899,10 +899,10 @@ static void construit_triangle(Maillage const &points,
 
 void construit_maillage_alpha(Maillage const &points,
                               const float rayon,
-                              Maillage &maillage_resultat)
+                              Maillage &maillage_résultat)
 {
     for (auto i = 0; i < points.nombreDePoints(); ++i) {
-        maillage_resultat.ajouteUnPoint(points.pointPourIndex(i));
+        maillage_résultat.ajouteUnPoint(points.pointPourIndex(i));
     }
 
     auto arbre = arbre_3df();
@@ -913,7 +913,7 @@ void construit_maillage_alpha(Maillage const &points,
     for (auto i = 0; i < points.nombreDePoints(); ++i) {
         auto point = points.pointPourIndex(i);
         auto N1 = trouve_points_voisins(arbre, point, i, 2.0f * rayon);
-        construit_triangle(points, maillage_resultat, i, rayon, N1, point);
+        construit_triangle(points, maillage_résultat, i, rayon, N1, point);
     }
 }
 
