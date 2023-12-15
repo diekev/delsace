@@ -70,21 +70,21 @@ enum class CodeRetourValidation : int {
 
 using ResultatValidation = std::variant<CodeRetourValidation, Attente>;
 
-inline bool est_attente(ResultatValidation const &resultat)
+inline bool est_attente(ResultatValidation const &résultat)
 {
-    return std::holds_alternative<Attente>(resultat);
+    return std::holds_alternative<Attente>(résultat);
 }
 
-inline bool est_erreur(ResultatValidation const &resultat)
+inline bool est_erreur(ResultatValidation const &résultat)
 {
-    return std::holds_alternative<CodeRetourValidation>(resultat) &&
-           std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::Erreur;
+    return std::holds_alternative<CodeRetourValidation>(résultat) &&
+           std::get<CodeRetourValidation>(résultat) == CodeRetourValidation::Erreur;
 }
 
-inline bool est_ok(ResultatValidation const &resultat)
+inline bool est_ok(ResultatValidation const &résultat)
 {
-    return std::holds_alternative<CodeRetourValidation>(resultat) &&
-           std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::OK;
+    return std::holds_alternative<CodeRetourValidation>(résultat) &&
+           std::get<CodeRetourValidation>(résultat) == CodeRetourValidation::OK;
 }
 
 /* Structure utilisée pour récupérer la mémoire entre plusieurs validations de déclaration,

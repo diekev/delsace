@@ -303,21 +303,21 @@ kuri::chaine_statique Bibliotheque::nom_pour_liaison(const OptionsDeCompilation 
 
 static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
 {
-    kuri::tablet<kuri::chemin_systeme, 16> resultat;
+    kuri::tablet<kuri::chemin_systeme, 16> résultat;
 
     /* Pour les tables r16. */
-    resultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
+    résultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
 
     if (architecture == ArchitectureCible::X64) {
-        resultat.ajoute("/lib/x86_64-linux-gnu/");
-        resultat.ajoute("/usr/lib/x86_64-linux-gnu/");
+        résultat.ajoute("/lib/x86_64-linux-gnu/");
+        résultat.ajoute("/usr/lib/x86_64-linux-gnu/");
     }
     else {
-        resultat.ajoute("/lib/i386-linux-gnu/");
-        resultat.ajoute("/usr/lib/i386-linux-gnu/");
+        résultat.ajoute("/lib/i386-linux-gnu/");
+        résultat.ajoute("/usr/lib/i386-linux-gnu/");
     }
 
-    return resultat;
+    return résultat;
 }
 
 static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_x86_64{};
@@ -664,17 +664,17 @@ static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
     kuri::tablet<kuri::chaine_statique, 4> const &dossiers,
     kuri::chaine const noms[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE])
 {
-    auto resultat = ResultatRechercheBibliotheque();
+    auto résultat = ResultatRechercheBibliotheque();
 
     bool chemin_trouve[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
 
     POUR (dossiers) {
 
-        resultat.chemin_de_base = "";
+        résultat.chemin_de_base = "";
         for (int i = 0; i < NUM_TYPES_BIBLIOTHEQUE; i++) {
             for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; j++) {
                 chemin_trouve[i][j] = false;
-                resultat.chemins[i][j] = "";
+                résultat.chemins[i][j] = "";
             }
         }
 
@@ -690,24 +690,24 @@ static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
                 }
 
                 chemin_trouve[i][j] = true;
-                resultat.chemins[i][j] = chemin_test;
+                résultat.chemins[i][j] = chemin_test;
             }
         }
         /* Les bibliothèques doivent être dans le même dossier. */
         if (chemin_trouve[STATIQUE][POUR_PRODUCTION] ||
             chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
-            resultat.chemin_de_base = it;
+            résultat.chemin_de_base = it;
             break;
         }
     }
 
     if (chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
-        resultat.chemins[DYNAMIQUE][POUR_PRODUCTION] = resoud_chemin_dynamique_si_script_ld(
-            espace, site, resultat.chemins[DYNAMIQUE][POUR_PRODUCTION]);
+        résultat.chemins[DYNAMIQUE][POUR_PRODUCTION] = resoud_chemin_dynamique_si_script_ld(
+            espace, site, résultat.chemins[DYNAMIQUE][POUR_PRODUCTION]);
     }
 
     if (chemin_trouve[STATIQUE][POUR_PRODUCTION] || chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
-        return resultat;
+        return résultat;
     }
 
     return {};
@@ -756,17 +756,17 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_plateforme(
     return dossiers_recherche_64_bits(compilatrice, site);
 }
 
-static void copie_chemins(ResultatRechercheBibliotheque const &resultat,
+static void copie_chemins(ResultatRechercheBibliotheque const &résultat,
                           Bibliotheque *bibliotheque,
                           int plateforme)
 {
     for (int i = 0; i < NUM_TYPES_BIBLIOTHEQUE; i++) {
         for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; j++) {
-            bibliotheque->chemins[plateforme][i][j] = resultat.chemins[i][j];
+            bibliotheque->chemins[plateforme][i][j] = résultat.chemins[i][j];
         }
     }
 
-    bibliotheque->chemins_de_base[plateforme] = resultat.chemin_de_base;
+    bibliotheque->chemins_de_base[plateforme] = résultat.chemin_de_base;
 }
 
 static void rapporte_erreur_bibliotheque_introuvable(
@@ -823,10 +823,10 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
 
     POUR (plateformes) {
         auto dossiers = dossiers_recherche_plateforme(compilatrice, site, it);
-        auto resultat = recherche_bibliotheque(espace, site, dossiers, noms);
+        auto résultat = recherche_bibliotheque(espace, site, dossiers, noms);
 
-        if (resultat.has_value()) {
-            copie_chemins(resultat.value(), bibliotheque, it);
+        if (résultat.has_value()) {
+            copie_chemins(résultat.value(), bibliotheque, it);
             continue;
         }
 
@@ -849,5 +849,5 @@ int64_t GestionnaireBibliotheques::memoire_utilisee() const
 
 void GestionnaireBibliotheques::rassemble_statistiques(Statistiques &stats) const
 {
-    stats.memoire_bibliotheques += memoire_utilisee();
+    stats.mémoire_bibliothèques += memoire_utilisee();
 }

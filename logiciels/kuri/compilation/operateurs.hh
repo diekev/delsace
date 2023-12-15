@@ -207,22 +207,22 @@ struct RegistreDesOpérateurs {
 
     OpérateurBinaire *ajoute_basique(GenreLexeme id,
                                      Type *type,
-                                     Type *type_resultat,
+                                     Type *type_résultat,
                                      IndiceTypeOp indice_type);
     OpérateurBinaire *ajoute_basique(
-        GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type);
+        GenreLexeme id, Type *type1, Type *type2, Type *type_résultat, IndiceTypeOp indice_type);
 
-    OpérateurUnaire *ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
+    OpérateurUnaire *ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_résultat);
 
     void ajoute_perso(GenreLexeme id,
                       Type *type1,
                       Type *type2,
-                      Type *type_resultat,
+                      Type *type_résultat,
                       NoeudDeclarationEnteteFonction *decl);
 
     void ajoute_perso_unaire(GenreLexeme id,
                              Type *type,
-                             Type *type_resultat,
+                             Type *type_résultat,
                              NoeudDeclarationEnteteFonction *decl);
 
     void ajoute_opérateur_basique_enum(TypeEnum *type);

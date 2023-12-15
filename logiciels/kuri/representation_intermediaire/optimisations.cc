@@ -46,6 +46,8 @@
  - a <= b && b <= c -> (b - a) >= (c - a)
  */
 
+static bool log_actif = false;
+
 enum {
     PROPRE = 0,
 
@@ -92,8 +94,8 @@ struct CopieuseInstruction {
 
     kuri::tableau<Instruction *, int> copie_instructions(AtomeFonction *atome_fonction)
     {
-        kuri::tableau<Instruction *, int> resultat;
-        resultat.reserve(atome_fonction->instructions.taille());
+        kuri::tableau<Instruction *, int> résultat;
+        résultat.reserve(atome_fonction->instructions.taille());
 
         POUR (atome_fonction->instructions) {
             // s'il existe une substition pour cette instruction, ignore-là
@@ -101,10 +103,10 @@ struct CopieuseInstruction {
                 continue;
             }
 
-            resultat.ajoute(static_cast<Instruction *>(copie_atome(it)));
+            résultat.ajoute(static_cast<Instruction *>(copie_atome(it)));
         }
 
-        return resultat;
+        return résultat;
     }
 
     Atome *copie_atome(Atome *atome)
@@ -883,5 +885,5 @@ void optimise_code(EspaceDeTravail &espace,
 
     transfère_instructions_blocs_à_fonction(fonction_et_blocs.blocs, atome_fonc);
 
-    desactive_log();
+    // desactive_log();
 }

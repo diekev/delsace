@@ -230,7 +230,7 @@ struct MachineVirtuelle {
                                 InstructionAppel *inst_appel,
                                 RésultatInterprétation &résultat);
     void appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
-                                     RésultatInterprétation &resultat);
+                                     RésultatInterprétation &résultat);
     void appel_fonction_intrinsèque(AtomeFonction *ptr_fonction);
 
     void empile_fonction_non_interne(AtomeFonction *ptr_fonction);

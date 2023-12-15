@@ -804,7 +804,7 @@ struct ParseuseTypedef {
 
     std::optional<TypedefTypeFonction> parse_typedef_fonction(const CXToken *d, const CXToken *f)
     {
-        auto resultat = TypedefTypeFonction{};
+        auto résultat = TypedefTypeFonction{};
 
         // d'abord le type de retour
         while (d != f) {
@@ -813,12 +813,12 @@ struct ParseuseTypedef {
                 break;
             }
 
-            resultat.type_retour.ajoute(converti_chaine(clang_getTokenSpelling(m_trans_unit, *d)));
+            résultat.type_retour.ajoute(converti_chaine(clang_getTokenSpelling(m_trans_unit, *d)));
             d++;
         }
 
         /* Retourne si à la fin, ou si le type retour est vide. */
-        if (d == f || resultat.type_retour.est_vide()) {
+        if (d == f || résultat.type_retour.est_vide()) {
             return {};
         }
 
@@ -831,9 +831,9 @@ struct ParseuseTypedef {
             return {};
         }
 
-        resultat.nom_typedef = converti_chaine(clang_getTokenSpelling(m_trans_unit, *d++));
+        résultat.nom_typedef = converti_chaine(clang_getTokenSpelling(m_trans_unit, *d++));
 
-        if (resultat.nom_typedef == "") {
+        if (résultat.nom_typedef == "") {
             return {};
         }
 
@@ -851,7 +851,7 @@ struct ParseuseTypedef {
         while (d != f) {
             if (apparie(*d, ")")) {
                 if (!type_courant.est_vide()) {
-                    resultat.type_parametres.ajoute(type_courant);
+                    résultat.type_parametres.ajoute(type_courant);
                 }
                 break;
             }
@@ -861,7 +861,7 @@ struct ParseuseTypedef {
                     return {};
                 }
 
-                resultat.type_parametres.ajoute(type_courant);
+                résultat.type_parametres.ajoute(type_courant);
                 type_courant = TypeDonneesType{};
                 d++;
                 continue;
@@ -871,7 +871,7 @@ struct ParseuseTypedef {
             d++;
         }
 
-        return resultat;
+        return résultat;
     }
 
     bool apparie(CXToken token, const char *chaine)
