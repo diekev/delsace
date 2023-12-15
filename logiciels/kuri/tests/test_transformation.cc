@@ -13,11 +13,11 @@ static bool verifie_transformation(Compilatrice &compilatrice,
 {
     auto tacheronne = Tacheronne(compilatrice);
 
-    auto resultat = cherche_transformation(type1, type2);
+    auto résultat = cherche_transformation(type1, type2);
 
     auto transformation = TransformationType();
-    if (std::holds_alternative<TransformationType>(resultat)) {
-        transformation = std::get<TransformationType>(resultat);
+    if (std::holds_alternative<TransformationType>(résultat)) {
+        transformation = std::get<TransformationType>(résultat);
     }
     // ignore si nous avons une Attente dans le résultat
 

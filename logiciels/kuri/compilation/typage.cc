@@ -593,43 +593,43 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
     VERROUILLE(types_pointeurs);
 
     if (type->type_pointeur) {
-        auto resultat = type->type_pointeur;
+        auto résultat = type->type_pointeur;
         /* À FAIRE : meilleure structure pour stocker les opérateurs de bases.
          * L'optimisation de l'ajout d'opérateur peut nous faire échouer la compilation si le type
          * fut d'abord créé dans la RI, mais que nous avons besoin des opérateurs pour la
          * validation sémantique plus tard. */
-        if (!resultat->possède_drapeau(DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE)) {
+        if (!résultat->possède_drapeau(DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE)) {
             if (ajoute_operateurs) {
-                operateurs_->ajoute_opérateurs_basiques_pointeur(resultat);
+                operateurs_->ajoute_opérateurs_basiques_pointeur(résultat);
             }
-            resultat->drapeaux_type |= DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE;
+            résultat->drapeaux_type |= DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE;
         }
 
         return type->type_pointeur;
     }
 
-    auto resultat = alloc->m_noeuds_type_pointeur.ajoute_element();
-    initialise_type_pointeur(resultat, type);
+    auto résultat = alloc->m_noeuds_type_pointeur.ajoute_element();
+    initialise_type_pointeur(résultat, type);
 
     if (insere_dans_graphe) {
-        types_à_insérer_dans_graphe.ajoute_aux_données_globales({resultat, type});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({résultat, type});
     }
 
     if (ajoute_operateurs) {
-        operateurs_->ajoute_opérateurs_basiques_pointeur(resultat);
-        resultat->drapeaux_type |= DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE;
+        operateurs_->ajoute_opérateurs_basiques_pointeur(résultat);
+        résultat->drapeaux_type |= DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE;
     }
 
-    type->type_pointeur = resultat;
+    type->type_pointeur = résultat;
 
     /* Tous les pointeurs sont des adresses, il est donc inutile de créer des fonctions spécifiques
      * pour chacun d'entre eux.
      * Lors de la création de la typeuse, les fonction sauvegardées sont nulles. */
     if (init_type_pointeur) {
-        assigne_fonction_init(resultat, init_type_pointeur);
+        assigne_fonction_init(résultat, init_type_pointeur);
     }
 
-    return resultat;
+    return résultat;
 }
 
 TypeReference *Typeuse::type_reference_pour(Type *type)
@@ -644,12 +644,12 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
         }
     }
 
-    auto resultat = alloc->m_noeuds_type_reference.ajoute_element();
-    initialise_type_référence(resultat, type);
+    auto résultat = alloc->m_noeuds_type_reference.ajoute_element();
+    initialise_type_référence(résultat, type);
 
-    types_à_insérer_dans_graphe.ajoute_aux_données_globales({resultat, type});
+    types_à_insérer_dans_graphe.ajoute_aux_données_globales({résultat, type});
 
-    return resultat;
+    return résultat;
 }
 
 TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool insere_dans_graphe)
@@ -819,10 +819,10 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
         return table_types_de_donnees.valeur_ou(type_connu, nullptr);
     }
 
-    auto resultat = alloc->m_noeuds_type_type_de_donnees.ajoute_element();
-    initialise_type_type_de_données(resultat, type_connu);
-    table_types_de_donnees.insère(type_connu, resultat);
-    return resultat;
+    auto résultat = alloc->m_noeuds_type_type_de_donnees.ajoute_element();
+    initialise_type_type_de_données(résultat, type_connu);
+    table_types_de_donnees.insère(type_connu, résultat);
+    return résultat;
 }
 
 TypeStructure *Typeuse::reserve_type_structure()

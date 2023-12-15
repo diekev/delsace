@@ -24,7 +24,7 @@
 struct Test {
     const char *cas = "";
     const char *source = "";
-    erreur::Genre resultat_attendu = erreur::Genre::AUCUNE_ERREUR;
+    erreur::Genre résultat_attendu = erreur::Genre::AUCUNE_ERREUR;
 };
 
 static Test tests_unitaires[] = {
@@ -117,8 +117,8 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
 
     /* Ne nomme pas le module, car c'est le module racine. */
     auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, "");
-    auto resultat = compilatrice.trouve_ou_crée_fichier(module, "", "", false);
-    auto fichier = resultat.resultat<FichierNeuf>().fichier;
+    auto résultat = compilatrice.trouve_ou_crée_fichier(module, "", "", false);
+    auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
     fichier->charge_tampon(std::move(tampon));
 
     compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
@@ -132,7 +132,7 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
 
 static auto decoupe_tampon(lng::tampon_source const &tampon)
 {
-    kuri::tableau<lng::tampon_source> resultat;
+    kuri::tableau<lng::tampon_source> résultat;
 
     auto debut_cas = 0ul;
     auto fin_cas = 1ul;
@@ -149,7 +149,7 @@ static auto decoupe_tampon(lng::tampon_source const &tampon)
 
             if (debut_cas < fin_cas) {
                 auto sous_tampon = tampon.sous_tampon(debut_cas, fin_cas);
-                resultat.ajoute(sous_tampon);
+                résultat.ajoute(sous_tampon);
             }
         }
     }
@@ -158,10 +158,10 @@ static auto decoupe_tampon(lng::tampon_source const &tampon)
 
     if (debut_cas < fin_cas) {
         auto sous_tampon = tampon.sous_tampon(debut_cas, fin_cas);
-        resultat.ajoute(sous_tampon);
+        résultat.ajoute(sous_tampon);
     }
 
-    return resultat;
+    return résultat;
 }
 
 enum {
@@ -196,7 +196,7 @@ int main()
     auto test_passes = 0;
     auto test_echoues = 0;
 
-    auto resultats_tests = kuri::tableau<ResultatTest>();
+    auto résultats_tests = kuri::tableau<ResultatTest>();
 
     POUR (tests_unitaires) {
         auto chemin = kuri::chemin_systeme("fichiers_tests/") / it.source;
@@ -236,7 +236,7 @@ int main()
                             rt.fichier_origine = it.source;
                             rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
 
-                            resultats_tests.ajoute(rt);
+                            résultats_tests.ajoute(rt);
 
                             test_echoues += 1;
                             break;
@@ -248,25 +248,25 @@ int main()
                                 rt.fichier_origine = it.source;
                                 rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
 
-                                resultats_tests.ajoute(rt);
+                                résultats_tests.ajoute(rt);
 
                                 test_echoues += 1;
                             }
                             else {
-                                if (WEXITSTATUS(status) == static_cast<int>(it.resultat_attendu)) {
+                                if (WEXITSTATUS(status) == static_cast<int>(it.résultat_attendu)) {
                                     test_passes += 1;
                                 }
                                 else {
                                     auto rt = ResultatTest();
                                     rt.erreur_recue = static_cast<erreur::Genre>(
                                         WEXITSTATUS(status));
-                                    rt.erreur_attendue = it.resultat_attendu;
+                                    rt.erreur_attendue = it.résultat_attendu;
                                     rt.raison_echec = ECHEC_CAR_MAUVAIS_CODE_ERREUR;
                                     rt.fichier_origine = it.source;
                                     rt.chemin_fichier = ecris_fichier_tmp(c.chaine(),
                                                                           test_echoues);
 
-                                    resultats_tests.ajoute(rt);
+                                    résultats_tests.ajoute(rt);
 
                                     test_echoues += 1;
                                 }
@@ -285,7 +285,7 @@ int main()
                             rt.fichier_origine = it.source;
                             rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
 
-                            resultats_tests.ajoute(rt);
+                            résultats_tests.ajoute(rt);
 
                             test_echoues += 1;
                             break;
@@ -303,7 +303,7 @@ int main()
 
     std::cout << '\n';
 
-    POUR (resultats_tests) {
+    POUR (résultats_tests) {
         std::cout << "----------------------------------------\n";
 
         switch (it.raison_echec) {

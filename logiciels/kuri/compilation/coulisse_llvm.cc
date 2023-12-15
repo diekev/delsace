@@ -107,7 +107,7 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(AtomeFonction cons
 
 /* ************************************************************************** */
 
-static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Value &llvm_value)
+static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Value &llvm_value)
 {
     std::string str;
     llvm::raw_string_ostream ss(str);
@@ -115,7 +115,7 @@ static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Value &
     return log_debug << str;
 }
 
-static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Constant &llvm_value)
+static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Constant &llvm_value)
 {
     std::string str;
     llvm::raw_string_ostream ss(str);
@@ -123,7 +123,7 @@ static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Constan
     return log_debug << str;
 }
 
-static const LogDebug &operator<<(const LogDebug &log_debug,
+static const Logueuse &operator<<(const Logueuse &log_debug,
                                   const llvm::GlobalVariable &llvm_value)
 {
     std::string str;
@@ -132,7 +132,7 @@ static const LogDebug &operator<<(const LogDebug &log_debug,
     return log_debug << str;
 }
 
-static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Type &llvm_value)
+static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Type &llvm_value)
 {
     std::string str;
     llvm::raw_string_ostream ss(str);
@@ -700,7 +700,7 @@ llvm::StructType *GénératriceCodeLLVM::convertis_type_composé(TypeCompose con
 
 llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome, bool pour_globale)
 {
-    // auto incrémentation_temp = LogDebug::IncrémenteuseTemporaire();
+    // auto incrémentation_temp = Logueuse::IncrémenteuseTemporaire();
     // dbg() << __func__ << ", atome: " << static_cast<int>(atome->genre_atome);
 
     switch (atome->genre_atome) {
@@ -829,10 +829,10 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
             }
 
             auto type_llvm = convertis_type_llvm(atome->type);
-            auto resultat = llvm::ConstantArray::get(llvm::cast<llvm::ArrayType>(type_llvm),
+            auto résultat = llvm::ConstantArray::get(llvm::cast<llvm::ArrayType>(type_llvm),
                                                      valeurs);
-            // dbg() << "TABLEAU_FIXE : " << *resultat;
-            return resultat;
+            // dbg() << "TABLEAU_FIXE : " << *résultat;
+            return résultat;
         }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
@@ -879,7 +879,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
 
 void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst)
 {
-    // auto incrémentation_temp = LogDebug::IncrémenteuseTemporaire();
+    // auto incrémentation_temp = Logueuse::IncrémenteuseTemporaire();
     // dbg() << __func__;
 
     switch (inst->genre) {
@@ -1336,7 +1336,7 @@ void GénératriceCodeLLVM::génère_code()
     }
 
     POUR (données_module.globales) {
-        // LogDebug::réinitialise_indentation();
+        // Logueuse::réinitialise_indentation();
         // dbg() << "Génère code pour globale (" << it << ") " << it->ident << ' '
         //       << chaine_type(it->type);
         auto valeur_globale = it;
@@ -1646,7 +1646,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_fichier_objet_impl(
 
 static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation const &options)
 {
-    if (options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+    if (options.résultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         return "fichiers/point_d_entree_dynamique.c";
     }
 

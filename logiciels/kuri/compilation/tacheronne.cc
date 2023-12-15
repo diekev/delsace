@@ -115,11 +115,11 @@ void OrdonnanceuseTache::crée_tache_pour_unite(UniteCompilation *unite)
 
 int64_t OrdonnanceuseTache::nombre_de_taches_en_attente() const
 {
-    auto resultat = int64_t(0);
+    auto résultat = int64_t(0);
     POUR (taches) {
-        resultat += it.taille();
+        résultat += it.taille();
     }
-    return resultat;
+    return résultat;
 }
 
 Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux)
@@ -470,12 +470,12 @@ void Tacheronne::gere_tache()
             {
                 assert(dls::outils::possede_drapeau(drapeaux,
                                                     DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
-                auto messagere = compilatrice.messagere.verrou_ecriture();
-                if (!messagere->est_interception_commencée()) {
+                auto messagère = compilatrice.messagère.verrou_ecriture();
+                if (!messagère->est_interception_commencée()) {
                     compilatrice.gestionnaire_code->message_recu(tache.unite->message);
                 }
                 else {
-                    messagere->envoie_message(tache.unite->message);
+                    messagère->envoie_message(tache.unite->message);
                 }
 
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
@@ -508,14 +508,14 @@ void Tacheronne::gere_tache()
 void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 {
     auto sémanticienne = compilatrice.donne_sémanticienne_disponible(*this);
-    auto resultat = sémanticienne->valide(unite);
-    if (est_erreur(resultat)) {
+    auto résultat = sémanticienne->valide(unite);
+    if (est_erreur(résultat)) {
         assert(unite->espace->possède_erreur);
         compilatrice.dépose_sémanticienne(sémanticienne);
         return;
     }
-    if (est_attente(resultat)) {
-        compilatrice.gestionnaire_code->mets_en_attente(unite, std::get<Attente>(resultat));
+    if (est_attente(résultat)) {
+        compilatrice.gestionnaire_code->mets_en_attente(unite, std::get<Attente>(résultat));
         compilatrice.dépose_sémanticienne(sémanticienne);
         return;
     }
@@ -637,7 +637,7 @@ void Tacheronne::execute_metaprogrammes()
         auto espace = it->unite->espace;
 
         // À FAIRE : précision des messages d'erreurs
-        if (it->resultat == MetaProgramme::RésultatExécution::ERREUR) {
+        if (it->résultat == MetaProgramme::RésultatExécution::ERREUR) {
             if (!espace->possède_erreur) {
                 /* Ne rapporte qu'une seule erreur. */
                 espace->rapporte_erreur(it->directive,
@@ -646,9 +646,9 @@ void Tacheronne::execute_metaprogrammes()
         }
         else if (!it->a_rapporté_une_erreur) {
             if (it->directive && it->directive->ident == ID::assert_) {
-                auto resultat = *reinterpret_cast<bool *>(it->données_exécution->pointeur_pile);
+                auto résultat = *reinterpret_cast<bool *>(it->données_exécution->pointeur_pile);
 
-                if (!resultat) {
+                if (!résultat) {
                     espace->rapporte_erreur(it->directive, "Échec de l'assertion");
                 }
             }
@@ -658,27 +658,27 @@ void Tacheronne::execute_metaprogrammes()
 
                 // Les directives pour des expressions dans des fonctions n'ont pas d'unités
                 if (!it->directive->unité) {
-                    auto resultat = noeud_syntaxique_depuis_resultat(
+                    auto résultat = noeud_syntaxique_depuis_résultat(
                         espace,
                         it->directive,
                         it->directive->lexeme,
                         type,
                         pointeur,
                         it->données_exécution->détectrice_fuite_de_mémoire);
-                    resultat->drapeaux |= DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE;
-                    it->directive->substitution = resultat;
+                    résultat->drapeaux |= DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE;
+                    it->directive->substitution = résultat;
                 }
             }
             else if (it->corps_texte) {
-                auto resultat = *reinterpret_cast<kuri::chaine_statique *>(
+                auto résultat = *reinterpret_cast<kuri::chaine_statique *>(
                     it->données_exécution->pointeur_pile);
 
-                if (resultat.taille() == 0) {
+                if (résultat.taille() == 0) {
                     espace->rapporte_erreur(it->corps_texte,
                                             "Le corps-texte a retourné une chaine vide");
                 }
 
-                auto tampon = dls::chaine(resultat.pointeur(), resultat.taille());
+                auto tampon = dls::chaine(résultat.pointeur(), résultat.taille());
 
                 if (*tampon.fin() != '\n') {
                     tampon.ajoute('\n');
@@ -691,15 +691,15 @@ void Tacheronne::execute_metaprogrammes()
                 fichier->charge_tampon(lng::tampon_source(tampon.c_str()));
 
                 fichier->décalage_fichier = compilatrice.chaines_ajoutées_à_la_compilation->ajoute(
-                    resultat);
+                    résultat);
                 compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
 
                 /* La mémoire dû être allouée par notre_alloc, donc nous devrions pouvoir appeler
                  * free. */
                 it->données_exécution->détectrice_fuite_de_mémoire.supprime_bloc(
-                    const_cast<char *>(resultat.pointeur()));
+                    const_cast<char *>(résultat.pointeur()));
 
-                free(const_cast<char *>(resultat.pointeur()));
+                free(const_cast<char *>(résultat.pointeur()));
             }
 
             imprime_fuites_de_mémoire(it);
@@ -717,7 +717,7 @@ void Tacheronne::execute_metaprogrammes()
     }
 }
 
-NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
+NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
     EspaceDeTravail *espace,
     NoeudDirectiveExecute *directive,
     Lexeme const *lexeme,
@@ -751,7 +751,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             POUR (tuple->membres) {
                 auto pointeur_membre = pointeur + it.decalage;
                 virgule->expressions.ajoute(
-                    noeud_syntaxique_depuis_resultat(espace,
+                    noeud_syntaxique_depuis_résultat(espace,
                                                      directive,
                                                      lexeme,
                                                      it.type,
@@ -834,7 +834,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
             POUR (type_structure->donne_membres_pour_code_machine()) {
                 auto pointeur_membre = pointeur + it.decalage;
-                auto noeud_membre = noeud_syntaxique_depuis_resultat(espace,
+                auto noeud_membre = noeud_syntaxique_depuis_résultat(espace,
                                                                      directive,
                                                                      lexeme,
                                                                      it.type,
@@ -851,7 +851,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             auto construction_union = assembleuse->crée_construction_structure(lexeme, type_union);
 
             if (type_union->est_nonsure) {
-                auto expr = noeud_syntaxique_depuis_resultat(espace,
+                auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                              directive,
                                                              lexeme,
                                                              type_union->type_le_plus_grand,
@@ -871,7 +871,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
                     construction_union->parametres_resolus.ajoute(nullptr);
                 }
 
-                auto expr = noeud_syntaxique_depuis_resultat(espace,
+                auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                              directive,
                                                              lexeme,
                                                              type_donnees,
@@ -925,7 +925,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
         case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            auto expr = noeud_syntaxique_depuis_resultat(espace,
+            auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                          directive,
                                                          lexeme,
                                                          type_opaque->type_opacifie,
@@ -951,7 +951,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             for (auto i = 0; i < type_tableau->taille; ++i) {
                 auto pointeur_valeur = pointeur + type_tableau->type_pointe->taille_octet *
                                                       static_cast<unsigned>(i);
-                auto expr = noeud_syntaxique_depuis_resultat(espace,
+                auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                              directive,
                                                              lexeme,
                                                              type_tableau->type_pointe,
@@ -983,7 +983,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             /* crée un tableau fixe */
             auto type_tableau_fixe = compilatrice.typeuse.type_tableau_fixe(
                 type_tableau->type_pointe, static_cast<int>(taille_donnees));
-            auto construction = noeud_syntaxique_depuis_resultat(espace,
+            auto construction = noeud_syntaxique_depuis_résultat(espace,
                                                                  directive,
                                                                  lexeme,
                                                                  type_tableau_fixe,
@@ -1015,22 +1015,22 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
 
 void Tacheronne::rassemble_statistiques(Statistiques &stats)
 {
-    stats.temps_executable = std::max(stats.temps_executable, temps_executable);
+    stats.temps_exécutable = std::max(stats.temps_exécutable, temps_executable);
     stats.temps_fichier_objet = std::max(stats.temps_fichier_objet, temps_fichier_objet);
-    stats.temps_generation_code = std::max(stats.temps_generation_code, temps_generation_code);
+    stats.temps_génération_code = std::max(stats.temps_génération_code, temps_generation_code);
     stats.temps_ri = std::max(stats.temps_ri, constructrice_ri.temps_generation);
     stats.temps_lexage = std::max(stats.temps_lexage, temps_lexage);
     stats.temps_parsage = std::max(stats.temps_parsage, temps_parsage);
     stats.temps_typage = std::max(stats.temps_typage, temps_validation);
-    stats.temps_scene = std::max(stats.temps_scene, temps_scene);
+    stats.temps_scène = std::max(stats.temps_scène, temps_scene);
     stats.temps_chargement = std::max(stats.temps_chargement, temps_chargement);
     stats.temps_tampons = std::max(stats.temps_tampons, temps_tampons);
 
     constructrice_ri.rassemble_statistiques(stats);
     allocatrice_noeud.rassemble_statistiques(stats);
 
-    stats.memoire_compilatrice += lexemes_extra.memoire_utilisee();
-    stats.memoire_compilatrice += convertisseuse_noeud_code.memoire_utilisee();
+    stats.mémoire_compilatrice += lexemes_extra.memoire_utilisee();
+    stats.mémoire_compilatrice += convertisseuse_noeud_code.memoire_utilisee();
 
     if (mv) {
         mv->rassemble_statistiques(stats);
