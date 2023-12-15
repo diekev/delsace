@@ -84,34 +84,10 @@ struct RegistreSymboliqueRI {
 
 struct ConstructriceRI {
   private:
-    tableau_page<AtomeConstanteEntière> constantes_entières{};
-    tableau_page<AtomeConstanteRéelle> constantes_réelles{};
-    tableau_page<AtomeConstanteBooléenne> constantes_booléennes{};
-    tableau_page<AtomeConstanteNulle> constantes_nulles{};
-    tableau_page<AtomeConstanteCaractère> constantes_caractères{};
-    tableau_page<AtomeConstanteStructure> constantes_structures{};
-    tableau_page<AtomeConstanteTableauFixe> constantes_tableaux{};
-    tableau_page<AtomeConstanteDonnéesConstantes> constantes_données_constantes{};
-    tableau_page<AtomeConstanteType> constantes_types{};
-    tableau_page<AtomeConstanteTailleDe> constantes_taille_de{};
-    tableau_page<AtomeIndexTableType> constantes_index_table_type{};
-    tableau_page<AtomeInitialisationTableau> initialisations_tableau{};
-    tableau_page<AtomeNonInitialisation> non_initialisations{};
-    tableau_page<InstructionAllocation> insts_allocation{};
-    tableau_page<InstructionAppel> insts_appel{};
-    tableau_page<InstructionBranche> insts_branche{};
-    tableau_page<InstructionBrancheCondition> insts_branche_condition{};
-    tableau_page<InstructionChargeMem> insts_charge_memoire{};
-    tableau_page<InstructionLabel> insts_label{};
-    tableau_page<InstructionOpBinaire> insts_opbinaire{};
-    tableau_page<InstructionOpUnaire> insts_opunaire{};
-    tableau_page<InstructionRetour> insts_retour{};
-    tableau_page<InstructionStockeMem> insts_stocke_memoire{};
-    tableau_page<InstructionAccedeIndex> insts_accede_index{};
-    tableau_page<InstructionAccedeMembre> insts_accede_membre{};
-    tableau_page<InstructionTranstype> insts_transtype{};
-    tableau_page<TranstypeConstant> transtypes_constants{};
-    tableau_page<AccedeIndexConstant> accede_index_constants{};
+#define ENUMERE_GENRE_ATOME_EX(genre, classe, ident) tableau_page<classe> m_##ident{};
+    ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
+    ENUMERE_GENRE_INSTRUCTION(ENUMERE_GENRE_ATOME_EX)
+#undef ENUMERE_GENRE_ATOME_EX
 
     /* Utilisé pour assigner des identifiants aux labels. */
     int m_nombre_labels = 0;
