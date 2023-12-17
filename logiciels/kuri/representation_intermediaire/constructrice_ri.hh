@@ -181,10 +181,10 @@ struct ConstructriceRI {
                                  Atome *appelé,
                                  kuri::tableau<Atome *, int> &&args);
 
-    InstructionOpUnaire *crée_op_unaire(NoeudExpression const *site_,
-                                        Type const *type,
-                                        OpérateurUnaire::Genre op,
-                                        Atome *valeur);
+    Atome *crée_op_unaire(NoeudExpression const *site_,
+                          Type const *type,
+                          OpérateurUnaire::Genre op,
+                          Atome *valeur);
     Atome *crée_op_binaire(NoeudExpression const *site_,
                            Type const *type,
                            OpérateurBinaire::Genre op,

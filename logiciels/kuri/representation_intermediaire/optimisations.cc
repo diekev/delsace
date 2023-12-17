@@ -173,7 +173,7 @@ struct CopieuseInstruction {
                 auto n_valeur = copie_atome(op->valeur);
                 auto n_op = constructrice.crée_op_unaire(
                     inst->site, inst->type, type_opération, n_valeur);
-                nouvelle_inst = n_op;
+                nouvelle_inst = n_op->comme_instruction();
                 break;
             }
             case GenreInstruction::OPERATION_BINAIRE:

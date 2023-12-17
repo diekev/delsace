@@ -704,11 +704,48 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
     return inst;
 }
 
-InstructionOpUnaire *ConstructriceRI::crée_op_unaire(NoeudExpression const *site_,
-                                                     Type const *type,
-                                                     OpérateurUnaire::Genre op,
-                                                     Atome *valeur)
+Atome *ConstructriceRI::crée_op_unaire(NoeudExpression const *site_,
+                                       Type const *type,
+                                       OpérateurUnaire::Genre op,
+                                       Atome *valeur)
 {
+    switch (op) {
+        case OpérateurUnaire::Genre::Complement:
+        {
+            if (valeur->est_constante_réelle()) {
+                auto const constante_réelle = valeur->comme_constante_réelle();
+                auto const valeur_réelle = -constante_réelle->valeur;
+                return crée_constante_nombre_réel(type, valeur_réelle);
+            }
+
+            if (valeur->est_constante_entière()) {
+                auto const constante_entière = valeur->comme_constante_entière();
+                auto const valeur_entière = -int64_t(constante_entière->valeur);
+                return crée_constante_nombre_entier(type, uint64_t(valeur_entière));
+            }
+
+            break;
+        }
+        case OpérateurUnaire::Genre::Non_Binaire:
+        {
+            if (valeur->est_constante_entière()) {
+                auto const constante_entière = valeur->comme_constante_entière();
+                auto const valeur_entière = ~constante_entière->valeur;
+                return crée_constante_nombre_entier(type, valeur_entière);
+            }
+
+            break;
+        }
+        case OpérateurUnaire::Genre::Invalide:
+        {
+            break;
+        }
+        case OpérateurUnaire::Genre::Positif:
+        {
+            return valeur;
+        }
+    }
+
     auto inst = m_op_unaire.ajoute_element(site_, type, op, valeur);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
