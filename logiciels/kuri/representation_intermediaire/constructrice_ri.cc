@@ -861,6 +861,16 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
         return crée_constante_nulle(type);
     }
 
+    if (valeur->est_constante_entière() && est_type_entier(type)) {
+        auto valeur_entière = valeur->comme_constante_entière();
+        return crée_constante_nombre_entier(type, valeur_entière->valeur);
+    }
+
+    if (valeur->est_constante_réelle() && type->est_type_reel()) {
+        auto valeur_réelle = valeur->comme_constante_réelle();
+        return crée_constante_nombre_réel(type, valeur_réelle->valeur);
+    }
+
     // dbg() << __func__ << ", type : " << chaine_type(type) << ", valeur " <<
     // chaine_type(valeur->type);
     auto inst = m_transtype.ajoute_element(site_, type, valeur, op);
