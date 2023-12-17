@@ -2304,6 +2304,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto type_fonction = noeud->type->comme_type_fonction();
             auto type_pointeur = type_fonction->types_entrees[0];
             auto type_arg = type_pointeur->comme_type_pointeur()->type_pointe;
+            assert_rappel(type_arg->fonction_init, [&]() {
+                dbg() << "Aucune fonction init pour " << chaine_type(type_arg);
+                dbg() << erreur::imprime_site(*espace(), noeud);
+            });
             empile_valeur(m_constructrice.trouve_ou_insère_fonction(type_arg->fonction_init));
             break;
         }
