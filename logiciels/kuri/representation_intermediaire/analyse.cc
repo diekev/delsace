@@ -1568,8 +1568,7 @@ static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
 
 /* ******************************************************************************************* */
 
-static Atome *peut_remplacer_instruction_binaire_par_opérande(
-    InstructionOpBinaire const *op_binaire)
+Atome *peut_remplacer_instruction_binaire_par_opérande(InstructionOpBinaire const *op_binaire)
 {
     if (op_binaire->op == OpérateurBinaire::Genre::Soustraction) {
         auto droite = op_binaire->valeur_droite;

@@ -181,19 +181,19 @@ struct ConstructriceRI {
                                  Atome *appelé,
                                  kuri::tableau<Atome *, int> &&args);
 
-    InstructionOpUnaire *crée_op_unaire(NoeudExpression const *site_,
-                                        Type const *type,
-                                        OpérateurUnaire::Genre op,
-                                        Atome *valeur);
-    InstructionOpBinaire *crée_op_binaire(NoeudExpression const *site_,
-                                          Type const *type,
-                                          OpérateurBinaire::Genre op,
-                                          Atome *valeur_gauche,
-                                          Atome *valeur_droite);
-    InstructionOpBinaire *crée_op_comparaison(NoeudExpression const *site_,
-                                              OpérateurBinaire::Genre op,
-                                              Atome *valeur_gauche,
-                                              Atome *valeur_droite);
+    Atome *crée_op_unaire(NoeudExpression const *site_,
+                          Type const *type,
+                          OpérateurUnaire::Genre op,
+                          Atome *valeur);
+    Atome *crée_op_binaire(NoeudExpression const *site_,
+                           Type const *type,
+                           OpérateurBinaire::Genre op,
+                           Atome *valeur_gauche,
+                           Atome *valeur_droite);
+    Atome *crée_op_comparaison(NoeudExpression const *site_,
+                               OpérateurBinaire::Genre op,
+                               Atome *valeur_gauche,
+                               Atome *valeur_droite);
 
     InstructionAccedeIndex *crée_accès_index(NoeudExpression const *site_,
                                              Atome *accédé,

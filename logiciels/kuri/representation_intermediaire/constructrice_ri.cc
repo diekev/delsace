@@ -704,21 +704,58 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
     return inst;
 }
 
-InstructionOpUnaire *ConstructriceRI::crée_op_unaire(NoeudExpression const *site_,
-                                                     Type const *type,
-                                                     OpérateurUnaire::Genre op,
-                                                     Atome *valeur)
+Atome *ConstructriceRI::crée_op_unaire(NoeudExpression const *site_,
+                                       Type const *type,
+                                       OpérateurUnaire::Genre op,
+                                       Atome *valeur)
 {
+    switch (op) {
+        case OpérateurUnaire::Genre::Complement:
+        {
+            if (valeur->est_constante_réelle()) {
+                auto const constante_réelle = valeur->comme_constante_réelle();
+                auto const valeur_réelle = -constante_réelle->valeur;
+                return crée_constante_nombre_réel(type, valeur_réelle);
+            }
+
+            if (valeur->est_constante_entière()) {
+                auto const constante_entière = valeur->comme_constante_entière();
+                auto const valeur_entière = -int64_t(constante_entière->valeur);
+                return crée_constante_nombre_entier(type, uint64_t(valeur_entière));
+            }
+
+            break;
+        }
+        case OpérateurUnaire::Genre::Non_Binaire:
+        {
+            if (valeur->est_constante_entière()) {
+                auto const constante_entière = valeur->comme_constante_entière();
+                auto const valeur_entière = ~constante_entière->valeur;
+                return crée_constante_nombre_entier(type, valeur_entière);
+            }
+
+            break;
+        }
+        case OpérateurUnaire::Genre::Invalide:
+        {
+            break;
+        }
+        case OpérateurUnaire::Genre::Positif:
+        {
+            return valeur;
+        }
+    }
+
     auto inst = m_op_unaire.ajoute_element(site_, type, op, valeur);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
 }
 
-InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
-                                                       Type const *type,
-                                                       OpérateurBinaire::Genre op,
-                                                       Atome *valeur_gauche,
-                                                       Atome *valeur_droite)
+Atome *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
+                                        Type const *type,
+                                        OpérateurBinaire::Genre op,
+                                        Atome *valeur_gauche,
+                                        Atome *valeur_droite)
 {
     assert_rappel(
         sont_types_compatibles_pour_opérateur_binaire(valeur_gauche->type, valeur_droite->type),
@@ -727,15 +764,41 @@ InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression const *s
             dbg() << "Type à gauche " << chaine_type(valeur_gauche->type);
             dbg() << "Type à droite " << chaine_type(valeur_droite->type);
         });
+
+    if (valeur_gauche->est_constante() && !valeur_droite->est_constante()) {
+        if (op == OpérateurBinaire::Genre::Soustraction &&
+            est_constante_entière_zéro(valeur_gauche)) {
+            return crée_op_unaire(site_, type, OpérateurUnaire::Genre::Complement, valeur_droite);
+        }
+
+        if (peut_permuter_opérandes(op)) {
+            op = donne_opérateur_pour_permutation_opérandes(op);
+            auto tmp = valeur_gauche;
+            valeur_gauche = valeur_droite;
+            valeur_droite = tmp;
+        }
+    }
+
+    auto inst_tmp = InstructionOpBinaire(site_, type, op, valeur_gauche, valeur_droite);
+
+    if (est_opérateur_binaire_constant(&inst_tmp)) {
+        if (auto constante = évalue_opérateur_binaire(&inst_tmp, *this)) {
+            return constante;
+        }
+    }
+    else if (auto remplacement = peut_remplacer_instruction_binaire_par_opérande(&inst_tmp)) {
+        return remplacement;
+    }
+
     auto inst = m_op_binaire.ajoute_element(site_, type, op, valeur_gauche, valeur_droite);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
 }
 
-InstructionOpBinaire *ConstructriceRI::crée_op_comparaison(NoeudExpression const *site_,
-                                                           OpérateurBinaire::Genre op,
-                                                           Atome *valeur_gauche,
-                                                           Atome *valeur_droite)
+Atome *ConstructriceRI::crée_op_comparaison(NoeudExpression const *site_,
+                                            OpérateurBinaire::Genre op,
+                                            Atome *valeur_gauche,
+                                            Atome *valeur_droite)
 {
     return crée_op_binaire(site_, TypeBase::BOOL, op, valeur_gauche, valeur_droite);
 }
@@ -833,6 +896,16 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
 {
     if (valeur->est_constante_nulle()) {
         return crée_constante_nulle(type);
+    }
+
+    if (valeur->est_constante_entière() && est_type_entier(type)) {
+        auto valeur_entière = valeur->comme_constante_entière();
+        return crée_constante_nombre_entier(type, valeur_entière->valeur);
+    }
+
+    if (valeur->est_constante_réelle() && type->est_type_reel()) {
+        auto valeur_réelle = valeur->comme_constante_réelle();
+        return crée_constante_nombre_réel(type, valeur_réelle->valeur);
     }
 
     // dbg() << __func__ << ", type : " << chaine_type(type) << ", valeur " <<
@@ -1691,6 +1764,17 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto résultat = m_constructrice.crée_op_binaire(
                 noeud, noeud->type, expr_bin->op->genre, valeur_gauche, valeur_droite);
 
+            if (résultat->est_constante()) {
+                if (place) {
+                    m_constructrice.crée_stocke_mem(noeud, place, résultat);
+                    place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+                }
+                else {
+                    empile_valeur(résultat);
+                }
+                return;
+            }
+
             crée_temporaire_ou_mets_dans_place(noeud, résultat, place);
             break;
         }
@@ -1743,14 +1827,21 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                         OpérateurBinaire::Genre::Comp_Inf,
                         valeur_,
                         m_constructrice.crée_z64(0));
-                    m_constructrice.crée_branche_condition(noeud, condition, label1, label2);
 
-                    m_constructrice.insère_label(label1);
+                    if (condition->est_constante_booléenne() &&
+                        condition->comme_constante_booléenne()->valeur == false) {
+                        m_constructrice.crée_branche(noeud, label2);
+                    }
+                    else {
+                        m_constructrice.crée_branche_condition(noeud, condition, label1, label2);
 
-                    auto params = kuri::tableau<Atome *, int>(2);
-                    params[0] = acces_taille;
-                    params[1] = valeur_;
-                    m_constructrice.crée_appel(noeud, fonction, std::move(params));
+                        m_constructrice.insère_label(label1);
+
+                        auto params = kuri::tableau<Atome *, int>(2);
+                        params[0] = acces_taille;
+                        params[1] = valeur_;
+                        m_constructrice.crée_appel(noeud, fonction, std::move(params));
+                    }
 
                     m_constructrice.insère_label(label2);
 
@@ -1760,7 +1851,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
                     m_constructrice.insère_label(label3);
 
-                    params = kuri::tableau<Atome *, int>(2);
+                    auto params = kuri::tableau<Atome *, int>(2);
                     params[0] = acces_taille;
                     params[1] = valeur_;
                     m_constructrice.crée_appel(noeud, fonction, std::move(params));
