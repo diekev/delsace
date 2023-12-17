@@ -727,6 +727,16 @@ InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression const *s
             dbg() << "Type à gauche " << chaine_type(valeur_gauche->type);
             dbg() << "Type à droite " << chaine_type(valeur_droite->type);
         });
+
+    if (valeur_gauche->est_constante() && !valeur_droite->est_constante()) {
+        if (peut_permuter_opérandes(op)) {
+            op = donne_opérateur_pour_permutation_opérandes(op);
+            auto tmp = valeur_gauche;
+            valeur_gauche = valeur_droite;
+            valeur_droite = tmp;
+        }
+    }
+
     auto inst = m_op_binaire.ajoute_element(site_, type, op, valeur_gauche, valeur_droite);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
