@@ -273,3 +273,8 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
                                                             GenreLexeme type_op);
 
 kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op);
+
+bool peut_permuter_opérandes(OpérateurBinaire::Genre const genre);
+
+OpérateurBinaire::Genre donne_opérateur_pour_permutation_opérandes(
+    OpérateurBinaire::Genre const genre);
