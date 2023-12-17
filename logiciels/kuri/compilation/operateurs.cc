@@ -941,3 +941,138 @@ kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Ge
 
     return "invalide";
 }
+
+bool peut_permuter_opérandes(OpérateurBinaire::Genre const genre)
+{
+    switch (genre) {
+        case OpérateurBinaire::Genre::Soustraction:
+        case OpérateurBinaire::Genre::Soustraction_Reel:
+        case OpérateurBinaire::Genre::Division_Naturel:
+        case OpérateurBinaire::Genre::Division_Relatif:
+        case OpérateurBinaire::Genre::Division_Reel:
+        case OpérateurBinaire::Genre::Reste_Naturel:
+        case OpérateurBinaire::Genre::Reste_Relatif:
+        case OpérateurBinaire::Genre::Dec_Gauche:
+        case OpérateurBinaire::Genre::Dec_Droite_Arithm:
+        case OpérateurBinaire::Genre::Dec_Droite_Logique:
+        case OpérateurBinaire::Genre::Invalide:
+        case OpérateurBinaire::Genre::Indexage:
+        {
+            return false;
+        }
+        case OpérateurBinaire::Genre::Addition:
+        case OpérateurBinaire::Genre::Addition_Reel:
+        case OpérateurBinaire::Genre::Multiplication:
+        case OpérateurBinaire::Genre::Multiplication_Reel:
+        case OpérateurBinaire::Genre::Comp_Egal:
+        case OpérateurBinaire::Genre::Comp_Egal_Reel:
+        case OpérateurBinaire::Genre::Comp_Inegal:
+        case OpérateurBinaire::Genre::Comp_Inegal_Reel:
+        case OpérateurBinaire::Genre::Comp_Inf:
+        case OpérateurBinaire::Genre::Comp_Inf_Nat:
+        case OpérateurBinaire::Genre::Comp_Inf_Reel:
+        case OpérateurBinaire::Genre::Comp_Inf_Egal:
+        case OpérateurBinaire::Genre::Comp_Inf_Egal_Nat:
+        case OpérateurBinaire::Genre::Comp_Inf_Egal_Reel:
+        case OpérateurBinaire::Genre::Comp_Sup:
+        case OpérateurBinaire::Genre::Comp_Sup_Nat:
+        case OpérateurBinaire::Genre::Comp_Sup_Reel:
+        case OpérateurBinaire::Genre::Comp_Sup_Egal:
+        case OpérateurBinaire::Genre::Comp_Sup_Egal_Nat:
+        case OpérateurBinaire::Genre::Comp_Sup_Egal_Reel:
+        case OpérateurBinaire::Genre::Et_Binaire:
+        case OpérateurBinaire::Genre::Ou_Binaire:
+        case OpérateurBinaire::Genre::Ou_Exclusif:
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+OpérateurBinaire::Genre donne_opérateur_pour_permutation_opérandes(
+    OpérateurBinaire::Genre const genre)
+{
+    switch (genre) {
+        case OpérateurBinaire::Genre::Soustraction:
+        case OpérateurBinaire::Genre::Soustraction_Reel:
+        case OpérateurBinaire::Genre::Division_Naturel:
+        case OpérateurBinaire::Genre::Division_Relatif:
+        case OpérateurBinaire::Genre::Division_Reel:
+        case OpérateurBinaire::Genre::Reste_Naturel:
+        case OpérateurBinaire::Genre::Reste_Relatif:
+        case OpérateurBinaire::Genre::Dec_Gauche:
+        case OpérateurBinaire::Genre::Dec_Droite_Arithm:
+        case OpérateurBinaire::Genre::Dec_Droite_Logique:
+        case OpérateurBinaire::Genre::Invalide:
+        case OpérateurBinaire::Genre::Indexage:
+        {
+            return OpérateurBinaire::Genre::Invalide;
+        }
+        case OpérateurBinaire::Genre::Addition:
+        case OpérateurBinaire::Genre::Addition_Reel:
+        case OpérateurBinaire::Genre::Multiplication:
+        case OpérateurBinaire::Genre::Multiplication_Reel:
+        case OpérateurBinaire::Genre::Comp_Egal:
+        case OpérateurBinaire::Genre::Comp_Egal_Reel:
+        case OpérateurBinaire::Genre::Comp_Inegal:
+        case OpérateurBinaire::Genre::Comp_Inegal_Reel:
+        case OpérateurBinaire::Genre::Et_Binaire:
+        case OpérateurBinaire::Genre::Ou_Binaire:
+        case OpérateurBinaire::Genre::Ou_Exclusif:
+        {
+            return genre;
+        }
+        case OpérateurBinaire::Genre::Comp_Inf:
+        {
+            return OpérateurBinaire::Genre::Comp_Sup;
+        }
+        case OpérateurBinaire::Genre::Comp_Inf_Nat:
+        {
+            return OpérateurBinaire::Genre::Comp_Sup_Nat;
+        }
+        case OpérateurBinaire::Genre::Comp_Inf_Reel:
+        {
+            return OpérateurBinaire::Genre::Comp_Sup_Reel;
+        }
+        case OpérateurBinaire::Genre::Comp_Inf_Egal:
+        {
+            return OpérateurBinaire::Genre::Comp_Sup_Egal;
+        }
+        case OpérateurBinaire::Genre::Comp_Inf_Egal_Nat:
+        {
+            return OpérateurBinaire::Genre::Comp_Sup_Egal_Nat;
+        }
+        case OpérateurBinaire::Genre::Comp_Inf_Egal_Reel:
+        {
+            return OpérateurBinaire::Genre::Comp_Sup_Egal_Reel;
+        }
+        case OpérateurBinaire::Genre::Comp_Sup:
+        {
+            return OpérateurBinaire::Genre::Comp_Inf;
+        }
+        case OpérateurBinaire::Genre::Comp_Sup_Nat:
+        {
+            return OpérateurBinaire::Genre::Comp_Inf_Nat;
+        }
+        case OpérateurBinaire::Genre::Comp_Sup_Reel:
+        {
+            return OpérateurBinaire::Genre::Comp_Inf_Reel;
+        }
+        case OpérateurBinaire::Genre::Comp_Sup_Egal:
+        {
+            return OpérateurBinaire::Genre::Comp_Inf_Egal;
+        }
+        case OpérateurBinaire::Genre::Comp_Sup_Egal_Nat:
+        {
+            return OpérateurBinaire::Genre::Comp_Inf_Egal_Nat;
+        }
+        case OpérateurBinaire::Genre::Comp_Sup_Egal_Reel:
+        {
+            return OpérateurBinaire::Genre::Comp_Inf_Egal_Reel;
+        }
+    }
+
+    return OpérateurBinaire::Genre::Invalide;
+}
