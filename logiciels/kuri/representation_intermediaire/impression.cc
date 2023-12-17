@@ -339,7 +339,6 @@ static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
 {
     Enchaineuse sortie;
     imprime_instruction_ex(inst, sortie);
-    sortie << '\n';
     return sortie.chaine();
 }
 
