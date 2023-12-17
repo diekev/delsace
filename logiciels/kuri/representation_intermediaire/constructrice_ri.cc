@@ -714,11 +714,11 @@ InstructionOpUnaire *ConstructriceRI::crée_op_unaire(NoeudExpression const *sit
     return inst;
 }
 
-InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
-                                                       Type const *type,
-                                                       OpérateurBinaire::Genre op,
-                                                       Atome *valeur_gauche,
-                                                       Atome *valeur_droite)
+Instruction *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
+                                              Type const *type,
+                                              OpérateurBinaire::Genre op,
+                                              Atome *valeur_gauche,
+                                              Atome *valeur_droite)
 {
     assert_rappel(
         sont_types_compatibles_pour_opérateur_binaire(valeur_gauche->type, valeur_droite->type),
@@ -729,6 +729,11 @@ InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression const *s
         });
 
     if (valeur_gauche->est_constante() && !valeur_droite->est_constante()) {
+        if (op == OpérateurBinaire::Genre::Soustraction &&
+            est_constante_entière_zéro(valeur_gauche)) {
+            return crée_op_unaire(site_, type, OpérateurUnaire::Genre::Complement, valeur_droite);
+        }
+
         if (peut_permuter_opérandes(op)) {
             op = donne_opérateur_pour_permutation_opérandes(op);
             auto tmp = valeur_gauche;
@@ -747,7 +752,8 @@ InstructionOpBinaire *ConstructriceRI::crée_op_comparaison(NoeudExpression cons
                                                            Atome *valeur_gauche,
                                                            Atome *valeur_droite)
 {
-    return crée_op_binaire(site_, TypeBase::BOOL, op, valeur_gauche, valeur_droite);
+    return crée_op_binaire(site_, TypeBase::BOOL, op, valeur_gauche, valeur_droite)
+        ->comme_op_binaire();
 }
 
 InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression const *site_,

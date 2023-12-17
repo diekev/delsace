@@ -185,11 +185,11 @@ struct ConstructriceRI {
                                         Type const *type,
                                         OpérateurUnaire::Genre op,
                                         Atome *valeur);
-    InstructionOpBinaire *crée_op_binaire(NoeudExpression const *site_,
-                                          Type const *type,
-                                          OpérateurBinaire::Genre op,
-                                          Atome *valeur_gauche,
-                                          Atome *valeur_droite);
+    Instruction *crée_op_binaire(NoeudExpression const *site_,
+                                 Type const *type,
+                                 OpérateurBinaire::Genre op,
+                                 Atome *valeur_gauche,
+                                 Atome *valeur_droite);
     InstructionOpBinaire *crée_op_comparaison(NoeudExpression const *site_,
                                               OpérateurBinaire::Genre op,
                                               Atome *valeur_gauche,
