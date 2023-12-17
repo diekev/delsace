@@ -185,15 +185,15 @@ struct ConstructriceRI {
                                         Type const *type,
                                         OpérateurUnaire::Genre op,
                                         Atome *valeur);
-    Instruction *crée_op_binaire(NoeudExpression const *site_,
-                                 Type const *type,
-                                 OpérateurBinaire::Genre op,
-                                 Atome *valeur_gauche,
-                                 Atome *valeur_droite);
-    InstructionOpBinaire *crée_op_comparaison(NoeudExpression const *site_,
-                                              OpérateurBinaire::Genre op,
-                                              Atome *valeur_gauche,
-                                              Atome *valeur_droite);
+    Atome *crée_op_binaire(NoeudExpression const *site_,
+                           Type const *type,
+                           OpérateurBinaire::Genre op,
+                           Atome *valeur_gauche,
+                           Atome *valeur_droite);
+    Atome *crée_op_comparaison(NoeudExpression const *site_,
+                               OpérateurBinaire::Genre op,
+                               Atome *valeur_gauche,
+                               Atome *valeur_droite);
 
     InstructionAccedeIndex *crée_accès_index(NoeudExpression const *site_,
                                              Atome *accédé,

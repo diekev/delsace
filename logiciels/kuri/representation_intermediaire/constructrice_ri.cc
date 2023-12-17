@@ -714,11 +714,11 @@ InstructionOpUnaire *ConstructriceRI::crée_op_unaire(NoeudExpression const *sit
     return inst;
 }
 
-Instruction *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
-                                              Type const *type,
-                                              OpérateurBinaire::Genre op,
-                                              Atome *valeur_gauche,
-                                              Atome *valeur_droite)
+Atome *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
+                                        Type const *type,
+                                        OpérateurBinaire::Genre op,
+                                        Atome *valeur_gauche,
+                                        Atome *valeur_droite)
 {
     assert_rappel(
         sont_types_compatibles_pour_opérateur_binaire(valeur_gauche->type, valeur_droite->type),
@@ -742,18 +742,28 @@ Instruction *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
         }
     }
 
+    auto inst_tmp = InstructionOpBinaire(site_, type, op, valeur_gauche, valeur_droite);
+
+    if (est_opérateur_binaire_constant(&inst_tmp)) {
+        if (auto constante = évalue_opérateur_binaire(&inst_tmp, *this)) {
+            return constante;
+        }
+    }
+    else if (auto remplacement = peut_remplacer_instruction_binaire_par_opérande(&inst_tmp)) {
+        return remplacement;
+    }
+
     auto inst = m_op_binaire.ajoute_element(site_, type, op, valeur_gauche, valeur_droite);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
 }
 
-InstructionOpBinaire *ConstructriceRI::crée_op_comparaison(NoeudExpression const *site_,
-                                                           OpérateurBinaire::Genre op,
-                                                           Atome *valeur_gauche,
-                                                           Atome *valeur_droite)
+Atome *ConstructriceRI::crée_op_comparaison(NoeudExpression const *site_,
+                                            OpérateurBinaire::Genre op,
+                                            Atome *valeur_gauche,
+                                            Atome *valeur_droite)
 {
-    return crée_op_binaire(site_, TypeBase::BOOL, op, valeur_gauche, valeur_droite)
-        ->comme_op_binaire();
+    return crée_op_binaire(site_, TypeBase::BOOL, op, valeur_gauche, valeur_droite);
 }
 
 InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression const *site_,
@@ -1707,6 +1717,17 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto résultat = m_constructrice.crée_op_binaire(
                 noeud, noeud->type, expr_bin->op->genre, valeur_gauche, valeur_droite);
 
+            if (résultat->est_constante()) {
+                if (place) {
+                    m_constructrice.crée_stocke_mem(noeud, place, résultat);
+                    place->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+                }
+                else {
+                    empile_valeur(résultat);
+                }
+                return;
+            }
+
             crée_temporaire_ou_mets_dans_place(noeud, résultat, place);
             break;
         }
@@ -1759,14 +1780,21 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                         OpérateurBinaire::Genre::Comp_Inf,
                         valeur_,
                         m_constructrice.crée_z64(0));
-                    m_constructrice.crée_branche_condition(noeud, condition, label1, label2);
 
-                    m_constructrice.insère_label(label1);
+                    if (condition->est_constante_booléenne() &&
+                        condition->comme_constante_booléenne()->valeur == false) {
+                        m_constructrice.crée_branche(noeud, label2);
+                    }
+                    else {
+                        m_constructrice.crée_branche_condition(noeud, condition, label1, label2);
 
-                    auto params = kuri::tableau<Atome *, int>(2);
-                    params[0] = acces_taille;
-                    params[1] = valeur_;
-                    m_constructrice.crée_appel(noeud, fonction, std::move(params));
+                        m_constructrice.insère_label(label1);
+
+                        auto params = kuri::tableau<Atome *, int>(2);
+                        params[0] = acces_taille;
+                        params[1] = valeur_;
+                        m_constructrice.crée_appel(noeud, fonction, std::move(params));
+                    }
 
                     m_constructrice.insère_label(label2);
 
@@ -1776,7 +1804,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
                     m_constructrice.insère_label(label3);
 
-                    params = kuri::tableau<Atome *, int>(2);
+                    auto params = kuri::tableau<Atome *, int>(2);
                     params[0] = acces_taille;
                     params[1] = valeur_;
                     m_constructrice.crée_appel(noeud, fonction, std::move(params));

@@ -184,7 +184,7 @@ struct CopieuseInstruction {
                 auto valeur_droite = copie_atome(op->valeur_droite);
                 auto n_op = constructrice.crée_op_binaire(
                     inst->site, inst->type, type_opération, valeur_gauche, valeur_droite);
-                nouvelle_inst = n_op;
+                nouvelle_inst = n_op->comme_instruction();
                 break;
             }
             case GenreInstruction::ACCEDE_INDEX:
