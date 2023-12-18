@@ -66,6 +66,54 @@ static bool transtypage_est_utile(InstructionTranstype const *transtype)
     return true;
 }
 
+/* Pour garantir que les déclarations des fonctions externes correspondent à ce qu'elles doivent
+ * être. */
+static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
+    NoeudDeclarationEnteteFonction const *entête, int index)
+{
+    if (!entête) {
+        return {};
+    }
+
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+        if (entête->ident->nom == "memcpy" && index == 1) {
+            return "const void *";
+        }
+        if (entête->ident->nom == "strlen" && index == 0) {
+            return "const char *";
+        }
+        if (entête->ident->nom == "execvp") {
+            if (index == 0) {
+                return "const char *";
+            }
+            if (index == 1) {
+                return "char * const *";
+            }
+        }
+        return {};
+    }
+
+    if (entête->ident == ID::__point_d_entree_systeme) {
+        if (index == 1) {
+            return "char **";
+        }
+
+        return {};
+    }
+
+    return {};
+}
+
+static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(Atome const *atome,
+                                                                             int index)
+{
+    if (!atome->est_fonction()) {
+        return {};
+    }
+
+    return type_paramètre_pour_fonction_clé(atome->comme_fonction()->decl, index);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1233,6 +1281,12 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 if (est_init_contexte && index_it == 1) {
                     os << "(signed char **)";
                 }
+                else {
+                    auto type = type_paramètre_pour_fonction_clé(inst_appel->appele, index_it);
+                    if (type.has_value()) {
+                        os << "(" << *type << ")";
+                    }
+                }
                 os << it;
                 virgule = ", ";
             }
@@ -1492,33 +1546,6 @@ static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *foncti
      * expression (pour désactiver le code), il faudra détecter ce cas dans la RI ou lors de la
      * validation sémantique et marquer les paramètres comme inutilisés. */
     return fonction->instructions.taille() == 2;
-}
-
-/* Pour garantir que les déclarations des fonctions externes correspondent à ce qu'elles doivent
- * être. */
-static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
-    NoeudDeclarationEnteteFonction const *entête, int index)
-{
-    if (!entête) {
-        return {};
-    }
-
-    if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
-        if (entête->ident->nom == "memcpy" && index == 1) {
-            return "const void *";
-        }
-        return {};
-    }
-
-    if (entête->ident == ID::__point_d_entree_systeme) {
-        if (index == 1) {
-            return "char **";
-        }
-
-        return {};
-    }
-
-    return {};
 }
 
 /* Pour une liste des attributs GCC pour les fonctions :
