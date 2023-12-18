@@ -662,7 +662,7 @@ test_compare_chaine :: fonc () -> rien
 
 // --------------------------------
 
-strlen :: fonc (str: *z8) -> z64 #externe libc
+strlen :: fonc (str: *z8) -> n64 #externe libc
 
 arguments_ligne_commande :: fonc () -> []chaine
 {
@@ -681,7 +681,7 @@ arguments_ligne_commande :: fonc () -> []chaine
         pour __arguments_ligne_commande {
             chn : chaine
             chn.pointeur = it
-            chn.taille = strlen(it)
+            chn.taille = strlen(it) comme z64
             tableau_ajoute(*tabl_args, chn)
         }
 
