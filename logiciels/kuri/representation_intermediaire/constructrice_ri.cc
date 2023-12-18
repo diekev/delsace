@@ -1547,6 +1547,7 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
 void CompilatriceRI::définis_fonction_courante(AtomeFonction *fonction_courante)
 {
     m_fonction_courante = fonction_courante;
+    m_label_après_controle = nullptr;
     m_pile.efface();
     m_constructrice.définis_fonction_courante(fonction_courante);
 }
