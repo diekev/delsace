@@ -889,6 +889,330 @@ Instruction *ConstructriceRI::crée_reference_membre_et_charge(NoeudExpression c
     return crée_charge_mem(site_, inst);
 }
 
+union ValeurConstanteEntière {
+    uint8_t nat8;
+    uint16_t nat16;
+    uint32_t nat32;
+    uint64_t nat64;
+
+    int8_t rel8;
+    int16_t rel16;
+    int32_t rel32;
+    int64_t rel64;
+};
+
+template <typename T>
+T donne_valeur_typée(ValeurConstanteEntière valeur);
+
+template <typename T>
+void définis_valeur_typée(ValeurConstanteEntière &valeur, T v);
+
+#define DEFINIS_ACCESSEURS(type, nom_membre)                                                      \
+    template <>                                                                                   \
+    type donne_valeur_typée(ValeurConstanteEntière valeur)                                        \
+    {                                                                                             \
+        return valeur.nom_membre;                                                                 \
+    }                                                                                             \
+    template <>                                                                                   \
+    void définis_valeur_typée(ValeurConstanteEntière &valeur, type v)                             \
+    {                                                                                             \
+        valeur.nom_membre = v;                                                                    \
+    }
+
+DEFINIS_ACCESSEURS(uint8_t, nat8)
+DEFINIS_ACCESSEURS(uint16_t, nat16)
+DEFINIS_ACCESSEURS(uint32_t, nat32)
+DEFINIS_ACCESSEURS(uint64_t, nat64)
+DEFINIS_ACCESSEURS(int8_t, rel8)
+DEFINIS_ACCESSEURS(int16_t, rel16)
+DEFINIS_ACCESSEURS(int32_t, rel32)
+DEFINIS_ACCESSEURS(int64_t, rel64)
+
+#undef DEFINIS_ACCESSEURS
+
+template <typename TypeSource, typename TypeCible>
+ValeurConstanteEntière applique_transtype(ValeurConstanteEntière valeur)
+{
+    auto valeur_source = donne_valeur_typée<TypeSource>(valeur);
+    définis_valeur_typée(valeur, TypeCible(valeur_source));
+    return valeur;
+}
+
+ValeurConstanteEntière applique_transtype(Type const *type_source,
+                                          Type const *type_cible,
+                                          TypeTranstypage transtypage,
+                                          ValeurConstanteEntière valeur)
+{
+    switch (transtypage) {
+        case TypeTranstypage::AUGMENTE_NATUREL:
+        {
+            if (type_cible->taille_octet == 2) {
+                if (type_source->taille_octet == 1) {
+                    return applique_transtype<uint8_t, uint16_t>(valeur);
+                }
+            }
+            if (type_cible->taille_octet == 4) {
+                if (type_source->taille_octet == 1) {
+                    return applique_transtype<uint8_t, uint32_t>(valeur);
+                }
+                if (type_source->taille_octet == 2) {
+                    return applique_transtype<uint16_t, uint32_t>(valeur);
+                }
+            }
+            if (type_source->taille_octet == 1) {
+                return applique_transtype<uint8_t, uint64_t>(valeur);
+            }
+            if (type_source->taille_octet == 2) {
+                return applique_transtype<uint16_t, uint64_t>(valeur);
+            }
+            if (type_source->taille_octet == 4) {
+                return applique_transtype<uint32_t, uint64_t>(valeur);
+            }
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
+        {
+            if (type_cible->taille_octet == 2) {
+                if (type_source->taille_octet == 1) {
+                    return applique_transtype<uint8_t, int16_t>(valeur);
+                }
+            }
+            if (type_cible->taille_octet == 4) {
+                if (type_source->taille_octet == 1) {
+                    return applique_transtype<uint8_t, int32_t>(valeur);
+                }
+                if (type_source->taille_octet == 2) {
+                    return applique_transtype<uint16_t, int32_t>(valeur);
+                }
+            }
+            if (type_source->taille_octet == 1) {
+                return applique_transtype<uint8_t, int64_t>(valeur);
+            }
+            if (type_source->taille_octet == 2) {
+                return applique_transtype<uint16_t, int64_t>(valeur);
+            }
+            if (type_source->taille_octet == 4) {
+                return applique_transtype<uint32_t, int64_t>(valeur);
+            }
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF:
+        {
+            if (type_cible->taille_octet == 2) {
+                if (type_source->taille_octet == 1) {
+                    return applique_transtype<int8_t, int16_t>(valeur);
+                }
+            }
+            if (type_cible->taille_octet == 4) {
+                if (type_source->taille_octet == 1) {
+                    return applique_transtype<int8_t, int32_t>(valeur);
+                }
+                if (type_source->taille_octet == 2) {
+                    return applique_transtype<int16_t, int32_t>(valeur);
+                }
+            }
+            if (type_source->taille_octet == 1) {
+                return applique_transtype<int8_t, int64_t>(valeur);
+            }
+            if (type_source->taille_octet == 2) {
+                return applique_transtype<int16_t, int64_t>(valeur);
+            }
+            if (type_source->taille_octet == 4) {
+                return applique_transtype<int32_t, int64_t>(valeur);
+            }
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
+        {
+            if (type_cible->taille_octet == 2) {
+                if (type_source->taille_octet == 1) {
+                    return applique_transtype<int8_t, uint16_t>(valeur);
+                }
+            }
+            if (type_cible->taille_octet == 4) {
+                if (type_source->taille_octet == 1) {
+                    return applique_transtype<int8_t, uint32_t>(valeur);
+                }
+                if (type_source->taille_octet == 2) {
+                    return applique_transtype<int16_t, uint32_t>(valeur);
+                }
+            }
+            if (type_source->taille_octet == 1) {
+                return applique_transtype<int8_t, uint64_t>(valeur);
+            }
+            if (type_source->taille_octet == 2) {
+                return applique_transtype<int16_t, uint64_t>(valeur);
+            }
+            if (type_source->taille_octet == 4) {
+                return applique_transtype<int32_t, uint64_t>(valeur);
+            }
+            break;
+        }
+        case TypeTranstypage::DIMINUE_NATUREL:
+        {
+            if (type_cible->taille_octet == 1) {
+                if (type_source->taille_octet == 2) {
+                    return applique_transtype<uint16_t, uint8_t>(valeur);
+                }
+                if (type_source->taille_octet == 4) {
+                    return applique_transtype<uint32_t, uint8_t>(valeur);
+                }
+                return applique_transtype<uint64_t, uint8_t>(valeur);
+            }
+            if (type_cible->taille_octet == 2) {
+                if (type_source->taille_octet == 4) {
+                    return applique_transtype<uint32_t, uint16_t>(valeur);
+                }
+                return applique_transtype<uint64_t, uint16_t>(valeur);
+            }
+            return applique_transtype<uint64_t, uint32_t>(valeur);
+        }
+        case TypeTranstypage::DIMINUE_RELATIF:
+        {
+            if (type_cible->taille_octet == 1) {
+                if (type_source->taille_octet == 2) {
+                    return applique_transtype<int16_t, int8_t>(valeur);
+                }
+                if (type_source->taille_octet == 4) {
+                    return applique_transtype<int32_t, int8_t>(valeur);
+                }
+                return applique_transtype<int64_t, int8_t>(valeur);
+            }
+            if (type_cible->taille_octet == 2) {
+                if (type_source->taille_octet == 4) {
+                    return applique_transtype<int32_t, int16_t>(valeur);
+                }
+                return applique_transtype<int64_t, int16_t>(valeur);
+            }
+            return applique_transtype<int64_t, int32_t>(valeur);
+        }
+        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
+        {
+            if (type_cible->taille_octet == 1) {
+                if (type_source->taille_octet == 2) {
+                    return applique_transtype<uint16_t, int8_t>(valeur);
+                }
+                if (type_source->taille_octet == 4) {
+                    return applique_transtype<uint32_t, int8_t>(valeur);
+                }
+                return applique_transtype<uint64_t, int8_t>(valeur);
+            }
+            if (type_cible->taille_octet == 2) {
+                if (type_source->taille_octet == 4) {
+                    return applique_transtype<uint32_t, int16_t>(valeur);
+                }
+                return applique_transtype<uint64_t, int16_t>(valeur);
+            }
+            return applique_transtype<uint64_t, int32_t>(valeur);
+        }
+        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
+        {
+            if (type_cible->taille_octet == 1) {
+                if (type_source->taille_octet == 2) {
+                    return applique_transtype<int16_t, uint8_t>(valeur);
+                }
+                if (type_source->taille_octet == 4) {
+                    return applique_transtype<int32_t, uint8_t>(valeur);
+                }
+                return applique_transtype<int64_t, uint8_t>(valeur);
+            }
+            if (type_cible->taille_octet == 2) {
+                if (type_source->taille_octet == 4) {
+                    return applique_transtype<int32_t, uint16_t>(valeur);
+                }
+                return applique_transtype<int64_t, uint16_t>(valeur);
+            }
+            return applique_transtype<int64_t, uint32_t>(valeur);
+        }
+        case TypeTranstypage::AUGMENTE_REEL:
+        case TypeTranstypage::DIMINUE_REEL:
+        case TypeTranstypage::POINTEUR_VERS_ENTIER:
+        case TypeTranstypage::ENTIER_VERS_POINTEUR:
+        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
+        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
+        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
+        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+        {
+            break;
+        }
+        case TypeTranstypage::BITS:
+        {
+            break;
+        }
+    }
+    return valeur;
+}
+
+static ValeurConstanteEntière donne_valeur_constante(AtomeConstanteEntière const *atome)
+{
+    auto ancienne_valeur = atome->valeur;
+    auto résultat = ValeurConstanteEntière{};
+
+    if (atome->type->est_type_entier_naturel()) {
+        if (atome->type->taille_octet == 1) {
+            résultat.nat8 = uint8_t(ancienne_valeur);
+            return résultat;
+        }
+
+        if (atome->type->taille_octet == 2) {
+            résultat.nat16 = uint16_t(ancienne_valeur);
+            return résultat;
+        }
+
+        if (atome->type->taille_octet == 4) {
+            résultat.nat32 = uint32_t(ancienne_valeur);
+            return résultat;
+        }
+
+        résultat.nat64 = ancienne_valeur;
+        return résultat;
+    }
+
+    if (atome->type->taille_octet == 1) {
+        résultat.rel8 = int8_t(ancienne_valeur);
+        return résultat;
+    }
+
+    if (atome->type->taille_octet == 2) {
+        résultat.rel16 = int16_t(ancienne_valeur);
+        return résultat;
+    }
+
+    if (atome->type->taille_octet == 4) {
+        résultat.rel32 = int32_t(ancienne_valeur);
+        return résultat;
+    }
+
+    résultat.rel64 = int64_t(ancienne_valeur);
+    return résultat;
+}
+
+static uint64_t donne_valeur_pour_constante(Type const *type, ValeurConstanteEntière valeur)
+{
+    if (type->est_type_entier_naturel()) {
+        if (type->taille_octet == 1) {
+            return uint64_t(valeur.nat8);
+        }
+        if (type->taille_octet == 2) {
+            return uint64_t(valeur.nat16);
+        }
+        if (type->taille_octet == 4) {
+            return uint64_t(valeur.nat32);
+        }
+        return valeur.nat64;
+    }
+    if (type->taille_octet == 1) {
+        return uint64_t(valeur.rel8);
+    }
+    if (type->taille_octet == 2) {
+        return uint64_t(valeur.rel16);
+    }
+    if (type->taille_octet == 4) {
+        return uint64_t(valeur.rel32);
+    }
+    return uint64_t(valeur.rel64);
+}
+
 Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
                                        Type const *type,
                                        Atome *valeur,
@@ -900,7 +1224,10 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
 
     if (valeur->est_constante_entière() && est_type_entier(type)) {
         auto valeur_entière = valeur->comme_constante_entière();
-        return crée_constante_nombre_entier(type, valeur_entière->valeur);
+        auto ancienne_valeur = donne_valeur_constante(valeur_entière);
+        auto nouvelle_valeur = applique_transtype(valeur_entière->type, type, op, ancienne_valeur);
+        return crée_constante_nombre_entier(type,
+                                            donne_valeur_pour_constante(type, nouvelle_valeur));
     }
 
     if (valeur->est_constante_réelle() && type->est_type_reel()) {
@@ -1220,6 +1547,7 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
 void CompilatriceRI::définis_fonction_courante(AtomeFonction *fonction_courante)
 {
     m_fonction_courante = fonction_courante;
+    m_label_après_controle = nullptr;
     m_pile.efface();
     m_constructrice.définis_fonction_courante(fonction_courante);
 }
@@ -2290,6 +2618,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto type_fonction = noeud->type->comme_type_fonction();
             auto type_pointeur = type_fonction->types_entrees[0];
             auto type_arg = type_pointeur->comme_type_pointeur()->type_pointe;
+            assert_rappel(type_arg->fonction_init, [&]() {
+                dbg() << "Aucune fonction init pour " << chaine_type(type_arg);
+                dbg() << erreur::imprime_site(*espace(), noeud);
+            });
             empile_valeur(m_constructrice.trouve_ou_insère_fonction(type_arg->fonction_init));
             break;
         }

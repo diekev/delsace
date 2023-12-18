@@ -571,8 +571,8 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         constructrice_ri.génère_ri_pour_noeud(unite->espace, noeud);
     }
 
-    if (noeud->est_corps_fonction()) {
-        auto entete = noeud->comme_corps_fonction()->entete;
+    auto entete = entete_fonction(noeud);
+    if (entete) {
         analyseuse_ri->analyse_ri(*unite->espace,
                                   constructrice_ri.donne_constructrice(),
                                   entete->atome->comme_fonction());

@@ -1187,6 +1187,11 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 return CodeRetourValidation::Erreur;
             }
 
+            /* À FAIRE : remplace ceci par une attente dans le gestionnaire. */
+            m_compilatrice.gestionnaire_code->requiers_initialisation_type(espace, type);
+            crée_entête_pour_initialisation_type(
+                type, m_compilatrice, m_tacheronne->assembleuse, m_compilatrice.typeuse);
+
             auto types_entrees = kuri::tablet<Type *, 6>(1);
             types_entrees[0] = m_compilatrice.typeuse.type_pointeur_pour(type);
 
