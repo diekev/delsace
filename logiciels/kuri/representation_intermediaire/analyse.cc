@@ -755,7 +755,8 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
  * Remplace les branches conditionnelles dont les cibles sont le même bloc par une branche
  * inconditionnelle.
  */
-void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
+static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
+                                       VisiteuseBlocs &visiteuse)
 {
     auto bloc_modifié = false;
 
