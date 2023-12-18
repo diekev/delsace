@@ -1009,7 +1009,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                     return enchaine(static_cast<int>(valeur_entière));
                 }
                 else if (type->taille_octet == 8) {
-                    return enchaine(valeur_entière, "L");
+                    return enchaine(int64_t(valeur_entière), "L");
                 }
             }
 
