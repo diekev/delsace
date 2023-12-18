@@ -725,7 +725,9 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
 {
     /* La fonction de création de contexte prend des adresses locales, mais elle n'est pas une
      * vraie fonction. */
-    if (fonction.decl && fonction.decl->ident == ID::crée_contexte) {
+    if (fonction.decl &&
+        (fonction.decl->ident == ID::crée_contexte ||
+         fonction.decl->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME))) {
         return true;
     }
 
@@ -890,6 +892,20 @@ static bool est_comparaison_ordonnée_naturel_zéro(InstructionOpBinaire const *
     return false;
 }
 
+static bool est_comparaison_adresse_fonction(InstructionOpBinaire const *op_binaire)
+{
+    auto gauche = op_binaire->valeur_gauche;
+    auto droite = op_binaire->valeur_droite;
+
+    /* À FAIRE : canonicalisation. */
+    if ((gauche->est_fonction() && est_constante_pointeur_nul(droite)) ||
+        (droite->est_fonction() && est_constante_pointeur_nul(gauche))) {
+        return true;
+    }
+
+    return false;
+}
+
 static bool détecte_opérateurs_binaires_suspicieux(EspaceDeTravail &espace,
                                                    FonctionEtBlocs const &fonction_et_blocs)
 {
@@ -901,6 +917,14 @@ static bool détecte_opérateurs_binaires_suspicieux(EspaceDeTravail &espace,
         POUR (bloc->instructions) {
             if (!it->est_op_binaire()) {
                 continue;
+            }
+
+            if (est_comparaison_adresse_fonction(it->comme_op_binaire())) {
+                espace.rapporte_erreur(it->site,
+                                       "Comparaison d'une adresse de fonction avec nul. La "
+                                       "comparaison est toujours vrai "
+                                       "et peut-être n'est pas ce que vous vouliez.");
+                return false;
             }
 
             if (est_comparaison_pointeur_nul(it->comme_op_binaire())) {
@@ -1705,6 +1729,10 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
                                    AtomeFonction *atome)
 {
     reinitialise();
+
+    if (atome->est_externe || atome->instructions.est_vide()) {
+        return;
+    }
 
     convertis_ssa(espace, atome, constructrice);
 
