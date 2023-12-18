@@ -722,7 +722,9 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
 {
     /* La fonction de création de contexte prend des adresses locales, mais elle n'est pas une
      * vraie fonction. */
-    if (fonction.decl && fonction.decl->ident == ID::crée_contexte) {
+    if (fonction.decl &&
+        (fonction.decl->ident == ID::crée_contexte ||
+         fonction.decl->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME))) {
         return true;
     }
 
@@ -1702,6 +1704,10 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
                                    AtomeFonction *atome)
 {
     reinitialise();
+
+    if (atome->est_externe || atome->instructions.est_vide()) {
+        return;
+    }
 
 #if 0
     POUR (atome->instructions) {
