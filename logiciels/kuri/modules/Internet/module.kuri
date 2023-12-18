@@ -179,8 +179,8 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     }
 
     si possède_ipv4 {
-        ipv6[6] = (ipv4[0] comme n16 << 8) | ipv4[1]
-        ipv6[7] = (ipv4[2] comme n16 << 8) | ipv4[3]
+        ipv6[6] = (ipv4[0] comme n16 << 8) | ipv4[1]
+        ipv6[7] = (ipv4[2] comme n16 << 8) | ipv4[3]
     }
 
     retourne ipv6

@@ -66,6 +66,54 @@ static bool transtypage_est_utile(InstructionTranstype const *transtype)
     return true;
 }
 
+/* Pour garantir que les déclarations des fonctions externes correspondent à ce qu'elles doivent
+ * être. */
+static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
+    NoeudDeclarationEnteteFonction const *entête, int index)
+{
+    if (!entête) {
+        return {};
+    }
+
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+        if (entête->ident->nom == "memcpy" && index == 1) {
+            return "const void *";
+        }
+        if (entête->ident->nom == "strlen" && index == 0) {
+            return "const char *";
+        }
+        if (entête->ident->nom == "execvp") {
+            if (index == 0) {
+                return "const char *";
+            }
+            if (index == 1) {
+                return "char * const *";
+            }
+        }
+        return {};
+    }
+
+    if (entête->ident == ID::__point_d_entree_systeme) {
+        if (index == 1) {
+            return "char **";
+        }
+
+        return {};
+    }
+
+    return {};
+}
+
+static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(Atome const *atome,
+                                                                             int index)
+{
+    if (!atome->est_fonction()) {
+        return {};
+    }
+
+    return type_paramètre_pour_fonction_clé(atome->comme_fonction()->decl, index);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -109,10 +157,6 @@ struct GénératriceCodeC {
 
     /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
     kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
-
-    /* Définis si la génération de code d'atome est pour l'initialisation d'un tableau fixe.
-     * Utilisé notamment pour ne pas imprimer les noms dans les structures constantes. */
-    bool pour_init_tableau = false;
 
     ModeGénérationCode mode_génération = ModeGénérationCode::CPP;
 
@@ -1116,7 +1160,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                     return enchaine(static_cast<int>(valeur_entière));
                 }
                 else if (type->taille_octet == 8) {
-                    return enchaine(valeur_entière, "L");
+                    return enchaine(int64_t(valeur_entière), "L");
                 }
             }
 
@@ -1143,7 +1187,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto tableau_valeur = structure->donne_atomes_membres();
             auto résultat = Enchaineuse();
 
-            auto virgule = "{ ";
+            auto virgule = "{{ ";
             // ceci car il peut n'y avoir qu'un seul membre de type tableau qui
             // n'est pas initialisé
             auto virgule_placee = false;
@@ -1152,7 +1196,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 résultat << virgule;
                 virgule_placee = true;
 
-                if (mode_génération == ModeGénérationCode::C && !pour_init_tableau) {
+                if (mode_génération == ModeGénérationCode::C) {
                     résultat << ".";
                     if (it.nom == ID::chaine_vide) {
                         résultat << "membre_invisible";
@@ -1162,16 +1206,18 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                     }
                     résultat << " = ";
                 }
+                résultat << " = ";
                 résultat << génère_code_pour_atome(tableau_valeur[index_it], os, pour_globale);
 
                 virgule = ", ";
             }
 
             if (!virgule_placee) {
-                résultat << "{ 0";
+                résultat << "{ 0 }";
             }
-
-            résultat << " }";
+            else {
+                résultat << " }}";
+            }
 
             auto chaine_constante = stockage_chn.ajoute_chaine_statique(
                 résultat.chaine_statique());
@@ -1226,7 +1272,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             }
 
             if (éléments.taille() == 0) {
-                résultat << "{}";
+                résultat << "{0}";
             }
             else {
                 résultat << " } }";
@@ -1268,16 +1314,12 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         case Atome::Genre::INITIALISATION_TABLEAU:
         {
             auto init_tableau = atome->comme_initialisation_tableau();
-
-            auto ancien_pour_init_tableau = pour_init_tableau;
-            pour_init_tableau = true;
             auto valeur = génère_code_pour_atome(init_tableau->valeur, os, pour_globale);
-            pour_init_tableau = ancien_pour_init_tableau;
 
             enchaineuse_tmp.réinitialise();
 
             /* Ne mettre qu'une seule fois la valeur suffit. */
-            enchaineuse_tmp << "{ " << valeur << " }";
+            enchaineuse_tmp << "{{ " << valeur << " }}";
 
             if (enchaineuse_tmp.nombre_tampons() > 1) {
                 auto chaine_résultat = enchaineuse_tmp.chaine();
@@ -1386,6 +1428,12 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 os << virgule;
                 if (est_init_contexte && index_it == 1) {
                     os << "(signed char **)";
+                }
+                else {
+                    auto type = type_paramètre_pour_fonction_clé(inst_appel->appele, index_it);
+                    if (type.has_value()) {
+                        os << "(" << *type << ")";
+                    }
                 }
                 os << it;
                 virgule = ", ";
@@ -1648,33 +1696,6 @@ static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *foncti
      * expression (pour désactiver le code), il faudra détecter ce cas dans la RI ou lors de la
      * validation sémantique et marquer les paramètres comme inutilisés. */
     return fonction->instructions.taille() == 2;
-}
-
-/* Pour garantir que les déclarations des fonctions externes correspondent à ce qu'elles doivent
- * être. */
-static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
-    NoeudDeclarationEnteteFonction const *entête, int index)
-{
-    if (!entête) {
-        return {};
-    }
-
-    if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
-        if (entête->ident->nom == "memcpy" && index == 1) {
-            return "const void *";
-        }
-        return {};
-    }
-
-    if (entête->ident == ID::__point_d_entree_systeme) {
-        if (index == 1) {
-            return "char **";
-        }
-
-        return {};
-    }
-
-    return {};
 }
 
 /* Pour une liste des attributs GCC pour les fonctions :

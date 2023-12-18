@@ -198,7 +198,9 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
      * lieu d'une chaine littérale à printf et al. */
     résultat.ajoute("-Wno-format-security");
 
-    résultat.ajoute("-Wuninitialized");
+    /* Les unions peuvent être perçues comme non-initialisées malgré l'assignation via un pointeur.
+     */
+    résultat.ajoute("-Wno-error=uninitialized");
     résultat.ajoute("-Wmissing-declarations");
 
     /* Arrête après une seule erreur. */
@@ -209,11 +211,25 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
      * un paramètre inutilisé. */
     résultat.ajoute("-Werror=unused-parameter");
 
-    // résultat.ajoute("-Wall");
-    // résultat.ajoute("-Wpedantic");
-    // résultat.ajoute("-Wextra");
-    // résultat.ajoute("-Winit-self");
-    // résultat.ajoute("-Werror");
+    résultat.ajoute("-Wno-error=unused-but-set-variable");
+    résultat.ajoute("-Wno-error=unused-label");
+    /* Peut arriver pour char*. */
+    résultat.ajoute("-Wno-error=pointer-sign");
+    /* Peut arriver dans les fonctions d'initialisation. */
+    résultat.ajoute("-Wno-error=address-of-packed-member");
+    /* Peut arriver pour l'assignation des unions. */
+    résultat.ajoute("-Wno-error=strict-aliasing");
+    /* Peut arriver pour les valeurs de retours si la fonction ne retourne jamais. */
+    résultat.ajoute("-Wno-error=unused-variable");
+    /* Peut arriver si une variable déclarée avec --- est conditionnellement assignée (mais le code
+     * est toujours correcte) (cf. parse_ipv6). */
+    résultat.ajoute("-Wno-error=maybe-uninitialized");
+
+    résultat.ajoute("-Wall");
+    résultat.ajoute("-Wpedantic");
+    résultat.ajoute("-Wextra");
+    résultat.ajoute("-Winit-self");
+    résultat.ajoute("-Werror");
 
     if (!options.protege_pile) {
         résultat.ajoute("-fno-stack-protector");
