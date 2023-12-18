@@ -10,10 +10,15 @@ foo :: fonc () -> rien
 
 }
 
+est_nul :: fonc (ptr: fonc()(rien)) -> bool
+{
+    retourne ptr == nul
+}
+
 principale :: fonc () -> z32
 {
     ptr := foo
-    saufsi (ptr != nul) {
+    si est_nul(ptr) {
         retourne 1
     }
     retourne 0

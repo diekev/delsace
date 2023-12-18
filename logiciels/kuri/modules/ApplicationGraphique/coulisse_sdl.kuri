@@ -41,7 +41,7 @@ crée_fenêtre_sdl :: fonc (args: *ArgumentsCréationFenêtre) -> Optionnel(*Fen
     }
 
     contexte_gl := SDL_GL_CreateContext(fenêtre_sdl)
-    si contexte == nul {
+    si contexte_gl == nul {
         SDL_DestroyWindow(fenêtre_sdl)
         imprime("Impossible de créer le contexte OpenGL !\n")
         retourne

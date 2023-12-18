@@ -84,7 +84,7 @@ est_ascii_espace_blanc :: fonc (point_de_code: n32) -> bool
 
 est_controle_C0 :: fonc (point_de_code: n32) -> bool
 {
-    retourne (0x0 <= point_de_code <= 0x1F)
+    retourne point_de_code <= 0x1F
 }
 
 est_controle_C0_ou_espace :: fonc (point_de_code: n32) -> bool
