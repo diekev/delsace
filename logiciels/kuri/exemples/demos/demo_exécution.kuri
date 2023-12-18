@@ -8,7 +8,7 @@ retourne_entier :: fonc () -> z32
 
 retourne_réel :: fonc () -> r32
 {
-    retourne 3.14159
+    retourne Constantes(r32).PI
 }
 
 retourne_chaine :: fonc () -> chaine
