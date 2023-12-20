@@ -72,119 +72,169 @@ static void imprime_information_atome(Atome const *atome, Enchaineuse &os)
 
 static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_operande)
 {
-    if (atome->genre_atome == Atome::Genre::GLOBALE) {
-        auto globale = atome->comme_globale();
-        if (globale->ident) {
-            os << "@" << globale->ident->nom;
-        }
-        else {
-            os << "@globale" << atome;
-        }
-
-        if (!pour_operande) {
-            os << " = globale " << chaine_type(type_dereference_pour(atome->type), false);
-
-            if (globale->initialisateur) {
-                os << ' ';
-                imprime_atome_ex(globale->initialisateur, os, true);
+    switch (atome->genre_atome) {
+        case Atome::Genre::GLOBALE:
+        {
+            auto globale = atome->comme_globale();
+            if (globale->ident) {
+                os << "@" << globale->ident->nom;
             }
-            os << '\n';
+            else {
+                os << "@globale" << atome;
+            }
+
+            if (!pour_operande) {
+                os << " = globale " << chaine_type(type_dereference_pour(atome->type), false);
+
+                if (globale->initialisateur) {
+                    os << ' ';
+                    imprime_atome_ex(globale->initialisateur, os, true);
+                }
+                os << '\n';
+            }
+            break;
         }
-    }
-    else if (atome->genre_atome == Atome::Genre::TRANSTYPE_CONSTANT) {
-        auto transtype_const = atome->comme_transtype_constant();
-        if (!pour_operande) {
-            os << "  ";
+        case Atome::Genre::TRANSTYPE_CONSTANT:
+        {
+            auto transtype_const = atome->comme_transtype_constant();
+            if (!pour_operande) {
+                os << "  ";
+            }
+            os << "transtype ";
+            imprime_atome_ex(transtype_const->valeur, os, true);
+            os << " vers " << chaine_type(transtype_const->type, false);
+
+            if (!pour_operande) {
+                os << '\n';
+            }
+            break;
         }
-        os << "transtype ";
-        imprime_atome_ex(transtype_const->valeur, os, true);
-        os << " vers " << chaine_type(transtype_const->type, false);
-
-        if (!pour_operande) {
-            os << '\n';
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        {
+            auto acces = static_cast<AccedeIndexConstant const *>(atome);
+            imprime_atome_ex(acces->accede, os, true);
+            os << '[' << acces->index << ']';
+            break;
         }
-    }
-    else if (atome->genre_atome == Atome::Genre::ACCÈS_INDEX_CONSTANT) {
-        auto acces = static_cast<AccedeIndexConstant const *>(atome);
-        imprime_atome_ex(acces->accede, os, true);
-        os << '[' << acces->index << ']';
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_BOOLÉENNE) {
-        os << atome->comme_constante_booléenne()->valeur;
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_TYPE) {
-        os << atome->comme_constante_type()->type_de_données->index_dans_table_types;
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_ENTIÈRE) {
-        os << atome->comme_constante_entière()->valeur;
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_RÉELLE) {
-        os << atome->comme_constante_réelle()->valeur;
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_NULLE) {
-        os << "nul";
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_CARACTÈRE) {
-        os << atome->comme_constante_caractère()->valeur;
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_TAILLE_DE) {
-        auto type_de_données = atome->comme_taille_de()->type_de_données;
-        os << "taille_de(" << chaine_type(type_de_données, false) << ')';
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_STRUCTURE) {
-        auto structure_const = atome->comme_constante_structure();
-        auto type = static_cast<TypeCompose const *>(atome->type);
-        auto atomes_membres = structure_const->donne_atomes_membres();
-
-        auto virgule = "{ ";
-
-        POUR_INDEX (type->donne_membres_pour_code_machine()) {
-            os << virgule;
-            os << it.nom->nom << " = ";
-            imprime_atome_ex(atomes_membres[index_it], os, true);
-            virgule = ", ";
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        {
+            os << atome->comme_constante_booléenne()->valeur;
+            break;
         }
-
-        os << " }";
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES) {
-        auto données = atome->comme_données_constantes();
-        auto tableau_données = données->donne_données();
-
-        auto virgule = "[ ";
-
-        POUR (tableau_données) {
-            auto octet = it;
-            os << virgule;
-            os << "0x";
-            os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-            os << dls::num::char_depuis_hex(octet & 0x0f);
-            virgule = ", ";
+        case Atome::Genre::CONSTANTE_TYPE:
+        {
+            os << atome->comme_constante_type()->type_de_données->index_dans_table_types;
+            break;
         }
-
-        os << ((tableau_données.taille() == 0) ? "[]" : " ]");
-    }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE_TABLEAU_FIXE) {
-        auto tableau_const = atome->comme_constante_tableau();
-        auto éléments = tableau_const->donne_atomes_éléments();
-
-        auto virgule = "[ ";
-
-        POUR (éléments) {
-            os << virgule;
-            imprime_atome_ex(it, os, true);
-            virgule = ", ";
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        {
+            os << atome->comme_constante_entière()->valeur;
+            break;
         }
+        case Atome::Genre::CONSTANTE_RÉELLE:
+        {
+            os << atome->comme_constante_réelle()->valeur;
+            break;
+        }
+        case Atome::Genre::CONSTANTE_NULLE:
+        {
+            os << "nul";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        {
+            os << atome->comme_constante_caractère()->valeur;
+            break;
+        }
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
+        {
+            auto type_de_données = atome->comme_taille_de()->type_de_données;
+            os << "taille_de(" << chaine_type(type_de_données, false) << ')';
+            break;
+        }
+        case Atome::Genre::CONSTANTE_STRUCTURE:
+        {
+            auto structure_const = atome->comme_constante_structure();
+            auto type = static_cast<TypeCompose const *>(atome->type);
+            auto atomes_membres = structure_const->donne_atomes_membres();
 
-        os << ((éléments.taille() == 0) ? "[]" : " ]");
-    }
-    else if (atome->genre_atome == Atome::Genre::FONCTION) {
-        auto atome_fonction = atome->comme_fonction();
-        os << atome_fonction->nom;
-    }
-    else {
-        auto inst_valeur = atome->comme_instruction();
-        os << "%" << inst_valeur->numero;
+            auto virgule = "{ ";
+
+            POUR_INDEX (type->donne_membres_pour_code_machine()) {
+                os << virgule;
+                os << it.nom->nom << " = ";
+                imprime_atome_ex(atomes_membres[index_it], os, true);
+                virgule = ", ";
+            }
+
+            os << " }";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
+        {
+            auto données = atome->comme_données_constantes();
+            auto tableau_données = données->donne_données();
+
+            auto virgule = "[ ";
+
+            POUR (tableau_données) {
+                auto octet = it;
+                os << virgule;
+                os << "0x";
+                os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+                os << dls::num::char_depuis_hex(octet & 0x0f);
+                virgule = ", ";
+            }
+
+            os << ((tableau_données.taille() == 0) ? "[]" : " ]");
+            break;
+        }
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
+        {
+            auto tableau_const = atome->comme_constante_tableau();
+            auto éléments = tableau_const->donne_atomes_éléments();
+
+            auto virgule = "[ ";
+
+            POUR (éléments) {
+                os << virgule;
+                imprime_atome_ex(it, os, true);
+                virgule = ", ";
+            }
+
+            os << ((éléments.taille() == 0) ? "[]" : " ]");
+            break;
+        }
+        case Atome::Genre::FONCTION:
+        {
+            auto atome_fonction = atome->comme_fonction();
+            os << atome_fonction->nom;
+            break;
+        }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            auto const init_tableau = atome->comme_initialisation_tableau();
+            os << " init_tableau ";
+            imprime_atome_ex(init_tableau->valeur, os, true);
+            break;
+        }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            auto const index_table = atome->comme_index_table_type();
+            os << " index_de(" << chaine_type(index_table->type_de_données) << ")";
+            break;
+        }
+        case Atome::Genre::NON_INITIALISATION:
+        {
+            os << chaine_type(atome->type) << " ---";
+            break;
+        }
+        case Atome::Genre::INSTRUCTION:
+        {
+            auto inst_valeur = atome->comme_instruction();
+            os << "%" << inst_valeur->numero;
+            break;
+        }
     }
 }
 
