@@ -261,6 +261,22 @@ const Type *InstructionAccedeIndex::donne_type_accédé() const
     return accede->type->comme_type_pointeur()->type_pointe;
 }
 
+kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type)
+{
+#define ENUMERE_TYPE_TRANSTYPAGE_EX(genre, ident)                                                 \
+    case TypeTranstypage::genre:                                                                  \
+    {                                                                                             \
+        return #ident;                                                                            \
+    }
+
+    switch (type) {
+        ENUMERE_TYPE_TRANSTYPAGE(ENUMERE_TYPE_TRANSTYPAGE_EX)
+    }
+
+#undef ENUMERE_TYPE_TRANSTYPAGE_EX
+    return "erreur";
+}
+
 InstructionTranstype::InstructionTranstype(NoeudExpression const *site_,
                                            Type const *type_,
                                            Atome *valeur_,
