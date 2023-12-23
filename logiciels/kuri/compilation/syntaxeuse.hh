@@ -114,6 +114,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
 
+    void rapporte_erreur_avec_site(NoeudExpression const *site, kuri::chaine_statique message);
+
     void requiers_typage(NoeudExpression *noeud);
 
     bool ignore_point_virgule_implicite();
