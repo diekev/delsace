@@ -1560,7 +1560,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
         {
             auto info_type = allocatrice_infos_types.infos_types_pointeurs.ajoute_element();
             info_type->genre = GenreInfoType::POINTEUR;
-            info_type->type_pointe = crée_info_type_pour(typeuse, type_dereference_pour(type));
+            info_type->type_pointe = crée_info_type_pour(typeuse, type_déréférencé_pour(type));
             info_type->taille_en_octet = type->taille_octet;
             info_type->est_reference = type->est_type_reference();
 
@@ -1991,7 +1991,7 @@ NoeudExpressionBinaire *AssembleuseArbre::crée_indexage(const Lexeme *lexeme,
     auto indexage = crée_noeud<GenreNoeud::EXPRESSION_INDEXAGE>(lexeme)->comme_indexage();
     indexage->operande_gauche = expr1;
     indexage->operande_droite = expr2;
-    indexage->type = type_dereference_pour(expr1->type);
+    indexage->type = type_déréférencé_pour(expr1->type);
     if (ignore_verification) {
         indexage->aide_generation_code = IGNORE_VERIFICATION;
     }
@@ -2242,7 +2242,7 @@ Type *donne_type_accédé_effectif(Type *type_accédé)
 {
     /* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
     while (type_accédé->est_type_pointeur() || type_accédé->est_type_reference()) {
-        type_accédé = type_dereference_pour(type_accédé);
+        type_accédé = type_déréférencé_pour(type_accédé);
     }
 
     if (type_accédé->est_type_opaque()) {

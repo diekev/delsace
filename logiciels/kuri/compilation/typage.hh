@@ -508,11 +508,11 @@ DEFINIS_OPERATEURS_DRAPEAU(OptionsImpressionType)
 
 kuri::chaine chaine_type(Type const *type, OptionsImpressionType options);
 
-Type *type_dereference_pour(Type const *type);
+Type *type_déréférencé_pour(Type const *type);
 
 bool est_type_entier(Type const *type);
 
-bool est_type_booleen_implicite(Type *type);
+bool est_type_booléen_implicite(Type *type);
 
 bool est_type_tableau_fixe(Type const *type);
 
@@ -522,7 +522,7 @@ bool est_pointeur_vers_tableau_fixe(Type const *type);
  * un type dérivé. */
 bool est_structure_info_type_défaut(GenreNoeud genre);
 
-void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire);
+void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t alignement_desire);
 
 /* Retourne le type à la racine d'une chaine potentielle de types opaques ou le type opacifié s'il
  * n'est pas lui-même un type opaque. */

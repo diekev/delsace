@@ -438,7 +438,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
                     auto type = ref_decl_var->type;
                     while (type->est_type_pointeur() || type->est_type_reference()) {
-                        type = type_dereference_pour(type);
+                        type = type_déréférencé_pour(type);
                     }
 
                     auto type_composé = type->comme_type_compose();

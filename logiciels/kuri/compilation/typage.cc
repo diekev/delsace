@@ -886,7 +886,7 @@ TypeUnion *Typeuse::union_anonyme(Lexeme const *lexeme,
     marque_polymorphique(type);
 
     if (!type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-        calcule_taille_type_compose(type, false, 0);
+        calcule_taille_type_composé(type, false, 0);
         crée_type_structure(*this, type, type->decalage_index);
     }
 
@@ -1619,7 +1619,7 @@ kuri::chaine chaine_type(const Type *type, bool ajoute_nom_paramètres_polymorph
     return chaine_type(type, options);
 }
 
-Type *type_dereference_pour(Type const *type)
+Type *type_déréférencé_pour(Type const *type)
 {
     if (type->est_type_pointeur()) {
         return type->comme_type_pointeur()->type_pointe;
@@ -1642,13 +1642,13 @@ Type *type_dereference_pour(Type const *type)
     }
 
     if (type->est_type_opaque()) {
-        return type_dereference_pour(type->comme_type_opaque()->type_opacifie);
+        return type_déréférencé_pour(type->comme_type_opaque()->type_opacifie);
     }
 
     return nullptr;
 }
 
-bool est_type_booleen_implicite(Type *type)
+bool est_type_booléen_implicite(Type *type)
 {
     return dls::outils::est_element(type->genre,
                                     GenreNoeud::BOOL,
@@ -1716,7 +1716,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
     type->taille_octet = decalage;
 }
 
-void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire)
+void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t alignement_desire)
 {
     if (type->est_type_union()) {
         auto type_union = type->comme_type_union();
@@ -1983,7 +1983,7 @@ int donne_profondeur_type(Type const *type)
 {
     auto profondeur_type = 1;
     auto type_courant = type;
-    while (Type *sous_type = type_dereference_pour(type_courant)) {
+    while (Type *sous_type = type_déréférencé_pour(type_courant)) {
         profondeur_type += 1;
         type_courant = sous_type;
     }

@@ -273,7 +273,7 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
 {
     auto type = expression->type;
     if (type->est_type_opaque()) {
-        if (est_type_booleen_implicite(type->comme_type_opaque()->type_opacifie)) {
+        if (est_type_booléen_implicite(type->comme_type_opaque()->type_opacifie)) {
             return true;
         }
     }
@@ -282,7 +282,7 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
         expression = expression->comme_parenthese()->expression;
     }
 
-    return est_type_booleen_implicite(type) ||
+    return est_type_booléen_implicite(type) ||
            expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
 }
 
@@ -587,7 +587,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             CHRONO_TYPAGE(m_stats_typage.opérateurs_unaire, OPERATEUR_UNAIRE__OPERATEUR_UNAIRE);
             if (type->est_type_reference()) {
-                type = type_dereference_pour(type);
+                type = type_déréférencé_pour(type);
                 crée_transtypage_implicite_au_besoin(
                     expr->operande, TransformationType(TypeTransformation::DEREFERENCE));
             }
@@ -648,7 +648,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             if (type_opérande->est_type_reference()) {
                 /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
                  * déréférencer. À FAIRE : ajout d'un transtypage référence -> pointeur */
-                type_opérande = type_dereference_pour(type_opérande);
+                type_opérande = type_déréférencé_pour(type_opérande);
             }
 
             prise_adresse->type = m_compilatrice.typeuse.type_pointeur_pour(type_opérande);
@@ -707,7 +707,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             auto type = opérande->type;
 
             if (type->est_type_reference()) {
-                type = type_dereference_pour(type);
+                type = type_déréférencé_pour(type);
                 crée_transtypage_implicite_au_besoin(
                     négation->opérande, TransformationType(TypeTransformation::DEREFERENCE));
             }
@@ -733,7 +733,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             if (type1->est_type_reference()) {
                 crée_transtypage_implicite_au_besoin(
                     expr->operande_gauche, TransformationType(TypeTransformation::DEREFERENCE));
-                type1 = type_dereference_pour(type1);
+                type1 = type_déréférencé_pour(type1);
             }
 
             // À FAIRE : vérifie qu'aucun opérateur ne soit définie sur le type opaque
@@ -745,13 +745,13 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 case GenreNoeud::VARIADIQUE:
                 case GenreNoeud::TABLEAU_DYNAMIQUE:
                 {
-                    expr->type = type_dereference_pour(type1);
+                    expr->type = type_déréférencé_pour(type1);
                     break;
                 }
                 case GenreNoeud::TABLEAU_FIXE:
                 {
                     auto type_tabl = type1->comme_type_tableau_fixe();
-                    expr->type = type_dereference_pour(type1);
+                    expr->type = type_déréférencé_pour(type1);
 
                     auto res = evalue_expression(m_compilatrice, enfant2->bloc_parent, enfant2);
 
@@ -771,7 +771,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 }
                 case GenreNoeud::POINTEUR:
                 {
-                    expr->type = type_dereference_pour(type1);
+                    expr->type = type_déréférencé_pour(type1);
                     break;
                 }
                 case GenreNoeud::CHAINE:
@@ -1490,7 +1490,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             // permet le déréférencement de pointeur, mais uniquement sur un niveau
             if (type_employe->est_type_pointeur() || type_employe->est_type_reference()) {
-                type_employe = type_dereference_pour(type_employe);
+                type_employe = type_déréférencé_pour(type_employe);
             }
 
             if (!type_employe->est_type_structure()) {
@@ -3925,7 +3925,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         assert(decl->est_externe);
     }
     else {
-        calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
+        calcule_taille_type_composé(type_compose, decl->est_compacte, decl->alignement_desire);
     }
 
     auto type_struct = type_compose->comme_type_structure();
@@ -4105,7 +4105,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
     /* Valide les types avant le calcul de la taille des types. */
     TENTE(valide_types_pour_calcule_taille_type(espace, type_compose));
 
-    calcule_taille_type_compose(type_union, false, 0);
+    calcule_taille_type_composé(type_union, false, 0);
 
     if (!decl->est_nonsure) {
         crée_type_structure(m_compilatrice.typeuse, type_union, type_union->decalage_index);
@@ -4904,7 +4904,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
             type_cible = m_compilatrice.typeuse.type_reference_pour(expression->type);
         }
         else if (transformation.type == TypeTransformation::DEREFERENCE) {
-            type_cible = type_dereference_pour(expression->type);
+            type_cible = type_déréférencé_pour(expression->type);
         }
         else if (transformation.type == TypeTransformation::CONSTRUIT_TABL_OCTET) {
             type_cible = TypeBase::TABL_OCTET;
@@ -5440,7 +5440,7 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
     if (type_variable_itérée->est_type_tableau_dynamique() ||
         type_variable_itérée->est_type_tableau_fixe() ||
         type_variable_itérée->est_type_variadique()) {
-        auto type_itérateur = type_dereference_pour(type_variable_itérée);
+        auto type_itérateur = type_déréférencé_pour(type_variable_itérée);
         auto type_index = TypeBase::Z64;
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
     }

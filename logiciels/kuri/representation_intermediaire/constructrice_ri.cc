@@ -73,7 +73,7 @@ static bool est_référence_compatible_pointeur(Type const *type_dest, Type cons
 static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
                                                       Type const *type_source)
 {
-    auto type_élément_dest = type_dereference_pour(type_dest);
+    auto type_élément_dest = type_déréférencé_pour(type_dest);
     if (type_élément_dest == type_source) {
         return true;
     }
@@ -624,7 +624,7 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
     });
 
     assert_rappel(type_dest_et_type_source_sont_compatibles(ou->type, valeur->type), [&]() {
-        auto type_élément_dest = type_dereference_pour(ou->type);
+        auto type_élément_dest = type_déréférencé_pour(ou->type);
         dbg() << "\tType élément destination : " << chaine_type(type_élément_dest) << " ("
               << type_élément_dest << ") "
               << ", type source : " << chaine_type(valeur->type) << " (" << valeur->type << ")\n"
@@ -655,7 +655,7 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *s
             dbg() << "Le genre de l'atome est : " << static_cast<int>(ou->genre_atome) << ".";
         });
 
-    auto type = type_dereference_pour(ou->type);
+    auto type = type_déréférencé_pour(ou->type);
     auto inst = m_charge.ajoute_element(site_, type, ou);
 
     if (!crée_seulement) {
@@ -828,7 +828,7 @@ InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression cons
                                       GenreNoeud::TABLEAU_FIXE)),
         [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
-    auto type = m_typeuse.type_pointeur_pour(type_dereference_pour(type_élément), false);
+    auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_élément), false);
 
     auto inst = m_acces_index.ajoute_element(site_, type, accédé, index);
     m_fonction_courante->instructions.ajoute(inst);
@@ -854,7 +854,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpressi
     assert_rappel(accédé->type->est_type_pointeur() || accédé->type->est_type_reference(),
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
-    auto type_élément = type_dereference_pour(accédé->type);
+    auto type_élément = type_déréférencé_pour(accédé->type);
     if (type_élément->est_type_opaque()) {
         type_élément = type_élément->comme_type_opaque()->type_opacifie;
     }
@@ -1282,7 +1282,7 @@ AccedeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante
             type_pointeur->type_pointe->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE),
         [=]() { dbg() << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'"; });
 
-    auto type = m_typeuse.type_pointeur_pour(type_dereference_pour(type_pointeur->type_pointe),
+    auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_pointeur->type_pointe),
                                              false);
 
     return m_accès_index_constant.ajoute_element(type, accédé, index);
@@ -3606,7 +3606,7 @@ void CompilatriceRI::génère_ri_pour_accès_membre(NoeudExpressionMembre const 
     auto pointeur_accede = depile_valeur();
 
     while (type_accede->est_type_pointeur() || type_accede->est_type_reference()) {
-        type_accede = type_dereference_pour(type_accede);
+        type_accede = type_déréférencé_pour(type_accede);
         pointeur_accede = m_constructrice.crée_charge_mem(noeud, pointeur_accede);
     }
 
@@ -3628,7 +3628,7 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
     auto type = noeud->accedee->type;
 
     while (type->est_type_pointeur() || type->est_type_reference()) {
-        type = type_dereference_pour(type);
+        type = type_déréférencé_pour(type);
         ptr_union = m_constructrice.crée_charge_mem(noeud, ptr_union);
     }
 
@@ -4016,7 +4016,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         case GenreNoeud::REFERENCE:
         case GenreNoeud::POINTEUR:
         {
-            auto type_deref = type_dereference_pour(type);
+            auto type_deref = type_déréférencé_pour(type);
 
             /* { membres basiques, type_pointé, est_référence } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
@@ -4223,7 +4223,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
-            auto type_deref = type_dereference_pour(type);
+            auto type_deref = type_déréférencé_pour(type);
             auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
                 m_compilatrice.typeuse.type_info_type_, false);
 
@@ -4721,7 +4721,7 @@ static MéthodeConstructionGlobale détermine_méthode_construction_globale(
             return MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR;
         }
 
-        auto const type_pointe = type_dereference_pour(expression->type);
+        auto const type_pointe = type_déréférencé_pour(expression->type);
 
         if (!peut_être_utilisée_pour_initialisation_constante_globale(expression)) {
             return MéthodeConstructionGlobale::NORMALE;

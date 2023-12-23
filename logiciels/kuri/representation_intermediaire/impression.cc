@@ -95,7 +95,7 @@ static void imprime_atome_ex(Atome const *atome,
                     imprime_atome_ex(globale->initialisateur, os, options, true);
                 }
                 else {
-                    os << chaine_type(type_dereference_pour(atome->type), options);
+                    os << chaine_type(type_déréférencé_pour(atome->type), options);
                 }
 
                 os << '\n';

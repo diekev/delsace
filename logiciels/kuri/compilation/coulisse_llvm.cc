@@ -558,7 +558,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         case GenreNoeud::REFERENCE:
         case GenreNoeud::POINTEUR:
         {
-            auto type_deref = type_dereference_pour(type);
+            auto type_deref = type_déréférencé_pour(type);
 
             // Les pointeurs vers rien (void) ne sont pas valides avec LLVM
             // @Incomplet : LLVM n'a pas de pointeur nul
@@ -615,7 +615,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         }
         case GenreNoeud::TABLEAU_FIXE:
         {
-            auto type_deref_llvm = convertis_type_llvm(type_dereference_pour(type));
+            auto type_deref_llvm = convertis_type_llvm(type_déréférencé_pour(type));
             auto const taille = type->comme_type_tableau_fixe()->taille;
 
             type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<uint64_t>(taille));
