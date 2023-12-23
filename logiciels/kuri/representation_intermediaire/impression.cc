@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/numerique.hh"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/typage.hh"
@@ -54,12 +52,32 @@ static void imprime_information_atome(Atome const *atome, Enchaineuse &os)
     return sortie.chaine();
 }
 
+static void imprime_nom_instruction(Instruction const *inst, Enchaineuse &os)
+{
+    if (inst->est_alloc()) {
+        auto alloc = inst->comme_alloc();
+        if (alloc->ident) {
+            os << "%" << alloc->ident->nom;
+            return;
+        }
+    }
+
+    os << "%" << inst->numero;
+}
+
 static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_operande)
 {
     switch (atome->genre_atome) {
         case Atome::Genre::GLOBALE:
         {
             auto globale = atome->comme_globale();
+            if (pour_operande) {
+                os << chaine_type(globale->type, false) << ' ';
+            }
+            else {
+                os << "globale ";
+            }
+
             if (globale->ident) {
                 os << "@" << globale->ident->nom;
             }
@@ -68,12 +86,15 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
             }
 
             if (!pour_operande) {
-                os << " = globale " << chaine_type(type_dereference_pour(atome->type), false);
+                os << " = ";
 
                 if (globale->initialisateur) {
-                    os << ' ';
                     imprime_atome_ex(globale->initialisateur, os, true);
                 }
+                else {
+                    os << chaine_type(type_dereference_pour(atome->type), false);
+                }
+
                 os << '\n';
             }
             break;
@@ -84,6 +105,8 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
             if (!pour_operande) {
                 os << "  ";
             }
+            os << chaine_type(atome->type, false) << " ";
+
             os << "transtype ";
             imprime_atome_ex(transtype_const->valeur, os, true);
             os << " vers " << chaine_type(transtype_const->type, false);
@@ -102,38 +125,50 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
         }
         case Atome::Genre::CONSTANTE_BOOLÉENNE:
         {
-            os << atome->comme_constante_booléenne()->valeur;
+            os << chaine_type(atome->type, false) << ' '
+               << atome->comme_constante_booléenne()->valeur;
             break;
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            os << atome->comme_constante_type()->type_de_données->index_dans_table_types;
+            os << chaine_type(atome->type, false) << ' '
+               << atome->comme_constante_type()->type_de_données->index_dans_table_types;
             break;
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
-            os << atome->comme_constante_entière()->valeur;
+            os << chaine_type(atome->type, false) << ' '
+               << atome->comme_constante_entière()->valeur;
             break;
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
-            os << atome->comme_constante_réelle()->valeur;
+            os << chaine_type(atome->type, false) << ' '
+               << atome->comme_constante_réelle()->valeur;
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:
         {
+            if (atome->type == TypeBase::PTR_NUL) {
+                os << "*nul" << ' ';
+            }
+            else {
+                os << chaine_type(atome->type, false) << ' ';
+            }
             os << "nul";
             break;
         }
         case Atome::Genre::CONSTANTE_CARACTÈRE:
         {
-            os << atome->comme_constante_caractère()->valeur;
+            os << chaine_type(atome->type, false) << ' '
+               << atome->comme_constante_caractère()->valeur;
             break;
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
             auto type_de_données = atome->comme_taille_de()->type_de_données;
-            os << "taille_de(" << chaine_type(type_de_données, false) << ')';
+            os << chaine_type(atome->type, false) << ' ' << "taille_de("
+               << chaine_type(type_de_données, false) << ')';
             break;
         }
         case Atome::Genre::CONSTANTE_STRUCTURE:
@@ -141,6 +176,10 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
             auto structure_const = atome->comme_constante_structure();
             auto type = static_cast<TypeCompose const *>(atome->type);
             auto atomes_membres = structure_const->donne_atomes_membres();
+
+            if (pour_operande) {
+                os << chaine_type(atome->type, false) << ' ';
+            }
 
             auto virgule = "{ ";
 
@@ -159,7 +198,8 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
             auto données = atome->comme_données_constantes();
             auto tableau_données = données->donne_données();
 
-            auto virgule = "[ ";
+            os << "données_constantes " << chaine_type(atome->type, false);
+            auto virgule = " [ ";
 
             POUR (tableau_données) {
                 auto octet = it;
@@ -178,6 +218,8 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
             auto tableau_const = atome->comme_constante_tableau();
             auto éléments = tableau_const->donne_atomes_éléments();
 
+            os << chaine_type(atome->type) << " ";
+
             auto virgule = "[ ";
 
             POUR (éléments) {
@@ -192,31 +234,38 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
         case Atome::Genre::FONCTION:
         {
             auto atome_fonction = atome->comme_fonction();
+
+            if (pour_operande) {
+                os << chaine_type(atome_fonction->type, false) << " ";
+            }
+
             os << atome_fonction->nom;
             break;
         }
         case Atome::Genre::INITIALISATION_TABLEAU:
         {
             auto const init_tableau = atome->comme_initialisation_tableau();
-            os << " init_tableau ";
+            os << chaine_type(atome->type, false) << " init_tableau ";
             imprime_atome_ex(init_tableau->valeur, os, true);
             break;
         }
         case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
         {
             auto const index_table = atome->comme_index_table_type();
-            os << " index_de(" << chaine_type(index_table->type_de_données) << ")";
+            os << chaine_type(atome->type, false) << " index_de("
+               << chaine_type(index_table->type_de_données, false) << ")";
             break;
         }
         case Atome::Genre::NON_INITIALISATION:
         {
-            os << chaine_type(atome->type) << " ---";
+            os << chaine_type(atome->type, false) << " ---";
             break;
         }
         case Atome::Genre::INSTRUCTION:
         {
             auto inst_valeur = atome->comme_instruction();
-            os << "%" << inst_valeur->numero;
+            os << chaine_type(inst_valeur->type, false) << ' ';
+            imprime_nom_instruction(inst_valeur, os);
             break;
         }
     }
@@ -229,28 +278,37 @@ static void imprime_atome_ex(Atome const *atome, Enchaineuse &os, bool pour_oper
     return sortie.chaine();
 }
 
+static void déclare_instruction(Instruction const *inst, Enchaineuse &os)
+{
+    if (inst->est_label()) {
+        return;
+    }
+
+    os << "  ";
+
+    if (!inst->type || inst->type->est_type_rien()) {
+        return;
+    }
+
+    imprime_nom_instruction(inst, os);
+    os << " = ";
+}
+
 static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
 {
+    déclare_instruction(inst, os);
+
     switch (inst->genre) {
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = inst->comme_alloc();
-            auto type_pointeur = inst->type->comme_type_pointeur();
-            os << "  alloue " << chaine_type(type_pointeur->type_pointe, false) << ' ';
-
-            if (alloc->ident != nullptr) {
-                os << alloc->ident->nom;
-            }
-            else {
-                os << "val" << inst->numero;
-            }
-
+            os << "alloue " << chaine_type(alloc->donne_type_alloué(), false);
             break;
         }
         case GenreInstruction::APPEL:
         {
             auto inst_appel = inst->comme_appel();
-            os << "  appel " << chaine_type(inst_appel->type, false) << ' ';
+            os << "appel ";
             imprime_atome_ex(inst_appel->appele, os, true);
 
             auto virgule = "(";
@@ -272,16 +330,16 @@ static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
         case GenreInstruction::BRANCHE:
         {
             auto inst_branche = inst->comme_branche();
-            os << "  branche %" << inst_branche->label->numero;
+            os << "branche %" << inst_branche->label->numero << '\n';
             break;
         }
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto inst_branche = inst->comme_branche_cond();
-            os << "  si ";
+            os << "si ";
             imprime_atome_ex(inst_branche->condition, os, true);
             os << " alors %" << inst_branche->label_si_vrai->numero << " sinon %"
-               << inst_branche->label_si_faux->numero;
+               << inst_branche->label_si_faux->numero << '\n';
             break;
         }
         case GenreInstruction::CHARGE_MEMOIRE:
@@ -289,7 +347,7 @@ static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
 
-            os << "  charge " << chaine_type(inst->type, false) << ' ';
+            os << "charge ";
             imprime_atome_ex(charge, os, true);
             break;
         }
@@ -298,9 +356,9 @@ static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
             auto inst_stocke = inst->comme_stocke_mem();
             auto ou = inst_stocke->ou;
 
-            os << "  stocke " << chaine_type(ou->type, false) << ' ';
+            os << "stocke ";
             imprime_atome_ex(ou, os, true);
-            os << ", " << chaine_type(inst_stocke->valeur->type, false) << ' ';
+            os << ", ";
             imprime_atome_ex(inst_stocke->valeur, os, true);
             break;
         }
@@ -313,16 +371,14 @@ static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
         case GenreInstruction::OPERATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
-            os << "  " << chaine_pour_genre_op(inst_un->op) << ' '
-               << chaine_type(inst_un->type, false) << ' ';
+            os << chaine_pour_genre_op(inst_un->op) << ' ';
             imprime_atome_ex(inst_un->valeur, os, true);
             break;
         }
         case GenreInstruction::OPERATION_BINAIRE:
         {
             auto inst_bin = inst->comme_op_binaire();
-            os << "  " << chaine_pour_genre_op(inst_bin->op) << ' '
-               << chaine_type(inst_bin->type, false) << ' ';
+            os << chaine_pour_genre_op(inst_bin->op) << ' ';
             imprime_atome_ex(inst_bin->valeur_gauche, os, true);
             os << ", ";
             imprime_atome_ex(inst_bin->valeur_droite, os, true);
@@ -331,20 +387,19 @@ static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
         case GenreInstruction::RETOUR:
         {
             auto inst_retour = inst->comme_retour();
-            os << "  retourne ";
+            os << "retourne";
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
-                os << chaine_type(atome->type, false);
                 os << ' ';
-
                 imprime_atome_ex(atome, os, true);
             }
+            os << '\n';
             break;
         }
         case GenreInstruction::ACCEDE_INDEX:
         {
             auto inst_acces = inst->comme_acces_index();
-            os << "  index " << chaine_type(inst_acces->type, false) << ' ';
+            os << "index ";
             imprime_atome_ex(inst_acces->accede, os, true);
             os << ", ";
             imprime_atome_ex(inst_acces->index, os, true);
@@ -353,7 +408,7 @@ static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
         case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto inst_acces = inst->comme_acces_membre();
-            os << "  membre " << chaine_type(inst_acces->type, false) << ' ';
+            os << "membre ";
             imprime_atome_ex(inst_acces->accede, os, true);
             os << ", " << inst_acces->index;
             break;
@@ -361,7 +416,7 @@ static void imprime_instruction_ex(Instruction const *inst, Enchaineuse &os)
         case GenreInstruction::TRANSTYPE:
         {
             auto inst_transtype = inst->comme_transtype();
-            os << "  " << chaine_pour_type_transtypage(inst_transtype->op) << " ";
+            os << chaine_pour_type_transtypage(inst_transtype->op) << " ";
             imprime_atome_ex(inst_transtype->valeur, os, true);
             os << " vers " << chaine_type(inst_transtype->type, false);
             break;
@@ -399,21 +454,10 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
                           bool surligne_inutilisees,
                           std::function<void(const Instruction &, Enchaineuse &)> rappel)
 {
-    using dls::num::nombre_de_chiffres;
-
     POUR (instructions) {
         if (surligne_inutilisees && !it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             os << "\033[0;31m";
         }
-
-        auto nombre_zero_avant_numero = nombre_de_chiffres(instructions.taille()) -
-                                        nombre_de_chiffres(it->numero);
-
-        for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
-            os << ' ';
-        }
-
-        os << "%" << it->numero << ' ';
 
         imprime_instruction_ex(it, os);
 
