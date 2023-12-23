@@ -2375,23 +2375,19 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
     while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
+        params.ajoute(param);
 
         if (param->est_declaration_variable()) {
             auto decl_var = param->comme_declaration_variable();
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
-            params.ajoute(decl_var);
 
             eu_declarations = true;
         }
         else if (param->est_empl()) {
             auto decl_var = param->comme_empl()->expression->comme_declaration_variable();
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
-            params.ajoute(param);
 
             eu_declarations = true;
-        }
-        else {
-            params.ajoute(param);
         }
 
         if (!apparie(GenreLexeme::VIRGULE)) {
