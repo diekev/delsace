@@ -7,6 +7,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"

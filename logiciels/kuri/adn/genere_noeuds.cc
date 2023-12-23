@@ -6,7 +6,6 @@
 
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/badge.hh"
-#include "biblinternes/outils/conditions.h"
 
 #include "parsage/base_syntaxeuse.hh"
 #include "parsage/gerante_chaine.hh"

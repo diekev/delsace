@@ -5,7 +5,6 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau_page.hh"
 

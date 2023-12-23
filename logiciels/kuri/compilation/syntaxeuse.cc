@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"

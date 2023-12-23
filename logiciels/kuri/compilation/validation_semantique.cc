@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include "biblinternes/outils/conditions.h"
+
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/canonicalisation.hh"
 #include "arbre_syntaxique/copieuse.hh"

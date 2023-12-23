@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/conditions.h"
-
 #include "structures/ensemble.hh"
 
 const IdentifiantADN &Type::accede_nom() const

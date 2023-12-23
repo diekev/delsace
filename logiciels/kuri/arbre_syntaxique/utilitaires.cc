@@ -6,7 +6,6 @@
 #include "noeud_expression.hh"
 
 #include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
 
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"

@@ -3,8 +3,6 @@
 
 #include "portee.hh"
 
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "espace_de_travail.hh"
 #include "parsage/modules.hh"

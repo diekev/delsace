@@ -4,6 +4,7 @@
 #include "typage.hh"
 
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include <algorithm>
 #include <iostream>

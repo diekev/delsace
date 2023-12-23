@@ -3,6 +3,8 @@
 
 #include "coulisse_llvm.hh"
 
+#include "biblinternes/outils/conditions.h"
+
 #include <iostream>
 
 #include "utilitaires/poule_de_taches.hh"
