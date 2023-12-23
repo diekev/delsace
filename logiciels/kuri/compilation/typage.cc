@@ -1218,7 +1218,7 @@ void marque_polymorphique(TypeFonction *type)
     // - une unité de compilation ne doit aller en RI tant qu'une de ses dépendances n'est pas
     // encore validée (requiers de se débarrasser du graphe et utiliser les unités comme « noeud »)
     // - la gestion des types polymorphiques est à revoir, notamment la manière ils sont stockés
-    // - nous ne devrions pas marquée comme polymorphique lors de la génération de RI
+    // - nous ne devrions pas marquer comme polymorphique lors de la génération de RI
     if (type->type_sortie &&
         type->type_sortie->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
