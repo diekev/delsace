@@ -1408,11 +1408,13 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         return;
     }
 
-    auto nh = donne_les_noms_de_la_hiérarchie(type->bloc_parent);
-    for (auto i = nh.taille() - 1; i >= 0; --i) {
-        if (nh[i]->nom) {
-            enchaineuse.ajoute(nh[i]->nom);
-            enchaineuse.ajoute(donne_séparateur_hiérarchie(options));
+    if (drapeau_est_actif(options, OptionsImpressionType::INCLUS_HIÉRARCHIE)) {
+        auto nh = donne_les_noms_de_la_hiérarchie(type->bloc_parent);
+        for (auto i = nh.taille() - 1; i >= 0; --i) {
+            if (nh[i]->nom) {
+                enchaineuse.ajoute(nh[i]->nom);
+                enchaineuse.ajoute(donne_séparateur_hiérarchie(options));
+            }
         }
     }
 

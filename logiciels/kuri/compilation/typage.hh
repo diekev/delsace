@@ -502,6 +502,7 @@ enum class OptionsImpressionType : uint32_t {
     NORMALISE_SÉPARATEUR_HIÉRARCHIE = (1u << 3),
     NORMALISE_PARENTHÈSE_FONCTION = (1u << 4),
     NORMALISE_SPÉCIFIANT_TYPE = (1u << 5),
+    INCLUS_HIÉRARCHIE = (1u << 6),
 };
 DEFINIS_OPERATEURS_DRAPEAU(OptionsImpressionType)
 
