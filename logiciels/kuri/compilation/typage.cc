@@ -1157,7 +1157,7 @@ static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
     return enchaineuse.chaine();
 }
 
-kuri::chaine const &donne_nom_portable(TypeUnion *type)
+kuri::chaine_statique donne_nom_portable(TypeUnion *type)
 {
     if (type->nom_portable_ != "") {
         return type->nom_portable_;
@@ -1167,7 +1167,7 @@ kuri::chaine const &donne_nom_portable(TypeUnion *type)
     return type->nom_portable_;
 }
 
-kuri::chaine const &donne_nom_portable(TypeEnum *type)
+kuri::chaine_statique donne_nom_portable(TypeEnum *type)
 {
     if (type->nom_portable_ != "") {
         return type->nom_portable_;
@@ -1177,7 +1177,7 @@ kuri::chaine const &donne_nom_portable(TypeEnum *type)
     return type->nom_portable_;
 }
 
-kuri::chaine const &donne_nom_portable(TypeOpaque *type)
+kuri::chaine_statique donne_nom_portable(TypeOpaque *type)
 {
     if (type->nom_portable_ != "") {
         return type->nom_portable_;
@@ -1187,7 +1187,7 @@ kuri::chaine const &donne_nom_portable(TypeOpaque *type)
     return type->nom_portable_;
 }
 
-kuri::chaine const &donne_nom_portable(TypeStructure *type)
+kuri::chaine_statique donne_nom_portable(TypeStructure *type)
 {
     if (type->nom_portable_ != "") {
         return type->nom_portable_;

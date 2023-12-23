@@ -19,7 +19,7 @@
 #include "typage.hh"
 #include "utilitaires/log.hh"
 
-static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique const &nom)
+static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom)
 {
     auto debut = nom.pointeur();
     auto fin = nom.pointeur() + nom.taille();
@@ -56,7 +56,7 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique con
     }
 }
 
-kuri::chaine_statique Broyeuse::broye_nom_simple(kuri::chaine_statique const &nom)
+kuri::chaine_statique Broyeuse::broye_nom_simple(kuri::chaine_statique nom)
 {
     stockage_temp.réinitialise();
     ::broye_nom_simple(stockage_temp, nom);

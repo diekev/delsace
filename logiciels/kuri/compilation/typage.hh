@@ -455,10 +455,10 @@ kuri::chaine_statique donne_nom_hiérarchique(TypeStructure *type);
 /** \name Accès aux noms portables des types.
  * \{ */
 
-kuri::chaine const &donne_nom_portable(TypeUnion *type);
-kuri::chaine const &donne_nom_portable(TypeEnum *type);
-kuri::chaine const &donne_nom_portable(TypeOpaque *type);
-kuri::chaine const &donne_nom_portable(TypeStructure *type);
+kuri::chaine_statique donne_nom_portable(TypeUnion *type);
+kuri::chaine_statique donne_nom_portable(TypeEnum *type);
+kuri::chaine_statique donne_nom_portable(TypeOpaque *type);
+kuri::chaine_statique donne_nom_portable(TypeStructure *type);
 
 /** \} */
 
