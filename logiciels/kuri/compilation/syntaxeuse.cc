@@ -2383,6 +2383,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
             analyse_annotations(decl_var->annotations);
             params.ajoute(param);
+
+            eu_declarations = true;
         }
         else {
             params.ajoute(param);
