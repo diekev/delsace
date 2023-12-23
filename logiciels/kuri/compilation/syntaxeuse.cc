@@ -651,7 +651,7 @@ void Syntaxeuse::analyse_une_chose()
             requiers_typage(noeud);
         }
         else {
-            m_unité->espace->rapporte_erreur(
+            rapporte_erreur_avec_site(
                 noeud,
                 "Expression invalide pour le contexte global. Le contexte global doit contenir "
                 "des déclarations ou des directives.");
@@ -1437,21 +1437,23 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             if (m_noeud_expression_virgule) {
                 POUR (m_noeud_expression_virgule->expressions) {
                     if (it->est_declaration_variable()) {
-                        m_unité->espace->rapporte_erreur(it,
-                                                         "Obtenu une déclaration de variable au "
-                                                         "sein d'une expression-virgule.");
+                        rapporte_erreur_avec_site(it,
+                                                  "Obtenu une déclaration de variable au "
+                                                  "sein d'une expression-virgule.");
                     }
 
                     if (!it->est_reference_declaration()) {
-                        m_unité->espace->rapporte_erreur(
+                        rapporte_erreur_avec_site(
                             it, "Expression inattendue dans l'expression virgule.");
                     }
                 }
 
                 auto decl = m_tacheronne.assembleuse->crée_declaration_variable(lexeme);
+                analyse_annotations(decl->annotations);
                 decl->valeur = m_noeud_expression_virgule;
                 decl->expression_type = analyse_expression(
                     donnees_precedence, racine_expression, lexeme_final);
+                analyse_annotations(decl->annotations);
 
                 if (!bloc_constantes_polymorphiques.est_vide()) {
                     decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
@@ -1470,6 +1472,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
                 }
                 analyse_directive_déclaration_variable(decl);
+                analyse_annotations(decl->annotations);
                 return decl;
             }
 
@@ -1486,14 +1489,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 return constante;
             }
 
-            m_unité->espace->rapporte_erreur(gauche,
-                                             "Expression inattendu à gauche du double-point");
+            rapporte_erreur_avec_site(gauche, "Expression inattendu à gauche du double-point");
             return nullptr;
         }
         case GenreLexeme::DECLARATION_VARIABLE:
         {
             if (gauche->est_declaration_variable()) {
-                m_unité->espace->rapporte_erreur(
+                rapporte_erreur_avec_site(
                     gauche, "Utilisation de « := » alors qu'un type fut déclaré avec « : »");
             }
 
@@ -1503,13 +1505,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 // détecte les expressions du style : a : z32, b := ... , a[0] := ..., etc.
                 POUR (noeud_virgule->expressions) {
                     if (it->est_declaration_variable()) {
-                        m_unité->espace->rapporte_erreur(
+                        rapporte_erreur_avec_site(
                             it, "Utilisation de « := » alors qu'un type fut déclaré avec « : ».");
                     }
 
                     if (!it->est_reference_declaration()) {
-                        m_unité->espace->rapporte_erreur(
-                            it, "Expression inattendue à gauche de « := »");
+                        rapporte_erreur_avec_site(it, "Expression inattendue à gauche de « := »");
                     }
 
                     auto decl = m_tacheronne.assembleuse->crée_declaration_variable(
@@ -1521,8 +1522,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 }
             }
             else if (!gauche->est_reference_declaration()) {
-                m_unité->espace->rapporte_erreur(gauche,
-                                                 "Expression inattendue à gauche de « := »");
+                rapporte_erreur_avec_site(gauche, "Expression inattendue à gauche de « := »");
             }
 
             consomme();
@@ -1534,6 +1534,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             noeud->valeur = gauche;
             noeud->expression = analyse_expression(
                 donnees_precedence, racine_expression, lexeme_final);
+            analyse_annotations(noeud->annotations);
 
             if (gauche->est_reference_declaration()) {
                 gauche->comme_reference_declaration()->declaration_referee = noeud;
@@ -1564,6 +1565,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 m_noeud_expression_virgule = nullptr;
 
                 analyse_directive_déclaration_variable(decl);
+                analyse_annotations(decl->annotations);
 
                 return decl;
             }
@@ -1574,7 +1576,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 // détecte les expressions du style : a : z32, b = ...
                 POUR (noeud_virgule->expressions) {
                     if (it->est_declaration_variable()) {
-                        m_unité->espace->rapporte_erreur(
+                        rapporte_erreur_avec_site(
                             it,
                             "Obtenu une déclaration de variable dans l'expression séparée par "
                             "virgule à gauche d'une assignation. Les variables doivent être "
@@ -2370,23 +2372,19 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
     while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
+        params.ajoute(param);
 
         if (param->est_declaration_variable()) {
             auto decl_var = param->comme_declaration_variable();
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
-            params.ajoute(decl_var);
 
             eu_declarations = true;
-
-            analyse_annotations(decl_var->annotations);
         }
         else if (param->est_empl()) {
             auto decl_var = param->comme_empl()->expression->comme_declaration_variable();
-            analyse_annotations(decl_var->annotations);
-            params.ajoute(param);
-        }
-        else {
-            params.ajoute(param);
+            decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
+
+            eu_declarations = true;
         }
 
         if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2410,9 +2408,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         if (eu_declarations) {
             POUR (noeud->params) {
                 if (it->est_declaration_variable()) {
-                    m_unité->espace->rapporte_erreur(it,
-                                                     "Obtenu la déclaration d'une variable dans "
-                                                     "la déclaration d'un type de fonction");
+                    rapporte_erreur_avec_site(it,
+                                              "Obtenu la déclaration d'une variable dans "
+                                              "la déclaration d'un type de fonction");
                 }
             }
         }
@@ -2694,7 +2692,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
 
         if (!param->est_declaration_variable()) {
-            m_unité->espace->rapporte_erreur(
+            rapporte_erreur_avec_site(
                 param, "Expression inattendue dans la déclaration des paramètres de l'opérateur");
         }
 
@@ -2712,8 +2710,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     copie_tablet_tableau(params, noeud->params);
 
     if (noeud->params.taille() > 2) {
-        m_unité->espace->rapporte_erreur(
-            noeud, "La surcharge d'opérateur ne peut prendre au plus 2 paramètres");
+        rapporte_erreur_avec_site(noeud,
+                                  "La surcharge d'opérateur ne peut prendre au plus 2 paramètres");
     }
     else if (noeud->params.taille() == 1) {
         if (genre_operateur == GenreLexeme::PLUS) {
@@ -3025,9 +3023,9 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
             {}, GenreLexeme::PARENTHESE_OUVRANTE, GenreLexeme::VIRGULE);
 
         if (!expression->est_declaration_constante()) {
-            m_unité->espace->rapporte_erreur(expression,
-                                             "Attendu une déclaration constante dans les "
-                                             "paramètres polymorphiques de la structure");
+            rapporte_erreur_avec_site(expression,
+                                      "Attendu une déclaration constante dans les "
+                                      "paramètres polymorphiques de la structure");
         }
 
         if (!apparie(GenreLexeme::VIRGULE)) {
@@ -3089,13 +3087,12 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDeclarationC
         auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
         if (!expression_est_valide_pour_bloc_structure(noeud)) {
-            m_unité->espace->rapporte_erreur(noeud,
-                                             "Expression invalide pour le bloc de la structure");
+            rapporte_erreur_avec_site(noeud, "Expression invalide pour le bloc de la structure");
         }
 
         if (noeud->est_reference_declaration()) {
             if (decl_struct->est_type_union() && decl_struct->comme_type_union()->est_nonsure) {
-                m_unité->espace->rapporte_erreur(
+                rapporte_erreur_avec_site(
                     noeud, "Seules les unions sûres peuvent avoir des déclarations sans type");
             }
 
@@ -3109,8 +3106,6 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDeclarationC
         }
 
         if (noeud->est_declaration_variable()) {
-            auto decl_membre = noeud->comme_declaration_variable();
-            analyse_annotations(decl_membre->annotations);
             noeud->drapeaux |= DrapeauxNoeud::EST_MEMBRE_STRUCTURE;
         }
 
@@ -3135,6 +3130,17 @@ void Syntaxeuse::gere_erreur_rapportee(const kuri::chaine &message_erreur)
         SiteSource::cree(m_fichier, lexeme_courant()), message_erreur, erreur::Genre::SYNTAXAGE);
     /* Avance le curseur pour ne pas être bloqué. */
     consomme();
+}
+
+void Syntaxeuse::rapporte_erreur_avec_site(const NoeudExpression *site,
+                                           kuri::chaine_statique message)
+{
+    if (possède_erreur()) {
+        return;
+    }
+
+    m_unité->espace->rapporte_erreur(site, message, erreur::Genre::SYNTAXAGE);
+    m_possède_erreur = true;
 }
 
 void Syntaxeuse::requiers_typage(NoeudExpression *noeud)
