@@ -2377,11 +2377,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             params.ajoute(decl_var);
 
             eu_declarations = true;
-
-            analyse_annotations(decl_var->annotations);
         }
         else if (param->est_empl()) {
             auto decl_var = param->comme_empl()->expression->comme_declaration_variable();
+            decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
             analyse_annotations(decl_var->annotations);
             params.ajoute(param);
         }
