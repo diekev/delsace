@@ -78,6 +78,32 @@ int AtomeFonction::nombre_d_instructions_avec_entrées_sorties() const
     return résultat;
 }
 
+int32_t AtomeFonction::numérote_instructions() const
+{
+    int32_t résultat = 0;
+
+    POUR (params_entrees) {
+        it->numero = résultat++;
+    }
+
+    if (!param_sortie->type->est_type_rien()) {
+        param_sortie->numero = résultat++;
+
+        if (decl && decl->params_sorties.taille() > 1) {
+            POUR (decl->params_sorties) {
+                auto inst = it->comme_declaration_variable()->atome->comme_instruction();
+                inst->numero = résultat++;
+            }
+        }
+    }
+
+    POUR (instructions) {
+        it->numero = résultat++;
+    }
+
+    return résultat;
+}
+
 InstructionAppel::InstructionAppel(NoeudExpression const *site_, Atome *appele_)
     : InstructionAppel(site_)
 {

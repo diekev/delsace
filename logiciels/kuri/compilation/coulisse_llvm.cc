@@ -1372,7 +1372,7 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
 
     m_fonction_courante = fonction;
 
-    table_valeurs.redimensionne(numérote_instructions(*atome_fonc));
+    table_valeurs.redimensionne(atome_fonc->numérote_instructions());
     table_blocs.efface();
 
 #ifndef NDEBUG

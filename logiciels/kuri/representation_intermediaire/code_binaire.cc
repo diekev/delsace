@@ -1350,7 +1350,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     chunk.émets_profilage = émets_profilage;
 
     m_index_locales.redimensionne(fonction->nombre_d_instructions_avec_entrées_sorties());
-    numérote_instructions(*fonction);
+    fonction->numérote_instructions();
 
     POUR (fonction->params_entrees) {
         m_index_locales[it->numero] = chunk.ajoute_locale(it);
