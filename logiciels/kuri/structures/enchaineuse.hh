@@ -9,6 +9,8 @@
 #include "structures/chaine.hh"
 #include "structures/chaine_statique.hh"
 
+#include "utilitaires/macros.hh"
+
 struct Enchaineuse {
     static constexpr auto TAILLE_TAMPON = 16 * 1024;
 
