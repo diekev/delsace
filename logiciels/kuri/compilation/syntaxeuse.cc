@@ -20,6 +20,8 @@
 #include "ipa.hh"
 #include "numerique.hh"
 #include "typage.hh"
+
+#include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"
 
 #include "plateforme/windows.h"
@@ -2314,9 +2316,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
     return noeud_decl;
 }
 
-// Le macro DIFFERE perturbe le GenreLexem::DIFFERE...
-#include "biblinternes/outils/garde_portee.h"
-
 NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 {
     auto lexeme_mot_cle = lexeme_courant();
@@ -2348,7 +2347,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, noeud);
 
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
-    DIFFERE {
+    SUR_SORTIE_PORTEE {
         auto bloc_constantes = bloc_constantes_polymorphiques.depile();
         if (bloc_constantes->nombre_de_membres() != 0) {
             noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
@@ -3014,7 +3013,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
     noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), nullptr);
 
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
-    DIFFERE {
+    SUR_SORTIE_PORTEE {
         auto bloc_constantes = bloc_constantes_polymorphiques.depile();
         if (bloc_constantes->nombre_de_membres() != 0) {
             noeud->est_polymorphe = true;
