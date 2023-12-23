@@ -723,6 +723,8 @@ enum TypeTranstypage {
 #undef ENUMERE_TYPE_TRANSTYPAGE_EX
 };
 
+kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type);
+
 struct InstructionTranstype : public Instruction {
     explicit InstructionTranstype(NoeudExpression const *site_)
     {
