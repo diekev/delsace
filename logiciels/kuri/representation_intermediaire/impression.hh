@@ -20,8 +20,6 @@ struct tableau;
 
 [[nodiscard]] kuri::chaine imprime_atome(Atome const *atome);
 
-int numérote_instructions(AtomeFonction const &fonction);
-
 void imprime_fonction(AtomeFonction const *atome_fonc,
                       Enchaineuse &sortie,
                       bool surligne_inutilisees = false,
