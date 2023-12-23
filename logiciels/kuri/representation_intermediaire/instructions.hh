@@ -438,6 +438,8 @@ struct AtomeFonction : public AtomeConstante {
 
     int nombre_d_instructions_avec_entrées_sorties() const;
 
+    int32_t numérote_instructions() const;
+
     EMPECHE_COPIE(AtomeFonction);
 };
 

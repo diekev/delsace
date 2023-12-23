@@ -1033,7 +1033,7 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
         return true;
     }
 
-    auto const taille_sources = numérote_instructions(fonction);
+    auto const taille_sources = fonction.numérote_instructions();
 
     /* Pour chaque instruction, stocke la source de l'adresse. */
     kuri::tableau<SourceAdresseAtome> sources(taille_sources);
