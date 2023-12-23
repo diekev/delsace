@@ -1449,9 +1449,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 }
 
                 auto decl = m_tacheronne.assembleuse->crée_declaration_variable(lexeme);
+                analyse_annotations(decl->annotations);
                 decl->valeur = m_noeud_expression_virgule;
                 decl->expression_type = analyse_expression(
                     donnees_precedence, racine_expression, lexeme_final);
+                analyse_annotations(decl->annotations);
 
                 if (!bloc_constantes_polymorphiques.est_vide()) {
                     decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
@@ -1470,6 +1472,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
                 }
                 analyse_directive_déclaration_variable(decl);
+                analyse_annotations(decl->annotations);
                 return decl;
             }
 
@@ -1534,6 +1537,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             noeud->valeur = gauche;
             noeud->expression = analyse_expression(
                 donnees_precedence, racine_expression, lexeme_final);
+            analyse_annotations(noeud->annotations);
 
             if (gauche->est_reference_declaration()) {
                 gauche->comme_reference_declaration()->declaration_referee = noeud;
@@ -1564,6 +1568,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 m_noeud_expression_virgule = nullptr;
 
                 analyse_directive_déclaration_variable(decl);
+                analyse_annotations(decl->annotations);
 
                 return decl;
             }
@@ -2381,7 +2386,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         else if (param->est_empl()) {
             auto decl_var = param->comme_empl()->expression->comme_declaration_variable();
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
-            analyse_annotations(decl_var->annotations);
             params.ajoute(param);
 
             eu_declarations = true;
@@ -3110,8 +3114,6 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDeclarationC
         }
 
         if (noeud->est_declaration_variable()) {
-            auto decl_membre = noeud->comme_declaration_variable();
-            analyse_annotations(decl_membre->annotations);
             noeud->drapeaux |= DrapeauxNoeud::EST_MEMBRE_STRUCTURE;
         }
 
