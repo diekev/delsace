@@ -1274,48 +1274,146 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
 
 /* ************************************************************************** */
 
+struct ParenthèseParamètres {
+    kuri::chaine_statique début{};
+    kuri::chaine_statique fin{};
+};
+
+static ParenthèseParamètres donne_parenthèses_paramètres_polymorphiques(
+    OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_PARENTHÈSE_PARAMÈTRE)) {
+        return {"_", ""};
+    }
+    return {"(", ")"};
+}
+
+static ParenthèseParamètres donne_parenthèses_fonction(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_PARENTHÈSE_FONCTION)) {
+        return {"_", ""};
+    }
+    return {"(", ")"};
+}
+
+static kuri::chaine_statique donne_séparateur_paramètres_fonction(
+    OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_PARENTHÈSE_FONCTION)) {
+        return "_";
+    }
+    return ", ";
+}
+
+static kuri::chaine_statique donne_séparateur_hiérarchie(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SÉPARATEUR_HIÉRARCHIE)) {
+        return "_";
+    }
+    return ".";
+}
+
+static kuri::chaine_statique donne_séparateur_paramètres(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_PARENTHÈSE_PARAMÈTRE)) {
+        return "_";
+    }
+    return ", ";
+}
+
+static kuri::chaine_statique donne_spécifiant_pointeur(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
+        return "KP";
+    }
+    return "*";
+}
+
+static kuri::chaine_statique donne_spécifiant_référence(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
+        return "KR";
+    }
+    return "&";
+}
+
+static kuri::chaine_statique donne_spécifiant_variadique(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
+        return "Kv";
+    }
+    return "...";
+}
+
+static ParenthèseParamètres donne_spécifiant_tableau(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
+        return {"KT", "_"};
+    }
+    return {"[", "]"};
+}
+
 static void chaine_type_structure(Enchaineuse &enchaineuse,
                                   const NoeudDeclarationClasse *decl,
-                                  bool ajoute_nom_paramètres_polymorphiques)
+                                  OptionsImpressionType options)
 {
     enchaineuse << decl->ident->nom;
-    const char *virgule = "(";
+
+    auto parenthèses = donne_parenthèses_paramètres_polymorphiques(options);
+
+    auto virgule = parenthèses.début;
     if (decl->est_monomorphisation) {
         POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
             enchaineuse << virgule;
 
-            if (ajoute_nom_paramètres_polymorphiques) {
+            if (drapeau_est_actif(options,
+                                  OptionsImpressionType::AJOUTE_PARAMÈTRES_POLYMORPHIQUE)) {
                 enchaineuse << it->ident->nom << ": ";
             }
 
             if (it->type->est_type_type_de_donnees()) {
-                enchaineuse << chaine_type(it->type->comme_type_type_de_donnees()->type_connu);
+                auto nouvelles_options = options;
+                if (drapeau_est_actif(options,
+                                      OptionsImpressionType::NORMALISE_PARENTHÈSE_PARAMÈTRE)) {
+                    nouvelles_options |= OptionsImpressionType::NORMALISE_PARENTHÈSE_FONCTION;
+                    nouvelles_options |= OptionsImpressionType::NORMALISE_SÉPARATEUR_HIÉRARCHIE;
+                    nouvelles_options |= OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE;
+                }
+
+                enchaineuse << chaine_type(it->type->comme_type_type_de_donnees()->type_connu,
+                                           nouvelles_options);
             }
             else {
                 enchaineuse << it->comme_declaration_constante()->valeur_expression;
             }
 
-            virgule = ", ";
+            virgule = donne_séparateur_paramètres(options);
         }
-        enchaineuse << ')';
+        enchaineuse << parenthèses.fin;
     }
     else if (decl->est_polymorphe) {
         POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
             enchaineuse << virgule;
             enchaineuse << '$' << it->ident->nom;
-            virgule = ", ";
+            virgule = donne_séparateur_paramètres(options);
         }
-        enchaineuse << ')';
+        enchaineuse << parenthèses.fin;
     }
 }
 
-static void chaine_type(Enchaineuse &enchaineuse,
-                        const Type *type,
-                        bool ajoute_nom_paramètres_polymorphiques)
+static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpressionType options)
 {
     if (type == nullptr) {
         enchaineuse.ajoute("nul");
         return;
+    }
+
+    auto nh = donne_les_noms_de_la_hiérarchie(type->bloc_parent);
+    for (auto i = nh.taille() - 1; i >= 0; --i) {
+        if (nh[i]->nom) {
+            enchaineuse.ajoute(nh[i]->nom);
+            enchaineuse.ajoute(donne_séparateur_hiérarchie(options));
+        }
     }
 
     switch (type->genre) {
@@ -1334,10 +1432,9 @@ static void chaine_type(Enchaineuse &enchaineuse,
         }
         case GenreNoeud::REFERENCE:
         {
-            enchaineuse.ajoute("&");
-            chaine_type(enchaineuse,
-                        static_cast<TypeReference const *>(type)->type_pointe,
-                        ajoute_nom_paramètres_polymorphiques);
+            enchaineuse.ajoute(donne_spécifiant_référence(options));
+            chaine_type(
+                enchaineuse, static_cast<TypeReference const *>(type)->type_pointe, options);
             return;
         }
         case GenreNoeud::POINTEUR:
@@ -1347,8 +1444,8 @@ static void chaine_type(Enchaineuse &enchaineuse,
                 enchaineuse.ajoute("type_de(nul)");
             }
             else {
-                enchaineuse.ajoute("*");
-                chaine_type(enchaineuse, type_pointe, ajoute_nom_paramètres_polymorphiques);
+                enchaineuse.ajoute(donne_spécifiant_pointeur(options));
+                chaine_type(enchaineuse, type_pointe, options);
             }
             return;
         }
@@ -1361,7 +1458,7 @@ static void chaine_type(Enchaineuse &enchaineuse,
                 return;
             }
 
-            chaine_type_structure(enchaineuse, type_union, ajoute_nom_paramètres_polymorphiques);
+            chaine_type_structure(enchaineuse, type_union, options);
             return;
         }
         case GenreNoeud::DECLARATION_STRUCTURE:
@@ -1373,35 +1470,34 @@ static void chaine_type(Enchaineuse &enchaineuse,
                 return;
             }
 
-            chaine_type_structure(
-                enchaineuse, type_structure, ajoute_nom_paramètres_polymorphiques);
+            chaine_type_structure(enchaineuse, type_structure, options);
             return;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
-            enchaineuse.ajoute("[]");
+            auto parenthèse = donne_spécifiant_tableau(options);
+            enchaineuse << parenthèse.début << parenthèse.fin;
             chaine_type(enchaineuse,
                         static_cast<TypeTableauDynamique const *>(type)->type_pointe,
-                        ajoute_nom_paramètres_polymorphiques);
+                        options);
             return;
         }
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_tabl = static_cast<TypeTableauFixe const *>(type);
 
-            enchaineuse << "[" << type_tabl->taille << "]";
-            chaine_type(enchaineuse, type_tabl->type_pointe, ajoute_nom_paramètres_polymorphiques);
+            auto parenthèse = donne_spécifiant_tableau(options);
+            enchaineuse << parenthèse.début << type_tabl->taille << parenthèse.fin;
+            chaine_type(enchaineuse, type_tabl->type_pointe, options);
             return;
         }
         case GenreNoeud::VARIADIQUE:
         {
             auto type_variadique = static_cast<TypeVariadique const *>(type);
-            enchaineuse << "...";
+            enchaineuse << donne_spécifiant_variadique(options);
             /* N'imprime rien pour les types variadiques externes. */
             if (type_variadique->type_pointe) {
-                chaine_type(enchaineuse,
-                            type_variadique->type_pointe,
-                            ajoute_nom_paramètres_polymorphiques);
+                chaine_type(enchaineuse, type_variadique->type_pointe, options);
             }
             return;
         }
@@ -1410,23 +1506,32 @@ static void chaine_type(Enchaineuse &enchaineuse,
             auto type_fonc = static_cast<TypeFonction const *>(type);
 
             enchaineuse << "fonc";
+            auto parenthèses = donne_parenthèses_fonction(options);
 
-            auto virgule = '(';
+            auto virgule = parenthèses.début;
 
             POUR (type_fonc->types_entrees) {
                 enchaineuse << virgule;
-                chaine_type(enchaineuse, it, ajoute_nom_paramètres_polymorphiques);
-                virgule = ',';
+                chaine_type(enchaineuse, it, options);
+                virgule = donne_séparateur_paramètres_fonction(options);
             }
 
             if (type_fonc->types_entrees.est_vide()) {
                 enchaineuse << virgule;
             }
-            enchaineuse << ')';
+            enchaineuse << parenthèses.fin;
 
-            enchaineuse << '(';
-            chaine_type(enchaineuse, type_fonc->type_sortie, ajoute_nom_paramètres_polymorphiques);
-            enchaineuse << ')';
+            auto const retourne_tuple = type_fonc->type_sortie->est_type_tuple();
+
+            if (!retourne_tuple) {
+                enchaineuse << parenthèses.début;
+            }
+
+            chaine_type(enchaineuse, type_fonc->type_sortie, options);
+
+            if (!retourne_tuple) {
+                enchaineuse << parenthèses.fin;
+            }
             return;
         }
         case GenreNoeud::DECLARATION_ENUM:
@@ -1456,10 +1561,10 @@ static void chaine_type(Enchaineuse &enchaineuse,
             auto type_opaque = static_cast<TypeOpaque const *>(type);
             enchaineuse << static_cast<TypeOpaque const *>(type)->ident->nom;
 
-            if (ajoute_nom_paramètres_polymorphiques) {
+            if (drapeau_est_actif(options,
+                                  OptionsImpressionType::AJOUTE_PARAMÈTRES_POLYMORPHIQUE)) {
                 enchaineuse << "(";
-                chaine_type(
-                    enchaineuse, type_opaque->type_opacifie, ajoute_nom_paramètres_polymorphiques);
+                chaine_type(enchaineuse, type_opaque->type_opacifie, options);
                 enchaineuse << ")";
             }
             return;
@@ -1467,16 +1572,14 @@ static void chaine_type(Enchaineuse &enchaineuse,
         case GenreNoeud::TUPLE:
         {
             auto type_tuple = static_cast<TypeTuple const *>(type);
-            enchaineuse << "tuple ";
-
-            auto virgule = '(';
+            auto virgule = "(";
             POUR (type_tuple->membres) {
                 enchaineuse << virgule;
-                chaine_type(enchaineuse, it.type, ajoute_nom_paramètres_polymorphiques);
-                virgule = ',';
+                chaine_type(enchaineuse, it.type, options);
+                virgule = ", ";
             }
 
-            enchaineuse << ')';
+            enchaineuse << ")";
             return;
         }
         default:
@@ -1487,11 +1590,21 @@ static void chaine_type(Enchaineuse &enchaineuse,
     }
 }
 
-kuri::chaine chaine_type(const Type *type, bool ajoute_nom_paramètres_polymorphiques)
+kuri::chaine chaine_type(const Type *type, OptionsImpressionType options)
 {
     Enchaineuse enchaineuse;
-    chaine_type(enchaineuse, type, ajoute_nom_paramètres_polymorphiques);
+    chaine_type(enchaineuse, type, options);
     return enchaineuse.chaine();
+}
+
+kuri::chaine chaine_type(const Type *type, bool ajoute_nom_paramètres_polymorphiques)
+{
+    OptionsImpressionType options = OptionsImpressionType::AUCUNE;
+    if (ajoute_nom_paramètres_polymorphiques) {
+        options |= OptionsImpressionType::AJOUTE_PARAMÈTRES_POLYMORPHIQUE;
+    }
+
+    return chaine_type(type, options);
 }
 
 Type *type_dereference_pour(Type const *type)

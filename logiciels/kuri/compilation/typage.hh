@@ -494,6 +494,19 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
  */
 kuri::chaine chaine_type(Type const *type, bool ajoute_nom_paramètres_polymorphiques = true);
 
+enum class OptionsImpressionType : uint32_t {
+    AUCUNE = 0,
+    AJOUTE_PARAMÈTRES_POLYMORPHIQUE = (1u << 0),
+    NORMALISE_PARENTHÈSE_PARAMÈTRE = (1u << 1),
+    EXCLUS_TYPE_SOUS_JACENT = (1u << 2),
+    NORMALISE_SÉPARATEUR_HIÉRARCHIE = (1u << 3),
+    NORMALISE_PARENTHÈSE_FONCTION = (1u << 4),
+    NORMALISE_SPÉCIFIANT_TYPE = (1u << 5),
+};
+DEFINIS_OPERATEURS_DRAPEAU(OptionsImpressionType)
+
+kuri::chaine chaine_type(Type const *type, OptionsImpressionType options);
+
 Type *type_dereference_pour(Type const *type);
 
 bool est_type_entier(Type const *type);
