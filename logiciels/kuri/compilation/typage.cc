@@ -1881,6 +1881,10 @@ Type const *type_entier_sous_jacent(Type const *type)
         return type;
     }
 
+    if (type->est_type_opaque()) {
+        return type_entier_sous_jacent(type->comme_type_opaque()->type_opacifie);
+    }
+
     return nullptr;
 }
 
