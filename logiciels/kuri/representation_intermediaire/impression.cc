@@ -15,22 +15,6 @@
 
 #include "instructions.hh"
 
-static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type)
-{
-#define ENUMERE_TYPE_TRANSTYPAGE_EX(genre, ident)                                                 \
-    case TypeTranstypage::genre:                                                                  \
-    {                                                                                             \
-        return #ident;                                                                            \
-    }
-
-    switch (type) {
-        ENUMERE_TYPE_TRANSTYPAGE(ENUMERE_TYPE_TRANSTYPAGE_EX)
-    }
-
-#undef ENUMERE_TYPE_TRANSTYPAGE_EX
-    return "erreur";
-}
-
 static void imprime_information_atome(Atome const *atome, Enchaineuse &os)
 {
     os << atome->genre_atome;
