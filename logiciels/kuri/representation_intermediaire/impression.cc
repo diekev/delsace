@@ -510,6 +510,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
     auto type_fonction = atome_fonc->type->comme_type_fonction();
 
     os << ") -> ";
+    os << atome_fonc->param_sortie->ident->nom << " ";
     os << chaine_type(type_fonction->type_sortie, false);
     os << '\n';
 
