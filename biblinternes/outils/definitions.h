@@ -103,7 +103,11 @@
 	inline constexpr auto &operator^=(_type_drapeau_ &lhs, _type_drapeau_ rhs) \
 	{ \
 		return (lhs = lhs ^ rhs); \
-	}
+    } \
+    inline bool drapeau_est_actif(_type_drapeau_ const v, _type_drapeau_ const d) \
+    { \
+        return (d & v) != _type_drapeau_(0); \
+    }
 
 #define DEFINIS_OPERATEURS_DRAPEAU(_type_drapeau_) \
     DEFINIS_OPERATEURS_DRAPEAU_IMPL(_type_drapeau_, std::underlying_type_t<_type_drapeau_>)
