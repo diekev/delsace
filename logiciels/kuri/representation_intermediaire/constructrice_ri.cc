@@ -1223,17 +1223,39 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
         return crée_constante_nulle(type);
     }
 
-    if (valeur->est_constante_entière() && est_type_entier(type)) {
-        auto valeur_entière = valeur->comme_constante_entière();
-        auto ancienne_valeur = donne_valeur_constante(valeur_entière);
-        auto nouvelle_valeur = applique_transtype(valeur_entière->type, type, op, ancienne_valeur);
-        return crée_constante_nombre_entier(type,
-                                            donne_valeur_pour_constante(type, nouvelle_valeur));
+    if (valeur->est_constante_entière()) {
+        if (op == TypeTranstypage::BITS) {
+            if (type->est_type_opaque() || type->est_type_enum() || type->est_type_octet()) {
+                return crée_constante_nombre_entier(type,
+                                                    valeur->comme_constante_entière()->valeur);
+            }
+        }
+
+        if (type->est_type_bool()) {
+            return crée_constante_booléenne(valeur->comme_constante_entière()->valeur != 0);
+        }
+
+        if (type->est_type_enum()) {
+            return crée_constante_nombre_entier(type, valeur->comme_constante_entière()->valeur);
+        }
+
+        if (est_type_entier(type)) {
+            auto valeur_entière = valeur->comme_constante_entière();
+            auto ancienne_valeur = donne_valeur_constante(valeur_entière);
+            auto nouvelle_valeur = applique_transtype(
+                valeur_entière->type, type, op, ancienne_valeur);
+            return crée_constante_nombre_entier(
+                type, donne_valeur_pour_constante(type, nouvelle_valeur));
+        }
     }
 
     if (valeur->est_constante_réelle() && type->est_type_reel()) {
         auto valeur_réelle = valeur->comme_constante_réelle();
         return crée_constante_nombre_réel(type, valeur_réelle->valeur);
+    }
+
+    if (valeur->est_constante_caractère() && est_type_entier(type)) {
+        return crée_constante_nombre_entier(type, valeur->comme_constante_caractère()->valeur);
     }
 
     // dbg() << __func__ << ", type : " << chaine_type(type) << ", valeur " <<
