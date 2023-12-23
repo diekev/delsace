@@ -4735,6 +4735,12 @@ void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable 
             auto valeur = static_cast<AtomeConstante *>(nullptr);
             auto atome = m_constructrice.trouve_ou_insère_globale(decl);
 
+            if (atome->est_externe) {
+                /* Les globales externes n'ont pas d'expressions, nous ne devrions pas les
+                 * initialiser nous-même. */
+                continue;
+            }
+
             auto expression = it.expression;
             if (expression && expression->substitution) {
                 expression = expression->substitution;
