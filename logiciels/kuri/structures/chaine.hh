@@ -8,8 +8,6 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
-#include "utilitaires/macros.hh"
-
 #include "chaine_statique.hh"
 
 /**
