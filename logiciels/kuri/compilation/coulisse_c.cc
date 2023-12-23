@@ -1820,7 +1820,7 @@ void GénératriceCodeC::génère_code_entête(CoulisseC::FichierC const &fichie
 
     /* Déclarons ensuite les fonctions. */
     POUR (fichier.fonctions) {
-        numérote_instructions(*it);
+        it->numérote_instructions();
         déclare_fonction(os, it, true);
         os << ";\n\n";
     }
