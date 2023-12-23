@@ -9,7 +9,6 @@ ADN pour les arguments de compilation
 ADN pour le code binaire
 ADN pour les directives
 
-// noms des fonctions d'initialisation des types
 // noms des fonctions d'initialisation des globales
 
 compilatrice_notifie_fonctions_parsées
