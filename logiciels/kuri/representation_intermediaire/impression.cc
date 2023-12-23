@@ -410,33 +410,6 @@ kuri::chaine imprime_arbre_instruction(Instruction const *racine)
     return sortie.chaine();
 }
 
-int numérote_instructions(AtomeFonction const &fonction)
-{
-    int résultat = 0;
-
-    POUR (fonction.params_entrees) {
-        it->numero = résultat++;
-    }
-
-    if (!fonction.param_sortie->type->est_type_rien()) {
-        fonction.param_sortie->numero = résultat++;
-
-        auto decl = fonction.decl;
-        if (decl && decl->params_sorties.taille() > 1) {
-            POUR (decl->params_sorties) {
-                auto inst = it->comme_declaration_variable()->atome->comme_instruction();
-                inst->numero = résultat++;
-            }
-        }
-    }
-
-    POUR (fonction.instructions) {
-        it->numero = résultat++;
-    }
-
-    return résultat;
-}
-
 void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
                           Enchaineuse &os,
                           bool surligne_inutilisees,
@@ -514,7 +487,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
     os << chaine_type(type_fonction->type_sortie, false);
     os << '\n';
 
-    numérote_instructions(*atome_fonc);
+    atome_fonc->numérote_instructions();
 
     imprime_instructions(atome_fonc->instructions, os, surligne_inutilisees, rappel);
 }
