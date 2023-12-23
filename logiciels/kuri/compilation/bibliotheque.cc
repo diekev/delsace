@@ -23,8 +23,7 @@
 #include "environnement.hh"
 #include "espace_de_travail.hh"
 
-/* garde_portee.h doit être inclus après les lexèmes car DIFFERE y est définis comme un macro. */
-#include "biblinternes/outils/garde_portee.h"
+#include "utilitaires/garde_portee.hh"
 
 /* ************************************************************************** */
 
@@ -581,7 +580,7 @@ static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
     tampon_chaine_c[chemin_dynamique.taille()] = '\0';
 
     int fd = open(tampon_chaine_c, O_RDONLY);
-    DIFFERE {
+    SUR_SORTIE_PORTEE {
         close(fd);
     };
 

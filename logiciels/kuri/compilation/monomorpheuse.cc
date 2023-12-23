@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/garde_portee.h"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
@@ -16,6 +14,8 @@
 #include "portee.hh"
 #include "transformation_type.hh"
 #include "typage.hh"
+
+#include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"
 
 kuri::chaine ErreurMonomorphisation::message() const
@@ -1039,7 +1039,7 @@ RésultatMonomorphisation détermine_monomorphisation(
     const kuri::tableau_statique<NoeudExpression *> &arguments_reçus)
 {
 #if 0
-    DIFFERE {
+    SUR_SORTIE_PORTEE {
         if (entête->possède_drapeau(DrapeauxNoeud::DEBOGUE)) {
             monomorpheuse.logue();
         }
