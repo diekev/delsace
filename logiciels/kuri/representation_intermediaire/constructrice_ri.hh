@@ -222,6 +222,8 @@ struct ConstructriceRI {
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
   private:
+    void insère(Instruction *inst);
+
     kuri::chaine imprime_site(NoeudExpression const *site) const;
 };
 

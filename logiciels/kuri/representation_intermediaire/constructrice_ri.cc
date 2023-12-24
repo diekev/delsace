@@ -355,7 +355,7 @@ InstructionAllocation *ConstructriceRI::crée_allocation(NoeudExpression const *
      * fonctions, et la fonction_courante est nulle lors de cette opération.
      */
     if (m_fonction_courante && !crée_seulement) {
-        m_fonction_courante->instructions.ajoute(inst);
+        insère(inst);
     }
 
     return inst;
@@ -544,7 +544,7 @@ InstructionBranche *ConstructriceRI::crée_branche(NoeudExpression const *site_,
     label->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
 
     if (!crée_seulement) {
-        m_fonction_courante->instructions.ajoute(inst);
+        insère(inst);
     }
 
     return inst;
@@ -561,7 +561,7 @@ InstructionBrancheCondition *ConstructriceRI::crée_branche_condition(
     label_si_vrai->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
     label_si_faux->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
 
-    m_fonction_courante->instructions.ajoute(inst);
+    insère(inst);
     return inst;
 }
 
@@ -594,7 +594,7 @@ void ConstructriceRI::insère_label(InstructionLabel *label)
         }
     }
 
-    m_fonction_courante->instructions.ajoute(label);
+    insère(label);
 }
 
 void ConstructriceRI::insère_label_si_utilisé(InstructionLabel *label)
@@ -609,7 +609,7 @@ void ConstructriceRI::insère_label_si_utilisé(InstructionLabel *label)
 InstructionRetour *ConstructriceRI::crée_retour(NoeudExpression const *site_, Atome *valeur)
 {
     auto inst = m_retour.ajoute_element(site_, valeur);
-    m_fonction_courante->instructions.ajoute(inst);
+    insère(inst);
     return inst;
 }
 
@@ -634,7 +634,7 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
     auto inst = m_stocke_mem.ajoute_element(site_, ou, valeur);
 
     if (!crée_seulement) {
-        m_fonction_courante->instructions.ajoute(inst);
+        insère(inst);
     }
 
     return inst;
@@ -659,7 +659,7 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *s
     auto inst = m_charge.ajoute_element(site_, type, ou);
 
     if (!crée_seulement) {
-        m_fonction_courante->instructions.ajoute(inst);
+        insère(inst);
     }
 
     return inst;
@@ -668,7 +668,7 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *s
 InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_, Atome *appelé)
 {
     auto inst = m_appel.ajoute_element(site_, appelé);
-    m_fonction_courante->instructions.ajoute(inst);
+    insère(inst);
     return inst;
 }
 
@@ -701,7 +701,7 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
 #endif
 
     auto inst = m_appel.ajoute_element(site_, appelé, std::move(args));
-    m_fonction_courante->instructions.ajoute(inst);
+    insère(inst);
     return inst;
 }
 
@@ -748,7 +748,7 @@ Atome *ConstructriceRI::crée_op_unaire(NoeudExpression const *site_,
     }
 
     auto inst = m_op_unaire.ajoute_element(site_, type, op, valeur);
-    m_fonction_courante->instructions.ajoute(inst);
+    insère(inst);
     return inst;
 }
 
@@ -792,7 +792,7 @@ Atome *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
     }
 
     auto inst = m_op_binaire.ajoute_element(site_, type, op, valeur_gauche, valeur_droite);
-    m_fonction_courante->instructions.ajoute(inst);
+    insère(inst);
     return inst;
 }
 
@@ -831,7 +831,7 @@ InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression cons
     auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_élément), false);
 
     auto inst = m_acces_index.ajoute_element(site_, type, accédé, index);
-    m_fonction_courante->instructions.ajoute(inst);
+    insère(inst);
     return inst;
 }
 
@@ -841,7 +841,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(
 
     auto inst = m_acces_membre.ajoute_element(site_, type, accédé, index);
     if (!crée_seulement) {
-        m_fonction_courante->instructions.ajoute(inst);
+        insère(inst);
     }
     return inst;
 }
@@ -1261,7 +1261,7 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
     // dbg() << __func__ << ", type : " << chaine_type(type) << ", valeur " <<
     // chaine_type(valeur->type);
     auto inst = m_transtype.ajoute_element(site_, type, valeur, op);
-    m_fonction_courante->instructions.ajoute(inst);
+    insère(inst);
     return inst;
 }
 
@@ -1389,6 +1389,11 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
     }
 
     return nullptr;
+}
+
+void ConstructriceRI::insère(Instruction *inst)
+{
+    m_fonction_courante->instructions.ajoute(inst);
 }
 
 kuri::chaine ConstructriceRI::imprime_site(NoeudExpression const *site) const
