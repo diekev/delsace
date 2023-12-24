@@ -1428,7 +1428,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
         mémoire_args_appel += it.args.taille_memoire();
     });
 
-    stats_ri.fusionne_entrée({"insts_appel", 0, mémoire_args_appel});
+    stats_ri.fusionne_entrée({"arguments_insts_appel", m_appel.taille(), mémoire_args_appel});
 }
 
 /** \} */
