@@ -225,6 +225,13 @@ struct ConstructriceRI {
     void insère(Instruction *inst);
 
     kuri::chaine imprime_site(NoeudExpression const *site) const;
+
+    /* Déduplication des instructions de chargement. Nous ne créons des chargements que la première
+     * fois qu'une valeur est chargée et après chaque stockage vers la valeur chargée. */
+    kuri::tableau<InstructionChargeMem *, int> m_charges{};
+    InstructionChargeMem *donne_charge(Atome *source);
+    /* Appelé lors des stockages pour invalider le cache. */
+    void invalide_charge(Atome *source);
 };
 
 /** \} */

@@ -311,6 +311,7 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
 
 void ConstructriceRI::définis_fonction_courante(AtomeFonction *fonction_courante)
 {
+    m_charges.efface();
     m_nombre_labels = 0;
     m_fonction_courante = fonction_courante;
 }
@@ -579,6 +580,9 @@ InstructionLabel *ConstructriceRI::réserve_label(NoeudExpression const *site_)
     return m_label.ajoute_element(site_, m_nombre_labels++);
 }
 
+/* Pour dédupliquer les chargements de mémoire, afin de réduire la mémoire utilisée. */
+#define DEDUPLIQUE_CHARGES
+
 void ConstructriceRI::insère_label(InstructionLabel *label)
 {
     /* La génération de code pour les conditions (#si, #saufsi) et les boucles peut ajouter des
@@ -595,6 +599,11 @@ void ConstructriceRI::insère_label(InstructionLabel *label)
             crée_branche(label->site, label);
         }
     }
+
+#ifdef DEDUPLIQUE_CHARGES
+    /* Invalide tous les chargements car nous pouvons réordonner les blocs. */
+    m_charges.efface();
+#endif
 
     insère(label);
 }
@@ -639,6 +648,10 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
         insère(inst);
     }
 
+#ifdef DEDUPLIQUE_CHARGES
+    invalide_charge(ou);
+#endif
+
     return inst;
 }
 
@@ -658,12 +671,21 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *s
         });
 
     auto type = type_déréférencé_pour(ou->type);
+
+#ifdef DEDUPLIQUE_CHARGES
+    auto inst_existante = donne_charge(ou);
+    if (inst_existante) {
+        return inst_existante;
+    }
+#endif
+
     auto inst = m_charge.ajoute_element(site_, type, ou);
 
     if (!crée_seulement) {
         insère(inst);
     }
 
+    m_charges.ajoute(inst);
     return inst;
 }
 
@@ -1396,6 +1418,26 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
 void ConstructriceRI::insère(Instruction *inst)
 {
     m_fonction_courante->instructions.ajoute(inst);
+}
+
+InstructionChargeMem *ConstructriceRI::donne_charge(Atome *source)
+{
+    POUR (m_charges) {
+        if (it && it->chargee == source) {
+            return it;
+        }
+    }
+
+    return nullptr;
+}
+
+void ConstructriceRI::invalide_charge(Atome *source)
+{
+    POUR (m_charges) {
+        if (it && it->chargee == source) {
+            it = nullptr;
+        }
+    }
 }
 
 kuri::chaine ConstructriceRI::imprime_site(NoeudExpression const *site) const
