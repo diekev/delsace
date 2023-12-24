@@ -22,7 +22,7 @@ importe SysFichier
 importe Unicode
 
 LigneTabuleuse :: struct {
-    colonnes: []chaine
+    colonnes: [..]chaine
 }
 
 Alignement :: énum z32 {
@@ -32,11 +32,11 @@ Alignement :: énum z32 {
 }
 
 Tabuleuse :: struct {
-    lignes : []LigneTabuleuse
-    alignements : []Alignement
+    lignes : [..]LigneTabuleuse
+    alignements : [..]Alignement
     nombre_colonnes : z64
 
-    chaines_allouées: []chaine
+    chaines_allouées: [..]chaine
 }
 
 crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
@@ -154,7 +154,7 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
         }
     }
 
-    tailles_max_colonnes : []z64
+    tailles_max_colonnes : [..]z64
     tableau_redimensionne(tailles_max_colonnes, nombre_colonnes)
     diffère { déloge(tailles_max_colonnes); }
 
@@ -191,7 +191,7 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
     _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
 }
 
-imprime_ligne_démarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colonnes: []z64) -> rien
+imprime_ligne_démarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colonnes: [..]z64) -> rien
 {
     pour taille dans tailles_max_colonnes {
         ajoute_au_tampon(enchaineuse, "+-")
@@ -206,7 +206,7 @@ imprime_ligne_démarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colon
     ajoute_au_tampon(enchaineuse, "+\n")
 }
 
-imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: *LigneTabuleuse, tailles_max_colonnes: []z64) -> rien
+imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: *LigneTabuleuse, tailles_max_colonnes: [..]z64) -> rien
 {
     pour colonne, i dans ligne.colonnes {
         ajoute_au_tampon(enchaineuse, "| ")

@@ -221,7 +221,7 @@ termine_immédiat :: fonc (mode: ModeImmédiat)
         retourne
     }
 
-    s : []FormatVertexXCNU = sommets_immédiat
+    s : [..]FormatVertexXCNU = sommets_immédiat
     compte := num_sommets_immédiat comme n64
 
     glUseProgram(nuanceur.programme)

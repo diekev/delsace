@@ -73,7 +73,7 @@ ConfidentialitéTypeIPA :: énum {
     OPAQUE
 }
 
-confidentialité_pour_annotation :: fonc (annotations: []*AnnotationCode) -> ConfidentialitéTypeIPA
+confidentialité_pour_annotation :: fonc (annotations: [..]*AnnotationCode) -> ConfidentialitéTypeIPA
 {
     pour annotations {
         si it.nom == "privé" {
@@ -131,7 +131,7 @@ DrapeauxTypeIPA :: énum_drapeau {
 TypeIPA :: struct {
     infos: *InfoType
     nom: chaine
-    fonctions: []MéthodeIPA
+    fonctions: [..]MéthodeIPA
     drapeaux: DrapeauxTypeIPA
 
     constructrice: Optionnel(MéthodeIPA)
@@ -139,14 +139,14 @@ TypeIPA :: struct {
     /* Pour les pointeurs, le type pointé. */
     type_pointé : *TypeIPA
 
-    membres: []MembreTypeIPA
+    membres: [..]MembreTypeIPA
 
     /* Type de base. */
     type_base: *TypeIPA
 
     /* Pour les fonctions. */
-    types_entrée : []*TypeIPA
-    types_sortie : []*TypeIPA
+    types_entrée : [..]*TypeIPA
+    types_sortie : [..]*TypeIPA
 }
 
 détruit_type_ipa :: fonc (type: *TypeIPA)
@@ -181,8 +181,8 @@ MéthodeIPA :: struct {
     nom_pour_fonction_c: chaine
     nom_rappel_pour_table: chaine
 
-    entrées: []Paramètre
-    sorties: []Paramètre
+    entrées: [..]Paramètre
+    sorties: [..]Paramètre
 }
 
 /* Par valeur pour déloge_tableau_et_ses_éléments. */
@@ -274,8 +274,8 @@ convertis_entête_en_méthode_ipa :: fonc (entête: *NoeudCodeEntêteFonction, t
 
 /* Informations sur l'IPA. */
 IPA :: struct {
-    types: []*TypeIPA
-    fonctions: []MéthodeIPA
+    types: [..]*TypeIPA
+    fonctions: [..]MéthodeIPA
 
     espace_de_nom: chaine
     nom_module: chaine

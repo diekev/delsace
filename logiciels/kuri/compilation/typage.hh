@@ -378,8 +378,8 @@ bool est_type_pointeur_nul(Type const *type);
 
 /* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
  * arriver à un type racine) + 1.
- * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que []*z32 en
- * a une de 3. */
+ * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que [..]*z32
+ * en a une de 3. */
 int donne_profondeur_type(Type const *type);
 
 /* Retourne vrai la variable est d'un type pouvant être le membre d'une structure. */

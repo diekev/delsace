@@ -583,7 +583,8 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
         }
     }
     else if (expression_polymorphique->est_expression_binaire()) {
-        if (expression_polymorphique->lexeme->genre == GenreLexeme::TABLEAU) {
+        if (expression_polymorphique->lexeme->genre == GenreLexeme::TABLEAU ||
+            expression_polymorphique->lexeme->genre == GenreLexeme::DEUX_POINTS) {
             auto const construction_tableau = expression_polymorphique->comme_expression_binaire();
             ajoute_candidats_depuis_declaration_tableau(construction_tableau, site, type_reçu);
             return;
@@ -659,7 +660,8 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         return typeuse().type_reference_pour(type_pointe);
     }
     else if (expression_polymorphique->est_expression_binaire()) {
-        if (expression_polymorphique->lexeme->genre == GenreLexeme::TABLEAU) {
+        if (expression_polymorphique->lexeme->genre == GenreLexeme::TABLEAU ||
+            expression_polymorphique->lexeme->genre == GenreLexeme::DEUX_POINTS) {
             auto const construction_tableau = expression_polymorphique->comme_expression_binaire();
             return résoud_type_final_pour_déclaration_tableau(construction_tableau);
         }

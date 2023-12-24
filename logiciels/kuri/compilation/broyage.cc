@@ -98,7 +98,7 @@ int64_t Broyeuse::mémoire_utilisée() const
  *
  * Exemples :
  * *z8 devient KPKsz8
- * &[]Foo devient KRKtKsFoo
+ * &[..]Foo devient KRKtKsFoo
  */
 static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
 {

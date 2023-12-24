@@ -23,7 +23,7 @@ InfoDonnées :: struct {
 }
 
 /* fonction auxilliaire pour l'algorithme de parsage */
-trouve_info_données :: fonc (infos: []InfoDonnées, nom: chaine) -> *InfoDonnées
+trouve_info_données :: fonc (infos: [..]InfoDonnées, nom: chaine) -> *InfoDonnées
 {
     pour * infos {
         si it.info.nom == nom {
@@ -81,7 +81,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
 
     info := info_de(T)
 
-    pointeurs : []InfoDonnées
+    pointeurs : [..]InfoDonnées
     diffère { déloge(pointeurs) }
 
     pour info.membres {
@@ -145,7 +145,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
             retourne RésultatParsageFormatURL.FonctionParsageInexistante, données, résultat
         }
 
-        tampon : []octet
+        tampon : [..]octet
         tampon.pointeur = id.ptr_résultat comme *octet
         tampon.taille = id.info.id.taille_en_octet comme z64
 
@@ -315,10 +315,10 @@ est_transfert_correcte :: fonc (texte: chaine) -> bool
 // ------------------------------------
 // Fonctions de parsage
 
-__fonctions_parsage_url : []FonctionParsage
+__fonctions_parsage_url : [..]FonctionParsage
 
 /* Trouve une FonctionParsage pour l'InfoType précisé. Voir trouve_fonction_pour_type sur
- * []FonctionParsage pour plus de détail.
+ * [..]FonctionParsage pour plus de détail.
  */
 trouve_fonction_pour_type :: fonc (info_type: *InfoType) -> *FonctionParsage
 {
@@ -361,7 +361,7 @@ génère_fonction_enveloppe_parsage_url :: fonc (enchaineuse: *Enchaineuse, donn
 {
     nom_enveloppe := enchaine("parsage_url_", données.fonction.nom)
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: [..]octet) -> bool\n")
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
     ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")

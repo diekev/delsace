@@ -77,7 +77,7 @@ assainie_noms :: fonc (type: *InfoTypeC)
 }
 
 SystèmeTypeC :: struct {
-    types: []*InfoTypeC
+    types: [..]*InfoTypeC
 
     /* Espace de nom, hérité de la génératrice. */
     espace_de_nom: chaine

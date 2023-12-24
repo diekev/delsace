@@ -849,7 +849,7 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
     retourne "B\0"
 }
 
-remplis_champs_requis_py_buffer_générique :: fonc (view: *Py_buffer, tableau: []$T)
+remplis_champs_requis_py_buffer_générique :: fonc (view: *Py_buffer, tableau: [..]$T)
 {
     view.buf = tableau.pointeur
     view.itemsize = taille_de(T) comme Py_ssize_t
@@ -1229,7 +1229,7 @@ DonnéesAjoutType :: struct {
     nom: ChaineC
 }
 
-Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -> *PyObject
+Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: [..]DonnéesAjoutType) -> *PyObject
 {
     /* Initialisation des types. */
     pour types {
@@ -1329,7 +1329,7 @@ PyRun_SimpleString :: fonc (command: chaine) -> bool
     retourne PyRun_SimpleString(command_c) == 0
 }
 
-PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject, args: []*PyObject, kws: []*PyObject, defs: []*PyObject, kwdefs: *PyObject, closure: *PyObject) -> *PyObject
+PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject, args: [..]*PyObject, kws: [..]*PyObject, defs: [..]*PyObject, kwdefs: *PyObject, closure: *PyObject) -> *PyObject
 {
     retourne PyEval_EvalCodeEx(co, globals, locals, args.pointeur, args.taille comme z32, kws.pointeur, kws.taille comme z32, defs.pointeur, defs.taille comme z32)
 }

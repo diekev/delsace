@@ -53,7 +53,7 @@ DonnéesMessage :: struct {
     code_état : z32
     position_code_état: PositionChaine
 
-    positions_entêtes: []DonnéesEntête
+    positions_entêtes: [..]DonnéesEntête
 
     // si taille fixe
     position_contenu: PositionChaine
@@ -155,7 +155,7 @@ parse_état_méthode_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         retourne RésultatParsage.MESSAGE_INCOMPLET
     }
 
-    méthodes : []chaine = ["GET", "POST", "PUT", "DELETE", "HEAD", "CONNECT", "OPTIONS", "TRACE", "PATCH"]
+    méthodes : [..]chaine = ["GET", "POST", "PUT", "DELETE", "HEAD", "CONNECT", "OPTIONS", "TRACE", "PATCH"]
 
     index := apparie_un_de(*parseuse.parseuse_chaine, ...méthodes)
 

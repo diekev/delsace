@@ -85,7 +85,7 @@ int main()
     reussite &= verifie_transformation(compilatrice, TypeBase::R64, TypeBase::EINI, true);
     reussite &= verifie_transformation(compilatrice, TypeBase::EINI, TypeBase::R64, true);
     reussite &= verifie_transformation(compilatrice, TypeBase::EINI, TypeBase::EINI, true);
-    // test []octet -> eini => CONSTRUIT_EINI et non EXTRAIT_TABL_OCTET
+    // test [..]octet -> eini => CONSTRUIT_EINI et non EXTRAIT_TABL_OCTET
     reussite &= verifie_transformation(compilatrice, TypeBase::TABL_OCTET, TypeBase::EINI, true);
     reussite &= verifie_transformation(compilatrice, TypeBase::EINI, TypeBase::TABL_OCTET, true);
 
@@ -96,7 +96,7 @@ int main()
     reussite &= verifie_transformation(compilatrice, TypeBase::PTR_NUL, TypeBase::PTR_Z8, true);
     reussite &= verifie_transformation(compilatrice, TypeBase::PTR_RIEN, TypeBase::PTR_Z8, true);
 
-    // test [4]z32 -> []z32 et [4]z32 -> eini
+    // test [4]z32 -> [..]z32 et [4]z32 -> eini
     reussite &= verifie_transformation(
         compilatrice, TypeBase::TABL_N8, TypeBase::TABL_OCTET, true);
 

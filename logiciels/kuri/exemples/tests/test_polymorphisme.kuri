@@ -97,7 +97,7 @@ principale :: fonc () -> z32
     y := ajoute(12.5, 87.9)
     imprime("y = %\n", y)
 
-    tabl : []z32
+    tabl : [..]z32
     tableau_ajoute(*tabl, 123)
     tableau_ajoute(*tabl, 124)
     imprime("%\n", tabl)

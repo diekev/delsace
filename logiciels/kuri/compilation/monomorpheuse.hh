@@ -262,7 +262,7 @@ class Monomorpheuse {
      * Retourne soit une erreur si un type ne peut être résolu pour l'expression polymorphique
      * selon, ou un TypeAppariéPesé contenant le type et son poids de monomorphisation. Le poids
      * dépends de la précision de l'appariement. Par exemple, l'expression $T aura un poids
-     * inférieur à []$T pour l'appariement d'un tableau.
+     * inférieur à [..]$T pour l'appariement d'un tableau.
      */
     RésultatRésolutionType résoud_type_final(const NoeudExpression *expression_polymorphique);
 

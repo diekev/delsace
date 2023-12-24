@@ -53,7 +53,7 @@ VérificatriceNasa :: struct {
     espace: *EspaceDeTravail
     avertissement_est_erreur := faux
 
-    violations_directives: []Violation
+    violations_directives: [..]Violation
 }
 
 détruit_données_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa)

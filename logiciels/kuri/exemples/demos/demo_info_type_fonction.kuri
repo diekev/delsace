@@ -4,7 +4,7 @@ Objet :: struct {
     nom := "objet"
 }
 
-execute_noeud :: fonc(obj1 : &Objet @inutilisée, objs : []&Objet @inutilisée) -> z32, *Objet
+execute_noeud :: fonc(obj1 : &Objet @inutilisée, objs : [..]&Objet @inutilisée) -> z32, *Objet
 {
     retourne 0, nul
 }

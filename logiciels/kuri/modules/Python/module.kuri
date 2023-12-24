@@ -16,9 +16,9 @@ charge "interface"
 
 ModulePython :: struct {
     nom: chaine
-    méthodes : []MéthodePython
-    constantes_nombre_entier : []ConstanteNombreEntier
-    constantes_chaine : []ConstanteChaine
+    méthodes : [..]MéthodePython
+    constantes_nombre_entier : [..]ConstanteNombreEntier
+    constantes_chaine : [..]ConstanteChaine
 }
 
 détruit :: fonc (module: &ModulePython)
@@ -67,8 +67,8 @@ MéthodePython :: struct {
     nom: chaine
     /* Nom unique pour éviter les problèmes de redéfinition de fonction. */
     nom_enveloppe: chaine
-    paramètres_entrée: []ParamètreMéthodePython
-    paramètres_sortie: []ParamètreMéthodePython
+    paramètres_entrée: [..]ParamètreMéthodePython
+    paramètres_sortie: [..]ParamètreMéthodePython
 }
 
 détruit :: fonc (méthode: &MéthodePython)
@@ -245,7 +245,7 @@ ConfidentialitéType :: énum {
     OPAQUE
 }
 
-confidentialité_pour_annotation :: fonc (annotations: []*AnnotationCode) -> ConfidentialitéType
+confidentialité_pour_annotation :: fonc (annotations: [..]*AnnotationCode) -> ConfidentialitéType
 {
     pour annotations {
         si it.nom == "privé" {
@@ -301,9 +301,9 @@ TypePython :: struct {
 
     confidentialité: ConfidentialitéType
 
-    membres: []MembreType
+    membres: [..]MembreType
 
-    méthodes: []MéthodePython
+    méthodes: [..]MéthodePython
 
     new: MéthodePython
     init: MéthodePython

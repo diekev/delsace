@@ -403,7 +403,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                  * comme tel (est_expression_binaire() retourne vrai pour les indexages). */
 
                 auto indexage = noeud->comme_indexage();
-                /* op peut être nul pour les déclaration de type ([]z32) */
+                /* op peut être nul pour les déclaration de type ([..]z32) */
                 if (indexage->op && !indexage->op->est_basique) {
                     ajoute_fonction(indexage->op->decl);
                 }

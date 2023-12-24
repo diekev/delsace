@@ -4957,7 +4957,8 @@ ResultatValidation Sémanticienne::valide_operateur_binaire(NoeudExpressionBinai
 {
     CHRONO_TYPAGE(m_stats_typage.opérateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
 
-    if (expr->lexeme->genre == GenreLexeme::TABLEAU) {
+    if (expr->lexeme->genre == GenreLexeme::TABLEAU ||
+        expr->lexeme->genre == GenreLexeme::DEUX_POINTS) {
         return valide_operateur_binaire_tableau(expr);
     }
 

@@ -846,7 +846,7 @@ test_valeur_types :: fonc () -> bool
 // ----------------------------------------------------------------------------
 // Tests tableau octet
 
-taille_tableau_octet :: fonc (tableau: []octet) -> z64
+taille_tableau_octet :: fonc (tableau: [..]octet) -> z64
 {
     retourne tableau.taille
 }
@@ -886,7 +886,7 @@ test_passe_tableau_fixe :: fonc (index: z64) -> z32
 #assert test_passe_tableau_fixe(1) == 1
 #assert test_passe_tableau_fixe(2) == 2
 
-passe_tableau_dynamique :: fonc (t: []z32, index: z64) -> z32
+passe_tableau_dynamique :: fonc (t: [..]z32, index: z64) -> z32
 {
     retourne t[index]
 }

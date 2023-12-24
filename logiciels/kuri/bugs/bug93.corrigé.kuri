@@ -1,13 +1,13 @@
 /* Erreur de compilation si deux fonctions polymorphiques avec des
  * spécifications de types différents sont capable d'être utilisées
  * pour un appel de fonction.
- * Voir « $T et []$T sont ambigües » dans Arachné.
+ * Voir « $T et [..]$T sont ambigües » dans Arachné.
  * Catégorie : [validation sémantique, expression appel, fonction polymorphique]
  */
 
 importe Fondation
 
-/* $T et []$T sont ambigües, il faudrait un système plus subtil, où le nombre
+/* $T et [..]$T sont ambigües, il faudrait un système plus subtil, où le nombre
  * de déréférencement de types est pris en compte.
  */
 vole_données_ :: fonc (v: &$T) -> T
@@ -17,9 +17,9 @@ vole_données_ :: fonc (v: &$T) -> T
     retourne résultat
 }
 
-vole_données_ :: fonc (v: &[]$T) -> []T
+vole_données_ :: fonc (v: &[..]$T) -> [..]T
 {
-    résultat : []T = v
+    résultat : [..]T = v
     v.pointeur = nul
     v.taille = 0
     v.capacité = 0
@@ -30,7 +30,7 @@ principale :: fonc () -> z32
 {
     tabl := [0, 1, 2, 3, 4]
 
-    tabl_dyn : []z32 = tabl
+    tabl_dyn : [..]z32 = tabl
     tabl_dyn_2 := vole_données_(tabl_dyn)
 
     assert(tabl_dyn.pointeur == nul)

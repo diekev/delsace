@@ -213,7 +213,7 @@ static void imprime_atome_ex(Atome const *atome,
                 virgule = ", ";
             }
 
-            os << ((tableau_données.taille() == 0) ? "[]" : " ]");
+            os << ((tableau_données.taille() == 0) ? "[..]" : " ]");
             break;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
@@ -231,7 +231,7 @@ static void imprime_atome_ex(Atome const *atome,
                 virgule = ", ";
             }
 
-            os << ((éléments.taille() == 0) ? "[]" : " ]");
+            os << ((éléments.taille() == 0) ? "[..]" : " ]");
             break;
         }
         case Atome::Genre::FONCTION:

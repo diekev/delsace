@@ -2,7 +2,7 @@ importe Algorithmes
 importe Fondation
 
 Pile :: struct ($T: type_de_données) {
-    données : []T
+    données : [..]T
 }
 
 détruit :: fonc (pile : &Pile(T = $T)) -> rien

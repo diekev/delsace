@@ -4,6 +4,6 @@
 
 principale :: fonc () -> z32
 {
-    a : []octet = nul
+    a : [..]octet = nul
     retourne 0
 }

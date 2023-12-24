@@ -77,7 +77,7 @@ ScannerJSON :: struct {
 
     rappel_copie_chaine : fonc(chaine)(chaine)
 
-    erreurs: []Erreur
+    erreurs: [..]Erreur
 }
 
 initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini, rappel_copie_chaine : fonc(chaine)(chaine))
@@ -721,7 +721,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
         }
     }
     sinon {
-        tampon_tableau : []octet
+        tampon_tableau : [..]octet
         index := 0
 
         tantque !scanner.fini() {
@@ -769,7 +769,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 
 importe Compilatrice
 
-__fonctions_parsage_json : []FonctionParsage
+__fonctions_parsage_json : [..]FonctionParsage
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
@@ -802,7 +802,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 {
     nom_enveloppe := enchaine("parsage_json_", données.fonction.nom)
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: [..]octet) -> bool\n")
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
     ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")

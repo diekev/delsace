@@ -1977,8 +1977,8 @@ ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose c
 
 /* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
  * arriver à un type racine) + 1.
- * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que []*z32 en
- * a une de 3. */
+ * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que [..]*z32
+ * en a une de 3. */
 int donne_profondeur_type(Type const *type)
 {
     auto profondeur_type = 1;

@@ -34,7 +34,7 @@ FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type)
 {
     if (type.est_tableau()) {
         const auto type_tableau = type.comme_tableau();
-        os << "[]";
+        os << "[..]";
         os << *type_tableau->type_pointe;
     }
     else if (type.est_pointeur()) {

@@ -52,7 +52,7 @@ EntêteMémoire :: struct {
     info: *InfoType
     taille : z64 = 0
 
-    traces : []TraceAppel
+    traces : [..]TraceAppel
 
     est_désynchronisée : z64
 }

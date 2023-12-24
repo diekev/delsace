@@ -42,7 +42,7 @@ ParamètresGénérationInterface :: struct {
     /* Pour les résultats */
     type_rendu_page: *InfoTypeStructure
 
-    données_fonctions: []DonnéesCréationPointDEntréePage
+    données_fonctions: [..]DonnéesCréationPointDEntréePage
 
     module_à_importer: chaine
 
@@ -133,7 +133,7 @@ DonnéesCréationPointDEntréePage :: struct {
     nom_fonction: chaine
 
     chemin: chaine
-    règles_routage: []RègleRoutage
+    règles_routage: [..]RègleRoutage
 
     infos_paramètres: InformationParamètres
 
@@ -432,10 +432,10 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
 // -----------------------------------------
 // Validation des chemins pour les routes
 
-valide_chemin :: fonc (fonction: *NoeudCodeEntêteFonction, route: chaine, type_paramètres: *InfoTypeStructure) -> bool, []RègleRoutage
+valide_chemin :: fonc (fonction: *NoeudCodeEntêteFonction, route: chaine, type_paramètres: *InfoTypeStructure) -> bool, [..]RègleRoutage
 {
     règles_ou_erreur := parse_règles(route)
-    règles : []RègleRoutage
+    règles : [..]RègleRoutage
     discr règles_ou_erreur {
         e {
             compilatrice_rapporte_erreur(fonction, "La route n'est pas valide")
@@ -701,7 +701,7 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
     imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
 }
 
-génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, données_fonctions: []DonnéesCréationPointDEntréePage)
+génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, données_fonctions: [..]DonnéesCréationPointDEntréePage)
 {
     pour données_fonctions {
         génère_fonction_appariement_route(enchaineuse, it)
@@ -815,7 +815,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     _ := ferme(*fichier)
 }
 
-génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *Enchaineuse, types_utilisés : *[]*InfoTypeStructure)
+génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *Enchaineuse, types_utilisés : *[..]*InfoTypeStructure)
 {
     saufsi infos {
         retourne
@@ -867,7 +867,7 @@ génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterf
     ajoute_au_tampon(enchaineuse, "    retourne pilote\n")
     ajoute_au_tampon(enchaineuse, "}\n\n")
 
-    types_utilisés : []*InfoTypeStructure
+    types_utilisés : [..]*InfoTypeStructure
     diffère déloge(types_utilisés)
 
     pour paramètres.données_fonctions {

@@ -336,7 +336,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         auto type_pointe = type_vers->comme_type_tableau_dynamique()->type_pointe;
 
         if (type_pointe->est_type_octet()) {
-            // a : []octet = nul, voir bug19
+            // a : [..]octet = nul, voir bug19
             if (type_de->est_type_pointeur()) {
                 auto type_pointe_de = type_de->comme_type_pointeur()->type_pointe;
 

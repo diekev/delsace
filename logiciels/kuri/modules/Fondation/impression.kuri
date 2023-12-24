@@ -329,7 +329,7 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
         valeur_mantisse comme n32,
         9 + valeur_exposant)
 
-    chn_part_entière : []z8
+    chn_part_entière : [..]z8
     diffère déloge(chn_part_entière)
 
     // Perfome toujours au moins une itération, afin d'avoir un zéro au début.
@@ -928,7 +928,7 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
                 imprime_dans_enchaineuse(enchaineuse, "[%]", info_arg.taille_fixe)
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "[]")
+                ajoute_au_tampon(enchaineuse, "[..]")
             }
 
             imprime_type(enchaineuse, info_arg.type_pointé)
@@ -1000,7 +1000,7 @@ assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
 importe Compilatrice
 
 TypeFonctionFormattage :: fonc(*Enchaineuse, eini)(rien)
-__fonctions_formattages_impression : []FonctionInstrospection(TypeFonctionFormattage)
+__fonctions_formattages_impression : [..]FonctionInstrospection(TypeFonctionFormattage)
 
 trouve_fonction_de_formattage :: fonc (info: *InfoType) -> *FonctionInstrospection(TypeFonctionFormattage)
 {

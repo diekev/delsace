@@ -206,7 +206,7 @@ annotation_pour_python :: fonc (entête: *NoeudCodeEntêteFonction) -> Annotatio
 /* À FAIRE : les structures contenant des pointeurs ne pourront stocker la valeur extraite...
  */
 SystèmeType :: struct {
-    types: []*TypePython
+    types: [..]*TypePython
 }
 
 détruit :: fonc (système: &SystèmeType)

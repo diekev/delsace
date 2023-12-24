@@ -865,6 +865,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             lexeme->genre = GenreLexeme::TABLEAU;
 
             auto expression_entre_crochets = NoeudExpression::nul();
+            if (apparie(GenreLexeme::DEUX_POINTS)) {
+                lexeme = m_lexeme_courant;
+                consomme();
+            }
+
             if (apparie_expression()) {
                 auto ancien_noeud_virgule = m_noeud_expression_virgule;
                 m_noeud_expression_virgule = nullptr;

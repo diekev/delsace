@@ -1,6 +1,6 @@
 /* stats-code ignore fichier */
 
-unicode_casefold : []PermutationCasse = [
+unicode_casefold : [..]PermutationCasse = [
     PermutationCasse(min = 65, max = 90, delta = 32),
     PermutationCasse(min = 97, max = 106, delta = -32),
     PermutationCasse(min = 107, max = 107, delta = 8383),
@@ -362,7 +362,7 @@ unicode_casefold : []PermutationCasse = [
 ]
 
 // 1384 groups, 1414 pairs, 200 ranges
-unicode_tolower : []PermutationCasse = [
+unicode_tolower : [..]PermutationCasse = [
     PermutationCasse(min = 65, max = 90, delta = 32),
     PermutationCasse(min = 181, max = 181, delta = 775),
     PermutationCasse(min = 192, max = 214, delta = 32),
