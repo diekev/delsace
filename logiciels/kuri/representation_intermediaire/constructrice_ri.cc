@@ -283,11 +283,11 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
 {
     auto &stats_ri = stats.stats_ri;
 
-    auto mémoire_fonctions = fonctions.memoire_utilisee();
-    mémoire_fonctions += fonctions.memoire_utilisee();
+    auto mémoire_paramètres = int64_t(0);
+    auto mémoire_instructions = int64_t(0);
     pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
-        mémoire_fonctions += it.params_entrees.taille_memoire();
-        mémoire_fonctions += it.instructions.taille_memoire();
+        mémoire_paramètres += it.params_entrees.taille_memoire();
+        mémoire_instructions += it.instructions.taille_memoire();
 
         if (it.données_exécution) {
             stats.mémoire_code_binaire += it.données_exécution->mémoire_utilisée();
@@ -295,7 +295,9 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
         }
     });
 
-    stats_ri.fusionne_entrée({"fonctions", fonctions.taille(), mémoire_fonctions});
+    stats_ri.fusionne_entrée({"paramètres_fonctions", fonctions.taille(), mémoire_paramètres});
+    stats_ri.fusionne_entrée({"instructions_fonctions", fonctions.taille(), mémoire_instructions});
+    stats_ri.fusionne_entrée({"fonctions", fonctions.taille(), fonctions.memoire_utilisee()});
     stats_ri.fusionne_entrée({"globales", globales.taille(), globales.memoire_utilisee()});
 
     m_constructrice->rassemble_statistiques(stats);
