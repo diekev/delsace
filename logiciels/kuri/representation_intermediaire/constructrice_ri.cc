@@ -4622,6 +4622,9 @@ Atome *CompilatriceRI::converti_vers_tableau_dyn(NoeudExpression const *noeud,
     auto constante = m_constructrice.crée_z64(unsigned(type_tableau_fixe->taille));
     m_constructrice.crée_stocke_mem(noeud, ptr_taille, constante);
 
+    auto ptr_capacité = m_constructrice.crée_référence_membre(noeud, alloc_tableau_dyn, 2);
+    m_constructrice.crée_stocke_mem(noeud, ptr_capacité, m_constructrice.crée_z64(0));
+
     return alloc_tableau_dyn;
 }
 
