@@ -950,6 +950,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             return;
         }
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
+        {
+            noeud->substitution = assem->crée_reference_type(noeud->lexeme, noeud->type);
+            return;
+        }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::ERREUR:

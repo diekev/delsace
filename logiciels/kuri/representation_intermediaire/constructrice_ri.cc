@@ -1773,6 +1773,8 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::TYPE_DE_DONNEES:
         case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::TUPLE:
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
         {
             break;
         }

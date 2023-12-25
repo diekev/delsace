@@ -513,34 +513,11 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_opaque(
 }
 
 void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
-    const NoeudExpressionBinaire *construction_tableau,
+    const NoeudExpressionTypeTableauDynamique *expr_type_tableau,
     const NoeudExpression *site,
     const Type *type_reçu)
 {
-    auto const expression_taille = construction_tableau->operande_gauche;
-    auto const expression_type = construction_tableau->operande_droite;
-
-    if (expression_taille) {
-        if (!type_reçu->est_type_tableau_fixe()) {
-            erreur_genre_type(nullptr, type_reçu, "n'est pas un tableau fixe");
-            return;
-        }
-
-        auto const type_tableau = type_reçu->comme_type_tableau_fixe();
-        if (expression_taille->est_reference_declaration()) {
-            auto decl_referee =
-                expression_taille->comme_reference_declaration()->declaration_referee;
-            if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
-                                              DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-                ValeurExpression valeur = type_tableau->taille;
-                ajoute_candidat_valeur(decl_referee->ident, decl_referee->type, valeur);
-            }
-            return;
-        }
-
-        parse_candidats(expression_type, site, type_tableau->type_pointe);
-        return;
-    }
+    auto const expression_type = expr_type_tableau->expression_type;
 
     if (!type_reçu->est_type_tableau_dynamique()) {
         erreur_genre_type(site, type_reçu, "n'est pas un tableau dynamique");
@@ -548,6 +525,32 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
     }
 
     auto type_tableau = type_reçu->comme_type_tableau_dynamique();
+    parse_candidats(expression_type, site, type_tableau->type_pointe);
+}
+
+void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
+    const NoeudExpressionTypeTableauFixe *expr_type_tableau,
+    const NoeudExpression *site,
+    const Type *type_reçu)
+{
+    if (!type_reçu->est_type_tableau_fixe()) {
+        erreur_genre_type(nullptr, type_reçu, "n'est pas un tableau fixe");
+        return;
+    }
+
+    auto const expression_taille = expr_type_tableau->expression_taille;
+    auto const type_tableau = type_reçu->comme_type_tableau_fixe();
+    if (expression_taille->est_reference_declaration()) {
+        auto decl_referee = expression_taille->comme_reference_declaration()->declaration_referee;
+        if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
+                                          DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
+            ValeurExpression valeur = type_tableau->taille;
+            ajoute_candidat_valeur(decl_referee->ident, decl_referee->type, valeur);
+        }
+        return;
+    }
+
+    auto const expression_type = expr_type_tableau->expression_type;
     parse_candidats(expression_type, site, type_tableau->type_pointe);
 }
 
@@ -582,15 +585,14 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
             parse_candidats(prise_référence->opérande, site, type_reçu);
         }
     }
-    else if (expression_polymorphique->est_expression_binaire()) {
-        if (expression_polymorphique->lexeme->genre == GenreLexeme::TABLEAU ||
-            expression_polymorphique->lexeme->genre == GenreLexeme::DEUX_POINTS) {
-            auto const construction_tableau = expression_polymorphique->comme_expression_binaire();
-            ajoute_candidats_depuis_declaration_tableau(construction_tableau, site, type_reçu);
-            return;
-        }
-
-        erreur_interne(site, "les unions anonymes ne sont pas encore implémentées");
+    else if (expression_polymorphique->est_expression_type_tableau_dynamique()) {
+        auto type_tableau_dynamique =
+            expression_polymorphique->comme_expression_type_tableau_dynamique();
+        ajoute_candidats_depuis_declaration_tableau(type_tableau_dynamique, site, type_reçu);
+    }
+    else if (expression_polymorphique->est_expression_type_tableau_fixe()) {
+        auto type_tableau_fixe = expression_polymorphique->comme_expression_type_tableau_fixe();
+        ajoute_candidats_depuis_declaration_tableau(type_tableau_fixe, site, type_reçu);
     }
     else if (expression_polymorphique->est_reference_declaration()) {
         auto const ref_decl = expression_polymorphique->comme_reference_declaration();
@@ -659,15 +661,15 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         auto type_pointe = résoud_type_final_impl(prise_référence->opérande);
         return typeuse().type_reference_pour(type_pointe);
     }
-    else if (expression_polymorphique->est_expression_binaire()) {
-        if (expression_polymorphique->lexeme->genre == GenreLexeme::TABLEAU ||
-            expression_polymorphique->lexeme->genre == GenreLexeme::DEUX_POINTS) {
-            auto const construction_tableau = expression_polymorphique->comme_expression_binaire();
-            return résoud_type_final_pour_déclaration_tableau(construction_tableau);
-        }
-
-        erreur_interne(expression_polymorphique,
-                       "les unions anonymes ne sont pas encore implémentées");
+    else if (expression_polymorphique->est_expression_type_tableau_fixe()) {
+        auto const type_tableau_fixe =
+            expression_polymorphique->comme_expression_type_tableau_fixe();
+        return résoud_type_final_pour_déclaration_tableau_fixe(type_tableau_fixe);
+    }
+    else if (expression_polymorphique->est_expression_type_tableau_dynamique()) {
+        auto const type_tableau_dynamique =
+            expression_polymorphique->comme_expression_type_tableau_dynamique();
+        return résoud_type_final_pour_déclaration_tableau_dynamique(type_tableau_dynamique);
     }
     else if (expression_polymorphique->est_reference_declaration()) {
         auto const ref_decl = expression_polymorphique->comme_reference_declaration();
@@ -894,16 +896,19 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_opaque(
         const_cast<Type *>(item_résultat->type->comme_type_type_de_donnees()->type_connu));
 }
 
-Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau(
-    const NoeudExpressionBinaire *construction_tableau)
+Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_dynamique(
+    const NoeudExpressionTypeTableauDynamique *expr_tableau_dynamique)
 {
-    auto type_pointe = résoud_type_final_impl(construction_tableau->operande_droite);
+    auto type_pointe = résoud_type_final_impl(expr_tableau_dynamique->expression_type);
+    return typeuse().type_tableau_dynamique(type_pointe);
+}
 
-    auto expression_taille = construction_tableau->operande_gauche;
-    if (!expression_taille) {
-        return typeuse().type_tableau_dynamique(type_pointe);
-    }
+Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
+    const NoeudExpressionTypeTableauFixe *expr_tableau_fixe)
+{
+    auto type_pointe = résoud_type_final_impl(expr_tableau_fixe->expression_type);
 
+    auto expression_taille = expr_tableau_fixe->expression_taille;
     if (expression_taille->est_reference_declaration()) {
         erreur_interne(expression_taille, "la taille de tableau n'est pas encore implémentée");
         return nullptr;

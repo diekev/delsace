@@ -1594,6 +1594,16 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             noeud->type = TypeBase::CHAINE;
             break;
         }
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
+        {
+            return valide_expression_type_tableau_fixe(
+                noeud->comme_expression_type_tableau_fixe());
+        }
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
+        {
+            return valide_expression_type_tableau_dynamique(
+                noeud->comme_expression_type_tableau_dynamique());
+        }
         default:
         {
             assert_rappel(false,
@@ -4957,11 +4967,6 @@ ResultatValidation Sémanticienne::valide_operateur_binaire(NoeudExpressionBinai
 {
     CHRONO_TYPAGE(m_stats_typage.opérateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
 
-    if (expr->lexeme->genre == GenreLexeme::TABLEAU ||
-        expr->lexeme->genre == GenreLexeme::DEUX_POINTS) {
-        return valide_operateur_binaire_tableau(expr);
-    }
-
     auto enfant1 = expr->operande_gauche;
     auto enfant2 = expr->operande_droite;
     auto type1 = enfant1->type;
@@ -5064,74 +5069,6 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_chaine(NoeudExpressi
     expr->op = candidat.op;
     crée_transtypage_implicite_au_besoin(expr->operande_gauche, candidat.transformation_type1);
     crée_transtypage_implicite_au_besoin(expr->operande_droite, candidat.transformation_type2);
-    return CodeRetourValidation::OK;
-}
-
-ResultatValidation Sémanticienne::valide_operateur_binaire_tableau(NoeudExpressionBinaire *expr)
-{
-    auto enfant1 = expr->operande_gauche;
-    auto enfant2 = expr->operande_droite;
-    auto expression_taille = enfant1;
-    auto expression_type = enfant2;
-
-    auto type2 = expression_type->type;
-
-    if (!type2) {
-        rapporte_erreur("Impossible de déterminer le type, ceci n'est peut-être pas un type",
-                        enfant2);
-        return CodeRetourValidation::Erreur;
-    }
-
-    if (!type2->est_type_type_de_donnees()) {
-        rapporte_erreur("Attendu une expression de type après la déclaration de type tableau",
-                        enfant2);
-        return CodeRetourValidation::Erreur;
-    }
-
-    auto type_de_donnees = type2->comme_type_type_de_donnees();
-    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
-
-    auto taille_tableau = int64_t(0);
-
-    if (expression_taille) {
-        auto res = evalue_expression(
-            m_compilatrice, expression_taille->bloc_parent, expression_taille);
-
-        if (res.est_errone) {
-            rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
-            return CodeRetourValidation::Erreur;
-        }
-
-        if (!res.valeur.est_entiere()) {
-            rapporte_erreur("L'expression n'est pas de type entier", expression_taille);
-            return CodeRetourValidation::Erreur;
-        }
-
-        if (res.valeur.entiere() == 0) {
-            espace->rapporte_erreur(expression_taille,
-                                    "Impossible de définir un tableau fixe de taille 0 !\n");
-            return CodeRetourValidation::Erreur;
-        }
-
-        taille_tableau = res.valeur.entiere();
-    }
-
-    if (taille_tableau != 0) {
-        // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
-        // via un membre
-        if (!type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            return Attente::sur_type(type_connu);
-        }
-
-        auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
-            type_connu, static_cast<int>(taille_tableau));
-        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
-    }
-    else {
-        auto type_tableau = m_compilatrice.typeuse.type_tableau_dynamique(type_connu);
-        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
-    }
-
     return CodeRetourValidation::OK;
 }
 
@@ -6129,6 +6066,107 @@ ResultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
     }
 
     expr->transformation = transformation;
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression type tableau fixe.
+ * \{ */
+
+ResultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
+    NoeudExpressionTypeTableauFixe *expr)
+{
+    auto type_expression_type = expr->expression_type->type;
+    if (!type_expression_type->est_type_type_de_donnees()) {
+        espace->rapporte_erreur(
+            expr->expression_type,
+            "Attendu un type de données pour l'expression du type tableau fixe.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto expression_taille = expr->expression_taille;
+    if (expression_taille->type->est_type_type_de_donnees()) {
+        auto type_de_données = expression_taille->type->comme_type_type_de_donnees();
+
+        if (!type_de_données->type_connu) {
+            espace->rapporte_erreur(expression_taille,
+                                    "Type invalide pour la taille du tableau fixe.");
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (!type_de_données->type_connu->est_type_polymorphique()) {
+            espace->rapporte_erreur(expression_taille,
+                                    "Type invalide pour la taille du tableau fixe.");
+            return CodeRetourValidation::Erreur;
+        }
+
+        /* À FAIRE : type polymorphique. */
+        espace->rapporte_erreur(
+            expression_taille,
+            "Les types tableaux polymorphiques ne sont pas encore implémentés dans la langage.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto res = evalue_expression(
+        m_compilatrice, expression_taille->bloc_parent, expression_taille);
+
+    if (res.est_errone) {
+        rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!res.valeur.est_entiere()) {
+        rapporte_erreur("L'expression n'est pas de type entier", expression_taille);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (res.valeur.entiere() == 0) {
+        espace->rapporte_erreur(expression_taille,
+                                "Impossible de définir un tableau fixe de taille 0 !\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto taille_tableau = res.valeur.entiere();
+
+    auto type_de_donnees = type_expression_type->comme_type_type_de_donnees();
+    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
+
+    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
+    // via un membre
+    if (!type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_type(type_connu);
+    }
+
+    auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(type_connu,
+                                                                 int32_t(taille_tableau));
+    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression type tableau dynamique.
+ * \{ */
+
+ResultatValidation Sémanticienne::valide_expression_type_tableau_dynamique(
+    NoeudExpressionTypeTableauDynamique *expr)
+{
+    auto type_expression_type = expr->expression_type->type;
+    if (!type_expression_type->est_type_type_de_donnees()) {
+        espace->rapporte_erreur(
+            expr->expression_type,
+            "Attendu un type de données pour l'expression du type tableau fixe.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_de_donnees = type_expression_type->comme_type_type_de_donnees();
+    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
+    auto type_tableau = m_compilatrice.typeuse.type_tableau_dynamique(type_connu);
+    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
     return CodeRetourValidation::OK;
 }
 

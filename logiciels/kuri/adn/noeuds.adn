@@ -92,6 +92,25 @@ struct NoeudExpressionConstructionTableau : NoeudExpression {
     NoeudExpression * expression [code enfant]
 }
 
+struct NoeudExpressionTypeTableauFixe : NoeudExpression {
+    @genre EXPRESSION_TYPE_TABLEAU_FIXE
+    @comme expression_type_tableau_fixe
+    @code  NoeudCodeExpressionTypeTableauFixe
+    @genre_valeur DROITE
+
+    NoeudExpression * expression_taille [code enfant]
+    NoeudExpression * expression_type [code enfant]
+}
+
+struct NoeudExpressionTypeTableauDynamique : NoeudExpression {
+    @genre EXPRESSION_TYPE_TABLEAU_DYNAMIQUE
+    @comme expression_type_tableau_dynamique
+    @code  NoeudCodeExpressionTypeTableauDynamique
+    @genre_valeur DROITE
+
+    NoeudExpression * expression_type [code enfant]
+}
+
 struct NoeudExpressionExpansionVariadique : NoeudExpression {
     @genre EXPANSION_VARIADIQUE
     @comme expansion_variadique

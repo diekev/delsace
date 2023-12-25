@@ -780,6 +780,21 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(inst);
             break;
         }
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
+        {
+            auto expr = racine->comme_expression_type_tableau_fixe();
+            aplatis_arbre(expr->expression_taille, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(expr);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
+        {
+            auto expr = racine->comme_expression_type_tableau_dynamique();
+            aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(expr);
+            break;
+        }
         default:
         {
             assert_rappel(false, [&]() {

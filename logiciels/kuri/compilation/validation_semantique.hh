@@ -39,6 +39,8 @@ struct NoeudExpressionLitteraleBool;
 struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
 struct NoeudInstructionImporte;
+struct NoeudExpressionTypeTableauDynamique;
+struct NoeudExpressionTypeTableauFixe;
 struct NoeudPour;
 struct NoeudRetour;
 struct NoeudSi;
@@ -239,7 +241,6 @@ struct Sémanticienne {
 
     ResultatValidation valide_operateur_binaire(NoeudExpressionBinaire *expr);
     ResultatValidation valide_operateur_binaire_chaine(NoeudExpressionBinaire *expr);
-    ResultatValidation valide_operateur_binaire_tableau(NoeudExpressionBinaire *expr);
     ResultatValidation valide_operateur_binaire_type(NoeudExpressionBinaire *expr);
     ResultatValidation valide_operateur_binaire_generique(NoeudExpressionBinaire *expr);
     ResultatValidation valide_comparaison_enum_drapeau_bool(
@@ -315,4 +316,9 @@ struct Sémanticienne {
     ArbreAplatis *donne_un_arbre_aplatis();
 
     ResultatValidation valide_expression_comme(NoeudComme *expr);
+
+    ResultatValidation valide_expression_type_tableau_fixe(NoeudExpressionTypeTableauFixe *expr);
+
+    ResultatValidation valide_expression_type_tableau_dynamique(
+        NoeudExpressionTypeTableauDynamique *expr);
 };

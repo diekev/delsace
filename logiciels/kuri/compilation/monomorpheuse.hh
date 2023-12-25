@@ -19,6 +19,8 @@ struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
 struct NoeudExpressionExpansionVariadique;
 struct NoeudExpressionReference;
+struct NoeudExpressionTypeTableauDynamique;
+struct NoeudExpressionTypeTableauFixe;
 struct NoeudStruct;
 struct Typeuse;
 
@@ -291,7 +293,11 @@ class Monomorpheuse {
         const NoeudExpression *site,
         const Type *type_reçu);
     void ajoute_candidats_depuis_declaration_tableau(
-        const NoeudExpressionBinaire *construction_tableau,
+        const NoeudExpressionTypeTableauDynamique *expr_type_tableau,
+        const NoeudExpression *site,
+        const Type *type_reçu);
+    void ajoute_candidats_depuis_declaration_tableau(
+        const NoeudExpressionTypeTableauFixe *expr_type_tableau,
         const NoeudExpression *site,
         const Type *type_reçu);
     void ajoute_candidats_depuis_expansion_variadique(
@@ -310,8 +316,10 @@ class Monomorpheuse {
         const NoeudExpressionConstructionStructure *construction);
     Type *résoud_type_final_pour_construction_opaque(
         const NoeudExpressionConstructionStructure *construction);
-    Type *résoud_type_final_pour_déclaration_tableau(
-        const NoeudExpressionBinaire *construction_tableau);
+    Type *résoud_type_final_pour_déclaration_tableau_dynamique(
+        const NoeudExpressionTypeTableauDynamique *expr_tableau_dynamique);
+    Type *résoud_type_final_pour_déclaration_tableau_fixe(
+        const NoeudExpressionTypeTableauFixe *expr_tableau_fixe);
     Type *résoud_type_final_pour_expansion_variadique(
         const NoeudExpressionExpansionVariadique *expansion);
 

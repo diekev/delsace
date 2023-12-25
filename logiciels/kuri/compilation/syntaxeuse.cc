@@ -866,8 +866,15 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
             auto expression_entre_crochets = NoeudExpression::nul();
             if (apparie(GenreLexeme::DEUX_POINTS)) {
-                lexeme = m_lexeme_courant;
                 consomme();
+                consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant");
+
+                auto expression_type = analyse_expression(
+                    {PRECEDENCE_TYPE, Associativite::GAUCHE}, racine_expression, lexeme_final);
+                auto noeud = m_tacheronne.assembleuse->crée_expression_type_tableau_dynamique(
+                    lexeme);
+                noeud->expression_type = expression_type;
+                return noeud;
             }
 
             if (apparie_expression()) {
@@ -883,12 +890,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant");
 
             if (apparie_expression()) {
-                // nous avons l'expression d'un type
-                auto noeud = m_tacheronne.assembleuse->crée_expression_binaire(lexeme);
-                noeud->operande_gauche = expression_entre_crochets;
-                noeud->operande_droite = analyse_expression(
+                /* Nous avons l'expression d'un type tableau fixe. */
+                auto expression_type = analyse_expression(
                     {PRECEDENCE_TYPE, Associativite::GAUCHE}, racine_expression, lexeme_final);
 
+                auto noeud = m_tacheronne.assembleuse->crée_expression_type_tableau_fixe(lexeme);
+                noeud->expression_taille = expression_entre_crochets;
+                noeud->expression_type = expression_type;
                 return noeud;
             }
 
