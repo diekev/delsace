@@ -20,6 +20,7 @@
 
 #include "assembleuse.hh"
 #include "canonicalisation.hh"
+#include "cas_genre_noeud.hh"
 #include "noeud_code.hh"
 
 /* ------------------------------------------------------------------------- */
@@ -795,7 +796,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(expr);
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false, [&]() {
                 std::cerr << "Genre de noeud non-géré : " << racine->genre << '\n';
@@ -1724,9 +1725,9 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             type->info_type = info_type;
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }
@@ -2530,9 +2531,9 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             // pas avoir d'initialisation.
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }
@@ -2822,9 +2823,9 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
             // pas avoir d'initialisation.
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }

@@ -40,6 +40,8 @@
 #    pragma GCC diagnostic pop
 #endif
 
+#include "arbre_syntaxique/cas_genre_noeud.hh"
+
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
@@ -635,9 +637,9 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
             type_llvm = convertis_type_llvm(type_opaque->type_opacifie);
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }

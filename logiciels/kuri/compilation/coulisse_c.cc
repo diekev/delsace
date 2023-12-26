@@ -18,7 +18,9 @@
 
 #include "utilitaires/poule_de_taches.hh"
 
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
+
 #include "broyage.hh"
 #include "compilatrice.hh"
 #include "environnement.hh"
@@ -547,9 +549,9 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
             génère_typedef_pour_type_composé(type_c, type->comme_type_compose(), enchaineuse);
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }
@@ -742,9 +744,9 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             génère_code_pour_type(type_fonction->type_sortie, enchaineuse);
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }

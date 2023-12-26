@@ -10,6 +10,7 @@
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/bibliotheque.hh"
@@ -1195,9 +1196,9 @@ ffi_type *converti_type_ffi(Type const *type)
             // ces types là ne sont pas supporté dans FFI
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }

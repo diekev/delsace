@@ -7,6 +7,7 @@
 
 #include "biblinternes/outils/conditions.h"
 
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
@@ -580,11 +581,6 @@ struct VisiteuseType {
         }
 
         switch (type->genre) {
-            default:
-            {
-                assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
-                break;
-            }
             case GenreNoeud::EINI:
             {
                 break;
@@ -686,6 +682,12 @@ struct VisiteuseType {
                 POUR (type_tuple->membres) {
                     visite_type(it.type, rappel);
                 }
+                break;
+            }
+            CAS_POUR_NOEUDS_HORS_TYPES:
+            {
+                assert_rappel(false,
+                              [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
                 break;
             }
         }

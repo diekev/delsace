@@ -13,6 +13,7 @@
 #include "parsage/outils_lexemes.hh"
 
 #include "assembleuse.hh"
+#include "cas_genre_noeud.hh"
 #include "noeud_expression.hh"
 #include "utilitaires.hh"
 
@@ -43,13 +44,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
     }
 
     switch (noeud->genre) {
-        default:
-        {
-            assert_rappel(false, [&]() {
-                dbg() << "Noeud non-géré pour simplification : " << noeud->genre;
-            });
-            break;
-        }
         case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
         case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         case GenreNoeud::DECLARATION_MODULE:
@@ -960,6 +954,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
+        CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
+        case GenreNoeud::DECLARATION_UNION:
         case GenreNoeud::DECLARATION_OPAQUE:
         case GenreNoeud::EXPRESSION_INFO_DE:
         case GenreNoeud::EXPRESSION_INIT_DE:

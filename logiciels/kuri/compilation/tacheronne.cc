@@ -6,6 +6,8 @@
 #include "parsage/lexeuse.hh"
 
 #include "arbre_syntaxique/assembleuse.hh"
+#include "arbre_syntaxique/cas_genre_noeud.hh"
+
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "espace_de_travail.hh"
@@ -983,9 +985,9 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             return comme;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }

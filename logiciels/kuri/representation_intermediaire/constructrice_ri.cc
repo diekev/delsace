@@ -10,6 +10,7 @@
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/compilatrice.hh"
@@ -1405,9 +1406,9 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
             valeur->type = type_opaque;
             return valeur;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             return nullptr;
         }
     }
@@ -4378,9 +4379,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_compilatrice.typeuse.type_info_type_variadique, std::move(valeurs));
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }

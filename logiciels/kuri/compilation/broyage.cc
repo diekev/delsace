@@ -14,6 +14,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
 
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "typage.hh"
@@ -261,9 +262,9 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
             enchaineuse << "KlTuple" << type;
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }

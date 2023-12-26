@@ -9,6 +9,7 @@
 
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/canonicalisation.hh"
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/copieuse.hh"
 
 #include "parsage/outils_lexemes.hh"
@@ -1167,7 +1168,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     type_info_type = m_compilatrice.typeuse.type_info_type_variadique;
                     break;
                 }
-                default:
+                CAS_POUR_NOEUDS_HORS_TYPES:
                 {
                     assert_rappel(false, [&]() {
                         dbg() << "Noeud non-géré pour type : " << expr->type->genre;
@@ -1604,10 +1605,10 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             return valide_expression_type_tableau_dynamique(
                 noeud->comme_expression_type_tableau_dynamique());
         }
-        default:
+        CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false,
-                          [&]() { dbg() << "Noeud géré pour validation : " << noeud->genre; });
+                          [&]() { dbg() << "Noeud non-géré pour validation : " << noeud->genre; });
             break;
         }
     }

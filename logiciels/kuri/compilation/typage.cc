@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "arbre_syntaxique/allocatrice.hh"
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
@@ -1594,9 +1595,9 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             enchaineuse << ")";
             return;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }
@@ -2127,9 +2128,9 @@ bool est_type_fondamental(const Type *type)
         {
             return est_type_fondamental(type->comme_type_opaque()->type_opacifie);
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }
@@ -2235,10 +2236,11 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
                 pile.empile(type_courant->comme_type_opaque()->type_opacifie);
                 break;
             }
-            default:
+            CAS_POUR_NOEUDS_HORS_TYPES:
             {
-                assert_rappel(
-                    false, [&]() { dbg() << "Noeud géré pour type : " << type_courant->genre; });
+                assert_rappel(false, [&]() {
+                    dbg() << "Noeud non-géré pour type : " << type_courant->genre;
+                });
                 break;
             }
         }
