@@ -343,3 +343,11 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> [..]T
     résultat.capacité = résultat.taille
     retourne résultat
 }
+
+dernier_élément :: fonc (tableau: [..]$T) -> *T
+{
+    si tableau.taille == 0 {
+        retourne nul
+    }
+    retourne *tableau.pointeur[tableau.taille - 1]
+}
