@@ -31,6 +31,11 @@ est_tableau :: fonc (valeur: eini) -> bool
     retourne valeur.info.id == id_info.TABLEAU
 }
 
+est_tranche :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.TRANCHE
+}
+
 est_entier :: fonc (valeur: eini) -> bool
 {
     retourne valeur.info.id == id_info.ENTIER
@@ -450,6 +455,33 @@ crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
 
     itératrice.valeur = valeur
     itératrice.type_pointé = type_pointé
+    itératrice.décalage = décalage
+
+    retourne itératrice
+}
+
+crée_itératrice_tableau_tranche :: fonc (valeur: eini) -> ItératriceTableau
+{
+    itératrice : ItératriceTableau
+
+    saufsi valeur.est_valide() {
+        retourne itératrice
+    }
+
+    saufsi valeur.est_tranche() {
+        retourne itératrice
+    }
+
+    info_tableau := valeur.info comme *InfoTypeTranche
+    type_élément := info_tableau.type_élément
+    décalage := type_élément.taille_en_octet comme z32
+
+    x := mémoire(valeur.pointeur comme *[]z8)
+    itératrice.pointeur = x.pointeur
+    itératrice.taille = x.taille
+
+    itératrice.valeur = valeur
+    itératrice.type_pointé = type_élément
     itératrice.décalage = décalage
 
     retourne itératrice
@@ -1037,6 +1069,7 @@ parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
         POINTEUR,
         TYPE_DE_DONNÉES,
         TABLEAU,
+        TRANCHE,
         ÉNUM,
         EINI,
         VARIADIQUE {

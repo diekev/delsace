@@ -279,6 +279,28 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
             nouveau_type.nom_type_cpp = enchaine("tableau<", type_c_pointé.nom_type_c, ", ", type_c_pointé_pour_cpp.nom_type_cpp, ">")
             nouveau_type.nom_type_kuri_c = copie_chaine("TableauGénériqueIPA")
         }
+        TRANCHE {
+            info_tranche := type comme *InfoTypeTranche
+
+            type_élément := info_tranche.type_élément
+            type_c_pointé := ajoute_type(système, ipa, type_élément)
+            type_ipa_pointé := convertis_vers_type_ipa(ipa, type_élément)
+
+            /* Si le type est toujours un pointeur, le type C++ doit être celui
+             * sans le pointeur afin que la conversion vers la classe enveloppe
+             * se fasse correctement. */
+            type_c_pointé_pour_cpp := type_c_pointé
+
+            si type_est_toujours_pointeur(type_ipa_pointé) {
+                type_élément = (type_élément comme *InfoTypePointeur).type_pointé
+                type_c_pointé_pour_cpp = ajoute_type(système, ipa, type_élément)
+            }
+
+            nouveau_type.nom_type_c = enchaine("Tranche_", type_c_pointé.nom_type_c_élément_tableau)
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c)
+            nouveau_type.nom_type_cpp = enchaine("tableau<", type_c_pointé.nom_type_c, ", ", type_c_pointé_pour_cpp.nom_type_cpp, ">")
+            nouveau_type.nom_type_kuri_c = copie_chaine("TableauGénériqueIPA")
+        }
         RIEN {
             nouveau_type.nom_type_c = copie_chaine("void")
             nouveau_type.nom_type_cpp = copie_chaine("void")
@@ -579,7 +601,7 @@ public:
 
 prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, système: *SystèmeTypeC)
 {
-    si type.drapeaux.TYPE_EST_BASIQUE || type.drapeaux.TYPE_EST_TABLEAU {
+    si type.drapeaux.TYPE_EST_BASIQUE || type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_TRANCHE {
         retourne
     }
 
@@ -652,7 +674,7 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
 
 définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC)
 {
-    si type.drapeaux.TYPE_EST_BASIQUE || type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ÉNUM {
+    si type.drapeaux.TYPE_EST_BASIQUE || type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ÉNUM || type.drapeaux.TYPE_EST_TRANCHE {
         retourne
     }
 
@@ -1043,7 +1065,7 @@ génère_code_fonction_cpp :: fonc (enchaineuse: *Enchaineuse, système: *Systè
         type_c := trouve_type(système, type_sortie)
         type_ipa_sortie := fonction.sorties[0].type_ipa
 
-        si type_ipa_sortie.drapeaux.TYPE_EST_TABLEAU {
+        si type_ipa_sortie.drapeaux.TYPE_EST_TABLEAU || type_ipa_sortie.drapeaux.TYPE_EST_TRANCHE {
             ajoute_au_tampon(enchaineuse, "    return ", type_c.nom_type_cpp, "(valeur_de_retour.éléments, valeur_de_retour.compte);\n")
         }
         sinon {
@@ -1137,7 +1159,7 @@ génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA,
         retourne
     }
 
-    si type_courant.drapeaux.TYPE_EST_TABLEAU {
+    si type_courant.drapeaux.TYPE_EST_TABLEAU || type_courant.drapeaux.TYPE_EST_TRANCHE {
         type_tableau := infos_type_courant comme *InfoTypeTableau
 
         type_ipa_type_pointé := trouve_type_ipa(ipa, type_tableau.type_pointé)
@@ -1196,13 +1218,13 @@ génère_code_entête_table :: fonc (génératrice: *GénératriceCodeC, chemin:
 
     /* Deux passes pour les typedefs des tableaux se fassent après les types qu'ils utilisent. */
     pour ipa.types {
-        si it.drapeaux.TYPE_EST_TABLEAU {
+        si it.drapeaux.TYPE_EST_TABLEAU || it.drapeaux.TYPE_EST_TRANCHE {
             continue
         }
         génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type)
     }
     pour ipa.types {
-        saufsi it.drapeaux.TYPE_EST_TABLEAU {
+        saufsi it.drapeaux.TYPE_EST_TABLEAU || it.drapeaux.TYPE_EST_TRANCHE {
             continue
         }
         génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type)
@@ -1591,6 +1613,12 @@ convertis_variable_type_kuri_vers_type_c :: fonc (enchaineuse: *Enchaineuse, typ
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n")
             retourne nom_nouvelle_variable
         }
+        TRANCHE {
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n")
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur comme *rien\n")
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n")
+            retourne nom_nouvelle_variable
+        }
     }
 
     retourne nom_variable
@@ -1649,6 +1677,13 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
                 retourne
             }
 
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ")
+            imprime_type(enchaineuse, type_kuri)
+            ajoute_au_tampon(enchaineuse, "\n")
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n")
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n")
+        }
+        TRANCHE {
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ")
             imprime_type(enchaineuse, type_kuri)
             ajoute_au_tampon(enchaineuse, "\n")

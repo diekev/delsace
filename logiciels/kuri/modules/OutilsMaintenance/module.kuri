@@ -73,7 +73,7 @@ données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnées
 
 // -------------------------------------
 
-écris_lignes_dans_fichier :: fonc (chemin: CheminFichier, lignes: [..]chaine)
+écris_lignes_dans_fichier :: fonc (chemin: CheminFichier, lignes: []chaine)
 {
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -93,7 +93,7 @@ données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnées
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, données: &DonnéesFichier, rappels: [..]fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, données: &DonnéesFichier, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     contenu_fichier_binaire(chemin, données.contenu)
 
@@ -113,14 +113,14 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappels: [..]fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     données: DonnéesFichier
     diffère détruit_données_fichier(données)
     exécute_rappel_pour_fichier(racine, chemin, données, rappels, données_utilisateurs)
 }
 
-exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: [..]chaine, rappels: [..]fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     données: DonnéesFichier
     diffère détruit_données_fichier(données)
@@ -177,7 +177,7 @@ tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
     données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
 }
 
-tri_bloc_imports_ou_chargements :: fonc (lignes: [..]chaine, index_ligne: z64, début_ligne: chaine) -> z32
+tri_bloc_imports_ou_chargements :: fonc (lignes: []chaine, index_ligne: z64, début_ligne: chaine) -> z32
 {
     it := lignes[index_ligne]
 
@@ -281,7 +281,7 @@ remplaces_tabulation_par_espaces :: fonc (données_fichier: &DonnéesFichier)
 /** \nom Points d'entrée.
  * \{ */
 
-exécute_rappels :: fonc (chemin: CheminFichier, extensions: [..]chaine, rappels: [..]fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     si chemin.est_un_dossier() {
         exécute_rappel_pour_dossier(chemin, extensions, rappels, données_utilisateurs)
@@ -293,19 +293,19 @@ exécute_rappels :: fonc (chemin: CheminFichier, extensions: [..]chaine, rappels
     }
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, extensions: [..]chaine, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     rappels := [rappel]
     exécute_rappels(chemin, extensions, rappels, données_utilisateurs)
 }
 
-exécute_rappels :: fonc (chemin: CheminFichier, extensions: [..]chaine, rappels: [..]fonc(&DonnéesFichier)(rien))
+exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien))
 {
     données_utilisateurs: eini
     exécute_rappels(chemin, extensions, rappels, données_utilisateurs)
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, extensions: [..]chaine, rappel: fonc(&DonnéesFichier)(rien))
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien))
 {
     rappels := [rappel]
     exécute_rappels(chemin, extensions, rappels)

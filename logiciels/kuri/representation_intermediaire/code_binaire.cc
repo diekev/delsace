@@ -1081,6 +1081,12 @@ ffi_type *converti_type_ffi(Type const *type)
 
             return &type_ffi_tableau;
         }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            static ffi_type *types_éléments[] = {&ffi_type_pointer, &ffi_type_sint64, nullptr};
+            static ffi_type type_ffi_tranche = {0, 0, FFI_TYPE_STRUCT, types_éléments};
+            return &type_ffi_tranche;
+        }
         case GenreNoeud::EINI:
         {
             static ffi_type *types_elements[] = {&ffi_type_pointer, &ffi_type_pointer, nullptr};

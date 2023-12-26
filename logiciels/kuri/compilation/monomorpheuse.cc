@@ -512,6 +512,21 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_opaque(
     }
 }
 
+void Monomorpheuse::ajoute_candidats_depuis_declaration_tranche(
+    const NoeudExpressionTypeTranche *expr_type_tranche,
+    const NoeudExpression *site,
+    const Type *type_reçu)
+{
+    if (!type_reçu->est_type_tranche()) {
+        erreur_genre_type(site, type_reçu, "n'est pas une tranche");
+        return;
+    }
+
+    auto const expression_type = expr_type_tranche->expression_type;
+    auto type_tranche = type_reçu->comme_type_tranche();
+    parse_candidats(expression_type, site, type_tranche->type_élément);
+}
+
 void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
     const NoeudExpressionTypeTableauDynamique *expr_type_tableau,
     const NoeudExpression *site,
@@ -584,6 +599,10 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
              * type directement. */
             parse_candidats(prise_référence->opérande, site, type_reçu);
         }
+    }
+    else if (expression_polymorphique->est_expression_type_tranche()) {
+        auto type_tranche = expression_polymorphique->comme_expression_type_tranche();
+        ajoute_candidats_depuis_declaration_tranche(type_tranche, site, type_reçu);
     }
     else if (expression_polymorphique->est_expression_type_tableau_dynamique()) {
         auto type_tableau_dynamique =
@@ -665,6 +684,10 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         auto const type_tableau_fixe =
             expression_polymorphique->comme_expression_type_tableau_fixe();
         return résoud_type_final_pour_déclaration_tableau_fixe(type_tableau_fixe);
+    }
+    else if (expression_polymorphique->est_expression_type_tranche()) {
+        auto const type_tranche = expression_polymorphique->comme_expression_type_tranche();
+        return résoud_type_final_pour_déclaration_tranche(type_tranche);
     }
     else if (expression_polymorphique->est_expression_type_tableau_dynamique()) {
         auto const type_tableau_dynamique =
@@ -894,6 +917,13 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_opaque(
     return typeuse().monomorphe_opaque(
         opaque_construite,
         const_cast<Type *>(item_résultat->type->comme_type_type_de_donnees()->type_connu));
+}
+
+Type *Monomorpheuse::résoud_type_final_pour_déclaration_tranche(
+    const NoeudExpressionTypeTranche *expr_tranche)
+{
+    auto type_pointe = résoud_type_final_impl(expr_tranche->expression_type);
+    return typeuse().crée_type_tranche(type_pointe);
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_dynamique(

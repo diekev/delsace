@@ -51,6 +51,7 @@
     case GenreNoeud::EXPRESSION_TYPE_DE:                                                          \
     case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:                                           \
     case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:                                                \
+    case GenreNoeud::EXPRESSION_TYPE_TRANCHE:                                                     \
     case GenreNoeud::EXPRESSION_VIRGULE:                                                          \
     case GenreNoeud::INSTRUCTION_ARRETE:                                                          \
     case GenreNoeud::INSTRUCTION_BOUCLE:                                                          \
@@ -106,6 +107,7 @@
     case GenreNoeud::TABLEAU_FIXE:                                                                \
     case GenreNoeud::TUPLE:                                                                       \
     case GenreNoeud::TYPE_DE_DONNEES:                                                             \
+    case GenreNoeud::TYPE_TRANCHE:                                                                \
     case GenreNoeud::VARIADIQUE
 
 #define CAS_POUR_NOEUDS_TYPES                                                                     \

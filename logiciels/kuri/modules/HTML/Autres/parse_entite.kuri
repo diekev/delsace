@@ -112,7 +112,7 @@ principale :: fonc () -> z32
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    ajoute_au_tampon(*enchaineuse, "symboles_entités : [..]chaine = ")
+    ajoute_au_tampon(*enchaineuse, "symboles_entités : []chaine = ")
 
     virgule := "["
 
@@ -126,7 +126,7 @@ principale :: fonc () -> z32
 
     ajoute_au_tampon(*enchaineuse, "]\n\n")
 
-    ajoute_au_tampon(*enchaineuse, "points_de_code_entités : [..][2]z32 = ")
+    ajoute_au_tampon(*enchaineuse, "points_de_code_entités : [][2]z32 = ")
 
     virgule = "[ "
 

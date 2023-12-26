@@ -633,6 +633,12 @@ struct VisiteuseType {
                 visite_type(tableau->type_pointe, rappel);
                 break;
             }
+            case GenreNoeud::TYPE_TRANCHE:
+            {
+                auto tranche = type->comme_type_tranche();
+                visite_type(tranche->type_élément, rappel);
+                break;
+            }
             case GenreNoeud::TABLEAU_FIXE:
             {
                 auto tableau = type->comme_type_tableau_fixe();
@@ -1003,6 +1009,8 @@ void ConstructriceProgrammeFormeRI::ajoute_globale(AtomeGlobale *globale, bool v
     m_résultat.ajoute_globale(globale);
     m_globales_utilisées.insère(globale);
 
+    // dbg() << " ajoute_globale " << chaine_type(globale->type);
+
     /* Ces types ne sont pas utiles pour le code machine. */
     if (!est_globale_pour_tableau_données_constantes(globale)) {
         ajoute_type(const_cast<Type *>(globale->type), true);
@@ -1027,16 +1035,20 @@ void ConstructriceProgrammeFormeRI::ajoute_type(Type *type, bool visite_type)
         return;
     }
 
+    // dbg() << " ajoute_type " << chaine_type(type);
     m_résultat.types.ajoute(type);
     m_types_utilisés.insère(type);
 
     if (type->atome_info_type) {
+        // dbg() << "into type pour " << chaine_type(type);
         ajoute_globale(type->atome_info_type, true);
     }
 
     if (!visite_type) {
         return;
     }
+
+    // dbg() << " visite_type " << chaine_type(type);
 
     VisiteuseType visiteuse{};
     visiteuse.visite_type(type, [&](Type *type_enfant) { ajoute_type(type_enfant, false); });
@@ -1139,7 +1151,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
     auto &typeuse = m_espace.compilatrice().typeuse;
     auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
     auto ident = m_espace.compilatrice().donne_identifiant_pour_globale("données_table_des_types");
-    atome_table_des_types->initialisateur = m_compilatrice_ri.crée_tableau_global(
+    atome_table_des_types->initialisateur = m_compilatrice_ri.crée_tranche_globale(
         *ident, type_pointeur_info_type, std::move(table_des_types));
 
     auto initialisateur = atome_table_des_types->initialisateur->comme_constante_structure();

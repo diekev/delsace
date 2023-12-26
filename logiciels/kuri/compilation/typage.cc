@@ -270,6 +270,26 @@ static void initialise_type_tableau_dynamique(TypeTableauDynamique *résultat,
     type_pointe_->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_TABLEAU_DYNAMIQUE;
 }
 
+static void initialise_type_tranche(NoeudDeclarationTypeTranche *résultat,
+                                    Type *type_élément,
+                                    kuri::tableau<MembreTypeComposé, int> &&membres_)
+{
+    assert(type_élément);
+
+    résultat->membres = std::move(membres_);
+    résultat->nombre_de_membres_réels = résultat->membres.taille();
+    résultat->type_élément = type_élément;
+    résultat->taille_octet = 16;
+    résultat->alignement = 8;
+    résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+
+    if (type_élément->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
+        résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
+    }
+
+    type_élément->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_TRANCHE;
+}
+
 static void initialise_type_variadique(TypeVariadique *résultat,
                                        Type *type_pointe_,
                                        kuri::tableau<MembreTypeComposé, int> &&membres_)
@@ -720,6 +740,36 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     return type;
 }
 
+NoeudDeclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
+                                                        bool insère_dans_graphe)
+{
+    VERROUILLE(types_tranches);
+
+    if (type_élément->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TRANCHE)) {
+        POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tranche) {
+            if (it.type_élément == type_élément) {
+                return &it;
+            }
+        }
+    }
+
+    auto membres = kuri::tableau<MembreTypeComposé, int>();
+    membres.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur, 0});
+    membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
+
+    auto type = alloc->m_noeuds_type_tranche.ajoute_element();
+    initialise_type_tranche(type, type_élément, std::move(membres));
+
+    /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
+     * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
+    if (insère_dans_graphe) {
+        auto graphe = graphe_.verrou_ecriture();
+        graphe->connecte_type_type(type, type_élément);
+    }
+
+    return type;
+}
+
 TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 {
     VERROUILLE(types_variadiques);
@@ -740,13 +790,13 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 
     if (type_pointe != nullptr) {
         /* crée un tableau dynamique correspond pour que la génération */
-        auto tableau_dyn = type_tableau_dynamique(type_pointe);
+        auto tranche = crée_type_tranche(type_pointe);
 
         auto graphe = graphe_.verrou_ecriture();
         graphe->connecte_type_type(type, type_pointe);
-        graphe->connecte_type_type(type, tableau_dyn);
+        graphe->connecte_type_type(type, tranche);
 
-        type->type_tableau_dynamique = tableau_dyn;
+        type->type_tranche = tranche;
     }
     else {
         /* Pour les types variadiques externes, nous ne pouvons générer de fonction
@@ -1356,10 +1406,26 @@ static kuri::chaine_statique donne_spécifiant_variadique(OptionsImpressionType 
     return "...";
 }
 
-static ParenthèseParamètres donne_spécifiant_tableau(OptionsImpressionType const options)
+static ParenthèseParamètres donne_spécifiant_tableau_fixe(OptionsImpressionType const options)
 {
     if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
         return {"KT", "_"};
+    }
+    return {"[", "]"};
+}
+
+static ParenthèseParamètres donne_spécifiant_tableau(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
+        return {"Kt", "_"};
+    }
+    return {"[..", "]"};
+}
+
+static ParenthèseParamètres donne_spécifiant_tranche(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
+        return {"Kz", "_"};
     }
     return {"[", "]"};
 }
@@ -1495,11 +1561,18 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
                         options);
             return;
         }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            auto parenthèse = donne_spécifiant_tranche(options);
+            enchaineuse << parenthèse.début << parenthèse.fin;
+            chaine_type(enchaineuse, type->comme_type_tranche()->type_élément, options);
+            return;
+        }
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_tabl = static_cast<TypeTableauFixe const *>(type);
 
-            auto parenthèse = donne_spécifiant_tableau(options);
+            auto parenthèse = donne_spécifiant_tableau_fixe(options);
             enchaineuse << parenthèse.début << type_tabl->taille << parenthèse.fin;
             chaine_type(enchaineuse, type_tabl->type_pointe, options);
             return;
@@ -1638,6 +1711,10 @@ Type *type_déréférencé_pour(Type const *type)
         return type->comme_type_tableau_dynamique()->type_pointe;
     }
 
+    if (type->est_type_tranche()) {
+        return type->comme_type_tranche()->type_élément;
+    }
+
     if (type->est_type_variadique()) {
         return type->comme_type_variadique()->type_pointe;
     }
@@ -1660,7 +1737,8 @@ bool est_type_booléen_implicite(Type *type)
                                     GenreNoeud::ENTIER_RELATIF,
                                     GenreNoeud::FONCTION,
                                     GenreNoeud::POINTEUR,
-                                    GenreNoeud::TABLEAU_DYNAMIQUE);
+                                    GenreNoeud::TABLEAU_DYNAMIQUE,
+                                    GenreNoeud::TYPE_TRANCHE);
 }
 
 static inline uint32_t marge_pour_alignement(const uint32_t alignement,
@@ -2103,6 +2181,7 @@ bool est_type_fondamental(const Type *type)
         case GenreNoeud::DECLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         case GenreNoeud::TABLEAU_FIXE:
+        case GenreNoeud::TYPE_TRANCHE:
         case GenreNoeud::VARIADIQUE:
         case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::TUPLE:
@@ -2224,6 +2303,11 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
             case GenreNoeud::TABLEAU_DYNAMIQUE:
             {
                 pile.empile(type_courant->comme_type_tableau_dynamique()->type_pointe);
+                break;
+            }
+            case GenreNoeud::TYPE_TRANCHE:
+            {
+                pile.empile(type_courant->comme_type_tranche()->type_élément);
                 break;
             }
             case GenreNoeud::TABLEAU_FIXE:

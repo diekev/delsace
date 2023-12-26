@@ -110,6 +110,18 @@ tableau_copie :: fonc(tabl: [..]$T) -> [..]T
     retourne tmp
 }
 
+tableau_copie :: fonc(tabl: []$T) -> [..]T
+{
+    tmp := loge_tableau(T, tabl.taille)
+
+    pour tabl {
+        tmp.pointeur[index_it] = it
+    }
+
+    tmp.taille = tabl.taille
+    retourne tmp
+}
+
 tableau_copie :: fonc (tabl: [..]$T, fonction_de_copie: fonc(T)(T)) -> [..]T
 {
     résultat : [..]T
@@ -310,7 +322,7 @@ tableaux_sont_égaux :: fonc (tableau1: [..]$T, tableau2: [..]T) -> bool
     retourne vrai
 }
 
-tranche :: fonc (tableau: [..]$T, début: z64, fin: z64) -> [..]T
+tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> [..]T
 {
     résultat : [..]T
 

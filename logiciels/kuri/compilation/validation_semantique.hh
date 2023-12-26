@@ -41,6 +41,7 @@ struct NoeudExpressionMembre;
 struct NoeudInstructionImporte;
 struct NoeudExpressionTypeTableauDynamique;
 struct NoeudExpressionTypeTableauFixe;
+struct NoeudExpressionTypeTranche;
 struct NoeudPour;
 struct NoeudRetour;
 struct NoeudSi;
@@ -321,4 +322,6 @@ struct Sémanticienne {
 
     ResultatValidation valide_expression_type_tableau_dynamique(
         NoeudExpressionTypeTableauDynamique *expr);
+
+    ResultatValidation valide_expression_type_tranche(NoeudExpressionTypeTranche *expr);
 };

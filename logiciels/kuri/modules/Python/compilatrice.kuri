@@ -402,6 +402,9 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 
             type_python.type_itérateur = type_itérateur
         }
+        TRANCHE {
+            compilatrice_rapporte_erreur("Les types tranches ne sont pas convertibles vers Python pour le moment")
+        }
         RIEN {
             /* Le type rien n'est pas convertis en type Python, nous le détectons lors de la génération de code
              * et retournons Py_None */

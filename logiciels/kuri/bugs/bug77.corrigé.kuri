@@ -16,7 +16,7 @@ tableau_fixe := [
     UneStructure("Romanus")
 ]
 
-tableau_convertis : [..]UneStructure = [
+tableau_convertis : []UneStructure = [
     UneStructure("Senatus"),
     UneStructure("Populus"),
     UneStructure("Que"),

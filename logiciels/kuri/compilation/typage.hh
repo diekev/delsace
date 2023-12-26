@@ -30,6 +30,7 @@ struct MembreTypeComposé;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationTypeTranche;
 struct NoeudDeclarationTypeOpaque;
 struct NoeudDeclarationOperateurPour;
 struct NoeudDependance;
@@ -232,6 +233,7 @@ struct Typeuse {
     std::mutex mutex_types_enums{};
     std::mutex mutex_types_tableaux_fixes{};
     std::mutex mutex_types_tableaux_dynamiques{};
+    std::mutex mutex_types_tranches{};
     std::mutex mutex_types_fonctions{};
     std::mutex mutex_types_variadiques{};
     std::mutex mutex_types_unions{};
@@ -249,6 +251,7 @@ struct Typeuse {
     Type *type_info_type_membre_structure = nullptr;
     Type *type_info_type_entier = nullptr;
     Type *type_info_type_tableau = nullptr;
+    Type *type_info_type_tranche = nullptr;
     Type *type_info_type_pointeur = nullptr;
     Type *type_info_type_enum = nullptr;
     Type *type_info_type_fonction = nullptr;
@@ -313,6 +316,9 @@ struct Typeuse {
 
     TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe,
                                                  bool insere_dans_graphe = true);
+
+    NoeudDeclarationTypeTranche *crée_type_tranche(Type *type_élément,
+                                                   bool insère_dans_graphe = true);
 
     TypeVariadique *type_variadique(Type *type_pointe);
 

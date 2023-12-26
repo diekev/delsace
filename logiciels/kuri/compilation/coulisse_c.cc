@@ -473,14 +473,14 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         {
             auto variadique = type->comme_type_variadique();
             /* Garantie la génération du typedef pour les types tableaux des variadiques. */
-            if (!variadique->type_tableau_dynamique) {
+            if (!variadique->type_tranche) {
                 type_c.typedef_ = "...";
                 return;
             }
 
-            auto &type_c_tableau = type_c_pour(variadique->type_tableau_dynamique);
+            auto &type_c_tableau = type_c_pour(variadique->type_tranche);
             if (type_c_tableau.typedef_ == "") {
-                génère_typedef(variadique->type_tableau_dynamique, enchaineuse);
+                génère_typedef(variadique->type_tranche, enchaineuse);
             }
 
             /* Nous utilisons le type du tableau, donc initialisons avec un typedef symbolique
@@ -500,6 +500,20 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
             }
 
             génère_typedef_pour_type_composé(type_c, tableau_dynamique, enchaineuse);
+            break;
+        }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            auto tranche = type->comme_type_tranche();
+            auto type_pointe = tranche->type_élément;
+
+            if (type_pointe == nullptr) {
+                /* Aucun typedef. */
+                type_c.typedef_ = ".";
+                return;
+            }
+
+            génère_typedef_pour_type_composé(type_c, tranche, enchaineuse);
             break;
         }
         case GenreNoeud::FONCTION:
@@ -566,6 +580,10 @@ static kuri::chaine_statique donne_préfixe_struct_pour_type(
         return "Tableau_";
     }
 
+    if (type->est_type_tranche()) {
+        return "Tranche_";
+    }
+
     if (type->est_type_tableau_fixe()) {
         return "TableauFixe_";
     }
@@ -577,7 +595,7 @@ void ConvertisseuseTypeC::génère_typedef_pour_type_composé(TypeC &type_c,
                                                            const TypeCompose *type_composé,
                                                            Enchaineuse &enchaineuse)
 {
-    if (type_composé->est_type_tableau_dynamique()) {
+    if (type_composé->est_type_tableau_dynamique() || type_composé->est_type_tranche()) {
         /* Le type du membre des éléments peut manquer. */
         POUR (type_composé->membres) {
             génère_typedef(it.type, enchaineuse);
@@ -713,13 +731,32 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         {
             auto variadique = type->comme_type_variadique();
             génère_code_pour_type(variadique->type_pointe, enchaineuse);
-            génère_code_pour_type(variadique->type_tableau_dynamique, enchaineuse);
+            génère_code_pour_type(variadique->type_tranche, enchaineuse);
             return;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             auto tableau_dynamique = type->comme_type_tableau_dynamique();
             auto type_élément = tableau_dynamique->type_pointe;
+
+            if (type_élément == nullptr) {
+                return;
+            }
+
+            génère_code_pour_type(type_élément, enchaineuse);
+
+            if (!type_c.code_machine_fut_généré) {
+                POUR (tableau_dynamique->membres) {
+                    génère_code_pour_type(it.type, enchaineuse);
+                }
+                génère_déclaration_structure(enchaineuse, tableau_dynamique);
+            }
+            break;
+        }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            auto tableau_dynamique = type->comme_type_tranche();
+            auto type_élément = tableau_dynamique->type_élément;
 
             if (type_élément == nullptr) {
                 return;
@@ -1772,7 +1809,7 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
     }
 
     if (type->est_type_variadique()) {
-        auto type_tableau = type->comme_type_variadique()->type_tableau_dynamique;
+        auto type_tableau = type->comme_type_variadique()->type_tranche;
         if (!type_tableau) {
             return "Kv";
         }

@@ -615,6 +615,10 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         {
             return convertis_type_composé(type->comme_type_tableau_dynamique(), "tableau");
         }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            return convertis_type_composé(type->comme_type_tableau_dynamique(), "tranche");
+        }
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_deref_llvm = convertis_type_llvm(type_déréférencé_pour(type));

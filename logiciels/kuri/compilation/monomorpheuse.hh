@@ -21,6 +21,7 @@ struct NoeudExpressionExpansionVariadique;
 struct NoeudExpressionReference;
 struct NoeudExpressionTypeTableauDynamique;
 struct NoeudExpressionTypeTableauFixe;
+struct NoeudExpressionTypeTranche;
 struct NoeudStruct;
 struct Typeuse;
 
@@ -292,6 +293,10 @@ class Monomorpheuse {
         const NoeudExpressionConstructionStructure *construction,
         const NoeudExpression *site,
         const Type *type_reçu);
+    void ajoute_candidats_depuis_declaration_tranche(
+        const NoeudExpressionTypeTranche *expr_type_tranche,
+        const NoeudExpression *site,
+        const Type *type_reçu);
     void ajoute_candidats_depuis_declaration_tableau(
         const NoeudExpressionTypeTableauDynamique *expr_type_tableau,
         const NoeudExpression *site,
@@ -316,6 +321,8 @@ class Monomorpheuse {
         const NoeudExpressionConstructionStructure *construction);
     Type *résoud_type_final_pour_construction_opaque(
         const NoeudExpressionConstructionStructure *construction);
+    Type *résoud_type_final_pour_déclaration_tranche(
+        const NoeudExpressionTypeTranche *expr_tranche);
     Type *résoud_type_final_pour_déclaration_tableau_dynamique(
         const NoeudExpressionTypeTableauDynamique *expr_tableau_dynamique);
     Type *résoud_type_final_pour_déclaration_tableau_fixe(

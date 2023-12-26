@@ -150,10 +150,10 @@ struct ConstructriceRI {
     AtomeInitialisationTableau *crée_initialisation_tableau(Type const *type,
                                                             AtomeConstante const *valeur);
     AtomeNonInitialisation *crée_non_initialisation();
-    AtomeConstante *crée_tableau_global(IdentifiantCode &ident,
-                                        Type const *type,
-                                        kuri::tableau<AtomeConstante *> &&valeurs);
-    AtomeConstante *crée_tableau_global(IdentifiantCode &ident, AtomeConstante *tableau_fixe);
+    AtomeConstante *crée_tranche_globale(IdentifiantCode &ident,
+                                         Type const *type,
+                                         kuri::tableau<AtomeConstante *> &&valeurs);
+    AtomeConstante *crée_tranche_globale(IdentifiantCode &ident, AtomeConstante *tableau_fixe);
     AtomeConstante *crée_initialisation_tableau_global(AtomeGlobale *globale_tableau_fixe,
                                                        TypeTableauFixe const *type_tableau_fixe);
 
@@ -349,9 +349,9 @@ struct CompilatriceRI {
     AtomeGlobale *crée_info_type(Type const *type, NoeudExpression const *site);
     AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
 
-    AtomeConstante *crée_tableau_global(IdentifiantCode &ident,
-                                        Type const *type,
-                                        kuri::tableau<AtomeConstante *> &&valeurs);
+    AtomeConstante *crée_tranche_globale(IdentifiantCode &ident,
+                                         Type const *type,
+                                         kuri::tableau<AtomeConstante *> &&valeurs);
 
     void génère_ri_pour_initialisation_globales(EspaceDeTravail *espace,
                                                 AtomeFonction *fonction_init,
@@ -433,10 +433,15 @@ struct CompilatriceRI {
     AtomeConstante *donne_tableau_pour_type_sortie(TypeFonction const *type_fonction,
                                                    NoeudExpression const *site);
 
-    Atome *converti_vers_tableau_dyn(NoeudExpression const *noeud,
-                                     Atome *pointeur_tableau_fixe,
-                                     TypeTableauFixe const *type_tableau_fixe,
-                                     Atome *place);
+    Atome *convertis_vers_tranche(NoeudExpression const *noeud,
+                                  Atome *pointeur_tableau_fixe,
+                                  TypeTableauFixe const *type_tableau_fixe,
+                                  Atome *place);
+
+    Atome *convertis_vers_tranche(NoeudExpression const *noeud,
+                                  Atome *pointeur_tableau,
+                                  TypeTableauDynamique const *type_tableau_fixe,
+                                  Atome *place);
 
     AtomeConstante *crée_chaine(kuri::chaine_statique chaine);
 

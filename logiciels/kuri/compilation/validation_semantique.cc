@@ -745,6 +745,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             switch (type1->genre) {
                 case GenreNoeud::VARIADIQUE:
                 case GenreNoeud::TABLEAU_DYNAMIQUE:
+                case GenreNoeud::TYPE_TRANCHE:
                 {
                     expr->type = type_déréférencé_pour(type1);
                     break;
@@ -1146,6 +1147,11 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     type_info_type = m_compilatrice.typeuse.type_info_type_tableau;
                     break;
                 }
+                case GenreNoeud::TYPE_TRANCHE:
+                {
+                    type_info_type = m_compilatrice.typeuse.type_info_type_tranche;
+                    break;
+                }
                 case GenreNoeud::FONCTION:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_fonction;
@@ -1333,11 +1339,13 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 if (!dls::outils::est_element(type_expr->genre,
                                               GenreNoeud::TABLEAU_FIXE,
                                               GenreNoeud::TABLEAU_DYNAMIQUE,
+                                              GenreNoeud::TYPE_TRANCHE,
                                               GenreNoeud::VARIADIQUE)) {
                     espace
-                        ->rapporte_erreur(expr,
-                                          "Type invalide pour l'expansion variadique, je requiers "
-                                          "un type de tableau ou un type variadique")
+                        ->rapporte_erreur(
+                            expr,
+                            "Type invalide pour l'expansion variadique, je requiers "
+                            "un type tableau, un type tranche, ou un type variadique")
                         .ajoute_message("Note : le type de l'expression est ")
                         .ajoute_message(chaine_type(type_expr))
                         .ajoute_message("\n");
@@ -1345,10 +1353,19 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
                 if (type_expr->est_type_tableau_fixe()) {
                     auto type_tableau_fixe = type_expr->comme_type_tableau_fixe();
-                    type_expr = m_compilatrice.typeuse.type_tableau_dynamique(
+                    type_expr = m_compilatrice.typeuse.crée_type_tranche(
                         type_tableau_fixe->type_pointe);
                     crée_transtypage_implicite_au_besoin(
-                        expr->expression, {TypeTransformation::CONVERTI_TABLEAU, type_expr});
+                        expr->expression,
+                        {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE, type_expr});
+                }
+                else if (type_expr->est_type_tableau_dynamique()) {
+                    auto type_tableau_dynamique = type_expr->comme_type_tableau_dynamique();
+                    type_expr = m_compilatrice.typeuse.crée_type_tranche(
+                        type_tableau_dynamique->type_pointe);
+                    crée_transtypage_implicite_au_besoin(
+                        expr->expression,
+                        {TypeTransformation::CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE, type_expr});
                 }
 
                 expr->type = type_expr;
@@ -1604,6 +1621,10 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         {
             return valide_expression_type_tableau_dynamique(
                 noeud->comme_expression_type_tableau_dynamique());
+        }
+        case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
+        {
+            return valide_expression_type_tranche(noeud->comme_expression_type_tranche());
         }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
@@ -4920,7 +4941,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
         else if (transformation.type == TypeTransformation::CONSTRUIT_TABL_OCTET) {
             type_cible = TypeBase::TABL_OCTET;
         }
-        else if (transformation.type == TypeTransformation::CONVERTI_TABLEAU) {
+        else if (transformation.type == TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE) {
             auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
             type_cible = m_compilatrice.typeuse.type_tableau_dynamique(
                 type_tableau_fixe->type_pointe);
@@ -5378,7 +5399,7 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
 
     if (type_variable_itérée->est_type_tableau_dynamique() ||
         type_variable_itérée->est_type_tableau_fixe() ||
-        type_variable_itérée->est_type_variadique()) {
+        type_variable_itérée->est_type_variadique() || type_variable_itérée->est_type_tranche()) {
         auto type_itérateur = type_déréférencé_pour(type_variable_itérée);
         auto type_index = TypeBase::Z64;
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
@@ -6167,6 +6188,29 @@ ResultatValidation Sémanticienne::valide_expression_type_tableau_dynamique(
     auto type_de_donnees = type_expression_type->comme_type_type_de_donnees();
     auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
     auto type_tableau = m_compilatrice.typeuse.type_tableau_dynamique(type_connu);
+    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression type tableau dynamique.
+ * \{ */
+
+ResultatValidation Sémanticienne::valide_expression_type_tranche(NoeudExpressionTypeTranche *expr)
+{
+    auto type_expression_type = expr->expression_type->type;
+    if (!type_expression_type->est_type_type_de_donnees()) {
+        espace->rapporte_erreur(
+            expr->expression_type,
+            "Attendu un type de données pour l'expression du type tableau fixe.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_de_donnees = type_expression_type->comme_type_type_de_donnees();
+    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
+    auto type_tableau = m_compilatrice.typeuse.crée_type_tranche(type_connu);
     expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
     return CodeRetourValidation::OK;
 }

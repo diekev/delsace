@@ -796,6 +796,13 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(expr);
             break;
         }
+        case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
+        {
+            auto expr = racine->comme_expression_type_tranche();
+            aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(expr);
+            break;
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false, [&]() {
@@ -1392,8 +1399,22 @@ kuri::tableau_statique<const MembreTypeComposé> NoeudDeclarationTypeCompose::
 // -----------------------------------------------------------------------------
 // Implémentation des fonctions supplémentaires de la ConvertisseuseNoeudCode
 
+template <typename T>
+kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tablet<T, 6> const &tableau)
+{
+    auto pointeur = memoire::loge_tableau<T>("tranche", tableau.taille());
+    auto résultat = kuri::tranche(pointeur, tableau.taille());
+
+    POUR (tableau) {
+        *pointeur++ = it;
+    }
+
+    stocke_tranche(résultat);
+    return résultat;
+}
+
 static void copie_annotations(kuri::tableau<Annotation, int> const &source,
-                              kuri::tableau<const Annotation *> &dest)
+                              kuri::tablet<const Annotation *, 6> &dest)
 {
     dest.reserve(source.taille());
     for (auto &annotation : source) {
@@ -1401,22 +1422,25 @@ static void copie_annotations(kuri::tableau<Annotation, int> const &source,
     }
 }
 
-static void remplis_membre_info_type(InfoTypeMembreStructure *info_type_membre,
+static void remplis_membre_info_type(AllocatriceInfosType &allocatrice_infos_types,
+                                     InfoTypeMembreStructure *info_type_membre,
                                      MembreTypeComposé const &membre)
 {
     info_type_membre->decalage = membre.decalage;
     info_type_membre->nom = membre.nom->nom;
     info_type_membre->drapeaux = membre.drapeaux;
 
+    auto annotations = kuri::tablet<const Annotation *, 6>();
+
     if (membre.decl) {
         if (membre.decl->est_declaration_variable()) {
-            copie_annotations(membre.decl->comme_declaration_variable()->annotations,
-                              info_type_membre->annotations);
+            copie_annotations(membre.decl->comme_declaration_variable()->annotations, annotations);
         }
         else if (membre.decl->est_declaration_constante()) {
             copie_annotations(membre.decl->comme_declaration_constante()->annotations,
-                              info_type_membre->annotations);
+                              annotations);
         }
+        info_type_membre->annotations = allocatrice_infos_types.donne_tranche(annotations);
     }
 }
 
@@ -1493,6 +1517,18 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->est_tableau_fixe = false;
             info_type->taille_fixe = 0;
             info_type->type_pointe = crée_info_type_pour(typeuse, type_tableau->type_pointe);
+
+            type->info_type = info_type;
+            break;
+        }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            auto type_tableau = type->comme_type_tranche();
+
+            auto info_type = allocatrice_infos_types.infos_types_tranches.ajoute_element();
+            info_type->genre = GenreInfoType::TRANCHE;
+            info_type->taille_en_octet = type->taille_octet;
+            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_élément);
 
             type->info_type = info_type;
             break;
@@ -1594,7 +1630,8 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->taille_en_octet = type->taille_octet;
             info_type->nom = donne_nom_hiérarchique(type_struct);
 
-            info_type->membres.reserve(type_struct->membres.taille());
+            auto membres = kuri::tablet<InfoTypeMembreStructure *, 6>();
+            membres.reserve(type_struct->membres.taille());
 
             POUR (type_struct->membres) {
                 if (it.nom == ID::chaine_vide) {
@@ -1608,18 +1645,24 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 auto info_type_membre =
                     allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
                 info_type_membre->info = crée_info_type_pour(typeuse, it.type);
-                remplis_membre_info_type(info_type_membre, it);
-                info_type->membres.ajoute(info_type_membre);
+                remplis_membre_info_type(allocatrice_infos_types, info_type_membre, it);
+                membres.ajoute(info_type_membre);
             }
 
-            copie_annotations(type_struct->annotations, info_type->annotations);
+            info_type->membres = allocatrice_infos_types.donne_tranche(membres);
 
-            info_type->structs_employees.reserve(type_struct->types_employés.taille());
+            auto annotations = kuri::tablet<const Annotation *, 6>();
+            copie_annotations(type_struct->annotations, annotations);
+            info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
+
+            auto structs_employées = kuri::tablet<InfoTypeStructure *, 6>();
+            structs_employées.reserve(type_struct->types_employés.taille());
             POUR (type_struct->types_employés) {
                 auto info_struct_employe = crée_info_type_pour(typeuse, it->type);
-                info_type->structs_employees.ajoute(
-                    static_cast<InfoTypeStructure *>(info_struct_employe));
+                structs_employées.ajoute(static_cast<InfoTypeStructure *>(info_struct_employe));
             }
+            info_type->structs_employees = allocatrice_infos_types.donne_tranche(
+                structs_employées);
 
             break;
         }
@@ -1636,17 +1679,22 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->taille_en_octet = type_union->taille_octet;
             info_type->nom = donne_nom_hiérarchique(type_union);
 
-            info_type->membres.reserve(type_union->membres.taille());
+            auto membres = kuri::tablet<InfoTypeMembreStructure *, 6>();
+            membres.reserve(type_union->membres.taille());
 
             POUR (type_union->membres) {
                 auto info_type_membre =
                     allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
                 info_type_membre->info = crée_info_type_pour(typeuse, it.type);
-                remplis_membre_info_type(info_type_membre, it);
-                info_type->membres.ajoute(info_type_membre);
+                remplis_membre_info_type(allocatrice_infos_types, info_type_membre, it);
+                membres.ajoute(info_type_membre);
             }
 
-            copie_annotations(type_union->annotations, info_type->annotations);
+            info_type->membres = allocatrice_infos_types.donne_tranche(membres);
+
+            auto annotations = kuri::tablet<const Annotation *, 6>();
+            copie_annotations(type_union->annotations, annotations);
+            info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
 
             type->info_type = info_type;
             break;
@@ -1665,17 +1713,22 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
                 crée_info_type_pour(typeuse, type_enum->type_sous_jacent));
 
-            info_type->noms.reserve(type_enum->membres.taille());
-            info_type->valeurs.reserve(type_enum->membres.taille());
+            auto noms = kuri::tablet<kuri::chaine_statique, 6>();
+            noms.reserve(type_enum->membres.taille());
+            auto valeurs = kuri::tablet<int, 6>();
+            valeurs.reserve(type_enum->membres.taille());
 
             POUR (type_enum->membres) {
                 if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
                     continue;
                 }
 
-                info_type->noms.ajoute(it.nom->nom);
-                info_type->valeurs.ajoute(it.valeur);
+                noms.ajoute(it.nom->nom);
+                valeurs.ajoute(it.valeur);
             }
+
+            info_type->noms = allocatrice_infos_types.donne_tranche(noms);
+            info_type->valeurs = allocatrice_infos_types.donne_tranche(valeurs);
 
             type->info_type = info_type;
             break;
@@ -1689,26 +1742,31 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->est_coroutine = false;
             info_type->taille_en_octet = type->taille_octet;
 
-            info_type->types_entrees.reserve(type_fonction->types_entrees.taille());
+            auto types_entrée = kuri::tablet<InfoType *, 6>();
+            types_entrée.reserve(type_fonction->types_entrees.taille());
 
             POUR (type_fonction->types_entrees) {
-                info_type->types_entrees.ajoute(crée_info_type_pour(typeuse, it));
+                types_entrée.ajoute(crée_info_type_pour(typeuse, it));
             }
 
+            auto types_sortie = kuri::tablet<InfoType *, 6>();
             auto type_sortie = type_fonction->type_sortie;
 
             if (type_sortie->est_type_tuple()) {
                 auto tuple = type_sortie->comme_type_tuple();
-                info_type->types_sorties.reserve(tuple->membres.taille());
+                types_sortie.reserve(tuple->membres.taille());
 
                 POUR (tuple->membres) {
-                    info_type->types_sorties.ajoute(crée_info_type_pour(typeuse, it.type));
+                    types_sortie.ajoute(crée_info_type_pour(typeuse, it.type));
                 }
             }
             else {
-                info_type->types_sorties.reserve(1);
-                info_type->types_sorties.ajoute(crée_info_type_pour(typeuse, type_sortie));
+                types_sortie.reserve(1);
+                types_sortie.ajoute(crée_info_type_pour(typeuse, type_sortie));
             }
+
+            info_type->types_entrees = allocatrice_infos_types.donne_tranche(types_entrée);
+            info_type->types_sorties = allocatrice_infos_types.donne_tranche(types_sortie);
 
             type->info_type = info_type;
             break;
@@ -1840,6 +1898,12 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
             }
 
             return typeuse.type_tableau_dynamique(type_pointe);
+        }
+        case GenreInfoType::TRANCHE:
+        {
+            const auto info_type_tranche = static_cast<const InfoTypeTranche *>(type);
+            auto type_élément = convertis_info_type(typeuse, info_type_tranche->type_élément);
+            return typeuse.crée_type_tranche(type_élément);
         }
         case GenreInfoType::TYPE_DE_DONNEES:
         {
@@ -2391,6 +2455,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         case GenreNoeud::CHAINE:
         case GenreNoeud::DECLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TYPE_TRANCHE:
         case GenreNoeud::VARIADIQUE:
         case GenreNoeud::DECLARATION_UNION:
         {
@@ -2675,6 +2740,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreNoeud::CHAINE:
         case GenreNoeud::DECLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TYPE_TRANCHE:
         case GenreNoeud::VARIADIQUE:
         {
             auto type_composé = static_cast<TypeCompose *>(type);

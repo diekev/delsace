@@ -877,6 +877,15 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 return noeud;
             }
 
+            if (apparie(GenreLexeme::CROCHET_FERMANT)) {
+                consomme();
+                auto expression_type = analyse_expression(
+                    {PRECEDENCE_TYPE, Associativite::GAUCHE}, racine_expression, lexeme_final);
+                auto noeud = m_tacheronne.assembleuse->crée_expression_type_tranche(lexeme);
+                noeud->expression_type = expression_type;
+                return noeud;
+            }
+
             if (apparie_expression()) {
                 auto ancien_noeud_virgule = m_noeud_expression_virgule;
                 m_noeud_expression_virgule = nullptr;

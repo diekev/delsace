@@ -73,7 +73,7 @@ ConfidentialitéTypeIPA :: énum {
     OPAQUE
 }
 
-confidentialité_pour_annotation :: fonc (annotations: [..]*AnnotationCode) -> ConfidentialitéTypeIPA
+confidentialité_pour_annotation :: fonc (annotations: []*AnnotationCode) -> ConfidentialitéTypeIPA
 {
     pour annotations {
         si it.nom == "privé" {
@@ -108,6 +108,7 @@ MembreTypeIPA :: struct {
 DrapeauxTypeIPA :: énum_drapeau {
     TYPE_EST_BASIQUE
     TYPE_EST_TABLEAU
+    TYPE_EST_TRANCHE
     TYPE_EST_ÉNUM
     TYPE_EST_POINTEUR
     TYPE_EST_FONCTION
@@ -417,6 +418,11 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
             résultat.drapeaux.TYPE_EST_TABLEAU = vrai
 
             ajoute_type(ipa, info_tableau.type_pointé)
+        }
+        TRANCHE {
+            info_tranche := type comme *InfoTypeTranche
+            résultat.drapeaux.TYPE_EST_TRANCHE = vrai
+            ajoute_type(ipa, info_tranche.type_élément)
         }
         TYPE_DE_DONNÉES {
             compilatrice_rapporte_erreur("Les types « type_de_données » ne sont pas convertibles vers C/C++ pour le moment")

@@ -19,6 +19,7 @@ id_info :: énum z32 {
     UNION           :: 13
     OPAQUE          :: 14
     VARIADIQUE      :: 15
+    TRANCHE         :: 16
 }
 
 InfoType :: struct #interface {
@@ -48,12 +49,18 @@ InfoTypeTableau :: struct #interface {
     taille_fixe : z32
 }
 
-possède_annotation :: fonc (annotations: [..]*AnnotationCode, nom: chaine) -> bool
+InfoTypeTranche :: struct #interface {
+    empl base : InfoType
+
+    type_élément : *InfoType
+}
+
+possède_annotation :: fonc (annotations: []*AnnotationCode, nom: chaine) -> bool
 {
     retourne trouve_annotation(annotations, nom) != nul
 }
 
-trouve_annotation :: fonc (annotations: [..]*AnnotationCode, nom: chaine) -> *AnnotationCode
+trouve_annotation :: fonc (annotations: []*AnnotationCode, nom: chaine) -> *AnnotationCode
 {
     pour annotations {
         si it.nom == nom {
@@ -74,7 +81,7 @@ InfoTypeMembreStructure :: struct #interface {
     id : *InfoType
     décalage : z64 // décalage en octets dans la structure
     drapeaux : Drapeaux
-    annotations: [..]*AnnotationCode
+    annotations: []*AnnotationCode
 }
 
 possède_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> bool
@@ -91,9 +98,9 @@ InfoTypeStructure :: struct #interface {
     empl base : InfoType
 
     nom : chaine
-    membres : [..]*InfoTypeMembreStructure
-    structs_employées : [..]*InfoTypeStructure
-  	annotations: [..]*AnnotationCode
+    membres : []*InfoTypeMembreStructure
+    structs_employées : []*InfoTypeStructure
+  	annotations: []*AnnotationCode
 }
 
 possède_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
@@ -110,11 +117,11 @@ InfoTypeUnion :: struct #interface {
     empl base : InfoType
 
     nom : chaine
-    membres : [..]*InfoTypeMembreStructure
+    membres : []*InfoTypeMembreStructure
     type_le_plus_grand : *InfoType
     décalage_index : z64
     est_sûre : bool
-  	annotations: [..]*AnnotationCode
+  	annotations: []*AnnotationCode
 }
 
 possède_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> bool
@@ -130,14 +137,14 @@ trouve_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> *AnnotationCode
 InfoTypeFonction :: struct #interface {
     empl base : InfoType
 
-    types_entrée : [..]*InfoType
-    types_sortie : [..]*InfoType
+    types_entrée : []*InfoType
+    types_sortie : []*InfoType
     est_coroutine : bool
 }
 
 /* Retourne vrai si les d'entrée et de sortie de l'InfoTypeFonction sont les
  * mêmes que ceux données en paramtères. */
-apparie_type_fonction :: fonc (info_type: *InfoTypeFonction, types_entrée : [..]*InfoType, types_sortie: [..]*InfoType) -> bool
+apparie_type_fonction :: fonc (info_type: *InfoTypeFonction, types_entrée : []*InfoType, types_sortie: []*InfoType) -> bool
 {
     retourne tableaux_sont_égaux(info_type.types_entrée, types_entrée) && tableaux_sont_égaux(info_type.types_sortie, types_sortie)
 }
@@ -146,8 +153,8 @@ InfoTypeÉnum :: struct #interface {
     empl base : InfoType
 
     nom : chaine
-    valeurs : [..]z32
-    noms : [..]chaine
+    valeurs : []z32
+    noms : []chaine
     est_drapeau : bool
     type_sous_jacent: *InfoTypeEntier
 }

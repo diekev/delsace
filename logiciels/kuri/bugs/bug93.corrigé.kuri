@@ -28,19 +28,19 @@ vole_données_ :: fonc (v: &[..]$T) -> [..]T
 
 principale :: fonc () -> z32
 {
-    tabl := [0, 1, 2, 3, 4]
+    tabl : []z32 = [0, 1, 2, 3, 4]
 
-    tabl_dyn : [..]z32 = tabl
+    tabl_dyn : [..]z32 = tableau_copie(tabl)
     tabl_dyn_2 := vole_données_(tabl_dyn)
+    diffère déloge(tabl_dyn_2)
 
     assert(tabl_dyn.pointeur == nul)
     assert(tabl_dyn.taille == 0)
     assert(tabl_dyn.capacité == 0)
 
-    assert(tabl_dyn_2.pointeur == *tabl[0])
+    assert(tabl_dyn_2.pointeur != nul)
     assert(tabl_dyn_2.taille == 5)
-    /* Les conversions de tableau fixes en dynamique n'ont pas de capacité. */
-    assert(tabl_dyn_2.capacité == 0)
+    assert(tabl_dyn_2.capacité == 5)
 
     retourne 0
 }

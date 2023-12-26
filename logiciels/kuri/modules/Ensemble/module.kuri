@@ -138,6 +138,14 @@ ensemble_possède_rappel_si_possible :: fonc (ensemble: *[..]$T, donnée: T, rap
     retourne résultat
 }
 
+ensemble_possède_rappel_si_possible :: fonc (ensemble: *[]$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
+{
+    tableau : [..]T
+    tableau.pointeur = ensemble.pointeur
+    tableau.taille = ensemble.taille
+    retourne ensemble_possède_rappel_si_possible(*tableau, donnée, rappel)
+}
+
 /*
 ensemble_imprime :: fonc (ensemble: *[..]$T) -> rien
 {

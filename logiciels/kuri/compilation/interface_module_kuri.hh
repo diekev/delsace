@@ -21,6 +21,7 @@ using Type = NoeudDeclarationType;
     O(type_info_type_membre_structure, ID::InfoTypeMembreStructure)                               \
     O(type_info_type_entier, ID::InfoTypeEntier)                                                  \
     O(type_info_type_tableau, ID::InfoTypeTableau)                                                \
+    O(type_info_type_tranche, ID::InfoTypeTranche)                                                \
     O(type_info_type_pointeur, ID::InfoTypePointeur)                                              \
     O(type_info_type_fonction, ID::InfoTypeFonction)                                              \
     O(type_position_code_source, ID::PositionCodeSource)                                          \

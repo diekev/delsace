@@ -111,6 +111,15 @@ struct NoeudExpressionTypeTableauDynamique : NoeudExpression {
     NoeudExpression * expression_type [code enfant]
 }
 
+struct NoeudExpressionTypeTranche : NoeudExpression {
+    @genre EXPRESSION_TYPE_TRANCHE
+    @comme expression_type_tranche
+    @code  NoeudCodeExpressionTypeTranche
+    @genre_valeur DROITE
+
+    NoeudExpression * expression_type [code enfant]
+}
+
 struct NoeudExpressionExpansionVariadique : NoeudExpression {
     @genre EXPANSION_VARIADIQUE
     @comme expansion_variadique
@@ -841,6 +850,15 @@ struct NoeudDéclarationTypeTableauDynamique : NoeudDéclarationTypeComposé {
     NoeudDéclarationType *type_pointé [code enfant]
 }
 
+struct NoeudDéclarationTypeTranche : NoeudDéclarationTypeComposé {
+    @genre TYPE_TRANCHE
+    @comme type_tranche
+    @code  NoeudCodeTypeTranche
+    @genre_valeur DROITE
+
+    NoeudDéclarationType * type_élément [code enfant préserve_accents]
+}
+
 struct NoeudDéclarationTypeFonction : NoeudDéclarationType {
     @genre FONCTION
     @comme type_fonction
@@ -861,7 +879,7 @@ struct NoeudDéclarationTypeVariadique : NoeudDéclarationTypeComposé {
     NoeudDéclarationType *type_pointé [code enfant]
     /* Type tableau dynamique pour la génération de code, si le type est ...z32, le type
      * tableau dynamique sera []z32. */
-    NoeudDéclarationTypeTableauDynamique *type_tableau_dynamique [code]
+    NoeudDéclarationTypeTranche *type_tranche [code]
 }
 
 struct NoeudDéclarationTypeTypeDeDonnées : NoeudDéclarationType {

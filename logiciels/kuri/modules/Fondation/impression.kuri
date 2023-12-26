@@ -672,6 +672,36 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
 
             ajoute_au_tampon(enchaineuse, "]")
         }
+        TRANCHE {
+            index := 0
+            max_élément := 5
+
+            itératrice := crée_itératrice_tableau_tranche(valeur)
+
+            ajoute_au_tampon(enchaineuse, "[")
+
+            boucle {
+                valeur_ := itératrice.valeur_suivante()
+
+                saufsi valeur_.est_valide() {
+                    arrête
+                }
+
+                si index >= max_élément {
+            		ajoute_au_tampon(enchaineuse, ", ...")
+                    arrête
+                }
+
+                si index != 0 {
+                    ajoute_au_tampon(enchaineuse, ',')
+                }
+
+                imprime_valeur(enchaineuse, valeur_, vrai)
+                index += 1
+            }
+
+            ajoute_au_tampon(enchaineuse, "]")
+        }
         ÉNUM {
             info_arg := valeur.info comme *InfoTypeÉnum
 
@@ -932,6 +962,11 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
             }
 
             imprime_type(enchaineuse, info_arg.type_pointé)
+        }
+        TRANCHE {
+            info_arg := info comme *InfoTypeTranche
+            ajoute_au_tampon(enchaineuse, "[]")
+            imprime_type(enchaineuse, info_arg.type_élément)
         }
         ÉNUM {
             info_arg := info comme *InfoTypeÉnum

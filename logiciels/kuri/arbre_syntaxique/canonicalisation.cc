@@ -946,6 +946,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
+        case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
         {
             noeud->substitution = assem->crée_reference_type(noeud->lexeme, noeud->type);
             return;

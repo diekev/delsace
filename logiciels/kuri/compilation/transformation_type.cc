@@ -348,12 +348,25 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TransformationType(TypeTransformation::CONSTRUIT_TABL_OCTET);
         }
 
-        if (!type_de->est_type_tableau_fixe()) {
+        return TransformationType(TypeTransformation::IMPOSSIBLE);
+    }
+
+    if (type_vers->est_type_tranche()) {
+        auto type_élément = type_vers->comme_type_tranche()->type_élément;
+        if (type_de->est_type_tableau_fixe()) {
+            if (type_élément == type_de->comme_type_tableau_fixe()->type_pointe) {
+                return TransformationType(TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
+                                          type_vers);
+            }
             return TransformationType(TypeTransformation::IMPOSSIBLE);
         }
 
-        if (type_pointe == type_de->comme_type_tableau_fixe()->type_pointe) {
-            return TransformationType(TypeTransformation::CONVERTI_TABLEAU);
+        if (type_de->est_type_tableau_dynamique()) {
+            if (type_élément == type_de->comme_type_tableau_dynamique()->type_pointe) {
+                return TransformationType(
+                    TypeTransformation::CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE, type_vers);
+            }
+            return TransformationType(TypeTransformation::IMPOSSIBLE);
         }
 
         return TransformationType(TypeTransformation::IMPOSSIBLE);

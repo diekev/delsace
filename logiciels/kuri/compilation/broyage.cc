@@ -198,15 +198,21 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         {
             auto type_pointe = type->comme_type_variadique()->type_pointe;
 
-            // les arguments variadiques sont transformés en tableaux, donc utilise Kt
+            // les arguments variadiques sont transformés en tranches, donc utilise Kz
             if (type_pointe != nullptr) {
-                enchaineuse << "Kt";
+                enchaineuse << "Kz";
                 broye_nom_type(enchaineuse, type_pointe);
             }
             else {
                 enchaineuse << "Kv";
             }
 
+            break;
+        }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            enchaineuse << "Kz";
+            broye_nom_type(enchaineuse, type->comme_type_tranche()->type_élément);
             break;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:

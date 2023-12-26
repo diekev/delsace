@@ -66,7 +66,7 @@ int main()
     auto &typeuse = compilatrice.typeuse;
 
     auto dt_tabl_fixe = typeuse.type_tableau_fixe(TypeBase::Z32, 8);
-    auto dt_tabl_dyn = typeuse.type_tableau_dynamique(TypeBase::Z32);
+    auto dt_tranche = typeuse.crée_type_tranche(TypeBase::Z32);
 
     auto reussite = true;
 
@@ -100,7 +100,7 @@ int main()
     reussite &= verifie_transformation(
         compilatrice, TypeBase::TABL_N8, TypeBase::TABL_OCTET, true);
 
-    reussite &= verifie_transformation(compilatrice, dt_tabl_fixe, dt_tabl_dyn, true);
+    reussite &= verifie_transformation(compilatrice, dt_tabl_fixe, dt_tranche, true);
 
     auto dt_eini = TypeBase::EINI;
 
