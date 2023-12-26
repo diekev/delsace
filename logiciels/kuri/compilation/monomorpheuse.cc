@@ -664,6 +664,12 @@ void Monomorpheuse::ajoute_candidats_depuis_expansion_variadique(
     else if (type_reçu->est_type_tableau_dynamique()) {
         type = type_reçu->comme_type_tableau_dynamique()->type_pointe;
     }
+    else if (type_reçu->est_type_tranche()) {
+        type = type_reçu->comme_type_tranche()->type_élément;
+    }
+    else if (type_reçu->est_type_tableau_fixe()) {
+        type = type_reçu->comme_type_tableau_fixe()->type_pointe;
+    }
     parse_candidats(expansion->expression, site, type);
 }
 
