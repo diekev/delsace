@@ -12,10 +12,6 @@ charge "r16"
 // Par contre, ce fichier ne devrait pas pouvoir être modifié par les
 // utilisateurs du langage.
 
-malloc :: fonc (taille : n64) -> *rien #externe libc
-realloc :: fonc (ptr : *rien, taille : n64) -> *rien #externe libc
-free :: fonc (ptr : *rien) -> rien #externe libc
-
 // --------------------------
 
 valeur_nulle :: fonc ($T: type_de_données) -> T
