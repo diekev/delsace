@@ -18,6 +18,14 @@ free :: fonc (ptr : *rien) -> rien #externe libc
 
 // --------------------------
 
+valeur_nulle :: fonc ($T: type_de_données) -> T
+{
+    v: T
+    retourne v
+}
+
+// --------------------------
+
 // Position dans le code source. Quand cette structure est instantiée, le
 // compilateur remplis les membres de cette structure avec les valeurs
 // correspondantes de la position du lexème dans le fichier où se fait ladite
