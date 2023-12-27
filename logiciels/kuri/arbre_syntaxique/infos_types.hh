@@ -13,29 +13,28 @@
 /* À FAIRE : utilise AnnotationCode. */
 struct Annotation;
 
-/* Structures utilisées pour passer les informations des types au métaprogrammes.
- * Celles-ci sont les pendantes de celles dans le module Kuri et doivent être
- * synchronisées avec elles.
+/* À tenir synchronisé avec info_type.kuri.
+ * Structures utilisées pour passer les informations des types au métaprogrammes.
  */
 
-enum class GenreInfoType : int {
-    ENTIER,
-    REEL,
-    BOOLEEN,
-    CHAINE,
-    POINTEUR,
-    STRUCTURE,
-    FONCTION,
-    TABLEAU,
-    EINI,
-    RIEN,
-    ENUM,
-    OCTET,
-    TYPE_DE_DONNEES,
-    UNION,
-    OPAQUE,
-    VARIADIQUE,
-    TRANCHE,
+enum class GenreInfoType : int32_t {
+    ENTIER = 0,
+    RÉEL = 1,
+    BOOLÉEN = 2,
+    CHAINE = 3,
+    POINTEUR = 4,
+    STRUCTURE = 5,
+    FONCTION = 6,
+    TABLEAU = 7,
+    EINI = 8,
+    RIEN = 9,
+    ÉNUM = 10,
+    OCTET = 11,
+    TYPE_DE_DONNÉES = 12,
+    UNION = 13,
+    OPAQUE = 14,
+    VARIADIQUE = 15,
+    TRANCHE = 16,
 };
 
 struct InfoType {
@@ -45,16 +44,16 @@ struct InfoType {
 };
 
 struct InfoTypeEntier : public InfoType {
-    bool est_signe = false;
+    bool est_signé = false;
 };
 
 struct InfoTypePointeur : public InfoType {
-    InfoType *type_pointe = nullptr;
-    bool est_reference = false;
+    InfoType *type_pointé = nullptr;
+    bool est_référence = false;
 };
 
 struct InfoTypeTableau : public InfoType {
-    InfoType *type_pointe = nullptr;
+    InfoType *type_élément = nullptr;
     bool est_tableau_fixe = false;
     int taille_fixe = 0;
 };
@@ -68,7 +67,7 @@ struct InfoTypeMembreStructure {
 
     kuri::chaine_statique nom{};
     InfoType *info = nullptr;
-    int64_t decalage = 0;  // décalage en octets dans la structure
+    int64_t décalage = 0;  // décalage en octets dans la structure
     int drapeaux = 0;
     kuri::tranche<const Annotation *> annotations{};
 };
@@ -76,7 +75,7 @@ struct InfoTypeMembreStructure {
 struct InfoTypeStructure : public InfoType {
     kuri::chaine_statique nom{};
     kuri::tranche<InfoTypeMembreStructure *> membres{};
-    kuri::tranche<InfoTypeStructure *> structs_employees{};
+    kuri::tranche<InfoTypeStructure *> structs_employées{};
     kuri::tranche<const Annotation *> annotations{};
 };
 
@@ -84,18 +83,18 @@ struct InfoTypeUnion : public InfoType {
     kuri::chaine_statique nom{};
     kuri::tranche<InfoTypeMembreStructure *> membres{};
     InfoType *type_le_plus_grand = nullptr;
-    int64_t decalage_index = 0;
-    bool est_sure = false;
+    int64_t décalage_index = 0;
+    bool est_sûre = false;
     kuri::tranche<const Annotation *> annotations{};
 };
 
 struct InfoTypeFonction : public InfoType {
-    kuri::tranche<InfoType *> types_entrees{};
-    kuri::tranche<InfoType *> types_sorties{};
+    kuri::tranche<InfoType *> types_entrée{};
+    kuri::tranche<InfoType *> types_sortie{};
     bool est_coroutine = false;
 };
 
-struct InfoTypeEnum : public InfoType {
+struct InfoTypeÉnum : public InfoType {
     kuri::chaine_statique nom{};
     kuri::tranche<int> valeurs{};  // À FAIRE typage selon énum
     kuri::tranche<kuri::chaine_statique> noms{};
@@ -105,7 +104,7 @@ struct InfoTypeEnum : public InfoType {
 
 struct InfoTypeOpaque : public InfoType {
     kuri::chaine_statique nom{};
-    InfoType *type_opacifie = nullptr;
+    InfoType *type_opacifié = nullptr;
 };
 
 struct InfoTypeVariadique : public InfoType {
@@ -123,7 +122,7 @@ struct InfoTypeVariadique : public InfoType {
 struct AllocatriceInfosType {
     tableau_page<InfoType> infos_types{};
     tableau_page<InfoTypeEntier> infos_types_entiers{};
-    tableau_page<InfoTypeEnum> infos_types_enums{};
+    tableau_page<InfoTypeÉnum> infos_types_énums{};
     tableau_page<InfoTypeFonction> infos_types_fonctions{};
     tableau_page<InfoTypeMembreStructure> infos_types_membres_structures{};
     tableau_page<InfoTypePointeur> infos_types_pointeurs{};

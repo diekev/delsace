@@ -11,6 +11,7 @@
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
+#include "arbre_syntaxique/infos_types.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/compilatrice.hh"
@@ -3982,31 +3983,6 @@ void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
     m_est_dans_diffère = false;
 }
 
-/* À tenir synchronisé avec l'énum dans info_type.kuri
- * Nous utilisons ceci lors de la génération du code des infos types car nous ne
- * générons pas de code (ou symboles) pour les énums, mais prenons directements
- * leurs valeurs.
- */
-struct IDInfoType {
-    static constexpr unsigned ENTIER = 0;
-    static constexpr unsigned REEL = 1;
-    static constexpr unsigned BOOLEEN = 2;
-    static constexpr unsigned CHAINE = 3;
-    static constexpr unsigned POINTEUR = 4;
-    static constexpr unsigned STRUCTURE = 5;
-    static constexpr unsigned FONCTION = 6;
-    static constexpr unsigned TABLEAU = 7;
-    static constexpr unsigned EINI = 8;
-    static constexpr unsigned RIEN = 9;
-    static constexpr unsigned ENUM = 10;
-    static constexpr unsigned OCTET = 11;
-    static constexpr unsigned TYPE_DE_DONNEES = 12;
-    static constexpr unsigned UNION = 13;
-    static constexpr unsigned OPAQUE = 14;
-    static constexpr unsigned VARIADIQUE = 15;
-    static constexpr unsigned TRANCHE = 16;
-};
-
 AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
     kuri::tableau<Annotation, int> const &annotations)
 {
@@ -4066,12 +4042,12 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         }
         case GenreNoeud::BOOL:
         {
-            type->atome_info_type = crée_info_type_défaut(IDInfoType::BOOLEEN, type);
+            type->atome_info_type = crée_info_type_défaut(GenreInfoType::BOOLÉEN, type);
             break;
         }
         case GenreNoeud::OCTET:
         {
-            type->atome_info_type = crée_info_type_défaut(IDInfoType::OCTET, type);
+            type->atome_info_type = crée_info_type_défaut(GenreInfoType::OCTET, type);
             break;
         }
         case GenreNoeud::ENTIER_CONSTANT:
@@ -4112,7 +4088,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         }
         case GenreNoeud::REEL:
         {
-            type->atome_info_type = crée_info_type_défaut(IDInfoType::REEL, type);
+            type->atome_info_type = crée_info_type_défaut(GenreInfoType::RÉEL, type);
             break;
         }
         case GenreNoeud::REFERENCE:
@@ -4122,7 +4098,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             /* { membres basiques, type_pointé, est_référence } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::POINTEUR, type);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::POINTEUR, type);
             if (type_deref) {
                 valeurs[1] = crée_info_type_avec_transtype(type_deref, site);
             }
@@ -4191,7 +4167,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             /* { membres basiques, nom, valeurs, membres, est_drapeau } */
             auto valeurs = kuri::tableau<AtomeConstante *>(6);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::ENUM, type);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::ÉNUM, type);
             valeurs[1] = crée_chaine(donne_nom_hiérarchique(const_cast<TypeEnum *>(type_enum)));
             valeurs[2] = tableau_valeurs;
             valeurs[3] = tableau_noms;
@@ -4252,7 +4228,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 *ident_valeurs, type_membre, std::move(valeurs_membres));
 
             auto valeurs = kuri::tableau<AtomeConstante *>(7);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::UNION, type);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::UNION, type);
             valeurs[1] = crée_chaine(donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
             valeurs[2] = tableau_membre;
             valeurs[3] = info_type_plus_grand;
@@ -4312,7 +4288,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             /* { membres basiques, nom, membres } */
             auto valeurs = kuri::tableau<AtomeConstante *>(5);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::STRUCTURE, type);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::STRUCTURE, type);
             valeurs[1] = crée_chaine(
                 donne_nom_hiérarchique(const_cast<TypeStructure *>(type_struct)));
             valeurs[2] = tableau_membre;
@@ -4331,7 +4307,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             /* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(4);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::TABLEAU, type);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::TABLEAU, type);
             valeurs[1] = type_deref ?
                              crée_info_type_avec_transtype(type_deref, site) :
                              m_constructrice.crée_constante_nulle(type_pointeur_info_type);
@@ -4351,7 +4327,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             /* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(2);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::TRANCHE, type);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::TRANCHE, type);
             valeurs[1] = type_deref ?
                              crée_info_type_avec_transtype(type_deref, site) :
                              m_constructrice.crée_constante_nulle(type_pointeur_info_type);
@@ -4366,7 +4342,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             /* { membres basiques, type_pointé, est_tableau_fixe, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(4);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::TABLEAU, type);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::TABLEAU, type);
             valeurs[1] = crée_info_type_avec_transtype(type_tableau->type_pointe, site);
             valeurs[2] = m_constructrice.crée_constante_booléenne(true);
             valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(type_tableau->taille));
@@ -4383,7 +4359,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto tableau_types_sortie = donne_tableau_pour_type_sortie(type_fonction, site);
 
             auto valeurs = kuri::tableau<AtomeConstante *>(4);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::FONCTION, type);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::FONCTION, type);
             valeurs[1] = tableau_types_entrée;
             valeurs[2] = tableau_types_sortie;
             valeurs[3] = m_constructrice.crée_constante_booléenne(false);
@@ -4394,22 +4370,22 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         }
         case GenreNoeud::EINI:
         {
-            type->atome_info_type = crée_info_type_défaut(IDInfoType::EINI, type);
+            type->atome_info_type = crée_info_type_défaut(GenreInfoType::EINI, type);
             break;
         }
         case GenreNoeud::RIEN:
         {
-            type->atome_info_type = crée_info_type_défaut(IDInfoType::RIEN, type);
+            type->atome_info_type = crée_info_type_défaut(GenreInfoType::RIEN, type);
             break;
         }
         case GenreNoeud::CHAINE:
         {
-            type->atome_info_type = crée_info_type_défaut(IDInfoType::CHAINE, type);
+            type->atome_info_type = crée_info_type_défaut(GenreInfoType::CHAINE, type);
             break;
         }
         case GenreNoeud::TYPE_DE_DONNEES:
         {
-            type->atome_info_type = crée_info_type_défaut(IDInfoType::TYPE_DE_DONNEES, type);
+            type->atome_info_type = crée_info_type_défaut(GenreInfoType::TYPE_DE_DONNÉES, type);
             break;
         }
         case GenreNoeud::DECLARATION_OPAQUE:
@@ -4419,7 +4395,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             /* { membres basiques, nom, type_opacifié } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::OPAQUE, type_opaque);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::OPAQUE, type_opaque);
             valeurs[1] = crée_chaine(
                 donne_nom_hiérarchique(const_cast<TypeOpaque *>(type_opaque)));
             valeurs[2] = crée_info_type_avec_transtype(type_opacifie, site);
@@ -4437,7 +4413,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             /* { base, type_élément } */
             auto valeurs = kuri::tableau<AtomeConstante *>(2);
-            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::VARIADIQUE, type);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::VARIADIQUE, type);
             valeurs[1] = type_élément ?
                              crée_info_type_avec_transtype(type_élément, site) :
                              m_constructrice.crée_constante_nulle(type_pointeur_info_type);
@@ -4484,7 +4460,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
     génère_ri_pour_initialisation_globales(fonction_init, globales);
 }
 
-AtomeConstante *CompilatriceRI::crée_constante_info_type_pour_base(uint32_t index,
+AtomeConstante *CompilatriceRI::crée_constante_info_type_pour_base(GenreInfoType index,
                                                                    Type const *pour_type)
 {
     auto membres = kuri::tableau<AtomeConstante *>(3);
@@ -4494,11 +4470,11 @@ AtomeConstante *CompilatriceRI::crée_constante_info_type_pour_base(uint32_t ind
 }
 
 void CompilatriceRI::remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
-                                                        uint32_t index,
+                                                        GenreInfoType index,
                                                         Type const *pour_type)
 {
     assert(valeurs.taille() == 3);
-    valeurs[0] = m_constructrice.crée_z32(index);
+    valeurs[0] = m_constructrice.crée_z32(uint32_t(index));
     /* Puisque nous pouvons générer du code pour des architectures avec adressages en 32 ou 64
      * bits, et puisque nous pouvons exécuter sur une machine avec une architecture différente de
      * la cible de compilation, nous générons les constantes pour les taille_de lors de l'émission
@@ -4508,7 +4484,7 @@ void CompilatriceRI::remplis_membres_de_bases_info_type(kuri::tableau<AtomeConst
     valeurs[2] = m_constructrice.crée_index_table_type(pour_type);
 }
 
-AtomeGlobale *CompilatriceRI::crée_info_type_défaut(unsigned index, Type const *pour_type)
+AtomeGlobale *CompilatriceRI::crée_info_type_défaut(GenreInfoType index, Type const *pour_type)
 {
     auto valeurs = kuri::tableau<AtomeConstante *>(3);
     remplis_membres_de_bases_info_type(valeurs, index, pour_type);
@@ -4518,7 +4494,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type_défaut(unsigned index, Type const
 AtomeGlobale *CompilatriceRI::crée_info_type_entier(Type const *pour_type, bool est_relatif)
 {
     auto valeurs = kuri::tableau<AtomeConstante *>(2);
-    valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::ENTIER, pour_type);
+    valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::ENTIER, pour_type);
     valeurs[1] = m_constructrice.crée_constante_booléenne(est_relatif);
     return crée_globale_info_type(m_compilatrice.typeuse.type_info_type_entier,
                                   std::move(valeurs));

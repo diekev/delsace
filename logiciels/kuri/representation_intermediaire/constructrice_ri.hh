@@ -25,6 +25,8 @@ using TypeEnum = NoeudEnum;
 struct NoeudDeclarationTypeTableauFixe;
 using TypeTableauFixe = NoeudDeclarationTypeTableauFixe;
 
+enum class GenreInfoType : int32_t;
+
 /* ------------------------------------------------------------------------- */
 /** \name RegistreSymboliqueRI
  * Le registre symbolique crée et stocke les atomes de toutes les fonctions et
@@ -412,11 +414,11 @@ struct CompilatriceRI {
                            const TransformationType &transformation,
                            Atome *place);
 
-    AtomeConstante *crée_constante_info_type_pour_base(uint32_t index, Type const *pour_type);
+    AtomeConstante *crée_constante_info_type_pour_base(GenreInfoType index, Type const *pour_type);
     void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
-                                            uint32_t index,
+                                            GenreInfoType index,
                                             Type const *pour_type);
-    AtomeGlobale *crée_info_type_défaut(unsigned index, Type const *pour_type);
+    AtomeGlobale *crée_info_type_défaut(GenreInfoType index, Type const *pour_type);
     AtomeGlobale *crée_info_type_entier(Type const *pour_type, bool est_relatif);
     AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression const *site);
     AtomeGlobale *crée_globale_info_type(Type const *type_info_type,
