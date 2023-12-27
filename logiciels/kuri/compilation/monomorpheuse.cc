@@ -220,7 +220,7 @@ void Monomorpheuse::ajoute_erreur(const NoeudExpression *site, DonnéesErreur do
     erreur_courante = erreur;
 }
 
-void Monomorpheuse::erreur_interne(const NoeudExpression *site, kuri::chaine_statique message)
+void Monomorpheuse::erreur_interne(const NoeudExpression *site, kuri::chaine message)
 {
     ajoute_erreur(site, DonnéesErreurInterne{message});
 }

@@ -77,7 +77,7 @@ struct DonnéesErreurItemManquante {
 };
 
 struct DonnéesErreurInterne {
-    kuri::chaine_statique message{};
+    kuri::chaine message{};
 };
 
 struct DonnéesErreurGenreType {
@@ -333,7 +333,7 @@ class Monomorpheuse {
     /* Erreurs. */
 
     void ajoute_erreur(const NoeudExpression *site, DonnéesErreur donnees);
-    void erreur_interne(const NoeudExpression *site, kuri::chaine_statique message);
+    void erreur_interne(const NoeudExpression *site, kuri::chaine message);
     void erreur_contrainte(const NoeudExpression *site,
                            ÉtatRésolutionContrainte résultat,
                            ItemMonomorphisation item_contrainte,
