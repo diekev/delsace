@@ -3,8 +3,6 @@
 
 #include "utilitaires.hh"
 
-#include "noeud_expression.hh"
-
 #include "biblinternes/outils/assert.hh"
 
 #include "compilation/broyage.hh"
@@ -12,15 +10,17 @@
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
-#include "utilitaires/log.hh"
 
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 
+#include "utilitaires/log.hh"
+
 #include "assembleuse.hh"
 #include "canonicalisation.hh"
 #include "cas_genre_noeud.hh"
+#include "noeud_expression.hh"
 
 /* ------------------------------------------------------------------------- */
 /** \name DrapeauxNoeud
