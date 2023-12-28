@@ -287,7 +287,7 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
 
 est_résultat :: fonc (info: *InfoType) -> bool
 {
-    saufsi info.id == id_info.UNION {
+    saufsi info.id == GenreInfoType.UNION {
         retourne faux
     }
 
@@ -314,7 +314,7 @@ ClassificationParamètre :: énum {
 
 classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, type: *InfoType) -> ClassificationParamètre
 {
-    si type.id == id_info.STRUCTURE {
+    si type.id == GenreInfoType.STRUCTURE {
         info_struct := type comme *InfoTypeStructure
 
         si est_struct_ou_employeuse_de(info_struct, paramètres.type_formulaire) {
@@ -329,7 +329,7 @@ classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, ty
             retourne ClassificationParamètre.EST_TYPE_PARAMÈTRE_REQUÊTE
         }
     }
-    sinon si type.id == id_info.POINTEUR {
+    sinon si type.id == GenreInfoType.POINTEUR {
         type_pointeur := type comme *InfoTypePointeur
 
         si type_pointeur.est_référence {
@@ -338,7 +338,7 @@ classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, ty
 
         type_pointé := type_pointeur.type_pointé
 
-        si type_pointé.id != id_info.STRUCTURE {
+        si type_pointé.id != GenreInfoType.STRUCTURE {
             retourne ClassificationParamètre.EST_INCONNU
         }
 
@@ -535,7 +535,7 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
 
 est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction, type: *InfoType) -> bool
 {
-    si type.id != id_info.UNION {
+    si type.id != GenreInfoType.UNION {
         retourne faux
     }
 
@@ -585,7 +585,7 @@ est_type_rendu_page :: fonc (paramètres: *ParamètresGénérationInterface, typ
         retourne vrai
     }
 
-    si type.id != id_info.STRUCTURE {
+    si type.id != GenreInfoType.STRUCTURE {
         retourne faux
     }
 

@@ -23,42 +23,42 @@ est_chaine :: fonc (valeur: eini) -> bool
 
 est_structure :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.STRUCTURE
+    retourne valeur.info.id == GenreInfoType.STRUCTURE
 }
 
 est_tableau :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.TABLEAU
+    retourne valeur.info.id == GenreInfoType.TABLEAU
 }
 
 est_tableau_fixe :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.TABLEAU_FIXE
+    retourne valeur.info.id == GenreInfoType.TABLEAU_FIXE
 }
 
 est_tranche :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.TRANCHE
+    retourne valeur.info.id == GenreInfoType.TRANCHE
 }
 
 est_entier :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER
+    retourne valeur.info.id == GenreInfoType.ENTIER
 }
 
 est_réel :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.RÉEL
+    retourne valeur.info.id == GenreInfoType.RÉEL
 }
 
 est_pointeur :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.POINTEUR
+    retourne valeur.info.id == GenreInfoType.POINTEUR
 }
 
 est_opaque :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.OPAQUE
+    retourne valeur.info.id == GenreInfoType.OPAQUE
 }
 
 est_eini :: fonc (valeur: eini) -> bool
@@ -68,7 +68,7 @@ est_eini :: fonc (valeur: eini) -> bool
 
 est_énum :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ÉNUM
+    retourne valeur.info.id == GenreInfoType.ÉNUM
 }
 
 est_octet :: fonc (valeur: eini) -> bool
@@ -78,12 +78,12 @@ est_octet :: fonc (valeur: eini) -> bool
 
 est_type_de_données :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.TYPE_DE_DONNÉES
+    retourne valeur.info.id == GenreInfoType.TYPE_DE_DONNÉES
 }
 
 est_union :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.UNION
+    retourne valeur.info.id == GenreInfoType.UNION
 }
 
 est_z8 :: fonc (valeur: eini) -> bool
@@ -777,7 +777,7 @@ parse_bool :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 // À FAIRE: considère utiliser des tables de recherches, en se basant sur la table de type
 FonctionInstrospection :: struct ($T: type_de_données) {
-    #assert info_de(T).id == id_info.FONCTION
+    #assert info_de(T).id == GenreInfoType.FONCTION
     info: *InfoType
     fonction : T
 }
@@ -995,7 +995,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 // La valeur de l'argument anonyme n'a pas besoin d'être le premier de la liste.
 
 ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
-    // #assert info_de(T).id == id_info.STRUCTURE
+    // #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -1164,7 +1164,7 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) 
 
 parse_arguments_ligne_commande :: fonc ($T: type_de_données) -> Résultat(T, chaine)
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     args := arguments_ligne_commande()
 

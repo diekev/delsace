@@ -313,7 +313,7 @@ trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *In
 
 sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...chaine) -> [..]T
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     résultat : [..]T
     info := info_de(T)
@@ -399,7 +399,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 
 insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     info := info_de(T)
 
@@ -460,7 +460,7 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 
 exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, colonnes: ...chaine) -> [..]T
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     info := info_de(T)
     résultat : [..]T
@@ -525,7 +525,7 @@ fonctions_parsages_mysql : [..]FonctionParsage
 
 parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel(T)
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     infos := info_de(T)
     infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)
@@ -549,7 +549,7 @@ parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membr
 
 parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel([..]T)
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     infos := info_de(T)
     infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)

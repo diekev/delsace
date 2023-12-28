@@ -104,7 +104,7 @@ règles_ont_au_moins_un_paramètre :: fonc (règles: [..]RègleRoutage) -> bool
 
 apparie_paramètres_à_la_structure :: fonc (règles: [..]RègleRoutage, infos: *InfoType) -> bool
 {
-    si infos.id != id_info.STRUCTURE {
+    si infos.id != GenreInfoType.STRUCTURE {
         retourne faux
     }
 

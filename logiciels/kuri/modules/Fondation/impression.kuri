@@ -1058,7 +1058,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
         retourne résultat
     }
 
-    si type_deuxième_paramètre.id != id_info.POINTEUR {
+    si type_deuxième_paramètre.id != GenreInfoType.POINTEUR {
         compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.")
         retourne résultat
     }

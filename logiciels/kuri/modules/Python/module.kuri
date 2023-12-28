@@ -93,7 +93,7 @@ convertis_paramètre :: fonc (param: *NoeudCode, système_type: &SystèmeType) -
     résultat: ParamètreMéthodePython
     résultat.nom = param.nom
     résultat.type = système_type.convertis_vers_type_python(param.type)
-    résultat.param_originel_est_pointeur = param.type.id == id_info.POINTEUR
+    résultat.param_originel_est_pointeur = param.type.id == GenreInfoType.POINTEUR
     retourne résultat
 }
 

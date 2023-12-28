@@ -116,7 +116,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
             type_structure := type comme *InfoTypeStructure
 
             pour type_structure.membres {
-                si it.id.id == id_info.FONCTION {
+                si it.id.id == GenreInfoType.FONCTION {
                     ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
                 }
             }
@@ -125,13 +125,13 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
             type_fonction := type comme *InfoTypeFonction
 
             pour type_fonction.types_entrée {
-                si it.id == id_info.FONCTION {
+                si it.id == GenreInfoType.FONCTION {
                     ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
                 }
             }
 
             pour type_fonction.types_sortie {
-                si it.id == id_info.FONCTION {
+                si it.id == GenreInfoType.FONCTION {
                     ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
                 }
             }

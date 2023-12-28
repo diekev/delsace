@@ -604,7 +604,7 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
         retourne
     }
 
-    si type.infos.id == id_info.CHAINE {
+    si type.infos.id == GenreInfoType.CHAINE {
         retourne
     }
 
@@ -614,7 +614,7 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
 
     diffère type.drapeaux.DÉCLARATION_TYPE_CPP_FUT_GÉNÉRÉE = vrai
 
-    si type.infos.id == id_info.FONCTION {
+    si type.infos.id == GenreInfoType.FONCTION {
         pour type.types_entrée {
             prédéclare_type_cpp(enchaineuse, it, système)
         }
@@ -677,11 +677,11 @@ définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, généra
         retourne
     }
 
-    si type.infos.id == id_info.CHAINE {
+    si type.infos.id == GenreInfoType.CHAINE {
         retourne
     }
 
-    si type.infos.id == id_info.FONCTION {
+    si type.infos.id == GenreInfoType.FONCTION {
         retourne
     }
 
@@ -1020,7 +1020,7 @@ génère_code_fonction_cpp :: fonc (enchaineuse: *Enchaineuse, système: *Systè
 
     ajoute_au_tampon(enchaineuse, indentation, "\n{\n")
 
-    fonction_ne_retourne_rien := fonction.sorties.taille == 0 || fonction.sorties[0].type.id == id_info.RIEN
+    fonction_ne_retourne_rien := fonction.sorties.taille == 0 || fonction.sorties[0].type.id == GenreInfoType.RIEN
 
     ajoute_au_tampon(enchaineuse, "    ")
 
@@ -1114,7 +1114,7 @@ génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA,
         retourne
     }
 
-    si type_courant.infos.id == id_info.CHAINE {
+    si type_courant.infos.id == GenreInfoType.CHAINE {
         retourne
     }
 
@@ -1453,7 +1453,7 @@ TableauGénériqueIPA :: struct {
     pour ipa.types {
         /* Les structures n'étant pas toujours accéder via des pointeurs sont définis comme des tableaux de leur taille en octet en C.
          * Nous également utiliser de tels tableaux afin de garantir une correspondance des types pour l'interface binaire. */
-        si it.infos.id == id_info.STRUCTURE && it.drapeaux.TOUJOURS_COMME_POINTEUR == faux {
+        si it.infos.id == GenreInfoType.STRUCTURE && it.drapeaux.TOUJOURS_COMME_POINTEUR == faux {
             type_c := trouve_type(système_type, it.infos)
             ajoute_au_tampon(*enchaineuse, type_c.nom_type_kuri_c, " :: [", it.infos.taille_en_octet, "]octet\n\n")
         }
@@ -1485,7 +1485,7 @@ TableauGénériqueIPA :: struct {
 génère_fonction_enveloppe_kuri :: fonc (enchaineuse: *Enchaineuse, système_type: *SystèmeTypeC, fonction: MéthodeIPA)
 {
     /* Nom de la fonction et paramètres. */
-    fonction_ne_retourne_rien := fonction.sorties.taille == 0 || fonction.sorties[0].type.id == id_info.RIEN
+    fonction_ne_retourne_rien := fonction.sorties.taille == 0 || fonction.sorties[0].type.id == GenreInfoType.RIEN
 
     ajoute_au_tampon(enchaineuse, "enveloppe_", fonction.nom_rappel_pour_table, " :: fonc ")
 

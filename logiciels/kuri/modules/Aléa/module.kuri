@@ -86,7 +86,7 @@ GénératriceDonnéesAléatoire :: struct {
 
 génère_données_aléatoires :: fonc (génératrice: &GénératriceDonnéesAléatoire, $T: type_de_données) -> T
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     résultat : T
 
@@ -329,7 +329,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
         retourne résultat
     }
 
-    si type_deuxième_paramètre.id != id_info.POINTEUR {
+    si type_deuxième_paramètre.id != GenreInfoType.POINTEUR {
         compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.")
         retourne résultat
     }

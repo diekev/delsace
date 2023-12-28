@@ -213,11 +213,11 @@ convertis_paramètre :: fonc (param: *NoeudCode) -> MéthodeIPA.Paramètre
 
 nom_pour_info_récursif :: fonc (info: *InfoType) -> chaine
 {
-    si info.id == id_info.STRUCTURE {
+    si info.id == GenreInfoType.STRUCTURE {
         retourne (info comme *InfoTypeStructure).nom
     }
 
-    si info.id == id_info.POINTEUR {
+    si info.id == GenreInfoType.POINTEUR {
         retourne nom_pour_info_récursif((info comme *InfoTypePointeur).type_pointé)
     }
 
@@ -386,7 +386,7 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 
             pour info_fonction.types_entrée {
                 /* À FAIRE : pointeurs de tableaux. */
-                si it.id == id_info.TABLEAU {
+                si it.id == GenreInfoType.TABLEAU {
                     compilatrice_rapporte_erreur("Les types tableaux en entrée de fonction ne sont pas convertibles en C++ pour l'instant.")
                     retourne nul
                 }
@@ -396,7 +396,7 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 
             pour info_fonction.types_sortie {
                 /* À FAIRE : pointeurs de tableaux. */
-                si it.id == id_info.TABLEAU {
+                si it.id == GenreInfoType.TABLEAU {
                     compilatrice_rapporte_erreur("Les types tableaux en sortie de fonction ne sont pas convertibles en C++ pour l'instant.")
                     retourne nul
                 }
@@ -464,7 +464,7 @@ ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)
         POUR_MÉTHODE {
             premier_type := noeud_code.params[0].type
 
-            si premier_type.id == id_info.POINTEUR {
+            si premier_type.id == GenreInfoType.POINTEUR {
                 premier_type = (premier_type comme *InfoTypePointeur).type_pointé
             }
 
@@ -476,7 +476,7 @@ ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)
             /* À FAIRE : valide */
             premier_type := noeud_code.params[0].type
 
-            si premier_type.id == id_info.POINTEUR {
+            si premier_type.id == GenreInfoType.POINTEUR {
                 premier_type = (premier_type comme *InfoTypePointeur).type_pointé
             }
 
@@ -565,7 +565,7 @@ finalise_informations_types :: fonc (ipa: &IPA)
     pour ipa.types {
         infos := it.infos
 
-        saufsi infos.id == id_info.STRUCTURE {
+        saufsi infos.id == GenreInfoType.STRUCTURE {
             continue
         }
 

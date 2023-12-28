@@ -23,7 +23,7 @@ enregistre_noeud :: fonc(fonc_exec : eini) -> rien
 {
     info := fonc_exec.info
 
-    si info.id != id_info.FONCTION {
+    si info.id != GenreInfoType.FONCTION {
         imprime("Obtenu autre chose qu'une fonction !\n")
         retourne
     }

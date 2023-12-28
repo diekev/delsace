@@ -69,7 +69,7 @@ RésultatParsageFormatURL :: énum {
  */
 parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> RésultatParsageFormatURL, DonnéesRésultat(T = T), T
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     parseuse := ParseuseChaine(texte)
     // À FAIRE : vérifier que la chaine peut être surécrite

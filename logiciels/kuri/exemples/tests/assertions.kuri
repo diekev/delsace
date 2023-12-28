@@ -943,7 +943,7 @@ test_info_de_z32 :: fonc () -> bool
 {
     infos := info_de(z32)
 
-    si infos.id != id_info.ENTIER {
+    si infos.id != GenreInfoType.ENTIER {
         retourne faux
     }
 
@@ -962,7 +962,7 @@ test_info_de_r32 :: fonc () -> bool
 {
     infos := info_de(r32)
 
-    si infos.id != id_info.RÉEL {
+    si infos.id != GenreInfoType.RÉEL {
         retourne faux
     }
 
@@ -977,7 +977,7 @@ test_info_de_structure :: fonc () -> bool
 {
     infos := info_de(Vecteur)
 
-    si infos.id != id_info.STRUCTURE {
+    si infos.id != GenreInfoType.STRUCTURE {
         retourne faux
     }
 
@@ -1004,7 +1004,7 @@ test_info_de_structure :: fonc () -> bool
             retourne faux
         }
 
-        si it.id.id != id_info.ENTIER {
+        si it.id.id != GenreInfoType.ENTIER {
             retourne faux
         }
     }
