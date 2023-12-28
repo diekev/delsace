@@ -20,6 +20,7 @@ id_info :: énum z32 {
     OPAQUE          :: 14
     VARIADIQUE      :: 15
     TRANCHE         :: 16
+    TABLEAU_FIXE    :: 17
 }
 
 InfoType :: struct #interface {
@@ -45,8 +46,13 @@ InfoTypeTableau :: struct #interface {
     empl base : InfoType
 
     type_pointé : *InfoType
-    est_tableau_fixe : bool
-    taille_fixe : z32
+}
+
+InfoTypeTableauFixe :: struct #interface {
+    empl base : InfoType
+
+    type_pointé : *InfoType
+    nombre_éléments : n32
 }
 
 InfoTypeTranche :: struct #interface {

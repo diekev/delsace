@@ -833,6 +833,10 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
             tableau := info comme *InfoTypeTableau
             retourne format_tampon_pour_info_type(tableau.type_pointé)
         }
+        TABLEAU_FIXE {
+            tableau := info comme *InfoTypeTableauFixe
+            retourne format_tampon_pour_info_type(tableau.type_pointé)
+        }
         CHAINE,
         RIEN,
         EINI,

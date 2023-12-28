@@ -642,7 +642,8 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
         RIEN {
             ajoute_au_tampon(enchaineuse, "rien")
         }
-        TABLEAU {
+        TABLEAU,
+        TABLEAU_FIXE {
             index := 0
             max_élément := 5
 
@@ -953,14 +954,12 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
         }
         TABLEAU {
             info_arg := info comme *InfoTypeTableau
-
-            si info_arg.est_tableau_fixe {
-                imprime_dans_enchaineuse(enchaineuse, "[%]", info_arg.taille_fixe)
-            }
-            sinon {
-                ajoute_au_tampon(enchaineuse, "[..]")
-            }
-
+            ajoute_au_tampon(enchaineuse, "[..]")
+            imprime_type(enchaineuse, info_arg.type_pointé)
+        }
+        TABLEAU_FIXE {
+            info_arg := info comme *InfoTypeTableauFixe
+            imprime_dans_enchaineuse(enchaineuse, "[%]", info_arg.nombre_éléments)
             imprime_type(enchaineuse, info_arg.type_pointé)
         }
         TRANCHE {

@@ -255,11 +255,6 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
         TABLEAU {
             info_tableau := type comme *InfoTypeTableau
 
-            si info_tableau.est_tableau_fixe {
-                compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
-                retourne nul
-            }
-
             type_pointé := info_tableau.type_pointé
             type_c_pointé := ajoute_type(système, ipa, type_pointé)
             type_ipa_pointé := convertis_vers_type_ipa(ipa, type_pointé)
@@ -278,6 +273,10 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
             nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c)
             nouveau_type.nom_type_cpp = enchaine("tableau<", type_c_pointé.nom_type_c, ", ", type_c_pointé_pour_cpp.nom_type_cpp, ">")
             nouveau_type.nom_type_kuri_c = copie_chaine("TableauGénériqueIPA")
+        }
+        TABLEAU_FIXE {
+            compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
+            retourne nul
         }
         TRANCHE {
             info_tranche := type comme *InfoTypeTranche
@@ -1602,16 +1601,14 @@ convertis_variable_type_kuri_vers_type_c :: fonc (enchaineuse: *Enchaineuse, typ
         }
         TABLEAU {
             info_tableau := type_kuri comme *InfoTypeTableau
-
-            si info_tableau.est_tableau_fixe {
-                /* Non-supportés. */
-                retourne nom_variable
-            }
-
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n")
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur comme *rien\n")
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n")
             retourne nom_nouvelle_variable
+        }
+        TABLEAU_FIXE {
+            /* Non-supportés. */
+            retourne nom_variable
         }
         TRANCHE {
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n")
@@ -1671,17 +1668,14 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
         }
         TABLEAU {
             info_tableau := type_kuri comme *InfoTypeTableau
-
-            si info_tableau.est_tableau_fixe {
-                /* Non-supportés. */
-                retourne
-            }
-
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ")
             imprime_type(enchaineuse, type_kuri)
             ajoute_au_tampon(enchaineuse, "\n")
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n")
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n")
+        }
+        TABLEAU_FIXE {
+            /* Non-supportés. */
         }
         TRANCHE {
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ")

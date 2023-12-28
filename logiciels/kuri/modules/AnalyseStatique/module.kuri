@@ -146,6 +146,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
         OCTET {}
         TYPE_DE_DONNÉES {}
         TABLEAU {}
+        TABLEAU_FIXE {}
         TRANCHE {}
         ÉNUM {}
         CHAINE {}

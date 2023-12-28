@@ -251,6 +251,7 @@ struct Typeuse {
     Type *type_info_type_membre_structure = nullptr;
     Type *type_info_type_entier = nullptr;
     Type *type_info_type_tableau = nullptr;
+    Type *type_info_type_tableau_fixe = nullptr;
     Type *type_info_type_tranche = nullptr;
     Type *type_info_type_pointeur = nullptr;
     Type *type_info_type_enum = nullptr;

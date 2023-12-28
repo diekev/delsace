@@ -409,15 +409,12 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
         }
         TABLEAU {
             info_tableau := type comme *InfoTypeTableau
-
-            si info_tableau.est_tableau_fixe {
-                compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
-                retourne nul
-            }
-
             résultat.drapeaux.TYPE_EST_TABLEAU = vrai
-
             ajoute_type(ipa, info_tableau.type_pointé)
+        }
+        TABLEAU_FIXE {
+            compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
+            retourne nul
         }
         TRANCHE {
             info_tranche := type comme *InfoTypeTranche

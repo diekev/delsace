@@ -35,6 +35,7 @@ enum class GenreInfoType : int32_t {
     OPAQUE = 14,
     VARIADIQUE = 15,
     TRANCHE = 16,
+    TABLEAU_FIXE = 17,
 };
 
 struct InfoType {
@@ -54,8 +55,11 @@ struct InfoTypePointeur : public InfoType {
 
 struct InfoTypeTableau : public InfoType {
     InfoType *type_élément = nullptr;
-    bool est_tableau_fixe = false;
-    int taille_fixe = 0;
+};
+
+struct InfoTypeTableauFixe : public InfoType {
+    InfoType *type_élément = nullptr;
+    uint32_t nombre_éléments = 0;
 };
 
 struct InfoTypeTranche : public InfoType {
@@ -120,6 +124,7 @@ struct InfoTypeVariadique : public InfoType {
     O(InfoTypeStructure, infos_types_structures)                                                  \
     O(InfoTypePointeur, infos_types_pointeurs)                                                    \
     O(InfoTypeTableau, infos_types_tableaux)                                                      \
+    O(InfoTypeTableauFixe, infos_types_tableaux_fixes)                                            \
     O(InfoTypeTranche, infos_types_tranches)                                                      \
     O(InfoTypeUnion, infos_types_unions)                                                          \
     O(InfoTypeOpaque, infos_types_opaques)                                                        \

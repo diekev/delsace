@@ -4314,14 +4314,11 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_compilatrice.typeuse.type_info_type_, false);
 
             /* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
-            auto valeurs = kuri::tableau<AtomeConstante *>(4);
+            auto valeurs = kuri::tableau<AtomeConstante *>(2);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::TABLEAU, type);
             valeurs[1] = type_deref ?
                              crée_info_type_avec_transtype(type_deref, site) :
                              m_constructrice.crée_constante_nulle(type_pointeur_info_type);
-            ;
-            valeurs[2] = m_constructrice.crée_constante_booléenne(false);
-            valeurs[3] = m_constructrice.crée_z32(0);
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_tableau, std::move(valeurs));
@@ -4348,15 +4345,14 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         {
             auto type_tableau = type->comme_type_tableau_fixe();
 
-            /* { membres basiques, type_pointé, est_tableau_fixe, taille_fixe } */
-            auto valeurs = kuri::tableau<AtomeConstante *>(4);
-            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::TABLEAU, type);
+            /* { membres basiques, type_pointé, taille_fixe } */
+            auto valeurs = kuri::tableau<AtomeConstante *>(3);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::TABLEAU_FIXE, type);
             valeurs[1] = crée_info_type_avec_transtype(type_tableau->type_pointe, site);
-            valeurs[2] = m_constructrice.crée_constante_booléenne(true);
-            valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(type_tableau->taille));
+            valeurs[2] = m_constructrice.crée_z32(static_cast<unsigned>(type_tableau->taille));
 
             type->atome_info_type = crée_globale_info_type(
-                m_compilatrice.typeuse.type_info_type_tableau, std::move(valeurs));
+                m_compilatrice.typeuse.type_info_type_tableau_fixe, std::move(valeurs));
             break;
         }
         case GenreNoeud::FONCTION:

@@ -158,8 +158,6 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
             info_type->genre = GenreInfoType::TABLEAU;
             info_type->taille_en_octet = type->taille_octet;
-            info_type->est_tableau_fixe = false;
-            info_type->taille_fixe = 0;
             info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointe);
 
             type->info_type = info_type;
@@ -199,11 +197,10 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
         {
             auto type_tableau = type->comme_type_tableau_fixe();
 
-            auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
-            info_type->genre = GenreInfoType::TABLEAU;
+            auto info_type = allocatrice_infos_types.infos_types_tableaux_fixes.ajoute_element();
+            info_type->genre = GenreInfoType::TABLEAU_FIXE;
             info_type->taille_en_octet = type->taille_octet;
-            info_type->est_tableau_fixe = true;
-            info_type->taille_fixe = type_tableau->taille;
+            info_type->nombre_éléments = uint32_t(type_tableau->taille);
             info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointe);
 
             type->info_type = info_type;
@@ -534,14 +531,15 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
         case GenreInfoType::TABLEAU:
         {
             const auto info_type_tableau = static_cast<const InfoTypeTableau *>(type);
-
             auto type_élément = convertis_info_type(typeuse, info_type_tableau->type_élément);
-
-            if (info_type_tableau->est_tableau_fixe) {
-                return typeuse.type_tableau_fixe(type_élément, info_type_tableau->taille_fixe);
-            }
-
             return typeuse.type_tableau_dynamique(type_élément);
+        }
+        case GenreInfoType::TABLEAU_FIXE:
+        {
+            const auto info_type_tableau = static_cast<const InfoTypeTableauFixe *>(type);
+            auto type_élément = convertis_info_type(typeuse, info_type_tableau->type_élément);
+            return typeuse.type_tableau_fixe(type_élément,
+                                             int32_t(info_type_tableau->nombre_éléments));
         }
         case GenreInfoType::TRANCHE:
         {

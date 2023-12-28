@@ -675,15 +675,14 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
 
 lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 {
-    info := tableau.info comme *InfoTypeTableau
-    type_pointé := info.type_pointé
-
-    si info.est_tableau_fixe {
+    si tableau.est_tableau_fixe() {
+        info := tableau.info comme *InfoTypeTableauFixe
+        type_pointé := info.type_pointé
         pointeur := tableau.pointeur
         index := 0
 
         tantque !scanner.fini() {
-            si index >= info.taille_fixe {
+            si index >= info.nombre_éléments comme z32 {
                 scanner.rapporte_erreur_parsage("trop d'éléments pour le tableau fixe")
                 retourne LexèmeJSON.INVALIDE
             }
@@ -715,12 +714,14 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
             }
         }
 
-        si index < info.taille_fixe {
+        si index < info.nombre_éléments comme z32 {
             scanner.rapporte_erreur_parsage("trop peu d'éléments pour le tableau fixe")
             retourne LexèmeJSON.INVALIDE
         }
     }
     sinon {
+        info := tableau.info comme *InfoTypeTableau
+        type_pointé := info.type_pointé
         tampon_tableau : [..]octet
         index := 0
 

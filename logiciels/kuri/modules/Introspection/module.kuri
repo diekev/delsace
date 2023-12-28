@@ -31,6 +31,11 @@ est_tableau :: fonc (valeur: eini) -> bool
     retourne valeur.info.id == id_info.TABLEAU
 }
 
+est_tableau_fixe :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.TABLEAU_FIXE
+}
+
 est_tranche :: fonc (valeur: eini) -> bool
 {
     retourne valeur.info.id == id_info.TRANCHE
@@ -434,28 +439,30 @@ crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
         retourne itératrice
     }
 
-    saufsi valeur.est_tableau() {
+    saufsi valeur.est_tableau() || valeur.est_tableau_fixe() {
         retourne itératrice
     }
 
-    info_tableau := valeur.info comme *InfoTypeTableau
-    type_pointé := info_tableau.type_pointé
-    décalage := type_pointé.taille_en_octet comme z32
+    itératrice.valeur = valeur
 
-    si info_tableau.est_tableau_fixe {
+    si valeur.est_tableau_fixe() {
+        info_tableau := valeur.info comme *InfoTypeTableauFixe
+
         itératrice.pointeur = valeur.pointeur
-        itératrice.taille = info_tableau.taille_fixe
+        itératrice.taille = info_tableau.nombre_éléments comme z32
+        itératrice.type_pointé = info_tableau.type_pointé
+        itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32
     }
     sinon {
         x := mémoire(valeur.pointeur comme *[..]z8)
 
+        info_tableau := valeur.info comme *InfoTypeTableau
+
         itératrice.pointeur = x.pointeur
         itératrice.taille = x.taille
+        itératrice.type_pointé = info_tableau.type_pointé
+        itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32
     }
-
-    itératrice.valeur = valeur
-    itératrice.type_pointé = type_pointé
-    itératrice.décalage = décalage
 
     retourne itératrice
 }
@@ -1069,6 +1076,7 @@ parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
         POINTEUR,
         TYPE_DE_DONNÉES,
         TABLEAU,
+        TABLEAU_FIXE,
         TRANCHE,
         ÉNUM,
         EINI,
