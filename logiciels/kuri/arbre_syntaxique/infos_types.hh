@@ -111,6 +111,20 @@ struct InfoTypeVariadique : public InfoType {
     InfoType *type_élément = nullptr;
 };
 
+#define ENUMERE_TYPES_INFO_TYPE(O)                                                                \
+    O(InfoType, infos_types)                                                                      \
+    O(InfoTypeEntier, infos_types_entiers)                                                        \
+    O(InfoTypeÉnum, infos_types_énums)                                                            \
+    O(InfoTypeFonction, infos_types_fonctions)                                                    \
+    O(InfoTypeMembreStructure, infos_types_membres_structures)                                    \
+    O(InfoTypeStructure, infos_types_structures)                                                  \
+    O(InfoTypePointeur, infos_types_pointeurs)                                                    \
+    O(InfoTypeTableau, infos_types_tableaux)                                                      \
+    O(InfoTypeTranche, infos_types_tranches)                                                      \
+    O(InfoTypeUnion, infos_types_unions)                                                          \
+    O(InfoTypeOpaque, infos_types_opaques)                                                        \
+    O(InfoTypeVariadique, infos_types_variadiques)
+
 #define ENUME_TYPES_TRANCHES_INFO_TYPE(O)                                                         \
     O(Annotation const *, annotations)                                                            \
     O(int, valeurs_énums)                                                                         \
@@ -120,18 +134,9 @@ struct InfoTypeVariadique : public InfoType {
     O(InfoTypeStructure *, structs_employées)
 
 struct AllocatriceInfosType {
-    tableau_page<InfoType> infos_types{};
-    tableau_page<InfoTypeEntier> infos_types_entiers{};
-    tableau_page<InfoTypeÉnum> infos_types_énums{};
-    tableau_page<InfoTypeFonction> infos_types_fonctions{};
-    tableau_page<InfoTypeMembreStructure> infos_types_membres_structures{};
-    tableau_page<InfoTypePointeur> infos_types_pointeurs{};
-    tableau_page<InfoTypeStructure> infos_types_structures{};
-    tableau_page<InfoTypeTableau> infos_types_tableaux{};
-    tableau_page<InfoTypeTranche> infos_types_tranches{};
-    tableau_page<InfoTypeUnion> infos_types_unions{};
-    tableau_page<InfoTypeOpaque> infos_types_opaques{};
-    tableau_page<InfoTypeVariadique> infos_types_variadiques{};
+#define ENUMERE_TYPES_INFO_TYPE_EX(type__, nom__) tableau_page<type__> nom__{};
+    ENUMERE_TYPES_INFO_TYPE(ENUMERE_TYPES_INFO_TYPE_EX)
+#undef ENUMERE_TYPES_INFO_TYPE_EX
 
 #define ENUME_TYPES_TRANCHES_INFO_TYPE_EX(type__, nom__)                                          \
     kuri::tableau<kuri::tranche<type__>> tranches_##nom__{};                                      \

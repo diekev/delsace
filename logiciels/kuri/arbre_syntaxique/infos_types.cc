@@ -20,17 +20,9 @@
 int64_t AllocatriceInfosType::memoire_utilisee() const
 {
     auto memoire = int64_t(0);
-    memoire += infos_types.memoire_utilisee();
-    memoire += infos_types_entiers.memoire_utilisee();
-    memoire += infos_types_énums.memoire_utilisee();
-    memoire += infos_types_fonctions.memoire_utilisee();
-    memoire += infos_types_membres_structures.memoire_utilisee();
-    memoire += infos_types_pointeurs.memoire_utilisee();
-    memoire += infos_types_structures.memoire_utilisee();
-    memoire += infos_types_tableaux.memoire_utilisee();
-    memoire += infos_types_unions.memoire_utilisee();
-    memoire += infos_types_opaques.memoire_utilisee();
-    memoire += infos_types_variadiques.memoire_utilisee();
+#define ENUMERE_TYPES_INFO_TYPE_EX(type__, nom__) memoire += nom__.memoire_utilisee();
+    ENUMERE_TYPES_INFO_TYPE(ENUMERE_TYPES_INFO_TYPE_EX)
+#undef ENUMERE_TYPES_INFO_TYPE_EX
 
 #define ENUME_TYPES_TRANCHES_INFO_TYPE_EX(type__, nom__)                                          \
     memoire += tranches_##nom__.taille_memoire();                                                 \
