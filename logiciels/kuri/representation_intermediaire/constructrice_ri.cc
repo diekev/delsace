@@ -430,6 +430,14 @@ AtomeConstanteRéelle *ConstructriceRI::crée_constante_nombre_réel(Type const 
 AtomeConstanteStructure *ConstructriceRI::crée_constante_structure(
     Type const *type, kuri::tableau<AtomeConstante *> &&valeurs)
 {
+    /* À FAIRE : attend sur la validation des types avant de générer la RI. */
+#if 0
+    assert_rappel(valeurs.taille() == type->comme_type_compose()->nombre_de_membres_réels, [&]() {
+        dbg() << "Le type est " << chaine_type(type) << "\nLe nombre de membres est "
+              << type->comme_type_compose()->nombre_de_membres_réels
+              << ".\nLe nombre de valeurs est " << valeurs.taille() << ".";
+    });
+#endif
     return m_constante_structure.ajoute_element(type, std::move(valeurs));
 }
 
