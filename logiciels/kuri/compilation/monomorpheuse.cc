@@ -517,14 +517,27 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_tranche(
     const NoeudExpression *site,
     const Type *type_reçu)
 {
-    if (!type_reçu->est_type_tranche()) {
-        erreur_genre_type(site, type_reçu, "n'est pas une tranche");
+    auto type_élément = Type::nul_const();
+    if (type_reçu->est_type_tranche()) {
+        auto type_tranche = type_reçu->comme_type_tranche();
+        type_élément = type_tranche->type_élément;
+    }
+    else if (type_reçu->est_type_tableau_fixe()) {
+        auto type_tableau_fixe = type_reçu->comme_type_tableau_fixe();
+        type_élément = type_tableau_fixe->type_pointe;
+    }
+    else if (type_reçu->est_type_tableau_dynamique()) {
+        auto type_tableau_dynamique = type_reçu->comme_type_tableau_dynamique();
+        type_élément = type_tableau_dynamique->type_pointe;
+    }
+    else {
+        erreur_genre_type(
+            site, type_reçu, "n'est pas une tranche, ni un tableau fixe ou dynamique");
         return;
     }
 
     auto const expression_type = expr_type_tranche->expression_type;
-    auto type_tranche = type_reçu->comme_type_tranche();
-    parse_candidats(expression_type, site, type_tranche->type_élément);
+    parse_candidats(expression_type, site, type_élément);
 }
 
 void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(

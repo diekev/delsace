@@ -132,5 +132,27 @@ principale :: fonc () -> z32
         imprime("c : %\n", extrait_temps(c))
     }
 
+    test_tranche_polymorphique()
     retourne 0
+}
+
+imprime_tranche_polymorphique :: fonc (tranche: []$T)
+{
+    pour tranche {
+        imprime("%\n", it)
+    }
+}
+
+test_tranche_polymorphique :: fonc ()
+{
+    tableau_fixe := [0, 1, 2, 3, 4, 5]
+    tableau_dynamique : [..]z32
+    diffère déloge(tableau_dynamique)
+
+    pour tableau_fixe {
+        tableau_ajoute(*tableau_dynamique, it)
+    }
+
+    imprime_tranche_polymorphique(tableau_fixe)
+    imprime_tranche_polymorphique(tableau_dynamique)
 }
