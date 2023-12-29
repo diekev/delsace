@@ -24,7 +24,7 @@ PanneauBarreDeMenu :: struct {
 
     barre_de_menu: *BarreDeMenu
 
-    éléments: []Élément
+    éléments: [..]Élément
 
     hauteur_élément: z32
     espaçage_élément: z32
@@ -294,7 +294,7 @@ PanneauMenu :: struct {
 
     panneau_barre_de_menu: *PanneauBarreDeMenu
     menu: *Menu
-    éléments: []Élément
+    éléments: [..]Élément
     position: Point2D(z32)
 
     hauteur_élément: z32

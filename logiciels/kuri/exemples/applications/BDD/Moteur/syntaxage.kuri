@@ -1,7 +1,7 @@
 importe Fondation
 
 ASA :: struct {
-    instructions : []*Instruction
+    instructions : [..]*Instruction
 }
 
 détruit_asa :: fonc (asa: *ASA) -> rien
@@ -79,13 +79,13 @@ parse :: fonc (chn: chaine) -> ASA
 }
 
 Syntaxeuse :: struct {
-    lexèmes: []Lexème
+    lexèmes: [..]Lexème
     curseur: z32
 
     possède_erreur: bool
     message_erreur: chaine
 
-    instructions: []*Instruction
+    instructions: [..]*Instruction
 }
 
 fini :: fonc (syntaxeuse: &Syntaxeuse) -> bool #enligne
@@ -364,7 +364,7 @@ parse_instruction_insère :: fonc (syntaxeuse: &Syntaxeuse)
     }
 }
 
-parse_expressions :: fonc (syntaxeuse: &Syntaxeuse, exprs: *[]*Expression) -> bool
+parse_expressions :: fonc (syntaxeuse: &Syntaxeuse, exprs: *[..]*Expression) -> bool
 {
     tantque !syntaxeuse.fini() {
         lexème := syntaxeuse.lexème_courant()

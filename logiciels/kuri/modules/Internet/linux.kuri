@@ -17,7 +17,7 @@ adresse_depuis_s_adrr :: fonc (addr: in6_addr) -> AdresseIPv6 #enligne
     retourne AdresseIPv6(données)
 }
 
-trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([]AdresseIP)
+trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([..]AdresseIP)
 {
     marqueur := donne_marque_stockage_temporaire()
     diffère définis_marque_stockage_temporaire(marqueur)
@@ -30,7 +30,7 @@ trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([]AdresseIP)
         retourne
     }
 
-    résultat : []AdresseIP
+    résultat : [..]AdresseIP
 
     index := 0
     boucle {
@@ -59,7 +59,7 @@ trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([]AdresseIP)
     retourne résultat
 }
 
-trouve_adresses :: fonc (noeud: chaine, service: chaine) -> Optionnel([]AdresseIP)
+trouve_adresses :: fonc (noeud: chaine, service: chaine) -> Optionnel([..]AdresseIP)
 {
     marqueur := donne_marque_stockage_temporaire()
     diffère définis_marque_stockage_temporaire(marqueur)
@@ -83,7 +83,7 @@ trouve_adresses :: fonc (noeud: chaine, service: chaine) -> Optionnel([]AdresseI
         retourne
     }
 
-    résultat : []AdresseIP
+    résultat : [..]AdresseIP
 
     addr_courante := addr
     tantque addr_courante != nul {

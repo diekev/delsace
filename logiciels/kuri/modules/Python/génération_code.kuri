@@ -852,7 +852,7 @@ génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: Métho
     enchaineuse.ajoute_au_tampon("}\n")
 }
 
-génère_tableaux_méthodes :: fonc (enchaineuse: *Enchaineuse, méthodes: []MéthodePython, nom_tableau: chaine)
+génère_tableaux_méthodes :: fonc (enchaineuse: *Enchaineuse, méthodes: [..]MéthodePython, nom_tableau: chaine)
 {
     /* Déclare le tableau de méthodes. Il y a une méthode supplémentaire nulle comme sentinelle. */
     enchaineuse.imprime_dans_enchaineuse("% := [\n", nom_tableau)
@@ -887,7 +887,7 @@ ajoute_type_à_la_liste :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
     type.code_pour_init_module_fut_généré = vrai
 }
 
-génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython, types: []*TypePython)
+génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython, types: [..]*TypePython)
 {
     génère_tableaux_méthodes(enchaineuse, module.méthodes, "méthodes_du_module")
 

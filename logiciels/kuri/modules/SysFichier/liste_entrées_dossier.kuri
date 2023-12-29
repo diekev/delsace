@@ -17,7 +17,7 @@ ListeEntréesDossier :: struct {
     /* Chemin du dossier. */
     chemin: CheminFichier
 
-    entrées: []EntréeDossier
+    entrées: [..]EntréeDossier
 }
 
 détruit_liste_entrées_dossier :: fonc (liste: *ListeEntréesDossier)
@@ -38,7 +38,7 @@ donne_liste_des_entrées_du_dossier :: fonc (chemin: CheminFichier) -> Résultat
     résultat.chemin = copie_chemin(chemin)
 
     /* Parse les éléments du dossier. */
-    noms_parsés : []DonnéesNumérotageCheminFichier
+    noms_parsés : [..]DonnéesNumérotageCheminFichier
 
     /* Les éléments ne sont pas détruit directement car ils sont déplacés dans les entrées. */
     diffère déloge(noms_parsés)
@@ -49,7 +49,7 @@ donne_liste_des_entrées_du_dossier :: fonc (chemin: CheminFichier) -> Résultat
     }
 
     /* Parse les entrées du répertoire. */
-    entrées : []EntréeRépertoire
+    entrées : [..]EntréeRépertoire
     diffère déloge_tableau_et_ses_éléments(entrées, détruit_entrée_répertoire)
 
     pour noms_parsés {
@@ -109,7 +109,7 @@ chemin_symbolique :: fonc (entrée: DonnéesNumérotageCheminFichier) -> CheminF
     retourne résultat
 }
 
-ajoute_entrée_dossier_depuis_entrée_fichier :: fonc (entrées_dossier: *[]EntréeDossier, entrée: EntréeRépertoire)
+ajoute_entrée_dossier_depuis_entrée_fichier :: fonc (entrées_dossier: *[..]EntréeDossier, entrée: EntréeRépertoire)
 {
     si entrée.noms_parsés.taille == 1 {
         ajoute_entrée_dossier(entrées_dossier, entrée.description, -1, -1)
@@ -141,7 +141,7 @@ ajoute_entrée_dossier_depuis_entrée_fichier :: fonc (entrées_dossier: *[]Entr
     }
 }
 
-ajoute_entrée_dossier :: fonc (entrées_dossier: *[]EntréeDossier, nom: DonnéesNumérotageCheminFichier, premier_numéro: z32, dernier_numéro: z32)
+ajoute_entrée_dossier :: fonc (entrées_dossier: *[..]EntréeDossier, nom: DonnéesNumérotageCheminFichier, premier_numéro: z32, dernier_numéro: z32)
 {
     entrée_dossier := tableau_ajoute_élément(entrées_dossier)
     entrée_dossier.nombre_éléments = dernier_numéro - premier_numéro + 1
@@ -266,7 +266,7 @@ parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérot
 
 EntréeRépertoire :: struct {
     /* Les noms de fichiers faisant potentiellement partie d'une séquence. */
-    noms_parsés: []DonnéesNumérotageCheminFichier
+    noms_parsés: [..]DonnéesNumérotageCheminFichier
     description: DonnéesNumérotageCheminFichier
 }
 
@@ -275,7 +275,7 @@ détruit_entrée_répertoire :: fonc (empl entrée: EntréeRépertoire)
     déloge_tableau_et_ses_éléments(noms_parsés, détruit_nom_fichier_numéroté_parsé)
 }
 
-ajoute_entrée :: fonc (entrées: *[]EntréeRépertoire, nom: DonnéesNumérotageCheminFichier)
+ajoute_entrée :: fonc (entrées: *[..]EntréeRépertoire, nom: DonnéesNumérotageCheminFichier)
 {
     entrée := trouve_entrée(entrées, nom)
 
@@ -287,7 +287,7 @@ ajoute_entrée :: fonc (entrées: *[]EntréeRépertoire, nom: DonnéesNumérotag
     ensemble_ajoute(*entrée.noms_parsés, nom)
 }
 
-trouve_entrée :: fonc (entrées: *[]EntréeRépertoire, nom: DonnéesNumérotageCheminFichier) -> *EntréeRépertoire
+trouve_entrée :: fonc (entrées: *[..]EntréeRépertoire, nom: DonnéesNumérotageCheminFichier) -> *EntréeRépertoire
 {
     pour entrées.taille {
         entrée := *entrées.pointeur[it]

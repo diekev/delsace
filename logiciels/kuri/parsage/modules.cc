@@ -139,7 +139,7 @@ int64_t SystèmeModule::mémoire_utilisée() const
         résultat += it.tampon().chaine().taille();
         // les autres membres sont gérés dans rassemble_statistiques()
         if (!it.modules_importés.est_stocké_dans_classe()) {
-            résultat += it.modules_importés.taille() * taille_de(dls::vue_chaine_compacte);
+            résultat += it.modules_importés.mémoire_utilisée();
         }
     }
 

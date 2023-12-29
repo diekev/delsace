@@ -42,15 +42,14 @@ std::ostream &operator<<(std::ostream &os, Genre genre)
     return os;
 }
 
-dls::vue_chaine_compacte chaine_expression(EspaceDeTravail const &espace,
-                                           const NoeudExpression *expr)
+kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr)
 {
     auto lexeme = expr->lexeme;
     auto fichier = espace.compilatrice().fichier(lexeme->fichier);
     auto etendue_expr = calcule_etendue_noeud(expr);
     auto ligne = fichier->tampon()[lexeme->ligne];
-    return dls::vue_chaine_compacte(&ligne[etendue_expr.pos_min],
-                                    etendue_expr.pos_max - etendue_expr.pos_min);
+    return kuri::chaine_statique(&ligne[etendue_expr.pos_min],
+                                 etendue_expr.pos_max - etendue_expr.pos_min);
 }
 
 void lance_erreur(const kuri::chaine &quoi,

@@ -6,9 +6,9 @@ SélecteurType :: struct ($N: z32) {
     TypeTableau :: [N]z32
 }
 
-retourne_structure :: fonc ($N: z32) -> []SélecteurType(N).TypeTableau
+retourne_structure :: fonc ($N: z32) -> [..]SélecteurType(N).TypeTableau
 {
-    résultat: [][N]z32
+    résultat: [..][N]z32
     retourne résultat
 }
 

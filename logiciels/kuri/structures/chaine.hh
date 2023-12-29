@@ -12,7 +12,7 @@
 
 /**
  * Ces structures sont les mêmes que celles définies par le langage (tableaux
- * via « []TYPE », et chaine via « chaine ») ; elles sont donc la même
+ * via « [..]TYPE », et chaine via « chaine ») ; elles sont donc la même
  * définition que celles du langage. Elles sont utilisées pour pouvoir passer
  * des messages sainement entre la compilatrice et les métaprogrammes. Par
  * sainement, on entend que l'interface binaire de l'application doit être la
