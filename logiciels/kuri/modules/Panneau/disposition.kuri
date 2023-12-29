@@ -9,7 +9,7 @@ DirectionDisposition :: énum {
 Disposition :: struct {
     direction: DirectionDisposition
     rect: RectanglePosDim(z32)
-    panneaux: []*Panneau
+    panneaux: [..]*Panneau
     besoin_ajournement_disposition := vrai
 }
 

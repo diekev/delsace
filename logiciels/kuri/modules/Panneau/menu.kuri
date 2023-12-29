@@ -6,7 +6,7 @@
  * \{ */
 
 BarreDeMenu :: struct {
-    menus: []*Menu
+    menus: [..]*Menu
 }
 
 ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, texte: chaine) -> *Menu
@@ -42,7 +42,7 @@ Menu :: struct {
     }
 
     texte: chaine
-    éléments: []Élément
+    éléments: [..]Élément
 }
 
 ajoute_bouton :: fonc (menu: *Menu, bouton: *Bouton)

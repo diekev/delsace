@@ -52,7 +52,7 @@ convertis_vers_glsl :: fonc (espace: *EspaceDeTravail, corps: *NoeudCodeCorpsFon
 
 convertis_vers_glsl :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse, type: *InfoType, site: *NoeudCode)
 {
-    si type.id == id_info.STRUCTURE {
+    si type.id == GenreInfoType.STRUCTURE {
         type_struct := type comme *InfoTypeStructure
 
         si type_struct.nom == "Vec3" {
@@ -61,7 +61,7 @@ convertis_vers_glsl :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse
         }
     }
 
-    si type.id == id_info.RÉEL {
+    si type.id == GenreInfoType.RÉEL {
         si type.taille_en_octet == 4 {
             ajoute_au_tampon(enchaineuse, "float")
             retourne

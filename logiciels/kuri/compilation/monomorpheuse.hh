@@ -19,6 +19,10 @@ struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
 struct NoeudExpressionExpansionVariadique;
 struct NoeudExpressionReference;
+struct NoeudExpressionTypeFonction;
+struct NoeudExpressionTypeTableauDynamique;
+struct NoeudExpressionTypeTableauFixe;
+struct NoeudExpressionTypeTranche;
 struct NoeudStruct;
 struct Typeuse;
 
@@ -74,7 +78,7 @@ struct DonnéesErreurItemManquante {
 };
 
 struct DonnéesErreurInterne {
-    kuri::chaine_statique message{};
+    kuri::chaine message{};
 };
 
 struct DonnéesErreurGenreType {
@@ -262,7 +266,7 @@ class Monomorpheuse {
      * Retourne soit une erreur si un type ne peut être résolu pour l'expression polymorphique
      * selon, ou un TypeAppariéPesé contenant le type et son poids de monomorphisation. Le poids
      * dépends de la précision de l'appariement. Par exemple, l'expression $T aura un poids
-     * inférieur à []$T pour l'appariement d'un tableau.
+     * inférieur à [..]$T pour l'appariement d'un tableau.
      */
     RésultatRésolutionType résoud_type_final(const NoeudExpression *expression_polymorphique);
 
@@ -277,7 +281,7 @@ class Monomorpheuse {
     void ajoute_candidat_depuis_reference_declaration(const NoeudExpressionReference *reference,
                                                       const Type *type_reçu);
     void ajoute_candidats_depuis_type_fonction(
-        const NoeudDeclarationEnteteFonction *decl_type_fonction,
+        const NoeudExpressionTypeFonction *decl_type_fonction,
         const NoeudExpression *site,
         const Type *type_reçu);
     void ajoute_candidats_depuis_declaration_structure(const NoeudStruct *structure,
@@ -290,8 +294,16 @@ class Monomorpheuse {
         const NoeudExpressionConstructionStructure *construction,
         const NoeudExpression *site,
         const Type *type_reçu);
+    void ajoute_candidats_depuis_declaration_tranche(
+        const NoeudExpressionTypeTranche *expr_type_tranche,
+        const NoeudExpression *site,
+        const Type *type_reçu);
     void ajoute_candidats_depuis_declaration_tableau(
-        const NoeudExpressionBinaire *construction_tableau,
+        const NoeudExpressionTypeTableauDynamique *expr_type_tableau,
+        const NoeudExpression *site,
+        const Type *type_reçu);
+    void ajoute_candidats_depuis_declaration_tableau(
+        const NoeudExpressionTypeTableauFixe *expr_type_tableau,
         const NoeudExpression *site,
         const Type *type_reçu);
     void ajoute_candidats_depuis_expansion_variadique(
@@ -305,20 +317,24 @@ class Monomorpheuse {
 
     Type *résoud_type_final_pour_référence_déclaration(const NoeudExpressionReference *reference);
     Type *résoud_type_final_pour_type_fonction(
-        const NoeudDeclarationEnteteFonction *decl_type_fonction);
+        const NoeudExpressionTypeFonction *decl_type_fonction);
     Type *résoud_type_final_pour_construction_structure(
         const NoeudExpressionConstructionStructure *construction);
     Type *résoud_type_final_pour_construction_opaque(
         const NoeudExpressionConstructionStructure *construction);
-    Type *résoud_type_final_pour_déclaration_tableau(
-        const NoeudExpressionBinaire *construction_tableau);
+    Type *résoud_type_final_pour_déclaration_tranche(
+        const NoeudExpressionTypeTranche *expr_tranche);
+    Type *résoud_type_final_pour_déclaration_tableau_dynamique(
+        const NoeudExpressionTypeTableauDynamique *expr_tableau_dynamique);
+    Type *résoud_type_final_pour_déclaration_tableau_fixe(
+        const NoeudExpressionTypeTableauFixe *expr_tableau_fixe);
     Type *résoud_type_final_pour_expansion_variadique(
         const NoeudExpressionExpansionVariadique *expansion);
 
     /* Erreurs. */
 
     void ajoute_erreur(const NoeudExpression *site, DonnéesErreur donnees);
-    void erreur_interne(const NoeudExpression *site, kuri::chaine_statique message);
+    void erreur_interne(const NoeudExpression *site, kuri::chaine message);
     void erreur_contrainte(const NoeudExpression *site,
                            ÉtatRésolutionContrainte résultat,
                            ItemMonomorphisation item_contrainte,

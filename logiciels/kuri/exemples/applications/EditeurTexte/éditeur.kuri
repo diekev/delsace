@@ -16,8 +16,8 @@ importe Temps
     cx : z32
     cy : z32
 
-    lignes_texte: []chaine
-    lignes_rendu: []chaine
+    lignes_texte: [..]chaine
+    lignes_rendu: [..]chaine
 
     chemin_fichier: chaine
 
@@ -422,7 +422,7 @@ TAILLE_TABULATION :: 4
     retourne ligne.taille comme z32
 }
 
-déloge_tableau_ligne :: fonc (tabl: *[]chaine) -> rien
+déloge_tableau_ligne :: fonc (tabl: *[..]chaine) -> rien
 {
     pour ligne dans mémoire(tabl) {
         déloge(ligne)

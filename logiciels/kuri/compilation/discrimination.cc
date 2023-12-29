@@ -16,7 +16,7 @@
 
 // --------------------------------------------
 
-static ResultatValidation valide_présence_membre(
+static RésultatValidation valide_présence_membre(
     EspaceDeTravail *espace,
     NoeudExpression *expression,
     TypeCompose *type,
@@ -46,7 +46,7 @@ static ResultatValidation valide_présence_membre(
 
 // --------------------------------------------
 
-ResultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *type)
+RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *type)
 {
     auto expression = inst->expression_discriminee;
     auto type_énum = static_cast<TypeEnum *>(type);
@@ -78,14 +78,14 @@ ResultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *ty
             auto membre = info_membre->membre;
 
             if (membre.est_implicite()) {
-                espace->rapporte_erreur(f,
+                m_espace->rapporte_erreur(f,
                                         "Les membres implicites des énumérations ne peuvent être "
                                         "utilisés comme expression de discrimination");
                 return CodeRetourValidation::Erreur;
             }
 
             if (membre.est_constant()) {
-                espace->rapporte_erreur(f,
+                m_espace->rapporte_erreur(f,
                                         "Les membres constants des énumérations ne peuvent être "
                                         "utilisés comme expression de discrimination");
                 return CodeRetourValidation::Erreur;
@@ -101,7 +101,7 @@ ResultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *ty
     }
 
     if (inst->bloc_sinon == nullptr) {
-        return valide_présence_membre(espace, expression, type_énum, membres_rencontrés);
+        return valide_présence_membre(m_espace, expression, type_énum, membres_rencontrés);
     }
 
     return CodeRetourValidation::OK;
@@ -223,7 +223,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
     return true;
 }
 
-ResultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *type)
+RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *type)
 {
     auto expression = inst->expression_discriminee;
     auto type_union = type->comme_type_union();
@@ -252,7 +252,7 @@ ResultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *ty
 
         auto expression_valide = expression_valide_discrimination(feuille, true);
         if (!expression_valide.has_value()) {
-            espace
+            m_espace
                 ->rapporte_erreur(feuille, "Expression invalide pour discriminer l'union anonyme")
                 .ajoute_message("L'expression est de genre : ", feuille->genre, "\n");
             return CodeRetourValidation::Erreur;
@@ -268,14 +268,14 @@ ResultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *ty
         auto membre = info_membre->membre;
 
         if (membre.est_implicite()) {
-            espace->rapporte_erreur(feuille,
+            m_espace->rapporte_erreur(feuille,
                                     "Les membres implicites des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
         if (membre.est_constant()) {
-            espace->rapporte_erreur(feuille,
+            m_espace->rapporte_erreur(feuille,
                                     "Les membres constants des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
@@ -294,12 +294,12 @@ ResultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *ty
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
             if (membre.type->est_type_rien()) {
-                espace->rapporte_erreur(expression_valide->est_expression_appel,
+                m_espace->rapporte_erreur(expression_valide->est_expression_appel,
                                         "Impossible de capturer une variable depuis un membre "
                                         "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
-            crée_variable_pour_expression_test(espace,
+            crée_variable_pour_expression_test(m_espace,
                                                m_tacheronne->assembleuse,
                                                expression,
                                                type_union,
@@ -312,7 +312,7 @@ ResultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *ty
     }
 
     if (inst->bloc_sinon == nullptr) {
-        espace->rapporte_erreur(
+        m_espace->rapporte_erreur(
             inst,
             "Les discriminations d'unions anonymes doivent avoir un bloc « sinon » afin de "
             "s'assurer que les valeurs non-initialisées soient prises en compte");
@@ -322,7 +322,7 @@ ResultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *ty
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, Type *type)
+RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, Type *type)
 {
     auto type_union = type->comme_type_union();
     inst->op = TypeBase::Z32->table_opérateurs->opérateur_egt;
@@ -344,7 +344,7 @@ ResultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, 
 
         auto expression_valide = expression_valide_discrimination(feuille, false);
         if (!expression_valide.has_value()) {
-            espace->rapporte_erreur(feuille, "Attendu une référence à un membre de l'union")
+            m_espace->rapporte_erreur(feuille, "Attendu une référence à un membre de l'union")
                 .ajoute_message("L'expression est de genre : ", feuille->genre, "\n");
             return CodeRetourValidation::Erreur;
         }
@@ -368,14 +368,14 @@ ResultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, 
         auto membre = info_membre->membre;
 
         if (membre.est_implicite()) {
-            espace->rapporte_erreur(feuille,
+            m_espace->rapporte_erreur(feuille,
                                     "Les membres implicites des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
         if (membre.est_constant()) {
-            espace->rapporte_erreur(feuille,
+            m_espace->rapporte_erreur(feuille,
                                     "Les membres constants des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
@@ -395,12 +395,12 @@ ResultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
             if (référence_type->type->est_type_rien()) {
-                espace->rapporte_erreur(expression_valide->est_expression_appel,
+                m_espace->rapporte_erreur(expression_valide->est_expression_appel,
                                         "Impossible de capturer une variable depuis un membre "
                                         "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
-            crée_variable_pour_expression_test(espace,
+            crée_variable_pour_expression_test(m_espace,
                                                m_tacheronne->assembleuse,
                                                inst->expression_discriminee,
                                                type_union,
@@ -413,7 +413,7 @@ ResultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, 
     }
 
     if (inst->bloc_sinon == nullptr) {
-        espace->rapporte_erreur(
+        m_espace->rapporte_erreur(
             inst,
             "Les discriminations d'unions anonymes doivent avoir un bloc « sinon » afin de "
             "s'assurer que les valeurs non-initialisées soient prises en compte");
@@ -432,7 +432,7 @@ ResultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, 
  * des opérateurs personnalisés (peut également être résolu via un système de définition de
  * conversion dans le langage).
  */
-ResultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type *type)
+RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type *type)
 {
     auto type_pour_la_recherche = type;
     if (type->est_type_type_de_donnees()) {
@@ -440,14 +440,14 @@ ResultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type 
     }
 
     auto résultat = trouve_opérateur_pour_expression(
-        *espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexeme::EGALITE);
+        *m_espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexeme::EGALITE);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
     }
 
     if (std::holds_alternative<bool>(résultat)) {
-        espace
+        m_espace
             ->rapporte_erreur(inst,
                               "Je ne peux pas valider l'expression de discrimination car "
                               "je n'arrive à trouver un opérateur de comparaison pour le "
@@ -477,7 +477,7 @@ ResultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type 
 
             auto expression_valide = expression_valide_discrimination(feuille, false);
             if (!expression_valide.has_value()) {
-                espace
+                m_espace
                     ->rapporte_erreur(
                         feuille,
                         "Expression invalide pour la discrimination de la valeur scalaire")
@@ -496,7 +496,7 @@ ResultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type 
     }
 
     if (inst->bloc_sinon == nullptr) {
-        espace->rapporte_erreur(inst,
+        m_espace->rapporte_erreur(inst,
                                 "Les discriminations de valeurs scalaires doivent "
                                 "avoir un bloc « sinon »");
         return CodeRetourValidation::Erreur;
@@ -505,7 +505,7 @@ ResultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type 
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
+RésultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
 {
     auto expression = inst->expression_discriminee;
     auto type = expression->type;

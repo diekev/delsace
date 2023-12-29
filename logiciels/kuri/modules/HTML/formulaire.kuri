@@ -4,7 +4,7 @@ importe Fondation
 Formulaire :: struct {
     action: chaine
     méthode: chaine
-    entrées : []EntréeFormulaire
+    entrées : [..]EntréeFormulaire
 }
 
 EntréeFormulaire :: struct {

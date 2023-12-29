@@ -5,7 +5,7 @@ importe SysFichier
 
 génère_script :: fonc ()
 {
-    ajoute_module :: fonc (chemin: CheminFichier, ensemble: *[]chaine)
+    ajoute_module :: fonc (chemin: CheminFichier, ensemble: *[..]chaine)
     {
         interdits := [
             ".vscode",
@@ -31,7 +31,7 @@ génère_script :: fonc ()
         ensemble_ajoute(ensemble, copie_chaine(nom_fichier))
     }
 
-    ensemble: []chaine
+    ensemble: [..]chaine
     diffère déloge_tableau_et_ses_éléments(ensemble)
 
     chemins_modules := CheminFichier("../../modules/")

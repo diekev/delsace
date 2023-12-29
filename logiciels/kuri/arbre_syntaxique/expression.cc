@@ -3,8 +3,6 @@
 
 #include "expression.hh"
 
-#include "biblinternes/outils/conditions.h"
-
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 

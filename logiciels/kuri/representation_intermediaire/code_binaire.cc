@@ -10,6 +10,7 @@
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/bibliotheque.hh"
@@ -1080,6 +1081,12 @@ ffi_type *converti_type_ffi(Type const *type)
 
             return &type_ffi_tableau;
         }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            static ffi_type *types_éléments[] = {&ffi_type_pointer, &ffi_type_sint64, nullptr};
+            static ffi_type type_ffi_tranche = {0, 0, FFI_TYPE_STRUCT, types_éléments};
+            return &type_ffi_tranche;
+        }
         case GenreNoeud::EINI:
         {
             static ffi_type *types_elements[] = {&ffi_type_pointer, &ffi_type_pointer, nullptr};
@@ -1195,9 +1202,9 @@ ffi_type *converti_type_ffi(Type const *type)
             // ces types là ne sont pas supporté dans FFI
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }
