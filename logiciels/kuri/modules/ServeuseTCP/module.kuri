@@ -100,7 +100,7 @@ rappel_quand_ouverture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise, boo
     serveuse.ctx.mute_quand_ouverture(rappel)
 }
 
-rappel_quand_données_reçues :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise, []octet)(rien))
+rappel_quand_données_reçues :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise, [..]octet)(rien))
 {
     serveuse.ctx.mute_quand_données_reçues(rappel)
 }

@@ -18,8 +18,8 @@ Attribut :: struct {
 }
 
 Noeud :: struct {
-    enfants: []*Noeud
-    attributs: []Attribut
+    enfants: [..]*Noeud
+    attributs: [..]Attribut
 
     type : type_de_données
 }
@@ -83,7 +83,7 @@ Document :: struct {
      * faire trop de copies. */
     texte_original : chaine
 
-    catégories : []chaine
+    catégories : [..]chaine
 }
 
 Chapitre :: struct {
@@ -111,7 +111,7 @@ ParseuseDocument :: struct {
     empl base: ParseuseChaine
     document: *Document
 
-    erreurs: []chaine
+    erreurs: [..]chaine
 }
 
 détruit_parseuse :: fonc (parseuse: &ParseuseDocument)

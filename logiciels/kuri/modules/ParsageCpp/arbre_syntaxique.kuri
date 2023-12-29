@@ -59,7 +59,7 @@ NoeudDéfinitionClasse :: struct {
 
     nom: chaine
     clé_classe: CléClasse
-    bases: []SpécificationBase
+    bases: [..]SpécificationBase
 }
 
 /** } */
@@ -69,7 +69,7 @@ NoeudDéfinitionClasse :: struct {
  * \{ */
 
 CréatriceNoeuds :: struct {
-    noeuds: []*NoeudSyntaxique
+    noeuds: [..]*NoeudSyntaxique
 }
 
 crée_noeud :: fonc (créatrice: &CréatriceNoeuds, lexème: *Lexème, $TypeNoeud: type_de_données) -> *TypeNoeud

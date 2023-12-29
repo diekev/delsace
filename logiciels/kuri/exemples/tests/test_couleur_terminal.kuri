@@ -60,13 +60,13 @@ Cellule :: struct {
 
 Ligne :: struct {
     parent : *Table
-    cellules : []Cellule
+    cellules : [..]Cellule
 
     format : Format
 }
 
 Table :: struct {
-    lignes : []Ligne
+    lignes : [..]Ligne
     format : Format
 }
 

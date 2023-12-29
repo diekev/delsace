@@ -53,7 +53,7 @@ Peintre :: struct {
 
     /* Dessine le segment avec la couleur donnée. */
     rappel_dessine_segment : fonc (*Peintre, LignePeintre, CouleurPeintre)(rien)
-    rappel_dessine_segments : fonc (*Peintre, []LignePeintre, CouleurPeintre)(rien)
+    rappel_dessine_segments : fonc (*Peintre, [..]LignePeintre, CouleurPeintre)(rien)
 
     /* Dessine le texte avec la fonte et la couleur données. */
     rappel_dessine_texte : fonc (*Peintre, *Fonte, chaine, RectanglePeintre, CouleurPeintre)(rien)
@@ -78,7 +78,7 @@ Peintre :: struct {
      * limites d'une zone hors de laquelle rien n'est dessiné. */
     rappel_définis_ciseau : fonc (*Peintre, RectanglePeintre)(rien)
 
-    ciseaux: []RectanglePeintre
+    ciseaux: [..]RectanglePeintre
 }
 
 définis_taille_cannevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #enligne
@@ -131,7 +131,7 @@ dessine_segment :: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: Couleu
     peintre.rappel_dessine_segment(peintre, ligne, couleur)
 }
 
-dessine_segments :: fonc (peintre: *Peintre, ligne: []LignePeintre, couleur: CouleurPeintre) -> rien #enligne
+dessine_segments :: fonc (peintre: *Peintre, ligne: [..]LignePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_dessine_segments(peintre, ligne, couleur)
 }
@@ -394,7 +394,7 @@ dessine_segment_dessin :: fonc (peintre: *Peintre, segment_peintre: LignePeintre
     dessine_ligne(*peintre_dessin.tampon_de_rendu, segment, couleur)
 }
 
-dessine_segments_dessin :: fonc (peintre: *Peintre, segments_peintre: []LignePeintre, couleur_peintre: CouleurPeintre)
+dessine_segments_dessin :: fonc (peintre: *Peintre, segments_peintre: [..]LignePeintre, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
     couleur := donne_couleur_dessin(couleur_peintre)
@@ -704,7 +704,7 @@ dessine_segment_igumi :: fonc (peintre: *Peintre @inutilisée, segment_peintre: 
     segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur)
 }
 
-dessine_segments_igumi :: fonc (peintre: *Peintre @inutilisée, segments_peintre: []LignePeintre, couleur_peintre: CouleurPeintre)
+dessine_segments_igumi :: fonc (peintre: *Peintre @inutilisée, segments_peintre: [..]LignePeintre, couleur_peintre: CouleurPeintre)
 {
     couleur := donne_couleur_igumi(couleur_peintre)
 

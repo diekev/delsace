@@ -81,7 +81,7 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
 ChunkDonnéesWave :: struct {
     id_chunk := "data"
     taille_chunk : n32 = 0
-    données : []z16
+    données : [..]z16
 }
 
 écris :: fonc(autrice: *AutriceFichierWave, chunk : &ChunkDonnéesWave)

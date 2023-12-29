@@ -243,10 +243,10 @@ détruit_chaines_internées :: fonc ()
 // À FAIRE : il nous faudrait une manière de passer la fonction de hachage
 //           nous ne pouvons pas accéder à la fonction de hachage depuis un module séparé
 Table :: struct ($TypeClé: type_de_données, $TypeValeur: type_de_données) {
-    clés: []TypeClé
-    valeurs: []TypeValeur
-    occupés: []bool
-    empreintes: []n64
+    clés: [..]TypeClé
+    valeurs: [..]TypeValeur
+    occupés: [..]bool
+    empreintes: [..]n64
 
     capacité: z64
     nombre_éléments: z64

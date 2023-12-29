@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
@@ -25,15 +26,15 @@
 #include "utilitaires/log.hh"
 
 enum {
-    OPERATEUR_EST_SURCHARGEABLE = (1 << 0),
+    OPÉRATEUR_EST_SURCHARGEABLE = (1 << 0),
     EST_EXPRESSION = (1 << 1),
     EST_EXPRESSION_UNAIRE = (1 << 2),
     EST_EXPRESSION_SECONDAIRE = (1 << 3),
-    EST_LEXEME_TYPE = (1 << 4),
+    EST_LEXÈME_TYPE = (1 << 4),
     EST_INSTRUCTION = (1 << 5),
 };
 
-static constexpr auto table_drapeaux_lexemes = [] {
+static constexpr auto table_drapeaux_lexèmes = [] {
     std::array<u_char, 256> t{};
 
     for (auto i = 0u; i < 256; ++i) {
@@ -68,7 +69,7 @@ static constexpr auto table_drapeaux_lexemes = [] {
             case GenreLexeme::CROCHET_OUVRANT:
             case GenreLexeme::POUR:
             {
-                t[i] |= OPERATEUR_EST_SURCHARGEABLE;
+                t[i] |= OPÉRATEUR_EST_SURCHARGEABLE;
                 break;
             }
         }
@@ -161,7 +162,7 @@ static constexpr auto table_drapeaux_lexemes = [] {
             case GenreLexeme::OCTET:
             case GenreLexeme::TYPE_DE_DONNEES:
             {
-                t[i] |= EST_LEXEME_TYPE;
+                t[i] |= EST_LEXÈME_TYPE;
                 t[i] |= EST_EXPRESSION;
                 break;
             }
@@ -250,11 +251,11 @@ static constexpr auto table_drapeaux_lexemes = [] {
     return t;
 }();
 
-static constexpr auto table_associativite_lexemes = [] {
-    std::array<Associativite, 256> t{};
+static constexpr auto table_associativité_lexèmes = [] {
+    std::array<Associativité, 256> t{};
 
     for (auto i = 0u; i < 256; ++i) {
-        t[i] = static_cast<Associativite>(-1);
+        t[i] = static_cast<Associativité>(-1);
 
         switch (static_cast<GenreLexeme>(i)) {
             case GenreLexeme::VIRGULE:
@@ -296,7 +297,7 @@ static constexpr auto table_associativite_lexemes = [] {
             case GenreLexeme::COMME:
             case GenreLexeme::DOUBLE_POINTS:
             {
-                t[i] = Associativite::GAUCHE;
+                t[i] = Associativité::GAUCHE;
                 break;
             }
             case GenreLexeme::EXCLAMATION:
@@ -308,7 +309,7 @@ static constexpr auto table_associativite_lexemes = [] {
             case GenreLexeme::EXPANSION_VARIADIQUE:
             case GenreLexeme::ACCENT_GRAVE:
             {
-                t[i] = Associativite::DROITE;
+                t[i] = Associativité::DROITE;
                 break;
             }
             default:
@@ -321,10 +322,10 @@ static constexpr auto table_associativite_lexemes = [] {
     return t;
 }();
 
-static constexpr int PRECEDENCE_VIRGULE = 3;
-static constexpr int PRECEDENCE_TYPE = 4;
+static constexpr int PRÉCÉDENCE_VIRGULE = 3;
+static constexpr int PRÉCÉDENCE_TYPE = 4;
 
-static constexpr auto table_precedence_lexemes = [] {
+static constexpr auto table_précédence_lexèmes = [] {
     std::array<char, 256> t{};
 
     for (auto i = 0u; i < 256; ++i) {
@@ -355,12 +356,12 @@ static constexpr auto table_precedence_lexemes = [] {
             }
             case GenreLexeme::VIRGULE:
             {
-                t[i] = PRECEDENCE_VIRGULE;
+                t[i] = PRÉCÉDENCE_VIRGULE;
                 break;
             }
             case GenreLexeme::DOUBLE_POINTS:
             {
-                t[i] = PRECEDENCE_TYPE;
+                t[i] = PRÉCÉDENCE_TYPE;
                 break;
             }
             case GenreLexeme::BARRE_BARRE:
@@ -456,27 +457,27 @@ static constexpr auto table_precedence_lexemes = [] {
     return t;
 }();
 
-static inline bool est_operateur_surchargeable(GenreLexeme genre)
+static inline bool est_opérateur_surchargeable(GenreLexeme genre)
 {
-    return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & OPERATEUR_EST_SURCHARGEABLE) != 0;
+    return (table_drapeaux_lexèmes[static_cast<size_t>(genre)] & OPÉRATEUR_EST_SURCHARGEABLE) != 0;
 }
 
-static inline int precedence_pour_operateur(GenreLexeme genre_operateur)
+static inline int précédence_pour_opérateur(GenreLexeme genre_opérateur)
 {
-    int precedence = table_precedence_lexemes[static_cast<size_t>(genre_operateur)];
-    assert_rappel(precedence != -1, [&]() {
-        dbg() << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_operateur);
+    int précédence = table_précédence_lexèmes[static_cast<size_t>(genre_opérateur)];
+    assert_rappel(précédence != -1, [&]() {
+        dbg() << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_opérateur);
     });
-    return precedence;
+    return précédence;
 }
 
-static inline Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
+static inline Associativité associativité_pour_opérateur(GenreLexeme genre_opérateur)
 {
-    auto associativite = table_associativite_lexemes[static_cast<size_t>(genre_operateur)];
-    assert_rappel(associativite != static_cast<Associativite>(-1), [&]() {
-        dbg() << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_operateur);
+    auto associativité = table_associativité_lexèmes[static_cast<size_t>(genre_opérateur)];
+    assert_rappel(associativité != static_cast<Associativité>(-1), [&]() {
+        dbg() << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_opérateur);
     });
-    return associativite;
+    return associativité;
 }
 
 Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite)
@@ -485,12 +486,12 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite)
 {
     auto module = m_fichier->module;
 
-    m_tacheronne.assembleuse->depile_tout();
+    m_tacheronne.assembleuse->dépile_tout();
 
     module->mutex.lock();
     {
         if (module->bloc == nullptr) {
-            module->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), nullptr);
+            module->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), nullptr);
 
             if (module->nom() != ID::Kuri) {
                 /* Crée un membre pour l'import implicite du module Kuri afin de pouvoir accéder
@@ -528,25 +529,25 @@ void Syntaxeuse::quand_commence()
         return;
     }
 
-    auto metaprogramme = m_fichier->métaprogramme_corps_texte;
+    auto métaprogramme = m_fichier->métaprogramme_corps_texte;
 
-    if (metaprogramme->corps_texte_pour_fonction) {
-        auto recipiente = metaprogramme->corps_texte_pour_fonction;
-        m_tacheronne.assembleuse->bloc_courant(recipiente->bloc_parametres);
+    if (métaprogramme->corps_texte_pour_fonction) {
+        auto récipiente = métaprogramme->corps_texte_pour_fonction;
+        m_tacheronne.assembleuse->bloc_courant(récipiente->bloc_parametres);
 
-        fonctions_courantes.empile(recipiente);
-        recipiente->corps->bloc = analyse_bloc(false);
-        recipiente->corps->est_corps_texte = false;
-        recipiente->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
+        fonctions_courantes.empile(récipiente);
+        récipiente->corps->bloc = analyse_bloc(false);
+        récipiente->corps->est_corps_texte = false;
+        récipiente->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
         fonctions_courantes.depile();
     }
-    else if (metaprogramme->corps_texte_pour_structure) {
-        auto recipiente = metaprogramme->corps_texte_pour_structure;
-        if (recipiente->unité && recipiente->unité->arbre_aplatis) {
-            recipiente->unité->arbre_aplatis->réinitialise();
+    else if (métaprogramme->corps_texte_pour_structure) {
+        auto récipiente = métaprogramme->corps_texte_pour_structure;
+        if (récipiente->unité && récipiente->unité->arbre_aplatis) {
+            récipiente->unité->arbre_aplatis->réinitialise();
         }
 
-        auto type_structure = recipiente->comme_declaration_classe();
+        auto type_structure = récipiente->comme_declaration_classe();
         auto bloc_parent = (type_structure->bloc_constantes) ? type_structure->bloc_constantes :
                                                                type_structure->bloc_parent;
         m_tacheronne.assembleuse->bloc_courant(bloc_parent);
@@ -556,12 +557,12 @@ void Syntaxeuse::quand_commence()
         type_structure->est_corps_texte = false;
     }
 
-    metaprogramme->fut_execute = true;
+    métaprogramme->fut_execute = true;
 }
 
 void Syntaxeuse::quand_termine()
 {
-    m_tacheronne.assembleuse->depile_tout();
+    m_tacheronne.assembleuse->dépile_tout();
 }
 
 void Syntaxeuse::analyse_une_chose()
@@ -570,37 +571,37 @@ void Syntaxeuse::analyse_une_chose()
         return;
     }
 
-    auto lexeme = lexeme_courant();
-    auto genre_lexeme = lexeme->genre;
+    auto lexème = lexème_courant();
+    auto genre_lexème = lexème->genre;
 
-    if (genre_lexeme == GenreLexeme::IMPORTE) {
+    if (genre_lexème == GenreLexeme::IMPORTE) {
         consomme();
 
-        auto noeud = m_tacheronne.assembleuse->crée_importe(lexeme);
+        auto noeud = m_tacheronne.assembleuse->crée_importe(lexème);
         noeud->bloc_parent->ajoute_expression(noeud);
 
         if (!apparie(GenreLexeme::CHAINE_LITTERALE) && !apparie(GenreLexeme::CHAINE_CARACTERE)) {
             rapporte_erreur("Attendu une chaine littérale après 'importe'");
         }
 
-        noeud->expression = m_tacheronne.assembleuse->crée_reference_declaration(lexeme_courant());
+        noeud->expression = m_tacheronne.assembleuse->crée_reference_declaration(lexème_courant());
 
         requiers_typage(noeud);
         m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
 
         consomme();
     }
-    else if (genre_lexeme == GenreLexeme::CHARGE) {
+    else if (genre_lexème == GenreLexeme::CHARGE) {
         consomme();
 
-        auto noeud = m_tacheronne.assembleuse->crée_charge(lexeme);
+        auto noeud = m_tacheronne.assembleuse->crée_charge(lexème);
         noeud->bloc_parent->ajoute_expression(noeud);
 
         if (!apparie(GenreLexeme::CHAINE_LITTERALE) && !apparie(GenreLexeme::CHAINE_CARACTERE)) {
             rapporte_erreur("Attendu une chaine littérale après 'charge'");
         }
 
-        noeud->expression = m_tacheronne.assembleuse->crée_reference_declaration(lexeme_courant());
+        noeud->expression = m_tacheronne.assembleuse->crée_reference_declaration(lexème_courant());
 
         requiers_typage(noeud);
         m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::CHARGE;
@@ -619,6 +620,9 @@ void Syntaxeuse::analyse_une_chose()
             noeud->drapeaux |= DrapeauxNoeud::EST_GLOBALE;
 
             if (noeud->est_base_declaration_variable()) {
+                assert_rappel(noeud->bloc_parent, [&]() {
+                    dbg() << erreur::imprime_site(*m_unité->espace, noeud) << "\n" << noeud->genre;
+                });
                 noeud->bloc_parent->ajoute_membre(noeud->comme_base_declaration_variable());
                 if (noeud->ident == ID::__contexte_fil_principal) {
                     m_compilatrice.globale_contexte_programme =
@@ -667,51 +671,51 @@ void Syntaxeuse::analyse_une_chose()
 
 bool Syntaxeuse::apparie_expression() const
 {
-    auto genre = lexeme_courant()->genre;
-    return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & EST_EXPRESSION) != 0;
+    auto genre = lexème_courant()->genre;
+    return (table_drapeaux_lexèmes[static_cast<size_t>(genre)] & EST_EXPRESSION) != 0;
 }
 
 bool Syntaxeuse::apparie_expression_unaire() const
 {
-    auto genre = lexeme_courant()->genre;
-    return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & EST_EXPRESSION_UNAIRE) != 0;
+    auto genre = lexème_courant()->genre;
+    return (table_drapeaux_lexèmes[static_cast<size_t>(genre)] & EST_EXPRESSION_UNAIRE) != 0;
 }
 
 bool Syntaxeuse::apparie_expression_secondaire() const
 {
-    auto genre = lexeme_courant()->genre;
-    return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & EST_EXPRESSION_SECONDAIRE) != 0;
+    auto genre = lexème_courant()->genre;
+    return (table_drapeaux_lexèmes[static_cast<size_t>(genre)] & EST_EXPRESSION_SECONDAIRE) != 0;
 }
 
 bool Syntaxeuse::apparie_instruction() const
 {
-    auto genre = lexeme_courant()->genre;
-    return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & EST_INSTRUCTION) != 0;
+    auto genre = lexème_courant()->genre;
+    return (table_drapeaux_lexèmes[static_cast<size_t>(genre)] & EST_INSTRUCTION) != 0;
 }
 
-NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees_precedence,
+NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &données_précédence,
                                                 GenreLexeme racine_expression,
-                                                GenreLexeme lexeme_final)
+                                                GenreLexeme lexème_final)
 {
-    auto expression = analyse_expression_primaire(racine_expression, lexeme_final);
+    auto expression = analyse_expression_primaire(racine_expression, lexème_final);
 
-    while (!fini() && apparie_expression_secondaire() && lexeme_courant()->genre != lexeme_final) {
-        auto nouvelle_precedence = precedence_pour_operateur(lexeme_courant()->genre);
+    while (!fini() && apparie_expression_secondaire() && lexème_courant()->genre != lexème_final) {
+        auto nouvelle_précédence = précédence_pour_opérateur(lexème_courant()->genre);
 
-        if (nouvelle_precedence < donnees_precedence.precedence) {
+        if (nouvelle_précédence < données_précédence.précédence) {
             break;
         }
 
-        if (nouvelle_precedence == donnees_precedence.precedence &&
-            donnees_precedence.associativite == Associativite::GAUCHE) {
+        if (nouvelle_précédence == données_précédence.précédence &&
+            données_précédence.associativité == Associativité::GAUCHE) {
             break;
         }
 
-        auto nouvelle_associativite = associativite_pour_operateur(lexeme_courant()->genre);
+        auto nouvelle_associativité = associativité_pour_opérateur(lexème_courant()->genre);
         expression = analyse_expression_secondaire(expression,
-                                                   {nouvelle_precedence, nouvelle_associativite},
+                                                   {nouvelle_précédence, nouvelle_associativité},
                                                    racine_expression,
-                                                   lexeme_final);
+                                                   lexème_final);
     }
 
     if (!expression) {
@@ -721,37 +725,37 @@ NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees
     return expression;
 }
 
-NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
+NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexème_final)
 {
-    auto lexeme = lexeme_courant();
+    auto lexème = lexème_courant();
     auto genre_noeud = GenreNoeud::OPERATEUR_UNAIRE;
 
-    switch (lexeme->genre) {
+    switch (lexème->genre) {
         case GenreLexeme::MOINS:
         {
-            lexeme->genre = GenreLexeme::MOINS_UNAIRE;
+            lexème->genre = GenreLexeme::MOINS_UNAIRE;
             break;
         }
         case GenreLexeme::PLUS:
         {
-            lexeme->genre = GenreLexeme::PLUS_UNAIRE;
+            lexème->genre = GenreLexeme::PLUS_UNAIRE;
             break;
         }
         case GenreLexeme::EXPANSION_VARIADIQUE:
         case GenreLexeme::TROIS_POINTS:
         {
-            lexeme->genre = GenreLexeme::EXPANSION_VARIADIQUE;
+            lexème->genre = GenreLexeme::EXPANSION_VARIADIQUE;
             genre_noeud = GenreNoeud::EXPANSION_VARIADIQUE;
             break;
         }
         case GenreLexeme::FOIS:
         {
-            lexeme->genre = GenreLexeme::FOIS_UNAIRE;
+            lexème->genre = GenreLexeme::FOIS_UNAIRE;
             break;
         }
         case GenreLexeme::ESPERLUETTE:
         {
-            lexeme->genre = GenreLexeme::ESP_UNAIRE;
+            lexème->genre = GenreLexeme::ESP_UNAIRE;
             break;
         }
         case GenreLexeme::ESP_UNAIRE:
@@ -770,9 +774,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
                 return nullptr;
             }
 
-            lexeme = lexeme_courant();
+            lexème = lexème_courant();
             consomme();
-            auto noeud = m_tacheronne.assembleuse->crée_reference_declaration(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_reference_declaration(lexème);
             noeud->drapeaux |= DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE;
             return noeud;
         }
@@ -780,7 +784,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
         {
             assert_rappel(false, [&]() {
                 dbg() << "Lexème inattendu comme opérateur unaire : "
-                      << chaine_du_lexème(lexeme->genre) << '\n'
+                      << chaine_du_lexème(lexème->genre) << '\n'
                       << crée_message_erreur("");
             });
             return nullptr;
@@ -789,81 +793,102 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
 
     consomme();
 
-    auto precedence = precedence_pour_operateur(lexeme->genre);
-    auto associativite = associativite_pour_operateur(lexeme->genre);
+    auto précédence = précédence_pour_opérateur(lexème->genre);
+    auto associativité = associativité_pour_opérateur(lexème->genre);
 
-    if (lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
+    if (lexème->genre == GenreLexeme::FOIS_UNAIRE) {
         auto opérande = analyse_expression(
-            {precedence, associativite}, GenreLexeme::INCONNU, lexeme_final);
+            {précédence, associativité}, GenreLexeme::INCONNU, lexème_final);
 
-        auto noeud = m_tacheronne.assembleuse->crée_prise_adresse(lexeme);
+        auto noeud = m_tacheronne.assembleuse->crée_prise_adresse(lexème);
         noeud->opérande = opérande;
         return noeud;
     }
 
-    if (lexeme->genre == GenreLexeme::ESP_UNAIRE) {
+    if (lexème->genre == GenreLexeme::ESP_UNAIRE) {
         auto opérande = analyse_expression(
-            {precedence, associativite}, GenreLexeme::INCONNU, lexeme_final);
+            {précédence, associativité}, GenreLexeme::INCONNU, lexème_final);
 
-        auto noeud = m_tacheronne.assembleuse->crée_prise_reference(lexeme);
+        auto noeud = m_tacheronne.assembleuse->crée_prise_reference(lexème);
         noeud->opérande = opérande;
         return noeud;
     }
 
-    if (lexeme->genre == GenreLexeme::EXCLAMATION) {
+    if (lexème->genre == GenreLexeme::EXCLAMATION) {
         auto opérande = analyse_expression(
-            {precedence, associativite}, GenreLexeme::INCONNU, lexeme_final);
+            {précédence, associativité}, GenreLexeme::INCONNU, lexème_final);
 
-        auto noeud = m_tacheronne.assembleuse->crée_negation_logique(lexeme);
+        auto noeud = m_tacheronne.assembleuse->crée_negation_logique(lexème);
         noeud->opérande = opérande;
         return noeud;
     }
 
-    auto noeud = m_tacheronne.assembleuse->crée_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexeme)
+    auto noeud = m_tacheronne.assembleuse->crée_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexème)
                      ->comme_expression_unaire();
     noeud->genre = genre_noeud;
 
     // cette vérification n'est utile que pour les arguments variadiques sans type
     if (apparie_expression()) {
         noeud->operande = analyse_expression(
-            {precedence, associativite}, GenreLexeme::INCONNU, lexeme_final);
+            {précédence, associativité}, GenreLexeme::INCONNU, lexème_final);
     }
 
     return noeud;
 }
 
 NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expression,
-                                                         GenreLexeme lexeme_final)
+                                                         GenreLexeme lexème_final)
 {
     if (apparie_expression_unaire()) {
-        return analyse_expression_unaire(lexeme_final);
+        return analyse_expression_unaire(lexème_final);
     }
 
-    auto lexeme = lexeme_courant();
+    auto lexème = lexème_courant();
 
-    switch (lexeme->genre) {
+    switch (lexème->genre) {
         case GenreLexeme::CARACTERE:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_litterale_caractere(lexeme);
+            return m_tacheronne.assembleuse->crée_litterale_caractere(lexème);
         }
         case GenreLexeme::CHAINE_CARACTERE:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_reference_declaration(lexeme);
+            return m_tacheronne.assembleuse->crée_reference_declaration(lexème);
         }
         case GenreLexeme::CHAINE_LITTERALE:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_litterale_chaine(lexeme);
+            return m_tacheronne.assembleuse->crée_litterale_chaine(lexème);
         }
         case GenreLexeme::TABLEAU:
         case GenreLexeme::CROCHET_OUVRANT:
         {
             consomme();
-            lexeme->genre = GenreLexeme::TABLEAU;
+            lexème->genre = GenreLexeme::TABLEAU;
 
             auto expression_entre_crochets = NoeudExpression::nul();
+            if (apparie(GenreLexeme::DEUX_POINTS)) {
+                consomme();
+                consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant");
+
+                auto expression_type = analyse_expression(
+                    {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
+                auto noeud = m_tacheronne.assembleuse->crée_expression_type_tableau_dynamique(
+                    lexème);
+                noeud->expression_type = expression_type;
+                return noeud;
+            }
+
+            if (apparie(GenreLexeme::CROCHET_FERMANT)) {
+                consomme();
+                auto expression_type = analyse_expression(
+                    {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
+                auto noeud = m_tacheronne.assembleuse->crée_expression_type_tranche(lexème);
+                noeud->expression_type = expression_type;
+                return noeud;
+            }
+
             if (apparie_expression()) {
                 auto ancien_noeud_virgule = m_noeud_expression_virgule;
                 m_noeud_expression_virgule = nullptr;
@@ -877,22 +902,23 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant");
 
             if (apparie_expression()) {
-                // nous avons l'expression d'un type
-                auto noeud = m_tacheronne.assembleuse->crée_expression_binaire(lexeme);
-                noeud->operande_gauche = expression_entre_crochets;
-                noeud->operande_droite = analyse_expression(
-                    {PRECEDENCE_TYPE, Associativite::GAUCHE}, racine_expression, lexeme_final);
+                /* Nous avons l'expression d'un type tableau fixe. */
+                auto expression_type = analyse_expression(
+                    {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
 
+                auto noeud = m_tacheronne.assembleuse->crée_expression_type_tableau_fixe(lexème);
+                noeud->expression_taille = expression_entre_crochets;
+                noeud->expression_type = expression_type;
                 return noeud;
             }
 
-            auto noeud = m_tacheronne.assembleuse->crée_construction_tableau(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_construction_tableau(lexème);
 
             /* Le reste de la pipeline suppose que l'expression est une virgule,
              * donc créons une telle expression au cas où nous n'avons qu'un seul
              * élément dans le tableau. */
             if (!expression_entre_crochets->est_virgule()) {
-                auto virgule = m_tacheronne.assembleuse->crée_virgule(lexeme);
+                auto virgule = m_tacheronne.assembleuse->crée_virgule(lexème);
                 virgule->expressions.ajoute(expression_entre_crochets);
                 expression_entre_crochets = virgule;
             }
@@ -905,22 +931,22 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         {
             consomme();
 
-            auto noeud = m_tacheronne.assembleuse->crée_empl(lexeme);
-            noeud->expression = analyse_expression({}, GenreLexeme::EMPL, lexeme_final);
+            auto noeud = m_tacheronne.assembleuse->crée_empl(lexème);
+            noeud->expression = analyse_expression({}, GenreLexeme::EMPL, lexème_final);
             return noeud;
         }
         case GenreLexeme::FAUX:
         case GenreLexeme::VRAI:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_litterale_bool(lexeme);
+            return m_tacheronne.assembleuse->crée_litterale_bool(lexème);
         }
         case GenreLexeme::INFO_DE:
         {
             consomme();
             consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
 
-            auto noeud = m_tacheronne.assembleuse->crée_info_de(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_info_de(lexème);
             noeud->expression = analyse_expression({}, GenreLexeme::INFO_DE, GenreLexeme::INCONNU);
 
             consomme(GenreLexeme::PARENTHESE_FERMANTE,
@@ -933,7 +959,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             consomme();
             consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'init_de'");
 
-            auto noeud = m_tacheronne.assembleuse->crée_init_de(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_init_de(lexème);
             noeud->expression = analyse_expression({}, GenreLexeme::INIT_DE, GenreLexeme::INCONNU);
 
             consomme(GenreLexeme::PARENTHESE_FERMANTE,
@@ -946,7 +972,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             consomme();
             consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'mémoire'");
 
-            auto noeud = m_tacheronne.assembleuse->crée_memoire(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_memoire(lexème);
             noeud->expression = analyse_expression({}, GenreLexeme::MEMOIRE, GenreLexeme::INCONNU);
 
             consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression");
@@ -956,32 +982,32 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         case GenreLexeme::NOMBRE_ENTIER:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_litterale_entier(lexeme);
+            return m_tacheronne.assembleuse->crée_litterale_entier(lexème);
         }
         case GenreLexeme::NOMBRE_REEL:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_litterale_reel(lexeme);
+            return m_tacheronne.assembleuse->crée_litterale_reel(lexème);
         }
         case GenreLexeme::NON_INITIALISATION:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_non_initialisation(lexeme);
+            return m_tacheronne.assembleuse->crée_non_initialisation(lexème);
         }
         case GenreLexeme::NUL:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_litterale_nul(lexeme);
+            return m_tacheronne.assembleuse->crée_litterale_nul(lexème);
         }
         case GenreLexeme::OPERATEUR:
         {
-            return analyse_declaration_operateur();
+            return analyse_déclaration_opérateur();
         }
         case GenreLexeme::PARENTHESE_OUVRANTE:
         {
             consomme();
 
-            auto noeud = m_tacheronne.assembleuse->crée_parenthese(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_parenthese(lexème);
             noeud->expression = analyse_expression(
                 {}, GenreLexeme::PARENTHESE_OUVRANTE, GenreLexeme::INCONNU);
 
@@ -994,7 +1020,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             consomme();
             consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
 
-            auto noeud = m_tacheronne.assembleuse->crée_taille_de(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_taille_de(lexème);
             noeud->expression = analyse_expression(
                 {}, GenreLexeme::TAILLE_DE, GenreLexeme::INCONNU);
 
@@ -1007,7 +1033,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             consomme();
             consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'type_de'");
 
-            auto noeud = m_tacheronne.assembleuse->crée_type_de(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_type_de(lexème);
             noeud->expression = analyse_expression({}, GenreLexeme::TYPE_DE, GenreLexeme::INCONNU);
 
             consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'type_de'");
@@ -1018,7 +1044,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         {
             consomme();
 
-            auto noeud = m_tacheronne.assembleuse->crée_tente(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_tente(lexème);
             noeud->expression_appelee = analyse_expression(
                 {}, GenreLexeme::TENTE, GenreLexeme::INCONNU);
 
@@ -1041,13 +1067,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         {
             consomme();
 
-            lexeme = lexeme_courant();
-            auto directive = lexeme->ident;
+            lexème = lexème_courant();
+            auto directive = lexème->ident;
 
             consomme();
 
             if (directive == ID::execute || directive == ID::assert_ || directive == ID::test) {
-                auto noeud = m_tacheronne.assembleuse->crée_execute(lexeme);
+                auto noeud = m_tacheronne.assembleuse->crée_execute(lexème);
                 noeud->ident = directive;
 
                 if (directive == ID::test) {
@@ -1068,18 +1094,18 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 return noeud;
             }
             else if (directive == ID::corps_boucle) {
-                return m_tacheronne.assembleuse->crée_directive_corps_boucle(lexeme);
+                return m_tacheronne.assembleuse->crée_directive_corps_boucle(lexème);
             }
             else if (directive == ID::si) {
                 m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::SI_STATIQUE;
-                return analyse_instruction_si_statique(lexeme);
+                return analyse_instruction_si_statique(lexème);
             }
             else if (directive == ID::saufsi) {
                 m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::SI_STATIQUE;
-                return analyse_instruction_si_statique(lexeme);
+                return analyse_instruction_si_statique(lexème);
             }
             else if (directive == ID::cuisine) {
-                auto noeud = m_tacheronne.assembleuse->crée_cuisine(lexeme);
+                auto noeud = m_tacheronne.assembleuse->crée_cuisine(lexème);
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
@@ -1087,9 +1113,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 return noeud;
             }
             else if (directive == ID::dependance_bibliotheque) {
-                auto noeud = m_tacheronne.assembleuse->crée_dependance_bibliotheque(lexeme);
+                auto noeud = m_tacheronne.assembleuse->crée_dependance_bibliotheque(lexème);
 
-                auto lexème_bibliothèque_dépendante = lexeme_courant();
+                auto lexème_bibliothèque_dépendante = lexème_courant();
                 consomme(
                     GenreLexeme::CHAINE_CARACTERE,
                     "Attendue une chaine de caractère pour définir la bibliothèque dépendante");
@@ -1097,7 +1123,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                     m_tacheronne.assembleuse->crée_reference_declaration(
                         lexème_bibliothèque_dépendante);
 
-                auto lexème_bibliothèque_dépendue = lexeme_courant();
+                auto lexème_bibliothèque_dépendue = lexème_courant();
                 consomme(GenreLexeme::CHAINE_CARACTERE,
                          "Attendue une chaine de caractère pour définir la bibliothèque dépendue");
                 noeud->bibliothèque_dépendue =
@@ -1106,7 +1132,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 return noeud;
             }
             else if (directive == ID::ajoute_init) {
-                auto noeud = m_tacheronne.assembleuse->crée_ajoute_init(lexeme);
+                auto noeud = m_tacheronne.assembleuse->crée_ajoute_init(lexème);
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
@@ -1114,7 +1140,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 return noeud;
             }
             else if (directive == ID::ajoute_fini) {
-                auto noeud = m_tacheronne.assembleuse->crée_ajoute_fini(lexeme);
+                auto noeud = m_tacheronne.assembleuse->crée_ajoute_fini(lexème);
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
@@ -1122,7 +1148,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 return noeud;
             }
             else if (directive == ID::pre_executable) {
-                auto noeud = m_tacheronne.assembleuse->crée_pre_executable(lexeme);
+                auto noeud = m_tacheronne.assembleuse->crée_pre_executable(lexème);
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
@@ -1134,7 +1160,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                      directive == ID::chemin_de_ce_module ||
                      directive == ID::type_de_cette_fonction ||
                      directive == ID::type_de_cette_structure) {
-                auto noeud = m_tacheronne.assembleuse->crée_directive_instrospection(lexeme);
+                auto noeud = m_tacheronne.assembleuse->crée_directive_instrospection(lexème);
                 return noeud;
             }
             else {
@@ -1149,13 +1175,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         case GenreLexeme::DOLLAR:
         {
             consomme();
-            lexeme = lexeme_courant();
+            lexème = lexème_courant();
 
             consomme(GenreLexeme::CHAINE_CARACTERE, "attendu une chaine de caractère après '$'");
 
-            auto noeud = m_tacheronne.assembleuse->crée_reference_declaration(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_reference_declaration(lexème);
 
-            auto noeud_decl_param = m_tacheronne.assembleuse->crée_declaration_constante(lexeme);
+            auto noeud_decl_param = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
             noeud_decl_param->valeur = noeud;
             noeud->declaration_referee = noeud_decl_param;
 
@@ -1169,7 +1195,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
                 bloc_constantes->ajoute_membre(noeud_decl_param);
             }
-            else if (!m_est_declaration_type_opaque) {
+            else if (!m_est_déclaration_type_opaque) {
                 rapporte_erreur("déclaration d'un type polymorphique hors d'une fonction, d'une "
                                 "structure, ou de la déclaration d'un type opaque");
             }
@@ -1177,7 +1203,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             if (apparie(GenreLexeme::DOUBLE_POINTS)) {
                 consomme();
                 noeud_decl_param->expression_type = analyse_expression(
-                    {}, racine_expression, lexeme_final);
+                    {}, racine_expression, lexème_final);
                 /* Nous avons une déclaration de valeur polymorphique, retournons-la. */
                 noeud_decl_param->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
                 return noeud_decl_param;
@@ -1189,7 +1215,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         }
         case GenreLexeme::FONC:
         {
-            return analyse_declaration_fonction(lexeme);
+            return analyse_déclaration_fonction(lexème);
         }
         /* Ceux-ci doivent déjà avoir été gérés. */
         case GenreLexeme::COROUT:
@@ -1201,7 +1227,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         {
             auto message_erreur = enchaine(
                 "« ",
-                chaine_du_lexème(lexeme->genre),
+                chaine_du_lexème(lexème->genre),
                 " » ne peut pas être utilisé comme expression primaire.\n");
             rapporte_erreur(message_erreur);
             return nullptr;
@@ -1216,9 +1242,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         }
         default:
         {
-            if (est_identifiant_type(lexeme->genre)) {
+            if (est_identifiant_type(lexème->genre)) {
                 consomme();
-                return m_tacheronne.assembleuse->crée_reference_type(lexeme);
+                return m_tacheronne.assembleuse->crée_reference_type(lexème);
             }
 
             rapporte_erreur("attendu une expression primaire");
@@ -1229,13 +1255,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
     NoeudExpression *gauche,
-    const DonneesPrecedence &donnees_precedence,
+    const DonneesPrecedence &données_précédence,
     GenreLexeme racine_expression,
-    GenreLexeme lexeme_final)
+    GenreLexeme lexème_final)
 {
-    auto lexeme = lexeme_courant();
+    auto lexème = lexème_courant();
 
-    switch (lexeme->genre) {
+    switch (lexème->genre) {
         case GenreLexeme::BARRE:
         case GenreLexeme::CHAPEAU:
         case GenreLexeme::DECALAGE_DROITE:
@@ -1265,10 +1291,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             consomme();
 
-            auto noeud = m_tacheronne.assembleuse->crée_expression_binaire(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_expression_binaire(lexème);
             noeud->operande_gauche = gauche;
             noeud->operande_droite = analyse_expression(
-                donnees_precedence, racine_expression, lexeme_final);
+                données_précédence, racine_expression, lexème_final);
             return noeud;
         }
         case GenreLexeme::BARRE_BARRE:
@@ -1277,9 +1303,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             consomme();
 
             auto opérande_droite = analyse_expression(
-                donnees_precedence, racine_expression, lexeme_final);
+                données_précédence, racine_expression, lexème_final);
 
-            auto noeud = m_tacheronne.assembleuse->crée_expression_logique(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_expression_logique(lexème);
             noeud->opérande_gauche = gauche;
             noeud->opérande_droite = opérande_droite;
             return noeud;
@@ -1291,12 +1317,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             auto noeud_expression_virgule = m_noeud_expression_virgule;
 
             if (!m_noeud_expression_virgule) {
-                m_noeud_expression_virgule = m_tacheronne.assembleuse->crée_virgule(lexeme);
+                m_noeud_expression_virgule = m_tacheronne.assembleuse->crée_virgule(lexème);
                 m_noeud_expression_virgule->expressions.ajoute(gauche);
                 noeud_expression_virgule = m_noeud_expression_virgule;
             }
 
-            auto droite = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
+            auto droite = analyse_expression(données_précédence, racine_expression, lexème_final);
 
             m_noeud_expression_virgule = noeud_expression_virgule;
             m_noeud_expression_virgule->expressions.ajoute(droite);
@@ -1307,7 +1333,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             consomme();
 
-            auto noeud = m_tacheronne.assembleuse->crée_indexage(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_indexage(lexème);
             noeud->operande_gauche = gauche;
             noeud->operande_droite = analyse_expression(
                 {}, GenreLexeme::CROCHET_OUVRANT, GenreLexeme::INCONNU);
@@ -1325,9 +1351,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
             consomme();
 
-            m_est_declaration_type_opaque = false;
+            m_est_déclaration_type_opaque = false;
 
-            switch (lexeme_courant()->genre) {
+            switch (lexème_courant()->genre) {
                 default:
                 {
                     break;
@@ -1335,10 +1361,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 case GenreLexeme::COROUT:
                 case GenreLexeme::FONC:
                 {
-                    auto noeud_fonction = analyse_declaration_fonction(gauche->lexeme);
+                    auto noeud_fonction = analyse_déclaration_fonction(gauche->lexeme);
 
-                    if (noeud_fonction->est_declaration_type) {
-                        auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexeme);
+                    if (noeud_fonction->est_expression_type_fonction()) {
+                        auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
                         noeud->ident = gauche->ident;
                         noeud->valeur = gauche;
                         noeud->expression = noeud_fonction;
@@ -1351,17 +1377,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 }
                 case GenreLexeme::STRUCT:
                 {
-                    return analyse_declaration_structure(gauche);
+                    return analyse_déclaration_structure(gauche);
                 }
                 case GenreLexeme::UNION:
                 {
-                    return analyse_declaration_union(gauche);
+                    return analyse_déclaration_union(gauche);
                 }
                 case GenreLexeme::ENUM:
                 case GenreLexeme::ENUM_DRAPEAU:
                 case GenreLexeme::ERREUR:
                 {
-                    return analyse_declaration_enum(gauche);
+                    return analyse_déclaration_enum(gauche);
                 }
                 case GenreLexeme::DIRECTIVE:
                 {
@@ -1369,15 +1395,15 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
                     consomme();
 
-                    auto directive = lexeme_courant()->ident;
+                    auto directive = lexème_courant()->ident;
 
                     if (directive == ID::bibliotheque) {
                         consomme();
-                        auto chaine_bib = lexeme_courant()->chaine;
+                        auto chaine_bib = lexème_courant()->chaine;
                         consomme(GenreLexeme::CHAINE_LITTERALE,
                                  "Attendu une chaine littérale après la directive");
                         auto noeud = m_tacheronne.assembleuse->crée_declaration_bibliotheque(
-                            lexeme);
+                            lexème);
                         noeud->ident = gauche->ident;
                         noeud->bibliotheque =
                             m_compilatrice.gestionnaire_bibliotheques->crée_bibliotheque(
@@ -1388,10 +1414,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     if (directive == ID::opaque) {
                         consomme();
                         auto noeud = m_tacheronne.assembleuse->crée_type_opaque(gauche->lexeme);
-                        m_est_declaration_type_opaque = true;
+                        m_est_déclaration_type_opaque = true;
                         noeud->expression_type = analyse_expression(
-                            donnees_precedence, racine_expression, lexeme_final);
-                        m_est_declaration_type_opaque = false;
+                            données_précédence, racine_expression, lexème_final);
+                        m_est_déclaration_type_opaque = false;
                         noeud->bloc_parent->ajoute_membre(noeud);
                         return noeud;
                     }
@@ -1412,11 +1438,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 }
             }
 
-            auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
             noeud->ident = gauche->ident;
             noeud->valeur = gauche;
             noeud->expression = analyse_expression(
-                donnees_precedence, racine_expression, lexeme_final);
+                données_précédence, racine_expression, lexème_final);
 
             if (gauche->est_reference_declaration()) {
                 gauche->comme_reference_declaration()->declaration_referee = noeud;
@@ -1448,11 +1474,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     }
                 }
 
-                auto decl = m_tacheronne.assembleuse->crée_declaration_variable(lexeme);
+                auto decl = m_tacheronne.assembleuse->crée_declaration_variable(lexème);
                 analyse_annotations(decl->annotations);
                 decl->valeur = m_noeud_expression_virgule;
                 decl->expression_type = analyse_expression(
-                    donnees_precedence, racine_expression, lexeme_final);
+                    données_précédence, racine_expression, lexème_final);
                 analyse_annotations(decl->annotations);
 
                 if (!bloc_constantes_polymorphiques.est_vide()) {
@@ -1467,7 +1493,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 auto decl = m_tacheronne.assembleuse->crée_declaration_variable(
                     gauche->comme_reference_declaration());
                 decl->expression_type = analyse_expression(
-                    donnees_precedence, racine_expression, lexeme_final);
+                    données_précédence, racine_expression, lexème_final);
                 if (!bloc_constantes_polymorphiques.est_vide()) {
                     decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
                 }
@@ -1480,12 +1506,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 // nous avons la déclaration d'une constante (a: z32 : 12)
                 // À FAIRE : réutilise la mémoire
                 auto decl = gauche->comme_declaration_variable();
-                auto constante = m_tacheronne.assembleuse->crée_declaration_constante(lexeme);
+                auto constante = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
                 constante->ident = decl->valeur->ident;
                 constante->valeur = decl->valeur;
                 constante->expression_type = decl->expression_type;
                 constante->expression = analyse_expression(
-                    donnees_precedence, racine_expression, lexeme_final);
+                    données_précédence, racine_expression, lexème_final);
                 return constante;
             }
 
@@ -1529,11 +1555,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
             m_noeud_expression_virgule = nullptr;
 
-            auto noeud = m_tacheronne.assembleuse->crée_declaration_variable(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_declaration_variable(lexème);
             noeud->ident = gauche->ident;
             noeud->valeur = gauche;
             noeud->expression = analyse_expression(
-                donnees_precedence, racine_expression, lexeme_final);
+                données_précédence, racine_expression, lexème_final);
             analyse_annotations(noeud->annotations);
 
             if (gauche->est_reference_declaration()) {
@@ -1560,7 +1586,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
                 auto decl = gauche->comme_declaration_variable();
                 decl->expression = analyse_expression(
-                    donnees_precedence, racine_expression, lexeme_final);
+                    données_précédence, racine_expression, lexème_final);
 
                 m_noeud_expression_virgule = nullptr;
 
@@ -1585,10 +1611,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 }
             }
 
-            auto noeud = m_tacheronne.assembleuse->crée_assignation_variable(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_assignation_variable(lexème);
             noeud->variable = gauche;
             noeud->expression = analyse_expression(
-                donnees_precedence, racine_expression, lexeme_final);
+                données_précédence, racine_expression, lexème_final);
 
             m_noeud_expression_virgule = nullptr;
 
@@ -1602,10 +1628,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 rapporte_erreur("Attendu un identifiant après '.'");
             }
 
-            lexeme = lexeme_courant();
+            lexème = lexème_courant();
             consomme();
 
-            auto noeud = m_tacheronne.assembleuse->crée_reference_membre(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_reference_membre(lexème);
             noeud->accedee = gauche;
             return noeud;
         }
@@ -1613,9 +1639,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             consomme();
 
-            auto noeud = m_tacheronne.assembleuse->crée_plage(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_plage(lexème);
             noeud->debut = gauche;
-            noeud->fin = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
+            noeud->fin = analyse_expression(données_précédence, racine_expression, lexème_final);
             return noeud;
         }
         case GenreLexeme::PARENTHESE_OUVRANTE:
@@ -1626,7 +1652,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             consomme();
 
-            auto noeud = m_tacheronne.assembleuse->crée_comme(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_comme(lexème);
             noeud->expression = gauche;
             noeud->expression_type = analyse_expression_primaire(GenreLexeme::COMME,
                                                                  GenreLexeme::INCONNU);
@@ -1636,7 +1662,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             assert_rappel(false, [&]() {
                 dbg() << "Lexème inattendu comme expression secondaire : "
-                      << chaine_du_lexème(lexeme->genre) << '\n'
+                      << chaine_du_lexème(lexème->genre) << '\n'
                       << crée_message_erreur("");
             });
             return nullptr;
@@ -1646,9 +1672,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
 NoeudExpression *Syntaxeuse::analyse_instruction()
 {
-    auto lexeme = lexeme_courant();
+    auto lexème = lexème_courant();
 
-    switch (lexeme->genre) {
+    switch (lexème->genre) {
         case GenreLexeme::ACCOLADE_OUVRANTE:
         {
             return analyse_bloc();
@@ -1656,7 +1682,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         case GenreLexeme::DIFFERE:
         {
             consomme();
-            auto inst = m_tacheronne.assembleuse->crée_differe(lexeme);
+            auto inst = m_tacheronne.assembleuse->crée_differe(lexème);
 
             if (apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
                 auto bloc = analyse_bloc();
@@ -1679,12 +1705,12 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         }
         case GenreLexeme::ARRETE:
         {
-            auto noeud = m_tacheronne.assembleuse->crée_arrete(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_arrete(lexème);
             consomme();
 
             if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
                 noeud->expression = m_tacheronne.assembleuse->crée_reference_declaration(
-                    lexeme_courant());
+                    lexème_courant());
                 consomme();
             }
 
@@ -1692,12 +1718,12 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         }
         case GenreLexeme::CONTINUE:
         {
-            auto noeud = m_tacheronne.assembleuse->crée_continue(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_continue(lexème);
             consomme();
 
             if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
                 noeud->expression = m_tacheronne.assembleuse->crée_reference_declaration(
-                    lexeme_courant());
+                    lexème_courant());
                 consomme();
             }
 
@@ -1705,12 +1731,12 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         }
         case GenreLexeme::REPRENDS:
         {
-            auto noeud = m_tacheronne.assembleuse->crée_reprends(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_reprends(lexème);
             consomme();
 
             if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
                 noeud->expression = m_tacheronne.assembleuse->crée_reference_declaration(
-                    lexeme_courant());
+                    lexème_courant());
                 consomme();
             }
 
@@ -1718,7 +1744,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         }
         case GenreLexeme::RETIENS:
         {
-            auto noeud = m_tacheronne.assembleuse->crée_retiens(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_retiens(lexème);
             consomme();
 
             if (apparie_expression()) {
@@ -1729,7 +1755,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         }
         case GenreLexeme::RETOURNE:
         {
-            auto noeud = m_tacheronne.assembleuse->crée_retourne(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_retourne(lexème);
             consomme();
 
             if (apparie_expression()) {
@@ -1756,7 +1782,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         }
         case GenreLexeme::REPETE:
         {
-            return analyse_instruction_repete();
+            return analyse_instruction_répète();
         }
         case GenreLexeme::SAUFSI:
         {
@@ -1773,7 +1799,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         default:
         {
             assert_rappel(false, [&]() {
-                dbg() << "Lexème inattendu comme instruction : " << chaine_du_lexème(lexeme->genre)
+                dbg() << "Lexème inattendu comme instruction : " << chaine_du_lexème(lexème->genre)
                       << '\n'
                       << crée_message_erreur("");
             });
@@ -1788,8 +1814,8 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
      * un point-vigule implicite ici que de le faire pour chaque instruction. */
     ignore_point_virgule_implicite();
 
-    auto lexeme = lexeme_courant();
-    empile_etat("dans l'analyse du bloc", lexeme);
+    auto lexème = lexème_courant();
+    empile_état("dans l'analyse du bloc", lexème);
 
     if (accolade_requise) {
         consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{'");
@@ -1798,7 +1824,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
     NoeudDeclarationEnteteFonction *fonction_courante = fonctions_courantes.est_vide() ?
                                                             nullptr :
                                                             fonctions_courantes.haut();
-    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme, fonction_courante);
+    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexème, fonction_courante);
 
     auto expressions = kuri::tablet<NoeudExpression *, 32>();
 
@@ -1821,20 +1847,20 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
     }
 
     copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
-    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->dépile_bloc();
 
     if (accolade_requise) {
         consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}'");
     }
 
-    depile_etat();
+    dépile_état();
 
     return bloc;
 }
 
 NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 {
-    auto noeud = m_tacheronne.assembleuse->crée_appel(lexeme_courant());
+    auto noeud = m_tacheronne.assembleuse->crée_appel(lexème_courant());
     noeud->expression = gauche;
 
     consomme(GenreLexeme::PARENTHESE_OUVRANTE, "attendu une parenthèse ouvrante");
@@ -1875,7 +1901,7 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_boucle()
 {
-    auto noeud = m_tacheronne.assembleuse->crée_boucle(lexeme_courant());
+    auto noeud = m_tacheronne.assembleuse->crée_boucle(lexème_courant());
     consomme();
     noeud->bloc = analyse_bloc();
     noeud->bloc->appartiens_a_boucle = noeud;
@@ -1884,13 +1910,13 @@ NoeudExpression *Syntaxeuse::analyse_instruction_boucle()
 
 NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 {
-    auto noeud_discr = m_tacheronne.assembleuse->crée_discr(lexeme_courant());
+    auto noeud_discr = m_tacheronne.assembleuse->crée_discr(lexème_courant());
     consomme();
 
     noeud_discr->expression_discriminee = analyse_expression(
         {}, GenreLexeme::DISCR, GenreLexeme::INCONNU);
 
-    noeud_discr->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(),
+    noeud_discr->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(),
                                                               fonctions_courantes.haut());
     noeud_discr->bloc->appartiens_à_discr = noeud_discr;
 
@@ -1939,7 +1965,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
     consomme(GenreLexeme::ACCOLADE_FERMANTE,
              "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 
-    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->dépile_bloc();
     return noeud_discr;
 }
 
@@ -1948,7 +1974,7 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
     bool eu_direction = false;
 
     while (!fini()) {
-        switch (lexeme_courant()->genre) {
+        switch (lexème_courant()->genre) {
             default:
             {
                 return;
@@ -1993,7 +2019,7 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
                         "redéfinition d'une direction alors qu'une autre a déjà été spécifiée");
                 }
 
-                noeud->lexeme_op = lexeme_courant()->genre;
+                noeud->lexeme_op = lexème_courant()->genre;
                 eu_direction = true;
                 consomme();
                 break;
@@ -2004,7 +2030,7 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 {
-    auto noeud = m_tacheronne.assembleuse->crée_pour(lexeme_courant());
+    auto noeud = m_tacheronne.assembleuse->crée_pour(lexème_courant());
     consomme();
 
     analyse_specifiants_instruction_pour(noeud);
@@ -2015,8 +2041,8 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         consomme();
 
         if (!expression->est_virgule()) {
-            static Lexeme lexeme_virgule = {",", {}, GenreLexeme::VIRGULE, 0, 0, 0};
-            auto noeud_virgule = m_tacheronne.assembleuse->crée_virgule(&lexeme_virgule);
+            static Lexeme lexème_virgule = {",", {}, GenreLexeme::VIRGULE, 0, 0, 0};
+            auto noeud_virgule = m_tacheronne.assembleuse->crée_virgule(&lexème_virgule);
             noeud_virgule->expressions.ajoute(expression);
 
             expression = noeud_virgule;
@@ -2035,8 +2061,8 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         auto noeud_index = m_tacheronne.assembleuse->crée_reference_declaration(noeud->lexeme);
         noeud_index->ident = ID::index_it;
 
-        static Lexeme lexeme_virgule = {",", {}, GenreLexeme::VIRGULE, 0, 0, 0};
-        auto noeud_virgule = m_tacheronne.assembleuse->crée_virgule(&lexeme_virgule);
+        static Lexeme lexème_virgule = {",", {}, GenreLexeme::VIRGULE, 0, 0, 0};
+        auto noeud_virgule = m_tacheronne.assembleuse->crée_virgule(&lexème_virgule);
         noeud_virgule->expressions.ajoute(noeud_it);
         noeud_virgule->expressions.ajoute(noeud_index);
 
@@ -2062,7 +2088,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 
 NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
 {
-    auto noeud = m_tacheronne.assembleuse->crée_pousse_contexte(lexeme_courant());
+    auto noeud = m_tacheronne.assembleuse->crée_pousse_contexte(lexème_courant());
     consomme();
 
     noeud->expression = analyse_expression({}, GenreLexeme::POUSSE_CONTEXTE, GenreLexeme::INCONNU);
@@ -2071,9 +2097,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
     return noeud;
 }
 
-NoeudExpression *Syntaxeuse::analyse_instruction_repete()
+NoeudExpression *Syntaxeuse::analyse_instruction_répète()
 {
-    auto noeud = m_tacheronne.assembleuse->crée_repete(lexeme_courant());
+    auto noeud = m_tacheronne.assembleuse->crée_repete(lexème_courant());
     consomme();
 
     noeud->bloc = analyse_bloc();
@@ -2088,9 +2114,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction_repete()
 
 NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 {
-    empile_etat("dans l'analyse de l'instruction si", lexeme_courant());
+    empile_état("dans l'analyse de l'instruction si", lexème_courant());
 
-    auto noeud = m_tacheronne.assembleuse->crée_si(lexeme_courant(), genre_noeud);
+    auto noeud = m_tacheronne.assembleuse->crée_si(lexème_courant(), genre_noeud);
     consomme();
 
     noeud->condition = analyse_expression({}, GenreLexeme::SI, GenreLexeme::INCONNU);
@@ -2116,7 +2142,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
             noeud->bloc_si_faux = analyse_instruction_boucle();
         }
         else if (apparie(GenreLexeme::REPETE)) {
-            noeud->bloc_si_faux = analyse_instruction_repete();
+            noeud->bloc_si_faux = analyse_instruction_répète();
         }
         else if (apparie(GenreLexeme::DISCR)) {
             noeud->bloc_si_faux = analyse_instruction_discr();
@@ -2126,18 +2152,18 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
         }
     }
 
-    depile_etat();
+    dépile_état();
 
     return noeud;
 }
 
-NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexeme)
+NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexème)
 {
-    empile_etat("dans l'analyse de l'instruction #si", lexeme);
+    empile_état("dans l'analyse de l'instruction #si", lexème);
 
-    auto noeud = (lexeme->genre == GenreLexeme::SI) ?
-                     m_tacheronne.assembleuse->crée_si_statique(lexeme) :
-                     m_tacheronne.assembleuse->crée_saufsi_statique(lexeme);
+    auto noeud = (lexème->genre == GenreLexeme::SI) ?
+                     m_tacheronne.assembleuse->crée_si_statique(lexème) :
+                     m_tacheronne.assembleuse->crée_saufsi_statique(lexème);
 
     noeud->condition = analyse_expression({}, GenreLexeme::SI, GenreLexeme::INCONNU);
 
@@ -2149,16 +2175,16 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexeme)
         if (apparie(GenreLexeme::SI)) {
             /* analyse_instruction_si_statique doit commencer par le lexème suivant vu la manière
              * dont les directives sont parsées. */
-            lexeme = lexeme_courant();
+            lexème = lexème_courant();
             consomme();
-            noeud->bloc_si_faux = analyse_instruction_si_statique(lexeme);
+            noeud->bloc_si_faux = analyse_instruction_si_statique(lexème);
         }
         else if (apparie(GenreLexeme::SAUFSI)) {
             /* analyse_instruction_si_statique doit commencer par le lexème suivant vu la manière
              * dont les directives sont parsées. */
-            lexeme = lexeme_courant();
+            lexème = lexème_courant();
             consomme();
-            noeud->bloc_si_faux = analyse_instruction_si_statique(lexeme);
+            noeud->bloc_si_faux = analyse_instruction_si_statique(lexème);
         }
         else if (apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
             noeud->bloc_si_faux = analyse_bloc();
@@ -2169,14 +2195,14 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexeme)
         }
     }
 
-    depile_etat();
+    dépile_état();
 
     return noeud;
 }
 
 NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
 {
-    auto noeud = m_tacheronne.assembleuse->crée_tantque(lexeme_courant());
+    auto noeud = m_tacheronne.assembleuse->crée_tantque(lexème_courant());
     consomme();
 
     noeud->condition = analyse_expression({}, GenreLexeme::TANTQUE, GenreLexeme::INCONNU);
@@ -2189,7 +2215,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
 NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(GenreLexeme lexème_racine)
 {
     kuri::tablet<NoeudExpression *, 6> expressions;
-    Lexeme *lexeme_virgule = nullptr;
+    Lexeme *lexème_virgule = nullptr;
 
     while (!fini()) {
         auto expr = analyse_expression({}, lexème_racine, GenreLexeme::VIRGULE);
@@ -2199,8 +2225,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(GenreLexeme lexème
             break;
         }
 
-        if (lexeme_virgule == nullptr) {
-            lexeme_virgule = lexeme_courant();
+        if (lexème_virgule == nullptr) {
+            lexème_virgule = lexème_courant();
         }
 
         consomme();
@@ -2210,7 +2236,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(GenreLexeme lexème
         return expressions[0];
     }
 
-    auto virgule = m_tacheronne.assembleuse->crée_virgule(lexeme_virgule);
+    auto virgule = m_tacheronne.assembleuse->crée_virgule(lexème_virgule);
     copie_tablet_tableau(expressions, virgule->expressions);
     m_noeud_expression_virgule = nullptr;
     return virgule;
@@ -2225,14 +2251,14 @@ void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations
             rapporte_erreur("Attendu une chaine de caractère après '@'");
         }
 
-        auto lexeme_annotation = lexeme_courant();
+        auto lexème_annotation = lexème_courant();
         auto annotation = Annotation{};
-        annotation.nom = lexeme_annotation->chaine;
+        annotation.nom = lexème_annotation->chaine;
 
         consomme();
 
         if (apparie(GenreLexeme::CHAINE_LITTERALE)) {
-            auto chaine = lexeme_courant()->chaine;
+            auto chaine = lexème_courant()->chaine;
             annotation.valeur = chaine;
             consomme();
         }
@@ -2241,36 +2267,36 @@ void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations
     }
 }
 
-NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
+NoeudExpression *Syntaxeuse::analyse_déclaration_enum(NoeudExpression *gauche)
 {
-    auto lexeme = lexeme_courant();
-    empile_etat("dans le syntaxage de l'énumération", lexeme);
+    auto lexème = lexème_courant();
+    empile_état("dans le syntaxage de l'énumération", lexème);
     consomme();
 
     auto noeud_decl = NoeudEnum::nul();
 
-    if (lexeme->genre == GenreLexeme::ENUM) {
+    if (lexème->genre == GenreLexeme::ENUM) {
         noeud_decl = m_tacheronne.assembleuse->crée_type_enum(gauche->lexeme);
     }
-    else if (lexeme->genre == GenreLexeme::ENUM_DRAPEAU) {
+    else if (lexème->genre == GenreLexeme::ENUM_DRAPEAU) {
         noeud_decl = m_tacheronne.assembleuse->crée_type_enum_drapeau(gauche->lexeme);
     }
     else {
-        assert(lexeme->genre == GenreLexeme::ERREUR);
+        assert(lexème->genre == GenreLexeme::ERREUR);
         noeud_decl = m_tacheronne.assembleuse->crée_type_erreur(gauche->lexeme);
     }
 
-    if (lexeme->genre != GenreLexeme::ERREUR) {
+    if (lexème->genre != GenreLexeme::ERREUR) {
         if (!apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
             noeud_decl->expression_type = analyse_expression_primaire(GenreLexeme::ENUM,
                                                                       GenreLexeme::INCONNU);
         }
     }
 
-    auto lexeme_bloc = lexeme_courant();
+    auto lexème_bloc = lexème_courant();
     consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
-    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, nullptr);
+    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexème_bloc, nullptr);
 
     auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
@@ -2302,29 +2328,68 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
     copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
-    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->dépile_bloc();
     noeud_decl->bloc = bloc;
 
     consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
 
     analyse_annotations(noeud_decl->annotations);
 
-    depile_etat();
+    dépile_état();
 
     /* Attend d'avoir toutes les informations avant d'ajouter aux membres. */
     noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
     return noeud_decl;
 }
 
-NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
+bool Syntaxeuse::est_déclaration_type_fonction()
 {
-    auto lexeme_mot_cle = lexeme_courant();
+    consomme(GenreLexeme::PARENTHESE_OUVRANTE,
+             "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-    empile_etat("dans le syntaxage de la fonction", lexeme_mot_cle);
+    auto profondeur_parenthèse = 0;
+
+    while (!fini()) {
+        if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
+            profondeur_parenthèse += 1;
+            consomme();
+            continue;
+        }
+
+        if (apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+            if (profondeur_parenthèse == 0) {
+                consomme();
+                break;
+            }
+
+            profondeur_parenthèse -= 1;
+            consomme();
+            continue;
+        }
+
+        consomme();
+    }
+
+    return apparie(GenreLexeme::PARENTHESE_OUVRANTE);
+}
+
+NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexeme const *lexème)
+{
+    auto lexème_mot_clé = lexème_courant();
     consomme();
 
-    auto noeud = m_tacheronne.assembleuse->crée_entete_fonction(lexeme);
-    noeud->est_coroutine = lexeme_mot_cle->genre == GenreLexeme::COROUT;
+    sauvegarde_position_lexème();
+    auto const est_déclaration_type = est_déclaration_type_fonction();
+    restaure_position_lexème();
+
+    if (est_déclaration_type) {
+        return analyse_déclaration_type_fonction(lexème_mot_clé);
+    }
+
+    empile_état("dans le syntaxage de la fonction", lexème_mot_clé);
+
+    auto noeud = m_tacheronne.assembleuse->crée_entete_fonction(lexème);
+    noeud->est_coroutine = lexème_mot_clé->genre == GenreLexeme::COROUT;
 
     // @concurrence critique, si nous avons plusieurs définitions
     if (noeud->ident == ID::principale) {
@@ -2339,36 +2404,17 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
     }
 
-    auto lexeme_bloc = lexeme_courant();
+    auto lexème_bloc = lexème_courant();
     consomme(GenreLexeme::PARENTHESE_OUVRANTE,
              "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, noeud);
-    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, noeud);
+    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexème_bloc, noeud);
+    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexème_bloc, noeud);
 
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
-    SUR_SORTIE_PORTEE {
-        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-        if (bloc_constantes->nombre_de_membres() != 0) {
-            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
-        }
-
-        /* Ajoute les constantes polymorphiques de ce type dans ceux du bloc de constantes
-         * polymorphiques du bloc parent.
-         * Ceci nous permet par exemple d'avoir des déclarations du style :
-         * ma_fonction :: (rappel: fonc(z32)($T)) -> T
-         * où ma_fonction doit être marquée comme polymorphique.
-         */
-        if (noeud->est_declaration_type && !bloc_constantes_polymorphiques.est_vide()) {
-            auto bloc_constantes_pere = bloc_constantes_polymorphiques.haut();
-            bloc_constantes_pere->fusionne_membres(noeud->bloc_constantes);
-        }
-    };
 
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
-
-    auto eu_declarations = false;
 
     while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
@@ -2377,14 +2423,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         if (param->est_declaration_variable()) {
             auto decl_var = param->comme_declaration_variable();
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
-
-            eu_declarations = true;
         }
         else if (param->est_empl()) {
             auto decl_var = param->comme_empl()->expression->comme_declaration_variable();
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
-
-            eu_declarations = true;
         }
 
         if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2399,235 +2441,206 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     consomme(GenreLexeme::PARENTHESE_FERMANTE,
              "Attendu ')' à la fin des paramètres de la fonction");
 
-    /* analyse les types de retour de la fonction */
-    if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
-        // nous avons la déclaration d'un type
-        noeud->est_declaration_type = true;
+    // nous avons la déclaration d'une fonction
+    if (apparie(GenreLexeme::RETOUR_TYPE)) {
         consomme();
-
-        if (eu_declarations) {
-            POUR (noeud->params) {
-                if (it->est_declaration_variable()) {
-                    rapporte_erreur_avec_site(it,
-                                              "Obtenu la déclaration d'une variable dans "
-                                              "la déclaration d'un type de fonction");
-                }
-            }
-        }
-
-        while (!fini()) {
-            auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
-            /* À FAIRE : ceci est faux, nous devrions avoir des expressions de types. */
-            noeud->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(type_declare));
-
-            if (!apparie(GenreLexeme::VIRGULE)) {
-                break;
-            }
-
-            consomme();
-        }
-
-        consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
+        analyse_expression_retour_type(noeud, false);
     }
     else {
-        // nous avons la déclaration d'une fonction
-        if (apparie(GenreLexeme::RETOUR_TYPE)) {
+        Lexeme *lexème_rien = m_tacheronne.lexemes_extra.ajoute_element();
+        *lexème_rien = *lexème;
+        lexème_rien->genre = GenreLexeme::RIEN;
+        lexème_rien->chaine = "";
+
+        auto decl = crée_retour_défaut_fonction(m_tacheronne.assembleuse, lexème_rien);
+
+        noeud->params_sorties.ajoute(decl);
+        noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
+    }
+
+    auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+    if (bloc_constantes->nombre_de_membres() != 0) {
+        noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
+    }
+
+    ignore_point_virgule_implicite();
+
+    DrapeauxNoeudFonction drapeaux_fonction = DrapeauxNoeudFonction::AUCUN;
+    while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
+        consomme();
+
+        auto ident_directive = lexème_courant()->ident;
+
+        if (ident_directive == ID::enligne) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
+        }
+        else if (ident_directive == ID::horsligne) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
+        }
+        else if (ident_directive == ID::externe) {
+            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+
+            if (lexème_mot_clé->genre == GenreLexeme::COROUT) {
+                rapporte_erreur("Une coroutine ne peut pas être externe");
+            }
+
             consomme();
-            analyse_expression_retour_type(noeud, false);
+            analyse_directive_symbole_externe(noeud);
+            /* recule car nous consommons à la fin de la boucle */
+            recule();
+        }
+        else if (ident_directive == ID::principale) {
+            if (noeud->ident != ID::__principale) {
+                rapporte_erreur("#principale utilisée sur une fonction n'étant pas la "
+                                "fonction __principale");
+            }
+
+            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+        }
+        else if (ident_directive == ID::sanstrace) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+        }
+        else if (ident_directive == ID::interface) {
+            m_compilatrice.interface_kuri->mute_membre(noeud);
+        }
+        else if (ident_directive == ID::creation_contexte) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
+            m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
+        }
+        else if (ident_directive == ID::compilatrice) {
+            drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSTRACE |
+                                  DrapeauxNoeudFonction::EST_IPA_COMPILATRICE |
+                                  DrapeauxNoeudFonction::EST_EXTERNE);
+
+            if (!est_fonction_compilatrice(noeud->ident)) {
+                rapporte_erreur("#compilatrice utilisé sur une fonction ne faisant pas partie "
+                                "de l'IPA de la Compilatrice");
+            }
+        }
+        else if (ident_directive == ID::sansbroyage) {
+            drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSBROYAGE);
+        }
+        else if (ident_directive == ID::racine) {
+            drapeaux_fonction |= (DrapeauxNoeudFonction::EST_RACINE);
+        }
+        else if (ident_directive == ID::corps_texte) {
+            noeud->corps->est_corps_texte = true;
+        }
+        else if (ident_directive == ID::cliche) {
+            consomme();
+            if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu un identifiant après #cliche");
+            }
+
+            while (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+                auto ident_cliché = lexème_courant()->ident;
+
+                if (ident_cliché == ID::asa) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::asa_canon) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::ri) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::ri_finale) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::inst_mv) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
+                }
+                else {
+                    rapporte_erreur("Identifiant inconnu après #cliche");
+                }
+                consomme();
+
+                if (!apparie(GenreLexeme::VIRGULE)) {
+                    break;
+                }
+                consomme();
+            }
+
+            /* Pour le consomme plus bas qui est sensé consommer l'identifiant de la directive.
+             */
+            recule();
+        }
+        else if (ident_directive == ID::intrinsèque) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_INTRINSÈQUE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+
+            consomme();
+
+            if (!apparie(GenreLexeme::CHAINE_LITTERALE)) {
+                rapporte_erreur("Attendu le symbole de l'intrinsèque");
+            }
+
+            noeud->données_externes =
+                m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
+            noeud->données_externes->nom_symbole = lexème_courant()->chaine;
+        }
+        else if (ident_directive == ID::interne) {
+            noeud->visibilité_symbole = VisibilitéSymbole::INTERNE;
+        }
+        else if (ident_directive == ID::exporte) {
+            noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
         }
         else {
-            Lexeme *lexeme_rien = m_tacheronne.lexemes_extra.ajoute_element();
-            *lexeme_rien = *lexeme;
-            lexeme_rien->genre = GenreLexeme::RIEN;
-            lexeme_rien->chaine = "";
-
-            auto decl = crée_retour_défaut_fonction(m_tacheronne.assembleuse, lexeme_rien);
-
-            noeud->params_sorties.ajoute(decl);
-            noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
+            rapporte_erreur("Directive de fonction inconnue.");
         }
 
+        consomme();
+    }
+
+    noeud->drapeaux_fonction |= drapeaux_fonction;
+
+    if (noeud->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+        if (noeud->params_sorties.taille() > 1) {
+            rapporte_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
+        }
+
+        /* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
+        noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), noeud);
+        m_tacheronne.assembleuse->dépile_bloc();
+
+        /* Si la déclaration est à la fin du fichier, il peut ne pas y avoir de point-virgule,
+         * donc ne générons pas d'erreur s'il n'y en a pas. */
+        ignore_point_virgule_implicite();
+    }
+    else {
         ignore_point_virgule_implicite();
 
-        DrapeauxNoeudFonction drapeaux_fonction = DrapeauxNoeudFonction::AUCUN;
-        while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
-            consomme();
+        auto noeud_corps = noeud->corps;
+        fonctions_courantes.empile(noeud);
 
-            auto ident_directive = lexeme_courant()->ident;
-
-            if (ident_directive == ID::enligne) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
-            }
-            else if (ident_directive == ID::horsligne) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
-            }
-            else if (ident_directive == ID::externe) {
-                noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-
-                if (lexeme_mot_cle->genre == GenreLexeme::COROUT) {
-                    rapporte_erreur("Une coroutine ne peut pas être externe");
-                }
-
-                consomme();
-                analyse_directive_symbole_externe(noeud);
-                /* recule car nous consommons à la fin de la boucle */
-                recule();
-            }
-            else if (ident_directive == ID::principale) {
-                if (noeud->ident != ID::__principale) {
-                    rapporte_erreur("#principale utilisée sur une fonction n'étant pas la "
-                                    "fonction __principale");
-                }
-
-                noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-            }
-            else if (ident_directive == ID::sanstrace) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
-            }
-            else if (ident_directive == ID::interface) {
-                m_compilatrice.interface_kuri->mute_membre(noeud);
-            }
-            else if (ident_directive == ID::creation_contexte) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
-                m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
-            }
-            else if (ident_directive == ID::compilatrice) {
-                drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSTRACE |
-                                      DrapeauxNoeudFonction::EST_IPA_COMPILATRICE |
-                                      DrapeauxNoeudFonction::EST_EXTERNE);
-
-                if (!est_fonction_compilatrice(noeud->ident)) {
-                    rapporte_erreur("#compilatrice utilisé sur une fonction ne faisant pas partie "
-                                    "de l'IPA de la Compilatrice");
-                }
-            }
-            else if (ident_directive == ID::sansbroyage) {
-                drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSBROYAGE);
-            }
-            else if (ident_directive == ID::racine) {
-                drapeaux_fonction |= (DrapeauxNoeudFonction::EST_RACINE);
-            }
-            else if (ident_directive == ID::corps_texte) {
-                noeud->corps->est_corps_texte = true;
-            }
-            else if (ident_directive == ID::cliche) {
-                consomme();
-                if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
-                    rapporte_erreur("Attendu un identifiant après #cliche");
-                }
-
-                while (apparie(GenreLexeme::CHAINE_CARACTERE)) {
-                    auto ident_cliché = lexeme_courant()->ident;
-
-                    if (ident_cliché == ID::asa) {
-                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS;
-                    }
-                    else if (ident_cliché == ID::asa_canon) {
-                        drapeaux_fonction |=
-                            DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS;
-                    }
-                    else if (ident_cliché == ID::ri) {
-                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS;
-                    }
-                    else if (ident_cliché == ID::ri_finale) {
-                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS;
-                    }
-                    else if (ident_cliché == ID::inst_mv) {
-                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
-                    }
-                    else {
-                        rapporte_erreur("Identifiant inconnu après #cliche");
-                    }
-                    consomme();
-
-                    if (!apparie(GenreLexeme::VIRGULE)) {
-                        break;
-                    }
-                    consomme();
-                }
-
-                /* Pour le consomme plus bas qui est sensé consommer l'identifiant de la directive.
-                 */
-                recule();
-            }
-            else if (ident_directive == ID::intrinsèque) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_INTRINSÈQUE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-
-                consomme();
-
-                if (!apparie(GenreLexeme::CHAINE_LITTERALE)) {
-                    rapporte_erreur("Attendu le symbole de l'intrinsèque");
-                }
-
-                noeud->données_externes =
-                    m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
-                noeud->données_externes->nom_symbole = lexeme_courant()->chaine;
-            }
-            else if (ident_directive == ID::interne) {
-                noeud->visibilité_symbole = VisibilitéSymbole::INTERNE;
-            }
-            else if (ident_directive == ID::exporte) {
-                noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
-            }
-            else {
-                rapporte_erreur("Directive de fonction inconnue.");
-            }
-
-            consomme();
-        }
-
-        noeud->drapeaux_fonction |= drapeaux_fonction;
-
-        if (noeud->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
-            if (noeud->params_sorties.taille() > 1) {
-                rapporte_erreur(
-                    "Ne peut avoir plusieurs valeur de retour pour une fonction externe");
-            }
-
-            /* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
-            noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), noeud);
-            m_tacheronne.assembleuse->depile_bloc();
-
-            /* Si la déclaration est à la fin du fichier, il peut ne pas y avoir de point-virgule,
-             * donc ne générons pas d'erreur s'il n'y en a pas. */
-            ignore_point_virgule_implicite();
+        if (apparie(GenreLexeme::POUSSE_CONTEXTE)) {
+            empile_état("dans l'analyse du bloc", lexème_courant());
+            noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), noeud);
+            auto pousse_contexte = analyse_instruction_pousse_contexte();
+            noeud_corps->bloc->ajoute_expression(pousse_contexte);
+            m_tacheronne.assembleuse->dépile_bloc();
+            dépile_état();
         }
         else {
-            ignore_point_virgule_implicite();
-
-            auto noeud_corps = noeud->corps;
-            fonctions_courantes.empile(noeud);
-
-            if (apparie(GenreLexeme::POUSSE_CONTEXTE)) {
-                empile_etat("dans l'analyse du bloc", lexeme_courant());
-                noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), noeud);
-                auto pousse_contexte = analyse_instruction_pousse_contexte();
-                noeud_corps->bloc->ajoute_expression(pousse_contexte);
-                m_tacheronne.assembleuse->depile_bloc();
-                depile_etat();
-            }
-            else {
-                noeud_corps->bloc = analyse_bloc();
-                noeud_corps->bloc->ident = noeud->ident;
-            }
-
-            analyse_annotations(noeud->annotations);
-            fonctions_courantes.depile();
+            noeud_corps->bloc = analyse_bloc();
+            noeud_corps->bloc->ident = noeud->ident;
         }
+
+        analyse_annotations(noeud->annotations);
+        fonctions_courantes.depile();
     }
 
     /* dépile le bloc des paramètres */
-    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->dépile_bloc();
 
     /* dépile le bloc des constantes */
-    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->dépile_bloc();
 
-    depile_etat();
+    dépile_état();
 
     /* Faisons ceci à la fin afin que le corps soit disponible lors de la création de la copie pour
      * les différents espaces de travail, évitant une potentielle concurrence critique. */
@@ -2642,29 +2655,83 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     }
 
     /* Attend d'avoir toutes les informations avant d'ajouter aux membres. */
-    if (!noeud->est_declaration_type) {
-        noeud->bloc_parent->ajoute_membre(noeud);
-    }
+    noeud->bloc_parent->ajoute_membre(noeud);
 
     return noeud;
 }
 
-NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
+NoeudExpression *Syntaxeuse::analyse_déclaration_type_fonction(Lexeme const *lexème)
 {
-    empile_etat("dans le syntaxage de l'opérateur", lexeme_courant());
+    auto noeud = m_tacheronne.assembleuse->crée_expression_type_fonction(lexème);
+
+    consomme(GenreLexeme::PARENTHESE_OUVRANTE,
+             "Attendu une parenthèse ouvrante après le nom de la fonction");
+
+    /* analyse les paramètres de la fonction */
+    auto params = kuri::tablet<NoeudExpression *, 16>();
+
+    while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+        auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
+        params.ajoute(param);
+
+        if (param->est_declaration_variable()) {
+            rapporte_erreur_avec_site(param,
+                                      "Obtenu la déclaration d'une variable dans "
+                                      "la déclaration d'un type de fonction");
+        }
+        else if (param->est_empl()) {
+            rapporte_erreur_avec_site(param,
+                                      "Obtenu la déclaration d'une variable dans "
+                                      "la déclaration d'un type de fonction");
+        }
+
+        if (!apparie(GenreLexeme::VIRGULE)) {
+            break;
+        }
+
+        consomme();
+    }
+    copie_tablet_tableau(params, noeud->types_entrée);
+
+    consomme(GenreLexeme::PARENTHESE_FERMANTE,
+             "Attendu ')' à la fin des paramètres du type fonction");
+
+    consomme(GenreLexeme::PARENTHESE_OUVRANTE,
+             "Attendu une parenthèse ouvrante pour le type de retour du type fonction");
+
+    while (!fini()) {
+        auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
+        noeud->types_sortie.ajoute(type_declare);
+
+        if (!apparie(GenreLexeme::VIRGULE)) {
+            break;
+        }
+
+        consomme();
+    }
+
+    consomme(GenreLexeme::PARENTHESE_FERMANTE,
+             "attendu une parenthèse fermante après le type de retour du type fonction");
+
+    return noeud;
+}
+
+NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
+{
+    empile_état("dans le syntaxage de l'opérateur", lexème_courant());
     consomme();
 
-    auto lexeme = lexeme_courant();
-    auto genre_operateur = lexeme->genre;
+    auto lexème = lexème_courant();
+    auto genre_opérateur = lexème->genre;
 
-    if (!est_operateur_surchargeable(genre_operateur)) {
+    if (!est_opérateur_surchargeable(genre_opérateur)) {
         rapporte_erreur("L'opérateur n'est pas surchargeable");
         return nullptr;
     }
 
     consomme();
 
-    if (genre_operateur == GenreLexeme::CROCHET_OUVRANT) {
+    if (genre_opérateur == GenreLexeme::CROCHET_OUVRANT) {
         consomme(GenreLexeme::CROCHET_FERMANT,
                  "Attendu ']' après '[' pour la déclaration de l'opérateur");
     }
@@ -2673,17 +2740,17 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     consomme(GenreLexeme::DECLARATION_CONSTANTE, "Attendu :: après la déclaration de l'opérateur");
     consomme(GenreLexeme::FONC, "Attendu fonc après ::");
 
-    auto noeud = (genre_operateur == GenreLexeme::POUR) ?
-                     m_tacheronne.assembleuse->crée_operateur_pour(lexeme) :
-                     m_tacheronne.assembleuse->crée_entete_fonction(lexeme);
+    auto noeud = (genre_opérateur == GenreLexeme::POUR) ?
+                     m_tacheronne.assembleuse->crée_operateur_pour(lexème) :
+                     m_tacheronne.assembleuse->crée_entete_fonction(lexème);
     noeud->est_operateur = true;
 
-    auto lexeme_bloc = lexeme_courant();
+    auto lexème_bloc = lexème_courant();
     consomme(GenreLexeme::PARENTHESE_OUVRANTE,
              "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, noeud);
-    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, noeud);
+    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexème_bloc, noeud);
+    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexème_bloc, noeud);
 
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
@@ -2714,13 +2781,13 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
                                   "La surcharge d'opérateur ne peut prendre au plus 2 paramètres");
     }
     else if (noeud->params.taille() == 1) {
-        if (genre_operateur == GenreLexeme::PLUS) {
-            lexeme->genre = GenreLexeme::PLUS_UNAIRE;
+        if (genre_opérateur == GenreLexeme::PLUS) {
+            lexème->genre = GenreLexeme::PLUS_UNAIRE;
         }
-        else if (genre_operateur == GenreLexeme::MOINS) {
-            lexeme->genre = GenreLexeme::MOINS_UNAIRE;
+        else if (genre_opérateur == GenreLexeme::MOINS) {
+            lexème->genre = GenreLexeme::MOINS_UNAIRE;
         }
-        else if (!dls::outils::est_element(genre_operateur,
+        else if (!dls::outils::est_element(genre_opérateur,
                                            GenreLexeme::TILDE,
                                            GenreLexeme::PLUS_UNAIRE,
                                            GenreLexeme::MOINS_UNAIRE,
@@ -2742,7 +2809,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
 
-        auto directive = lexeme_courant()->ident;
+        auto directive = lexème_courant()->ident;
 
         if (directive == ID::enligne) {
             noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
@@ -2771,23 +2838,23 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     fonctions_courantes.depile();
 
     /* dépile le bloc des paramètres */
-    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->dépile_bloc();
 
     /* dépile le bloc des constantes */
-    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->dépile_bloc();
 
-    depile_etat();
+    dépile_état();
 
     return noeud;
 }
 
 void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *noeud,
-                                                bool pour_operateur)
+                                                bool pour_opérateur)
 {
-    auto eu_parenthese = false;
+    auto eu_parenthèse = false;
     if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
         consomme();
-        eu_parenthese = true;
+        eu_parenthèse = true;
     }
 
     while (!fini()) {
@@ -2823,14 +2890,14 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
         consomme();
     }
 
-    auto const nombre_de_valeurs_retournees = noeud->params_sorties.taille();
-    if (nombre_de_valeurs_retournees == 0) {
+    auto const nombre_de_valeurs_retournées = noeud->params_sorties.taille();
+    if (nombre_de_valeurs_retournées == 0) {
         rapporte_erreur("Attendu au moins une déclaration de valeur retournée");
         return;
     }
 
-    if (nombre_de_valeurs_retournees > 1) {
-        if (pour_operateur) {
+    if (nombre_de_valeurs_retournées > 1) {
+        if (pour_opérateur) {
             rapporte_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
             return;
         }
@@ -2848,7 +2915,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
 
     noeud->param_sortie->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
 
-    if (eu_parenthese) {
+    if (eu_parenthèse) {
         consomme(GenreLexeme::PARENTHESE_FERMANTE,
                  "attendu une parenthèse fermante après la liste des retours de la fonction");
     }
@@ -2858,10 +2925,10 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
 /** \name Structures et unions.
  * \{ */
 
-NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauche)
+NoeudExpression *Syntaxeuse::analyse_déclaration_structure(NoeudExpression *gauche)
 {
-    auto lexeme_mot_cle = lexeme_courant();
-    empile_etat("dans le syntaxage de la structure", lexeme_mot_cle);
+    auto lexème_mot_clé = lexème_courant();
+    empile_état("dans le syntaxage de la structure", lexème_mot_clé);
     consomme();
 
     if (!gauche->est_reference_declaration()) {
@@ -2884,10 +2951,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     analyse_annotations(noeud_decl->annotations);
 
     if (noeud_decl->bloc_constantes) {
-        m_tacheronne.assembleuse->depile_bloc();
+        m_tacheronne.assembleuse->dépile_bloc();
     }
 
-    depile_etat();
+    dépile_état();
 
     /* N'ajoute la structure au bloc parent que lorsque nous avons son bloc, ou la validation
      * sémantique pourrait accéder un bloc nul. */
@@ -2896,10 +2963,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     return noeud_decl;
 }
 
-NoeudExpression *Syntaxeuse::analyse_declaration_union(NoeudExpression *gauche)
+NoeudExpression *Syntaxeuse::analyse_déclaration_union(NoeudExpression *gauche)
 {
-    auto lexeme_mot_cle = lexeme_courant();
-    empile_etat("dans le syntaxage de l'union", lexeme_mot_cle);
+    auto lexème_mot_clé = lexème_courant();
+    empile_état("dans le syntaxage de l'union", lexème_mot_clé);
     consomme();
 
     if (!gauche->est_reference_declaration()) {
@@ -2920,10 +2987,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_union(NoeudExpression *gauche)
     analyse_annotations(noeud_decl->annotations);
 
     if (noeud_decl->bloc_constantes) {
-        m_tacheronne.assembleuse->depile_bloc();
+        m_tacheronne.assembleuse->dépile_bloc();
     }
 
-    depile_etat();
+    dépile_état();
 
     /* N'ajoute la structure au bloc parent que lorsque nous avons son bloc, ou la validation
      * sémantique pourrait accéder un bloc nul. */
@@ -2937,7 +3004,7 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
     while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
 
-        auto ident_directive = lexeme_courant()->ident;
+        auto ident_directive = lexème_courant()->ident;
 
         if (ident_directive == ID::interface) {
             renseigne_type_interface(m_compilatrice.typeuse, noeud->ident, noeud);
@@ -2962,7 +3029,7 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
                 rapporte_erreur("Un nombre entier est requis après « aligne »");
             }
 
-            noeud->alignement_desire = static_cast<uint32_t>(lexeme_courant()->valeur_entiere);
+            noeud->alignement_desire = static_cast<uint32_t>(lexème_courant()->valeur_entiere);
 
             if (!est_puissance_de_2(noeud->alignement_desire)) {
                 rapporte_erreur("Un alignement doit être une puissance de 2");
@@ -2981,7 +3048,7 @@ void Syntaxeuse::analyse_directives_union(NoeudUnion *noeud)
     while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
 
-        auto ident_directive = lexeme_courant()->ident;
+        auto ident_directive = lexème_courant()->ident;
 
         if (ident_directive == ID::externe) {
             noeud->est_externe = true;
@@ -3006,7 +3073,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
         return;
     }
 
-    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), nullptr);
+    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), nullptr);
 
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
     SUR_SORTIE_PORTEE {
@@ -3069,7 +3136,7 @@ static bool expression_est_valide_pour_bloc_structure(NoeudExpression *noeud)
 
 NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDeclarationClasse *decl_struct)
 {
-    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), nullptr);
+    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), nullptr);
     consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
     auto expressions = kuri::tablet<NoeudExpression *, 16>();
@@ -3100,8 +3167,8 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDeclarationC
                 noeud->comme_reference_declaration());
             noeud = decl_membre;
 
-            static const Lexeme lexeme_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
-            auto type_declare = m_tacheronne.assembleuse->crée_reference_type(&lexeme_rien);
+            static const Lexeme lexème_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
+            auto type_declare = m_tacheronne.assembleuse->crée_reference_type(&lexème_rien);
             decl_membre->expression_type = type_declare;
         }
 
@@ -3117,17 +3184,17 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDeclarationC
     consomme(GenreLexeme::ACCOLADE_FERMANTE,
              "Attendu '}' à la fin de la déclaration de la structure");
 
-    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->dépile_bloc();
 
     return bloc;
 }
 
 /** \} */
 
-void Syntaxeuse::gere_erreur_rapportee(const kuri::chaine &message_erreur)
+void Syntaxeuse::gère_erreur_rapportée(const kuri::chaine &message_erreur)
 {
     m_unité->espace->rapporte_erreur(
-        SiteSource::cree(m_fichier, lexeme_courant()), message_erreur, erreur::Genre::SYNTAXAGE);
+        SiteSource::cree(m_fichier, lexème_courant()), message_erreur, erreur::Genre::SYNTAXAGE);
     /* Avance le curseur pour ne pas être bloqué. */
     consomme();
 }
@@ -3176,7 +3243,7 @@ void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDeclarationVariabl
         return;
     }
 
-    auto lexème_directive = lexeme_courant();
+    auto lexème_directive = lexème_courant();
     if (lexème_directive->ident == ID::externe) {
         if (déclaration->expression) {
             rapporte_erreur("Utilisation de #externe sur une déclaration initialisée. Les "
@@ -3214,11 +3281,11 @@ void Syntaxeuse::analyse_directive_symbole_externe(NoeudDeclarationSymbole *déc
     déclaration_symbole->données_externes =
         m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
     auto données_externes = déclaration_symbole->données_externes;
-    données_externes->ident_bibliotheque = lexeme_courant()->ident;
+    données_externes->ident_bibliotheque = lexème_courant()->ident;
     consomme();
 
     if (apparie(GenreLexeme::CHAINE_LITTERALE)) {
-        données_externes->nom_symbole = lexeme_courant()->chaine;
+        données_externes->nom_symbole = lexème_courant()->chaine;
         consomme();
     }
     else {

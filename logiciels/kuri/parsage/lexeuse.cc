@@ -552,6 +552,7 @@ Lexeme Lexeuse::donne_lexème_suivant()
             if (c == '.') {
                 // . ou ...
                 APPARIE_2_CARACTERES_SUIVANTS('.', '.', GenreLexeme::TROIS_POINTS)
+                APPARIE_CARACTERE_SUIVANT('.', GenreLexeme::DEUX_POINTS)
                 return crée_lexème_opérateur(1, GenreLexeme::POINT);
             }
 

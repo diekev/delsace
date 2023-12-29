@@ -9,7 +9,7 @@ importe Fondation
 
 Labyrinthe :: struct {
     /* Vrai si mur, faux sinon. */
-    données: []bool
+    données: [..]bool
     taille_x: z32
     taille_y: z32
 }
@@ -90,7 +90,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
         }
     }
 
-    est_poste : []bool
+    est_poste : [..]bool
     diffère déloge(est_poste)
     tableau_redimensionne(est_poste, nombre_de_cellules)
     tableau_remplis_avec(est_poste, faux)
@@ -206,12 +206,12 @@ ConstructriceMéthodeEller :: struct {
 
         /* Pour le débogage. */
         index: z32
-        cellules: []*Cellule
+        cellules: [..]*Cellule
     }
 
     taille_x: z32
     taille_y: z32
-    ligne_courante: []Cellule
+    ligne_courante: [..]Cellule
 
     labyrinthe: *Labyrinthe
 

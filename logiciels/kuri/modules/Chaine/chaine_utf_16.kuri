@@ -9,7 +9,7 @@ rune32 :: n32
 // https://tc39.es/ecma262/#sec-ecmascript-language-types-string-type
 // https://infra.spec.whatwg.org/#string-is
 ChaineUTF16 :: struct {
-    unités : []n16
+    unités : [..]n16
 }
 
 détruit_chaine :: fonc (chn: &ChaineUTF16)
@@ -171,10 +171,10 @@ compare_chaine_utf16 :: fonc (a1: ChaineUTF16, a2: ChaineUTF16) -> z32
     retourne 1
 }
 
-divise_chaine :: fonc (chn: ChaineUTF16, délimiteur: n32) -> []ChaineUTF16
+divise_chaine :: fonc (chn: ChaineUTF16, délimiteur: n32) -> [..]ChaineUTF16
 {
     position := 0
-    résultat : []ChaineUTF16
+    résultat : [..]ChaineUTF16
 
     répète {
         token : ChaineUTF16

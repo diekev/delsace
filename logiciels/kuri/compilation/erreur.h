@@ -62,8 +62,8 @@ void imprime_site(Enchaineuse &enchaineuse,
 [[nodiscard]] kuri::chaine imprime_site(EspaceDeTravail const &espace,
                                         NoeudExpression const *site);
 
-dls::vue_chaine_compacte chaine_expression(EspaceDeTravail const &espace,
-                                           const NoeudExpression *expr);
+kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace,
+                                        const NoeudExpression *expr);
 
 void lance_erreur(const kuri::chaine &quoi,
                   EspaceDeTravail const &espace,

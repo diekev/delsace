@@ -1,7 +1,7 @@
 charge "fichier_texte"
 
 CatalogueFichier :: struct {
-    fichiers : []FichierTexte
+    fichiers : [..]FichierTexte
 }
 
 trouve_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine) -> *FichierTexte

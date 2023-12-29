@@ -84,7 +84,7 @@ quelque_actif :: fonc (ensemble: &EnsembleDeBits) -> bool
 // -----------------------------
 
 TableauBooléen :: struct {
-    bits: []n64
+    bits: [..]n64
     taille_max: z64
 }
 
