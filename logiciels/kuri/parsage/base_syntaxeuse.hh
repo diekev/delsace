@@ -24,9 +24,12 @@ struct BaseSyntaxeuse {
     kuri::tableau<Lexeme, int> &m_lexèmes;
     Fichier *m_fichier = nullptr;
     Lexeme *m_lexème_courant = nullptr;
+    Lexeme *m_lexème_sauvegardé = nullptr;
     int m_position = 0;
+    int32_t m_position_sauvegardée = 0;
+    bool m_position_fut_sauvegardée = false;
     bool m_possède_erreur = false;
-    char _pad[3];
+    char _pad[2];
 
     dls::chrono::metre_seconde m_chrono_analyse{};
 
@@ -139,4 +142,8 @@ struct BaseSyntaxeuse {
     kuri::chaine crée_message_erreur(kuri::chaine_statique message);
 
     void rapporte_erreur(kuri::chaine_statique message);
+
+    void sauvegarde_position_lexème();
+
+    void restaure_position_lexème();
 };

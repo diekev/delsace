@@ -77,3 +77,19 @@ void BaseSyntaxeuse::rapporte_erreur(kuri::chaine_statique message)
     m_possède_erreur = true;
     gère_erreur_rapportée(crée_message_erreur(message));
 }
+
+void BaseSyntaxeuse::sauvegarde_position_lexème()
+{
+    assert(!m_position_fut_sauvegardée);
+    m_lexème_sauvegardé = m_lexème_courant;
+    m_position_sauvegardée = m_position;
+    m_position_fut_sauvegardée = true;
+}
+
+void BaseSyntaxeuse::restaure_position_lexème()
+{
+    assert(m_position_fut_sauvegardée);
+    m_lexème_courant = m_lexème_sauvegardé;
+    m_position = m_position_sauvegardée;
+    m_position_fut_sauvegardée = false;
+}

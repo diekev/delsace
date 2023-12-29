@@ -2339,12 +2339,51 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(NoeudExpression *gauche)
     return noeud_decl;
 }
 
+bool Syntaxeuse::est_déclaration_type_fonction()
+{
+    consomme(GenreLexeme::PARENTHESE_OUVRANTE,
+             "Attendu une parenthèse ouvrante après le nom de la fonction");
+
+    auto profondeur_parenthèse = 0;
+
+    while (!fini()) {
+        if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
+            profondeur_parenthèse += 1;
+            consomme();
+            continue;
+        }
+
+        if (apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+            if (profondeur_parenthèse == 0) {
+                consomme();
+                break;
+            }
+
+            profondeur_parenthèse -= 1;
+            consomme();
+            continue;
+        }
+
+        consomme();
+    }
+
+    return apparie(GenreLexeme::PARENTHESE_OUVRANTE);
+}
+
 NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_fonction(Lexeme const *lexème)
 {
     auto lexème_mot_clé = lexème_courant();
+    consomme();
+
+    sauvegarde_position_lexème();
+    auto const est_déclaration_type = est_déclaration_type_fonction();
+    restaure_position_lexème();
+
+    if (est_déclaration_type) {
+        return analyse_déclaration_type_fonction(lexème_mot_clé);
+    }
 
     empile_état("dans le syntaxage de la fonction", lexème_mot_clé);
-    consomme();
 
     auto noeud = m_tacheronne.assembleuse->crée_entete_fonction(lexème);
     noeud->est_coroutine = lexème_mot_clé->genre == GenreLexeme::COROUT;
@@ -2375,23 +2414,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_fonction(Lexeme
         if (bloc_constantes->nombre_de_membres() != 0) {
             noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
         }
-
-        /* Ajoute les constantes polymorphiques de ce type dans ceux du bloc de constantes
-         * polymorphiques du bloc parent.
-         * Ceci nous permet par exemple d'avoir des déclarations du style :
-         * ma_fonction :: (rappel: fonc(z32)($T)) -> T
-         * où ma_fonction doit être marquée comme polymorphique.
-         */
-        if (noeud->est_declaration_type && !bloc_constantes_polymorphiques.est_vide()) {
-            auto bloc_constantes_pere = bloc_constantes_polymorphiques.haut();
-            bloc_constantes_pere->fusionne_membres(noeud->bloc_constantes);
-        }
     };
 
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
-
-    auto eu_déclarations = false;
 
     while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
@@ -2400,14 +2426,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_fonction(Lexeme
         if (param->est_declaration_variable()) {
             auto decl_var = param->comme_declaration_variable();
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
-
-            eu_déclarations = true;
         }
         else if (param->est_empl()) {
             auto decl_var = param->comme_empl()->expression->comme_declaration_variable();
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
-
-            eu_déclarations = true;
         }
 
         if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2422,226 +2444,192 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_fonction(Lexeme
     consomme(GenreLexeme::PARENTHESE_FERMANTE,
              "Attendu ')' à la fin des paramètres de la fonction");
 
-    /* analyse les types de retour de la fonction */
-    if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
-        // nous avons la déclaration d'un type
-        noeud->est_declaration_type = true;
+    // nous avons la déclaration d'une fonction
+    if (apparie(GenreLexeme::RETOUR_TYPE)) {
         consomme();
-
-        if (eu_déclarations) {
-            POUR (noeud->params) {
-                if (it->est_declaration_variable()) {
-                    rapporte_erreur_avec_site(it,
-                                              "Obtenu la déclaration d'une variable dans "
-                                              "la déclaration d'un type de fonction");
-                }
-            }
-        }
-
-        while (!fini()) {
-            auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
-            /* À FAIRE : ceci est faux, nous devrions avoir des expressions de types. */
-            noeud->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(type_declare));
-
-            if (!apparie(GenreLexeme::VIRGULE)) {
-                break;
-            }
-
-            consomme();
-        }
-
-        consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
+        analyse_expression_retour_type(noeud, false);
     }
     else {
-        // nous avons la déclaration d'une fonction
-        if (apparie(GenreLexeme::RETOUR_TYPE)) {
+        Lexeme *lexème_rien = m_tacheronne.lexemes_extra.ajoute_element();
+        *lexème_rien = *lexème;
+        lexème_rien->genre = GenreLexeme::RIEN;
+        lexème_rien->chaine = "";
+
+        auto decl = crée_retour_défaut_fonction(m_tacheronne.assembleuse, lexème_rien);
+
+        noeud->params_sorties.ajoute(decl);
+        noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
+    }
+
+    ignore_point_virgule_implicite();
+
+    DrapeauxNoeudFonction drapeaux_fonction = DrapeauxNoeudFonction::AUCUN;
+    while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
+        consomme();
+
+        auto ident_directive = lexème_courant()->ident;
+
+        if (ident_directive == ID::enligne) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
+        }
+        else if (ident_directive == ID::horsligne) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
+        }
+        else if (ident_directive == ID::externe) {
+            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+
+            if (lexème_mot_clé->genre == GenreLexeme::COROUT) {
+                rapporte_erreur("Une coroutine ne peut pas être externe");
+            }
+
             consomme();
-            analyse_expression_retour_type(noeud, false);
+            analyse_directive_symbole_externe(noeud);
+            /* recule car nous consommons à la fin de la boucle */
+            recule();
+        }
+        else if (ident_directive == ID::principale) {
+            if (noeud->ident != ID::__principale) {
+                rapporte_erreur("#principale utilisée sur une fonction n'étant pas la "
+                                "fonction __principale");
+            }
+
+            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+        }
+        else if (ident_directive == ID::sanstrace) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+        }
+        else if (ident_directive == ID::interface) {
+            m_compilatrice.interface_kuri->mute_membre(noeud);
+        }
+        else if (ident_directive == ID::creation_contexte) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
+            m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
+        }
+        else if (ident_directive == ID::compilatrice) {
+            drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSTRACE |
+                                  DrapeauxNoeudFonction::EST_IPA_COMPILATRICE |
+                                  DrapeauxNoeudFonction::EST_EXTERNE);
+
+            if (!est_fonction_compilatrice(noeud->ident)) {
+                rapporte_erreur("#compilatrice utilisé sur une fonction ne faisant pas partie "
+                                "de l'IPA de la Compilatrice");
+            }
+        }
+        else if (ident_directive == ID::sansbroyage) {
+            drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSBROYAGE);
+        }
+        else if (ident_directive == ID::racine) {
+            drapeaux_fonction |= (DrapeauxNoeudFonction::EST_RACINE);
+        }
+        else if (ident_directive == ID::corps_texte) {
+            noeud->corps->est_corps_texte = true;
+        }
+        else if (ident_directive == ID::cliche) {
+            consomme();
+            if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu un identifiant après #cliche");
+            }
+
+            while (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+                auto ident_cliché = lexème_courant()->ident;
+
+                if (ident_cliché == ID::asa) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::asa_canon) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::ri) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::ri_finale) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::inst_mv) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
+                }
+                else {
+                    rapporte_erreur("Identifiant inconnu après #cliche");
+                }
+                consomme();
+
+                if (!apparie(GenreLexeme::VIRGULE)) {
+                    break;
+                }
+                consomme();
+            }
+
+            /* Pour le consomme plus bas qui est sensé consommer l'identifiant de la directive.
+             */
+            recule();
+        }
+        else if (ident_directive == ID::intrinsèque) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_INTRINSÈQUE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+
+            consomme();
+
+            if (!apparie(GenreLexeme::CHAINE_LITTERALE)) {
+                rapporte_erreur("Attendu le symbole de l'intrinsèque");
+            }
+
+            noeud->données_externes =
+                m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
+            noeud->données_externes->nom_symbole = lexème_courant()->chaine;
+        }
+        else if (ident_directive == ID::interne) {
+            noeud->visibilité_symbole = VisibilitéSymbole::INTERNE;
+        }
+        else if (ident_directive == ID::exporte) {
+            noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
         }
         else {
-            Lexeme *lexème_rien = m_tacheronne.lexemes_extra.ajoute_element();
-            *lexème_rien = *lexème;
-            lexème_rien->genre = GenreLexeme::RIEN;
-            lexème_rien->chaine = "";
-
-            auto decl = crée_retour_défaut_fonction(m_tacheronne.assembleuse, lexème_rien);
-
-            noeud->params_sorties.ajoute(decl);
-            noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
+            rapporte_erreur("Directive de fonction inconnue.");
         }
 
+        consomme();
+    }
+
+    noeud->drapeaux_fonction |= drapeaux_fonction;
+
+    if (noeud->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+        if (noeud->params_sorties.taille() > 1) {
+            rapporte_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
+        }
+
+        /* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
+        noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), noeud);
+        m_tacheronne.assembleuse->dépile_bloc();
+
+        /* Si la déclaration est à la fin du fichier, il peut ne pas y avoir de point-virgule,
+         * donc ne générons pas d'erreur s'il n'y en a pas. */
+        ignore_point_virgule_implicite();
+    }
+    else {
         ignore_point_virgule_implicite();
 
-        DrapeauxNoeudFonction drapeaux_fonction = DrapeauxNoeudFonction::AUCUN;
-        while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
-            consomme();
+        auto noeud_corps = noeud->corps;
+        fonctions_courantes.empile(noeud);
 
-            auto ident_directive = lexème_courant()->ident;
-
-            if (ident_directive == ID::enligne) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
-            }
-            else if (ident_directive == ID::horsligne) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
-            }
-            else if (ident_directive == ID::externe) {
-                noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-
-                if (lexème_mot_clé->genre == GenreLexeme::COROUT) {
-                    rapporte_erreur("Une coroutine ne peut pas être externe");
-                }
-
-                consomme();
-                analyse_directive_symbole_externe(noeud);
-                /* recule car nous consommons à la fin de la boucle */
-                recule();
-            }
-            else if (ident_directive == ID::principale) {
-                if (noeud->ident != ID::__principale) {
-                    rapporte_erreur("#principale utilisée sur une fonction n'étant pas la "
-                                    "fonction __principale");
-                }
-
-                noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-            }
-            else if (ident_directive == ID::sanstrace) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
-            }
-            else if (ident_directive == ID::interface) {
-                m_compilatrice.interface_kuri->mute_membre(noeud);
-            }
-            else if (ident_directive == ID::creation_contexte) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
-                m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
-            }
-            else if (ident_directive == ID::compilatrice) {
-                drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSTRACE |
-                                      DrapeauxNoeudFonction::EST_IPA_COMPILATRICE |
-                                      DrapeauxNoeudFonction::EST_EXTERNE);
-
-                if (!est_fonction_compilatrice(noeud->ident)) {
-                    rapporte_erreur("#compilatrice utilisé sur une fonction ne faisant pas partie "
-                                    "de l'IPA de la Compilatrice");
-                }
-            }
-            else if (ident_directive == ID::sansbroyage) {
-                drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSBROYAGE);
-            }
-            else if (ident_directive == ID::racine) {
-                drapeaux_fonction |= (DrapeauxNoeudFonction::EST_RACINE);
-            }
-            else if (ident_directive == ID::corps_texte) {
-                noeud->corps->est_corps_texte = true;
-            }
-            else if (ident_directive == ID::cliche) {
-                consomme();
-                if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
-                    rapporte_erreur("Attendu un identifiant après #cliche");
-                }
-
-                while (apparie(GenreLexeme::CHAINE_CARACTERE)) {
-                    auto ident_cliché = lexème_courant()->ident;
-
-                    if (ident_cliché == ID::asa) {
-                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS;
-                    }
-                    else if (ident_cliché == ID::asa_canon) {
-                        drapeaux_fonction |=
-                            DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS;
-                    }
-                    else if (ident_cliché == ID::ri) {
-                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS;
-                    }
-                    else if (ident_cliché == ID::ri_finale) {
-                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS;
-                    }
-                    else if (ident_cliché == ID::inst_mv) {
-                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
-                    }
-                    else {
-                        rapporte_erreur("Identifiant inconnu après #cliche");
-                    }
-                    consomme();
-
-                    if (!apparie(GenreLexeme::VIRGULE)) {
-                        break;
-                    }
-                    consomme();
-                }
-
-                /* Pour le consomme plus bas qui est sensé consommer l'identifiant de la directive.
-                 */
-                recule();
-            }
-            else if (ident_directive == ID::intrinsèque) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_INTRINSÈQUE;
-                drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-
-                consomme();
-
-                if (!apparie(GenreLexeme::CHAINE_LITTERALE)) {
-                    rapporte_erreur("Attendu le symbole de l'intrinsèque");
-                }
-
-                noeud->données_externes =
-                    m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
-                noeud->données_externes->nom_symbole = lexème_courant()->chaine;
-            }
-            else if (ident_directive == ID::interne) {
-                noeud->visibilité_symbole = VisibilitéSymbole::INTERNE;
-            }
-            else if (ident_directive == ID::exporte) {
-                noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
-            }
-            else {
-                rapporte_erreur("Directive de fonction inconnue.");
-            }
-
-            consomme();
-        }
-
-        noeud->drapeaux_fonction |= drapeaux_fonction;
-
-        if (noeud->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
-            if (noeud->params_sorties.taille() > 1) {
-                rapporte_erreur(
-                    "Ne peut avoir plusieurs valeur de retour pour une fonction externe");
-            }
-
-            /* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
-            noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), noeud);
+        if (apparie(GenreLexeme::POUSSE_CONTEXTE)) {
+            empile_état("dans l'analyse du bloc", lexème_courant());
+            noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), noeud);
+            auto pousse_contexte = analyse_instruction_pousse_contexte();
+            noeud_corps->bloc->ajoute_expression(pousse_contexte);
             m_tacheronne.assembleuse->dépile_bloc();
-
-            /* Si la déclaration est à la fin du fichier, il peut ne pas y avoir de point-virgule,
-             * donc ne générons pas d'erreur s'il n'y en a pas. */
-            ignore_point_virgule_implicite();
+            dépile_état();
         }
         else {
-            ignore_point_virgule_implicite();
-
-            auto noeud_corps = noeud->corps;
-            fonctions_courantes.empile(noeud);
-
-            if (apparie(GenreLexeme::POUSSE_CONTEXTE)) {
-                empile_état("dans l'analyse du bloc", lexème_courant());
-                noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), noeud);
-                auto pousse_contexte = analyse_instruction_pousse_contexte();
-                noeud_corps->bloc->ajoute_expression(pousse_contexte);
-                m_tacheronne.assembleuse->dépile_bloc();
-                dépile_état();
-            }
-            else {
-                noeud_corps->bloc = analyse_bloc();
-                noeud_corps->bloc->ident = noeud->ident;
-            }
-
-            analyse_annotations(noeud->annotations);
-            fonctions_courantes.depile();
+            noeud_corps->bloc = analyse_bloc();
+            noeud_corps->bloc->ident = noeud->ident;
         }
+
+        analyse_annotations(noeud->annotations);
+        fonctions_courantes.depile();
     }
 
     /* dépile le bloc des paramètres */
@@ -2665,9 +2653,75 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_fonction(Lexeme
     }
 
     /* Attend d'avoir toutes les informations avant d'ajouter aux membres. */
-    if (!noeud->est_declaration_type) {
-        noeud->bloc_parent->ajoute_membre(noeud);
+    noeud->bloc_parent->ajoute_membre(noeud);
+
+    return noeud;
+}
+
+NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_type_fonction(Lexeme const *lexème)
+{
+    auto noeud = m_tacheronne.assembleuse->crée_entete_fonction(lexème);
+    noeud->est_coroutine = lexème->genre == GenreLexeme::COROUT;
+    noeud->est_declaration_type = true;
+
+    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexème, noeud);
+    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexème, noeud);
+
+    consomme(GenreLexeme::PARENTHESE_OUVRANTE,
+             "Attendu une parenthèse ouvrante après le nom de la fonction");
+
+    /* analyse les paramètres de la fonction */
+    auto params = kuri::tablet<NoeudExpression *, 16>();
+
+    while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+        auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
+        params.ajoute(param);
+
+        if (param->est_declaration_variable()) {
+            rapporte_erreur_avec_site(param,
+                                      "Obtenu la déclaration d'une variable dans "
+                                      "la déclaration d'un type de fonction");
+        }
+        else if (param->est_empl()) {
+            rapporte_erreur_avec_site(param,
+                                      "Obtenu la déclaration d'une variable dans "
+                                      "la déclaration d'un type de fonction");
+        }
+
+        if (!apparie(GenreLexeme::VIRGULE)) {
+            break;
+        }
+
+        consomme();
     }
+    copie_tablet_tableau(params, noeud->params);
+
+    consomme(GenreLexeme::PARENTHESE_FERMANTE,
+             "Attendu ')' à la fin des paramètres du type fonction");
+
+    consomme(GenreLexeme::PARENTHESE_OUVRANTE,
+             "Attendu une parenthèse ouvrante pour le type de retour du type fonction");
+
+    while (!fini()) {
+        auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
+        /* À FAIRE : ceci est faux, nous devrions avoir des expressions de types. */
+        noeud->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(type_declare));
+
+        if (!apparie(GenreLexeme::VIRGULE)) {
+            break;
+        }
+
+        consomme();
+    }
+
+    consomme(GenreLexeme::PARENTHESE_FERMANTE,
+             "attendu une parenthèse fermante après le type de retour du type fonction");
+
+    /* dépile le bloc des paramètres */
+    m_tacheronne.assembleuse->dépile_bloc();
+
+    /* dépile le bloc des constantes */
+    m_tacheronne.assembleuse->dépile_bloc();
 
     return noeud;
 }
