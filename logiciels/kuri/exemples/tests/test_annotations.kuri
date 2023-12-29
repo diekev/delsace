@@ -1,7 +1,7 @@
 importe Compilatrice
 importe Fondation
 
-imprime_annotations :: fonc (annotations: []AnnotationCode, nom: chaine)
+imprime_annotations :: fonc (annotations: [..]AnnotationCode, nom: chaine)
 {
     imprime("annotations pour % :\n", nom)
     pour annotations {

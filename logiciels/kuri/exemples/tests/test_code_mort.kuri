@@ -44,7 +44,7 @@ débouclement_tableau_fixe :: fonc ()
 débouclement_tableau_dynamique_depuis_fixe :: fonc ()
 {
     tableau_fixe : [3]z32
-    tableau_dynamique : []z32 = tableau_fixe
+    tableau_dynamique : [..]z32 = tableau_fixe
 
     pour tableau_dynamique {
         it = 5

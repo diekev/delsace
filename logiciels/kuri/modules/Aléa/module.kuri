@@ -49,7 +49,7 @@ normale :: fonc (gna: *GNA, moyenne: r64, écart: r64) -> r64
 
 // ------------------------------------------------------
 
-choisit :: fonc (gna: *GNA, tableau: []$T) -> T
+choisit :: fonc (gna: *GNA, tableau: [..]$T) -> T
 {
     saufsi tableau {
         valeur_défaut: T
@@ -61,7 +61,7 @@ choisit :: fonc (gna: *GNA, tableau: []$T) -> T
     retourne tableau[index]
 }
 
-mélange_tableau :: fonc (gna: *GNA, tableau: *[]$T)
+mélange_tableau :: fonc (gna: *GNA, tableau: *[..]$T)
 {
     pour tableau.taille {
         nouvel_index := gna.uniforme(0.0, (tableau.taille - 1) comme r32) comme z64
@@ -86,7 +86,7 @@ GénératriceDonnéesAléatoire :: struct {
 
 génère_données_aléatoires :: fonc (génératrice: &GénératriceDonnéesAléatoire, $T: type_de_données) -> T
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     résultat : T
 
@@ -99,7 +99,7 @@ génère_données_aléatoires :: fonc (génératrice: &GénératriceDonnéesAlé
             continue
         }
 
-        tampon : []octet
+        tampon : [..]octet
         tampon.pointeur = (*résultat comme *z8 + it.décalage)
         tampon.taille = it.id.taille_en_octet comme z64
 
@@ -305,7 +305,7 @@ séquence_hammersley_2d :: fonc (n: n32, r: *r64)
 importe Compilatrice
 
 // À FAIRE: #portée_fichier
-__fonctions_génération_données_aléatoires : []FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
+__fonctions_génération_données_aléatoires : [..]FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
 
 trouve_fonction_génération_données_aléatoires :: fonc (info: *InfoType) -> *FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
 {
@@ -329,7 +329,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
         retourne résultat
     }
 
-    si type_deuxième_paramètre.id != id_info.POINTEUR {
+    si type_deuxième_paramètre.id != GenreInfoType.POINTEUR {
         compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.")
         retourne résultat
     }

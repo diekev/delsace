@@ -16,7 +16,7 @@ taille_alignée :: fonc (taille: z64, $N: z32) -> z64 #enligne
     retourne (taille + N - 1) & ~(N - 1)
 }
 
-comp_mem_ordre :: fonc(a : []octet, b : []octet, taille : z64) -> z32
+comp_mem_ordre :: fonc(a : [..]octet, b : [..]octet, taille : z64) -> z32
 {
     si a.taille < taille {
         retourne -1
@@ -37,7 +37,7 @@ comp_mem_ordre :: fonc(a : []octet, b : []octet, taille : z64) -> z32
     retourne 0
 }
 
-comp_mem :: fonc(a : []octet, b : []octet, taille : z64) -> bool
+comp_mem :: fonc(a : [..]octet, b : [..]octet, taille : z64) -> bool
 {
     si a.taille < taille {
         retourne faux
@@ -71,7 +71,7 @@ copie_mem_nonsur :: fonc(src : *octet, dst : *octet, taille : z64) -> rien
 // Copie 'taille' octets depuis la source vers la destination
 // La copie se fait comme si un tampon intermédiaire a été utilisé,
 // permettant à la source et à la destination de se surposer.
-copie_mem :: fonc(src : []octet, dst : []octet, taille : z64) -> rien
+copie_mem :: fonc(src : [..]octet, dst : [..]octet, taille : z64) -> rien
 {
     si src.taille < taille {
         retourne
@@ -109,7 +109,7 @@ copie_mem :: fonc(src : []octet, dst : []octet, taille : z64) -> rien
 // vulnérabilités ! Nous faisons une vérification dans notre version 'copie_mem'.
 // Cette fonction est plus ici pour avoir une symétrie avec la bibliothèque C
 // qu'autre chose.
-bouge_mem :: fonc(source : []octet, destination : []octet, taille : z64) -> rien
+bouge_mem :: fonc(source : [..]octet, destination : [..]octet, taille : z64) -> rien
 {
     copie_mem(source, destination, taille)
 }
@@ -120,7 +120,7 @@ déplace_mémoire_nonsur :: fonc(src : *octet, dst : *octet, taille : z64) -> ri
 }
 
 // À FAIRE : considération pour la surposition de blocs.
-echange_mem :: fonc(a : []octet, b : []octet) -> rien
+echange_mem :: fonc(a : [..]octet, b : [..]octet) -> rien
 {
     tmp : [128]octet
 
@@ -158,7 +158,7 @@ echange_mem :: fonc(a : []octet, b : []octet) -> rien
     }
 }
 
-init_mem :: fonc(destination : []octet, valeur : z8, taille : z64) -> rien
+init_mem :: fonc(destination : [..]octet, valeur : z8, taille : z64) -> rien
 {
     t := taille
     si destination.taille < taille {
@@ -170,14 +170,14 @@ init_mem :: fonc(destination : []octet, valeur : z8, taille : z64) -> rien
     }
 }
 
-cherche_mem :: fonc(source : []octet, valeur : z8, taille : z64) -> []octet
+cherche_mem :: fonc(source : [..]octet, valeur : z8, taille : z64) -> [..]octet
 {
     t := taille
     si source.taille < taille {
         t = source.taille
     }
 
-    ret : []octet
+    ret : [..]octet
 
     pour i dans 0...t - 1 {
         si source[i] == valeur comme octet {

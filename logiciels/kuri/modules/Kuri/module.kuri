@@ -12,9 +12,13 @@ charge "r16"
 // Par contre, ce fichier ne devrait pas pouvoir être modifié par les
 // utilisateurs du langage.
 
-malloc :: fonc (taille : n64) -> *rien #externe libc
-realloc :: fonc (ptr : *rien, taille : n64) -> *rien #externe libc
-free :: fonc (ptr : *rien) -> rien #externe libc
+// --------------------------
+
+valeur_nulle :: fonc ($T: type_de_données) -> T
+{
+    v: T
+    retourne v
+}
 
 // --------------------------
 
@@ -276,7 +280,7 @@ nombre_de_trace :: fonc (racine: *TraceAppel) -> z64
     retourne résultat
 }
 
-copie_trace_appel :: fonc (racine: *TraceAppel, tableau: []TraceAppel)
+copie_trace_appel :: fonc (racine: *TraceAppel, tableau: [..]TraceAppel)
 {
     trace := racine
     index := 0
@@ -291,21 +295,21 @@ copie_trace_appel :: fonc (racine: *TraceAppel, tableau: []TraceAppel)
     }
 }
 
-enregistre_liste_trace_appels :: fonc (racine: *TraceAppel) -> []TraceAppel
+enregistre_liste_trace_appels :: fonc (racine: *TraceAppel) -> [..]TraceAppel
 {
     n := nombre_de_trace(racine)
 
     /* À FAIRE: remplace l'appel à malloc par allocatrice_défaut, ou loge_mémoire. */
     t := malloc(taille_de(TraceAppel) * n comme n64)
 
-    tableau_traces : []TraceAppel
+    tableau_traces : [..]TraceAppel
     tableau_traces.pointeur = t
     tableau_traces.taille = n
     copie_trace_appel(racine, tableau_traces)
     retourne tableau_traces
 }
 
-imprime_trace :: fonc (tableau: []TraceAppel, enchaineuse: *Enchaineuse)
+imprime_trace :: fonc (tableau: [..]TraceAppel, enchaineuse: *Enchaineuse)
 {
     pour tableau {
         trace := it
@@ -316,7 +320,7 @@ imprime_trace :: fonc (tableau: []TraceAppel, enchaineuse: *Enchaineuse)
     }
 }
 
-détruit_liste_trace_appels :: fonc (tableau_traces: []TraceAppel)
+détruit_liste_trace_appels :: fonc (tableau_traces: [..]TraceAppel)
 {
     free(tableau_traces.pointeur)
 }
@@ -664,9 +668,9 @@ test_compare_chaine :: fonc () -> rien
 
 strlen :: fonc (str: *z8) -> n64 #externe libc
 
-arguments_ligne_commande :: fonc () -> []chaine
+arguments_ligne_commande :: fonc () -> [..]chaine
 {
-    tabl_args : []chaine
+    tabl_args : [..]chaine
 
     si __arguments_ligne_commande.taille == 0 {
         retourne tabl_args

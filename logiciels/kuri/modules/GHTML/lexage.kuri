@@ -62,7 +62,7 @@ Lexeuse :: struct {
     début_mot : *z8
     fin : *z8
 
-    lexèmes : []Lexème
+    lexèmes : [..]Lexème
 
     position_ligne := 0
     compte_ligne := 0

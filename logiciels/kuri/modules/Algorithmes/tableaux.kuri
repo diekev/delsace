@@ -1,6 +1,6 @@
 /* Enveloppes autours des algorithmes pour les tableaux et autres fonctions. */
 
-tableau_inverse :: fonc (tableau: []$T) #enligne
+tableau_inverse :: fonc (tableau: [..]$T) #enligne
 {
     inverse(tableau.pointeur, tableau.pointeur + tableau.taille)
 }

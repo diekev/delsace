@@ -3,7 +3,7 @@
  */
 
 File :: struct ($T: type_de_données) {
-    données: []T
+    données: [..]T
     taille: z32
 }
 

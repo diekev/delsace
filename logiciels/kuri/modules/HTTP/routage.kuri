@@ -91,7 +91,7 @@ ParamètresRequête :: struct {
 ParamètresRoutage :: struct {
 }
 
-règles_ont_au_moins_un_paramètre :: fonc (règles: []RègleRoutage) -> bool
+règles_ont_au_moins_un_paramètre :: fonc (règles: [..]RègleRoutage) -> bool
 {
     pour règles {
         si it.action != ActionRègleRoutage.ApparieChaineLittérale {
@@ -102,9 +102,9 @@ règles_ont_au_moins_un_paramètre :: fonc (règles: []RègleRoutage) -> bool
     retourne faux
 }
 
-apparie_paramètres_à_la_structure :: fonc (règles: []RègleRoutage, infos: *InfoType) -> bool
+apparie_paramètres_à_la_structure :: fonc (règles: [..]RègleRoutage, infos: *InfoType) -> bool
 {
-    si infos.id != id_info.STRUCTURE {
+    si infos.id != GenreInfoType.STRUCTURE {
         retourne faux
     }
 
@@ -133,7 +133,7 @@ apparie_paramètres_à_la_structure :: fonc (règles: []RègleRoutage, infos: *I
     retourne vrai
 }
 
-calcul_priorité :: fonc (règles: []RègleRoutage) -> z32
+calcul_priorité :: fonc (règles: [..]RègleRoutage) -> z32
 {
     priorité := 0
 
@@ -153,7 +153,7 @@ NouvelleRouteuse :: struct {
     // À FAIRE
     rappel_page_non_trouvée: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
 
-    extension_fichiers: []chaine
+    extension_fichiers: [..]chaine
 }
 
 apparie_fichiers :: fonc (routeuse: &NouvelleRouteuse, extension: chaine)
@@ -239,11 +239,11 @@ apparie_fichier :: fonc (routeuse: &NouvelleRouteuse @inutilisée, chemin: chain
 // --------------------------------
 // #portée_fichier
 
-divise_url :: fonc (ligne: chaine) -> []chaine
+divise_url :: fonc (ligne: chaine) -> [..]chaine
 {
     taille_mot : z64 = 0
     début_mot : z64 = 0
-    mots : []chaine
+    mots : [..]chaine
 
     premier_slash := vrai
 
@@ -308,7 +308,7 @@ ErreurParsage :: erreur {
 
 ErreurOuRèglesRoutage :: union {
     e: ErreurParsage
-    r: []RègleRoutage
+    r: [..]RègleRoutage
 }
 
 parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
@@ -316,7 +316,7 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
     éléments := divise_url(route)
     diffère { déloge(éléments) }
 
-    résultat : []RègleRoutage
+    résultat : [..]RègleRoutage
 
     pour éléments {
         règle : RègleRoutage
@@ -354,7 +354,7 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
 // ---------------------------------------------------------------------
 // Rassemblement des fonctions de parsage pour les paramètres de routage
 
-__fonctions_parsage_routes : []FonctionParsage
+__fonctions_parsage_routes : [..]FonctionParsage
 
 trouve_fonction_parsage_pour_type :: fonc (info: *InfoType)
 {
@@ -397,7 +397,7 @@ génère_fonction_enveloppe_routage :: fonc (enchaineuse: *Enchaineuse, données
 {
     nom_enveloppe := enchaine("parsage_routes_", données.fonction.nom)
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: [..]octet) -> bool\n")
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
     ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")

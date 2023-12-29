@@ -1,7 +1,7 @@
 importe Algorithmes // pour échange
 importe GlibC
 
-tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc(T, T)(bool)) -> rien
+tri_par_sélection :: fonc (éléments: [..]$T, comparaison: fonc(T, T)(bool)) -> rien
 {
     pour i dans 0 ... éléments.taille - 2 {
         index_min : z64 = i
@@ -16,7 +16,7 @@ tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc(T, T)(bool)) -> 
     }
 }
 
-tri_rapide :: fonc (éléments: []$T, $Comparaison: fonc(T, T)(z32))
+tri_rapide :: fonc (éléments: [..]$T, $Comparaison: fonc(T, T)(z32))
 {
     rappel_interne :: fonc (a: *rien, b: *rien) -> (o: z32)
     {
