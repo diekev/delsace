@@ -5,10 +5,10 @@ importe Numérique
 
 MessageHTTP :: struct {
     version: chaine
-    entêtes: []Entête
+    entêtes: [..]Entête
     contenu: chaine
 
-    cookies : []Cookie
+    cookies : [..]Cookie
 }
 
 détruit_message :: fonc (message: *MessageHTTP)

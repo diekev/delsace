@@ -218,9 +218,9 @@ tri_classes_css :: fonc (chn_classe: ChaineUTF16) -> ChaineUTF16
     retourne chaine_depuis_enchaineuse(enchaineuse)
 }
 
-cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: *ChaineInternée, attributs: []Attribut) -> []Attribut
+cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: *ChaineInternée, attributs: [..]Attribut) -> [..]Attribut
 {
-    résultat : []Attribut
+    résultat : [..]Attribut
 
     pour & attributs {
         si peut_ignorer_attribut(contexte_formattage, tag, it) {

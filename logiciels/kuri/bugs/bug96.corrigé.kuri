@@ -4,7 +4,7 @@
 
 importe Couleur
 
-retourne_plusieurs_couleurs :: fonc () -> []Couleur
+retourne_plusieurs_couleurs :: fonc () -> [..]Couleur
 {
     couleurs: [5]Couleur.CouleurRVBA
 

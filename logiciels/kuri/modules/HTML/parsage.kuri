@@ -9,7 +9,7 @@ TypeFonctionModeInsertion :: fonc(*Parseuse, Lexème)(rien)
 Parseuse :: struct {
     mode_insertion : TypeFonctionModeInsertion
     mode_insertion_original : TypeFonctionModeInsertion
-    pile_insertion_template : []TypeFonctionModeInsertion
+    pile_insertion_template : [..]TypeFonctionModeInsertion
     lexeuse: Lexeuse
     document: *Document
 
@@ -27,7 +27,7 @@ Parseuse :: struct {
 
     niveau_imbrication_script := 0
 
-    erreurs: []chaine
+    erreurs: [..]chaine
 }
 
 initialise_parseuse :: fonc (entrée: chaine) -> Parseuse

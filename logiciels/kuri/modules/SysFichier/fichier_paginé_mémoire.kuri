@@ -28,12 +28,12 @@ détruit_fichier :: fonc (fichier: *FichierPaginéMémoire)
     déloge_toutes_les_pages(fichier)
 }
 
-aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> []octet
+aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> [..]octet
 {
     nombre_de_pages := nombre_de_pages_dans_liste(fichier.première_page)
     taille_octet := nombre_de_pages * TAILLE_PAGE
 
-    résultat : []octet
+    résultat : [..]octet
     tableau_redimensionne(résultat, taille_octet)
 
     dst := résultat.pointeur
@@ -139,7 +139,7 @@ supprime_page :: fonc (fichier: *FichierPaginéMémoire, page: *FichierPaginéM�
 
     page_courante := fichier.première_page
     tantque page_courante != nul {
-        données : []octet = page_courante.données
+        données : [..]octet = page_courante.données
         données.taille = page_courante.occupé
         _ := écris(*fichier_disque, données)
         page_courante = page_courante.page_suivante
@@ -175,7 +175,7 @@ crée_sérialiseuse :: fonc (fichier: *FichierPaginéMémoire) -> SérialiseuseF
     retourne résultat
 }
 
-sérialise :: fonc (sérialiseuse: *SérialiseuseFichier, valeur: []octet)
+sérialise :: fonc (sérialiseuse: *SérialiseuseFichier, valeur: [..]octet)
 {
     si valeur.taille == 0 {
         retourne
@@ -208,7 +208,7 @@ sérialise :: fonc (sérialiseuse: *SérialiseuseFichier, valeur: []octet)
     }
 }
 
-écris_données_au_curseur :: fonc (sérialiseuse: *SérialiseuseFichier, données: []octet)
+écris_données_au_curseur :: fonc (sérialiseuse: *SérialiseuseFichier, données: [..]octet)
 {
     copie_mem_nonsur(src = données.pointeur, dst = sérialiseuse.curseur, taille = données.taille)
 

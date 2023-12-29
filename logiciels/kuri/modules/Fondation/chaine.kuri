@@ -50,7 +50,7 @@ construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine
     retourne ret
 }
 
-chaine_depuis_tableau_octets :: fonc (données: []octet) -> chaine
+chaine_depuis_tableau_octets :: fonc (données: [..]octet) -> chaine
 {
     retourne construit_chaine(données.pointeur comme *z8, données.taille)
 }
@@ -85,14 +85,14 @@ est_vide :: fonc(chn : chaine) -> bool
     retourne chn.taille == 0
 }
 
-divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
+divise :: fonc (ligne: chaine, séparation: z8) -> [..]chaine
 {
-    mots : []chaine
+    mots : [..]chaine
     divise(ligne, séparation, *mots)
     retourne mots
 }
 
-divise :: fonc (ligne: chaine, séparation: z8, résultat: *[]chaine, réinitialise_résultat := vrai)
+divise :: fonc (ligne: chaine, séparation: z8, résultat: *[..]chaine, réinitialise_résultat := vrai)
 {
     si réinitialise_résultat {
         résultat.taille = 0
@@ -122,7 +122,7 @@ divise :: fonc (ligne: chaine, séparation: z8, résultat: *[]chaine, réinitial
     }
 }
 
-divise :: fonc (chn: chaine, séparation: chaine, résultat: *[]chaine, réinitialise_résultat := vrai)
+divise :: fonc (chn: chaine, séparation: chaine, résultat: *[..]chaine, réinitialise_résultat := vrai)
 {
     si réinitialise_résultat {
         résultat.taille = 0
@@ -150,14 +150,14 @@ divise :: fonc (chn: chaine, séparation: chaine, résultat: *[]chaine, réiniti
     }
 }
 
-divise :: fonc (ligne: chaine, séparation: chaine) -> []chaine
+divise :: fonc (ligne: chaine, séparation: chaine) -> [..]chaine
 {
-    mots : []chaine
+    mots : [..]chaine
     divise(ligne, séparation, *mots)
     retourne mots
 }
 
-divise_depuis_le_début :: fonc (entrée: chaine, séparateur: chaine, nombre_max := -1) -> []chaine
+divise_depuis_le_début :: fonc (entrée: chaine, séparateur: chaine, nombre_max := -1) -> [..]chaine
 {
     résultat_temp := divise(entrée, séparateur)
 
@@ -165,7 +165,7 @@ divise_depuis_le_début :: fonc (entrée: chaine, séparateur: chaine, nombre_ma
         retourne résultat_temp
     }
 
-    résultat : []chaine
+    résultat : [..]chaine
 
     taille_chaine : z64 = 0
 
@@ -184,7 +184,7 @@ divise_depuis_le_début :: fonc (entrée: chaine, séparateur: chaine, nombre_ma
     retourne résultat
 }
 
-divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_maximums := -1) -> []chaine
+divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_maximums := -1) -> [..]chaine
 {
     résultat_temp := divise(entrée, séparateur)
 
@@ -192,7 +192,7 @@ divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_ma
         retourne résultat_temp
     }
 
-    résultat : []chaine
+    résultat : [..]chaine
 
     nombre_de_divions := résultat_temp.taille - 1
     delta := nombre_de_divions - divisions_maximums
