@@ -93,7 +93,7 @@ limite_haute :: fonc (f : *$T, l : *T, v : T) -> *T
     retourne fl
 }
 
-tous_de :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> bool
+tous_de :: fonc (tableau: [..]$T, prédicat: fonc (T)(bool)) -> bool
 {
     pour tableau {
         saufsi prédicat(it) {
@@ -104,7 +104,7 @@ tous_de :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> bool
     retourne vrai
 }
 
-aucun_de :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> bool
+aucun_de :: fonc (tableau: [..]$T, prédicat: fonc (T)(bool)) -> bool
 {
     pour tableau {
         si prédicat(it) {
@@ -115,9 +115,9 @@ aucun_de :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> bool
     retourne vrai
 }
 
-copie_si :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> []T
+copie_si :: fonc (tableau: [..]$T, prédicat: fonc (T)(bool)) -> [..]T
 {
-    résultat : []T
+    résultat : [..]T
     tableau_réserve(*résultat, tableau.taille)
 
     pour tableau {
@@ -129,9 +129,9 @@ copie_si :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> []T
     retourne résultat
 }
 
-copie :: fonc (tableau: []$T) -> []T
+copie :: fonc (tableau: [..]$T) -> [..]T
 {
-    résultat : []T
+    résultat : [..]T
     tableau_réserve(*résultat, tableau.taille)
 
     pour tableau {
@@ -141,7 +141,7 @@ copie :: fonc (tableau: []$T) -> []T
     retourne résultat
 }
 
-accumule :: fonc (tableau: []$T, valeur_initiale: $V, rappel: fonc (T)(V)) -> V
+accumule :: fonc (tableau: [..]$T, valeur_initiale: $V, rappel: fonc (T)(V)) -> V
 {
     résultat := valeur_initiale
 
@@ -152,7 +152,7 @@ accumule :: fonc (tableau: []$T, valeur_initiale: $V, rappel: fonc (T)(V)) -> V
     retourne résultat
 }
 
-accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
+accumule :: fonc (tableau: [..]$T, valeur_initiale: T) -> T
 {
     résultat := valeur_initiale
 
@@ -167,7 +167,7 @@ accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
  * Ceci accumule moins d'erreur en point flottant.
  * https://en.wikipedia.org/wiki/Kahan_summation_algorithm
  */
-accumule_selon_kahan_babuska_version_neumaier :: fonc (tableau: []r32) -> r32
+accumule_selon_kahan_babuska_version_neumaier :: fonc (tableau: [..]r32) -> r32
 {
     saufsi tableau {
         retourne 0.0
@@ -242,7 +242,7 @@ pivote :: fonc (premier: *$T, milieu: *T, dernier: *T) -> *T
     taille_fin := distance(milieu, dernier)
 
     /* À FAIRE : évite d'allouer de la mémoire */
-    tampon : []T
+    tampon : [..]T
     diffère déloge(tampon)
     tableau_redimensionne(tampon, taille_début)
 

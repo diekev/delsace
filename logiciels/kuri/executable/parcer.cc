@@ -55,7 +55,7 @@ using dls::outils::est_element;
  *      devient
  *      i : *z32 = loge [a * b]z32
  *      et non
- *      i : []z32 = loge [a * b]z32
+ *      i : [..]z32 = loge [a * b]z32
  * - gestion correcte des typedefs, notamment pour typedef struct XXX { ... } XXX;
  */
 

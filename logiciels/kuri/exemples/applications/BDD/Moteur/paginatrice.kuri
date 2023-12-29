@@ -5,7 +5,7 @@ TAILLE_PAGE :: 4096
 TABLE_MAX_PAGES :: 100
 
 Paginatrice :: struct {
-    pages : [100][]octet
+    pages : [100][..]octet
     fichier := fichier_invalide()
     taille_fichier : z64 = 0
     utilise_stockage_disque := faux
@@ -30,7 +30,7 @@ ouvre_paginatrice_mémoire :: fonc () -> *Paginatrice
     retourne loge(Paginatrice)
 }
 
-trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
+trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> [..]octet
 {
     si index_page > TABLE_MAX_PAGES {
         panique("Tentative de prendre une page hors des limites : % > %", index_page, TABLE_MAX_PAGES)

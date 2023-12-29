@@ -5,9 +5,9 @@ Fragment :: struct {
     taille := 0
 }
 
-fragmente_texte :: fonc (texte: chaine) -> []Fragment
+fragmente_texte :: fonc (texte: chaine) -> [..]Fragment
 {
-    fragments : []Fragment
+    fragments : [..]Fragment
 
     début_mot := 0
     dernier_fut_espace := faux
@@ -45,13 +45,13 @@ fragmente_texte :: fonc (texte: chaine) -> []Fragment
 }
 
 Ligne :: struct {
-    fragments : []Fragment
+    fragments : [..]Fragment
 
     taille : z32
 }
 
 Document :: struct {
-    lignes : []Ligne
+    lignes : [..]Ligne
     texte : chaine
 
     taille_ligne : z32 = 80

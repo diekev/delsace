@@ -15,7 +15,7 @@
  */
 
 MaStructure :: struct {
-    tabl : []z32
+    tabl : [..]z32
 }
 
 principale :: fonc () -> z32

@@ -14,12 +14,13 @@
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
 
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "typage.hh"
 #include "utilitaires/log.hh"
 
-static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique const &nom)
+static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom)
 {
     auto debut = nom.pointeur();
     auto fin = nom.pointeur() + nom.taille();
@@ -56,7 +57,7 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique con
     }
 }
 
-kuri::chaine_statique Broyeuse::broye_nom_simple(kuri::chaine_statique const &nom)
+kuri::chaine_statique Broyeuse::broye_nom_simple(kuri::chaine_statique nom)
 {
     stockage_temp.réinitialise();
     ::broye_nom_simple(stockage_temp, nom);
@@ -98,7 +99,7 @@ int64_t Broyeuse::mémoire_utilisée() const
  *
  * Exemples :
  * *z8 devient KPKsz8
- * &[]Foo devient KRKtKsFoo
+ * &[..]Foo devient KRKtKsFoo
  */
 static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
 {
@@ -197,15 +198,21 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         {
             auto type_pointe = type->comme_type_variadique()->type_pointe;
 
-            // les arguments variadiques sont transformés en tableaux, donc utilise Kt
+            // les arguments variadiques sont transformés en tranches, donc utilise Kz
             if (type_pointe != nullptr) {
-                enchaineuse << "Kt";
+                enchaineuse << "Kz";
                 broye_nom_type(enchaineuse, type_pointe);
             }
             else {
                 enchaineuse << "Kv";
             }
 
+            break;
+        }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            enchaineuse << "Kz";
+            broye_nom_type(enchaineuse, type->comme_type_tranche()->type_élément);
             break;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
@@ -261,9 +268,9 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
             enchaineuse << "KlTuple" << type;
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }
@@ -412,7 +419,11 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
     }
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
-        stockage_temp << "initialise_" << decl->type_initialisé();
+        auto const options = OptionsImpressionType::POUR_FONCTION_INITIALISATION;
+        auto nom_type = chaine_type(decl->type_initialisé(), options);
+        auto nom_type_broyé = broye_nom_simple(nom_type);
+        stockage_temp.réinitialise();
+        stockage_temp << "initialise_" << nom_type_broyé;
         return chaine_finale_pour_stockage_temp();
     }
 

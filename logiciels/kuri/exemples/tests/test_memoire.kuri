@@ -6,8 +6,8 @@ test_echange_memoire :: fonc() -> rien
 
     chn := "0123456789";
 
-    a : []octet;
-    b : []octet;
+    a : [..]octet;
+    b : [..]octet;
 
     echange_mem(a, b);
 }
@@ -18,13 +18,13 @@ test_bouge_memoire :: fonc() -> rien
 
     chn := "0123456789";
 
-    a : []octet;
-    b : []octet;
+    a : [..]octet;
+    b : [..]octet;
 
     bouge_mem(a, b, 0);
 }
 
-copie_mem2 :: fonc(src : []octet, dst : []octet, taille : z64) -> rien
+copie_mem2 :: fonc(src : [..]octet, dst : [..]octet, taille : z64) -> rien
 {
     si src.taille < taille {
         retourne;
@@ -75,10 +75,10 @@ test_copie_mem :: fonc() -> rien
 
     imprime("Chaine : ", chn, '\n');
 
-    a : []octet;
+    a : [..]octet;
     a.pointeur = *chn[3];
     a.taille = 7;
-    b : []octet;
+    b : [..]octet;
     b.pointeur = *chn[0];
     b.taille = 10;
 

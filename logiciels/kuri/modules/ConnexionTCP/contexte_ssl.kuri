@@ -15,7 +15,7 @@ ContextePriseSSL :: struct {
      * fonctions appeleront a leurs tours les rappels de l'application qui sont stockés ici.
      */
     sur_écriture_base : fonc(*Prise)(rien)
-    sur_données_reçues_base : fonc(*Prise, []octet)(rien)
+    sur_données_reçues_base : fonc(*Prise, [..]octet)(rien)
     sur_ouverture_base : fonc(*Prise, bool)(rien)
     sur_fermeture_base : fonc(*Prise)(rien)
 }
@@ -101,7 +101,7 @@ sur_ouverture_ssl :: fonc (prise: *Prise, est_client: bool) -> rien
     ctx_prise_ssl.sur_ouverture_base(prise, est_client)
 }
 
-sur_données_reçues_ssl :: fonc (prise: *Prise, données: []octet)
+sur_données_reçues_ssl :: fonc (prise: *Prise, données: [..]octet)
 {
     ctx_prise_ssl := prise.contexte_ comme *ContextePriseSSL
     prise_ssl := prise comme *PriseSSL
@@ -168,7 +168,7 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: []octet)
 
             ctx_prise_ssl = prise.contexte_ comme *ContextePriseSSL
 
-            données_déchiffrées : []octet = ---
+            données_déchiffrées : [..]octet = ---
             données_déchiffrées.pointeur = données_ssl_boucle.ssl_read_output + MARGE_TAMPON_RÉCEPTION
             données_déchiffrées.taille = octets_lus
 
@@ -226,7 +226,7 @@ sur_écriture_ssl :: fonc (prise: *Prise) -> rien
         prise_ssl.lecture_ssl_veut_écrire = faux
 
         ctx_prise_ssl = prise.contexte_ comme *ContextePriseSSL
-        données : []octet
+        données : [..]octet
         ctx_prise_ssl.quand_données_reçues_(prise, données)
     }
 
@@ -255,7 +255,7 @@ contexte_ssl_parasite_quand_ouverture :: fonc (ctx: *ContextePriseSSL, rappel: f
     retourne sur_ouverture_ssl
 }
 
-contexte_ssl_parasite_quand_données_reçues :: fonc (ctx: *ContextePriseSSL, rappel: fonc (*Prise, []octet)(rien)) -> type_de(rappel)
+contexte_ssl_parasite_quand_données_reçues :: fonc (ctx: *ContextePriseSSL, rappel: fonc (*Prise, [..]octet)(rien)) -> type_de(rappel)
 {
     ctx.sur_données_reçues_base = rappel
     retourne sur_données_reçues_ssl

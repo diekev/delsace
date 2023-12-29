@@ -53,10 +53,10 @@ ContexteAffichage :: struct {
  */
 ContexteInterface :: struct {
     /* Le menu étant affiché. */
-    menus_affichés: []*PanneauMenu
+    menus_affichés: [..]*PanneauMenu
     fonte: *Fonte
 
-    diviseurs: []*PanneauDiviseur
+    diviseurs: [..]*PanneauDiviseur
 
     panneau_racine: *Panneau
 
@@ -269,7 +269,7 @@ définis_curseur_souris :: fonc (empl contexte: *ContexteInterface, type_curseur
 Panneau :: struct {
     contexte: *ContexteInterface
     parent: *Panneau
-    enfants: []*Panneau
+    enfants: [..]*Panneau
 
     identifiant : chaine
 

@@ -11,7 +11,7 @@ DonnéesSymbole :: struct {
 }
 
 TableSymboles :: struct {
-    symboles: []DonnéesSymbole
+    symboles: [..]DonnéesSymbole
 }
 
 rappel_pour_chaque_ligne :: fonc (ligne: chaine, données: eini)

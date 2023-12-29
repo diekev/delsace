@@ -39,7 +39,7 @@ compile :: fonc ()
     lexèmes := compilatrice_lèxe_fichier("doc.kuri")
     diffère { déloge(lexèmes) }
 
-    données : []DonnéesDocument
+    données : [..]DonnéesDocument
     diffère { déloge(données) }
 
     index_début : z64
@@ -89,7 +89,7 @@ compile :: fonc ()
             imprime("<p>%</p>\n", texte)
         }
         sinon {
-            sous_lexèmes : []Lexème
+            sous_lexèmes : [..]Lexème
             sous_lexèmes.pointeur = *lexèmes[it.index_début]
             sous_lexèmes.taille = it.index_fin - it.index_début
 

@@ -846,7 +846,7 @@ test_valeur_types :: fonc () -> bool
 // ----------------------------------------------------------------------------
 // Tests tableau octet
 
-taille_tableau_octet :: fonc (tableau: []octet) -> z64
+taille_tableau_octet :: fonc (tableau: [..]octet) -> z64
 {
     retourne tableau.taille
 }
@@ -886,20 +886,20 @@ test_passe_tableau_fixe :: fonc (index: z64) -> z32
 #assert test_passe_tableau_fixe(1) == 1
 #assert test_passe_tableau_fixe(2) == 2
 
-passe_tableau_dynamique :: fonc (t: []z32, index: z64) -> z32
+passe_tranche :: fonc (t: []z32, index: z64) -> z32
 {
     retourne t[index]
 }
 
-test_conversion_tableau_dynamique :: fonc (index: z64) -> z32
+test_conversion_tranche :: fonc (index: z64) -> z32
 {
     t := [0, 1, 2]
-    retourne passe_tableau_dynamique(t, index)
+    retourne passe_tranche(t, index)
 }
 
-#assert test_conversion_tableau_dynamique(0) == 0
-#assert test_conversion_tableau_dynamique(1) == 1
-#assert test_conversion_tableau_dynamique(2) == 2
+#assert test_conversion_tranche(0) == 0
+#assert test_conversion_tranche(1) == 1
+#assert test_conversion_tranche(2) == 2
 
 test_modification_tableau_boucle :: fonc () -> bool
 {
@@ -943,7 +943,7 @@ test_info_de_z32 :: fonc () -> bool
 {
     infos := info_de(z32)
 
-    si infos.id != id_info.ENTIER {
+    si infos.id != GenreInfoType.ENTIER {
         retourne faux
     }
 
@@ -962,7 +962,7 @@ test_info_de_r32 :: fonc () -> bool
 {
     infos := info_de(r32)
 
-    si infos.id != id_info.RÉEL {
+    si infos.id != GenreInfoType.RÉEL {
         retourne faux
     }
 
@@ -977,7 +977,7 @@ test_info_de_structure :: fonc () -> bool
 {
     infos := info_de(Vecteur)
 
-    si infos.id != id_info.STRUCTURE {
+    si infos.id != GenreInfoType.STRUCTURE {
         retourne faux
     }
 
@@ -1004,7 +1004,7 @@ test_info_de_structure :: fonc () -> bool
             retourne faux
         }
 
-        si it.id.id != id_info.ENTIER {
+        si it.id.id != GenreInfoType.ENTIER {
             retourne faux
         }
     }

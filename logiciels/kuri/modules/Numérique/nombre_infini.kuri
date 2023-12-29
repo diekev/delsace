@@ -9,7 +9,7 @@ importe Fondation
  */
 
 NombreInfini :: struct {
-    chiffres : []n8
+    chiffres : [..]n8
 }
 
 factorielle :: fonc (n: NombreInfini) -> NombreInfini
@@ -446,7 +446,7 @@ divise :: fonc (n: NombreInfini, m: NombreInfini) -> NombreInfini
 /** \nom Fonctions auxiliaires pour les tableaux de chiffres.
  * \{ */
 
-ajoute_chiffres_depuis_nombre :: fonc (chiffres: *[]n8, n: n64)
+ajoute_chiffres_depuis_nombre :: fonc (chiffres: *[..]n8, n: n64)
 {
     si n < 10 {
         tableau_ajoute(chiffres, n comme n8)

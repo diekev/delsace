@@ -312,7 +312,7 @@ test_transtypage_vers_bases_multiple_avec_indirection :: fonc ()
         un_réel: r32
         un_bool: bool
         empl base1: Base1
-        un_tableau: []octet
+        un_tableau: [..]octet
         empl base2: Base2
     }
 
@@ -455,7 +455,7 @@ test_transtypage_référence_vers_bases_multiple_avec_indirection :: fonc ()
         un_réel: r32
         un_bool: bool
         empl base1: Base1
-        un_tableau: []octet
+        un_tableau: [..]octet
         empl base2: Base2
     }
 

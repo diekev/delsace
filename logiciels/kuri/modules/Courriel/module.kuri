@@ -124,12 +124,12 @@ imprime_correspondant :: fonc (enchaineuse: *Enchaineuse, correspondant: *Corres
 
 Courriel :: struct {
     expéditeur: Correspondant
-    destinataires: []AdresseCourriel
-    destinataires_cc: []AdresseCourriel
-    destinataires_bcc: []AdresseCourriel
+    destinataires: [..]AdresseCourriel
+    destinataires_cc: [..]AdresseCourriel
+    destinataires_bcc: [..]AdresseCourriel
     objet: chaine
-    pièces_jointes: []PièceJointe
-    messages: []chaine
+    pièces_jointes: [..]PièceJointe
+    messages: [..]chaine
 }
 
 détruit_courriel :: fonc (courriel: &Courriel) -> rien
@@ -206,7 +206,7 @@ RéponseServeuse :: struct {
     texte: chaine
     status: z32
     // Les différents textes extraits depuis la réponse (les lignes sans les status)
-    textes: []chaine
+    textes: [..]chaine
 }
 
 est_valide :: fonc (réponse: &RéponseServeuse) -> bool

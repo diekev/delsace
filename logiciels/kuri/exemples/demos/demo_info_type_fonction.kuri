@@ -4,7 +4,7 @@ Objet :: struct {
     nom := "objet"
 }
 
-execute_noeud :: fonc(obj1 : &Objet @inutilisée, objs : []&Objet @inutilisée) -> z32, *Objet
+execute_noeud :: fonc(obj1 : &Objet @inutilisée, objs : [..]&Objet @inutilisée) -> z32, *Objet
 {
     retourne 0, nul
 }
@@ -23,7 +23,7 @@ enregistre_noeud :: fonc(fonc_exec : eini) -> rien
 {
     info := fonc_exec.info
 
-    si info.id != id_info.FONCTION {
+    si info.id != GenreInfoType.FONCTION {
         imprime("Obtenu autre chose qu'une fonction !\n")
         retourne
     }

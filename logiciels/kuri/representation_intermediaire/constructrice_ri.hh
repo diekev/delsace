@@ -25,6 +25,8 @@ using TypeEnum = NoeudEnum;
 struct NoeudDeclarationTypeTableauFixe;
 using TypeTableauFixe = NoeudDeclarationTypeTableauFixe;
 
+enum class GenreInfoType : int32_t;
+
 /* ------------------------------------------------------------------------- */
 /** \name RegistreSymboliqueRI
  * Le registre symbolique crée et stocke les atomes de toutes les fonctions et
@@ -150,10 +152,10 @@ struct ConstructriceRI {
     AtomeInitialisationTableau *crée_initialisation_tableau(Type const *type,
                                                             AtomeConstante const *valeur);
     AtomeNonInitialisation *crée_non_initialisation();
-    AtomeConstante *crée_tableau_global(IdentifiantCode &ident,
-                                        Type const *type,
-                                        kuri::tableau<AtomeConstante *> &&valeurs);
-    AtomeConstante *crée_tableau_global(IdentifiantCode &ident, AtomeConstante *tableau_fixe);
+    AtomeConstante *crée_tranche_globale(IdentifiantCode &ident,
+                                         Type const *type,
+                                         kuri::tableau<AtomeConstante *> &&valeurs);
+    AtomeConstante *crée_tranche_globale(IdentifiantCode &ident, AtomeConstante *tableau_fixe);
     AtomeConstante *crée_initialisation_tableau_global(AtomeGlobale *globale_tableau_fixe,
                                                        TypeTableauFixe const *type_tableau_fixe);
 
@@ -222,7 +224,16 @@ struct ConstructriceRI {
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
   private:
+    void insère(Instruction *inst);
+
     kuri::chaine imprime_site(NoeudExpression const *site) const;
+
+    /* Déduplication des instructions de chargement. Nous ne créons des chargements que la première
+     * fois qu'une valeur est chargée et après chaque stockage vers la valeur chargée. */
+    kuri::tableau<InstructionChargeMem *, int> m_charges{};
+    InstructionChargeMem *donne_charge(Atome *source);
+    /* Appelé lors des stockages pour invalider le cache. */
+    void invalide_charge(Atome *source);
 };
 
 /** \} */
@@ -340,9 +351,9 @@ struct CompilatriceRI {
     AtomeGlobale *crée_info_type(Type const *type, NoeudExpression const *site);
     AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
 
-    AtomeConstante *crée_tableau_global(IdentifiantCode &ident,
-                                        Type const *type,
-                                        kuri::tableau<AtomeConstante *> &&valeurs);
+    AtomeConstante *crée_tranche_globale(IdentifiantCode &ident,
+                                         Type const *type,
+                                         kuri::tableau<AtomeConstante *> &&valeurs);
 
     void génère_ri_pour_initialisation_globales(EspaceDeTravail *espace,
                                                 AtomeFonction *fonction_init,
@@ -403,11 +414,11 @@ struct CompilatriceRI {
                            const TransformationType &transformation,
                            Atome *place);
 
-    AtomeConstante *crée_constante_info_type_pour_base(uint32_t index, Type const *pour_type);
+    AtomeConstante *crée_constante_info_type_pour_base(GenreInfoType index, Type const *pour_type);
     void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
-                                            uint32_t index,
+                                            GenreInfoType index,
                                             Type const *pour_type);
-    AtomeGlobale *crée_info_type_défaut(unsigned index, Type const *pour_type);
+    AtomeGlobale *crée_info_type_défaut(GenreInfoType index, Type const *pour_type);
     AtomeGlobale *crée_info_type_entier(Type const *pour_type, bool est_relatif);
     AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression const *site);
     AtomeGlobale *crée_globale_info_type(Type const *type_info_type,
@@ -424,10 +435,15 @@ struct CompilatriceRI {
     AtomeConstante *donne_tableau_pour_type_sortie(TypeFonction const *type_fonction,
                                                    NoeudExpression const *site);
 
-    Atome *converti_vers_tableau_dyn(NoeudExpression const *noeud,
-                                     Atome *pointeur_tableau_fixe,
-                                     TypeTableauFixe const *type_tableau_fixe,
-                                     Atome *place);
+    Atome *convertis_vers_tranche(NoeudExpression const *noeud,
+                                  Atome *pointeur_tableau_fixe,
+                                  TypeTableauFixe const *type_tableau_fixe,
+                                  Atome *place);
+
+    Atome *convertis_vers_tranche(NoeudExpression const *noeud,
+                                  Atome *pointeur_tableau,
+                                  TypeTableauDynamique const *type_tableau_fixe,
+                                  Atome *place);
 
     AtomeConstante *crée_chaine(kuri::chaine_statique chaine);
 

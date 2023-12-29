@@ -14,7 +14,7 @@ SautImpairePaire :: SautPaireImpaire + 1
 // Returns the PermutationCasse* in the tables that contains rune.
 // If rune is not in the tables, returns the first PermutationCasse* after rune.
 // If rune is larger than any value in the tables, returns NULL.
-donne_permutation_casse :: fonc (table: &[]PermutationCasse, rune: Rune) -> *PermutationCasse
+donne_permutation_casse :: fonc (table: &[..]PermutationCasse, rune: Rune) -> *PermutationCasse
 {
     r := rune comme n32
     n := table.taille

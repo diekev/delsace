@@ -6,7 +6,7 @@ charge "catalogue_fichier"
 
 RendeusePage :: struct {
     catalogue : CatalogueFichier
-    cache_page : []PageGabarit
+    cache_page : [..]PageGabarit
     dossier: chaine
 }
 
@@ -87,7 +87,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
                 page_étendue := recherche_page_étendue.page
                 nouvelle_racine := copie_noeud(syntaxeuse.assembleuse, page_étendue.racine)
 
-                blocs : []*NoeudSyntaxique
+                blocs : [..]*NoeudSyntaxique
                 rassemble_blocs(racine, *blocs)
                 remplace_blocs(nouvelle_racine, blocs)
                 déloge(blocs)
@@ -139,7 +139,7 @@ remplace_enfant :: fonc (parent: *NoeudSyntaxique, enfant: *NoeudSyntaxique, par
     }
 }
 
-rassemble_blocs :: fonc (racine: *NoeudSyntaxique, blocs: *[]*NoeudSyntaxique)
+rassemble_blocs :: fonc (racine: *NoeudSyntaxique, blocs: *[..]*NoeudSyntaxique)
 {
     si racine.type == TypeNoeud.BLOC && racine.nom != "" {
         tableau_ajoute(blocs, racine)
@@ -154,7 +154,7 @@ rassemble_blocs :: fonc (racine: *NoeudSyntaxique, blocs: *[]*NoeudSyntaxique)
  * Si plusieurs blocs du noeud racine ont le même nom, il seront remplacés par le même bloc d'origine.
  * À FAIRE : vérifie que tous les blocs ont été assignés ?
  */
-remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntaxique)
+remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: [..]*NoeudSyntaxique)
 {
     saufsi blocs {
         retourne

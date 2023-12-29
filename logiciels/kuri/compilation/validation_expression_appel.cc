@@ -582,7 +582,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
         /* Si le paramètre est variadique, utilise le type pointé pour vérifier la compatibilité,
          * sinon nous apparierons, par exemple, un « z32 » avec « ...z32 ».
          */
-        type_du_paramètre = type_dereference_pour(type_du_paramètre);
+        type_du_paramètre = type_déréférencé_pour(type_du_paramètre);
 
         if (type_du_paramètre == nullptr) {
             /* Pour les fonctions variadiques externes, nous acceptons tous les types. */
@@ -591,7 +591,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
 
         if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
             /* Pour les expansions variadiques, nous devons également utiliser le type pointé. */
-            type_de_l_expression = type_dereference_pour(type_de_l_expression);
+            type_de_l_expression = type_déréférencé_pour(type_de_l_expression);
         }
     }
 
@@ -755,7 +755,7 @@ static ResultatAppariement apparie_appel_pointeur(
         auto nombre_args = type_fonction->types_entrees.taille();
         auto dernier_type_paramètre =
             type_fonction->types_entrees[type_fonction->types_entrees.taille() - 1];
-        auto type_données_argument_variadique = type_dereference_pour(dernier_type_paramètre);
+        auto type_données_argument_variadique = type_déréférencé_pour(dernier_type_paramètre);
         crée_tableau_args_variadiques(
             contexte, b->lexeme, slots, nombre_args, type_données_argument_variadique);
     }
@@ -962,7 +962,7 @@ static ResultatAppariement apparie_appel_fonction(
     if (fonction_variadique_interne) {
         auto dernier_paramètre = decl->parametre_entree(decl->params.taille() - 1);
         auto dernier_type_paramètre = dernier_paramètre->type;
-        auto type_données_argument_variadique = type_dereference_pour(dernier_type_paramètre);
+        auto type_données_argument_variadique = type_déréférencé_pour(dernier_type_paramètre);
         auto poids_variadique = POIDS_POUR_ARGUMENT_VARIADIQUE;
 
         if (type_données_argument_variadique->possède_drapeau(
@@ -980,7 +980,7 @@ static ResultatAppariement apparie_appel_fonction(
 
             /* La résolution de type retourne un type variadique, mais nous voulons le type pointé.
              */
-            type_données_argument_variadique = type_dereference_pour(
+            type_données_argument_variadique = type_déréférencé_pour(
                 type_données_argument_variadique);
         }
 
@@ -1818,7 +1818,7 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel const *expr,
     état->état = EtatResolutionAppel::État::ARGUMENTS_RASSEMBLÉS;
 }
 
-static ResultatValidation crée_liste_candidates(NoeudExpressionAppel const *expr,
+static RésultatValidation crée_liste_candidates(NoeudExpressionAppel const *expr,
                                                 EtatResolutionAppel *état,
                                                 EspaceDeTravail &espace,
                                                 Sémanticienne &contexte)
@@ -1842,7 +1842,7 @@ static ResultatValidation crée_liste_candidates(NoeudExpressionAppel const *exp
     return CodeRetourValidation::OK;
 }
 
-static ResultatValidation sélectionne_candidate(NoeudExpressionAppel const *expr,
+static RésultatValidation sélectionne_candidate(NoeudExpressionAppel const *expr,
                                                 EtatResolutionAppel *état,
                                                 EspaceDeTravail &espace)
 {
@@ -1907,7 +1907,7 @@ static ResultatValidation sélectionne_candidate(NoeudExpressionAppel const *exp
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
+RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
                                          Sémanticienne &contexte,
                                          NoeudExpressionAppel *expr)

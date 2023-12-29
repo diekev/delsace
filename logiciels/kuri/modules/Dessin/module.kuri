@@ -15,7 +15,7 @@ charge "texte"
 
 TamponDeRendu :: struct {
     rect: RectanglePosDim(z32)
-    données: []CouleurRVBAN8
+    données: [..]CouleurRVBAN8
 }
 
 crée_tampon_de_rendu :: fonc (rect: RectanglePosDim(z32)) -> TamponDeRendu

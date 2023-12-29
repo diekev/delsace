@@ -46,7 +46,7 @@ importe Temps
  */
 
 ContexteVérification :: struct {
-    diagnositiques: []chaine
+    diagnositiques: [..]chaine
 
     possède_titre : bool
     possède_charset : bool

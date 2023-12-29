@@ -20,7 +20,7 @@ sélectionne :: fonc (drapeau : bool, v1 : $T, v2 : T) -> T #enligne
 
 // Déplace les 4 valeurs minimales du tableau à son début.
 // Ceci est plus un exemple d'utilisation de « optionel » et « sélectionne »
-min4 :: fonc (p: []$T)
+min4 :: fonc (p: [..]$T)
 {
     q := p.longueur / 4
     q2 := q + q

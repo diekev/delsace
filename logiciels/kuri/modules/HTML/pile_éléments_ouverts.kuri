@@ -2,7 +2,7 @@ importe Chaine
 importe Fondation
 
 PileÉlémentsOuverts :: struct {
-    éléments: []*Élément
+    éléments: [..]*Élément
 }
 
 noeud_courant :: fonc (pile: *PileÉlémentsOuverts) -> *Élément #enligne

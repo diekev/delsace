@@ -32,7 +32,7 @@ class Broyeuse {
 
   public:
     /* Retourne le nom broyé de la chaine donnée. */
-    kuri::chaine_statique broye_nom_simple(kuri::chaine_statique const &nom);
+    kuri::chaine_statique broye_nom_simple(kuri::chaine_statique nom);
 
     /* Retourne le nom broyé de l'identifiant.
      * Le résultat sera mis en cache dans le type. */

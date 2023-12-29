@@ -155,7 +155,7 @@ chaine_cookie_pour_entête_http :: fonc (cookie: Cookie) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-imprime_cookie_client :: fonc (enchaineuse: *Enchaineuse, cookies: []Cookie, ajoute_nouvelle_ligne: bool)
+imprime_cookie_client :: fonc (enchaineuse: *Enchaineuse, cookies: [..]Cookie, ajoute_nouvelle_ligne: bool)
 {
     saufsi cookies {
         retourne
@@ -174,7 +174,7 @@ imprime_cookie_client :: fonc (enchaineuse: *Enchaineuse, cookies: []Cookie, ajo
     }
 }
 
-chaine_cookie_pour_entête_client :: fonc (cookies: []Cookie, ajoute_nouvelle_ligne: bool) -> chaine
+chaine_cookie_pour_entête_client :: fonc (cookies: [..]Cookie, ajoute_nouvelle_ligne: bool) -> chaine
 {
     saufsi cookies {
         retourne ""
@@ -190,9 +190,9 @@ chaine_cookie_pour_entête_client :: fonc (cookies: []Cookie, ajoute_nouvelle_li
 /* Parse une chaine contenant un ou plusieurs cookies venant d'un client.
  * Ce devra être au format <nom>=<valeur>[; ...].
  */
-parse_cookie_client :: fonc (chn: chaine) -> []Cookie
+parse_cookie_client :: fonc (chn: chaine) -> [..]Cookie
 {
-    résultat: []Cookie
+    résultat: [..]Cookie
 
     saufsi chn {
         retourne résultat
@@ -440,7 +440,7 @@ est_valide :: fonc (cookie: Cookie) -> bool
 /* Fusionne le cookie dans la liste des cookies.
  * Retourne vrai si le cookie est ajouté dans la liste.
  * À FAIRE : age des cookies : stocker la date d'ajout */
-fusionne_cookie :: fonc (cookies: *[]Cookie, cookie: Cookie) -> bool
+fusionne_cookie :: fonc (cookies: *[..]Cookie, cookie: Cookie) -> bool
 {
     tmp := mémoire(cookies)
 

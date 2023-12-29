@@ -128,7 +128,7 @@ défile :: fonc(file: *File) -> rien
 }
 
 Hash :: struct {
-    noeuds: []*NoeudFile
+    noeuds: [..]*NoeudFile
     capacité := 0
 }
 

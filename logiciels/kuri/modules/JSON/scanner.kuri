@@ -77,7 +77,7 @@ ScannerJSON :: struct {
 
     rappel_copie_chaine : fonc(chaine)(chaine)
 
-    erreurs: []Erreur
+    erreurs: [..]Erreur
 }
 
 initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini, rappel_copie_chaine : fonc(chaine)(chaine))
@@ -675,15 +675,14 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
 
 lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 {
-    info := tableau.info comme *InfoTypeTableau
-    type_pointé := info.type_pointé
-
-    si info.est_tableau_fixe {
+    si tableau.est_tableau_fixe() {
+        info := tableau.info comme *InfoTypeTableauFixe
+        type_pointé := info.type_pointé
         pointeur := tableau.pointeur
         index := 0
 
         tantque !scanner.fini() {
-            si index >= info.taille_fixe {
+            si index >= info.nombre_éléments comme z32 {
                 scanner.rapporte_erreur_parsage("trop d'éléments pour le tableau fixe")
                 retourne LexèmeJSON.INVALIDE
             }
@@ -715,13 +714,15 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
             }
         }
 
-        si index < info.taille_fixe {
+        si index < info.nombre_éléments comme z32 {
             scanner.rapporte_erreur_parsage("trop peu d'éléments pour le tableau fixe")
             retourne LexèmeJSON.INVALIDE
         }
     }
     sinon {
-        tampon_tableau : []octet
+        info := tableau.info comme *InfoTypeTableau
+        type_pointé := info.type_pointé
+        tampon_tableau : [..]octet
         index := 0
 
         tantque !scanner.fini() {
@@ -769,7 +770,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 
 importe Compilatrice
 
-__fonctions_parsage_json : []FonctionParsage
+__fonctions_parsage_json : [..]FonctionParsage
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
@@ -802,7 +803,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 {
     nom_enveloppe := enchaine("parsage_json_", données.fonction.nom)
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: [..]octet) -> bool\n")
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
     ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")

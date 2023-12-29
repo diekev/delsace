@@ -22,7 +22,8 @@ using Type = NoeudDeclarationType;
     ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_EINI)                                                \
     ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_EINI)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_TABL_OCTET)                                          \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_TABLEAU)                                              \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_TABLEAU_FIXE_VERS_TRANCHE)                            \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE)                       \
     ENUMERE_TYPE_TRANSFORMATION_EX(PREND_REFERENCE)                                               \
     ENUMERE_TYPE_TRANSFORMATION_EX(DEREFERENCE)                                                   \
     ENUMERE_TYPE_TRANSFORMATION_EX(R16_VERS_R32)                                                  \

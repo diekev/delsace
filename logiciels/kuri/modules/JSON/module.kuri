@@ -43,7 +43,7 @@ rappel_copie_chaine :: fonc (chn: chaine) -> chaine
  */
 parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -> bool, T
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     résultat : T = ---
 
@@ -69,7 +69,7 @@ parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -
  */
 parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) -> bool, T
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     // À FAIRE : erreur en cas d'absence du fichier
     chm := CheminFichier(chemin)

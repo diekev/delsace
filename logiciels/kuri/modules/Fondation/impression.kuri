@@ -329,7 +329,7 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
         valeur_mantisse comme n32,
         9 + valeur_exposant)
 
-    chn_part_entière : []z8
+    chn_part_entière : [..]z8
     diffère déloge(chn_part_entière)
 
     // Perfome toujours au moins une itération, afin d'avoir un zéro au début.
@@ -642,11 +642,42 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
         RIEN {
             ajoute_au_tampon(enchaineuse, "rien")
         }
-        TABLEAU {
+        TABLEAU,
+        TABLEAU_FIXE {
             index := 0
             max_élément := 5
 
             itératrice := crée_itératrice_tableau(valeur)
+
+            ajoute_au_tampon(enchaineuse, "[")
+
+            boucle {
+                valeur_ := itératrice.valeur_suivante()
+
+                saufsi valeur_.est_valide() {
+                    arrête
+                }
+
+                si index >= max_élément {
+            		ajoute_au_tampon(enchaineuse, ", ...")
+                    arrête
+                }
+
+                si index != 0 {
+                    ajoute_au_tampon(enchaineuse, ',')
+                }
+
+                imprime_valeur(enchaineuse, valeur_, vrai)
+                index += 1
+            }
+
+            ajoute_au_tampon(enchaineuse, "]")
+        }
+        TRANCHE {
+            index := 0
+            max_élément := 5
+
+            itératrice := crée_itératrice_tableau_tranche(valeur)
 
             ajoute_au_tampon(enchaineuse, "[")
 
@@ -923,15 +954,18 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
         }
         TABLEAU {
             info_arg := info comme *InfoTypeTableau
-
-            si info_arg.est_tableau_fixe {
-                imprime_dans_enchaineuse(enchaineuse, "[%]", info_arg.taille_fixe)
-            }
-            sinon {
-                ajoute_au_tampon(enchaineuse, "[]")
-            }
-
+            ajoute_au_tampon(enchaineuse, "[..]")
             imprime_type(enchaineuse, info_arg.type_pointé)
+        }
+        TABLEAU_FIXE {
+            info_arg := info comme *InfoTypeTableauFixe
+            imprime_dans_enchaineuse(enchaineuse, "[%]", info_arg.nombre_éléments)
+            imprime_type(enchaineuse, info_arg.type_pointé)
+        }
+        TRANCHE {
+            info_arg := info comme *InfoTypeTranche
+            ajoute_au_tampon(enchaineuse, "[]")
+            imprime_type(enchaineuse, info_arg.type_élément)
         }
         ÉNUM {
             info_arg := info comme *InfoTypeÉnum
@@ -1000,7 +1034,7 @@ assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
 importe Compilatrice
 
 TypeFonctionFormattage :: fonc(*Enchaineuse, eini)(rien)
-__fonctions_formattages_impression : []FonctionInstrospection(TypeFonctionFormattage)
+__fonctions_formattages_impression : [..]FonctionInstrospection(TypeFonctionFormattage)
 
 trouve_fonction_de_formattage :: fonc (info: *InfoType) -> *FonctionInstrospection(TypeFonctionFormattage)
 {
@@ -1024,7 +1058,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
         retourne résultat
     }
 
-    si type_deuxième_paramètre.id != id_info.POINTEUR {
+    si type_deuxième_paramètre.id != GenreInfoType.POINTEUR {
         compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.")
         retourne résultat
     }

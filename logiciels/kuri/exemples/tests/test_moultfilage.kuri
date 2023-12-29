@@ -118,7 +118,7 @@ crée_tâche :: fonc (rappel: fonc(*rien)(*rien), données_rappel: *rien) -> *T�
 }
 
 SystèmeTâche :: struct {
-    tâches : []Tâche
+    tâches : [..]Tâche
 }
 
 principale :: fonc () -> z32

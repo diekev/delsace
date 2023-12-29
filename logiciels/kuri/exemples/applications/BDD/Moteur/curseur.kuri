@@ -24,7 +24,7 @@ curseur_fin_de_table :: fonc (table: *Table) -> *Curseur
     retourne curseur
 }
 
-valeur_curseur :: fonc (curseur: *Curseur) -> []octet
+valeur_curseur :: fonc (curseur: *Curseur) -> [..]octet
 {
     table := curseur.table
 

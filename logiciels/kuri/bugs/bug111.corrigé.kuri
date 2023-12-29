@@ -5,7 +5,7 @@
  */
 
 StructTexte :: struct ($T: type_de_données) #corps_texte {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     retourne "x: r32"
 }

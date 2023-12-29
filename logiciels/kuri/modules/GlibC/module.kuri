@@ -15,6 +15,12 @@ sprintf :: fonc (tmp : ChaineC, fmt : ChaineC, args : ...) -> z32 #externe libc
 
 /* ------------------------------------------------------------------------- */
 
+malloc :: fonc (taille : n64) -> *rien #externe libc
+realloc :: fonc (ptr : *rien, taille : n64) -> *rien #externe libc
+free :: fonc (ptr : *rien) -> rien #externe libc
+
+/* ------------------------------------------------------------------------- */
+
 // ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
 timeval :: struct #externe {
     tv_sec : z64

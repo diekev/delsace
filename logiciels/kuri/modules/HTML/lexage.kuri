@@ -37,7 +37,7 @@ Lexème :: struct {
     // tag début ou fin
     auto_fermant := faux
     drapeau_auto_fermant_reconnu := faux
-    attributs: []Attribut
+    attributs: [..]Attribut
 
     // caractère
     point_de_code: n32

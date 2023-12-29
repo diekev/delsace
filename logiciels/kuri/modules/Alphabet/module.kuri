@@ -4,7 +4,7 @@
  */
 
 Alphabet :: struct {
-    caractères: []z8
+    caractères: [..]z8
 }
 
 détruit_alphabet :: fonc (alphabet: &Alphabet)

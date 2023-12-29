@@ -50,7 +50,7 @@ remplace_processus_par_programme :: fonc (programme: chaine, arguments: ...chain
 
     /* Nous devons convertir les arguments en ChaineC car ils seront utilisés
      * pour le paramètres `argv` de la fonction principale du programme. */
-    arguments_chn_c : []ChaineC
+    arguments_chn_c : [..]ChaineC
 
     /* argv[0] est le programme. */
     tableau_ajoute(*arguments_chn_c, chn_c_programme)
