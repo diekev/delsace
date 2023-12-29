@@ -1312,12 +1312,12 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         m_blocs.empile(bloc);
     }
 
-    void depile_tout()
+    void dépile_tout()
     {
         m_blocs.efface();
     }
 
-    void depile_bloc()
+    void dépile_bloc()
     {
         m_blocs.depile();
     }

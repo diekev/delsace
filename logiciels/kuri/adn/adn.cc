@@ -650,7 +650,7 @@ void SyntaxeuseADN::parse_fonction()
         rapporte_erreur("Attendu une chaine de caractère après « fonction »");
     }
 
-    auto fonction = crée_proteine<ProteineFonction>(lexeme_courant()->chaine);
+    auto fonction = crée_proteine<ProteineFonction>(lexème_courant()->chaine);
     consomme();
 
     // paramètres
@@ -668,7 +668,7 @@ void SyntaxeuseADN::parse_fonction()
                 "Attendu une chaine de caractère pour le nom du paramètre après son type");
         }
 
-        parametre.nom = lexeme_courant()->chaine;
+        parametre.nom = lexème_courant()->chaine;
         consomme();
 
         fonction->ajoute_parametre(parametre);
@@ -699,7 +699,7 @@ void SyntaxeuseADN::parse_fonction()
 
         if (apparie("gcc")) {
             consomme();
-            fonction->définis_symbole_gcc(lexeme_courant()->chaine);
+            fonction->définis_symbole_gcc(lexème_courant()->chaine);
             consomme();
         }
         else if (apparie("intrinsèque")) {
@@ -739,7 +739,7 @@ void SyntaxeuseADN::parse_enum()
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
-    auto proteine = crée_proteine<ProteineEnum>(lexeme_courant()->chaine);
+    auto proteine = crée_proteine<ProteineEnum>(lexème_courant()->chaine);
 
     consomme();
 
@@ -761,7 +761,7 @@ void SyntaxeuseADN::parse_enum()
         }
         else if (apparie("discr")) {
             consomme();
-            proteine->type_discrimine(lexeme_courant()->chaine);
+            proteine->type_discrimine(lexème_courant()->chaine);
             consomme();
         }
         else if (apparie("horslignée")) {
@@ -792,7 +792,7 @@ void SyntaxeuseADN::parse_enum()
         }
 
         auto membre = Membre{};
-        membre.nom = lexeme_courant()->chaine;
+        membre.nom = lexème_courant()->chaine;
 
         proteine->ajoute_membre(membre);
 
@@ -815,8 +815,8 @@ void SyntaxeuseADN::parse_struct()
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
-    auto proteine = crée_proteine<ProteineStruct>(lexeme_courant()->chaine);
-    auto type_proteine = m_typeuse.crée_type_nominal(lexeme_courant()->chaine);
+    auto proteine = crée_proteine<ProteineStruct>(lexème_courant()->chaine);
+    auto type_proteine = m_typeuse.crée_type_nominal(lexème_courant()->chaine);
     type_proteine->est_proteine = proteine;
 
     consomme();
@@ -828,7 +828,7 @@ void SyntaxeuseADN::parse_struct()
             rapporte_erreur("Attendu le nom de la structure mère après « : »");
         }
 
-        auto nom_struct_mere = lexeme_courant()->chaine;
+        auto nom_struct_mere = lexème_courant()->chaine;
 
         POUR (proteines) {
             if (it->nom().nom_kuri() == kuri::chaine_statique(nom_struct_mere)) {
@@ -858,10 +858,10 @@ void SyntaxeuseADN::parse_struct()
                 rapporte_erreur("Attendu une chaine de caractère après @code");
             }
 
-            proteine->mute_nom_code(lexeme_courant()->chaine);
+            proteine->mute_nom_code(lexème_courant()->chaine);
 
-            auto paire = new ProteineStruct(lexeme_courant()->chaine);
-            type_proteine->nom_kuri = lexeme_courant()->chaine;
+            auto paire = new ProteineStruct(lexème_courant()->chaine);
+            type_proteine->nom_kuri = lexème_courant()->chaine;
 
             if (proteine->mere()) {
                 paire->descend_de(proteine->mere()->paire());
@@ -875,11 +875,11 @@ void SyntaxeuseADN::parse_struct()
         else if (apparie("comme")) {
             consomme();
 
-            if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_clé(lexeme_courant()->genre)) {
+            if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_clé(lexème_courant()->genre)) {
                 rapporte_erreur("Attendu une chaine de caractère après @code");
             }
 
-            proteine->mute_nom_comme(lexeme_courant()->chaine);
+            proteine->mute_nom_comme(lexème_courant()->chaine);
             consomme();
         }
         else if (apparie("genre")) {
@@ -889,7 +889,7 @@ void SyntaxeuseADN::parse_struct()
                 rapporte_erreur("Attendu une chaine de caractère après @genre");
             }
 
-            proteine->mute_nom_genre(lexeme_courant()->chaine);
+            proteine->mute_nom_genre(lexème_courant()->chaine);
 
             auto enum_discriminante = proteine->enum_discriminante();
 
@@ -899,7 +899,7 @@ void SyntaxeuseADN::parse_struct()
             }
             else {
                 auto membre = Membre();
-                membre.nom = lexeme_courant()->chaine;
+                membre.nom = lexème_courant()->chaine;
                 enum_discriminante->ajoute_membre(membre);
             }
 
@@ -908,7 +908,7 @@ void SyntaxeuseADN::parse_struct()
         else if (apparie("discr")) {
             consomme();
 
-            auto type_enum = lexeme_courant()->chaine;
+            auto type_enum = lexème_courant()->chaine;
 
             POUR (proteines) {
                 if (!it->comme_enum()) {
@@ -933,7 +933,7 @@ void SyntaxeuseADN::parse_struct()
                 rapporte_erreur("Attendu une chaine de caractère après @genre_valeur");
             }
 
-            proteine->mute_genre_valeur(lexeme_courant()->chaine);
+            proteine->mute_genre_valeur(lexème_courant()->chaine);
             consomme();
         }
         else {
@@ -953,7 +953,7 @@ void SyntaxeuseADN::parse_struct()
             rapporte_erreur("Attendu le nom du membre après son type !");
         }
 
-        membre.nom = lexeme_courant()->chaine;
+        membre.nom = lexème_courant()->chaine;
         consomme();
 
         if (apparie(GenreLexeme::EGAL)) {
@@ -964,7 +964,7 @@ void SyntaxeuseADN::parse_struct()
                 consomme();
             }
 
-            membre.valeur_defaut = lexeme_courant()->chaine;
+            membre.valeur_defaut = lexème_courant()->chaine;
             consomme();
         }
 
@@ -1011,11 +1011,11 @@ void SyntaxeuseADN::parse_struct()
 
 Type *SyntaxeuseADN::parse_type()
 {
-    if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_clé(lexeme_courant()->genre)) {
+    if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_clé(lexème_courant()->genre)) {
         rapporte_erreur("Attendu le nom d'un type");
     }
 
-    auto type_nominal = m_typeuse.crée_type_nominal(lexeme_courant()->chaine);
+    auto type_nominal = m_typeuse.crée_type_nominal(lexème_courant()->chaine);
     Type *type = type_nominal;
 
     POUR (proteines) {
@@ -1039,8 +1039,8 @@ Type *SyntaxeuseADN::parse_type()
         }
     }
 
-    while (est_spécifiant_type(lexeme_courant()->genre)) {
-        if (lexeme_courant()->genre == GenreLexeme::CROCHET_OUVRANT) {
+    while (est_spécifiant_type(lexème_courant()->genre)) {
+        if (lexème_courant()->genre == GenreLexeme::CROCHET_OUVRANT) {
             consomme();
 
             auto est_compresse = false;
@@ -1064,7 +1064,7 @@ Type *SyntaxeuseADN::parse_type()
                      "Attendu un crochet fermant après le crochet ouvrant");
             type = m_typeuse.crée_type_tableau(type, est_compresse, est_synchrone);
         }
-        else if (lexeme_courant()->genre == GenreLexeme::FOIS) {
+        else if (lexème_courant()->genre == GenreLexeme::FOIS) {
             type = m_typeuse.crée_type_pointeur(type);
             consomme();
         }
@@ -1078,7 +1078,7 @@ Type *SyntaxeuseADN::parse_type()
     return type;
 }
 
-void SyntaxeuseADN::gere_erreur_rapportee(const kuri::chaine &message_erreur)
+void SyntaxeuseADN::gère_erreur_rapportée(const kuri::chaine &message_erreur)
 {
     std::cerr << message_erreur << "\n";
 }

@@ -2345,7 +2345,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         }
     }
 
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
     simplifie_arbre(espace, assembleuse, typeuse, entête);
     assigne_fonction_init(type, entête);
     corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;

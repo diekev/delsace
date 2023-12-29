@@ -8,10 +8,10 @@
 #include "lexeuse.hh"
 #include "modules.hh"
 
-BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier) : m_lexemes(fichier->lexèmes), m_fichier(fichier)
+BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier) : m_lexèmes(fichier->lexèmes), m_fichier(fichier)
 {
-    if (m_lexemes.taille() > 0) {
-        m_lexeme_courant = &m_lexemes[0];
+    if (m_lexèmes.taille() > 0) {
+        m_lexème_courant = &m_lexèmes[0];
     }
 }
 
@@ -24,7 +24,7 @@ void BaseSyntaxeuse::analyse()
     m_fichier->temps_analyse = 0.0;
     quand_commence();
 
-    if (m_lexemes.taille() == 0) {
+    if (m_lexèmes.taille() == 0) {
         quand_termine();
         return;
     }
@@ -39,14 +39,14 @@ void BaseSyntaxeuse::analyse()
     quand_termine();
 }
 
-void BaseSyntaxeuse::empile_etat(kuri::chaine_statique message, Lexeme *lexeme)
+void BaseSyntaxeuse::empile_état(kuri::chaine_statique message, Lexeme *lexème)
 {
-    m_donnees_etat_syntaxage.ajoute({lexeme, message});
+    m_données_état_syntaxage.ajoute({lexème, message});
 }
 
-void BaseSyntaxeuse::depile_etat()
+void BaseSyntaxeuse::dépile_état()
 {
-    m_donnees_etat_syntaxage.pop_back();
+    m_données_état_syntaxage.pop_back();
 }
 
 kuri::chaine BaseSyntaxeuse::crée_message_erreur(kuri::chaine_statique message)
@@ -54,14 +54,14 @@ kuri::chaine BaseSyntaxeuse::crée_message_erreur(kuri::chaine_statique message)
     auto enchaineuse = Enchaineuse();
     enchaineuse << '\n';
 
-    POUR (m_donnees_etat_syntaxage) {
-        auto site = SiteSource::cree(m_fichier, it.lexeme);
+    POUR (m_données_état_syntaxage) {
+        auto site = SiteSource::cree(m_fichier, it.lexème);
         imprime_ligne_avec_message(enchaineuse, site, it.message);
         enchaineuse << '\n';
     }
 
-    auto lexeme = lexeme_courant();
-    auto site = SiteSource::cree(m_fichier, lexeme);
+    auto lexème = lexème_courant();
+    auto site = SiteSource::cree(m_fichier, lexème);
     imprime_ligne_avec_message(enchaineuse, site, message);
     return enchaineuse.chaine();
 }
@@ -75,5 +75,5 @@ void BaseSyntaxeuse::rapporte_erreur(kuri::chaine_statique message)
     }
 
     m_possède_erreur = true;
-    gere_erreur_rapportee(crée_message_erreur(message));
+    gère_erreur_rapportée(crée_message_erreur(message));
 }

@@ -24,14 +24,14 @@ struct UniteCompilation;
 
 enum class GenreNoeud : unsigned char;
 
-enum class Associativite : int {
+enum class Associativité : int {
     GAUCHE,
     DROITE,
 };
 
 struct DonneesPrecedence {
-    int precedence = 0;
-    Associativite associativite = Associativite::GAUCHE;
+    int précédence = 0;
+    Associativité associativité = Associativité::GAUCHE;
 };
 
 struct Syntaxeuse : BaseSyntaxeuse {
@@ -42,7 +42,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
-    bool m_est_declaration_type_opaque = false;
+    bool m_est_déclaration_type_opaque = false;
 
     /* Bloc courant recevant les constantes polymorphiques. */
     kuri::pile<NoeudBloc *> bloc_constantes_polymorphiques{};
@@ -64,32 +64,32 @@ struct Syntaxeuse : BaseSyntaxeuse {
     bool apparie_expression_secondaire() const;
     bool apparie_instruction() const;
 
-    /* NOTE: lexeme_final n'est utilisé que pour éviter de traiter les virgules comme des
+    /* NOTE: lexème_final n'est utilisé que pour éviter de traiter les virgules comme des
      * opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
     NoeudExpression *analyse_expression(DonneesPrecedence const &donnees_precedence,
                                         GenreLexeme racine_expression,
-                                        GenreLexeme lexeme_final);
-    NoeudExpression *analyse_expression_unaire(GenreLexeme lexeme_final);
+                                        GenreLexeme lexème_final);
+    NoeudExpression *analyse_expression_unaire(GenreLexeme lexème_final);
     NoeudExpression *analyse_expression_primaire(GenreLexeme racine_expression,
-                                                 GenreLexeme lexeme_final);
+                                                 GenreLexeme lexème_final);
     NoeudExpression *analyse_expression_secondaire(NoeudExpression *gauche,
                                                    DonneesPrecedence const &donnees_precedence,
                                                    GenreLexeme racine_expression,
-                                                   GenreLexeme lexeme_final);
+                                                   GenreLexeme lexème_final);
 
     NoeudBloc *analyse_bloc(bool accolade_requise = true);
 
     NoeudExpression *analyse_appel_fonction(NoeudExpression *gauche);
 
-    NoeudExpression *analyse_declaration_enum(NoeudExpression *gauche);
-    NoeudDeclarationEnteteFonction *analyse_declaration_fonction(Lexeme const *lexeme);
-    NoeudExpression *analyse_declaration_operateur();
+    NoeudExpression *analyse_déclaration_enum(NoeudExpression *gauche);
+    NoeudDeclarationEnteteFonction *analyse_déclaration_fonction(Lexeme const *lexeme);
+    NoeudExpression *analyse_déclaration_opérateur();
     void analyse_expression_retour_type(NoeudDeclarationEnteteFonction *noeud,
                                         bool pour_operateur);
 
     /* Structures et unions. */
-    NoeudExpression *analyse_declaration_structure(NoeudExpression *gauche);
-    NoeudExpression *analyse_declaration_union(NoeudExpression *gauche);
+    NoeudExpression *analyse_déclaration_structure(NoeudExpression *gauche);
+    NoeudExpression *analyse_déclaration_union(NoeudExpression *gauche);
     void analyse_directives_structure(NoeudStruct *noeud);
     void analyse_directives_union(NoeudUnion *noeud);
     void analyse_paramètres_polymorphiques_structure_ou_union(NoeudDeclarationClasse *noeud);
@@ -102,7 +102,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_pour();
     void analyse_specifiants_instruction_pour(NoeudPour *noeud);
     NoeudExpression *analyse_instruction_pousse_contexte();
-    NoeudExpression *analyse_instruction_repete();
+    NoeudExpression *analyse_instruction_répète();
     NoeudExpression *analyse_instruction_si(GenreNoeud genre_noeud);
     NoeudExpression *analyse_instruction_si_statique(Lexeme *lexeme);
     NoeudExpression *analyse_instruction_tantque();
@@ -112,7 +112,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     void analyse_annotations(kuri::tableau<Annotation, int> &annotations);
 
-    void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
+    void gère_erreur_rapportée(const kuri::chaine &message_erreur) override;
 
     void rapporte_erreur_avec_site(NoeudExpression const *site, kuri::chaine_statique message);
 

@@ -17,20 +17,20 @@ struct BaseSyntaxeuse {
   protected:
     /* Pour les messages d'erreurs. */
     struct DonneesEtatSyntaxage {
-        Lexeme *lexeme = nullptr;
+        Lexeme *lexème = nullptr;
         kuri::chaine_statique message{};
     };
 
-    kuri::tableau<Lexeme, int> &m_lexemes;
+    kuri::tableau<Lexeme, int> &m_lexèmes;
     Fichier *m_fichier = nullptr;
-    Lexeme *m_lexeme_courant = nullptr;
+    Lexeme *m_lexème_courant = nullptr;
     int m_position = 0;
     bool m_possède_erreur = false;
     char _pad[3];
 
     dls::chrono::metre_seconde m_chrono_analyse{};
 
-    kuri::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
+    kuri::tablet<DonneesEtatSyntaxage, 33> m_données_état_syntaxage{};
 
   public:
     BaseSyntaxeuse(Fichier *fichier);
@@ -65,7 +65,7 @@ struct BaseSyntaxeuse {
     }
 
     // Cette fonction est appelée quand une erreur est rapportée via rapporte_erreur
-    virtual void gere_erreur_rapportee(kuri::chaine const &message_erreur) = 0;
+    virtual void gère_erreur_rapportée(kuri::chaine const &message_erreur) = 0;
 
     // Interface pour la consommation et l'appariement de lexèmes
 
@@ -74,13 +74,13 @@ struct BaseSyntaxeuse {
         m_position += 1;
 
         if (!fini()) {
-            m_lexeme_courant += 1;
+            m_lexème_courant += 1;
         }
     }
 
-    inline void consomme(GenreLexeme genre_lexeme, kuri::chaine_statique message)
+    inline void consomme(GenreLexeme genre_lexème, kuri::chaine_statique message)
     {
-        if (fini() || m_lexemes[m_position].genre != genre_lexeme) {
+        if (fini() || m_lexèmes[m_position].genre != genre_lexème) {
             rapporte_erreur(message);
             /* Ne retournons pas ici, afin que consomme() fasse progresser la compilation. */
         }
@@ -93,48 +93,48 @@ struct BaseSyntaxeuse {
         m_position -= 1;
 
         if (m_position >= 0) {
-            m_lexeme_courant = &m_lexemes[m_position];
+            m_lexème_courant = &m_lexèmes[m_position];
         }
     }
 
-    inline Lexeme *lexeme_courant()
+    inline Lexeme *lexème_courant()
     {
-        return m_lexeme_courant;
+        return m_lexème_courant;
     }
 
-    inline Lexeme const *lexeme_courant() const
+    inline Lexeme const *lexème_courant() const
     {
-        return m_lexeme_courant;
+        return m_lexème_courant;
     }
 
     inline bool fini() const
     {
-        return m_position >= m_lexemes.taille();
+        return m_position >= m_lexèmes.taille();
     }
 
-    inline bool apparie(GenreLexeme genre_lexeme) const
+    inline bool apparie(GenreLexeme genre_lexème) const
     {
-        return m_lexeme_courant->genre == genre_lexeme;
+        return m_lexème_courant->genre == genre_lexème;
     }
 
     inline bool apparie(kuri::chaine_statique chaine) const
     {
-        const auto chaine_lexeme = m_lexeme_courant->chaine;
-        const auto chaine_statique_lexeme = kuri::chaine_statique{chaine_lexeme.pointeur(),
-                                                                  chaine_lexeme.taille()};
-        return chaine_statique_lexeme == chaine;
+        const auto chaine_lexème = m_lexème_courant->chaine;
+        const auto chaine_statique_lexème = kuri::chaine_statique{chaine_lexème.pointeur(),
+                                                                  chaine_lexème.taille()};
+        return chaine_statique_lexème == chaine;
     }
 
     inline bool apparie(const IdentifiantCode *ident) const
     {
-        return m_lexeme_courant->ident == ident;
+        return m_lexème_courant->ident == ident;
     }
 
     // Interface pour la gestion d'erreurs
 
-    void empile_etat(kuri::chaine_statique message, Lexeme *lexeme);
+    void empile_état(kuri::chaine_statique message, Lexeme *lexème);
 
-    void depile_etat();
+    void dépile_état();
 
     kuri::chaine crée_message_erreur(kuri::chaine_statique message);
 

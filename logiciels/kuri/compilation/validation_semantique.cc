@@ -231,15 +231,15 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_pour_directive(NoeudDirective
      * réinitialisées. */
 
     /* Bloc corps. */
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
     /* Bloc paramètres. */
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
     /* Bloc constantes. */
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
     /* Bloc parent. */
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
 #else
-    assembleuse->depile_tout();
+    assembleuse->dépile_tout();
 #endif
 
     simplifie_arbre(espace, assembleuse, m_compilatrice.typeuse, expression);
@@ -2980,9 +2980,9 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_corps_texte(NoeudBloc *bloc_c
     metaprogramme->corps_texte = bloc_corps_texte;
     metaprogramme->fonction = fonction;
 
-    m_tacheronne->assembleuse->depile_bloc();
-    m_tacheronne->assembleuse->depile_bloc();
-    m_tacheronne->assembleuse->depile_bloc();
+    m_tacheronne->assembleuse->dépile_bloc();
+    m_tacheronne->assembleuse->dépile_bloc();
+    m_tacheronne->assembleuse->dépile_bloc();
     assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
 
     return metaprogramme;
@@ -5626,7 +5626,7 @@ ResultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
         inst->decl_index_it = crée_déclaration_pour_variable(
             assembleuse, ref, typage_itérande.type_index, false);
     }
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
 
     if (aide_génération_code != BOUCLE_POUR_OPÉRATEUR) {
         return CodeRetourValidation::OK;
