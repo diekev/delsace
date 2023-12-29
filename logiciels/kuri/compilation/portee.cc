@@ -19,12 +19,6 @@ static bool la_fonction_courante_a_changé(NoeudDeclarationEnteteFonction const 
         return false;
     }
 
-    /* Détecte les cas où nous commençons dans le bloc d'une déclaration de
-     * type fonction. */
-    if (nouvelle_fonction && nouvelle_fonction->est_declaration_type) {
-        return false;
-    }
-
     return true;
 }
 

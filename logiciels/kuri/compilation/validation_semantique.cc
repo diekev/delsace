@@ -403,50 +403,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:
         {
-            auto decl = noeud->comme_entete_fonction();
-
-            if (!decl->est_declaration_type) {
-                return valide_entete_fonction(decl);
-            }
-
-            auto types_entrees = kuri::tablet<Type *, 6>(decl->params.taille());
-
-            for (auto i = 0; i < decl->params.taille(); ++i) {
-                NoeudExpression *type_entree = decl->params[i];
-
-                if (resoud_type_final(type_entree, types_entrees[i]) ==
-                    CodeRetourValidation::Erreur) {
-                    return CodeRetourValidation::Erreur;
-                }
-            }
-
-            Type *type_sortie = nullptr;
-
-            if (decl->params_sorties.taille() == 1) {
-                if (resoud_type_final(decl->params_sorties[0], type_sortie) ==
-                    CodeRetourValidation::Erreur) {
-                    return CodeRetourValidation::Erreur;
-                }
-            }
-            else {
-                kuri::tablet<MembreTypeComposé, 6> membres;
-                membres.reserve(decl->params_sorties.taille());
-
-                for (auto &type_declare : decl->params_sorties) {
-                    if (resoud_type_final(type_declare, type_sortie) ==
-                        CodeRetourValidation::Erreur) {
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    membres.ajoute({nullptr, type_sortie});
-                }
-
-                type_sortie = m_compilatrice.typeuse.crée_tuple(membres);
-            }
-
-            auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
-            decl->type = m_compilatrice.typeuse.type_type_de_donnees(type_fonction);
-            return CodeRetourValidation::OK;
+            return valide_entete_fonction(noeud->comme_entete_fonction());
         }
         case GenreNoeud::DECLARATION_OPERATEUR_POUR:
         {
@@ -1626,6 +1583,10 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         {
             return valide_expression_type_tranche(noeud->comme_expression_type_tranche());
         }
+        case GenreNoeud::EXPRESSION_TYPE_FONCTION:
+        {
+            return valide_expression_type_fonction(noeud->comme_expression_type_fonction());
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false,
@@ -2238,9 +2199,7 @@ ResultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declara
             continue;
         }
 
-        if (noeud_enfant->est_entete_fonction() &&
-            !noeud_enfant->comme_entete_fonction()->est_declaration_type &&
-            noeud_enfant != fonction_courante()) {
+        if (noeud_enfant->est_entete_fonction() && noeud_enfant != fonction_courante()) {
             /* Les fonctions nichées dans d'autres fonctions ont leurs propres unités de
              * compilation. */
             if (!noeud_enfant->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -3096,17 +3055,13 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
                      if (!noeud->possède_drapeau(DrapeauxNoeud::EST_UTILISEE)) {
                          if (noeud->est_entete_fonction()) {
-                             auto entete_ = noeud->comme_entete_fonction();
-                             if (!entete_->est_declaration_type) {
-                                 auto message = enchaine("Dans la fonction ",
-                                                         entete.ident->nom,
-                                                         " : fonction « ",
-                                                         (noeud->ident ?
-                                                              noeud->ident->nom :
-                                                              kuri::chaine_statique("")),
-                                                         " » inutilisée");
-                                 espace.rapporte_avertissement(noeud, message);
-                             }
+                             auto message = enchaine(
+                                 "Dans la fonction ",
+                                 entete.ident->nom,
+                                 " : fonction « ",
+                                 (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
+                                 " » inutilisée");
+                             espace.rapporte_avertissement(noeud, message);
 
                              /* Ne traverse pas la fonction nichée. */
                              return DecisionVisiteNoeud::IGNORE_ENFANTS;
@@ -6212,6 +6167,53 @@ ResultatValidation Sémanticienne::valide_expression_type_tranche(NoeudExpressio
     auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
     auto type_tableau = m_compilatrice.typeuse.crée_type_tranche(type_connu);
     expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression type fonction.
+ * \{ */
+
+ResultatValidation Sémanticienne::valide_expression_type_fonction(
+    NoeudExpressionTypeFonction *expr)
+{
+    auto types_entrees = kuri::tablet<Type *, 6>(expr->types_entrée.taille());
+
+    for (auto i = 0; i < expr->types_entrée.taille(); ++i) {
+        NoeudExpression *type_entree = expr->types_entrée[i];
+
+        if (resoud_type_final(type_entree, types_entrees[i]) == CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    Type *type_sortie = nullptr;
+
+    if (expr->types_sortie.taille() == 1) {
+        if (resoud_type_final(expr->types_sortie[0], type_sortie) ==
+            CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
+        }
+    }
+    else {
+        kuri::tablet<MembreTypeComposé, 6> membres;
+        membres.reserve(expr->types_sortie.taille());
+
+        for (auto &type_declare : expr->types_sortie) {
+            if (resoud_type_final(type_declare, type_sortie) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
+
+            membres.ajoute({nullptr, type_sortie});
+        }
+
+        type_sortie = m_compilatrice.typeuse.crée_tuple(membres);
+    }
+
+    auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
+    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_fonction);
     return CodeRetourValidation::OK;
 }
 

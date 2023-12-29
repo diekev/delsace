@@ -120,6 +120,16 @@ struct NoeudExpressionTypeTranche : NoeudExpression {
     NoeudExpression * expression_type [code enfant]
 }
 
+struct NoeudExpressionTypeFonction : NoeudExpression {
+    @genre EXPRESSION_TYPE_FONCTION
+    @comme expression_type_fonction
+    @code  NoeudCodeExpressionTypeFonction
+    @genre_valeur DROITE
+
+    NoeudExpression * [] types_entrée [code enfant préserve_accents]
+    NoeudExpression * [] types_sortie [code enfant préserve_accents]
+}
+
 struct NoeudExpressionExpansionVariadique : NoeudExpression {
     @genre EXPANSION_VARIADIQUE
     @comme expansion_variadique
@@ -524,7 +534,6 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 
     bool est_opérateur [code copie]
     bool est_coroutine [code copie]
-    bool est_déclaration_type [copie]
 
     /* Le paramètre de sortie :
      * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur

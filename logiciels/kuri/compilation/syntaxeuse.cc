@@ -620,6 +620,9 @@ void Syntaxeuse::analyse_une_chose()
             noeud->drapeaux |= DrapeauxNoeud::EST_GLOBALE;
 
             if (noeud->est_base_declaration_variable()) {
+                assert_rappel(noeud->bloc_parent, [&]() {
+                    dbg() << erreur::imprime_site(*m_unité->espace, noeud) << "\n" << noeud->genre;
+                });
                 noeud->bloc_parent->ajoute_membre(noeud->comme_base_declaration_variable());
                 if (noeud->ident == ID::__contexte_fil_principal) {
                     m_compilatrice.globale_contexte_programme =
@@ -1360,7 +1363,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 {
                     auto noeud_fonction = analyse_déclaration_fonction(gauche->lexeme);
 
-                    if (noeud_fonction->est_declaration_type) {
+                    if (noeud_fonction->est_expression_type_fonction()) {
                         auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
                         noeud->ident = gauche->ident;
                         noeud->valeur = gauche;
@@ -2370,7 +2373,7 @@ bool Syntaxeuse::est_déclaration_type_fonction()
     return apparie(GenreLexeme::PARENTHESE_OUVRANTE);
 }
 
-NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_fonction(Lexeme const *lexème)
+NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexeme const *lexème)
 {
     auto lexème_mot_clé = lexème_courant();
     consomme();
@@ -2657,14 +2660,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_fonction(Lexeme
     return noeud;
 }
 
-NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_type_fonction(Lexeme const *lexème)
+NoeudExpression *Syntaxeuse::analyse_déclaration_type_fonction(Lexeme const *lexème)
 {
-    auto noeud = m_tacheronne.assembleuse->crée_entete_fonction(lexème);
-    noeud->est_coroutine = lexème->genre == GenreLexeme::COROUT;
-    noeud->est_declaration_type = true;
-
-    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexème, noeud);
-    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexème, noeud);
+    auto noeud = m_tacheronne.assembleuse->crée_expression_type_fonction(lexème);
 
     consomme(GenreLexeme::PARENTHESE_OUVRANTE,
              "Attendu une parenthèse ouvrante après le nom de la fonction");
@@ -2693,7 +2691,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_type_fonction(L
 
         consomme();
     }
-    copie_tablet_tableau(params, noeud->params);
+    copie_tablet_tableau(params, noeud->types_entrée);
 
     consomme(GenreLexeme::PARENTHESE_FERMANTE,
              "Attendu ')' à la fin des paramètres du type fonction");
@@ -2703,8 +2701,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_type_fonction(L
 
     while (!fini()) {
         auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
-        /* À FAIRE : ceci est faux, nous devrions avoir des expressions de types. */
-        noeud->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(type_declare));
+        noeud->types_sortie.ajoute(type_declare);
 
         if (!apparie(GenreLexeme::VIRGULE)) {
             break;
@@ -2715,12 +2712,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_type_fonction(L
 
     consomme(GenreLexeme::PARENTHESE_FERMANTE,
              "attendu une parenthèse fermante après le type de retour du type fonction");
-
-    /* dépile le bloc des paramètres */
-    m_tacheronne.assembleuse->dépile_bloc();
-
-    /* dépile le bloc des constantes */
-    m_tacheronne.assembleuse->dépile_bloc();
 
     return noeud;
 }

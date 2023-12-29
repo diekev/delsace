@@ -299,12 +299,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:
         {
-            auto entête = racine->comme_entete_fonction();
-            if (entête->est_declaration_type) {
-                /* Inclus l'arbre du type dans le nôtre. */
-                aplatis_entête_fonction(entête, arbre_aplatis);
-            }
-
             /* L'aplatissement d'une fonction dans une fonction doit déjà avoir été fait. */
             arbre_aplatis.ajoute(racine);
             break;
@@ -799,6 +793,18 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto expr = racine->comme_expression_type_tranche();
             aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(expr);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_TYPE_FONCTION:
+        {
+            auto expr = racine->comme_expression_type_fonction();
+            POUR (expr->types_entrée) {
+                aplatis_arbre(it, arbre_aplatis, drapeau);
+            }
+            POUR (expr->types_sortie) {
+                aplatis_arbre(it, arbre_aplatis, drapeau);
+            }
             arbre_aplatis.ajoute(expr);
             break;
         }

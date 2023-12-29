@@ -320,7 +320,7 @@ void Monomorpheuse::ajoute_candidat_depuis_reference_declaration(
 }
 
 void Monomorpheuse::ajoute_candidats_depuis_type_fonction(
-    const NoeudDeclarationEnteteFonction *decl_type_fonction,
+    const NoeudExpressionTypeFonction *decl_type_fonction,
     const NoeudExpression *site,
     const Type *type_reçu)
 {
@@ -332,35 +332,35 @@ void Monomorpheuse::ajoute_candidats_depuis_type_fonction(
     auto const type_fonction_reçu = type_reçu->comme_type_fonction();
     auto const type_sortie_fonction_reçu = type_fonction_reçu->type_sortie;
 
-    if (decl_type_fonction->params.taille() != type_fonction_reçu->types_entrees.taille()) {
+    if (decl_type_fonction->types_entrée.taille() != type_fonction_reçu->types_entrees.taille()) {
         erreur_genre_type(site, type_reçu, "n'a pas le bon nombre de paramètres en entrée");
         return;
     }
 
-    if (decl_type_fonction->params_sorties.taille() == 1 &&
+    if (decl_type_fonction->types_sortie.taille() == 1 &&
         type_sortie_fonction_reçu->est_type_tuple()) {
         erreur_genre_type(site, type_reçu, "n'a pas le bon nombre de paramètres en sortie");
         return;
     }
 
-    if (decl_type_fonction->params_sorties.taille() > 1 &&
+    if (decl_type_fonction->types_sortie.taille() > 1 &&
         !type_sortie_fonction_reçu->est_type_tuple()) {
         erreur_genre_type(site, type_reçu, "n'a pas le bon nombre de paramètres en sortie");
         return;
     }
 
-    for (auto i = 0; i < decl_type_fonction->params.taille(); i++) {
-        auto const param = decl_type_fonction->params[i];
+    for (auto i = 0; i < decl_type_fonction->types_entrée.taille(); i++) {
+        auto const param = decl_type_fonction->types_entrée[i];
         parse_candidats(param, site, type_fonction_reçu->types_entrees[i]);
     }
 
-    if (decl_type_fonction->params_sorties.taille() == 1) {
-        parse_candidats(decl_type_fonction->params_sorties[0], site, type_sortie_fonction_reçu);
+    if (decl_type_fonction->types_sortie.taille() == 1) {
+        parse_candidats(decl_type_fonction->types_sortie[0], site, type_sortie_fonction_reçu);
     }
     else {
         auto const tuple = type_sortie_fonction_reçu->comme_type_tuple();
-        for (auto i = 0; i < decl_type_fonction->params_sorties.taille(); i++) {
-            auto const param = decl_type_fonction->params_sorties[i];
+        for (auto i = 0; i < decl_type_fonction->types_sortie.taille(); i++) {
+            auto const param = decl_type_fonction->types_sortie[i];
             parse_candidats(param, site, tuple->membres[i].type);
         }
     }
@@ -641,8 +641,8 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
             site,
             type_reçu);
     }
-    else if (expression_polymorphique->est_entete_fonction()) {
-        auto type_fonction = expression_polymorphique->comme_entete_fonction();
+    else if (expression_polymorphique->est_expression_type_fonction()) {
+        auto type_fonction = expression_polymorphique->comme_expression_type_fonction();
         ajoute_candidats_depuis_type_fonction(type_fonction, site, type_reçu);
     }
     else if (expression_polymorphique->est_expansion_variadique()) {
@@ -726,8 +726,8 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         return résoud_type_final_pour_construction_structure(
             static_cast<NoeudExpressionConstructionStructure const *>(construction));
     }
-    else if (expression_polymorphique->est_entete_fonction()) {
-        auto type_fonction = expression_polymorphique->comme_entete_fonction();
+    else if (expression_polymorphique->est_expression_type_fonction()) {
+        auto type_fonction = expression_polymorphique->comme_expression_type_fonction();
         return résoud_type_final_pour_type_fonction(type_fonction);
     }
     else if (expression_polymorphique->est_expansion_variadique()) {
@@ -812,21 +812,21 @@ Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
-    const NoeudDeclarationEnteteFonction *decl_type_fonction)
+    const NoeudExpressionTypeFonction *decl_type_fonction)
 {
     kuri::tablet<Type *, 6> types_entrees;
     Type *type_sortie;
 
-    for (auto i = 0; i < decl_type_fonction->params.taille(); i++) {
-        auto type = résoud_type_final_impl(decl_type_fonction->params[i]);
+    for (auto i = 0; i < decl_type_fonction->types_entrée.taille(); i++) {
+        auto type = résoud_type_final_impl(decl_type_fonction->types_entrée[i]);
         types_entrees.ajoute(type);
     }
 
-    if (decl_type_fonction->params_sorties.taille() > 1) {
+    if (decl_type_fonction->types_sortie.taille() > 1) {
         kuri::tablet<MembreTypeComposé, 6> types_sorties;
 
-        for (auto i = 0; i < decl_type_fonction->params_sorties.taille(); i++) {
-            auto type = résoud_type_final_impl(decl_type_fonction->params_sorties[i]);
+        for (auto i = 0; i < decl_type_fonction->types_sortie.taille(); i++) {
+            auto type = résoud_type_final_impl(decl_type_fonction->types_sortie[i]);
             MembreTypeComposé membre;
             membre.type = type;
             types_sorties.ajoute(membre);
@@ -835,7 +835,7 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
         type_sortie = typeuse().crée_tuple(types_sorties);
     }
     else {
-        type_sortie = résoud_type_final_impl(decl_type_fonction->params_sorties[0]);
+        type_sortie = résoud_type_final_impl(decl_type_fonction->types_sortie[0]);
     }
 
     return typeuse().type_fonction(types_entrees, type_sortie);

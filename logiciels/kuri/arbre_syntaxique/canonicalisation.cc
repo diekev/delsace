@@ -73,11 +73,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
-            if (entete->est_declaration_type) {
-                entete->substitution = assem->crée_reference_type(entete->lexeme, entete->type);
-                return;
-            }
-
             if (entete->est_coroutine) {
                 simplifie_coroutine(entete);
                 return;
@@ -947,6 +942,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
         case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
+        case GenreNoeud::EXPRESSION_TYPE_FONCTION:
         {
             noeud->substitution = assem->crée_reference_type(noeud->lexeme, noeud->type);
             return;

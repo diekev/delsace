@@ -49,6 +49,7 @@
     case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:                                         \
     case GenreNoeud::EXPRESSION_TAILLE_DE:                                                        \
     case GenreNoeud::EXPRESSION_TYPE_DE:                                                          \
+    case GenreNoeud::EXPRESSION_TYPE_FONCTION:                                                    \
     case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:                                           \
     case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:                                                \
     case GenreNoeud::EXPRESSION_TYPE_TRANCHE:                                                     \

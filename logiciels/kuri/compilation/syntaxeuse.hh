@@ -83,8 +83,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     NoeudExpression *analyse_déclaration_enum(NoeudExpression *gauche);
     bool est_déclaration_type_fonction();
-    NoeudDeclarationEnteteFonction *analyse_déclaration_fonction(Lexeme const *lexeme);
-    NoeudDeclarationEnteteFonction *analyse_déclaration_type_fonction(Lexeme const *lexeme);
+    NoeudExpression *analyse_déclaration_fonction(Lexeme const *lexeme);
+    NoeudExpression *analyse_déclaration_type_fonction(Lexeme const *lexeme);
     NoeudExpression *analyse_déclaration_opérateur();
     void analyse_expression_retour_type(NoeudDeclarationEnteteFonction *noeud,
                                         bool pour_operateur);

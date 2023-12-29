@@ -39,6 +39,7 @@ struct NoeudExpressionLitteraleBool;
 struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
 struct NoeudInstructionImporte;
+struct NoeudExpressionTypeFonction;
 struct NoeudExpressionTypeTableauDynamique;
 struct NoeudExpressionTypeTableauFixe;
 struct NoeudExpressionTypeTranche;
@@ -324,4 +325,6 @@ struct Sémanticienne {
         NoeudExpressionTypeTableauDynamique *expr);
 
     ResultatValidation valide_expression_type_tranche(NoeudExpressionTypeTranche *expr);
+
+    ResultatValidation valide_expression_type_fonction(NoeudExpressionTypeFonction *expr);
 };

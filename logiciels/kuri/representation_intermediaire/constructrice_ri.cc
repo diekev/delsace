@@ -1787,6 +1787,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
         case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
+        case GenreNoeud::EXPRESSION_TYPE_FONCTION:
         {
             break;
         }

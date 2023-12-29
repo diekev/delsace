@@ -19,6 +19,7 @@ struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
 struct NoeudExpressionExpansionVariadique;
 struct NoeudExpressionReference;
+struct NoeudExpressionTypeFonction;
 struct NoeudExpressionTypeTableauDynamique;
 struct NoeudExpressionTypeTableauFixe;
 struct NoeudExpressionTypeTranche;
@@ -280,7 +281,7 @@ class Monomorpheuse {
     void ajoute_candidat_depuis_reference_declaration(const NoeudExpressionReference *reference,
                                                       const Type *type_reçu);
     void ajoute_candidats_depuis_type_fonction(
-        const NoeudDeclarationEnteteFonction *decl_type_fonction,
+        const NoeudExpressionTypeFonction *decl_type_fonction,
         const NoeudExpression *site,
         const Type *type_reçu);
     void ajoute_candidats_depuis_declaration_structure(const NoeudStruct *structure,
@@ -316,7 +317,7 @@ class Monomorpheuse {
 
     Type *résoud_type_final_pour_référence_déclaration(const NoeudExpressionReference *reference);
     Type *résoud_type_final_pour_type_fonction(
-        const NoeudDeclarationEnteteFonction *decl_type_fonction);
+        const NoeudExpressionTypeFonction *decl_type_fonction);
     Type *résoud_type_final_pour_construction_structure(
         const NoeudExpressionConstructionStructure *construction);
     Type *résoud_type_final_pour_construction_opaque(
