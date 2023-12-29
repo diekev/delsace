@@ -27,7 +27,7 @@ MessageSMTP :: union {
 }
 
 HistoriqueEnvoiCourriel :: struct {
-    messages: []MessageSMTP
+    messages: [..]MessageSMTP
 }
 
 détruit_historique :: fonc (historique: &HistoriqueEnvoiCourriel)
@@ -183,7 +183,7 @@ quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
     écris_commande(prise, données, commande)
 }
 
-quand_données_reçues :: fonc (prise: *Prise, données: []octet)
+quand_données_reçues :: fonc (prise: *Prise, données: [..]octet)
 {
     contenu := chaine_depuis_tableau_octets(données)
 

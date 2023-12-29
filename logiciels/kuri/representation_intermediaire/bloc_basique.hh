@@ -102,6 +102,12 @@ struct Graphe {
 
     bool est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const;
 
+    int64_t nombre_d_utilisateurs(Instruction const *inst) const
+    {
+        auto idx = connexions_pour_inst.valeur_ou(inst, {});
+        return idx.taille();
+    }
+
     template <typename Fonction>
     void visite_utilisateurs(Instruction const *inst, Fonction rappel) const
     {

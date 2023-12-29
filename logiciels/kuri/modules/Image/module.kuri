@@ -9,7 +9,7 @@ libtbb :: #bibliothèque "tbb"
 #dépendance_bibliothèque libmodule_c_image libtbb
 
 Image :: struct {
-    tampon : []CouleurRVBA
+    tampon : [..]CouleurRVBA
     largeur: z32
     hauteur: z32
 }
@@ -113,7 +113,7 @@ alloc_image :: fonc (hauteur: z32, largeur: z32, composants: z32) -> ImageIO
 
 détruit_image :: fonc (image: &ImageIO)
 {
-    tableau : []r32 = ---
+    tableau : [..]r32 = ---
     tableau.pointeur = image.donnees
     tableau.taille = image.nombre_éléments_données()
     déloge(tableau)
@@ -129,9 +129,9 @@ nombre_de_pixels :: fonc (image: ImageIO) -> z64
     retourne image.hauteur * image.largeur
 }
 
-pixels_comme :: fonc (image: ImageIO, $T: type_de_données) -> []T
+pixels_comme :: fonc (image: ImageIO, $T: type_de_données) -> [..]T
 {
-    tableau : []T = ---
+    tableau : [..]T = ---
     tableau.pointeur = image.donnees comme *T
     tableau.taille = image.hauteur * image.largeur
     retourne tableau

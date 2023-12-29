@@ -12,7 +12,7 @@ est_marqueur :: fonc (entrée: EntréeFormattage) -> bool
 
 ListeÉlémentsActifsFormattage :: struct {
     // À FAIRE : nous devons associer chaque élément avec son lexème
-    entrées: []EntréeFormattage
+    entrées: [..]EntréeFormattage
 }
 
 détruit_liste :: fonc (liste: *ListeÉlémentsActifsFormattage)

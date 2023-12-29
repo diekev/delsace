@@ -145,7 +145,7 @@ lance :: fonc (boucle_prises: *Boucle)
             retourne
         }
 
-        évènements_prêts : []epoll_event
+        évènements_prêts : [..]epoll_event
         évènements_prêts.pointeur = *boucle_prises.évènements[0]
         évènements_prêts.taille = nfds
 
@@ -290,7 +290,7 @@ initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
     {
     }
 
-    rappel_vide_quand_données_reçues :: fonc (prise: *Prise @inutilisée, données: []octet @inutilisée)
+    rappel_vide_quand_données_reçues :: fonc (prise: *Prise @inutilisée, données: [..]octet @inutilisée)
     {
     }
 

@@ -188,6 +188,7 @@ static void construit_lexemes(ListeLexemes &lexemes)
     lexemes.ajoute_ponctuation("||", "BARRE_BARRE", EST_OPERATEUR_BOOL);
     lexemes.ajoute_ponctuation("---", "NON_INITIALISATION");
     lexemes.ajoute_ponctuation("...", "TROIS_POINTS", EST_SPECIFIANT_TYPE);
+    lexemes.ajoute_ponctuation("..", "DEUX_POINTS", EST_SPECIFIANT_TYPE);
     lexemes.ajoute_ponctuation("<<=", "DEC_GAUCHE_EGAL", EST_ASSIGNATION_COMPOSEE);
     lexemes.ajoute_ponctuation(">>=", "DEC_DROITE_EGAL", EST_ASSIGNATION_COMPOSEE);
     lexemes.ajoute_extra("", "NOMBRE_REEL");
@@ -200,7 +201,7 @@ static void construit_lexemes(ListeLexemes &lexemes)
     lexemes.ajoute_extra("", "CHAINE_LITTERALE", EST_CHAINE_LITTERALE);
     lexemes.ajoute_extra("", "CARACTÈRE", EST_CHAINE_LITTERALE);
     lexemes.ajoute_extra("*", "POINTEUR");
-    lexemes.ajoute_extra("[]", "TABLEAU", EST_OPERATEUR_UNAIRE);
+    lexemes.ajoute_extra("[..]", "TABLEAU", EST_OPERATEUR_UNAIRE);
     lexemes.ajoute_extra("&", "REFERENCE");
     lexemes.ajoute_extra("", "CARACTERE_BLANC");
     lexemes.ajoute_extra("// commentaire", "COMMENTAIRE");

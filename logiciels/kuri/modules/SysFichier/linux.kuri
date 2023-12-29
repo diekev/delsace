@@ -654,7 +654,7 @@ système_chemin_dossier_temporaire :: fonc () -> CheminFichier
 /* Chemins possibles où mettre les données des programmes.
  * Les chemins sont copiés et doivent être détruit par la fonction d'appel.
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
-système_chemins_système_de_données :: fonc () -> Optionnel([]CheminFichier)
+système_chemins_système_de_données :: fonc () -> Optionnel([..]CheminFichier)
 {
     retourne système_chemins_système_pour_variable("XDG_DATA_DIRS")
 }
@@ -662,14 +662,14 @@ système_chemins_système_de_données :: fonc () -> Optionnel([]CheminFichier)
 /* Chemins possibles où mettre les configurations des programmes.
  * Les chemins sont copiés et doivent être détruit par la fonction d'appel.
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
-système_chemins_système_de_configuration :: fonc () -> Optionnel([]CheminFichier)
+système_chemins_système_de_configuration :: fonc () -> Optionnel([..]CheminFichier)
 {
     retourne système_chemins_système_pour_variable("XDG_CONFIG_DIRS")
 }
 
 /* Retourne les chemins contenus dans la variable d'environnement donnée.
  * Les chemins sont copiés et doivent être détruit par la fonction d'appel. */
-système_chemins_système_pour_variable :: fonc (variable: chaine) -> Optionnel([]CheminFichier)
+système_chemins_système_pour_variable :: fonc (variable: chaine) -> Optionnel([..]CheminFichier)
 {
     chemins := chaine_environnement(variable)
     saufsi chemins {
@@ -679,7 +679,7 @@ système_chemins_système_pour_variable :: fonc (variable: chaine) -> Optionnel(
 
     morceaux := divise(chemins, ':')
 
-    résultat : []CheminFichier
+    résultat : [..]CheminFichier
     tableau_réserve(*résultat, morceaux.taille)
 
     pour morceaux {
