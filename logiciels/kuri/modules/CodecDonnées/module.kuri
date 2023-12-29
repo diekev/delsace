@@ -200,7 +200,7 @@ crée_codec_base64_url :: fonc () -> CodecBase64
 // Encodage de données séquentielles par différence (delta).
 // https://fr.wikipedia.org/wiki/Codage_diff%C3%A9rentiel
 
-encode_par_différence_en_place :: fonc (données: []$T)
+encode_par_différence_en_place :: fonc (données: [..]$T)
 {
     précédent : T
 
@@ -212,9 +212,9 @@ encode_par_différence_en_place :: fonc (données: []$T)
     }
 }
 
-encode_par_différence :: fonc (données: []$T) -> []T
+encode_par_différence :: fonc (données: [..]$T) -> [..]T
 {
-    résultat : []T
+    résultat : [..]T
 
     saufsi données {
         retourne résultat
@@ -232,7 +232,7 @@ encode_par_différence :: fonc (données: []$T) -> []T
     retourne résultat
 }
 
-décode_par_différence_en_place :: fonc (données: []$T)
+décode_par_différence_en_place :: fonc (données: [..]$T)
 {
     précédent : T
 
@@ -242,9 +242,9 @@ décode_par_différence_en_place :: fonc (données: []$T)
     }
 }
 
-décode_par_différence :: fonc (données: []$T) -> []T
+décode_par_différence :: fonc (données: [..]$T) -> [..]T
 {
-    résultat : []T
+    résultat : [..]T
 
     saufsi données {
         retourne résultat
@@ -267,9 +267,9 @@ décode_par_différence :: fonc (données: []$T) -> []T
 // Encodage de données séquentielles par plage.
 // https://fr.wikipedia.org/wiki/Codage_par_plages
 
-encode_par_plages :: fonc (données: []$T) -> []T
+encode_par_plages :: fonc (données: [..]$T) -> [..]T
 {
-    résultat: []T
+    résultat: [..]T
     saufsi données {
         retourne résultat
     }
@@ -302,9 +302,9 @@ encode_par_plages :: fonc (données: []$T) -> []T
     retourne résultat
 }
 
-décode_par_plages :: fonc (données: []$T) -> []T
+décode_par_plages :: fonc (données: [..]$T) -> [..]T
 {
-    résultat : []T
+    résultat : [..]T
 
     saufsi données {
         retourne résultat
@@ -330,7 +330,7 @@ décode_par_plages :: fonc (données: []$T) -> []T
 
 // -------------------------------------------------------------------
 
-encode_hexadécimal :: fonc (entrée: []octet) -> chaine
+encode_hexadécimal :: fonc (entrée: [..]octet) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -364,7 +364,7 @@ nombre_depuis_hex :: fonc (hex: z8) -> z8
     retourne 255
 }
 
-décode_hexadécimal :: fonc (entrée: []octet) -> chaine
+décode_hexadécimal :: fonc (entrée: [..]octet) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -391,7 +391,7 @@ décode_hexadécimal :: fonc (entrée: []octet) -> chaine
 
 // -------------------------------------------------------------------
 
-encode_base96 :: fonc (message: []octet) -> chaine
+encode_base96 :: fonc (message: [..]octet) -> chaine
 {
     base := «abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,?;.:/!%*$\\+-/=<>&~#"'{}()|@[]^` _»
 

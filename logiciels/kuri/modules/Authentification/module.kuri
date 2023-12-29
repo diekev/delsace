@@ -60,14 +60,14 @@ ErreurSignature :: erreur {
  * À FAIRE : paramétrise la méthode de dérivation de clé, HMAC pour le moment
  */
 Signataire :: struct {
-    clés_secrètes: []chaine
+    clés_secrètes: [..]chaine
     sel: chaine
     séparateur: chaine
     algorithme: AlgorithmeSignature
     codec_base_64: CodecBase64
 }
 
-crée_signataire :: fonc (clés_secrètes: []chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> Signataire
+crée_signataire :: fonc (clés_secrètes: [..]chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> Signataire
 {
     signataire : Signataire
     signataire.clés_secrètes = clés_secrètes
@@ -162,7 +162,7 @@ SignataireHorodoté :: struct {
     signataire: Signataire
 }
 
-crée_signataire_horodoté :: fonc (clés_secrètes: []chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> SignataireHorodoté
+crée_signataire_horodoté :: fonc (clés_secrètes: [..]chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> SignataireHorodoté
 {
     signataire : SignataireHorodoté
     signataire.signataire = crée_signataire(clés_secrètes, sel, séparateur, algorithme, codec_base_64)

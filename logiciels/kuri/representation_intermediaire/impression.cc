@@ -95,7 +95,7 @@ static void imprime_atome_ex(Atome const *atome,
                     imprime_atome_ex(globale->initialisateur, os, options, true);
                 }
                 else {
-                    os << chaine_type(type_dereference_pour(atome->type), options);
+                    os << chaine_type(type_déréférencé_pour(atome->type), options);
                 }
 
                 os << '\n';
@@ -213,7 +213,7 @@ static void imprime_atome_ex(Atome const *atome,
                 virgule = ", ";
             }
 
-            os << ((tableau_données.taille() == 0) ? "[]" : " ]");
+            os << ((tableau_données.taille() == 0) ? "[..]" : " ]");
             break;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
@@ -231,7 +231,7 @@ static void imprime_atome_ex(Atome const *atome,
                 virgule = ", ";
             }
 
-            os << ((éléments.taille() == 0) ? "[]" : " ]");
+            os << ((éléments.taille() == 0) ? "[..]" : " ]");
             break;
         }
         case Atome::Genre::FONCTION:
