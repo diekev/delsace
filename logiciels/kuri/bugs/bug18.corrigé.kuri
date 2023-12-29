@@ -6,7 +6,7 @@
 importe Support
 
 Paginatrice :: struct {
-    pages : [100][]octet
+    pages : [100][..]octet
 }
 
 principale :: fonc () -> z32

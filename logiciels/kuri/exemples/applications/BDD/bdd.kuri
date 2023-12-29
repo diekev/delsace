@@ -75,7 +75,7 @@ prépare_instruction :: fonc (commande: chaine, inst: *Instruction) -> PrépareR
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    mots : []chaine
+    mots : [..]chaine
 
     pousse_contexte nouveau_contexte {
         mots = divise(commande, ' ')
@@ -152,7 +152,7 @@ exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExéc
     retourne RésultatExécution.SUCCÈS
 }
 
-donne_chaine_depuis_chaine_c_tableau :: fonc (tableau: []z8) -> chaine
+donne_chaine_depuis_chaine_c_tableau :: fonc (tableau: [..]z8) -> chaine
 {
     chn_c := ChaineC(tableau.pointeur)
     résultat : chaine = ---

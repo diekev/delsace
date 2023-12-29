@@ -55,7 +55,7 @@ comme_chaine :: fonc (m : CelluleMémoire) -> chaine
 
 Table :: struct {
     // description de la table, figée lors de la création de celle-ci
-    desc_colonnes : []Colonne
+    desc_colonnes : [..]Colonne
     taille_octet_ligne : z32 = 0
     lignes_par_page : z32 = 0
     nombre_lignes_maximum : z32 = 0
@@ -131,7 +131,7 @@ ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
     retourne table
 }
 
-ouvre_base_de_données_mémoire :: fonc (colonnes : []Colonne) -> *Table
+ouvre_base_de_données_mémoire :: fonc (colonnes : [..]Colonne) -> *Table
 {
     table := loge(Table)
     table.desc_colonnes = colonnes

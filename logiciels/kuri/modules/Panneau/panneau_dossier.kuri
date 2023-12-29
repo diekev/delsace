@@ -6,7 +6,7 @@ importe PeintureInterface
 importe Typographie
 
 Dossier :: struct {
-    onglets: []chaine
+    onglets: [..]chaine
 }
 
 /* ------------------------------------------------------------------------- */
@@ -23,7 +23,7 @@ PanneauDossier :: struct {
         rect_texte: RectanglePosDim(z32)
     }
 
-    éléments: []Élément
+    éléments: [..]Élément
 
     /* Le rectangle où se trouveront les onglets. */
     rect_onglets: RectanglePosDim(z32)

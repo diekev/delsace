@@ -19,7 +19,7 @@ MessageObservable :: struct {
  * \{ */
 
 Observable :: struct {
-    observatrices: []*Observatrice
+    observatrices: [..]*Observatrice
     est_en_diffusion := vrai
 }
 
@@ -90,7 +90,7 @@ envoie_message :: fonc (observable: *Observable, message: MessageObservable)
  * \{ */
 
 Observatrice :: struct {
-    observables: []*Observable
+    observables: [..]*Observable
 
     est_observante := vrai
 
