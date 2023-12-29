@@ -789,7 +789,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     initialise_type_variadique(type, type_pointe, std::move(membres));
 
     if (type_pointe != nullptr) {
-        /* crée un tableau dynamique correspond pour que la génération */
+        /* Crée une tranche correspondante pour la génération de code. */
         auto tranche = crée_type_tranche(type_pointe);
 
         auto graphe = graphe_.verrou_ecriture();

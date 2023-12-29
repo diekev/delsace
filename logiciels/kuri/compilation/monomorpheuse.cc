@@ -21,8 +21,8 @@
 kuri::chaine ErreurMonomorphisation::message() const
 {
 #define SI_ERREUR_EST(Type)                                                                       \
-    if (std::holds_alternative<Type>(this->donnees)) {                                            \
-        auto donnees_erreur = std::get<Type>(this->donnees);
+    if (std::holds_alternative<Type>(this->données)) {                                            \
+        auto données_erreur = std::get<Type>(this->données);
 
 #define FIN_ERREUR(Type) }
 
@@ -32,21 +32,21 @@ kuri::chaine ErreurMonomorphisation::message() const
     SI_ERREUR_EST(DonnéesErreurContrainte)
     {
         enchaineuse << "\t\tContrainte incompatible pour « "
-                    << donnees_erreur.item_contrainte.ident->nom << " ».\n";
+                    << données_erreur.item_contrainte.ident->nom << " ».\n";
 
-        if (donnees_erreur.résultat == ÉtatRésolutionContrainte::PasLeMêmeType) {
+        if (données_erreur.résultat == ÉtatRésolutionContrainte::PasLeMêmeType) {
             enchaineuse << "\t\tLe type désiré est "
-                        << chaine_type(donnees_erreur.item_contrainte.type) << ".\n";
+                        << chaine_type(données_erreur.item_contrainte.type) << ".\n";
             enchaineuse << "\t\tMais le type reçu est "
-                        << chaine_type(donnees_erreur.item_reçu.type) << ".\n";
+                        << chaine_type(données_erreur.item_reçu.type) << ".\n";
             return enchaineuse.chaine();
         }
 
         enchaineuse << "\t\tNous voulions "
-                    << (donnees_erreur.item_contrainte.est_type ? "un type" : "une valeur")
+                    << (données_erreur.item_contrainte.est_type ? "un type" : "une valeur")
                     << ".\n";
         enchaineuse << "\t\tMais nous avons reçu "
-                    << (donnees_erreur.item_reçu.est_type ? "un type" : "une valeur") << ".\n";
+                    << (données_erreur.item_reçu.est_type ? "un type" : "une valeur") << ".\n";
         return enchaineuse.chaine();
     }
     FIN_ERREUR(DonnéesErreurContrainte)
@@ -54,19 +54,19 @@ kuri::chaine ErreurMonomorphisation::message() const
     SI_ERREUR_EST(DonnéesErreurCompatibilité)
     {
         enchaineuse << "\t\tValeurs incompatibles pour « $"
-                    << donnees_erreur.item_contrainte.ident->nom << " ».\n\n";
+                    << données_erreur.item_contrainte.ident->nom << " ».\n\n";
 
-        if (donnees_erreur.résultat == ÉtatRésolutionCompatibilité::PasLaMêmeValeur) {
-            enchaineuse << "\t\tNous voulions la valeur " << donnees_erreur.item_contrainte.valeur
+        if (données_erreur.résultat == ÉtatRésolutionCompatibilité::PasLaMêmeValeur) {
+            enchaineuse << "\t\tNous voulions la valeur " << données_erreur.item_contrainte.valeur
                         << ".\n";
             enchaineuse << "\t\tMais nous avons obtenu la valeur "
-                        << donnees_erreur.item_reçu.valeur << ".\n";
+                        << données_erreur.item_reçu.valeur << ".\n";
         }
         else {
             auto const type_voulu =
-                donnees_erreur.item_contrainte.type->comme_type_type_de_donnees()->type_connu;
+                données_erreur.item_contrainte.type->comme_type_type_de_donnees()->type_connu;
             auto const type_obtenu =
-                donnees_erreur.item_reçu.type->comme_type_type_de_donnees()->type_connu;
+                données_erreur.item_reçu.type->comme_type_type_de_donnees()->type_connu;
             enchaineuse << "\t\tNous voulions le type " << chaine_type(type_voulu) << ".\n";
             enchaineuse << "\t\tMais nous avons obtenu le type " << chaine_type(type_obtenu)
                         << ".\n";
@@ -79,32 +79,32 @@ kuri::chaine ErreurMonomorphisation::message() const
     SI_ERREUR_EST(DonnéesErreurItemManquante)
     {
         return enchaine(
-            "impossible de trouver l'item pour « ", donnees_erreur.item_reçu.ident->nom, " »");
+            "impossible de trouver l'item pour « ", données_erreur.item_reçu.ident->nom, " »");
     }
     FIN_ERREUR(DonnéesErreurItemManquante)
 
     SI_ERREUR_EST(DonnéesErreurInterne)
     {
-        return enchaine(donnees_erreur.message);
+        return enchaine(données_erreur.message);
     }
     FIN_ERREUR(DonnéesErreurInterne)
 
     SI_ERREUR_EST(DonnéesErreurGenreType)
     {
-        return enchaine(chaine_type(donnees_erreur.type_reçu), " ", donnees_erreur.message);
+        return enchaine(chaine_type(données_erreur.type_reçu), " ", données_erreur.message);
     }
     FIN_ERREUR(DonnéesErreurGenreType)
 
     SI_ERREUR_EST(DonnéesErreurOpérateurNonGéré)
     {
-        return enchaine("genre opérateur non géré : ", donnees_erreur.lexeme);
+        return enchaine("genre opérateur non géré : ", données_erreur.lexeme);
     }
     FIN_ERREUR(DonnéesErreurOpérateurNonGéré)
 
     SI_ERREUR_EST(DonnéesErreurRéférenceInconnue)
     {
         return enchaine("aucun type ou aucune valeur polymorphique correspondant à : ",
-                        donnees_erreur.ident->nom);
+                        données_erreur.ident->nom);
     }
     FIN_ERREUR(DonnéesErreurRéférenceInconnue)
 
@@ -113,12 +113,12 @@ kuri::chaine ErreurMonomorphisation::message() const
         enchaineuse << "\t\tAucune monomorphisation connue pour les items.\n\n";
 
         enchaineuse << "\t\tLes items sont :\n";
-        POUR (donnees_erreur.items) {
+        POUR (données_erreur.items) {
             enchaineuse << "\t\t\t" << it << '\n';
         }
 
         enchaineuse << '\n';
-        donnees_erreur.monomorphisations->imprime(enchaineuse, 2);
+        données_erreur.monomorphisations->imprime(enchaineuse, 2);
 
         return enchaineuse.chaine();
     }
@@ -126,7 +126,7 @@ kuri::chaine ErreurMonomorphisation::message() const
 
     SI_ERREUR_EST(DonnéesErreurSémantique)
     {
-        return enchaine(donnees_erreur.message);
+        return enchaine(données_erreur.message);
     }
     FIN_ERREUR(DonnéesErreurSémantique)
 
@@ -216,7 +216,7 @@ void Monomorpheuse::ajoute_erreur(const NoeudExpression *site, DonnéesErreur do
     auto erreur = ErreurMonomorphisation();
     erreur.site = site;
     erreur.polymorphe = polymorphe;
-    erreur.donnees = donnees;
+    erreur.données = donnees;
     erreur_courante = erreur;
 }
 

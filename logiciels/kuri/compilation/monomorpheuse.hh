@@ -126,7 +126,7 @@ struct ErreurMonomorphisation {
     const NoeudExpression *polymorphe = nullptr;
     /* Le site où l'erreur s'est produite. */
     const NoeudExpression *site = nullptr;
-    DonnéesErreur donnees = {};
+    DonnéesErreur données = {};
 
     kuri::chaine message() const;
 };
@@ -137,7 +137,6 @@ struct ErreurMonomorphisation {
  *  \name Types de résultat.
  *  \{ */
 
-/*  */
 using RésultatUnification = std::variant<ErreurMonomorphisation, Attente, bool>;
 
 using RésultatCompatibilité = std::variant<ÉtatRésolutionCompatibilité, Attente>;
