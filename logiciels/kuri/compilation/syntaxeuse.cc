@@ -2409,12 +2409,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_fonction(Lexeme
     noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexème_bloc, noeud);
 
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
-    SUR_SORTIE_PORTEE {
-        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-        if (bloc_constantes->nombre_de_membres() != 0) {
-            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
-        }
-    };
 
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
@@ -2459,6 +2453,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_déclaration_fonction(Lexeme
 
         noeud->params_sorties.ajoute(decl);
         noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
+    }
+
+    auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+    if (bloc_constantes->nombre_de_membres() != 0) {
+        noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
     }
 
     ignore_point_virgule_implicite();
