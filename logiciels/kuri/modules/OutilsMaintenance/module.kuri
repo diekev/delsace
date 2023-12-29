@@ -15,11 +15,11 @@ DonnéesFichier :: struct {
      * pour les programmes en ligne de commande. */
     racine_exécution: CheminFichier
     chemin: CheminFichier
-    lignes: []chaine
+    lignes: [..]chaine
 
     données_utilisateurs: eini
 
-    contenu: []octet
+    contenu: [..]octet
     lignes_furent_modifiées := faux
 }
 
@@ -51,7 +51,7 @@ est_ligne_originelle :: fonc (données: &DonnéesFichier, ligne: chaine) -> bool
     retourne début_contenu <= ligne.pointeur < fin_contenu
 }
 
-remplace_lignes :: fonc (données: &DonnéesFichier, nouvelles_lignes: []chaine)
+remplace_lignes :: fonc (données: &DonnéesFichier, nouvelles_lignes: [..]chaine)
 {
     /* Supprime les vieilles lignes. */
     détruit_lignes(données)
@@ -203,7 +203,7 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
 {
     dernière_ligne_fut_vide := faux
 
-    nouvelles_lignes : []chaine
+    nouvelles_lignes : [..]chaine
 
     lignes := données_fichier.lignes
     pour lignes {
@@ -250,7 +250,7 @@ supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier)
 
 remplaces_tabulation_par_espaces :: fonc (données_fichier: &DonnéesFichier)
 {
-    nouvelles_lignes : []chaine
+    nouvelles_lignes : [..]chaine
 
     lignes_furent_modifiés := faux
     pour données_fichier.lignes {

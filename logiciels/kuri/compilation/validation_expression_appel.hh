@@ -14,7 +14,7 @@
 #include "monomorpheuse.hh"
 #include "monomorphisations.hh"
 #include "transformation_type.hh"
-#include "validation_semantique.hh"  // pour ResultatValidation
+#include "validation_semantique.hh"  // pour RésultatValidation
 
 struct Compilatrice;
 struct Sémanticienne;
@@ -323,7 +323,7 @@ struct EtatResolutionAppel {
 
 /** \} */
 
-ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
+RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
                                          Sémanticienne &contexte_validation,
                                          NoeudExpressionAppel *expr);

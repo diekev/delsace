@@ -2,7 +2,7 @@
 
 importe Compilatrice // Pour AnnotationCode
 
-id_info :: énum z32 {
+GenreInfoType :: énum z32 {
     ENTIER          :: 0
     RÉEL            :: 1
     BOOLÉEN         :: 2
@@ -19,10 +19,12 @@ id_info :: énum z32 {
     UNION           :: 13
     OPAQUE          :: 14
     VARIADIQUE      :: 15
+    TRANCHE         :: 16
+    TABLEAU_FIXE    :: 17
 }
 
 InfoType :: struct #interface {
-    id : id_info
+    id : GenreInfoType
     taille_en_octet : n32
     index_dans_table_des_types : n32
 }
@@ -44,8 +46,19 @@ InfoTypeTableau :: struct #interface {
     empl base : InfoType
 
     type_pointé : *InfoType
-    est_tableau_fixe : bool
-    taille_fixe : z32
+}
+
+InfoTypeTableauFixe :: struct #interface {
+    empl base : InfoType
+
+    type_pointé : *InfoType
+    nombre_éléments : n32
+}
+
+InfoTypeTranche :: struct #interface {
+    empl base : InfoType
+
+    type_élément : *InfoType
 }
 
 possède_annotation :: fonc (annotations: []*AnnotationCode, nom: chaine) -> bool
@@ -197,7 +210,7 @@ InfoTypeVariadique :: struct #interface {
 
 est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
 {
-    si info.id != id_info.POINTEUR {
+    si info.id != GenreInfoType.POINTEUR {
         retourne faux
     }
 
@@ -211,7 +224,7 @@ est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
 
 est_pointeur_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
 {
-    si info.id != id_info.POINTEUR {
+    si info.id != GenreInfoType.POINTEUR {
         retourne faux
     }
 
@@ -244,7 +257,7 @@ est_pointeur_de :: fonc (info: *InfoType) -> *InfoType
         retourne nul
     }
 
-    si info.id != id_info.POINTEUR {
+    si info.id != GenreInfoType.POINTEUR {
         retourne nul
     }
 
@@ -264,7 +277,7 @@ est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
         retourne nul
     }
 
-    si type_pointé.id != id_info.STRUCTURE {
+    si type_pointé.id != GenreInfoType.STRUCTURE {
         retourne nul
     }
 
@@ -279,7 +292,7 @@ est_pointeur_de_structure_ou_union :: fonc (info: *InfoType) -> *InfoType
         retourne nul
     }
 
-    si type_pointé.id != id_info.STRUCTURE && type_pointé.id != id_info.UNION {
+    si type_pointé.id != GenreInfoType.STRUCTURE && type_pointé.id != GenreInfoType.UNION {
         retourne nul
     }
 

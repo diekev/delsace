@@ -13,6 +13,7 @@
 #include "parsage/outils_lexemes.hh"
 
 #include "assembleuse.hh"
+#include "cas_genre_noeud.hh"
 #include "noeud_expression.hh"
 #include "utilitaires.hh"
 
@@ -43,13 +44,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
     }
 
     switch (noeud->genre) {
-        default:
-        {
-            assert_rappel(false, [&]() {
-                dbg() << "Noeud non-géré pour simplification : " << noeud->genre;
-            });
-            break;
-        }
         case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
         case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         case GenreNoeud::DECLARATION_MODULE:
@@ -76,11 +70,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             auto entete = noeud->comme_entete_fonction();
 
             if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
-                return;
-            }
-
-            if (entete->est_declaration_type) {
-                entete->substitution = assem->crée_reference_type(entete->lexeme, entete->type);
                 return;
             }
 
@@ -438,7 +427,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
                     auto type = ref_decl_var->type;
                     while (type->est_type_pointeur() || type->est_type_reference()) {
-                        type = type_dereference_pour(type);
+                        type = type_déréférencé_pour(type);
                     }
 
                     auto type_composé = type->comme_type_compose();
@@ -950,10 +939,20 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             return;
         }
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
+        case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
+        case GenreNoeud::EXPRESSION_TYPE_FONCTION:
+        {
+            noeud->substitution = assem->crée_reference_type(noeud->lexeme, noeud->type);
+            return;
+        }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
+        CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
+        case GenreNoeud::DECLARATION_UNION:
         case GenreNoeud::DECLARATION_OPAQUE:
         case GenreNoeud::EXPRESSION_INFO_DE:
         case GenreNoeud::EXPRESSION_INIT_DE:

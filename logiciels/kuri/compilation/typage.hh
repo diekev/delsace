@@ -5,7 +5,6 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
@@ -31,6 +30,7 @@ struct MembreTypeComposé;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationTypeTranche;
 struct NoeudDeclarationTypeOpaque;
 struct NoeudDeclarationOperateurPour;
 struct NoeudDependance;
@@ -232,6 +232,7 @@ struct Typeuse {
     std::mutex mutex_types_enums{};
     std::mutex mutex_types_tableaux_fixes{};
     std::mutex mutex_types_tableaux_dynamiques{};
+    std::mutex mutex_types_tranches{};
     std::mutex mutex_types_fonctions{};
     std::mutex mutex_types_variadiques{};
     std::mutex mutex_types_unions{};
@@ -249,6 +250,8 @@ struct Typeuse {
     Type *type_info_type_membre_structure = nullptr;
     Type *type_info_type_entier = nullptr;
     Type *type_info_type_tableau = nullptr;
+    Type *type_info_type_tableau_fixe = nullptr;
+    Type *type_info_type_tranche = nullptr;
     Type *type_info_type_pointeur = nullptr;
     Type *type_info_type_enum = nullptr;
     Type *type_info_type_fonction = nullptr;
@@ -319,6 +322,9 @@ struct Typeuse {
     TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe,
                                                  bool insere_dans_graphe = true);
 
+    NoeudDeclarationTypeTranche *crée_type_tranche(Type *type_élément,
+                                                   bool insère_dans_graphe = true);
+
     TypeVariadique *type_variadique(Type *type_pointe);
 
     TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tablet<Type *, 6> const &entrees);
@@ -383,8 +389,8 @@ bool est_type_pointeur_nul(Type const *type);
 
 /* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
  * arriver à un type racine) + 1.
- * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que []*z32 en
- * a une de 3. */
+ * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que [..]*z32
+ * en a une de 3. */
 int donne_profondeur_type(Type const *type);
 
 /* Retourne vrai la variable est d'un type pouvant être le membre d'une structure. */
@@ -460,10 +466,10 @@ kuri::chaine_statique donne_nom_hiérarchique(TypeStructure *type);
 /** \name Accès aux noms portables des types.
  * \{ */
 
-kuri::chaine const &donne_nom_portable(TypeUnion *type);
-kuri::chaine const &donne_nom_portable(TypeEnum *type);
-kuri::chaine const &donne_nom_portable(TypeOpaque *type);
-kuri::chaine const &donne_nom_portable(TypeStructure *type);
+kuri::chaine_statique donne_nom_portable(TypeUnion *type);
+kuri::chaine_statique donne_nom_portable(TypeEnum *type);
+kuri::chaine_statique donne_nom_portable(TypeOpaque *type);
+kuri::chaine_statique donne_nom_portable(TypeStructure *type);
 
 /** \} */
 
@@ -503,16 +509,21 @@ enum class OptionsImpressionType : uint32_t {
     NORMALISE_PARENTHÈSE_FONCTION = (1u << 4),
     NORMALISE_SPÉCIFIANT_TYPE = (1u << 5),
     INCLUS_HIÉRARCHIE = (1u << 6),
+
+    /* Options pour le nom des fonctions d'initialisation. */
+    POUR_FONCTION_INITIALISATION = (INCLUS_HIÉRARCHIE | NORMALISE_PARENTHÈSE_PARAMÈTRE |
+                                    NORMALISE_SÉPARATEUR_HIÉRARCHIE |
+                                    NORMALISE_PARENTHÈSE_FONCTION | NORMALISE_SPÉCIFIANT_TYPE),
 };
 DEFINIS_OPERATEURS_DRAPEAU(OptionsImpressionType)
 
 kuri::chaine chaine_type(Type const *type, OptionsImpressionType options);
 
-Type *type_dereference_pour(Type const *type);
+Type *type_déréférencé_pour(Type const *type);
 
 bool est_type_entier(Type const *type);
 
-bool est_type_booleen_implicite(Type *type);
+bool est_type_booléen_implicite(Type *type);
 
 bool est_type_tableau_fixe(Type const *type);
 
@@ -522,7 +533,7 @@ bool est_pointeur_vers_tableau_fixe(Type const *type);
  * un type dérivé. */
 bool est_structure_info_type_défaut(GenreNoeud genre);
 
-void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire);
+void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t alignement_desire);
 
 /* Retourne le type à la racine d'une chaine potentielle de types opaques ou le type opacifié s'il
  * n'est pas lui-même un type opaque. */

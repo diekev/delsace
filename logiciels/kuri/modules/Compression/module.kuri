@@ -26,7 +26,7 @@ flux_compression_fichier_ecris :: fonc (flux: *FluxCompression, taille: n32, don
 
     fichier := flux.donnees_utilisateur comme *Fichier
 
-    tampon : []octet = ---
+    tampon : [..]octet = ---
     tampon.pointeur = données comme *octet
     tampon.taille = taille comme z64
 

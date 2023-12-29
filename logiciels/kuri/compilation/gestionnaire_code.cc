@@ -404,7 +404,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                  * comme tel (est_expression_binaire() retourne vrai pour les indexages). */
 
                 auto indexage = noeud->comme_indexage();
-                /* op peut être nul pour les déclaration de type ([]z32) */
+                /* op peut être nul pour les déclaration de type ([..]z32) */
                 if (indexage->op && !indexage->op->est_basique) {
                     ajoute_fonction(indexage->op->decl);
                 }
@@ -632,7 +632,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
              */
             if (type_retour->est_type_tuple() && type_retour->taille_octet == 0 &&
                 !type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-                calcule_taille_type_compose(type_retour->comme_type_tuple(), false, 0);
+                calcule_taille_type_composé(type_retour->comme_type_tuple(), false, 0);
             }
         }
 

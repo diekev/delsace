@@ -135,8 +135,6 @@ struct CopieuseInstruction {
             {
                 auto appel = inst->comme_appel();
                 auto appelé = copie_atome(appel->appele);
-                auto adresse_retour = static_cast<InstructionAllocation *>(
-                    copie_atome(appel->adresse_retour));
 
                 kuri::tableau<Atome *, int> args;
                 args.reserve(appel->args.taille());
@@ -145,7 +143,6 @@ struct CopieuseInstruction {
                 }
 
                 auto nouvel_appel = constructrice.crée_appel(inst->site, appelé, std::move(args));
-                nouvel_appel->adresse_retour = adresse_retour;
                 nouvelle_inst = nouvel_appel;
                 break;
             }

@@ -9,7 +9,7 @@ Contexte :: struct {
 
     /* rappels */
     quand_ouverture_ : fonc (*Prise, bool)(rien)
-    quand_données_reçues_ : fonc (*Prise, []octet)(rien)
+    quand_données_reçues_ : fonc (*Prise, [..]octet)(rien)
     quand_écriture_ : fonc (*Prise)(rien)
     quand_fermeture_ : fonc (*Prise)(rien)
     quand_timeout_ : fonc (*Prise)(rien)
@@ -227,7 +227,7 @@ mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (*Prise, bool)(rien))
     }
 }
 
-mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (*Prise, []octet)(rien))
+mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (*Prise, [..]octet)(rien))
 {
     ctx.quand_données_reçues_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_données_reçues(ctx comme *ContextePriseSSL, rappel)

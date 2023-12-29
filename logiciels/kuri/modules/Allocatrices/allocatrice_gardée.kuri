@@ -1,4 +1,5 @@
 importe Fondation
+importe GlibC
 
 LienLocal :: struct {
     suivant: *LienLocal
@@ -52,7 +53,7 @@ EntêteMémoire :: struct {
     info: *InfoType
     taille : z64 = 0
 
-    traces : []TraceAppel
+    traces : [..]TraceAppel
 
     est_désynchronisée : z64
 }
