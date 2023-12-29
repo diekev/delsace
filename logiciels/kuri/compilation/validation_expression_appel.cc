@@ -1818,7 +1818,7 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel const *expr,
     état->état = EtatResolutionAppel::État::ARGUMENTS_RASSEMBLÉS;
 }
 
-static ResultatValidation crée_liste_candidates(NoeudExpressionAppel const *expr,
+static RésultatValidation crée_liste_candidates(NoeudExpressionAppel const *expr,
                                                 EtatResolutionAppel *état,
                                                 EspaceDeTravail &espace,
                                                 Sémanticienne &contexte)
@@ -1842,7 +1842,7 @@ static ResultatValidation crée_liste_candidates(NoeudExpressionAppel const *exp
     return CodeRetourValidation::OK;
 }
 
-static ResultatValidation sélectionne_candidate(NoeudExpressionAppel const *expr,
+static RésultatValidation sélectionne_candidate(NoeudExpressionAppel const *expr,
                                                 EtatResolutionAppel *état,
                                                 EspaceDeTravail &espace)
 {
@@ -1907,7 +1907,7 @@ static ResultatValidation sélectionne_candidate(NoeudExpressionAppel const *exp
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
+RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
                                          Sémanticienne &contexte,
                                          NoeudExpressionAppel *expr)
