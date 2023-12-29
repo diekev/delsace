@@ -130,10 +130,10 @@ fonction_possède_annotation :: fonc (code: *NoeudCodeEntêteFonction, annotatio
     retourne faux
 }
 
-fonctions_parsées_avec_annotation :: fonc (annotation: chaine) -> []*NoeudCodeEntêteFonction
+fonctions_parsées_avec_annotation :: fonc (annotation: chaine) -> [..]*NoeudCodeEntêteFonction
 {
     fonctions := compilatrice_fonctions_parsées()
-    résultat: []*NoeudCodeEntêteFonction
+    résultat: [..]*NoeudCodeEntêteFonction
 
     pour fonctions {
         si !fonction_possède_annotation(it, annotation) {
@@ -183,7 +183,7 @@ type_premier_paramètre :: fonc (entête: *NoeudCodeEntêteFonction) -> *InfoTyp
 // lesdits modules.
 
 EnsembleDeModules :: struct {
-    modules: []*Module
+    modules: [..]*Module
     module_racine_compilation : *Module
     chemin_racine_compilation : CheminFichier
     chemin_modules_kuri : CheminFichier

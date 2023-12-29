@@ -6,7 +6,7 @@ importe Fondation
 
 Parseuse :: struct {
     fichier: *FichierSource
-    lexèmes: []Lexème
+    lexèmes: [..]Lexème
     index_courant: z64
     index_sauvegardé: z64
 
@@ -247,7 +247,7 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_par
         parseuse.avance()
     }
 
-    bases: []SpécificationBase
+    bases: [..]SpécificationBase
     si apparie(parseuse, ':') {
         parseuse.avance()
         parseuse.parse_spécification_base(données_parsage_classe, *bases)
@@ -315,7 +315,7 @@ parse_spécification_accès :: fonc (parseuse: &Parseuse) -> Optionnel(Spécific
  * \{ */
 
 /* base-class */
-parse_spécification_base :: fonc (parseuse: &Parseuse, données_parsage_classe: DonnéesParsageClasse, bases: *[]SpécificationBase)
+parse_spécification_base :: fonc (parseuse: &Parseuse, données_parsage_classe: DonnéesParsageClasse, bases: *[..]SpécificationBase)
 {
     accès_courant := données_parsage_classe.spécification_accès_défaut
 

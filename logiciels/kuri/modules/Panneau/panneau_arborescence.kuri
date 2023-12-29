@@ -22,11 +22,11 @@ PanneauArborescence :: struct {
         rect_texte: RectanglePosDim(z32)
         rect_bouton: RectanglePosDim(z32)
 
-        enfants: []*Élément
+        enfants: [..]*Élément
     }
 
-    éléments: []*Élément
-    éléments_visibles: []*Élément
+    éléments: [..]*Élément
+    éléments_visibles: [..]*Élément
 
     hauteur_élément: z32
 }

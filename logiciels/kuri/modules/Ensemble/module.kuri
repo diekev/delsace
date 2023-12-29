@@ -5,12 +5,12 @@
 
 importe Algorithmes
 
-ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: T) -> rien
+ensemble_ajoute :: fonc (ensemble: *[..]$T, donnée: T) -> rien
 {
     _ := ensemble_ajoute_retourne_adresse(ensemble, donnée)
 }
 
-ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[]$T, donnée: T) -> *T
+ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[..]$T, donnée: T) -> *T
 {
     si ensemble.taille == 0 {
         tableau_ajoute(ensemble, donnée)
@@ -50,7 +50,7 @@ ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[]$T, donnée: T) -> *T
     retourne *ensemble.pointeur[index_d_insertion]
 }
 
-ensemble_possède :: fonc (ensemble: *[]$T, donnée: T) -> bool
+ensemble_possède :: fonc (ensemble: *[..]$T, donnée: T) -> bool
 {
     si ensemble.taille == 0 {
         retourne faux
@@ -70,7 +70,7 @@ ensemble_possède :: fonc (ensemble: *[]$T, donnée: T) -> bool
     retourne faux
 }
 
-ensemble_possède_retourne_index :: fonc (ensemble: *[]$T, donnée: T) -> z64
+ensemble_possède_retourne_index :: fonc (ensemble: *[..]$T, donnée: T) -> z64
 {
     si ensemble.taille == 0 {
         retourne -1
@@ -105,7 +105,7 @@ RésultatRecherche :: struct {
  * seront activés.
  * Autrement, le résultat retourné n'aura aucun drapeau activé.
  */
-ensemble_possède_rappel_si_possible :: fonc (ensemble: *[]$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
+ensemble_possède_rappel_si_possible :: fonc (ensemble: *[..]$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
 {
     résultat : RésultatRecherche
 
@@ -138,8 +138,16 @@ ensemble_possède_rappel_si_possible :: fonc (ensemble: *[]$T, donnée: T, rappe
     retourne résultat
 }
 
+ensemble_possède_rappel_si_possible :: fonc (ensemble: *[]$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
+{
+    tableau : [..]T
+    tableau.pointeur = ensemble.pointeur
+    tableau.taille = ensemble.taille
+    retourne ensemble_possède_rappel_si_possible(*tableau, donnée, rappel)
+}
+
 /*
-ensemble_imprime :: fonc (ensemble: *[]$T) -> rien
+ensemble_imprime :: fonc (ensemble: *[..]$T) -> rien
 {
     pour donnée dans ensemble {
         imprime("%\n", donnée)

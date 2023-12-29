@@ -8,7 +8,7 @@ TableIdentifiant::TableIdentifiant()
     initialise_identifiants(*this);
 }
 
-IdentifiantCode *TableIdentifiant::identifiant_pour_chaine(const dls::vue_chaine_compacte &nom)
+IdentifiantCode *TableIdentifiant::identifiant_pour_chaine(kuri::chaine_statique nom)
 {
     auto trouve = false;
     auto iter = table.trouve(nom, trouve);
@@ -39,7 +39,7 @@ IdentifiantCode *TableIdentifiant::identifiant_pour_nouvelle_chaine(kuri::chaine
     auto ptr = &tampon_courant->donnees[tampon_courant->occupe];
     enchaineuse.ajoute(nom);
 
-    auto vue_nom = dls::vue_chaine_compacte(ptr, nom.taille());
+    auto vue_nom = kuri::chaine_statique(ptr, nom.taille());
     return ajoute_identifiant(vue_nom);
 }
 
@@ -52,8 +52,7 @@ int64_t TableIdentifiant::memoire_utilisee() const
 {
     auto memoire = int64_t(0);
     memoire += identifiants.memoire_utilisee();
-    memoire += table.taille() *
-               (taille_de(dls::vue_chaine_compacte) + taille_de(IdentifiantCode *));
+    memoire += table.taille_mémoire();
     memoire += enchaineuse.mémoire_utilisée();
 
     POUR_TABLEAU_PAGE (identifiants) {
@@ -63,10 +62,10 @@ int64_t TableIdentifiant::memoire_utilisee() const
     return memoire;
 }
 
-IdentifiantCode *TableIdentifiant::ajoute_identifiant(const dls::vue_chaine_compacte &nom)
+IdentifiantCode *TableIdentifiant::ajoute_identifiant(kuri::chaine_statique nom)
 {
     auto ident = identifiants.ajoute_element();
-    ident->nom = {&nom[0], nom.taille()};
+    ident->nom = nom;
 
     table.insère(nom, ident);
 

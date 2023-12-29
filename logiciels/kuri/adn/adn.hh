@@ -740,7 +740,7 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
 
     Type *parse_type();
 
-    void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
+    void gère_erreur_rapportée(const kuri::chaine &message_erreur) override;
 };
 
 /* ------------------------------------------------------------------------- */

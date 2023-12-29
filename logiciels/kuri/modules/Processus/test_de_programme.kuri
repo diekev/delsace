@@ -61,10 +61,10 @@ DonnéesPourTest :: struct {
 
     /* Arguments du programme. Ces arguments sont toujours passés au programme
      * peu importe la série de tests en cours. */
-    arguments: []chaine
+    arguments: [..]chaine
 
     /* Les série de test. */
-    séries: []SérieDeTest
+    séries: [..]SérieDeTest
 }
 
 détruit :: fonc (empl données_test: &DonnéesPourTest)
@@ -93,11 +93,11 @@ ajoute_arguments :: fonc (données_test: &DonnéesPourTest, args: ...chaine)
 }
 
 /* Retourne la liste d'arguments pour le programme afin de lancer cette série de test. */
-arguments_pour_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> []chaine
+arguments_pour_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> [..]chaine
 {
     nombre_d_arguments := données_test.arguments.taille + série.arguments.taille
 
-    résultat : []chaine
+    résultat : [..]chaine
 
     saufsi nombre_d_arguments {
         retourne résultat
@@ -123,7 +123,7 @@ SérieDeTest :: struct {
     fichier_de_spécification: CheminFichier
 
     /* Arguments du programme spécifiques à cette série de tests. */
-    arguments: []chaine
+    arguments: [..]chaine
 }
 
 détruit :: fonc (empl série: &SérieDeTest)
@@ -183,9 +183,9 @@ lance_les_tests :: fonc (données_test: &DonnéesPourTest) -> bool
     retourne vrai
 }
 
-lance_test :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, commandes: ...chaine) -> []chaine
+lance_test :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, commandes: ...chaine) -> [..]chaine
 {
-    résultat: []chaine
+    résultat: [..]chaine
 
     arguments := arguments_pour_série(données_test, série)
     diffère déloge(arguments)
@@ -214,8 +214,8 @@ lance_test :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, com
 /* Données pour un cas à tester, extraites du fichier de spécification. */
 CasÀTester :: struct {
     raison: chaine
-    commandes: []chaine
-    résultat: []chaine
+    commandes: [..]chaine
+    résultat: [..]chaine
 }
 
 /* Parsage du fichier de spécification donnant des CasÀTester. */
@@ -228,7 +228,7 @@ CasÀTester :: struct {
 }
 
 ParseuseCasÀTester :: struct {
-    cas: []CasÀTester
+    cas: [..]CasÀTester
 
     cas_courant : *CasÀTester
 
@@ -288,7 +288,7 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, parseuse: *ParseuseCasÀTester)
     }
 }
 
-imprime_cas :: fonc (cas: []CasÀTester)
+imprime_cas :: fonc (cas: [..]CasÀTester)
 {
     imprime("nombre de cas : %\n", cas.taille)
 

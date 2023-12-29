@@ -254,7 +254,7 @@ est_fin_de_fichier :: fonc (fichier: *Fichier) -> bool
 // ----------------------------------------------------------
 // Lecture
 
-lis :: fonc (fichier: *Fichier, tampon: []octet) -> RésultatOpérationFichier
+lis :: fonc (fichier: *Fichier, tampon: [..]octet) -> RésultatOpérationFichier
 {
     octets_lus := tente système_lis(fichier.desc, tampon.pointeur comme *z8, tampon.taille) piège err {
         retourne err
@@ -334,7 +334,7 @@ ChaineOuErreurFichier :: union {
 
 lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-    résultat : []octet
+    résultat : [..]octet
 
     erreur_potentielle := lis_tout(fichier, résultat)
     si erreur_potentielle != (0 comme ErreurFichier) {
@@ -344,7 +344,7 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     retourne chaine_depuis_tableau_octets(résultat)
 }
 
-lis_tout :: fonc (fichier: *Fichier, résultat: &[]octet) -> ErreurFichier
+lis_tout :: fonc (fichier: *Fichier, résultat: &[..]octet) -> ErreurFichier
 {
     TAILLE_MAX :: 1024
     tampon : [TAILLE_MAX]z8 = ---
@@ -437,7 +437,7 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     retourne système_écris(fichier.desc, chn.pointeur, chn.taille)
 }
 
-écris :: fonc (fichier: *Fichier, octets: []octet) -> RésultatOpérationFichier
+écris :: fonc (fichier: *Fichier, octets: [..]octet) -> RésultatOpérationFichier
 {
     retourne système_écris(fichier.desc, octets.pointeur comme *z8, octets.taille)
 }

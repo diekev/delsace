@@ -6,6 +6,8 @@
 #include "parsage/lexeuse.hh"
 
 #include "arbre_syntaxique/assembleuse.hh"
+#include "arbre_syntaxique/cas_genre_noeud.hh"
+
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "espace_de_travail.hh"
@@ -972,9 +974,10 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             /* convertis vers un tableau dynamique */
             auto comme = assembleuse->crée_comme(lexeme);
-            comme->type = type_tableau;
+            comme->type = compilatrice.typeuse.crée_type_tranche(type_tableau->type_pointe);
             comme->expression = construction;
-            comme->transformation = {TypeTransformation::CONVERTI_TABLEAU, type_tableau};
+            comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
+                                     comme->type};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
             if (la_mémoire_fut_allouée) {
@@ -983,9 +986,48 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             return comme;
         }
-        default:
+        case GenreNoeud::TYPE_TRANCHE:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            auto type_tranche = type->comme_type_tranche();
+
+            auto pointeur_donnees = *reinterpret_cast<octet_t **>(pointeur);
+            auto taille_donnees = *reinterpret_cast<int64_t *>(pointeur + 8);
+
+            if (taille_donnees == 0) {
+                espace->rapporte_erreur(directive, "Retour d'une tranche de taille 0 !");
+            }
+
+            /* Supprime le bloc s'il fut alloué. */
+            auto const la_mémoire_fut_allouée = détectrice_fuites_de_mémoire.supprime_bloc(
+                pointeur_donnees);
+
+            /* crée un tableau fixe */
+            auto type_tableau_fixe = compilatrice.typeuse.type_tableau_fixe(
+                type_tranche->type_élément, static_cast<int>(taille_donnees));
+            auto construction = noeud_syntaxique_depuis_résultat(espace,
+                                                                 directive,
+                                                                 lexeme,
+                                                                 type_tableau_fixe,
+                                                                 pointeur_donnees,
+                                                                 détectrice_fuites_de_mémoire);
+
+            /* convertis vers un tableau dynamique */
+            auto comme = assembleuse->crée_comme(lexeme);
+            comme->type = type_tranche;
+            comme->expression = construction;
+            comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
+                                     comme->type};
+            comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
+
+            if (la_mémoire_fut_allouée) {
+                free(pointeur_donnees);
+            }
+
+            return comme;
+        }
+        CAS_POUR_NOEUDS_HORS_TYPES:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }

@@ -127,7 +127,7 @@ ParsatHTML :: struct {
     /* Le document qui fut parsé. */
     document: *Document
     /* Les différentes erreurs parsage. */
-    erreurs: []chaine
+    erreurs: [..]chaine
     /* Le temps de parsage du document, en microsecondes. */
     temps: z64
 }

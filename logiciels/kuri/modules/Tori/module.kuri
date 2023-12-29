@@ -43,7 +43,7 @@ ObjetChaine :: struct {
 
 ObjetListe :: struct {
     empl objet : Objet
-    valeur : []*Objet
+    valeur : [..]*Objet
     id = TypeObjet.LISTE
 }
 
@@ -51,8 +51,8 @@ ObjetListe :: struct {
 
 ObjetDictionnaire :: struct {
     empl objet : Objet
-    noms : []chaine
-    valeurs : []*Objet
+    noms : [..]chaine
+    valeurs : [..]*Objet
     id = TypeObjet.DICTIONNAIRE
 }
 
@@ -164,7 +164,7 @@ trouve_dico :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetDict
 /* ------------------------------------------------------------------------- */
 
 GestionnaireObjet :: struct {
-    objets : []*Objet
+    objets : [..]*Objet
 }
 
 crée_objet_impl :: fonc (gestionnaire: *GestionnaireObjet, $T: type_de_données) -> *T

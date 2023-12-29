@@ -18,7 +18,7 @@
 /*
 
 BaseChaine :: struct ($T: type_de_données) {
-    données: []T
+    données: [..]T
 }
 
 /* Une chaine UTF-8 */
@@ -60,7 +60,7 @@ Codec :: struct ($T: type_de_données) {
     en_utf8 :: fonc (T, &[4]n8)(z32)
 
     // est_valide dans ce codec
-    est_valide :: fonc ([]octet, z64)(bool)
+    est_valide :: fonc ([..]octet, z64)(bool)
 }
 
 // génère les fonctions par un métaprogramme, est_espace_blanc, ...

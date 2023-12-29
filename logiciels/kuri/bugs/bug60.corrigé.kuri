@@ -11,7 +11,7 @@ Structure :: struct {
     valeur: z32
 }
 
-tableau := []Structure = [
+tableau := [..]Structure = [
     Structure(valeur = 0)
 ]
 

@@ -5,8 +5,11 @@
 
 #include <iostream>
 
+#include "biblinternes/outils/conditions.h"
+
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/canonicalisation.hh"
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/copieuse.hh"
 
 #include "parsage/outils_lexemes.hh"
@@ -45,8 +48,8 @@ Sémanticienne::~Sémanticienne()
 void Sémanticienne::réinitialise()
 {
     m_tacheronne = nullptr;
-    espace = nullptr;
-    unite = nullptr;
+    m_espace = nullptr;
+    m_unité = nullptr;
     m_arbre_courant = nullptr;
 }
 
@@ -70,10 +73,10 @@ StatistiquesTypage &Sémanticienne::donne_stats_typage()
  * dépassement de pile dans le cas où l'arbre aplatis contient également la fonction racine.
  * En outre, ceci nous permet de mieux controler les racines de validations, qui doivent être
  * des déclarations ou directives globales. */
-ResultatValidation Sémanticienne::valide(UniteCompilation *unité)
+RésultatValidation Sémanticienne::valide(UniteCompilation *unité)
 {
-    unite = unité;
-    espace = unité->espace;
+    m_unité = unité;
+    m_espace = unité->espace;
 
     if (!unité->arbre_aplatis) {
         unité->arbre_aplatis = donne_un_arbre_aplatis();
@@ -150,7 +153,7 @@ ResultatValidation Sémanticienne::valide(UniteCompilation *unité)
         return valide_semantique_noeud(racine_validation());
     }
 
-    unite->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
+    m_unité->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
     return CodeRetourValidation::Erreur;
 }
 
@@ -220,36 +223,36 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_pour_directive(NoeudDirective
 
     decl_corps->bloc = assembleuse->empile_bloc(directive->lexeme, decl_entete);
 
-    static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
-    auto expr_ret = assembleuse->crée_retourne(&lexeme_retourne);
+    static Lexeme lexème_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
+    auto expr_ret = assembleuse->crée_retourne(&lexème_retourne);
 
 #ifndef NDEBUG
     /* Dépile manuellement en mode débogage afin de vérifier que les assembleuses sont proprement
      * réinitialisées. */
 
     /* Bloc corps. */
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
     /* Bloc paramètres. */
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
     /* Bloc constantes. */
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
     /* Bloc parent. */
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
 #else
-    assembleuse->depile_tout();
+    assembleuse->dépile_tout();
 #endif
 
-    simplifie_arbre(espace, assembleuse, m_compilatrice.typeuse, expression);
+    simplifie_arbre(m_espace, assembleuse, m_compilatrice.typeuse, expression);
 
     if (type_expression != TypeBase::RIEN) {
         expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
         expr_ret->expression = expression;
 
         /* besoin de valider pour mettre en place les informations de retour */
-        auto ancienne_racine = unite->noeud;
-        unite->noeud = decl_entete;
+        auto ancienne_racine = m_unité->noeud;
+        m_unité->noeud = decl_entete;
         valide_expression_retour(expr_ret);
-        unite->noeud = ancienne_racine;
+        m_unité->noeud = ancienne_racine;
     }
     else {
         decl_corps->bloc->ajoute_expression(expression);
@@ -260,7 +263,7 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_pour_directive(NoeudDirective
     decl_entete->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    auto metaprogramme = m_compilatrice.crée_metaprogramme(espace);
+    auto metaprogramme = m_compilatrice.crée_metaprogramme(m_espace);
     metaprogramme->fonction = decl_entete;
     metaprogramme->directive = directive;
     directive->metaprogramme = metaprogramme;
@@ -271,7 +274,7 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
 {
     auto type = expression->type;
     if (type->est_type_opaque()) {
-        if (est_type_booleen_implicite(type->comme_type_opaque()->type_opacifie)) {
+        if (est_type_booléen_implicite(type->comme_type_opaque()->type_opacifie)) {
             return true;
         }
     }
@@ -280,11 +283,11 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
         expression = expression->comme_parenthese()->expression;
     }
 
-    return est_type_booleen_implicite(type) ||
+    return est_type_booléen_implicite(type) ||
            expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
 }
 
-ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeud)
+RésultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
@@ -306,19 +309,19 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         {
             if (!fonction_courante()) {
-                espace->rapporte_erreur(noeud,
-                                        "Utilisation de #corps_boucle en dehors d'une fonction.");
+                m_espace->rapporte_erreur(
+                    noeud, "Utilisation de #corps_boucle en dehors d'une fonction.");
                 return CodeRetourValidation::Erreur;
             }
             auto corps = fonction_courante()->corps;
             if (!corps->est_macro_boucle_pour) {
-                espace->rapporte_erreur(
+                m_espace->rapporte_erreur(
                     noeud, "Utilisation de #corps_boucle en dehors d'un opérateur pour.");
                 return CodeRetourValidation::Erreur;
             }
             auto boucle_parent = bloc_est_dans_boucle(noeud->bloc_parent, nullptr);
             if (!boucle_parent) {
-                espace->rapporte_erreur(
+                m_espace->rapporte_erreur(
                     noeud, "Il est impossible d'utiliser #corps_boucle en dehors d'une boucle.");
                 return CodeRetourValidation::Erreur;
             }
@@ -363,7 +366,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             auto fichier = m_compilatrice.fichier(pre_executable->lexeme->fichier);
             auto module = fichier->module;
             if (module->directive_pré_exécutable) {
-                espace
+                m_espace
                     ->rapporte_erreur(
                         noeud, "Le module possède déjà une directive d'exécution pré-exécutable")
                     .ajoute_message("La première directive fut déclarée ici :")
@@ -383,9 +386,9 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             const auto fichier = m_compilatrice.fichier(inst->lexeme->fichier);
             const auto temps = dls::chrono::compte_seconde();
             m_compilatrice.ajoute_fichier_a_la_compilation(
-                espace, lexeme->chaine, fichier->module, inst->expression);
+                m_espace, lexeme->chaine, fichier->module, inst->expression);
             noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            temps_chargement += temps.temps();
+            m_temps_chargement += temps.temps();
             break;
         }
         case GenreNoeud::INSTRUCTION_IMPORTE:
@@ -400,50 +403,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:
         {
-            auto decl = noeud->comme_entete_fonction();
-
-            if (!decl->est_declaration_type) {
-                return valide_entete_fonction(decl);
-            }
-
-            auto types_entrees = kuri::tablet<Type *, 6>(decl->params.taille());
-
-            for (auto i = 0; i < decl->params.taille(); ++i) {
-                NoeudExpression *type_entree = decl->params[i];
-
-                if (resoud_type_final(type_entree, types_entrees[i]) ==
-                    CodeRetourValidation::Erreur) {
-                    return CodeRetourValidation::Erreur;
-                }
-            }
-
-            Type *type_sortie = nullptr;
-
-            if (decl->params_sorties.taille() == 1) {
-                if (resoud_type_final(decl->params_sorties[0], type_sortie) ==
-                    CodeRetourValidation::Erreur) {
-                    return CodeRetourValidation::Erreur;
-                }
-            }
-            else {
-                kuri::tablet<MembreTypeComposé, 6> membres;
-                membres.reserve(decl->params_sorties.taille());
-
-                for (auto &type_declare : decl->params_sorties) {
-                    if (resoud_type_final(type_declare, type_sortie) ==
-                        CodeRetourValidation::Erreur) {
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    membres.ajoute({nullptr, type_sortie});
-                }
-
-                type_sortie = m_compilatrice.typeuse.crée_tuple(membres);
-            }
-
-            auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
-            decl->type = m_compilatrice.typeuse.type_type_de_donnees(type_fonction);
-            return CodeRetourValidation::OK;
+            return valide_entete_fonction(noeud->comme_entete_fonction());
         }
         case GenreNoeud::DECLARATION_OPERATEUR_POUR:
         {
@@ -466,7 +426,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto expr = noeud->comme_appel();
-            return valide_appel_fonction(m_compilatrice, *espace, *this, expr);
+            return valide_appel_fonction(m_compilatrice, *m_espace, *this, expr);
         }
         case GenreNoeud::DIRECTIVE_CUISINE:
         {
@@ -480,7 +440,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             if (noeud_directive->ident == ID::assert_) {
                 if (type_expression != TypeBase::BOOL) {
-                    espace->rapporte_erreur(expression, "Expression non booléenne pour #assert")
+                    m_espace->rapporte_erreur(expression, "Expression non booléenne pour #assert")
                         .ajoute_message("L'expression d'une directive #assert doit être de type "
                                         "booléen, hors le type de l'expression est : ",
                                         chaine_type(type_expression));
@@ -490,7 +450,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             if (noeud_directive->ident != ID::test) {
                 if (auto expr_variable = trouve_expression_non_constante(expression)) {
-                    espace
+                    m_espace
                         ->rapporte_erreur(noeud_directive,
                                           "L'expression de la directive n'est pas constante et ne "
                                           "peut donc être évaluée.")
@@ -502,7 +462,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             auto metaprogramme = crée_metaprogramme_pour_directive(noeud_directive);
 
-            m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
+            m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(m_espace,
                                                                                  metaprogramme);
 
             noeud->type = expression->type;
@@ -585,7 +545,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             CHRONO_TYPAGE(m_stats_typage.opérateurs_unaire, OPERATEUR_UNAIRE__OPERATEUR_UNAIRE);
             if (type->est_type_reference()) {
-                type = type_dereference_pour(type);
+                type = type_déréférencé_pour(type);
                 crée_transtypage_implicite_au_besoin(
                     expr->operande, TransformationType(TypeTransformation::DEREFERENCE));
             }
@@ -615,7 +575,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             auto type_opérande = opérande->type;
 
             if (type_opérande == nullptr) {
-                espace->rapporte_erreur(
+                m_espace->rapporte_erreur(
                     opérande, "Erreur interne : type nul pour l'opérande de la prise d'adresse !");
                 return CodeRetourValidation::Erreur;
             }
@@ -646,7 +606,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             if (type_opérande->est_type_reference()) {
                 /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
                  * déréférencer. À FAIRE : ajout d'un transtypage référence -> pointeur */
-                type_opérande = type_dereference_pour(type_opérande);
+                type_opérande = type_déréférencé_pour(type_opérande);
             }
 
             prise_adresse->type = m_compilatrice.typeuse.type_pointeur_pour(type_opérande);
@@ -659,7 +619,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             auto type_opérande = opérande->type;
 
             if (type_opérande == nullptr) {
-                espace->rapporte_erreur(
+                m_espace->rapporte_erreur(
                     prise_référence,
                     "Erreur interne : type nul pour l'opérande d'une prise de référence !");
                 return CodeRetourValidation::Erreur;
@@ -705,7 +665,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             auto type = opérande->type;
 
             if (type->est_type_reference()) {
-                type = type_dereference_pour(type);
+                type = type_déréférencé_pour(type);
                 crée_transtypage_implicite_au_besoin(
                     négation->opérande, TransformationType(TypeTransformation::DEREFERENCE));
             }
@@ -731,7 +691,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             if (type1->est_type_reference()) {
                 crée_transtypage_implicite_au_besoin(
                     expr->operande_gauche, TransformationType(TypeTransformation::DEREFERENCE));
-                type1 = type_dereference_pour(type1);
+                type1 = type_déréférencé_pour(type1);
             }
 
             // À FAIRE : vérifie qu'aucun opérateur ne soit définie sur le type opaque
@@ -742,14 +702,15 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             switch (type1->genre) {
                 case GenreNoeud::VARIADIQUE:
                 case GenreNoeud::TABLEAU_DYNAMIQUE:
+                case GenreNoeud::TYPE_TRANCHE:
                 {
-                    expr->type = type_dereference_pour(type1);
+                    expr->type = type_déréférencé_pour(type1);
                     break;
                 }
                 case GenreNoeud::TABLEAU_FIXE:
                 {
                     auto type_tabl = type1->comme_type_tableau_fixe();
-                    expr->type = type_dereference_pour(type1);
+                    expr->type = type_déréférencé_pour(type1);
 
                     auto res = evalue_expression(m_compilatrice, enfant2->bloc_parent, enfant2);
 
@@ -769,7 +730,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 }
                 case GenreNoeud::POINTEUR:
                 {
-                    expr->type = type_dereference_pour(type1);
+                    expr->type = type_déréférencé_pour(type1);
                     break;
                 }
                 case GenreNoeud::CHAINE:
@@ -780,7 +741,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 default:
                 {
                     auto résultat = trouve_opérateur_pour_expression(
-                        *espace, expr, type1, type2, GenreLexeme::CROCHET_OUVRANT);
+                        *m_espace, expr, type1, type2, GenreLexeme::CROCHET_OUVRANT);
 
                     if (std::holds_alternative<Attente>(résultat)) {
                         return std::get<Attente>(résultat);
@@ -1042,7 +1003,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             auto type_feuille = premiere_feuille->type;
 
             if (type_feuille->est_type_rien()) {
-                espace->rapporte_erreur(
+                m_espace->rapporte_erreur(
                     premiere_feuille,
                     "Impossible d'avoir un élément de type « rien » dans un tableau");
                 return CodeRetourValidation::Erreur;
@@ -1143,6 +1104,11 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     type_info_type = m_compilatrice.typeuse.type_info_type_tableau;
                     break;
                 }
+                case GenreNoeud::TYPE_TRANCHE:
+                {
+                    type_info_type = m_compilatrice.typeuse.type_info_type_tranche;
+                    break;
+                }
                 case GenreNoeud::FONCTION:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_fonction;
@@ -1165,7 +1131,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     type_info_type = m_compilatrice.typeuse.type_info_type_variadique;
                     break;
                 }
-                default:
+                CAS_POUR_NOEUDS_HORS_TYPES:
                 {
                     assert_rappel(false, [&]() {
                         dbg() << "Noeud non-géré pour type : " << expr->type->genre;
@@ -1193,7 +1159,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             }
 
             /* À FAIRE : remplace ceci par une attente dans le gestionnaire. */
-            m_compilatrice.gestionnaire_code->requiers_initialisation_type(espace, type);
+            m_compilatrice.gestionnaire_code->requiers_initialisation_type(m_espace, type);
             crée_entête_pour_initialisation_type(
                 type, m_compilatrice, m_tacheronne->assembleuse, m_compilatrice.typeuse);
 
@@ -1297,7 +1263,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             }
 
             if (variable->type != m_compilatrice.typeuse.type_contexte) {
-                espace
+                m_espace
                     ->rapporte_erreur(variable, "La variable doit être de type ContexteProgramme")
                     .ajoute_message("Note : la variable est de type ")
                     .ajoute_message(chaine_type(variable->type))
@@ -1330,11 +1296,13 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 if (!dls::outils::est_element(type_expr->genre,
                                               GenreNoeud::TABLEAU_FIXE,
                                               GenreNoeud::TABLEAU_DYNAMIQUE,
+                                              GenreNoeud::TYPE_TRANCHE,
                                               GenreNoeud::VARIADIQUE)) {
-                    espace
-                        ->rapporte_erreur(expr,
-                                          "Type invalide pour l'expansion variadique, je requiers "
-                                          "un type de tableau ou un type variadique")
+                    m_espace
+                        ->rapporte_erreur(
+                            expr,
+                            "Type invalide pour l'expansion variadique, je requiers "
+                            "un type tableau, un type tranche, ou un type variadique")
                         .ajoute_message("Note : le type de l'expression est ")
                         .ajoute_message(chaine_type(type_expr))
                         .ajoute_message("\n");
@@ -1342,10 +1310,19 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
                 if (type_expr->est_type_tableau_fixe()) {
                     auto type_tableau_fixe = type_expr->comme_type_tableau_fixe();
-                    type_expr = m_compilatrice.typeuse.type_tableau_dynamique(
+                    type_expr = m_compilatrice.typeuse.crée_type_tranche(
                         type_tableau_fixe->type_pointe);
                     crée_transtypage_implicite_au_besoin(
-                        expr->expression, {TypeTransformation::CONVERTI_TABLEAU, type_expr});
+                        expr->expression,
+                        {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE, type_expr});
+                }
+                else if (type_expr->est_type_tableau_dynamique()) {
+                    auto type_tableau_dynamique = type_expr->comme_type_tableau_dynamique();
+                    type_expr = m_compilatrice.typeuse.crée_type_tranche(
+                        type_tableau_dynamique->type_pointe);
+                    crée_transtypage_implicite_au_besoin(
+                        expr->expression,
+                        {TypeTransformation::CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE, type_expr});
                 }
 
                 expr->type = type_expr;
@@ -1401,7 +1378,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     }
                 }
                 else {
-                    espace
+                    m_espace
                         ->rapporte_erreur(inst,
                                           "Les instructions tentes ne sont pas encore définies "
                                           "pour les unions n'ayant pas 2 membres uniquement.")
@@ -1474,9 +1451,9 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             auto empl = noeud->comme_empl();
 
             if (!empl->expression->est_declaration_variable()) {
-                espace->rapporte_erreur(empl->expression,
-                                        "Les directives empl ne sont pas supportées sur autre "
-                                        "chose que des déclarations de variables.");
+                m_espace->rapporte_erreur(empl->expression,
+                                          "Les directives empl ne sont pas supportées sur autre "
+                                          "chose que des déclarations de variables.");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -1488,11 +1465,11 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             // permet le déréférencement de pointeur, mais uniquement sur un niveau
             if (type_employe->est_type_pointeur() || type_employe->est_type_reference()) {
-                type_employe = type_dereference_pour(type_employe);
+                type_employe = type_déréférencé_pour(type_employe);
             }
 
             if (!type_employe->est_type_structure()) {
-                unite->espace
+                m_unité->espace
                     ->rapporte_erreur(
                         decl, "Impossible d'employer une variable n'étant pas une structure.")
                     .ajoute_message("Le type de la variable est : ")
@@ -1526,7 +1503,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     bloc_parent, it.nom, bloc_parent->bloc_parent, fonction_courante());
 
                 if (decl_existante) {
-                    espace
+                    m_espace
                         ->rapporte_erreur(decl,
                                           "Impossible d'employer la déclaration car une "
                                           "déclaration avec le même nom qu'un de ses membres "
@@ -1557,7 +1534,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         {
             if (noeud->ident == ID::type_de_cette_fonction) {
                 if (!racine_validation()->est_corps_fonction()) {
-                    espace->rapporte_erreur(
+                    m_espace->rapporte_erreur(
                         noeud,
                         "#type_de_cette_fonction utilisée en dehors du corps d'une fonction.");
                     return CodeRetourValidation::Erreur;
@@ -1571,9 +1548,10 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             if (noeud->ident == ID::type_de_cette_structure) {
                 auto type = union_ou_structure_courante();
                 if (!type) {
-                    espace->rapporte_erreur(noeud,
-                                            "#type_de_cette_structure utilisée en dehors du bloc "
-                                            "d'une structure ou d'une union.");
+                    m_espace->rapporte_erreur(
+                        noeud,
+                        "#type_de_cette_structure utilisée en dehors du bloc "
+                        "d'une structure ou d'une union.");
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -1583,7 +1561,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
             if (noeud->ident == ID::nom_de_cette_fonction) {
                 if (!fonction_courante()) {
-                    espace->rapporte_erreur(
+                    m_espace->rapporte_erreur(
                         noeud, "#noeud_de_cette_fonction utilisé en dehors d'une fonction");
                     return CodeRetourValidation::Erreur;
                 }
@@ -1592,10 +1570,28 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             noeud->type = TypeBase::CHAINE;
             break;
         }
-        default:
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
+        {
+            return valide_expression_type_tableau_fixe(
+                noeud->comme_expression_type_tableau_fixe());
+        }
+        case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
+        {
+            return valide_expression_type_tableau_dynamique(
+                noeud->comme_expression_type_tableau_dynamique());
+        }
+        case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
+        {
+            return valide_expression_type_tranche(noeud->comme_expression_type_tranche());
+        }
+        case GenreNoeud::EXPRESSION_TYPE_FONCTION:
+        {
+            return valide_expression_type_fonction(noeud->comme_expression_type_fonction());
+        }
+        CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false,
-                          [&]() { dbg() << "Noeud géré pour validation : " << noeud->genre; });
+                          [&]() { dbg() << "Noeud non-géré pour validation : " << noeud->genre; });
             break;
         }
     }
@@ -1603,7 +1599,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *expression_membre)
+RésultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *expression_membre)
 {
     auto structure = expression_membre->accedee;
 
@@ -1701,7 +1697,7 @@ ResultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *ex
                     }
                 }
                 else {
-                    espace->rapporte_erreur(
+                    m_espace->rapporte_erreur(
                         expression_membre,
                         "Impossible d'accéder à une variable de type énumération");
                     return CodeRetourValidation::Erreur;
@@ -1724,7 +1720,7 @@ ResultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *ex
         return CodeRetourValidation::OK;
     }
 
-    espace
+    m_espace
         ->rapporte_erreur(structure,
                           "Impossible de référencer un membre d'un type n'étant pas une structure")
         .ajoute_message("Note: le type est « ", chaine_type(type), " »");
@@ -1769,7 +1765,7 @@ static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const
     return true;
 }
 
-ResultatValidation Sémanticienne::valide_entete_fonction(NoeudDeclarationEnteteFonction *decl)
+RésultatValidation Sémanticienne::valide_entete_fonction(NoeudDeclarationEnteteFonction *decl)
 {
     if (decl->est_operateur) {
         if (decl->est_operateur_pour()) {
@@ -1829,7 +1825,7 @@ ResultatValidation Sémanticienne::valide_entete_fonction(NoeudDeclarationEntete
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_entete_operateur(NoeudDeclarationEnteteFonction *decl)
+RésultatValidation Sémanticienne::valide_entete_operateur(NoeudDeclarationEnteteFonction *decl)
 {
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
@@ -1875,7 +1871,7 @@ ResultatValidation Sémanticienne::valide_entete_operateur(NoeudDeclarationEntet
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_entete_operateur_pour(
+RésultatValidation Sémanticienne::valide_entete_operateur_pour(
     NoeudDeclarationOperateurPour *opérateur)
 {
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
@@ -1933,7 +1929,7 @@ void Sémanticienne::valide_parametres_constants_fonction(NoeudDeclarationEntete
     }
 }
 
-ResultatValidation Sémanticienne::valide_parametres_fonction(NoeudDeclarationEnteteFonction *decl)
+RésultatValidation Sémanticienne::valide_parametres_fonction(NoeudDeclarationEnteteFonction *decl)
 {
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__PARAMETRES);
     auto noms = kuri::ensemblon<IdentifiantCode *, 16>();
@@ -1942,8 +1938,8 @@ ResultatValidation Sémanticienne::valide_parametres_fonction(NoeudDeclarationEn
     for (auto i = 0; i < decl->params.taille(); ++i) {
         if (!decl->params[i]->est_declaration_variable() && !decl->params[i]->est_empl() &&
             !decl->params[i]->est_declaration_constante()) {
-            unite->espace->rapporte_erreur(decl->params[i],
-                                           "Le paramètre n'est ni une déclaration, ni un emploi");
+            m_unité->espace->rapporte_erreur(
+                decl->params[i], "Le paramètre n'est ni une déclaration, ni un emploi");
             return CodeRetourValidation::Erreur;
         }
 
@@ -1998,7 +1994,7 @@ ResultatValidation Sémanticienne::valide_parametres_fonction(NoeudDeclarationEn
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_types_parametres_fonction(
+RésultatValidation Sémanticienne::valide_types_parametres_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__TYPES_PARAMETRES);
@@ -2040,22 +2036,22 @@ ResultatValidation Sémanticienne::valide_types_parametres_fonction(
 
     if (decl->ident == ID::principale) {
         if (decl->params.taille() != 0) {
-            espace->rapporte_erreur(
+            m_espace->rapporte_erreur(
                 decl->params[0],
                 "La fonction principale ne doit pas prendre de paramètres d'entrée !");
             return CodeRetourValidation::Erreur;
         }
 
         if (decl->param_sortie->type->est_type_tuple()) {
-            espace->rapporte_erreur(
+            m_espace->rapporte_erreur(
                 decl->param_sortie,
                 "La fonction principale ne peut retourner qu'une seule valeur !");
             return CodeRetourValidation::Erreur;
         }
 
         if (decl->param_sortie->type != TypeBase::Z32) {
-            espace->rapporte_erreur(decl->param_sortie,
-                                    "La fonction principale doit retourner un z32 !");
+            m_espace->rapporte_erreur(decl->param_sortie,
+                                      "La fonction principale doit retourner un z32 !");
             return CodeRetourValidation::Erreur;
         }
     }
@@ -2074,7 +2070,7 @@ static bool est_point_entrée_sortie(const NoeudDeclarationEnteteFonction *decl)
                                     ID::__point_de_sortie_dynamique);
 }
 
-ResultatValidation Sémanticienne::valide_definition_unique_fonction(
+RésultatValidation Sémanticienne::valide_definition_unique_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
     if (est_point_entrée_sortie(decl)) {
@@ -2105,7 +2101,7 @@ ResultatValidation Sémanticienne::valide_definition_unique_fonction(
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_definition_unique_operateur(
+RésultatValidation Sémanticienne::valide_definition_unique_operateur(
     NoeudDeclarationEnteteFonction *decl)
 {
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__REDEFINITION_OPERATEUR);
@@ -2126,7 +2122,7 @@ ResultatValidation Sémanticienne::valide_definition_unique_operateur(
                     return CodeRetourValidation::Erreur;
                 }
 
-                espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
+                m_espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
                     .ajoute_message("L'opérateur fut déjà défini ici :\n")
                     .ajoute_site(op->déclaration);
                 return CodeRetourValidation::Erreur;
@@ -2148,7 +2144,7 @@ ResultatValidation Sémanticienne::valide_definition_unique_operateur(
                     return CodeRetourValidation::Erreur;
                 }
 
-                espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
+                m_espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
                     .ajoute_message("L'opérateur fut déjà défini ici :\n")
                     .ajoute_site(op->decl);
                 return CodeRetourValidation::Erreur;
@@ -2160,7 +2156,7 @@ ResultatValidation Sémanticienne::valide_definition_unique_operateur(
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_symbole_externe(NoeudDeclarationSymbole *decl,
+RésultatValidation Sémanticienne::valide_symbole_externe(NoeudDeclarationSymbole *decl,
                                                          TypeSymbole type_symbole)
 {
     // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
@@ -2174,7 +2170,7 @@ ResultatValidation Sémanticienne::valide_symbole_externe(NoeudDeclarationSymbol
         données_externes->ident_bibliotheque);
 
     if (!bibliotheque) {
-        espace
+        m_espace
             ->rapporte_erreur(decl, "Impossible de définir la bibliothèque où trouver le symbole")
             .ajoute_message("« ",
                             données_externes->ident_bibliotheque->nom,
@@ -2187,7 +2183,7 @@ ResultatValidation Sémanticienne::valide_symbole_externe(NoeudDeclarationSymbol
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declaration)
+RésultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declaration)
 {
     aplatis_arbre(declaration, m_arbre_courant);
 
@@ -2204,9 +2200,7 @@ ResultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declara
             continue;
         }
 
-        if (noeud_enfant->est_entete_fonction() &&
-            !noeud_enfant->comme_entete_fonction()->est_declaration_type &&
-            noeud_enfant != fonction_courante()) {
+        if (noeud_enfant->est_entete_fonction() && noeud_enfant != fonction_courante()) {
             /* Les fonctions nichées dans d'autres fonctions ont leurs propres unités de
              * compilation. */
             if (!noeud_enfant->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -2227,7 +2221,7 @@ ResultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declara
         }
     }
 
-    unite->arbre_aplatis = nullptr;
+    m_unité->arbre_aplatis = nullptr;
     m_arbres_aplatis.ajoute(m_arbre_courant);
 
     return CodeRetourValidation::OK;
@@ -2296,7 +2290,7 @@ static void rassemble_expressions(NoeudExpression *expr,
     }
 }
 
-ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
+RésultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
 {
     auto fonction = fonction_courante();
     auto type_sortie = Type::nul();
@@ -2313,9 +2307,9 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
         /* Nous pouvons être dans le bloc d'un #test, auquel cas la fonction n'a pas encore été
          * créée car la validation du bloc se fait avant le noeud. Vérifions si tel est le cas. */
         if (!(racine_validation()->est_execute() && racine_validation()->ident == ID::test)) {
-            espace->rapporte_erreur(inst,
-                                    "Utilisation de « retourne » en dehors d'une fonction, d'un "
-                                    "opérateur, ou d'un #test");
+            m_espace->rapporte_erreur(inst,
+                                      "Utilisation de « retourne » en dehors d'une fonction, d'un "
+                                      "opérateur, ou d'un #test");
             return CodeRetourValidation::Erreur;
         }
 
@@ -2381,8 +2375,8 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
     }
 
     if (type_sortie->est_type_rien()) {
-        espace->rapporte_erreur(inst->expression,
-                                "Retour d'une valeur d'une fonction qui ne retourne rien");
+        m_espace->rapporte_erreur(inst->expression,
+                                  "Retour d'une valeur d'une fonction qui ne retourne rien");
         return CodeRetourValidation::Erreur;
     }
 
@@ -2412,7 +2406,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
             eu_nom = true;
 
             if (expr->type->est_type_tuple()) {
-                espace->rapporte_erreur(
+                m_espace->rapporte_erreur(
                     it.expression,
                     "Impossible de nommer les variables de retours si l'expression retourne "
                     "plusieurs valeurs");
@@ -2422,7 +2416,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
             for (auto i = 0; i < fonction_courante()->params_sorties.taille(); ++i) {
                 if (it.ident == fonction_courante()->params_sorties[i]->ident) {
                     if (expressions[i] != nullptr) {
-                        espace->rapporte_erreur(
+                        m_espace->rapporte_erreur(
                             it.expression,
                             "Redéfinition d'une expression pour un paramètre de retour");
                         return CodeRetourValidation::Erreur;
@@ -2435,14 +2429,14 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
         }
         else {
             if (eu_nom) {
-                espace->rapporte_erreur(
+                m_espace->rapporte_erreur(
                     it.expression,
                     "L'expressoin doit avoir un nom si elle suit une autre ayant déjà un nom");
                 return CodeRetourValidation::Erreur;
             }
 
             if (expressions[index_courant] != nullptr) {
-                espace->rapporte_erreur(
+                m_espace->rapporte_erreur(
                     it.expression, "Redéfinition d'une expression pour un paramètre de retour");
                 return CodeRetourValidation::Erreur;
             }
@@ -2456,7 +2450,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
     auto valide_typage_et_ajoute = [this](DonneesAssignations &donnees,
                                           NoeudExpression *variable,
                                           NoeudExpression *expression,
-                                          Type *type_de_l_expression) -> ResultatValidation {
+                                          Type *type_de_l_expression) -> RésultatValidation {
         auto résultat = cherche_transformation(type_de_l_expression, variable->type);
 
         if (std::holds_alternative<Attente>(résultat)) {
@@ -2496,7 +2490,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
 
             for (auto &membre : type_tuple->membres) {
                 if (variables.est_vide()) {
-                    espace->rapporte_erreur(it, "Trop d'expressions de retour");
+                    m_espace->rapporte_erreur(it, "Trop d'expressions de retour");
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -2505,7 +2499,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
         }
         else {
             if (variables.est_vide()) {
-                espace->rapporte_erreur(it, "Trop d'expressions de retour");
+                m_espace->rapporte_erreur(it, "Trop d'expressions de retour");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -2517,7 +2511,7 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
 
     // À FAIRE : valeur par défaut des expressions
     if (!variables.est_vide()) {
-        espace->rapporte_erreur(inst, "Expressions de retour manquante");
+        m_espace->rapporte_erreur(inst, "Expressions de retour manquante");
         return CodeRetourValidation::Erreur;
     }
 
@@ -2531,24 +2525,24 @@ ResultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_cuisine(NoeudDirectiveCuisine *directive)
+RésultatValidation Sémanticienne::valide_cuisine(NoeudDirectiveCuisine *directive)
 {
     auto expr = directive->expression;
 
     if (!expr->est_appel()) {
-        espace->rapporte_erreur(
+        m_espace->rapporte_erreur(
             expr, "L'expression d'une directive de cuisson doit être une expression d'appel !");
         return CodeRetourValidation::Erreur;
     }
 
     if (!expr->type->est_type_fonction()) {
-        espace->rapporte_erreur(
+        m_espace->rapporte_erreur(
             expr, "La cuisson d'autre chose qu'une fonction n'est pas encore supportée !");
         return CodeRetourValidation::Erreur;
     }
 
     if (auto expr_variable = trouve_expression_non_constante(expr)) {
-        espace
+        m_espace
             ->rapporte_erreur(directive,
                               "L'expression de la directive n'est pas constante et ne "
                               "peut donc être évaluée.")
@@ -2634,13 +2628,13 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
     return true;
 }
 
-ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressionReference *expr,
+RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressionReference *expr,
                                                                NoeudBloc *bloc_recherche)
 {
     CHRONO_TYPAGE(m_stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
 
     assert_rappel(bloc_recherche != nullptr,
-                  [&]() { dbg() << erreur::imprime_site(*espace, expr); });
+                  [&]() { dbg() << erreur::imprime_site(*m_espace, expr); });
 
     /* Les membres des énums sont des déclarations mais n'ont pas de type, et ne sont pas validées.
      * Pour de telles déclarations, la logique ici nous forcerait à attendre sur ces déclarations
@@ -2685,13 +2679,13 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
     else if (expr->possède_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE)) {
         auto fonction = fonction_courante();
         if (!fonction) {
-            espace->rapporte_erreur(
+            m_espace->rapporte_erreur(
                 expr, "Identifiant préfixé d'un accent grave en dehors d'une fonction.");
             return CodeRetourValidation::Erreur;
         }
 
         if (!fonction->est_operateur_pour()) {
-            espace->rapporte_erreur(
+            m_espace->rapporte_erreur(
                 expr, "Identifiant préfixé d'un accent grave en dehors d'un opérateur « pour ».");
             return CodeRetourValidation::Erreur;
         }
@@ -2702,9 +2696,9 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
 
         auto const corps_operateur_pour = racine_validation()->comme_corps_fonction();
         if (!corps_operateur_pour->est_macro_boucle_pour) {
-            espace->rapporte_erreur(expr,
-                                    "Validation d'un identifiant accentué grave alors qu'aucune "
-                                    "boucle « pour » ne requiers l'opérateur");
+            m_espace->rapporte_erreur(expr,
+                                      "Validation d'un identifiant accentué grave alors qu'aucune "
+                                      "boucle « pour » ne requiers l'opérateur");
             return CodeRetourValidation::Erreur;
         }
 
@@ -2787,7 +2781,7 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
         return CodeRetourValidation::OK;
     }
 
-    if (!est_référence_déclaration_valide(espace, expr, decl)) {
+    if (!est_référence_déclaration_valide(m_espace, expr, decl)) {
         /* Une erreur dû être rapportée. */
         return CodeRetourValidation::Erreur;
     }
@@ -2815,8 +2809,9 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
             // référence est celle de la variable que l'on valide, ceci ne fonctionnera pas pour
             // les déclarations multiples, ou les types étant référencés dans les expressions de
             // leurs membres
-            if (decl == unite->noeud) {
-                espace->rapporte_erreur(expr, "Utilisation d'une variable dans sa définition !\n");
+            if (decl == m_unité->noeud) {
+                m_espace->rapporte_erreur(expr,
+                                          "Utilisation d'une variable dans sa définition !\n");
                 return CodeRetourValidation::Erreur;
             }
             return Attente::sur_declaration(decl);
@@ -2825,7 +2820,7 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
         // polymorphiques
         assert_rappel(decl->type || decl->est_entete_fonction() || decl->est_declaration_module(),
-                      [&]() { dbg() << erreur::imprime_site(*espace, expr); });
+                      [&]() { dbg() << erreur::imprime_site(*m_espace, expr); });
         expr->declaration_referee = decl;
         expr->type = decl->type;
 
@@ -2860,7 +2855,7 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
     }
 
     if (decl->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
-        espace->rapporte_erreur(expr, "Utilisation d'une déclaration marquée comme inutilisée.")
+        m_espace->rapporte_erreur(expr, "Utilisation d'une déclaration marquée comme inutilisée.")
             .ajoute_message("La déclaration fut déclarée ici :\n")
             .ajoute_site(decl);
         return CodeRetourValidation::Erreur;
@@ -2871,7 +2866,7 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
 
 /** \} */
 
-ResultatValidation Sémanticienne::valide_type_opaque(NoeudDeclarationTypeOpaque *decl)
+RésultatValidation Sémanticienne::valide_type_opaque(NoeudDeclarationTypeOpaque *decl)
 {
     auto type_opacifie = Type::nul();
 
@@ -2907,16 +2902,16 @@ ResultatValidation Sémanticienne::valide_type_opaque(NoeudDeclarationTypeOpaque
 
 MetaProgramme *Sémanticienne::crée_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                              NoeudBloc *bloc_parent,
-                                                             const Lexeme *lexeme)
+                                                             const Lexeme *lexème)
 {
-    auto fonction = m_tacheronne->assembleuse->crée_entete_fonction(lexeme);
+    auto fonction = m_tacheronne->assembleuse->crée_entete_fonction(lexème);
     auto nouveau_corps = fonction->corps;
 
     assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
     m_tacheronne->assembleuse->bloc_courant(bloc_parent);
 
-    fonction->bloc_constantes = m_tacheronne->assembleuse->empile_bloc(lexeme, fonction);
-    fonction->bloc_parametres = m_tacheronne->assembleuse->empile_bloc(lexeme, fonction);
+    fonction->bloc_constantes = m_tacheronne->assembleuse->empile_bloc(lexème, fonction);
+    fonction->bloc_parametres = m_tacheronne->assembleuse->empile_bloc(lexème, fonction);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_parametres;
@@ -2927,7 +2922,7 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_corps_texte(NoeudBloc *bloc_c
     fonction->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                     DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
-    auto decl_sortie = m_tacheronne->assembleuse->crée_declaration_variable(lexeme);
+    auto decl_sortie = m_tacheronne->assembleuse->crée_declaration_variable(lexème);
     decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
     decl_sortie->type = TypeBase::CHAINE;
     decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -2942,13 +2937,13 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_corps_texte(NoeudBloc *bloc_c
     fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
     fonction->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    auto metaprogramme = m_compilatrice.crée_metaprogramme(espace);
+    auto metaprogramme = m_compilatrice.crée_metaprogramme(m_espace);
     metaprogramme->corps_texte = bloc_corps_texte;
     metaprogramme->fonction = fonction;
 
-    m_tacheronne->assembleuse->depile_bloc();
-    m_tacheronne->assembleuse->depile_bloc();
-    m_tacheronne->assembleuse->depile_bloc();
+    m_tacheronne->assembleuse->dépile_bloc();
+    m_tacheronne->assembleuse->dépile_bloc();
+    m_tacheronne->assembleuse->dépile_bloc();
     assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
 
     return metaprogramme;
@@ -2956,8 +2951,8 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_corps_texte(NoeudBloc *bloc_c
 
 NoeudExpression *Sémanticienne::racine_validation() const
 {
-    assert(unite->noeud);
-    return unite->noeud;
+    assert(m_unité->noeud);
+    return m_unité->noeud;
 }
 
 NoeudDeclarationEnteteFonction *Sémanticienne::fonction_courante() const
@@ -3062,17 +3057,13 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
                      if (!noeud->possède_drapeau(DrapeauxNoeud::EST_UTILISEE)) {
                          if (noeud->est_entete_fonction()) {
-                             auto entete_ = noeud->comme_entete_fonction();
-                             if (!entete_->est_declaration_type) {
-                                 auto message = enchaine("Dans la fonction ",
-                                                         entete.ident->nom,
-                                                         " : fonction « ",
-                                                         (noeud->ident ?
-                                                              noeud->ident->nom :
-                                                              kuri::chaine_statique("")),
-                                                         " » inutilisée");
-                                 espace.rapporte_avertissement(noeud, message);
-                             }
+                             auto message = enchaine(
+                                 "Dans la fonction ",
+                                 entete.ident->nom,
+                                 " : fonction « ",
+                                 (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
+                                 " » inutilisée");
+                             espace.rapporte_avertissement(noeud, message);
 
                              /* Ne traverse pas la fonction nichée. */
                              return DecisionVisiteNoeud::IGNORE_ENFANTS;
@@ -3139,7 +3130,7 @@ static void échange_corps_entêtes(NoeudDeclarationEnteteFonction *ancienne_fon
                  });
 }
 
-ResultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonction *decl)
+RésultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonction *decl)
 {
     auto entete = decl->entete;
 
@@ -3224,7 +3215,7 @@ ResultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonction
         }
     }
 
-    simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
+    simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
         /* Puisque la validation du #corps_texte peut être interrompue, nous devons retrouver le
@@ -3234,13 +3225,13 @@ ResultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonction
          * la fonction soit validée afin de le compiler.
          */
         auto metaprogramme = m_compilatrice.metaprogramme_pour_fonction(entete);
-        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
+        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(m_espace,
                                                                              metaprogramme);
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    avertis_declarations_inutilisees(*espace, *entete);
+    avertis_declarations_inutilisees(*m_espace, *entete);
 
     if (entete->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS)) {
         imprime_arbre(entete, std::cerr, 0);
@@ -3252,7 +3243,7 @@ ResultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonction
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_operateur(NoeudDeclarationCorpsFonction *decl)
+RésultatValidation Sémanticienne::valide_operateur(NoeudDeclarationCorpsFonction *decl)
 {
     auto entete = decl->entete;
     decl->type = entete->type;
@@ -3269,10 +3260,11 @@ ResultatValidation Sémanticienne::valide_operateur(NoeudDeclarationCorpsFonctio
     /* La simplification des corps des opérateurs « pour » se fera lors de la simplification de la
      * boucle « pour » utilisant ledit corps. */
     if (!entete->est_operateur_pour()) {
-        simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
+        simplifie_arbre(
+            m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
     }
 
-    avertis_declarations_inutilisees(*espace, *entete);
+    avertis_declarations_inutilisees(*m_espace, *entete);
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
@@ -3285,7 +3277,7 @@ enum {
 };
 
 template <int N>
-ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl)
+RésultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl)
 {
     decl->type = decl;
     decl->taille_octet = decl->type_sous_jacent->taille_octet;
@@ -3348,13 +3340,13 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl)
             auto res = evalue_expression(m_compilatrice, decl->bloc, expr);
 
             if (res.est_errone) {
-                espace->rapporte_erreur(res.noeud_erreur, res.message_erreur);
+                m_espace->rapporte_erreur(res.noeud_erreur, res.message_erreur);
                 return CodeRetourValidation::Erreur;
             }
 
             if (N == VALIDE_ENUM_ERREUR) {
                 if (res.valeur.entiere() == 0) {
-                    espace->rapporte_erreur(
+                    m_espace->rapporte_erreur(
                         expr,
                         "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette "
                         "valeur est réservée par la compilatrice).");
@@ -3363,8 +3355,8 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl)
             }
 
             if (!res.valeur.est_entiere()) {
-                espace->rapporte_erreur(expr,
-                                        "L'expression d'une énumération doit être de type entier");
+                m_espace->rapporte_erreur(
+                    expr, "L'expression d'une énumération doit être de type entier");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -3380,9 +3372,9 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl)
                     valeur = derniere_valeur.entiere() * 2;
 
                     if (!est_puissance_de_2(valeur.entiere())) {
-                        espace->rapporte_erreur(decl_expr,
-                                                "La valeur implicite d'une énumération drapeau "
-                                                "doit être une puissance de 2 !");
+                        m_espace->rapporte_erreur(decl_expr,
+                                                  "La valeur implicite d'une énumération drapeau "
+                                                  "doit être une puissance de 2 !");
                         return CodeRetourValidation::Erreur;
                     }
                 }
@@ -3393,7 +3385,7 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl)
         }
 
         if (est_hors_des_limites(valeur.entiere(), decl->type_sous_jacent)) {
-            auto e = espace->rapporte_erreur(
+            auto e = m_espace->rapporte_erreur(
                 decl_expr, "Valeur hors des limites pour le type de l'énumération");
             e.ajoute_message("Le type des données de l'énumération est « ",
                              chaine_type(decl->type_sous_jacent),
@@ -3463,7 +3455,7 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl)
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_enum(NoeudEnum *decl)
+RésultatValidation Sémanticienne::valide_enum(NoeudEnum *decl)
 {
     CHRONO_TYPAGE(m_stats_typage.énumérations, ENUMERATION__VALIDATION);
 
@@ -3481,7 +3473,7 @@ ResultatValidation Sémanticienne::valide_enum(NoeudEnum *decl)
         /* les énum_drapeaux doivent être des types naturels pour éviter les problèmes
          * d'arithmétiques binaire */
         if (decl->est_type_enum_drapeau() && !decl->type_sous_jacent->est_type_entier_naturel()) {
-            espace
+            m_espace
                 ->rapporte_erreur(decl->expression_type,
                                   "Les énum_drapeaux doivent être de type entier naturel (n8, "
                                   "n16, n32, ou n64).\n",
@@ -3497,7 +3489,7 @@ ResultatValidation Sémanticienne::valide_enum(NoeudEnum *decl)
         }
 
         if (!est_type_entier(decl->type_sous_jacent)) {
-            espace
+            m_espace
                 ->rapporte_erreur(decl->expression_type,
                                   "Le type de données d'une énumération doit être de type entier.")
                 .ajoute_message("NOTE : le type est ", chaine_type(decl->type_sous_jacent), ".\n");
@@ -3700,7 +3692,7 @@ static void rapporte_erreur_inclusion_récursive_type(EspaceDeTravail *espace,
     }
 }
 
-static ResultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail *espace,
+static RésultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail *espace,
                                                                 TypeCompose const *type_composé)
 {
     POUR (type_composé->membres) {
@@ -3741,7 +3733,7 @@ static ResultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail 
  * erreur de compilation si nous tentons d'utiliser un tel type par valeur.
  * Il faudra également proprement gérer le cas pour les infos types.
  */
-ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
+RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 {
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -3786,13 +3778,13 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                     });
             }
 
-            m_compilatrice.gestionnaire_code->requiers_typage(espace, fonction->corps);
+            m_compilatrice.gestionnaire_code->requiers_typage(m_espace, fonction->corps);
             return Attente::sur_declaration(fonction->corps);
         }
 
         auto metaprogramme = decl->metaprogramme_corps_texte;
         auto fichier = m_compilatrice.crée_fichier_pour_metaprogramme(metaprogramme);
-        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
+        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(m_espace,
                                                                              metaprogramme);
         return Attente::sur_parsage(fichier);
     }
@@ -3826,8 +3818,8 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
         if (it->possède_drapeau(DrapeauxNoeud::EMPLOYE)) {
             if (!it->type->est_type_structure()) {
-                espace->rapporte_erreur(it,
-                                        "Ne peut pas employer un type n'étant pas une structure");
+                m_espace->rapporte_erreur(
+                    it, "Ne peut pas employer un type n'étant pas une structure");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -3850,7 +3842,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         // À FAIRE(emploi) : préserve l'emploi dans les données types
         if (decl_var->declaration_vient_d_un_emploi) {
             if (le_membre_référence_le_type_par_valeur(type_compose, decl_var)) {
-                rapporte_erreur_inclusion_récursive_type(espace, type_compose, decl_var);
+                rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                 return CodeRetourValidation::Erreur;
             }
 
@@ -3863,7 +3855,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 auto var = donnees.variables[i];
 
                 if (!est_type_valide_pour_membre(var->type)) {
-                    rapporte_erreur_type_membre_invalide(espace, type_compose, var);
+                    rapporte_erreur_type_membre_invalide(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -3874,7 +3866,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 }
 
                 if (le_membre_référence_le_type_par_valeur(type_compose, var)) {
-                    rapporte_erreur_inclusion_récursive_type(espace, type_compose, var);
+                    rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -3917,13 +3909,13 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     }
 
     /* Valide les types avant le calcul de la taille des types. */
-    TENTE(valide_types_pour_calcule_taille_type(espace, type_compose));
+    TENTE(valide_types_pour_calcule_taille_type(m_espace, type_compose));
 
     if (constructrice.donne_compte_membres_non_constant() == 0) {
         assert(decl->est_externe);
     }
     else {
-        calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
+        calcule_taille_type_composé(type_compose, decl->est_compacte, decl->alignement_desire);
     }
 
     auto type_struct = type_compose->comme_type_structure();
@@ -3959,11 +3951,11 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
+    simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
+RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 {
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -4008,13 +4000,13 @@ ResultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                     });
             }
 
-            m_compilatrice.gestionnaire_code->requiers_typage(espace, fonction->corps);
+            m_compilatrice.gestionnaire_code->requiers_typage(m_espace, fonction->corps);
             return Attente::sur_declaration(fonction->corps);
         }
 
         auto metaprogramme = decl->metaprogramme_corps_texte;
         auto fichier = m_compilatrice.crée_fichier_pour_metaprogramme(metaprogramme);
-        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
+        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(m_espace,
                                                                              metaprogramme);
         return Attente::sur_parsage(fichier);
     }
@@ -4054,7 +4046,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
         }
 
         if (!it->est_declaration_variable()) {
-            espace->rapporte_erreur(it, "Expression inattendue dans le bloc de l'union");
+            m_espace->rapporte_erreur(it, "Expression inattendue dans le bloc de l'union");
             return CodeRetourValidation::Erreur;
         }
 
@@ -4072,7 +4064,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 }
 
                 if (var->type->est_type_variadique()) {
-                    rapporte_erreur_type_membre_invalide(espace, type_compose, var);
+                    rapporte_erreur_type_membre_invalide(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -4083,7 +4075,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 }
 
                 if (le_membre_référence_le_type_par_valeur(type_union, var)) {
-                    rapporte_erreur_inclusion_récursive_type(espace, type_compose, var);
+                    rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -4101,9 +4093,9 @@ ResultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
     constructrice.finalise();
 
     /* Valide les types avant le calcul de la taille des types. */
-    TENTE(valide_types_pour_calcule_taille_type(espace, type_compose));
+    TENTE(valide_types_pour_calcule_taille_type(m_espace, type_compose));
 
-    calcule_taille_type_compose(type_union, false, 0);
+    calcule_taille_type_composé(type_union, false, 0);
 
     if (!decl->est_nonsure) {
         crée_type_structure(m_compilatrice.typeuse, type_union, type_union->decalage_index);
@@ -4116,9 +4108,9 @@ ResultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
 /** \} */
 
-ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationVariable *decl)
+RésultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationVariable *decl)
 {
-    auto &ctx = contexte_validation_declaration;
+    auto &ctx = m_contexte_validation_declaration;
     ctx.variables.efface();
     ctx.donnees_temp.efface();
     ctx.decls_et_refs.efface();
@@ -4208,7 +4200,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
     auto ajoute_variable = [this](DonneesAssignations &donnees,
                                   NoeudExpression *variable,
                                   NoeudExpression *expression,
-                                  Type *type_de_l_expression) -> ResultatValidation {
+                                  Type *type_de_l_expression) -> RésultatValidation {
         if (variable->type == nullptr) {
             if (type_de_l_expression->est_type_entier_constant()) {
                 variable->type = TypeBase::Z32;
@@ -4262,7 +4254,8 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
 
             // il est possible d'ignorer les variables
             if (variables.est_vide()) {
-                espace->rapporte_erreur(decl, "Trop d'expressions ou de types pour l'assignation");
+                m_espace->rapporte_erreur(decl,
+                                          "Trop d'expressions ou de types pour l'assignation");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -4372,7 +4365,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
 
         POUR (decls_et_refs) {
             TENTE(valide_symbole_externe(it.decl, TypeSymbole::VARIABLE_GLOBALE))
@@ -4390,7 +4383,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclarationConstante *decl)
+RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclarationConstante *decl)
 {
     if (resoud_type_final(decl->expression_type, decl->type) == CodeRetourValidation::Erreur) {
         return CodeRetourValidation::Erreur;
@@ -4485,7 +4478,7 @@ ResultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclaratio
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
+RésultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
 {
     CHRONO_TYPAGE(m_stats_typage.assignations, ASSIGNATION__VALIDATION);
     auto variable = inst->variable;
@@ -4522,7 +4515,7 @@ ResultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
     auto ajoute_variable = [this](DonneesAssignations &donnees,
                                   NoeudExpression *var,
                                   NoeudExpression *expression,
-                                  Type *type_de_l_expression) -> ResultatValidation {
+                                  Type *type_de_l_expression) -> RésultatValidation {
         auto type_de_la_variable = var->type;
         auto var_est_reference = type_de_la_variable->est_type_reference();
         auto expr_est_reference = type_de_l_expression->est_type_reference();
@@ -4531,7 +4524,7 @@ ResultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
 
         if (var->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
             if (!expression->type->est_type_bool()) {
-                espace
+                m_espace
                     ->rapporte_erreur(expression,
                                       "L'assignation d'une valeur d'une énum_drapeau doit être "
                                       "une valeur booléenne")
@@ -4688,14 +4681,14 @@ CodeRetourValidation Sémanticienne::valide_controle_boucle(TypeControleBoucle *
 
     if (!boucle) {
         if (!chaine_var) {
-            espace->rapporte_erreur(
+            m_espace->rapporte_erreur(
                 inst, "« continue » en dehors d'une boucle", erreur::Genre::CONTROLE_INVALIDE);
             return CodeRetourValidation::Erreur;
         }
 
-        espace->rapporte_erreur(inst->expression,
-                                "La variable ne réfère à aucune boucle",
-                                erreur::Genre::VARIABLE_INCONNUE);
+        m_espace->rapporte_erreur(inst->expression,
+                                  "La variable ne réfère à aucune boucle",
+                                  erreur::Genre::VARIABLE_INCONNUE);
         return CodeRetourValidation::Erreur;
     }
 
@@ -4716,13 +4709,13 @@ CodeRetourValidation Sémanticienne::resoud_type_final(NoeudExpression *expressi
     auto type_var = expression_type->type;
 
     if (type_var == nullptr) {
-        espace->rapporte_erreur(expression_type,
-                                "Erreur interne, le type de l'expression est nul !");
+        m_espace->rapporte_erreur(expression_type,
+                                  "Erreur interne, le type de l'expression est nul !");
         return CodeRetourValidation::Erreur;
     }
 
     if (!type_var->est_type_type_de_donnees()) {
-        espace
+        m_espace
             ->rapporte_erreur(expression_type,
                               "L'expression du type n'est pas un type de données.")
             .ajoute_message("L'expression est de type : ", chaine_type(type_var), "\n");
@@ -4742,47 +4735,47 @@ CodeRetourValidation Sémanticienne::resoud_type_final(NoeudExpression *expressi
 
 void Sémanticienne::rapporte_erreur(const char *message, const NoeudExpression *noeud)
 {
-    erreur::lance_erreur(message, *espace, noeud);
+    erreur::lance_erreur(message, *m_espace, noeud);
 }
 
 void Sémanticienne::rapporte_erreur(const char *message,
                                     const NoeudExpression *noeud,
                                     erreur::Genre genre)
 {
-    erreur::lance_erreur(message, *espace, noeud, genre);
+    erreur::lance_erreur(message, *m_espace, noeud, genre);
 }
 
 void Sémanticienne::rapporte_erreur_redefinition_symbole(NoeudExpression *decl,
                                                          NoeudDeclaration *decl_prec)
 {
-    erreur::redefinition_symbole(*espace, decl, decl_prec);
+    erreur::redefinition_symbole(*m_espace, decl, decl_prec);
 }
 
 void Sémanticienne::rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl,
                                                           NoeudDeclaration *decl_prec)
 {
-    erreur::redefinition_fonction(*espace, decl_prec, decl);
+    erreur::redefinition_fonction(*m_espace, decl_prec, decl);
 }
 
 void Sémanticienne::rapporte_erreur_type_arguments(NoeudExpression *type_arg,
                                                    NoeudExpression *type_enf)
 {
     erreur::lance_erreur_transtypage_impossible(
-        type_arg->type, type_enf->type, *espace, type_enf, type_arg);
+        type_arg->type, type_enf->type, *m_espace, type_enf, type_arg);
 }
 
 void Sémanticienne::rapporte_erreur_assignation_type_differents(const Type *type_gauche,
                                                                 const Type *type_droite,
                                                                 NoeudExpression *noeud)
 {
-    erreur::lance_erreur_assignation_type_differents(type_gauche, type_droite, *espace, noeud);
+    erreur::lance_erreur_assignation_type_differents(type_gauche, type_droite, *m_espace, noeud);
 }
 
 void Sémanticienne::rapporte_erreur_type_operation(const Type *type_gauche,
                                                    const Type *type_droite,
                                                    NoeudExpression *noeud)
 {
-    erreur::lance_erreur_type_operation(type_gauche, type_droite, *espace, noeud);
+    erreur::lance_erreur_type_operation(type_gauche, type_droite, *m_espace, noeud);
 }
 
 void Sémanticienne::rapporte_erreur_acces_hors_limites(NoeudExpression *b,
@@ -4790,30 +4783,30 @@ void Sémanticienne::rapporte_erreur_acces_hors_limites(NoeudExpression *b,
                                                        int64_t index_acces)
 {
     erreur::lance_erreur_acces_hors_limites(
-        *espace, b, type_tableau->taille, type_tableau, index_acces);
+        *m_espace, b, type_tableau->taille, type_tableau, index_acces);
 }
 
 void Sémanticienne::rapporte_erreur_membre_inconnu(NoeudExpression *acces,
                                                    NoeudExpression *membre,
                                                    TypeCompose *type)
 {
-    erreur::membre_inconnu(*espace, acces, membre, type);
+    erreur::membre_inconnu(*m_espace, acces, membre, type);
 }
 
 void Sémanticienne::rapporte_erreur_valeur_manquante_discr(
     NoeudExpression *expression, kuri::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
 {
-    erreur::valeur_manquante_discr(*espace, expression, valeurs_manquantes);
+    erreur::valeur_manquante_discr(*m_espace, expression, valeurs_manquantes);
 }
 
 void Sémanticienne::rapporte_erreur_fonction_nulctx(const NoeudExpression *appl_fonc,
                                                     const NoeudExpression *decl_fonc,
                                                     const NoeudExpression *decl_appel)
 {
-    erreur::lance_erreur_fonction_nulctx(*espace, appl_fonc, decl_fonc, decl_appel);
+    erreur::lance_erreur_fonction_nulctx(*m_espace, appl_fonc, decl_fonc, decl_appel);
 }
 
-ResultatValidation Sémanticienne::crée_transtypage_implicite_si_possible(
+RésultatValidation Sémanticienne::crée_transtypage_implicite_si_possible(
     NoeudExpression *&expression, Type *type_cible, const RaisonTranstypageImplicite raison)
 {
     auto résultat = cherche_transformation(expression->type, type_cible);
@@ -4855,7 +4848,7 @@ ResultatValidation Sémanticienne::crée_transtypage_implicite_si_possible(
             }
         }
 
-        espace
+        m_espace
             ->rapporte_erreur(
                 expression, message_principal, erreur::Genre::ASSIGNATION_MAUVAIS_TYPE)
             .ajoute_message(message_type_désiré, chaine_type(type_cible), "\n")
@@ -4902,12 +4895,12 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
             type_cible = m_compilatrice.typeuse.type_reference_pour(expression->type);
         }
         else if (transformation.type == TypeTransformation::DEREFERENCE) {
-            type_cible = type_dereference_pour(expression->type);
+            type_cible = type_déréférencé_pour(expression->type);
         }
         else if (transformation.type == TypeTransformation::CONSTRUIT_TABL_OCTET) {
             type_cible = TypeBase::TABL_OCTET;
         }
-        else if (transformation.type == TypeTransformation::CONVERTI_TABLEAU) {
+        else if (transformation.type == TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE) {
             auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
             type_cible = m_compilatrice.typeuse.type_tableau_dynamique(
                 type_tableau_fixe->type_pointe);
@@ -4951,13 +4944,9 @@ static bool est_accès_énum_drapeau(NoeudExpression const *expression)
     return expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
 }
 
-ResultatValidation Sémanticienne::valide_operateur_binaire(NoeudExpressionBinaire *expr)
+RésultatValidation Sémanticienne::valide_operateur_binaire(NoeudExpressionBinaire *expr)
 {
     CHRONO_TYPAGE(m_stats_typage.opérateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
-
-    if (expr->lexeme->genre == GenreLexeme::TABLEAU) {
-        return valide_operateur_binaire_tableau(expr);
-    }
 
     auto enfant1 = expr->operande_gauche;
     auto enfant2 = expr->operande_droite;
@@ -5024,7 +5013,7 @@ static bool sont_opérations_compatibles_pour_comparaison_chainée(
     return false;
 }
 
-ResultatValidation Sémanticienne::valide_operateur_binaire_chaine(NoeudExpressionBinaire *expr)
+RésultatValidation Sémanticienne::valide_operateur_binaire_chaine(NoeudExpressionBinaire *expr)
 {
     auto const type_op = expr->lexeme->genre;
 
@@ -5032,7 +5021,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_chaine(NoeudExpressi
     auto const opération_gauche = expression_binaire_gauche->lexeme->genre;
 
     if (!sont_opérations_compatibles_pour_comparaison_chainée(type_op, opération_gauche)) {
-        auto e = espace->rapporte_erreur(expr, "Enchainement de comparaison invalide.");
+        auto e = m_espace->rapporte_erreur(expr, "Enchainement de comparaison invalide.");
         e.ajoute_message("L'enchainement de comparaison n'est pas valide car les comparaisons "
                          "peuvent être ambigües.\n");
         e.ajoute_message("Les enchainements valides sont :\n");
@@ -5048,7 +5037,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_chaine(NoeudExpressi
     auto const type_droite = expression_comparée->type;
 
     auto résultat = trouve_opérateur_pour_expression(
-        *espace, expr, type_gauche, type_droite, type_op);
+        *m_espace, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5064,75 +5053,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_chaine(NoeudExpressi
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation Sémanticienne::valide_operateur_binaire_tableau(NoeudExpressionBinaire *expr)
-{
-    auto enfant1 = expr->operande_gauche;
-    auto enfant2 = expr->operande_droite;
-    auto expression_taille = enfant1;
-    auto expression_type = enfant2;
-
-    auto type2 = expression_type->type;
-
-    if (!type2) {
-        rapporte_erreur("Impossible de déterminer le type, ceci n'est peut-être pas un type",
-                        enfant2);
-        return CodeRetourValidation::Erreur;
-    }
-
-    if (!type2->est_type_type_de_donnees()) {
-        rapporte_erreur("Attendu une expression de type après la déclaration de type tableau",
-                        enfant2);
-        return CodeRetourValidation::Erreur;
-    }
-
-    auto type_de_donnees = type2->comme_type_type_de_donnees();
-    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
-
-    auto taille_tableau = int64_t(0);
-
-    if (expression_taille) {
-        auto res = evalue_expression(
-            m_compilatrice, expression_taille->bloc_parent, expression_taille);
-
-        if (res.est_errone) {
-            rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
-            return CodeRetourValidation::Erreur;
-        }
-
-        if (!res.valeur.est_entiere()) {
-            rapporte_erreur("L'expression n'est pas de type entier", expression_taille);
-            return CodeRetourValidation::Erreur;
-        }
-
-        if (res.valeur.entiere() == 0) {
-            espace->rapporte_erreur(expression_taille,
-                                    "Impossible de définir un tableau fixe de taille 0 !\n");
-            return CodeRetourValidation::Erreur;
-        }
-
-        taille_tableau = res.valeur.entiere();
-    }
-
-    if (taille_tableau != 0) {
-        // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
-        // via un membre
-        if (!type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            return Attente::sur_type(type_connu);
-        }
-
-        auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
-            type_connu, static_cast<int>(taille_tableau));
-        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
-    }
-    else {
-        auto type_tableau = m_compilatrice.typeuse.type_tableau_dynamique(type_connu);
-        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
-    }
-
-    return CodeRetourValidation::OK;
-}
-
-ResultatValidation Sémanticienne::valide_operateur_binaire_type(NoeudExpressionBinaire *expr)
+RésultatValidation Sémanticienne::valide_operateur_binaire_type(NoeudExpressionBinaire *expr)
 {
     auto enfant1 = expr->operande_gauche;
     auto enfant2 = expr->operande_droite;
@@ -5217,7 +5138,7 @@ static bool est_decalage_bits(GenreLexeme genre)
                                     GenreLexeme::DEC_GAUCHE_EGAL);
 }
 
-ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpressionBinaire *expr)
+RésultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpressionBinaire *expr)
 {
     auto type_op = expr->lexeme->genre;
     auto assignation_composee = est_assignation_composée(type_op);
@@ -5238,7 +5159,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
         }
     }
 
-    auto résultat = trouve_opérateur_pour_expression(*espace, expr, type1, type2, type_op);
+    auto résultat = trouve_opérateur_pour_expression(*m_espace, expr, type1, type2, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5252,9 +5173,9 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
 
     if (type_gauche_est_reference &&
         candidat.transformation_type1.type != TypeTransformation::INUTILE) {
-        espace->rapporte_erreur(expr->operande_gauche,
-                                "Impossible de transtyper la valeur à gauche pour une "
-                                "assignation composée.");
+        m_espace->rapporte_erreur(expr->operande_gauche,
+                                  "Impossible de transtyper la valeur à gauche pour une "
+                                  "assignation composée.");
         return CodeRetourValidation::Erreur;
     }
 
@@ -5288,7 +5209,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
             auto const bits_max = nombre_de_bits_pour_type(type1);
             auto const decalage = résultat_decalage.valeur.entiere();
             if (résultat_decalage.valeur.entiere() >= bits_max) {
-                espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")
+                m_espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")
                     .ajoute_message("Le nombre de bits de décalage est de ", decalage, "\n")
                     .ajoute_message("Alors que le nombre maximum de bits de décalage est de ",
                                     bits_max - 1,
@@ -5304,7 +5225,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_generique(NoeudExpre
 
 /* Note : l'expr_acces_enum n'est pas un NoeudExpressionMembre car nous pouvons avoir des
  * parenthèses. */
-ResultatValidation Sémanticienne::valide_comparaison_enum_drapeau_bool(
+RésultatValidation Sémanticienne::valide_comparaison_enum_drapeau_bool(
     NoeudExpressionBinaire *expr,
     NoeudExpression * /*expr_acces_enum*/,
     NoeudExpressionLitteraleBool *expr_bool)
@@ -5312,14 +5233,15 @@ ResultatValidation Sémanticienne::valide_comparaison_enum_drapeau_bool(
     auto type_op = expr->lexeme->genre;
 
     if (type_op != GenreLexeme::EGALITE && type_op != GenreLexeme::DIFFERENCE) {
-        espace->rapporte_erreur(expr,
-                                "Une comparaison entre une valeur d'énumération drapeau et une "
-                                "littérale booléenne doit se faire via « == » ou « != »");
+        m_espace->rapporte_erreur(expr,
+                                  "Une comparaison entre une valeur d'énumération drapeau et une "
+                                  "littérale booléenne doit se faire via « == » ou « != »");
         return CodeRetourValidation::Erreur;
     }
 
     auto type_bool = expr_bool->type;
-    auto résultat = trouve_opérateur_pour_expression(*espace, expr, type_bool, type_bool, type_op);
+    auto résultat = trouve_opérateur_pour_expression(
+        *m_espace, expr, type_bool, type_bool, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5335,20 +5257,20 @@ ResultatValidation Sémanticienne::valide_comparaison_enum_drapeau_bool(
 /** \name Expression logique.
  * \{ */
 
-ResultatValidation Sémanticienne::valide_expression_logique(NoeudExpressionLogique *logique)
+RésultatValidation Sémanticienne::valide_expression_logique(NoeudExpressionLogique *logique)
 {
     auto opérande_gauche = logique->opérande_gauche;
     auto opérande_droite = logique->opérande_droite;
 
     if (!est_expression_convertible_en_bool(opérande_gauche)) {
-        espace->rapporte_erreur(opérande_gauche,
-                                "Expression non conditionnable à gauche de l'opérateur logique !");
+        m_espace->rapporte_erreur(
+            opérande_gauche, "Expression non conditionnable à gauche de l'opérateur logique !");
         return CodeRetourValidation::Erreur;
     }
 
     if (!est_expression_convertible_en_bool(opérande_droite)) {
-        espace->rapporte_erreur(opérande_droite,
-                                "Expression non conditionnable à droite de l'opérateur logique !");
+        m_espace->rapporte_erreur(
+            opérande_droite, "Expression non conditionnable à droite de l'opérateur logique !");
         return CodeRetourValidation::Erreur;
     }
 
@@ -5356,7 +5278,7 @@ ResultatValidation Sémanticienne::valide_expression_logique(NoeudExpressionLogi
      * car nous ne pouvons déterminer le bon ordre d'exécution. */
     if (logique->lexeme->genre == GenreLexeme::BARRE_BARRE) {
         if (opérande_gauche->lexeme->genre == GenreLexeme::ESP_ESP) {
-            espace
+            m_espace
                 ->rapporte_erreur(opérande_gauche,
                                   "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
                 .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
@@ -5365,7 +5287,7 @@ ResultatValidation Sémanticienne::valide_expression_logique(NoeudExpressionLogi
         }
 
         if (opérande_droite->lexeme->genre == GenreLexeme::ESP_ESP) {
-            espace
+            m_espace
                 ->rapporte_erreur(opérande_droite,
                                   "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
                 .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
@@ -5437,8 +5359,8 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
 
     if (type_variable_itérée->est_type_tableau_dynamique() ||
         type_variable_itérée->est_type_tableau_fixe() ||
-        type_variable_itérée->est_type_variadique()) {
-        auto type_itérateur = type_dereference_pour(type_variable_itérée);
+        type_variable_itérée->est_type_variadique() || type_variable_itérée->est_type_tranche()) {
+        auto type_itérateur = type_déréférencé_pour(type_variable_itérée);
         auto type_index = TypeBase::Z64;
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
     }
@@ -5521,12 +5443,12 @@ static NoeudDeclarationVariable *crée_déclaration_pour_variable(AssembleuseArb
     return decl;
 }
 
-ResultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
+RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
 {
     if (est_appel_coroutine(inst->expression)) {
-        espace->rapporte_erreur(inst->expression,
-                                "Les coroutines ne sont plus supportées dans "
-                                "le langage pour le moment");
+        m_espace->rapporte_erreur(inst->expression,
+                                  "Les coroutines ne sont plus supportées dans "
+                                  "le langage pour le moment");
 #if 0
         enfant1->type = enfant2->type;
 
@@ -5573,21 +5495,21 @@ ResultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
         (inst->prend_reference || inst->prend_pointeur ||
          inst->lexeme_op != GenreLexeme::INFERIEUR)) {
         if (inst->prend_pointeur) {
-            espace->rapporte_erreur(
+            m_espace->rapporte_erreur(
                 inst,
                 "Il est impossible de prendre une référence vers la variable itérée d'une "
                 "boucle sur un type non standard.");
         }
         else if (inst->prend_reference) {
-            espace->rapporte_erreur(
+            m_espace->rapporte_erreur(
                 inst,
                 "Il est impossible de prendre l'adresse de la variable itérée d'une "
                 "boucle sur un type non standard.");
         }
         else {
-            espace->rapporte_erreur(inst,
-                                    "Il est impossible de spécifier la direction d'une "
-                                    "boucle sur un type non standard.");
+            m_espace->rapporte_erreur(inst,
+                                      "Il est impossible de spécifier la direction d'une "
+                                      "boucle sur un type non standard.");
         }
         return CodeRetourValidation::Erreur;
     }
@@ -5617,7 +5539,7 @@ ResultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
 
     /* Gère les redéfinitions après la détermination du typage de l'expression afin de ne pas avoir
      * à rechercher dans le bloc en cas d'attente. */
-    if (!variables_ne_redéfinissent_rien(espace, variables->expressions, inst->bloc_parent)) {
+    if (!variables_ne_redéfinissent_rien(m_espace, variables->expressions, inst->bloc_parent)) {
         return CodeRetourValidation::Erreur;
     }
 
@@ -5664,7 +5586,7 @@ ResultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
         inst->decl_index_it = crée_déclaration_pour_variable(
             assembleuse, ref, typage_itérande.type_index, false);
     }
-    assembleuse->depile_bloc();
+    assembleuse->dépile_bloc();
 
     if (aide_génération_code != BOUCLE_POUR_OPÉRATEUR) {
         return CodeRetourValidation::OK;
@@ -5774,7 +5696,7 @@ static bool type_est_valide_pour_assignation_via_si(NoeudExpression const *expr,
     return true;
 }
 
-ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
+RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 {
     auto type_condition = inst->condition->type;
 
@@ -5784,7 +5706,7 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
     }
 
     if (!est_expression_convertible_en_bool(inst->condition)) {
-        espace
+        m_espace
             ->rapporte_erreur(inst->condition,
                               "Impossible de convertir implicitement l'expression vers "
                               "une expression booléenne",
@@ -5800,7 +5722,7 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
     /* Pour les expressions x = si y { z } sinon { w }. */
 
     kuri::tablet<NoeudBloc *, 6> blocs;
-    if (!rassemble_blocs_pour_expression_si(inst, espace, blocs)) {
+    if (!rassemble_blocs_pour_expression_si(inst, m_espace, blocs)) {
         return CodeRetourValidation::Erreur;
     }
 
@@ -5808,7 +5730,7 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 
     POUR (blocs) {
         if (it->expressions->est_vide()) {
-            espace->rapporte_erreur(it, "Bloc vide pour l'expression « si »");
+            m_espace->rapporte_erreur(it, "Bloc vide pour l'expression « si »");
             return CodeRetourValidation::Erreur;
         }
 
@@ -5818,7 +5740,7 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
         }
 
         if (!expression_est_valide_pour_assignation_via_si(dernière_expression)) {
-            espace
+            m_espace
                 ->rapporte_erreur(dernière_expression,
                                   "Expression invalide l'assignation via « si »")
                 .ajoute_message(
@@ -5830,13 +5752,13 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
     }
 
     if (expressions_finales.est_vide()) {
-        espace->rapporte_erreur(inst, "Aucune expression trouvée pour l'assignation via « si »");
+        m_espace->rapporte_erreur(inst, "Aucune expression trouvée pour l'assignation via « si »");
         return CodeRetourValidation::Erreur;
     }
 
     /* Détermine le type de l'expression selon les dernières expressions des blocs. */
 
-    if (!type_est_valide_pour_assignation_via_si(expressions_finales[0], espace)) {
+    if (!type_est_valide_pour_assignation_via_si(expressions_finales[0], m_espace)) {
         return CodeRetourValidation::Erreur;
     }
 
@@ -5849,7 +5771,7 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 
     for (auto i = 1; i < expressions_finales.taille(); i++) {
         auto expr = expressions_finales[i];
-        if (!type_est_valide_pour_assignation_via_si(expr, espace)) {
+        if (!type_est_valide_pour_assignation_via_si(expr, m_espace)) {
             return CodeRetourValidation::Erreur;
         }
 
@@ -5863,7 +5785,8 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
         auto const transformation = poids_transformation.transformation;
 
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-            espace->rapporte_erreur(expr, "Expression incompatible pour l'assignation via « si »")
+            m_espace
+                ->rapporte_erreur(expr, "Expression incompatible pour l'assignation via « si »")
                 .ajoute_message("Le type inféré jusqu'ici est « ",
                                 chaine_type(type_inféré),
                                 " », mais l'expression est de type « ",
@@ -5877,7 +5800,7 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 
         if (transformation.type != TypeTransformation::INUTILE) {
             auto bloc = expr->bloc_parent;
-            assert_rappel(bloc, [&]() { dbg() << erreur::imprime_site(*espace, expr); });
+            assert_rappel(bloc, [&]() { dbg() << erreur::imprime_site(*m_espace, expr); });
             /* Remplace l'expression. */
             bloc->expressions->supprime_dernier();
             bloc->expressions->ajoute(expr);
@@ -5895,7 +5818,7 @@ ResultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 /** \name Validation dépendance bibliothèque.
  * \{ */
 
-ResultatValidation Sémanticienne::valide_dépendance_bibliothèque(
+RésultatValidation Sémanticienne::valide_dépendance_bibliothèque(
     NoeudDirectiveDependanceBibliotheque *noeud)
 {
     auto &gestionnaire_bibliotheques = m_compilatrice.gestionnaire_bibliotheques;
@@ -5904,9 +5827,9 @@ ResultatValidation Sémanticienne::valide_dépendance_bibliothèque(
     auto ident_bibliothèque_dépendue = noeud->bibliothèque_dépendue->ident;
 
     if (ident_bibliothèque_dépendante == ident_bibliothèque_dépendue) {
-        espace->rapporte_erreur(noeud->bibliothèque_dépendue,
-                                "Une bibliothèque ne peut pas dépendre sur elle-même : les deux "
-                                "identifiants sont similaires.");
+        m_espace->rapporte_erreur(noeud->bibliothèque_dépendue,
+                                  "Une bibliothèque ne peut pas dépendre sur elle-même : les deux "
+                                  "identifiants sont similaires.");
         return CodeRetourValidation::Erreur;
     }
 
@@ -5927,7 +5850,7 @@ ResultatValidation Sémanticienne::valide_dépendance_bibliothèque(
         }
 
         if (!noeud_bib_dépendante->est_declaration_bibliotheque()) {
-            espace
+            m_espace
                 ->rapporte_erreur(
                     noeud->bibliothèque_dépendante,
                     "#dépendance_bibliothèque doit prendre une référence à une bibliothèque, or "
@@ -5948,7 +5871,7 @@ ResultatValidation Sémanticienne::valide_dépendance_bibliothèque(
         }
 
         if (!noeud_bib_dépendue->est_declaration_bibliotheque()) {
-            espace
+            m_espace
                 ->rapporte_erreur(
                     noeud->bibliothèque_dépendue,
                     "#dépendance_bibliothèque doit prendre une référence à une bibliothèque, or "
@@ -5961,9 +5884,9 @@ ResultatValidation Sémanticienne::valide_dépendance_bibliothèque(
     }
 
     auto bib_dependante = gestionnaire_bibliotheques->trouve_ou_crée_bibliotheque(
-        *espace, ident_bibliothèque_dépendante);
+        *m_espace, ident_bibliothèque_dépendante);
     auto bib_dependue = gestionnaire_bibliotheques->trouve_ou_crée_bibliotheque(
-        *espace, ident_bibliothèque_dépendue);
+        *m_espace, ident_bibliothèque_dépendue);
     bib_dependante->dependances.ajoute(bib_dependue);
     /* Ce n'est pas une déclaration mais #GestionnaireCode.typage_termine le requiers. */
     noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -6005,7 +5928,7 @@ static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
     return module;
 }
 
-ResultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionImporte *inst)
+RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionImporte *inst)
 {
     const auto fichier = m_compilatrice.fichier(inst->lexeme->fichier);
     auto const module_du_fichier = fichier->module;
@@ -6014,21 +5937,21 @@ ResultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionIm
     if (!module) {
         const auto lexeme = inst->expression->lexeme;
         const auto temps = dls::chrono::compte_seconde();
-        module = m_compilatrice.importe_module(espace, lexeme->chaine, inst->expression);
-        temps_chargement += temps.temps();
+        module = m_compilatrice.importe_module(m_espace, lexeme->chaine, inst->expression);
+        m_temps_chargement += temps.temps();
         if (!module) {
             return CodeRetourValidation::Erreur;
         }
     }
 
     if (module_du_fichier == module) {
-        espace->rapporte_erreur(inst, "Importation d'un module dans lui-même !\n");
+        m_espace->rapporte_erreur(inst, "Importation d'un module dans lui-même !\n");
         return CodeRetourValidation::Erreur;
     }
 
     // @concurrence critique
     if (fichier->importe_module(module->nom())) {
-        espace->rapporte_avertissement(inst, "Importation superflux du module");
+        m_espace->rapporte_avertissement(inst, "Importation superflux du module");
     }
     else {
         fichier->modules_importés.insere(module);
@@ -6066,7 +5989,7 @@ ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
 /** \name Validation expression comme.
  * \{ */
 
-ResultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
+RésultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
 {
     if (resoud_type_final(expr->expression_type, expr->type) == CodeRetourValidation::Erreur) {
         return CodeRetourValidation::Erreur;
@@ -6121,11 +6044,182 @@ ResultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
          * type monomorphé. */
         if (fonction_courante() &&
             !fonction_courante()->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-            espace->rapporte_avertissement(expr, "Instruction de transtypage inutile.");
+            m_espace->rapporte_avertissement(expr, "Instruction de transtypage inutile.");
         }
     }
 
     expr->transformation = transformation;
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression type tableau fixe.
+ * \{ */
+
+RésultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
+    NoeudExpressionTypeTableauFixe *expr)
+{
+    auto type_expression_type = expr->expression_type->type;
+    if (!type_expression_type->est_type_type_de_donnees()) {
+        m_espace->rapporte_erreur(
+            expr->expression_type,
+            "Attendu un type de données pour l'expression du type tableau fixe.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto expression_taille = expr->expression_taille;
+    if (expression_taille->type->est_type_type_de_donnees()) {
+        auto type_de_données = expression_taille->type->comme_type_type_de_donnees();
+
+        if (!type_de_données->type_connu) {
+            m_espace->rapporte_erreur(expression_taille,
+                                      "Type invalide pour la taille du tableau fixe.");
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (!type_de_données->type_connu->est_type_polymorphique()) {
+            m_espace->rapporte_erreur(expression_taille,
+                                      "Type invalide pour la taille du tableau fixe.");
+            return CodeRetourValidation::Erreur;
+        }
+
+        /* À FAIRE : type polymorphique. */
+        m_espace->rapporte_erreur(
+            expression_taille,
+            "Les types tableaux polymorphiques ne sont pas encore implémentés dans la langage.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto res = evalue_expression(
+        m_compilatrice, expression_taille->bloc_parent, expression_taille);
+
+    if (res.est_errone) {
+        rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!res.valeur.est_entiere()) {
+        rapporte_erreur("L'expression n'est pas de type entier", expression_taille);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (res.valeur.entiere() == 0) {
+        m_espace->rapporte_erreur(expression_taille,
+                                  "Impossible de définir un tableau fixe de taille 0 !\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto taille_tableau = res.valeur.entiere();
+
+    auto type_de_donnees = type_expression_type->comme_type_type_de_donnees();
+    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
+
+    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
+    // via un membre
+    if (!type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_type(type_connu);
+    }
+
+    auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(type_connu,
+                                                                 int32_t(taille_tableau));
+    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression type tableau dynamique.
+ * \{ */
+
+RésultatValidation Sémanticienne::valide_expression_type_tableau_dynamique(
+    NoeudExpressionTypeTableauDynamique *expr)
+{
+    auto type_expression_type = expr->expression_type->type;
+    if (!type_expression_type->est_type_type_de_donnees()) {
+        m_espace->rapporte_erreur(
+            expr->expression_type,
+            "Attendu un type de données pour l'expression du type tableau fixe.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_de_donnees = type_expression_type->comme_type_type_de_donnees();
+    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
+    auto type_tableau = m_compilatrice.typeuse.type_tableau_dynamique(type_connu);
+    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression type tableau dynamique.
+ * \{ */
+
+RésultatValidation Sémanticienne::valide_expression_type_tranche(NoeudExpressionTypeTranche *expr)
+{
+    auto type_expression_type = expr->expression_type->type;
+    if (!type_expression_type->est_type_type_de_donnees()) {
+        m_espace->rapporte_erreur(
+            expr->expression_type,
+            "Attendu un type de données pour l'expression du type tableau fixe.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_de_donnees = type_expression_type->comme_type_type_de_donnees();
+    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
+    auto type_tableau = m_compilatrice.typeuse.crée_type_tranche(type_connu);
+    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation expression type fonction.
+ * \{ */
+
+RésultatValidation Sémanticienne::valide_expression_type_fonction(
+    NoeudExpressionTypeFonction *expr)
+{
+    auto types_entrees = kuri::tablet<Type *, 6>(expr->types_entrée.taille());
+
+    for (auto i = 0; i < expr->types_entrée.taille(); ++i) {
+        NoeudExpression *type_entree = expr->types_entrée[i];
+
+        if (resoud_type_final(type_entree, types_entrees[i]) == CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    Type *type_sortie = nullptr;
+
+    if (expr->types_sortie.taille() == 1) {
+        if (resoud_type_final(expr->types_sortie[0], type_sortie) ==
+            CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
+        }
+    }
+    else {
+        kuri::tablet<MembreTypeComposé, 6> membres;
+        membres.reserve(expr->types_sortie.taille());
+
+        for (auto &type_declare : expr->types_sortie) {
+            if (resoud_type_final(type_declare, type_sortie) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
+
+            membres.ajoute({nullptr, type_sortie});
+        }
+
+        type_sortie = m_compilatrice.typeuse.crée_tuple(membres);
+    }
+
+    auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
+    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_fonction);
     return CodeRetourValidation::OK;
 }
 

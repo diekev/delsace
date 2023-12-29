@@ -3,8 +3,6 @@
 
 #include "portee.hh"
 
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "espace_de_travail.hh"
 #include "parsage/modules.hh"
@@ -18,12 +16,6 @@ static bool la_fonction_courante_a_changé(NoeudDeclarationEnteteFonction const 
                                           NoeudDeclarationEnteteFonction const *nouvelle_fonction)
 {
     if (fonction_courante == nouvelle_fonction) {
-        return false;
-    }
-
-    /* Détecte les cas où nous commençons dans le bloc d'une déclaration de
-     * type fonction. */
-    if (nouvelle_fonction && nouvelle_fonction->est_declaration_type) {
         return false;
     }
 

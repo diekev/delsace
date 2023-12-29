@@ -104,9 +104,9 @@ espace_disque_disponible :: fonc (chemin: &CheminFichier) -> Optionnel(n64)
     retourne système_espace_disque_disponible(chemin)
 }
 
-contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
+contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> [..]octet
 {
-    contenu : []octet
+    contenu : [..]octet
 
     fichier := tente ouvre_fichier(chemin) piège err {
         retourne contenu
@@ -125,7 +125,7 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
     retourne contenu
 }
 
-contenu_fichier_binaire :: fonc(chemin: CheminFichier, résultat: &[]octet)
+contenu_fichier_binaire :: fonc(chemin: CheminFichier, résultat: &[..]octet)
 {
     fichier := tente ouvre_fichier(chemin) piège err {
         retourne

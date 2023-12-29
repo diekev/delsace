@@ -68,7 +68,7 @@ InformationInscription :: struct {
 
 Repas :: struct {
     nom : chaine
-    ingrédients : []Ingrédient
+    ingrédients : [..]Ingrédient
     ingrédient_principal : Ingrédient
 }
 

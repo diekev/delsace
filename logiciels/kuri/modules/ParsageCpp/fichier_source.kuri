@@ -14,10 +14,10 @@ DonnéesSousChaineLexée :: struct {
 FluxSource :: struct {
     source: chaine
 
-    runes: []Rune
+    runes: [..]Rune
     /* Une entrée par rune + 1. Donne le décalage de la rune dans le texte utf8.
      * La dernière entrée est la taille totale. */
-    décalage_runes: []z64
+    décalage_runes: [..]z64
 
     début: *Rune
     fin: *Rune
@@ -114,7 +114,7 @@ donne_données_extraction_sous_chaine :: fonc (flux: &FluxSource) -> DonnéesSou
 FichierSource :: struct {
     chemin: CheminFichier
     contenu: chaine
-    lexèmes: []Lexème
+    lexèmes: [..]Lexème
 }
 
 construit_fichier_source :: fonc (chemin: CheminFichier) -> Optionnel(FichierSource)

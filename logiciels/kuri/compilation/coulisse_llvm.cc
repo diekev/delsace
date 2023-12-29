@@ -3,6 +3,8 @@
 
 #include "coulisse_llvm.hh"
 
+#include "biblinternes/outils/conditions.h"
+
 #include <iostream>
 
 #include "utilitaires/poule_de_taches.hh"
@@ -37,6 +39,8 @@
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
 #endif
+
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
@@ -556,7 +560,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         case GenreNoeud::REFERENCE:
         case GenreNoeud::POINTEUR:
         {
-            auto type_deref = type_dereference_pour(type);
+            auto type_deref = type_déréférencé_pour(type);
 
             // Les pointeurs vers rien (void) ne sont pas valides avec LLVM
             // @Incomplet : LLVM n'a pas de pointeur nul
@@ -611,9 +615,13 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         {
             return convertis_type_composé(type->comme_type_tableau_dynamique(), "tableau");
         }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            return convertis_type_composé(type->comme_type_tableau_dynamique(), "tranche");
+        }
         case GenreNoeud::TABLEAU_FIXE:
         {
-            auto type_deref_llvm = convertis_type_llvm(type_dereference_pour(type));
+            auto type_deref_llvm = convertis_type_llvm(type_déréférencé_pour(type));
             auto const taille = type->comme_type_tableau_fixe()->taille;
 
             type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<uint64_t>(taille));
@@ -633,9 +641,9 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
             type_llvm = convertis_type_llvm(type_opaque->type_opacifie);
             break;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }

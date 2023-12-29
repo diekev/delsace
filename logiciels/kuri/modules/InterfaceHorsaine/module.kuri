@@ -108,6 +108,7 @@ MembreTypeIPA :: struct {
 DrapeauxTypeIPA :: énum_drapeau {
     TYPE_EST_BASIQUE
     TYPE_EST_TABLEAU
+    TYPE_EST_TRANCHE
     TYPE_EST_ÉNUM
     TYPE_EST_POINTEUR
     TYPE_EST_FONCTION
@@ -131,7 +132,7 @@ DrapeauxTypeIPA :: énum_drapeau {
 TypeIPA :: struct {
     infos: *InfoType
     nom: chaine
-    fonctions: []MéthodeIPA
+    fonctions: [..]MéthodeIPA
     drapeaux: DrapeauxTypeIPA
 
     constructrice: Optionnel(MéthodeIPA)
@@ -139,14 +140,14 @@ TypeIPA :: struct {
     /* Pour les pointeurs, le type pointé. */
     type_pointé : *TypeIPA
 
-    membres: []MembreTypeIPA
+    membres: [..]MembreTypeIPA
 
     /* Type de base. */
     type_base: *TypeIPA
 
     /* Pour les fonctions. */
-    types_entrée : []*TypeIPA
-    types_sortie : []*TypeIPA
+    types_entrée : [..]*TypeIPA
+    types_sortie : [..]*TypeIPA
 }
 
 détruit_type_ipa :: fonc (type: *TypeIPA)
@@ -181,8 +182,8 @@ MéthodeIPA :: struct {
     nom_pour_fonction_c: chaine
     nom_rappel_pour_table: chaine
 
-    entrées: []Paramètre
-    sorties: []Paramètre
+    entrées: [..]Paramètre
+    sorties: [..]Paramètre
 }
 
 /* Par valeur pour déloge_tableau_et_ses_éléments. */
@@ -212,11 +213,11 @@ convertis_paramètre :: fonc (param: *NoeudCode) -> MéthodeIPA.Paramètre
 
 nom_pour_info_récursif :: fonc (info: *InfoType) -> chaine
 {
-    si info.id == id_info.STRUCTURE {
+    si info.id == GenreInfoType.STRUCTURE {
         retourne (info comme *InfoTypeStructure).nom
     }
 
-    si info.id == id_info.POINTEUR {
+    si info.id == GenreInfoType.POINTEUR {
         retourne nom_pour_info_récursif((info comme *InfoTypePointeur).type_pointé)
     }
 
@@ -274,8 +275,8 @@ convertis_entête_en_méthode_ipa :: fonc (entête: *NoeudCodeEntêteFonction, t
 
 /* Informations sur l'IPA. */
 IPA :: struct {
-    types: []*TypeIPA
-    fonctions: []MéthodeIPA
+    types: [..]*TypeIPA
+    fonctions: [..]MéthodeIPA
 
     espace_de_nom: chaine
     nom_module: chaine
@@ -385,7 +386,7 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 
             pour info_fonction.types_entrée {
                 /* À FAIRE : pointeurs de tableaux. */
-                si it.id == id_info.TABLEAU {
+                si it.id == GenreInfoType.TABLEAU {
                     compilatrice_rapporte_erreur("Les types tableaux en entrée de fonction ne sont pas convertibles en C++ pour l'instant.")
                     retourne nul
                 }
@@ -395,7 +396,7 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 
             pour info_fonction.types_sortie {
                 /* À FAIRE : pointeurs de tableaux. */
-                si it.id == id_info.TABLEAU {
+                si it.id == GenreInfoType.TABLEAU {
                     compilatrice_rapporte_erreur("Les types tableaux en sortie de fonction ne sont pas convertibles en C++ pour l'instant.")
                     retourne nul
                 }
@@ -408,15 +409,17 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
         }
         TABLEAU {
             info_tableau := type comme *InfoTypeTableau
-
-            si info_tableau.est_tableau_fixe {
-                compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
-                retourne nul
-            }
-
             résultat.drapeaux.TYPE_EST_TABLEAU = vrai
-
             ajoute_type(ipa, info_tableau.type_pointé)
+        }
+        TABLEAU_FIXE {
+            compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
+            retourne nul
+        }
+        TRANCHE {
+            info_tranche := type comme *InfoTypeTranche
+            résultat.drapeaux.TYPE_EST_TRANCHE = vrai
+            ajoute_type(ipa, info_tranche.type_élément)
         }
         TYPE_DE_DONNÉES {
             compilatrice_rapporte_erreur("Les types « type_de_données » ne sont pas convertibles vers C/C++ pour le moment")
@@ -461,7 +464,7 @@ ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)
         POUR_MÉTHODE {
             premier_type := noeud_code.params[0].type
 
-            si premier_type.id == id_info.POINTEUR {
+            si premier_type.id == GenreInfoType.POINTEUR {
                 premier_type = (premier_type comme *InfoTypePointeur).type_pointé
             }
 
@@ -473,7 +476,7 @@ ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)
             /* À FAIRE : valide */
             premier_type := noeud_code.params[0].type
 
-            si premier_type.id == id_info.POINTEUR {
+            si premier_type.id == GenreInfoType.POINTEUR {
                 premier_type = (premier_type comme *InfoTypePointeur).type_pointé
             }
 
@@ -562,7 +565,7 @@ finalise_informations_types :: fonc (ipa: &IPA)
     pour ipa.types {
         infos := it.infos
 
-        saufsi infos.id == id_info.STRUCTURE {
+        saufsi infos.id == GenreInfoType.STRUCTURE {
             continue
         }
 

@@ -5,7 +5,7 @@ importe Fondation
 
 // À FAIRE : nous devrions avoir un paramètre pour le degrée minimum
 NoeudArbreB :: struct ($C: type_de_données) {
-    clés : []C
+    clés : [..]C
 
     // Degré minimum pour définir la plage pour le nombre de clés
     t : z32
@@ -13,13 +13,13 @@ NoeudArbreB :: struct ($C: type_de_données) {
     // nombre de clé (nous pourrions utiliser la propriété « capacité » du tableau)
     n : z32
 
-    enfants : []*NoeudArbreB(C)
+    enfants : [..]*NoeudArbreB(C)
 
     est_feuille : bool
 }
 
 ArbreB :: struct ($C: type_de_données) {
-    noeuds: []*NoeudArbreB(C = C)
+    noeuds: [..]*NoeudArbreB(C = C)
 
     racine: *NoeudArbreB(C = C)
 

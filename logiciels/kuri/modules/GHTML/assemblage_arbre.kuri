@@ -15,7 +15,7 @@ NoeudSyntaxique :: struct {
     données : Lexème
 
     parent : *NoeudSyntaxique
-    enfants : []*NoeudSyntaxique
+    enfants : [..]*NoeudSyntaxique
     nom : chaine
 }
 
@@ -50,7 +50,7 @@ copie_noeud :: fonc (assembleuse: &AssembleuseArbre, racine: *NoeudSyntaxique) -
 /* ------------------------------------------------------------------------- */
 
 AssembleuseArbre :: struct {
-    noeuds : []*NoeudSyntaxique
+    noeuds : [..]*NoeudSyntaxique
     pile : Pile(T = *NoeudSyntaxique)
 }
 

@@ -126,6 +126,14 @@ struct ensemblon {
         return m_taille;
     }
 
+    int64_t mémoire_utilisée() const
+    {
+        if (est_stocké_dans_classe()) {
+            return 0;
+        }
+        return m_ensemble.taille_memoire();
+    }
+
     T const *donnees_ensemblon() const
     {
         return m_ensemblon;

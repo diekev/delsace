@@ -65,9 +65,9 @@ crée_pilote_mysql :: fonc (fichier_config: chaine) -> PiloteMySQL | ErreurPilot
 }
 
 /* Retourne les noms des tables dans la base de données du pilote. */
-requiers_tables_mysql :: fonc (pilote: *PiloteMySQL) -> []chaine
+requiers_tables_mysql :: fonc (pilote: *PiloteMySQL) -> [..]chaine
 {
-    résultat : []chaine
+    résultat : [..]chaine
 
     connexion := tente crée_connexion(pilote) piège err {
         retourne résultat
@@ -150,7 +150,7 @@ détruit_curseur :: fonc (curseur : *CurseurRésultat) -> rien
 }
 
 RésultatRequête :: struct {
-    curseurs: []CurseurRésultat
+    curseurs: [..]CurseurRésultat
 }
 
 ajoute_curseur :: fonc (résultat: &RésultatRequête, curseur: CurseurRésultat)
@@ -288,9 +288,9 @@ TableMySQL :: struct {
     pilote : *PiloteMySQL
 }
 
-trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *InfoTypeStructure, colonnes: ...chaine) -> []*InfoTypeMembreStructure
+trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *InfoTypeStructure, colonnes: ...chaine) -> [..]*InfoTypeMembreStructure
 {
-    infos_membres : []*InfoTypeMembreStructure
+    infos_membres : [..]*InfoTypeMembreStructure
 
     /* vérifie que le type possède les noms des colonnes */
     pour colonnes {
@@ -311,11 +311,11 @@ trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *In
     retourne infos_membres
 }
 
-sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...chaine) -> []T
+sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...chaine) -> [..]T
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
-    résultat : []T
+    résultat : [..]T
     info := info_de(T)
 
     // À FAIRE : vérifie que la table possède les noms des colonnes
@@ -381,7 +381,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 
             chn := colonne_suivante(*curseur)
 
-            tampon : []octet
+            tampon : [..]octet
             tampon.pointeur = valeur_membre.pointeur comme *z8
             tampon.taille = membre.id.taille_en_octet comme z64
 
@@ -399,7 +399,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 
 insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     info := info_de(T)
 
@@ -458,12 +458,12 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
     retourne vrai
 }
 
-exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, colonnes: ...chaine) -> []T
+exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, colonnes: ...chaine) -> [..]T
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     info := info_de(T)
-    résultat : []T
+    résultat : [..]T
 
     infos_membres := trouve_info_membres_pour_colonnes("[MySQL]", info, ...colonnes)
     diffère { déloge(infos_membres) }
@@ -505,7 +505,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
 
             chn := colonne_suivante(*curseur)
 
-            tampon : []octet
+            tampon : [..]octet
             tampon.pointeur = valeur_membre.pointeur comme *z8
             tampon.taille = membre.id.taille_en_octet comme z64
 
@@ -521,11 +521,11 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
     retourne résultat
 }
 
-fonctions_parsages_mysql : []FonctionParsage
+fonctions_parsages_mysql : [..]FonctionParsage
 
 parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel(T)
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     infos := info_de(T)
     infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)
@@ -547,9 +547,9 @@ parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membr
     retourne valeur
 }
 
-parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel([]T)
+parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel([..]T)
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     infos := info_de(T)
     infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)
@@ -562,7 +562,7 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
         retourne
     }
 
-    liste : []T
+    liste : [..]T
 
     répète {
         valeur : T
@@ -578,7 +578,7 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
     retourne liste
 }
 
-parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: []*InfoTypeMembreStructure) -> bool
+parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [..]*InfoTypeMembreStructure) -> bool
 {
     pour infos_membres {
         membre := it
@@ -610,7 +610,7 @@ parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [
 
 // -------------------------------------------------------
 
-sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_table: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([]TypeRésultat)
+sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_table: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([..]TypeRésultat)
 {
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -655,7 +655,7 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
     }
 }
 
-exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([]TypeRésultat)
+exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([..]TypeRésultat)
 {
     résultat := tente exécute(connexion, requête) piège err {
         retourne
@@ -745,7 +745,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 {
     nom_enveloppe := enchaine("parsage_mysql_", données.fonction.nom)
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: [..]octet) -> bool\n")
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
     ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")

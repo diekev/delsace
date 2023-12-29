@@ -23,32 +23,42 @@ est_chaine :: fonc (valeur: eini) -> bool
 
 est_structure :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.STRUCTURE
+    retourne valeur.info.id == GenreInfoType.STRUCTURE
 }
 
 est_tableau :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.TABLEAU
+    retourne valeur.info.id == GenreInfoType.TABLEAU
+}
+
+est_tableau_fixe :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == GenreInfoType.TABLEAU_FIXE
+}
+
+est_tranche :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == GenreInfoType.TRANCHE
 }
 
 est_entier :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER
+    retourne valeur.info.id == GenreInfoType.ENTIER
 }
 
 est_réel :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.RÉEL
+    retourne valeur.info.id == GenreInfoType.RÉEL
 }
 
 est_pointeur :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.POINTEUR
+    retourne valeur.info.id == GenreInfoType.POINTEUR
 }
 
 est_opaque :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.OPAQUE
+    retourne valeur.info.id == GenreInfoType.OPAQUE
 }
 
 est_eini :: fonc (valeur: eini) -> bool
@@ -58,7 +68,7 @@ est_eini :: fonc (valeur: eini) -> bool
 
 est_énum :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ÉNUM
+    retourne valeur.info.id == GenreInfoType.ÉNUM
 }
 
 est_octet :: fonc (valeur: eini) -> bool
@@ -68,12 +78,12 @@ est_octet :: fonc (valeur: eini) -> bool
 
 est_type_de_données :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.TYPE_DE_DONNÉES
+    retourne valeur.info.id == GenreInfoType.TYPE_DE_DONNÉES
 }
 
 est_union :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.UNION
+    retourne valeur.info.id == GenreInfoType.UNION
 }
 
 est_z8 :: fonc (valeur: eini) -> bool
@@ -336,9 +346,9 @@ eini_depuis_info_membre :: fonc (structure: eini, info_membre: *InfoTypeMembreSt
     retourne e
 }
 
-tampon_pour_eini :: fonc (e: eini) -> []octet #enligne
+tampon_pour_eini :: fonc (e: eini) -> [..]octet #enligne
 {
-    tampon : []octet = ---
+    tampon : [..]octet = ---
     tampon.pointeur = e.pointeur comme *z8
     tampon.taille = e.info.taille_en_octet comme z64
     retourne tampon
@@ -429,27 +439,56 @@ crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
         retourne itératrice
     }
 
-    saufsi valeur.est_tableau() {
+    saufsi valeur.est_tableau() || valeur.est_tableau_fixe() {
         retourne itératrice
     }
 
-    info_tableau := valeur.info comme *InfoTypeTableau
-    type_pointé := info_tableau.type_pointé
-    décalage := type_pointé.taille_en_octet comme z32
+    itératrice.valeur = valeur
 
-    si info_tableau.est_tableau_fixe {
+    si valeur.est_tableau_fixe() {
+        info_tableau := valeur.info comme *InfoTypeTableauFixe
+
         itératrice.pointeur = valeur.pointeur
-        itératrice.taille = info_tableau.taille_fixe
+        itératrice.taille = info_tableau.nombre_éléments comme z32
+        itératrice.type_pointé = info_tableau.type_pointé
+        itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32
     }
     sinon {
-        x := mémoire(valeur.pointeur comme *[]z8)
+        x := mémoire(valeur.pointeur comme *[..]z8)
+
+        info_tableau := valeur.info comme *InfoTypeTableau
 
         itératrice.pointeur = x.pointeur
         itératrice.taille = x.taille
+        itératrice.type_pointé = info_tableau.type_pointé
+        itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32
     }
 
+    retourne itératrice
+}
+
+crée_itératrice_tableau_tranche :: fonc (valeur: eini) -> ItératriceTableau
+{
+    itératrice : ItératriceTableau
+
+    saufsi valeur.est_valide() {
+        retourne itératrice
+    }
+
+    saufsi valeur.est_tranche() {
+        retourne itératrice
+    }
+
+    info_tableau := valeur.info comme *InfoTypeTranche
+    type_élément := info_tableau.type_élément
+    décalage := type_élément.taille_en_octet comme z32
+
+    x := mémoire(valeur.pointeur comme *[]z8)
+    itératrice.pointeur = x.pointeur
+    itératrice.taille = x.taille
+
     itératrice.valeur = valeur
-    itératrice.type_pointé = type_pointé
+    itératrice.type_pointé = type_élément
     itératrice.décalage = décalage
 
     retourne itératrice
@@ -533,9 +572,9 @@ membre_suivant :: fonc (itératrice: &ItératriceMembreStructure) -> eini, chain
  * utilisée pour parser une chaine de caractère correspondant à une valeur pouvant être tenue
  * par le type pointé par l'InfoType.
  *
- * La fonction de rappel est de type fonc(chaine, []octet)(bool), et doit parser la chaine,
+ * La fonction de rappel est de type fonc(chaine, [..]octet)(bool), et doit parser la chaine,
  * créer si possible une valeur du bon type à partir de celle-ci et ajourner le tampon de
- * type []octet passé à la fonction. Si le parsage est réussi, la fonction devra retourner
+ * type [..]octet passé à la fonction. Si le parsage est réussi, la fonction devra retourner
  * vrai, ou faux le cas échéant.
  *
  * Il est possible de définir des fonctions de parsage pour n'importe quel type connu lors
@@ -543,13 +582,13 @@ membre_suivant :: fonc (itératrice: &ItératriceMembreStructure) -> eini, chain
  */
 FonctionParsage :: struct {
     info_type : *InfoType
-    rappel : fonc (chaine, []octet)(bool)
+    rappel : fonc (chaine, [..]octet)(bool)
 }
 
 /* Trouve une FonctionParsage pour un InfoType précisé et retourne un pointeur vers celle-ci,
  * ou nul le cas échéant.
  */
-trouve_fonction_pour_type :: fonc (fonctions: []FonctionParsage, info_type: *InfoType) -> *FonctionParsage
+trouve_fonction_pour_type :: fonc (fonctions: [..]FonctionParsage, info_type: *InfoType) -> *FonctionParsage
 {
     pour * fonctions {
         si info_type == it.info_type {
@@ -564,7 +603,7 @@ trouve_fonction_pour_type :: fonc (fonctions: []FonctionParsage, info_type: *Inf
  * S'il existe une FonctionParsage pour l'InfoType, le rappel de celle-ci est ajourné et aucune
  * nouvelle FonctionParsage n'est crée.
  */
-ajoute_fonction :: fonc (fonctions: *[]FonctionParsage, info_type: *InfoType, rappel: fonc(chaine, []octet)(bool))
+ajoute_fonction :: fonc (fonctions: *[..]FonctionParsage, info_type: *InfoType, rappel: fonc(chaine, [..]octet)(bool))
 {
     pour mémoire(fonctions) {
         si it.info_type == info_type {
@@ -583,7 +622,7 @@ ajoute_fonction :: fonc (fonctions: *[]FonctionParsage, info_type: *InfoType, ra
 /* Initialise un tableau de FonctionParsage pour avoir des rappels pour chaque type
  * de base (hors pointeur, référence, tableau).
  */
-initalise_types_base :: fonc (fonctions: *[]FonctionParsage)
+initalise_types_base :: fonc (fonctions: *[..]FonctionParsage)
 {
     ajoute_fonction(fonctions, info_de(chaine), parse_chaine)
     ajoute_fonction(fonctions, info_de(n8), parse_n8)
@@ -605,13 +644,13 @@ initalise_types_base :: fonc (fonctions: *[]FonctionParsage)
 
 /* Parse une chaine depuis le texte d'entrée. La chaine est simplement équivalent au texte,
  * aucune copie n'en est faite, nous supposons que le texte est toujours valide. */
-parse_chaine :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_chaine :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     copie_mem_nonsur(src = *texte, dst = tampon.pointeur, taille = tampon.taille)
     retourne vrai
 }
 
-parse_n8 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_n8 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_n8(texte) piège err {
         retourne faux
@@ -621,7 +660,7 @@ parse_n8 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_n16 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_n16 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_n16(texte) piège err {
         retourne faux
@@ -631,7 +670,7 @@ parse_n16 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_n32 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_n32 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_n32(texte) piège err {
         retourne faux
@@ -641,7 +680,7 @@ parse_n32 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_n64 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_n64 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_n64(texte) piège err {
         retourne faux
@@ -651,7 +690,7 @@ parse_n64 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_z8 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_z8 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_z8(texte) piège err {
         retourne faux
@@ -661,7 +700,7 @@ parse_z8 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_z16 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_z16 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_z16(texte) piège err {
         retourne faux
@@ -671,7 +710,7 @@ parse_z16 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_z32 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_z32 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_z32(texte) piège err {
         retourne faux
@@ -681,7 +720,7 @@ parse_z32 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_z64 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_z64 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_z64(texte) piège err {
         retourne faux
@@ -691,7 +730,7 @@ parse_z64 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_r16 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_r16 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_r16(texte) piège err {
         retourne faux
@@ -701,7 +740,7 @@ parse_r16 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_r32 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_r32 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_r32(texte) piège err {
         retourne faux
@@ -711,7 +750,7 @@ parse_r32 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_r64 :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_r64 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     v := tente extrait_r64(texte) piège err {
         retourne faux
@@ -721,7 +760,7 @@ parse_r64 :: fonc (texte: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
-parse_bool :: fonc (texte: chaine, tampon: []octet) -> bool
+parse_bool :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
     si texte == "vrai" {
         tampon[0] = 1
@@ -738,12 +777,12 @@ parse_bool :: fonc (texte: chaine, tampon: []octet) -> bool
 
 // À FAIRE: considère utiliser des tables de recherches, en se basant sur la table de type
 FonctionInstrospection :: struct ($T: type_de_données) {
-    #assert info_de(T).id == id_info.FONCTION
+    #assert info_de(T).id == GenreInfoType.FONCTION
     info: *InfoType
     fonction : T
 }
 
-ajoute_fonction :: fonc (fonctions: *[]FonctionInstrospection($T), info: *InfoType, fonction: T)
+ajoute_fonction :: fonc (fonctions: *[..]FonctionInstrospection($T), info: *InfoType, fonction: T)
 {
     f : FonctionInstrospection(T)
     f.info = info
@@ -752,7 +791,7 @@ ajoute_fonction :: fonc (fonctions: *[]FonctionInstrospection($T), info: *InfoTy
     tableau_ajoute(fonctions, f)
 }
 
-trouve_fonction_pour_type :: fonc (fonctions: []FonctionInstrospection($T), info: *InfoType) -> *FonctionInstrospection(T)
+trouve_fonction_pour_type :: fonc (fonctions: [..]FonctionInstrospection($T), info: *InfoType) -> *FonctionInstrospection(T)
 {
     pour * fonctions {
         si it.info == info {
@@ -792,7 +831,7 @@ CréatriceTableFonction :: struct {
      * module n'est importé qu'une seule.
      * Seuls les modules n'étant pas découvrable via les fonctions candidates
      * devrait être manuellement ajoutées. */
-    modules_importés : []chaine
+    modules_importés : [..]chaine
 }
 
 détruit_données_créatrice_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
@@ -852,7 +891,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
         retourne
     }
 
-    données_fonctions : []DonnéesFonctionPourTableFonction
+    données_fonctions : [..]DonnéesFonctionPourTableFonction
     diffère déloge(données_fonctions)
     pour fonctions {
         données := créatrice.données_pour_fonction(it)
@@ -956,7 +995,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 // La valeur de l'argument anonyme n'a pas besoin d'être le premier de la liste.
 
 ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
-    // #assert info_de(T).id == id_info.STRUCTURE
+    // #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -973,7 +1012,7 @@ ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-consomme :: fonc (tableau: *[]$T) -> T
+consomme :: fonc (tableau: *[..]$T) -> T
 {
     résultat := tableau.pointeur[0]
     tableau.pointeur += 1
@@ -1037,6 +1076,8 @@ parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
         POINTEUR,
         TYPE_DE_DONNÉES,
         TABLEAU,
+        TABLEAU_FIXE,
+        TRANCHE,
         ÉNUM,
         EINI,
         VARIADIQUE {
@@ -1047,7 +1088,7 @@ parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
     retourne faux
 }
 
-parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: []chaine) -> Résultat(T, chaine)
+parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) -> Résultat(T, chaine)
 {
     infos := info_de(T)
     résultat: T
@@ -1123,7 +1164,7 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: []chaine) ->
 
 parse_arguments_ligne_commande :: fonc ($T: type_de_données) -> Résultat(T, chaine)
 {
-    #assert info_de(T).id == id_info.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     args := arguments_ligne_commande()
 

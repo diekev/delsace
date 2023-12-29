@@ -55,7 +55,7 @@ trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
 
 imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
 {
-    si valeur.info.id == id_info.CHAINE {
+    si valeur.info.id == GenreInfoType.CHAINE {
         chn := valeur.comme_chaine()
 
         pour chn {

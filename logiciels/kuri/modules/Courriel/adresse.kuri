@@ -118,7 +118,7 @@ construit_table_caractères :: fonc () -> [256]DrapeauxCaractères
         table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai
     }
 
-    pour "()<>[]:;@\\,.\"" {
+    pour "()<>[..]:;@\\,.\"" {
         table_caractères[it comme n8].EST_CARACTÈRE_SPÉCIAL = vrai
     }
 
@@ -541,14 +541,14 @@ tests_validité_adresses :: fonc ()
     // - «user%final.domain@1st.relay» l'adresse doit être user@final.domain relayer par 1st.relay
     // Mais ceci sont des formes plus ou moins archaïques
 
-    parts_locales_valides : []chaine = ["salut", "salut+toi", "sal.ut", «"[IPv6:::1]"», «"сайт"», «"🌮"», «"💩"», «"🍺🕺🎉"», «"josé.arrañoça"», "~", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "#$%!^/&", "f*ck", "stavros", «"hi@you"», «"hi you"», «"<>"», «" "», «".jdoe"», «"jdoe."», «"jd..oe"», «hi."@".you», «"<\\"@\\\\".!.#%$», "我買", "1", "'*+-/=?^_`{|}~#$"]
-    parts_domaines_valides : []chaine = ["stavros.io", "[dead::beef]", "[IPv6:::1]", "[IPv6:2001:470:30:84:e276:63ff:fe72:3900]", "[166.84.7.99]", "tt", "ws", "ai", "io", "屋企.香港", "[23456789]", "gtfcy37qyzor7kb6blz2buwuu5u7qjkycasjdf3yaslibkbyhsxub4yd.onion", "xn--ls8h.la", «💩.la», «i❤️tacos.ws», «شبكةمايستر..شبكة»]
+    parts_locales_valides : [..]chaine = ["salut", "salut+toi", "sal.ut", «"[IPv6:::1]"», «"сайт"», «"🌮"», «"💩"», «"🍺🕺🎉"», «"josé.arrañoça"», "~", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "#$%!^/&", "f*ck", "stavros", «"hi@you"», «"hi you"», «"<>"», «" "», «".jdoe"», «"jdoe."», «"jd..oe"», «hi."@".you», «"<\\"@\\\\".!.#%$», "我買", "1", "'*+-/=?^_`{|}~#$"]
+    parts_domaines_valides : [..]chaine = ["stavros.io", "[dead::beef]", "[IPv6:::1]", "[IPv6:2001:470:30:84:e276:63ff:fe72:3900]", "[166.84.7.99]", "tt", "ws", "ai", "io", "屋企.香港", "[23456789]", "gtfcy37qyzor7kb6blz2buwuu5u7qjkycasjdf3yaslibkbyhsxub4yd.onion", "xn--ls8h.la", «💩.la», «i❤️tacos.ws», «شبكةمايستر..شبكة»]
 
-    parts_locales_invalides : []chaine = ["", ".jdoe", "stavros.", "stavros..k", "!#$%&'*(-/=?", "h(a)i", "ema@il", «"<\\"@\\".!#%$», «<\\"@\\\\".!#%$», «hi"@"you», «hi\\ there», "<>"]
+    parts_locales_invalides : [..]chaine = ["", ".jdoe", "stavros.", "stavros..k", "!#$%&'*(-/=?", "h(a)i", "ema@il", «"<\\"@\\".!#%$», «<\\"@\\\\".!#%$», «hi"@"you», «hi\\ there», "<>"]
 
     // Pour les domaines, nous devrons peut-être savoir si le domaine peut-être résolus, mais c'est possible qu'il ne soit pas encore enregistré...
     // Un domaine tel que 23456789 ne drevrait pas être valide, mais il est possible qu'un tel TLD soit enregistré dans le future.
-    parts_domaines_invalides : []chaine = ["", "il@stavros.io"]
+    parts_domaines_invalides : [..]chaine = ["", "il@stavros.io"]
 
     // commentaires := ["(sta)", "(io)"]
 

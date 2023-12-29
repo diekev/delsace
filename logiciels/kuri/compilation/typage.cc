@@ -4,11 +4,13 @@
 #include "typage.hh"
 
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include <algorithm>
 #include <iostream>
 
 #include "arbre_syntaxique/allocatrice.hh"
+#include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
@@ -266,6 +268,26 @@ static void initialise_type_tableau_dynamique(TypeTableauDynamique *résultat,
     }
 
     type_pointe_->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_TABLEAU_DYNAMIQUE;
+}
+
+static void initialise_type_tranche(NoeudDeclarationTypeTranche *résultat,
+                                    Type *type_élément,
+                                    kuri::tableau<MembreTypeComposé, int> &&membres_)
+{
+    assert(type_élément);
+
+    résultat->membres = std::move(membres_);
+    résultat->nombre_de_membres_réels = résultat->membres.taille();
+    résultat->type_élément = type_élément;
+    résultat->taille_octet = 16;
+    résultat->alignement = 8;
+    résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+
+    if (type_élément->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
+        résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
+    }
+
+    type_élément->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_TRANCHE;
 }
 
 static void initialise_type_variadique(TypeVariadique *résultat,
@@ -718,6 +740,36 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     return type;
 }
 
+NoeudDeclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
+                                                        bool insère_dans_graphe)
+{
+    VERROUILLE(types_tranches);
+
+    if (type_élément->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TRANCHE)) {
+        POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tranche) {
+            if (it.type_élément == type_élément) {
+                return &it;
+            }
+        }
+    }
+
+    auto membres = kuri::tableau<MembreTypeComposé, int>();
+    membres.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur, 0});
+    membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
+
+    auto type = alloc->m_noeuds_type_tranche.ajoute_element();
+    initialise_type_tranche(type, type_élément, std::move(membres));
+
+    /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
+     * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
+    if (insère_dans_graphe) {
+        auto graphe = graphe_.verrou_ecriture();
+        graphe->connecte_type_type(type, type_élément);
+    }
+
+    return type;
+}
+
 TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 {
     VERROUILLE(types_variadiques);
@@ -738,13 +790,13 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 
     if (type_pointe != nullptr) {
         /* crée un tableau dynamique correspond pour que la génération */
-        auto tableau_dyn = type_tableau_dynamique(type_pointe);
+        auto tranche = crée_type_tranche(type_pointe);
 
         auto graphe = graphe_.verrou_ecriture();
         graphe->connecte_type_type(type, type_pointe);
-        graphe->connecte_type_type(type, tableau_dyn);
+        graphe->connecte_type_type(type, tranche);
 
-        type->type_tableau_dynamique = tableau_dyn;
+        type->type_tranche = tranche;
     }
     else {
         /* Pour les types variadiques externes, nous ne pouvons générer de fonction
@@ -885,7 +937,7 @@ TypeUnion *Typeuse::union_anonyme(Lexeme const *lexeme,
     marque_polymorphique(type);
 
     if (!type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-        calcule_taille_type_compose(type, false, 0);
+        calcule_taille_type_composé(type, false, 0);
         crée_type_structure(*this, type, type->decalage_index);
     }
 
@@ -1156,7 +1208,7 @@ static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
     return enchaineuse.chaine();
 }
 
-kuri::chaine const &donne_nom_portable(TypeUnion *type)
+kuri::chaine_statique donne_nom_portable(TypeUnion *type)
 {
     if (type->nom_portable_ != "") {
         return type->nom_portable_;
@@ -1166,7 +1218,7 @@ kuri::chaine const &donne_nom_portable(TypeUnion *type)
     return type->nom_portable_;
 }
 
-kuri::chaine const &donne_nom_portable(TypeEnum *type)
+kuri::chaine_statique donne_nom_portable(TypeEnum *type)
 {
     if (type->nom_portable_ != "") {
         return type->nom_portable_;
@@ -1176,7 +1228,7 @@ kuri::chaine const &donne_nom_portable(TypeEnum *type)
     return type->nom_portable_;
 }
 
-kuri::chaine const &donne_nom_portable(TypeOpaque *type)
+kuri::chaine_statique donne_nom_portable(TypeOpaque *type)
 {
     if (type->nom_portable_ != "") {
         return type->nom_portable_;
@@ -1186,7 +1238,7 @@ kuri::chaine const &donne_nom_portable(TypeOpaque *type)
     return type->nom_portable_;
 }
 
-kuri::chaine const &donne_nom_portable(TypeStructure *type)
+kuri::chaine_statique donne_nom_portable(TypeStructure *type)
 {
     if (type->nom_portable_ != "") {
         return type->nom_portable_;
@@ -1217,7 +1269,7 @@ void marque_polymorphique(TypeFonction *type)
     // - une unité de compilation ne doit aller en RI tant qu'une de ses dépendances n'est pas
     // encore validée (requiers de se débarrasser du graphe et utiliser les unités comme « noeud »)
     // - la gestion des types polymorphiques est à revoir, notamment la manière ils sont stockés
-    // - nous ne devrions pas marquée comme polymorphique lors de la génération de RI
+    // - nous ne devrions pas marquer comme polymorphique lors de la génération de RI
     if (type->type_sortie &&
         type->type_sortie->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
@@ -1354,10 +1406,26 @@ static kuri::chaine_statique donne_spécifiant_variadique(OptionsImpressionType 
     return "...";
 }
 
-static ParenthèseParamètres donne_spécifiant_tableau(OptionsImpressionType const options)
+static ParenthèseParamètres donne_spécifiant_tableau_fixe(OptionsImpressionType const options)
 {
     if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
         return {"KT", "_"};
+    }
+    return {"[", "]"};
+}
+
+static ParenthèseParamètres donne_spécifiant_tableau(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
+        return {"Kt", "_"};
+    }
+    return {"[..", "]"};
+}
+
+static ParenthèseParamètres donne_spécifiant_tranche(OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
+        return {"Kz", "_"};
     }
     return {"[", "]"};
 }
@@ -1493,11 +1561,18 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
                         options);
             return;
         }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            auto parenthèse = donne_spécifiant_tranche(options);
+            enchaineuse << parenthèse.début << parenthèse.fin;
+            chaine_type(enchaineuse, type->comme_type_tranche()->type_élément, options);
+            return;
+        }
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_tabl = static_cast<TypeTableauFixe const *>(type);
 
-            auto parenthèse = donne_spécifiant_tableau(options);
+            auto parenthèse = donne_spécifiant_tableau_fixe(options);
             enchaineuse << parenthèse.début << type_tabl->taille << parenthèse.fin;
             chaine_type(enchaineuse, type_tabl->type_pointe, options);
             return;
@@ -1593,9 +1668,9 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             enchaineuse << ")";
             return;
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }
@@ -1618,7 +1693,7 @@ kuri::chaine chaine_type(const Type *type, bool ajoute_nom_paramètres_polymorph
     return chaine_type(type, options);
 }
 
-Type *type_dereference_pour(Type const *type)
+Type *type_déréférencé_pour(Type const *type)
 {
     if (type->est_type_pointeur()) {
         return type->comme_type_pointeur()->type_pointe;
@@ -1636,18 +1711,22 @@ Type *type_dereference_pour(Type const *type)
         return type->comme_type_tableau_dynamique()->type_pointe;
     }
 
+    if (type->est_type_tranche()) {
+        return type->comme_type_tranche()->type_élément;
+    }
+
     if (type->est_type_variadique()) {
         return type->comme_type_variadique()->type_pointe;
     }
 
     if (type->est_type_opaque()) {
-        return type_dereference_pour(type->comme_type_opaque()->type_opacifie);
+        return type_déréférencé_pour(type->comme_type_opaque()->type_opacifie);
     }
 
     return nullptr;
 }
 
-bool est_type_booleen_implicite(Type *type)
+bool est_type_booléen_implicite(Type *type)
 {
     return dls::outils::est_element(type->genre,
                                     GenreNoeud::BOOL,
@@ -1658,7 +1737,8 @@ bool est_type_booleen_implicite(Type *type)
                                     GenreNoeud::ENTIER_RELATIF,
                                     GenreNoeud::FONCTION,
                                     GenreNoeud::POINTEUR,
-                                    GenreNoeud::TABLEAU_DYNAMIQUE);
+                                    GenreNoeud::TABLEAU_DYNAMIQUE,
+                                    GenreNoeud::TYPE_TRANCHE);
 }
 
 static inline uint32_t marge_pour_alignement(const uint32_t alignement,
@@ -1715,7 +1795,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
     type->taille_octet = decalage;
 }
 
-void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire)
+void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t alignement_desire)
 {
     if (type->est_type_union()) {
         auto type_union = type->comme_type_union();
@@ -1880,6 +1960,10 @@ Type const *type_entier_sous_jacent(Type const *type)
         return type;
     }
 
+    if (type->est_type_opaque()) {
+        return type_entier_sous_jacent(type->comme_type_opaque()->type_opacifie);
+    }
+
     return nullptr;
 }
 
@@ -1972,13 +2056,13 @@ ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose c
 
 /* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
  * arriver à un type racine) + 1.
- * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que []*z32 en
- * a une de 3. */
+ * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que [..]*z32
+ * en a une de 3. */
 int donne_profondeur_type(Type const *type)
 {
     auto profondeur_type = 1;
     auto type_courant = type;
-    while (Type *sous_type = type_dereference_pour(type_courant)) {
+    while (Type *sous_type = type_déréférencé_pour(type_courant)) {
         profondeur_type += 1;
         type_courant = sous_type;
     }
@@ -2097,6 +2181,7 @@ bool est_type_fondamental(const Type *type)
         case GenreNoeud::DECLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         case GenreNoeud::TABLEAU_FIXE:
+        case GenreNoeud::TYPE_TRANCHE:
         case GenreNoeud::VARIADIQUE:
         case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::TUPLE:
@@ -2122,9 +2207,9 @@ bool est_type_fondamental(const Type *type)
         {
             return est_type_fondamental(type->comme_type_opaque()->type_opacifie);
         }
-        default:
+        CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud géré pour type : " << type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             break;
         }
     }
@@ -2220,6 +2305,11 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
                 pile.empile(type_courant->comme_type_tableau_dynamique()->type_pointe);
                 break;
             }
+            case GenreNoeud::TYPE_TRANCHE:
+            {
+                pile.empile(type_courant->comme_type_tranche()->type_élément);
+                break;
+            }
             case GenreNoeud::TABLEAU_FIXE:
             {
                 pile.empile(type_courant->comme_type_tableau_fixe()->type_pointe);
@@ -2230,10 +2320,11 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
                 pile.empile(type_courant->comme_type_opaque()->type_opacifie);
                 break;
             }
-            default:
+            CAS_POUR_NOEUDS_HORS_TYPES:
             {
-                assert_rappel(
-                    false, [&]() { dbg() << "Noeud géré pour type : " << type_courant->genre; });
+                assert_rappel(false, [&]() {
+                    dbg() << "Noeud non-géré pour type : " << type_courant->genre;
+                });
                 break;
             }
         }

@@ -32,8 +32,8 @@ test :: fonc() -> rien
     imprime("                 tailles                 \n");
 
     imprime("taille_de(z32) = %\n", taille_de(z32));
-    imprime("taille_de([]z32) = %\n", taille_de([]z32));
-    imprime("taille_de([]r32) = %\n", taille_de([]r32));
+    imprime("taille_de([..]z32) = %\n", taille_de([..]z32));
+    imprime("taille_de([..]r32) = %\n", taille_de([..]r32));
     imprime("taille_de(eini) = %\n", taille_de(eini));
 
     imprime("=========================================\n");

@@ -3,7 +3,7 @@ importe Fondation
 // -----------------------------------------------------------------
 // Désérialisation de données depuis un tampon d'octets
 
-désérialise_chaine :: fonc (ligne: []octet, décalage: z64) -> chaine
+désérialise_chaine :: fonc (ligne: [..]octet, décalage: z64) -> chaine
 {
     ptr := ligne.pointeur + décalage
 
@@ -14,31 +14,31 @@ désérialise_chaine :: fonc (ligne: []octet, décalage: z64) -> chaine
     retourne construit_chaine(ptr comme *z8, taille)
 }
 
-désérialise_entier :: fonc (ligne: []octet, décalage: z64) -> z32
+désérialise_entier :: fonc (ligne: [..]octet, décalage: z64) -> z32
 {
     ptr := ligne.pointeur + décalage
     retourne mémoire(ptr comme *z32)
 }
 
-désérialise_entier :: fonc (octets: []octet, décalage: z64, entier: *z32)
+désérialise_entier :: fonc (octets: [..]octet, décalage: z64, entier: *z32)
 {
     slot := (octets.pointeur + décalage) comme *z32
     mémoire(entier) = mémoire(slot)
 }
 
-désérialise_entier :: fonc (octets: []octet, décalage: z64, entier: *z64)
+désérialise_entier :: fonc (octets: [..]octet, décalage: z64, entier: *z64)
 {
     slot := (octets.pointeur + décalage) comme *z64
     mémoire(entier) = mémoire(slot)
 }
 
-désérialise_chaine :: fonc (octets: []octet, décalage: z64, chn: *chaine)
+désérialise_chaine :: fonc (octets: [..]octet, décalage: z64, chn: *chaine)
 {
     désérialise_entier(octets, décalage, *chn.taille)
     chn.pointeur = (octets.pointeur + décalage + taille_de(z64) comme z32) comme *z8
 }
 
-désérialise_chaine_sans_taille :: fonc (octets: []octet, décalage: z64, chn: *chaine)
+désérialise_chaine_sans_taille :: fonc (octets: [..]octet, décalage: z64, chn: *chaine)
 {
     chn.pointeur = (octets.pointeur + décalage) comme *z8
 }
@@ -46,7 +46,7 @@ désérialise_chaine_sans_taille :: fonc (octets: []octet, décalage: z64, chn: 
 // -----------------------------------------------------------------
 // Sérialisation de données dans un tampon d'octets
 
-sérialise_chaine :: fonc (ligne: []octet, décalage: z64, chn: chaine) -> rien
+sérialise_chaine :: fonc (ligne: [..]octet, décalage: z64, chn: chaine) -> rien
 {
     slot_taille := (ligne.pointeur + décalage) comme *z32
     mémoire(slot_taille) = chn.taille comme z32
@@ -58,7 +58,7 @@ sérialise_chaine :: fonc (ligne: []octet, décalage: z64, chn: chaine) -> rien
     }
 }
 
-sérialise_chaine_sans_taille :: fonc (octets: []octet, décalage: z64, chn: chaine)
+sérialise_chaine_sans_taille :: fonc (octets: [..]octet, décalage: z64, chn: chaine)
 {
     slot_données := (octets.pointeur + décalage) comme *z8
 
@@ -67,7 +67,7 @@ sérialise_chaine_sans_taille :: fonc (octets: []octet, décalage: z64, chn: cha
     }
 }
 
-sérialise_entier :: fonc (octets: []octet, décalage: z64, entier: $T)
+sérialise_entier :: fonc (octets: [..]octet, décalage: z64, entier: $T)
 {
     slot := (octets.pointeur + décalage) comme *T
     mémoire(slot) = entier
@@ -77,7 +77,7 @@ sérialise_entier :: fonc (octets: []octet, décalage: z64, entier: $T)
 // Sérialiseuse : structure auxilliaire pour la sérialisation
 
 Sérialiseuse :: struct {
-    tampon: []octet
+    tampon: [..]octet
     curseur: z64
 }
 
@@ -119,11 +119,11 @@ crée_sérialiseuse :: fonc (infos: &InfosSérialisation) -> Sérialiseuse
 // Désérialiseuse : structure auxilliaire pour la désérialisation
 
 Désérialiseuse :: struct {
-    tampon: []octet
+    tampon: [..]octet
     curseur: z64
 }
 
-crée_désérialiseuse :: fonc (tampon: []octet) -> Désérialiseuse
+crée_désérialiseuse :: fonc (tampon: [..]octet) -> Désérialiseuse
 {
     retourne Désérialiseuse(tampon)
 }
@@ -160,7 +160,7 @@ désérialise_entier :: fonc (désérialiseuse: &Désérialiseuse, $T: type_de_d
  * \{ */
 
 FichierBinaire :: struct {
-    contenu : []octet
+    contenu : [..]octet
     curseur : z32
 }
 
@@ -250,7 +250,7 @@ positionne :: fonc (tampon: *TamponOctetFixe, position: z32)
  * \{ */
 
 TamponOctetDynamique :: struct {
-    données: []octet
+    données: [..]octet
     curseur := 0
 }
 

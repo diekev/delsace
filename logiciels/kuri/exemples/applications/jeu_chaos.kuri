@@ -40,7 +40,7 @@ mappage :: fonc(mve : &MondeVersEcran, p : &Point2D(r32)) -> Point2D(r32)
 /* ------------------------------------------------------------------------- */
 
 dessine_point_rayon :: fonc(
-    cannevas : []z8,
+    cannevas : [..]z8,
     hauteur : z32,
     largeur : z32,
     p : &Point2D(r32),
@@ -54,7 +54,7 @@ points_vers_ecran :: fonc (
     largeur : z32,
     monde : RectanglePur(r32),
     ecran : RectanglePur(r32),
-    points : []Point2D(r32)) -> []Point2D(r32)
+    points : [..]Point2D(r32)) -> [..]Point2D(r32)
 {
     retourne points
 }
@@ -65,7 +65,7 @@ dessine_bmp :: fonc(
     largeur : z32,
     monde : RectanglePur(r32),
     ecran : RectanglePur(r32),
-    points : []Point2D(r32),
+    points : [..]Point2D(r32),
     rayon_point : z32) -> rien
 {
     cannevas := loge_tableau(z8, hauteur * largeur * 4)

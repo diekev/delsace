@@ -57,7 +57,8 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
 
             ajoute_au_tampon(enchaineuse, "}")
         }
-        TABLEAU {
+        TABLEAU,
+        TABLEAU_FIXE {
             index := 0
             itératrice := crée_itératrice_tableau(valeur)
 

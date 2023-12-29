@@ -40,7 +40,7 @@ construit_table_caractères :: fonc () -> [256]TypeCaractère
         résultat[it] = TypeCaractère.NUMÉRIQUE
     }
 
-    caractères_ponctuation :: «"'()[]{}+-/*=&|^%!:;,?.~<>\\»
+    caractères_ponctuation :: «"'()[..]{}+-/*=&|^%!:;,?.~<>\\»
 
     pour caractères_ponctuation {
         résultat[it] = TypeCaractère.PONCTUATION
@@ -304,7 +304,7 @@ __table_caractères : [256]TypeCaractère = ---
 __table_peut_suivre : [256]PeutSuivre = ---
 
 Lexeuse :: struct {
-    lexèmes: []Lexème
+    lexèmes: [..]Lexème
     flux: FluxSource
 
     ligne : z32 = 1

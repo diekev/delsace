@@ -14,9 +14,9 @@ Noeud :: struct {
     genre : GenreNoeud
 
     parent: *Noeud
-    enfants: []*Noeud
+    enfants: [..]*Noeud
 
-    attributs: []Attribut
+    attributs: [..]Attribut
 
     document: *Document
 }

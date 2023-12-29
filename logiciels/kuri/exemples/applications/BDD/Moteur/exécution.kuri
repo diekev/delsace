@@ -76,7 +76,7 @@ crée_table :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *In
         retourne
     }
 
-    colonnes : []Colonne
+    colonnes : [..]Colonne
     décalage := 0
 
     pour définition dans inst.colonnes {
@@ -121,7 +121,7 @@ trouve_table :: fonc (cm: *CoulisseMémoire, nom_table: chaine) -> *Table
     retourne nul
 }
 
-imprime_tampon :: fonc (tampon: []octet, message: chaine)
+imprime_tampon :: fonc (tampon: [..]octet, message: chaine)
 {
     imprime("% :\n", message)
     pour tampon {
@@ -216,7 +216,7 @@ sélectionne :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *I
         retourne nul
     }
 
-    colonnes_résultat : []Colonne
+    colonnes_résultat : [..]Colonne
 
     diffère {
         si exécutrice.possède_erreur {
@@ -224,7 +224,7 @@ sélectionne :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *I
         }
     }
 
-    index_colonnes : []z64
+    index_colonnes : [..]z64
     diffère { déloge(index_colonnes); }
 
     // trouve les colonnes dans la table
@@ -304,7 +304,7 @@ sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> *Table
     colonne.genre = TypeColonne.CHAINE
     colonne.taille = 255 // À FAIRE
 
-    colonnes_résultat : []Colonne
+    colonnes_résultat : [..]Colonne
     tableau_ajoute(*colonnes_résultat, colonne)
 
     table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat)

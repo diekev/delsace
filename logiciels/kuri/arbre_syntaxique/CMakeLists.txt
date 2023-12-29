@@ -24,6 +24,7 @@ set(SOURCES
     allocatrice.cc
     assembleuse.cc
     canonicalisation.cc
+    cas_genre_noeud.hh
     copieuse.cc
     expression.cc
     infos_types.cc

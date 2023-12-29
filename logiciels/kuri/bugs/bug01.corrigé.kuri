@@ -7,7 +7,7 @@
 
 principale :: fonc () -> z32
 {
-    tabl : []z32
+    tabl : [..]z32
 
     tableau_ajoute(*tabl, 0)
     tableau_ajoute(*tabl, 1)

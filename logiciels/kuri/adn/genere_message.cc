@@ -6,8 +6,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "biblinternes/outils/conditions.h"
-
 #include "parsage/gerante_chaine.hh"
 #include "parsage/identifiant.hh"
 #include "parsage/lexeuse.hh"

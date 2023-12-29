@@ -48,7 +48,7 @@ chaine_pour_méthode :: fonc (méthode: MéthodeHTTP) -> chaine
 
 // À FAIRE : gestionnaire de cookies pour déterminer les cookies à envoyer.
 GestionnaireCookie :: struct {
-    cookies: []Cookie
+    cookies: [..]Cookie
 }
 
 ajoute_cookie :: fonc (gestionnaire: &GestionnaireCookie, uri: URI, cookie: Cookie)
@@ -67,7 +67,7 @@ est_localhost :: fonc (uri: URI) -> bool
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
-cookies_pour_requête :: fonc (gestionnaire: &GestionnaireCookie, uri: URI) -> []Cookie
+cookies_pour_requête :: fonc (gestionnaire: &GestionnaireCookie, uri: URI) -> [..]Cookie
 {
     // trouve les cookies qui n'ont pas périmés
     // si le schéma est http, seuls les cookies non sûrs sont envoyés, sauf si le domaine est localhost
@@ -75,7 +75,7 @@ cookies_pour_requête :: fonc (gestionnaire: &GestionnaireCookie, uri: URI) -> [
 
     envoie_cookies_sécurisé := uri.schéma == "https" || est_localhost(uri)
 
-    résultat : []Cookie
+    résultat : [..]Cookie
 
     pour gestionnaire.cookies {
         // il faut savoir si le domain peut recevoir le cookie
@@ -87,7 +87,7 @@ cookies_pour_requête :: fonc (gestionnaire: &GestionnaireCookie, uri: URI) -> [
 // ----------------------------------------
 
 PiloteClienteHTTP :: struct {
-    cookies: []Cookie
+    cookies: [..]Cookie
     uri_serveur: URI
 }
 

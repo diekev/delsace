@@ -16,7 +16,7 @@ struct IdentifiantCode {
 
 struct TableIdentifiant {
   private:
-    kuri::table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{"IdentifiantCode"};
+    kuri::table_hachage<kuri::chaine_statique, IdentifiantCode *> table{"IdentifiantCode"};
     tableau_page<IdentifiantCode, 1024> identifiants{};
 
     Enchaineuse enchaineuse{};
@@ -24,7 +24,7 @@ struct TableIdentifiant {
   public:
     TableIdentifiant();
 
-    IdentifiantCode *identifiant_pour_chaine(dls::vue_chaine_compacte const &nom);
+    IdentifiantCode *identifiant_pour_chaine(kuri::chaine_statique nom);
 
     IdentifiantCode *identifiant_pour_nouvelle_chaine(kuri::chaine const &nom);
 
@@ -33,7 +33,7 @@ struct TableIdentifiant {
     int64_t memoire_utilisee() const;
 
   private:
-    IdentifiantCode *ajoute_identifiant(dls::vue_chaine_compacte const &nom);
+    IdentifiantCode *ajoute_identifiant(kuri::chaine_statique nom);
 };
 
 namespace ID {

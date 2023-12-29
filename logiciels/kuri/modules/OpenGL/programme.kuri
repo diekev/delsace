@@ -192,21 +192,21 @@ définis_uniforme :: fonc (adresse: z32, valeur: r32)
     }
 }
 
-définis_uniforme :: fonc (adresse: z32, valeur: []z32)
+définis_uniforme :: fonc (adresse: z32, valeur: [..]z32)
 {
     si adresse != -1 {
         glUniform1iv(adresse, valeur.taille comme GLsizei, valeur.pointeur)
     }
 }
 
-définis_uniforme :: fonc (adresse: z32, valeur: []n32)
+définis_uniforme :: fonc (adresse: z32, valeur: [..]n32)
 {
     si adresse != -1 {
         glUniform1uiv(adresse, valeur.taille comme GLsizei, valeur.pointeur)
     }
 }
 
-définis_uniforme :: fonc (adresse: z32, valeur: []r32)
+définis_uniforme :: fonc (adresse: z32, valeur: [..]r32)
 {
     si adresse != -1 {
         glUniform1fv(adresse, valeur.taille comme GLsizei, valeur.pointeur)

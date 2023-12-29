@@ -5,7 +5,7 @@ importe SysFichier
 importe Temps
 
 Image :: struct {
-    tampon : []octet
+    tampon : [..]octet
     chemin : chaine;
     hauteur : z32;
     largeur : z32;

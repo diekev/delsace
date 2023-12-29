@@ -5,7 +5,7 @@
 
 principale :: fonc () -> z32
 {
-    a : []z32
+    a : [..]z32
     a.ponteur = nul
     retourne 0
 }

@@ -57,7 +57,7 @@ Probabilité :: struct {
     unité : n64
 
     // les chiffres après la virgule
-    chiffres: []n8
+    chiffres: [..]n8
 }
 
 ajoute_chiffres_fraction :: fonc (p: *Probabilité, fraction: n64)
@@ -65,7 +65,7 @@ ajoute_chiffres_fraction :: fonc (p: *Probabilité, fraction: n64)
     ajoute_chiffres_depuis_nombre(*p.chiffres, fraction)
 }
 
-ajoute_chiffres :: fonc (p: *Probabilité, chiffres: []n8)
+ajoute_chiffres :: fonc (p: *Probabilité, chiffres: [..]n8)
 {
     pour chiffres {
         tableau_ajoute(*p.chiffres, it)
@@ -117,7 +117,7 @@ opérateur + :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
 
     taille_commune := p1.chiffres.taille
 
-    nombres_après_taille_commune : []n8
+    nombres_après_taille_commune : [..]n8
 
     si p2.chiffres.taille < p1.chiffres.taille {
         taille_commune = p2.chiffres.taille
@@ -159,7 +159,7 @@ opérateur - :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
     résultat : Probabilité
 
-    nombres_après_taille_commune : []n8
+    nombres_après_taille_commune : [..]n8
 
     si p2.chiffres.taille < p1.chiffres.taille {
         différence := p1.chiffres.taille - p2.chiffres.taille
