@@ -67,7 +67,7 @@ commute_boutisme :: fonc(val : *r64) -> rien #enligne
     commute_boutisme(val comme *n64)
 }
 
-commute_boutisme :: fonc(tabl : []$T) -> rien #enligne
+commute_boutisme :: fonc(tabl : [..]$T) -> rien #enligne
 {
     pour * val dans tabl {
         commute_boutisme(val)

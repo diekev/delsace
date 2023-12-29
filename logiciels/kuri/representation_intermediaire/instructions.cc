@@ -5,6 +5,8 @@
 
 #include <ostream>
 
+#include "biblinternes/outils/conditions.h"
+
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "code_binaire.hh"

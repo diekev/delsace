@@ -53,7 +53,7 @@ DonnéesMessage :: struct {
     code_état : z32
     position_code_état: PositionChaine
 
-    positions_entêtes: []DonnéesEntête
+    positions_entêtes: [..]DonnéesEntête
 
     // si taille fixe
     position_contenu: PositionChaine

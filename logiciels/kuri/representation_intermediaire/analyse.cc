@@ -1444,6 +1444,11 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
             continue;
         }
 
+        /* Si le chargement est réutilisé, nous n'avons sans doute pas une temporaire. */
+        if (g.nombre_d_utilisateurs(inst2) != 1) {
+            continue;
+        }
+
         g.visite_utilisateurs(inst2, [&](Atome *utilisateur) {
             auto nouvelle_valeur = inst1->comme_stocke_mem()->valeur;
             if (!remplace_instruction_par_atome(utilisateur, inst2, nouvelle_valeur, nullptr)) {

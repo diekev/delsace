@@ -500,7 +500,6 @@ struct InstructionAppel : public Instruction {
 
     Atome *appele = nullptr;
     kuri::tableau<Atome *, int> args{};
-    InstructionAllocation *adresse_retour = nullptr;
     AtomeGlobale *info_trace_appel = nullptr;
 
     EMPECHE_COPIE(InstructionAppel);

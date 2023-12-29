@@ -12,7 +12,7 @@ NoeudTableHachage :: struct {
 }
 
 TableHachage :: struct {
-    alvéoles : []*NoeudTableHachage
+    alvéoles : [..]*NoeudTableHachage
 }
 
 crée_table_hachage :: fonc() -> *TableHachage

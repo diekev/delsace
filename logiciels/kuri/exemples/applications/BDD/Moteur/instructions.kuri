@@ -15,7 +15,7 @@ InstructionInsère :: struct {
     empl base : Instruction
 
     table : Lexème
-    valeurs: []*Expression
+    valeurs: [..]*Expression
 
     genre = GenreInstruction.INSÈRE
 }
@@ -38,7 +38,7 @@ InstructionCréationTable :: struct {
     empl base : Instruction
 
     nom: Lexème
-    colonnes : []*DéfinitionColonne
+    colonnes : [..]*DéfinitionColonne
 
     genre = GenreInstruction.CRÉE
 }
@@ -46,7 +46,7 @@ InstructionCréationTable :: struct {
 InstructionSélection :: struct {
     empl base : Instruction
 
-    items : []*Expression
+    items : [..]*Expression
     depuis : Lexème
 
     genre = GenreInstruction.SÉLECTIONNE

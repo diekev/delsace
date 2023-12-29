@@ -40,13 +40,13 @@ génère_suite_prouet_thue_morse_pour_nombre_de_b_entre_a :: fonc (n: n32, rappe
 
 génère_suite_prouet_thue_morse_remplacement :: fonc (n: n32) -> chaine
 {
-    suite_courante : []octet
+    suite_courante : [..]octet
     diffère déloge(suite_courante)
 
     tableau_ajoute(*suite_courante, 'A' comme octet)
     tableau_ajoute(*suite_courante, 'B' comme octet)
 
-    résultat : []octet
+    résultat : [..]octet
 
     boucle {
         résultat.taille = 0
@@ -76,11 +76,11 @@ génère_suite_prouet_thue_morse_remplacement :: fonc (n: n32) -> chaine
 
 génère_suite_prouet_thue_morse_double_et_inverse :: fonc (n: n32) -> chaine
 {
-    résultat : []octet
+    résultat : [..]octet
     tableau_ajoute(*résultat, 'A' comme octet)
     tableau_ajoute(*résultat, 'B' comme octet)
 
-    tmp : []octet
+    tmp : [..]octet
     diffère déloge(tmp)
 
     tantque résultat.taille < n comme z64 {
