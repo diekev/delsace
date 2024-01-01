@@ -846,6 +846,9 @@ struct NoeudDéclarationTypeTableauFixe : NoeudDéclarationTypeComposé {
 
     /* Données pour le type résolu. */
     NoeudDéclarationType *type_pointé [code enfant]
+    /* Pour les expressions de taille polymorphique. */
+    NoeudExpression *expression_taille [code enfant]
+    /* Si la taille est connue. */
     int taille [code]
 }
 

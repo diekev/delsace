@@ -906,6 +906,19 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 auto expression_type = analyse_expression(
                     {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
 
+                if (expression_entre_crochets->possède_drapeau(
+                        DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
+                    expression_entre_crochets->drapeaux &=
+                        ~DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
+                    expression_entre_crochets->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
+
+                    expression_entre_crochets->comme_reference_declaration()
+                        ->declaration_referee->drapeaux &=
+                        ~DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
+                    expression_entre_crochets->comme_reference_declaration()
+                        ->declaration_referee->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
+                }
+
                 auto noeud = m_tacheronne.assembleuse->crée_expression_type_tableau_fixe(lexème);
                 noeud->expression_taille = expression_entre_crochets;
                 noeud->expression_type = expression_type;

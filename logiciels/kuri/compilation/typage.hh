@@ -315,6 +315,9 @@ struct Typeuse {
                                        int taille,
                                        bool insere_dans_graphe = true);
 
+    TypeTableauFixe *type_tableau_fixe(NoeudExpression const *expression_taille,
+                                       Type *type_élément);
+
     TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe,
                                                  bool insere_dans_graphe = true);
 

@@ -1912,10 +1912,12 @@ void Sémanticienne::valide_parametres_constants_fonction(NoeudDeclarationEntete
     }
 
     POUR (*decl->bloc_constantes->membres.verrou_ecriture()) {
-        if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-            /* Les valeurs polymorphiques sont dans les paramètres, et seront donc validées avec
-             * les paramètres. */
-            continue;
+        if (it->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            /* Les valeurs polymorphiques typées explicitement sont dans les paramètres, et seront
+             * donc validées avec les paramètres. */
+            if (it->comme_declaration_constante()->expression_type) {
+                continue;
+            }
         }
 
         auto type_poly = m_compilatrice.typeuse.crée_polymorphique(it->ident);
@@ -2819,7 +2821,9 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
 
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
         // polymorphiques
-        assert_rappel(decl->type || decl->est_entete_fonction() || decl->est_declaration_module(),
+        assert_rappel(decl->type || decl->est_entete_fonction() ||
+                          decl->est_declaration_module() ||
+                          decl->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE),
                       [&]() { dbg() << erreur::imprime_site(*m_espace, expr); });
         expr->declaration_referee = decl;
         expr->type = decl->type;
@@ -6073,23 +6077,21 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
     if (expression_taille->type->est_type_type_de_donnees()) {
         auto type_de_données = expression_taille->type->comme_type_type_de_donnees();
 
-        if (!type_de_données->type_connu) {
+        if (type_de_données->type_connu &&
+            !type_de_données->type_connu->est_type_polymorphique()) {
             m_espace->rapporte_erreur(expression_taille,
                                       "Type invalide pour la taille du tableau fixe.");
             return CodeRetourValidation::Erreur;
         }
 
-        if (!type_de_données->type_connu->est_type_polymorphique()) {
-            m_espace->rapporte_erreur(expression_taille,
-                                      "Type invalide pour la taille du tableau fixe.");
-            return CodeRetourValidation::Erreur;
-        }
+        auto type_de_donnees = type_expression_type->comme_type_type_de_donnees();
+        auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu :
+                                                        type_de_donnees;
 
-        /* À FAIRE : type polymorphique. */
-        m_espace->rapporte_erreur(
-            expression_taille,
-            "Les types tableaux polymorphiques ne sont pas encore implémentés dans la langage.");
-        return CodeRetourValidation::Erreur;
+        auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(type_de_données->type_connu,
+                                                                     type_connu);
+        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+        return CodeRetourValidation::OK;
     }
 
     auto res = evalue_expression(

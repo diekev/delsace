@@ -141,7 +141,11 @@ Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
 {
     POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
         if (it->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            if (it->type->est_type_type_de_donnees()) {
+            if (!it->type) {
+                /* Valeur taille polymorphique. */
+                items.ajoute({it->ident, nullptr, {}, false});
+            }
+            else if (it->type->est_type_type_de_donnees()) {
                 /* $T: type_de_données */
                 items.ajoute({it->ident, nullptr, {}, true});
             }
@@ -573,9 +577,8 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
         if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
                                           DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
             ValeurExpression valeur = type_tableau->taille;
-            ajoute_candidat_valeur(decl_referee->ident, decl_referee->type, valeur);
+            ajoute_candidat_valeur(decl_referee->ident, TypeBase::Z64, valeur);
         }
-        return;
     }
 
     auto const expression_type = expr_type_tableau->expression_type;
@@ -959,8 +962,9 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
 
     auto expression_taille = expr_tableau_fixe->expression_taille;
     if (expression_taille->est_reference_declaration()) {
-        erreur_interne(expression_taille, "la taille de tableau n'est pas encore implémentée");
-        return nullptr;
+        auto item = trouve_item_pour_ident(items_résultat, expression_taille->ident);
+        assert(item);
+        return typeuse().type_tableau_fixe(type_pointe, int32_t(item->valeur.entiere()));
     }
     auto valeur_taille = evalue_valeur(expression_taille);
     if (!valeur_taille.est_entiere()) {
@@ -996,6 +1000,11 @@ RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation cons
 
     /* Nous avons une valeur, il faut vérifier le type. */
     auto type_item = item.type;
+
+    if (type_item == nullptr) {
+        /* Type de valeur indéfini (par exemple pour la taille polymorphique d'un tableau). */
+        return ÉtatRésolutionContrainte::Ok;
+    }
 
     if (type_item->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         /* Le type peut être polymorphique, par exemple fonc(T)(rien), dans lequel cas il nous

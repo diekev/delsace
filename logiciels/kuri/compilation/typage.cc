@@ -710,6 +710,27 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     return type;
 }
 
+TypeTableauFixe *Typeuse::type_tableau_fixe(NoeudExpression const *expression_taille,
+                                            Type *type_élément)
+{
+    VERROUILLE(types_tableaux_fixes);
+
+    if (type_élément->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TABLEAU_FIXE)) {
+        POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tableau_fixe) {
+            if (it.expression_taille == expression_taille && it.type_pointe == type_élément) {
+                return &it;
+            }
+        }
+    }
+
+    auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_element();
+    type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
+    type->expression_taille = const_cast<NoeudExpression *>(expression_taille);
+    type->type_pointe = type_élément;
+
+    return type;
+}
+
 TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool insere_dans_graphe)
 {
     VERROUILLE(types_tableaux_dynamiques);
@@ -1573,7 +1594,17 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             auto type_tabl = static_cast<TypeTableauFixe const *>(type);
 
             auto parenthèse = donne_spécifiant_tableau_fixe(options);
-            enchaineuse << parenthèse.début << type_tabl->taille << parenthèse.fin;
+
+            enchaineuse << parenthèse.début;
+
+            if (type_tabl->expression_taille) {
+                enchaineuse << "$" << type_tabl->expression_taille->ident->nom;
+            }
+            else {
+                enchaineuse << type_tabl->taille;
+            }
+
+            enchaineuse << parenthèse.fin;
             chaine_type(enchaineuse, type_tabl->type_pointe, options);
             return;
         }
