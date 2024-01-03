@@ -352,7 +352,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
         auto référence_type = expression_valide->référence;
 
         Type *type_expr;
-        if (resoud_type_final(référence_type, type_expr) == CodeRetourValidation::Erreur) {
+        if (résoud_type_final(référence_type, type_expr) == CodeRetourValidation::Erreur) {
             rapporte_erreur("Ne peut résoudre le type", référence_type);
             return CodeRetourValidation::Erreur;
         }

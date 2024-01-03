@@ -884,7 +884,7 @@ RésultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noe
             expr->type = TypeBase::N32;
 
             auto expr_type = expr->expression;
-            if (resoud_type_final(expr_type, expr_type->type) == CodeRetourValidation::Erreur) {
+            if (résoud_type_final(expr_type, expr_type->type) == CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
             }
 
@@ -1033,7 +1033,7 @@ RésultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noe
             auto expr = noeud_expr->expression;
 
             Type *type = Type::nul();
-            if (resoud_type_final(expr, type) == CodeRetourValidation::Erreur) {
+            if (résoud_type_final(expr, type) == CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
             }
 
@@ -1153,7 +1153,7 @@ RésultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noe
             auto init_de = noeud->comme_init_de();
             Type *type = nullptr;
 
-            if (resoud_type_final(init_de->expression, type) == CodeRetourValidation::Erreur) {
+            if (résoud_type_final(init_de->expression, type) == CodeRetourValidation::Erreur) {
                 rapporte_erreur("impossible de définir le type de init_de", noeud);
                 return CodeRetourValidation::Erreur;
             }
@@ -2011,7 +2011,7 @@ RésultatValidation Sémanticienne::valide_types_parametres_fonction(
     Type *type_sortie = nullptr;
 
     if (decl->params_sorties.taille() == 1) {
-        if (resoud_type_final(
+        if (résoud_type_final(
                 decl->params_sorties[0]->comme_declaration_variable()->expression_type,
                 type_sortie) == CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
@@ -2023,7 +2023,7 @@ RésultatValidation Sémanticienne::valide_types_parametres_fonction(
 
         for (auto &expr : decl->params_sorties) {
             auto type_declare = expr->comme_declaration_variable();
-            if (resoud_type_final(type_declare->expression_type, type_sortie) ==
+            if (résoud_type_final(type_declare->expression_type, type_sortie) ==
                 CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
             }
@@ -2875,7 +2875,7 @@ RésultatValidation Sémanticienne::valide_type_opaque(NoeudDeclarationTypeOpaqu
     auto type_opacifie = Type::nul();
 
     if (!decl->expression_type->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-        if (resoud_type_final(decl->expression_type, type_opacifie) ==
+        if (résoud_type_final(decl->expression_type, type_opacifie) ==
             CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
@@ -3469,7 +3469,7 @@ RésultatValidation Sémanticienne::valide_enum(NoeudEnum *decl)
     else if (decl->expression_type != nullptr) {
         TENTE(valide_semantique_noeud(decl->expression_type));
 
-        if (resoud_type_final(decl->expression_type, decl->type_sous_jacent) ==
+        if (résoud_type_final(decl->expression_type, decl->type_sous_jacent) ==
             CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
@@ -4174,7 +4174,7 @@ RésultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclaration
         }
 
         CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__RESOLUTION_TYPE);
-        if (resoud_type_final(it.decl->expression_type, it.ref_decl->type) ==
+        if (résoud_type_final(it.decl->expression_type, it.ref_decl->type) ==
             CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
@@ -4389,7 +4389,7 @@ RésultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclaration
 
 RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclarationConstante *decl)
 {
-    if (resoud_type_final(decl->expression_type, decl->type) == CodeRetourValidation::Erreur) {
+    if (résoud_type_final(decl->expression_type, decl->type) == CodeRetourValidation::Erreur) {
         return CodeRetourValidation::Erreur;
     }
 
@@ -4702,7 +4702,7 @@ CodeRetourValidation Sémanticienne::valide_controle_boucle(TypeControleBoucle *
 
 /* ************************************************************************** */
 
-CodeRetourValidation Sémanticienne::resoud_type_final(NoeudExpression *expression_type,
+CodeRetourValidation Sémanticienne::résoud_type_final(NoeudExpression *expression_type,
                                                       Type *&type_final)
 {
     if (expression_type == nullptr) {
@@ -5995,7 +5995,7 @@ ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
 
 RésultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
 {
-    if (resoud_type_final(expr->expression_type, expr->type) == CodeRetourValidation::Erreur) {
+    if (résoud_type_final(expr->expression_type, expr->type) == CodeRetourValidation::Erreur) {
         return CodeRetourValidation::Erreur;
     }
 
@@ -6192,7 +6192,7 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
     for (auto i = 0; i < expr->types_entrée.taille(); ++i) {
         NoeudExpression *type_entree = expr->types_entrée[i];
 
-        if (resoud_type_final(type_entree, types_entrees[i]) == CodeRetourValidation::Erreur) {
+        if (résoud_type_final(type_entree, types_entrees[i]) == CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
     }
@@ -6200,7 +6200,7 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
     Type *type_sortie = nullptr;
 
     if (expr->types_sortie.taille() == 1) {
-        if (resoud_type_final(expr->types_sortie[0], type_sortie) ==
+        if (résoud_type_final(expr->types_sortie[0], type_sortie) ==
             CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
@@ -6210,7 +6210,7 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
         membres.reserve(expr->types_sortie.taille());
 
         for (auto &type_declare : expr->types_sortie) {
-            if (resoud_type_final(type_declare, type_sortie) == CodeRetourValidation::Erreur) {
+            if (résoud_type_final(type_declare, type_sortie) == CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
             }
 
