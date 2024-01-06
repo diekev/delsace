@@ -248,6 +248,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(logique->opérande_gauche);
             // À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&,
             // il faudra également modifier la RI pour prendre en compte la substitution
+            /* À FAIRE(expression logique) : simplifie comme GCC pour les assignations
+             * a := b && c ->  x := b; si x == vrai { x = c; }; a := x;
+             * a := b || c ->  x := b; si x == faux { x = c; }; a := x;
+             */
             return;
         }
         case GenreNoeud::OPERATEUR_UNAIRE:
