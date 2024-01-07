@@ -352,7 +352,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
         auto référence_type = expression_valide->référence;
 
         Type *type_expr;
-        if (resoud_type_final(référence_type, type_expr) == CodeRetourValidation::Erreur) {
+        if (résoud_type_final(référence_type, type_expr) == CodeRetourValidation::Erreur) {
             rapporte_erreur("Ne peut résoudre le type", référence_type);
             return CodeRetourValidation::Erreur;
         }
@@ -440,7 +440,7 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
     }
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexeme::EGALITE);
+        *m_espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexème::EGALITE);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);

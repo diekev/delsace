@@ -39,7 +39,7 @@ void BaseSyntaxeuse::analyse()
     quand_termine();
 }
 
-void BaseSyntaxeuse::empile_état(kuri::chaine_statique message, Lexeme *lexème)
+void BaseSyntaxeuse::empile_état(kuri::chaine_statique message, Lexème *lexème)
 {
     m_données_état_syntaxage.ajoute({lexème, message});
 }
