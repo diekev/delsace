@@ -4,7 +4,7 @@
 #pragma once
 
 struct Fichier;
-struct Lexeme;
+struct Lexème;
 
 /* Représente une position dans le texte. Utilisée pour les messages d'erreurs.
  * Les index des colonnes sont en octets, dans l'encodage UTF-8.
@@ -30,5 +30,5 @@ struct SiteSource {
     {
     }
 
-    static SiteSource cree(Fichier const *fichier, Lexeme const *lexeme);
+    static SiteSource cree(Fichier const *fichier, Lexème const *lexeme);
 };
