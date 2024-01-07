@@ -28,7 +28,7 @@ struct NoeudExpression {
     char aide_generation_code
     char _rembourrage
     DrapeauxNoeud drapeaux
-    Lexeme const * lexème [code]
+    Lexème const * lexème [code]
     IdentifiantCode * ident [code]
     NoeudDéclarationType * type [code]
 
@@ -977,7 +977,7 @@ struct NoeudPour : NoeudExpression {
 
     bool prend_référence [copie]
     bool prend_pointeur [copie]
-    GenreLexeme lexeme_op = .INFERIEUR [copie]
+    GenreLexème lexeme_op = .INFERIEUR [copie]
 
     /* Sauvegarde des déclarations pour « it » et « index_it », afin de ne pas
      * se soucier si ces variables sont implicites, et donc nommées

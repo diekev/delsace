@@ -440,7 +440,7 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
     }
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexeme::EGALITE);
+        *m_espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexème::EGALITE);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);

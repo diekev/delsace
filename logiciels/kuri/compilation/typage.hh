@@ -303,7 +303,7 @@ struct Typeuse {
      * celle-ci. */
     static void crée_tâches_précompilation(Compilatrice &compilatrice);
 
-    Type *type_pour_lexeme(GenreLexeme lexeme);
+    Type *type_pour_lexeme(GenreLexème lexeme);
 
     TypePointeur *type_pointeur_pour(Type *type,
                                      bool ajoute_operateurs = true,
@@ -336,7 +336,7 @@ struct Typeuse {
 
     TypeStructure *reserve_type_structure();
 
-    TypeUnion *union_anonyme(Lexeme const *lexeme,
+    TypeUnion *union_anonyme(Lexème const *lexeme,
                              NoeudBloc *bloc_parent,
                              const kuri::tablet<MembreTypeComposé, 6> &membres);
 

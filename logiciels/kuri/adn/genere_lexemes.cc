@@ -23,7 +23,7 @@ enum {
     EST_OPERATEUR_UNAIRE = (1 << 7),
 };
 
-struct Lexeme {
+struct Lexème {
     kuri::chaine_statique chaine = "";
     kuri::chaine_statique nom_enum = "";
 
@@ -32,12 +32,12 @@ struct Lexeme {
     uint32_t drapeaux = 0;
 };
 
-struct ListeLexemes {
-    kuri::tableau<Lexeme> lexemes{};
+struct ListeLexèmes {
+    kuri::tableau<Lexème> lexemes{};
 
     void ajoute_mot_cle(kuri::chaine_statique chaine, uint32_t drapeaux = 0)
     {
-        auto lexeme = Lexeme{};
+        auto lexeme = Lexème{};
         lexeme.chaine = chaine;
         lexeme.drapeaux = EST_MOT_CLE | drapeaux;
 
@@ -48,7 +48,7 @@ struct ListeLexemes {
                             kuri::chaine_statique nom_enum,
                             uint32_t drapeaux = 0)
     {
-        auto lexeme = Lexeme{};
+        auto lexeme = Lexème{};
         lexeme.chaine = chaine;
         lexeme.nom_enum = nom_enum;
         lexeme.drapeaux = drapeaux;
@@ -60,7 +60,7 @@ struct ListeLexemes {
                       kuri::chaine_statique nom_enum,
                       uint32_t drapeaux = 0)
     {
-        auto lexeme = Lexeme{};
+        auto lexeme = Lexème{};
         lexeme.chaine = chaine;
         lexeme.nom_enum = nom_enum;
         lexeme.drapeaux = drapeaux;
@@ -69,7 +69,7 @@ struct ListeLexemes {
     }
 };
 
-static void construit_lexemes(ListeLexemes &lexemes)
+static void construit_lexemes(ListeLexèmes &lexemes)
 {
     lexemes.ajoute_mot_cle("arrête");
     lexemes.ajoute_mot_cle("bool", EST_IDENTIFIANT_TYPE);
@@ -209,7 +209,7 @@ static void construit_lexemes(ListeLexemes &lexemes)
     lexemes.ajoute_extra("...", "INCONNU");
 }
 
-static void construit_nom_enums(ListeLexemes &lexemes)
+static void construit_nom_enums(ListeLexèmes &lexemes)
 {
     POUR (lexemes.lexemes) {
         if (it.nom_enum == "") {
@@ -229,21 +229,21 @@ static void construit_nom_enums(ListeLexemes &lexemes)
     }
 }
 
-static void genere_enum(const ListeLexemes &lexemes, std::ostream &os)
+static void genere_enum(const ListeLexèmes &lexemes, std::ostream &os)
 {
-    os << "enum class GenreLexeme : uint32_t {\n";
+    os << "enum class GenreLexème : uint32_t {\n";
     POUR (lexemes.lexemes) {
         os << "\t" << it.nom_enum_sans_accent << ",\n";
     }
     os << "};\n";
 }
 
-static void genere_fonction_cpp_pour_drapeau(const ListeLexemes &lexemes,
+static void genere_fonction_cpp_pour_drapeau(const ListeLexèmes &lexemes,
                                              kuri::chaine_statique nom,
                                              uint32_t drapeau,
                                              std::ostream &os)
 {
-    os << "bool " << nom << "(GenreLexeme genre)\n";
+    os << "bool " << nom << "(GenreLexème genre)\n";
     os << "{\n";
     os << "\tswitch (genre) {\n";
     os << "\t\tdefault:\n";
@@ -254,7 +254,7 @@ static void genere_fonction_cpp_pour_drapeau(const ListeLexemes &lexemes,
         if ((it.drapeaux & drapeau) == 0) {
             continue;
         }
-        os << "\t\tcase GenreLexeme::" << it.nom_enum_sans_accent << ":\n";
+        os << "\t\tcase GenreLexème::" << it.nom_enum_sans_accent << ":\n";
     }
     os << "\t\t{\n";
     os << "\t\t\treturn true;\n";
@@ -262,13 +262,13 @@ static void genere_fonction_cpp_pour_drapeau(const ListeLexemes &lexemes,
     os << "\t}\n";
     os << "}\n\n";
 
-    os << "bool " << nom << "(const Lexeme &lexeme)\n";
+    os << "bool " << nom << "(const Lexème &lexeme)\n";
     os << "{\n";
     os << "\treturn " << nom << "(lexeme.genre);\n";
     os << "}\n\n";
 }
 
-static void genere_impression_lexeme(const ListeLexemes &lexemes, std::ostream &os)
+static void genere_impression_lexeme(const ListeLexèmes &lexemes, std::ostream &os)
 {
     os << "static kuri::chaine_statique noms_genres_lexemes[" << lexemes.lexemes.taille()
        << "] = {\n";
@@ -288,23 +288,23 @@ static void genere_impression_lexeme(const ListeLexemes &lexemes, std::ostream &
     }
     os << "};\n\n";
 
-    os << "std::ostream &operator<<(std::ostream &os, GenreLexeme genre)\n";
+    os << "std::ostream &operator<<(std::ostream &os, GenreLexème genre)\n";
     os << "{\n";
     os << "\treturn os << noms_genres_lexemes[static_cast<int>(genre)];\n";
     os << "}\n\n";
 
-    os << "kuri::chaine_statique chaine_du_genre_de_lexème(GenreLexeme genre)\n";
+    os << "kuri::chaine_statique chaine_du_genre_de_lexème(GenreLexème genre)\n";
     os << "{\n";
     os << "\treturn noms_genres_lexemes[static_cast<int>(genre)];\n";
     os << "}\n\n";
 
-    os << "kuri::chaine_statique chaine_du_lexème(GenreLexeme genre)\n";
+    os << "kuri::chaine_statique chaine_du_lexème(GenreLexème genre)\n";
     os << "{\n";
     os << "\treturn chaines_lexemes[static_cast<int>(genre)];\n";
     os << "}\n\n";
 }
 
-static void genere_fichier_entete(const ListeLexemes &lexemes, std::ostream &os)
+static void genere_fichier_entete(const ListeLexèmes &lexemes, std::ostream &os)
 {
     os << "#pragma once\n";
     os << '\n';
@@ -320,7 +320,7 @@ static void genere_fichier_entete(const ListeLexemes &lexemes, std::ostream &os)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-struct Lexeme {
+struct Lexème {
     dls::vue_chaine_compacte chaine{};
 
 	union {
@@ -330,7 +330,7 @@ struct Lexeme {
 		IdentifiantCode *ident;
 	};
 
-    GenreLexeme genre{};
+    GenreLexème genre{};
 	int fichier = 0;
 	int ligne = 0;
 	int colonne = 0;
@@ -343,31 +343,31 @@ namespace kuri {
 struct chaine_statique;
 }
 
-bool est_mot_clé(GenreLexeme genre);
-bool est_mot_clé(const Lexeme &lexeme);
-bool est_assignation_composée(GenreLexeme genre);
-bool est_assignation_composée(const Lexeme &lexeme);
-bool est_opérateur_bool(GenreLexeme genre);
-bool est_opérateur_bool(const Lexeme &lexeme);
-bool est_opérateur_comparaison(GenreLexeme genre);
-bool est_opérateur_comparaison(const Lexeme &lexeme);
-bool est_chaine_littérale(GenreLexeme genre);
-bool est_chaine_littérale(const Lexeme &lexeme);
-bool est_spécifiant_type(GenreLexeme genre);
-bool est_spécifiant_type(const Lexeme &lexeme);
-bool est_identifiant_type(GenreLexeme genre);
-bool est_identifiant_type(const Lexeme &lexeme);
-bool est_opérateur_unaire(GenreLexeme genre);
-bool est_opérateur_unaire(const Lexeme &lexeme);
-std::ostream &operator<<(std::ostream &os, GenreLexeme genre);
-kuri::chaine_statique chaine_du_genre_de_lexème(GenreLexeme id);
-kuri::chaine_statique chaine_du_lexème(GenreLexeme genre);
+bool est_mot_clé(GenreLexème genre);
+bool est_mot_clé(const Lexème &lexeme);
+bool est_assignation_composée(GenreLexème genre);
+bool est_assignation_composée(const Lexème &lexeme);
+bool est_opérateur_bool(GenreLexème genre);
+bool est_opérateur_bool(const Lexème &lexeme);
+bool est_opérateur_comparaison(GenreLexème genre);
+bool est_opérateur_comparaison(const Lexème &lexeme);
+bool est_chaine_littérale(GenreLexème genre);
+bool est_chaine_littérale(const Lexème &lexeme);
+bool est_spécifiant_type(GenreLexème genre);
+bool est_spécifiant_type(const Lexème &lexeme);
+bool est_identifiant_type(GenreLexème genre);
+bool est_identifiant_type(const Lexème &lexeme);
+bool est_opérateur_unaire(GenreLexème genre);
+bool est_opérateur_unaire(const Lexème &lexeme);
+std::ostream &operator<<(std::ostream &os, GenreLexème genre);
+kuri::chaine_statique chaine_du_genre_de_lexème(GenreLexème id);
+kuri::chaine_statique chaine_du_lexème(GenreLexème genre);
 )";
 
     os << declarations;
 }
 
-static void genere_fichier_source(const ListeLexemes &lexemes, std::ostream &os)
+static void genere_fichier_source(const ListeLexèmes &lexemes, std::ostream &os)
 {
     inclus(os, "lexemes.hh");
     inclus_systeme(os, "iostream");
@@ -385,7 +385,7 @@ static void genere_fichier_source(const ListeLexemes &lexemes, std::ostream &os)
     genere_fonction_cpp_pour_drapeau(lexemes, "est_opérateur_unaire", EST_OPERATEUR_UNAIRE, os);
 }
 
-static void genere_fonction_kuri_pour_drapeau(const ListeLexemes &lexemes,
+static void genere_fonction_kuri_pour_drapeau(const ListeLexèmes &lexemes,
                                               kuri::chaine_statique nom,
                                               uint32_t drapeau,
                                               std::ostream &os)
@@ -408,7 +408,7 @@ static void genere_fonction_kuri_pour_drapeau(const ListeLexemes &lexemes,
     os << "}\n\n";
 }
 
-static void genere_fichier_kuri(const ListeLexemes &lexemes, std::ostream &os)
+static void genere_fichier_kuri(const ListeLexèmes &lexemes, std::ostream &os)
 {
     os << "/* Fichier générer automatiquement, NE PAS ÉDITER ! */\n\n";
     os << "GenreLexème :: énum n32 {\n";
@@ -432,14 +432,14 @@ static void genere_fichier_kuri(const ListeLexemes &lexemes, std::ostream &os)
     genere_fonction_kuri_pour_drapeau(lexemes, "est_opérateur_unaire", EST_OPERATEUR_UNAIRE, os);
 }
 
-static int genere_empreinte_parfaite(const ListeLexemes &lexemes, std::ostream &os)
+static int genere_empreinte_parfaite(const ListeLexèmes &lexemes, std::ostream &os)
 {
     const char *debut_fichier = R"(
 %compare-lengths
 %compare-strncmp
 %define class-name EmpreinteParfaite
 %define hash-function-name calcule_empreinte
-%define initializer-suffix ,GenreLexeme::CHAINE_CARACTERE
+%define initializer-suffix ,GenreLexème::CHAINE_CARACTERE
 %define lookup-function-name lexeme_pour_chaine
 %define slot-name nom
 %enum
@@ -452,11 +452,11 @@ static int genere_empreinte_parfaite(const ListeLexemes &lexemes, std::ostream &
 #include "lexemes.hh"
 %}
 
-struct EntreeTable {  const char *nom; GenreLexeme genre;  };
+struct EntreeTable {  const char *nom; GenreLexème genre;  };
 )";
 
     const char *fin_fichier = R"(
-inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
+inline GenreLexème lexeme_pour_chaine(dls::vue_chaine_compacte chn)
 {
   return EmpreinteParfaite::lexeme_pour_chaine(chn.pointeur(), static_cast<size_t>(chn.taille()));
 }
@@ -474,7 +474,7 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
 
     POUR (lexemes.lexemes) {
         if ((it.drapeaux & EST_MOT_CLE) != 0) {
-            fichier_tmp << "\"" << it.chaine << "\", GenreLexeme::" << it.nom_enum_sans_accent
+            fichier_tmp << "\"" << it.chaine << "\", GenreLexème::" << it.nom_enum_sans_accent
                         << '\n';
         }
     }
@@ -514,7 +514,7 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
             continue;
         }
 
-        if (remplace(ligne, "const struct EntreeTable *", "inline GenreLexeme ")) {
+        if (remplace(ligne, "const struct EntreeTable *", "inline GenreLexème ")) {
             os << ligne << '\n';
             continue;
         }
@@ -524,7 +524,7 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
             continue;
         }
 
-        if (remplace(ligne, "return 0;", "return GenreLexeme::CHAINE_CARACTERE;")) {
+        if (remplace(ligne, "return 0;", "return GenreLexème::CHAINE_CARACTERE;")) {
             os << ligne << '\n';
             continue;
         }
@@ -551,7 +551,7 @@ int main(int argc, const char **argv)
 
     auto nom_fichier_sortie = kuri::chemin_systeme(argv[1]);
 
-    auto lexemes = ListeLexemes{};
+    auto lexemes = ListeLexèmes{};
     construit_lexemes(lexemes);
     construit_nom_enums(lexemes);
 

@@ -17,7 +17,7 @@
 
 struct Compilatrice;
 struct EspaceDeTravail;
-struct Lexeme;
+struct Lexème;
 struct MetaProgramme;
 struct NoeudAssignation;
 struct NoeudBloc;
@@ -303,7 +303,7 @@ struct Sémanticienne {
 
     MetaProgramme *crée_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,
-                                                  const Lexeme *lexème);
+                                                  const Lexème *lexème);
 
     MetaProgramme *crée_metaprogramme_pour_directive(NoeudDirectiveExecute *directive);
 

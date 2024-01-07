@@ -599,7 +599,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
 }
 
 static void crée_tableau_args_variadiques(Sémanticienne &contexte,
-                                          Lexeme const *lexème,
+                                          Lexème const *lexème,
                                           kuri::tablet<NoeudExpression *, 10> &slots,
                                           int nombre_args,
                                           Type *type_données_argument_variadique)

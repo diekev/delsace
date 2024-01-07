@@ -35,59 +35,59 @@ ENUMERE_TYPE_FONDAMENTAL(DECLARE_EXTERNE_TYPE)
 
 struct DonneesTypeCommun {
     Type **ptr_type;
-    GenreLexeme dt[2];
+    GenreLexème dt[2];
 };
 
 static DonneesTypeCommun donnees_types_communs[] = {
-    {&TypeBase::PTR_N8, {GenreLexeme::POINTEUR, GenreLexeme::N8}},
-    {&TypeBase::PTR_N16, {GenreLexeme::POINTEUR, GenreLexeme::N16}},
-    {&TypeBase::PTR_N32, {GenreLexeme::POINTEUR, GenreLexeme::N32}},
-    {&TypeBase::PTR_N64, {GenreLexeme::POINTEUR, GenreLexeme::N64}},
-    {&TypeBase::PTR_Z8, {GenreLexeme::POINTEUR, GenreLexeme::Z8}},
-    {&TypeBase::PTR_Z16, {GenreLexeme::POINTEUR, GenreLexeme::Z16}},
-    {&TypeBase::PTR_Z32, {GenreLexeme::POINTEUR, GenreLexeme::Z32}},
-    {&TypeBase::PTR_Z64, {GenreLexeme::POINTEUR, GenreLexeme::Z64}},
-    {&TypeBase::PTR_R16, {GenreLexeme::POINTEUR, GenreLexeme::R16}},
-    {&TypeBase::PTR_R32, {GenreLexeme::POINTEUR, GenreLexeme::R32}},
-    {&TypeBase::PTR_R64, {GenreLexeme::POINTEUR, GenreLexeme::R64}},
-    {&TypeBase::PTR_EINI, {GenreLexeme::POINTEUR, GenreLexeme::EINI}},
-    {&TypeBase::PTR_CHAINE, {GenreLexeme::POINTEUR, GenreLexeme::CHAINE}},
-    {&TypeBase::PTR_RIEN, {GenreLexeme::POINTEUR, GenreLexeme::RIEN}},
-    {&TypeBase::PTR_NUL, {GenreLexeme::POINTEUR, GenreLexeme::NUL}},
-    {&TypeBase::PTR_BOOL, {GenreLexeme::POINTEUR, GenreLexeme::BOOL}},
-    {&TypeBase::PTR_OCTET, {GenreLexeme::POINTEUR, GenreLexeme::OCTET}},
+    {&TypeBase::PTR_N8, {GenreLexème::POINTEUR, GenreLexème::N8}},
+    {&TypeBase::PTR_N16, {GenreLexème::POINTEUR, GenreLexème::N16}},
+    {&TypeBase::PTR_N32, {GenreLexème::POINTEUR, GenreLexème::N32}},
+    {&TypeBase::PTR_N64, {GenreLexème::POINTEUR, GenreLexème::N64}},
+    {&TypeBase::PTR_Z8, {GenreLexème::POINTEUR, GenreLexème::Z8}},
+    {&TypeBase::PTR_Z16, {GenreLexème::POINTEUR, GenreLexème::Z16}},
+    {&TypeBase::PTR_Z32, {GenreLexème::POINTEUR, GenreLexème::Z32}},
+    {&TypeBase::PTR_Z64, {GenreLexème::POINTEUR, GenreLexème::Z64}},
+    {&TypeBase::PTR_R16, {GenreLexème::POINTEUR, GenreLexème::R16}},
+    {&TypeBase::PTR_R32, {GenreLexème::POINTEUR, GenreLexème::R32}},
+    {&TypeBase::PTR_R64, {GenreLexème::POINTEUR, GenreLexème::R64}},
+    {&TypeBase::PTR_EINI, {GenreLexème::POINTEUR, GenreLexème::EINI}},
+    {&TypeBase::PTR_CHAINE, {GenreLexème::POINTEUR, GenreLexème::CHAINE}},
+    {&TypeBase::PTR_RIEN, {GenreLexème::POINTEUR, GenreLexème::RIEN}},
+    {&TypeBase::PTR_NUL, {GenreLexème::POINTEUR, GenreLexème::NUL}},
+    {&TypeBase::PTR_BOOL, {GenreLexème::POINTEUR, GenreLexème::BOOL}},
+    {&TypeBase::PTR_OCTET, {GenreLexème::POINTEUR, GenreLexème::OCTET}},
 
-    {&TypeBase::REF_N8, {GenreLexeme::REFERENCE, GenreLexeme::N8}},
-    {&TypeBase::REF_N16, {GenreLexeme::REFERENCE, GenreLexeme::N16}},
-    {&TypeBase::REF_N32, {GenreLexeme::REFERENCE, GenreLexeme::N32}},
-    {&TypeBase::REF_N64, {GenreLexeme::REFERENCE, GenreLexeme::N64}},
-    {&TypeBase::REF_Z8, {GenreLexeme::REFERENCE, GenreLexeme::Z8}},
-    {&TypeBase::REF_Z16, {GenreLexeme::REFERENCE, GenreLexeme::Z16}},
-    {&TypeBase::REF_Z32, {GenreLexeme::REFERENCE, GenreLexeme::Z32}},
-    {&TypeBase::REF_Z64, {GenreLexeme::REFERENCE, GenreLexeme::Z64}},
-    {&TypeBase::REF_R16, {GenreLexeme::REFERENCE, GenreLexeme::R16}},
-    {&TypeBase::REF_R32, {GenreLexeme::REFERENCE, GenreLexeme::R32}},
-    {&TypeBase::REF_R64, {GenreLexeme::REFERENCE, GenreLexeme::R64}},
-    {&TypeBase::REF_EINI, {GenreLexeme::REFERENCE, GenreLexeme::EINI}},
-    {&TypeBase::REF_CHAINE, {GenreLexeme::REFERENCE, GenreLexeme::CHAINE}},
-    {&TypeBase::REF_RIEN, {GenreLexeme::REFERENCE, GenreLexeme::RIEN}},
-    {&TypeBase::REF_BOOL, {GenreLexeme::REFERENCE, GenreLexeme::BOOL}},
+    {&TypeBase::REF_N8, {GenreLexème::REFERENCE, GenreLexème::N8}},
+    {&TypeBase::REF_N16, {GenreLexème::REFERENCE, GenreLexème::N16}},
+    {&TypeBase::REF_N32, {GenreLexème::REFERENCE, GenreLexème::N32}},
+    {&TypeBase::REF_N64, {GenreLexème::REFERENCE, GenreLexème::N64}},
+    {&TypeBase::REF_Z8, {GenreLexème::REFERENCE, GenreLexème::Z8}},
+    {&TypeBase::REF_Z16, {GenreLexème::REFERENCE, GenreLexème::Z16}},
+    {&TypeBase::REF_Z32, {GenreLexème::REFERENCE, GenreLexème::Z32}},
+    {&TypeBase::REF_Z64, {GenreLexème::REFERENCE, GenreLexème::Z64}},
+    {&TypeBase::REF_R16, {GenreLexème::REFERENCE, GenreLexème::R16}},
+    {&TypeBase::REF_R32, {GenreLexème::REFERENCE, GenreLexème::R32}},
+    {&TypeBase::REF_R64, {GenreLexème::REFERENCE, GenreLexème::R64}},
+    {&TypeBase::REF_EINI, {GenreLexème::REFERENCE, GenreLexème::EINI}},
+    {&TypeBase::REF_CHAINE, {GenreLexème::REFERENCE, GenreLexème::CHAINE}},
+    {&TypeBase::REF_RIEN, {GenreLexème::REFERENCE, GenreLexème::RIEN}},
+    {&TypeBase::REF_BOOL, {GenreLexème::REFERENCE, GenreLexème::BOOL}},
 
-    {&TypeBase::TABL_N8, {GenreLexeme::TABLEAU, GenreLexeme::N8}},
-    {&TypeBase::TABL_N16, {GenreLexeme::TABLEAU, GenreLexeme::N16}},
-    {&TypeBase::TABL_N32, {GenreLexeme::TABLEAU, GenreLexeme::N32}},
-    {&TypeBase::TABL_N64, {GenreLexeme::TABLEAU, GenreLexeme::N64}},
-    {&TypeBase::TABL_Z8, {GenreLexeme::TABLEAU, GenreLexeme::Z8}},
-    {&TypeBase::TABL_Z16, {GenreLexeme::TABLEAU, GenreLexeme::Z16}},
-    {&TypeBase::TABL_Z32, {GenreLexeme::TABLEAU, GenreLexeme::Z32}},
-    {&TypeBase::TABL_Z64, {GenreLexeme::TABLEAU, GenreLexeme::Z64}},
-    {&TypeBase::TABL_R16, {GenreLexeme::TABLEAU, GenreLexeme::R16}},
-    {&TypeBase::TABL_R32, {GenreLexeme::TABLEAU, GenreLexeme::R32}},
-    {&TypeBase::TABL_R64, {GenreLexeme::TABLEAU, GenreLexeme::R64}},
-    {&TypeBase::TABL_EINI, {GenreLexeme::TABLEAU, GenreLexeme::EINI}},
-    {&TypeBase::TABL_CHAINE, {GenreLexeme::TABLEAU, GenreLexeme::CHAINE}},
-    {&TypeBase::TABL_BOOL, {GenreLexeme::TABLEAU, GenreLexeme::BOOL}},
-    {&TypeBase::TABL_OCTET, {GenreLexeme::TABLEAU, GenreLexeme::OCTET}},
+    {&TypeBase::TABL_N8, {GenreLexème::TABLEAU, GenreLexème::N8}},
+    {&TypeBase::TABL_N16, {GenreLexème::TABLEAU, GenreLexème::N16}},
+    {&TypeBase::TABL_N32, {GenreLexème::TABLEAU, GenreLexème::N32}},
+    {&TypeBase::TABL_N64, {GenreLexème::TABLEAU, GenreLexème::N64}},
+    {&TypeBase::TABL_Z8, {GenreLexème::TABLEAU, GenreLexème::Z8}},
+    {&TypeBase::TABL_Z16, {GenreLexème::TABLEAU, GenreLexème::Z16}},
+    {&TypeBase::TABL_Z32, {GenreLexème::TABLEAU, GenreLexème::Z32}},
+    {&TypeBase::TABL_Z64, {GenreLexème::TABLEAU, GenreLexème::Z64}},
+    {&TypeBase::TABL_R16, {GenreLexème::TABLEAU, GenreLexème::R16}},
+    {&TypeBase::TABL_R32, {GenreLexème::TABLEAU, GenreLexème::R32}},
+    {&TypeBase::TABL_R64, {GenreLexème::TABLEAU, GenreLexème::R64}},
+    {&TypeBase::TABL_EINI, {GenreLexème::TABLEAU, GenreLexème::EINI}},
+    {&TypeBase::TABL_CHAINE, {GenreLexème::TABLEAU, GenreLexème::CHAINE}},
+    {&TypeBase::TABL_BOOL, {GenreLexème::TABLEAU, GenreLexème::BOOL}},
+    {&TypeBase::TABL_OCTET, {GenreLexème::TABLEAU, GenreLexème::OCTET}},
 };
 
 /* ------------------------------------------------------------------------- */
@@ -342,62 +342,62 @@ static void initialise_type_opaque(TypeOpaque *résultat, Type *opacifie)
 
 /* ************************************************************************** */
 
-static Type *crée_type_pour_lexeme(GenreLexeme lexeme)
+static Type *crée_type_pour_lexeme(GenreLexème lexeme)
 {
     switch (lexeme) {
-        case GenreLexeme::BOOL:
+        case GenreLexème::BOOL:
         {
             return crée_type_bool();
         }
-        case GenreLexeme::OCTET:
+        case GenreLexème::OCTET:
         {
             return crée_type_octet();
         }
-        case GenreLexeme::N8:
+        case GenreLexème::N8:
         {
             return crée_type_entier(ID::n8, 1, true);
         }
-        case GenreLexeme::Z8:
+        case GenreLexème::Z8:
         {
             return crée_type_entier(ID::z8, 1, false);
         }
-        case GenreLexeme::N16:
+        case GenreLexème::N16:
         {
             return crée_type_entier(ID::n16, 2, true);
         }
-        case GenreLexeme::Z16:
+        case GenreLexème::Z16:
         {
             return crée_type_entier(ID::z16, 2, false);
         }
-        case GenreLexeme::N32:
+        case GenreLexème::N32:
         {
             return crée_type_entier(ID::n32, 4, true);
         }
-        case GenreLexeme::Z32:
+        case GenreLexème::Z32:
         {
             return crée_type_entier(ID::z32, 4, false);
         }
-        case GenreLexeme::N64:
+        case GenreLexème::N64:
         {
             return crée_type_entier(ID::n64, 8, true);
         }
-        case GenreLexeme::Z64:
+        case GenreLexème::Z64:
         {
             return crée_type_entier(ID::z64, 8, false);
         }
-        case GenreLexeme::R16:
+        case GenreLexème::R16:
         {
             return crée_type_reel(ID::r16, 2);
         }
-        case GenreLexeme::R32:
+        case GenreLexème::R32:
         {
             return crée_type_reel(ID::r32, 4);
         }
-        case GenreLexeme::R64:
+        case GenreLexème::R64:
         {
             return crée_type_reel(ID::r64, 8);
         }
-        case GenreLexeme::RIEN:
+        case GenreLexème::RIEN:
         {
             return crée_type_rien();
         }
@@ -418,7 +418,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
 
     /* initialise les types communs */
 #define CREE_TYPE_SIMPLE(IDENT)                                                                   \
-    TypeBase::IDENT = crée_type_pour_lexeme(GenreLexeme::IDENT);                                  \
+    TypeBase::IDENT = crée_type_pour_lexeme(GenreLexème::IDENT);                                  \
     types_simples->ajoute(TypeBase::IDENT)
 
     CREE_TYPE_SIMPLE(N8);
@@ -460,13 +460,13 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     for (auto &donnees : donnees_types_communs) {
         auto type = this->type_pour_lexeme(donnees.dt[1]);
 
-        if (donnees.dt[0] == GenreLexeme::TABLEAU) {
+        if (donnees.dt[0] == GenreLexème::TABLEAU) {
             type = this->type_tableau_dynamique(type);
         }
-        else if (donnees.dt[0] == GenreLexeme::POINTEUR) {
+        else if (donnees.dt[0] == GenreLexème::POINTEUR) {
             type = this->type_pointeur_pour(type);
         }
-        else if (donnees.dt[0] == GenreLexeme::REFERENCE) {
+        else if (donnees.dt[0] == GenreLexème::REFERENCE) {
             type = this->type_reference_pour(type);
         }
         else {
@@ -528,74 +528,74 @@ void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
     gestionnaire->requiers_initialisation_type(espace, TypeBase::PTR_RIEN);
 }
 
-Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
+Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
 {
     switch (lexeme) {
-        case GenreLexeme::BOOL:
+        case GenreLexème::BOOL:
         {
             return TypeBase::BOOL;
         }
-        case GenreLexeme::OCTET:
+        case GenreLexème::OCTET:
         {
             return TypeBase::OCTET;
         }
-        case GenreLexeme::N8:
+        case GenreLexème::N8:
         {
             return TypeBase::N8;
         }
-        case GenreLexeme::Z8:
+        case GenreLexème::Z8:
         {
             return TypeBase::Z8;
         }
-        case GenreLexeme::N16:
+        case GenreLexème::N16:
         {
             return TypeBase::N16;
         }
-        case GenreLexeme::Z16:
+        case GenreLexème::Z16:
         {
             return TypeBase::Z16;
         }
-        case GenreLexeme::N32:
+        case GenreLexème::N32:
         {
             return TypeBase::N32;
         }
-        case GenreLexeme::Z32:
+        case GenreLexème::Z32:
         {
             return TypeBase::Z32;
         }
-        case GenreLexeme::N64:
+        case GenreLexème::N64:
         {
             return TypeBase::N64;
         }
-        case GenreLexeme::Z64:
+        case GenreLexème::Z64:
         {
             return TypeBase::Z64;
         }
-        case GenreLexeme::R16:
+        case GenreLexème::R16:
         {
             return TypeBase::R16;
         }
-        case GenreLexeme::R32:
+        case GenreLexème::R32:
         {
             return TypeBase::R32;
         }
-        case GenreLexeme::R64:
+        case GenreLexème::R64:
         {
             return TypeBase::R64;
         }
-        case GenreLexeme::CHAINE:
+        case GenreLexème::CHAINE:
         {
             return TypeBase::CHAINE;
         }
-        case GenreLexeme::EINI:
+        case GenreLexème::EINI:
         {
             return TypeBase::EINI;
         }
-        case GenreLexeme::RIEN:
+        case GenreLexème::RIEN:
         {
             return TypeBase::RIEN;
         }
-        case GenreLexeme::TYPE_DE_DONNEES:
+        case GenreLexème::TYPE_DE_DONNEES:
         {
             return type_type_de_donnees_;
         }
@@ -912,7 +912,7 @@ TypeStructure *Typeuse::reserve_type_structure()
     return alloc->m_noeuds_type_structure.ajoute_element();
 }
 
-TypeUnion *Typeuse::union_anonyme(Lexeme const *lexeme,
+TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
                                   NoeudBloc *bloc_parent,
                                   const kuri::tablet<MembreTypeComposé, 6> &membres)
 {

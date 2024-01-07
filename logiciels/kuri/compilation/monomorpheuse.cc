@@ -258,7 +258,7 @@ void Monomorpheuse::erreur_genre_type(const NoeudExpression *site,
     ajoute_erreur(site, DonnéesErreurGenreType{type_reçu, message});
 }
 
-void Monomorpheuse::erreur_opérateur_non_géré(const NoeudExpression *site, GenreLexeme lexeme)
+void Monomorpheuse::erreur_opérateur_non_géré(const NoeudExpression *site, GenreLexème lexeme)
 {
     ajoute_erreur(site, DonnéesErreurOpérateurNonGéré{lexeme});
 }
