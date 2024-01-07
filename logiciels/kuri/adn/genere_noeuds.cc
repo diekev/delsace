@@ -1251,7 +1251,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "#include \"assembleuse.hh\"\n";
 
         const char *empile_bloc = R"(
-NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction)
+NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction)
 {
     auto bloc = crée_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme)->comme_bloc();
     bloc->appartiens_à_fonction = appartiens_à_fonction;
@@ -1270,7 +1270,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
             }
 
             os << it->nom() << " *AssembleuseArbre::crée_" << it->accede_nom_comme()
-               << "(const Lexeme *lexeme)\n";
+               << "(const Lexème *lexeme)\n";
             os << "{\n";
             os << "\treturn crée_noeud<GenreNoeud::" << nom_genre << ">(lexeme)->comme_"
                << it->accede_nom_comme() << "();\n";
@@ -1296,7 +1296,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         : m_allocatrice(allocatrice)
     {}
 
-    NoeudBloc *empile_bloc(Lexeme const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction);
+    NoeudBloc *empile_bloc(Lexème const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction);
 
     NoeudBloc *bloc_courant() const
     {
@@ -1326,14 +1326,14 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
      * toujours le genre de noeud à créer, et spécialiser cette fonction nous
      * économise pas mal de temps d'exécution, au prix d'un exécutable plus gros. */
     template <GenreNoeud genre>
-    NoeudExpression *crée_noeud(Lexeme const *lexeme)
+    NoeudExpression *crée_noeud(Lexème const *lexeme)
     {
         auto noeud = m_allocatrice.crée_noeud<genre>();
         noeud->genre = genre;
         noeud->lexeme = lexeme;
         noeud->bloc_parent = bloc_courant();
 
-        if (noeud->lexeme && (noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE)) {
+        if (noeud->lexeme && (noeud->lexeme->genre == GenreLexème::CHAINE_CARACTERE)) {
             noeud->ident = lexeme->ident;
         }
 
@@ -1362,28 +1362,28 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
             }
 
             os << "\t" << it->nom() << " *crée_" << it->accede_nom_comme()
-               << "(const Lexeme *lexeme);\n";
+               << "(const Lexème *lexeme);\n";
         }
 
         const char *decls_extras = R"(
-    NoeudSi *crée_si(const Lexeme *lexeme, GenreNoeud genre_noeud);
+    NoeudSi *crée_si(const Lexème *lexeme, GenreNoeud genre_noeud);
     NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref);
-    NoeudAssignation *crée_assignation_variable(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
-    NoeudAssignation *crée_incrementation(const Lexeme *lexeme, NoeudExpression *valeur);
-    NoeudAssignation *crée_decrementation(const Lexeme *lexeme, NoeudExpression *valeur);
-    NoeudBloc *crée_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent);
-    NoeudDeclarationVariable *crée_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
+    NoeudAssignation *crée_assignation_variable(const Lexème *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
+    NoeudAssignation *crée_incrementation(const Lexème *lexeme, NoeudExpression *valeur);
+    NoeudAssignation *crée_decrementation(const Lexème *lexeme, NoeudExpression *valeur);
+    NoeudBloc *crée_bloc_seul(const Lexème *lexeme, NoeudBloc *bloc_parent);
+    NoeudDeclarationVariable *crée_declaration_variable(const Lexème *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
     NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
-    NoeudExpressionLitteraleEntier *crée_litterale_entier(const Lexeme *lexeme, Type *type, uint64_t valeur);
-    NoeudExpressionLitteraleBool *crée_litterale_bool(const Lexeme *lexeme, Type *type, bool valeur);
-    NoeudExpressionLitteraleReel *crée_litterale_reel(const Lexeme *lexeme, Type *type, double valeur);
-    NoeudExpression *crée_reference_type(const Lexeme *lexeme, Type *type);
-    NoeudExpressionAppel *crée_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);
-    NoeudExpressionBinaire *crée_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
-    NoeudExpressionBinaire *crée_expression_binaire(const Lexeme *lexeme, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
-    NoeudExpressionMembre *crée_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
-    NoeudExpressionReference *crée_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl);
-    NoeudExpressionAppel *crée_construction_structure(const Lexeme *lexeme, TypeCompose *type);
+    NoeudExpressionLitteraleEntier *crée_litterale_entier(const Lexème *lexeme, Type *type, uint64_t valeur);
+    NoeudExpressionLitteraleBool *crée_litterale_bool(const Lexème *lexeme, Type *type, bool valeur);
+    NoeudExpressionLitteraleReel *crée_litterale_reel(const Lexème *lexeme, Type *type, double valeur);
+    NoeudExpression *crée_reference_type(const Lexème *lexeme, Type *type);
+    NoeudExpressionAppel *crée_appel(const Lexème *lexeme, NoeudExpression *appelee, Type *type);
+    NoeudExpressionBinaire *crée_indexage(const Lexème *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
+    NoeudExpressionBinaire *crée_expression_binaire(const Lexème *lexeme, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
+    NoeudExpressionMembre *crée_reference_membre(const Lexème *lexeme, NoeudExpression *accede, Type *type, int index);
+    NoeudExpressionReference *crée_reference_declaration(const Lexème *lexeme, NoeudDeclaration *decl);
+    NoeudExpressionAppel *crée_construction_structure(const Lexème *lexeme, TypeCompose *type);
 )";
 
         os << decls_extras;

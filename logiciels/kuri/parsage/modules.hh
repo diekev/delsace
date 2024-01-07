@@ -72,7 +72,7 @@ struct Fichier {
 
     lng::tampon_source tampon_{""};
 
-    kuri::tableau<Lexeme, int> lexèmes{};
+    kuri::tableau<Lexème, int> lexèmes{};
 
     kuri::chaine nom_{""};
     kuri::chaine chemin_{""};

@@ -715,7 +715,7 @@ void Tacheronne::execute_metaprogrammes()
 NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
     EspaceDeTravail *espace,
     NoeudDirectiveExecute *directive,
-    Lexeme const *lexeme,
+    Lexème const *lexeme,
     Type *type,
     octet_t *pointeur,
     DétectriceFuiteDeMémoire &détectrice_fuites_de_mémoire)

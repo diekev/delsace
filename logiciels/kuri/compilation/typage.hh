@@ -307,7 +307,7 @@ struct Typeuse {
      * celle-ci. */
     static void crée_tâches_précompilation(Compilatrice &compilatrice);
 
-    Type *type_pour_lexeme(GenreLexeme lexeme);
+    Type *type_pour_lexeme(GenreLexème lexeme);
 
     TypePointeur *type_pointeur_pour(Type *type,
                                      bool ajoute_operateurs = true,
@@ -318,6 +318,9 @@ struct Typeuse {
     TypeTableauFixe *type_tableau_fixe(Type *type_pointe,
                                        int taille,
                                        bool insere_dans_graphe = true);
+
+    TypeTableauFixe *type_tableau_fixe(NoeudExpression const *expression_taille,
+                                       Type *type_élément);
 
     TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe,
                                                  bool insere_dans_graphe = true);
@@ -337,7 +340,7 @@ struct Typeuse {
 
     TypeStructure *reserve_type_structure();
 
-    TypeUnion *union_anonyme(Lexeme const *lexeme,
+    TypeUnion *union_anonyme(Lexème const *lexeme,
                              NoeudBloc *bloc_parent,
                              const kuri::tablet<MembreTypeComposé, 6> &membres);
 
