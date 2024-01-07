@@ -17,14 +17,14 @@ struct BaseSyntaxeuse {
   protected:
     /* Pour les messages d'erreurs. */
     struct DonneesEtatSyntaxage {
-        Lexeme *lexème = nullptr;
+        Lexème *lexème = nullptr;
         kuri::chaine_statique message{};
     };
 
-    kuri::tableau<Lexeme, int> &m_lexèmes;
+    kuri::tableau<Lexème, int> &m_lexèmes;
     Fichier *m_fichier = nullptr;
-    Lexeme *m_lexème_courant = nullptr;
-    Lexeme *m_lexème_sauvegardé = nullptr;
+    Lexème *m_lexème_courant = nullptr;
+    Lexème *m_lexème_sauvegardé = nullptr;
     int m_position = 0;
     int32_t m_position_sauvegardée = 0;
     bool m_position_fut_sauvegardée = false;
@@ -81,7 +81,7 @@ struct BaseSyntaxeuse {
         }
     }
 
-    inline void consomme(GenreLexeme genre_lexème, kuri::chaine_statique message)
+    inline void consomme(GenreLexème genre_lexème, kuri::chaine_statique message)
     {
         if (fini() || m_lexèmes[m_position].genre != genre_lexème) {
             rapporte_erreur(message);
@@ -100,12 +100,12 @@ struct BaseSyntaxeuse {
         }
     }
 
-    inline Lexeme *lexème_courant()
+    inline Lexème *lexème_courant()
     {
         return m_lexème_courant;
     }
 
-    inline Lexeme const *lexème_courant() const
+    inline Lexème const *lexème_courant() const
     {
         return m_lexème_courant;
     }
@@ -115,7 +115,7 @@ struct BaseSyntaxeuse {
         return m_position >= m_lexèmes.taille();
     }
 
-    inline bool apparie(GenreLexeme genre_lexème) const
+    inline bool apparie(GenreLexème genre_lexème) const
     {
         return m_lexème_courant->genre == genre_lexème;
     }
@@ -135,7 +135,7 @@ struct BaseSyntaxeuse {
 
     // Interface pour la gestion d'erreurs
 
-    void empile_état(kuri::chaine_statique message, Lexeme *lexème);
+    void empile_état(kuri::chaine_statique message, Lexème *lexème);
 
     void dépile_état();
 

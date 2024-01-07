@@ -21,8 +21,8 @@
 kuri::chaine ErreurMonomorphisation::message() const
 {
 #define SI_ERREUR_EST(Type)                                                                       \
-    if (std::holds_alternative<Type>(this->donnees)) {                                            \
-        auto donnees_erreur = std::get<Type>(this->donnees);
+    if (std::holds_alternative<Type>(this->données)) {                                            \
+        auto données_erreur = std::get<Type>(this->données);
 
 #define FIN_ERREUR(Type) }
 
@@ -32,21 +32,21 @@ kuri::chaine ErreurMonomorphisation::message() const
     SI_ERREUR_EST(DonnéesErreurContrainte)
     {
         enchaineuse << "\t\tContrainte incompatible pour « "
-                    << donnees_erreur.item_contrainte.ident->nom << " ».\n";
+                    << données_erreur.item_contrainte.ident->nom << " ».\n";
 
-        if (donnees_erreur.résultat == ÉtatRésolutionContrainte::PasLeMêmeType) {
+        if (données_erreur.résultat == ÉtatRésolutionContrainte::PasLeMêmeType) {
             enchaineuse << "\t\tLe type désiré est "
-                        << chaine_type(donnees_erreur.item_contrainte.type) << ".\n";
+                        << chaine_type(données_erreur.item_contrainte.type) << ".\n";
             enchaineuse << "\t\tMais le type reçu est "
-                        << chaine_type(donnees_erreur.item_reçu.type) << ".\n";
+                        << chaine_type(données_erreur.item_reçu.type) << ".\n";
             return enchaineuse.chaine();
         }
 
         enchaineuse << "\t\tNous voulions "
-                    << (donnees_erreur.item_contrainte.est_type ? "un type" : "une valeur")
+                    << (données_erreur.item_contrainte.est_type ? "un type" : "une valeur")
                     << ".\n";
         enchaineuse << "\t\tMais nous avons reçu "
-                    << (donnees_erreur.item_reçu.est_type ? "un type" : "une valeur") << ".\n";
+                    << (données_erreur.item_reçu.est_type ? "un type" : "une valeur") << ".\n";
         return enchaineuse.chaine();
     }
     FIN_ERREUR(DonnéesErreurContrainte)
@@ -54,19 +54,19 @@ kuri::chaine ErreurMonomorphisation::message() const
     SI_ERREUR_EST(DonnéesErreurCompatibilité)
     {
         enchaineuse << "\t\tValeurs incompatibles pour « $"
-                    << donnees_erreur.item_contrainte.ident->nom << " ».\n\n";
+                    << données_erreur.item_contrainte.ident->nom << " ».\n\n";
 
-        if (donnees_erreur.résultat == ÉtatRésolutionCompatibilité::PasLaMêmeValeur) {
-            enchaineuse << "\t\tNous voulions la valeur " << donnees_erreur.item_contrainte.valeur
+        if (données_erreur.résultat == ÉtatRésolutionCompatibilité::PasLaMêmeValeur) {
+            enchaineuse << "\t\tNous voulions la valeur " << données_erreur.item_contrainte.valeur
                         << ".\n";
             enchaineuse << "\t\tMais nous avons obtenu la valeur "
-                        << donnees_erreur.item_reçu.valeur << ".\n";
+                        << données_erreur.item_reçu.valeur << ".\n";
         }
         else {
             auto const type_voulu =
-                donnees_erreur.item_contrainte.type->comme_type_type_de_donnees()->type_connu;
+                données_erreur.item_contrainte.type->comme_type_type_de_donnees()->type_connu;
             auto const type_obtenu =
-                donnees_erreur.item_reçu.type->comme_type_type_de_donnees()->type_connu;
+                données_erreur.item_reçu.type->comme_type_type_de_donnees()->type_connu;
             enchaineuse << "\t\tNous voulions le type " << chaine_type(type_voulu) << ".\n";
             enchaineuse << "\t\tMais nous avons obtenu le type " << chaine_type(type_obtenu)
                         << ".\n";
@@ -79,32 +79,32 @@ kuri::chaine ErreurMonomorphisation::message() const
     SI_ERREUR_EST(DonnéesErreurItemManquante)
     {
         return enchaine(
-            "impossible de trouver l'item pour « ", donnees_erreur.item_reçu.ident->nom, " »");
+            "impossible de trouver l'item pour « ", données_erreur.item_reçu.ident->nom, " »");
     }
     FIN_ERREUR(DonnéesErreurItemManquante)
 
     SI_ERREUR_EST(DonnéesErreurInterne)
     {
-        return enchaine(donnees_erreur.message);
+        return enchaine(données_erreur.message);
     }
     FIN_ERREUR(DonnéesErreurInterne)
 
     SI_ERREUR_EST(DonnéesErreurGenreType)
     {
-        return enchaine(chaine_type(donnees_erreur.type_reçu), " ", donnees_erreur.message);
+        return enchaine(chaine_type(données_erreur.type_reçu), " ", données_erreur.message);
     }
     FIN_ERREUR(DonnéesErreurGenreType)
 
     SI_ERREUR_EST(DonnéesErreurOpérateurNonGéré)
     {
-        return enchaine("genre opérateur non géré : ", donnees_erreur.lexeme);
+        return enchaine("genre opérateur non géré : ", données_erreur.lexeme);
     }
     FIN_ERREUR(DonnéesErreurOpérateurNonGéré)
 
     SI_ERREUR_EST(DonnéesErreurRéférenceInconnue)
     {
         return enchaine("aucun type ou aucune valeur polymorphique correspondant à : ",
-                        donnees_erreur.ident->nom);
+                        données_erreur.ident->nom);
     }
     FIN_ERREUR(DonnéesErreurRéférenceInconnue)
 
@@ -113,12 +113,12 @@ kuri::chaine ErreurMonomorphisation::message() const
         enchaineuse << "\t\tAucune monomorphisation connue pour les items.\n\n";
 
         enchaineuse << "\t\tLes items sont :\n";
-        POUR (donnees_erreur.items) {
+        POUR (données_erreur.items) {
             enchaineuse << "\t\t\t" << it << '\n';
         }
 
         enchaineuse << '\n';
-        donnees_erreur.monomorphisations->imprime(enchaineuse, 2);
+        données_erreur.monomorphisations->imprime(enchaineuse, 2);
 
         return enchaineuse.chaine();
     }
@@ -126,7 +126,7 @@ kuri::chaine ErreurMonomorphisation::message() const
 
     SI_ERREUR_EST(DonnéesErreurSémantique)
     {
-        return enchaine(donnees_erreur.message);
+        return enchaine(données_erreur.message);
     }
     FIN_ERREUR(DonnéesErreurSémantique)
 
@@ -141,7 +141,11 @@ Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
 {
     POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
         if (it->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            if (it->type->est_type_type_de_donnees()) {
+            if (!it->type) {
+                /* Valeur taille polymorphique. */
+                items.ajoute({it->ident, nullptr, {}, false});
+            }
+            else if (it->type->est_type_type_de_donnees()) {
                 /* $T: type_de_données */
                 items.ajoute({it->ident, nullptr, {}, true});
             }
@@ -216,7 +220,7 @@ void Monomorpheuse::ajoute_erreur(const NoeudExpression *site, DonnéesErreur do
     auto erreur = ErreurMonomorphisation();
     erreur.site = site;
     erreur.polymorphe = polymorphe;
-    erreur.donnees = donnees;
+    erreur.données = donnees;
     erreur_courante = erreur;
 }
 
@@ -254,7 +258,7 @@ void Monomorpheuse::erreur_genre_type(const NoeudExpression *site,
     ajoute_erreur(site, DonnéesErreurGenreType{type_reçu, message});
 }
 
-void Monomorpheuse::erreur_opérateur_non_géré(const NoeudExpression *site, GenreLexeme lexeme)
+void Monomorpheuse::erreur_opérateur_non_géré(const NoeudExpression *site, GenreLexème lexeme)
 {
     ajoute_erreur(site, DonnéesErreurOpérateurNonGéré{lexeme});
 }
@@ -573,9 +577,8 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
         if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
                                           DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
             ValeurExpression valeur = type_tableau->taille;
-            ajoute_candidat_valeur(decl_referee->ident, decl_referee->type, valeur);
+            ajoute_candidat_valeur(decl_referee->ident, TypeBase::Z64, valeur);
         }
-        return;
     }
 
     auto const expression_type = expr_type_tableau->expression_type;
@@ -959,8 +962,9 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
 
     auto expression_taille = expr_tableau_fixe->expression_taille;
     if (expression_taille->est_reference_declaration()) {
-        erreur_interne(expression_taille, "la taille de tableau n'est pas encore implémentée");
-        return nullptr;
+        auto item = trouve_item_pour_ident(items_résultat, expression_taille->ident);
+        assert(item);
+        return typeuse().type_tableau_fixe(type_pointe, int32_t(item->valeur.entiere()));
     }
     auto valeur_taille = evalue_valeur(expression_taille);
     if (!valeur_taille.est_entiere()) {
@@ -996,6 +1000,11 @@ RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation cons
 
     /* Nous avons une valeur, il faut vérifier le type. */
     auto type_item = item.type;
+
+    if (type_item == nullptr) {
+        /* Type de valeur indéfini (par exemple pour la taille polymorphique d'un tableau). */
+        return ÉtatRésolutionContrainte::Ok;
+    }
 
     if (type_item->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         /* Le type peut être polymorphique, par exemple fonc(T)(rien), dans lequel cas il nous

@@ -26,7 +26,7 @@
 static NoeudExpressionNonIntialisation non_initialisation{};
 
 static NoeudExpression *crée_référence_pour_membre_employé(AssembleuseArbre *assem,
-                                                           Lexeme const *lexeme,
+                                                           Lexème const *lexeme,
                                                            NoeudExpression *expression_accédée,
                                                            TypeCompose *type_composé,
                                                            MembreTypeComposé const &membre);
@@ -201,12 +201,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
                     OpérateurBinaire *op_arithm = nullptr;
 
-                    if (expr_bin->lexeme->genre == GenreLexeme::MOINS ||
-                        expr_bin->lexeme->genre == GenreLexeme::MOINS_EGAL) {
+                    if (expr_bin->lexeme->genre == GenreLexème::MOINS ||
+                        expr_bin->lexeme->genre == GenreLexème::MOINS_EGAL) {
                         op_arithm = type_entier->table_opérateurs->opérateur_sst;
                     }
-                    else if (expr_bin->lexeme->genre == GenreLexeme::PLUS ||
-                             expr_bin->lexeme->genre == GenreLexeme::PLUS_EGAL) {
+                    else if (expr_bin->lexeme->genre == GenreLexème::PLUS ||
+                             expr_bin->lexeme->genre == GenreLexème::PLUS_EGAL) {
                         op_arithm = type_entier->table_opérateurs->opérateur_ajt;
                     }
 
@@ -244,10 +244,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_LOGIQUE:
         {
             auto logique = noeud->comme_expression_logique();
-            simplifie(logique->opérande_droite);
-            simplifie(logique->opérande_gauche);
-            // À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&,
-            // il faudra également modifier la RI pour prendre en compte la substitution
+            simplifie_expression_logique(logique);
             return;
         }
         case GenreNoeud::OPERATEUR_UNAIRE:
@@ -690,7 +687,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         {
-            simplifie_comparaison_chainee(noeud->comme_comparaison_chainee());
+            simplifie_comparaison_chainée(noeud->comme_comparaison_chainee());
             return;
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
@@ -1025,7 +1022,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     boucle->bloc_pre = bloc_pre;
     boucle->bloc_inc = bloc_inc;
 
-    auto const inverse_boucle = inst->lexeme_op == GenreLexeme::SUPERIEUR;
+    auto const inverse_boucle = inst->lexeme_op == GenreLexème::SUPERIEUR;
 
     auto type_itere = expression_iteree->type->est_type_opaque() ?
                           expression_iteree->type->comme_type_opaque()->type_opacifie :
@@ -1392,7 +1389,7 @@ static void rassemble_operations_chainees(NoeudExpression *racine,
 }
 
 NoeudExpression *Simplificatrice::crée_expression_pour_op_chainee(
-    kuri::tableau<NoeudExpressionBinaire> &comparaisons, Lexeme const *lexeme_op_logique)
+    kuri::tableau<NoeudExpressionBinaire> &comparaisons, Lexème const *lexeme_op_logique)
 {
     kuri::pile<NoeudExpression *> exprs;
 
@@ -1462,7 +1459,7 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
     }
 }
 
-void Simplificatrice::simplifie_comparaison_chainee(NoeudExpressionBinaire *comp)
+void Simplificatrice::simplifie_comparaison_chainée(NoeudExpressionBinaire *comp)
 {
     auto comparaisons = kuri::tableau<NoeudExpressionBinaire>();
     rassemble_operations_chainees(comp, comparaisons);
@@ -1479,13 +1476,13 @@ void Simplificatrice::simplifie_comparaison_chainee(NoeudExpressionBinaire *comp
         c <= d
      */
 
-    static const Lexeme lexeme_et = {",", {}, GenreLexeme::ESP_ESP, 0, 0, 0};
+    static const Lexème lexeme_et = {",", {}, GenreLexème::ESP_ESP, 0, 0, 0};
     comp->substitution = crée_expression_pour_op_chainee(comparaisons, &lexeme_et);
 }
 
 void Simplificatrice::crée_retourne_union_via_rien(NoeudDeclarationEnteteFonction *entete,
                                                    NoeudBloc *bloc_d_insertion,
-                                                   Lexeme const *lexeme_reference)
+                                                   Lexème const *lexeme_reference)
 {
     auto type_sortie = entete->type->comme_type_fonction()->type_sortie->comme_type_union();
     auto retourne = assem->crée_retourne(lexeme_reference);
@@ -1589,7 +1586,7 @@ void Simplificatrice::simplifie_construction_structure(
 }
 
 NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
-    Lexeme const *lexeme, NoeudExpression *expression_à_initialiser)
+    Lexème const *lexeme, NoeudExpression *expression_à_initialiser)
 {
     auto type_expression = expression_à_initialiser->type;
     auto fonction_init = crée_entête_pour_initialisation_type(
@@ -1601,6 +1598,98 @@ NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
     appel->parametres_resolus.ajoute(prise_adresse);
 
     return appel;
+}
+
+static NoeudExpression *supprime_parenthèses(NoeudExpression *expression)
+{
+    while (expression->est_parenthese()) {
+        expression = expression->comme_parenthese()->expression;
+    }
+    return expression;
+}
+
+static void aplatis_expression_logique(NoeudExpressionLogique *logique,
+                                       kuri::tablet<NoeudExpressionLogique *, 6> &résultat)
+{
+    auto opérande_gauche = supprime_parenthèses(logique->opérande_gauche);
+    if (opérande_gauche->est_expression_logique()) {
+        aplatis_expression_logique(opérande_gauche->comme_expression_logique(), résultat);
+    }
+
+    résultat.ajoute(logique);
+
+    auto opérande_droite = supprime_parenthèses(logique->opérande_droite);
+    if (opérande_droite->est_expression_logique()) {
+        aplatis_expression_logique(opérande_droite->comme_expression_logique(), résultat);
+    }
+}
+
+static kuri::tablet<NoeudExpressionLogique *, 6> aplatis_expression_logique(
+    NoeudExpressionLogique *logique)
+{
+    kuri::tablet<NoeudExpressionLogique *, 6> résultat;
+    aplatis_expression_logique(logique, résultat);
+    return résultat;
+}
+
+void Simplificatrice::simplifie_expression_logique(NoeudExpressionLogique *logique)
+{
+#if 1
+    simplifie(logique->opérande_droite);
+    simplifie(logique->opérande_gauche);
+#else
+    // À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&,
+    // il faudra également modifier la RI pour prendre en compte la substitution
+    if (logique->possède_drapeau(DrapeauxNoeud::DROITE_CONDITION)) {
+        simplifie(logique->opérande_droite);
+        simplifie(logique->opérande_gauche);
+        return;
+    }
+
+    /* À FAIRE(expression logique) : simplifie comme GCC pour les assignations
+     * a := b && c ->  x := b; si x == vrai { x = c; }; a := x;
+     * a := b || c ->  x := b; si x == faux { x = c; }; a := x;
+     */
+
+    dbg() << erreur::imprime_site(*espace, logique->opérande_droite);
+
+    auto noeuds = aplatis_expression_logique(logique);
+    dbg() << "Nombre de noeuds : " << noeuds.taille();
+
+    static Lexème lexème_temp{};
+
+    simplifie(noeuds[0]->opérande_gauche);
+    auto temp = assem->crée_declaration_variable(
+        &lexème_temp, TypeBase::BOOL, nullptr, noeuds[0]->opérande_gauche);
+
+    auto bloc = assem->crée_bloc_seul(logique->lexeme, logique->bloc_parent);
+    bloc->ajoute_expression(temp);
+
+    auto bloc_courant = bloc;
+
+    POUR (noeuds) {
+        dbg() << erreur::imprime_site(*espace, it);
+
+        auto test = (it->lexeme->genre == GenreLexème::ESP_ESP) ?
+                        assem->crée_si(logique->lexeme) :
+                        assem->crée_saufsi(logique->lexeme);
+        bloc_courant->ajoute_expression(test);
+
+        test->condition = temp->valeur;
+
+        simplifie(it->opérande_droite);
+        auto bloc_si_vrai = assem->crée_bloc_seul(logique->lexeme, bloc_courant);
+        auto assignation = assem->crée_assignation_variable(
+            logique->lexeme, temp->valeur, it->opérande_droite);
+        bloc_si_vrai->ajoute_expression(assignation);
+
+        test->bloc_si_vrai = bloc_si_vrai;
+        bloc_courant = bloc_si_vrai;
+    }
+
+    bloc->ajoute_expression(temp->valeur);
+    logique->substitution = bloc;
+#endif
 }
 
 void Simplificatrice::simplifie_construction_union(
@@ -1926,7 +2015,7 @@ static kuri::tableau<InformationMembreTypeCompose, int> trouve_hiérarchie_emplo
 }
 
 static NoeudExpression *crée_référence_pour_membre_employé(AssembleuseArbre *assem,
-                                                           Lexeme const *lexeme,
+                                                           Lexème const *lexeme,
                                                            NoeudExpression *expression_accédée,
                                                            TypeCompose *type_composé,
                                                            MembreTypeComposé const &membre)
@@ -2311,7 +2400,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 
      */
 
-    static const Lexeme lexeme_ou = {",", {}, GenreLexeme::BARRE_BARRE, 0, 0, 0};
+    static const Lexème lexeme_ou = {",", {}, GenreLexème::BARRE_BARRE, 0, 0, 0};
 
     auto la_discriminee = discr->expression_discriminee;
     simplifie(la_discriminee);
@@ -2438,7 +2527,7 @@ void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
 
 NoeudSi *Simplificatrice::crée_condition_boucle(NoeudExpression *inst, GenreNoeud genre_noeud)
 {
-    static const Lexeme lexeme_arrete = {",", {}, GenreLexeme::ARRETE, 0, 0, 0};
+    static const Lexème lexeme_arrete = {",", {}, GenreLexème::ARRETE, 0, 0, 0};
 
     /* condition d'arrêt de la boucle */
     auto condition = assem->crée_si(inst->lexeme, genre_noeud);

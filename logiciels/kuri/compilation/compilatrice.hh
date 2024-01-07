@@ -38,7 +38,7 @@ enum class FormatRapportProfilage : int {
 };
 
 namespace kuri {
-struct Lexeme;
+struct Lexème;
 }
 
 struct GestionnaireChainesAjoutées {
@@ -154,7 +154,7 @@ struct Compilatrice {
     kuri::tableau<kuri::tableau<NoeudCodeEnteteFonction *>> m_tableaux_code_fonctions{};
 
     /* Tous les tableaux créés pour les appels à #compilatrice_lèxe_fichier. */
-    kuri::tableau<kuri::tableau<kuri::Lexeme>> m_tableaux_lexemes{};
+    kuri::tableau<kuri::tableau<kuri::Lexème>> m_tableaux_lexemes{};
 
     kuri::tableau<EtatResolutionAppel *> m_états_libres{};
 
@@ -201,7 +201,7 @@ struct Compilatrice {
      * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
      * exception est lancée.
      *
-     * Les Lexeme doivent être celles du nom du module et sont utilisées
+     * Les Lexème doivent être celles du nom du module et sont utilisées
      * pour les erreurs lancées.
      *
      * Le paramètre est_racine ne doit être vrai que pour le module racine.
@@ -299,7 +299,7 @@ struct Compilatrice {
                                     const NoeudExpression *site);
     const Message *attend_message();
     EspaceDeTravail *espace_defaut_compilation();
-    kuri::tableau_statique<kuri::Lexeme> lexe_fichier(EspaceDeTravail *espace,
+    kuri::tableau_statique<kuri::Lexème> lexe_fichier(EspaceDeTravail *espace,
                                                       kuri::chaine_statique chemin_donne,
                                                       const NoeudExpression *site);
 

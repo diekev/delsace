@@ -19,7 +19,7 @@ struct BaseDeclarationVariable;
 struct Compilatrice;
 struct EspaceDeTravail;
 struct IdentifiantCode;
-struct Lexeme;
+struct Lexème;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationType;
@@ -300,12 +300,12 @@ struct DonnéesSymboleExterne {
 void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis);
 
 NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
-                                                Lexeme const *lexème,
+                                                Lexème const *lexème,
                                                 NoeudExpression *expression,
                                                 TypePointeur *type_résultat);
 
 NoeudDeclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
-                                                      Lexeme const *lexème);
+                                                      Lexème const *lexème);
 
 void imprime_détails_fonction(EspaceDeTravail *espace,
                               NoeudDeclarationEnteteFonction const *entête,

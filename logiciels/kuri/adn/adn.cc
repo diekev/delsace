@@ -7,6 +7,17 @@
 
 #include "structures/ensemble.hh"
 
+void IdentifiantADN::préserve_accents_si_nom_le_requiers()
+{
+    if (nom == "OpérateurUnaire" || nom == "OpérateurBinaire" || nom == "VisibilitéSymbole" ||
+        nom == "DonnéesSymboleExterne" || nom == "MembreTypeComposé" || nom == "TableOpérateurs" ||
+        nom == "Lexème" || nom == "GenreLexème") {
+
+        std::cerr << "Préserve accent : " << nom << "\n";
+        préserve_accents();
+    }
+}
+
 const IdentifiantADN &Type::accede_nom() const
 {
     if (est_pointeur()) {
@@ -354,7 +365,7 @@ void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 
     POUR (m_membres) {
         if (it.type->est_pointeur() &&
-            it.type->comme_pointeur()->type_pointe->est_nominal("Lexeme")) {
+            it.type->comme_pointeur()->type_pointe->est_nominal("Lexème")) {
             os << "\tchemin_fichier: chaine\n";
             os << "\tnom_fichier: chaine\n";
             os << "\tnuméro_ligne: z32\n";
@@ -646,7 +657,7 @@ void SyntaxeuseADN::parse_fonction()
 {
     consomme();
 
-    if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+    if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
         rapporte_erreur("Attendu une chaine de caractère après « fonction »");
     }
 
@@ -654,16 +665,16 @@ void SyntaxeuseADN::parse_fonction()
     consomme();
 
     // paramètres
-    if (!apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
+    if (!apparie(GenreLexème::PARENTHESE_OUVRANTE)) {
         rapporte_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
     }
     consomme();
 
-    while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+    while (!apparie(GenreLexème::PARENTHESE_FERMANTE)) {
         auto parametre = Parametre{};
         parametre.type = parse_type();
 
-        if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+        if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
             rapporte_erreur(
                 "Attendu une chaine de caractère pour le nom du paramètre après son type");
         }
@@ -673,7 +684,7 @@ void SyntaxeuseADN::parse_fonction()
 
         fonction->ajoute_parametre(parametre);
 
-        if (apparie(GenreLexeme::VIRGULE)) {
+        if (apparie(GenreLexème::VIRGULE)) {
             consomme();
         }
     }
@@ -682,7 +693,7 @@ void SyntaxeuseADN::parse_fonction()
     consomme();
 
     // type de retour
-    if (apparie(GenreLexeme::RETOUR_TYPE)) {
+    if (apparie(GenreLexème::RETOUR_TYPE)) {
         consomme();
         fonction->type_sortie() = parse_type();
     }
@@ -690,11 +701,11 @@ void SyntaxeuseADN::parse_fonction()
         fonction->type_sortie() = m_typeuse.type_rien();
     }
 
-    if (apparie(GenreLexeme::POINT_VIRGULE)) {
+    if (apparie(GenreLexème::POINT_VIRGULE)) {
         consomme();
     }
 
-    while (apparie(GenreLexeme::AROBASE)) {
+    while (apparie(GenreLexème::AROBASE)) {
         consomme();
 
         if (apparie("gcc")) {
@@ -725,7 +736,7 @@ void SyntaxeuseADN::parse_fonction()
             rapporte_erreur("Attribut inconnu pour l'énumération");
         }
 
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
+        if (apparie(GenreLexème::POINT_VIRGULE)) {
             consomme();
         }
     }
@@ -735,7 +746,7 @@ void SyntaxeuseADN::parse_enum()
 {
     consomme();
 
-    if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+    if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
@@ -743,10 +754,10 @@ void SyntaxeuseADN::parse_enum()
 
     consomme();
 
-    consomme(GenreLexeme::ACCOLADE_OUVRANTE,
+    consomme(GenreLexème::ACCOLADE_OUVRANTE,
              "Attendu une accolade ouvrante après le nom de « énum »");
 
-    while (apparie(GenreLexeme::AROBASE)) {
+    while (apparie(GenreLexème::AROBASE)) {
         consomme();
 
         if (apparie("code")) {
@@ -773,7 +784,7 @@ void SyntaxeuseADN::parse_enum()
             rapporte_erreur("Attribut inconnu pour l'énumération");
         }
 
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
+        if (apparie(GenreLexème::POINT_VIRGULE)) {
             consomme();
         }
     }
@@ -783,7 +794,7 @@ void SyntaxeuseADN::parse_enum()
     }
 
     while (true) {
-        if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+        if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
             break;
         }
 
@@ -798,12 +809,12 @@ void SyntaxeuseADN::parse_enum()
 
         consomme();
 
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
+        if (apparie(GenreLexème::POINT_VIRGULE)) {
             consomme();
         }
     }
 
-    consomme(GenreLexeme::ACCOLADE_FERMANTE,
+    consomme(GenreLexème::ACCOLADE_FERMANTE,
              "Attendu une accolade fermante à la fin de l'énumération");
 }
 
@@ -811,7 +822,7 @@ void SyntaxeuseADN::parse_struct()
 {
     consomme();
 
-    if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+    if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
@@ -821,10 +832,10 @@ void SyntaxeuseADN::parse_struct()
 
     consomme();
 
-    if (apparie(GenreLexeme::DOUBLE_POINTS)) {
+    if (apparie(GenreLexème::DOUBLE_POINTS)) {
         consomme();
 
-        if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+        if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
             rapporte_erreur("Attendu le nom de la structure mère après « : »");
         }
 
@@ -844,17 +855,17 @@ void SyntaxeuseADN::parse_struct()
         consomme();
     }
 
-    consomme(GenreLexeme::ACCOLADE_OUVRANTE,
+    consomme(GenreLexème::ACCOLADE_OUVRANTE,
              "Attendu une accolade ouvrante après le nom de « struct »");
 
-    while (apparie(GenreLexeme::AROBASE)) {
+    while (apparie(GenreLexème::AROBASE)) {
         consomme();
 
         // utilise 'lexeme.chaine' car 'comme' est un mot-clé, il n'y a pas d'identifiant
         if (apparie("code")) {
             consomme();
 
-            if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
                 rapporte_erreur("Attendu une chaine de caractère après @code");
             }
 
@@ -875,7 +886,7 @@ void SyntaxeuseADN::parse_struct()
         else if (apparie("comme")) {
             consomme();
 
-            if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_clé(lexème_courant()->genre)) {
+            if (!apparie(GenreLexème::CHAINE_CARACTERE) && !est_mot_clé(lexème_courant()->genre)) {
                 rapporte_erreur("Attendu une chaine de caractère après @code");
             }
 
@@ -885,7 +896,7 @@ void SyntaxeuseADN::parse_struct()
         else if (apparie("genre")) {
             consomme();
 
-            if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
                 rapporte_erreur("Attendu une chaine de caractère après @genre");
             }
 
@@ -929,7 +940,7 @@ void SyntaxeuseADN::parse_struct()
         }
         else if (apparie("genre_valeur")) {
             consomme();
-            if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
                 rapporte_erreur("Attendu une chaine de caractère après @genre_valeur");
             }
 
@@ -940,26 +951,26 @@ void SyntaxeuseADN::parse_struct()
             rapporte_erreur("attribut inconnu");
         }
 
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
+        if (apparie(GenreLexème::POINT_VIRGULE)) {
             consomme();
         }
     }
 
-    while (!apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
+    while (!apparie(GenreLexème::ACCOLADE_FERMANTE)) {
         auto membre = Membre{};
         membre.type = parse_type();
 
-        if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+        if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
             rapporte_erreur("Attendu le nom du membre après son type !");
         }
 
         membre.nom = lexème_courant()->chaine;
         consomme();
 
-        if (apparie(GenreLexeme::EGAL)) {
+        if (apparie(GenreLexème::EGAL)) {
             consomme();
 
-            if (apparie(GenreLexeme::POINT)) {
+            if (apparie(GenreLexème::POINT)) {
                 membre.valeur_defaut_est_acces = true;
                 consomme();
             }
@@ -968,10 +979,10 @@ void SyntaxeuseADN::parse_struct()
             consomme();
         }
 
-        if (apparie(GenreLexeme::CROCHET_OUVRANT)) {
+        if (apparie(GenreLexème::CROCHET_OUVRANT)) {
             consomme();
 
-            while (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+            while (apparie(GenreLexème::CHAINE_CARACTERE)) {
                 if (apparie("code")) {
                     membre.est_code = true;
                 }
@@ -994,24 +1005,24 @@ void SyntaxeuseADN::parse_struct()
                 consomme();
             }
 
-            consomme(GenreLexeme::CROCHET_FERMANT,
+            consomme(GenreLexème::CROCHET_FERMANT,
                      "Attendu un crochet fermant à la fin de la liste des attributs du membres");
         }
 
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
+        if (apparie(GenreLexème::POINT_VIRGULE)) {
             consomme();
         }
 
         proteine->ajoute_membre(membre);
     }
 
-    consomme(GenreLexeme::ACCOLADE_FERMANTE,
+    consomme(GenreLexème::ACCOLADE_FERMANTE,
              "Attendu une accolade fermante à la fin de la structure");
 }
 
 Type *SyntaxeuseADN::parse_type()
 {
-    if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_clé(lexème_courant()->genre)) {
+    if (!apparie(GenreLexème::CHAINE_CARACTERE) && !est_mot_clé(lexème_courant()->genre)) {
         rapporte_erreur("Attendu le nom d'un type");
     }
 
@@ -1032,7 +1043,7 @@ Type *SyntaxeuseADN::parse_type()
 
     auto est_const = false;
 
-    if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+    if (apparie(GenreLexème::CHAINE_CARACTERE)) {
         if (apparie("const")) {
             est_const = true;
             consomme();
@@ -1040,13 +1051,13 @@ Type *SyntaxeuseADN::parse_type()
     }
 
     while (est_spécifiant_type(lexème_courant()->genre)) {
-        if (lexème_courant()->genre == GenreLexeme::CROCHET_OUVRANT) {
+        if (lexème_courant()->genre == GenreLexème::CROCHET_OUVRANT) {
             consomme();
 
             auto est_compresse = false;
             auto est_synchrone = false;
 
-            if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+            if (apparie(GenreLexème::CHAINE_CARACTERE)) {
                 if (apparie("compressé")) {
                     est_compresse = true;
                     consomme();
@@ -1060,11 +1071,11 @@ Type *SyntaxeuseADN::parse_type()
                 }
             }
 
-            consomme(GenreLexeme::CROCHET_FERMANT,
+            consomme(GenreLexème::CROCHET_FERMANT,
                      "Attendu un crochet fermant après le crochet ouvrant");
             type = m_typeuse.crée_type_tableau(type, est_compresse, est_synchrone);
         }
-        else if (lexème_courant()->genre == GenreLexeme::FOIS) {
+        else if (lexème_courant()->genre == GenreLexème::FOIS) {
             type = m_typeuse.crée_type_pointeur(type);
             consomme();
         }

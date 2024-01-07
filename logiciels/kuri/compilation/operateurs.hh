@@ -15,7 +15,7 @@
 
 #include <optional>
 
-enum class GenreLexeme : uint32_t;
+enum class GenreLexème : uint32_t;
 struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationOperateurPour;
@@ -164,9 +164,9 @@ struct TableOpérateurs {
     /* Opérateur 'pour'. */
     NoeudDeclarationOperateurPour *opérateur_pour = nullptr;
 
-    void ajoute(GenreLexeme lexeme, OpérateurBinaire *operateur);
+    void ajoute(GenreLexème lexeme, OpérateurBinaire *operateur);
 
-    type_conteneur const &opérateurs(GenreLexeme lexeme);
+    type_conteneur const &opérateurs(GenreLexème lexeme);
 
     int64_t mémoire_utilisée() const;
 };
@@ -203,24 +203,24 @@ struct RegistreDesOpérateurs {
     /** Retourne la table d'opérateur du type, ou s'il n'en a pas, crées-en une et retourne-la. */
     TableOpérateurs *donne_ou_crée_table_opérateurs(Type *type);
 
-    type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
+    type_conteneur_unaire const &trouve_unaire(GenreLexème id) const;
 
-    OpérateurBinaire *ajoute_basique(GenreLexeme id,
+    OpérateurBinaire *ajoute_basique(GenreLexème id,
                                      Type *type,
                                      Type *type_résultat,
                                      IndiceTypeOp indice_type);
     OpérateurBinaire *ajoute_basique(
-        GenreLexeme id, Type *type1, Type *type2, Type *type_résultat, IndiceTypeOp indice_type);
+        GenreLexème id, Type *type1, Type *type2, Type *type_résultat, IndiceTypeOp indice_type);
 
-    OpérateurUnaire *ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_résultat);
+    OpérateurUnaire *ajoute_basique_unaire(GenreLexème id, Type *type, Type *type_résultat);
 
-    void ajoute_perso(GenreLexeme id,
+    void ajoute_perso(GenreLexème id,
                       Type *type1,
                       Type *type2,
                       Type *type_résultat,
                       NoeudDeclarationEnteteFonction *decl);
 
-    void ajoute_perso_unaire(GenreLexeme id,
+    void ajoute_perso_unaire(GenreLexème id,
                              Type *type,
                              Type *type_résultat,
                              NoeudDeclarationEnteteFonction *decl);
@@ -243,7 +243,7 @@ struct RegistreDesOpérateurs {
 
 OpérateurUnaire const *cherche_opérateur_unaire(RegistreDesOpérateurs const &operateurs,
                                                 Type *type1,
-                                                GenreLexeme type_op);
+                                                GenreLexème type_op);
 
 void enregistre_opérateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &registre);
 
@@ -261,7 +261,7 @@ std::optional<Attente> cherche_candidats_opérateurs(
     EspaceDeTravail &espace,
     Type *type1,
     Type *type2,
-    GenreLexeme type_op,
+    GenreLexème type_op,
     kuri::tablet<OpérateurCandidat, 10> &candidats);
 
 using RésultatRechercheOpérateur = std::variant<Attente, OpérateurCandidat, bool>;
@@ -270,7 +270,7 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
                                                             NoeudExpressionBinaire *site,
                                                             Type *type1,
                                                             Type *type2,
-                                                            GenreLexeme type_op);
+                                                            GenreLexème type_op);
 
 kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op);
 
