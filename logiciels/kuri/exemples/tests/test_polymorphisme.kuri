@@ -133,6 +133,7 @@ principale :: fonc () -> z32
     }
 
     test_tranche_polymorphique()
+    test_imprime_tableau_fixe_polymorphique()
     retourne 0
 }
 
@@ -155,4 +156,19 @@ test_tranche_polymorphique :: fonc ()
 
     imprime_tranche_polymorphique(tableau_fixe)
     imprime_tranche_polymorphique(tableau_dynamique)
+}
+
+imprime_tableau_fixe_polymorphique :: fonc (tabl: [$N]$T)
+{
+    pour tabl {
+        imprime("%\n", it)
+    }
+}
+
+test_imprime_tableau_fixe_polymorphique :: fonc ()
+{
+    tabl_réel := [0.0, 1.0, 2.0]
+    imprime_tableau_fixe_polymorphique(tabl_réel)
+    tabl_entier := [16, 32, 64, 128]
+    imprime_tableau_fixe_polymorphique(tabl_entier)
 }
