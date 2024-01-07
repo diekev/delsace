@@ -18,6 +18,7 @@ struct NoeudExpression;
 struct NoeudExpressionAppel;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
+struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
 struct NoeudExpressionReference;
 struct NoeudPour;
@@ -127,6 +128,8 @@ struct Simplificatrice {
 
     NoeudExpressionAppel *crée_appel_fonction_init(Lexeme const *lexeme,
                                                    NoeudExpression *expression_à_initialiser);
+
+    void simplifie_expression_logique(NoeudExpressionLogique *logique);
 };
 
 /** \} */

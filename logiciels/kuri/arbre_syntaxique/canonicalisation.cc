@@ -244,14 +244,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_LOGIQUE:
         {
             auto logique = noeud->comme_expression_logique();
-            simplifie(logique->opérande_droite);
-            simplifie(logique->opérande_gauche);
-            // À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&,
-            // il faudra également modifier la RI pour prendre en compte la substitution
-            /* À FAIRE(expression logique) : simplifie comme GCC pour les assignations
-             * a := b && c ->  x := b; si x == vrai { x = c; }; a := x;
-             * a := b || c ->  x := b; si x == faux { x = c; }; a := x;
-             */
+            simplifie_expression_logique(logique);
             return;
         }
         case GenreNoeud::OPERATEUR_UNAIRE:
@@ -1605,6 +1598,98 @@ NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
     appel->parametres_resolus.ajoute(prise_adresse);
 
     return appel;
+}
+
+static NoeudExpression *supprime_parenthèses(NoeudExpression *expression)
+{
+    while (expression->est_parenthese()) {
+        expression = expression->comme_parenthese()->expression;
+    }
+    return expression;
+}
+
+static void aplatis_expression_logique(NoeudExpressionLogique *logique,
+                                       kuri::tablet<NoeudExpressionLogique *, 6> &résultat)
+{
+    auto opérande_gauche = supprime_parenthèses(logique->opérande_gauche);
+    if (opérande_gauche->est_expression_logique()) {
+        aplatis_expression_logique(opérande_gauche->comme_expression_logique(), résultat);
+    }
+
+    résultat.ajoute(logique);
+
+    auto opérande_droite = supprime_parenthèses(logique->opérande_droite);
+    if (opérande_droite->est_expression_logique()) {
+        aplatis_expression_logique(opérande_droite->comme_expression_logique(), résultat);
+    }
+}
+
+static kuri::tablet<NoeudExpressionLogique *, 6> aplatis_expression_logique(
+    NoeudExpressionLogique *logique)
+{
+    kuri::tablet<NoeudExpressionLogique *, 6> résultat;
+    aplatis_expression_logique(logique, résultat);
+    return résultat;
+}
+
+void Simplificatrice::simplifie_expression_logique(NoeudExpressionLogique *logique)
+{
+#if 1
+    simplifie(logique->opérande_droite);
+    simplifie(logique->opérande_gauche);
+#else
+    // À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&,
+    // il faudra également modifier la RI pour prendre en compte la substitution
+    if (logique->possède_drapeau(DrapeauxNoeud::DROITE_CONDITION)) {
+        simplifie(logique->opérande_droite);
+        simplifie(logique->opérande_gauche);
+        return;
+    }
+
+    /* À FAIRE(expression logique) : simplifie comme GCC pour les assignations
+     * a := b && c ->  x := b; si x == vrai { x = c; }; a := x;
+     * a := b || c ->  x := b; si x == faux { x = c; }; a := x;
+     */
+
+    dbg() << erreur::imprime_site(*espace, logique->opérande_droite);
+
+    auto noeuds = aplatis_expression_logique(logique);
+    dbg() << "Nombre de noeuds : " << noeuds.taille();
+
+    static Lexeme lexème_temp{};
+
+    simplifie(noeuds[0]->opérande_gauche);
+    auto temp = assem->crée_declaration_variable(
+        &lexème_temp, TypeBase::BOOL, nullptr, noeuds[0]->opérande_gauche);
+
+    auto bloc = assem->crée_bloc_seul(logique->lexeme, logique->bloc_parent);
+    bloc->ajoute_expression(temp);
+
+    auto bloc_courant = bloc;
+
+    POUR (noeuds) {
+        dbg() << erreur::imprime_site(*espace, it);
+
+        auto test = (it->lexeme->genre == GenreLexeme::ESP_ESP) ?
+                        assem->crée_si(logique->lexeme) :
+                        assem->crée_saufsi(logique->lexeme);
+        bloc_courant->ajoute_expression(test);
+
+        test->condition = temp->valeur;
+
+        simplifie(it->opérande_droite);
+        auto bloc_si_vrai = assem->crée_bloc_seul(logique->lexeme, bloc_courant);
+        auto assignation = assem->crée_assignation_variable(
+            logique->lexeme, temp->valeur, it->opérande_droite);
+        bloc_si_vrai->ajoute_expression(assignation);
+
+        test->bloc_si_vrai = bloc_si_vrai;
+        bloc_courant = bloc_si_vrai;
+    }
+
+    bloc->ajoute_expression(temp->valeur);
+    logique->substitution = bloc;
+#endif
 }
 
 void Simplificatrice::simplifie_construction_union(
