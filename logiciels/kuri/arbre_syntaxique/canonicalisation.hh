@@ -10,7 +10,7 @@ enum class GenreNoeud : uint8_t;
 
 struct AssembleuseArbre;
 struct EspaceDeTravail;
-struct Lexeme;
+struct Lexème;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDiscr;
@@ -18,6 +18,7 @@ struct NoeudExpression;
 struct NoeudExpressionAppel;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
+struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
 struct NoeudExpressionReference;
 struct NoeudPour;
@@ -91,7 +92,7 @@ struct Simplificatrice {
   private:
     void simplifie_boucle_pour(NoeudPour *inst);
     void simplifie_boucle_pour_opérateur(NoeudPour *inst);
-    void simplifie_comparaison_chainee(NoeudExpressionBinaire *comp);
+    void simplifie_comparaison_chainée(NoeudExpressionBinaire *comp);
     void simplifie_coroutine(NoeudDeclarationEnteteFonction *corout);
     void simplifie_discr(NoeudDiscr *discr);
     template <int N>
@@ -115,7 +116,7 @@ struct Simplificatrice {
                                                  bool pour_operande);
     NoeudSi *crée_condition_boucle(NoeudExpression *inst, GenreNoeud genre_noeud);
     NoeudExpression *crée_expression_pour_op_chainee(
-        kuri::tableau<NoeudExpressionBinaire> &comparaisons, const Lexeme *lexeme_op_logique);
+        kuri::tableau<NoeudExpressionBinaire> &comparaisons, const Lexème *lexeme_op_logique);
 
     NoeudExpression *cree_indexage(const Lexeme *lexeme,
                                    NoeudExpression *expr1,
@@ -127,10 +128,12 @@ struct Simplificatrice {
 
     void crée_retourne_union_via_rien(NoeudDeclarationEnteteFonction *entete,
                                       NoeudBloc *bloc_d_insertion,
-                                      const Lexeme *lexeme_reference);
+                                      const Lexème *lexeme_reference);
 
-    NoeudExpressionAppel *crée_appel_fonction_init(Lexeme const *lexeme,
+    NoeudExpressionAppel *crée_appel_fonction_init(Lexème const *lexeme,
                                                    NoeudExpression *expression_à_initialiser);
+
+    void simplifie_expression_logique(NoeudExpressionLogique *logique);
 };
 
 /** \} */

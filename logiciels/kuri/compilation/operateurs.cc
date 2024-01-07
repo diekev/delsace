@@ -16,12 +16,12 @@
 #include "utilitaires/log.hh"
 #include "validation_semantique.hh"
 
-static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_lexeme,
+static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexème genre_lexeme,
                                                             IndiceTypeOp type_opérandes)
 {
     switch (genre_lexeme) {
-        case GenreLexeme::PLUS:
-        case GenreLexeme::PLUS_EGAL:
+        case GenreLexème::PLUS:
+        case GenreLexème::PLUS_EGAL:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Addition_Reel;
@@ -29,8 +29,8 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Addition;
         }
-        case GenreLexeme::MOINS:
-        case GenreLexeme::MOINS_EGAL:
+        case GenreLexème::MOINS:
+        case GenreLexème::MOINS_EGAL:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Soustraction_Reel;
@@ -38,8 +38,8 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Soustraction;
         }
-        case GenreLexeme::FOIS:
-        case GenreLexeme::MULTIPLIE_EGAL:
+        case GenreLexème::FOIS:
+        case GenreLexème::MULTIPLIE_EGAL:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Multiplication_Reel;
@@ -47,8 +47,8 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Multiplication;
         }
-        case GenreLexeme::DIVISE:
-        case GenreLexeme::DIVISE_EGAL:
+        case GenreLexème::DIVISE:
+        case GenreLexème::DIVISE_EGAL:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Division_Reel;
@@ -60,8 +60,8 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Division_Relatif;
         }
-        case GenreLexeme::POURCENT:
-        case GenreLexeme::MODULO_EGAL:
+        case GenreLexème::POURCENT:
+        case GenreLexème::MODULO_EGAL:
         {
             if (type_opérandes == IndiceTypeOp::ENTIER_NATUREL) {
                 return OpérateurBinaire::Genre::Reste_Naturel;
@@ -69,8 +69,8 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Reste_Relatif;
         }
-        case GenreLexeme::DECALAGE_DROITE:
-        case GenreLexeme::DEC_DROITE_EGAL:
+        case GenreLexème::DECALAGE_DROITE:
+        case GenreLexème::DEC_DROITE_EGAL:
         {
             if (type_opérandes == IndiceTypeOp::ENTIER_NATUREL) {
                 return OpérateurBinaire::Genre::Dec_Droite_Logique;
@@ -78,27 +78,27 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Dec_Droite_Arithm;
         }
-        case GenreLexeme::DECALAGE_GAUCHE:
-        case GenreLexeme::DEC_GAUCHE_EGAL:
+        case GenreLexème::DECALAGE_GAUCHE:
+        case GenreLexème::DEC_GAUCHE_EGAL:
         {
             return OpérateurBinaire::Genre::Dec_Gauche;
         }
-        case GenreLexeme::ESPERLUETTE:
-        case GenreLexeme::ET_EGAL:
+        case GenreLexème::ESPERLUETTE:
+        case GenreLexème::ET_EGAL:
         {
             return OpérateurBinaire::Genre::Et_Binaire;
         }
-        case GenreLexeme::BARRE:
-        case GenreLexeme::OU_EGAL:
+        case GenreLexème::BARRE:
+        case GenreLexème::OU_EGAL:
         {
             return OpérateurBinaire::Genre::Ou_Binaire;
         }
-        case GenreLexeme::CHAPEAU:
-        case GenreLexeme::OUX_EGAL:
+        case GenreLexème::CHAPEAU:
+        case GenreLexème::OUX_EGAL:
         {
             return OpérateurBinaire::Genre::Ou_Exclusif;
         }
-        case GenreLexeme::INFERIEUR:
+        case GenreLexème::INFERIEUR:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Comp_Inf_Reel;
@@ -110,7 +110,7 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Comp_Inf;
         }
-        case GenreLexeme::INFERIEUR_EGAL:
+        case GenreLexème::INFERIEUR_EGAL:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Comp_Inf_Egal_Reel;
@@ -122,7 +122,7 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Comp_Inf_Egal;
         }
-        case GenreLexeme::SUPERIEUR:
+        case GenreLexème::SUPERIEUR:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Comp_Sup_Reel;
@@ -134,7 +134,7 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Comp_Sup;
         }
-        case GenreLexeme::SUPERIEUR_EGAL:
+        case GenreLexème::SUPERIEUR_EGAL:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Comp_Sup_Egal_Reel;
@@ -146,21 +146,21 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
 
             return OpérateurBinaire::Genre::Comp_Sup_Egal;
         }
-        case GenreLexeme::EGALITE:
+        case GenreLexème::EGALITE:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Comp_Egal_Reel;
             }
             return OpérateurBinaire::Genre::Comp_Egal;
         }
-        case GenreLexeme::DIFFERENCE:
+        case GenreLexème::DIFFERENCE:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Comp_Inegal_Reel;
             }
             return OpérateurBinaire::Genre::Comp_Inegal;
         }
-        case GenreLexeme::CROCHET_OUVRANT:
+        case GenreLexème::CROCHET_OUVRANT:
         {
             return OpérateurBinaire::Genre::Indexage;
         }
@@ -175,18 +175,18 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
     }
 }
 
-static OpérateurUnaire::Genre genre_op_unaire_pour_lexeme(GenreLexeme genre_lexeme)
+static OpérateurUnaire::Genre genre_op_unaire_pour_lexeme(GenreLexème genre_lexeme)
 {
     switch (genre_lexeme) {
-        case GenreLexeme::PLUS_UNAIRE:
+        case GenreLexème::PLUS_UNAIRE:
         {
             return OpérateurUnaire::Genre::Positif;
         }
-        case GenreLexeme::MOINS_UNAIRE:
+        case GenreLexème::MOINS_UNAIRE:
         {
             return OpérateurUnaire::Genre::Complement;
         }
-        case GenreLexeme::TILDE:
+        case GenreLexème::TILDE:
         {
             return OpérateurUnaire::Genre::Non_Binaire;
         }
@@ -199,47 +199,47 @@ static OpérateurUnaire::Genre genre_op_unaire_pour_lexeme(GenreLexeme genre_lex
 
 // types comparaisons :
 // ==, !=, <, >, <=, =>
-static GenreLexeme opérateurs_comparaisons[] = {GenreLexeme::EGALITE,
-                                                GenreLexeme::DIFFERENCE,
-                                                GenreLexeme::INFERIEUR,
-                                                GenreLexeme::SUPERIEUR,
-                                                GenreLexeme::INFERIEUR_EGAL,
-                                                GenreLexeme::SUPERIEUR_EGAL};
+static GenreLexème opérateurs_comparaisons[] = {GenreLexème::EGALITE,
+                                                GenreLexème::DIFFERENCE,
+                                                GenreLexème::INFERIEUR,
+                                                GenreLexème::SUPERIEUR,
+                                                GenreLexème::INFERIEUR_EGAL,
+                                                GenreLexème::SUPERIEUR_EGAL};
 
 // types entiers et réels :
 // +, -, *, / (assignés +=, -=, /=, *=)
-static GenreLexeme opérateurs_entiers_réels[] = {
-    GenreLexeme::PLUS,
-    GenreLexeme::MOINS,
-    GenreLexeme::FOIS,
-    GenreLexeme::DIVISE,
+static GenreLexème opérateurs_entiers_réels[] = {
+    GenreLexème::PLUS,
+    GenreLexème::MOINS,
+    GenreLexème::FOIS,
+    GenreLexème::DIVISE,
 };
 
 // types entiers :
 // %, <<, >>, &, |, ^ (assignés %=, <<=, >>=, &, |, ^)
-static GenreLexeme opérateurs_entiers[] = {GenreLexeme::POURCENT,
-                                           GenreLexeme::DECALAGE_GAUCHE,
-                                           GenreLexeme::DECALAGE_DROITE,
-                                           GenreLexeme::ESPERLUETTE,
-                                           GenreLexeme::BARRE,
-                                           GenreLexeme::CHAPEAU};
+static GenreLexème opérateurs_entiers[] = {GenreLexème::POURCENT,
+                                           GenreLexème::DECALAGE_GAUCHE,
+                                           GenreLexème::DECALAGE_DROITE,
+                                           GenreLexème::ESPERLUETTE,
+                                           GenreLexème::BARRE,
+                                           GenreLexème::CHAPEAU};
 
 // types entiers unaires :
 // + - ~
-static GenreLexeme opérateurs_entiers_unaires[] = {
-    GenreLexeme::PLUS_UNAIRE, GenreLexeme::MOINS_UNAIRE, GenreLexeme::TILDE};
+static GenreLexème opérateurs_entiers_unaires[] = {
+    GenreLexème::PLUS_UNAIRE, GenreLexème::MOINS_UNAIRE, GenreLexème::TILDE};
 
-static bool est_commutatif(GenreLexeme id)
+static bool est_commutatif(GenreLexème id)
 {
     switch (id) {
         default:
         {
             return false;
         }
-        case GenreLexeme::PLUS:
-        case GenreLexeme::FOIS:
-        case GenreLexeme::EGALITE:
-        case GenreLexeme::DIFFERENCE:
+        case GenreLexème::PLUS:
+        case GenreLexème::FOIS:
+        case GenreLexème::EGALITE:
+        case GenreLexème::DIFFERENCE:
         {
             return true;
         }
@@ -272,13 +272,13 @@ const char *chaine_pour_genre_op(OpérateurUnaire::Genre genre)
     return "inconnu";
 }
 
-inline int index_op_binaire(GenreLexeme lexeme)
+inline int index_op_binaire(GenreLexème lexeme)
 {
     // À FAIRE: l'indice n'est pas bon, nous devrions utiliser le genre pour le bon type de données
     return static_cast<int>(genre_op_binaire_pour_lexeme(lexeme, IndiceTypeOp::ENTIER_NATUREL));
 }
 
-inline int index_op_unaire(GenreLexeme lexeme)
+inline int index_op_unaire(GenreLexème lexeme)
 {
     return static_cast<int>(genre_op_unaire_pour_lexeme(lexeme));
 }
@@ -301,7 +301,7 @@ constexpr inline int nombre_genre_op_unaires()
     return compte;
 }
 
-void TableOpérateurs::ajoute(GenreLexeme lexème, OpérateurBinaire *opérateur)
+void TableOpérateurs::ajoute(GenreLexème lexème, OpérateurBinaire *opérateur)
 {
     /* n'alloue de la mémoire que si nous ajoutons un opérateurs */
     opérateurs_.redimensionne(nombre_genre_op_binaires());
@@ -311,7 +311,7 @@ void TableOpérateurs::ajoute(GenreLexeme lexème, OpérateurBinaire *opérateur
     opérateurs_[index_op_binaire(lexème)].ajoute(opérateur);
 }
 
-const TableOpérateurs::type_conteneur &TableOpérateurs::opérateurs(GenreLexeme lexeme)
+const TableOpérateurs::type_conteneur &TableOpérateurs::opérateurs(GenreLexème lexeme)
 {
     /* retourne un tableau vide si aucun opérateur n'a été ajouté */
     if (opérateurs_.est_vide()) {
@@ -354,12 +354,12 @@ TableOpérateurs *RegistreDesOpérateurs::donne_ou_crée_table_opérateurs(Type 
 RegistreDesOpérateurs::~RegistreDesOpérateurs() = default;
 
 const RegistreDesOpérateurs::type_conteneur_unaire &RegistreDesOpérateurs::trouve_unaire(
-    GenreLexeme id) const
+    GenreLexème id) const
 {
     return opérateurs_unaires[index_op_unaire(id)];
 }
 
-OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(GenreLexeme id,
+OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(GenreLexème id,
                                                         Type *type,
                                                         Type *type_résultat,
                                                         IndiceTypeOp indice_type)
@@ -368,7 +368,7 @@ OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(GenreLexeme id,
 }
 
 OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(
-    GenreLexeme id, Type *type1, Type *type2, Type *type_résultat, IndiceTypeOp indice_type)
+    GenreLexème id, Type *type1, Type *type2, Type *type_résultat, IndiceTypeOp indice_type)
 {
     assert(type1);
     assert(type2);
@@ -386,7 +386,7 @@ OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(
     return op;
 }
 
-OpérateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexeme id,
+OpérateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexème id,
                                                               Type *type,
                                                               Type *type_résultat)
 {
@@ -398,7 +398,7 @@ OpérateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexeme id,
     return op;
 }
 
-void RegistreDesOpérateurs::ajoute_perso(GenreLexeme id,
+void RegistreDesOpérateurs::ajoute_perso(GenreLexème id,
                                          Type *type1,
                                          Type *type2,
                                          Type *type_résultat,
@@ -418,7 +418,7 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexeme id,
     }
 }
 
-void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexeme id,
+void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexème id,
                                                 Type *type,
                                                 Type *type_résultat,
                                                 NoeudDeclarationEnteteFonction *decl)
@@ -446,7 +446,7 @@ void RegistreDesOpérateurs::ajoute_opérateur_basique_enum(TypeEnum *type)
     ajoute_opérateurs_comparaison(type, indice_type_op);
     ajoute_opérateurs_entiers(type, indice_type_op);
 
-    table->opérateur_non = this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
+    table->opérateur_non = this->ajoute_basique_unaire(GenreLexème::TILDE, type, type);
 }
 
 void RegistreDesOpérateurs::ajoute_opérateurs_basiques_pointeur(TypePointeur *type)
@@ -460,27 +460,27 @@ void RegistreDesOpérateurs::ajoute_opérateurs_basiques_pointeur(TypePointeur *
      * que le type plus petit soit transtyper à la bonne taille. */
     auto type_entier = TypeBase::Z64;
 
-    ajoute_basique(GenreLexeme::PLUS, type, type_entier, type, indice)->est_arithmétique_pointeur =
+    ajoute_basique(GenreLexème::PLUS, type, type_entier, type, indice)->est_arithmétique_pointeur =
         true;
-    ajoute_basique(GenreLexeme::MOINS, type, type_entier, type, indice)
+    ajoute_basique(GenreLexème::MOINS, type, type_entier, type, indice)
         ->est_arithmétique_pointeur = true;
-    ajoute_basique(GenreLexeme::MOINS, type, type, type_entier, indice)
+    ajoute_basique(GenreLexème::MOINS, type, type, type_entier, indice)
         ->est_arithmétique_pointeur = true;
-    ajoute_basique(GenreLexeme::PLUS_EGAL, type, type_entier, type, indice)
+    ajoute_basique(GenreLexème::PLUS_EGAL, type, type_entier, type, indice)
         ->est_arithmétique_pointeur = true;
-    ajoute_basique(GenreLexeme::MOINS_EGAL, type, type_entier, type, indice)
+    ajoute_basique(GenreLexème::MOINS_EGAL, type, type_entier, type, indice)
         ->est_arithmétique_pointeur = true;
 
     type_entier = TypeBase::N64;
     indice = IndiceTypeOp::ENTIER_NATUREL;
 
-    ajoute_basique(GenreLexeme::PLUS, type, type_entier, type, indice)->est_arithmétique_pointeur =
+    ajoute_basique(GenreLexème::PLUS, type, type_entier, type, indice)->est_arithmétique_pointeur =
         true;
-    ajoute_basique(GenreLexeme::MOINS, type, type_entier, type, indice)
+    ajoute_basique(GenreLexème::MOINS, type, type_entier, type, indice)
         ->est_arithmétique_pointeur = true;
-    ajoute_basique(GenreLexeme::PLUS_EGAL, type, type_entier, type, indice)
+    ajoute_basique(GenreLexème::PLUS_EGAL, type, type_entier, type, indice)
         ->est_arithmétique_pointeur = true;
-    ajoute_basique(GenreLexeme::MOINS_EGAL, type, type_entier, type, indice)
+    ajoute_basique(GenreLexème::MOINS_EGAL, type, type_entier, type, indice)
         ->est_arithmétique_pointeur = true;
 }
 
@@ -490,8 +490,8 @@ void RegistreDesOpérateurs::ajoute_opérateurs_basiques_fonction(TypeFonction *
 
     auto const &type_bool = TypeBase::BOOL;
 
-    ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
-    ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
+    ajoute_basique(GenreLexème::EGALITE, type, type_bool, indice);
+    ajoute_basique(GenreLexème::DIFFERENCE, type, type_bool, indice);
 }
 
 void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
@@ -531,22 +531,22 @@ void RegistreDesOpérateurs::ajoute_opérateurs_comparaison(Type *pour_type, Ind
     for (auto op : opérateurs_comparaisons) {
         auto op_bin = this->ajoute_basique(op, pour_type, TypeBase::BOOL, indice);
 
-        if (op == GenreLexeme::SUPERIEUR) {
+        if (op == GenreLexème::SUPERIEUR) {
             table->opérateur_sup = op_bin;
         }
-        else if (op == GenreLexeme::SUPERIEUR_EGAL) {
+        else if (op == GenreLexème::SUPERIEUR_EGAL) {
             table->opérateur_seg = op_bin;
         }
-        else if (op == GenreLexeme::INFERIEUR) {
+        else if (op == GenreLexème::INFERIEUR) {
             table->opérateur_inf = op_bin;
         }
-        else if (op == GenreLexeme::INFERIEUR_EGAL) {
+        else if (op == GenreLexème::INFERIEUR_EGAL) {
             table->opérateur_ieg = op_bin;
         }
-        else if (op == GenreLexeme::EGALITE) {
+        else if (op == GenreLexème::EGALITE) {
             table->opérateur_egt = op_bin;
         }
-        else if (op == GenreLexeme::DIFFERENCE) {
+        else if (op == GenreLexème::DIFFERENCE) {
             table->opérateur_dif = op_bin;
         }
     }
@@ -558,16 +558,16 @@ void RegistreDesOpérateurs::ajoute_opérateurs_entiers_réel(Type *pour_type, I
     for (auto op : opérateurs_entiers_réels) {
         auto op_bin = this->ajoute_basique(op, pour_type, pour_type, indice);
 
-        if (op == GenreLexeme::PLUS) {
+        if (op == GenreLexème::PLUS) {
             table->opérateur_ajt = op_bin;
         }
-        else if (op == GenreLexeme::MOINS) {
+        else if (op == GenreLexème::MOINS) {
             table->opérateur_sst = op_bin;
         }
-        else if (op == GenreLexeme::FOIS) {
+        else if (op == GenreLexème::FOIS) {
             table->opérateur_mul = op_bin;
         }
-        else if (op == GenreLexeme::DIVISE) {
+        else if (op == GenreLexème::DIVISE) {
             table->opérateur_div = op_bin;
         }
     }
@@ -579,10 +579,10 @@ void RegistreDesOpérateurs::ajoute_opérateurs_entiers(Type *pour_type, IndiceT
     for (auto op : opérateurs_entiers) {
         auto ptr_op = this->ajoute_basique(op, pour_type, pour_type, indice);
 
-        if (op == GenreLexeme::ESPERLUETTE) {
+        if (op == GenreLexème::ESPERLUETTE) {
             table->opérateur_etb = ptr_op;
         }
-        else if (op == GenreLexeme::BARRE) {
+        else if (op == GenreLexème::BARRE) {
             table->opérateur_oub = ptr_op;
         }
     }
@@ -596,7 +596,7 @@ void RegistreDesOpérateurs::ajoute_opérateurs_entiers_unaires(Type *pour_type)
 }
 
 static void rassemble_opérateurs_pour_type(Type const &type,
-                                           GenreLexeme const type_op,
+                                           GenreLexème const type_op,
                                            kuri::tablet<OpérateurBinaire const *, 10> &résultat)
 {
     if (!type.table_opérateurs) {
@@ -611,7 +611,7 @@ static void rassemble_opérateurs_pour_type(Type const &type,
 std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
                                                     Type *type1,
                                                     Type *type2,
-                                                    GenreLexeme type_op,
+                                                    GenreLexème type_op,
                                                     kuri::tablet<OpérateurCandidat, 10> &candidats)
 {
     assert(type1);
@@ -729,7 +729,7 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
                                                             NoeudExpressionBinaire *site,
                                                             Type *type1,
                                                             Type *type2,
-                                                            GenreLexeme type_op)
+                                                            GenreLexème type_op)
 {
     auto candidats = kuri::tablet<OpérateurCandidat, 10>();
     auto attente_potentielle = cherche_candidats_opérateurs(
@@ -762,7 +762,7 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
 
 const OpérateurUnaire *cherche_opérateur_unaire(RegistreDesOpérateurs const &opérateurs,
                                                 Type *type1,
-                                                GenreLexeme type_op)
+                                                GenreLexème type_op)
 {
     auto &iter = opérateurs.trouve_unaire(type_op);
 
@@ -824,28 +824,28 @@ void enregistre_opérateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &r
         registre.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::REEL);
 
         // opérateurs unaires + -
-        registre.ajoute_basique_unaire(GenreLexeme::PLUS_UNAIRE, type, type);
-        registre.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
+        registre.ajoute_basique_unaire(GenreLexème::PLUS_UNAIRE, type, type);
+        registre.ajoute_basique_unaire(GenreLexème::MOINS_UNAIRE, type, type);
     }
 
     // opérateurs booléens & | ^ == !=
     registre.ajoute_basique(
-        GenreLexeme::CHAPEAU, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+        GenreLexème::CHAPEAU, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
     registre.ajoute_basique(
-        GenreLexeme::ESPERLUETTE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+        GenreLexème::ESPERLUETTE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
     registre.ajoute_basique(
-        GenreLexeme::BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+        GenreLexème::BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
     registre.ajoute_basique(
-        GenreLexeme::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+        GenreLexème::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
     registre.ajoute_basique(
-        GenreLexeme::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+        GenreLexème::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 
     auto type_type_de_données = typeuse.type_type_de_donnees_;
 
     registre.op_comp_égal_types = registre.ajoute_basique(
-        GenreLexeme::EGALITE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+        GenreLexème::EGALITE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
     registre.op_comp_diff_types = registre.ajoute_basique(
-        GenreLexeme::DIFFERENCE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+        GenreLexème::DIFFERENCE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 }
 
 kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op)
