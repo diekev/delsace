@@ -3811,7 +3811,7 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
         auto valeur = depile_valeur();
         m_constructrice.crée_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
     }
-    else if (genre_lexeme == GenreLexeme::ESP_ESP) {
+    else if (genre_lexeme == GenreLexème::ESP_ESP) {
         auto expr_bin = condition->comme_expression_logique();
         auto cond1 = expr_bin->opérande_gauche;
         auto cond2 = expr_bin->opérande_droite;
@@ -3821,7 +3821,7 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
         m_constructrice.insère_label(nouveau_label);
         génère_ri_pour_condition(cond2, label_si_vrai, label_si_faux);
     }
-    else if (genre_lexeme == GenreLexeme::BARRE_BARRE) {
+    else if (genre_lexeme == GenreLexème::BARRE_BARRE) {
         auto expr_bin = condition->comme_expression_logique();
         auto cond1 = expr_bin->opérande_gauche;
         auto cond2 = expr_bin->opérande_droite;
@@ -3831,14 +3831,14 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
         m_constructrice.insère_label(nouveau_label);
         génère_ri_pour_condition(cond2, label_si_vrai, label_si_faux);
     }
-    else if (genre_lexeme == GenreLexeme::EXCLAMATION) {
+    else if (genre_lexeme == GenreLexème::EXCLAMATION) {
         auto expr_unaire = condition->comme_negation_logique();
         génère_ri_pour_condition(expr_unaire->opérande, label_si_faux, label_si_vrai);
     }
-    else if (genre_lexeme == GenreLexeme::VRAI) {
+    else if (genre_lexeme == GenreLexème::VRAI) {
         m_constructrice.crée_branche(condition, label_si_vrai);
     }
-    else if (genre_lexeme == GenreLexeme::FAUX) {
+    else if (genre_lexeme == GenreLexème::FAUX) {
         m_constructrice.crée_branche(condition, label_si_faux);
     }
     else if (condition->genre == GenreNoeud::EXPRESSION_PARENTHESE) {
