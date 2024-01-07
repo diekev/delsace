@@ -92,14 +92,7 @@ struct IdentifiantADN {
     }
 
   private:
-    void préserve_accents_si_nom_le_requiers()
-    {
-        if (nom == "OpérateurUnaire" || nom == "OpérateurBinaire" || nom == "VisibilitéSymbole" ||
-            nom == "DonnéesSymboleExterne" || nom == "MembreTypeComposé" ||
-            nom == "TableOpérateurs") {
-            préserve_accents();
-        }
-    }
+    void préserve_accents_si_nom_le_requiers();
 };
 
 FluxSortieCPP &operator<<(FluxSortieCPP &flux, IdentifiantADN const &ident);
