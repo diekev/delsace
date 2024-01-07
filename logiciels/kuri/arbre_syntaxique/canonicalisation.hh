@@ -92,7 +92,7 @@ struct Simplificatrice {
   private:
     void simplifie_boucle_pour(NoeudPour *inst);
     void simplifie_boucle_pour_opérateur(NoeudPour *inst);
-    void simplifie_comparaison_chainee(NoeudExpressionBinaire *comp);
+    void simplifie_comparaison_chainée(NoeudExpressionBinaire *comp);
     void simplifie_coroutine(NoeudDeclarationEnteteFonction *corout);
     void simplifie_discr(NoeudDiscr *discr);
     template <int N>

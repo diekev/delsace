@@ -687,7 +687,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         {
-            simplifie_comparaison_chainee(noeud->comme_comparaison_chainee());
+            simplifie_comparaison_chainée(noeud->comme_comparaison_chainee());
             return;
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
@@ -1459,7 +1459,7 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
     }
 }
 
-void Simplificatrice::simplifie_comparaison_chainee(NoeudExpressionBinaire *comp)
+void Simplificatrice::simplifie_comparaison_chainée(NoeudExpressionBinaire *comp)
 {
     auto comparaisons = kuri::tableau<NoeudExpressionBinaire>();
     rassemble_operations_chainees(comp, comparaisons);
