@@ -829,7 +829,7 @@ Lexème Lexeuse::lèxe_identifiant()
     }
 
     auto chaine_du_lexème = mot_courant();
-    auto genre_du_lexème = lexeme_pour_chaine(chaine_du_lexème);
+    auto genre_du_lexème = lexème_pour_chaine(chaine_du_lexème);
 
     Lexème résultat = {chaine_du_lexème,
                        {0ul},
