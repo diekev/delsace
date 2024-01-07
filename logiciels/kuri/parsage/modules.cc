@@ -116,7 +116,7 @@ void SystèmeModule::rassemble_stats(Statistiques &stats) const
         entrée.nom = it.nom();
         entrée.nombre_lignes = it.tampon().nombre_lignes();
         entrée.mémoire_tampons = it.tampon().taille_donnees();
-        entrée.mémoire_lexèmes = it.lexèmes.taille() * taille_de(Lexeme);
+        entrée.mémoire_lexèmes = it.lexèmes.taille() * taille_de(Lexème);
         entrée.nombre_lexèmes = it.lexèmes.taille();
         entrée.temps_chargement = it.temps_chargement;
         entrée.temps_tampon = it.temps_tampon;

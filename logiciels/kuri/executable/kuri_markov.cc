@@ -20,23 +20,23 @@
 using type_scalaire = double;
 using type_matrice_ep = matrice_colonne_eparse<double>;
 
-static auto idx_depuis_id(GenreLexeme id)
+static auto idx_depuis_id(GenreLexème id)
 {
     return static_cast<int>(id);
 }
 
 static auto id_depuis_idx(int id)
 {
-    return static_cast<GenreLexeme>(id);
+    return static_cast<GenreLexème>(id);
 }
 
-void test_markov_id_simple(kuri::tableau<Lexeme, int> const &lexemes)
+void test_markov_id_simple(kuri::tableau<Lexème, int> const &lexemes)
 {
     static constexpr auto _0 = static_cast<type_scalaire>(0);
     static constexpr auto _1 = static_cast<type_scalaire>(1);
 
     /* construction de la matrice */
-    auto nombre_id = static_cast<int>(GenreLexeme::COMMENTAIRE) + 1;
+    auto nombre_id = static_cast<int>(GenreLexème::COMMENTAIRE) + 1;
     auto matrice = type_matrice_ep(type_ligne(nombre_id), type_colonne(nombre_id));
 
     for (auto i = 0; i < lexemes.taille() - 1; ++i) {
@@ -50,7 +50,7 @@ void test_markov_id_simple(kuri::tableau<Lexeme, int> const &lexemes)
     converti_fonction_repartition(matrice);
 
     auto gna = GNA();
-    auto mot_courant = GenreLexeme::STRUCT;
+    auto mot_courant = GenreLexème::STRUCT;
     auto nombre_phrases = 5;
 
     while (nombre_phrases > 0) {
@@ -60,7 +60,7 @@ void test_markov_id_simple(kuri::tableau<Lexeme, int> const &lexemes)
             std::cerr << ' ';
         }
 
-        if (mot_courant == GenreLexeme::ACCOLADE_FERMANTE) {
+        if (mot_courant == GenreLexème::ACCOLADE_FERMANTE) {
             std::cerr << '\n';
             nombre_phrases--;
         }

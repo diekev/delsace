@@ -5,61 +5,61 @@
 
 #include "lexemes.hh"
 
-PositionLexeme position_lexeme(Lexeme const &lexeme)
+PositionLexème position_lexeme(Lexème const &lexeme)
 {
-    auto pos = PositionLexeme{};
+    auto pos = PositionLexème{};
     pos.pos = lexeme.colonne;
     pos.numero_ligne = lexeme.ligne + 1;
     pos.index_ligne = lexeme.ligne;
     return pos;
 }
 
-GenreLexeme operateur_pour_assignation_composee(GenreLexeme type)
+GenreLexème operateur_pour_assignation_composee(GenreLexème type)
 {
     switch (type) {
         default:
         {
             return type;
         }
-        case GenreLexeme::MOINS_EGAL:
+        case GenreLexème::MOINS_EGAL:
         {
-            return GenreLexeme::MOINS;
+            return GenreLexème::MOINS;
         }
-        case GenreLexeme::PLUS_EGAL:
+        case GenreLexème::PLUS_EGAL:
         {
-            return GenreLexeme::PLUS;
+            return GenreLexème::PLUS;
         }
-        case GenreLexeme::MULTIPLIE_EGAL:
+        case GenreLexème::MULTIPLIE_EGAL:
         {
-            return GenreLexeme::FOIS;
+            return GenreLexème::FOIS;
         }
-        case GenreLexeme::DIVISE_EGAL:
+        case GenreLexème::DIVISE_EGAL:
         {
-            return GenreLexeme::DIVISE;
+            return GenreLexème::DIVISE;
         }
-        case GenreLexeme::MODULO_EGAL:
+        case GenreLexème::MODULO_EGAL:
         {
-            return GenreLexeme::POURCENT;
+            return GenreLexème::POURCENT;
         }
-        case GenreLexeme::ET_EGAL:
+        case GenreLexème::ET_EGAL:
         {
-            return GenreLexeme::ESPERLUETTE;
+            return GenreLexème::ESPERLUETTE;
         }
-        case GenreLexeme::OU_EGAL:
+        case GenreLexème::OU_EGAL:
         {
-            return GenreLexeme::BARRE;
+            return GenreLexème::BARRE;
         }
-        case GenreLexeme::OUX_EGAL:
+        case GenreLexème::OUX_EGAL:
         {
-            return GenreLexeme::CHAPEAU;
+            return GenreLexème::CHAPEAU;
         }
-        case GenreLexeme::DEC_DROITE_EGAL:
+        case GenreLexème::DEC_DROITE_EGAL:
         {
-            return GenreLexeme::DECALAGE_DROITE;
+            return GenreLexème::DECALAGE_DROITE;
         }
-        case GenreLexeme::DEC_GAUCHE_EGAL:
+        case GenreLexème::DEC_GAUCHE_EGAL:
         {
-            return GenreLexeme::DECALAGE_GAUCHE;
+            return GenreLexème::DECALAGE_GAUCHE;
         }
     }
 }

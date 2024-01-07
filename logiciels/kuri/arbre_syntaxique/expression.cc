@@ -23,18 +23,18 @@ static bool applique_négation_logique(T a)
 }
 
 template <typename T>
-static auto applique_operateur_unaire(GenreLexeme id, T a)
+static auto applique_operateur_unaire(GenreLexème id, T a)
 {
     switch (id) {
-        case GenreLexeme::TILDE:
+        case GenreLexème::TILDE:
         {
             return ~a;
         }
-        case GenreLexeme::PLUS_UNAIRE:
+        case GenreLexème::PLUS_UNAIRE:
         {
             return a;
         }
-        case GenreLexeme::MOINS_UNAIRE:
+        case GenreLexème::MOINS_UNAIRE:
         {
             return -a;
         }
@@ -45,14 +45,14 @@ static auto applique_operateur_unaire(GenreLexeme id, T a)
     }
 }
 
-static auto applique_operateur_unaire(GenreLexeme id, double a)
+static auto applique_operateur_unaire(GenreLexème id, double a)
 {
     switch (id) {
-        case GenreLexeme::PLUS_UNAIRE:
+        case GenreLexème::PLUS_UNAIRE:
         {
             return a;
         }
-        case GenreLexeme::MOINS_UNAIRE:
+        case GenreLexème::MOINS_UNAIRE:
         {
             return -a;
         }
@@ -64,56 +64,56 @@ static auto applique_operateur_unaire(GenreLexeme id, double a)
 }
 
 template <typename T>
-static auto applique_operateur_binaire(GenreLexeme id, T a, T b)
+static auto applique_operateur_binaire(GenreLexème id, T a, T b)
 {
     switch (id) {
-        case GenreLexeme::PLUS:
-        case GenreLexeme::PLUS_EGAL:
+        case GenreLexème::PLUS:
+        case GenreLexème::PLUS_EGAL:
         {
             return a + b;
         }
-        case GenreLexeme::MOINS:
-        case GenreLexeme::MOINS_EGAL:
+        case GenreLexème::MOINS:
+        case GenreLexème::MOINS_EGAL:
         {
             return a - b;
         }
-        case GenreLexeme::FOIS:
-        case GenreLexeme::MULTIPLIE_EGAL:
+        case GenreLexème::FOIS:
+        case GenreLexème::MULTIPLIE_EGAL:
         {
             return a * b;
         }
-        case GenreLexeme::DIVISE:
-        case GenreLexeme::DIVISE_EGAL:
+        case GenreLexème::DIVISE:
+        case GenreLexème::DIVISE_EGAL:
         {
             return a / b;
         }
-        case GenreLexeme::POURCENT:
-        case GenreLexeme::MODULO_EGAL:
+        case GenreLexème::POURCENT:
+        case GenreLexème::MODULO_EGAL:
         {
             return a % b;
         }
-        case GenreLexeme::ESPERLUETTE:
-        case GenreLexeme::ET_EGAL:
+        case GenreLexème::ESPERLUETTE:
+        case GenreLexème::ET_EGAL:
         {
             return a & b;
         }
-        case GenreLexeme::OU_EGAL:
-        case GenreLexeme::BARRE:
+        case GenreLexème::OU_EGAL:
+        case GenreLexème::BARRE:
         {
             return a | b;
         }
-        case GenreLexeme::CHAPEAU:
-        case GenreLexeme::OUX_EGAL:
+        case GenreLexème::CHAPEAU:
+        case GenreLexème::OUX_EGAL:
         {
             return a ^ b;
         }
-        case GenreLexeme::DECALAGE_DROITE:
-        case GenreLexeme::DEC_DROITE_EGAL:
+        case GenreLexème::DECALAGE_DROITE:
+        case GenreLexème::DEC_DROITE_EGAL:
         {
             return a >> b;
         }
-        case GenreLexeme::DECALAGE_GAUCHE:
-        case GenreLexeme::DEC_GAUCHE_EGAL:
+        case GenreLexème::DECALAGE_GAUCHE:
+        case GenreLexème::DEC_GAUCHE_EGAL:
         {
             return a << b;
         }
@@ -124,26 +124,26 @@ static auto applique_operateur_binaire(GenreLexeme id, T a, T b)
     }
 }
 
-static auto applique_operateur_binaire(GenreLexeme id, double a, double b)
+static auto applique_operateur_binaire(GenreLexème id, double a, double b)
 {
     switch (id) {
-        case GenreLexeme::PLUS:
-        case GenreLexeme::PLUS_EGAL:
+        case GenreLexème::PLUS:
+        case GenreLexème::PLUS_EGAL:
         {
             return a + b;
         }
-        case GenreLexeme::MOINS:
-        case GenreLexeme::MOINS_EGAL:
+        case GenreLexème::MOINS:
+        case GenreLexème::MOINS_EGAL:
         {
             return a - b;
         }
-        case GenreLexeme::FOIS:
-        case GenreLexeme::MULTIPLIE_EGAL:
+        case GenreLexème::FOIS:
+        case GenreLexème::MULTIPLIE_EGAL:
         {
             return a * b;
         }
-        case GenreLexeme::DIVISE:
-        case GenreLexeme::DIVISE_EGAL:
+        case GenreLexème::DIVISE:
+        case GenreLexème::DIVISE_EGAL:
         {
             return a / b;
         }
@@ -155,30 +155,30 @@ static auto applique_operateur_binaire(GenreLexeme id, double a, double b)
 }
 
 template <typename T>
-static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
+static auto applique_operateur_binaire_comp(GenreLexème id, T a, T b)
 {
     switch (id) {
-        case GenreLexeme::INFERIEUR:
+        case GenreLexème::INFERIEUR:
         {
             return a < b;
         }
-        case GenreLexeme::INFERIEUR_EGAL:
+        case GenreLexème::INFERIEUR_EGAL:
         {
             return a <= b;
         }
-        case GenreLexeme::SUPERIEUR:
+        case GenreLexème::SUPERIEUR:
         {
             return a > b;
         }
-        case GenreLexeme::SUPERIEUR_EGAL:
+        case GenreLexème::SUPERIEUR_EGAL:
         {
             return a >= b;
         }
-        case GenreLexeme::DIFFERENCE:
+        case GenreLexème::DIFFERENCE:
         {
             return a != b;
         }
-        case GenreLexeme::EGALITE:
+        case GenreLexème::EGALITE:
         {
             return a == b;
         }
@@ -493,7 +493,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
             }
 
             ValeurExpression res = ValeurExpression();
-            if (logique->lexeme->genre == GenreLexeme::ESP_ESP) {
+            if (logique->lexeme->genre == GenreLexème::ESP_ESP) {
                 res = res1.valeur.booleenne() && res2.valeur.booleenne();
             }
             else {

@@ -45,7 +45,7 @@ struct Lexeuse {
     int m_taille_mot_courant = 0;
 
     int m_drapeaux = 0;
-    GenreLexeme m_dernier_id = GenreLexeme::INCONNU;
+    GenreLexème m_dernier_id = GenreLexème::INCONNU;
     TypeRappelErreur m_rappel_erreur{};
     bool m_possède_erreur = false;
 
@@ -102,9 +102,9 @@ struct Lexeuse {
         m_taille_mot_courant += n;
     }
 
-    Lexeme donne_lexème_suivant();
-    void ajoute_lexème(GenreLexeme identifiant);
-    void ajoute_lexème(Lexeme lexème);
+    Lexème donne_lexème_suivant();
+    void ajoute_lexème(GenreLexème identifiant);
+    void ajoute_lexème(Lexème lexème);
 
     TOUJOURS_ENLIGNE void enregistre_pos_mot()
     {
@@ -117,28 +117,28 @@ struct Lexeuse {
     void rapporte_erreur(kuri::chaine const &quoi);
     void rapporte_erreur_caractère_unicode();
 
-    Lexeme crée_lexème_opérateur(int nombre_de_caractère, GenreLexeme genre_lexème);
-    Lexeme crée_lexème_littérale_entier(uint64_t valeur);
-    Lexeme crée_lexème_littérale_réelle(double valeur);
+    Lexème crée_lexème_opérateur(int nombre_de_caractère, GenreLexème genre_lexème);
+    Lexème crée_lexème_littérale_entier(uint64_t valeur);
+    Lexème crée_lexème_littérale_réelle(double valeur);
 
-    Lexeme lèxe_chaine_littérale();
-    Lexeme lèxe_chaine_littérale_guillemet();
-    Lexeme lèxe_caractère_littérale();
+    Lexème lèxe_chaine_littérale();
+    Lexème lèxe_chaine_littérale_guillemet();
+    Lexème lèxe_caractère_littérale();
     unsigned lèxe_caractère_littéral(kuri::chaine *chaine);
-    Lexeme lèxe_commentaire();
-    Lexeme lèxe_commentaire_bloc();
-    Lexeme lèxe_littérale_nombre();
-    Lexeme lèxe_identifiant();
+    Lexème lèxe_commentaire();
+    Lexème lèxe_commentaire_bloc();
+    Lexème lèxe_littérale_nombre();
+    Lexème lèxe_identifiant();
 
     template <bool INCLUS_COMMENTAIRE>
-    Lexeme lèxe_commentaire_impl();
+    Lexème lèxe_commentaire_impl();
 
     template <bool INCLUS_COMMENTAIRE>
-    Lexeme lèxe_commentaire_bloc_impl();
+    Lexème lèxe_commentaire_bloc_impl();
 
-    Lexeme lèxe_nombre_décimal();
-    Lexeme lèxe_nombre_hexadécimal();
-    Lexeme lèxe_nombre_binaire();
-    Lexeme lèxe_nombre_octal();
-    Lexeme lèxe_nombre_reel_hexadécimal();
+    Lexème lèxe_nombre_décimal();
+    Lexème lèxe_nombre_hexadécimal();
+    Lexème lèxe_nombre_binaire();
+    Lexème lèxe_nombre_octal();
+    Lexème lèxe_nombre_reel_hexadécimal();
 };

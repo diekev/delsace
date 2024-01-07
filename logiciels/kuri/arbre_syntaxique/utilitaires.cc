@@ -417,7 +417,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             aplatis_arbre(expr->operande_gauche, arbre_aplatis, drapeau);
             aplatis_arbre(expr->operande_droite, arbre_aplatis, drapeau);
 
-            if (expr->lexeme->genre != GenreLexeme::VIRGULE) {
+            if (expr->lexeme->genre != GenreLexème::VIRGULE) {
                 arbre_aplatis.ajoute(expr);
             }
 
@@ -1405,7 +1405,7 @@ kuri::tableau_statique<const MembreTypeComposé> NoeudDeclarationTypeCompose::
 /** \name Implémentation des fonctions supplémentaires de l'AssembleuseArbre
  * \{ */
 
-NoeudExpressionBinaire *AssembleuseArbre::crée_expression_binaire(const Lexeme *lexeme,
+NoeudExpressionBinaire *AssembleuseArbre::crée_expression_binaire(const Lexème *lexeme,
                                                                   const OpérateurBinaire *op,
                                                                   NoeudExpression *expr1,
                                                                   NoeudExpression *expr2)
@@ -1419,7 +1419,7 @@ NoeudExpressionBinaire *AssembleuseArbre::crée_expression_binaire(const Lexeme 
     return op_bin;
 }
 
-NoeudExpressionReference *AssembleuseArbre::crée_reference_declaration(const Lexeme *lexeme,
+NoeudExpressionReference *AssembleuseArbre::crée_reference_declaration(const Lexème *lexeme,
                                                                        NoeudDeclaration *decl)
 {
     auto ref = crée_reference_declaration(lexeme);
@@ -1429,7 +1429,7 @@ NoeudExpressionReference *AssembleuseArbre::crée_reference_declaration(const Le
     return ref;
 }
 
-NoeudSi *AssembleuseArbre::crée_si(const Lexeme *lexeme, GenreNoeud genre_noeud)
+NoeudSi *AssembleuseArbre::crée_si(const Lexème *lexeme, GenreNoeud genre_noeud)
 {
     if (genre_noeud == GenreNoeud::INSTRUCTION_SI) {
         return crée_noeud<GenreNoeud::INSTRUCTION_SI>(lexeme)->comme_si();
@@ -1438,14 +1438,14 @@ NoeudSi *AssembleuseArbre::crée_si(const Lexeme *lexeme, GenreNoeud genre_noeud
     return crée_noeud<GenreNoeud::INSTRUCTION_SAUFSI>(lexeme)->comme_saufsi();
 }
 
-NoeudBloc *AssembleuseArbre::crée_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent)
+NoeudBloc *AssembleuseArbre::crée_bloc_seul(const Lexème *lexeme, NoeudBloc *bloc_parent)
 {
     auto bloc = crée_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme)->comme_bloc();
     bloc->bloc_parent = bloc_parent;
     return bloc;
 }
 
-NoeudAssignation *AssembleuseArbre::crée_assignation_variable(const Lexeme *lexeme,
+NoeudAssignation *AssembleuseArbre::crée_assignation_variable(const Lexème *lexeme,
                                                               NoeudExpression *assignee,
                                                               NoeudExpression *expression)
 {
@@ -1464,7 +1464,7 @@ NoeudAssignation *AssembleuseArbre::crée_assignation_variable(const Lexeme *lex
     return assignation;
 }
 
-NoeudDeclarationVariable *AssembleuseArbre::crée_declaration_variable(const Lexeme *lexeme,
+NoeudDeclarationVariable *AssembleuseArbre::crée_declaration_variable(const Lexème *lexeme,
                                                                       Type *type,
                                                                       IdentifiantCode *ident,
                                                                       NoeudExpression *expression)
@@ -1506,7 +1506,7 @@ NoeudDeclarationVariable *AssembleuseArbre::crée_declaration_variable(
     return decl;
 }
 
-NoeudExpressionMembre *AssembleuseArbre::crée_reference_membre(const Lexeme *lexeme,
+NoeudExpressionMembre *AssembleuseArbre::crée_reference_membre(const Lexème *lexeme,
                                                                NoeudExpression *accede,
                                                                Type *type,
                                                                int index)
@@ -1518,7 +1518,7 @@ NoeudExpressionMembre *AssembleuseArbre::crée_reference_membre(const Lexeme *le
     return acces;
 }
 
-NoeudExpressionBinaire *AssembleuseArbre::crée_indexage(const Lexeme *lexeme,
+NoeudExpressionBinaire *AssembleuseArbre::crée_indexage(const Lexème *lexeme,
                                                         NoeudExpression *expr1,
                                                         NoeudExpression *expr2,
                                                         bool ignore_verification)
@@ -1533,7 +1533,7 @@ NoeudExpressionBinaire *AssembleuseArbre::crée_indexage(const Lexeme *lexeme,
     return indexage;
 }
 
-NoeudExpressionAppel *AssembleuseArbre::crée_appel(const Lexeme *lexeme,
+NoeudExpressionAppel *AssembleuseArbre::crée_appel(const Lexème *lexeme,
                                                    NoeudExpression *appelee,
                                                    Type *type)
 {
@@ -1551,7 +1551,7 @@ NoeudExpressionAppel *AssembleuseArbre::crée_appel(const Lexeme *lexeme,
     return appel;
 }
 
-NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexeme *lexeme,
+NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexème *lexeme,
                                                                     TypeCompose *type)
 {
     auto structure = crée_appel(lexeme);
@@ -1563,7 +1563,7 @@ NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexem
     return structure;
 }
 
-NoeudExpressionLitteraleEntier *AssembleuseArbre::crée_litterale_entier(Lexeme const *lexeme,
+NoeudExpressionLitteraleEntier *AssembleuseArbre::crée_litterale_entier(Lexème const *lexeme,
                                                                         Type *type,
                                                                         uint64_t valeur)
 {
@@ -1573,7 +1573,7 @@ NoeudExpressionLitteraleEntier *AssembleuseArbre::crée_litterale_entier(Lexeme 
     return lit;
 }
 
-NoeudExpressionLitteraleBool *AssembleuseArbre::crée_litterale_bool(Lexeme const *lexeme,
+NoeudExpressionLitteraleBool *AssembleuseArbre::crée_litterale_bool(Lexème const *lexeme,
                                                                     Type *type,
                                                                     bool valeur)
 {
@@ -1583,7 +1583,7 @@ NoeudExpressionLitteraleBool *AssembleuseArbre::crée_litterale_bool(Lexeme cons
     return lit;
 }
 
-NoeudExpressionLitteraleReel *AssembleuseArbre::crée_litterale_reel(Lexeme const *lexeme,
+NoeudExpressionLitteraleReel *AssembleuseArbre::crée_litterale_reel(Lexème const *lexeme,
                                                                     Type *type,
                                                                     double valeur)
 {
@@ -1593,14 +1593,14 @@ NoeudExpressionLitteraleReel *AssembleuseArbre::crée_litterale_reel(Lexeme cons
     return lit;
 }
 
-NoeudExpression *AssembleuseArbre::crée_reference_type(Lexeme const *lexeme, Type *type)
+NoeudExpression *AssembleuseArbre::crée_reference_type(Lexème const *lexeme, Type *type)
 {
     auto ref_type = crée_reference_type(lexeme);
     ref_type->type = type;
     return ref_type;
 }
 
-NoeudAssignation *AssembleuseArbre::crée_incrementation(const Lexeme *lexeme,
+NoeudAssignation *AssembleuseArbre::crée_incrementation(const Lexème *lexeme,
                                                         NoeudExpression *valeur)
 {
     auto type = valeur->type;
@@ -1622,7 +1622,7 @@ NoeudAssignation *AssembleuseArbre::crée_incrementation(const Lexeme *lexeme,
     return crée_assignation_variable(valeur->lexeme, valeur, inc);
 }
 
-NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexeme *lexeme,
+NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexème *lexeme,
                                                         NoeudExpression *valeur)
 {
     auto type = valeur->type;
@@ -1645,7 +1645,7 @@ NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexeme *lexeme,
 }
 
 NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
-                                                Lexeme const *lexème,
+                                                Lexème const *lexème,
                                                 NoeudExpression *expression,
                                                 TypePointeur *type_résultat)
 {
@@ -1658,7 +1658,7 @@ NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
 }
 
 NoeudDeclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
-                                                      Lexeme const *lexème)
+                                                      Lexème const *lexème)
 {
     auto type_declaré = assembleuse->crée_reference_type(lexème);
 
@@ -1791,7 +1791,7 @@ Type *donne_type_accédé_effectif(Type *type_accédé)
 /** \name Fonctions d'initialisation des types.
  * \{ */
 
-static Lexeme lexème_sentinel = {};
+static Lexème lexème_sentinel = {};
 
 NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *type,
                                                                      Compilatrice &compilatrice,
@@ -1818,7 +1818,7 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
 
     auto type_fonction = typeuse.type_fonction(types_entrées, TypeBase::RIEN, false);
 
-    static Lexeme lexème_entête = {};
+    static Lexème lexème_entête = {};
     auto entête = assembleuse->crée_entete_fonction(&lexème_entête);
     entête->drapeaux_fonction |= DrapeauxNoeudFonction::EST_INITIALISATION_TYPE;
 
@@ -1828,7 +1828,7 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
 
     /* Paramètre d'entrée. */
     {
-        static Lexeme lexème_déclaration = {};
+        static Lexème lexème_déclaration = {};
         auto déclaration_paramètre = assembleuse->crée_declaration_variable(
             &lexème_déclaration, type_param, ID::pointeur, nullptr);
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -1847,7 +1847,7 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
 
     /* Paramètre de sortie. */
     {
-        static const Lexeme lexème_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
+        static const Lexème lexème_rien = {"rien", {}, GenreLexème::RIEN, 0, 0, 0};
         auto déclaration_paramètre = crée_retour_défaut_fonction(assembleuse, &lexème_rien);
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
@@ -1925,8 +1925,8 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         }
         case GenreNoeud::BOOL:
         {
-            static Lexeme littéral_bool = {};
-            littéral_bool.genre = GenreLexeme::FAUX;
+            static Lexème littéral_bool = {};
+            littéral_bool.genre = GenreLexème::FAUX;
             auto valeur_défaut = assembleuse->crée_litterale_bool(&littéral_bool);
             valeur_défaut->type = type;
             crée_assignation(assembleuse, ref_param, valeur_défaut);

@@ -5,7 +5,7 @@
 
 #include "lexemes.hh"
 
-SiteSource SiteSource::cree(const Fichier *fichier, const Lexeme *lexeme)
+SiteSource SiteSource::cree(const Fichier *fichier, const Lexème *lexeme)
 {
     SiteSource site;
     site.fichier = fichier;

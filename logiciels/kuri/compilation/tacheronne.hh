@@ -129,7 +129,7 @@ struct Tacheronne {
 
     ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
-    tableau_page<Lexeme> lexemes_extra{};
+    tableau_page<Lexème> lexemes_extra{};
 
     Broyeuse broyeuse{};
 
@@ -172,7 +172,7 @@ struct Tacheronne {
     NoeudExpression *noeud_syntaxique_depuis_résultat(
         EspaceDeTravail *espace,
         NoeudDirectiveExecute *directive,
-        Lexeme const *lexeme,
+        Lexème const *lexeme,
         Type *type,
         octet_t *pointeur,
         DétectriceFuiteDeMémoire &détectrice_fuites_de_mémoire);

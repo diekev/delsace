@@ -5,15 +5,15 @@
 
 #include <cstdint>
 
-enum class GenreLexeme : uint32_t;
-struct Lexeme;
+enum class GenreLexème : uint32_t;
+struct Lexème;
 
-struct PositionLexeme {
+struct PositionLexème {
     int64_t index_ligne = 0;
     int64_t numero_ligne = 0;
     int64_t pos = 0;
 };
 
-PositionLexeme position_lexeme(Lexeme const &lexeme);
+PositionLexème position_lexeme(Lexème const &lexeme);
 
-GenreLexeme operateur_pour_assignation_composee(GenreLexeme type);
+GenreLexème operateur_pour_assignation_composee(GenreLexème type);

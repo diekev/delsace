@@ -1600,7 +1600,6 @@ convertis_variable_type_kuri_vers_type_c :: fonc (enchaineuse: *Enchaineuse, typ
             retourne nom_nouvelle_variable
         }
         TABLEAU {
-            info_tableau := type_kuri comme *InfoTypeTableau
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n")
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur comme *rien\n")
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n")
@@ -1667,7 +1666,6 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n")
         }
         TABLEAU {
-            info_tableau := type_kuri comme *InfoTypeTableau
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ")
             imprime_type(enchaineuse, type_kuri)
             ajoute_au_tampon(enchaineuse, "\n")

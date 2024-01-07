@@ -294,7 +294,7 @@ kuri::chaine_statique Broyeuse::nom_broyé_type(Type *type)
     return type->nom_broye;
 }
 
-static const char *nom_pour_operateur(Lexeme const &lexeme)
+static const char *nom_pour_operateur(Lexème const &lexeme)
 {
     switch (lexeme.genre) {
         default:
@@ -305,83 +305,83 @@ static const char *nom_pour_operateur(Lexeme const &lexeme)
             });
             break;
         }
-        case GenreLexeme::INFERIEUR:
+        case GenreLexème::INFERIEUR:
         {
             return "inf";
         }
-        case GenreLexeme::INFERIEUR_EGAL:
+        case GenreLexème::INFERIEUR_EGAL:
         {
             return "infeg";
         }
-        case GenreLexeme::SUPERIEUR:
+        case GenreLexème::SUPERIEUR:
         {
             return "sup";
         }
-        case GenreLexeme::SUPERIEUR_EGAL:
+        case GenreLexème::SUPERIEUR_EGAL:
         {
             return "supeg";
         }
-        case GenreLexeme::DIFFERENCE:
+        case GenreLexème::DIFFERENCE:
         {
             return "dif";
         }
-        case GenreLexeme::EGALITE:
+        case GenreLexème::EGALITE:
         {
             return "egl";
         }
-        case GenreLexeme::PLUS:
+        case GenreLexème::PLUS:
         {
             return "plus";
         }
-        case GenreLexeme::PLUS_UNAIRE:
+        case GenreLexème::PLUS_UNAIRE:
         {
             return "pls_unr";
         }
-        case GenreLexeme::MOINS:
+        case GenreLexème::MOINS:
         {
             return "moins";
         }
-        case GenreLexeme::MOINS_UNAIRE:
+        case GenreLexème::MOINS_UNAIRE:
         {
             return "mns_unr";
         }
-        case GenreLexeme::FOIS:
+        case GenreLexème::FOIS:
         {
             return "mul";
         }
-        case GenreLexeme::DIVISE:
+        case GenreLexème::DIVISE:
         {
             return "div";
         }
-        case GenreLexeme::DECALAGE_DROITE:
+        case GenreLexème::DECALAGE_DROITE:
         {
             return "dcd";
         }
-        case GenreLexeme::DECALAGE_GAUCHE:
+        case GenreLexème::DECALAGE_GAUCHE:
         {
             return "dcg";
         }
-        case GenreLexeme::POURCENT:
+        case GenreLexème::POURCENT:
         {
             return "mod";
         }
-        case GenreLexeme::ESPERLUETTE:
+        case GenreLexème::ESPERLUETTE:
         {
             return "et";
         }
-        case GenreLexeme::BARRE:
+        case GenreLexème::BARRE:
         {
             return "ou";
         }
-        case GenreLexeme::TILDE:
+        case GenreLexème::TILDE:
         {
             return "non";
         }
-        case GenreLexeme::CHAPEAU:
+        case GenreLexème::CHAPEAU:
         {
             return "oux";
         }
-        case GenreLexeme::CROCHET_OUVRANT:
+        case GenreLexème::CROCHET_OUVRANT:
         {
             return "oux";
         }
