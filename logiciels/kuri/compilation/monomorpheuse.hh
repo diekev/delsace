@@ -88,7 +88,7 @@ struct DonnéesErreurGenreType {
 
 /* Erreur interne : nous ne gérons pas un opérateur qui défini un type. */
 struct DonnéesErreurOpérateurNonGéré {
-    GenreLexeme lexeme{};
+    GenreLexème lexeme{};
 };
 
 /* Erreur interne : nous n'avons pas découvert une référence à une déclaration polymorphique. */
@@ -126,7 +126,7 @@ struct ErreurMonomorphisation {
     const NoeudExpression *polymorphe = nullptr;
     /* Le site où l'erreur s'est produite. */
     const NoeudExpression *site = nullptr;
-    DonnéesErreur donnees = {};
+    DonnéesErreur données = {};
 
     kuri::chaine message() const;
 };
@@ -137,7 +137,6 @@ struct ErreurMonomorphisation {
  *  \name Types de résultat.
  *  \{ */
 
-/*  */
 using RésultatUnification = std::variant<ErreurMonomorphisation, Attente, bool>;
 
 using RésultatCompatibilité = std::variant<ÉtatRésolutionCompatibilité, Attente>;
@@ -347,7 +346,7 @@ class Monomorpheuse {
     void erreur_genre_type(const NoeudExpression *site,
                            const Type *type_reçu,
                            kuri::chaine_statique message);
-    void erreur_opérateur_non_géré(const NoeudExpression *site, GenreLexeme lexeme);
+    void erreur_opérateur_non_géré(const NoeudExpression *site, GenreLexème lexeme);
     void erreur_référence_inconnue(const NoeudExpression *site);
     void erreur_monomorphisation_inconnue(const NoeudExpression *site,
                                           const kuri::tablet<ItemMonomorphisation, 6> &items,

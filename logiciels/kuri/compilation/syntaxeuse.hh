@@ -67,15 +67,15 @@ struct Syntaxeuse : BaseSyntaxeuse {
     /* NOTE: lexème_final n'est utilisé que pour éviter de traiter les virgules comme des
      * opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
     NoeudExpression *analyse_expression(DonneesPrecedence const &donnees_precedence,
-                                        GenreLexeme racine_expression,
-                                        GenreLexeme lexème_final);
-    NoeudExpression *analyse_expression_unaire(GenreLexeme lexème_final);
-    NoeudExpression *analyse_expression_primaire(GenreLexeme racine_expression,
-                                                 GenreLexeme lexème_final);
+                                        GenreLexème racine_expression,
+                                        GenreLexème lexème_final);
+    NoeudExpression *analyse_expression_unaire(GenreLexème lexème_final);
+    NoeudExpression *analyse_expression_primaire(GenreLexème racine_expression,
+                                                 GenreLexème lexème_final);
     NoeudExpression *analyse_expression_secondaire(NoeudExpression *gauche,
                                                    DonneesPrecedence const &donnees_precedence,
-                                                   GenreLexeme racine_expression,
-                                                   GenreLexeme lexème_final);
+                                                   GenreLexème racine_expression,
+                                                   GenreLexème lexème_final);
 
     NoeudBloc *analyse_bloc(bool accolade_requise = true);
 
@@ -83,8 +83,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     NoeudExpression *analyse_déclaration_enum(NoeudExpression *gauche);
     bool est_déclaration_type_fonction();
-    NoeudExpression *analyse_déclaration_fonction(Lexeme const *lexeme);
-    NoeudExpression *analyse_déclaration_type_fonction(Lexeme const *lexeme);
+    NoeudExpression *analyse_déclaration_fonction(Lexème const *lexeme);
+    NoeudExpression *analyse_déclaration_type_fonction(Lexème const *lexeme);
     NoeudExpression *analyse_déclaration_opérateur();
     void analyse_expression_retour_type(NoeudDeclarationEnteteFonction *noeud,
                                         bool pour_operateur);
@@ -106,11 +106,11 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_pousse_contexte();
     NoeudExpression *analyse_instruction_répète();
     NoeudExpression *analyse_instruction_si(GenreNoeud genre_noeud);
-    NoeudExpression *analyse_instruction_si_statique(Lexeme *lexeme);
+    NoeudExpression *analyse_instruction_si_statique(Lexème *lexeme);
     NoeudExpression *analyse_instruction_tantque();
 
     /* Analyse une série d'expressions séparées par des virgules. */
-    NoeudExpression *analyse_expression_avec_virgule(GenreLexeme lexème_racine);
+    NoeudExpression *analyse_expression_avec_virgule(GenreLexème lexème_racine);
 
     void analyse_annotations(kuri::tableau<Annotation, int> &annotations);
 

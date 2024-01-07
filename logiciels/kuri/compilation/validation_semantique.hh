@@ -17,7 +17,7 @@
 
 struct Compilatrice;
 struct EspaceDeTravail;
-struct Lexeme;
+struct Lexème;
 struct MetaProgramme;
 struct NoeudAssignation;
 struct NoeudBloc;
@@ -258,7 +258,7 @@ struct Sémanticienne {
     RésultatValidation valide_discr_union_anonyme(NoeudDiscr *inst, Type *type);
     RésultatValidation valide_discr_scalaire(NoeudDiscr *inst, Type *type);
 
-    CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
+    CodeRetourValidation résoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
     void rapporte_erreur(const char *message, const NoeudExpression *noeud, erreur::Genre genre);
     void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
@@ -303,7 +303,7 @@ struct Sémanticienne {
 
     MetaProgramme *crée_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,
-                                                  const Lexeme *lexème);
+                                                  const Lexème *lexème);
 
     MetaProgramme *crée_metaprogramme_pour_directive(NoeudDirectiveExecute *directive);
 
