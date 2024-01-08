@@ -902,7 +902,7 @@ static ResultatAppariement apparie_appel_fonction(
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
         auto index_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
         auto param = paramètres_entree[index_arg];
-        auto arg = param->valeur;
+        auto arg = param;
         auto slot = slots[i];
 
         if (slot == param->expression) {
