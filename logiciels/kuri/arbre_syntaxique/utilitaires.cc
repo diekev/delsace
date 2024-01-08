@@ -2382,6 +2382,11 @@ bool est_déclaration_polymorphique(NoeudDeclaration const *decl)
         return structure->est_polymorphe;
     }
 
+    if (decl->est_type_union()) {
+        auto const structure = decl->comme_type_union();
+        return structure->est_polymorphe;
+    }
+
     if (decl->est_type_opaque()) {
         auto const opaque = decl->comme_type_opaque();
         return opaque->expression_type->possède_drapeau(
