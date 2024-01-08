@@ -1118,6 +1118,7 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
     }
 
     if (!apparieuse_params.tous_les_slots_sont_remplis()) {
+        apparieuse_params.erreur.noeud_decl = déclaration_type_composé;
         return apparieuse_params.erreur;
     }
 
@@ -1205,6 +1206,7 @@ static ResultatAppariement apparie_construction_type_composé(
 
     POUR (arguments) {
         if (!apparieuse_params.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
+            apparieuse_params.erreur.noeud_decl = déclaration_type_composé;
             return apparieuse_params.erreur;
         }
     }
