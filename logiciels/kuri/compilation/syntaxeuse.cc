@@ -602,6 +602,7 @@ void Syntaxeuse::analyse_une_chose()
         }
 
         noeud->expression = m_tacheronne.assembleuse->crée_reference_declaration(lexème_courant());
+        noeud->expression->ident = nullptr;
 
         requiers_typage(noeud);
         m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::CHARGE;
@@ -1195,7 +1196,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
             auto noeud = m_tacheronne.assembleuse->crée_reference_declaration(lexème);
 
             auto noeud_decl_param = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
-            noeud_decl_param->valeur = noeud;
             noeud->declaration_referee = noeud_decl_param;
 
             if (!bloc_constantes_polymorphiques.est_vide()) {
@@ -1379,7 +1379,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     if (noeud_fonction->est_expression_type_fonction()) {
                         auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
                         noeud->ident = gauche->ident;
-                        noeud->valeur = gauche;
                         noeud->expression = noeud_fonction;
                         gauche->comme_reference_declaration()->declaration_referee = noeud;
 
@@ -1453,7 +1452,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
             auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
             noeud->ident = gauche->ident;
-            noeud->valeur = gauche;
             noeud->expression = analyse_expression(
                 données_précédence, racine_expression, lexème_final);
 
@@ -1487,7 +1485,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     }
                 }
 
-                auto decl = m_tacheronne.assembleuse->crée_declaration_variable(lexème);
+                auto decl = m_tacheronne.assembleuse->crée_declaration_variable_multiple(lexème);
                 analyse_annotations(decl->annotations);
                 decl->valeur = m_noeud_expression_virgule;
                 decl->expression_type = analyse_expression(
@@ -1505,6 +1503,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 // nous avons la déclaration d'un type (a: z32)
                 auto decl = m_tacheronne.assembleuse->crée_declaration_variable(
                     gauche->comme_reference_declaration());
+                m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
                 decl->expression_type = analyse_expression(
                     données_précédence, racine_expression, lexème_final);
                 if (!bloc_constantes_polymorphiques.est_vide()) {
@@ -1520,8 +1519,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 // À FAIRE : réutilise la mémoire
                 auto decl = gauche->comme_declaration_variable();
                 auto constante = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
-                constante->ident = decl->valeur->ident;
-                constante->valeur = decl->valeur;
+                constante->ident = decl->ident;
                 constante->expression_type = decl->expression_type;
                 constante->expression = analyse_expression(
                     données_précédence, racine_expression, lexème_final);
@@ -1568,16 +1566,27 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
             m_noeud_expression_virgule = nullptr;
 
-            auto noeud = m_tacheronne.assembleuse->crée_declaration_variable(lexème);
-            noeud->ident = gauche->ident;
-            noeud->valeur = gauche;
-            noeud->expression = analyse_expression(
+            auto expression = analyse_expression(
                 données_précédence, racine_expression, lexème_final);
-            analyse_annotations(noeud->annotations);
 
-            if (gauche->est_reference_declaration()) {
-                gauche->comme_reference_declaration()->declaration_referee = noeud;
+            if (gauche->est_virgule()) {
+                auto noeud = m_tacheronne.assembleuse->crée_declaration_variable_multiple(lexème);
+                noeud->ident = gauche->ident;
+                noeud->valeur = gauche;
+                noeud->expression = expression;
+                analyse_annotations(noeud->annotations);
+                m_noeud_expression_virgule = nullptr;
+                return noeud;
             }
+
+            auto noeud = m_tacheronne.assembleuse->crée_declaration_variable(gauche->lexeme);
+            /* Vérifie que nous avons une référence car nous ne nous arrêtons pas en cas d'erreur
+             * de syntaxe. */
+            if (gauche->est_reference_declaration()) {
+                m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
+            }
+            noeud->expression = expression;
+            analyse_annotations(noeud->annotations);
 
             m_noeud_expression_virgule = nullptr;
 
@@ -1590,14 +1599,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             m_noeud_expression_virgule = nullptr;
 
             if (gauche->est_declaration_variable()) {
-                if (gauche->lexeme->genre == GenreLexème::DECLARATION_VARIABLE) {
+                auto decl = gauche->comme_declaration_variable();
+                if (decl->expression) {
                     /* repositionne le lexème courant afin que les messages d'erreurs pointent au
                      * bon endroit */
                     recule();
                     rapporte_erreur("utilisation de '=' alors que nous somme à droite de ':='");
                 }
 
-                auto decl = gauche->comme_declaration_variable();
                 decl->expression = analyse_expression(
                     données_précédence, racine_expression, lexème_final);
 
@@ -2328,7 +2337,6 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(NoeudExpression *gauche)
         if (noeud->est_reference_declaration()) {
             auto decl_variable = m_tacheronne.assembleuse->crée_declaration_constante(
                 noeud->lexeme);
-            decl_variable->valeur = noeud;
             expressions.ajoute(decl_variable);
         }
         else if (noeud->est_declaration_constante()) {
@@ -2882,10 +2890,8 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
             auto ident = m_compilatrice.donne_nom_défaut_valeur_retour(
                 noeud->params_sorties.taille());
 
-            auto ref = m_tacheronne.assembleuse->crée_reference_declaration(decl_sortie->lexeme);
-            ref->ident = ident;
-
-            auto decl = m_tacheronne.assembleuse->crée_declaration_variable(ref);
+            auto decl = m_tacheronne.assembleuse->crée_declaration_variable(decl_sortie->lexeme);
+            decl->ident = ident;
             decl->expression_type = decl_sortie;
             decl->bloc_parent = decl_sortie->bloc_parent;
 
@@ -2915,12 +2921,11 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
             return;
         }
 
-        auto ref = m_tacheronne.assembleuse->crée_reference_declaration(
-            noeud->params_sorties[0]->lexeme);
         /* il nous faut un identifiant valide */
-        ref->ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
-            "valeur_de_retour");
-        noeud->param_sortie = m_tacheronne.assembleuse->crée_declaration_variable(ref);
+        noeud->param_sortie = m_tacheronne.assembleuse->crée_declaration_variable(
+            noeud->params_sorties[0]->lexeme);
+        noeud->param_sortie->ident = m_compilatrice.table_identifiants
+                                         ->identifiant_pour_nouvelle_chaine("valeur_de_retour");
     }
     else {
         noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
@@ -3178,6 +3183,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDeclarationC
 
             auto decl_membre = m_tacheronne.assembleuse->crée_declaration_variable(
                 noeud->comme_reference_declaration());
+            m_tacheronne.assembleuse->recycle_référence(noeud->comme_reference_declaration());
             noeud = decl_membre;
 
             static const Lexème lexème_rien = {"rien", {}, GenreLexème::RIEN, 0, 0, 0};

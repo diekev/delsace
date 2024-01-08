@@ -1260,6 +1260,17 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
     return bloc;
 }
 )";
+        const char *recycle_référence = R"(
+    if (!m_références.est_vide()) {
+        auto résultat = m_références.dernière();
+        m_références.supprime_dernier();
+        new (résultat) NoeudExpressionReference;
+        résultat->lexeme = lexeme;
+        résultat->ident = lexeme->ident;
+        résultat->bloc_parent = bloc_courant();
+        return résultat;
+    }
+)";
 
         os << empile_bloc;
 
@@ -1272,6 +1283,11 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
             os << it->nom() << " *AssembleuseArbre::crée_" << it->accede_nom_comme()
                << "(const Lexème *lexeme)\n";
             os << "{\n";
+
+            if (it->nom().nom_cpp() == "NoeudExpressionReference") {
+                os << recycle_référence;
+            }
+
             os << "\treturn crée_noeud<GenreNoeud::" << nom_genre << ">(lexeme)->comme_"
                << it->accede_nom_comme() << "();\n";
             os << "}\n";
@@ -1289,6 +1305,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
         os << "private:\n";
         os << "\tAllocatriceNoeud &m_allocatrice;\n";
         os << "\tkuri::pile<NoeudBloc *> m_blocs{};\n";
+        os << "\tkuri::tableau<NoeudExpressionReference *> m_références{};\n";
         os << "public:\n";
 
         const char *methodes = R"(
@@ -1350,6 +1367,11 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
         }
 
         return noeud;
+    }
+
+    void recycle_référence(NoeudExpressionReference *référence)
+    {
+        m_références.ajoute(référence);
     }
 )";
 
