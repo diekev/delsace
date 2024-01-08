@@ -26,6 +26,7 @@ struct NoeudDeclarationCorpsFonction;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationTypeOpaque;
 struct NoeudDeclarationVariable;
+struct NoeudDeclarationVariableMultiple;
 struct NoeudDirectiveCuisine;
 struct NoeudDirectiveDependanceBibliotheque;
 struct NoeudDirectiveExecute;
@@ -229,6 +230,8 @@ struct Sémanticienne {
     RésultatValidation valide_structure(NoeudStruct *);
     RésultatValidation valide_union(NoeudUnion *);
     RésultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
+    RésultatValidation valide_déclaration_variable_multiple(
+        NoeudDeclarationVariableMultiple *decl);
     RésultatValidation valide_déclaration_constante(NoeudDeclarationConstante *decl);
     RésultatValidation valide_assignation(NoeudAssignation *inst);
     RésultatValidation valide_arbre_aplatis(NoeudExpression *declaration);
