@@ -179,6 +179,10 @@ static void imprime_stats_tableau(EntréesStats<EntréeNombreMémoire> const &st
     tableau.alignement(2, Alignement::DROITE);
 
     POUR (stats.entrées) {
+        if (it.compte == 0) {
+            continue;
+        }
+
         tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),
                               formatte_nombre(it.compte),
                               formatte_nombre(it.mémoire)});
@@ -256,6 +260,10 @@ static void imprime_stats_tableaux(EntréesStats<EntréeTailleTableau> const &st
 
                 nombre_valeurs_courante += 1;
             }
+        }
+
+        if (it.taille_max == 0) {
+            continue;
         }
 
         tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),

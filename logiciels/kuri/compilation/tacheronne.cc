@@ -537,7 +537,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
 
-    if (noeud->type == nullptr) {
+    if (noeud->type == nullptr && !noeud->est_declaration_variable_multiple()) {
         unite->espace->rapporte_erreur(
             noeud, "Erreur interne: type nul sur une déclaration avant la génération de RI");
         return false;

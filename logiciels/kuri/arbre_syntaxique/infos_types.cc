@@ -77,11 +77,8 @@ static void remplis_membre_info_type(AllocatriceInfosType &allocatrice_infos_typ
     auto annotations = kuri::tablet<const Annotation *, 6>();
 
     if (membre.decl) {
-        if (membre.decl->est_declaration_variable()) {
-            copie_annotations(membre.decl->comme_declaration_variable()->annotations, annotations);
-        }
-        else if (membre.decl->est_declaration_constante()) {
-            copie_annotations(membre.decl->comme_declaration_constante()->annotations,
+        if (membre.decl->est_base_declaration_variable()) {
+            copie_annotations(membre.decl->comme_base_declaration_variable()->annotations,
                               annotations);
         }
         info_type_membre->annotations = allocatrice_infos_types.donne_tranche(annotations);
