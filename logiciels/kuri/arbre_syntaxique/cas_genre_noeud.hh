@@ -11,6 +11,7 @@
     case GenreNoeud::DECLARATION_MODULE:                                                          \
     case GenreNoeud::DECLARATION_OPERATEUR_POUR:                                                  \
     case GenreNoeud::DECLARATION_VARIABLE:                                                        \
+    case GenreNoeud::DECLARATION_VARIABLE_MULTIPLE:                                               \
     case GenreNoeud::DIRECTIVE_AJOUTE_FINI:                                                       \
     case GenreNoeud::DIRECTIVE_AJOUTE_INIT:                                                       \
     case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:                                                      \

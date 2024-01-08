@@ -328,6 +328,26 @@ NoeudDependance *GrapheDependance::garantie_noeud_dépendance(EspaceDeTravail *e
         return crée_noeud_globale(noeud->comme_declaration_variable());
     }
 
+    if (noeud->est_declaration_variable_multiple()) {
+        assert_rappel(noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
+            dbg() << erreur::imprime_site(*espace, noeud) << '\n' << *noeud;
+        });
+
+        auto decl = noeud->comme_declaration_variable_multiple();
+        POUR (decl->donnees_decl.plage()) {
+            POUR_NOMME (ref, it.variables.plage()) {
+                crée_noeud_globale(ref->comme_reference_declaration()
+                                       ->declaration_referee->comme_declaration_variable());
+            }
+        }
+
+        /* À FAIRE : retourne tous les noeuds. */
+        return crée_noeud_globale(decl->donnees_decl[0]
+                                      .variables[0]
+                                      ->comme_reference_declaration()
+                                      ->declaration_referee->comme_declaration_variable());
+    }
+
     if (noeud->est_entete_fonction()) {
         return crée_noeud_fonction(noeud->comme_entete_fonction());
     }
