@@ -2058,11 +2058,21 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             auto locale = decl_ref->comme_declaration_symbole()->atome;
             assert_rappel(locale, [&]() {
-                dbg() << erreur::imprime_site(*m_espace, noeud) << '\n'
-                      << "Aucune locale trouvée pour " << noeud->ident->nom << " ("
-                      << chaine_type(noeud->type) << ")\n"
-                      << "\nLa locale fut déclarée ici :\n"
-                      << erreur::imprime_site(*m_espace, decl_ref);
+                Enchaineuse enchaineuse;
+
+                if (m_fonction_courante) {
+                    enchaineuse << "Dans la compilation de la fonction : "
+                                << nom_humainement_lisible(m_fonction_courante->decl) << " :\n";
+                }
+
+                enchaineuse << erreur::imprime_site(*m_espace, noeud) << '\n'
+                            << "Aucune locale trouvée pour "
+                            << (noeud->ident ? noeud->ident->nom : "<anonyme>") << " ("
+                            << chaine_type(noeud->type) << ")\n"
+                            << "\nLa locale fut déclarée ici :\n"
+                            << erreur::imprime_site(*m_espace, decl_ref);
+
+                dbg() << enchaineuse.chaine();
             });
             empile_valeur(locale);
             break;
