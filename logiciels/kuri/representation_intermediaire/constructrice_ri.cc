@@ -2058,11 +2058,21 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             auto locale = decl_ref->comme_declaration_symbole()->atome;
             assert_rappel(locale, [&]() {
-                dbg() << erreur::imprime_site(*m_espace, noeud) << '\n'
-                      << "Aucune locale trouvée pour " << noeud->ident->nom << " ("
-                      << chaine_type(noeud->type) << ")\n"
-                      << "\nLa locale fut déclarée ici :\n"
-                      << erreur::imprime_site(*m_espace, decl_ref);
+                Enchaineuse enchaineuse;
+
+                if (m_fonction_courante) {
+                    enchaineuse << "Dans la compilation de la fonction : "
+                                << nom_humainement_lisible(m_fonction_courante->decl) << " :\n";
+                }
+
+                enchaineuse << erreur::imprime_site(*m_espace, noeud) << '\n'
+                            << "Aucune locale trouvée pour "
+                            << (noeud->ident ? noeud->ident->nom : "<anonyme>") << " ("
+                            << chaine_type(noeud->type) << ")\n"
+                            << "\nLa locale fut déclarée ici :\n"
+                            << erreur::imprime_site(*m_espace, decl_ref);
+
+                dbg() << enchaineuse.chaine();
             });
             empile_valeur(locale);
             break;
@@ -2098,6 +2108,11 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::DECLARATION_VARIABLE:
         {
             génère_ri_pour_déclaration_variable(noeud->comme_declaration_variable());
+            break;
+        }
+        case GenreNoeud::DECLARATION_VARIABLE_MULTIPLE:
+        {
+            compile_déclaration_variable_multiple(noeud->comme_declaration_variable_multiple());
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
@@ -4864,81 +4879,61 @@ void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDeclarationVari
 
 void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl)
 {
-    POUR (decl->donnees_decl.plage()) {
-        for (auto i = 0; i < it.variables.taille(); ++i) {
-            auto var = it.variables[i];
-            auto valeur = static_cast<AtomeConstante *>(nullptr);
-            auto atome = m_constructrice.trouve_ou_insère_globale(decl);
-
-            if (atome->est_externe) {
-                /* Les globales externes n'ont pas d'expressions, nous ne devrions pas les
-                 * initialiser nous-même. */
-                continue;
-            }
-
-            auto expression = it.expression;
-            if (expression && expression->substitution) {
-                expression = expression->substitution;
-            }
-
-            auto const méthode_construction = détermine_méthode_construction_globale(
-                expression, it.transformations[i]);
-
-            switch (méthode_construction) {
-                case MéthodeConstructionGlobale::TABLEAU_CONSTANT:
-                {
-                    génère_ri_pour_noeud(expression);
-                    valeur = static_cast<AtomeConstante *>(depile_valeur());
-                    break;
-                }
-                case MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR:
-                {
-                    auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
-
-                    /* Crée une globale pour le tableau fixe, et utilise celle-ci afin
-                     * d'initialiser le tableau dynamique. */
-                    auto ident = m_compilatrice.donne_identifiant_pour_globale(
-                        "données_initilisateur");
-                    auto globale_tableau = m_constructrice.crée_globale(
-                        *ident, expression->type, nullptr, false, false);
-
-                    /* La construction du tableau devra se faire via la fonction
-                     * d'initialisation des globales. */
-                    m_compilatrice.constructeurs_globaux->ajoute(
-                        {globale_tableau, expression, {}});
-
-                    valeur = m_constructrice.crée_initialisation_tableau_global(globale_tableau,
-                                                                                type_tableau_fixe);
-                    break;
-                }
-                case MéthodeConstructionGlobale::NORMALE:
-                {
-                    m_compilatrice.constructeurs_globaux->ajoute(
-                        {atome, expression, it.transformations[i]});
-                    break;
-                }
-                case MéthodeConstructionGlobale::PAR_VALEUR_DEFAUT:
-                {
-                    valeur = m_constructrice.crée_initialisation_défaut_pour_type(var->type);
-                    break;
-                }
-                case MéthodeConstructionGlobale::SANS_INITIALISATION:
-                {
-                    /* Rien à faire. */
-                    break;
-                }
-            }
-
-            atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
-            atome->initialisateur = valeur;
-        }
+    auto transformation = TransformationType{};
+    auto expression = decl->expression;
+    if (expression && expression->substitution) {
+        expression = expression->substitution;
     }
 
+    /* Supprime les transtypages pour pouvoir compiler les expressions comme des constantes
+     * globales si possible, et uniquement transtyper la valeur dans la fonction d'initialisation
+     * des globales au besoin. */
+    if (expression && expression->est_comme()) {
+        auto transtypage = expression->comme_comme();
+        transformation = transtypage->transformation;
+        expression = transtypage->expression;
+    }
+
+    compile_globale(decl, expression, transformation);
     decl->atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
     decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
 }
 
-void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl)
+void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable *decl)
+{
+    decl->atome = m_constructrice.crée_allocation(decl, decl->type, decl->ident);
+    compile_locale(decl, decl->expression, {});
+}
+
+void CompilatriceRI::compile_déclaration_variable_multiple(NoeudDeclarationVariableMultiple *decl)
+{
+    if (m_fonction_courante == nullptr) {
+        compile_déclaration_globale_multiple(decl);
+        return;
+    }
+
+    compile_déclaration_locale_multiple(decl);
+}
+
+void CompilatriceRI::compile_déclaration_globale_multiple(NoeudDeclarationVariableMultiple *decl)
+{
+    POUR (decl->donnees_decl.plage()) {
+        for (auto i = 0; i < it.variables.taille(); ++i) {
+            auto var = it.variables[i];
+            auto globale = var->comme_reference_declaration()
+                               ->declaration_referee->comme_declaration_variable();
+            compile_globale(var->comme_reference_declaration()->declaration_referee,
+                            it.expression,
+                            it.transformations[i]);
+            globale->atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
+            globale->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
+        }
+    }
+
+    decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
+}
+
+void CompilatriceRI::compile_déclaration_locale_multiple(NoeudDeclarationVariableMultiple *decl)
 {
     /* Crée d'abord les allocations. */
     POUR (decl->donnees_decl.plage()) {
@@ -4954,62 +4949,140 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable c
     génère_ri_pour_assignation_variable(decl->donnees_decl);
 }
 
+void CompilatriceRI::compile_globale(NoeudDeclaration *decl,
+                                     NoeudExpression *expression,
+                                     TransformationType const &transformation)
+{
+    auto valeur = static_cast<AtomeConstante *>(nullptr);
+    auto atome = m_constructrice.trouve_ou_insère_globale(decl);
+
+    if (atome->est_externe) {
+        /* Les globales externes n'ont pas d'expressions, nous ne devrions pas les
+         * initialiser nous-même. */
+        return;
+    }
+
+    if (expression && expression->substitution) {
+        expression = expression->substitution;
+    }
+
+    auto const méthode_construction = détermine_méthode_construction_globale(expression,
+                                                                             transformation);
+
+    switch (méthode_construction) {
+        case MéthodeConstructionGlobale::TABLEAU_CONSTANT:
+        {
+            génère_ri_pour_noeud(expression);
+            valeur = static_cast<AtomeConstante *>(depile_valeur());
+            break;
+        }
+        case MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR:
+        {
+            auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
+
+            /* Crée une globale pour le tableau fixe, et utilise celle-ci afin
+             * d'initialiser le tableau dynamique. */
+            auto ident = m_compilatrice.donne_identifiant_pour_globale("données_initilisateur");
+            auto globale_tableau = m_constructrice.crée_globale(
+                *ident, expression->type, nullptr, false, false);
+
+            /* La construction du tableau devra se faire via la fonction
+             * d'initialisation des globales. */
+            m_compilatrice.constructeurs_globaux->ajoute({globale_tableau, expression, {}});
+
+            valeur = m_constructrice.crée_initialisation_tableau_global(globale_tableau,
+                                                                        type_tableau_fixe);
+            break;
+        }
+        case MéthodeConstructionGlobale::NORMALE:
+        {
+            m_compilatrice.constructeurs_globaux->ajoute({atome, expression, transformation});
+            break;
+        }
+        case MéthodeConstructionGlobale::PAR_VALEUR_DEFAUT:
+        {
+            valeur = m_constructrice.crée_initialisation_défaut_pour_type(decl->type);
+            break;
+        }
+        case MéthodeConstructionGlobale::SANS_INITIALISATION:
+        {
+            /* Rien à faire. */
+            break;
+        }
+    }
+
+    atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
+    atome->initialisateur = valeur;
+}
+
+void CompilatriceRI::compile_locale(NoeudExpression *variable,
+                                    NoeudExpression *expression,
+                                    TransformationType const &transformation)
+{
+    if (!expression) {
+        auto pointeur = donne_atome_pour_locale(variable);
+        auto type_var = variable->type;
+        if (est_type_fondamental(type_var)) {
+            m_constructrice.crée_stocke_mem(
+                variable,
+                pointeur,
+                m_constructrice.crée_initialisation_défaut_pour_type(type_var));
+        }
+        else {
+            crée_appel_fonction_init_type(variable, type_var, pointeur);
+        }
+        return;
+    }
+
+    if (expression->est_non_initialisation()) {
+        return;
+    }
+
+    auto pointeur = donne_atome_pour_locale(variable);
+    /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
+     */
+    pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
+
+    assert_rappel(expression->type, [&]() { dbg() << "Aucun type pour " << expression->genre; });
+
+    if (transformation.type == TypeTransformation::INUTILE) {
+        génère_ri_pour_expression_droite(expression, pointeur);
+        return;
+    }
+
+    génère_ri_transformee_pour_noeud(expression, pointeur, transformation);
+    return;
+}
+
+Atome *CompilatriceRI::donne_atome_pour_locale(NoeudExpression *expression)
+{
+    if (expression->est_reference_declaration()) {
+        auto référence = expression->comme_reference_declaration();
+        auto decl_var = référence->declaration_referee->comme_declaration_symbole();
+        if (decl_var->atome) {
+            return decl_var->atome;
+        }
+    }
+
+    if (expression->est_declaration_variable()) {
+        auto decl_var = expression->comme_declaration_variable();
+        assert(decl_var->atome);
+        return decl_var->atome;
+    }
+
+    génère_ri_pour_noeud(expression);
+    return depile_valeur();
+}
+
 void CompilatriceRI::génère_ri_pour_assignation_variable(
     kuri::tableau_compresse<DonneesAssignations, int> const &données_exprs)
 {
-    auto donne_atome_pour_var = [&](NoeudExpression *var) {
-        if (var->est_reference_declaration()) {
-            auto référence = var->comme_reference_declaration();
-            auto decl_var = référence->declaration_referee->comme_declaration_symbole();
-            if (decl_var->atome) {
-                return decl_var->atome;
-            }
-        }
-
-        génère_ri_pour_noeud(var);
-        return depile_valeur();
-    };
-
     if (données_exprs.taille() == 1 && données_exprs[0].variables.taille() == 1) {
         /* Cas simple : a = b ou a := b */
-
         auto expression = données_exprs[0].expression;
         auto variable = données_exprs[0].variables[0];
         auto transformation = données_exprs[0].transformations[0];
-
-        if (!expression) {
-            auto pointeur = donne_atome_pour_var(variable);
-            auto type_var = variable->type;
-            if (est_type_fondamental(type_var)) {
-                m_constructrice.crée_stocke_mem(
-                    variable,
-                    pointeur,
-                    m_constructrice.crée_initialisation_défaut_pour_type(type_var));
-            }
-            else {
-                crée_appel_fonction_init_type(variable, type_var, pointeur);
-            }
-            return;
-        }
-
-        if (expression->est_non_initialisation()) {
-            return;
-        }
-
-        auto pointeur = donne_atome_pour_var(variable);
-        /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
-         */
-        pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
-
-        assert_rappel(expression->type,
-                      [&]() { dbg() << "Aucun type pour " << expression->genre; });
-
-        if (transformation.type == TypeTransformation::INUTILE) {
-            génère_ri_pour_expression_droite(expression, pointeur);
-            return;
-        }
-
-        génère_ri_transformee_pour_noeud(expression, pointeur, transformation);
+        compile_locale(variable, expression, transformation);
         return;
     }
 
@@ -5021,7 +5094,7 @@ void CompilatriceRI::génère_ri_pour_assignation_variable(
         if (!expression) {
             /* Cas pour les déclarations. */
             POUR_NOMME (var, it.variables.plage()) {
-                auto pointeur = donne_atome_pour_var(var);
+                auto pointeur = donne_atome_pour_locale(var);
                 auto type_var = var->type;
                 if (est_type_fondamental(type_var)) {
                     m_constructrice.crée_stocke_mem(
@@ -5052,7 +5125,7 @@ void CompilatriceRI::génère_ri_pour_assignation_variable(
 
             for (auto i = 0; i < it.variables.taille(); ++i) {
                 auto var = it.variables[i];
-                auto pointeur = donne_atome_pour_var(var);
+                auto pointeur = donne_atome_pour_locale(var);
                 auto &transformation = it.transformations[i];
                 /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
                  */
@@ -5067,7 +5140,7 @@ void CompilatriceRI::génère_ri_pour_assignation_variable(
 
             for (auto i = 0; i < it.variables.taille(); ++i) {
                 auto var = it.variables[i];
-                auto pointeur = donne_atome_pour_var(var);
+                auto pointeur = donne_atome_pour_locale(var);
                 auto &transformation = it.transformations[i];
                 /* Désactive le drapeau pour les assignations répétées aux mêmes valeurs.
                  */

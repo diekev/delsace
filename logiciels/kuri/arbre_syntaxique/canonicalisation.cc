@@ -773,6 +773,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_VARIABLE:
         {
             auto declaration = noeud->comme_declaration_variable();
+            simplifie(declaration->expression);
+            return;
+        }
+        case GenreNoeud::DECLARATION_VARIABLE_MULTIPLE:
+        {
+            auto declaration = noeud->comme_declaration_variable_multiple();
 
             POUR (declaration->donnees_decl.plage()) {
                 simplifie(it.expression);
@@ -945,6 +951,13 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             return;
         }
         case GenreNoeud::DIRECTIVE_EXECUTE:
+        {
+            auto exécute = noeud->comme_execute();
+            if (exécute->substitution) {
+                simplifie(exécute->substitution);
+            }
+            return;
+        }
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
@@ -1005,8 +1018,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     auto type_index_it = index_it->type;
     auto zero = assem->crée_litterale_entier(index_it->lexeme, type_index_it, 0);
 
-    auto ref_it = it->valeur->comme_reference_declaration();
-    auto ref_index = index_it->valeur->comme_reference_declaration();
+    auto ref_it = assem->crée_reference_declaration(it->lexeme, it);
+    auto ref_index = assem->crée_reference_declaration(it->lexeme, index_it);
 
     auto bloc_pre = assem->crée_bloc_seul(nullptr, boucle->bloc_parent);
     bloc_pre->ajoute_membre(it);
@@ -1720,7 +1733,8 @@ void Simplificatrice::simplifie_construction_union(
 
         auto decl_position = assem->crée_declaration_variable(
             lexeme, type_union, nullptr, &non_initialisation);
-        auto ref_position = decl_position->valeur->comme_reference_declaration();
+        auto ref_position = assem->crée_reference_declaration(decl_position->lexeme,
+                                                              decl_position);
 
         auto bloc = assem->crée_bloc_seul(lexeme, site->bloc_parent);
         bloc->ajoute_membre(decl_position);
@@ -1809,7 +1823,7 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
     auto const type_position_code_source = typeuse.type_position_code_source;
     auto decl_position = assem->crée_declaration_variable(
         lexeme, type_position_code_source, nullptr, &non_initialisation);
-    auto ref_position = decl_position->valeur->comme_reference_declaration();
+    auto ref_position = assem->crée_reference_declaration(decl_position->lexeme, decl_position);
 
     auto ref_membre_fichier = assem->crée_reference_membre(
         lexeme, ref_position, TypeBase::CHAINE, 0);
@@ -1846,7 +1860,7 @@ NoeudExpressionReference *Simplificatrice::génère_simplification_construction_
     auto const lexeme = construction->lexeme;
     auto decl_position = assem->crée_declaration_variable(
         lexeme, type_struct, nullptr, &non_initialisation);
-    auto ref_position = decl_position->valeur->comme_reference_declaration();
+    auto ref_position = assem->crée_reference_declaration(decl_position->lexeme, decl_position);
 
     bloc->ajoute_membre(decl_position);
     bloc->ajoute_expression(decl_position);
@@ -1928,7 +1942,7 @@ void Simplificatrice::simplifie_construction_opaque_depuis_structure(NoeudExpres
     comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
     auto decl_opaque = assem->crée_declaration_variable(lexeme, type_opaque, nullptr, comme);
-    auto ref_opaque = decl_opaque->valeur->comme_reference_declaration();
+    auto ref_opaque = assem->crée_reference_declaration(decl_opaque->lexeme, decl_opaque);
     bloc->ajoute_membre(decl_opaque);
     bloc->ajoute_expression(decl_opaque);
 
