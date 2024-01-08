@@ -530,6 +530,13 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
             }
             else if (noeud->est_declaration_variable()) {
                 auto declaration = noeud->comme_declaration_variable();
+                assert_rappel(declaration->type,
+                              [&]() { dbg() << "Type nul pour " << declaration->ident->nom; });
+                ajoute_type(declaration->type);
+                rassemble_dependances(declaration->expression);
+            }
+            else if (noeud->est_declaration_variable_multiple()) {
+                auto declaration = noeud->comme_declaration_variable_multiple();
 
                 POUR (declaration->donnees_decl.plage()) {
                     for (auto &var : it.variables.plage()) {

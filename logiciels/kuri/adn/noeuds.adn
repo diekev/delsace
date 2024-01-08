@@ -318,11 +318,11 @@ struct BaseDéclarationVariable : NoeudDéclarationSymbole {
 
     NoeudExpression * expression [code enfant]
     NoeudExpression * expression_type [code enfant]
-    NoeudExpression * valeur [code enfant]
 
     Annotation [] annotations [code copie]
 }
 
+/* a := ... */
 struct NoeudDéclarationVariable : BaseDéclarationVariable {
     @genre DÉCLARATION_VARIABLE
     @comme déclaration_variable
@@ -331,7 +331,16 @@ struct NoeudDéclarationVariable : BaseDéclarationVariable {
 
     NoeudDéclarationSymbole *declaration_vient_d_un_emploi
     int index_membre_employe
+}
 
+/* a, b := ... */
+struct NoeudDéclarationVariableMultiple : BaseDéclarationVariable {
+    @genre DÉCLARATION_VARIABLE_MULTIPLE
+    @comme déclaration_variable_multiple
+    @code  NoeudCodeDéclarationVariableMultiple
+    @genre_valeur INVALIDE
+
+    NoeudExpression * valeur [code enfant]
     DonneesAssignations [compressé] donnees_decl
 }
 

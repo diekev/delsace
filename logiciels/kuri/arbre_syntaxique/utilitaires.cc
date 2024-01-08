@@ -339,6 +339,19 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto expr = racine->comme_declaration_variable();
 
+            aplatis_arbre(
+                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(
+                expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+
+            arbre_aplatis.ajoute(expr);
+
+            break;
+        }
+        case GenreNoeud::DECLARATION_VARIABLE_MULTIPLE:
+        {
+            auto expr = racine->comme_declaration_variable_multiple();
+
             // N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
             aplatis_arbre(
                 expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
@@ -862,6 +875,14 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
 
     if (declaration->est_declaration_variable()) {
         auto declaration_variable = declaration->comme_declaration_variable();
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
+        }
+        return;
+    }
+
+    if (declaration->est_declaration_variable_multiple()) {
+        auto declaration_variable = declaration->comme_declaration_variable_multiple();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
         }
@@ -1469,39 +1490,25 @@ NoeudDeclarationVariable *AssembleuseArbre::crée_declaration_variable(const Lex
                                                                       IdentifiantCode *ident,
                                                                       NoeudExpression *expression)
 {
-    auto ref = crée_reference_declaration(lexeme);
-    ref->ident = ident;
-    ref->type = type;
-    return crée_declaration_variable(ref, expression);
+    auto decl = crée_declaration_variable(lexeme);
+    decl->ident = ident;
+    decl->type = type;
+    decl->expression = expression;
+    return decl;
 }
 
 NoeudDeclarationVariable *AssembleuseArbre::crée_declaration_variable(
     NoeudExpressionReference *ref, NoeudExpression *expression)
 {
-    auto declaration = crée_declaration_variable(ref->lexeme);
-    declaration->ident = ref->ident;
-    declaration->type = ref->type;
-    declaration->valeur = ref;
-    declaration->expression = expression;
-
+    auto declaration = crée_declaration_variable(ref->lexeme, ref->type, ref->ident, expression);
     ref->declaration_referee = declaration;
-
-    auto donnees = DonneesAssignations();
-    donnees.expression = expression;
-    donnees.variables.ajoute(ref);
-    donnees.transformations.ajoute({});
-
-    declaration->donnees_decl.ajoute(donnees);
-
     return declaration;
 }
 
 NoeudDeclarationVariable *AssembleuseArbre::crée_declaration_variable(
     NoeudExpressionReference *ref)
 {
-    auto decl = crée_declaration_variable(ref->lexeme);
-    decl->valeur = ref;
-    decl->ident = ref->ident;
+    auto decl = crée_declaration_variable(ref, nullptr);
     ref->declaration_referee = decl;
     return decl;
 }
@@ -2382,6 +2389,11 @@ bool est_déclaration_polymorphique(NoeudDeclaration const *decl)
         return structure->est_polymorphe;
     }
 
+    if (decl->est_type_union()) {
+        auto const structure = decl->comme_type_union();
+        return structure->est_polymorphe;
+    }
+
     if (decl->est_type_opaque()) {
         auto const opaque = decl->comme_type_opaque();
         return opaque->expression_type->possède_drapeau(
@@ -2450,6 +2462,9 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     }
     if (noeud->est_declaration_variable()) {
         return &noeud->comme_declaration_variable()->unité;
+    }
+    if (noeud->est_declaration_variable_multiple()) {
+        return &noeud->comme_declaration_variable_multiple()->unité;
     }
     if (noeud->est_execute()) {
         return &noeud->comme_execute()->unité;

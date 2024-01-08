@@ -165,7 +165,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
             else if (dc.raison == MENOMMAGE_ARG) {
                 e.ajoute_site(dc.site_erreur);
-                e.ajoute_message("Argument inconnu");
+                e.ajoute_message("\tArgument « ", dc.nom_arg, " » inconnu.\n");
 
                 if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
                     auto decl_fonc = decl->comme_entete_fonction();
@@ -193,7 +193,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
 
                         auto type_struct = decl_struct->type->comme_type_structure();
                         POUR (type_struct->membres) {
-                            e.ajoute_message("\t\t", it.nom, '\n');
+                            e.ajoute_message("\t\t- ", it.nom->nom, '\n');
                         }
                     }
 

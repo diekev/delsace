@@ -894,7 +894,6 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
         assert_rappel(it->atome, [&]() {
             dbg() << "Aucun atome pour:\n"
                   << erreur::imprime_site(*m_programme.espace(), it) << '\n'
-                  << "Taille données decl  : " << it->donnees_decl.taille() << '\n'
                   << "Possède substitution : " << (it->substitution != nullptr);
         });
         ajoute_globale(it->atome->comme_globale(), true);

@@ -14,6 +14,7 @@ struct ConstructriceRI;
 struct DonneesAssignations;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
+struct NoeudDeclarationVariableMultiple;
 struct NoeudExpression;
 struct NoeudExpressionConstructionTableau;
 struct NoeudExpressionLogique;
@@ -403,7 +404,19 @@ struct CompilatriceRI {
     void génère_ri_insts_différées(NoeudBloc const *bloc_final);
     void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
-    void génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl);
+    void génère_ri_pour_variable_locale(NoeudDeclarationVariable *decl);
+    void compile_déclaration_variable_multiple(NoeudDeclarationVariableMultiple *decl);
+    void compile_déclaration_globale_multiple(NoeudDeclarationVariableMultiple *decl);
+    void compile_déclaration_locale_multiple(NoeudDeclarationVariableMultiple *decl);
+    void compile_globale(NoeudDeclaration *decl,
+                         NoeudExpression *expression,
+                         TransformationType const &transformation);
+    void compile_locale(NoeudExpression *variable,
+                        NoeudExpression *expression,
+                        TransformationType const &transformation);
+
+    Atome *donne_atome_pour_locale(NoeudExpression *expression);
+
     void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau const *expr,
                                              Atome *place);
     void génère_ri_pour_assignation_variable(
