@@ -1374,14 +1374,16 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 case GenreLexème::COROUT:
                 case GenreLexème::FONC:
                 {
-                    auto noeud_fonction = analyse_déclaration_fonction(gauche->lexeme);
+                    auto lexème_gauche = gauche->lexeme;
+                    m_tacheronne.assembleuse->recycle_référence(
+                        gauche->comme_reference_declaration());
+
+                    auto noeud_fonction = analyse_déclaration_fonction(lexème_gauche);
 
                     if (noeud_fonction->est_expression_type_fonction()) {
                         auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
-                        noeud->ident = gauche->ident;
+                        noeud->ident = lexème_gauche->ident;
                         noeud->expression = noeud_fonction;
-                        gauche->comme_reference_declaration()->declaration_referee = noeud;
-
                         return noeud;
                     }
 
@@ -2308,6 +2310,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(NoeudExpression *gauche)
         noeud_decl = m_tacheronne.assembleuse->crée_type_erreur(gauche->lexeme);
     }
 
+    m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
+
     if (lexème->genre != GenreLexème::ERREUR) {
         if (!apparie(GenreLexème::ACCOLADE_OUVRANTE)) {
             noeud_decl->expression_type = analyse_expression_primaire(GenreLexème::ENUM,
@@ -2963,6 +2967,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_structure(NoeudExpression *gau
         m_compilatrice.typeuse.type_contexte = noeud_decl;
     }
 
+    m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
+
     analyse_paramètres_polymorphiques_structure_ou_union(noeud_decl);
     analyse_directives_structure(noeud_decl);
     analyse_membres_structure_ou_union(noeud_decl);
@@ -2990,6 +2996,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_union(NoeudExpression *gauche)
     if (!gauche->est_reference_declaration()) {
         this->rapporte_erreur("Expression inattendue pour nommer l'union");
     }
+
+    m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
 
     auto noeud_decl = m_tacheronne.assembleuse->crée_type_union(gauche->lexeme);
     noeud_decl->type = noeud_decl;
