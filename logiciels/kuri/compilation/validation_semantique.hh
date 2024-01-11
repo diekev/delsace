@@ -20,6 +20,7 @@ struct EspaceDeTravail;
 struct Lexème;
 struct MetaProgramme;
 struct NoeudAssignation;
+struct NoeudAssignationMultiple;
 struct NoeudBloc;
 struct NoeudDeclarationConstante;
 struct NoeudDeclarationCorpsFonction;
@@ -234,6 +235,7 @@ struct Sémanticienne {
         NoeudDeclarationVariableMultiple *decl);
     RésultatValidation valide_déclaration_constante(NoeudDeclarationConstante *decl);
     RésultatValidation valide_assignation(NoeudAssignation *inst);
+    RésultatValidation valide_assignation_multiple(NoeudAssignationMultiple *inst);
     RésultatValidation valide_arbre_aplatis(NoeudExpression *declaration);
     RésultatValidation valide_expression_retour(NoeudRetour *inst_retour);
     RésultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
