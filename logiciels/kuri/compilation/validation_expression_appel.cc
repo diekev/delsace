@@ -1808,7 +1808,7 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel const *expr,
         // l'argument est nommé
         if (it->est_assignation_variable()) {
             auto assign = it->comme_assignation_variable();
-            auto nom_arg = assign->variable;
+            auto nom_arg = assign->assignée;
             auto arg = assign->expression;
 
             args.ajoute({nom_arg->ident, nom_arg, arg});

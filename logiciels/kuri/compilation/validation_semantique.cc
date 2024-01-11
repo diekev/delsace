@@ -505,6 +505,11 @@ RésultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noe
             auto inst = noeud->comme_assignation_variable();
             return valide_assignation(inst);
         }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_MULTIPLE:
+        {
+            auto inst = noeud->comme_assignation_multiple();
+            return valide_assignation_multiple(inst);
+        }
         case GenreNoeud::DECLARATION_VARIABLE:
         {
             return valide_declaration_variable(noeud->comme_declaration_variable());
@@ -2277,7 +2282,7 @@ static void rassemble_expressions(NoeudExpression *expr,
         POUR (virgule->expressions) {
             if (it->est_assignation_variable()) {
                 auto assignation = it->comme_assignation_variable();
-                expressions.ajoute({assignation->variable->ident, assignation->expression});
+                expressions.ajoute({assignation->assignée->ident, assignation->expression});
             }
             else {
                 expressions.ajoute({nullptr, it});
@@ -2287,7 +2292,7 @@ static void rassemble_expressions(NoeudExpression *expr,
     else {
         if (expr->est_assignation_variable()) {
             auto assignation = expr->comme_assignation_variable();
-            expressions.ajoute({assignation->variable->ident, assignation->expression});
+            expressions.ajoute({assignation->assignée->ident, assignation->expression});
         }
         else {
             expressions.ajoute({nullptr, expr});
@@ -3903,7 +3908,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         }
 
         auto expr_assign = it->comme_assignation_variable();
-        auto variable = expr_assign->variable;
+        auto variable = expr_assign->assignée;
 
         for (auto &membre : type_compose->membres) {
             if (membre.nom != variable->ident) {
@@ -4647,7 +4652,135 @@ RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclarati
 RésultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
 {
     CHRONO_TYPAGE(m_stats_typage.assignations, ASSIGNATION__VALIDATION);
-    auto variable = inst->variable;
+    auto variable = inst->assignée;
+
+    if (!est_valeur_gauche(variable->genre_valeur)) {
+        rapporte_erreur("Impossible d'assigner une expression à une valeur-droite !",
+                        inst,
+                        erreur::Genre::ASSIGNATION_INVALIDE);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto expression = inst->expression;
+    if (expression->est_virgule() || expression->type->est_type_tuple()) {
+        m_espace->rapporte_erreur(expression, "Trop de valeurs pour l'assignation à la variable.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (expression->est_non_initialisation()) {
+        rapporte_erreur("Impossible d'utiliser '---' dans une expression d'assignation",
+                        inst->expression);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (expression->type->est_type_rien()) {
+        rapporte_erreur("Impossible d'assigner une expression de type 'rien' à une variable !",
+                        inst,
+                        erreur::Genre::ASSIGNATION_RIEN);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_de_la_variable = variable->type;
+    auto var_est_reference = type_de_la_variable->est_type_reference();
+    auto type_de_l_expression = expression->type;
+    auto expr_est_reference = type_de_l_expression->est_type_reference();
+
+    auto transformation = TransformationType();
+
+    if (variable->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
+        if (!expression->type->est_type_bool()) {
+            m_espace
+                ->rapporte_erreur(expression,
+                                  "L'assignation d'une valeur d'une énum_drapeau doit être "
+                                  "une valeur booléenne")
+                .ajoute_message(
+                    "Le type de l'expression est ", chaine_type(expression->type), "\n");
+            return CodeRetourValidation::Erreur;
+        }
+
+        return CodeRetourValidation::OK;
+    }
+
+    if (var_est_reference && expr_est_reference) {
+        // déréférence les deux côtés
+        auto résultat = cherche_transformation(type_de_l_expression, type_de_la_variable);
+
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
+        }
+
+        transformation = std::get<TransformationType>(résultat);
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_assignation_type_differents(
+                type_de_la_variable, type_de_l_expression, expression);
+            return CodeRetourValidation::Erreur;
+        }
+
+        crée_transtypage_implicite_au_besoin(inst->assignée,
+                                             TransformationType(TypeTransformation::DEREFERENCE));
+        transformation = TransformationType(TypeTransformation::DEREFERENCE);
+    }
+    else if (var_est_reference) {
+        // déréférence var
+        type_de_la_variable = type_de_la_variable->comme_type_reference()->type_pointe;
+
+        auto résultat = cherche_transformation(type_de_l_expression, type_de_la_variable);
+
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
+        }
+
+        transformation = std::get<TransformationType>(résultat);
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_assignation_type_differents(
+                type_de_la_variable, type_de_l_expression, expression);
+            return CodeRetourValidation::Erreur;
+        }
+
+        crée_transtypage_implicite_au_besoin(inst->assignée,
+                                             TransformationType(TypeTransformation::DEREFERENCE));
+    }
+    else if (expr_est_reference) {
+        // déréférence expr
+        auto résultat = cherche_transformation(type_de_l_expression, type_de_la_variable);
+
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
+        }
+
+        transformation = std::get<TransformationType>(résultat);
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_assignation_type_differents(
+                type_de_la_variable, type_de_l_expression, expression);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+    else {
+        auto résultat = cherche_transformation(type_de_l_expression, type_de_la_variable);
+
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
+        }
+
+        transformation = std::get<TransformationType>(résultat);
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_assignation_type_differents(
+                type_de_la_variable, type_de_l_expression, expression);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    if (transformation.type != TypeTransformation::INUTILE) {
+        crée_transtypage_implicite_au_besoin(inst->expression, transformation);
+    }
+
+    return CodeRetourValidation::OK;
+}
+
+RésultatValidation Sémanticienne::valide_assignation_multiple(NoeudAssignationMultiple *inst)
+{
+    CHRONO_TYPAGE(m_stats_typage.assignations, ASSIGNATION__VALIDATION);
+    auto variable = inst->assignées;
 
     kuri::file_fixe<NoeudExpression *, 6> variables;
 
@@ -4831,9 +4964,9 @@ RésultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
             *donnees, variables.defile(), donnees->expression, donnees->expression->type));
     }
 
-    inst->donnees_exprs.reserve(static_cast<int>(donnees_assignations.taille()));
+    inst->données_exprs.reserve(static_cast<int>(donnees_assignations.taille()));
     POUR (donnees_assignations) {
-        inst->donnees_exprs.ajoute(std::move(it));
+        inst->données_exprs.ajoute(std::move(it));
     }
 
     return CodeRetourValidation::OK;
