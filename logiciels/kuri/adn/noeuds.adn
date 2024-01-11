@@ -359,10 +359,20 @@ struct NoeudAssignation : NoeudExpression {
     @code  NoeudCodeAssignation
     @genre_valeur INVALIDE
 
-    NoeudExpression *variable [code enfant]
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *assignée [code enfant préserve_accents]
+    NoeudExpression *expression [code enfant préserve_accents]
+}
 
-    DonneesAssignations [compressé] donnees_exprs
+struct NoeudAssignationMultiple : NoeudExpression {
+    @genre EXPRESSION_ASSIGNATION_MULTIPLE
+    @comme assignation_multiple
+    @code  NoeudCodeAssignationMultiple
+    @genre_valeur INVALIDE
+
+    NoeudExpressionVirgule *assignées [code enfant préserve_accents]
+    NoeudExpression *expression [code enfant préserve_accents]
+
+    DonneesAssignations [compressé] données_exprs [préserve_accents]
 }
 
 struct NoeudRetour : NoeudExpression {
