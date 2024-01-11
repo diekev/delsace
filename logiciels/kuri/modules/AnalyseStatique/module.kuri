@@ -196,7 +196,7 @@ vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *Noeu
         }
         EXPRESSION_ASSIGNATION_VARIABLE {
             assignation := code comme *NoeudCodeAssignation
-            vérifie_bloc_fonction(vérificatrice, assignation.variable)
+            vérifie_bloc_fonction(vérificatrice, assignation.assignée)
             vérifie_bloc_fonction(vérificatrice, assignation.expression)
         }
         OPÉRATEUR_BINAIRE {
