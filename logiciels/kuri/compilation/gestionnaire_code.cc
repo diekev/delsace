@@ -547,8 +547,12 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
             }
             else if (noeud->est_assignation_variable()) {
                 auto assignation = noeud->comme_assignation_variable();
+                rassemble_dependances(assignation->expression);
+            }
+            else if (noeud->est_assignation_multiple()) {
+                auto assignation = noeud->comme_assignation_multiple();
 
-                POUR (assignation->donnees_exprs.plage()) {
+                POUR (assignation->données_exprs.plage()) {
                     rassemble_dependances(it.expression);
                     auto type_expression = it.expression ? it.expression->type : Type::nul();
                     rassemble_dependances_transformations(it.transformations, type_expression);

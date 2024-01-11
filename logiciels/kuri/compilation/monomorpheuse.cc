@@ -451,7 +451,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
         if (it->est_assignation_variable()) {
             auto assign = it->comme_assignation_variable();
             it = assign->expression;
-            ident_param = assign->variable->ident;
+            ident_param = assign->assignée->ident;
         }
 
         if (!it->est_reference_declaration()) {
@@ -871,7 +871,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
             /* L'argument est nommé. */
             auto assign = it->comme_assignation_variable();
             it = assign->expression;
-            ident_param = assign->variable->ident;
+            ident_param = assign->assignée->ident;
         }
 
         if (!it->est_reference_declaration()) {
