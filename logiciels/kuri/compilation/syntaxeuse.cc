@@ -1633,10 +1633,18 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             "déclarées avant leurs assignations.");
                     }
                 }
+
+                auto noeud = m_tacheronne.assembleuse->crée_assignation_multiple(lexème);
+                noeud->assignées = noeud_virgule;
+                noeud->expression = analyse_expression(
+                    données_précédence, racine_expression, lexème_final);
+
+                m_noeud_expression_virgule = nullptr;
+                return noeud;
             }
 
             auto noeud = m_tacheronne.assembleuse->crée_assignation_variable(lexème);
-            noeud->variable = gauche;
+            noeud->assignée = gauche;
             noeud->expression = analyse_expression(
                 données_précédence, racine_expression, lexème_final);
 

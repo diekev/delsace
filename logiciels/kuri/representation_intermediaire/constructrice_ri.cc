@@ -2102,7 +2102,13 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
         {
             auto expr_ass = noeud->comme_assignation_variable();
-            génère_ri_pour_assignation_variable(expr_ass->donnees_exprs);
+            compile_locale(expr_ass->assignée, expr_ass->expression, {});
+            break;
+        }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_MULTIPLE:
+        {
+            auto expr_ass = noeud->comme_assignation_multiple();
+            génère_ri_pour_assignation_variable(expr_ass->données_exprs);
             break;
         }
         case GenreNoeud::DECLARATION_VARIABLE:

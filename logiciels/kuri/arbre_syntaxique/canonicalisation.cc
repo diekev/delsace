@@ -745,9 +745,30 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto assignation = noeud->comme_assignation_variable();
 
-            simplifie(assignation->variable);
+            simplifie(assignation->assignée);
 
-            POUR (assignation->donnees_exprs.plage()) {
+            if (assignation->assignée->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
+                /* NOTE : pour le moment nous ne pouvons déclarer de nouvelle variables ici
+                 * pour les valeurs temporaires, et puisque nous ne pouvons pas utiliser
+                 * l'expression dans sa substitution, nous modifions l'expression
+                 * directement.
+                 */
+                assignation->expression = simplifie_assignation_enum_drapeau(
+                    assignation->assignée, assignation->expression);
+            }
+            else {
+                simplifie(assignation->expression);
+            }
+
+            return;
+        }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_MULTIPLE:
+        {
+            auto assignation = noeud->comme_assignation_multiple();
+
+            simplifie(assignation->assignées);
+
+            POUR (assignation->données_exprs.plage()) {
                 auto expression_fut_simplifiee = false;
 
                 for (auto var : it.variables.plage()) {
@@ -1554,9 +1575,9 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
         }
     }
 
-    auto assignation = assem->crée_assignation_variable(inst->lexeme);
+    auto assignation = assem->crée_assignation_multiple(inst->lexeme);
     assignation->expression = inst->expression;
-    assignation->donnees_exprs = std::move(inst->donnees_exprs);
+    assignation->données_exprs = std::move(inst->donnees_exprs);
 
     auto retour = assem->crée_retourne(inst->lexeme);
 

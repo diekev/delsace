@@ -380,7 +380,19 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto expr = racine->comme_assignation_variable();
             expr->drapeaux |= drapeau;
 
-            aplatis_arbre(expr->variable, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->assignée, arbre_aplatis, drapeau);
+            aplatis_arbre(
+                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+            arbre_aplatis.ajoute(expr);
+
+            break;
+        }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_MULTIPLE:
+        {
+            auto expr = racine->comme_assignation_multiple();
+            expr->drapeaux |= drapeau;
+
+            aplatis_arbre(expr->assignées, arbre_aplatis, drapeau);
             aplatis_arbre(
                 expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(expr);
@@ -1473,13 +1485,7 @@ NoeudAssignation *AssembleuseArbre::crée_assignation_variable(const Lexème *le
     auto assignation = crée_noeud<GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE>(lexeme)
                            ->comme_assignation_variable();
 
-    auto donnees = DonneesAssignations();
-    donnees.expression = expression;
-    donnees.variables.ajoute(assignee);
-    donnees.transformations.ajoute({});
-
-    assignation->donnees_exprs.ajoute(donnees);
-    assignation->variable = assignee;
+    assignation->assignée = assignee;
     assignation->expression = expression;
 
     return assignation;

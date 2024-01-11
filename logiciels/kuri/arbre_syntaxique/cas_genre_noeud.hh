@@ -23,6 +23,7 @@
     case GenreNoeud::EXPANSION_VARIADIQUE:                                                        \
     case GenreNoeud::EXPRESSION_APPEL:                                                            \
     case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:                                             \
+    case GenreNoeud::EXPRESSION_ASSIGNATION_MULTIPLE:                                             \
     case GenreNoeud::EXPRESSION_COMME:                                                            \
     case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:                                           \
     case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:                                             \
