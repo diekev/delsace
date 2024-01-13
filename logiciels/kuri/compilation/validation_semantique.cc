@@ -1668,7 +1668,7 @@ RésultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *e
             return Attente::sur_type(type);
         }
 
-        auto type_compose = static_cast<TypeCompose *>(type);
+        auto type_compose = type->comme_type_compose();
         auto info_membre = donne_membre_pour_nom(type_compose, expression_membre->ident);
         if (!info_membre.has_value()) {
             if (expression_membre->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
