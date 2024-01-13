@@ -2982,7 +2982,11 @@ NoeudDeclarationEnteteFonction *Sémanticienne::fonction_courante() const
 Type *Sémanticienne::union_ou_structure_courante() const
 {
     if (racine_validation()->est_type_structure()) {
-        return racine_validation()->type;
+        return racine_validation()->comme_type_structure();
+    }
+
+    if (racine_validation()->est_type_union()) {
+        return racine_validation()->comme_type_union();
     }
 
     return nullptr;
