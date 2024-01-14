@@ -854,7 +854,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
 
     auto structure_construite = declaration_appelee->comme_declaration_classe();
     if (!structure_construite->est_polymorphe) {
-        return structure_construite->type;
+        return structure_construite;
     }
 
     kuri::tablet<ItemMonomorphisation, 6> items_structure;
@@ -902,7 +902,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
         return nullptr;
     }
 
-    return monomorphisation->type;
+    return monomorphisation->comme_declaration_type();
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_construction_opaque(

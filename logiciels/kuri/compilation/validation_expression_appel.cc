@@ -1170,7 +1170,7 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
 
     if (est_type_argument_polymorphique) {
         auto type_poly = espace.compilatrice().typeuse.type_type_de_donnees(
-            déclaration_type_composé->type);
+            const_cast<NoeudDeclarationType *>(déclaration_type_composé));
 
         return CandidateAppariement::type_polymorphique(
             1.0, type_poly, {}, {}, std::move(items_monomorphisation));
@@ -1179,7 +1179,7 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
     return CandidateAppariement::monomorphisation_structure(
         1.0,
         déclaration_type_composé,
-        déclaration_type_composé->type->comme_type_compose(),
+        déclaration_type_composé->comme_type_compose(),
         {},
         {},
         std::move(items_monomorphisation));
@@ -1259,7 +1259,7 @@ static ResultatAppariement apparie_appel_structure(
     }
 
     return apparie_construction_type_composé(
-        expr, decl_struct, decl_struct->type->comme_type_compose(), arguments);
+        expr, decl_struct, decl_struct->comme_type_compose(), arguments);
 }
 
 static ResultatAppariement apparie_construction_union(
@@ -1282,7 +1282,7 @@ static ResultatAppariement apparie_construction_union(
     }
 
     return apparie_construction_type_composé(
-        expr, decl_struct, decl_struct->type->comme_type_compose(), arguments);
+        expr, decl_struct, decl_struct->comme_type_compose(), arguments);
 }
 
 /* ************************************************************************** */
@@ -1538,8 +1538,8 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                 if (!decl_opaque->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                     return Attente::sur_declaration(decl_opaque);
                 }
-                état->résultats.ajoute(apparie_construction_opaque(
-                    espace, expr, decl_opaque->type->comme_type_opaque(), état->args));
+                état->résultats.ajoute(
+                    apparie_construction_opaque(espace, expr, decl_opaque, état->args));
             }
             else if (decl->est_entete_fonction()) {
                 auto decl_fonc = decl->comme_entete_fonction();

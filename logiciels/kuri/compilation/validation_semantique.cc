@@ -1062,7 +1062,7 @@ RésultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noe
                 types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
             if (attente_possible && attente_possible->est<AttenteSurType>() &&
-                attente_possible->type() != racine_validation()->type) {
+                attente_possible->type() != racine_validation()) {
                 return attente_possible.value();
             }
 
@@ -3805,7 +3805,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         }
     }
 
-    auto type_compose = decl->type->comme_type_compose();
+    auto type_compose = decl->comme_type_compose();
 
     ConstructriceMembresTypeComposé constructrice(*type_compose, decl->bloc);
 
@@ -3934,7 +3934,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         calcule_taille_type_composé(type_compose, decl->est_compacte, decl->alignement_desire);
     }
 
-    auto type_struct = type_compose->comme_type_structure();
+    auto type_struct = decl;
 
 #undef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
 #undef AVERTIS_SUR_FRANCHISSEMENT_LIGNE_DE_CACHE
@@ -4043,10 +4043,10 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
         }
     }
 
-    auto type_compose = decl->type->comme_type_compose();
+    auto type_compose = decl->comme_type_compose();
     auto constructrice = ConstructriceMembresTypeComposé(*type_compose, decl->bloc);
 
-    auto type_union = decl->type->comme_type_union();
+    auto type_union = decl;
     type_union->est_nonsure = decl->est_nonsure;
 
     POUR (*decl->bloc->membres.verrou_ecriture()) {
