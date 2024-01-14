@@ -410,8 +410,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             if (decl_ref->est_declaration_type()) {
-                expr_ref->substitution = assem->crée_reference_type(
-                    expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
+                expr_ref->substitution = assem->crée_reference_type(expr_ref->lexeme,
+                                                                    decl_ref->type);
                 return;
             }
 
@@ -869,9 +869,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
             auto structure = noeud->comme_type_structure();
-            auto type = static_cast<TypeCompose *>(structure->type);
 
-            POUR (type->membres) {
+            POUR (structure->membres) {
                 simplifie(it.expression_valeur_defaut);
             }
 
@@ -2127,7 +2126,7 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
         return;
     }
 
-    auto type_compose = static_cast<TypeCompose *>(type_accede);
+    auto type_compose = type_accede->comme_type_compose();
     auto &membre = type_compose->membres[ref_membre->index_membre];
 
     if (membre.drapeaux == MembreTypeComposé::EST_CONSTANT) {

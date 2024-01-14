@@ -896,7 +896,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpressi
         dbg() << "Type accédé : '" << chaine_type(type_élément) << "'\n" << imprime_site(site_);
     });
 
-    auto type_composé = static_cast<TypeCompose *>(type_élément);
+    auto type_composé = type_élément->comme_type_compose();
     if (type_composé->est_type_union()) {
         type_composé = type_composé->comme_type_union()->type_structure;
     }
@@ -1390,7 +1390,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         case GenreNoeud::VARIADIQUE:
         case GenreNoeud::TUPLE:
         {
-            auto type_composé = static_cast<TypeCompose const *>(type);
+            auto type_composé = type->comme_type_compose();
             auto valeurs = kuri::tableau<AtomeConstante *>();
             valeurs.reserve(type_composé->membres.taille());
 

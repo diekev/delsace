@@ -366,7 +366,7 @@ NoeudDependance *GrapheDependance::garantie_noeud_dépendance(EspaceDeTravail *e
     }
 
     if (noeud->est_declaration_type()) {
-        return crée_noeud_type(noeud->type);
+        return crée_noeud_type(noeud->comme_declaration_type());
     }
 
     assert(!"Noeud non géré pour les dépendances !\n");
