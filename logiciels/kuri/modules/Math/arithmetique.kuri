@@ -179,8 +179,8 @@ restreint :: fonc(x : *$T, min : T, max : T) -> rien #enligne
     }
 }
 
-// Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
-pgcd :: fonc(a : z32, b : z32) -> z32
+/* Trouve le plus grand commun diviseur selon l'algorithme d'Euclide. */
+grandissime_diviseur_commun :: fonc (a : z32, b : z32) -> z32
 {
     tantque b != 0 {
         t := b
@@ -191,14 +191,14 @@ pgcd :: fonc(a : z32, b : z32) -> z32
     retourne a
 }
 
-// Trouve le plus petit commun multiple
-ppmc :: fonc(a : z32, b : z32) -> z32
+/* Trouve le plus petit commun multiple */
+petitissime_multiple_commun :: fonc (a : z32, b : z32) -> z32
 {
-    si a == 0 || b == 0 {
+    si a == 0 || b == 0 {
         retourne 0
     }
 
-    retourne abs(a * b) / pgcd(a, b)
+    retourne abs(a * b) / grandissime_diviseur_commun(a, b)
 }
 
 surarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
