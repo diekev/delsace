@@ -191,8 +191,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                     else {
                         e.ajoute_message("\tLes membres de la structure sont : \n");
 
-                        auto type_struct = decl_struct->type->comme_type_structure();
-                        POUR (type_struct->membres) {
+                        POUR (decl_struct->membres) {
                             e.ajoute_message("\t\t- ", it.nom->nom, '\n');
                         }
                     }

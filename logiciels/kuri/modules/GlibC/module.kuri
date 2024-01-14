@@ -637,7 +637,7 @@ sigaction_struct :: struct {
     sa_flags: z32
 
     /* Restore handler.  */
-    sa_restorer :: fonc ()(rien)
+    sa_restorer: fonc ()(rien)
 }
 
 sigaction :: fonc (sig: z32, new_act: *sigaction_struct, old_act: *sigaction_struct) -> z32 #externe libc

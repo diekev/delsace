@@ -1,8 +1,5 @@
 réusine opérateurs (partage entre types)
 
-- pour les déclarations de types (structure, énums) : decl.type sera type_de_données(type) 
-    les références de membres ou de déclaration n'auront plus à créer un type de données
-
 - ne crée pas de trace d'appels pour les fonctions pures
 
 ADN pour les arguments de compilation
