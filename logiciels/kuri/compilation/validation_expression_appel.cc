@@ -2065,7 +2065,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         auto copie = monomorphise_au_besoin(
             contexte, espace, decl_struct, std::move(candidate->items_monomorphisation));
-        expr->type = espace.compilatrice().typeuse.type_type_de_donnees(copie->type);
+        expr->type = espace.compilatrice().typeuse.type_type_de_donnees(copie);
 
         /* il est possible d'utiliser un type avant sa validation final, par exemple en
          * paramètre d'une fonction de rappel qui est membre de la structure */
@@ -2075,13 +2075,13 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             contexte.donne_arbre()->index_courant += 1;
             compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
             copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
-            return Attente::sur_type(copie->type);
+            return Attente::sur_type(copie);
         }
         expr->noeud_fonction_appelee = copie;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
         expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
-        expr->type = const_cast<Type *>(candidate->type);
+        expr->type = const_cast<Type *>(candidate->type->comme_type_type_de_donnees()->type_connu);
 
         for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
             if (expr->parametres_resolus[i] != nullptr) {

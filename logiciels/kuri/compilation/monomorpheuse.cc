@@ -798,6 +798,9 @@ Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(
     auto decl_referee = reference->declaration_referee;
 
     if (!decl_referee->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
+        if (decl_referee->est_declaration_type()) {
+            return decl_referee->comme_declaration_type();
+        }
         return decl_referee->type;
     }
 

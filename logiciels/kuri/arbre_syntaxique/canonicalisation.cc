@@ -410,8 +410,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             if (decl_ref->est_declaration_type()) {
-                expr_ref->substitution = assem->crée_reference_type(
-                    expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
+                expr_ref->substitution = assem->crée_reference_type(expr_ref->lexeme,
+                                                                    decl_ref->type);
                 return;
             }
 

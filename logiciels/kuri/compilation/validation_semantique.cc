@@ -1569,7 +1569,7 @@ RésultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noe
                     return CodeRetourValidation::Erreur;
                 }
 
-                noeud->type = m_compilatrice.typeuse.type_type_de_donnees(type);
+                noeud->type = type->type;
                 return CodeRetourValidation::OK;
             }
 
@@ -1637,14 +1637,9 @@ RésultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *e
                 return Attente::sur_declaration(déclaration_référée);
             }
 
-            auto type_référée = déclaration_référée->type;
-            if (déclaration_référée->est_declaration_type()) {
-                type_référée = m_compilatrice.typeuse.type_type_de_donnees(type_référée);
-            }
-
             expression_membre->genre_valeur = déclaration_référée->genre_valeur;
             expression_membre->déclaration_référée = déclaration_référée;
-            expression_membre->type = type_référée;
+            expression_membre->type = déclaration_référée->type;
             return CodeRetourValidation::OK;
         }
     }
@@ -2805,11 +2800,19 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
          * référence peut être vers le type en validation (p.e. un pointeur vers une autre instance
          * de la structure). */
         if (!decl->type) {
-            return Attente::sur_declaration(decl);
+            CHRONO_TYPAGE(m_stats_typage.ref_decl, REFERENCE_DECLARATION__TYPE_DE_DONNES);
+            expr->type = m_compilatrice.typeuse.type_type_de_donnees(
+                decl->comme_declaration_type());
         }
+        else {
+            assert_rappel(decl->type->est_type_type_de_donnees(), [&]() {
+                dbg() << "Le type de " << nom_humainement_lisible(decl)
+                      << " n'est pas un type de données.\n"
+                      << erreur::imprime_site(*m_espace, decl);
+            });
 
-        CHRONO_TYPAGE(m_stats_typage.ref_decl, REFERENCE_DECLARATION__TYPE_DE_DONNES);
-        expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
+            expr->type = decl->type;
+        }
         expr->declaration_referee = decl;
     }
     else {
@@ -2895,7 +2898,7 @@ RésultatValidation Sémanticienne::valide_type_opaque(NoeudDeclarationTypeOpaqu
         type_opacifie = m_compilatrice.typeuse.crée_polymorphique(decl->expression_type->ident);
     }
 
-    decl->type = decl;
+    decl->type = m_compilatrice.typeuse.type_type_de_donnees(decl);
     decl->type_opacifie = type_opacifie;
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
@@ -3289,7 +3292,7 @@ enum {
 template <int N>
 RésultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl)
 {
-    decl->type = decl;
+    decl->type = m_compilatrice.typeuse.type_type_de_donnees(decl);
     decl->taille_octet = decl->type_sous_jacent->taille_octet;
     decl->alignement = decl->type_sous_jacent->alignement;
 
@@ -3552,9 +3555,9 @@ struct ConstructriceMembresTypeComposé {
     void ajoute_type_de_données(NoeudDeclarationType *déclaration, Typeuse &typeuse)
     {
         // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
-        auto type_de_donnees = typeuse.type_type_de_donnees(déclaration->type);
+        assert(déclaration->type->est_type_type_de_donnees());
         m_membres_extras.ajoute({nullptr,
-                                 type_de_donnees,
+                                 déclaration->type,
                                  déclaration->ident,
                                  0,
                                  0,
@@ -3735,6 +3738,10 @@ static RésultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail
  */
 RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 {
+    if (!decl->type) {
+        decl->type = m_compilatrice.typeuse.type_type_de_donnees(decl);
+    }
+
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
@@ -3753,7 +3760,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
         // nous validerons les membres lors de la monomorphisation
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
+        decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
     }
 
@@ -3973,6 +3980,10 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
 RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 {
+    if (!decl->type) {
+        decl->type = m_compilatrice.typeuse.type_type_de_donnees(decl);
+    }
+
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
@@ -3991,7 +4002,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
         // nous validerons les membres lors de la monomorphisation
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
+        decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
     }
 

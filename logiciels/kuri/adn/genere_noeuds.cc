@@ -52,7 +52,7 @@ static const char *copie_extra_bloc = R"(
             })";
 
 static const char *copie_extra_structure = R"(
-            nracine->type = nracine->comme_type_structure();
+            nracine->type = nullptr;
             if (orig->bloc_constantes) {
                 /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
                  * sont placés par la Syntaxeuse directement dans les membres. */
@@ -64,7 +64,7 @@ static const char *copie_extra_structure = R"(
 )";
 
 static const char *copie_extra_union = R"(
-            nracine->type = nracine->comme_type_union();
+            nracine->type = nullptr;
             if (orig->bloc_constantes) {
                 /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
                  * sont placés par la Syntaxeuse directement dans les membres. */
@@ -76,7 +76,7 @@ static const char *copie_extra_union = R"(
 )";
 
 static const char *copie_extra_énum = R"(
-            nracine->type = nracine->comme_type_enum();
+            nracine->type = nullptr;
 )";
 
 /* Les déclarations référées doivent être copiées avec soin : il ne faut copier les déclarations
