@@ -1739,10 +1739,6 @@ RésultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *e
 static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const &fonction1,
                                             NoeudDeclarationEnteteFonction const &fonction2)
 {
-    if (fonction1.ident != fonction2.ident) {
-        return false;
-    }
-
     /* À FAIRE(bibliothèque) : stocke les fonctions des bibliothèques dans celles-ci, afin de
      * pouvoir comparer des fonctions externes même si elles sont définies par des modules
      * différents. */
@@ -1753,6 +1749,10 @@ static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const
             fonction2.données_externes->ident_bibliotheque &&
         fonction1.données_externes->nom_symbole == fonction2.données_externes->nom_symbole) {
         return true;
+    }
+
+    if (fonction1.ident != fonction2.ident) {
+        return false;
     }
 
     if (fonction1.type != fonction2.type) {
