@@ -6332,7 +6332,8 @@ RésultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
             return CodeRetourValidation::Erreur;
         }
 
-        /* Si nous avons une référence essaie de avec le type déréférencé. */
+        /* Si nous avons une référence, essayons de trouver une transformation avec le type
+         * déréférencé. */
 
         /* Préserve l'expression pour le message d'erreur au besoin. */
         auto ancienne_expression = expr->expression;
