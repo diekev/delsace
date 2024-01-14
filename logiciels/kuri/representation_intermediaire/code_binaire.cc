@@ -1812,7 +1812,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             auto décalage = chunk.émets_structure_constante(type->taille_octet);
             auto destination = chunk.code + décalage;
 
-            auto type_composé = static_cast<TypeCompose const *>(type);
+            auto type_composé = type->comme_type_compose();
 
             auto adressage_destination = AdresseDonnéesExécution{
                 CODE_FONCTION, 0, m_atome_fonction_courante};
@@ -2076,7 +2076,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             auto structure = atome->comme_constante_structure();
             auto type = atome->type;
             auto tableau_valeur = structure->donne_atomes_membres();
-            auto type_composé = static_cast<TypeCompose const *>(type);
+            auto type_composé = type->comme_type_compose();
 
             POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
                 auto destination_membre = destination + it.decalage;
