@@ -1260,6 +1260,12 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::donne_nom_broyé(Broyeuse 
         auto noms = donne_les_noms_de_la_hiérarchie(bloc_parent);
         nom_broye_ = broyeuse.broye_nom_fonction(this, noms);
     }
+    else if (données_externes) {
+        nom_broye_ = données_externes->nom_symbole;
+    }
+    else if (ident) {
+        nom_broye_ = ident->nom;
+    }
     else {
         nom_broye_ = lexeme->chaine;
     }
