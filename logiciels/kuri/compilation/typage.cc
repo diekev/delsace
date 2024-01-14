@@ -2311,7 +2311,7 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
             case GenreNoeud::DECLARATION_STRUCTURE:
             {
                 auto type_compose = type_courant->comme_type_compose();
-                POUR (type_compose->membres) {
+                POUR (type_compose->donne_membres_pour_code_machine()) {
                     pile.empile(it.type);
                 }
                 break;
