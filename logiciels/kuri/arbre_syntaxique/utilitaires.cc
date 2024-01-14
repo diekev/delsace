@@ -1031,7 +1031,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 /* Nous accédons à une valeur constante. */
                 return nullptr;
             }
-            auto type_compose = static_cast<TypeCompose *>(type_accédé);
+            auto type_compose = type_accédé->comme_type_compose();
             auto &membre = type_compose->membres[référence_membre->index_membre];
 
             if (membre.drapeaux == MembreTypeComposé::EST_CONSTANT) {
@@ -2211,7 +2211,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreNoeud::TYPE_TRANCHE:
         case GenreNoeud::VARIADIQUE:
         {
-            auto type_composé = static_cast<TypeCompose *>(type);
+            auto type_composé = type->comme_type_compose();
 
             if (type_composé->est_type_structure()) {
                 auto decl = type_composé->comme_type_structure();
