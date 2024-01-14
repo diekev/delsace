@@ -2966,7 +2966,6 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_structure(NoeudExpression *gau
     }
 
     auto noeud_decl = m_tacheronne.assembleuse->crée_type_structure(gauche->lexeme);
-    noeud_decl->type = noeud_decl;
 
     if (gauche->ident == ID::InfoType) {
         m_compilatrice.typeuse.type_info_type_ = noeud_decl;
@@ -3008,7 +3007,6 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_union(NoeudExpression *gauche)
     m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
 
     auto noeud_decl = m_tacheronne.assembleuse->crée_type_union(gauche->lexeme);
-    noeud_decl->type = noeud_decl;
 
     if (apparie(GenreLexème::NONSUR)) {
         noeud_decl->est_nonsure = true;
