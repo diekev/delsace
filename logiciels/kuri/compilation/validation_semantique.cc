@@ -1750,7 +1750,8 @@ static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const
         fonction2.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) && fonction1.données_externes &&
         fonction2.données_externes &&
         fonction1.données_externes->ident_bibliotheque ==
-            fonction2.données_externes->ident_bibliotheque) {
+            fonction2.données_externes->ident_bibliotheque &&
+        fonction1.données_externes->nom_symbole == fonction2.données_externes->nom_symbole) {
         return true;
     }
 
