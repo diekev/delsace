@@ -504,7 +504,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                         ajoute_fonction(appelee->comme_entete_fonction());
                     }
                     else if (appelee->est_type_structure()) {
-                        ajoute_type(appelee->type);
+                        ajoute_type(appelee->comme_type_structure());
                     }
                 }
             }
