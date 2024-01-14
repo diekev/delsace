@@ -158,7 +158,6 @@ racine :: fonc (a: $T, index: T) -> T
     retourne puissance(a, 1.0 / index)
 }
 
-// calcul d'une racine carré d'un nombre réel selon la méthode approximative de Newton
 racine_carrée :: fonc (n: r32) -> r32
 {
     retourne racine_carrée(n comme r64) comme r32
@@ -167,49 +166,10 @@ racine_carrée :: fonc (n: r32) -> r32
 racine_carrée :: fonc (n: r64) -> r64
 {
     retourne sqrt(n)
-    /*
-    si n == 0.0 {
-        retourne 0.0
-    }
-
-    si n == 1.0 {
-        retourne 1.0
-    }
-
-    si n < 0.0 {
-        // À FAIRE: retourne NaN
-        retourne 0.0
-    }
-
-    PRÉCISION := 0.0001
-    limite_basse : r64
-    limite_haute : r64
-
-    si n < 1.0 {
-        limite_basse = n
-        limite_haute = 1.0
-    }
-    sinon {
-        limite_basse = 1.0
-        limite_haute = n
-    }
-
-    tantque (limite_haute - limite_basse) > PRÉCISION {
-        prédiction := (limite_basse + limite_haute) * 0.5
-
-        si (prédiction * prédiction) > n {
-            limite_haute = prédiction
-        }
-        sinon {
-            limite_basse = prédiction
-        }
-    }
-
-    retourne (limite_basse + limite_haute) * 0.5
-    */
 }
 
-racine_cubique :: fonc (n: r64) -> r64
+/* Calcul de la racine N d'un nombre réel selon la méthode approximative de Newton. */
+racine_selon_newton :: fonc (n: $T, N: r64) -> T
 {
     si n == 0.0 {
         retourne 0.0
@@ -219,7 +179,7 @@ racine_cubique :: fonc (n: r64) -> r64
         retourne 1.0
     }
 
-    PRÉCISION := 0.00001
+    PRÉCISION : r64 : 0.0000001
     limite_basse : r64
     limite_haute : r64
 
@@ -235,7 +195,7 @@ racine_cubique :: fonc (n: r64) -> r64
     tantque (limite_haute - limite_basse) > PRÉCISION {
         prédiction := (limite_basse + limite_haute) * 0.5
 
-        si (prédiction * prédiction * prédiction) > n {
+        si puissance(prédiction, N) > n {
             limite_haute = prédiction
         }
         sinon {
@@ -243,7 +203,17 @@ racine_cubique :: fonc (n: r64) -> r64
         }
     }
 
-    retourne (limite_basse + limite_haute) * 0.5
+    retourne ((limite_basse + limite_haute) * 0.5) comme T
+}
+
+racine_carrée_newton :: fonc (n: $T) -> T
+{
+    retourne racine_selon_newton(n, 2.0)
+}
+
+racine_cubique_newton :: fonc (n: r64) -> r64
+{
+    retourne racine_selon_newton(n, 3.0)
 }
 
 // À FAIRE : certaines fonctions n'ont de sens que pour les nombres relatifs ou réels
