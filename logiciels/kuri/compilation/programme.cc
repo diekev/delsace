@@ -515,7 +515,7 @@ void imprime_diagnostique(const DiagnostiqueÉtatCompilation &diagnostique, std:
 
     if (diagnostique.fonction_initialisation_type_à_créer) {
         os << "-- fonction d'initialisation non-créée pour le type : "
-           << chaine_type(diagnostique.ri_type_à_générer) << '\n';
+           << chaine_type(diagnostique.fonction_initialisation_type_à_créer) << '\n';
     }
     if (diagnostique.ri_type_à_générer) {
         os << "-- RI non générée pour la fonction d'initialisation du type : "
