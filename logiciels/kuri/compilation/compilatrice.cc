@@ -273,12 +273,22 @@ int64_t Compilatrice::memoire_utilisee() const
     auto metaprogrammes_ = metaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
         résultat += it.programme->memoire_utilisee();
+        résultat += it.données_constantes.taille_memoire();
+        résultat += it.données_globales.taille_memoire();
+        résultat += it.cibles_appels.taille_memoire();
     }
+
+    résultat += metaprogrammes_->memoire_utilisee();
 
     résultat += chaines_ajoutées_à_la_compilation->mémoire_utilisée();
 
     résultat += m_tableaux_lexemes.taille_memoire();
     POUR (m_tableaux_lexemes) {
+        résultat += it.taille_memoire();
+    }
+
+    résultat += m_tableaux_code_fonctions.taille_memoire();
+    POUR (m_tableaux_code_fonctions) {
         résultat += it.taille_memoire();
     }
 

@@ -295,11 +295,16 @@ int64_t Programme::memoire_utilisee() const
     memoire += m_globales_utilisees.taille_memoire();
     memoire += taille_de(Coulisse);
     memoire += m_fichiers.taille_memoire();
+    memoire += m_fichiers_utilises.taille_memoire();
+    memoire += m_dépendances_manquantes.taille_memoire();
     return memoire;
 }
 
-void Programme::rassemble_statistiques(Statistiques & /*stats*/)
+void Programme::rassemble_statistiques(Statistiques &stats)
 {
+    if (m_coulisse) {
+        m_coulisse->rassemble_statistiques(stats);
+    }
 }
 
 kuri::ensemble<Module *> Programme::modules_utilises() const

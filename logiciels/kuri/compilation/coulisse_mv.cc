@@ -120,3 +120,8 @@ std::optional<ErreurCoulisse> CoulisseMV::crée_exécutable_impl(const ArgsLiais
 
     return {};
 }
+
+int64_t CoulisseMV::mémoire_utilisée() const
+{
+    return convertisseuse_noeud_code.memoire_utilisee();
+}

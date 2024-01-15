@@ -1775,3 +1775,19 @@ DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
 
     return résultat;
 }
+
+int64_t CoulisseLLVM::mémoire_utilisée() const
+{
+    auto résultat = int64_t(0);
+    résultat += m_bibliothèques.taille();
+    résultat += m_modules.taille();
+
+    POUR (m_modules) {
+        résultat += taille_de(llvm::LLVMContext);
+        résultat += taille_de(llvm::Module);
+        résultat += it->chemin_fichier_objet.taille();
+        résultat += it->erreur_fichier_objet.taille();
+    }
+
+    return résultat;
+}

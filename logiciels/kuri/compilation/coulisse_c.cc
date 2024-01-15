@@ -172,6 +172,8 @@ struct GénératriceCodeC {
 
     ~GénératriceCodeC();
 
+    int64_t mémoire_utilisée() const;
+
     kuri::chaine_statique génère_code_pour_atome(Atome const *atome,
                                                  Enchaineuse &os,
                                                  bool pour_globale);
@@ -249,6 +251,8 @@ struct ConvertisseuseTypeC {
     {
     }
 
+    int64_t mémoire_utilisée() const;
+
     TypeC &type_c_pour(Type const *type);
 
     bool typedef_fut_généré(const Type *type_kuri);
@@ -280,6 +284,16 @@ struct ConvertisseuseTypeC {
 /* ------------------------------------------------------------------------- */
 /** \name Implémentation de ConvertisseuseTypeC.
  * \{ */
+
+int64_t ConvertisseuseTypeC::mémoire_utilisée() const
+{
+    auto résultat = int64_t(0);
+    résultat += types_c.memoire_utilisee();
+    résultat += enchaineuse_tmp.mémoire_utilisée();
+    résultat += stockage_chn.mémoire_utilisée();
+    résultat += table_types_c.taille_mémoire();
+    return résultat;
+}
 
 TypeC &ConvertisseuseTypeC::type_c_pour(Type const *type)
 {
@@ -974,6 +988,27 @@ GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeu
 GénératriceCodeC::~GénératriceCodeC()
 {
     memoire::deloge("Conver", m_convertisseuse_type_c);
+}
+
+int64_t GénératriceCodeC::mémoire_utilisée() const
+{
+    auto résultat = int64_t(0);
+    résultat += table_valeurs.taille_memoire();
+    résultat += table_globales.taille_mémoire();
+    résultat += table_fonctions.taille_mémoire();
+    résultat += table_types.taille_mémoire();
+    résultat += enchaineuse_tmp.mémoire_utilisée();
+    résultat += stockage_chn.mémoire_utilisée();
+
+    résultat += chaines_trop_larges_pour_stockage_chn.taille_memoire();
+    POUR (chaines_trop_larges_pour_stockage_chn) {
+        résultat += it.taille();
+    }
+
+    résultat += m_convertisseuse_type_c->mémoire_utilisée();
+
+    résultat += taille_de(ConvertisseuseTypeC);
+    return résultat;
 }
 
 kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *atome,
@@ -2005,6 +2040,8 @@ std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérati
         }
     }
 
+    m_mémoire_génératrice += génératrice.mémoire_utilisée();
+
     m_bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
     return {};
 }
@@ -2114,6 +2151,24 @@ std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaiso
 
     return {};
 #endif
+}
+
+int64_t CoulisseC::mémoire_utilisée() const
+{
+    auto résultat = int64_t(0);
+
+    résultat += m_bibliothèques.taille_memoire();
+    résultat += m_fichiers.taille_memoire();
+
+    POUR (m_fichiers) {
+        résultat += it.chemin_fichier.taille();
+        résultat += it.chemin_fichier_objet.taille();
+        résultat += it.chemin_fichier_erreur_objet.taille();
+    }
+
+    résultat += m_mémoire_génératrice;
+
+    return résultat;
 }
 
 void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
