@@ -191,6 +191,8 @@ struct Sémanticienne {
 
     StatistiquesTypage &donne_stats_typage();
 
+    void rassemble_statistiques(Statistiques &stats);
+
     ArbreAplatis *donne_arbre()
     {
         return m_arbre_courant;

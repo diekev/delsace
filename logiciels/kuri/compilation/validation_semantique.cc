@@ -68,6 +68,19 @@ StatistiquesTypage &Sémanticienne::donne_stats_typage()
     return m_stats_typage;
 }
 
+void Sémanticienne::rassemble_statistiques(Statistiques &stats)
+{
+    auto mémoire_utilisée = 0l;
+    POUR (m_arbres_aplatis) {
+        mémoire_utilisée += it->noeuds.taille_memoire();
+        mémoire_utilisée += taille_de(ArbreAplatis);
+    }
+
+    mémoire_utilisée += m_arbres_aplatis.taille_memoire();
+
+    stats.ajoute_mémoire_utilisée("Compilatrice", mémoire_utilisée);
+}
+
 /* Point d'entrée pour la validation sémantique. Nous utilisons ceci au lieu de directement appeler
  * valide_semantique_noeud, puisque la validation des arbres aplatis pourrait résulter en un
  * dépassement de pile dans le cas où l'arbre aplatis contient également la fonction racine.

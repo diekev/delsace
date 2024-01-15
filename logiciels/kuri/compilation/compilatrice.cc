@@ -292,6 +292,9 @@ int64_t Compilatrice::memoire_utilisee() const
     résultat += constructeurs_globaux->taille_memoire();
     résultat += table_chaines->taille_mémoire();
 
+    résultat += m_sémanticiennes.taille_memoire() +
+                taille_de(Sémanticienne) * m_sémanticiennes.taille();
+
     return résultat;
 }
 
@@ -322,6 +325,8 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
     POUR (m_sémanticiennes) {
         stats.temps_typage -= it->donne_temps_chargement();
+        it->rassemble_statistiques(stats);
+
 #ifdef STATISTIQUES_DETAILLEES
         it->donne_stats_typage().imprime_stats();
 #endif
