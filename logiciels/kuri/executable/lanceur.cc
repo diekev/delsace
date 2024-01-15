@@ -93,7 +93,7 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
         it->rassemble_statistiques(stats);
     }
 
-    stats.mémoire_ri = stats.stats_ri.totaux.mémoire;
+    stats.ajoute_mémoire_utilisée("RI", stats.stats_ri.totaux.mémoire);
 }
 
 static void imprime_stats(Compilatrice const &compilatrice,

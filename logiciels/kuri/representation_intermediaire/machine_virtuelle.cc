@@ -2306,7 +2306,7 @@ void MachineVirtuelle::déloge_données_exécution(DonnéesExécution *&données
 
 void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
 {
-    stats.mémoire_mv += données_exécution.memoire_utilisee();
+    stats.ajoute_mémoire_utilisée("Machine Virtuelle", données_exécution.memoire_utilisee());
     stats.nombre_métaprogrammes_exécutés += nombre_de_métaprogrammes_exécutés;
     stats.temps_métaprogrammes += temps_exécution_métaprogammes;
     stats.instructions_exécutées += instructions_exécutées;

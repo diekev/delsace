@@ -287,13 +287,14 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
 
     auto mémoire_paramètres = int64_t(0);
     auto mémoire_instructions = int64_t(0);
+    auto mémoire_code_binaire = int64_t(0);
     pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
         mémoire_paramètres += it.params_entrees.taille_memoire();
         mémoire_instructions += it.instructions.taille_memoire();
 
         if (it.données_exécution) {
-            stats.mémoire_code_binaire += it.données_exécution->mémoire_utilisée();
-            stats.mémoire_code_binaire += taille_de(DonnéesExécutionFonction);
+            mémoire_code_binaire += it.données_exécution->mémoire_utilisée();
+            mémoire_code_binaire += taille_de(DonnéesExécutionFonction);
         }
     });
 
@@ -303,6 +304,8 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
     stats_ri.fusionne_entrée({"globales", globales.taille(), globales.memoire_utilisee()});
 
     m_constructrice->rassemble_statistiques(stats);
+
+    stats.ajoute_mémoire_utilisée("Code Binaire", mémoire_code_binaire);
 }
 
 /** \} */

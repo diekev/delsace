@@ -848,5 +848,5 @@ int64_t GestionnaireBibliotheques::memoire_utilisee() const
 
 void GestionnaireBibliotheques::rassemble_statistiques(Statistiques &stats) const
 {
-    stats.mémoire_bibliothèques += memoire_utilisee();
+    stats.ajoute_mémoire_utilisée("Bibliothèques", memoire_utilisee());
 }

@@ -52,7 +52,7 @@ void DonnéesConstantesExécutions::rassemble_statistiques(Statistiques &stats) 
     memoire_mv += données_globales.taille_memoire();
     memoire_mv += patchs_données_constantes.taille_memoire();
 
-    stats.mémoire_mv += memoire_mv;
+    stats.ajoute_mémoire_utilisée("Machine Virtuelle", memoire_mv);
 }
 
 MetaProgramme::~MetaProgramme()
