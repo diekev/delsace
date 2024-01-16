@@ -357,17 +357,17 @@ convertis_nombre_scientifique_en_réel :: fonc (composition: CompositionNombreSc
     si composition.partie_décimale.taille != 0 {
         partie_décimale := extrait_nombre_entier(composition.partie_décimale)
 
-        résultat += partie_décimale comme r64 * pow(0.1, composition.partie_décimale.taille comme r64)
+        résultat += partie_décimale comme r64 * puissance(0.1, composition.partie_décimale.taille comme r64)
     }
 
     si composition.exposant.taille != 0 {
         exposant := extrait_nombre_entier(composition.exposant)
 
         si exposant < 0 {
-            résultat *= pow(0.1, -exposant comme r64)
+            résultat *= puissance(0.1, -exposant comme r64)
         }
         sinon {
-            résultat *= pow(10.0, exposant comme r64)
+            résultat *= puissance(10.0, exposant comme r64)
         }
     }
 

@@ -256,6 +256,8 @@ struct UniteCompilation {
 
     kuri::chaine chaine_attentes_récursives() const;
 
+    int64_t mémoire_utilisée() const;
+
   private:
     bool est_attente_sur_symbole_précédent(Attente attente) const;
     void marque_prête_pour_attente_sur_symbole();
