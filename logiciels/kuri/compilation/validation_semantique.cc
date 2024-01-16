@@ -584,7 +584,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                     expr->operande, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type});
             }
 
-            auto operateurs = m_compilatrice.operateurs.verrou_lecture();
+            auto operateurs = m_compilatrice.opérateurs.verrou_lecture();
             auto op = cherche_opérateur_unaire(*operateurs, type, expr->lexeme->genre);
 
             if (op == nullptr) {
@@ -1914,7 +1914,7 @@ RésultatValidation Sémanticienne::valide_entête_opérateur_pour(
     }
 
     auto type_itéré = opérateur->params[0]->type;
-    auto table_opérateurs = m_compilatrice.operateurs->donne_ou_crée_table_opérateurs(type_itéré);
+    auto table_opérateurs = m_compilatrice.opérateurs->donne_ou_crée_table_opérateurs(type_itéré);
 
     if (table_opérateurs->opérateur_pour != nullptr) {
         rapporte_erreur_redéfinition_fonction(opérateur, table_opérateurs->opérateur_pour);
@@ -2123,7 +2123,7 @@ RésultatValidation Sémanticienne::valide_définition_unique_opérateur(
     NoeudDeclarationEnteteFonction *decl)
 {
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__REDEFINITION_OPERATEUR);
-    auto operateurs = m_compilatrice.operateurs.verrou_ecriture();
+    auto operateurs = m_compilatrice.opérateurs.verrou_ecriture();
     auto type_fonc = decl->type->comme_type_fonction();
     auto type_résultat = type_fonc->type_sortie;
 
@@ -2184,7 +2184,7 @@ RésultatValidation Sémanticienne::valide_symbole_externe(NoeudDeclarationSymbo
 
     auto données_externes = decl->données_externes;
 
-    auto bibliotheque = m_compilatrice.gestionnaire_bibliotheques->trouve_bibliotheque(
+    auto bibliotheque = m_compilatrice.gestionnaire_bibliothèques->trouve_bibliotheque(
         données_externes->ident_bibliotheque);
 
     if (!bibliotheque) {
@@ -2922,7 +2922,7 @@ RésultatValidation Sémanticienne::valide_type_opaque(NoeudDeclarationTypeOpaqu
     else {
         decl->alignement = type_opacifie->alignement;
         decl->taille_octet = type_opacifie->taille_octet;
-        m_compilatrice.graphe_dependance->connecte_type_type(decl, type_opacifie);
+        m_compilatrice.graphe_dépendance->connecte_type_type(decl, type_opacifie);
     }
 
     return CodeRetourValidation::OK;
@@ -3310,7 +3310,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
     decl->taille_octet = decl->type_sous_jacent->taille_octet;
     decl->alignement = decl->type_sous_jacent->alignement;
 
-    m_compilatrice.operateurs->ajoute_opérateur_basique_enum(decl);
+    m_compilatrice.opérateurs->ajoute_opérateur_basique_enum(decl);
 
     auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 32>();
 
@@ -5440,7 +5440,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
         case GenreLexème::EGALITE:
         {
             // XXX - aucune raison de prendre un verrou ici
-            auto op = m_compilatrice.operateurs->op_comp_égal_types;
+            auto op = m_compilatrice.opérateurs->op_comp_égal_types;
             expr->type = op->type_résultat;
             expr->op = op;
             return CodeRetourValidation::OK;
@@ -5448,7 +5448,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
         case GenreLexème::DIFFERENCE:
         {
             // XXX - aucune raison de prendre un verrou ici
-            auto op = m_compilatrice.operateurs->op_comp_diff_types;
+            auto op = m_compilatrice.opérateurs->op_comp_diff_types;
             expr->type = op->type_résultat;
             expr->op = op;
             return CodeRetourValidation::OK;
@@ -6147,7 +6147,7 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 RésultatValidation Sémanticienne::valide_dépendance_bibliothèque(
     NoeudDirectiveDependanceBibliotheque *noeud)
 {
-    auto &gestionnaire_bibliotheques = m_compilatrice.gestionnaire_bibliotheques;
+    auto &gestionnaire_bibliotheques = m_compilatrice.gestionnaire_bibliothèques;
 
     auto ident_bibliothèque_dépendante = noeud->bibliothèque_dépendante->ident;
     auto ident_bibliothèque_dépendue = noeud->bibliothèque_dépendue->ident;

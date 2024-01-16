@@ -1541,7 +1541,7 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
      * doivent être initialisées après). */
     kuri::rassembleuse<AtomeGlobale *> rassembleuse_atomes;
     {
-        auto graphe = compilatrice.graphe_dependance.verrou_ecriture();
+        auto graphe = compilatrice.graphe_dépendance.verrou_ecriture();
         graphe->prepare_visite();
 
         POUR (globales_avec_déclarations) {

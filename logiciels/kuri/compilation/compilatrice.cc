@@ -74,14 +74,14 @@ int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
 
 Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
     : ordonnanceuse(this), messagère(this), gestionnaire_code(this),
-      gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
-      racine_kuri(chemin_racine_kuri), typeuse(graphe_dependance, this->operateurs),
+      gestionnaire_bibliothèques(GestionnaireBibliotheques(*this)), arguments(arguments_),
+      racine_kuri(chemin_racine_kuri), typeuse(graphe_dépendance, this->opérateurs),
       registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
 {
     initialise_identifiants_intrinsèques(*table_identifiants.verrou_ecriture());
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 
-    auto ops = operateurs.verrou_ecriture();
+    auto ops = opérateurs.verrou_ecriture();
     enregistre_opérateurs_basiques(typeuse, *ops);
 
     espace_de_travail_defaut = demarre_un_espace_de_travail({}, "Espace 1");
@@ -270,7 +270,7 @@ int64_t Compilatrice::memoire_utilisee() const
 
     résultat += sys_module->mémoire_utilisée();
 
-    auto metaprogrammes_ = metaprogrammes.verrou_lecture();
+    auto metaprogrammes_ = métaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
         résultat += it.programme->memoire_utilisee();
         résultat += it.données_constantes.taille_mémoire();
@@ -282,8 +282,8 @@ int64_t Compilatrice::memoire_utilisee() const
 
     résultat += chaines_ajoutées_à_la_compilation->mémoire_utilisée();
 
-    résultat += m_tableaux_lexemes.taille_mémoire();
-    POUR (m_tableaux_lexemes) {
+    résultat += m_tableaux_lexèmes.taille_mémoire();
+    POUR (m_tableaux_lexèmes) {
         résultat += it.taille_mémoire();
     }
 
@@ -320,12 +320,12 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
     sys_module->rassemble_stats(stats);
 
-    operateurs->rassemble_statistiques(stats);
-    graphe_dependance->rassemble_statistiques(stats);
-    gestionnaire_bibliotheques->rassemble_statistiques(stats);
+    opérateurs->rassemble_statistiques(stats);
+    graphe_dépendance->rassemble_statistiques(stats);
+    gestionnaire_bibliothèques->rassemble_statistiques(stats);
     typeuse.rassemble_statistiques(stats);
 
-    auto metaprogrammes_ = metaprogrammes.verrou_lecture();
+    auto metaprogrammes_ = métaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
         it.programme->rassemble_statistiques(stats);
     }
@@ -496,8 +496,8 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
     if (std::holds_alternative<FichierExistant>(résultat)) {
         auto fichier = static_cast<Fichier *>(std::get<FichierExistant>(résultat));
         auto tableau = converti_tableau_lexemes(fichier->lexèmes);
-        m_tableaux_lexemes.ajoute(tableau);
-        return m_tableaux_lexemes.dernier_élément();
+        m_tableaux_lexèmes.ajoute(tableau);
+        return m_tableaux_lexèmes.dernier_élément();
     }
 
     auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
@@ -509,8 +509,8 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
     lexeuse.performe_lexage();
 
     auto tableau = converti_tableau_lexemes(fichier->lexèmes);
-    m_tableaux_lexemes.ajoute(tableau);
-    return m_tableaux_lexemes.dernier_élément();
+    m_tableaux_lexèmes.ajoute(tableau);
+    return m_tableaux_lexèmes.dernier_élément();
 }
 
 kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsees(
@@ -575,7 +575,7 @@ RésultatFichier Compilatrice::trouve_ou_crée_fichier(Module *module,
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
     NoeudDeclarationEnteteFonction const *entete)
 {
-    POUR_TABLEAU_PAGE ((*metaprogrammes.verrou_ecriture())) {
+    POUR_TABLEAU_PAGE ((*métaprogrammes.verrou_ecriture())) {
         if (it.fonction == entete) {
             return &it;
         }
@@ -618,7 +618,7 @@ Fichier *Compilatrice::fichier(kuri::chaine_statique chemin) const
 
 MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
 {
-    auto résultat = metaprogrammes->ajoute_element();
+    auto résultat = métaprogrammes->ajoute_element();
     résultat->programme = Programme::crée_pour_metaprogramme(espace, résultat);
     return résultat;
 }

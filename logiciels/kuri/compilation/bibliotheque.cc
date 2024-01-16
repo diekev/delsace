@@ -337,7 +337,7 @@ GestionnaireBibliotheques::GestionnaireBibliotheques(Compilatrice &compilatrice_
 bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilatrice &compilatrice)
 {
     auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
-    auto gestionnaire = compilatrice.gestionnaire_bibliotheques.verrou_ecriture();
+    auto gestionnaire = compilatrice.gestionnaire_bibliothèques.verrou_ecriture();
     auto espace = compilatrice.espace_defaut_compilation();
 
     /* La bibliothèque C. */

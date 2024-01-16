@@ -931,7 +931,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     auto programme = metaprogramme->programme;
     programme->ajoute_fonction(metaprogramme->fonction);
 
-    auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
+    auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
     determine_dependances(metaprogramme->fonction, espace, *graphe);
     determine_dependances(metaprogramme->fonction->corps, espace, *graphe);
 
@@ -1371,7 +1371,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     }
 
     // rassemble toutes les dépendances de la fonction ou de la globale
-    auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
+    auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
     auto noeud = unite->noeud;
     DÉBUTE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
     auto const détermine_dépendances = doit_determiner_les_dependances(unite->noeud);
@@ -1563,7 +1563,7 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
         }
     }
 
-    auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
+    auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
     determine_dependances(fonction, unite->espace, *graphe);
     determine_dependances(fonction->corps, unite->espace, *graphe);
 
