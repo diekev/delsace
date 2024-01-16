@@ -67,7 +67,7 @@ void Bloc::enlève_enfant(Bloc *enfant)
 void Bloc::fusionne_enfant(Bloc *enfant)
 {
     this->instructions.supprime_dernier();
-    this->instructions.reserve_delta(enfant->instructions.taille());
+    this->instructions.réserve_delta(enfant->instructions.taille());
 
     POUR (enfant->instructions) {
         this->ajoute_instruction(it);
@@ -232,7 +232,7 @@ static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
 {
     Bloc *bloc;
     if (!blocs_libres.est_vide()) {
-        bloc = blocs_libres.dernière();
+        bloc = blocs_libres.dernier_élément();
         blocs_libres.supprime_dernier();
     }
     else {

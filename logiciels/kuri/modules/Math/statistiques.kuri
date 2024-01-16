@@ -55,7 +55,7 @@ p_distribution_normale :: fonc (qn: r32) -> r32
     w1 = b[0];
 
     pour 1 ... b.taille - 1 {
-        w1 += b[it] * pow(w3, it comme r64) comme r32
+        w1 += b[it] * puissance(w3, it comme r64) comme r32
     }
 
     si (qn > 0.5) {

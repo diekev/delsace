@@ -44,7 +44,7 @@ static const char *copie_extra_entête_opérateur_pour = R"(
             )";
 
 static const char *copie_extra_bloc = R"(
-            copie->reserve_membres(orig->nombre_de_membres());
+            copie->réserve_membres(orig->nombre_de_membres());
             POUR (*copie->expressions.verrou_lecture()) {
                 if (it->est_declaration_type() || it->est_entete_fonction()) {
                     copie->ajoute_membre(it->comme_declaration());
@@ -560,7 +560,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
                 if (enfant.type->est_tableau()) {
                     const auto type_tableau = enfant.type->comme_tableau();
-                    os << "copie->" << nom_enfant << enfant.type->accesseur() << "reserve("
+                    os << "copie->" << nom_enfant << enfant.type->accesseur() << "réserve("
                        << "orig->" << nom_enfant << enfant.type->accesseur() << "taille());\n";
 
                     os << "\t\t\t";
@@ -619,7 +619,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
                 if (enfant.type->est_tableau()) {
                     const auto type_tableau = enfant.type->comme_tableau();
-                    os << "copie->" << nom_enfant << enfant.type->accesseur() << "reserve("
+                    os << "copie->" << nom_enfant << enfant.type->accesseur() << "réserve("
                        << "orig->" << nom_enfant << enfant.type->accesseur() << "taille());\n";
 
                     os << "\t\t\t";
@@ -949,7 +949,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     }
 
                     if (nom_membre.nom_cpp() == "annotations") {
-                        os << "\t\t\t\tn->annotations.reserve(racine_typee->annotations.taille());"
+                        os << "\t\t\t\tn->annotations.réserve(racine_typee->annotations.taille());"
                               "\n";
                         os << "\t\t\tPOUR (racine_typee->annotations) {\n";
                         os << "\t\t\t\tn->annotations.ajoute({it.nom, it.valeur});\n";
@@ -1099,7 +1099,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     }
 
                     if (nom_membre.nom_cpp() == "annotations") {
-                        os << "\t\t\t\tn->annotations.reserve(static_cast<int>(racine_typee->"
+                        os << "\t\t\t\tn->annotations.réserve(static_cast<int>(racine_typee->"
                               "annotations.taille()));"
                               "\n";
                         os << "\t\t\tPOUR (racine_typee->annotations) {\n";
@@ -1262,7 +1262,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
 )";
         const char *recycle_référence = R"(
     if (!m_références.est_vide()) {
-        auto résultat = m_références.dernière();
+        auto résultat = m_références.dernier_élément();
         m_références.supprime_dernier();
         new (résultat) NoeudExpressionReference;
         résultat->lexeme = lexeme;
@@ -1494,7 +1494,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
                     os << nom_tableau << " = std::max(" << nom_tableau << ", noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille());\n";
                     os << "memoire_" << nom_comme << " += noeud." << nom_membre;
-                    os << membre.type->accesseur() << "taille_memoire();\n";
+                    os << membre.type->accesseur() << "taille_mémoire();\n";
                 }
                 else if (membre.nom.nom_cpp() == "monomorphisations") {
                     const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom_cpp(),

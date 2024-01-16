@@ -386,7 +386,7 @@ void Lexeuse::performe_lexage()
             auto fin_chaine = this->m_début + it.chaine.taille();
 
             chaine.efface();
-            chaine.reserve(it.chaine.taille());
+            chaine.réserve(it.chaine.taille());
 
             while (m_début != fin_chaine) {
                 if (*m_début == '\n') {

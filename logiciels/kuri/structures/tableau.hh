@@ -15,9 +15,9 @@ namespace kuri {
 template <typename T, typename TypeIndex = int64_t>
 struct tableau {
   private:
-    T *pointeur = nullptr;
-    TypeIndex taille_ = 0;
-    TypeIndex capacite = 0;
+    T *m_éléments = nullptr;
+    TypeIndex m_taille = 0;
+    TypeIndex m_capacité = 0;
 
   public:
     using iteratrice = T *;
@@ -26,38 +26,40 @@ struct tableau {
     tableau() = default;
 
     explicit tableau(TypeIndex taille_initiale)
-        : pointeur(memoire::loge_tableau<T>("kuri::tableau", taille_initiale)),
-          taille_(taille_initiale), capacite(taille_initiale)
+        : m_éléments(memoire::loge_tableau<T>("kuri::tableau", taille_initiale)),
+          m_taille(taille_initiale), m_capacité(taille_initiale)
     {
     }
 
     tableau(std::initializer_list<T> &&liste) : tableau(static_cast<TypeIndex>(liste.size()))
     {
-        auto ptr = this->pointeur;
-        for (auto &&elem : liste) {
-            *ptr++ = elem;
+        auto ptr = this->m_éléments;
+        for (auto &&élément : liste) {
+            *ptr++ = élément;
         }
     }
 
     tableau(tableau const &autre)
     {
-        memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, autre.taille_);
-        this->taille_ = autre.taille_;
-        this->capacite = autre.taille_;
+        memoire::reloge_tableau(
+            "kuri::tableau", this->m_éléments, this->m_capacité, autre.m_taille);
+        this->m_taille = autre.m_taille;
+        this->m_capacité = autre.m_taille;
 
-        for (auto i = 0; i < autre.taille_; ++i) {
-            this->pointeur[i] = autre.pointeur[i];
+        for (auto i = 0; i < autre.m_taille; ++i) {
+            this->m_éléments[i] = autre.m_éléments[i];
         }
     }
 
     tableau &operator=(tableau const &autre)
     {
-        memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, autre.taille_);
-        this->taille_ = autre.taille_;
-        this->capacite = autre.taille_;
+        memoire::reloge_tableau(
+            "kuri::tableau", this->m_éléments, this->m_capacité, autre.m_taille);
+        this->m_taille = autre.m_taille;
+        this->m_capacité = autre.m_taille;
 
-        for (auto i = 0; i < autre.taille_; ++i) {
-            this->pointeur[i] = autre.pointeur[i];
+        for (auto i = 0; i < autre.m_taille; ++i) {
+            this->m_éléments[i] = autre.m_éléments[i];
         }
 
         return *this;
@@ -76,177 +78,177 @@ struct tableau {
 
     ~tableau()
     {
-        for (auto i = 0; i < taille_; ++i) {
-            this->pointeur[i].~T();
+        for (auto i = 0; i < m_taille; ++i) {
+            this->m_éléments[i].~T();
         }
 
-        memoire::deloge_tableau("kuri::tableau", this->pointeur, this->capacite);
+        memoire::deloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité);
     }
 
     T &operator[](TypeIndex i)
     {
-        assert(i >= 0 && i < this->taille_);
-        return this->pointeur[i];
+        assert(i >= 0 && i < this->m_taille);
+        return this->m_éléments[i];
     }
 
     T const &operator[](TypeIndex i) const
     {
-        assert(i >= 0 && i < this->taille_);
-        return this->pointeur[i];
+        assert(i >= 0 && i < this->m_taille);
+        return this->m_éléments[i];
     }
 
     void ajoute(T const &valeur)
     {
-        reserve(this->taille_ + 1);
-        this->taille_ += 1;
-        this->pointeur[this->taille_ - 1] = valeur;
+        réserve(this->m_taille + 1);
+        this->m_taille += 1;
+        this->m_éléments[this->m_taille - 1] = valeur;
     }
 
     void ajoute(T &&valeur)
     {
-        reserve(this->taille_ + 1);
-        this->taille_ += 1;
-        this->pointeur[this->taille_ - 1] = std::move(valeur);
+        réserve(this->m_taille + 1);
+        this->m_taille += 1;
+        this->m_éléments[this->m_taille - 1] = std::move(valeur);
     }
 
-    void pousse_front(T const &valeur)
+    void ajoute_au_début(T const &valeur)
     {
-        reserve(this->taille_ + 1);
-        this->taille_ += 1;
+        réserve(this->m_taille + 1);
+        this->m_taille += 1;
 
-        for (auto i = this->taille_ - 1; i >= 1; --i) {
-            this->pointeur[i] = this->pointeur[i - 1];
+        for (auto i = this->m_taille - 1; i >= 1; --i) {
+            this->m_éléments[i] = this->m_éléments[i - 1];
         }
 
-        this->pointeur[0] = valeur;
+        this->m_éléments[0] = valeur;
     }
 
     void supprime_dernier()
     {
-        if (this->taille_ == 0) {
+        if (this->m_taille == 0) {
             return;
         }
 
-        this->pointeur[this->taille_ - 1] = {};
-        this->taille_ -= 1;
+        this->m_éléments[this->m_taille - 1] = {};
+        this->m_taille -= 1;
     }
 
     void supprime_premier()
     {
-        if (this->taille_ == 0) {
+        if (this->m_taille == 0) {
             return;
         }
 
-        for (auto i = 0; i < this->taille_ - 1; i++) {
-            this->pointeur[i] = this->pointeur[i + 1];
+        for (auto i = 0; i < this->m_taille - 1; i++) {
+            this->m_éléments[i] = this->m_éléments[i + 1];
         }
 
-        this->taille_ -= 1;
+        this->m_taille -= 1;
     }
 
-    void reserve(TypeIndex nombre)
+    void réserve(TypeIndex nombre)
     {
-        if (capacite >= nombre) {
+        if (m_capacité >= nombre) {
             return;
         }
 
-        if (capacite == 0) {
+        if (m_capacité == 0) {
             if (nombre < 8) {
                 nombre = 8;
             }
         }
-        else if (nombre < (capacite * 2)) {
-            nombre = capacite * 2;
+        else if (nombre < (m_capacité * 2)) {
+            nombre = m_capacité * 2;
         }
 
-        memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, nombre);
-        this->capacite = nombre;
+        memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, nombre);
+        this->m_capacité = nombre;
     }
 
-    T *donnees()
+    T *données()
     {
-        return pointeur;
+        return m_éléments;
     }
 
-    T const *donnees() const
+    T const *données() const
     {
-        return pointeur;
+        return m_éléments;
     }
 
-    TypeIndex taille_memoire() const
+    TypeIndex taille_mémoire() const
     {
-        return capacite * static_cast<TypeIndex>(taille_de(T));
+        return m_capacité * static_cast<TypeIndex>(taille_de(T));
     }
 
     void efface()
     {
-        taille_ = 0;
+        m_taille = 0;
     }
 
     void redimensionne(TypeIndex nombre)
     {
-        reserve(nombre);
-        taille_ = nombre;
+        réserve(nombre);
+        m_taille = nombre;
     }
 
     void rétrécis_capacité_sur_taille()
     {
-        if (capacite == taille_) {
+        if (m_capacité == m_taille) {
             return;
         }
 
-        memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, taille_);
-        this->capacite = taille_;
+        memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, m_taille);
+        this->m_capacité = m_taille;
     }
 
     void redimensionne(TypeIndex nombre, T valeur_defaut)
     {
-        reserve(nombre);
+        réserve(nombre);
 
-        if (taille_ >= nombre) {
+        if (m_taille >= nombre) {
             return;
         }
 
-        for (auto i = taille_; i < nombre; ++i) {
-            pointeur[i] = valeur_defaut;
+        for (auto i = m_taille; i < nombre; ++i) {
+            m_éléments[i] = valeur_defaut;
         }
 
-        taille_ = nombre;
+        m_taille = nombre;
     }
 
-    void reserve_delta(TypeIndex delta)
+    void réserve_delta(TypeIndex delta)
     {
-        reserve(taille_ + delta);
+        réserve(m_taille + delta);
     }
 
     TypeIndex taille() const
     {
-        return taille_;
+        return m_taille;
     }
 
     bool est_vide() const
     {
-        return this->taille_ == 0;
+        return this->m_taille == 0;
     }
 
     T *debut()
     {
-        return this->pointeur;
+        return this->m_éléments;
     }
 
     T const *debut() const
     {
-        return this->pointeur;
+        return this->m_éléments;
     }
 
     T *fin()
     {
-        return this->begin() + this->taille_;
+        return this->begin() + this->m_taille;
     }
 
     T const *fin() const
     {
-        return this->begin() + this->taille_;
+        return this->begin() + this->m_taille;
     }
 
     T *begin()
@@ -271,54 +273,54 @@ struct tableau {
 
     T &a(TypeIndex index)
     {
-        return this->pointeur[index];
+        return this->m_éléments[index];
     }
 
     T const &a(TypeIndex index) const
     {
-        return this->pointeur[index];
+        return this->m_éléments[index];
     }
 
-    T &premiere()
+    T &premier_élément()
     {
-        return this->pointeur[0];
+        return this->m_éléments[0];
     }
 
-    T const &premiere() const
+    T const &premier_élément() const
     {
-        return this->pointeur[0];
+        return this->m_éléments[0];
     }
 
-    T &dernière()
+    T &dernier_élément()
     {
-        return this->pointeur[this->taille_ - 1];
+        return this->m_éléments[this->m_taille - 1];
     }
 
-    T const &dernière() const
+    T const &dernier_élément() const
     {
-        return this->pointeur[this->taille_ - 1];
+        return this->m_éléments[this->m_taille - 1];
     }
 
     void permute(tableau &autre)
     {
-        std::swap(pointeur, autre.pointeur);
-        std::swap(capacite, autre.capacite);
-        std::swap(taille_, autre.taille_);
+        std::swap(m_éléments, autre.m_éléments);
+        std::swap(m_capacité, autre.m_capacité);
+        std::swap(m_taille, autre.m_taille);
     }
 
     void efface(T *debut_, T *fin_)
     {
-        auto taille_a_effacer = fin_ - debut_;
+        auto taille_à_effacer = fin_ - debut_;
         while (debut_ != fin_) {
             *debut_ = {};
             debut_++;
         }
-        this->taille_ -= taille_a_effacer;
+        this->m_taille -= taille_à_effacer;
     }
 
     operator tableau_statique<T>() const
     {
-        return {pointeur, taille()};
+        return {m_éléments, taille()};
     }
 };
 

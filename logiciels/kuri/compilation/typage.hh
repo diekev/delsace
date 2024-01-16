@@ -336,7 +336,7 @@ struct Typeuse {
 
     TypeTypeDeDonnees *type_type_de_donnees(Type *type_connu);
 
-    TypeStructure *reserve_type_structure();
+    TypeStructure *réserve_type_structure();
 
     TypeUnion *union_anonyme(Lexème const *lexeme,
                              NoeudBloc *bloc_parent,

@@ -58,9 +58,9 @@ class ensemble {
         return nombre_elements;
     }
 
-    int64_t taille_memoire() const
+    int64_t taille_mémoire() const
     {
-        return occupes.taille_memoire() + cles.taille_memoire();
+        return occupes.taille_mémoire() + cles.taille_mémoire();
     }
 
     bool est_vide() const

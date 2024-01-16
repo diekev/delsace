@@ -292,7 +292,7 @@ class tablet {
 
     ~tablet()
     {
-        supprime_donnees();
+        supprime_données();
     }
 
     void permute(tablet &autre)
@@ -375,18 +375,18 @@ class tablet {
         this->m_taille = n;
     }
 
-    void reserve(int64_t n)
+    void réserve(int64_t n)
     {
         garantie_capacite(n);
     }
 
-    const T *donnees() const
+    const T *données() const
     {
         assert(m_memoire);
         return m_memoire;
     }
 
-    T *donnees()
+    T *données()
     {
         assert(m_memoire);
         return m_memoire;
@@ -550,7 +550,7 @@ class tablet {
 
     void copie_donnees(tablet const &autre)
     {
-        supprime_donnees();
+        supprime_données();
 
         this->redimensionne(autre.taille());
 
@@ -559,7 +559,7 @@ class tablet {
         }
     }
 
-    void supprime_donnees()
+    void supprime_données()
     {
         if (m_memoire != m_tablet) {
             memoire::deloge_tableau("tablet", m_memoire, m_alloue);
@@ -583,7 +583,7 @@ template <typename T, size_t N, typename... Ts>
 auto crée_tablet(T arg, Ts &&...args)
 {
     tablet<T, N> résultat;
-    résultat.reserve(1 + static_cast<int64_t>(sizeof...(Ts)));
+    résultat.réserve(1 + static_cast<int64_t>(sizeof...(Ts)));
     résultat.ajoute(arg);
     ((résultat.ajoute(args)), ...);
     return résultat;
@@ -592,7 +592,7 @@ auto crée_tablet(T arg, Ts &&...args)
 template <typename T, uint64_t N, typename TypeIndex>
 static auto copie_tablet_tableau(kuri::tablet<T, N> const &src, kuri::tableau<T, TypeIndex> &dst)
 {
-    dst.reserve(static_cast<TypeIndex>(src.taille()));
+    dst.réserve(static_cast<TypeIndex>(src.taille()));
 
     POUR (src) {
         dst.ajoute(it);

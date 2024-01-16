@@ -367,7 +367,7 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
             }
         }
 
-        auto di = it->instructions.dernière();
+        auto di = it->instructions.dernier_élément();
         if (di->est_branche_ou_retourne()) {
             continue;
         }
@@ -397,7 +397,7 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
             continue;
         }
 
-        auto di = it->instructions.dernière();
+        auto di = it->instructions.dernier_élément();
         if (!di->est_branche()) {
             continue;
         }
@@ -405,7 +405,7 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
         auto branche = di->comme_branche();
 
         for (auto parent : it->parents) {
-            auto di_parent = parent->instructions.dernière();
+            auto di_parent = parent->instructions.dernier_élément();
 
             if (di_parent->est_branche()) {
                 di_parent->comme_branche()->label = branche->label;
@@ -464,7 +464,7 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
             continue;
         }
 
-        auto di = it->instructions.dernière();
+        auto di = it->instructions.dernier_élément();
 
         if (di->est_branche_cond()) {
             auto branche = di->comme_branche_cond();
@@ -517,7 +517,7 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
         it->fusionne_enfant(bloc_enfant);
         bloc_enfant->instructions.efface();
         /* Regère ce bloc au cas où le nouvelle enfant serait également une branche. */
-        if (it->instructions.dernière()->est_branche()) {
+        if (it->instructions.dernier_élément()->est_branche()) {
             i -= 1;
         }
         bloc_modifié = true;

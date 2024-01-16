@@ -35,10 +35,10 @@ struct chaine {
     chaine(chaine const &autre) : chaine()
     {
         if (this != &autre) {
-            reserve(autre.taille());
+            réserve(autre.taille());
             taille_ = 0;
             for (auto i = 0; i < autre.taille(); ++i) {
-                ajoute_reserve(autre.pointeur()[i]);
+                ajoute_réserve(autre.pointeur()[i]);
             }
         }
     }
@@ -50,10 +50,10 @@ struct chaine {
 
     chaine(const char *c_str, int64_t taille) : chaine()
     {
-        reserve(taille);
+        réserve(taille);
 
         for (auto i = 0; i < taille; ++i) {
-            ajoute_reserve(c_str[i]);
+            ajoute_réserve(c_str[i]);
         }
     }
 
@@ -82,10 +82,10 @@ struct chaine {
     chaine &operator=(chaine const &autre)
     {
         if (this != &autre) {
-            reserve(autre.taille());
+            réserve(autre.taille());
             taille_ = 0;
             for (auto i = 0; i < autre.taille(); ++i) {
-                ajoute_reserve(autre.pointeur()[i]);
+                ajoute_réserve(autre.pointeur()[i]);
             }
         }
 
@@ -132,17 +132,17 @@ struct chaine {
 
     void ajoute(char c)
     {
-        reserve(taille() + 1);
-        ajoute_reserve(c);
+        réserve(taille() + 1);
+        ajoute_réserve(c);
     }
 
-    void ajoute_reserve(char c)
+    void ajoute_réserve(char c)
     {
         this->pointeur_[this->taille_] = c;
         this->taille_ += 1;
     }
 
-    void reserve(TypeIndex nouvelle_taille)
+    void réserve(TypeIndex nouvelle_taille)
     {
         if (nouvelle_taille <= this->capacite_) {
             return;
@@ -154,7 +154,7 @@ struct chaine {
 
     void redimensionne(TypeIndex nouvelle_taille)
     {
-        reserve(nouvelle_taille);
+        réserve(nouvelle_taille);
         taille_ = nouvelle_taille;
     }
 

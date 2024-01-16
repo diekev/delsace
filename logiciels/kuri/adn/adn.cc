@@ -205,7 +205,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\tkuri::table_hachage<IdentifiantCode const *, NoeudDeclaration *> "
                   "table_membres{\"membres_bloc\"};\n";
             os << "\tint nombre_de_membres() const;\n";
-            os << "\tvoid reserve_membres(int nombre);\n";
+            os << "\tvoid réserve_membres(int nombre);\n";
             os << "\tvoid ajoute_membre(NoeudDeclaration *decl);\n";
             os << "\tvoid ajoute_membre_au_debut(NoeudDeclaration *decl);\n";
             os << "\tvoid fusionne_membres(NoeudBloc *de);\n";
@@ -531,7 +531,7 @@ void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     }
     else {
         const auto &premier_membre = m_membres[0];
-        const auto &dernier_membre = m_membres.dernière();
+        const auto &dernier_membre = m_membres.dernier_élément();
 
         os << "\n";
         os << "{\n";
