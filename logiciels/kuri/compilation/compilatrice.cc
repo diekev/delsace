@@ -318,6 +318,8 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
     stats.nombre_identifiants = table_identifiants->taille();
 
+    gestionnaire_code->rassemble_statistiques(stats);
+
     sys_module->rassemble_stats(stats);
 
     opérateurs->rassemble_statistiques(stats);

@@ -1033,6 +1033,30 @@ void GestionnaireCode::flush_noeuds_à_typer()
     m_noeuds_à_valider.efface();
 }
 
+void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
+{
+    auto mémoire = int64_t(0);
+    mémoire += unites.memoire_utilisee();
+    mémoire += unites_en_attente.taille_mémoire();
+    mémoire += metaprogrammes_en_attente_de_crée_contexte.taille_mémoire();
+    mémoire += programmes_en_cours.taille_mémoire();
+    mémoire += m_fonctions_parsees.taille_mémoire();
+    mémoire += m_noeuds_à_valider.taille_mémoire();
+    mémoire += m_fonctions_init_type_requises.taille_mémoire();
+    mémoire += m_nouvelles_unités.taille_mémoire();
+
+    mémoire += dependances.dependances.mémoire_utilisée();
+    mémoire += dependances.dependances_ependues.mémoire_utilisée();
+
+    POUR_TABLEAU_PAGE (unites) {
+        mémoire += it.mémoire_utilisée();
+    }
+
+    allocatrice_noeud.rassemble_statistiques(statistiques);
+
+    statistiques.ajoute_mémoire_utilisée("Gestionnaire Code", mémoire);
+}
+
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
 {
     assert(attente.est_valide());

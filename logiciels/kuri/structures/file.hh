@@ -106,6 +106,11 @@ struct file {
     {
         return m_file.fin();
     }
+
+    int64_t taille_mémoire() const
+    {
+        return m_file.taille_mémoire();
+    }
 };
 
 } /* namespace kuri */
