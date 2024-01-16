@@ -649,7 +649,7 @@ void cree_icosphere(Maillage &maillage,
     auto point_map = get(boost::vertex_point, polyedre);
 
     kuri::tableau<vertex_descriptor> vertices;
-    vertices.reserve(12);
+    vertices.réserve(12);
 
     maillage.reserveNombreDePoints(12);
     maillage.reserveNombreDePolygones(20);
