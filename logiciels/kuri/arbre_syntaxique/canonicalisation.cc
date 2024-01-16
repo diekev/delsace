@@ -1464,7 +1464,7 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
     if (expr->est_bloc()) {
         auto bloc = expr->comme_bloc();
 
-        auto di = bloc->expressions->dernière();
+        auto di = bloc->expressions->dernier_élément();
         if (di->est_retourne() || di->est_retiens()) {
             return;
         }
@@ -2132,6 +2132,9 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
     if (membre.drapeaux == MembreTypeComposé::EST_CONSTANT) {
         simplifie(membre.expression_valeur_defaut);
         ref_membre->substitution = membre.expression_valeur_defaut;
+        if (ref_membre->substitution->type->est_type_entier_constant()) {
+            ref_membre->substitution->type = membre.type;
+        }
         return;
     }
 

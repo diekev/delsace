@@ -2,151 +2,68 @@ importe Bits
 
 libcmath :: #bibliothèque "m"
 
-// À FAIRE : implémente les fonctions suivantes avec notre langage
-sqrt :: fonc (v: r64) -> r64 #externe libcmath
-cos :: fonc (a : r64) -> r64 #externe libcmath
-sin :: fonc (a : r64) -> r64 #externe libcmath
-tan :: fonc (a : r64) -> r64 #externe libcmath
-acos :: fonc (a : r64) -> r64 #externe libcmath
-asin :: fonc (a : r64) -> r64 #externe libcmath
-asinf :: fonc (a : r32) -> r32 #externe libcmath
-atan :: fonc (a : r64) -> r64 #externe libcmath
-atan2 :: fonc (a : r64, b: r64) -> r64 #externe libcmath
-pow :: fonc (a: r64, b: r64) -> r64 #externe libcmath
-ceil :: fonc (a: r64) -> r64 #externe libcmath
-floor :: fonc (a: r64) -> r64 #externe libcmath
-copysign :: fonc (a: r64, b: r64) -> r64 #externe libcmath
+/* Fonctions trigonométriques. */
+
+cosinus :: fonc (a : r32) -> r32 #externe libcmath "cosf"
+cosinus :: fonc (a : r64) -> r64 #externe libcmath "cos"
+sinus :: fonc (a : r32) -> r32 #externe libcmath "sinf"
+sinus :: fonc (a : r64) -> r64 #externe libcmath "sin"
+tangeante :: fonc (a : r32) -> r32 #externe libcmath "tanf"
+tangeante :: fonc (a : r64) -> r64 #externe libcmath "tan"
+arc_cosinus :: fonc (a : r32) -> r32 #externe libcmath "acosf"
+arc_cosinus :: fonc (a : r64) -> r64 #externe libcmath "acos"
+arc_sinus :: fonc (a : r32) -> r32 #externe libcmath "asinf"
+arc_sinus :: fonc (a : r64) -> r64 #externe libcmath "asin"
+arc_tangeante :: fonc (a : r32) -> r32 #externe libcmath "atanf"
+arc_tangeante :: fonc (a : r64) -> r64 #externe libcmath "atan"
+arc_tangeante2 :: fonc (a : r32, b: r32) -> r32 #externe libcmath "atan2f"
+arc_tangeante2 :: fonc (a : r64, b: r64) -> r64 #externe libcmath "atan2"
+arc_cosinus_hyperbolique :: fonc (a : r32) -> r32 #externe libcmath "acoshf"
+arc_cosinus_hyperbolique :: fonc (a : r64) -> r64 #externe libcmath "acosh"
+arc_sinus_hyperbolique :: fonc (a : r32) -> r32 #externe libcmath "asinhf"
+arc_sinus_hyperbolique :: fonc (a : r64) -> r64 #externe libcmath "asinh"
+arc_tangeante_hyperbolique :: fonc (a : r32) -> r32 #externe libcmath "atanhf"
+arc_tangeante_hyperbolique :: fonc (a : r64) -> r64 #externe libcmath "atanh"
+
+/* Fonctions de calcul d'arrondis. */
+
+plafond :: fonc (a: r32) -> r32 #externe libcmath "ceilf"
+plafond :: fonc (a: r64) -> r64 #externe libcmath "ceil"
+plancher :: fonc (a: r32) -> r32 #externe libcmath "floorf"
+plancher :: fonc (a: r64) -> r64 #externe libcmath "floor"
+arrondis :: fonc (a: r32) -> r32 #externe libcmath "roundf"
+arrondis :: fonc (a: r64) -> r64 #externe libcmath "round"
+tronque :: fonc (a: r32) -> r32 #externe libcmath "truncf"
+tronque :: fonc (a: r64) -> r64 #externe libcmath "trunc"
+
+/* Autres fonctions. */
+
+racine_carrée :: fonc (n: r32) -> r32 #externe libcmath "sqrtf"
+racine_carrée :: fonc (n: r64) -> r64  #externe libcmath "sqrt"
+racine_cubique :: fonc (n: r32) -> r32 #externe libcmath "cbrtf"
+racine_cubique :: fonc (n: r64) -> r64 #externe libcmath "cbrt"
+puissance :: fonc (a: r32, b: r32) -> r32 #externe libcmath "powf"
+puissance :: fonc (a: r64, b: r64) -> r64 #externe libcmath "pow"
+différence_positive :: fonc (x: r32, y: r32) -> r32 #externe libcmath "fdimf"
+différence_positive :: fonc (x: r64, y: r64) -> r64 #externe libcmath "fdim"
+copie_signe :: fonc (a: r32, b: r32) -> r32 #externe libcmath "copysignf"
+copie_signe :: fonc (a: r64, b: r64) -> r64 #externe libcmath "copysign"
+log :: fonc (a: r32) -> r32 #externe libcmath "logf"
 log :: fonc (a: r64) -> r64 #externe libcmath
+exp :: fonc (a: r32) -> r32 #externe libcmath "expf"
 exp :: fonc (a: r64) -> r64 #externe libcmath
-roundf :: fonc (a: r32) -> r32 #externe libcmath
-fmod :: fonc (a: r64, b: r64) -> r64 #externe libcmath
-fmodf :: fonc (a: r32, b: r32) -> r32 #externe libcmath
+mod :: fonc (a: r32, b: r32) -> r32 #externe libcmath "fmodf"
+mod :: fonc (a: r64, b: r64) -> r64 #externe libcmath "fmod"
 
-mod :: fonc (a: r32, b: r32) -> r32 #enligne
-{
-    retourne fmodf(a, b)
-}
-
-mod :: fonc (a: r64, b: r32) -> r64 #enligne
-{
-    retourne fmod(a, b)
-}
-
-exp :: fonc (a: r32) -> r32
-{
-    retourne exp(a comme r64) comme r32
-}
-
-log :: fonc (a: r32) -> r32
-{
-    retourne log(a comme r64) comme r32
-}
-
-plancher :: fonc (a: r32) -> r32
-{
-    retourne floor(a) comme r32
-}
-
-plancher :: fonc (a: r64) -> r64
-{
-    retourne floor(a)
-}
-
-plafond :: fonc (a: r32) -> r32
-{
-    retourne ceil(a) comme r32
-}
-
-plafond :: fonc (a: r64) -> r64
-{
-    retourne ceil(a)
-}
-
-cosinus :: fonc (a: r32) -> r32
-{
-    retourne cos(a) comme r32
-}
-
-cosinus :: fonc (a: r64) -> r64
-{
-    retourne cos(a)
-}
-
-arccosinus :: fonc (a: r32) -> r32
-{
-    retourne acos(a comme r64) comme r32
-}
-
-sinus :: fonc (a: r32) -> r32
-{
-    retourne sin(a) comme r32
-}
-
-sinus :: fonc (a: r64) -> r64
-{
-    retourne sin(a)
-}
-
-arcsinus :: fonc (a: r32) -> r32
-{
-    retourne asinf(a)
-}
-
-arcsinus_borné :: fonc (a: r32) -> r32 #enligne
+arc_sinus_borné :: fonc (a: $T) -> T #enligne
 {
     si a <= -1.0 {
-        retourne -Constantes(r32).PI_2
+        retourne -Constantes(T).PI_2
     }
     si a >= 1.0 {
-        retourne Constantes(r32).PI_2
+        retourne Constantes(T).PI_2
     }
-    retourne asinf(a)
-}
-
-arcsinus_borné :: fonc (a: r64) -> r64 #enligne
-{
-    si a <= -1.0 {
-        retourne -Constantes(r64).PI_2
-    }
-    si a >= 1.0 {
-        retourne Constantes(r64).PI_2
-    }
-    retourne asin(a)
-}
-
-tan :: fonc (a: r32) -> r32
-{
-    retourne atan(a comme r64) comme r32
-}
-
-atan :: fonc (a: r32) -> r32
-{
-    retourne atan(a comme r64) comme r32
-}
-
-atan2 :: fonc (a: r32, b: r32) -> r32
-{
-    retourne atan2(a comme r64, b comme r64) comme r32
-}
-
-puissance :: fonc (v: r32, exp: r32) -> r32
-{
-    retourne pow(v, exp) comme r32
-}
-
-puissance :: fonc (v: r64, exp: r64) -> r64
-{
-    retourne pow(v, exp)
-}
-
-copie_signe :: fonc (a: r32, b: r32) -> r32
-{
-    retourne copysign(a, b) comme r32
-}
-
-copie_signe :: fonc (a: r64, b: r64) -> r64
-{
-    retourne copysign(a, b)
+    retourne arc_sinus(a)
 }
 
 racine :: fonc (a: $T, index: T) -> T
@@ -158,16 +75,9 @@ racine :: fonc (a: $T, index: T) -> T
     retourne puissance(a, 1.0 / index)
 }
 
-// calcul d'une racine carré d'un nombre réel selon la méthode approximative de Newton
-racine_carrée :: fonc (n: r32) -> r32
+/* Calcul de la racine N d'un nombre réel selon la méthode approximative de Newton. */
+racine_selon_newton :: fonc (n: $T, N: r64) -> T
 {
-    retourne racine_carrée(n comme r64) comme r32
-}
-
-racine_carrée :: fonc (n: r64) -> r64
-{
-    retourne sqrt(n)
-    /*
     si n == 0.0 {
         retourne 0.0
     }
@@ -176,12 +86,7 @@ racine_carrée :: fonc (n: r64) -> r64
         retourne 1.0
     }
 
-    si n < 0.0 {
-        // À FAIRE: retourne NaN
-        retourne 0.0
-    }
-
-    PRÉCISION := 0.0001
+    PRÉCISION : r64 : 0.0000001
     limite_basse : r64
     limite_haute : r64
 
@@ -197,7 +102,7 @@ racine_carrée :: fonc (n: r64) -> r64
     tantque (limite_haute - limite_basse) > PRÉCISION {
         prédiction := (limite_basse + limite_haute) * 0.5
 
-        si (prédiction * prédiction) > n {
+        si puissance(prédiction, N) > n {
             limite_haute = prédiction
         }
         sinon {
@@ -205,45 +110,17 @@ racine_carrée :: fonc (n: r64) -> r64
         }
     }
 
-    retourne (limite_basse + limite_haute) * 0.5
-    */
+    retourne ((limite_basse + limite_haute) * 0.5) comme T
 }
 
-racine_cubique :: fonc (n: r64) -> r64
+racine_carrée_newton :: fonc (n: $T) -> T
 {
-    si n == 0.0 {
-        retourne 0.0
-    }
+    retourne racine_selon_newton(n, 2.0)
+}
 
-    si n == 1.0 {
-        retourne 1.0
-    }
-
-    PRÉCISION := 0.00001
-    limite_basse : r64
-    limite_haute : r64
-
-    si n < 1.0 {
-        limite_basse = n
-        limite_haute = 1.0
-    }
-    sinon {
-        limite_basse = 1.0
-        limite_haute = n
-    }
-
-    tantque (limite_haute - limite_basse) > PRÉCISION {
-        prédiction := (limite_basse + limite_haute) * 0.5
-
-        si (prédiction * prédiction * prédiction) > n {
-            limite_haute = prédiction
-        }
-        sinon {
-            limite_basse = prédiction
-        }
-    }
-
-    retourne (limite_basse + limite_haute) * 0.5
+racine_cubique_newton :: fonc (n: r64) -> r64
+{
+    retourne racine_selon_newton(n, 3.0)
 }
 
 // À FAIRE : certaines fonctions n'ont de sens que pour les nombres relatifs ou réels
@@ -302,8 +179,8 @@ restreint :: fonc(x : *$T, min : T, max : T) -> rien #enligne
     }
 }
 
-// Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
-pgcd :: fonc(a : z32, b : z32) -> z32
+/* Trouve le plus grand commun diviseur selon l'algorithme d'Euclide. */
+grandissime_diviseur_commun :: fonc (a : z32, b : z32) -> z32
 {
     tantque b != 0 {
         t := b
@@ -314,14 +191,14 @@ pgcd :: fonc(a : z32, b : z32) -> z32
     retourne a
 }
 
-// Trouve le plus petit commun multiple
-ppmc :: fonc(a : z32, b : z32) -> z32
+/* Trouve le plus petit commun multiple */
+petitissime_multiple_commun :: fonc (a : z32, b : z32) -> z32
 {
-    si a == 0 || b == 0 {
+    si a == 0 || b == 0 {
         retourne 0
     }
 
-    retourne abs(a * b) / pgcd(a, b)
+    retourne abs(a * b) / grandissime_diviseur_commun(a, b)
 }
 
 surarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T

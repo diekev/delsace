@@ -20,4 +20,6 @@ struct CoulisseMV final : public Coulisse {
         ArgsCréationFichiersObjets const &args) override;
 
     std::optional<ErreurCoulisse> crée_exécutable_impl(ArgsLiaisonObjets const &args) override;
+
+    int64_t mémoire_utilisée() const override;
 };

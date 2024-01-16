@@ -215,7 +215,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
     déclaration_pour_expression->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     déclaration_pour_expression->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
-    bloc_insertion->expressions->pousse_front(déclaration_pour_expression);
+    bloc_insertion->expressions->ajoute_au_début(déclaration_pour_expression);
     bloc_insertion->ajoute_membre(déclaration_pour_expression);
 
     paire_discr->variable_capturee = déclaration_pour_expression;
