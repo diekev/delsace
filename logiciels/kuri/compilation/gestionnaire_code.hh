@@ -227,6 +227,8 @@ class GestionnaireCode {
 
     void message_recu(Message const *message);
 
+    void rassemble_statistiques(Statistiques &stats) const;
+
   private:
     void chargement_fichier_termine(UniteCompilation *unite);
 

@@ -6,6 +6,8 @@
 #include "biblinternes/outils/format.hh"
 #include "biblinternes/outils/tableau_donnees.hh"
 
+#include "structures/enchaineuse.hh"
+
 static inline int ratio(double a, double b)
 {
     if (b <= 0.0001) {
@@ -40,11 +42,12 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début
         return (x * 100.0 / total);
     };
 
-    auto const mem_totale = stats.stats_fichiers.totaux.mémoire_tampons +
-                            stats.stats_fichiers.totaux.mémoire_lexèmes +
-                            stats.stats_arbre.totaux.mémoire + stats.mémoire_compilatrice +
-                            stats.stats_graphe_dependance.totaux.mémoire +
-                            stats.stats_opérateurs.totaux.mémoire + stats.mémoire_ri;
+    auto const &infos_mémoire_utilisée = stats.donne_mémoire_utilisée_pour_impression();
+
+    auto mémoire_suivie = 0l;
+    POUR (infos_mémoire_utilisée) {
+        mémoire_suivie += it.quantité;
+    }
 
     auto mémoire_consommee = memoire::consommee();
 
@@ -84,22 +87,18 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début
         {"- Nombre Opérateurs", formatte_nombre(stats.stats_opérateurs.totaux.compte), ""});
 
     tableau.ajoute_ligne({"Mémoire", "", ""});
-    tableau.ajoute_ligne({"- Suivie", formatte_nombre(mem_totale), "o"});
+    tableau.ajoute_ligne({"- Suivie", formatte_nombre(mémoire_suivie), "o"});
     tableau.ajoute_ligne({"- Effective", formatte_nombre(mémoire_consommee), "o"});
-    tableau.ajoute_ligne({"- Arbre", formatte_nombre(stats.stats_arbre.totaux.mémoire), "o"});
-    tableau.ajoute_ligne({"- Compilatrice", formatte_nombre(stats.mémoire_compilatrice), "o"});
-    tableau.ajoute_ligne(
-        {"- Graphe", formatte_nombre(stats.stats_graphe_dependance.totaux.mémoire), "o"});
-    tableau.ajoute_ligne(
-        {"- Lexèmes", formatte_nombre(stats.stats_fichiers.totaux.mémoire_lexèmes), "o"});
-    tableau.ajoute_ligne({"- MV", formatte_nombre(stats.mémoire_mv), "o"});
-    tableau.ajoute_ligne({"- Bibliothèques", formatte_nombre(stats.mémoire_bibliothèques), "o"});
-    tableau.ajoute_ligne(
-        {"- Opérateurs", formatte_nombre(stats.stats_opérateurs.totaux.mémoire), "o"});
-    tableau.ajoute_ligne({"- RI", formatte_nombre(stats.mémoire_ri), "o"});
-    tableau.ajoute_ligne({"- Code binaire", formatte_nombre(stats.mémoire_code_binaire), "o"});
-    tableau.ajoute_ligne(
-        {"- Tampon", formatte_nombre(stats.stats_fichiers.totaux.mémoire_tampons), "o"});
+
+    POUR (infos_mémoire_utilisée) {
+        auto label = enchaine("- ", it.catégorie);
+        tableau.ajoute_ligne(
+            {dls::chaine(label.pointeur(), label.taille()),
+             formatte_nombre(it.quantité),
+             "o",
+             formatte_nombre(calc_pourcentage(double(it.quantité), double(mémoire_consommee)))});
+    }
+
     tableau.ajoute_ligne(
         {"Nombre allocations", formatte_nombre(memoire::nombre_allocations()), ""});
     tableau.ajoute_ligne(
@@ -326,4 +325,31 @@ void StatistiquesTypage::imprime_stats()
 void StatistiquesGestion::imprime_stats()
 {
     imprime_stats_temps(stats);
+}
+
+const kuri::tableau<MémoireUtilisée> &Statistiques::donne_mémoire_utilisée_pour_impression() const
+{
+    ajoute_mémoire_utilisée("Graphe", stats_graphe_dependance.totaux.mémoire);
+    ajoute_mémoire_utilisée("Opérateurs", stats_opérateurs.totaux.mémoire);
+    ajoute_mémoire_utilisée("Arbre", stats_arbre.totaux.mémoire);
+    ajoute_mémoire_utilisée("Lexèmes", stats_fichiers.totaux.mémoire_lexèmes);
+    ajoute_mémoire_utilisée("Tampon", stats_fichiers.totaux.mémoire_tampons);
+
+    std::sort(m_mémoires_utilisées.debut(), m_mémoires_utilisées.fin(), [](auto &a, auto &b) {
+        return a.catégorie < b.catégorie;
+    });
+
+    return m_mémoires_utilisées;
+}
+
+void Statistiques::ajoute_mémoire_utilisée(kuri::chaine_statique catégorie, int64_t quantité) const
+{
+    POUR (m_mémoires_utilisées) {
+        if (it.catégorie == catégorie) {
+            it.quantité += quantité;
+            return;
+        }
+    }
+
+    m_mémoires_utilisées.ajoute({catégorie, quantité});
 }

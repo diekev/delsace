@@ -39,12 +39,12 @@ struct pile {
 
     type_reference haut()
     {
-        return m_pile.dernière();
+        return m_pile.dernier_élément();
     }
 
     type_reference_const haut() const
     {
-        return m_pile.dernière();
+        return m_pile.dernier_élément();
     }
 
     bool est_vide() const

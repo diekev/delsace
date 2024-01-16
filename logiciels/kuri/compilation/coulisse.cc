@@ -163,6 +163,11 @@ bool Coulisse::crée_exécutable(ArgsLiaisonObjets const &args)
     return true;
 }
 
+void Coulisse::rassemble_statistiques(Statistiques &stats)
+{
+    stats.ajoute_mémoire_utilisée("Coulisse", mémoire_utilisée());
+}
+
 bool Coulisse::est_coulisse_métaprogramme() const
 {
     return dynamic_cast<CoulisseMV const *>(this) != nullptr;
