@@ -93,7 +93,7 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
         it->rassemble_statistiques(stats);
     }
 
-    stats.mémoire_ri = stats.stats_ri.totaux.mémoire;
+    stats.ajoute_mémoire_utilisée("RI", stats.stats_ri.totaux.mémoire);
 }
 
 static void imprime_stats(Compilatrice const &compilatrice,
@@ -491,7 +491,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     auto nombre_tacheronnes = std::thread::hardware_concurrency();
 
     kuri::tableau<Tacheronne *> tacheronnes;
-    tacheronnes.reserve(nombre_tacheronnes);
+    tacheronnes.réserve(nombre_tacheronnes);
 
     for (auto i = 0u; i < nombre_tacheronnes; ++i) {
         tacheronnes.ajoute(memoire::loge<Tacheronne>("Tacheronne", compilatrice));
@@ -513,7 +513,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     }
 
     kuri::tableau<std::thread *> threads;
-    threads.reserve(nombre_tacheronnes);
+    threads.réserve(nombre_tacheronnes);
 
     POUR (tacheronnes) {
         threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));

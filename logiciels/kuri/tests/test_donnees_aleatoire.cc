@@ -294,7 +294,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 	auto const max_lexemes = taille_tampon / sizeof(Lexème);
 
 	kuri::tableau<Lexème> lexemes;
-	lexemes.reserve(max_lexemes);
+	lexemes.réserve(max_lexemes);
 
 	auto dm = Lexème{};
 	dm.chaine = "texte_test";
@@ -328,12 +328,12 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 
 	auto const taille_octet = sizeof(Lexème) * lexemes.taille();
 
-	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, lexemes.données(), std::min(taille_tampon, taille_octet));
 #else
     auto const max_lexemes = taille_tampon / sizeof(GenreLexème);
 
     kuri::tableau<GenreLexème> lexemes;
-    lexemes.reserve(static_cast<int64_t>(max_lexemes));
+    lexemes.réserve(static_cast<int64_t>(max_lexemes));
 
     for (auto id : sequence_declaration_fonction) {
         lexemes.ajoute(id);
@@ -356,7 +356,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 
     auto const taille_octet = sizeof(Lexème) * static_cast<size_t>(lexemes.taille());
 
-    memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
+    memcpy(donnees, lexemes.données(), std::min(taille_tampon, taille_octet));
 #endif
 }
 
@@ -366,7 +366,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 	auto const max_lexemes = taille_tampon / sizeof(Lexème);
 
 	kuri::tableau<Lexème> lexemes;
-	lexemes.reserve(max_lexemes);
+	lexemes.réserve(max_lexemes);
 
 	std::random_device device{};
 	std::uniform_int_distribution<u_char> rng{
@@ -393,7 +393,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
 	auto const taille_octet = sizeof(Lexème) * lexemes.taille();
 
-	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, lexemes.données(), std::min(taille_tampon, taille_octet));
 #else
     auto const max_lexemes = taille_tampon / sizeof(GenreLexème);
 
@@ -402,7 +402,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
                                                 static_cast<int>(GenreLexème::INCONNU)};
 
     kuri::tableau<GenreLexème> lexemes;
-    lexemes.reserve(static_cast<int64_t>(max_lexemes));
+    lexemes.réserve(static_cast<int64_t>(max_lexemes));
 
     for (auto id : sequence_declaration_fonction) {
         lexemes.ajoute(id);
@@ -416,7 +416,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
     auto const taille_octet = sizeof(Lexème) * static_cast<size_t>(lexemes.taille());
 
-    memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
+    memcpy(donnees, lexemes.données(), std::min(taille_tampon, taille_octet));
 #endif
 }
 
@@ -426,7 +426,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
     auto nombre_lexemes = taille / sizeof(GenreLexème);
 
     kuri::tableau<Lexème, int> lexemes;
-    lexemes.reserve(static_cast<int>(nombre_lexemes));
+    lexemes.réserve(static_cast<int>(nombre_lexemes));
 
     auto dm = Lexème{};
     dm.chaine = "texte_test";

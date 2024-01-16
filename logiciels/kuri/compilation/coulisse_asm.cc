@@ -495,3 +495,8 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
 {
     return ErreurCoulisse{"La création de compilat n'est pas encore implémenté."};
 }
+
+int64_t CoulisseASM::mémoire_utilisée() const
+{
+    return 0;
+}

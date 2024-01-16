@@ -150,7 +150,7 @@ struct EntréesStats {
     EntréesStats(kuri::chaine_statique nom_, std::initializer_list<const char *> &&noms_entrées)
         : nom(nom_)
     {
-        entrées.reserve(static_cast<int>(noms_entrées.size()));
+        entrées.réserve(static_cast<int>(noms_entrées.size()));
         for (auto nom_entrée : noms_entrées) {
             T e;
             e.nom = nom_entrée;
@@ -194,15 +194,19 @@ using StatistiquesMessage = EntréesStats<EntréeNombreMémoire>;
 using StatistiquesRI = EntréesStats<EntréeNombreMémoire>;
 using StatistiquesTableaux = EntréesStats<EntréeTailleTableau>;
 
+struct MémoireUtilisée {
+    kuri::chaine_statique catégorie{};
+    int64_t quantité = 0;
+};
+
 struct Statistiques {
+  private:
+    mutable kuri::tableau<MémoireUtilisée> m_mémoires_utilisées{};
+
+  public:
     int64_t nombre_modules = 0l;
     int64_t nombre_identifiants = 0l;
     int64_t nombre_métaprogrammes_exécutés = 0l;
-    int64_t mémoire_compilatrice = 0l;
-    int64_t mémoire_ri = 0l;
-    int64_t mémoire_code_binaire = 0l;
-    int64_t mémoire_mv = 0l;
-    int64_t mémoire_bibliothèques = 0l;
     int64_t instructions_exécutées = 0l;
     double temps_génération_code = 0.0;
     double temps_fichier_objet = 0.0;
@@ -224,6 +228,10 @@ struct Statistiques {
     StatistiquesMessage stats_messages{"Messages"};
     StatistiquesRI stats_ri{"Représentation Intermédiaire"};
     StatistiquesTableaux stats_tableaux{"Tableaux"};
+
+    kuri::tableau<MémoireUtilisée> const &donne_mémoire_utilisée_pour_impression() const;
+
+    void ajoute_mémoire_utilisée(kuri::chaine_statique catégorie, int64_t quantité) const;
 };
 
 #define EXTRAIT_CHAINE_ENUM(ident, chaine) chaine,

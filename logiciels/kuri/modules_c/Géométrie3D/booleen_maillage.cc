@@ -22,7 +22,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage con
     /* Exporte les points. */
     using vertex_descriptor = boost::graph_traits<EnrichedPolyhedron>::vertex_descriptor;
     kuri::tableau<vertex_descriptor> vertices;
-    vertices.reserve(maillage.nombreDePoints());
+    vertices.réserve(maillage.nombreDePoints());
 
     for (int64_t i = 0; i < maillage.nombreDePoints(); i++) {
         auto point = maillage.pointPourIndex(i);
@@ -38,7 +38,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage con
         const int64_t nombre_sommets = maillage.nombreDeSommetsPolygone(i);
 
         temp_access_index_sommet.redimensionne(nombre_sommets);
-        maillage.indexPointsSommetsPolygone(i, temp_access_index_sommet.donnees());
+        maillage.indexPointsSommetsPolygone(i, temp_access_index_sommet.données());
 
         std::vector<vertex_descriptor> face_vertices;
         face_vertices.reserve(nombre_sommets);
@@ -65,7 +65,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(CelluleVoron
     /* Exporte les points. */
     using vertex_descriptor = boost::graph_traits<EnrichedPolyhedron>::vertex_descriptor;
     kuri::tableau<vertex_descriptor> vertices;
-    vertices.reserve(cellule.totvert);
+    vertices.réserve(cellule.totvert);
 
     for (auto i = 0; i < cellule.totvert; ++i) {
         auto px = static_cast<float>(cellule.verts[i * 3]);
@@ -141,7 +141,7 @@ void convertis_vers_maillage(EnrichedPolyhedron &polyhedre, Maillage &maillage)
             edge_iter = edge_iter->next();
         } while (edge_iter != edge_begin);
 
-        maillage.ajouteUnPolygone(sommets.donnees(), sommets.taille());
+        maillage.ajouteUnPolygone(sommets.données(), sommets.taille());
     }
 }
 

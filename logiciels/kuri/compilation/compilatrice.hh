@@ -88,7 +88,7 @@ struct Compilatrice {
 
     dls::outils::Synchrone<GestionnaireCode> gestionnaire_code{};
 
-    dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques;
+    dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliothèques;
 
     /* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment.
      */
@@ -107,11 +107,11 @@ struct Compilatrice {
 
     dls::outils::Synchrone<SystèmeModule> sys_module{};
 
-    tableau_page_synchrone<MetaProgramme> metaprogrammes{};
+    tableau_page_synchrone<MetaProgramme> métaprogrammes{};
 
-    dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
+    dls::outils::Synchrone<GrapheDependance> graphe_dépendance{};
 
-    dls::outils::Synchrone<RegistreDesOpérateurs> operateurs{};
+    dls::outils::Synchrone<RegistreDesOpérateurs> opérateurs{};
 
     Typeuse typeuse;
 
@@ -154,7 +154,7 @@ struct Compilatrice {
     kuri::tableau<kuri::tableau<NoeudCodeEnteteFonction *>> m_tableaux_code_fonctions{};
 
     /* Tous les tableaux créés pour les appels à #compilatrice_lèxe_fichier. */
-    kuri::tableau<kuri::tableau<kuri::Lexème>> m_tableaux_lexemes{};
+    kuri::tableau<kuri::tableau<kuri::Lexème>> m_tableaux_lexèmes{};
 
     kuri::tableau<EtatResolutionAppel *> m_états_libres{};
 

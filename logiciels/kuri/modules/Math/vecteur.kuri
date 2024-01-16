@@ -185,11 +185,11 @@ angle_entre :: fonc (a: Vec2, b: Vec2) -> r32 #enligne
 
     /* Plus précis que arccosinus(produit_scalaire(a, b)). */
     si produit_scalaire(a, b) >= 0.0 {
-        retourne 2.0 * arcsinus_borné(longueur(a, b) * 0.5)
+        retourne 2.0 * arc_sinus_borné(longueur(a, b) * 0.5)
     }
 
     b2 := -b
-    retourne Constantes(r32).PI - 2.0 * arcsinus_borné(longueur(a, b2) * 0.5)
+    retourne Constantes(r32).PI - 2.0 * arc_sinus_borné(longueur(a, b2) * 0.5)
 }
 
 normalise :: fonc (v: Vec2) -> Vec2 #enligne
@@ -435,7 +435,7 @@ interp_linéaire :: fonc (v0: Vec3, t: r32, v1: Vec3) -> Vec3
 /* Calcule la déclinaison du vecteur en degrés. */
 déclinaison :: fonc (v: Vec3) -> Degrés(r32)
 {
-    retourne vers_degrés(Radians(atan2(racine_carrée(v.x * v.x + v.y * v.y), v.z)))
+    retourne vers_degrés(Radians(arc_tangeante2(racine_carrée(v.x * v.x + v.y * v.y), v.z)))
 }
 
 /* \} */

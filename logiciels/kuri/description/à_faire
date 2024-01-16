@@ -762,3 +762,52 @@ struct Allocatrice {
 -- appels fonction (syntaxe uniforme)
 -- métaprogrammation (#si, #assert, #exécute, #corps_texte, #test)
 -- compilatrice
+
+// ----------------------------------------------------------------------------
+
+Déduplique les références (et les références de membres) lors du syntaxage.
+    - afin d'économiser un peu de mémoire
+    - afin d'accélérer un peu la validation sémantique
+
+Il faudra faire attention aux sites pour les rapports de mémoire qui ne seront alors plus continus.
+
+class TableRéférences {
+    kuri::tableau<NoeudExpressionReference *, int> m_références{};
+
+    kuri::pile<int> m_références_par_blocs{};
+
+    public:
+        void réinitialise()
+        {
+            m_références.efface();
+            m_références_par_blocs.efface();
+        }
+
+        NoeudExpressionReference *trouve_référence_pour(Lexème const *lexème) const
+        {
+            for (int i = m_références.taille() - 1; i >= 0; i--) {
+                auto référence = m_référencs[i];
+
+                if (référence->ident == lexème->ident) {
+                    return référence;
+                }
+            }
+
+            return nullptr;
+        }
+
+        void ajoute_référence(NoeudExpressionReference *noeud)
+        {
+            m_références.ajoute(noeud);
+        }
+
+        void empile_état()
+        {
+            m_références_par_blocs.empile(m_références.taille());
+        }
+
+        void dépile_état()
+        {
+            m_références.redimensionne(m_références.m_références_par_blocs);
+        }
+};

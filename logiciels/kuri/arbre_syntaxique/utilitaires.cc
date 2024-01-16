@@ -285,7 +285,7 @@ static void aplatis_arbre(NoeudExpression *racine,
              * parent. */
             drapeau &= ~DrapeauxNoeud::EXPRESSION_BLOC_SI;
 
-            auto dernière_expression = expressions->taille() ? expressions->dernière() :
+            auto dernière_expression = expressions->taille() ? expressions->dernier_élément() :
                                                                NoeudExpression::nul();
             POUR (*expressions) {
                 auto drapeaux = it == dernière_expression ? drapeau : DrapeauxNoeud::AUCUN;
@@ -1260,6 +1260,12 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::donne_nom_broyé(Broyeuse 
         auto noms = donne_les_noms_de_la_hiérarchie(bloc_parent);
         nom_broye_ = broyeuse.broye_nom_fonction(this, noms);
     }
+    else if (données_externes) {
+        nom_broye_ = données_externes->nom_symbole;
+    }
+    else if (ident) {
+        nom_broye_ = ident->nom;
+    }
     else {
         nom_broye_ = lexeme->chaine;
     }
@@ -1278,9 +1284,9 @@ int NoeudBloc::nombre_de_membres() const
     return membres->taille();
 }
 
-void NoeudBloc::reserve_membres(int nombre)
+void NoeudBloc::réserve_membres(int nombre)
 {
-    membres->reserve(nombre);
+    membres->réserve(nombre);
 }
 
 static constexpr auto TAILLE_MAX_TABLEAU_MEMBRES = 16;
@@ -1363,7 +1369,7 @@ void NoeudBloc::ajoute_membre_au_debut(NoeudDeclaration *decl)
         ::ajoute_membre(table_membres, decl);
     }
 
-    membres_->pousse_front(decl);
+    membres_->ajoute_au_début(decl);
     membres_sont_sales = true;
 }
 
@@ -1569,7 +1575,7 @@ NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexè
 {
     auto structure = crée_appel(lexeme);
     structure->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
-    structure->parametres_resolus.reserve(type->membres.taille());
+    structure->parametres_resolus.réserve(type->membres.taille());
     structure->expression = type;
     structure->noeud_fonction_appelee = type;
     structure->type = type;

@@ -131,7 +131,7 @@ struct ensemblon {
         if (est_stocké_dans_classe()) {
             return 0;
         }
-        return m_ensemble.taille_memoire();
+        return m_ensemble.taille_mémoire();
     }
 
     T const *donnees_ensemblon() const

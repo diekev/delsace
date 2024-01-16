@@ -60,7 +60,7 @@ struct tableau_compresse {
     tableau_compresse &operator=(tableau_compresse const &autre)
     {
         if (this != &autre) {
-            supprime_donnees();
+            supprime_données();
 
             m_taille = autre.m_taille;
             m_capacite = autre.m_capacite;
@@ -92,7 +92,7 @@ struct tableau_compresse {
 
     ~tableau_compresse()
     {
-        supprime_donnees();
+        supprime_données();
     }
 
     bool alloue() const
@@ -105,7 +105,7 @@ struct tableau_compresse {
         return m_taille;
     }
 
-    TypeIndex taille_memoire() const
+    TypeIndex taille_mémoire() const
     {
         return alloue() ? 0 : m_taille * static_cast<TypeIndex>(sizeof(T));
     }
@@ -173,7 +173,7 @@ struct tableau_compresse {
                 }
             }
 
-            reserve(static_cast<TypeIndex>(m_taille + 1));
+            réserve(static_cast<TypeIndex>(m_taille + 1));
 
             if (!std::is_trivially_constructible_v<T>) {
                 new (&m_pointeur[static_cast<int64_t>(m_taille)]) T;
@@ -184,7 +184,7 @@ struct tableau_compresse {
         }
     }
 
-    void reserve(TypeIndex nombre)
+    void réserve(TypeIndex nombre)
     {
         if (!alloue()) {
             m_capacite = nombre;
@@ -223,7 +223,7 @@ struct tableau_compresse {
     }
 
   private:
-    void supprime_donnees()
+    void supprime_données()
     {
         if (alloue()) {
             memoire::deloge_tableau("tableau_compresse", m_pointeur, m_capacite);

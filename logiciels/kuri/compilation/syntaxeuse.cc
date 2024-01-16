@@ -1420,7 +1420,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             lexème);
                         noeud->ident = gauche->ident;
                         noeud->bibliotheque =
-                            m_compilatrice.gestionnaire_bibliotheques->crée_bibliotheque(
+                            m_compilatrice.gestionnaire_bibliothèques->crée_bibliotheque(
                                 *m_unité->espace, noeud, gauche->ident, chaine_bib);
                         return noeud;
                     }

@@ -138,6 +138,15 @@ struct DonneesDependance {
         globales_utilisees.efface();
         types_utilises.efface();
     }
+
+    int64_t mémoire_utilisée() const
+    {
+        auto résultat = int64_t(0);
+        résultat += fonctions_utilisees.mémoire_utilisée();
+        résultat += types_utilises.mémoire_utilisée();
+        résultat += globales_utilisees.mémoire_utilisée();
+        return résultat;
+    }
 };
 
 void imprime_dependances(const DonneesDependance &dependances,

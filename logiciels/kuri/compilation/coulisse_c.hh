@@ -36,12 +36,16 @@ struct CoulisseC final : public Coulisse {
   private:
     kuri::tableau<FichierC> m_fichiers{};
 
+    int64_t m_mémoire_génératrice = 0;
+
     std::optional<ErreurCoulisse> génère_code_impl(ArgsGénérationCode const &args) override;
 
     std::optional<ErreurCoulisse> crée_fichier_objet_impl(
         ArgsCréationFichiersObjets const &args) override;
 
     std::optional<ErreurCoulisse> crée_exécutable_impl(ArgsLiaisonObjets const &args) override;
+
+    int64_t mémoire_utilisée() const override;
 
     void crée_fichiers(ProgrammeRepreInter const &repr_inter, OptionsDeCompilation const &options);
 

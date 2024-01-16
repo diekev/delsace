@@ -348,7 +348,7 @@ ajourne_projection_orthographique :: fonc (empl caméra: *Caméra3D)
 
 ajourne_projection_perspective :: fonc (empl caméra: *Caméra3D)
 {
-    champs_de_vue := 2.0 * atan(0.5 * largeur_senseur / longueur_focale)
+    champs_de_vue := 2.0 * arc_tangeante(0.5 * largeur_senseur / longueur_focale)
     projection = crée_matrice_projection_perspective(champs_de_vue, aspect, plan_proche, plan_éloigné)
 }
 
@@ -361,8 +361,8 @@ ajourne_matrices_caméra_monde :: fonc (empl caméra: *Caméra3D)
     monde_vers_caméra = mire(position, cible, vecteur_haut)
     caméra_vers_monde = inverse(monde_vers_caméra)
 
-    champs_de_vue := 2.0 * atan(0.5 * largeur_senseur / longueur_focale)
-    caméra.échelle = tan(champs_de_vue * 0.5)
+    champs_de_vue := 2.0 * arc_tangeante(0.5 * largeur_senseur / longueur_focale)
+    caméra.échelle = tangeante(champs_de_vue * 0.5)
 
     caméra_vers_rateau = construit_mat4r_neutre()
     caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_échelle(0.5, 0.5, 0.0))
@@ -442,7 +442,7 @@ pan :: fonc (caméra: *Caméra3D, dx: r32, dy: r32)
 /*
 calcul_champs_de_vue :: fonc (largeur_senseur: r32, distance_focale: r32) -> r32
 {
-    retourne 2.0 * atan(0.5 * largeur_senseur / distance_focale) comme r32
+    retourne 2.0 * arc_tangeante(0.5 * largeur_senseur / distance_focale) comme r32
 }
 
 calcul_champs_de_vue_degrés :: fonc (largeur_senseur: r32, distance_focale: r32) -> r32
@@ -467,7 +467,7 @@ matrice_projection :: fonc (
     plan_proche: r32,
     plan_éloigné: r32) -> Mat4r
 {
-    champs_de_vue_rad := tan(champs_de_vue * 0.5) comme r32
+    champs_de_vue_rad := tangeante(champs_de_vue * 0.5) comme r32
 
     mat : Mat4r
 

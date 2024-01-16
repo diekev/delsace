@@ -16,7 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2017 Kévin Dietrich.
- * All rights reserved.
+ * All rights réserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *

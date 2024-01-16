@@ -25,7 +25,7 @@ int64_t AllocatriceInfosType::memoire_utilisee() const
 #undef ENUMERE_TYPES_INFO_TYPE_EX
 
 #define ENUME_TYPES_TRANCHES_INFO_TYPE_EX(type__, nom__)                                          \
-    memoire += tranches_##nom__.taille_memoire();                                                 \
+    memoire += tranches_##nom__.taille_mémoire();                                                 \
     POUR (tranches_##nom__) {                                                                     \
         memoire += it.taille() * taille_de(type__);                                               \
     }
@@ -60,7 +60,7 @@ kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tablet<T, 6> const &t
 static void copie_annotations(kuri::tableau<Annotation, int> const &source,
                               kuri::tablet<const Annotation *, 6> &dest)
 {
-    dest.reserve(source.taille());
+    dest.réserve(source.taille());
     for (auto &annotation : source) {
         dest.ajoute(&annotation);
     }
@@ -269,7 +269,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->nom = donne_nom_hiérarchique(type_struct);
 
             auto membres = kuri::tablet<InfoTypeMembreStructure *, 6>();
-            membres.reserve(type_struct->membres.taille());
+            membres.réserve(type_struct->membres.taille());
 
             POUR (type_struct->membres) {
                 if (it.nom == ID::chaine_vide) {
@@ -294,7 +294,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
 
             auto structs_employées = kuri::tablet<InfoTypeStructure *, 6>();
-            structs_employées.reserve(type_struct->types_employés.taille());
+            structs_employées.réserve(type_struct->types_employés.taille());
             POUR (type_struct->types_employés) {
                 auto info_struct_employe = crée_info_type_pour(typeuse, it->type);
                 structs_employées.ajoute(static_cast<InfoTypeStructure *>(info_struct_employe));
@@ -318,7 +318,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->nom = donne_nom_hiérarchique(type_union);
 
             auto membres = kuri::tablet<InfoTypeMembreStructure *, 6>();
-            membres.reserve(type_union->membres.taille());
+            membres.réserve(type_union->membres.taille());
 
             POUR (type_union->membres) {
                 auto info_type_membre =
@@ -352,9 +352,9 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 crée_info_type_pour(typeuse, type_enum->type_sous_jacent));
 
             auto noms = kuri::tablet<kuri::chaine_statique, 6>();
-            noms.reserve(type_enum->membres.taille());
+            noms.réserve(type_enum->membres.taille());
             auto valeurs = kuri::tablet<int, 6>();
-            valeurs.reserve(type_enum->membres.taille());
+            valeurs.réserve(type_enum->membres.taille());
 
             POUR (type_enum->membres) {
                 if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
@@ -381,7 +381,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->taille_en_octet = type->taille_octet;
 
             auto types_entrée = kuri::tablet<InfoType *, 6>();
-            types_entrée.reserve(type_fonction->types_entrees.taille());
+            types_entrée.réserve(type_fonction->types_entrees.taille());
 
             POUR (type_fonction->types_entrees) {
                 types_entrée.ajoute(crée_info_type_pour(typeuse, it));
@@ -392,14 +392,14 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
             if (type_sortie->est_type_tuple()) {
                 auto tuple = type_sortie->comme_type_tuple();
-                types_sortie.reserve(tuple->membres.taille());
+                types_sortie.réserve(tuple->membres.taille());
 
                 POUR (tuple->membres) {
                     types_sortie.ajoute(crée_info_type_pour(typeuse, it.type));
                 }
             }
             else {
-                types_sortie.reserve(1);
+                types_sortie.réserve(1);
                 types_sortie.ajoute(crée_info_type_pour(typeuse, type_sortie));
             }
 

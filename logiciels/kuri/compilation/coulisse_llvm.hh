@@ -59,4 +59,6 @@ struct CoulisseLLVM final : public Coulisse {
     void crée_modules(ProgrammeRepreInter const &repr_inter, const std::string &triplet_cible);
 
     DonnéesModule *crée_un_module(kuri::chaine_statique nom, const std::string &triplet_cible);
+
+    int64_t mémoire_utilisée() const override;
 };
