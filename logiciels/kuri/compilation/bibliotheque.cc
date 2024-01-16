@@ -232,7 +232,7 @@ int64_t Bibliotheque::memoire_utilisee() const
     for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; k++) {
         memoire += noms[k].taille();
     }
-    memoire += dependances.taille_memoire();
+    memoire += dependances.taille_mémoire();
     return memoire;
 }
 

@@ -1058,7 +1058,7 @@ struct DelegueTraverse {
         kuri::tableau<int> temp_access_index_sommet;
         temp_access_index_sommet.redimensionne(nombre_de_sommets);
 
-        maillage.indexPointsSommetsPolygone(index, temp_access_index_sommet.donnees());
+        maillage.indexPointsSommetsPolygone(index, temp_access_index_sommet.données());
 
         auto cos = kuri::tableau<dls::math::vec3f>();
         cos.redimensionne(nombre_de_sommets);

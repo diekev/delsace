@@ -61,7 +61,7 @@ void GestionnaireChainesAjoutées::imprime_dans(std::ostream &os)
 
 int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
 {
-    int64_t résultat = m_chaines.taille_memoire();
+    int64_t résultat = m_chaines.taille_mémoire();
 
     POUR (m_chaines) {
         résultat += it.taille();
@@ -273,36 +273,36 @@ int64_t Compilatrice::memoire_utilisee() const
     auto metaprogrammes_ = metaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
         résultat += it.programme->memoire_utilisee();
-        résultat += it.données_constantes.taille_memoire();
-        résultat += it.données_globales.taille_memoire();
-        résultat += it.cibles_appels.taille_memoire();
+        résultat += it.données_constantes.taille_mémoire();
+        résultat += it.données_globales.taille_mémoire();
+        résultat += it.cibles_appels.taille_mémoire();
     }
 
     résultat += metaprogrammes_->memoire_utilisee();
 
     résultat += chaines_ajoutées_à_la_compilation->mémoire_utilisée();
 
-    résultat += m_tableaux_lexemes.taille_memoire();
+    résultat += m_tableaux_lexemes.taille_mémoire();
     POUR (m_tableaux_lexemes) {
-        résultat += it.taille_memoire();
+        résultat += it.taille_mémoire();
     }
 
-    résultat += m_tableaux_code_fonctions.taille_memoire();
+    résultat += m_tableaux_code_fonctions.taille_mémoire();
     POUR (m_tableaux_code_fonctions) {
-        résultat += it.taille_memoire();
+        résultat += it.taille_mémoire();
     }
 
-    résultat += m_états_libres.taille_memoire();
+    résultat += m_états_libres.taille_mémoire();
     POUR (m_états_libres) {
         résultat += taille_de(EtatResolutionAppel);
-        résultat += it->args.taille_memoire();
+        résultat += it->args.taille_mémoire();
     }
 
     résultat += broyeuse->mémoire_utilisée();
-    résultat += constructeurs_globaux->taille_memoire();
+    résultat += constructeurs_globaux->taille_mémoire();
     résultat += table_chaines->taille_mémoire();
 
-    résultat += m_sémanticiennes.taille_memoire() +
+    résultat += m_sémanticiennes.taille_mémoire() +
                 taille_de(Sémanticienne) * m_sémanticiennes.taille();
 
     return résultat;
@@ -497,7 +497,7 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
         auto fichier = static_cast<Fichier *>(std::get<FichierExistant>(résultat));
         auto tableau = converti_tableau_lexemes(fichier->lexèmes);
         m_tableaux_lexemes.ajoute(tableau);
-        return m_tableaux_lexemes.dernière();
+        return m_tableaux_lexemes.dernier_élément();
     }
 
     auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
@@ -510,7 +510,7 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
 
     auto tableau = converti_tableau_lexemes(fichier->lexèmes);
     m_tableaux_lexemes.ajoute(tableau);
-    return m_tableaux_lexemes.dernière();
+    return m_tableaux_lexemes.dernier_élément();
 }
 
 kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsees(
@@ -518,7 +518,7 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
 {
     auto entetes = gestionnaire_code->fonctions_parsees();
     auto résultat = kuri::tableau<NoeudCodeEnteteFonction *>();
-    résultat.reserve(entetes.taille());
+    résultat.réserve(entetes.taille());
     POUR (entetes) {
         if (it->est_operateur || it->est_coroutine ||
             it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
@@ -528,7 +528,7 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
         résultat.ajoute(code_entete->comme_entete_fonction());
     }
     m_tableaux_code_fonctions.ajoute(résultat);
-    return m_tableaux_code_fonctions.dernière();
+    return m_tableaux_code_fonctions.dernier_élément();
 }
 
 Module *Compilatrice::trouve_ou_crée_module(IdentifiantCode *nom_module,
@@ -628,7 +628,7 @@ MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
 EtatResolutionAppel *Compilatrice::crée_ou_donne_état_résolution_appel()
 {
     if (!m_états_libres.est_vide()) {
-        auto résultat = m_états_libres.dernière();
+        auto résultat = m_états_libres.dernier_élément();
         résultat->réinitialise();
         m_états_libres.supprime_dernier();
         return résultat;
@@ -687,7 +687,7 @@ Sémanticienne *Compilatrice::donne_sémanticienne_disponible(Tacheronne &tacher
     Sémanticienne *résultat;
 
     if (!m_sémanticiennes.est_vide()) {
-        résultat = m_sémanticiennes.dernière();
+        résultat = m_sémanticiennes.dernier_élément();
         m_sémanticiennes.supprime_dernier();
     }
     else {

@@ -993,14 +993,14 @@ GénératriceCodeC::~GénératriceCodeC()
 int64_t GénératriceCodeC::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
-    résultat += table_valeurs.taille_memoire();
+    résultat += table_valeurs.taille_mémoire();
     résultat += table_globales.taille_mémoire();
     résultat += table_fonctions.taille_mémoire();
     résultat += table_types.taille_mémoire();
     résultat += enchaineuse_tmp.mémoire_utilisée();
     résultat += stockage_chn.mémoire_utilisée();
 
-    résultat += chaines_trop_larges_pour_stockage_chn.taille_memoire();
+    résultat += chaines_trop_larges_pour_stockage_chn.taille_mémoire();
     POUR (chaines_trop_larges_pour_stockage_chn) {
         résultat += it.taille();
     }
@@ -1224,7 +1224,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             if (résultat.nombre_tampons() > 1) {
                 auto chaine_résultat = résultat.chaine();
                 chaines_trop_larges_pour_stockage_chn.ajoute(chaine_résultat);
-                return chaines_trop_larges_pour_stockage_chn.dernière();
+                return chaines_trop_larges_pour_stockage_chn.dernier_élément();
             }
 
             return stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
@@ -1267,7 +1267,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             if (enchaineuse_tmp.nombre_tampons() > 1) {
                 auto chaine_résultat = enchaineuse_tmp.chaine();
                 chaines_trop_larges_pour_stockage_chn.ajoute(chaine_résultat);
-                return chaines_trop_larges_pour_stockage_chn.dernière();
+                return chaines_trop_larges_pour_stockage_chn.dernier_élément();
             }
 
             return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
@@ -2157,8 +2157,8 @@ int64_t CoulisseC::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
 
-    résultat += m_bibliothèques.taille_memoire();
-    résultat += m_fichiers.taille_memoire();
+    résultat += m_bibliothèques.taille_mémoire();
+    résultat += m_fichiers.taille_mémoire();
 
     POUR (m_fichiers) {
         résultat += it.chemin_fichier.taille();
@@ -2261,5 +2261,5 @@ CoulisseC::FichierC &CoulisseC::ajoute_fichier_c(bool entête)
     FichierC résultat = {nom_fichier, nom_fichier_objet, nom_fichier_erreur};
     résultat.est_entête = entête;
     m_fichiers.ajoute(résultat);
-    return m_fichiers.dernière();
+    return m_fichiers.dernier_élément();
 }

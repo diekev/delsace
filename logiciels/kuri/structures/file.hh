@@ -37,12 +37,12 @@ struct file {
 
     type_reference front()
     {
-        return m_file.premiere();
+        return m_file.premier_élément();
     }
 
     type_reference_const front() const
     {
-        return m_file.premiere();
+        return m_file.premier_élément();
     }
 
     void enfile(type_reference_const valeur)

@@ -617,7 +617,7 @@ static void crée_tableau_args_variadiques(Sémanticienne &contexte,
     noeud_tableau->type = type_données_argument_variadique;
     // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
     // sélectionné
-    noeud_tableau->expressions.reserve(static_cast<int>(slots.taille()) - index_premier_var_arg);
+    noeud_tableau->expressions.réserve(static_cast<int>(slots.taille()) - index_premier_var_arg);
 
     for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
         noeud_tableau->expressions.ajoute(slots[i]);
@@ -761,7 +761,7 @@ static ResultatAppariement apparie_appel_pointeur(
     }
 
     auto exprs = kuri::tablet<NoeudExpression *, 10>();
-    exprs.reserve(type_fonction->types_entrees.taille());
+    exprs.réserve(type_fonction->types_entrees.taille());
 
     POUR (slots) {
         exprs.ajoute(it);
@@ -1008,10 +1008,10 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     auto exprs = kuri::tablet<NoeudExpression *, 10>();
-    exprs.reserve(slots.taille());
+    exprs.réserve(slots.taille());
 
     auto transformations_ = kuri::tableau<TransformationType, int>();
-    transformations_.reserve(static_cast<int>(transformations.taille()));
+    transformations_.réserve(static_cast<int>(transformations.taille()));
 
     // Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
@@ -1422,7 +1422,7 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             référence.ident = accès->ident;
             trouve_candidates_pour_expression(contexte, espace, &référence, fichier, candidates);
             accès->accedee->genre_valeur = GenreValeur::TRANSCENDANTALE;
-            args.pousse_front({nullptr, nullptr, accès->accedee});
+            args.ajoute_au_début({nullptr, nullptr, accès->accedee});
             return CodeRetourValidation::OK;
         }
 
@@ -1802,7 +1802,7 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel const *expr,
                                              EtatResolutionAppel *état)
 {
     auto &args = état->args;
-    args.reserve(expr->parametres.taille());
+    args.réserve(expr->parametres.taille());
     POUR (expr->parametres) {
         // l'argument est nommé
         if (it->est_assignation_variable()) {
@@ -1974,7 +1974,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel, VALIDATION_APPEL__COPIE_DONNEES);
 
     expr->parametres_resolus.efface();
-    expr->parametres_resolus.reserve(static_cast<int>(candidate->exprs.taille()));
+    expr->parametres_resolus.réserve(static_cast<int>(candidate->exprs.taille()));
 
     for (auto enfant : candidate->exprs) {
         expr->parametres_resolus.ajoute(enfant);

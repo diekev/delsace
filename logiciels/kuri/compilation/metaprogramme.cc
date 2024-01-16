@@ -47,10 +47,10 @@ int DonnéesConstantesExécutions::ajoute_globale(Type const *type,
 void DonnéesConstantesExécutions::rassemble_statistiques(Statistiques &stats) const
 {
     auto memoire_mv = 0l;
-    memoire_mv += globales.taille_memoire();
-    memoire_mv += données_constantes.taille_memoire();
-    memoire_mv += données_globales.taille_memoire();
-    memoire_mv += patchs_données_constantes.taille_memoire();
+    memoire_mv += globales.taille_mémoire();
+    memoire_mv += données_constantes.taille_mémoire();
+    memoire_mv += données_globales.taille_mémoire();
+    memoire_mv += patchs_données_constantes.taille_mémoire();
 
     stats.ajoute_mémoire_utilisée("Machine Virtuelle", memoire_mv);
 }

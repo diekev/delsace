@@ -939,7 +939,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille());
 
         données_externe.types_entrées.efface();
-        données_externe.types_entrées.reserve(nombre_arguments_totaux);
+        données_externe.types_entrées.réserve(nombre_arguments_totaux);
 
         POUR (inst_appel->args) {
             auto type = converti_type_ffi(it->type);
@@ -959,7 +959,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         données_externe.types_entrées.ajoute(nullptr);
 
         auto type_ffi_sortie = converti_type_ffi(type_fonction->type_sortie);
-        auto ptr_types_entrees = données_externe.types_entrées.donnees();
+        auto ptr_types_entrees = données_externe.types_entrées.données();
 
         auto status = ffi_prep_cif_var(&données_externe.cif,
                                        FFI_DEFAULT_ABI,
@@ -986,7 +986,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     ffi_call(&données_externe.cif,
              données_externe.ptr_fonction,
              pointeur_pile,
-             pointeurs_arguments.donnees());
+             pointeurs_arguments.données());
 
     auto taille_type_retour = type_fonction->type_sortie->taille_octet;
 
@@ -1071,8 +1071,8 @@ void MachineVirtuelle::installe_métaprogramme(MetaProgramme *métaprogramme)
     pile = de->pile;
     pointeur_pile = de->pointeur_pile;
     frames = de->frames;
-    ptr_données_constantes = métaprogramme->données_constantes.donnees();
-    ptr_données_globales = métaprogramme->données_globales.donnees();
+    ptr_données_constantes = métaprogramme->données_constantes.données();
+    ptr_données_globales = métaprogramme->données_globales.données();
     données_constantes = &compilatrice.données_constantes_exécutions;
 
     intervalle_adresses_globales.min = ptr_données_globales;
@@ -2040,7 +2040,7 @@ void MachineVirtuelle::ajoute_trace_appel(Erreur &e)
 kuri::tableau<FrameAppel> MachineVirtuelle::donne_tableau_frame_appel() const
 {
     kuri::tableau<FrameAppel> résultat;
-    résultat.reserve(profondeur_appel);
+    résultat.réserve(profondeur_appel);
 
     for (int i = 0; i < profondeur_appel; i++) {
         résultat.ajoute(frames[i]);
@@ -2279,7 +2279,7 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
 DonnéesExécution *MachineVirtuelle::loge_données_exécution()
 {
     if (!m_données_exécution_libres.est_vide()) {
-        auto résultat = m_données_exécution_libres.dernière();
+        auto résultat = m_données_exécution_libres.dernier_élément();
         m_données_exécution_libres.supprime_dernier();
         résultat->réinitialise();
         return résultat;
@@ -2389,7 +2389,7 @@ void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
 
     auto de = métaprogramme->données_exécution;
     if (!échantillons.est_vide()) {
-        auto &dernier_échantillon = échantillons.dernière();
+        auto &dernier_échantillon = échantillons.dernier_élément();
         auto profondeur_échantillon = dernier_échantillon.profondeur_frame_appel;
 
         if (les_frames_sont_les_mêmes(dernier_échantillon.frames,

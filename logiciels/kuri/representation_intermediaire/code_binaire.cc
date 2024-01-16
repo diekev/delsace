@@ -64,7 +64,7 @@ NoeudExpression const *Chunk::donne_site_pour_adresse(octet_t *adresse) const
         }
     }
 
-    return m_sites_source.dernière().site;
+    return m_sites_source.dernier_élément().site;
 }
 
 void Chunk::ajoute_site_source(NoeudExpression const *site)
@@ -78,7 +78,7 @@ void Chunk::ajoute_site_source(NoeudExpression const *site)
         return;
     }
 
-    if (m_sites_source.dernière().site == site) {
+    if (m_sites_source.dernier_élément().site == site) {
         return;
     }
 
@@ -113,8 +113,8 @@ int64_t Chunk::mémoire_utilisée() const
 {
     int64_t résultat = 0;
     résultat += capacité;
-    résultat += locales.taille_memoire();
-    résultat += m_sites_source.taille_memoire();
+    résultat += locales.taille_mémoire();
+    résultat += m_sites_source.taille_mémoire();
     return résultat;
 }
 
@@ -1325,7 +1325,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
         }
 
         auto type_fonction = fonction->type->comme_type_fonction();
-        donnees_externe.types_entrées.reserve(type_fonction->types_entrees.taille());
+        donnees_externe.types_entrées.réserve(type_fonction->types_entrees.taille());
 
         POUR (type_fonction->types_entrees) {
             donnees_externe.types_entrées.ajoute(converti_type_ffi(it));
@@ -1333,7 +1333,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
 
         auto type_ffi_sortie = converti_type_ffi(type_fonction->type_sortie);
         auto nombre_arguments = static_cast<unsigned>(donnees_externe.types_entrées.taille());
-        auto ptr_types_entrees = donnees_externe.types_entrées.donnees();
+        auto ptr_types_entrees = donnees_externe.types_entrées.données();
 
         auto status = ffi_prep_cif(&donnees_externe.cif,
                                    FFI_DEFAULT_ABI,
@@ -2174,7 +2174,7 @@ void CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *ato
     auto index = atome_globale->index;
     auto adressage_destination = AdresseDonnéesExécution{DONNÉES_GLOBALES, 0};
     auto globale = données_exécutions->globales[index];
-    auto destination = données_exécutions->données_globales.donnees() + globale.adresse;
+    auto destination = données_exécutions->données_globales.données() + globale.adresse;
     auto initialisateur = atome_globale->initialisateur;
     génère_code_atome_constant(
         initialisateur, adressage_destination, destination, globale.adresse);

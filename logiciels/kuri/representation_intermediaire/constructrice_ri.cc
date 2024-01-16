@@ -289,8 +289,8 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
     auto mémoire_instructions = int64_t(0);
     auto mémoire_code_binaire = int64_t(0);
     pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
-        mémoire_paramètres += it.params_entrees.taille_memoire();
-        mémoire_instructions += it.instructions.taille_memoire();
+        mémoire_paramètres += it.params_entrees.taille_mémoire();
+        mémoire_instructions += it.instructions.taille_mémoire();
 
         if (it.données_exécution) {
             mémoire_code_binaire += it.données_exécution->mémoire_utilisée();
@@ -1378,7 +1378,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
             }
 
             auto valeurs = kuri::tableau<AtomeConstante *>();
-            valeurs.reserve(2);
+            valeurs.réserve(2);
 
             valeurs.ajoute(crée_initialisation_défaut_pour_type(type_union->type_le_plus_grand));
             valeurs.ajoute(crée_initialisation_défaut_pour_type(TypeBase::Z32));
@@ -1395,7 +1395,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         {
             auto type_composé = type->comme_type_compose();
             auto valeurs = kuri::tableau<AtomeConstante *>();
-            valeurs.reserve(type_composé->membres.taille());
+            valeurs.réserve(type_composé->membres.taille());
 
             POUR (type_composé->donne_membres_pour_code_machine()) {
                 auto valeur = crée_initialisation_défaut_pour_type(it.type);
@@ -1482,7 +1482,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     auto mémoire_args_appel = 0;
 
     pour_chaque_element(m_appel, [&](InstructionAppel const &it) {
-        mémoire_args_appel += it.args.taille_memoire();
+        mémoire_args_appel += it.args.taille_mémoire();
     });
 
     stats_ri.fusionne_entrée({"arguments_insts_appel", m_appel.taille(), mémoire_args_appel});
@@ -1907,7 +1907,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             auto dernière_expression = NoeudExpression::nul();
             if (!noeud_bloc->expressions->est_vide()) {
-                dernière_expression = noeud_bloc->expressions->dernière();
+                dernière_expression = noeud_bloc->expressions->dernier_élément();
             }
 
             POUR (*noeud_bloc->expressions.verrou_lecture()) {
@@ -1942,7 +1942,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             if (!m_est_dans_diffère) {
                 /* Dépile jusqu'à la sentinelle. */
-                while (m_instructions_diffères.dernière() != noeud_bloc->bloc_parent) {
+                while (m_instructions_diffères.dernier_élément() != noeud_bloc->bloc_parent) {
                     m_instructions_diffères.supprime_dernier();
                 }
                 m_instructions_diffères.supprime_dernier();
@@ -1955,7 +1955,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto expr_appel = noeud->comme_appel();
 
             auto args = kuri::tableau<Atome *, int>();
-            args.reserve(expr_appel->parametres_resolus.taille());
+            args.réserve(expr_appel->parametres_resolus.taille());
 
             /* Nous pouvons avoir des initialisations de type ici qui furent créés lors de la
              * création de fonctions d'initialisations d'autres types. */
@@ -4024,7 +4024,7 @@ AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
     }
 
     kuri::tableau<AtomeConstante *> valeurs_annotations;
-    valeurs_annotations.reserve(annotations.taille());
+    valeurs_annotations.réserve(annotations.taille());
 
     auto type_annotation = m_compilatrice.typeuse.type_annotation;
     auto type_pointeur_annotation = m_compilatrice.typeuse.type_pointeur_pour(type_annotation);
@@ -4179,7 +4179,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 type_tableau, std::move(tampon_valeurs_énum));
 
             kuri::tableau<AtomeConstante *> noms_enum;
-            noms_enum.reserve(type_enum->membres.taille());
+            noms_enum.réserve(type_enum->membres.taille());
 
             POUR (type_enum->membres) {
                 if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
@@ -4231,7 +4231,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto type_struct_membre = m_compilatrice.typeuse.type_info_type_membre_structure;
 
             kuri::tableau<AtomeConstante *> valeurs_membres;
-            valeurs_membres.reserve(type_union->membres.taille());
+            valeurs_membres.réserve(type_union->membres.taille());
 
             POUR (type_union->membres) {
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
@@ -4585,7 +4585,7 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_structs_employées(
     }
 
     kuri::tableau<AtomeConstante *> valeurs_structs_employees;
-    valeurs_structs_employees.reserve(type_structure->types_employés.taille());
+    valeurs_structs_employees.réserve(type_structure->types_employés.taille());
 
     POUR (type_structure->types_employés) {
         valeurs_structs_employees.ajoute(crée_info_type(it->type, site));
@@ -4617,7 +4617,7 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_types_entrées(const TypeFonc
     }
 
     kuri::tableau<AtomeConstante *> types_entree;
-    types_entree.reserve(type_fonction->types_entrees.taille());
+    types_entree.réserve(type_fonction->types_entrees.taille());
     POUR (type_fonction->types_entrees) {
         types_entree.ajoute(crée_info_type_avec_transtype(it, site));
     }
@@ -4650,13 +4650,13 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_type_sortie(const TypeFonctio
     if (type_sortie->est_type_tuple()) {
         auto tuple = type_sortie->comme_type_tuple();
 
-        types_sortie.reserve(tuple->membres.taille());
+        types_sortie.réserve(tuple->membres.taille());
         POUR (tuple->membres) {
             types_sortie.ajoute(crée_info_type_avec_transtype(it.type, site));
         }
     }
     else {
-        types_sortie.reserve(1);
+        types_sortie.réserve(1);
         types_sortie.ajoute(crée_info_type_avec_transtype(type_fonction->type_sortie, site));
     }
 
@@ -4774,7 +4774,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
     définis_fonction_courante(fonction_init);
 
     /* Sauvegarde le retour. */
-    auto di = fonction_init->instructions.dernière();
+    auto di = fonction_init->instructions.dernier_élément();
     fonction_init->instructions.supprime_dernier();
 
     auto constructeurs = m_compilatrice.constructeurs_globaux.verrou_lecture();
@@ -4825,7 +4825,7 @@ void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
     auto atome_creation_contexte = m_constructrice.trouve_ou_insère_fonction(
         decl_creation_contexte);
 
-    atome_fonc->instructions.reserve(atome_creation_contexte->instructions.taille());
+    atome_fonc->instructions.réserve(atome_creation_contexte->instructions.taille());
 
     for (auto i = 0; i < atome_creation_contexte->instructions.taille(); ++i) {
         auto it = atome_creation_contexte->instructions[i];
@@ -5288,7 +5288,7 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(
         }
 
         kuri::tableau<AtomeConstante *> valeurs;
-        valeurs.reserve(feuilles->expressions.taille());
+        valeurs.réserve(feuilles->expressions.taille());
 
         POUR (feuilles->expressions) {
             génère_ri_pour_noeud(it);

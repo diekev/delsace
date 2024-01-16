@@ -928,7 +928,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             auto type_tableau = type->comme_type_tableau_fixe();
 
             auto virgule = assembleuse->crée_virgule(lexeme);
-            virgule->expressions.reserve(type_tableau->taille);
+            virgule->expressions.réserve(type_tableau->taille);
 
             for (auto i = 0; i < type_tableau->taille; ++i) {
                 auto pointeur_valeur = pointeur + type_tableau->type_pointe->taille_octet *

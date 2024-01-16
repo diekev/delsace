@@ -150,7 +150,7 @@ struct EntréesStats {
     EntréesStats(kuri::chaine_statique nom_, std::initializer_list<const char *> &&noms_entrées)
         : nom(nom_)
     {
-        entrées.reserve(static_cast<int>(noms_entrées.size()));
+        entrées.réserve(static_cast<int>(noms_entrées.size()));
         for (auto nom_entrée : noms_entrées) {
             T e;
             e.nom = nom_entrée;

@@ -72,11 +72,11 @@ void Sémanticienne::rassemble_statistiques(Statistiques &stats)
 {
     auto mémoire_utilisée = 0l;
     POUR (m_arbres_aplatis) {
-        mémoire_utilisée += it->noeuds.taille_memoire();
+        mémoire_utilisée += it->noeuds.taille_mémoire();
         mémoire_utilisée += taille_de(ArbreAplatis);
     }
 
-    mémoire_utilisée += m_arbres_aplatis.taille_memoire();
+    mémoire_utilisée += m_arbres_aplatis.taille_mémoire();
 
     stats.ajoute_mémoire_utilisée("Compilatrice", mémoire_utilisée);
 }
@@ -358,7 +358,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return Attente::sur_declaration(corps);
             }
             auto ajoute_fini = noeud->comme_ajoute_fini();
-            corps->bloc->expressions->pousse_front(ajoute_fini->expression);
+            corps->bloc->expressions->ajoute_au_début(ajoute_fini->expression);
             ajoute_fini->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             break;
         }
@@ -374,7 +374,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return Attente::sur_declaration(corps);
             }
             auto ajoute_init = noeud->comme_ajoute_init();
-            corps->bloc->expressions->pousse_front(ajoute_init->expression);
+            corps->bloc->expressions->ajoute_au_début(ajoute_init->expression);
             ajoute_init->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             break;
         }
@@ -2018,7 +2018,7 @@ RésultatValidation Sémanticienne::valide_types_paramètres_fonction(
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__TYPES_PARAMETRES);
 
     kuri::tablet<Type *, 6> types_entrees;
-    types_entrees.reserve(decl->params.taille());
+    types_entrees.réserve(decl->params.taille());
 
     POUR (decl->params) {
         types_entrees.ajoute(it->type);
@@ -2035,7 +2035,7 @@ RésultatValidation Sémanticienne::valide_types_paramètres_fonction(
     }
     else {
         kuri::tablet<MembreTypeComposé, 6> membres;
-        membres.reserve(decl->params_sorties.taille());
+        membres.réserve(decl->params_sorties.taille());
 
         for (auto &expr : decl->params_sorties) {
             auto type_declare = expr->comme_declaration_variable();
@@ -2535,7 +2535,7 @@ RésultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
 
     inst->type = type_sortie;
 
-    inst->donnees_exprs.reserve(static_cast<int>(donnees_retour.taille()));
+    inst->donnees_exprs.réserve(static_cast<int>(donnees_retour.taille()));
     POUR (donnees_retour) {
         inst->donnees_exprs.ajoute(std::move(it));
     }
@@ -3318,8 +3318,8 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
     assert(!derniere_valeur.est_valide());
 
     auto &membres = decl->membres;
-    membres.reserve(decl->bloc->expressions->taille());
-    decl->bloc->reserve_membres(decl->bloc->expressions->taille());
+    membres.réserve(decl->bloc->expressions->taille());
+    decl->bloc->réserve_membres(decl->bloc->expressions->taille());
 
     int64_t valeur_enum_min = std::numeric_limits<int64_t>::max();
     int64_t valeur_enum_max = std::numeric_limits<int64_t>::min();
@@ -3554,7 +3554,7 @@ struct ConstructriceMembresTypeComposé {
     {
         // @réinitialise en cas d'erreurs passées
         type_composé.membres.efface();
-        type_composé.membres.reserve(bloc->nombre_de_membres());
+        type_composé.membres.réserve(bloc->nombre_de_membres());
     }
 
     void finalise()
@@ -4560,7 +4560,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
     {
         CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__COPIE_DONNEES);
 
-        decl->donnees_decl.reserve(static_cast<int>(donnees_assignations.taille()));
+        decl->donnees_decl.réserve(static_cast<int>(donnees_assignations.taille()));
 
         POUR (donnees_assignations) {
             decl->donnees_decl.ajoute(std::move(it));
@@ -4992,7 +4992,7 @@ RésultatValidation Sémanticienne::valide_assignation_multiple(NoeudAssignation
             *donnees, variables.defile(), donnees->expression, donnees->expression->type));
     }
 
-    inst->données_exprs.reserve(static_cast<int>(donnees_assignations.taille()));
+    inst->données_exprs.réserve(static_cast<int>(donnees_assignations.taille()));
     POUR (donnees_assignations) {
         inst->données_exprs.ajoute(std::move(it));
     }
@@ -5870,7 +5870,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     }
 
     auto bloc = inst->bloc;
-    bloc->reserve_membres(nombre_de_variables);
+    bloc->réserve_membres(nombre_de_variables);
 
     auto const possède_index = nombre_de_variables == 2;
 
@@ -6060,7 +6060,7 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
             return CodeRetourValidation::Erreur;
         }
 
-        auto dernière_expression = it->expressions->dernière();
+        auto dernière_expression = it->expressions->dernier_élément();
         if (dernière_expression->est_retourne() || dernière_expression->est_retiens()) {
             continue;
         }
@@ -6304,7 +6304,7 @@ ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
         résultat = memoire::loge<ArbreAplatis>("ArbreAplatis");
     }
     else {
-        résultat = m_arbres_aplatis.dernière();
+        résultat = m_arbres_aplatis.dernier_élément();
         m_arbres_aplatis.supprime_dernier();
         résultat->réinitialise();
     }
@@ -6530,7 +6530,7 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
     }
     else {
         kuri::tablet<MembreTypeComposé, 6> membres;
-        membres.reserve(expr->types_sortie.taille());
+        membres.réserve(expr->types_sortie.taille());
 
         for (auto &type_declare : expr->types_sortie) {
             if (résoud_type_final(type_declare, type_sortie) == CodeRetourValidation::Erreur) {

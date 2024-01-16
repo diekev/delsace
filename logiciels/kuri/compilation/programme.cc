@@ -287,16 +287,16 @@ void Programme::change_de_phase(PhaseCompilation phase)
 int64_t Programme::memoire_utilisee() const
 {
     auto memoire = int64_t(0);
-    memoire += fonctions().taille_memoire();
-    memoire += types().taille_memoire();
-    memoire += globales().taille_memoire();
-    memoire += m_fonctions_utilisees.taille_memoire();
-    memoire += m_types_utilises.taille_memoire();
-    memoire += m_globales_utilisees.taille_memoire();
+    memoire += fonctions().taille_mémoire();
+    memoire += types().taille_mémoire();
+    memoire += globales().taille_mémoire();
+    memoire += m_fonctions_utilisees.taille_mémoire();
+    memoire += m_types_utilises.taille_mémoire();
+    memoire += m_globales_utilisees.taille_mémoire();
     memoire += taille_de(Coulisse);
-    memoire += m_fichiers.taille_memoire();
-    memoire += m_fichiers_utilises.taille_memoire();
-    memoire += m_dépendances_manquantes.taille_memoire();
+    memoire += m_fichiers.taille_mémoire();
+    memoire += m_fichiers_utilises.taille_mémoire();
+    memoire += m_dépendances_manquantes.taille_mémoire();
     return memoire;
 }
 
@@ -829,8 +829,8 @@ struct ConstructriceProgrammeFormeRI {
 std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     construit_représentation_intermédiaire_programme()
 {
-    m_résultat.fonctions.reserve(m_programme.fonctions().taille() + m_programme.types().taille());
-    m_résultat.globales.reserve(m_programme.globales().taille());
+    m_résultat.fonctions.réserve(m_programme.fonctions().taille() + m_programme.types().taille());
+    m_résultat.globales.réserve(m_programme.globales().taille());
 
     /* Nous pouvons directement copier les types. */
     m_résultat.types = m_programme.types();
@@ -1135,7 +1135,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
     }
 
     kuri::tableau<AtomeConstante *> table_des_types;
-    table_des_types.reserve(index_type);
+    table_des_types.réserve(index_type);
 
     POUR (m_résultat.types) {
         if (est_type_tuple_ou_fonction_init_tuple(it)) {
