@@ -2037,6 +2037,12 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->noeud_fonction_appelee = const_cast<NoeudDeclarationEnteteFonction *>(
             decl_fonction_appelée);
         expr->noeud_fonction_appelee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+        /* Il est possible que le type ne fut pas initialisé, ou alors que le type est celui d'une
+         * autre fonction assignée lors de la validation sémantique de l'expression (une référence
+         * utilise le type de la première fonction trouvée, c'est ici que nous résolvons la bonne
+         * fonction). Changeons alors le type pour éviter toute confusion dans les assertions ou
+         * les étapes suivantes de compilation. */
+        expr->expression->type = expr->noeud_fonction_appelee->type;
 
         if (expr->type == nullptr) {
             expr->type = type_sortie;
