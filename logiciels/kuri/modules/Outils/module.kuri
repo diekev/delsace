@@ -36,7 +36,7 @@ min4 :: fonc (p: [..]$T)
 // retourne 1.0 / (2.0 ^ puissance)
 réciproque_puissance_de_2 :: fonc (puissance: z32) -> r32
 {
-    // 1.0/pow(2,power)
+    // 1.0/puissance(2,power)
     union {
         float f;
         int32_t i;

@@ -62,7 +62,7 @@ void GestionnaireChainesAjoutées::imprime_dans(std::ostream &os)
 
 int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
 {
-    int64_t résultat = m_chaines.taille_memoire();
+    int64_t résultat = m_chaines.taille_mémoire();
 
     POUR (m_chaines) {
         résultat += it.taille();
@@ -77,13 +77,13 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
     : ordonnanceuse(this), messagère(this),
       gestionnaire_code(memoire::loge<GestionnaireCode>("GestionnaireCode", this)),
       gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
-      racine_kuri(chemin_racine_kuri), typeuse(this->operateurs),
+      racine_kuri(chemin_racine_kuri), typeuse(this->opérateurs),
       registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
 {
     initialise_identifiants_intrinsèques(*table_identifiants.verrou_ecriture());
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 
-    auto ops = operateurs.verrou_ecriture();
+    auto ops = opérateurs.verrou_ecriture();
     enregistre_opérateurs_basiques(typeuse, *ops);
 
     espace_de_travail_defaut = demarre_un_espace_de_travail({}, "Espace 1");
@@ -273,34 +273,47 @@ int64_t Compilatrice::memoire_utilisee() const
 
     résultat += sys_module->mémoire_utilisée();
 
-    auto metaprogrammes_ = metaprogrammes.verrou_lecture();
+    auto metaprogrammes_ = métaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
         résultat += it.programme->memoire_utilisee();
+        résultat += it.données_constantes.taille_mémoire();
+        résultat += it.données_globales.taille_mémoire();
+        résultat += it.cibles_appels.taille_mémoire();
     }
+
+    résultat += metaprogrammes_->memoire_utilisee();
 
     résultat += chaines_ajoutées_à_la_compilation->mémoire_utilisée();
 
-    résultat += m_tableaux_lexemes.taille_memoire();
-    POUR (m_tableaux_lexemes) {
-        résultat += it.taille_memoire();
+    résultat += m_tableaux_lexèmes.taille_mémoire();
+    POUR (m_tableaux_lexèmes) {
+        résultat += it.taille_mémoire();
     }
 
-    résultat += m_états_libres.taille_memoire();
+    résultat += m_tableaux_code_fonctions.taille_mémoire();
+    POUR (m_tableaux_code_fonctions) {
+        résultat += it.taille_mémoire();
+    }
+
+    résultat += m_états_libres.taille_mémoire();
     POUR (m_états_libres) {
         résultat += taille_de(EtatResolutionAppel);
-        résultat += it->args.taille_memoire();
+        résultat += it->args.taille_mémoire();
     }
 
     résultat += broyeuse->mémoire_utilisée();
-    résultat += constructeurs_globaux->taille_memoire();
+    résultat += constructeurs_globaux->taille_mémoire();
     résultat += table_chaines->taille_mémoire();
+
+    résultat += m_sémanticiennes.taille_mémoire() +
+                taille_de(Sémanticienne) * m_sémanticiennes.taille();
 
     return résultat;
 }
 
 void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 {
-    stats.mémoire_compilatrice = memoire_utilisee();
+    stats.ajoute_mémoire_utilisée("Compilatrice", memoire_utilisee());
 
     POUR ((*espaces_de_travail.verrou_lecture())) {
         it->rassemble_statistiques(stats);
@@ -308,14 +321,16 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
     stats.nombre_identifiants = table_identifiants->taille();
 
+    gestionnaire_code->rassemble_statistiques(stats);
+
     sys_module->rassemble_stats(stats);
 
-    operateurs->rassemble_statistiques(stats);
-    graphe_dependance->rassemble_statistiques(stats);
-    gestionnaire_bibliotheques->rassemble_statistiques(stats);
+    opérateurs->rassemble_statistiques(stats);
+    graphe_dépendance->rassemble_statistiques(stats);
+    gestionnaire_bibliothèques->rassemble_statistiques(stats);
     typeuse.rassemble_statistiques(stats);
 
-    auto metaprogrammes_ = metaprogrammes.verrou_lecture();
+    auto metaprogrammes_ = métaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
         it.programme->rassemble_statistiques(stats);
     }
@@ -325,6 +340,8 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
     POUR (m_sémanticiennes) {
         stats.temps_typage -= it->donne_temps_chargement();
+        it->rassemble_statistiques(stats);
+
 #ifdef STATISTIQUES_DETAILLEES
         it->donne_stats_typage().imprime_stats();
 #endif
@@ -484,8 +501,8 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
     if (std::holds_alternative<FichierExistant>(résultat)) {
         auto fichier = static_cast<Fichier *>(std::get<FichierExistant>(résultat));
         auto tableau = converti_tableau_lexemes(fichier->lexèmes);
-        m_tableaux_lexemes.ajoute(tableau);
-        return m_tableaux_lexemes.dernière();
+        m_tableaux_lexèmes.ajoute(tableau);
+        return m_tableaux_lexèmes.dernier_élément();
     }
 
     auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
@@ -497,8 +514,8 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
     lexeuse.performe_lexage();
 
     auto tableau = converti_tableau_lexemes(fichier->lexèmes);
-    m_tableaux_lexemes.ajoute(tableau);
-    return m_tableaux_lexemes.dernière();
+    m_tableaux_lexèmes.ajoute(tableau);
+    return m_tableaux_lexèmes.dernier_élément();
 }
 
 kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsees(
@@ -506,7 +523,7 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
 {
     auto entetes = gestionnaire_code->fonctions_parsees();
     auto résultat = kuri::tableau<NoeudCodeEnteteFonction *>();
-    résultat.reserve(entetes.taille());
+    résultat.réserve(entetes.taille());
     POUR (entetes) {
         if (it->est_operateur || it->est_coroutine ||
             it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
@@ -516,7 +533,7 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
         résultat.ajoute(code_entete->comme_entete_fonction());
     }
     m_tableaux_code_fonctions.ajoute(résultat);
-    return m_tableaux_code_fonctions.dernière();
+    return m_tableaux_code_fonctions.dernier_élément();
 }
 
 Module *Compilatrice::trouve_ou_crée_module(IdentifiantCode *nom_module,
@@ -563,7 +580,7 @@ RésultatFichier Compilatrice::trouve_ou_crée_fichier(Module *module,
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
     NoeudDeclarationEnteteFonction const *entete)
 {
-    POUR_TABLEAU_PAGE ((*metaprogrammes.verrou_ecriture())) {
+    POUR_TABLEAU_PAGE ((*métaprogrammes.verrou_ecriture())) {
         if (it.fonction == entete) {
             return &it;
         }
@@ -606,7 +623,7 @@ Fichier *Compilatrice::fichier(kuri::chaine_statique chemin) const
 
 MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
 {
-    auto résultat = metaprogrammes->ajoute_element();
+    auto résultat = métaprogrammes->ajoute_element();
     résultat->programme = Programme::crée_pour_metaprogramme(espace, résultat);
     return résultat;
 }
@@ -616,7 +633,7 @@ MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
 EtatResolutionAppel *Compilatrice::crée_ou_donne_état_résolution_appel()
 {
     if (!m_états_libres.est_vide()) {
-        auto résultat = m_états_libres.dernière();
+        auto résultat = m_états_libres.dernier_élément();
         résultat->réinitialise();
         m_états_libres.supprime_dernier();
         return résultat;
@@ -675,7 +692,7 @@ Sémanticienne *Compilatrice::donne_sémanticienne_disponible(Tacheronne &tacher
     Sémanticienne *résultat;
 
     if (!m_sémanticiennes.est_vide()) {
-        résultat = m_sémanticiennes.dernière();
+        résultat = m_sémanticiennes.dernier_élément();
         m_sémanticiennes.supprime_dernier();
     }
     else {

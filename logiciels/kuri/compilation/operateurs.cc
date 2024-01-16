@@ -326,9 +326,9 @@ int64_t TableOpérateurs::mémoire_utilisée() const
 {
     int64_t résultat(0);
 
-    résultat += opérateurs_.taille_memoire();
+    résultat += opérateurs_.taille_mémoire();
     POUR (opérateurs_) {
-        résultat += it.taille_memoire();
+        résultat += it.taille_mémoire();
     }
 
     return résultat;
@@ -494,7 +494,7 @@ void RegistreDesOpérateurs::ajoute_opérateurs_basiques_fonction(TypeFonction *
 void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
 {
     auto nombre_unaires = int64_t(0);
-    auto memoire_unaires = opérateurs_unaires.taille_memoire();
+    auto memoire_unaires = opérateurs_unaires.taille_mémoire();
 
     POUR (opérateurs_unaires) {
         memoire_unaires += it.memoire_utilisee();
@@ -502,7 +502,7 @@ void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
     }
 
     auto nombre_binaires = int64_t(0);
-    auto memoire_binaires = opérateurs_binaires.taille_memoire();
+    auto memoire_binaires = opérateurs_binaires.taille_mémoire();
 
     POUR (opérateurs_binaires) {
         memoire_binaires += it.memoire_utilisee();

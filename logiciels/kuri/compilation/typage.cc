@@ -216,7 +216,7 @@ static void initialise_type_fonction(TypeFonction *résultat,
                                      kuri::tablet<Type *, 6> const &entrees,
                                      Type *sortie)
 {
-    résultat->types_entrees.reserve(static_cast<int>(entrees.taille()));
+    résultat->types_entrees.réserve(static_cast<int>(entrees.taille()));
     POUR (entrees) {
         résultat->types_entrees.ajoute(it);
     }
@@ -898,7 +898,7 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
     return résultat;
 }
 
-TypeStructure *Typeuse::reserve_type_structure()
+TypeStructure *Typeuse::réserve_type_structure()
 {
     return alloc->m_noeuds_type_structure.ajoute_element();
 }
@@ -937,7 +937,7 @@ TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
     type->lexeme = lexeme;
     type->bloc_parent = bloc_parent;
 
-    type->membres.reserve(static_cast<int>(membres.taille()));
+    type->membres.réserve(static_cast<int>(membres.taille()));
     POUR (membres) {
         type->membres.ajoute(it);
     }
@@ -1026,7 +1026,7 @@ TypeTuple *Typeuse::crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membr
     }
 
     auto type = alloc->m_noeuds_type_tuple.ajoute_element();
-    type->membres.reserve(static_cast<int>(membres.taille()));
+    type->membres.réserve(static_cast<int>(membres.taille()));
 
     POUR (membres) {
         type->membres.ajoute(it);
@@ -1045,6 +1045,22 @@ TypeTuple *Typeuse::crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membr
 
 void Typeuse::rassemble_statistiques(Statistiques &stats) const
 {
+    auto mémoire = int64_t(0);
+
+    mémoire += trie.noeuds.memoire_utilisee();
+
+    POUR_TABLEAU_PAGE (trie.noeuds) {
+        mémoire += it.enfants.table.taille_mémoire();
+        mémoire += it.enfants_sortie.table.taille_mémoire();
+    }
+
+    mémoire += m_infos_types_vers_types.taille_mémoire();
+    mémoire += table_types_de_donnees.taille_mémoire();
+    mémoire += types_simples->taille_mémoire();
+    mémoire += taille_de(AllocatriceNoeud);
+
+    stats.ajoute_mémoire_utilisée("Typeuse", mémoire);
+
     alloc->rassemble_statistiques(stats);
 }
 
@@ -1308,7 +1324,7 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
 {
     assert(!type->est_nonsure);
 
-    type->type_structure = typeuse.reserve_type_structure();
+    type->type_structure = typeuse.réserve_type_structure();
 
     if (type->type_le_plus_grand) {
         auto membres_ = kuri::tableau<MembreTypeComposé, int>(2);

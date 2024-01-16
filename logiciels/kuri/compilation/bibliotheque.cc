@@ -232,7 +232,7 @@ int64_t Bibliotheque::memoire_utilisee() const
     for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; k++) {
         memoire += noms[k].taille();
     }
-    memoire += dependances.taille_memoire();
+    memoire += dependances.taille_mémoire();
     return memoire;
 }
 
@@ -337,7 +337,7 @@ GestionnaireBibliotheques::GestionnaireBibliotheques(Compilatrice &compilatrice_
 bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilatrice &compilatrice)
 {
     auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
-    auto gestionnaire = compilatrice.gestionnaire_bibliotheques.verrou_ecriture();
+    auto gestionnaire = compilatrice.gestionnaire_bibliothèques.verrou_ecriture();
     auto espace = compilatrice.espace_defaut_compilation();
 
     /* La bibliothèque C. */
@@ -848,5 +848,5 @@ int64_t GestionnaireBibliotheques::memoire_utilisee() const
 
 void GestionnaireBibliotheques::rassemble_statistiques(Statistiques &stats) const
 {
-    stats.mémoire_bibliothèques += memoire_utilisee();
+    stats.ajoute_mémoire_utilisée("Bibliothèques", memoire_utilisee());
 }
