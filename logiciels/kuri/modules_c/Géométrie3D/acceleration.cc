@@ -528,7 +528,7 @@ static void balance(HierarchieBoiteEnglobante *tree)
 
     /* Build the implicit tree */
     non_recursive_bvh_div_nodes(
-        tree, tree->nodearray.donnees() + (tree->totleaf - 1), leafs_array, tree->totleaf);
+        tree, tree->nodearray.données() + (tree->totleaf - 1), leafs_array, tree->totleaf);
 
     /* current code expects the branches to be linked to the nodes array
      * we perform that linkage here */
@@ -554,14 +554,14 @@ HierarchieBoiteEnglobante *cree_hierarchie_boite_englobante(const Maillage &mail
         auto nombre_de_sommets = maillage.nombreDeSommetsPolygone(i);
         temp_access_index_sommet.redimensionne(nombre_de_sommets);
 
-        maillage.indexPointsSommetsPolygone(i, temp_access_index_sommet.donnees());
+        maillage.indexPointsSommetsPolygone(i, temp_access_index_sommet.données());
 
         cos.redimensionne(nombre_de_sommets);
         for (int64_t j = 0; j < nombre_de_sommets; j++) {
             cos[j] = maillage.pointPourIndex(temp_access_index_sommet[j]);
         }
 
-        insere(arbre_hbe, i, cos.donnees(), nombre_de_sommets);
+        insere(arbre_hbe, i, cos.données(), nombre_de_sommets);
     }
 
     balance(arbre_hbe);
@@ -648,7 +648,7 @@ void visualise_hierarchie_au_niveau(HierarchieBoiteEnglobante &hierarchie,
 
     auto racine = hierarchie.nodes[hierarchie.totleaf];
     kuri::tableau<float *> limites;
-    limites.reserve(hierarchie.totleaf);
+    limites.réserve(hierarchie.totleaf);
 
     if (niveau <= 0) {
         limites.ajoute(racine->limites);

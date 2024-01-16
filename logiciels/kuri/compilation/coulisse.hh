@@ -13,6 +13,7 @@ struct CompilatriceRI;
 struct EspaceDeTravail;
 struct OptionsDeCompilation;
 struct Programme;
+struct Statistiques;
 
 /* Arguments pour la génération de code.
  *
@@ -87,6 +88,8 @@ struct Coulisse {
     /* Crée l'exécutable depuis le fichier objet. */
     bool crée_exécutable(ArgsLiaisonObjets const &args);
 
+    void rassemble_statistiques(Statistiques &stats);
+
   protected:
     virtual std::optional<ErreurCoulisse> génère_code_impl(ArgsGénérationCode const &args) = 0;
 
@@ -94,6 +97,8 @@ struct Coulisse {
         ArgsCréationFichiersObjets const &args) = 0;
 
     virtual std::optional<ErreurCoulisse> crée_exécutable_impl(ArgsLiaisonObjets const &args) = 0;
+
+    virtual int64_t mémoire_utilisée() const = 0;
 
   private:
     bool est_coulisse_métaprogramme() const;

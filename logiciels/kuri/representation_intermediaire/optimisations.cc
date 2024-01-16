@@ -95,7 +95,7 @@ struct CopieuseInstruction {
     kuri::tableau<Instruction *, int> copie_instructions(AtomeFonction *atome_fonction)
     {
         kuri::tableau<Instruction *, int> résultat;
-        résultat.reserve(atome_fonction->instructions.taille());
+        résultat.réserve(atome_fonction->instructions.taille());
 
         POUR (atome_fonction->instructions) {
             // s'il existe une substition pour cette instruction, ignore-là
@@ -137,7 +137,7 @@ struct CopieuseInstruction {
                 auto appelé = copie_atome(appel->appele);
 
                 kuri::tableau<Atome *, int> args;
-                args.reserve(appel->args.taille());
+                args.réserve(appel->args.taille());
                 POUR (appel->args) {
                     args.ajoute(copie_atome(it));
                 }
@@ -326,7 +326,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
     }
 
     auto instructions_copiees = copieuse.copie_instructions(fonction_appelee);
-    nouvelles_instructions.reserve_delta(instructions_copiees.taille());
+    nouvelles_instructions.réserve_delta(instructions_copiees.taille());
 
     POUR (instructions_copiees) {
         if (it->genre == GenreInstruction::LABEL) {
@@ -544,7 +544,7 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
 bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
 {
     auto nouvelle_instructions = kuri::tableau<Instruction *, int>();
-    nouvelle_instructions.reserve(atome_fonc->instructions.taille());
+    nouvelle_instructions.réserve(atome_fonc->instructions.taille());
 
     auto substitutrice = Substitutrice();
     auto nombre_labels = 0;
@@ -575,7 +575,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
             continue;
         }
 
-        nouvelle_instructions.reserve_delta(atome_fonc_appelee->instructions.taille() + 1);
+        nouvelle_instructions.réserve_delta(atome_fonc_appelee->instructions.taille() + 1);
 
         // crée une nouvelle adresse retour pour faciliter la suppression de l'instruction de
         // stockage de la valeur de retour dans l'ancienne adresse
