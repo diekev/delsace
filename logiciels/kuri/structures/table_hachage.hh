@@ -256,8 +256,8 @@ struct table_hachage {
 
     int64_t taille_mémoire() const
     {
-        return int64_t(occupes.taille_memoire()) + int64_t(empreintes.taille_memoire()) +
-               int64_t(cles.taille_memoire()) + int64_t(valeurs.taille_memoire());
+        return int64_t(occupes.taille_mémoire()) + int64_t(empreintes.taille_mémoire()) +
+               int64_t(cles.taille_mémoire()) + int64_t(valeurs.taille_mémoire());
     }
 
     void efface()
