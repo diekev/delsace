@@ -586,6 +586,12 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
 
         if (type_du_paramètre == nullptr) {
             /* Pour les fonctions variadiques externes, nous acceptons tous les types. */
+            if (type_de_l_expression->est_type_entier_constant()) {
+                return PoidsTransformation{
+                    TransformationType(TypeTransformation::CONVERTI_ENTIER_CONSTANT,
+                                       TypeBase::Z32),
+                    1.0};
+            }
             return PoidsTransformation{TransformationType(), 1.0};
         }
 
