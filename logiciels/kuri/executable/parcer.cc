@@ -987,7 +987,7 @@ static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico
     for (auto i = 3u; i < nombre_tokens; ++i) {
         auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
         morceaux.ajoute(converti_chaine(spelling));
-        std::cerr << morceaux.dernière();
+        std::cerr << morceaux.dernier_élément();
     }
     std::cerr << '\n';
 
@@ -2025,11 +2025,11 @@ struct Convertisseuse {
         CXCursor enfant_bloc;
 
         if (!est_declaration) {
-            est_declaration = enfants.dernière().kind != CXCursorKind::CXCursor_CompoundStmt;
+            est_declaration = enfants.dernier_élément().kind != CXCursorKind::CXCursor_CompoundStmt;
 
             if (!est_declaration) {
                 /* Nous n'avons pas une déclaration */
-                enfant_bloc = enfants.dernière();
+                enfant_bloc = enfants.dernier_élément();
                 enfants.supprime_dernier();
             }
         }
@@ -2291,7 +2291,7 @@ int main(int argc, char **argv)
     CXTranslationUnit unit = clang_parseTranslationUnit(
         index,
         config.fichier.c_str(),
-        args.donnees(),
+        args.données(),
         static_cast<int>(args.taille()),
         nullptr,
         0,
