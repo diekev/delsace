@@ -299,6 +299,16 @@ bool UniteCompilation::est_attente_sur_symbole_précédent(Attente attente) cons
     return m_attente_sur_symbole_précédente == attente.symbole();
 }
 
+int64_t UniteCompilation::mémoire_utilisée() const
+{
+    auto résultat = int64_t(0);
+    résultat += m_attentes.taille_mémoire();
+#ifdef ENREGISTRE_HISTORIQUE
+    résultat += m_historique.taille_mémoire();
+#endif
+    return résultat;
+}
+
 const char *chaine_état_unité_compilation(UniteCompilation::État état)
 {
 #define ENUMERE_ETAT_UNITE_COMPILATION_EX(Genre)                                                  \

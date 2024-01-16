@@ -88,8 +88,8 @@ std::optional<ErreurCoulisse> CoulisseMV::crée_exécutable_impl(const ArgsLiais
      * pour les initialisations des globales (`ptr_données_globales + decalage` ici-bas)
      * correspondent aux pointeurs calculés dans la Machine Virtuelle (`ptr_données_globales +
      * globale.adresse` là-bas). */
-    auto ptr_données_globales = métaprogramme->données_globales.donnees();
-    auto ptr_données_constantes = métaprogramme->données_constantes.donnees();
+    auto ptr_données_globales = métaprogramme->données_globales.données();
+    auto ptr_données_constantes = métaprogramme->données_constantes.données();
 
     // initialise les globales pour le métaprogramme
     POUR (données_constantes.patchs_données_constantes) {
@@ -119,4 +119,9 @@ std::optional<ErreurCoulisse> CoulisseMV::crée_exécutable_impl(const ArgsLiais
     }
 
     return {};
+}
+
+int64_t CoulisseMV::mémoire_utilisée() const
+{
+    return convertisseuse_noeud_code.memoire_utilisee();
 }

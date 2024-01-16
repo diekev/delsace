@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     auto nombre_morceaux = taille_fichier / static_cast<int64_t>(sizeof(id_morceau));
 
     kuri::tableau<Lexème> morceaux;
-    morceaux.reserve(nombre_morceaux);
+    morceaux.réserve(nombre_morceaux);
 
     for (auto i = 0; i < nombre_morceaux; ++i) {
         auto dm = Lexème{};

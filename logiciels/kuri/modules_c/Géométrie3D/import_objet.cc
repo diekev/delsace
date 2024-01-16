@@ -291,7 +291,7 @@ void charge_fichier_OBJ(Maillage &maillage, std::string const &chemin)
     }
 
     maillage.reserveNombreDePoints(donnees.points.taille());
-    maillage.ajoutePoints(reinterpret_cast<float *>(donnees.points.donnees()),
+    maillage.ajoutePoints(reinterpret_cast<float *>(donnees.points.données()),
                           donnees.points.taille());
 
     auto parsat_polygones = parse_tableau_index(donnees.polygones);
@@ -306,7 +306,7 @@ void charge_fichier_OBJ(Maillage &maillage, std::string const &chemin)
 
         maillage.reserveNombreDePolygones(donnees.polygones.taille());
         for (const auto &polygone : donnees.polygones) {
-            maillage.ajouteUnPolygone(polygone.donnees(), static_cast<int>(polygone.taille()));
+            maillage.ajouteUnPolygone(polygone.données(), static_cast<int>(polygone.taille()));
         }
 
         /* Exporte les groupes. */
@@ -420,14 +420,14 @@ static void charge_STL_ascii(Maillage &maillage, std::ifstream &fichier)
         }
     }
 
-    maillage.ajoutePoints(reinterpret_cast<float *>(tous_les_points.donnees()),
+    maillage.ajoutePoints(reinterpret_cast<float *>(tous_les_points.données()),
                           tous_les_points.taille());
 
     kuri::tableau<int> sommets_par_polygones(tous_les_triangles.taille());
     std::fill(sommets_par_polygones.debut(), sommets_par_polygones.fin(), 3);
 
-    maillage.ajouteListePolygones(reinterpret_cast<int *>(tous_les_triangles.donnees()),
-                                  sommets_par_polygones.donnees(),
+    maillage.ajouteListePolygones(reinterpret_cast<int *>(tous_les_triangles.données()),
+                                  sommets_par_polygones.données(),
                                   sommets_par_polygones.taille());
 
     if (tous_les_normaux.taille() == tous_les_triangles.taille()) {
@@ -458,7 +458,7 @@ void ecris_fichier_OBJ(Maillage const &maillage, std::string const &chemin)
         }
 
         temp_access_index_sommet.redimensionne(nombre_sommets);
-        maillage.indexPointsSommetsPolygone(i, temp_access_index_sommet.donnees());
+        maillage.indexPointsSommetsPolygone(i, temp_access_index_sommet.données());
 
         fichier << "f";
         for (int64_t j = 0; j < nombre_sommets; ++j) {
