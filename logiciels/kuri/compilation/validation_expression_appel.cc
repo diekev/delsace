@@ -41,7 +41,7 @@ ErreurAppariement ErreurAppariement::mécomptage_arguments(const NoeudExpression
                                                           int64_t nombre_requis,
                                                           int64_t nombre_obtenu)
 {
-    auto erreur = crée_erreur(MÉCOMPTAGE_ARGS, site);
+    auto erreur = crée_erreur(RaisonErreurAppariement::MÉCOMPTAGE_ARGS, site);
     erreur.nombre_arguments.nombre_obtenu = nombre_obtenu;
     erreur.nombre_arguments.nombre_requis = nombre_requis;
     return erreur;
@@ -51,7 +51,7 @@ ErreurAppariement ErreurAppariement::métypage_argument(const NoeudExpression *s
                                                        Type *type_attendu,
                                                        Type *type_obtenu)
 {
-    auto erreur = crée_erreur(MÉTYPAGE_ARG, site);
+    auto erreur = crée_erreur(RaisonErreurAppariement::MÉTYPAGE_ARG, site);
     erreur.type_arguments.type_attendu = type_attendu;
     erreur.type_arguments.type_obtenu = type_obtenu;
     return erreur;
@@ -60,14 +60,14 @@ ErreurAppariement ErreurAppariement::métypage_argument(const NoeudExpression *s
 ErreurAppariement ErreurAppariement::monomorphisation(
     const NoeudExpression *site, ErreurMonomorphisation erreur_monomorphisation)
 {
-    auto erreur = crée_erreur(MONOMORPHISATION, site);
+    auto erreur = crée_erreur(RaisonErreurAppariement::MONOMORPHISATION, site);
     erreur.erreur_monomorphisation = erreur_monomorphisation;
     return erreur;
 }
 
 ErreurAppariement ErreurAppariement::type_non_fonction(const NoeudExpression *site, Type *type)
 {
-    auto erreur = crée_erreur(TYPE_N_EST_PAS_FONCTION, site);
+    auto erreur = crée_erreur(RaisonErreurAppariement::TYPE_N_EST_PAS_FONCTION, site);
     erreur.type = type;
     return erreur;
 }
@@ -75,7 +75,7 @@ ErreurAppariement ErreurAppariement::type_non_fonction(const NoeudExpression *si
 ErreurAppariement ErreurAppariement::ménommage_arguments(const NoeudExpression *site,
                                                          IdentifiantCode *ident)
 {
-    auto erreur = crée_erreur(MÉNOMMAGE_ARG, site);
+    auto erreur = crée_erreur(RaisonErreurAppariement::MÉNOMMAGE_ARG, site);
     erreur.nom_arg = ident;
     return erreur;
 }
@@ -83,12 +83,13 @@ ErreurAppariement ErreurAppariement::ménommage_arguments(const NoeudExpression 
 ErreurAppariement ErreurAppariement::renommage_argument(const NoeudExpression *site,
                                                         IdentifiantCode *ident)
 {
-    auto erreur = crée_erreur(RENOMMAGE_ARG, site);
+    auto erreur = crée_erreur(RaisonErreurAppariement::RENOMMAGE_ARG, site);
     erreur.nom_arg = ident;
     return erreur;
 }
 
-ErreurAppariement ErreurAppariement::crée_erreur(int raison, const NoeudExpression *site)
+ErreurAppariement ErreurAppariement::crée_erreur(RaisonErreurAppariement raison,
+                                                 const NoeudExpression *site)
 {
     ErreurAppariement erreur;
     erreur.raison = raison;
@@ -452,7 +453,7 @@ struct ApparieuseParams {
         }
 
         if (!erreur.arguments_manquants_.est_vide()) {
-            erreur.raison = ARGUMENTS_MANQUANTS;
+            erreur.raison = RaisonErreurAppariement::ARGUMENTS_MANQUANTS;
             return false;
         }
 

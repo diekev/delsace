@@ -33,7 +33,7 @@ struct IdentifiantEtExpression {
     NoeudExpression *expr;
 };
 
-enum {
+enum class RaisonErreurAppariement : uint8_t {
     AUCUNE_RAISON,
 
     EXPRESSION_MANQUANTE_POUR_UNION,
@@ -70,7 +70,7 @@ enum {
 struct ErreurAppariement {
     IdentifiantCode const *nom_arg = nullptr;
 
-    int raison = AUCUNE_RAISON;
+    RaisonErreurAppariement raison = RaisonErreurAppariement::AUCUNE_RAISON;
 
     /* Le type de l'élément à gauche de l'expression (pour les structures et les pointeurs de
      * fonctions) */
@@ -114,7 +114,7 @@ struct ErreurAppariement {
 #define CREATION_ERREUR(nom_enum, nom_fonction)                                                   \
     static ErreurAppariement nom_fonction(NoeudExpression const *site)                            \
     {                                                                                             \
-        return crée_erreur(nom_enum, site);                                                       \
+        return crée_erreur(RaisonErreurAppariement::nom_enum, site);                              \
     }
 
     CREATION_ERREUR(EXPRESSION_MANQUANTE_POUR_UNION, expression_manquante_union);
@@ -132,7 +132,8 @@ struct ErreurAppariement {
 #undef CREATION_ERREUR
 
   private:
-    static ErreurAppariement crée_erreur(int raison, NoeudExpression const *site);
+    static ErreurAppariement crée_erreur(RaisonErreurAppariement raison,
+                                         NoeudExpression const *site);
 };
 
 struct CandidateAppariement {
