@@ -996,6 +996,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return CodeRetourValidation::Erreur;
             }
 
+            if (!est_valeur_droite(inst->condition->genre_valeur)) {
+                m_espace->rapporte_erreur(
+                    inst->condition,
+                    "Attendu une valeur droite pour l'expression conditionnelle.");
+                return CodeRetourValidation::Erreur;
+            }
+
             break;
         }
         case GenreNoeud::INSTRUCTION_TANTQUE:
@@ -1012,6 +1019,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 rapporte_erreur("Une expression booléenne est requise pour la boucle 'tantque'",
                                 inst->condition,
                                 erreur::Genre::TYPE_ARGUMENT);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (!est_valeur_droite(inst->condition->genre_valeur)) {
+                m_espace->rapporte_erreur(
+                    inst->condition,
+                    "Attendu une valeur droite pour l'expression conditionnelle.");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -6029,6 +6043,12 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
                               "une expression booléenne",
                               erreur::Genre::TYPE_DIFFERENTS)
             .ajoute_message("Le type de l'expression est ", chaine_type(type_condition), "\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!est_valeur_droite(inst->condition->genre_valeur)) {
+        m_espace->rapporte_erreur(inst->condition,
+                                  "Attendu une valeur droite pour l'expression conditionnelle.");
         return CodeRetourValidation::Erreur;
     }
 
