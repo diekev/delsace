@@ -10,6 +10,7 @@
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
+#include "compilation/validation_semantique.hh"
 
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"

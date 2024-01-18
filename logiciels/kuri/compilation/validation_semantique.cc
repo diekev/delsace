@@ -14,6 +14,7 @@
 
 #include "parsage/outils_lexemes.hh"
 
+#include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
 #include "compilatrice.hh"
@@ -22,7 +23,7 @@
 #include "portee.hh"
 #include "tacheronne.hh"
 #include "unite_compilation.hh"
-#include "utilitaires/log.hh"
+#include "validation_expression_appel.hh"
 
 /* ************************************************************************** */
 

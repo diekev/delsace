@@ -20,6 +20,7 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "monomorpheuse.hh"
+#include "validation_expression_appel.hh"
 #include "validation_semantique.hh"
 
 namespace erreur {
