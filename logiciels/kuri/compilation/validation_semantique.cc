@@ -6390,7 +6390,7 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
     NoeudExpressionTypeTableauFixe *expr)
 {
     auto type_expression_type = expr->expression_type->type;
-    if (!type_expression_type->est_type_type_de_donnees()) {
+    if (!type_expression_type || !type_expression_type->est_type_type_de_donnees()) {
         m_espace->rapporte_erreur(
             expr->expression_type,
             "Attendu un type de données pour l'expression du type tableau fixe.");
@@ -6465,7 +6465,7 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_dynamique(
     NoeudExpressionTypeTableauDynamique *expr)
 {
     auto type_expression_type = expr->expression_type->type;
-    if (!type_expression_type->est_type_type_de_donnees()) {
+    if (!type_expression_type || !type_expression_type->est_type_type_de_donnees()) {
         m_espace->rapporte_erreur(
             expr->expression_type,
             "Attendu un type de données pour l'expression du type tableau fixe.");
@@ -6488,7 +6488,7 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_dynamique(
 RésultatValidation Sémanticienne::valide_expression_type_tranche(NoeudExpressionTypeTranche *expr)
 {
     auto type_expression_type = expr->expression_type->type;
-    if (!type_expression_type->est_type_type_de_donnees()) {
+    if (!type_expression_type || !type_expression_type->est_type_type_de_donnees()) {
         m_espace->rapporte_erreur(
             expr->expression_type,
             "Attendu un type de données pour l'expression du type tableau fixe.");
