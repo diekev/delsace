@@ -41,7 +41,7 @@ ErreurAppariement ErreurAppariement::mécomptage_arguments(const NoeudExpression
                                                           int64_t nombre_requis,
                                                           int64_t nombre_obtenu)
 {
-    auto erreur = crée_erreur(MECOMPTAGE_ARGS, site);
+    auto erreur = crée_erreur(MÉCOMPTAGE_ARGS, site);
     erreur.nombre_arguments.nombre_obtenu = nombre_obtenu;
     erreur.nombre_arguments.nombre_requis = nombre_requis;
     return erreur;
@@ -51,7 +51,7 @@ ErreurAppariement ErreurAppariement::métypage_argument(const NoeudExpression *s
                                                        Type *type_attendu,
                                                        Type *type_obtenu)
 {
-    auto erreur = crée_erreur(METYPAGE_ARG, site);
+    auto erreur = crée_erreur(MÉTYPAGE_ARG, site);
     erreur.type_arguments.type_attendu = type_attendu;
     erreur.type_arguments.type_obtenu = type_obtenu;
     return erreur;
@@ -75,7 +75,7 @@ ErreurAppariement ErreurAppariement::type_non_fonction(const NoeudExpression *si
 ErreurAppariement ErreurAppariement::ménommage_arguments(const NoeudExpression *site,
                                                          IdentifiantCode *ident)
 {
-    auto erreur = crée_erreur(MENOMMAGE_ARG, site);
+    auto erreur = crée_erreur(MÉNOMMAGE_ARG, site);
     erreur.nom_arg = ident->nom;
     return erreur;
 }
@@ -91,7 +91,7 @@ ErreurAppariement ErreurAppariement::renommage_argument(const NoeudExpression *s
 ErreurAppariement ErreurAppariement::dépendance_non_satisfaite(const NoeudExpression *site,
                                                                Attente attente)
 {
-    auto erreur = crée_erreur(ERREUR_DEPENDANCE, site);
+    auto erreur = crée_erreur(ERREUR_DÉPENDANCE, site);
     erreur.attente = attente;
     return erreur;
 }
@@ -672,7 +672,7 @@ static void applique_transformations(Sémanticienne &contexte,
     }
 }
 
-static ResultatAppariement apparie_appel_pointeur(
+static RésultatAppariement apparie_appel_pointeur(
     Sémanticienne &contexte,
     NoeudExpressionAppel const *b,
     NoeudExpression const *decl_pointeur_fonction,
@@ -777,7 +777,7 @@ static ResultatAppariement apparie_appel_pointeur(
         poids_args, decl_pointeur_fonction, type, std::move(exprs), std::move(transformations));
 }
 
-static ResultatAppariement apparie_appel_init_de(
+static RésultatAppariement apparie_appel_init_de(
     NoeudExpression const *expr, kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (args.taille() > 1) {
@@ -803,7 +803,7 @@ static ResultatAppariement apparie_appel_init_de(
 
 /* ************************************************************************** */
 
-static ResultatAppariement apparie_appel_fonction_pour_cuisson(
+static RésultatAppariement apparie_appel_fonction_pour_cuisson(
     EspaceDeTravail &espace,
     Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
@@ -840,7 +840,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
         1.0, decl, nullptr, {}, {}, std::move(items_monomorphisation));
 }
 
-static ResultatAppariement apparie_appel_fonction(
+static RésultatAppariement apparie_appel_fonction(
     Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     NoeudDeclarationEnteteFonction const *decl,
@@ -1053,7 +1053,7 @@ static ResultatAppariement apparie_appel_fonction(
                                                 std::move(items_monomorphisation));
 }
 
-static ResultatAppariement apparie_appel_fonction(
+static RésultatAppariement apparie_appel_fonction(
     EspaceDeTravail &espace,
     Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
@@ -1096,7 +1096,7 @@ static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *e
     return false;
 }
 
-static ResultatAppariement apparie_construction_type_composé_polymorphique(
+static RésultatAppariement apparie_construction_type_composé_polymorphique(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
     kuri::tableau<IdentifiantEtExpression> const &arguments,
@@ -1191,7 +1191,7 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
         std::move(items_monomorphisation));
 }
 
-static ResultatAppariement apparie_construction_type_composé(
+static RésultatAppariement apparie_construction_type_composé(
     NoeudExpressionAppel const *expr,
     NoeudDeclarationType const *déclaration_type_composé,
     TypeCompose const *type_compose,
@@ -1253,7 +1253,7 @@ static ResultatAppariement apparie_construction_type_composé(
                                                           std::move(transformations));
 }
 
-static ResultatAppariement apparie_appel_structure(
+static RésultatAppariement apparie_appel_structure(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
     NoeudStruct const *decl_struct,
@@ -1268,7 +1268,7 @@ static ResultatAppariement apparie_appel_structure(
         expr, decl_struct, decl_struct->comme_type_compose(), arguments);
 }
 
-static ResultatAppariement apparie_construction_union(
+static RésultatAppariement apparie_construction_union(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
     NoeudUnion const *decl_struct,
@@ -1293,7 +1293,7 @@ static ResultatAppariement apparie_construction_union(
 
 /* ************************************************************************** */
 
-static ResultatAppariement apparie_construction_opaque_polymorphique(
+static RésultatAppariement apparie_construction_opaque_polymorphique(
     NoeudExpressionAppel const *expr,
     TypeOpaque const *type_opaque,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
@@ -1319,7 +1319,7 @@ static ResultatAppariement apparie_construction_opaque_polymorphique(
     return CandidateAppariement::initialisation_opaque(1.0, type_opaque, std::move(exprs), {});
 }
 
-static ResultatAppariement apparie_construction_opaque_depuis_structure(
+static RésultatAppariement apparie_construction_opaque_depuis_structure(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
     TypeOpaque const *type_opaque,
@@ -1340,7 +1340,7 @@ static ResultatAppariement apparie_construction_opaque_depuis_structure(
     return candidate;
 }
 
-static ResultatAppariement apparie_construction_opaque(
+static RésultatAppariement apparie_construction_opaque(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
     TypeOpaque const *type_opaque,
@@ -1858,7 +1858,7 @@ static RésultatValidation sélectionne_candidate(NoeudExpressionAppel const *ex
         if (std::holds_alternative<ErreurAppariement>(it)) {
             auto erreur = std::get<ErreurAppariement>(it);
 
-            if (erreur.raison == ERREUR_DEPENDANCE) {
+            if (erreur.raison == ERREUR_DÉPENDANCE) {
                 /* Si nous devons attendre sur quoi que ce soit, nous devrons recommencer
                  * l'appariement. */
                 état->résultats.efface();

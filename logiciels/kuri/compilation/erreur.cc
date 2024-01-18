@@ -157,13 +157,13 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                 e.ajoute_message('\n');
             }
 
-            if (dc.raison == MECOMPTAGE_ARGS) {
+            if (dc.raison == MÉCOMPTAGE_ARGS) {
                 e.ajoute_message("\tLe nombre d'arguments de la fonction est incorrect.\n");
                 e.ajoute_message("\tRequiers ", dc.nombre_arguments.nombre_requis, " arguments\n");
                 e.ajoute_message("\tObtenu ", dc.nombre_arguments.nombre_obtenu, " arguments\n");
                 e.genre_erreur(erreur::Genre::NOMBRE_ARGUMENT);
             }
-            else if (dc.raison == MENOMMAGE_ARG) {
+            else if (dc.raison == MÉNOMMAGE_ARG) {
                 e.ajoute_site(dc.site_erreur);
                 e.ajoute_message("\tArgument « ", dc.nom_arg, " » inconnu.\n");
 
@@ -204,7 +204,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                 e.ajoute_site(dc.site_erreur);
                 e.ajoute_message("L'argument a déjà été nommé");
             }
-            else if (dc.raison == MANQUE_NOM_APRES_VARIADIC) {
+            else if (dc.raison == MANQUE_NOM_APRÈS_VARIADIC) {
                 e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
                 e.ajoute_site(dc.site_erreur);
                 e.ajoute_message("Nom d'argument manquant, les arguments doivent être nommés "
@@ -237,12 +237,12 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                 e.ajoute_message("\tPlusieurs expansions variadiques trouvées\n");
                 e.genre_erreur(erreur::Genre::NORMAL);
             }
-            else if (dc.raison == EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES) {
+            else if (dc.raison == EXPANSION_VARIADIQUE_APRÈS_ARGUMENTS_VARIADIQUES) {
                 e.ajoute_message("\tTentative d'utiliser une expansion d'arguments variadiques "
                                  "alors que d'autres arguments ont déjà été précisés\n");
                 e.genre_erreur(erreur::Genre::NORMAL);
             }
-            else if (dc.raison == ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES) {
+            else if (dc.raison == ARGUMENTS_VARIADIQEUS_APRÈS_EXPANSION_VARIAQUES) {
                 e.ajoute_message("\tTentative d'ajouter des arguments variadiques supplémentaire "
                                  "alors qu'une expansion est également utilisée\n");
                 e.genre_erreur(erreur::Genre::NORMAL);
@@ -259,7 +259,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                     e.ajoute_message("\t\t", ident->nom, '\n');
                 }
             }
-            else if (dc.raison == METYPAGE_ARG) {
+            else if (dc.raison == MÉTYPAGE_ARG) {
                 e.ajoute_message("\tLe type de l'argument '",
                                  chaine_expression(espace, dc.site_erreur),
                                  "' ne correspond pas à celui requis !\n");
