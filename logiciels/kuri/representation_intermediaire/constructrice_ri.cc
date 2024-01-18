@@ -2482,7 +2482,22 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto label_si_vrai = m_constructrice.réserve_label(noeud);
             auto label_si_faux = m_constructrice.réserve_label(noeud);
 
-            if (noeud->genre == GenreNoeud::INSTRUCTION_SAUFSI) {
+            if (inst_si->condition->est_declaration_variable()) {
+                génère_ri_pour_noeud(inst_si->condition);
+                auto atome = inst_si->condition->comme_declaration_variable()->atome;
+                assert(atome);
+
+                auto valeur = m_constructrice.crée_charge_mem(inst_si->condition, atome);
+                if (noeud->est_saufsi()) {
+                    m_constructrice.crée_branche_condition(
+                        inst_si->condition, valeur, label_si_faux, label_si_vrai);
+                }
+                else {
+                    m_constructrice.crée_branche_condition(
+                        inst_si->condition, valeur, label_si_vrai, label_si_faux);
+                }
+            }
+            else if (noeud->genre == GenreNoeud::INSTRUCTION_SAUFSI) {
                 génère_ri_pour_condition(inst_si->condition, label_si_faux, label_si_vrai);
             }
             else {

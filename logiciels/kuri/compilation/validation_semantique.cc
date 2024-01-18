@@ -307,7 +307,7 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression const *exp
 }
 
 CodeRetourValidation Sémanticienne::valide_expression_pour_condition(
-    NoeudExpression const *condition)
+    NoeudExpression const *condition, bool permet_déclaration)
 {
     if (!est_expression_convertible_en_bool(condition)) {
         m_espace
@@ -320,6 +320,17 @@ CodeRetourValidation Sémanticienne::valide_expression_pour_condition(
     }
 
     if (!est_valeur_droite(condition->genre_valeur)) {
+        if (permet_déclaration && condition->est_declaration_variable()) {
+            if (!condition->type->est_type_bool()) {
+                m_espace->rapporte_erreur(
+                    condition,
+                    "Seules les déclarations de valeurs booléennes sont supportées dans les "
+                    "déclarations de variables dans une condition.");
+                return CodeRetourValidation::Erreur;
+            }
+            return CodeRetourValidation::OK;
+        }
+
         m_espace->rapporte_erreur(condition,
                                   "Attendu une valeur droite pour l'expression conditionnelle.");
         return CodeRetourValidation::Erreur;
@@ -1012,12 +1023,12 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::INSTRUCTION_REPETE:
         {
             auto inst = noeud->comme_repete();
-            return valide_expression_pour_condition(inst->condition);
+            return valide_expression_pour_condition(inst->condition, false);
         }
         case GenreNoeud::INSTRUCTION_TANTQUE:
         {
             auto inst = noeud->comme_tantque();
-            return valide_expression_pour_condition(inst->condition);
+            return valide_expression_pour_condition(inst->condition, false);
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
@@ -6022,7 +6033,7 @@ static bool type_est_valide_pour_assignation_via_si(NoeudExpression const *expr,
 
 RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 {
-    if (valide_expression_pour_condition(inst->condition) == CodeRetourValidation::Erreur) {
+    if (valide_expression_pour_condition(inst->condition, true) == CodeRetourValidation::Erreur) {
         return CodeRetourValidation::Erreur;
     }
 

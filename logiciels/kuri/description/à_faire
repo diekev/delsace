@@ -577,7 +577,6 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
 - stack canaries (coulisse LLVM)
 - coroutines en dehors de boucles
-- possibilité de déclarer une variable dans une condition (si a := foo() { ... })
 
 - généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
 -- paramètres des appels
