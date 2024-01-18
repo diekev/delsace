@@ -70,9 +70,6 @@ enum {
 struct ErreurAppariement {
     kuri::chaine_statique nom_arg{};
 
-    /* Ce que nous avons à gauche */
-    int note = NOTE_INVALIDE;
-
     int raison = AUCUNE_RAISON;
 
     /* Le type de l'élément à gauche de l'expression (pour les structures et les pointeurs de
