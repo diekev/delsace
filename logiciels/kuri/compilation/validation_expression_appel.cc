@@ -76,7 +76,7 @@ ErreurAppariement ErreurAppariement::ménommage_arguments(const NoeudExpression 
                                                          IdentifiantCode *ident)
 {
     auto erreur = crée_erreur(MÉNOMMAGE_ARG, site);
-    erreur.nom_arg = ident->nom;
+    erreur.nom_arg = ident;
     return erreur;
 }
 
@@ -84,7 +84,7 @@ ErreurAppariement ErreurAppariement::renommage_argument(const NoeudExpression *s
                                                         IdentifiantCode *ident)
 {
     auto erreur = crée_erreur(RENOMMAGE_ARG, site);
-    erreur.nom_arg = ident->nom;
+    erreur.nom_arg = ident;
     return erreur;
 }
 

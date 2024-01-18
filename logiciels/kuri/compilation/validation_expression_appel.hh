@@ -68,7 +68,7 @@ enum {
 };
 
 struct ErreurAppariement {
-    kuri::chaine_statique nom_arg{};
+    IdentifiantCode const *nom_arg = nullptr;
 
     int raison = AUCUNE_RAISON;
 

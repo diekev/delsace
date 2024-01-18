@@ -165,7 +165,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
             else if (dc.raison == MÉNOMMAGE_ARG) {
                 e.ajoute_site(dc.site_erreur);
-                e.ajoute_message("\tArgument « ", dc.nom_arg, " » inconnu.\n");
+                e.ajoute_message("\tArgument « ", dc.nom_arg->nom, " » inconnu.\n");
 
                 if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
                     auto decl_fonc = decl->comme_entete_fonction();
