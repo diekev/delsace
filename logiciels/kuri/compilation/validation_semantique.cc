@@ -6027,11 +6027,6 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 {
     auto type_condition = inst->condition->type;
 
-    if (type_condition == nullptr && !est_opérateur_bool(inst->condition->lexeme->genre)) {
-        rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-        return CodeRetourValidation::Erreur;
-    }
-
     if (!est_expression_convertible_en_bool(inst->condition)) {
         m_espace
             ->rapporte_erreur(inst->condition,
