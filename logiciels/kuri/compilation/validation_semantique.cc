@@ -2728,7 +2728,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
          * les déclaration référées. */
         if (expr->ident == ID::it) {
             expr->declaration_referee = noeud_pour->decl_it;
-            expr->genre_valeur = noeud_pour->decl_it->genre_valeur;
+            expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
             expr->type = noeud_pour->decl_it->type;
             return CodeRetourValidation::OK;
         }
@@ -2736,7 +2736,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
         if (expr->ident == ID::index_it) {
             expr->declaration_referee = noeud_pour->decl_index_it;
             expr->type = noeud_pour->decl_index_it->type;
-            expr->genre_valeur = noeud_pour->decl_index_it->genre_valeur;
+            expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
             return CodeRetourValidation::OK;
         }
 
@@ -2881,6 +2881,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
         if (decl_var->declaration_vient_d_un_emploi) {
             decl_var->declaration_vient_d_un_emploi->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
         }
+        expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
     }
 
     if (decl->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
@@ -4287,7 +4288,6 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDeclaratio
         }
 
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->genre_valeur = GenreValeur::TRANSCENDANTALE;
     }
 
     if (!fonction_courante()) {
@@ -4305,7 +4305,6 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDeclaratio
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    decl->genre_valeur = GenreValeur::TRANSCENDANTALE;
     return CodeRetourValidation::OK;
 }
 
@@ -4551,8 +4550,6 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
             }
 
             decl_var->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            decl_var->genre_valeur = GenreValeur::TRANSCENDANTALE;
-            variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
         }
 
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -5765,8 +5762,6 @@ static NoeudDeclarationVariable *crée_déclaration_pour_variable(AssembleuseArb
                                                        init);
     decl->type = type;
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    decl->genre_valeur = GenreValeur::TRANSCENDANTALE;
-    variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
     return decl;
 }
 
