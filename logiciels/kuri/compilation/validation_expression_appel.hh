@@ -141,7 +141,7 @@ struct ErreurAppariement {
     CREATION_ERREUR(ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES,
                     argument_post_expansion_variadique);
 
-#undef CRETION_ERREUR
+#undef CREATION_ERREUR
 
   private:
     static ErreurAppariement crée_erreur(int raison, NoeudExpression const *site);
