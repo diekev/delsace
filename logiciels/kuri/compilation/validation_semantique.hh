@@ -312,6 +312,8 @@ struct Sémanticienne {
 
     MetaProgramme *crée_métaprogramme_pour_directive(NoeudDirectiveExecute *directive);
 
+    CodeRetourValidation valide_expression_pour_condition(NoeudExpression const *condition);
+
     RésultatValidation valide_instruction_pour(NoeudPour *inst);
 
     RésultatValidation valide_instruction_si(NoeudSi *inst);

@@ -289,7 +289,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     return metaprogramme;
 }
 
-static inline bool est_expression_convertible_en_bool(NoeudExpression *expression)
+static inline bool est_expression_convertible_en_bool(NoeudExpression const *expression)
 {
     auto type = expression->type;
     if (type->est_type_opaque()) {
@@ -304,6 +304,28 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
 
     return est_type_booléen_implicite(type) ||
            expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
+}
+
+CodeRetourValidation Sémanticienne::valide_expression_pour_condition(
+    NoeudExpression const *condition)
+{
+    if (!est_expression_convertible_en_bool(condition)) {
+        m_espace
+            ->rapporte_erreur(condition,
+                              "Impossible de convertir implicitement l'expression vers "
+                              "une expression booléenne",
+                              erreur::Genre::TYPE_DIFFERENTS)
+            .ajoute_message("Le type de l'expression est ", chaine_type(condition->type), "\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!est_valeur_droite(condition->genre_valeur)) {
+        m_espace->rapporte_erreur(condition,
+                                  "Attendu une valeur droite pour l'expression conditionnelle.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    return CodeRetourValidation::OK;
 }
 
 RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *noeud)
@@ -990,46 +1012,12 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::INSTRUCTION_REPETE:
         {
             auto inst = noeud->comme_repete();
-            if (inst->condition->type == nullptr &&
-                !est_opérateur_bool(inst->condition->lexeme->genre)) {
-                rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (!est_valeur_droite(inst->condition->genre_valeur)) {
-                m_espace->rapporte_erreur(
-                    inst->condition,
-                    "Attendu une valeur droite pour l'expression conditionnelle.");
-                return CodeRetourValidation::Erreur;
-            }
-
-            break;
+            return valide_expression_pour_condition(inst->condition);
         }
         case GenreNoeud::INSTRUCTION_TANTQUE:
         {
             auto inst = noeud->comme_tantque();
-
-            if (inst->condition->type == nullptr &&
-                !est_opérateur_bool(inst->condition->lexeme->genre)) {
-                rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (!inst->condition->type->est_type_bool()) {
-                rapporte_erreur("Une expression booléenne est requise pour la boucle 'tantque'",
-                                inst->condition,
-                                erreur::Genre::TYPE_ARGUMENT);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (!est_valeur_droite(inst->condition->genre_valeur)) {
-                m_espace->rapporte_erreur(
-                    inst->condition,
-                    "Attendu une valeur droite pour l'expression conditionnelle.");
-                return CodeRetourValidation::Erreur;
-            }
-
-            break;
+            return valide_expression_pour_condition(inst->condition);
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
@@ -6034,21 +6022,7 @@ static bool type_est_valide_pour_assignation_via_si(NoeudExpression const *expr,
 
 RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 {
-    auto type_condition = inst->condition->type;
-
-    if (!est_expression_convertible_en_bool(inst->condition)) {
-        m_espace
-            ->rapporte_erreur(inst->condition,
-                              "Impossible de convertir implicitement l'expression vers "
-                              "une expression booléenne",
-                              erreur::Genre::TYPE_DIFFERENTS)
-            .ajoute_message("Le type de l'expression est ", chaine_type(type_condition), "\n");
-        return CodeRetourValidation::Erreur;
-    }
-
-    if (!est_valeur_droite(inst->condition->genre_valeur)) {
-        m_espace->rapporte_erreur(inst->condition,
-                                  "Attendu une valeur droite pour l'expression conditionnelle.");
+    if (valide_expression_pour_condition(inst->condition) == CodeRetourValidation::Erreur) {
         return CodeRetourValidation::Erreur;
     }
 
