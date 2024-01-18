@@ -137,6 +137,40 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeudFonction const drapeaux)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name GenreValeur
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, GenreValeur const genre_valeur)
+{
+    if (genre_valeur == GenreValeur::INVALIDE) {
+        os << "INVALIDE";
+        return os;
+    }
+
+#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
+    if ((genre_valeur & GenreValeur::drapeau) != GenreValeur(0)) {                                \
+        identifiants.ajoute(#drapeau);                                                            \
+    }
+
+    kuri::tablet<kuri::chaine_statique, 32> identifiants;
+
+    SI_DRAPEAU_UTILISE(GAUCHE)
+    SI_DRAPEAU_UTILISE(DROITE)
+
+    auto virgule = "";
+
+    POUR (identifiants) {
+        os << virgule << it;
+        virgule = " | ";
+    }
+
+#undef SI_DRAPEAU_UTILISE
+    return os;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Visibilité symbole.
  * \{ */
 
