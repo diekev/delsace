@@ -88,14 +88,6 @@ ErreurAppariement ErreurAppariement::renommage_argument(const NoeudExpression *s
     return erreur;
 }
 
-ErreurAppariement ErreurAppariement::dépendance_non_satisfaite(const NoeudExpression *site,
-                                                               Attente attente)
-{
-    auto erreur = crée_erreur(ERREUR_DÉPENDANCE, site);
-    erreur.attente = attente;
-    return erreur;
-}
-
 ErreurAppariement ErreurAppariement::crée_erreur(int raison, const NoeudExpression *site)
 {
     ErreurAppariement erreur;
@@ -734,7 +726,7 @@ static RésultatAppariement apparie_appel_pointeur(
         auto résultat = apparie_type_paramètre_appel_fonction(slot, type_prm, type_enf);
 
         if (std::holds_alternative<Attente>(résultat)) {
-            return ErreurAppariement::dépendance_non_satisfaite(slot, std::get<Attente>(résultat));
+            return std::get<Attente>(résultat);
         }
 
         auto poids_xform = std::get<PoidsTransformation>(résultat);
@@ -896,8 +888,7 @@ static RésultatAppariement apparie_appel_fonction(
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         auto résultat_monomorphisation = détermine_monomorphisation(*monomorpheuse, decl, slots);
         if (std::holds_alternative<Attente>(résultat_monomorphisation)) {
-            return ErreurAppariement::dépendance_non_satisfaite(
-                expr, std::get<Attente>(résultat_monomorphisation));
+            return std::get<Attente>(résultat_monomorphisation);
         }
         if (std::holds_alternative<ErreurMonomorphisation>(résultat_monomorphisation)) {
             return ErreurAppariement::monomorphisation(
@@ -935,7 +926,7 @@ static RésultatAppariement apparie_appel_fonction(
             slot, type_du_paramètre, type_de_l_expression);
 
         if (std::holds_alternative<Attente>(résultat)) {
-            return ErreurAppariement::dépendance_non_satisfaite(arg, std::get<Attente>(résultat));
+            return std::get<Attente>(résultat);
         }
 
         auto poids_xform = std::get<PoidsTransformation>(résultat);
@@ -1231,7 +1222,7 @@ static RésultatAppariement apparie_construction_type_composé(
         auto résultat = vérifie_compatibilité(membre.type, it->type, it);
 
         if (std::holds_alternative<Attente>(résultat)) {
-            return ErreurAppariement::dépendance_non_satisfaite(expr, std::get<Attente>(résultat));
+            return std::get<Attente>(résultat);
         }
 
         auto poids_xform = std::get<PoidsTransformation>(résultat);
@@ -1375,7 +1366,7 @@ static RésultatAppariement apparie_construction_opaque(
     auto résultat = vérifie_compatibilité(type_opacifié, arg->type);
 
     if (std::holds_alternative<Attente>(résultat)) {
-        return ErreurAppariement::dépendance_non_satisfaite(expr, std::get<Attente>(résultat));
+        return std::get<Attente>(résultat);
     }
 
     auto poids_xform = std::get<PoidsTransformation>(résultat);
@@ -1855,19 +1846,18 @@ static RésultatValidation sélectionne_candidate(NoeudExpressionAppel const *ex
                                                 EspaceDeTravail &espace)
 {
     POUR (état->résultats) {
+        if (std::holds_alternative<Attente>(it)) {
+            /* Si nous devons attendre sur quoi que ce soit, nous devrons recommencer
+             * l'appariement. */
+            état->résultats.efface();
+            état->candidates.efface();
+            état->erreurs.efface();
+            état->état = EtatResolutionAppel::État::LISTE_CANDIDATES_CRÉÉE;
+            return std::get<Attente>(it);
+        }
+
         if (std::holds_alternative<ErreurAppariement>(it)) {
             auto erreur = std::get<ErreurAppariement>(it);
-
-            if (erreur.raison == ERREUR_DÉPENDANCE) {
-                /* Si nous devons attendre sur quoi que ce soit, nous devrons recommencer
-                 * l'appariement. */
-                état->résultats.efface();
-                état->candidates.efface();
-                état->erreurs.efface();
-                état->état = EtatResolutionAppel::État::LISTE_CANDIDATES_CRÉÉE;
-                return erreur.attente;
-            }
-
             état->erreurs.ajoute(erreur);
         }
         else {

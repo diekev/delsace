@@ -36,10 +36,6 @@ struct IdentifiantEtExpression {
 enum {
     AUCUNE_RAISON,
 
-    // À FAIRE : ceci n'est que pour attendre sur un type lors de la vérification de la
-    // compatibilité entre les types des arguments et ceux des expressions reçues
-    ERREUR_DÉPENDANCE,
-
     EXPRESSION_MANQUANTE_POUR_UNION,
     MANQUE_NOM_APRÈS_VARIADIC,
     ARGUMENTS_MANQUANTS,
@@ -73,8 +69,6 @@ enum {
 
 struct ErreurAppariement {
     kuri::chaine_statique nom_arg{};
-
-    Attente attente{};
 
     /* Ce que nous avons à gauche */
     int note = NOTE_INVALIDE;
@@ -119,9 +113,6 @@ struct ErreurAppariement {
 
     static ErreurAppariement renommage_argument(NoeudExpression const *site,
                                                 IdentifiantCode *ident);
-
-    static ErreurAppariement dépendance_non_satisfaite(NoeudExpression const *site,
-                                                       Attente attente);
 
 #define CREATION_ERREUR(nom_enum, nom_fonction)                                                   \
     static ErreurAppariement nom_fonction(NoeudExpression const *site)                            \
@@ -255,7 +246,7 @@ struct CandidateAppariement {
         kuri::tableau<TransformationType, int> &&transformations);
 };
 
-using RésultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
+using RésultatAppariement = std::variant<ErreurAppariement, CandidateAppariement, Attente>;
 
 static constexpr auto TAILLE_CANDIDATES_DEFAUT = 10;
 
