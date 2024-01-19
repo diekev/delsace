@@ -14,6 +14,7 @@
 
 #include "parsage/outils_lexemes.hh"
 
+#include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
 #include "compilatrice.hh"
@@ -22,7 +23,7 @@
 #include "portee.hh"
 #include "tacheronne.hh"
 #include "unite_compilation.hh"
-#include "utilitaires/log.hh"
+#include "validation_expression_appel.hh"
 
 /* ************************************************************************** */
 
@@ -288,7 +289,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     return metaprogramme;
 }
 
-static inline bool est_expression_convertible_en_bool(NoeudExpression *expression)
+static inline bool est_expression_convertible_en_bool(NoeudExpression const *expression)
 {
     auto type = expression->type;
     if (type->est_type_opaque()) {
@@ -303,6 +304,39 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
 
     return est_type_booléen_implicite(type) ||
            expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
+}
+
+CodeRetourValidation Sémanticienne::valide_expression_pour_condition(
+    NoeudExpression const *condition, bool permet_déclaration)
+{
+    if (!est_expression_convertible_en_bool(condition)) {
+        m_espace
+            ->rapporte_erreur(condition,
+                              "Impossible de convertir implicitement l'expression vers "
+                              "une expression booléenne",
+                              erreur::Genre::TYPE_DIFFERENTS)
+            .ajoute_message("Le type de l'expression est ", chaine_type(condition->type), "\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!est_valeur_droite(condition->genre_valeur)) {
+        if (permet_déclaration && condition->est_declaration_variable()) {
+            if (!condition->type->est_type_bool()) {
+                m_espace->rapporte_erreur(
+                    condition,
+                    "Seules les déclarations de valeurs booléennes sont supportées dans les "
+                    "déclarations de variables dans une condition.");
+                return CodeRetourValidation::Erreur;
+            }
+            return CodeRetourValidation::OK;
+        }
+
+        m_espace->rapporte_erreur(condition,
+                                  "Attendu une valeur droite pour l'expression conditionnelle.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    return CodeRetourValidation::OK;
 }
 
 RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *noeud)
@@ -984,32 +1018,12 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::INSTRUCTION_REPETE:
         {
             auto inst = noeud->comme_repete();
-            if (inst->condition->type == nullptr &&
-                !est_opérateur_bool(inst->condition->lexeme->genre)) {
-                rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-                return CodeRetourValidation::Erreur;
-            }
-
-            break;
+            return valide_expression_pour_condition(inst->condition, false);
         }
         case GenreNoeud::INSTRUCTION_TANTQUE:
         {
             auto inst = noeud->comme_tantque();
-
-            if (inst->condition->type == nullptr &&
-                !est_opérateur_bool(inst->condition->lexeme->genre)) {
-                rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (!inst->condition->type->est_type_bool()) {
-                rapporte_erreur("Une expression booléenne est requise pour la boucle 'tantque'",
-                                inst->condition,
-                                erreur::Genre::TYPE_ARGUMENT);
-                return CodeRetourValidation::Erreur;
-            }
-
-            break;
+            return valide_expression_pour_condition(inst->condition, false);
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
@@ -2722,7 +2736,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
          * les déclaration référées. */
         if (expr->ident == ID::it) {
             expr->declaration_referee = noeud_pour->decl_it;
-            expr->genre_valeur = noeud_pour->decl_it->genre_valeur;
+            expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
             expr->type = noeud_pour->decl_it->type;
             return CodeRetourValidation::OK;
         }
@@ -2730,7 +2744,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
         if (expr->ident == ID::index_it) {
             expr->declaration_referee = noeud_pour->decl_index_it;
             expr->type = noeud_pour->decl_index_it->type;
-            expr->genre_valeur = noeud_pour->decl_index_it->genre_valeur;
+            expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
             return CodeRetourValidation::OK;
         }
 
@@ -2875,6 +2889,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
         if (decl_var->declaration_vient_d_un_emploi) {
             decl_var->declaration_vient_d_un_emploi->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
         }
+        expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
     }
 
     if (decl->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
@@ -4281,7 +4296,6 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDeclaratio
         }
 
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->genre_valeur = GenreValeur::TRANSCENDANTALE;
     }
 
     if (!fonction_courante()) {
@@ -4299,7 +4313,6 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDeclaratio
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    decl->genre_valeur = GenreValeur::TRANSCENDANTALE;
     return CodeRetourValidation::OK;
 }
 
@@ -4545,8 +4558,6 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
             }
 
             decl_var->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            decl_var->genre_valeur = GenreValeur::TRANSCENDANTALE;
-            variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
         }
 
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -5759,8 +5770,6 @@ static NoeudDeclarationVariable *crée_déclaration_pour_variable(AssembleuseArb
                                                        init);
     decl->type = type;
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    decl->genre_valeur = GenreValeur::TRANSCENDANTALE;
-    variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
     return decl;
 }
 
@@ -6019,20 +6028,7 @@ static bool type_est_valide_pour_assignation_via_si(NoeudExpression const *expr,
 
 RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 {
-    auto type_condition = inst->condition->type;
-
-    if (type_condition == nullptr && !est_opérateur_bool(inst->condition->lexeme->genre)) {
-        rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-        return CodeRetourValidation::Erreur;
-    }
-
-    if (!est_expression_convertible_en_bool(inst->condition)) {
-        m_espace
-            ->rapporte_erreur(inst->condition,
-                              "Impossible de convertir implicitement l'expression vers "
-                              "une expression booléenne",
-                              erreur::Genre::TYPE_DIFFERENTS)
-            .ajoute_message("Le type de l'expression est ", chaine_type(type_condition), "\n");
+    if (valide_expression_pour_condition(inst->condition, true) == CodeRetourValidation::Erreur) {
         return CodeRetourValidation::Erreur;
     }
 
@@ -6384,7 +6380,7 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
     NoeudExpressionTypeTableauFixe *expr)
 {
     auto type_expression_type = expr->expression_type->type;
-    if (!type_expression_type->est_type_type_de_donnees()) {
+    if (!type_expression_type || !type_expression_type->est_type_type_de_donnees()) {
         m_espace->rapporte_erreur(
             expr->expression_type,
             "Attendu un type de données pour l'expression du type tableau fixe.");
@@ -6459,7 +6455,7 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_dynamique(
     NoeudExpressionTypeTableauDynamique *expr)
 {
     auto type_expression_type = expr->expression_type->type;
-    if (!type_expression_type->est_type_type_de_donnees()) {
+    if (!type_expression_type || !type_expression_type->est_type_type_de_donnees()) {
         m_espace->rapporte_erreur(
             expr->expression_type,
             "Attendu un type de données pour l'expression du type tableau fixe.");
@@ -6482,7 +6478,7 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_dynamique(
 RésultatValidation Sémanticienne::valide_expression_type_tranche(NoeudExpressionTypeTranche *expr)
 {
     auto type_expression_type = expr->expression_type->type;
-    if (!type_expression_type->est_type_type_de_donnees()) {
+    if (!type_expression_type || !type_expression_type->est_type_type_de_donnees()) {
         m_espace->rapporte_erreur(
             expr->expression_type,
             "Attendu un type de données pour l'expression du type tableau fixe.");

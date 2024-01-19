@@ -97,18 +97,18 @@ static Atome const *déréférence_instruction(Instruction const *inst)
 {
     if (inst->est_acces_index()) {
         auto acces = inst->comme_acces_index();
-        return acces->accede;
+        return acces->accédé;
     }
 
     if (inst->est_acces_membre()) {
         auto acces = inst->comme_acces_membre();
-        return acces->accede;
+        return acces->accédé;
     }
 
     // pour les déréférencements de pointeurs
     if (inst->est_charge()) {
         auto charge = inst->comme_charge();
-        return charge->chargee;
+        return charge->chargée;
     }
 
     if (inst->est_transtype()) {
@@ -121,7 +121,7 @@ static Atome const *déréférence_instruction(Instruction const *inst)
 
 static Atome const *cible_finale_stockage(InstructionStockeMem const *stocke)
 {
-    Atome const *destination = stocke->ou;
+    Atome const *destination = stocke->destination;
 
     while (!est_locale_ou_globale(destination)) {
         if (!destination->est_instruction()) {
@@ -193,7 +193,7 @@ void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructi
                 else {
                     /* Vérifie si l'instruction de stockage prend la valeur d'une globale ou d'un
                      * paramètre. */
-                    if (paramètre_ou_globale_fut_utilisé(stocke->valeur)) {
+                    if (paramètre_ou_globale_fut_utilisé(stocke->source)) {
                         incrémente_nombre_utilisations_récursif(stocke);
                     }
                 }
@@ -613,7 +613,7 @@ static bool est_stockage_valide(InstructionStockeMem const &stockage,
                                 SourceAdresseAtome source,
                                 SourceAdresseAtome destination)
 {
-    auto const valeur = stockage.valeur;
+    auto const valeur = stockage.source;
 
     /* Nous ne sommes intéressés que par les stockage d'adresses. */
     if (!valeur->type->est_type_pointeur()) {
@@ -643,7 +643,7 @@ static SourceAdresseAtome détermine_source_adresse_atome(
         return SourceAdresseAtome::CONSTANTE;
     }
 
-    POUR (fonction.params_entrees) {
+    POUR (fonction.params_entrée) {
         if (&atome == it) {
             return SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
         }
@@ -741,12 +741,12 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
      * chaque instruction la source de l'adresse pointée par la variable. */
     kuri::tableau<SourceAdresseAtome> sources_pour_charge = sources;
 
-    for (auto i = 0; i < fonction.params_entrees.taille(); i++) {
+    for (auto i = 0; i < fonction.params_entrée.taille(); i++) {
         sources[i] = SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
         sources_pour_charge[i] = SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
     }
 
-    int index = fonction.params_entrees.taille();
+    int index = fonction.params_entrée.taille();
     sources[index] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
     sources_pour_charge[index] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
 
@@ -765,13 +765,13 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
         }
 
         if (it->est_charge()) {
-            if (it->comme_charge()->chargee->est_instruction()) {
-                auto inst = it->comme_charge()->chargee->comme_instruction();
+            if (it->comme_charge()->chargée->est_instruction()) {
+                auto inst = it->comme_charge()->chargée->comme_instruction();
                 sources[it->numero] = sources_pour_charge[inst->numero];
             }
             else {
                 sources[it->numero] = détermine_source_adresse_atome(
-                    fonction, *it->comme_charge()->chargee, sources);
+                    fonction, *it->comme_charge()->chargée, sources);
             }
 
             continue;
@@ -784,7 +784,7 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
         }
 
         if (it->est_acces_membre()) {
-            auto accede = it->comme_acces_membre()->accede;
+            auto accede = it->comme_acces_membre()->accédé;
             sources[it->numero] = détermine_source_adresse_atome(fonction, *accede, sources);
             if (accede->est_instruction()) {
                 sources_pour_charge[it->numero] =
@@ -794,7 +794,7 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
         }
 
         if (it->est_acces_index()) {
-            auto accede = it->comme_acces_index()->accede;
+            auto accede = it->comme_acces_index()->accédé;
             sources[it->numero] = détermine_source_adresse_atome(fonction, *accede, sources);
             if (accede->est_instruction()) {
                 sources_pour_charge[it->numero] =
@@ -805,8 +805,8 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
 
         if (it->est_stocke_mem()) {
             auto const stockage = it->comme_stocke_mem();
-            auto const ou = stockage->ou;
-            auto const valeur = stockage->valeur;
+            auto const ou = stockage->destination;
+            auto const valeur = stockage->source;
 
             auto const source_adresse_destination = détermine_source_adresse_atome(
                 fonction, *ou, sources);
@@ -981,7 +981,7 @@ static bool fonction_est_pure(AtomeFonction const *fonction)
         if (it->est_charge()) {
             auto charge = it->comme_charge();
             /* À FAIRE : uniquement si la valeur globale est écrite dans la sortie. */
-            if (charge->chargee->est_globale()) {
+            if (charge->chargée->est_globale()) {
                 return false;
             }
         }
@@ -1059,8 +1059,8 @@ static bool remplace_instruction_par_atome(Atome *utilisateur,
 
     if (utilisatrice->est_stocke_mem()) {
         auto stockage = utilisatrice->comme_stocke_mem();
-        ASSIGNE_SI_EGAUX(stockage->ou, à_remplacer, nouvelle_valeur)
-        ASSIGNE_SI_EGAUX(stockage->valeur, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(stockage->destination, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(stockage->source, à_remplacer, nouvelle_valeur)
     }
     else if (utilisatrice->est_op_binaire()) {
         auto op_binaire = utilisatrice->comme_op_binaire();
@@ -1084,11 +1084,11 @@ static bool remplace_instruction_par_atome(Atome *utilisateur,
     }
     else if (utilisatrice->est_acces_membre()) {
         auto membre = utilisatrice->comme_acces_membre();
-        ASSIGNE_SI_EGAUX(membre->accede, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(membre->accédé, à_remplacer, nouvelle_valeur)
     }
     else if (utilisatrice->est_acces_index()) {
         auto index = utilisatrice->comme_acces_index();
-        ASSIGNE_SI_EGAUX(index->accede, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(index->accédé, à_remplacer, nouvelle_valeur)
         ASSIGNE_SI_EGAUX(index->index, à_remplacer, nouvelle_valeur)
     }
     else {
@@ -1146,7 +1146,7 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
         }
 
         g.visite_utilisateurs(inst2, [&](Atome *utilisateur) {
-            auto nouvelle_valeur = inst1->comme_stocke_mem()->valeur;
+            auto nouvelle_valeur = inst1->comme_stocke_mem()->source;
             if (!remplace_instruction_par_atome(utilisateur, inst2, nouvelle_valeur, nullptr)) {
                 return;
             }
