@@ -33,27 +33,23 @@ struct IdentifiantEtExpression {
     NoeudExpression *expr;
 };
 
-enum {
+enum class RaisonErreurAppariement : uint8_t {
     AUCUNE_RAISON,
 
-    // À FAIRE : ceci n'est que pour attendre sur un type lors de la vérification de la
-    // compatibilité entre les types des arguments et ceux des expressions reçues
-    ERREUR_DEPENDANCE,
-
     EXPRESSION_MANQUANTE_POUR_UNION,
-    MANQUE_NOM_APRES_VARIADIC,
+    MANQUE_NOM_APRÈS_VARIADIC,
     ARGUMENTS_MANQUANTS,
-    MECOMPTAGE_ARGS,
-    MENOMMAGE_ARG,
-    METYPAGE_ARG,
+    MÉCOMPTAGE_ARGS,
+    MÉNOMMAGE_ARG,
+    MÉTYPAGE_ARG,
     NOMMAGE_ARG_POINTEUR_FONCTION,
     RENOMMAGE_ARG,
     TROP_D_EXPRESSION_POUR_UNION,
     TYPE_N_EST_PAS_FONCTION,
     EXPANSION_VARIADIQUE_FONCTION_EXTERNE,
     MULTIPLE_EXPANSIONS_VARIADIQUES,
-    EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
-    ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES,
+    EXPANSION_VARIADIQUE_APRÈS_ARGUMENTS_VARIADIQUES,
+    ARGUMENTS_VARIADIQEUS_APRÈS_EXPANSION_VARIAQUES,
     MONOMORPHISATION,
 };
 
@@ -72,14 +68,9 @@ enum {
 };
 
 struct ErreurAppariement {
-    kuri::chaine_statique nom_arg{};
+    IdentifiantCode const *nom_arg = nullptr;
 
-    Attente attente{};
-
-    /* Ce que nous avons à gauche */
-    int note = NOTE_INVALIDE;
-
-    int raison = AUCUNE_RAISON;
+    RaisonErreurAppariement raison = RaisonErreurAppariement::AUCUNE_RAISON;
 
     /* Le type de l'élément à gauche de l'expression (pour les structures et les pointeurs de
      * fonctions) */
@@ -120,31 +111,29 @@ struct ErreurAppariement {
     static ErreurAppariement renommage_argument(NoeudExpression const *site,
                                                 IdentifiantCode *ident);
 
-    static ErreurAppariement dépendance_non_satisfaite(NoeudExpression const *site,
-                                                       Attente attente);
-
 #define CREATION_ERREUR(nom_enum, nom_fonction)                                                   \
     static ErreurAppariement nom_fonction(NoeudExpression const *site)                            \
     {                                                                                             \
-        return crée_erreur(nom_enum, site);                                                       \
+        return crée_erreur(RaisonErreurAppariement::nom_enum, site);                              \
     }
 
     CREATION_ERREUR(EXPRESSION_MANQUANTE_POUR_UNION, expression_manquante_union);
-    CREATION_ERREUR(MANQUE_NOM_APRES_VARIADIC, nom_manquant_apres_variadique);
+    CREATION_ERREUR(MANQUE_NOM_APRÈS_VARIADIC, nom_manquant_apres_variadique);
     CREATION_ERREUR(ARGUMENTS_MANQUANTS, arguments_manquants);
     CREATION_ERREUR(NOMMAGE_ARG_POINTEUR_FONCTION, nommage_argument_pointeur_fonction);
     CREATION_ERREUR(TROP_D_EXPRESSION_POUR_UNION, expression_extra_pour_union);
     CREATION_ERREUR(EXPANSION_VARIADIQUE_FONCTION_EXTERNE, expansion_variadique_externe);
     CREATION_ERREUR(MULTIPLE_EXPANSIONS_VARIADIQUES, multiple_expansions_variadiques);
-    CREATION_ERREUR(EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
+    CREATION_ERREUR(EXPANSION_VARIADIQUE_APRÈS_ARGUMENTS_VARIADIQUES,
                     expansion_variadique_post_argument);
-    CREATION_ERREUR(ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES,
+    CREATION_ERREUR(ARGUMENTS_VARIADIQEUS_APRÈS_EXPANSION_VARIAQUES,
                     argument_post_expansion_variadique);
 
-#undef CRETION_ERREUR
+#undef CREATION_ERREUR
 
   private:
-    static ErreurAppariement crée_erreur(int raison, NoeudExpression const *site);
+    static ErreurAppariement crée_erreur(RaisonErreurAppariement raison,
+                                         NoeudExpression const *site);
 };
 
 struct CandidateAppariement {
@@ -255,7 +244,7 @@ struct CandidateAppariement {
         kuri::tableau<TransformationType, int> &&transformations);
 };
 
-using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
+using RésultatAppariement = std::variant<ErreurAppariement, CandidateAppariement, Attente>;
 
 static constexpr auto TAILLE_CANDIDATES_DEFAUT = 10;
 
@@ -300,7 +289,7 @@ struct EtatResolutionAppel {
 
     /* Les #ResultatAppariements pour chaque déclaration candidate à l'élection
      * de l'expression appelée. */
-    kuri::tablet<ResultatAppariement, 10> résultats{};
+    kuri::tablet<RésultatAppariement, 10> résultats{};
 
     /* Les candidates choisis lors de l'appariement. */
     kuri::tablet<CandidateAppariement, 10> candidates{};

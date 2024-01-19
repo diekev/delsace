@@ -121,8 +121,8 @@ static void imprime_atome_ex(Atome const *atome,
         }
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
-            auto acces = static_cast<AccedeIndexConstant const *>(atome);
-            imprime_atome_ex(acces->accede, os, options, true);
+            auto acces = static_cast<AccèdeIndexConstant const *>(atome);
+            imprime_atome_ex(acces->accédé, os, options, true);
             os << '[' << acces->index << ']';
             break;
         }
@@ -319,7 +319,7 @@ static void imprime_instruction_ex(Instruction const *inst,
         {
             auto inst_appel = inst->comme_appel();
             os << "appel ";
-            imprime_atome_ex(inst_appel->appele, os, options, true);
+            imprime_atome_ex(inst_appel->appelé, os, options, true);
 
             auto virgule = "(";
 
@@ -355,7 +355,7 @@ static void imprime_instruction_ex(Instruction const *inst,
         case GenreInstruction::CHARGE_MEMOIRE:
         {
             auto inst_charge = inst->comme_charge();
-            auto charge = inst_charge->chargee;
+            auto charge = inst_charge->chargée;
 
             os << "charge ";
             imprime_atome_ex(charge, os, options, true);
@@ -364,12 +364,12 @@ static void imprime_instruction_ex(Instruction const *inst,
         case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto inst_stocke = inst->comme_stocke_mem();
-            auto ou = inst_stocke->ou;
+            auto ou = inst_stocke->destination;
 
             os << "stocke ";
             imprime_atome_ex(ou, os, options, true);
             os << ", ";
-            imprime_atome_ex(inst_stocke->valeur, os, options, true);
+            imprime_atome_ex(inst_stocke->source, os, options, true);
             break;
         }
         case GenreInstruction::LABEL:
@@ -410,7 +410,7 @@ static void imprime_instruction_ex(Instruction const *inst,
         {
             auto inst_acces = inst->comme_acces_index();
             os << "index ";
-            imprime_atome_ex(inst_acces->accede, os, options, true);
+            imprime_atome_ex(inst_acces->accédé, os, options, true);
             os << ", ";
             imprime_atome_ex(inst_acces->index, os, options, true);
             break;
@@ -419,7 +419,7 @@ static void imprime_instruction_ex(Instruction const *inst,
         {
             auto inst_acces = inst->comme_acces_membre();
             os << "membre ";
-            imprime_atome_ex(inst_acces->accede, os, options, true);
+            imprime_atome_ex(inst_acces->accédé, os, options, true);
             os << ", " << inst_acces->index;
             break;
         }
@@ -513,7 +513,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
     auto virgule = "(";
 
-    for (auto param : atome_fonc->params_entrees) {
+    for (auto param : atome_fonc->params_entrée) {
         os << virgule;
         os << param->ident->nom << ' ';
 
@@ -523,7 +523,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
         virgule = ", ";
     }
 
-    if (atome_fonc->params_entrees.taille() == 0) {
+    if (atome_fonc->params_entrée.taille() == 0) {
         os << virgule;
     }
 
@@ -565,11 +565,11 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
     if (inst->est_acces_membre()) {
         auto inst_acces = inst->comme_acces_membre();
         sortie << "Nous accédons à ";
-        if (inst_acces->accede->est_instruction()) {
-            sortie << inst_acces->accede->comme_instruction()->genre << '\n';
+        if (inst_acces->accédé->est_instruction()) {
+            sortie << inst_acces->accédé->comme_instruction()->genre << '\n';
         }
         else {
-            imprime_information_atome(inst_acces->accede, sortie);
+            imprime_information_atome(inst_acces->accédé, sortie);
             sortie << '\n';
         }
     }

@@ -327,7 +327,7 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
 {
     fonction = atome_fonc;
 
-    auto numero_instruction = atome_fonc->params_entrees.taille();
+    auto numero_instruction = atome_fonc->params_entrée.taille();
 
     table_blocs.redimensionne(atome_fonc->instructions.taille() + numero_instruction);
 

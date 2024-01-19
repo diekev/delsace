@@ -28,12 +28,12 @@ std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome)
 
 AtomeConstanteStructure::~AtomeConstanteStructure()
 {
-    memoire::deloge_tableau("valeur_structure", données.pointeur, données.capacite);
+    memoire::deloge_tableau("valeur_structure", données.pointeur, données.capacité);
 }
 
 AtomeConstanteTableauFixe::~AtomeConstanteTableauFixe()
 {
-    memoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacite);
+    memoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacité);
 }
 
 const Type *AtomeGlobale::donne_type_alloué() const
@@ -41,9 +41,9 @@ const Type *AtomeGlobale::donne_type_alloué() const
     return type->comme_type_pointeur()->type_pointe;
 }
 
-const Type *AccedeIndexConstant::donne_type_accédé() const
+const Type *AccèdeIndexConstant::donne_type_accédé() const
 {
-    return accede->type->comme_type_pointeur()->type_pointe;
+    return accédé->type->comme_type_pointeur()->type_pointe;
 }
 
 VisibilitéSymbole AtomeGlobale::donne_visibilité_symbole() const
@@ -61,7 +61,7 @@ AtomeFonction::~AtomeFonction()
     memoire::deloge("DonnéesExécutionFonction", données_exécution);
 }
 
-Instruction *AtomeFonction::derniere_instruction() const
+Instruction *AtomeFonction::dernière_instruction() const
 {
     if (instructions.taille() == 0) {
         return nullptr;
@@ -72,7 +72,7 @@ Instruction *AtomeFonction::derniere_instruction() const
 int AtomeFonction::nombre_d_instructions_avec_entrées_sorties() const
 {
     /* +1 pour la sortie. */
-    auto résultat = params_entrees.taille() + instructions.taille() + 1;
+    auto résultat = params_entrée.taille() + instructions.taille() + 1;
     auto type_sortie = param_sortie->donne_type_alloué();
     if (type_sortie->est_type_tuple()) {
         résultat += type_sortie->comme_type_tuple()->membres.taille();
@@ -84,7 +84,7 @@ int32_t AtomeFonction::numérote_instructions() const
 {
     int32_t résultat = 0;
 
-    POUR (params_entrees) {
+    POUR (params_entrée) {
         it->numero = résultat++;
     }
 
@@ -112,7 +112,7 @@ InstructionAppel::InstructionAppel(NoeudExpression const *site_, Atome *appele_)
     auto type_fonction = appele_->type->comme_type_fonction();
     this->type = type_fonction->type_sortie;
 
-    this->appele = appele_;
+    this->appelé = appele_;
 }
 
 InstructionAppel::InstructionAppel(NoeudExpression const *site_,
@@ -173,7 +173,7 @@ InstructionChargeMem::InstructionChargeMem(NoeudExpression const *site_,
     : InstructionChargeMem(site_)
 {
     this->type = type_;
-    this->chargee = chargee_;
+    this->chargée = chargee_;
     if (type->est_type_pointeur()) {
         drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
@@ -184,8 +184,8 @@ InstructionStockeMem::InstructionStockeMem(NoeudExpression const *site_,
                                            Atome *valeur_)
     : InstructionStockeMem(site_)
 {
-    this->ou = ou_;
-    this->valeur = valeur_;
+    this->destination = ou_;
+    this->source = valeur_;
 }
 
 InstructionLabel::InstructionLabel(NoeudExpression const *site_, int id_) : InstructionLabel(site_)
@@ -210,27 +210,27 @@ InstructionBrancheCondition::InstructionBrancheCondition(NoeudExpression const *
     this->label_si_faux = label_si_faux_;
 }
 
-InstructionAccedeMembre::InstructionAccedeMembre(NoeudExpression const *site_,
+InstructionAccèdeMembre::InstructionAccèdeMembre(NoeudExpression const *site_,
                                                  Type const *type_,
                                                  Atome *accede_,
                                                  int index_)
-    : InstructionAccedeMembre(site_)
+    : InstructionAccèdeMembre(site_)
 {
     this->type = type_;
-    this->accede = accede_;
+    this->accédé = accede_;
     this->index = index_;
 }
 
-const Type *InstructionAccedeMembre::donne_type_accédé() const
+const Type *InstructionAccèdeMembre::donne_type_accédé() const
 {
-    auto type_accédé = accede->type;
+    auto type_accédé = accédé->type;
     if (type_accédé->est_type_reference()) {
         return type_accédé->comme_type_reference()->type_pointe;
     }
     return type_accédé->comme_type_pointeur()->type_pointe;
 }
 
-const MembreTypeComposé &InstructionAccedeMembre::donne_membre_accédé() const
+const MembreTypeComposé &InstructionAccèdeMembre::donne_membre_accédé() const
 {
     auto type_adressé = donne_type_accédé();
     if (type_adressé->est_type_opaque()) {
@@ -247,20 +247,20 @@ const MembreTypeComposé &InstructionAccedeMembre::donne_membre_accédé() const
     return type_composé->membres[index];
 }
 
-InstructionAccedeIndex::InstructionAccedeIndex(NoeudExpression const *site_,
+InstructionAccèdeIndex::InstructionAccèdeIndex(NoeudExpression const *site_,
                                                Type const *type_,
                                                Atome *accede_,
                                                Atome *index_)
-    : InstructionAccedeIndex(site_)
+    : InstructionAccèdeIndex(site_)
 {
     this->type = type_;
-    this->accede = accede_;
+    this->accédé = accede_;
     this->index = index_;
 }
 
-const Type *InstructionAccedeIndex::donne_type_accédé() const
+const Type *InstructionAccèdeIndex::donne_type_accédé() const
 {
-    return accede->type->comme_type_pointeur()->type_pointe;
+    return accédé->type->comme_type_pointeur()->type_pointe;
 }
 
 kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type)
@@ -340,7 +340,7 @@ bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1)
     }
 
     auto const stockage = inst0->comme_stocke_mem();
-    return stockage->ou == inst1;
+    return stockage->destination == inst1;
 }
 
 bool est_transtypage_de(Instruction const *inst0, Instruction const *inst1)
@@ -360,16 +360,16 @@ bool est_chargement_de(Instruction const *inst0, Instruction const *inst1)
     }
 
     auto const charge = inst0->comme_charge();
-    return charge->chargee == inst1;
+    return charge->chargée == inst1;
 }
 
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(InstructionStockeMem const *inst)
 {
-    if (!est_allocation(inst->ou)) {
+    if (!est_allocation(inst->destination)) {
         return nullptr;
     }
 
-    auto atome_source = inst->valeur;
+    auto atome_source = inst->source;
     if (!atome_source->est_instruction()) {
         return nullptr;
     }
@@ -380,22 +380,22 @@ InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(InstructionSto
     }
 
     auto chargement = instruction_source->comme_charge();
-    if (!est_allocation(chargement->chargee)) {
+    if (!est_allocation(chargement->chargée)) {
         return nullptr;
     }
 
-    return static_cast<InstructionAllocation const *>(chargement->chargee);
+    return static_cast<InstructionAllocation const *>(chargement->chargée);
 }
 
 bool est_stocke_alloc_incrémente(InstructionStockeMem const *inst)
 {
-    if (!est_allocation(inst->ou)) {
+    if (!est_allocation(inst->destination)) {
         return false;
     }
 
-    auto alloc_destination = inst->ou->comme_instruction()->comme_alloc();
+    auto alloc_destination = inst->destination->comme_instruction()->comme_alloc();
 
-    auto atome_source = inst->valeur;
+    auto atome_source = inst->source;
     if (!atome_source->est_instruction()) {
         return false;
     }
@@ -499,21 +499,21 @@ Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst)
     return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Inegal);
 }
 
-AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *accès_membre)
+AccèsMembreFusionné fusionne_accès_membres(InstructionAccèdeMembre const *accès_membre)
 {
     AccèsMembreFusionné résultat;
 
     while (true) {
         auto const &membre = accès_membre->donne_membre_accédé();
 
-        résultat.accédé = accès_membre->accede;
+        résultat.accédé = accès_membre->accédé;
         résultat.décalage += membre.decalage;
 
-        if (!accès_membre->accede->est_instruction()) {
+        if (!accès_membre->accédé->est_instruction()) {
             break;
         }
 
-        auto inst = accès_membre->accede->comme_instruction();
+        auto inst = accès_membre->accédé->comme_instruction();
         if (!inst->est_acces_membre()) {
             break;
         }
@@ -540,7 +540,7 @@ std::ostream &operator<<(std::ostream &os, GenreInstruction genre)
     return os;
 }
 
-void VisiteuseAtome::reinitialise()
+void VisiteuseAtome::réinitialise()
 {
     visites.efface();
 }
@@ -569,7 +569,7 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
             auto inst_acces = racine->comme_accès_index_constant();
-            visite_atome(inst_acces->accede, rappel);
+            visite_atome(inst_acces->accédé, rappel);
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:
@@ -630,7 +630,7 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                     auto appel = inst->comme_appel();
 
                     /* appele peut être un pointeur de fonction */
-                    visite_atome(appel->appele, rappel);
+                    visite_atome(appel->appelé, rappel);
 
                     POUR (appel->args) {
                         visite_atome(it, rappel);
@@ -641,14 +641,14 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                 case GenreInstruction::CHARGE_MEMOIRE:
                 {
                     auto charge = inst->comme_charge();
-                    visite_atome(charge->chargee, rappel);
+                    visite_atome(charge->chargée, rappel);
                     break;
                 }
                 case GenreInstruction::STOCKE_MEMOIRE:
                 {
                     auto stocke = inst->comme_stocke_mem();
-                    visite_atome(stocke->valeur, rappel);
-                    visite_atome(stocke->ou, rappel);
+                    visite_atome(stocke->source, rappel);
+                    visite_atome(stocke->destination, rappel);
                     break;
                 }
                 case GenreInstruction::OPERATION_UNAIRE:
@@ -668,13 +668,13 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                 {
                     auto acces = inst->comme_acces_index();
                     visite_atome(acces->index, rappel);
-                    visite_atome(acces->accede, rappel);
+                    visite_atome(acces->accédé, rappel);
                     break;
                 }
                 case GenreInstruction::ACCEDE_MEMBRE:
                 {
                     auto acces = inst->comme_acces_membre();
-                    visite_atome(acces->accede, rappel);
+                    visite_atome(acces->accédé, rappel);
                     break;
                 }
                 case GenreInstruction::TRANSTYPE:
@@ -723,7 +723,7 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
             auto appel = inst->comme_appel();
 
             /* appele peut être un pointeur de fonction */
-            rappel(appel->appele);
+            rappel(appel->appelé);
 
             POUR (appel->args) {
                 rappel(it);
@@ -734,14 +734,14 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
         case GenreInstruction::CHARGE_MEMOIRE:
         {
             auto charge = inst->comme_charge();
-            rappel(charge->chargee);
+            rappel(charge->chargée);
             break;
         }
         case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto stocke = inst->comme_stocke_mem();
-            rappel(stocke->valeur);
-            rappel(stocke->ou);
+            rappel(stocke->source);
+            rappel(stocke->destination);
             break;
         }
         case GenreInstruction::OPERATION_UNAIRE:
@@ -761,13 +761,13 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
         {
             auto acces = inst->comme_acces_index();
             rappel(acces->index);
-            rappel(acces->accede);
+            rappel(acces->accédé);
             break;
         }
         case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto acces = inst->comme_acces_membre();
-            rappel(acces->accede);
+            rappel(acces->accédé);
             break;
         }
         case GenreInstruction::TRANSTYPE:

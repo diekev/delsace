@@ -984,7 +984,7 @@ void ConstructriceProgrammeFormeRI::ajoute_fonction(AtomeFonction *fonction)
 
 void ConstructriceProgrammeFormeRI::ajoute_dépendances_fonction(AtomeFonction *fonction)
 {
-    m_visiteuse_atome.reinitialise();
+    m_visiteuse_atome.réinitialise();
     POUR (fonction->instructions) {
         m_visiteuse_atome.visite_atome(it, [&](Atome *atome_local) {
             if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
@@ -1024,7 +1024,7 @@ void ConstructriceProgrammeFormeRI::ajoute_globale(AtomeGlobale *globale, bool v
         return;
     }
 
-    m_visiteuse_atome.reinitialise();
+    m_visiteuse_atome.réinitialise();
     m_visiteuse_atome.visite_atome(globale, [&](Atome *atome_local) {
         if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
             /* Ne visitons pas la sous-globale puisque nous la visitons ici. */
@@ -1161,7 +1161,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
     auto initialisateur = atome_table_des_types->initialisateur->comme_constante_structure();
     auto membres_init = initialisateur->donne_atomes_membres();
     auto atome_accès = membres_init[0]->comme_accès_index_constant();
-    m_résultat.globales.ajoute(atome_accès->accede->comme_globale());
+    m_résultat.globales.ajoute(atome_accès->accédé->comme_globale());
 
     auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
                                                        static_cast<int>(index_type));
@@ -1229,7 +1229,7 @@ void ConstructriceProgrammeFormeRI::partitionne_globales_info_types()
         }
     }
 
-    m_visiteuse_atome.reinitialise();
+    m_visiteuse_atome.réinitialise();
     kuri::ensemble<AtomeGlobale *> globales_utilisées_par_infos;
     POUR (globales_infos_types) {
         globales_utilisées_par_infos.insère(it);
@@ -1261,7 +1261,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
         fonction_à_visiter.empile(it);
     }
 
-    m_visiteuse_atome.reinitialise();
+    m_visiteuse_atome.réinitialise();
     POUR (m_résultat.globales) {
         m_visiteuse_atome.visite_atome(it, [&](Atome *atome) {
             if (atome->est_fonction()) {
@@ -1272,7 +1272,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
 
     kuri::tableau<AtomeFonction *> fonctions_utilisées;
     kuri::ensemble<AtomeFonction *> fonctions_visitées;
-    m_visiteuse_atome.reinitialise();
+    m_visiteuse_atome.réinitialise();
     while (!fonction_à_visiter.est_vide()) {
         auto fonction = fonction_à_visiter.depile();
         if (fonctions_visitées.possède(fonction)) {
@@ -1281,7 +1281,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
 
         fonctions_visitées.insère(fonction);
         fonctions_utilisées.ajoute(fonction);
-        m_visiteuse_atome.reinitialise();
+        m_visiteuse_atome.réinitialise();
 
         POUR (fonction->instructions) {
             m_visiteuse_atome.visite_atome(it, [&](Atome *atome) {
@@ -1341,7 +1341,7 @@ void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
 
     POUR (m_résultat.fonctions) {
         if (it->est_externe) {
-            POUR_NOMME (param, it->params_entrees) {
+            POUR_NOMME (param, it->params_entrée) {
                 types_utilisés.insère(param->donne_type_alloué());
             }
 
@@ -1350,10 +1350,10 @@ void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
 
         POUR_NOMME (inst, it->instructions) {
             if (inst->est_stocke_mem()) {
-                types_utilisés.insère(inst->comme_stocke_mem()->valeur->type);
+                types_utilisés.insère(inst->comme_stocke_mem()->source->type);
             }
             else if (inst->est_charge()) {
-                types_utilisés.insère(inst->comme_charge()->chargee->type);
+                types_utilisés.insère(inst->comme_charge()->chargée->type);
             }
             else if (inst->est_alloc()) {
                 types_utilisés.insère(inst->comme_alloc()->donne_type_alloué());

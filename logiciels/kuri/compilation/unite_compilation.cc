@@ -11,6 +11,8 @@
 #include "espace_de_travail.hh"
 #include "metaprogramme.hh"
 #include "typage.hh"
+#include "validation_expression_appel.hh"
+#include "validation_semantique.hh"
 
 static constexpr auto CYCLES_MAXIMUM = 1000;
 
