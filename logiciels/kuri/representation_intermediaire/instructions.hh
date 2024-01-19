@@ -35,7 +35,7 @@ enum class VisibilitéSymbole : uint8_t;
     O(INITIALISATION_TABLEAU, AtomeInitialisationTableau, initialisation_tableau)                 \
     O(NON_INITIALISATION, AtomeNonInitialisation, non_initialisation)                             \
     O(TRANSTYPE_CONSTANT, TranstypeConstant, transtype_constant)                                  \
-    O(ACCÈS_INDEX_CONSTANT, AccedeIndexConstant, accès_index_constant)                            \
+    O(ACCÈS_INDEX_CONSTANT, AccèdeIndexConstant, accès_index_constant)                            \
     O(FONCTION, AtomeFonction, fonction)                                                          \
     O(INSTRUCTION, Instruction, instruction)                                                      \
     O(GLOBALE, AtomeGlobale, globale)
@@ -55,8 +55,8 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
     O(BRANCHE, InstructionBranche, branche)                                                       \
     O(BRANCHE_CONDITION, InstructionBrancheCondition, branche_cond)                               \
     O(RETOUR, InstructionRetour, retour)                                                          \
-    O(ACCEDE_MEMBRE, InstructionAccedeMembre, acces_membre)                                       \
-    O(ACCEDE_INDEX, InstructionAccedeIndex, acces_index)                                          \
+    O(ACCEDE_MEMBRE, InstructionAccèdeMembre, acces_membre)                                       \
+    O(ACCEDE_INDEX, InstructionAccèdeIndex, acces_index)                                          \
     O(TRANSTYPE, InstructionTranstype, transtype)
 
 #define PREDECLARE_CLASSE_INSTRUCTION(genre_, nom_classe, ident) struct nom_classe;
@@ -116,7 +116,7 @@ struct AtomeConstante : public Atome {
 };
 
 struct AtomeConstanteEntière : public AtomeConstante {
-    uint64_t valeur = 0;
+    const uint64_t valeur = 0;
 
     AtomeConstanteEntière(Type const *type_, uint64_t v) : valeur(v)
     {
@@ -126,7 +126,7 @@ struct AtomeConstanteEntière : public AtomeConstante {
 };
 
 struct AtomeConstanteRéelle : public AtomeConstante {
-    double valeur = 0;
+    const double valeur = 0;
 
     AtomeConstanteRéelle(Type const *type_, double v) : valeur(v)
     {
@@ -136,7 +136,7 @@ struct AtomeConstanteRéelle : public AtomeConstante {
 };
 
 struct AtomeConstanteBooléenne : public AtomeConstante {
-    bool valeur = false;
+    const bool valeur = false;
 
     AtomeConstanteBooléenne(Type const *type_, bool v) : valeur(v)
     {
@@ -154,7 +154,7 @@ struct AtomeConstanteNulle : public AtomeConstante {
 };
 
 struct AtomeConstanteCaractère : public AtomeConstante {
-    uint64_t valeur = 0;
+    const uint64_t valeur = 0;
 
     AtomeConstanteCaractère(Type const *type_, uint64_t v) : valeur(v)
     {
@@ -168,7 +168,7 @@ struct AtomeConstanteStructure : public AtomeConstante {
     struct Données {
         AtomeConstante **pointeur = nullptr;
         int64_t taille = 0;
-        int64_t capacite = 0;
+        int64_t capacité = 0;
     };
 
     Données données{};
@@ -195,7 +195,7 @@ struct AtomeConstanteTableauFixe : public AtomeConstante {
     struct Données {
         AtomeConstante **pointeur = nullptr;
         int64_t taille = 0;
-        int64_t capacite = 0;
+        int64_t capacité = 0;
     };
 
     Données données{};
@@ -372,22 +372,22 @@ struct TranstypeConstant : public AtomeConstante {
     }
 };
 
-struct AccedeIndexConstant : public AtomeConstante {
-    AccedeIndexConstant()
+struct AccèdeIndexConstant : public AtomeConstante {
+    AccèdeIndexConstant()
     {
         genre_atome = Genre::ACCÈS_INDEX_CONSTANT;
     }
 
-    AtomeConstante *accede = nullptr;
+    AtomeConstante *accédé = nullptr;
     int64_t index = 0;
 
-    EMPECHE_COPIE(AccedeIndexConstant);
+    EMPECHE_COPIE(AccèdeIndexConstant);
 
-    AccedeIndexConstant(Type const *type_, AtomeConstante *accede_, int64_t index_)
-        : AccedeIndexConstant()
+    AccèdeIndexConstant(Type const *type_, AtomeConstante *accédé_, int64_t index_)
+        : AccèdeIndexConstant()
     {
         this->type = type_;
-        this->accede = accede_;
+        this->accédé = accédé_;
         this->index = index_;
     }
 
@@ -397,7 +397,7 @@ struct AccedeIndexConstant : public AtomeConstante {
 struct AtomeFonction : public AtomeConstante {
     kuri::chaine_statique nom{};
 
-    kuri::tableau<InstructionAllocation *, int> params_entrees{};
+    kuri::tableau<InstructionAllocation *, int> params_entrée{};
     InstructionAllocation *param_sortie = nullptr;
 
     kuri::tableau<Instruction *, int> instructions{};
@@ -410,7 +410,7 @@ struct AtomeFonction : public AtomeConstante {
     /* Pour les exécutions dans la machine virtuelle. */
     DonnéesExécutionFonction *données_exécution = nullptr;
 
-    int64_t decalage_appel_init_globale = 0;
+    int64_t décalage_appel_init_globale = 0;
 
     AtomeGlobale *info_trace_appel = nullptr;
 
@@ -426,13 +426,13 @@ struct AtomeFonction : public AtomeConstante {
                   InstructionAllocation *param_sortie_)
         : AtomeFonction(decl_, nom_)
     {
-        this->params_entrees = std::move(params_);
+        this->params_entrée = std::move(params_);
         this->param_sortie = param_sortie_;
     }
 
     ~AtomeFonction();
 
-    Instruction *derniere_instruction() const;
+    Instruction *dernière_instruction() const;
 
     int nombre_d_instructions_avec_entrées_sorties() const;
 
@@ -496,7 +496,7 @@ struct InstructionAppel : public Instruction {
         genre = GenreInstruction::APPEL;
     }
 
-    Atome *appele = nullptr;
+    Atome *appelé = nullptr;
     kuri::tableau<Atome *, int> args{};
     AtomeGlobale *info_trace_appel = nullptr;
 
@@ -585,7 +585,7 @@ struct InstructionChargeMem : public Instruction {
         genre = GenreInstruction::CHARGE_MEMOIRE;
     }
 
-    Atome *chargee = nullptr;
+    Atome *chargée = nullptr;
 
     EMPECHE_COPIE(InstructionChargeMem);
 
@@ -599,8 +599,8 @@ struct InstructionStockeMem : public Instruction {
         genre = GenreInstruction::STOCKE_MEMOIRE;
     }
 
-    Atome *ou = nullptr;
-    Atome *valeur = nullptr;
+    Atome *destination = nullptr;
+    Atome *source = nullptr;
 
     EMPECHE_COPIE(InstructionStockeMem);
 
@@ -652,21 +652,21 @@ struct InstructionBrancheCondition : public Instruction {
                                 InstructionLabel *label_si_faux_);
 };
 
-struct InstructionAccedeMembre : public Instruction {
-    explicit InstructionAccedeMembre(NoeudExpression const *site_)
+struct InstructionAccèdeMembre : public Instruction {
+    explicit InstructionAccèdeMembre(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::ACCEDE_MEMBRE;
         drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
-    Atome *accede = nullptr;
+    Atome *accédé = nullptr;
     /* Index du membre accédé dans le type structurel accédé. */
     int index = 0;
 
-    EMPECHE_COPIE(InstructionAccedeMembre);
+    EMPECHE_COPIE(InstructionAccèdeMembre);
 
-    InstructionAccedeMembre(NoeudExpression const *site_,
+    InstructionAccèdeMembre(NoeudExpression const *site_,
                             Type const *type_,
                             Atome *accede_,
                             int index_);
@@ -676,20 +676,20 @@ struct InstructionAccedeMembre : public Instruction {
     const MembreTypeComposé &donne_membre_accédé() const;
 };
 
-struct InstructionAccedeIndex : public Instruction {
-    explicit InstructionAccedeIndex(NoeudExpression const *site_)
+struct InstructionAccèdeIndex : public Instruction {
+    explicit InstructionAccèdeIndex(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::ACCEDE_INDEX;
         drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
-    Atome *accede = nullptr;
+    Atome *accédé = nullptr;
     Atome *index = nullptr;
 
-    EMPECHE_COPIE(InstructionAccedeIndex);
+    EMPECHE_COPIE(InstructionAccèdeIndex);
 
-    InstructionAccedeIndex(NoeudExpression const *site_,
+    InstructionAccèdeIndex(NoeudExpression const *site_,
                            Type const *type_,
                            Atome *accede_,
                            Atome *index_);
@@ -800,7 +800,7 @@ struct AccèsMembreFusionné {
 
 /* "Fusionne" les accès de membre consécutifs (x.y.z).
  * Retourne l'atome accédé à la fin de la chaine ainsi que le décalage total. */
-AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *accès_membre);
+AccèsMembreFusionné fusionne_accès_membres(InstructionAccèdeMembre const *accès_membre);
 
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
     InstructionStockeMem const *inst);
@@ -830,7 +830,7 @@ struct VisiteuseAtome {
      * visités. */
     kuri::ensemble<Atome *> visites{};
 
-    void reinitialise();
+    void réinitialise();
 
     void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
 };
