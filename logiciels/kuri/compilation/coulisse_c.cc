@@ -1045,10 +1045,10 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
             auto inst_accès = atome->comme_accès_index_constant();
-            auto valeur_accédée = génère_code_pour_atome(inst_accès->accede, os, false);
+            auto valeur_accédée = génère_code_pour_atome(inst_accès->accédé, os, false);
 
-            if (inst_accès->accede->genre_atome == Atome::Genre::GLOBALE &&
-                est_globale_pour_tableau_données_constantes(inst_accès->accede->comme_globale())) {
+            if (inst_accès->accédé->genre_atome == Atome::Genre::GLOBALE &&
+                est_globale_pour_tableau_données_constantes(inst_accès->accédé->comme_globale())) {
                 /* Les tableaux de données constantes doivent toujours être accéder par un index de
                  * 0, donc ce doit être légitime de simplement retourné le code de l'atome. */
                 return valeur_accédée;
@@ -1285,7 +1285,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
  * char**). */
 static bool est_appel_init_contexte(InstructionAppel const *inst_appel)
 {
-    auto appelée = inst_appel->appele;
+    auto appelée = inst_appel->appelé;
     if (!appelée->est_fonction()) {
         return false;
     }
@@ -1330,14 +1330,14 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             os << "  ";
 
-            auto type_fonction = inst_appel->appele->type->comme_type_fonction();
+            auto type_fonction = inst_appel->appelé->type->comme_type_fonction();
             if (!type_fonction->type_sortie->est_type_rien()) {
                 auto nom_ret = donne_nom_pour_instruction(inst);
                 os << "const " << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
                 table_valeurs[inst->numero] = nom_ret;
             }
 
-            os << génère_code_pour_atome(inst_appel->appele, os, false);
+            os << génère_code_pour_atome(inst_appel->appelé, os, false);
 
             auto virgule = "(";
 
@@ -1347,7 +1347,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                     os << "(signed char **)";
                 }
                 else {
-                    auto type = type_paramètre_pour_fonction_clé(inst_appel->appele, index_it);
+                    auto type = type_paramètre_pour_fonction_clé(inst_appel->appelé, index_it);
                     if (type.has_value()) {
                         os << "(" << *type << ")";
                     }
@@ -1382,7 +1382,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case GenreInstruction::CHARGE_MEMOIRE:
         {
             auto inst_charge = inst->comme_charge();
-            auto charge = inst_charge->chargee;
+            auto charge = inst_charge->chargée;
             auto valeur = génère_code_pour_atome(charge, os, false);
 
             assert(valeur != "");
@@ -1412,8 +1412,8 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto inst_stocke = inst->comme_stocke_mem();
-            auto valeur = génère_code_pour_atome(inst_stocke->valeur, os, false);
-            auto destination = inst_stocke->ou;
+            auto valeur = génère_code_pour_atome(inst_stocke->source, os, false);
+            auto destination = inst_stocke->destination;
             auto valeur_destination = génère_code_pour_atome(destination, os, false);
 
             if (valeur_destination.pointeur()[0] == '&') {
@@ -1506,11 +1506,11 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case GenreInstruction::ACCEDE_INDEX:
         {
             auto inst_accès = inst->comme_acces_index();
-            auto valeur_accédée = génère_code_pour_atome(inst_accès->accede, os, false);
+            auto valeur_accédée = génère_code_pour_atome(inst_accès->accédé, os, false);
             auto valeur_index = génère_code_pour_atome(inst_accès->index, os, false);
 
-            if (inst_accès->accede->genre_atome == Atome::Genre::GLOBALE &&
-                est_globale_pour_tableau_données_constantes(inst_accès->accede->comme_globale())) {
+            if (inst_accès->accédé->genre_atome == Atome::Genre::GLOBALE &&
+                est_globale_pour_tableau_données_constantes(inst_accès->accédé->comme_globale())) {
                 /* Nous devons transtyper l'adresse, qui se trouve dans les données constantes,
                  * vers le type cible. */
                 valeur_accédée = enchaine(
@@ -1528,7 +1528,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         {
             auto inst_accès = inst->comme_acces_membre();
 
-            auto accédée = inst_accès->accede;
+            auto accédée = inst_accès->accédé;
             auto valeur_accédée = broyeuse.broye_nom_simple(
                 génère_code_pour_atome(accédée, os, false));
 
@@ -1663,7 +1663,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
 
     auto virgule = "(";
 
-    POUR_INDEX (atome_fonc->params_entrees) {
+    POUR_INDEX (atome_fonc->params_entrée) {
         auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc, index_it);
 
         os << virgule;
@@ -1698,7 +1698,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
         virgule = ", ";
     }
 
-    if (atome_fonc->params_entrees.taille() == 0) {
+    if (atome_fonc->params_entrée.taille() == 0) {
         os << virgule;
     }
 
@@ -1742,7 +1742,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
 
     table_valeurs.redimensionne(atome_fonc->nombre_d_instructions_avec_entrées_sorties());
 
-    for (auto param : atome_fonc->params_entrees) {
+    for (auto param : atome_fonc->params_entrée) {
         table_valeurs[param->numero] = enchaine("&", donne_nom_pour_instruction(param));
     }
 
