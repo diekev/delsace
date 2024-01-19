@@ -14,6 +14,8 @@ compilatrice_notifie_fonctions_parsées
 Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un seul pointeur
 --> ident := compilatrice_donne_identifiant_pour("...")
 
+Erreur si nous utilisons une adresse locale dans une condition.
+
 // -----------------------------------
 // Noms des types
 
@@ -67,8 +69,6 @@ Confusion quand plusieurs modules définissent une fonction pré_exécutable du 
 - améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
 - vérifie que les opérateurs sont surchargeables durant le typage (pour compenser les syntaxes correctes, mais sémantiques incorrectes)
 - pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
-- déplace NoeudExpression::unite dans NoeudDeclaration, NoeudExecution ?
-- utilisation d'un ramasse miette pour les métaprogrammes ?
 - trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
 - pouvoir compiler plusieurs exécutables depuis le même espace de travail, par exemple afin de compiler les exécutables pour un système d'exploitation
 - supprime toutes les vérifications sur la taille en octets des types pour discriminer les entiers et les réels
@@ -242,8 +242,6 @@ permet de ne pas avoir un retour si la dernière instruction est celle d'une dis
         cas_1 { retourne 0 }
         cas_2 { retourne 1 }
     }
-
-propement gérer les cas où une fonction nichée dans une autre essaie d'utiliser une variable locale de la fonction parente
 
 // --------------------------- Polymorphie / Monomorphisation
 
@@ -577,7 +575,6 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
 - stack canaries (coulisse LLVM)
 - coroutines en dehors de boucles
-- possibilité de déclarer une variable dans une condition (si a := foo() { ... })
 
 - généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
 -- paramètres des appels
