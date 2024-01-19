@@ -289,7 +289,7 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
     auto mémoire_instructions = int64_t(0);
     auto mémoire_code_binaire = int64_t(0);
     pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
-        mémoire_paramètres += it.params_entrees.taille_mémoire();
+        mémoire_paramètres += it.params_entrée.taille_mémoire();
         mémoire_instructions += it.instructions.taille_mémoire();
 
         if (it.données_exécution) {
@@ -602,7 +602,7 @@ void ConstructriceRI::insère_label(InstructionLabel *label)
      * instructions sont conséquentes. Afin d'éviter d'avoir des labels définissant des blocs
      * vides, nous ajoutons des branches implicites. */
     if (!m_fonction_courante->instructions.est_vide()) {
-        auto di = m_fonction_courante->derniere_instruction();
+        auto di = m_fonction_courante->dernière_instruction();
         /* Nous pourrions avoir `if (di->est_label())` pour détecter des labels de blocs vides,
          * mais la génération de code pour par exemple les conditions d'une instructions `si` sans
          * `sinon` ne met pas de branche à la fin de `si.bloc_si_vrai`. Donc ceci permet de
@@ -840,7 +840,7 @@ Atome *ConstructriceRI::crée_op_comparaison(NoeudExpression const *site_,
     return crée_op_binaire(site_, TypeBase::BOOL, op, valeur_gauche, valeur_droite);
 }
 
-InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression const *site_,
+InstructionAccèdeIndex *ConstructriceRI::crée_accès_index(NoeudExpression const *site_,
                                                           Atome *accédé,
                                                           Atome *index)
 {
@@ -871,7 +871,7 @@ InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression cons
     return inst;
 }
 
-InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(
+InstructionAccèdeMembre *ConstructriceRI::crée_référence_membre(
     NoeudExpression const *site_, Type const *type, Atome *accédé, int index, bool crée_seulement)
 {
 
@@ -882,7 +882,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(
     return inst;
 }
 
-InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpression const *site_,
+InstructionAccèdeMembre *ConstructriceRI::crée_référence_membre(NoeudExpression const *site_,
                                                                 Atome *accédé,
                                                                 int index,
                                                                 bool crée_seulement)
@@ -1307,7 +1307,7 @@ TranstypeConstant *ConstructriceRI::crée_transtype_constant(Type const *type,
     return m_transtype_constant.ajoute_element(type, valeur);
 }
 
-AccedeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante *accédé,
+AccèdeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante *accédé,
                                                                 int64_t index)
 {
     assert_rappel(accédé->type->est_type_pointeur(),
@@ -1436,7 +1436,7 @@ void ConstructriceRI::insère(Instruction *inst)
 InstructionChargeMem *ConstructriceRI::donne_charge(Atome *source)
 {
     POUR (m_charges) {
-        if (it && it->chargee == source) {
+        if (it && it->chargée == source) {
             return it;
         }
     }
@@ -1447,7 +1447,7 @@ InstructionChargeMem *ConstructriceRI::donne_charge(Atome *source)
 void ConstructriceRI::invalide_charge(Atome *source)
 {
     POUR (m_charges) {
-        if (it && it->chargee == source) {
+        if (it && it->chargée == source) {
             it = nullptr;
         }
     }
@@ -1620,7 +1620,7 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
 
     m_constructrice.crée_appel(nullptr, fonction);
 
-    std::rotate(fonction_pour->instructions.begin() + fonction_pour->decalage_appel_init_globale,
+    std::rotate(fonction_pour->instructions.begin() + fonction_pour->décalage_appel_init_globale,
                 fonction_pour->instructions.end() - 1,
                 fonction_pour->instructions.end());
 
@@ -1933,7 +1933,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 }
             }
 
-            auto derniere_instruction = m_fonction_courante->derniere_instruction();
+            auto derniere_instruction = m_fonction_courante->dernière_instruction();
 
             if (derniere_instruction->genre != GenreInstruction::RETOUR) {
                 /* Génère le code pour toutes les instructions différées de ce bloc. */
@@ -2510,7 +2510,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 m_constructrice.insère_label(label_si_vrai);
                 génère_ri_pour_noeud(inst_si->bloc_si_vrai);
 
-                auto di = m_fonction_courante->derniere_instruction();
+                auto di = m_fonction_courante->dernière_instruction();
                 if (!di->est_branche_ou_retourne()) {
                     m_constructrice.crée_branche(noeud, label_apres_instruction);
                 }
@@ -2586,7 +2586,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             m_constructrice.insère_label(label_boucle);
             génère_ri_pour_noeud(boucle->bloc);
 
-            auto di = m_fonction_courante->derniere_instruction();
+            auto di = m_fonction_courante->dernière_instruction();
 
             if (boucle->bloc_inc) {
                 m_constructrice.insère_label(label_pour_bloc_inc);
@@ -2604,7 +2604,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             if (boucle->bloc_sansarret) {
                 m_constructrice.insère_label(label_pour_sansarret);
                 génère_ri_pour_noeud(boucle->bloc_sansarret);
-                di = m_fonction_courante->derniere_instruction();
+                di = m_fonction_courante->dernière_instruction();
                 if (!di->est_branche_ou_retourne()) {
                     m_constructrice.crée_branche(boucle, label_apres_boucle);
                 }
@@ -4847,7 +4847,7 @@ void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
         atome_fonc->instructions.ajoute(it);
     }
 
-    atome_fonc->decalage_appel_init_globale = atome_fonc->instructions.taille();
+    atome_fonc->décalage_appel_init_globale = atome_fonc->instructions.taille();
 
     génère_ri_pour_noeud(fonction->corps->bloc);
 
