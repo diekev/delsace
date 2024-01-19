@@ -21,6 +21,7 @@
 #include "ipa.hh"
 #include "numerique.hh"
 #include "typage.hh"
+#include "validation_semantique.hh"
 
 #include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"

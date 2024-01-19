@@ -1359,7 +1359,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     m_index_locales.redimensionne(fonction->nombre_d_instructions_avec_entrées_sorties());
     fonction->numérote_instructions();
 
-    POUR (fonction->params_entrees) {
+    POUR (fonction->params_entrée) {
         m_index_locales[it->numero] = chunk.ajoute_locale(it);
     }
 
@@ -1469,13 +1469,13 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         {
             auto charge = instruction->comme_charge();
 
-            if (est_allocation(charge->chargee)) {
-                auto alloc = charge->chargee->comme_instruction()->comme_alloc();
+            if (est_allocation(charge->chargée)) {
+                auto alloc = charge->chargée->comme_instruction()->comme_alloc();
                 chunk.émets_charge_locale(charge->site, donne_index_locale(alloc), charge->type);
                 break;
             }
 
-            génère_code_pour_atome(charge->chargee, chunk);
+            génère_code_pour_atome(charge->chargée, chunk);
             chunk.émets_charge(charge->site, charge->type);
             break;
         }
@@ -1484,40 +1484,44 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             auto stocke = instruction->comme_stocke_mem();
 
             if (est_stocke_alloc_incrémente(stocke)) {
-                auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
+                auto alloc_destination = static_cast<InstructionAllocation const *>(
+                    stocke->destination);
                 chunk.émets_incrémente_locale(
-                    stocke->site, stocke->valeur->type, donne_index_locale(alloc_destination));
+                    stocke->site, stocke->source->type, donne_index_locale(alloc_destination));
                 break;
             }
 
             if (auto alloc_source = est_stocke_alloc_depuis_charge_alloc(stocke)) {
-                auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
+                auto alloc_destination = static_cast<InstructionAllocation const *>(
+                    stocke->destination);
                 chunk.émets_copie_locale(stocke->site,
-                                         stocke->valeur->type,
+                                         stocke->source->type,
                                          donne_index_locale(alloc_source),
                                          donne_index_locale(alloc_destination));
                 break;
             }
 
-            if (est_allocation(stocke->ou) && est_constante_entière_zéro(stocke->valeur)) {
-                auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
+            if (est_allocation(stocke->destination) &&
+                est_constante_entière_zéro(stocke->source)) {
+                auto alloc_destination = static_cast<InstructionAllocation const *>(
+                    stocke->destination);
                 chunk.émets_init_locale_zéro(
-                    stocke->site, donne_index_locale(alloc_destination), stocke->valeur->type);
+                    stocke->site, donne_index_locale(alloc_destination), stocke->source->type);
                 break;
             }
 
-            génère_code_pour_atome(stocke->valeur, chunk);
+            génère_code_pour_atome(stocke->source, chunk);
 
-            if (est_allocation(stocke->ou)) {
-                auto alloc = stocke->ou->comme_instruction()->comme_alloc();
+            if (est_allocation(stocke->destination)) {
+                auto alloc = stocke->destination->comme_instruction()->comme_alloc();
                 chunk.émets_assignation_locale(
-                    stocke->site, donne_index_locale(alloc), stocke->valeur->type);
+                    stocke->site, donne_index_locale(alloc), stocke->source->type);
                 break;
             }
 
             // l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
-            génère_code_pour_atome(stocke->ou, chunk);
-            chunk.émets_assignation(contexte(), stocke->site, stocke->valeur->type);
+            génère_code_pour_atome(stocke->destination, chunk);
+            chunk.émets_assignation(contexte(), stocke->site, stocke->source->type);
             break;
         }
         case GenreInstruction::APPEL:
@@ -1531,7 +1535,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                 return;
             }
 
-            auto appelee = appel->appele;
+            auto appelee = appel->appelé;
             auto taille_arguments = 0u;
 
             POUR (appel->args) {
@@ -1612,9 +1616,9 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             auto index = instruction->comme_acces_index();
             auto type_pointeur = index->type->comme_type_pointeur();
             génère_code_pour_atome(index->index, chunk);
-            génère_code_pour_atome(index->accede, chunk);
+            génère_code_pour_atome(index->accédé, chunk);
 
-            if (index->accede->genre_atome == Atome::Genre::INSTRUCTION) {
+            if (index->accédé->genre_atome == Atome::Genre::INSTRUCTION) {
                 auto type_accede = index->donne_type_accédé();
 
                 // l'accédé est le pointeur vers le pointeur, donc déréférence-le
@@ -1716,7 +1720,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             auto index_constant = atome->comme_accès_index_constant();
             auto type_pointeur = index_constant->type->comme_type_pointeur();
             chunk.émets_constante(index_constant->index);
-            génère_code_pour_atome(index_constant->accede, chunk);
+            génère_code_pour_atome(index_constant->accédé, chunk);
             chunk.émets_accès_index(nullptr, type_pointeur->type_pointe);
             break;
         }
@@ -1940,7 +1944,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
             auto indexage = atome->comme_accès_index_constant();
-            auto indexée = indexage->accede->comme_globale();
+            auto indexée = indexage->accédé->comme_globale();
 
             if (!indexée->initialisateur) {
                 auto globale = données_exécutions->globales[indexée->index];
