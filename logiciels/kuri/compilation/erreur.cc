@@ -20,6 +20,7 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "monomorpheuse.hh"
+#include "validation_expression_appel.hh"
 #include "validation_semantique.hh"
 
 namespace erreur {
@@ -120,6 +121,162 @@ void lance_erreur_type_operation(const Type *type_gauche,
         .ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
 }
 
+static void imprime_erreur_pour_erreur_fonction(Erreur &e,
+                                                EspaceDeTravail const &espace,
+                                                ErreurAppariement const &dc)
+{
+    auto decl = dc.noeud_decl;
+
+    switch (dc.raison) {
+        case RaisonErreurAppariement::MÉCOMPTAGE_ARGS:
+        {
+            e.ajoute_message("\tLe nombre d'arguments de la fonction est incorrect.\n");
+            e.ajoute_message("\tRequiers ", dc.nombre_arguments.nombre_requis, " arguments\n");
+            e.ajoute_message("\tObtenu ", dc.nombre_arguments.nombre_obtenu, " arguments\n");
+            e.genre_erreur(erreur::Genre::NOMBRE_ARGUMENT);
+            break;
+        }
+        case RaisonErreurAppariement::MÉNOMMAGE_ARG:
+        {
+            e.ajoute_site(dc.site_erreur);
+            e.ajoute_message("\tArgument « ", dc.nom_arg->nom, " » inconnu.\n");
+
+            if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
+                auto decl_fonc = decl->comme_entete_fonction();
+                e.ajoute_message("\tLes arguments de la fonction sont : \n");
+
+                for (auto i = 0; i < decl_fonc->params.taille(); ++i) {
+                    auto param = decl_fonc->parametre_entree(i);
+                    e.ajoute_message("\t\t", param->ident->nom, '\n');
+                }
+
+                e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
+            }
+            else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+                auto decl_struct = decl->comme_type_structure();
+
+                if (decl_struct->est_polymorphe) {
+                    e.ajoute_message("\tLes paramètres de la structure sont : \n");
+
+                    POUR (*decl_struct->bloc_constantes->membres.verrou_lecture()) {
+                        e.ajoute_message("\t\t", it->ident->nom, '\n');
+                    }
+                }
+                else {
+                    e.ajoute_message("\tLes membres de la structure sont : \n");
+
+                    POUR (decl_struct->membres) {
+                        e.ajoute_message("\t\t- ", it.nom->nom, '\n');
+                    }
+                }
+
+                e.genre_erreur(erreur::Genre::MEMBRE_INCONNU);
+            }
+            break;
+        }
+        case RaisonErreurAppariement::RENOMMAGE_ARG:
+        {
+            e.genre_erreur(erreur::Genre::ARGUMENT_REDEFINI);
+            e.ajoute_site(dc.site_erreur);
+            e.ajoute_message("L'argument a déjà été nommé");
+            break;
+        }
+        case RaisonErreurAppariement::MANQUE_NOM_APRÈS_VARIADIC:
+        {
+            e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
+            e.ajoute_site(dc.site_erreur);
+            e.ajoute_message("Nom d'argument manquant, les arguments doivent être nommés "
+                             "s'ils sont précédés d'arguments déjà nommés");
+            break;
+        }
+        case RaisonErreurAppariement::NOMMAGE_ARG_POINTEUR_FONCTION:
+        {
+            e.ajoute_message("\tLes arguments d'un pointeur fonction ne peuvent être nommés\n");
+            e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
+            break;
+        }
+        case RaisonErreurAppariement::TYPE_N_EST_PAS_FONCTION:
+        {
+            e.ajoute_message("\tAppel d'une variable n'étant pas un pointeur de fonction\n");
+            e.genre_erreur(erreur::Genre::FONCTION_INCONNUE);
+            break;
+        }
+        case RaisonErreurAppariement::TROP_D_EXPRESSION_POUR_UNION:
+        {
+            e.ajoute_message("\tOn ne peut initialiser qu'un seul membre d'une union à la fois\n");
+            e.genre_erreur(erreur::Genre::NORMAL);
+            break;
+        }
+        case RaisonErreurAppariement::EXPRESSION_MANQUANTE_POUR_UNION:
+        {
+            e.ajoute_message("\tOn doit initialiser au moins un membre de l'union\n");
+            e.genre_erreur(erreur::Genre::NORMAL);
+            break;
+        }
+        case RaisonErreurAppariement::EXPANSION_VARIADIQUE_FONCTION_EXTERNE:
+        {
+            e.ajoute_message("\tImpossible d'utiliser une expansion variadique dans une "
+                             "fonction variadique externe\n");
+            e.genre_erreur(erreur::Genre::NORMAL);
+            break;
+        }
+        case RaisonErreurAppariement::MULTIPLE_EXPANSIONS_VARIADIQUES:
+        {
+            e.ajoute_message("\tPlusieurs expansions variadiques trouvées\n");
+            e.genre_erreur(erreur::Genre::NORMAL);
+            break;
+        }
+        case RaisonErreurAppariement::EXPANSION_VARIADIQUE_APRÈS_ARGUMENTS_VARIADIQUES:
+        {
+            e.ajoute_message("\tTentative d'utiliser une expansion d'arguments variadiques "
+                             "alors que d'autres arguments ont déjà été précisés\n");
+            e.genre_erreur(erreur::Genre::NORMAL);
+            break;
+        }
+        case RaisonErreurAppariement::ARGUMENTS_VARIADIQEUS_APRÈS_EXPANSION_VARIAQUES:
+        {
+            e.ajoute_message("\tTentative d'ajouter des arguments variadiques supplémentaire "
+                             "alors qu'une expansion est également utilisée\n");
+            e.genre_erreur(erreur::Genre::NORMAL);
+            break;
+        }
+        case RaisonErreurAppariement::ARGUMENTS_MANQUANTS:
+        {
+            if (dc.arguments_manquants_.taille() == 1) {
+                e.ajoute_message("\tUn argument est manquant :\n");
+            }
+            else {
+                e.ajoute_message("\tPlusieurs arguments sont manquants :\n");
+            }
+
+            for (auto ident : dc.arguments_manquants_) {
+                e.ajoute_message("\t\t", ident->nom, '\n');
+            }
+            break;
+        }
+        case RaisonErreurAppariement::MÉTYPAGE_ARG:
+        {
+            e.ajoute_message("\tLe type de l'argument '",
+                             chaine_expression(espace, dc.site_erreur),
+                             "' ne correspond pas à celui requis !\n");
+            e.ajoute_message("\tRequiers : ", chaine_type(dc.type_arguments.type_attendu), '\n');
+            e.ajoute_message("\tObtenu   : ", chaine_type(dc.type_arguments.type_obtenu), '\n');
+            e.genre_erreur(erreur::Genre::TYPE_ARGUMENT);
+            break;
+        }
+        case RaisonErreurAppariement::MONOMORPHISATION:
+        {
+            e.ajoute_message(dc.erreur_monomorphisation.message());
+            break;
+        }
+        case RaisonErreurAppariement::AUCUNE_RAISON:
+        {
+            e.ajoute_message("Aucune raison donnée.\n");
+            break;
+        }
+    }
+}
+
 void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                                     NoeudExpression const *b,
                                     kuri::tablet<ErreurAppariement, 10> const &erreurs)
@@ -130,149 +287,34 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
     if (erreurs.est_vide()) {
         e.ajoute_message("\nFonction inconnue : aucune candidate trouvée\n");
         e.ajoute_message("Vérifiez que la fonction existe bel et bien dans un fichier importé\n");
+        return;
     }
-    else {
-        e.ajoute_message("Aucune candidate trouvée pour l'expression « ",
-                         chaine_expression(espace, b->comme_appel()->expression),
-                         " » !\n");
+    e.ajoute_message("Aucune candidate trouvée pour l'expression « ",
+                     chaine_expression(espace, b->comme_appel()->expression),
+                     " » !\n");
 
-        for (auto &dc : erreurs) {
-            auto decl = dc.noeud_decl;
-            e.ajoute_message("\nCandidate :");
+    for (auto &dc : erreurs) {
+        auto decl = dc.noeud_decl;
+        e.ajoute_message("\nCandidate :");
 
-            if (decl != nullptr) {
-                auto const &lexeme_df = decl->lexeme;
-                auto fichier_df = espace.compilatrice().fichier(lexeme_df->fichier);
-                auto pos_df = position_lexeme(*lexeme_df);
+        if (decl != nullptr) {
+            auto const &lexeme_df = decl->lexeme;
+            auto fichier_df = espace.compilatrice().fichier(lexeme_df->fichier);
+            auto pos_df = position_lexeme(*lexeme_df);
 
-                e.ajoute_message(' ',
-                                 decl->ident->nom,
-                                 " (trouvée à ",
-                                 fichier_df->chemin(),
-                                 ':',
-                                 pos_df.numero_ligne,
-                                 ")\n");
-            }
-            else {
-                e.ajoute_message('\n');
-            }
-
-            if (dc.raison == MECOMPTAGE_ARGS) {
-                e.ajoute_message("\tLe nombre d'arguments de la fonction est incorrect.\n");
-                e.ajoute_message("\tRequiers ", dc.nombre_arguments.nombre_requis, " arguments\n");
-                e.ajoute_message("\tObtenu ", dc.nombre_arguments.nombre_obtenu, " arguments\n");
-                e.genre_erreur(erreur::Genre::NOMBRE_ARGUMENT);
-            }
-            else if (dc.raison == MENOMMAGE_ARG) {
-                e.ajoute_site(dc.site_erreur);
-                e.ajoute_message("\tArgument « ", dc.nom_arg, " » inconnu.\n");
-
-                if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
-                    auto decl_fonc = decl->comme_entete_fonction();
-                    e.ajoute_message("\tLes arguments de la fonction sont : \n");
-
-                    for (auto i = 0; i < decl_fonc->params.taille(); ++i) {
-                        auto param = decl_fonc->parametre_entree(i);
-                        e.ajoute_message("\t\t", param->ident->nom, '\n');
-                    }
-
-                    e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
-                }
-                else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-                    auto decl_struct = decl->comme_type_structure();
-
-                    if (decl_struct->est_polymorphe) {
-                        e.ajoute_message("\tLes paramètres de la structure sont : \n");
-
-                        POUR (*decl_struct->bloc_constantes->membres.verrou_lecture()) {
-                            e.ajoute_message("\t\t", it->ident->nom, '\n');
-                        }
-                    }
-                    else {
-                        e.ajoute_message("\tLes membres de la structure sont : \n");
-
-                        POUR (decl_struct->membres) {
-                            e.ajoute_message("\t\t- ", it.nom->nom, '\n');
-                        }
-                    }
-
-                    e.genre_erreur(erreur::Genre::MEMBRE_INCONNU);
-                }
-            }
-            else if (dc.raison == RENOMMAGE_ARG) {
-                e.genre_erreur(erreur::Genre::ARGUMENT_REDEFINI);
-                e.ajoute_site(dc.site_erreur);
-                e.ajoute_message("L'argument a déjà été nommé");
-            }
-            else if (dc.raison == MANQUE_NOM_APRES_VARIADIC) {
-                e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
-                e.ajoute_site(dc.site_erreur);
-                e.ajoute_message("Nom d'argument manquant, les arguments doivent être nommés "
-                                 "s'ils sont précédés d'arguments déjà nommés");
-            }
-            else if (dc.raison == NOMMAGE_ARG_POINTEUR_FONCTION) {
-                e.ajoute_message(
-                    "\tLes arguments d'un pointeur fonction ne peuvent être nommés\n");
-                e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
-            }
-            else if (dc.raison == TYPE_N_EST_PAS_FONCTION) {
-                e.ajoute_message("\tAppel d'une variable n'étant pas un pointeur de fonction\n");
-                e.genre_erreur(erreur::Genre::FONCTION_INCONNUE);
-            }
-            else if (dc.raison == TROP_D_EXPRESSION_POUR_UNION) {
-                e.ajoute_message(
-                    "\tOn ne peut initialiser qu'un seul membre d'une union à la fois\n");
-                e.genre_erreur(erreur::Genre::NORMAL);
-            }
-            else if (dc.raison == EXPRESSION_MANQUANTE_POUR_UNION) {
-                e.ajoute_message("\tOn doit initialiser au moins un membre de l'union\n");
-                e.genre_erreur(erreur::Genre::NORMAL);
-            }
-            else if (dc.raison == EXPANSION_VARIADIQUE_FONCTION_EXTERNE) {
-                e.ajoute_message("\tImpossible d'utiliser une expansion variadique dans une "
-                                 "fonction variadique externe\n");
-                e.genre_erreur(erreur::Genre::NORMAL);
-            }
-            else if (dc.raison == MULTIPLE_EXPANSIONS_VARIADIQUES) {
-                e.ajoute_message("\tPlusieurs expansions variadiques trouvées\n");
-                e.genre_erreur(erreur::Genre::NORMAL);
-            }
-            else if (dc.raison == EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES) {
-                e.ajoute_message("\tTentative d'utiliser une expansion d'arguments variadiques "
-                                 "alors que d'autres arguments ont déjà été précisés\n");
-                e.genre_erreur(erreur::Genre::NORMAL);
-            }
-            else if (dc.raison == ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES) {
-                e.ajoute_message("\tTentative d'ajouter des arguments variadiques supplémentaire "
-                                 "alors qu'une expansion est également utilisée\n");
-                e.genre_erreur(erreur::Genre::NORMAL);
-            }
-            else if (dc.raison == ARGUMENTS_MANQUANTS) {
-                if (dc.arguments_manquants_.taille() == 1) {
-                    e.ajoute_message("\tUn argument est manquant :\n");
-                }
-                else {
-                    e.ajoute_message("\tPlusieurs arguments sont manquants :\n");
-                }
-
-                for (auto ident : dc.arguments_manquants_) {
-                    e.ajoute_message("\t\t", ident->nom, '\n');
-                }
-            }
-            else if (dc.raison == METYPAGE_ARG) {
-                e.ajoute_message("\tLe type de l'argument '",
-                                 chaine_expression(espace, dc.site_erreur),
-                                 "' ne correspond pas à celui requis !\n");
-                e.ajoute_message(
-                    "\tRequiers : ", chaine_type(dc.type_arguments.type_attendu), '\n');
-                e.ajoute_message(
-                    "\tObtenu   : ", chaine_type(dc.type_arguments.type_obtenu), '\n');
-                e.genre_erreur(erreur::Genre::TYPE_ARGUMENT);
-            }
-            else if (dc.raison == MONOMORPHISATION) {
-                e.ajoute_message(dc.erreur_monomorphisation.message());
-            }
+            e.ajoute_message(' ',
+                             decl->ident->nom,
+                             " (trouvée à ",
+                             fichier_df->chemin(),
+                             ':',
+                             pos_df.numero_ligne,
+                             ")\n");
         }
+        else {
+            e.ajoute_message('\n');
+        }
+
+        imprime_erreur_pour_erreur_fonction(e, espace, dc);
     }
 }
 

@@ -14,6 +14,7 @@
 #include "gestionnaire_code.hh"
 #include "programme.hh"
 #include "syntaxeuse.hh"
+#include "validation_semantique.hh"
 
 #include "representation_intermediaire/analyse.hh"
 #include "representation_intermediaire/machine_virtuelle.hh"

@@ -24,6 +24,9 @@
 #include "ipa.hh"
 #include "portee.hh"
 #include "programme.hh"
+#include "validation_expression_appel.hh"
+#include "validation_semantique.hh"
+
 #include "utilitaires/log.hh"
 
 /* ************************************************************************** */

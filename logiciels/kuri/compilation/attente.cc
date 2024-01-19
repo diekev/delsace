@@ -16,6 +16,7 @@
 #include "metaprogramme.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
+#include "validation_semantique.hh"
 
 struct UniteCompilation;
 
