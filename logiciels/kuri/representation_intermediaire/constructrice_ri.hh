@@ -198,15 +198,15 @@ struct ConstructriceRI {
                                Atome *valeur_gauche,
                                Atome *valeur_droite);
 
-    InstructionAccedeIndex *crée_accès_index(NoeudExpression const *site_,
+    InstructionAccèdeIndex *crée_accès_index(NoeudExpression const *site_,
                                              Atome *accédé,
                                              Atome *index);
-    InstructionAccedeMembre *crée_référence_membre(NoeudExpression const *site_,
+    InstructionAccèdeMembre *crée_référence_membre(NoeudExpression const *site_,
                                                    Type const *type,
                                                    Atome *accédé,
                                                    int index,
                                                    bool crée_seulement = false);
-    InstructionAccedeMembre *crée_référence_membre(NoeudExpression const *site_,
+    InstructionAccèdeMembre *crée_référence_membre(NoeudExpression const *site_,
                                                    Atome *accédé,
                                                    int index,
                                                    bool crée_seulement = false);
@@ -220,7 +220,7 @@ struct ConstructriceRI {
                           TypeTranstypage op);
 
     TranstypeConstant *crée_transtype_constant(Type const *type, AtomeConstante *valeur);
-    AccedeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, int64_t index);
+    AccèdeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, int64_t index);
 
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
