@@ -116,7 +116,7 @@ struct AtomeConstante : public Atome {
 };
 
 struct AtomeConstanteEntière : public AtomeConstante {
-    uint64_t valeur = 0;
+    const uint64_t valeur = 0;
 
     AtomeConstanteEntière(Type const *type_, uint64_t v) : valeur(v)
     {
@@ -126,7 +126,7 @@ struct AtomeConstanteEntière : public AtomeConstante {
 };
 
 struct AtomeConstanteRéelle : public AtomeConstante {
-    double valeur = 0;
+    const double valeur = 0;
 
     AtomeConstanteRéelle(Type const *type_, double v) : valeur(v)
     {
@@ -136,7 +136,7 @@ struct AtomeConstanteRéelle : public AtomeConstante {
 };
 
 struct AtomeConstanteBooléenne : public AtomeConstante {
-    bool valeur = false;
+    const bool valeur = false;
 
     AtomeConstanteBooléenne(Type const *type_, bool v) : valeur(v)
     {
@@ -154,7 +154,7 @@ struct AtomeConstanteNulle : public AtomeConstante {
 };
 
 struct AtomeConstanteCaractère : public AtomeConstante {
-    uint64_t valeur = 0;
+    const uint64_t valeur = 0;
 
     AtomeConstanteCaractère(Type const *type_, uint64_t v) : valeur(v)
     {
