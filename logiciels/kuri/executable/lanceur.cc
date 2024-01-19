@@ -190,6 +190,9 @@ static ActionParsageArgument gère_argument_préserve_symbole(ParseuseArguments 
 static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
                                                           ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments &parseuse,
+                                                      ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--",
@@ -235,6 +238,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "",
      "Indique aux coulisses de préserver les symboles non-globaux",
      gère_argument_préserve_symbole},
+    {"--sans_stats",
+     "",
+     "",
+     "N'imprime pas les statistiques à la fin de la compilation",
+     gère_argument_sans_stats},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -381,6 +389,13 @@ static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &pa
 
     dbg() << "Type de format de profile \"" << arg.value() << "\" inconnu.";
     return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+}
+
+static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments & /*parseuse*/,
+                                                      ArgumentsCompilatrice &résultat)
+{
+    résultat.sans_stats = true;
+    return ActionParsageArgument::CONTINUE;
 }
 
 static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **argv)
@@ -548,10 +563,12 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     imprime_fichiers_utilises(compilatrice);
 
-    auto stats = Statistiques();
-    rassemble_statistiques(compilatrice, stats, tacheronnes);
+    if (compilatrice.arguments.sans_stats == false) {
+        auto stats = Statistiques();
+        rassemble_statistiques(compilatrice, stats, tacheronnes);
 
-    imprime_stats(compilatrice, stats, debut_compilation);
+        imprime_stats(compilatrice, stats, debut_compilation);
+    }
 
     info() << "Nettoyage...";
 
