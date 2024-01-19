@@ -87,7 +87,10 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
     auto ops = opérateurs.verrou_ecriture();
     enregistre_opérateurs_basiques(typeuse, *ops);
 
-    espace_de_travail_defaut = demarre_un_espace_de_travail({}, "Espace 1");
+    auto options_espace_défaut = OptionsDeCompilation{};
+    options_espace_défaut.utilise_trace_appel = !arguments.sans_traces_d_appel;
+
+    espace_de_travail_defaut = demarre_un_espace_de_travail(options_espace_défaut, "Espace 1");
 
     /* Charge le module Kuri. */
     module_kuri = importe_module(espace_de_travail_defaut, "Kuri", nullptr);

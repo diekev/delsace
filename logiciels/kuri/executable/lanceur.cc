@@ -193,6 +193,9 @@ static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &pa
 static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments &parseuse,
                                                       ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArguments &parseuse,
+                                                               ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--",
@@ -243,6 +246,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "",
      "N'imprime pas les statistiques à la fin de la compilation",
      gère_argument_sans_stats},
+    {"--sans_traces_d_appel",
+     "",
+     "",
+     "Ne génère pas de traces d'appel",
+     gère_argument_sans_traces_d_appel},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -395,6 +403,13 @@ static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments & /*par
                                                       ArgumentsCompilatrice &résultat)
 {
     résultat.sans_stats = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArguments & /*parseuse*/,
+                                                               ArgumentsCompilatrice &résultat)
+{
+    résultat.sans_traces_d_appel = true;
     return ActionParsageArgument::CONTINUE;
 }
 
