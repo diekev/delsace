@@ -247,6 +247,8 @@ enum GenreValeur : char {
 
 DEFINIS_OPERATEURS_DRAPEAU(GenreValeur)
 
+std::ostream &operator<<(std::ostream &os, GenreValeur const genre_valeur);
+
 inline bool est_valeur_gauche(GenreValeur type_valeur)
 {
     return (type_valeur & GenreValeur::GAUCHE) != GenreValeur::INVALIDE;

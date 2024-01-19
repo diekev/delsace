@@ -160,7 +160,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
                 genere_code_pour_atome(it, os, false);
             }
 
-            os << "  call " << genere_code_pour_atome(appel->appele, os, false) << '\n';
+            os << "  call " << genere_code_pour_atome(appel->appelé, os, false) << '\n';
             break;
         }
         case GenreInstruction::BRANCHE:
@@ -442,7 +442,7 @@ void GeneratriceCodeASM::genere_code(kuri::tableau_statique<AtomeGlobale *> glob
         m_fonction_courante = it;
         taille_allouee = 0;
 
-        auto numero_inst = it->params_entrees.taille();
+        auto numero_inst = it->params_entrée.taille();
 
         for (auto inst : it->instructions) {
             inst->numero = numero_inst++;

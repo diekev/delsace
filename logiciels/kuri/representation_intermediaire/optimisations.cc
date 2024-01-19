@@ -134,7 +134,7 @@ struct CopieuseInstruction {
             case GenreInstruction::APPEL:
             {
                 auto appel = inst->comme_appel();
-                auto appelé = copie_atome(appel->appele);
+                auto appelé = copie_atome(appel->appelé);
 
                 kuri::tableau<Atome *, int> args;
                 args.réserve(appel->args.taille());
@@ -149,7 +149,7 @@ struct CopieuseInstruction {
             case GenreInstruction::CHARGE_MEMOIRE:
             {
                 auto charge = inst->comme_charge();
-                auto source = copie_atome(charge->chargee);
+                auto source = copie_atome(charge->chargée);
                 auto n_charge = constructrice.crée_charge_mem(inst->site, source);
                 nouvelle_inst = n_charge;
                 break;
@@ -157,8 +157,8 @@ struct CopieuseInstruction {
             case GenreInstruction::STOCKE_MEMOIRE:
             {
                 auto stocke = inst->comme_stocke_mem();
-                auto destination = copie_atome(stocke->ou);
-                auto source = copie_atome(stocke->valeur);
+                auto destination = copie_atome(stocke->destination);
+                auto source = copie_atome(stocke->source);
                 auto n_stocke = constructrice.crée_stocke_mem(inst->site, destination, source);
                 nouvelle_inst = n_stocke;
                 break;
@@ -187,7 +187,7 @@ struct CopieuseInstruction {
             case GenreInstruction::ACCEDE_INDEX:
             {
                 auto acces = inst->comme_acces_index();
-                auto accedé = copie_atome(acces->accede);
+                auto accedé = copie_atome(acces->accédé);
                 auto index = copie_atome(acces->index);
                 auto n_acces = constructrice.crée_accès_index(inst->site, accedé, index);
                 nouvelle_inst = n_acces;
@@ -196,7 +196,7 @@ struct CopieuseInstruction {
             case GenreInstruction::ACCEDE_MEMBRE:
             {
                 auto acces = inst->comme_acces_membre();
-                auto accedé = copie_atome(acces->accede);
+                auto accedé = copie_atome(acces->accédé);
                 auto index = acces->index;
                 auto n_acces = constructrice.crée_référence_membre(
                     inst->site, inst->type, accedé, index);
@@ -280,8 +280,8 @@ void performe_enlignage(ConstructriceRI &constructrice,
 
     auto copieuse = CopieuseInstruction(constructrice);
 
-    for (auto i = 0; i < fonction_appelee->params_entrees.taille(); ++i) {
-        auto parametre = fonction_appelee->params_entrees[i];
+    for (auto i = 0; i < fonction_appelee->params_entrée.taille(); ++i) {
+        auto parametre = fonction_appelee->params_entrée[i];
         auto atome = arguments[i];
 
         // À FAIRE : il faudrait que tous les arguments des fonctions soient des instructions (->
@@ -290,7 +290,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
             auto inst = atome->comme_instruction();
 
             if (inst->genre == GenreInstruction::CHARGE_MEMOIRE) {
-                atome = inst->comme_charge()->chargee;
+                atome = inst->comme_charge()->chargée;
             }
             // À FAIRE : détection des pointeurs locaux plus robuste
             // détecte les cas où nous avons une référence à une variable
@@ -302,7 +302,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
                         if (it->est_charge()) {
                             auto charge = it->comme_charge();
 
-                            if (charge->chargee == parametre) {
+                            if (charge->chargée == parametre) {
                                 copieuse.ajoute_substitution(charge, atome);
                             }
                         }
@@ -315,7 +315,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
                 if (it->est_charge()) {
                     auto charge = it->comme_charge();
 
-                    if (charge->chargee == parametre) {
+                    if (charge->chargée == parametre) {
                         copieuse.ajoute_substitution(charge, atome);
                     }
                 }
@@ -413,9 +413,9 @@ struct Substitutrice {
                 auto charge = instruction->comme_charge();
 
                 POUR (substitutions) {
-                    if (it.original == charge->chargee &&
+                    if (it.original == charge->chargée &&
                         (it.substitut_dans & SubstitutDans::CHARGE) != SubstitutDans::ZERO) {
-                        charge->chargee = it.substitut;
+                        charge->chargée = it.substitut;
                         break;
                     }
 
@@ -431,15 +431,15 @@ struct Substitutrice {
                 auto stocke = instruction->comme_stocke_mem();
 
                 POUR (substitutions) {
-                    if (it.original == stocke->ou &&
+                    if (it.original == stocke->destination &&
                         (it.substitut_dans & SubstitutDans::ADRESSE_STOCKEE) !=
                             SubstitutDans::ZERO) {
-                        stocke->ou = it.substitut;
+                        stocke->destination = it.substitut;
                     }
-                    else if (it.original == stocke->valeur &&
+                    else if (it.original == stocke->source &&
                              (it.substitut_dans & SubstitutDans::VALEUR_STOCKEE) !=
                                  SubstitutDans::ZERO) {
-                        stocke->valeur = it.substitut;
+                        stocke->source = it.substitut;
                     }
                 }
 
@@ -476,13 +476,13 @@ struct Substitutrice {
             case GenreInstruction::ACCEDE_MEMBRE:
             {
                 auto acces = instruction->comme_acces_membre();
-                acces->accede = valeur_substituee(acces->accede);
+                acces->accédé = valeur_substituee(acces->accédé);
                 return acces;
             }
             case GenreInstruction::APPEL:
             {
                 auto appel = instruction->comme_appel();
-                appel->appele = valeur_substituee(appel->appele);
+                appel->appelé = valeur_substituee(appel->appelé);
 
                 POUR (appel->args) {
                     it = valeur_substituee(it);
@@ -561,7 +561,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         }
 
         auto appel = it->comme_appel();
-        auto appele = appel->appele;
+        auto appele = appel->appelé;
 
         if (appele->genre_atome != Atome::Genre::FONCTION) {
             nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
@@ -658,7 +658,7 @@ static bool sont_equivalents(Atome *a, Atome *b)
             auto ma = inst_a->comme_acces_membre();
             auto mb = inst_b->comme_acces_membre();
 
-            if (!sont_equivalents(ma->accede, mb->accede)) {
+            if (!sont_equivalents(ma->accédé, mb->accédé)) {
                 return false;
             }
 
@@ -711,11 +711,11 @@ static void determine_assignations_inutiles(Bloc *bloc)
     POUR (bloc->instructions) {
         if (it->est_stocke_mem()) {
             auto stocke = it->comme_stocke_mem();
-            indique_valeur_stockee(stocke->ou, stocke);
+            indique_valeur_stockee(stocke->destination, stocke);
         }
         else if (it->est_charge()) {
             auto charge = it->comme_charge();
-            indique_valeur_chargee(charge->chargee);
+            indique_valeur_chargee(charge->chargée);
         }
     }
 }
