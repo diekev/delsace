@@ -196,6 +196,9 @@ static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments &parseu
 static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArguments &parseuse,
                                                                ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_coulisse(ParseuseArguments &parseuse,
+                                                    ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--",
@@ -251,6 +254,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "",
      "Ne génère pas de traces d'appel",
      gère_argument_sans_traces_d_appel},
+    {"--coulisse",
+     "",
+     "--coulisse {c|asm|llvm}",
+     "Détermine quelle coulisse utilisée pour l'espace par défaut de compilation",
+     gère_argument_coulisse},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -411,6 +419,34 @@ static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArgument
 {
     résultat.sans_traces_d_appel = true;
     return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_coulisse(ParseuseArguments &parseuse,
+                                                    ArgumentsCompilatrice &résultat)
+{
+    auto arg = parseuse.donne_argument_suivant();
+    if (!arg.has_value()) {
+        dbg() << "Argument manquant après --coulisse.";
+        return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+    }
+
+    if (arg.value() == "c") {
+        résultat.coulisse = TypeCoulisse::C;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    if (arg.value() == "asm") {
+        résultat.coulisse = TypeCoulisse::ASM;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    if (arg.value() == "llvm") {
+        résultat.coulisse = TypeCoulisse::LLVM;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    dbg() << "Argument « " << arg.value() << " » inconnu après --coulisse.";
+    return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
 }
 
 static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **argv)

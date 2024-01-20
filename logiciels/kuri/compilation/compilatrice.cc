@@ -89,6 +89,7 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 
     auto options_espace_défaut = OptionsDeCompilation{};
     options_espace_défaut.utilise_trace_appel = !arguments.sans_traces_d_appel;
+    options_espace_défaut.coulisse = arguments.coulisse;
 
     espace_de_travail_defaut = demarre_un_espace_de_travail(options_espace_défaut, "Espace 1");
 
