@@ -600,15 +600,10 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         case GenreNoeud::VARIADIQUE:
         {
             auto type_var = type->comme_type_variadique();
-
-            // Utilise le type de tableau dynamique afin que le code IR LLVM
-            // soit correcte (pointe vers le même type)
-            if (type_var->type_pointe != nullptr) {
-                auto type_tabl = m_espace.compilatrice().typeuse.type_tableau_dynamique(
-                    type_var->type_pointe);
-                type_llvm = convertis_type_llvm(type_tabl);
+            /* Utilisons le type tranche afin que le code IR LLVM utilise le type final. */
+            if (type_var->type_tranche != nullptr) {
+                type_llvm = convertis_type_llvm(type_var->type_tranche);
             }
-
             break;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
@@ -617,7 +612,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         }
         case GenreNoeud::TYPE_TRANCHE:
         {
-            return convertis_type_composé(type->comme_type_tableau_dynamique(), "tranche");
+            return convertis_type_composé(type->comme_type_tranche(), "tranche");
         }
         case GenreNoeud::TABLEAU_FIXE:
         {
