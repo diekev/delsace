@@ -16,6 +16,7 @@
 #include "messagere.hh"
 #include "metaprogramme.hh"
 #include "operateurs.hh"
+#include "options.hh"
 #include "structures.hh"
 #include "tacheronne.hh"
 #include "typage.hh"
@@ -68,7 +69,11 @@ struct ArgumentsCompilatrice {
     bool debogue_execution = false;
     bool émets_stats_ops_exécution = false;
     bool préserve_symboles = false;
+    bool sans_stats = false;
+    bool sans_traces_d_appel = false;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
+
+    TypeCoulisse coulisse = TypeCoulisse::C;
 
     /* Fichier où inscrire les fichiers utilisés si --emets_fichiers_utilises fut renseigné. */
     kuri::chemin_systeme chemin_fichier_utilises{};
