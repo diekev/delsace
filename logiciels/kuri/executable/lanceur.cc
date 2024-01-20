@@ -190,6 +190,15 @@ static ActionParsageArgument gère_argument_préserve_symbole(ParseuseArguments 
 static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
                                                           ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments &parseuse,
+                                                      ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArguments &parseuse,
+                                                               ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_coulisse(ParseuseArguments &parseuse,
+                                                    ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--",
@@ -235,6 +244,21 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "",
      "Indique aux coulisses de préserver les symboles non-globaux",
      gère_argument_préserve_symbole},
+    {"--sans_stats",
+     "",
+     "",
+     "N'imprime pas les statistiques à la fin de la compilation",
+     gère_argument_sans_stats},
+    {"--sans_traces_d_appel",
+     "",
+     "",
+     "Ne génère pas de traces d'appel",
+     gère_argument_sans_traces_d_appel},
+    {"--coulisse",
+     "",
+     "--coulisse {c|asm|llvm}",
+     "Détermine quelle coulisse utilisée pour l'espace par défaut de compilation",
+     gère_argument_coulisse},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -380,6 +404,48 @@ static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &pa
     }
 
     dbg() << "Type de format de profile \"" << arg.value() << "\" inconnu.";
+    return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+}
+
+static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments & /*parseuse*/,
+                                                      ArgumentsCompilatrice &résultat)
+{
+    résultat.sans_stats = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArguments & /*parseuse*/,
+                                                               ArgumentsCompilatrice &résultat)
+{
+    résultat.sans_traces_d_appel = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_coulisse(ParseuseArguments &parseuse,
+                                                    ArgumentsCompilatrice &résultat)
+{
+    auto arg = parseuse.donne_argument_suivant();
+    if (!arg.has_value()) {
+        dbg() << "Argument manquant après --coulisse.";
+        return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+    }
+
+    if (arg.value() == "c") {
+        résultat.coulisse = TypeCoulisse::C;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    if (arg.value() == "asm") {
+        résultat.coulisse = TypeCoulisse::ASM;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    if (arg.value() == "llvm") {
+        résultat.coulisse = TypeCoulisse::LLVM;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    dbg() << "Argument « " << arg.value() << " » inconnu après --coulisse.";
     return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
 }
 
@@ -548,10 +614,12 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     imprime_fichiers_utilises(compilatrice);
 
-    auto stats = Statistiques();
-    rassemble_statistiques(compilatrice, stats, tacheronnes);
+    if (compilatrice.arguments.sans_stats == false) {
+        auto stats = Statistiques();
+        rassemble_statistiques(compilatrice, stats, tacheronnes);
 
-    imprime_stats(compilatrice, stats, debut_compilation);
+        imprime_stats(compilatrice, stats, debut_compilation);
+    }
 
     info() << "Nettoyage...";
 
