@@ -274,6 +274,8 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
 
 kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op);
 
+bool est_opérateur_comparaison(OpérateurBinaire::Genre const genre);
+
 bool peut_permuter_opérandes(OpérateurBinaire::Genre const genre);
 
 OpérateurBinaire::Genre donne_opérateur_pour_permutation_opérandes(
