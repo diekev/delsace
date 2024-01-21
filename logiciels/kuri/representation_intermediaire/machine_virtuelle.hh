@@ -69,22 +69,22 @@ void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
 /** \name Profilage.
  * \{ */
 
-struct EchantillonProfilage {
+struct ÉchantillonProfilage {
     FrameAppel frames[TAILLE_FRAMES_APPEL];
     int profondeur_frame_appel = 0;
     uint64_t poids = 0;
 };
 
-struct PaireEnchantillonFonction {
+struct PaireÉchantillonFonction {
     AtomeFonction *fonction = nullptr;
-    int nombre_echantillons = 0;
+    int nombre_échantillons = 0;
 };
 
 enum class FormatRapportProfilage : int;
 
 struct Profileuse {
   private:
-    kuri::tableau<EchantillonProfilage> échantillons{};
+    kuri::tableau<ÉchantillonProfilage> échantillons{};
     uint64_t ticks_de_bases = 0;
 
   public:
@@ -92,7 +92,7 @@ struct Profileuse {
 
     void prépare_pour_profilage();
 
-    void ajoute_echantillon(MetaProgramme *métaprogramme, int poids);
+    void ajoute_échantillon(MetaProgramme *métaprogramme, int poids);
 
     void crée_rapport(MetaProgramme *métaprogramme, FormatRapportProfilage format);
 
