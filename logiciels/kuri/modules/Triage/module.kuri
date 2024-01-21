@@ -1,5 +1,4 @@
-importe Algorithmes // pour échange
-importe GlibC
+importe Algorithmes
 
 tri_par_sélection :: fonc (éléments: [..]$T, comparaison: fonc(T, T)(bool)) -> rien
 {
@@ -18,12 +17,54 @@ tri_par_sélection :: fonc (éléments: [..]$T, comparaison: fonc(T, T)(bool)) -
 
 tri_rapide :: fonc (éléments: [..]$T, $Comparaison: fonc(T, T)(z32))
 {
-    rappel_interne :: fonc (a: *rien, b: *rien) -> (o: z32)
-    {
-        a_T := a comme *T
-        b_T := b comme *T
-        retourne Comparaison(mémoire(a_T), mémoire(b_T))
+    premier := éléments.pointeur
+    dernier := premier + éléments.taille
+
+    tri_rapide(premier, dernier, Comparaison)
+}
+
+tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T)(z32))
+{
+    si distance(premier, dernier) <= 1 {
+        /* Retourne si la tranche est vide ou invalide. */
+        retourne
     }
 
-    qsort(éléments.pointeur, éléments.taille comme n64, taille_de(T) comme n64, rappel_interne)
+    /* Détermine le pivot. */
+    pivot := partition_tri_rapide(premier, dernier, Comparaison)
+
+    /* Appel récursif. Les éléments dont la valeur retournée pa \a Comparaison
+     * est plus petite que celle du pivot sont placés à gauche, les autres à
+     * droite. */   
+    tri_rapide(premier, pivot, Comparaison)
+    tri_rapide(pivot + 1, dernier, Comparaison)
+}
+
+partition_tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T)(z32)) -> *T
+{
+    /* Le pivot est l'élément médian. */
+    position_pivot := premier + distance(premier, dernier) / 2
+    pivot := mémoire(position_pivot)
+
+    i := premier
+    j := dernier - 1
+
+    boucle {
+        tantque i < dernier && Comparaison(mémoire(i), pivot) < 0 {
+            i += 1
+        }
+
+        tantque j > premier && Comparaison(mémoire(j), pivot) >= 0 {
+            j -= 1
+        }
+
+        si i >= j {
+            arrête
+        }
+
+        permute(i, j)
+    }
+
+    permute(i, position_pivot)
+    retourne i
 }
