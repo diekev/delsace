@@ -5,6 +5,7 @@ importe Bits
 importe Compilatrice
 importe Fondation
 importe SysFichier
+importe Triage
 importe Unicode
 
 /* ------------------------------------------------------------------------- */
@@ -387,9 +388,12 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
 
     ipa := génératrice.ipa
 
-    génère_code_entête_table(génératrice, CheminFichier(chaine_chemin_entête_table))
-    génère_code_source_table(génératrice, CheminFichier(chaine_chemin_source_table))
-    génère_code_c(ipa, système_type, CheminFichier(chaine_chemin_entête_c))
+    table_ipa := construit_table_ipa(génératrice)
+    diffère détruit_données_table_ipa(*table_ipa)
+
+    génère_code_entête_table(génératrice, *table_ipa, CheminFichier(chaine_chemin_entête_table))
+    génère_code_source_table(génératrice, *table_ipa, CheminFichier(chaine_chemin_source_table))
+    génère_code_c(système_type, *table_ipa, CheminFichier(chaine_chemin_entête_c))
     génère_code_cpp(génératrice, CheminFichier(chaine_chemin_entête_cpp))
     génère_code_source_cpp(génératrice, CheminFichier(chaine_chemin_source_cpp))
     génère_code_support_kuri(ipa, système_type)
@@ -409,7 +413,7 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
 
 /* ------------------------------------------------------------------------- */
 
-génère_code_c :: fonc (ipa: &IPA, système_type: *SystèmeTypeC, chemin: CheminFichier)
+génère_code_c :: fonc (système_type: *SystèmeTypeC, table_ipa: *TableIPA, chemin: CheminFichier)
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -420,19 +424,8 @@ génère_code_c :: fonc (ipa: &IPA, système_type: *SystèmeTypeC, chemin: Chemi
 
     ajoute_au_tampon(*enchaineuse, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n")
 
-    /* Définis les fonctions des types. */
-    pour ipa.types {
-        pour f dans it.fonctions {
-            génère_code_fonction_c(*enchaineuse, système_type, f)
-        }
-
-        si it.constructrice.possède_valeur() {
-            génère_code_fonction_c(*enchaineuse, système_type, it.constructrice.Quelque)
-        }
-    }
-
-    /* Définis les fonctions libres de l'IPA. */
-    pour ipa.fonctions {
+    /* Définis les fonctions de la table. */
+    pour table_ipa.fonctions {
         génère_code_fonction_c(*enchaineuse, système_type, it)
     }
 
@@ -1198,7 +1191,48 @@ génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA,
     }
 }
 
-génère_code_entête_table :: fonc (génératrice: *GénératriceCodeC, chemin: CheminFichier)
+TableIPA :: struct {
+    fonctions: [..]MéthodeIPA
+}
+
+construit_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
+{
+    résultat : TableIPA
+
+    ipa := génératrice.ipa
+
+    /* Rappel pour chaque fonction des types. */
+    pour ipa.types {
+        pour f dans it.fonctions {
+            tableau_ajoute(*résultat.fonctions, f)
+        }
+
+        si it.constructrice.possède_valeur() {
+            tableau_ajoute(*résultat.fonctions, it.constructrice.Quelque)
+        }
+    }
+
+    /* Rappel pour chaque fonction libre de l'IPA. */
+    pour ipa.fonctions {
+        tableau_ajoute(*résultat.fonctions, it)
+    }
+
+    tri_rapide(résultat.fonctions, compare_fonction_par_nom_rappel_pour_table)
+
+    retourne résultat
+}
+
+compare_fonction_par_nom_rappel_pour_table :: fonc (fa: MéthodeIPA, fb: MéthodeIPA) -> z32
+{
+    retourne compare_chaine(fa.nom_rappel_pour_table, fb.nom_rappel_pour_table)
+}
+
+détruit_données_table_ipa :: fonc (table: *TableIPA)
+{
+    déloge(table.fonctions)
+}
+
+génère_code_entête_table :: fonc (génératrice: *GénératriceCodeC, table_ipa: *TableIPA, chemin: CheminFichier)
 {
     ipa := génératrice.ipa
     système_type := *génératrice.système_type
@@ -1232,19 +1266,8 @@ génère_code_entête_table :: fonc (génératrice: *GénératriceCodeC, chemin:
     /* Déclare la structure pour la table. */
     ajoute_au_tampon(*enchaineuse, "typedef struct TableIPA {\n")
 
-    /* Rappel pour chaque fonction des types. */
-    pour ipa.types {
-        pour f dans it.fonctions {
-            génère_rappel_fonction(*enchaineuse, système_type, f)
-        }
-
-        si it.constructrice.possède_valeur() {
-            génère_rappel_fonction(*enchaineuse, système_type, it.constructrice.Quelque)
-        }
-    }
-
-    /* Rappel pour chaque libre de l'IPA. */
-    pour ipa.fonctions {
+    /* Rappel pour chaque fonction de l'IPA. */
+    pour table_ipa.fonctions {
         génère_rappel_fonction(*enchaineuse, système_type, it)
     }
 
@@ -1300,10 +1323,8 @@ génère_rappel_fonction :: fonc (enchaineuse: *Enchaineuse, système_type: *Sys
 
 /* ------------------------------------------------------------------------- */
 
-génère_code_source_table :: fonc (génératrice: *GénératriceCodeC, chemin: CheminFichier)
+génère_code_source_table :: fonc (génératrice: *GénératriceCodeC, table_ipa: *TableIPA, chemin: CheminFichier)
 {
-    ipa := génératrice.ipa
-
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
@@ -1321,22 +1342,8 @@ génère_code_source_table :: fonc (génératrice: *GénératriceCodeC, chemin: 
 
     nombre_de_fonctions := 0
 
-    /* Nom pour chaque fonction des types. */
-    pour ipa.types {
-        pour f dans it.fonctions {
-            ajoute_au_tampon(*enchaineuse, "    \"enveloppe_", f.nom_rappel_pour_table, "\",\n")
-            nombre_de_fonctions += 1
-        }
-
-        si it.constructrice.possède_valeur() {
-            f := it.constructrice.Quelque
-            ajoute_au_tampon(*enchaineuse, "    \"enveloppe_", f.nom_rappel_pour_table, "\",\n")
-            nombre_de_fonctions += 1
-        }
-    }
-
-    /* Nom pour chaque fonction libre de l'IPA. */
-    pour ipa.fonctions {
+    /* Nom pour chaque fonction de la table d'IPA. */
+    pour table_ipa.fonctions {
         ajoute_au_tampon(*enchaineuse, "    \"enveloppe_", it.nom_rappel_pour_table, "\",\n")
         nombre_de_fonctions += 1
     }
