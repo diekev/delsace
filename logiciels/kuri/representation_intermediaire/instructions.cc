@@ -499,6 +499,21 @@ Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst)
     return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Inegal);
 }
 
+bool est_instruction_comparaison(Atome const *atome)
+{
+    if (!atome->est_instruction()) {
+        return false;
+    }
+
+    auto const inst = atome->comme_instruction();
+    if (!inst->est_op_binaire()) {
+        return false;
+    }
+
+    auto const op_binaire = inst->comme_op_binaire();
+    return est_opérateur_comparaison(op_binaire->op);
+}
+
 AccèsMembreFusionné fusionne_accès_membres(InstructionAccèdeMembre const *accès_membre)
 {
     AccèsMembreFusionné résultat;
