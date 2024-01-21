@@ -1115,7 +1115,7 @@ void MachineVirtuelle::désinstalle_métaprogramme(MetaProgramme *métaprogramme
 
     de->instructions_exécutées += compte_exécutées;
     if (compilatrice.arguments.profile_metaprogrammes) {
-        de->profileuse.ajoute_echantillon(métaprogramme, compte_exécutées);
+        de->profileuse.ajoute_échantillon(métaprogramme, compte_exécutées);
     }
 }
 
@@ -1982,7 +1982,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto de = m_métaprogramme->données_exécution;
                 de->profondeur_appel = profondeur_appel;
-                de->profileuse.ajoute_echantillon(m_métaprogramme, 1);
+                de->profileuse.ajoute_échantillon(m_métaprogramme, 1);
                 break;
             }
             case OP_PROFILE_TERMINE_APPEL:
@@ -1991,7 +1991,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 /* La profondeur d'appel fut modifiée par dépile_fonction_non_interne ou par les
                  * retours, donc nous devons l'ajuster ici. */
                 de->profondeur_appel = profondeur_appel + 1;
-                de->profileuse.ajoute_echantillon(m_métaprogramme, 1);
+                de->profileuse.ajoute_échantillon(m_métaprogramme, 1);
                 de->profondeur_appel = profondeur_appel;
                 break;
             }
@@ -2380,7 +2380,7 @@ static bool les_frames_sont_les_mêmes(FrameAppel const *frame1,
     return true;
 }
 
-void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
+void Profileuse::ajoute_échantillon(MetaProgramme *métaprogramme, int poids)
 {
     if (poids == 0) {
         return;
@@ -2402,7 +2402,7 @@ void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
         }
     }
 
-    auto echantillon = EchantillonProfilage();
+    auto echantillon = ÉchantillonProfilage();
     echantillon.profondeur_frame_appel = de->profondeur_appel;
     echantillon.poids = ticks;
 
@@ -2426,7 +2426,7 @@ static void imprime_nom_fonction(AtomeFonction const *fonction, Enchaineuse &os)
 }
 
 static void crée_rapport_format_echantillons_total_plus_fonction(
-    kuri::tableau_statique<EchantillonProfilage> échantillons, Enchaineuse &os)
+    kuri::tableau_statique<ÉchantillonProfilage> échantillons, Enchaineuse &os)
 {
     auto table = kuri::table_hachage<AtomeFonction *, int>("Échantillons profilage");
     auto fonctions = kuri::ensemble<AtomeFonction *>();
@@ -2441,27 +2441,27 @@ static void crée_rapport_format_echantillons_total_plus_fonction(
         }
     }
 
-    auto fonctions_et_echantillons = kuri::tableau<PaireEnchantillonFonction>();
+    auto fonctions_et_echantillons = kuri::tableau<PaireÉchantillonFonction>();
 
     fonctions.pour_chaque_element([&](AtomeFonction *fonction) {
-        auto nombre_echantillons = table.valeur_ou(fonction, 0);
-        auto paire = PaireEnchantillonFonction{fonction, nombre_echantillons};
+        auto nombre_échantillons = table.valeur_ou(fonction, 0);
+        auto paire = PaireÉchantillonFonction{fonction, nombre_échantillons};
         fonctions_et_echantillons.ajoute(paire);
     });
 
     std::sort(fonctions_et_echantillons.begin(),
               fonctions_et_echantillons.end(),
-              [](auto &a, auto &b) { return a.nombre_echantillons > b.nombre_echantillons; });
+              [](auto &a, auto &b) { return a.nombre_échantillons > b.nombre_échantillons; });
 
     POUR (fonctions_et_echantillons) {
-        os << it.nombre_echantillons << " : ";
+        os << it.nombre_échantillons << " : ";
         imprime_nom_fonction(it.fonction, os);
         os << '\n';
     }
 }
 
 static void crée_rapport_format_brendan_gregg(
-    kuri::tableau_statique<EchantillonProfilage> échantillons, Enchaineuse &os)
+    kuri::tableau_statique<ÉchantillonProfilage> échantillons, Enchaineuse &os)
 {
     POUR (échantillons) {
         if (it.profondeur_frame_appel == 0) {
