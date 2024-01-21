@@ -793,6 +793,10 @@ Atome const *est_comparaison_égal_zéro_ou_nul(Instruction const *inst);
  *  Sinon retourne nul. */
 Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst);
 
+/** Retourne vrai si l'atome est une instruction binaire de comparaison.
+ */
+bool est_instruction_comparaison(Atome const *atome);
+
 struct AccèsMembreFusionné {
     Atome *accédé = nullptr;
     uint32_t décalage = 0;
