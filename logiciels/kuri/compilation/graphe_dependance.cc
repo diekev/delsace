@@ -131,7 +131,7 @@ void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
     memoire += noeuds.memoire_utilisee();
 
     POUR_TABLEAU_PAGE (noeuds) {
-        memoire += it.relations().taille() * taille_de(Relation);
+        memoire += it.relations().taille_mémoire();
     }
 
     auto &stats_graphe = stats.stats_graphe_dependance;
