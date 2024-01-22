@@ -109,6 +109,9 @@ void SystèmeModule::rassemble_stats(Statistiques &stats) const
 {
     stats.nombre_modules = modules.taille();
 
+    auto &stats_gapillage = stats.stats_gaspillage;
+    auto gaspillage_lexèmes = 0;
+
     auto &stats_fichiers = stats.stats_fichiers;
     POUR_TABLEAU_PAGE (fichiers) {
         auto entrée = EntréeFichier();
@@ -123,8 +126,12 @@ void SystèmeModule::rassemble_stats(Statistiques &stats) const
         entrée.temps_lexage = it.temps_découpage;
         entrée.temps_parsage = it.temps_analyse;
 
+        gaspillage_lexèmes += it.lexèmes.gaspillage_mémoire();
+
         stats_fichiers.fusionne_entrée(entrée);
     }
+
+    stats_gapillage.fusionne_entrée({"Lexèmes", 1, gaspillage_lexèmes});
 }
 
 int64_t SystèmeModule::mémoire_utilisée() const

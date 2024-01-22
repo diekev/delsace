@@ -286,11 +286,15 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
     auto &stats_ri = stats.stats_ri;
 
     auto mémoire_paramètres = int64_t(0);
+    auto gaspillage_paramètres = int64_t(0);
     auto mémoire_instructions = int64_t(0);
+    auto gaspillage_instructions = int64_t(0);
     auto mémoire_code_binaire = int64_t(0);
     pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
         mémoire_paramètres += it.params_entrée.taille_mémoire();
+        gaspillage_paramètres += it.params_entrée.gaspillage_mémoire();
         mémoire_instructions += it.instructions.taille_mémoire();
+        gaspillage_instructions += it.instructions.gaspillage_mémoire();
 
         if (it.données_exécution) {
             mémoire_code_binaire += it.données_exécution->mémoire_utilisée();
@@ -306,6 +310,10 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
     m_constructrice->rassemble_statistiques(stats);
 
     stats.ajoute_mémoire_utilisée("Code Binaire", mémoire_code_binaire);
+
+    auto &stats_gaspillage = stats.stats_gaspillage;
+    stats_gaspillage.fusionne_entrée({"Instructions RI", 1, gaspillage_instructions});
+    stats_gaspillage.fusionne_entrée({"Paramètres Fonctions RI", 1, gaspillage_paramètres});
 }
 
 /** \} */
@@ -1480,12 +1488,17 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
 #undef ENUMERE_GENRE_ATOME_EX
 
     auto mémoire_args_appel = 0;
+    auto gaspillage_args_appel = 0;
 
     pour_chaque_element(m_appel, [&](InstructionAppel const &it) {
         mémoire_args_appel += it.args.taille_mémoire();
+        gaspillage_args_appel += it.args.gaspillage_mémoire();
     });
 
     stats_ri.fusionne_entrée({"arguments_insts_appel", m_appel.taille(), mémoire_args_appel});
+
+    auto &stats_gaspillage = stats.stats_gaspillage;
+    stats_gaspillage.fusionne_entrée({"Arguments Appel RI", 1, gaspillage_args_appel});
 }
 
 /** \} */

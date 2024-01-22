@@ -1472,6 +1472,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
             });
         }
 
+        os << "auto mémoire_gaspillée = 0;\n";
+
         POUR (proteines_struct) {
             const auto nom_genre = it->accede_nom_genre();
             if (nom_genre.est_nul()) {
@@ -1495,6 +1497,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
                     os << membre.type->accesseur() << "taille());\n";
                     os << "memoire_" << nom_comme << " += noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille_mémoire();\n";
+                    os << "mémoire_gaspillée"
+                       << " += noeud." << nom_membre;
+                    os << membre.type->accesseur() << "gaspillage_mémoire();\n";
                 }
                 else if (membre.nom.nom_cpp() == "monomorphisations") {
                     const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom_cpp(),
@@ -1514,6 +1519,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
                << "0, "
                << "memoire_" << nom_comme << "});\n";
         }
+
+        os << "auto &stats_gaspillage = stats.stats_gaspillage;\n";
+        os << "\tstats_gaspillage.fusionne_entrée({\"Tableaux Arbre\", 1, mémoire_gaspillée});\n";
 
         os << "auto &stats_tableaux = stats.stats_tableaux;\n";
         noms_tableaux.pour_chaque_element([&](kuri::chaine_statique it) {
