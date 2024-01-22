@@ -140,20 +140,20 @@ void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
 
 void GrapheDependance::ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees)
 {
-    kuri::pour_chaque_element(donnees.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_élément(donnees.types_utilises, [&](auto &type) {
         auto noeud_type = crée_noeud_type(type);
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_TYPE);
         return kuri::DécisionItération::Continue;
     });
 
-    kuri::pour_chaque_element(donnees.fonctions_utilisees, [&](auto &fonction_utilisee) {
+    kuri::pour_chaque_élément(donnees.fonctions_utilisees, [&](auto &fonction_utilisee) {
         auto noeud_type = crée_noeud_fonction(
             const_cast<NoeudDeclarationEnteteFonction *>(fonction_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
         return kuri::DécisionItération::Continue;
     });
 
-    kuri::pour_chaque_element(donnees.globales_utilisees, [&](auto &globale_utilisee) {
+    kuri::pour_chaque_élément(donnees.globales_utilisees, [&](auto &globale_utilisee) {
         auto noeud_type = crée_noeud_globale(
             const_cast<NoeudDeclarationVariable *>(globale_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
@@ -381,21 +381,21 @@ void imprime_dependances(const DonneesDependance &dependances,
     flux << "Dépendances pour : " << message << '\n';
 
     flux << "fonctions :\n";
-    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+    kuri::pour_chaque_élément(dependances.fonctions_utilisees, [&](auto &fonction) {
         flux << erreur::imprime_site(*espace, fonction);
         return kuri::DécisionItération::Continue;
     });
 
     flux << "globales :\n";
     /* Requiers le typage de toutes les déclarations utilisées. */
-    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+    kuri::pour_chaque_élément(dependances.globales_utilisees, [&](auto &globale) {
         flux << erreur::imprime_site(*espace, globale);
         return kuri::DécisionItération::Continue;
     });
 
     flux << "types :\n";
     /* Requiers le typage de tous les types utilisés. */
-    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_élément(dependances.types_utilises, [&](auto &type) {
         flux << chaine_type(type) << '\n';
         return kuri::DécisionItération::Continue;
     });
@@ -404,28 +404,28 @@ void imprime_dependances(const DonneesDependance &dependances,
 void DonneesDependance::fusionne(const DonneesDependance &autre)
 {
     /* Ajoute les nouveaux types aux dépendances courantes. */
-    pour_chaque_element(autre.types_utilises, [&](auto &type) {
+    pour_chaque_élément(autre.types_utilises, [&](auto &type) {
         if (type->est_type_type_de_donnees()) {
             auto type_de_donnees = type->comme_type_type_de_donnees();
             if (type_de_donnees->type_connu) {
-                types_utilises.insere(type_de_donnees->type_connu);
+                types_utilises.insère(type_de_donnees->type_connu);
             }
         }
         else {
-            types_utilises.insere(type);
+            types_utilises.insère(type);
         }
         return kuri::DécisionItération::Continue;
     });
 
     /* Ajoute les nouveaux types aux dépendances courantes. */
-    pour_chaque_element(autre.fonctions_utilisees, [&](auto &fonction) {
-        fonctions_utilisees.insere(fonction);
+    pour_chaque_élément(autre.fonctions_utilisees, [&](auto &fonction) {
+        fonctions_utilisees.insère(fonction);
         return kuri::DécisionItération::Continue;
     });
 
     /* Ajoute les nouveaux types aux dépendances courantes. */
-    pour_chaque_element(autre.globales_utilisees, [&](auto &globale) {
-        globales_utilisees.insere(globale);
+    pour_chaque_élément(autre.globales_utilisees, [&](auto &globale) {
+        globales_utilisees.insère(globale);
         return kuri::DécisionItération::Continue;
     });
 }

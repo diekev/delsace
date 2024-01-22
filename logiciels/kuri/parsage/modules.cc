@@ -19,7 +19,7 @@
 bool Fichier::importe_module(IdentifiantCode *nom_module) const
 {
     bool importe = false;
-    pour_chaque_element(modules_importés, [nom_module, &importe](Module *module_) {
+    pour_chaque_élément(modules_importés, [nom_module, &importe](Module *module_) {
         if (module_->nom() == nom_module) {
             importe = true;
             return kuri::DécisionItération::Arrête;

@@ -1084,7 +1084,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
              * les bonnes données. À FAIRE : permet l'ajournement des infos-types afin de ne pas
              * avoir à attendre. */
             kuri::ensemblon<Type *, 16> types_utilises;
-            types_utilises.insere(type);
+            types_utilises.insère(type);
             auto attente_possible = attente_sur_type_si_drapeau_manquant(
                 types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
@@ -2004,7 +2004,7 @@ RésultatValidation Sémanticienne::valide_paramètres_fonction(NoeudDeclaration
             }
         }
 
-        noms.insere(param->ident);
+        noms.insère(param->ident);
 
         if (param->type->est_type_variadique()) {
             param->drapeaux |= DrapeauxNoeud::EST_VARIADIQUE;
@@ -3361,7 +3361,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
             return CodeRetourValidation::Erreur;
         }
 
-        noms_rencontres.insere(decl_expr->ident);
+        noms_rencontres.insère(decl_expr->ident);
 
         auto expr = decl_expr->expression;
 
@@ -6237,7 +6237,7 @@ static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
         if (it == fichier) {
             continue;
         }
-        pour_chaque_element(it->modules_importés, [&](Module *module_) {
+        pour_chaque_élément(it->modules_importés, [&](Module *module_) {
             if (module_->nom() == expression->ident) {
                 module = module_;
                 return kuri::DécisionItération::Arrête;
@@ -6276,7 +6276,7 @@ RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionI
         m_espace->rapporte_avertissement(inst, "Importation superflux du module");
     }
     else {
-        fichier->modules_importés.insere(module);
+        fichier->modules_importés.insère(module);
         auto noeud_module = m_tacheronne->assembleuse
                                 ->crée_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)
                                 ->comme_declaration_module();
