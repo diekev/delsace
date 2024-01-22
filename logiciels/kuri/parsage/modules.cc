@@ -152,7 +152,7 @@ int64_t SystèmeModule::mémoire_utilisée() const
 
     POUR_TABLEAU_PAGE (modules) {
         résultat += it.chemin().taille();
-        résultat += it.fichiers.taille() * taille_de(Fichier *);
+        résultat += it.fichiers.taille_mémoire();
     }
 
     return résultat;

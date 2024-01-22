@@ -369,6 +369,15 @@ class tablet {
         return m_alloue;
     }
 
+    int64_t taille_mémoire() const
+    {
+        if (est_stocke_dans_classe()) {
+            return 0;
+        }
+
+        return m_alloue * taille_de(T);
+    }
+
     void redimensionne(int64_t n)
     {
         garantie_capacite(n);
