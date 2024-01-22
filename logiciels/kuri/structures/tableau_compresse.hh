@@ -107,7 +107,7 @@ struct tableau_compresse {
 
     TypeIndex taille_mémoire() const
     {
-        return alloue() ? 0 : m_taille * static_cast<TypeIndex>(sizeof(T));
+        return alloue() ? 0 : m_capacite * static_cast<TypeIndex>(sizeof(T));
     }
 
     TypeIndex capacite() const
