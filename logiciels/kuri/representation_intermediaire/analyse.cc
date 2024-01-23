@@ -19,6 +19,7 @@
 #include "bloc_basique.hh"
 #include "impression.hh"
 #include "instructions.hh"
+#include "visite_instructions.hh"
 
 /* ********************************************************************************************* */
 

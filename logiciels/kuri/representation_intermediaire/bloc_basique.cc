@@ -9,6 +9,7 @@
 #include "constructrice_ri.hh"
 #include "impression.hh"
 #include "instructions.hh"
+#include "visite_instructions.hh"
 
 /* ********************************************************************************************* */
 
