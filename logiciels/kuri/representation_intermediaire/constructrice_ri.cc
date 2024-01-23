@@ -1478,9 +1478,11 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
 {
     auto &stats_ri = stats.stats_ri;
 
+    auto &stats_gaspillage = stats.stats_gaspillage;
 #define ENUMERE_GENRE_ATOME_EX(genre, classe, ident)                                              \
     if (m_##ident.taille() != 0) {                                                                \
         stats_ri.fusionne_entrée({#ident, m_##ident.taille(), m_##ident.memoire_utilisee()});     \
+        stats_gaspillage.fusionne_entrée({#ident, 1, m_##ident.gaspillage_mémoire()});            \
     }
 
     ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
@@ -1497,7 +1499,6 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
 
     stats_ri.fusionne_entrée({"arguments_insts_appel", m_appel.taille(), mémoire_args_appel});
 
-    auto &stats_gaspillage = stats.stats_gaspillage;
     stats_gaspillage.fusionne_entrée({"Arguments Appel RI", 1, gaspillage_args_appel});
 }
 
