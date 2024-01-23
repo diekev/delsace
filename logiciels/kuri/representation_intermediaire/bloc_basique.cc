@@ -258,19 +258,85 @@ static void détruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 /** \name Graphe.
  * \{ */
 
-void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
+void TableUtilisateurs::réinitialise()
 {
-    connexions.ajoute({a, b, index_bloc});
+    m_données_utilisateurs.efface();
+    m_utilisateurs.efface();
+    m_table_données_utilisateurs.reinitialise();
+}
 
-    if (connexions_pour_inst.possède(a)) {
-        auto &idx = connexions_pour_inst.trouve_ref(a);
-        idx.ajoute(static_cast<int>(connexions.taille() - 1));
+void TableUtilisateurs::ajoute_connexion(Atome *utilisé, Atome *utilisateur, int index_bloc)
+{
+    auto enregistrement = Utilisateur{};
+    enregistrement.utilisateur = utilisateur;
+    enregistrement.index_bloc = index_bloc;
+    enregistrement.suivant = -1;
+
+    auto index_données_utilisateur = m_table_données_utilisateurs.valeur_ou(utilisé, -1);
+    if (index_données_utilisateur == -1) {
+        auto données_utilisateur = DonnéesUtilisateur{};
+        données_utilisateur.premier_utilisateur = m_utilisateurs.taille();
+        données_utilisateur.dernier_utilisateur = m_utilisateurs.taille();
+        données_utilisateur.nombre_utilisateurs = 1;
+
+        index_données_utilisateur = m_données_utilisateurs.taille();
+        m_données_utilisateurs.ajoute(données_utilisateur);
+
+        m_table_données_utilisateurs.insère(utilisé, index_données_utilisateur);
     }
     else {
-        kuri::tablet<int, 4> idx;
-        idx.ajoute(static_cast<int>(connexions.taille() - 1));
-        connexions_pour_inst.insère(a, idx);
+        auto &données_utilisateur = m_données_utilisateurs[index_données_utilisateur];
+        données_utilisateur.nombre_utilisateurs += 1;
+
+        auto &dernier = m_utilisateurs[données_utilisateur.dernier_utilisateur];
+        dernier.suivant = m_utilisateurs.taille();
+
+        données_utilisateur.dernier_utilisateur = m_utilisateurs.taille();
     }
+
+    m_utilisateurs.ajoute(enregistrement);
+}
+
+bool TableUtilisateurs::est_uniquement_utilisé_dans_bloc(Instruction const *inst,
+                                                         int index_bloc) const
+{
+    auto index_données_utilisateur = m_table_données_utilisateurs.valeur_ou(inst, -1);
+    if (index_données_utilisateur == -1) {
+        return true;
+    }
+
+    auto &données_utilisateur = m_données_utilisateurs[index_données_utilisateur];
+    auto utilisateur = &m_utilisateurs[données_utilisateur.premier_utilisateur];
+
+    while (true) {
+        if (utilisateur->index_bloc != index_bloc) {
+            return false;
+        }
+
+        if (utilisateur->suivant == -1) {
+            break;
+        }
+
+        utilisateur = &m_utilisateurs[utilisateur->suivant];
+    }
+
+    return true;
+}
+
+int64_t TableUtilisateurs::nombre_d_utilisateurs(Instruction const *inst) const
+{
+    auto index_données_utilisateur = m_table_données_utilisateurs.valeur_ou(inst, -1);
+    if (index_données_utilisateur == -1) {
+        return 0;
+    }
+
+    auto &données_utilisateur = m_données_utilisateurs[index_données_utilisateur];
+    return données_utilisateur.nombre_utilisateurs;
+}
+
+void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
+{
+    m_table.ajoute_connexion(a, b, index_bloc);
 }
 
 void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int index_bloc)
@@ -283,21 +349,17 @@ void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, in
 
 bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const
 {
-    auto idx = connexions_pour_inst.valeur_ou(inst, {});
-    POUR (idx) {
-        auto &connexion = connexions[it];
-        if (index_bloc != connexion.index_bloc) {
-            return false;
-        }
-    }
+    return m_table.est_uniquement_utilisé_dans_bloc(inst, index_bloc);
+}
 
-    return true;
+int64_t Graphe::nombre_d_utilisateurs(const Instruction *inst) const
+{
+    return m_table.nombre_d_utilisateurs(inst);
 }
 
 void Graphe::réinitialise()
 {
-    connexions_pour_inst.reinitialise();
-    connexions.efface();
+    m_table.réinitialise();
 }
 
 /** \} */
