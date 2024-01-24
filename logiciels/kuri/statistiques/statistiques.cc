@@ -288,6 +288,8 @@ void imprime_stats_détaillées(Statistiques const &stats)
     imprime_stats_fichier(stats.stats_fichiers);
     std::cout << "Tableaux :\n";
     imprime_stats_tableaux(stats.stats_tableaux);
+    std::cout << "Gaspillage :\n";
+    imprime_stats_tableau(stats.stats_gaspillage);
 }
 
 static void imprime_stats_temps(EntréesStats<EntréeTemps> const &stats)

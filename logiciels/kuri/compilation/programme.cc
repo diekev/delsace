@@ -1577,4 +1577,14 @@ kuri::tableau<Bibliotheque *> ProgrammeRepreInter::donne_bibliothèques_utilisé
     return résultat;
 }
 
+int64_t ProgrammeRepreInter::mémoire_utilisée() const
+{
+    auto résultat = int64_t(0);
+    résultat += fonctions.taille_mémoire();
+    résultat += globales.taille_mémoire();
+    résultat += types.taille_mémoire();
+    résultat += m_données_constantes.tableaux_constants.taille_mémoire();
+    return résultat;
+}
+
 /** \} */

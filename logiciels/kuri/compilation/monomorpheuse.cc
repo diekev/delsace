@@ -695,11 +695,17 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
     if (expression_polymorphique->est_prise_adresse()) {
         auto const prise_adresse = expression_polymorphique->comme_prise_adresse();
         auto type_pointe = résoud_type_final_impl(prise_adresse->opérande);
+        if (!type_pointe) {
+            return nullptr;
+        }
         return typeuse().type_pointeur_pour(type_pointe);
     }
     else if (expression_polymorphique->est_prise_reference()) {
         auto const prise_référence = expression_polymorphique->comme_prise_reference();
         auto type_pointe = résoud_type_final_impl(prise_référence->opérande);
+        if (!type_pointe) {
+            return nullptr;
+        }
         return typeuse().type_reference_pour(type_pointe);
     }
     else if (expression_polymorphique->est_expression_type_tableau_fixe()) {
@@ -825,6 +831,9 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
 
     for (auto i = 0; i < decl_type_fonction->types_entrée.taille(); i++) {
         auto type = résoud_type_final_impl(decl_type_fonction->types_entrée[i]);
+        if (!type) {
+            return nullptr;
+        }
         types_entrees.ajoute(type);
     }
 
@@ -833,6 +842,9 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
 
         for (auto i = 0; i < decl_type_fonction->types_sortie.taille(); i++) {
             auto type = résoud_type_final_impl(decl_type_fonction->types_sortie[i]);
+            if (!type) {
+                return nullptr;
+            }
             MembreTypeComposé membre;
             membre.type = type;
             types_sorties.ajoute(membre);
@@ -842,6 +854,10 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
     }
     else {
         type_sortie = résoud_type_final_impl(decl_type_fonction->types_sortie[0]);
+    }
+
+    if (!type_sortie) {
+        return nullptr;
     }
 
     return typeuse().type_fonction(types_entrees, type_sortie);
@@ -948,6 +964,9 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tranche(
     const NoeudExpressionTypeTranche *expr_tranche)
 {
     auto type_pointe = résoud_type_final_impl(expr_tranche->expression_type);
+    if (!type_pointe) {
+        return nullptr;
+    }
     return typeuse().crée_type_tranche(type_pointe);
 }
 
@@ -955,6 +974,9 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_dynamique(
     const NoeudExpressionTypeTableauDynamique *expr_tableau_dynamique)
 {
     auto type_pointe = résoud_type_final_impl(expr_tableau_dynamique->expression_type);
+    if (!type_pointe) {
+        return nullptr;
+    }
     return typeuse().type_tableau_dynamique(type_pointe);
 }
 
@@ -962,6 +984,9 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
     const NoeudExpressionTypeTableauFixe *expr_tableau_fixe)
 {
     auto type_pointe = résoud_type_final_impl(expr_tableau_fixe->expression_type);
+    if (!type_pointe) {
+        return nullptr;
+    }
 
     auto expression_taille = expr_tableau_fixe->expression_taille;
     if (expression_taille->est_reference_declaration()) {
@@ -981,6 +1006,9 @@ Type *Monomorpheuse::résoud_type_final_pour_expansion_variadique(
     const NoeudExpressionExpansionVariadique *expansion)
 {
     auto type_pointe = résoud_type_final_impl(expansion->expression);
+    if (!type_pointe) {
+        return nullptr;
+    }
     return typeuse().type_variadique(type_pointe);
 }
 

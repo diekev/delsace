@@ -2272,7 +2272,7 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
     auto visités = kuri::ensemblon<Type *, 16>();
     auto pile = kuri::pile<Type *>();
 
-    pour_chaque_element(types, [&pile](auto &type) {
+    pour_chaque_élément(types, [&pile](auto &type) {
         pile.empile(type);
         return kuri::DécisionItération::Continue;
     });
@@ -2289,7 +2289,7 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
             continue;
         }
 
-        visités.insere(type_courant);
+        visités.insère(type_courant);
 
         if (!prédicat(type_courant)) {
             attentes.ajoute(Attente::sur_type(type_courant));

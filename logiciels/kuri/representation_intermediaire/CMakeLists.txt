@@ -39,6 +39,7 @@ set(SOURCES
     machine_virtuelle_intrinseques.cc
     optimisations.cc
     ssa.cc
+    visite_instructions.cc
 
     analyse.hh
     bloc_basique.hh
@@ -49,6 +50,7 @@ set(SOURCES
     machine_virtuelle.hh
     optimisations.hh
     ssa.hh
+    visite_instructions.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

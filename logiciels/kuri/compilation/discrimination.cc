@@ -96,7 +96,7 @@ RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *t
                 return CodeRetourValidation::Erreur;
             }
 
-            membres_rencontrés.insere(membre.nom);
+            membres_rencontrés.insère(membre.nom);
         }
     }
 
@@ -289,7 +289,7 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
         /* À FAIRE(discr) : ceci n'est que pour la simplification du code. */
         feuille->ident = membre.nom;
 
-        membres_rencontrés.insere(membre.nom);
+        membres_rencontrés.insère(membre.nom);
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
@@ -390,7 +390,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
          * ceci n'est que pour la simplification du code. */
         feuille->ident = membre.nom;
 
-        membres_rencontrés.insere(membre.nom);
+        membres_rencontrés.insère(membre.nom);
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {

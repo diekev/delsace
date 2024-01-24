@@ -375,6 +375,8 @@ struct ProgrammeRepreInter {
     std::optional<DonnéesConstantes const *> donne_données_constantes() const;
 
     kuri::tableau<Bibliotheque *> donne_bibliothèques_utilisées() const;
+
+    int64_t mémoire_utilisée() const;
 };
 
 void imprime_contenu_programme(const ProgrammeRepreInter &programme,
