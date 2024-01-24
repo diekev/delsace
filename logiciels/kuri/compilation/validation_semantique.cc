@@ -1085,7 +1085,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
              * les bonnes données. À FAIRE : permet l'ajournement des infos-types afin de ne pas
              * avoir à attendre. */
             kuri::ensemblon<Type *, 16> types_utilises;
-            types_utilises.insere(type);
+            types_utilises.insère(type);
             auto attente_possible = attente_sur_type_si_drapeau_manquant(
                 types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
@@ -2005,7 +2005,7 @@ RésultatValidation Sémanticienne::valide_paramètres_fonction(NoeudDeclaration
             }
         }
 
-        noms.insere(param->ident);
+        noms.insère(param->ident);
 
         if (param->type->est_type_variadique()) {
             param->drapeaux |= DrapeauxNoeud::EST_VARIADIQUE;
@@ -3025,10 +3025,10 @@ Type *Sémanticienne::union_ou_structure_courante() const
     return nullptr;
 }
 
-static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
-                                             NoeudDeclarationEnteteFonction const &entete)
+static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
+                                             NoeudDeclarationEnteteFonction const &entête)
 {
-    if (entete.possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+    if (entête.possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
         return;
     }
 
@@ -3036,13 +3036,13 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
      * À FAIRE : nous avons les paramètres de sorties des fonctions nichées dans le bloc de cette
      * fonction ?
      */
-    POUR (entete.params_sorties) {
+    POUR (entête.params_sorties) {
         it->comme_declaration_variable()->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     }
-    entete.param_sortie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+    entête.param_sortie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
 
-    for (int i = 0; i < entete.params.taille(); ++i) {
-        auto decl_param = entete.parametre_entree(i);
+    for (int i = 0; i < entête.params.taille(); ++i) {
+        auto decl_param = entête.parametre_entree(i);
         if (decl_param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
             continue;
         }
@@ -3051,7 +3051,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
             continue;
         }
 
-        if (entete.est_operateur && !entete.est_operateur_pour()) {
+        if (entête.est_operateur && !entête.est_operateur_pour()) {
             espace.rapporte_erreur(decl_param, "Paramètre d'opérateur inutilisé.");
         }
         else {
@@ -3059,12 +3059,12 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
         }
     }
 
-    auto const &corps = *entete.corps;
+    auto const &corps = *entête.corps;
 
     visite_noeud(corps.bloc,
                  PreferenceVisiteNoeud::ORIGINAL,
                  true,
-                 [&espace, entete](const NoeudExpression *noeud) {
+                 [&espace, entête](const NoeudExpression *noeud) {
                      if (noeud->est_type_structure()) {
                          return DecisionVisiteNoeud::IGNORE_ENFANTS;
                      }
@@ -3107,7 +3107,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                          if (noeud->est_entete_fonction()) {
                              auto message = enchaine(
                                  "Dans la fonction ",
-                                 entete.ident->nom,
+                                 entête.ident->nom,
                                  " : fonction « ",
                                  (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
                                  " » inutilisée");
@@ -3119,7 +3119,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
                          auto message = enchaine(
                              "Dans la fonction ",
-                             entete.ident->nom,
+                             entête.ident->nom,
                              " : déclaration « ",
                              (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
                              " » inutilisée");
@@ -3274,7 +3274,7 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonctio
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    avertis_declarations_inutilisees(*m_espace, *entete);
+    avertis_déclarations_inutilisées(*m_espace, *entete);
 
     if (entete->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS)) {
         imprime_arbre(entete, std::cerr, 0);
@@ -3307,7 +3307,7 @@ RésultatValidation Sémanticienne::valide_opérateur(NoeudDeclarationCorpsFonct
             m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
     }
 
-    avertis_declarations_inutilisees(*m_espace, *entete);
+    avertis_déclarations_inutilisées(*m_espace, *entete);
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
@@ -3362,7 +3362,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
             return CodeRetourValidation::Erreur;
         }
 
-        noms_rencontres.insere(decl_expr->ident);
+        noms_rencontres.insère(decl_expr->ident);
 
         auto expr = decl_expr->expression;
 
@@ -6238,7 +6238,7 @@ static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
         if (it == fichier) {
             continue;
         }
-        pour_chaque_element(it->modules_importés, [&](Module *module_) {
+        pour_chaque_élément(it->modules_importés, [&](Module *module_) {
             if (module_->nom() == expression->ident) {
                 module = module_;
                 return kuri::DécisionItération::Arrête;
@@ -6277,7 +6277,7 @@ RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionI
         m_espace->rapporte_avertissement(inst, "Importation superflux du module");
     }
     else {
-        fichier->modules_importés.insere(module);
+        fichier->modules_importés.insère(module);
         auto noeud_module = m_tacheronne->assembleuse
                                 ->crée_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)
                                 ->comme_declaration_module();

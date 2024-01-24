@@ -577,7 +577,7 @@ RésultatFichier Compilatrice::trouve_ou_crée_fichier(Module *module,
         auto fichier_neuf = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
         if (importe_kuri_ && module->nom() != ID::Kuri) {
             assert(module_kuri);
-            fichier_neuf->modules_importés.insere(module_kuri);
+            fichier_neuf->modules_importés.insère(module_kuri);
         }
     }
 

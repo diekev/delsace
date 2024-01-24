@@ -78,7 +78,7 @@ bool UniteCompilation::est_bloquée() const
     }
 
     auto visitees = kuri::ensemblon<UniteCompilation const *, 16>();
-    visitees.insere(this);
+    visitees.insère(this);
 
     auto attendue = unité_pour_attente(*attente_bloquée);
     while (attendue) {
@@ -87,7 +87,7 @@ bool UniteCompilation::est_bloquée() const
              * « chaine_attente_recursive() ». */
             return true;
         }
-        visitees.insere(attendue);
+        visitees.insère(attendue);
 
         attente_bloquée = attendue->première_attente_bloquée();
         if (!attente_bloquée) {

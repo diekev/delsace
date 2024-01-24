@@ -429,7 +429,7 @@ void Tacheronne::gere_tache()
                              [&](NoeudExpression const *racine) {
                                  auto type = racine->type;
                                  if (type) {
-                                     types_utilises.insere(type);
+                                     types_utilises.insère(type);
                                  }
 
                                  if (racine->est_entete_fonction()) {
@@ -437,7 +437,7 @@ void Tacheronne::gere_tache()
 
                                      POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
                                          if (it->type) {
-                                             types_utilises.insere(it->type);
+                                             types_utilises.insère(it->type);
                                          }
                                      }
 
@@ -559,7 +559,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
             }
 
             auto type_dependu = it.noeud_fin->type();
-            types_utilises.insere(type_dependu);
+            types_utilises.insère(type_dependu);
         }
 
         auto attentes_possibles = kuri::tablet<Attente, 16>();
