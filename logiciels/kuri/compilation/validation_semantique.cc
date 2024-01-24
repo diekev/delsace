@@ -3780,17 +3780,18 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     }
 
     if (decl->est_polymorphe) {
-        TENTE(valide_arbre_aplatis(decl));
-
         if (!decl->monomorphisations) {
             decl->monomorphisations =
                 m_tacheronne->allocatrice_noeud.crée_monomorphisations_struct();
         }
 
-        // nous validerons les membres lors de la monomorphisation
-        decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
-        return CodeRetourValidation::OK;
+        if (decl->est_corps_texte) {
+            TENTE(valide_arbre_aplatis(decl));
+            // nous validerons les membres lors de la monomorphisation
+            decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+            decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
+            return CodeRetourValidation::OK;
+        }
     }
 
     if (decl->est_corps_texte) {
@@ -3940,6 +3941,11 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     }
 
     constructrice.finalise();
+
+    if (decl->est_polymorphe) {
+        decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+        return CodeRetourValidation::OK;
+    }
 
     POUR (*decl->bloc->expressions.verrou_ecriture()) {
         if (!it->est_assignation_variable()) {

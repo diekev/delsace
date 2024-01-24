@@ -904,10 +904,13 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
                 POUR (*structure->bloc_constantes->membres.verrou_lecture()) {
                     aplatis_arbre(it, arbre_aplatis->noeuds, {});
                 }
+
+                if (structure->est_corps_texte) {
+                    return;
+                }
             }
-            else {
-                aplatis_arbre(structure->bloc, arbre_aplatis->noeuds, {});
-            }
+
+            aplatis_arbre(structure->bloc, arbre_aplatis->noeuds, {});
         }
         return;
     }
