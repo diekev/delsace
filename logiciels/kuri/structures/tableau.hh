@@ -180,6 +180,11 @@ struct tableau {
         return m_capacité * static_cast<TypeIndex>(taille_de(T));
     }
 
+    TypeIndex gaspillage_mémoire() const
+    {
+        return (m_capacité - m_taille) * static_cast<TypeIndex>(taille_de(T));
+    }
+
     void efface()
     {
         m_taille = 0;

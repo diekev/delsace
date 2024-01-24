@@ -79,20 +79,72 @@ struct Bloc {
 struct VisiteuseBlocs;
 
 /* ------------------------------------------------------------------------- */
+/** \name Table des utilisateurs pour le graphe de dépendances.
+ * \{ */
+
+class TableUtilisateurs {
+    struct DonnéesUtilisateur {
+        /* Index du premier utilisateur dans m_utilisateurs. */
+        int premier_utilisateur = 0;
+        /* Index du dernier utilisateur dans m_utilisateurs. */
+        int dernier_utilisateur = 0;
+        /* Puisque nous ne supprimons pas les utilisateurs (nous recréons la table à chaque
+         * changement), nous mettons en cache le nombre de ceux-ci. */
+        int nombre_utilisateurs = 0;
+    };
+    kuri::tableau<DonnéesUtilisateur, int> m_données_utilisateurs{};
+
+    struct Utilisateur {
+        Atome *utilisateur = nullptr;
+        int suivant = 0;
+        int index_bloc = 0;
+    };
+    kuri::tableau<Utilisateur, int> m_utilisateurs{};
+
+    kuri::table_hachage<Atome const *, int> m_table_données_utilisateurs{"Données utilisateurs"};
+
+  public:
+    void réinitialise();
+
+    void ajoute_connexion(Atome *utilisé, Atome *utilisateur, int index_bloc);
+
+    bool est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const;
+
+    int64_t nombre_d_utilisateurs(Instruction const *inst) const;
+
+    template <typename Fonction>
+    void visite_utilisateurs(Instruction const *inst, Fonction rappel) const
+    {
+        auto index_données_utilisateur = m_table_données_utilisateurs.valeur_ou(inst, -1);
+        if (index_données_utilisateur == -1) {
+            return;
+        }
+
+        auto &données_utilisateur = m_données_utilisateurs[index_données_utilisateur];
+        auto utilisateur = &m_utilisateurs[données_utilisateur.premier_utilisateur];
+
+        while (true) {
+            rappel(utilisateur->utilisateur);
+
+            if (utilisateur->suivant == -1) {
+                break;
+            }
+
+            utilisateur = &m_utilisateurs[utilisateur->suivant];
+        }
+    }
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Graphe.
  *  Contiens les connexions entre les instructions et leurs atomes.
  * \{ */
 
 struct Graphe {
   private:
-    struct Connexion {
-        Atome *utilise;
-        Atome *utilisateur;
-        int index_bloc;
-    };
-
-    kuri::tableau<Connexion> connexions{};
-    mutable kuri::table_hachage<Atome const *, kuri::tablet<int, 4>> connexions_pour_inst{""};
+    TableUtilisateurs m_table{};
 
   public:
     /* a est utilisé par b */
@@ -102,20 +154,12 @@ struct Graphe {
 
     bool est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const;
 
-    int64_t nombre_d_utilisateurs(Instruction const *inst) const
-    {
-        auto idx = connexions_pour_inst.valeur_ou(inst, {});
-        return idx.taille();
-    }
+    int64_t nombre_d_utilisateurs(Instruction const *inst) const;
 
     template <typename Fonction>
     void visite_utilisateurs(Instruction const *inst, Fonction rappel) const
     {
-        auto idx = connexions_pour_inst.valeur_ou(inst, {});
-        POUR (idx) {
-            auto &connexion = connexions[it];
-            rappel(connexion.utilisateur);
-        }
+        m_table.visite_utilisateurs(inst, rappel);
     }
 
     void réinitialise();

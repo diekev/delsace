@@ -396,7 +396,7 @@ struct ApparieuseParams {
 
             m_dernier_argument_est_variadique = est_paramètre_variadique;
 
-            m_args_rencontrés.insere(ident);
+            m_args_rencontrés.insère(ident);
 
             if (m_dernier_argument_est_variadique || index_param >= m_slots.taille()) {
                 if (m_expansion_rencontrée && m_nombre_arg_variadiques_rencontrés != 0) {
@@ -431,12 +431,12 @@ struct ApparieuseParams {
                     return false;
                 }
                 m_nombre_arg_variadiques_rencontrés += 1;
-                m_args_rencontrés.insere(m_noms[m_noms.taille() - 1]);
+                m_args_rencontrés.insère(m_noms[m_noms.taille() - 1]);
                 ajoute_slot(expr);
                 m_index++;
             }
             else {
-                m_args_rencontrés.insere(m_noms[m_index]);
+                m_args_rencontrés.insère(m_noms[m_index]);
                 remplis_slot(m_index++, expr);
             }
         }
@@ -501,7 +501,7 @@ static auto supprime_doublons(kuri::tablet<NoeudDeclaration *, 10> &tablet) -> v
         if (doublons.possède(it)) {
             continue;
         }
-        doublons.insere(it);
+        doublons.insère(it);
         résultat.ajoute(it);
     }
 
@@ -818,7 +818,7 @@ static RésultatAppariement apparie_appel_fonction_pour_cuisson(
         if (noms_rencontrés.possède(it.ident)) {
             return ErreurAppariement::renommage_argument(it.expr, it.ident);
         }
-        noms_rencontrés.insere(it.ident);
+        noms_rencontrés.insère(it.ident);
 
         auto item = monomorpheuse.item_pour_ident(it.ident);
         if (item == nullptr) {

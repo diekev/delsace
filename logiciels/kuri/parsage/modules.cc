@@ -19,7 +19,7 @@
 bool Fichier::importe_module(IdentifiantCode *nom_module) const
 {
     bool importe = false;
-    pour_chaque_element(modules_importés, [nom_module, &importe](Module *module_) {
+    pour_chaque_élément(modules_importés, [nom_module, &importe](Module *module_) {
         if (module_->nom() == nom_module) {
             importe = true;
             return kuri::DécisionItération::Arrête;
@@ -109,6 +109,9 @@ void SystèmeModule::rassemble_stats(Statistiques &stats) const
 {
     stats.nombre_modules = modules.taille();
 
+    auto &stats_gapillage = stats.stats_gaspillage;
+    auto gaspillage_lexèmes = 0;
+
     auto &stats_fichiers = stats.stats_fichiers;
     POUR_TABLEAU_PAGE (fichiers) {
         auto entrée = EntréeFichier();
@@ -116,15 +119,19 @@ void SystèmeModule::rassemble_stats(Statistiques &stats) const
         entrée.nom = it.nom();
         entrée.nombre_lignes = it.tampon().nombre_lignes();
         entrée.mémoire_tampons = it.tampon().taille_donnees();
-        entrée.mémoire_lexèmes = it.lexèmes.taille() * taille_de(Lexème);
+        entrée.mémoire_lexèmes = it.lexèmes.taille_mémoire();
         entrée.nombre_lexèmes = it.lexèmes.taille();
         entrée.temps_chargement = it.temps_chargement;
         entrée.temps_tampon = it.temps_tampon;
         entrée.temps_lexage = it.temps_découpage;
         entrée.temps_parsage = it.temps_analyse;
 
+        gaspillage_lexèmes += it.lexèmes.gaspillage_mémoire();
+
         stats_fichiers.fusionne_entrée(entrée);
     }
+
+    stats_gapillage.fusionne_entrée({"Lexèmes", 1, gaspillage_lexèmes});
 }
 
 int64_t SystèmeModule::mémoire_utilisée() const
@@ -145,7 +152,7 @@ int64_t SystèmeModule::mémoire_utilisée() const
 
     POUR_TABLEAU_PAGE (modules) {
         résultat += it.chemin().taille();
-        résultat += it.fichiers.taille() * taille_de(Fichier *);
+        résultat += it.fichiers.taille_mémoire();
     }
 
     return résultat;

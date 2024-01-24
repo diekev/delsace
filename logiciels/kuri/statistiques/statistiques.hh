@@ -193,6 +193,7 @@ using StatistiquesNoeudCode = EntréesStats<EntréeNombreMémoire>;
 using StatistiquesMessage = EntréesStats<EntréeNombreMémoire>;
 using StatistiquesRI = EntréesStats<EntréeNombreMémoire>;
 using StatistiquesTableaux = EntréesStats<EntréeTailleTableau>;
+using StatistiquesGaspillage = EntréesStats<EntréeNombreMémoire>;
 
 struct MémoireUtilisée {
     kuri::chaine_statique catégorie{};
@@ -228,6 +229,7 @@ struct Statistiques {
     StatistiquesMessage stats_messages{"Messages"};
     StatistiquesRI stats_ri{"Représentation Intermédiaire"};
     StatistiquesTableaux stats_tableaux{"Tableaux"};
+    StatistiquesGaspillage stats_gaspillage{"Gaspillage"};
 
     kuri::tableau<MémoireUtilisée> const &donne_mémoire_utilisée_pour_impression() const;
 

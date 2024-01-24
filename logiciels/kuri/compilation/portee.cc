@@ -111,7 +111,7 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
     }
 
     /* cherche dans les modules importés */
-    pour_chaque_element(fichier->modules_importés, [&](auto &module) {
+    pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
         decl = trouve_dans_bloc(module->bloc, ident, nullptr, fonction_courante);
 
         if (decl != nullptr) {
@@ -166,7 +166,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
     trouve_declarations_dans_bloc(declarations, bloc, ident);
 
     /* cherche dans les modules importés */
-    pour_chaque_element(fichier->modules_importés, [&](auto &module) {
+    pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
         trouve_declarations_dans_bloc(declarations, module->bloc, ident);
         return kuri::DécisionItération::Continue;
     });
@@ -182,14 +182,14 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
         trouve_declarations_dans_bloc(declarations, bloc, ident);
     }
 
-    modules_visites.insere(fichier->module);
+    modules_visites.insère(fichier->module);
 
     /* cherche dans les modules importés */
-    pour_chaque_element(fichier->modules_importés, [&](auto &module) {
+    pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
         if (modules_visites.possède(module)) {
             return kuri::DécisionItération::Continue;
         }
-        modules_visites.insere(module);
+        modules_visites.insère(module);
         trouve_declarations_dans_bloc(declarations, module->bloc, ident);
         return kuri::DécisionItération::Continue;
     });
