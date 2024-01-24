@@ -259,6 +259,8 @@ struct RegistreAnnotations {
     AtomeGlobale *trouve_globale_pour_annotation(Annotation const &annotation) const;
 
     void ajoute_annotation(Annotation const &annotation, AtomeGlobale *globale);
+
+    int64_t mémoire_utilisée() const;
 };
 
 /** \} */

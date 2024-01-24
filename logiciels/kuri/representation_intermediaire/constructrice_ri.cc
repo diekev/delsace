@@ -5521,6 +5521,13 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
 void CompilatriceRI::rassemble_statistiques(Statistiques &stats)
 {
     m_constructrice.rassemble_statistiques(stats);
+
+    auto mémoire = int64_t(0);
+    mémoire += m_pile.taille_mémoire();
+    mémoire += m_instructions_diffères.taille_mémoire();
+    mémoire += m_registre_annotations.mémoire_utilisée();
+
+    stats.ajoute_mémoire_utilisée("RI", mémoire);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -5558,6 +5565,17 @@ void RegistreAnnotations::ajoute_annotation(const Annotation &annotation, AtomeG
     auto tableau = kuri::tableau<PaireValeurGlobale, int>();
     tableau.ajoute(paire);
     m_table.insère(annotation.nom, tableau);
+}
+
+int64_t RegistreAnnotations::mémoire_utilisée() const
+{
+    auto résultat = m_table.taille_mémoire();
+
+    m_table.pour_chaque_élément([&](kuri::tableau<PaireValeurGlobale, int> const &tableau) {
+        résultat += tableau.taille_mémoire();
+    });
+
+    return résultat;
 }
 
 /** \} */
