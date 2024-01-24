@@ -279,7 +279,7 @@ struct table_hachage {
     }
 
     template <typename TypeFonction>
-    void pour_chaque_élément(TypeFonction &&fonction)
+    void pour_chaque_élément(TypeFonction &&fonction) const
     {
         POUR_INDEX (occupes) {
             if (!it) {
