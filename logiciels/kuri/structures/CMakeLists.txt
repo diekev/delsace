@@ -51,6 +51,7 @@ set(SOURCES
     tableau_compresse.cc
     tableau_statique.cc
     tranche.cc
+    trie.cc
 
     chaine.hh
     chaine_statique.hh
@@ -70,6 +71,7 @@ set(SOURCES
     tableau_compresse.hh
     tableau_statique.hh
     tranche.hh
+    trie.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
