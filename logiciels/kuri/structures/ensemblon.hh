@@ -20,12 +20,12 @@ struct ensemblon {
 
     ensemblon(ensemblon const &autre)
     {
-        copie_donnees(autre);
+        copie_données(autre);
     }
 
     ensemblon &operator=(ensemblon const &autre)
     {
-        copie_donnees(autre);
+        copie_données(autre);
         return *this;
     }
 
@@ -55,10 +55,10 @@ struct ensemblon {
             }
         }
         else if (this->est_stocké_dans_classe()) {
-            permute_donnees(*this, autre);
+            permute_données(*this, autre);
         }
         else if (autre.est_stocké_dans_classe()) {
-            permute_donnees(autre, *this);
+            permute_données(autre, *this);
         }
         else {
             m_ensemble.permute(autre.m_ensemble);
@@ -67,7 +67,7 @@ struct ensemblon {
         std::swap(m_taille, autre.m_taille);
     }
 
-    void copie_donnees(ensemblon const &autre)
+    void copie_données(ensemblon const &autre)
     {
         m_taille = 0;
         m_ensemble.efface();
@@ -84,7 +84,7 @@ struct ensemblon {
         m_ensemble = autre.m_ensemble;
     }
 
-    void insere(T const &valeur)
+    void insère(T const &valeur)
     {
         if (possède(valeur)) {
             return;
@@ -134,7 +134,7 @@ struct ensemblon {
         return m_ensemble.taille_mémoire();
     }
 
-    T const *donnees_ensemblon() const
+    T const *données_ensemblon() const
     {
         return m_ensemblon;
     }
@@ -154,7 +154,7 @@ struct ensemblon {
     }
 
   private:
-    void permute_donnees(ensemblon &ensemblon_local, ensemblon &ensemblon_memoire)
+    void permute_données(ensemblon &ensemblon_local, ensemblon &ensemblon_memoire)
     {
         for (auto i = 0; i < TAILLE_INITIALE; ++i) {
             std::swap(ensemblon_local.m_ensemblon[i], ensemblon_memoire.m_ensemblon[i]);
@@ -165,11 +165,11 @@ struct ensemblon {
 };
 
 template <typename T, uint64_t TAILLE_INITIALE, typename Rappel>
-void pour_chaque_element(ensemblon<T, TAILLE_INITIALE> const &ens, Rappel rappel)
+void pour_chaque_élément(ensemblon<T, TAILLE_INITIALE> const &ens, Rappel rappel)
 {
     if (ens.est_stocké_dans_classe()) {
         for (auto i = 0; i < ens.taille(); ++i) {
-            auto action = rappel(ens.donnees_ensemblon()[i]);
+            auto action = rappel(ens.données_ensemblon()[i]);
 
             if (action == DécisionItération::Arrête) {
                 break;
