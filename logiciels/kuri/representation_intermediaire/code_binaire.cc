@@ -2210,10 +2210,6 @@ int64_t DonnéesExécutionFonction::mémoire_utilisée() const
 {
     int64_t résultat = 0;
     résultat += chunk.mémoire_utilisée();
-
-    if (!données_externe.types_entrées.est_stocke_dans_classe()) {
-        résultat += données_externe.types_entrées.capacite() * taille_de(ffi_type *);
-    }
-
+    résultat += données_externe.types_entrées.taille_mémoire();
     return résultat;
 }
