@@ -113,6 +113,11 @@ struct tableau_page {
 		return pages.taille() * static_cast<int64_t>(TAILLE_PAGE * sizeof(T) + sizeof(page));
 	}
 
+    int64_t gaspillage_mémoire() const
+    {
+        return memoire_utilisee() - (nombre_elements * int64_t(sizeof(T))) - pages.taille() * int64_t(sizeof(page));
+    }
+
 	T &a_l_index(int64_t index)
 	{
 		return this->operator[](index);
