@@ -19,6 +19,7 @@
 #include "bloc_basique.hh"
 #include "impression.hh"
 #include "instructions.hh"
+#include "visite_instructions.hh"
 
 /* ********************************************************************************************* */
 
@@ -452,6 +453,7 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
  * inconditionnelle.
  */
 static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
+                                       ConstructriceRI &constructrice,
                                        VisiteuseBlocs &visiteuse)
 {
     auto bloc_modifié = false;
@@ -469,11 +471,10 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
         if (di->est_branche_cond()) {
             auto branche = di->comme_branche_cond();
             if (branche->label_si_faux == branche->label_si_vrai) {
-                /* Remplace par une branche.
-                 * À FAIRE : crée une instruction. */
-                auto nouvelle_branche = reinterpret_cast<InstructionBranche *>(branche);
-                nouvelle_branche->genre = GenreInstruction::BRANCHE;
-                nouvelle_branche->label = branche->label_si_faux;
+                /* Remplace par une branche. */
+                auto nouvelle_branche = constructrice.crée_branche(
+                    branche->site, branche->label_si_faux, true);
+                it->instructions[it->instructions.taille() - 1] = nouvelle_branche;
                 bloc_modifié = true;
                 i -= 1;
                 continue;
@@ -492,11 +493,10 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
                     it->enfants[0]->déconnecte_pour_branche_morte(it);
                 }
 
-                /* Remplace par une branche.
-                 * À FAIRE : crée une instruction. */
-                auto nouvelle_branche = reinterpret_cast<InstructionBranche *>(branche);
-                nouvelle_branche->genre = GenreInstruction::BRANCHE;
-                nouvelle_branche->label = label_cible;
+                /* Remplace par une branche. */
+                auto nouvelle_branche = constructrice.crée_branche(
+                    branche->site, label_cible, true);
+                it->instructions[it->instructions.taille() - 1] = nouvelle_branche;
                 bloc_modifié = true;
                 i -= 1;
                 assert(it->enfants.taille() == 1);
@@ -1768,7 +1768,7 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
 
     supprime_blocs_vides(fonction_et_blocs, visiteuse);
 
-    supprime_branches_inutiles(fonction_et_blocs, visiteuse);
+    supprime_branches_inutiles(fonction_et_blocs, constructrice, visiteuse);
 
     supprime_allocations_temporaires(fonction_et_blocs);
 
@@ -1784,7 +1784,7 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
     supprime_op_binaires_inutiles(fonction_et_blocs, &branche_conditionnelle_fut_changée);
 
     if (branche_conditionnelle_fut_changée) {
-        supprime_branches_inutiles(fonction_et_blocs, visiteuse);
+        supprime_branches_inutiles(fonction_et_blocs, constructrice, visiteuse);
     }
 
     fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
