@@ -6,6 +6,7 @@
 #include "instructions.hh"
 
 #include "structures/tablet.hh"
+#include "structures/trie.hh"
 
 class Broyeuse;
 struct Annotation;
@@ -259,6 +260,8 @@ struct RegistreAnnotations {
     AtomeGlobale *trouve_globale_pour_annotation(Annotation const &annotation) const;
 
     void ajoute_annotation(Annotation const &annotation, AtomeGlobale *globale);
+
+    int64_t mémoire_utilisée() const;
 };
 
 /** \} */
@@ -308,6 +311,11 @@ struct CompilatriceRI {
 
     /* Un seul tableau pour toutes les structures n'ayant pas d'employées. */
     AtomeConstante *m_tableau_structs_employées_vide = nullptr;
+    kuri::trie<AtomeConstante *, AtomeConstante *> m_trie_structs_employées{};
+
+    /* Trie pour les entrées et sorties des fonctions. Nous partageons les tableaux pour les
+     * entrées et sorties. */
+    kuri::trie<Type *, AtomeConstante *> m_trie_types_entrée_sortie{};
 
     /* Un seul tableau pour toutes les fonctions n'ayant pas d'entrées. */
     AtomeConstante *m_tableau_types_entrées_vide = nullptr;
