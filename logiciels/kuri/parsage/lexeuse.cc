@@ -400,6 +400,7 @@ void Lexeuse::performe_lexage()
         }
     }
 
+    m_données->lexèmes.rétrécis_capacité_sur_taille();
     m_données->fut_lexé = true;
 }
 
