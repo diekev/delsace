@@ -842,9 +842,6 @@ struct VisiteuseAtome {
 /* Visite récursivement l'atome. */
 void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
 
-/* Visite uniquement les opérandes de l'instruction, s'il y en a. */
-void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *)> rappel);
-
 bool est_tableau_données_constantes(AtomeConstante const *constante);
 bool est_globale_pour_tableau_données_constantes(AtomeGlobale const *globale);
 

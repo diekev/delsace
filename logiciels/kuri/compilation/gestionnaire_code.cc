@@ -220,7 +220,7 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
     auto &dependances = données_dependances.dependances;
 
     /* Ajoute les fonctions. */
-    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+    kuri::pour_chaque_élément(dependances.fonctions_utilisees, [&](auto &fonction) {
         if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE) &&
             !programme.pour_métaprogramme()) {
             possède_erreur = true;
@@ -242,13 +242,13 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
     }
 
     /* Ajoute les globales. */
-    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+    kuri::pour_chaque_élément(dependances.globales_utilisees, [&](auto &globale) {
         programme.ajoute_globale(const_cast<NoeudDeclarationVariable *>(globale));
         return kuri::DécisionItération::Continue;
     });
 
     /* Ajoute les types. */
-    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_élément(dependances.types_utilises, [&](auto &type) {
         programme.ajoute_type(type, RaisonAjoutType::DÉPENDANCE_DIRECTE, noeud);
         return kuri::DécisionItération::Continue;
     });
@@ -264,18 +264,18 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
         graphe.traverse(noeud_dep, [&](NoeudDependance const *relation) {
             if (relation->est_fonction()) {
                 programme.ajoute_fonction(relation->fonction());
-                données_dependances.dependances_ependues.fonctions_utilisees.insere(
+                données_dependances.dependances_ependues.fonctions_utilisees.insère(
                     relation->fonction());
             }
             else if (relation->est_globale()) {
                 programme.ajoute_globale(relation->globale());
-                données_dependances.dependances_ependues.globales_utilisees.insere(
+                données_dependances.dependances_ependues.globales_utilisees.insère(
                     relation->globale());
             }
             else if (relation->est_type()) {
                 programme.ajoute_type(
                     relation->type(), RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
-                données_dependances.dependances_ependues.types_utilises.insere(relation->type());
+                données_dependances.dependances_ependues.types_utilises.insère(relation->type());
             }
         });
     });
@@ -300,17 +300,17 @@ struct RassembleuseDependances {
             return;
         }
 
-        dependances.types_utilises.insere(type);
+        dependances.types_utilises.insère(type);
     }
 
     void ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     {
-        dependances.fonctions_utilisees.insere(fonction);
+        dependances.fonctions_utilisees.insère(fonction);
     }
 
     void ajoute_globale(NoeudDeclarationVariable *globale)
     {
-        dependances.globales_utilisees.insere(globale);
+        dependances.globales_utilisees.insère(globale);
     }
 
     void rassemble_dependances()
@@ -621,7 +621,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
                                             EspaceDeTravail *espace)
 {
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
-    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+    kuri::pour_chaque_élément(dependances.fonctions_utilisees, [&](auto &fonction) {
         if (!fonction->corps->unité &&
             !fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
                                        DrapeauxNoeudFonction::EST_EXTERNE)) {
@@ -631,7 +631,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 
     /* Requiers le typage de toutes les déclarations utilisées. */
-    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+    kuri::pour_chaque_élément(dependances.globales_utilisees, [&](auto &globale) {
         if (!globale->unité) {
             gestionnaire.requiers_typage(espace, const_cast<NoeudDeclarationVariable *>(globale));
         }
@@ -639,7 +639,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 
     /* Requiers le typage de tous les types utilisés. */
-    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_élément(dependances.types_utilises, [&](auto &type) {
         if (type_requiers_typage(type)) {
             gestionnaire.requiers_typage(espace, type);
         }
@@ -1738,11 +1738,11 @@ void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
     kuri::ensemblon<EspaceDeTravail *, 10> espaces_errones;
     POUR (programmes_en_cours) {
         if (it->espace()->possède_erreur) {
-            espaces_errones.insere(it->espace());
+            espaces_errones.insère(it->espace());
         }
     }
 
-    pour_chaque_element(espaces_errones, [&](EspaceDeTravail *espace) {
+    pour_chaque_élément(espaces_errones, [&](EspaceDeTravail *espace) {
         ordonnanceuse.supprime_toutes_les_taches_pour_espace(
             espace, UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
         return kuri::DécisionItération::Continue;
