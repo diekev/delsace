@@ -255,9 +255,9 @@ struct iteratrice_crue_inverse : public iteratrice_crue<T> {
 template <class T, uint64_t TAILLE_INITIALE>
 class tablet {
     T m_tablet[TAILLE_INITIALE];
-    T *m_memoire = m_tablet;
+    T *m_mémoire = m_tablet;
 
-    int64_t m_alloue = static_cast<int64_t>(TAILLE_INITIALE);
+    int64_t m_alloué = static_cast<int64_t>(TAILLE_INITIALE);
     int64_t m_taille = 0;
 
   public:
@@ -270,12 +270,12 @@ class tablet {
 
     tablet(const tablet &autre)
     {
-        copie_donnees(autre);
+        copie_données(autre);
     }
 
     tablet &operator=(const tablet &autre)
     {
-        copie_donnees(autre);
+        copie_données(autre);
         return *this;
     }
 
@@ -297,28 +297,28 @@ class tablet {
 
     void permute(tablet &autre)
     {
-        if (this->est_stocke_dans_classe() && autre.est_stocke_dans_classe()) {
+        if (this->est_stocké_dans_classe() && autre.est_stocké_dans_classe()) {
             for (auto i = 0ul; i < TAILLE_INITIALE; ++i) {
                 std::swap(m_tablet[i], autre.m_tablet[i]);
             }
         }
-        else if (this->est_stocke_dans_classe()) {
-            permute_tablet_memoire(*this, autre);
+        else if (this->est_stocké_dans_classe()) {
+            permute_tablet_mémoire(*this, autre);
         }
-        else if (autre.est_stocke_dans_classe()) {
-            permute_tablet_memoire(autre, *this);
+        else if (autre.est_stocké_dans_classe()) {
+            permute_tablet_mémoire(autre, *this);
         }
         else {
-            std::swap(m_memoire, autre.m_memoire);
+            std::swap(m_mémoire, autre.m_mémoire);
         }
 
         std::swap(m_taille, autre.m_taille);
-        std::swap(m_alloue, autre.m_alloue);
+        std::swap(m_alloué, autre.m_alloué);
     }
 
-    bool est_stocke_dans_classe() const
+    bool est_stocké_dans_classe() const
     {
-        return m_memoire == m_tablet;
+        return m_mémoire == m_tablet;
     }
 
     void efface()
@@ -329,15 +329,15 @@ class tablet {
     void ajoute(T const &t)
     {
         assert(m_taille < std::numeric_limits<int64_t>::max());
-        garantie_capacite(m_taille + 1);
-        m_memoire[m_taille++] = t;
+        garantie_capacité(m_taille + 1);
+        m_mémoire[m_taille++] = t;
     }
 
     void ajoute(T &&t)
     {
         assert(m_taille < std::numeric_limits<int64_t>::max());
-        garantie_capacite(m_taille + 1);
-        m_memoire[m_taille++] = std::move(t);
+        garantie_capacité(m_taille + 1);
+        m_mémoire[m_taille++] = std::move(t);
     }
 
     bool est_vide() const
@@ -348,13 +348,13 @@ class tablet {
     T &operator[](int64_t i)
     {
         assert(i >= 0 && i < m_taille);
-        return m_memoire[i];
+        return m_mémoire[i];
     }
 
     const T &operator[](int64_t i) const
     {
         assert(i >= 0 && i < m_taille);
-        return m_memoire[i];
+        return m_mémoire[i];
     }
 
     int64_t taille() const
@@ -363,33 +363,42 @@ class tablet {
         return m_taille;
     }
 
-    int64_t capacite() const
+    int64_t capacité() const
     {
-        assert(m_alloue >= static_cast<int64_t>(TAILLE_INITIALE));
-        return m_alloue;
+        assert(m_alloué >= static_cast<int64_t>(TAILLE_INITIALE));
+        return m_alloué;
+    }
+
+    int64_t taille_mémoire() const
+    {
+        if (est_stocké_dans_classe()) {
+            return 0;
+        }
+
+        return m_alloué * taille_de(T);
     }
 
     void redimensionne(int64_t n)
     {
-        garantie_capacite(n);
+        garantie_capacité(n);
         this->m_taille = n;
     }
 
     void réserve(int64_t n)
     {
-        garantie_capacite(n);
+        garantie_capacité(n);
     }
 
     const T *données() const
     {
-        assert(m_memoire);
-        return m_memoire;
+        assert(m_mémoire);
+        return m_mémoire;
     }
 
     T *données()
     {
-        assert(m_memoire);
-        return m_memoire;
+        assert(m_mémoire);
+        return m_mémoire;
     }
 
     typedef iteratrice_crue<T> iterator;
@@ -400,38 +409,38 @@ class tablet {
 
     iterator begin() const
     {
-        return iterator(&m_memoire[0]);
+        return iterator(&m_mémoire[0]);
     }
     iterator end() const
     {
-        return iterator(&m_memoire[m_taille]);
+        return iterator(&m_mémoire[m_taille]);
     }
 
     const_iterator cbegin() const
     {
-        return const_iterator(&m_memoire[0]);
+        return const_iterator(&m_mémoire[0]);
     }
     const_iterator cend() const
     {
-        return const_iterator(&m_memoire[m_taille]);
+        return const_iterator(&m_mémoire[m_taille]);
     }
 
     reverse_iterator rbegin()
     {
-        return reverse_iterator(&m_memoire[m_taille - 1]);
+        return reverse_iterator(&m_mémoire[m_taille - 1]);
     }
     reverse_iterator rend()
     {
-        return reverse_iterator(&m_memoire[-1]);
+        return reverse_iterator(&m_mémoire[-1]);
     }
 
     const_reverse_iterator crbegin() const
     {
-        return const_reverse_iterator(&m_memoire[m_taille - 1]);
+        return const_reverse_iterator(&m_mémoire[m_taille - 1]);
     }
     const_reverse_iterator crend() const
     {
-        return const_reverse_iterator(&m_memoire[-1]);
+        return const_reverse_iterator(&m_mémoire[-1]);
     }
 
     iterator debut()
@@ -474,9 +483,9 @@ class tablet {
         return this->crend();
     }
 
-    T defile()
+    T défile()
     {
-        auto t = m_memoire[m_taille - 1];
+        auto t = m_mémoire[m_taille - 1];
         m_taille -= 1;
         return t;
     }
@@ -484,25 +493,25 @@ class tablet {
     T &front()
     {
         assert(m_taille > 0);
-        return m_memoire[0];
+        return m_mémoire[0];
     }
 
     T const &front() const
     {
         assert(m_taille > 0);
-        return m_memoire[0];
+        return m_mémoire[0];
     }
 
     T &back()
     {
         assert(m_taille > 0);
-        return m_memoire[m_taille - 1];
+        return m_mémoire[m_taille - 1];
     }
 
     T const &back() const
     {
         assert(m_taille > 0);
-        return m_memoire[m_taille - 1];
+        return m_mémoire[m_taille - 1];
     }
 
     void pop_back()
@@ -512,70 +521,70 @@ class tablet {
 
     operator tableau_statique<T>() const
     {
-        return {m_memoire, taille()};
+        return {m_mémoire, taille()};
     }
 
   private:
-    void garantie_capacite(int64_t cap)
+    void garantie_capacité(int64_t cap)
     {
         if (cap == 0) {
             return;
         }
 
-        if (cap <= m_alloue) {
+        if (cap <= m_alloué) {
             return;
         }
 
         assert(cap <= std::numeric_limits<int64_t>::max() / 2);
 
-        auto nouvelle_capacite = cap * 2;
+        auto nouvelle_capacité = cap * 2;
 
-        if (m_memoire != m_tablet) {
-            memoire::reloge_tableau("tablet", m_memoire, m_alloue, nouvelle_capacite);
+        if (m_mémoire != m_tablet) {
+            memoire::reloge_tableau("tablet", m_mémoire, m_alloué, nouvelle_capacité);
         }
         else {
-            m_memoire = memoire::loge_tableau<T>("tablet", nouvelle_capacite);
+            m_mémoire = memoire::loge_tableau<T>("tablet", nouvelle_capacité);
 
-            for (int i = 0; i < nouvelle_capacite; ++i) {
-                new (&m_memoire[i]) T();
+            for (int i = 0; i < nouvelle_capacité; ++i) {
+                new (&m_mémoire[i]) T();
             }
 
             for (int i = 0; i < m_taille; ++i) {
-                m_memoire[i] = std::move(m_tablet[i]);
+                m_mémoire[i] = std::move(m_tablet[i]);
             }
         }
 
-        m_alloue = nouvelle_capacite;
+        m_alloué = nouvelle_capacité;
     }
 
-    void copie_donnees(tablet const &autre)
+    void copie_données(tablet const &autre)
     {
         supprime_données();
 
         this->redimensionne(autre.taille());
 
         for (auto i = 0; i < autre.taille(); ++i) {
-            m_memoire[i] = autre[i];
+            m_mémoire[i] = autre[i];
         }
     }
 
     void supprime_données()
     {
-        if (m_memoire != m_tablet) {
-            memoire::deloge_tableau("tablet", m_memoire, m_alloue);
-            m_memoire = m_tablet;
-            m_alloue = TAILLE_INITIALE;
+        if (m_mémoire != m_tablet) {
+            memoire::deloge_tableau("tablet", m_mémoire, m_alloué);
+            m_mémoire = m_tablet;
+            m_alloué = TAILLE_INITIALE;
         }
     }
 
-    void permute_tablet_memoire(tablet &tablet_tablet, tablet &tablet_memoire)
+    void permute_tablet_mémoire(tablet &tablet_tablet, tablet &tablet_memoire)
     {
         for (auto i = 0ul; i < TAILLE_INITIALE; ++i) {
             std::swap(tablet_tablet.m_tablet[i], tablet_memoire.m_tablet[i]);
         }
 
-        std::swap(tablet_tablet.m_memoire, tablet_memoire.m_memoire);
-        tablet_memoire.m_memoire = tablet_memoire.m_tablet;
+        std::swap(tablet_tablet.m_mémoire, tablet_memoire.m_mémoire);
+        tablet_memoire.m_mémoire = tablet_memoire.m_tablet;
     }
 };
 
