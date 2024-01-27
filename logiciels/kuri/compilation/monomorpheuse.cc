@@ -194,7 +194,7 @@ ItemMonomorphisation *Monomorpheuse::item_résultat_pour_ident(IdentifiantCode c
     return trouve_item_pour_ident(items_résultat, ident);
 }
 
-ValeurExpression Monomorpheuse::evalue_valeur(const NoeudExpression *expr)
+ValeurExpression Monomorpheuse::évalue_valeur(const NoeudExpression *expr)
 {
     auto résultat = évalue_expression(espace.compilatrice(), expr->bloc_parent, expr);
 
@@ -309,7 +309,7 @@ void Monomorpheuse::ajoute_candidat_valeur(const IdentifiantCode *ident,
     candidats.ajoute({ident, type, valeur, false});
 }
 
-void Monomorpheuse::ajoute_candidat_depuis_reference_declaration(
+void Monomorpheuse::ajoute_candidat_depuis_référence_déclaration(
     const NoeudExpressionReference *reference, const Type *type_reçu)
 {
     auto const decl = reference->declaration_referee;
@@ -319,7 +319,7 @@ void Monomorpheuse::ajoute_candidat_depuis_reference_declaration(
     }
     else if (decl->est_type_structure()) {
         auto const structure = decl->comme_type_structure();
-        ajoute_candidats_depuis_declaration_structure(structure, type_reçu);
+        ajoute_candidats_depuis_déclaration_structure(structure, type_reçu);
     }
 }
 
@@ -370,7 +370,7 @@ void Monomorpheuse::ajoute_candidats_depuis_type_fonction(
     }
 }
 
-void Monomorpheuse::ajoute_candidats_depuis_declaration_structure(const NoeudStruct *structure,
+void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudStruct *structure,
                                                                   const Type *type_reçu)
 {
     if (!structure->est_polymorphe) {
@@ -516,7 +516,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_opaque(
     }
 }
 
-void Monomorpheuse::ajoute_candidats_depuis_declaration_tranche(
+void Monomorpheuse::ajoute_candidats_depuis_déclaration_tranche(
     const NoeudExpressionTypeTranche *expr_type_tranche,
     const NoeudExpression *site,
     const Type *type_reçu)
@@ -544,7 +544,7 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_tranche(
     parse_candidats(expression_type, site, type_élément);
 }
 
-void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
+void Monomorpheuse::ajoute_candidats_depuis_déclaration_tableau(
     const NoeudExpressionTypeTableauDynamique *expr_type_tableau,
     const NoeudExpression *site,
     const Type *type_reçu)
@@ -560,7 +560,7 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
     parse_candidats(expression_type, site, type_tableau->type_pointe);
 }
 
-void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
+void Monomorpheuse::ajoute_candidats_depuis_déclaration_tableau(
     const NoeudExpressionTypeTableauFixe *expr_type_tableau,
     const NoeudExpression *site,
     const Type *type_reçu)
@@ -618,20 +618,20 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
     }
     else if (expression_polymorphique->est_expression_type_tranche()) {
         auto type_tranche = expression_polymorphique->comme_expression_type_tranche();
-        ajoute_candidats_depuis_declaration_tranche(type_tranche, site, type_reçu);
+        ajoute_candidats_depuis_déclaration_tranche(type_tranche, site, type_reçu);
     }
     else if (expression_polymorphique->est_expression_type_tableau_dynamique()) {
         auto type_tableau_dynamique =
             expression_polymorphique->comme_expression_type_tableau_dynamique();
-        ajoute_candidats_depuis_declaration_tableau(type_tableau_dynamique, site, type_reçu);
+        ajoute_candidats_depuis_déclaration_tableau(type_tableau_dynamique, site, type_reçu);
     }
     else if (expression_polymorphique->est_expression_type_tableau_fixe()) {
         auto type_tableau_fixe = expression_polymorphique->comme_expression_type_tableau_fixe();
-        ajoute_candidats_depuis_declaration_tableau(type_tableau_fixe, site, type_reçu);
+        ajoute_candidats_depuis_déclaration_tableau(type_tableau_fixe, site, type_reçu);
     }
     else if (expression_polymorphique->est_reference_declaration()) {
         auto const ref_decl = expression_polymorphique->comme_reference_declaration();
-        ajoute_candidat_depuis_reference_declaration(ref_decl, type_reçu);
+        ajoute_candidat_depuis_référence_déclaration(ref_decl, type_reçu);
     }
     else if (expression_polymorphique->est_construction_structure()) {
         auto const construction = expression_polymorphique->comme_construction_structure();
@@ -994,7 +994,7 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
         assert(item);
         return typeuse().type_tableau_fixe(type_pointe, int32_t(item->valeur.entière()));
     }
-    auto valeur_taille = evalue_valeur(expression_taille);
+    auto valeur_taille = évalue_valeur(expression_taille);
     if (!valeur_taille.est_entière()) {
         erreur_sémantique(expression_taille, "La taille du tableau n'est pas une valeur entière");
         return nullptr;
@@ -1156,7 +1156,7 @@ RésultatMonomorphisation détermine_monomorphisation(
                 monomorpheuse.ajoute_candidat(param->ident, slot->type);
             }
             else {
-                auto valeur = monomorpheuse.evalue_valeur(slot);
+                auto valeur = monomorpheuse.évalue_valeur(slot);
                 monomorpheuse.ajoute_candidat_valeur(param->ident, slot->type, valeur);
             }
         }

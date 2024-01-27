@@ -64,7 +64,7 @@ struct Monomorphisations {
     NoeudExpression *trouve_monomorphisation(
         kuri::tableau_statique<ItemMonomorphisation> items) const;
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     int taille() const;
 

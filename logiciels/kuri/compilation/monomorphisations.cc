@@ -51,17 +51,17 @@ void Monomorphisations::ajoute(const tableau_items &items, NoeudExpression *noeu
     monomorphisations->ajoute({items, noeud});
 }
 
-int64_t Monomorphisations::memoire_utilisee() const
+int64_t Monomorphisations::mémoire_utilisée() const
 {
-    int64_t memoire = 0;
-    memoire += monomorphisations->taille() *
-               (taille_de(NoeudExpression *) + taille_de(tableau_items));
+    int64_t résultat = 0;
+    résultat += monomorphisations->taille() *
+                (taille_de(NoeudExpression *) + taille_de(tableau_items));
 
     POUR (*monomorphisations.verrou_lecture()) {
-        memoire += it.premier.taille() * (taille_de(ItemMonomorphisation));
+        résultat += it.premier.taille() * (taille_de(ItemMonomorphisation));
     }
 
-    return memoire;
+    return résultat;
 }
 
 int Monomorphisations::taille() const
