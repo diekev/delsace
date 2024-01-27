@@ -184,7 +184,7 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
     return noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE);
 }
 
-static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
+static bool ajoute_dependances_au_programme(GrapheDépendance &graphe,
                                             DonnneesResolutionDependances &données_dependances,
                                             EspaceDeTravail *espace,
                                             Programme &programme,
@@ -194,7 +194,7 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
     auto &dependances = données_dependances.dependances;
 
     /* Ajoute les fonctions. */
-    kuri::pour_chaque_élément(dependances.fonctions_utilisees, [&](auto &fonction) {
+    kuri::pour_chaque_élément(dependances.fonctions_utilisées, [&](auto &fonction) {
         if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE) &&
             !programme.pour_métaprogramme()) {
             possède_erreur = true;
@@ -216,13 +216,13 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
     }
 
     /* Ajoute les globales. */
-    kuri::pour_chaque_élément(dependances.globales_utilisees, [&](auto &globale) {
+    kuri::pour_chaque_élément(dependances.globales_utilisées, [&](auto &globale) {
         programme.ajoute_globale(const_cast<NoeudDeclarationVariable *>(globale));
         return kuri::DécisionItération::Continue;
     });
 
     /* Ajoute les types. */
-    kuri::pour_chaque_élément(dependances.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_élément(dependances.types_utilisés, [&](auto &type) {
         programme.ajoute_type(type, RaisonAjoutType::DÉPENDANCE_DIRECTE, noeud);
         return kuri::DécisionItération::Continue;
     });
@@ -230,26 +230,26 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
     auto dependances_manquantes = programme.dépendances_manquantes();
     programme.dépendances_manquantes().efface();
 
-    graphe.prepare_visite();
+    graphe.prépare_visite();
 
     dependances_manquantes.pour_chaque_element([&](NoeudDeclaration *decl) {
         auto noeud_dep = graphe.garantie_noeud_dépendance(espace, decl);
 
-        graphe.traverse(noeud_dep, [&](NoeudDependance const *relation) {
+        graphe.traverse(noeud_dep, [&](NoeudDépendance const *relation) {
             if (relation->est_fonction()) {
                 programme.ajoute_fonction(relation->fonction());
-                données_dependances.dependances_ependues.fonctions_utilisees.insère(
+                données_dependances.dependances_ependues.fonctions_utilisées.insère(
                     relation->fonction());
             }
             else if (relation->est_globale()) {
                 programme.ajoute_globale(relation->globale());
-                données_dependances.dependances_ependues.globales_utilisees.insère(
+                données_dependances.dependances_ependues.globales_utilisées.insère(
                     relation->globale());
             }
             else if (relation->est_type()) {
                 programme.ajoute_type(
                     relation->type(), RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
-                données_dependances.dependances_ependues.types_utilises.insère(relation->type());
+                données_dependances.dependances_ependues.types_utilisés.insère(relation->type());
             }
         });
     });
@@ -258,7 +258,7 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
 }
 
 struct RassembleuseDependances {
-    DonneesDependance &dependances;
+    DonnéesDépendance &dependances;
     Compilatrice *compilatrice;
     NoeudExpression *racine_;
 
@@ -274,17 +274,17 @@ struct RassembleuseDependances {
             return;
         }
 
-        dependances.types_utilises.insère(type);
+        dependances.types_utilisés.insère(type);
     }
 
     void ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     {
-        dependances.fonctions_utilisees.insère(fonction);
+        dependances.fonctions_utilisées.insère(fonction);
     }
 
     void ajoute_globale(NoeudDeclarationVariable *globale)
     {
-        dependances.globales_utilisees.insère(globale);
+        dependances.globales_utilisées.insère(globale);
     }
 
     void rassemble_dependances()
@@ -558,7 +558,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
 
 static void rassemble_dependances(NoeudExpression *racine,
                                   Compilatrice *compilatrice,
-                                  DonneesDependance &dependances)
+                                  DonnéesDépendance &dependances)
 {
     RassembleuseDependances rassembleuse{dependances, compilatrice, racine};
     rassembleuse.rassemble_dependances();
@@ -591,11 +591,11 @@ static bool type_requiers_typage(NoeudDeclarationType const *type)
 
 /* Requiers le typage de toutes les dépendances. */
 static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
-                                            DonneesDependance const &dependances,
+                                            DonnéesDépendance const &dependances,
                                             EspaceDeTravail *espace)
 {
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
-    kuri::pour_chaque_élément(dependances.fonctions_utilisees, [&](auto &fonction) {
+    kuri::pour_chaque_élément(dependances.fonctions_utilisées, [&](auto &fonction) {
         if (!fonction->corps->unité &&
             !fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
                                        DrapeauxNoeudFonction::EST_EXTERNE)) {
@@ -605,7 +605,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 
     /* Requiers le typage de toutes les déclarations utilisées. */
-    kuri::pour_chaque_élément(dependances.globales_utilisees, [&](auto &globale) {
+    kuri::pour_chaque_élément(dependances.globales_utilisées, [&](auto &globale) {
         if (!globale->unité) {
             gestionnaire.requiers_typage(espace, const_cast<NoeudDeclarationVariable *>(globale));
         }
@@ -613,7 +613,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 
     /* Requiers le typage de tous les types utilisés. */
-    kuri::pour_chaque_élément(dependances.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_élément(dependances.types_utilisés, [&](auto &type) {
         if (type_requiers_typage(type)) {
             gestionnaire.requiers_typage(espace, type);
         }
@@ -681,7 +681,7 @@ static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Pr
  * pour chacune des dépendances non-encore typée. */
 void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
                                              EspaceDeTravail *espace,
-                                             GrapheDependance &graphe)
+                                             GrapheDépendance &graphe)
 {
     DÉBUTE_STAT(DÉTERMINE_DÉPENDANCES);
     dependances.reinitialise();
@@ -694,8 +694,8 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
      * relations dans le graphe. */
     if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
         DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
-        NoeudDependance *noeud_dependance = graphe.garantie_noeud_dépendance(espace, noeud);
-        graphe.ajoute_dependances(*noeud_dependance, dependances.dependances);
+        NoeudDépendance *noeud_dependance = graphe.garantie_noeud_dépendance(espace, noeud);
+        graphe.ajoute_dépendances(*noeud_dependance, dependances.dependances);
         TERMINE_STAT(AJOUTE_DÉPENDANCES);
     }
 
@@ -875,7 +875,7 @@ void GestionnaireCode::ajoute_unité_à_liste_attente(UniteCompilation *unité)
 
 bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
                                                                     Programme *programme,
-                                                                    GrapheDependance &graphe)
+                                                                    GrapheDépendance &graphe)
 {
     /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
      * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.

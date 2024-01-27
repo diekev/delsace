@@ -114,7 +114,7 @@ struct Compilatrice {
 
     tableau_page_synchrone<MetaProgramme> métaprogrammes{};
 
-    dls::outils::Synchrone<GrapheDependance> graphe_dépendance{};
+    dls::outils::Synchrone<GrapheDépendance> graphe_dépendance{};
 
     dls::outils::Synchrone<RegistreDesOpérateurs> opérateurs{};
 

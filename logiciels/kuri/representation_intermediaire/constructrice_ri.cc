@@ -1556,17 +1556,17 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
     kuri::rassembleuse<AtomeGlobale *> rassembleuse_atomes;
     {
         auto graphe = compilatrice.graphe_dépendance.verrou_ecriture();
-        graphe->prepare_visite();
+        graphe->prépare_visite();
 
         POUR (globales_avec_déclarations) {
-            auto noeud = it->decl->noeud_dependance;
+            auto noeud = it->decl->noeud_dépendance;
             assert(noeud);
 
             if (rassembleuse_atomes.possède(it)) {
                 continue;
             }
 
-            graphe->traverse(noeud, [&](NoeudDependance const *relation) {
+            graphe->traverse(noeud, [&](NoeudDépendance const *relation) {
                 if (noeud == relation) {
                     return;
                 }

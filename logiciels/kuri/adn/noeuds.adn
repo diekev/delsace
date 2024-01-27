@@ -292,7 +292,7 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
     @code  NoeudCodeDéclarationSymbole
     @genre_valeur INVALIDE
 
-    NoeudDependance *noeud_dependance
+    NoeudDépendance *noeud_dépendance [préserve_accents]
     Atome *atome
 
     DonnéesSymboleExterne * données_externes [préserve_accents]
