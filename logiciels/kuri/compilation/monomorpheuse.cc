@@ -1143,7 +1143,7 @@ RésultatUnification Monomorpheuse::unifie()
 RésultatMonomorphisation détermine_monomorphisation(
     Monomorpheuse &monomorpheuse,
     const NoeudDeclarationEnteteFonction *entête,
-    const kuri::tableau_statique<NoeudExpression *> &arguments_reçus)
+    kuri::tableau_statique<NoeudExpression *> arguments_reçus)
 {
 #if 0
     SUR_SORTIE_PORTEE {
