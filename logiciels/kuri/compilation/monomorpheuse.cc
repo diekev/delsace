@@ -172,7 +172,7 @@ Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
         }
         else if (it->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
             /* $T */
-            items.ajoute({it->ident, nullptr, {}, GenreItem::TYPE_DE_DONNÉES});
+            items.ajoute({it->ident, nullptr, {}, GenreItem::INDÉFINI});
         }
     }
 
@@ -1093,15 +1093,23 @@ RésultatUnification Monomorpheuse::unifie()
             return erreur().value();
         }
 
-        auto résultat_contrainte = applique_contrainte(*contrainte, it);
-        if (std::holds_alternative<Attente>(résultat_contrainte)) {
-            return std::get<Attente>(résultat_contrainte);
+        if (contrainte->genre == GenreItem::INDÉFINI) {
+            contrainte->genre = it.genre;
+            contrainte->type = it.type;
+            contrainte->valeur = it.valeur;
+            contrainte->expression_type = it.expression_type;
         }
+        else {
+            auto résultat_contrainte = applique_contrainte(*contrainte, it);
+            if (std::holds_alternative<Attente>(résultat_contrainte)) {
+                return std::get<Attente>(résultat_contrainte);
+            }
 
-        auto erreur_cont = std::get<ÉtatRésolutionContrainte>(résultat_contrainte);
-        if (erreur_cont != ÉtatRésolutionContrainte::Ok) {
-            erreur_contrainte(nullptr, erreur_cont, *contrainte, it);
-            return erreur().value();
+            auto erreur_cont = std::get<ÉtatRésolutionContrainte>(résultat_contrainte);
+            if (erreur_cont != ÉtatRésolutionContrainte::Ok) {
+                erreur_contrainte(nullptr, erreur_cont, *contrainte, it);
+                return erreur().value();
+            }
         }
 
         auto résultat = item_résultat_pour_ident(it.ident);
