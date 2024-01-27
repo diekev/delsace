@@ -609,7 +609,12 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
 
     si type.infos.id == GenreInfoType.FONCTION {
         pour type.types_entrée {
-            prédéclare_type_cpp(enchaineuse, it, système)
+            type_entrée := it
+            /* Garantis que le type pointé est prédéclaré. */
+            si it.drapeaux.TYPE_EST_POINTEUR {
+                type_entrée = it.type_pointé
+            }
+            prédéclare_type_cpp(enchaineuse, type_entrée, système)
         }
 
         pour type.types_sortie {
@@ -1122,7 +1127,12 @@ génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA,
 
     si type_courant.drapeaux.TYPE_EST_FONCTION {
         pour type_courant.types_entrée {
-            génère_code_déclaration_type_c(enchaineuse, ipa, it, système_type)
+            type_entrée := it
+            /* Garantis que le type pointé est prédéclaré. */
+            si it.drapeaux.TYPE_EST_POINTEUR {
+                type_entrée = it.type_pointé
+            }
+            génère_code_déclaration_type_c(enchaineuse, ipa, type_entrée, système_type)
         }
 
         pour type_courant.types_sortie {
