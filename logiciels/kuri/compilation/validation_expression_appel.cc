@@ -1156,9 +1156,9 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
                 return ErreurAppariement::métypage_argument(it, param->type, it->type);
             }
 
-            auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
+            auto valeur = évalue_expression(espace.compilatrice(), it->bloc_parent, it);
 
-            if (valeur.est_errone) {
+            if (valeur.est_erroné) {
                 espace.rapporte_erreur(it, "La valeur n'est pas constante");
             }
 

@@ -375,7 +375,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     référence->substitution = assem->crée_litterale_reel(
                         référence->lexeme,
                         déclaration->type,
-                        decl_const->valeur_expression.reelle());
+                        decl_const->valeur_expression.réelle());
                     return;
                 }
 
@@ -383,7 +383,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     référence->substitution = assem->crée_litterale_bool(
                         référence->lexeme,
                         déclaration->type,
-                        decl_const->valeur_expression.booleenne());
+                        decl_const->valeur_expression.booléenne());
                     return;
                 }
 
@@ -392,7 +392,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     référence->substitution = assem->crée_litterale_entier(
                         référence->lexeme,
                         déclaration->type,
-                        static_cast<uint64_t>(decl_const->valeur_expression.entiere()));
+                        static_cast<uint64_t>(decl_const->valeur_expression.entière()));
                     return;
                 }
 

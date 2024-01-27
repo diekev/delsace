@@ -196,9 +196,9 @@ ItemMonomorphisation *Monomorpheuse::item_résultat_pour_ident(IdentifiantCode c
 
 ValeurExpression Monomorpheuse::evalue_valeur(const NoeudExpression *expr)
 {
-    auto résultat = evalue_expression(espace.compilatrice(), expr->bloc_parent, expr);
+    auto résultat = évalue_expression(espace.compilatrice(), expr->bloc_parent, expr);
 
-    if (résultat.est_errone) {
+    if (résultat.est_erroné) {
         erreur_sémantique(expr, "l'expression n'est pas constante");
         return {};
     }
@@ -992,14 +992,14 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
     if (expression_taille->est_reference_declaration()) {
         auto item = trouve_item_pour_ident(items_résultat, expression_taille->ident);
         assert(item);
-        return typeuse().type_tableau_fixe(type_pointe, int32_t(item->valeur.entiere()));
+        return typeuse().type_tableau_fixe(type_pointe, int32_t(item->valeur.entière()));
     }
     auto valeur_taille = evalue_valeur(expression_taille);
-    if (!valeur_taille.est_entiere()) {
+    if (!valeur_taille.est_entière()) {
         erreur_sémantique(expression_taille, "La taille du tableau n'est pas une valeur entière");
         return nullptr;
     }
-    return typeuse().type_tableau_fixe(type_pointe, static_cast<int>(valeur_taille.entiere()));
+    return typeuse().type_tableau_fixe(type_pointe, static_cast<int>(valeur_taille.entière()));
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_expansion_variadique(
