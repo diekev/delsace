@@ -15,11 +15,26 @@ struct IdentifiantCode;
 struct NoeudDeclarationType;
 using Type = NoeudDeclarationType;
 
+namespace kuri {
+struct chaine_statique;
+}
+
+enum class GenreItem : uint8_t {
+    /* Peut-être Structure($I). */
+    INDÉFINI,
+    /* Correspond à ...: $T ou $T: type_de_données */
+    TYPE_DE_DONNÉES,
+    /* Correspond à, par exemple, $V: z32 */
+    VALEUR,
+};
+
+kuri::chaine_statique chaine_pour_genre_item(GenreItem genre);
+
 struct ItemMonomorphisation {
     const IdentifiantCode *ident = nullptr;
     const Type *type = nullptr;
     ValeurExpression valeur{};
-    bool est_type = false;
+    GenreItem genre = GenreItem::INDÉFINI;
     NoeudExpression *expression_type = nullptr;
 
     bool operator==(ItemMonomorphisation const &autre) const
@@ -32,11 +47,11 @@ struct ItemMonomorphisation {
             return false;
         }
 
-        if (est_type != autre.est_type) {
+        if (genre != autre.genre) {
             return false;
         }
 
-        if (!est_type) {
+        if (genre == GenreItem::VALEUR) {
             if (valeur != autre.valeur) {
                 return false;
             }

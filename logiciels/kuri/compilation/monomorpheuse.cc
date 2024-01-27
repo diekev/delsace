@@ -18,6 +18,19 @@
 #include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"
 
+static kuri::chaine_statique commentaire_pour_genre(ItemMonomorphisation const &item)
+{
+    if (item.genre == GenreItem::VALEUR) {
+        return "une valeur";
+    }
+
+    if (item.genre == GenreItem::TYPE_DE_DONNÉES) {
+        return "un type";
+    }
+
+    return "indéfini";
+}
+
 kuri::chaine ErreurMonomorphisation::message() const
 {
 #define SI_ERREUR_EST(Type)                                                                       \
@@ -43,10 +56,9 @@ kuri::chaine ErreurMonomorphisation::message() const
         }
 
         enchaineuse << "\t\tNous voulions "
-                    << (données_erreur.item_contrainte.est_type ? "un type" : "une valeur")
-                    << ".\n";
+                    << commentaire_pour_genre(données_erreur.item_contrainte) << ".\n";
         enchaineuse << "\t\tMais nous avons reçu "
-                    << (données_erreur.item_reçu.est_type ? "un type" : "une valeur") << ".\n";
+                    << commentaire_pour_genre(données_erreur.item_reçu) << ".\n";
         return enchaineuse.chaine();
     }
     FIN_ERREUR(DonnéesErreurContrainte)
@@ -143,29 +155,29 @@ Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
         if (it->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             if (!it->type) {
                 /* Valeur taille polymorphique. */
-                items.ajoute({it->ident, nullptr, {}, false});
+                items.ajoute({it->ident, nullptr, {}, GenreItem::VALEUR});
             }
             else if (it->type->est_type_type_de_donnees()) {
                 /* $T: type_de_données */
-                items.ajoute({it->ident, nullptr, {}, true});
+                items.ajoute({it->ident, nullptr, {}, GenreItem::TYPE_DE_DONNÉES});
             }
             else {
                 /* Par exemple : $N: z32, ou $F: fonc()(rien). */
                 items.ajoute({it->ident,
                               it->type,
                               {},
-                              false,
+                              GenreItem::VALEUR,
                               it->comme_declaration_constante()->expression_type});
             }
         }
         else if (it->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
             /* $T */
-            items.ajoute({it->ident, nullptr, {}, true});
+            items.ajoute({it->ident, nullptr, {}, GenreItem::TYPE_DE_DONNÉES});
         }
     }
 
     POUR (items) {
-        items_résultat.ajoute({it.ident, nullptr, {}, false});
+        items_résultat.ajoute({it.ident, nullptr, {}, GenreItem::INDÉFINI});
     }
 }
 
@@ -299,14 +311,14 @@ void Monomorpheuse::ajoute_candidat(const IdentifiantCode *ident, const Type *ty
         type_reçu = typeuse().type_type_de_donnees(const_cast<Type *>(type_reçu));
     }
 
-    candidats.ajoute({ident, type_reçu, {}, true});
+    candidats.ajoute({ident, type_reçu, {}, GenreItem::TYPE_DE_DONNÉES});
 }
 
 void Monomorpheuse::ajoute_candidat_valeur(const IdentifiantCode *ident,
                                            const Type *type,
                                            const ValeurExpression valeur)
 {
-    candidats.ajoute({ident, type, valeur, false});
+    candidats.ajoute({ident, type, valeur, GenreItem::VALEUR});
 }
 
 void Monomorpheuse::ajoute_candidat_depuis_référence_déclaration(
@@ -878,7 +890,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
 
     kuri::tablet<ItemMonomorphisation, 6> items_structure;
     POUR (*structure_construite->bloc_constantes->membres.verrou_lecture()) {
-        items_structure.ajoute({it->ident, nullptr, {}, true});
+        items_structure.ajoute({it->ident, nullptr, {}, GenreItem::TYPE_DE_DONNÉES});
     }
 
     /* Extrait les items du résultat qui sont applicables à la structure. */
@@ -908,7 +920,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
         assert(item_structure);
 
         /* Copie tout sauf l'identifiant qui peut être différent. */
-        item_structure->est_type = item_résultat->est_type;
+        item_structure->genre = item_résultat->genre;
         item_structure->type = item_résultat->type;
         item_structure->valeur = item_résultat->valeur;
     }
@@ -1020,11 +1032,11 @@ Typeuse &Monomorpheuse::typeuse()
 RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation const &item,
                                                       ItemMonomorphisation const &candidat)
 {
-    if (item.est_type != candidat.est_type) {
+    if (item.genre != candidat.genre) {
         return ÉtatRésolutionContrainte::PasLaMêmeChose;
     }
 
-    if (item.est_type) {
+    if (item.genre == GenreItem::TYPE_DE_DONNÉES) {
         /* Nous avons un type, donc tout est bon. */
         return ÉtatRésolutionContrainte::Ok;
     }
@@ -1059,7 +1071,7 @@ RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation cons
 RésultatCompatibilité Monomorpheuse::sont_compatibles(ItemMonomorphisation const &item,
                                                       ItemMonomorphisation const &candidat)
 {
-    if (item.est_type) {
+    if (item.genre == GenreItem::TYPE_DE_DONNÉES) {
         auto résultat = cherche_transformation(candidat.type, item.type);
         if (std::holds_alternative<Attente>(résultat)) {
             return std::get<Attente>(résultat);

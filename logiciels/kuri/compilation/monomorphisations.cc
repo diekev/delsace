@@ -8,10 +8,29 @@
 #include "typage.hh"
 #include "utilitaires/log.hh"
 
+kuri::chaine_statique chaine_pour_genre_item(GenreItem genre)
+{
+    switch (genre) {
+        case GenreItem::INDÉFINI:
+        {
+            return "INDÉFINI";
+        }
+        case GenreItem::TYPE_DE_DONNÉES:
+        {
+            return "TYPE_DE_DONNÉES";
+        }
+        case GenreItem::VALEUR:
+        {
+            return "VALEUR";
+        }
+    }
+    return "ERREUR_GENRE_ITEM_INCONNU";
+}
+
 std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item)
 {
     os << item.ident->nom << " " << chaine_type(item.type);
-    if (!item.est_type) {
+    if (item.genre == GenreItem::VALEUR) {
         os << " " << item.valeur;
     }
     return os;
