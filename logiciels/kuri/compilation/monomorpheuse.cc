@@ -470,25 +470,16 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
             continue;
         }
 
-        auto decl_referee = it->comme_reference_declaration()->declaration_referee;
+        auto param_poly = membre_pour_ident_ou_index(
+            decl_struct_type->bloc_constantes, ident_param, i);
 
-        if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            auto param_poly = membre_pour_ident_ou_index(
-                decl_struct_type->bloc_constantes, ident_param, i);
-            if (decl_referee->type->est_type_type_de_donnees()) {
-                ajoute_candidat(it->ident, param_poly->type);
-            }
-            else {
-                ajoute_candidat_valeur(
-                    it->ident,
-                    param_poly->type,
-                    param_poly->comme_declaration_constante()->valeur_expression);
-            }
-        }
-        else if (decl_referee->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-            auto param_poly = membre_pour_ident_ou_index(
-                decl_struct_type->bloc_constantes, ident_param, i);
+        if (param_poly->type->est_type_type_de_donnees()) {
             ajoute_candidat(it->ident, param_poly->type);
+        }
+        else {
+            ajoute_candidat_valeur(it->ident,
+                                   param_poly->type,
+                                   param_poly->comme_declaration_constante()->valeur_expression);
         }
     }
 }
