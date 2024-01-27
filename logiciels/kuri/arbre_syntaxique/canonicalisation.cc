@@ -844,8 +844,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             bloc_substitution->ajoute_expression(differe);
 
             /* À FAIRE : surécrire le bloc_parent d'un bloc avec un bloc de substitution peut avoir
-             * des conséquences incertaines mais nous avons du bloc de substitution dans la liste
-             * des ancêtres du bloc afin que l'instruction diffère soit gérée dans la RI. */
+             * des conséquences incertaines mais nous devons avoir le bloc de substitution dans la
+             * liste des ancêtres du bloc afin que l'instruction diffère soit gérée dans la RI. */
             pousse_contexte->bloc->bloc_parent = bloc_substitution;
 
             /* Finalement ajoute le code du bloc, après l'instruction de différation. */
