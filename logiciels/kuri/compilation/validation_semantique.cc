@@ -2322,7 +2322,7 @@ static void rassemble_expressions(NoeudExpression *expr,
     }
 }
 
-RésultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
+RésultatValidation Sémanticienne::valide_expression_retour(NoeudInstructionRetour *inst)
 {
     auto fonction = fonction_courante();
     auto type_sortie = Type::nul();

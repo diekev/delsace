@@ -375,10 +375,10 @@ struct NoeudAssignationMultiple : NoeudExpression {
     DonneesAssignations [compressé] données_exprs [préserve_accents]
 }
 
-struct NoeudRetour : NoeudExpression {
+struct NoeudInstructionRetour : NoeudExpression {
     @genre INSTRUCTION_RETOUR
     @comme retourne
-    @code  NoeudCodeRetour
+    @code  NoeudCodeInstructionRetour
     @genre_valeur INVALIDE
 
     NoeudExpression *expression [code enfant]

@@ -1546,7 +1546,7 @@ void Simplificatrice::crée_retourne_union_via_rien(NoeudDeclarationEnteteFoncti
 
 /* Les retours sont simplifiés sous forme d'assignations des valeurs de retours,
  * et d'un chargement pour les retours simples. */
-void Simplificatrice::simplifie_retour(NoeudRetour *inst)
+void Simplificatrice::simplifie_retour(NoeudInstructionRetour *inst)
 {
     if (inst->aide_generation_code == RETOURNE_UNE_UNION_VIA_RIEN) {
         auto bloc = assem->crée_bloc_seul(inst->lexeme, inst->bloc_parent);

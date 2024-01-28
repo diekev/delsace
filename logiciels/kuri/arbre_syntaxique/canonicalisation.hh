@@ -23,7 +23,7 @@ struct NoeudExpressionMembre;
 struct NoeudExpressionReference;
 struct NoeudPour;
 struct NoeudRetiens;
-struct NoeudRetour;
+struct NoeudInstructionRetour;
 struct NoeudSi;
 struct NoeudStruct;
 struct Typeuse;
@@ -98,7 +98,7 @@ struct Simplificatrice {
     template <int N>
     void simplifie_discr_impl(NoeudDiscr *discr);
     void simplifie_retiens(NoeudRetiens *retiens);
-    void simplifie_retour(NoeudRetour *inst);
+    void simplifie_retour(NoeudInstructionRetour *inst);
     void simplifie_construction_structure(NoeudExpressionConstructionStructure *construction);
     void simplifie_construction_union(NoeudExpressionConstructionStructure *construction);
     void simplifie_construction_structure_position_code_source(
