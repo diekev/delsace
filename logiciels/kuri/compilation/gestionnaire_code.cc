@@ -1925,6 +1925,7 @@ void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
     m_compilatrice->messagère->termine_interception(espace);
 
     kuri::tableau<UniteCompilation *> nouvelles_unites;
+    nouvelles_unites.réserve(unites_en_attente.taille());
 
     POUR (unites_en_attente) {
         if (it->donne_raison_d_être() == RaisonDEtre::ENVOIE_MESSAGE) {
