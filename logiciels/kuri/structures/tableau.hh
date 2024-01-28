@@ -231,6 +231,11 @@ struct tableau {
         return m_taille;
     }
 
+    TypeIndex capacité() const
+    {
+        return m_capacité;
+    }
+
     bool est_vide() const
     {
         return this->m_taille == 0;
