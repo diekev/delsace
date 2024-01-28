@@ -99,21 +99,21 @@ struct tableau {
 
     void ajoute(T const &valeur)
     {
-        réserve(this->m_taille + 1);
+        agrandis(this->m_taille + 1);
         this->m_taille += 1;
         this->m_éléments[this->m_taille - 1] = valeur;
     }
 
     void ajoute(T &&valeur)
     {
-        réserve(this->m_taille + 1);
+        agrandis(this->m_taille + 1);
         this->m_taille += 1;
         this->m_éléments[this->m_taille - 1] = std::move(valeur);
     }
 
     void ajoute_au_début(T const &valeur)
     {
-        réserve(this->m_taille + 1);
+        agrandis(this->m_taille + 1);
         this->m_taille += 1;
 
         for (auto i = this->m_taille - 1; i >= 1; --i) {
@@ -152,19 +152,36 @@ struct tableau {
             return;
         }
 
+        memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, nombre);
+        this->m_capacité = nombre;
+    }
+
+  private:
+    void agrandis(TypeIndex nombre)
+    {
+        if (m_capacité >= nombre) {
+            return;
+        }
+
         if (m_capacité == 0) {
             if (nombre < 8) {
                 nombre = 8;
             }
         }
-        else if (nombre < (m_capacité * 2)) {
-            nombre = m_capacité * 2;
+        else {
+            /* Facteur d'agrandissement de 1.5.
+             * Voir https://github.com/facebook/folly/blob/main/folly/docs/FBVector.md. */
+            auto const mi_capacité = m_capacité >> 1;
+            if (nombre < (m_capacité + mi_capacité)) {
+                nombre = m_capacité + mi_capacité;
+            }
         }
 
         memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, nombre);
         this->m_capacité = nombre;
     }
 
+  public:
     T *données()
     {
         return m_éléments;
