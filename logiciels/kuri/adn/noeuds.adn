@@ -382,6 +382,15 @@ struct NoeudInstructionRetour : NoeudExpression {
     @genre_valeur INVALIDE
 
     NoeudExpression *expression [code enfant]
+}
+
+/* Pour les fonctions retournant plusieurs valeurs. */
+struct NoeudInstructionRetourMultiple : NoeudInstructionRetour {
+    @genre INSTRUCTION_RETOUR_MULTIPLE
+    @comme retourne_multiple
+    @code  NoeudCodeInstructionRetourMultiple
+    @genre_valeur INVALIDE
+
     DonneesAssignations [compressé] donnees_exprs
 }
 

@@ -844,6 +844,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto inst = noeud->comme_retourne();
             return valide_expression_retour(inst);
         }
+        case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+        {
+            auto inst = noeud->comme_retourne_multiple();
+            return valide_instruction_retourne_multiple(inst);
+        }
         case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
         {
             noeud->type = TypeBase::CHAINE;
@@ -1473,11 +1478,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
                 auto di = derniere_instruction(inst->bloc);
 
-                if (di == nullptr || !dls::outils::est_element(di->genre,
-                                                               GenreNoeud::INSTRUCTION_RETOUR,
-                                                               GenreNoeud::INSTRUCTION_ARRETE,
-                                                               GenreNoeud::INSTRUCTION_CONTINUE,
-                                                               GenreNoeud::INSTRUCTION_REPRENDS)) {
+                if (di == nullptr ||
+                    !dls::outils::est_element(di->genre,
+                                              GenreNoeud::INSTRUCTION_RETOUR,
+                                              GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE,
+                                              GenreNoeud::INSTRUCTION_ARRETE,
+                                              GenreNoeud::INSTRUCTION_CONTINUE,
+                                              GenreNoeud::INSTRUCTION_REPRENDS)) {
                     rapporte_erreur("Un bloc de piège doit obligatoirement retourner, ou si dans "
                                     "une boucle, la continuer, l'arrêter, ou la reprendre",
                                     inst);
@@ -2396,14 +2403,90 @@ RésultatValidation Sémanticienne::valide_expression_retour(NoeudInstructionRet
         }
 
         inst->type = TypeBase::CHAINE;
-
-        DonneesAssignations donnees;
-        donnees.expression = inst->expression;
-        donnees.variables.ajoute(fonction_courante()->params_sorties[0]);
-        donnees.transformations.ajoute({});
-
-        inst->donnees_exprs.ajoute(std::move(donnees));
         return CodeRetourValidation::OK;
+    }
+
+    if (type_sortie->est_type_rien()) {
+        m_espace->rapporte_erreur(inst->expression,
+                                  "Retour d'une valeur d'une fonction qui ne retourne rien");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto expression = inst->expression;
+    auto ident_variable = IdentifiantCode::nul();
+    if (expression->est_assignation_variable()) {
+        auto assignation = expression->comme_assignation_variable();
+        ident_variable = assignation->comme_reference_declaration()->ident;
+        expression = assignation->expression;
+    }
+
+    if (ident_variable && ident_variable != fonction->params_sorties[0]->ident) {
+        m_espace->rapporte_erreur(
+            inst->expression,
+            "Le nom de la variable de retour n'est pas le nom du paramètre de sortie");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto résultat = cherche_transformation(expression->type, type_sortie);
+
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
+    }
+
+    auto transformation = std::get<TransformationType>(résultat);
+
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+        rapporte_erreur_assignation_type_différents(type_sortie, expression->type, expression);
+        return CodeRetourValidation::Erreur;
+    }
+
+    crée_transtypage_implicite_au_besoin(inst->expression, transformation);
+
+    inst->type = type_sortie;
+
+    return CodeRetourValidation::OK;
+}
+
+RésultatValidation Sémanticienne::valide_instruction_retourne_multiple(
+    NoeudInstructionRetourMultiple *inst)
+{
+    auto fonction = fonction_courante();
+    auto type_sortie = Type::nul();
+    auto est_corps_texte = false;
+
+    if (fonction) {
+        auto type_fonc = fonction_courante()->type->comme_type_fonction();
+        type_sortie = type_fonc->type_sortie;
+        est_corps_texte = fonction_courante()->corps->est_corps_texte;
+    }
+    else {
+        /* Nous pouvons être dans le bloc d'un #test, auquel cas la fonction n'a pas encore été
+         * créée car la validation du bloc se fait avant le noeud. Vérifions si tel est le cas. */
+        if (!(racine_validation()->est_execute() && racine_validation()->ident == ID::test)) {
+            m_espace->rapporte_erreur(inst,
+                                      "Utilisation de « retourne » en dehors d'une fonction, d'un "
+                                      "opérateur, ou d'un #test");
+            return CodeRetourValidation::Erreur;
+        }
+
+        /* Un #test ne doit rien retourner. */
+        type_sortie = TypeBase::RIEN;
+    }
+
+    auto const bloc_parent = inst->bloc_parent;
+    if (bloc_est_dans_differe(bloc_parent)) {
+        rapporte_erreur("« retourne » utilisée dans un bloc « diffère »", inst);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (inst->expression == nullptr) {
+        rapporte_erreur("Expression de retour manquante", inst);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (est_corps_texte) {
+        rapporte_erreur("Trop d'expression de retour pour le corps texte", inst->expression);
+        return CodeRetourValidation::Erreur;
     }
 
     if (type_sortie->est_type_rien()) {

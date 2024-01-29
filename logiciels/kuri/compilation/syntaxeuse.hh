@@ -49,6 +49,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     kuri::pile<NoeudDeclarationEnteteFonction *> fonctions_courantes{};
 
+    bool m_fonction_courante_retourne_plusieurs_valeurs = false;
+
   public:
     Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite);
 

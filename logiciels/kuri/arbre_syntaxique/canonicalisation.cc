@@ -641,6 +641,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie_retour(retour);
             return;
         }
+        case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+        {
+            auto retour = noeud->comme_retourne_multiple();
+            simplifie_retour(retour);
+            return;
+        }
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
@@ -1540,8 +1546,7 @@ void Simplificatrice::crée_retourne_union_via_rien(NoeudDeclarationEnteteFoncti
     bloc_d_insertion->ajoute_expression(retourne);
 }
 
-/* Les retours sont simplifiés sous forme d'assignations des valeurs de retours,
- * et d'un chargement pour les retours simples. */
+/* Les retours sont simplifiés sous forme d'un chargement pour les retours simples. */
 void Simplificatrice::simplifie_retour(NoeudInstructionRetour *inst)
 {
     if (inst->aide_generation_code == RETOURNE_UNE_UNION_VIA_RIEN) {
@@ -1554,10 +1559,19 @@ void Simplificatrice::simplifie_retour(NoeudInstructionRetour *inst)
     /* Nous n'utilisons pas le type de la fonction_courante car elle peut être nulle dans le cas où
      * nous avons un #test. */
     auto type_sortie = inst->type;
-
     if (type_sortie->est_type_rien()) {
         return;
     }
+
+    simplifie(inst->expression);
+}
+
+/* Les retours sont simplifiés sous forme d'assignations des valeurs de retours. */
+void Simplificatrice::simplifie_retour(NoeudInstructionRetourMultiple *inst)
+{
+    /* Nous n'utilisons pas le type de la fonction_courante car elle peut être nulle dans le cas où
+     * nous avons un #test. */
+    assert(!inst->type->est_type_rien());
 
     /* Crée une assignation pour chaque sortie. */
     POUR (inst->donnees_exprs.plage()) {
