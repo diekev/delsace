@@ -18,8 +18,6 @@
 
 /*
   À FAIRE(gestion) : pour chaque type :
-- création d'une déclaration de type (ajout d'un noeud syntaxique: NoeudDéclarationType, d'où
-dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
 - avoir un lexème sentinel pour l'impression des erreurs si le noeud est crée lors de la
 compilation
  */
