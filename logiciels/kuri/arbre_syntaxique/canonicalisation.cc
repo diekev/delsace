@@ -677,7 +677,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 corrige_bloc_pour_assignation(nouveau_si->bloc_si_vrai, ref_temp);
                 corrige_bloc_pour_assignation(nouveau_si->bloc_si_faux, ref_temp);
 
-                bloc->ajoute_membre(decl_temp);
                 bloc->ajoute_expression(decl_temp);
                 bloc->ajoute_expression(nouveau_si);
                 bloc->ajoute_expression(ref_temp);
@@ -824,7 +823,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 pousse_contexte->lexeme, contexte_courant->type, nullptr, ref_contexte_courant);
             auto ref_sauvegarde_contexte = assem->crée_reference_declaration(
                 pousse_contexte->lexeme, sauvegarde_contexte);
-            bloc_substitution->ajoute_membre(sauvegarde_contexte);
             bloc_substitution->ajoute_expression(sauvegarde_contexte);
 
             // __contexte_fil_principal = expr
@@ -1042,8 +1040,6 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     auto ref_index = assem->crée_reference_declaration(it->lexeme, index_it);
 
     auto bloc_pre = assem->crée_bloc_seul(nullptr, boucle->bloc_parent);
-    bloc_pre->ajoute_membre(it);
-    bloc_pre->ajoute_membre(index_it);
 
     bloc_pre->ajoute_expression(it);
     bloc_pre->ajoute_expression(index_it);
@@ -1741,7 +1737,6 @@ void Simplificatrice::simplifie_construction_union(
                                                               decl_position);
 
         auto bloc = assem->crée_bloc_seul(lexème, site->bloc_parent);
-        bloc->ajoute_membre(decl_position);
         bloc->ajoute_expression(decl_position);
 
         auto appel = crée_appel_fonction_init(lexème, ref_position);
@@ -1844,7 +1839,6 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
     };
 
     auto bloc = assem->crée_bloc_seul(lexème, site->bloc_parent);
-    bloc->ajoute_membre(decl_position);
     bloc->ajoute_expression(decl_position);
 
     for (auto couple : couples_ref_membre_expression) {
@@ -1866,7 +1860,6 @@ NoeudExpressionReference *Simplificatrice::génère_simplification_construction_
         lexème, type_struct, nullptr, &non_initialisation);
     auto référence = assem->crée_reference_declaration(déclaration->lexeme, déclaration);
 
-    bloc->ajoute_membre(déclaration);
     bloc->ajoute_expression(déclaration);
 
     POUR_INDEX (construction->parametres_resolus) {
@@ -1946,7 +1939,6 @@ void Simplificatrice::simplifie_construction_opaque_depuis_structure(NoeudExpres
 
     auto decl_opaque = assem->crée_declaration_variable(lexème, type_opaque, nullptr, comme);
     auto ref_opaque = assem->crée_reference_declaration(decl_opaque->lexeme, decl_opaque);
-    bloc->ajoute_membre(decl_opaque);
     bloc->ajoute_expression(decl_opaque);
 
     /* La dernière expression sera utilisée lors de la génération de RI pour
@@ -2450,7 +2442,6 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
     auto decl_variable = assem->crée_declaration_variable(
         la_discriminée->lexeme, la_discriminée->type, nullptr, la_discriminée);
 
-    bloc->ajoute_membre(decl_variable);
     bloc->ajoute_expression(decl_variable);
 
     auto ref_decl = assem->crée_reference_declaration(decl_variable->lexeme, decl_variable);
