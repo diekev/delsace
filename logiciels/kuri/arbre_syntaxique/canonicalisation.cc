@@ -1575,14 +1575,8 @@ void Simplificatrice::simplifie_retour(NoeudInstructionRetour *inst)
     assignation->données_exprs = std::move(inst->donnees_exprs);
 
     auto retour = assem->crée_retourne(inst->lexeme);
-
-    if (type_sortie->est_type_rien()) {
-        retour->expression = nullptr;
-    }
-    else {
-        retour->expression = assem->crée_reference_declaration(
-            fonction_courante->param_sortie->lexeme, fonction_courante->param_sortie);
-    }
+    retour->expression = assem->crée_reference_declaration(fonction_courante->param_sortie->lexeme,
+                                                           fonction_courante->param_sortie);
 
     auto bloc = assem->crée_bloc_seul(inst->lexeme, inst->bloc_parent);
     bloc->ajoute_expression(assignation);
