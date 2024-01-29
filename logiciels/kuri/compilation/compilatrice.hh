@@ -70,6 +70,7 @@ struct ArgumentsCompilatrice {
     bool émets_stats_ops_exécution = false;
     bool préserve_symboles = false;
     bool sans_stats = false;
+    bool stats_détaillées = false;
     bool sans_traces_d_appel = false;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
