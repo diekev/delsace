@@ -106,9 +106,10 @@ static void imprime_stats(Compilatrice const &compilatrice,
 
     imprime_stats(stats, debut_compilation);
     compilatrice.gestionnaire_code->imprime_stats();
-#ifdef STATISTIQUES_DETAILLEES
-    imprime_stats_détaillées(stats);
-#endif
+
+    if (compilatrice.arguments.stats_détaillées) {
+        imprime_stats_détaillées(stats);
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -199,6 +200,9 @@ static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArgument
 static ActionParsageArgument gère_argument_coulisse(ParseuseArguments &parseuse,
                                                     ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_stats_détaillées(ParseuseArguments & /*parseuse*/,
+                                                            ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--",
@@ -249,6 +253,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "",
      "N'imprime pas les statistiques à la fin de la compilation",
      gère_argument_sans_stats},
+    {"--stats_détaillées",
+     "",
+     "",
+     "Imprime les détails des statistiques",
+     gère_argument_stats_détaillées},
     {"--sans_traces_d_appel",
      "",
      "",
@@ -411,6 +420,13 @@ static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments & /*par
                                                       ArgumentsCompilatrice &résultat)
 {
     résultat.sans_stats = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_stats_détaillées(ParseuseArguments & /*parseuse*/,
+                                                            ArgumentsCompilatrice &résultat)
+{
+    résultat.stats_détaillées = true;
     return ActionParsageArgument::CONTINUE;
 }
 
