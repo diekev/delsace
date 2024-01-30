@@ -22,7 +22,7 @@
 struct AllocatriceNoeud;
 struct AtomeGlobale;
 struct Compilatrice;
-struct GrapheDependance;
+struct GrapheDépendance;
 struct IdentifiantCode;
 struct InfoType;
 struct RegistreDesOpérateurs;
@@ -35,7 +35,7 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationTypeTranche;
 struct NoeudDeclarationTypeOpaque;
 struct NoeudDeclarationOperateurPour;
-struct NoeudDependance;
+struct NoeudDépendance;
 struct NoeudEnum;
 struct NoeudExpression;
 struct NoeudStruct;
@@ -221,7 +221,7 @@ struct Trie {
 // À FAIRE(table type) : il peut y avoir une concurrence critique pour l'assignation d'index aux
 // types
 struct Typeuse {
-    dls::outils::Synchrone<GrapheDependance> &graphe_;
+    dls::outils::Synchrone<GrapheDépendance> &graphe_;
     dls::outils::Synchrone<RegistreDesOpérateurs> &operateurs_;
 
     // NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
@@ -293,7 +293,7 @@ struct Typeuse {
   public:
     // -------------------------
 
-    Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
+    Typeuse(dls::outils::Synchrone<GrapheDépendance> &g,
             dls::outils::Synchrone<RegistreDesOpérateurs> &o);
 
     Typeuse(Typeuse const &) = delete;

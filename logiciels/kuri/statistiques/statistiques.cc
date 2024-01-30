@@ -81,7 +81,7 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début
     tableau.ajoute_ligne(
         {"- Nombre Noeuds", formatte_nombre(stats.stats_arbre.totaux.compte), ""});
     tableau.ajoute_ligne({"- Nombre Noeuds Déps",
-                          formatte_nombre(stats.stats_graphe_dependance.totaux.compte),
+                          formatte_nombre(stats.stats_graphe_dépendance.totaux.compte),
                           ""});
     tableau.ajoute_ligne(
         {"- Nombre Opérateurs", formatte_nombre(stats.stats_opérateurs.totaux.compte), ""});
@@ -279,7 +279,7 @@ void imprime_stats_détaillées(Statistiques const &stats)
     std::cout << "Arbre Syntaxique :\n";
     imprime_stats_tableau(stats.stats_arbre);
     std::cout << "Graphe Dépendance :\n";
-    imprime_stats_tableau(stats.stats_graphe_dependance);
+    imprime_stats_tableau(stats.stats_graphe_dépendance);
     std::cout << "RI :\n";
     imprime_stats_tableau(stats.stats_ri);
     std::cout << "Operateurs :\n";
@@ -331,7 +331,7 @@ void StatistiquesGestion::imprime_stats()
 
 const kuri::tableau<MémoireUtilisée> &Statistiques::donne_mémoire_utilisée_pour_impression() const
 {
-    ajoute_mémoire_utilisée("Graphe", stats_graphe_dependance.totaux.mémoire);
+    ajoute_mémoire_utilisée("Graphe", stats_graphe_dépendance.totaux.mémoire);
     ajoute_mémoire_utilisée("Opérateurs", stats_opérateurs.totaux.mémoire);
     ajoute_mémoire_utilisée("Arbre", stats_arbre.totaux.mémoire);
     ajoute_mémoire_utilisée("Lexèmes", stats_fichiers.totaux.mémoire_lexèmes);

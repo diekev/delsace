@@ -367,6 +367,9 @@ ajoute_type_depuis_fonction :: fonc (système: *SystèmeTypeC, ipa: &IPA, foncti
 
 génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
 {
+    table_ipa := construit_table_ipa(génératrice)
+    diffère détruit_données_table_ipa(*table_ipa)
+
     génératrice.système_type = initialise_système_type(génératrice.ipa, génératrice.espace_de_nom)
     système_type := *génératrice.système_type
     diffère détruit_données_système_type(système_type)
@@ -387,9 +390,6 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
     diffère déloge(chaine_chemin_source_table)
 
     ipa := génératrice.ipa
-
-    table_ipa := construit_table_ipa(génératrice)
-    diffère détruit_données_table_ipa(*table_ipa)
 
     génère_code_entête_table(génératrice, *table_ipa, CheminFichier(chaine_chemin_entête_table))
     génère_code_source_table(génératrice, *table_ipa, CheminFichier(chaine_chemin_source_table))
@@ -609,7 +609,12 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
 
     si type.infos.id == GenreInfoType.FONCTION {
         pour type.types_entrée {
-            prédéclare_type_cpp(enchaineuse, it, système)
+            type_entrée := it
+            /* Garantis que le type pointé est prédéclaré. */
+            si it.drapeaux.TYPE_EST_POINTEUR {
+                type_entrée = it.type_pointé
+            }
+            prédéclare_type_cpp(enchaineuse, type_entrée, système)
         }
 
         pour type.types_sortie {
@@ -1122,7 +1127,12 @@ génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA,
 
     si type_courant.drapeaux.TYPE_EST_FONCTION {
         pour type_courant.types_entrée {
-            génère_code_déclaration_type_c(enchaineuse, ipa, it, système_type)
+            type_entrée := it
+            /* Garantis que le type pointé est prédéclaré. */
+            si it.drapeaux.TYPE_EST_POINTEUR {
+                type_entrée = it.type_pointé
+            }
+            génère_code_déclaration_type_c(enchaineuse, ipa, type_entrée, système_type)
         }
 
         pour type_courant.types_sortie {
@@ -1201,6 +1211,13 @@ construit_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
 
     ipa := génératrice.ipa
 
+    // tri_rapide(ipa.types, compare_types_par_nom)
+    tri_par_sélection(ipa.types, compare_types_par_nom_sélection)
+    /* Ajourne les index. À FAIRE(langage) : table des types */
+    pour ipa.types {
+        it.infos.index_dans_table_des_types = (index_it comme n32) + 1
+    }
+
     /* Rappel pour chaque fonction des types. */
     pour ipa.types {
         pour f dans it.fonctions {
@@ -1225,6 +1242,11 @@ construit_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
 compare_fonction_par_nom_rappel_pour_table :: fonc (fa: MéthodeIPA, fb: MéthodeIPA) -> z32
 {
     retourne compare_chaine(fa.nom_rappel_pour_table, fb.nom_rappel_pour_table)
+}
+
+compare_types_par_nom_sélection :: fonc (a: *TypeIPA, b: *TypeIPA) -> bool
+{
+    retourne compare_chaine(a.nom, b.nom) < 0
 }
 
 détruit_données_table_ipa :: fonc (table: *TableIPA)

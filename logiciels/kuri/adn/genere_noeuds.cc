@@ -1511,7 +1511,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
 
                     os << "if (noeud.monomorphisations) {\n";
                     os << "memoire_" << nom_comme
-                       << " += noeud.monomorphisations->memoire_utilisee();\n";
+                       << " += noeud.monomorphisations->mémoire_utilisée();\n";
                     os << nom_tableau << " = std::max(" << nom_tableau
                        << ", noeud.monomorphisations->nombre_items_max());\n";
                     os << "}\n";

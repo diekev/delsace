@@ -1790,13 +1790,21 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         }
         case GenreLexème::RETOURNE:
         {
-            auto noeud = m_tacheronne.assembleuse->crée_retourne(lexème);
             consomme();
 
+            auto expression = NoeudExpression::nul();
             if (apparie_expression()) {
-                noeud->expression = analyse_expression_avec_virgule(GenreLexème::RETOURNE);
+                expression = analyse_expression_avec_virgule(GenreLexème::RETOURNE);
             }
 
+            if (m_fonction_courante_retourne_plusieurs_valeurs) {
+                auto noeud = m_tacheronne.assembleuse->crée_retourne_multiple(lexème);
+                noeud->expression = expression;
+                return noeud;
+            }
+
+            auto noeud = m_tacheronne.assembleuse->crée_retourne(lexème);
+            noeud->expression = expression;
             return noeud;
         }
         case GenreLexème::BOUCLE:
@@ -2650,6 +2658,9 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     else {
         ignore_point_virgule_implicite();
 
+        auto ancien_état_retour = m_fonction_courante_retourne_plusieurs_valeurs;
+        m_fonction_courante_retourne_plusieurs_valeurs = noeud->params_sorties.taille() > 1;
+
         auto noeud_corps = noeud->corps;
         fonctions_courantes.empile(noeud);
 
@@ -2668,6 +2679,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
 
         analyse_annotations(noeud->annotations);
         fonctions_courantes.depile();
+        m_fonction_courante_retourne_plusieurs_valeurs = ancien_état_retour;
     }
 
     /* dépile le bloc des paramètres */
@@ -3147,6 +3159,9 @@ void Syntaxeuse::analyse_membres_structure_ou_union(NoeudDeclarationClasse *decl
         return;
     }
 
+    auto ancien_état_retour = m_fonction_courante_retourne_plusieurs_valeurs;
+    m_fonction_courante_retourne_plusieurs_valeurs = false;
+
     NoeudBloc *bloc;
     if (decl_struct->est_corps_texte) {
         bloc = analyse_bloc();
@@ -3154,6 +3169,8 @@ void Syntaxeuse::analyse_membres_structure_ou_union(NoeudDeclarationClasse *decl
     else {
         bloc = analyse_bloc_membres_structure_ou_union(decl_struct);
     }
+
+    m_fonction_courante_retourne_plusieurs_valeurs = ancien_état_retour;
 
     decl_struct->bloc = bloc;
     bloc->ident = decl_struct->ident;

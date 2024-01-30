@@ -185,48 +185,48 @@ imprime_date_http :: fonc (enchaineuse: *Enchaineuse, date: DateHTTP)
     tampon : TamponFixe(T = z8, N = 29)
 
     pour chaine_jour_pour_tm(date.jour_semaine) {
-        ajoute(*tampon, it, 29)
+        ajoute(*tampon, it)
     }
 
-    ajoute(*tampon, ',', 29)
-    ajoute(*tampon, ' ', 29)
+    ajoute(*tampon, ',')
+    ajoute(*tampon, ' ')
 
-    ajoute(*tampon, '0' + (date.jour / 10) comme z8, 29)
-    ajoute(*tampon, '0' + (date.jour % 10) comme z8, 29)
+    ajoute(*tampon, '0' + (date.jour / 10) comme z8)
+    ajoute(*tampon, '0' + (date.jour % 10) comme z8)
 
-    ajoute(*tampon, ' ', 29)
+    ajoute(*tampon, ' ')
 
     pour chaine_mois_pour_tm(date.mois) {
-        ajoute(*tampon, it, 29)
+        ajoute(*tampon, it)
     }
 
-    ajoute(*tampon, ' ', 29)
+    ajoute(*tampon, ' ')
 
     année := date.année
 
-    ajoute(*tampon, '0' + (année / 1000) comme z8, 29)
+    ajoute(*tampon, '0' + (année / 1000) comme z8)
     année %= 1000
-    ajoute(*tampon, '0' + (année / 100) comme z8, 29)
+    ajoute(*tampon, '0' + (année / 100) comme z8)
     année %= 100
-    ajoute(*tampon, '0' + (année / 10) comme z8, 29)
+    ajoute(*tampon, '0' + (année / 10) comme z8)
     année %= 10
-    ajoute(*tampon, '0' + (année) comme z8, 29)
+    ajoute(*tampon, '0' + (année) comme z8)
 
-    ajoute(*tampon, ' ', 29)
+    ajoute(*tampon, ' ')
 
-    ajoute(*tampon, '0' + (date.heure / 10) comme z8, 29)
-    ajoute(*tampon, '0' + (date.heure % 10) comme z8, 29)
-    ajoute(*tampon, ':', 29)
-    ajoute(*tampon, '0' + (date.minute / 10) comme z8, 29)
-    ajoute(*tampon, '0' + (date.minute % 10) comme z8, 29)
-    ajoute(*tampon, ':', 29)
-    ajoute(*tampon, '0' + (date.seconde / 10) comme z8, 29)
-    ajoute(*tampon, '0' + (date.seconde % 10) comme z8, 29)
+    ajoute(*tampon, '0' + (date.heure / 10) comme z8)
+    ajoute(*tampon, '0' + (date.heure % 10) comme z8)
+    ajoute(*tampon, ':')
+    ajoute(*tampon, '0' + (date.minute / 10) comme z8)
+    ajoute(*tampon, '0' + (date.minute % 10) comme z8)
+    ajoute(*tampon, ':')
+    ajoute(*tampon, '0' + (date.seconde / 10) comme z8)
+    ajoute(*tampon, '0' + (date.seconde % 10) comme z8)
 
-    ajoute(*tampon, ' ', 29)
-    ajoute(*tampon, 'G', 29)
-    ajoute(*tampon, 'M', 29)
-    ajoute(*tampon, 'T', 29)
+    ajoute(*tampon, ' ')
+    ajoute(*tampon, 'G')
+    ajoute(*tampon, 'M')
+    ajoute(*tampon, 'T')
 
     chn : chaine
     chn.pointeur = *tampon.données[0]
