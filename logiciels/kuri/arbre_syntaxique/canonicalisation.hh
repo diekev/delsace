@@ -23,7 +23,8 @@ struct NoeudExpressionMembre;
 struct NoeudExpressionReference;
 struct NoeudPour;
 struct NoeudRetiens;
-struct NoeudRetour;
+struct NoeudInstructionRetour;
+struct NoeudInstructionRetourMultiple;
 struct NoeudSi;
 struct NoeudStruct;
 struct Typeuse;
@@ -98,7 +99,8 @@ struct Simplificatrice {
     template <int N>
     void simplifie_discr_impl(NoeudDiscr *discr);
     void simplifie_retiens(NoeudRetiens *retiens);
-    void simplifie_retour(NoeudRetour *inst);
+    void simplifie_retour(NoeudInstructionRetour *inst);
+    void simplifie_retour(NoeudInstructionRetourMultiple *inst);
     void simplifie_construction_structure(NoeudExpressionConstructionStructure *construction);
     void simplifie_construction_union(NoeudExpressionConstructionStructure *construction);
     void simplifie_construction_structure_position_code_source(
@@ -109,20 +111,20 @@ struct Simplificatrice {
     void simplifie_construction_opaque_depuis_structure(NoeudExpressionAppel *appel);
     void simplifie_référence_membre(NoeudExpressionMembre *ref_membre);
 
-    NoeudExpression *simplifie_assignation_enum_drapeau(NoeudExpression *var,
+    NoeudExpression *simplifie_assignation_énum_drapeau(NoeudExpression *var,
                                                         NoeudExpression *expression);
 
-    NoeudExpression *simplifie_operateur_binaire(NoeudExpressionBinaire *expr_bin,
+    NoeudExpression *simplifie_opérateur_binaire(NoeudExpressionBinaire *expr_bin,
                                                  bool pour_operande);
     NoeudSi *crée_condition_boucle(NoeudExpression *inst, GenreNoeud genre_noeud);
-    NoeudExpression *crée_expression_pour_op_chainee(
+    NoeudExpression *crée_expression_pour_op_chainée(
         kuri::tableau<NoeudExpressionBinaire> &comparaisons, const Lexème *lexeme_op_logique);
 
     /* remplace la dernière expression d'un bloc par une assignation afin de pouvoir simplifier les
      * conditions à droite des assigations */
     void corrige_bloc_pour_assignation(NoeudExpression *expr, NoeudExpression *ref_temp);
 
-    void crée_retourne_union_via_rien(NoeudDeclarationEnteteFonction *entete,
+    void crée_retourne_union_via_rien(NoeudDeclarationEnteteFonction *entête,
                                       NoeudBloc *bloc_d_insertion,
                                       const Lexème *lexeme_reference);
 

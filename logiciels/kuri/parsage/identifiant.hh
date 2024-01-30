@@ -12,6 +12,11 @@
 struct IdentifiantCode {
     kuri::chaine_statique nom{};
     kuri::chaine_statique nom_broye{};
+
+    static IdentifiantCode *nul()
+    {
+        return nullptr;
+    }
 };
 
 struct TableIdentifiant {

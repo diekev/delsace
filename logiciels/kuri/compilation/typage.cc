@@ -410,7 +410,7 @@ static Type *crée_type_pour_lexeme(GenreLexème lexeme)
 
 #define VERROUILLE(x) std::unique_lock<std::mutex> verrou(mutex_##x)
 
-Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
+Typeuse::Typeuse(dls::outils::Synchrone<GrapheDépendance> &g,
                  dls::outils::Synchrone<RegistreDesOpérateurs> &o)
     : graphe_(g), operateurs_(o)
 {

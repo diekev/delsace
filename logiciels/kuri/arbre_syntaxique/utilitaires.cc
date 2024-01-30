@@ -605,6 +605,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::INSTRUCTION_RETOUR:
+        case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
         {
             auto inst = racine->comme_retourne();
             inst->drapeaux |= drapeau;

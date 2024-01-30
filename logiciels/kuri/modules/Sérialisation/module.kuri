@@ -307,7 +307,7 @@ TamponFixe :: struct ($T: type_de_données, $N: z64) {
     curseur : z64 = 0
 }
 
-ajoute :: fonc (tampon: *TamponFixe(T = $T, N = N), v: T, $N: z64) #enligne
+ajoute :: fonc (tampon: *TamponFixe($T, $N), v: T) #enligne
 {
     tampon.données[tampon.curseur] = v
     tampon.curseur += 1

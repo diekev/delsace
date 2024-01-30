@@ -49,7 +49,8 @@ struct NoeudExpressionTypeTableauFixe;
 struct NoeudExpressionTypeTranche;
 struct NoeudInstructionImporte;
 struct NoeudPour;
-struct NoeudRetour;
+struct NoeudInstructionRetour;
+struct NoeudInstructionRetourMultiple;
 struct NoeudSi;
 struct NoeudStruct;
 struct NoeudUnion;
@@ -237,7 +238,9 @@ struct Sémanticienne {
     RésultatValidation valide_assignation(NoeudAssignation *inst);
     RésultatValidation valide_assignation_multiple(NoeudAssignationMultiple *inst);
     RésultatValidation valide_arbre_aplatis(NoeudExpression *declaration);
-    RésultatValidation valide_expression_retour(NoeudRetour *inst_retour);
+    RésultatValidation valide_expression_retour(NoeudInstructionRetour *inst_retour);
+    RésultatValidation valide_instruction_retourne_multiple(
+        NoeudInstructionRetourMultiple *inst_retour);
     RésultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
     RésultatValidation valide_référence_déclaration(NoeudExpressionReference *expr,
                                                     NoeudBloc *bloc_recherche);

@@ -210,7 +210,7 @@ class Monomorpheuse {
     /**
      * Évalue la valeur d'une expression constante.
      */
-    ValeurExpression evalue_valeur(const NoeudExpression *expr);
+    ValeurExpression évalue_valeur(const NoeudExpression *expr);
 
     /**
      * Trouve pour tous les items à résoudre quel est le type commun ou la valeur commune pour le
@@ -277,13 +277,13 @@ class Monomorpheuse {
   private:
     /* Ajout de candidats. */
 
-    void ajoute_candidat_depuis_reference_declaration(const NoeudExpressionReference *reference,
+    void ajoute_candidat_depuis_référence_déclaration(const NoeudExpressionReference *reference,
                                                       const Type *type_reçu);
     void ajoute_candidats_depuis_type_fonction(
         const NoeudExpressionTypeFonction *decl_type_fonction,
         const NoeudExpression *site,
         const Type *type_reçu);
-    void ajoute_candidats_depuis_declaration_structure(const NoeudStruct *structure,
+    void ajoute_candidats_depuis_déclaration_structure(const NoeudStruct *structure,
                                                        const Type *type_reçu);
     void ajoute_candidats_depuis_construction_structure(
         const NoeudExpressionConstructionStructure *construction,
@@ -293,15 +293,15 @@ class Monomorpheuse {
         const NoeudExpressionConstructionStructure *construction,
         const NoeudExpression *site,
         const Type *type_reçu);
-    void ajoute_candidats_depuis_declaration_tranche(
+    void ajoute_candidats_depuis_déclaration_tranche(
         const NoeudExpressionTypeTranche *expr_type_tranche,
         const NoeudExpression *site,
         const Type *type_reçu);
-    void ajoute_candidats_depuis_declaration_tableau(
+    void ajoute_candidats_depuis_déclaration_tableau(
         const NoeudExpressionTypeTableauDynamique *expr_type_tableau,
         const NoeudExpression *site,
         const Type *type_reçu);
-    void ajoute_candidats_depuis_declaration_tableau(
+    void ajoute_candidats_depuis_déclaration_tableau(
         const NoeudExpressionTypeTableauFixe *expr_type_tableau,
         const NoeudExpression *site,
         const Type *type_reçu);
@@ -378,7 +378,6 @@ class Monomorpheuse {
  * passer les arguments dans le désordre doivent avoir été trié avant la détermination. Sinon,
  * une erreur de typage sera émise.
  */
-RésultatMonomorphisation détermine_monomorphisation(
-    Monomorpheuse &monomorpheuse,
+RésultatMonomorphisation détermine_monomorphisation(Monomorpheuse &monomorpheuse,
     const NoeudDeclarationEnteteFonction *entête,
-    const kuri::tableau_statique<NoeudExpression *> &arguments_reçus);
+    kuri::tableau_statique<NoeudExpression *> arguments_reçus);

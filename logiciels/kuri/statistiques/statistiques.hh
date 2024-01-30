@@ -223,7 +223,7 @@ struct Statistiques {
 
     StatistiquesFichiers stats_fichiers{"Fichiers"};
     StatistiquesArbre stats_arbre{"Arbre Syntaxique"};
-    StatistiquesGraphe stats_graphe_dependance{"Graphe Dépendances"};
+    StatistiquesGraphe stats_graphe_dépendance{"Graphe Dépendances"};
     StatistiquesOperateurs stats_opérateurs{"Opérateurs"};
     StatistiquesNoeudCode stats_noeuds_code{"Noeuds Code"};
     StatistiquesMessage stats_messages{"Messages"};

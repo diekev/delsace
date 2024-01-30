@@ -15,15 +15,15 @@
 #include "unite_compilation.hh"
 
 struct Compilatrice;
-struct GrapheDependance;
+struct GrapheDépendance;
 struct OrdonnanceuseTache;
 struct Programme;
 
 struct DonnneesResolutionDependances {
-    DonneesDependance dependances;
-    DonneesDependance dependances_ependues;
+    DonnéesDépendance dependances;
+    DonnéesDépendance dependances_ependues;
 
-    kuri::tableau<NoeudDependance *> noeuds_dependances;
+    kuri::tableau<NoeudDépendance *> noeuds_dependances;
 
     void reinitialise()
     {
@@ -289,12 +289,12 @@ class GestionnaireCode {
 
     void determine_dependances(NoeudExpression *noeud,
                                EspaceDeTravail *espace,
-                               GrapheDependance &graphe);
+                               GrapheDépendance &graphe);
 
     bool plus_rien_n_est_a_faire();
     bool tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
                                                       Programme *programme,
-                                                      GrapheDependance &graphe);
+                                                      GrapheDépendance &graphe);
 
     void tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace);
 

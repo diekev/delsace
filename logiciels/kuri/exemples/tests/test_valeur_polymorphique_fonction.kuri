@@ -1,7 +1,7 @@
 importe Fondation
 importe Sérialisation
 
-imprime_N :: fonc (tampon: *TamponFixe(T = $T, N = N) @inutilisée, $N: z64)
+imprime_N :: fonc (tampon: *TamponFixe($T, $N) @inutilisée)
 {
     imprime("N = %\n", N)
 }
@@ -9,10 +9,10 @@ imprime_N :: fonc (tampon: *TamponFixe(T = $T, N = N) @inutilisée, $N: z64)
 test_tampons :: fonc ()
 {
     tampon8 : TamponFixe(T = z32, N = 8)
-    imprime_N(*tampon8, 8)
+    imprime_N(*tampon8)
 
     tampon16 : TamponFixe(T = z32, N = 16)
-    imprime_N(*tampon16, 16)
+    imprime_N(*tampon16)
 }
 
 test_valeur :: fonc ($N: z32)
