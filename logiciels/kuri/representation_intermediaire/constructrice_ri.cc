@@ -1556,17 +1556,17 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
     kuri::rassembleuse<AtomeGlobale *> rassembleuse_atomes;
     {
         auto graphe = compilatrice.graphe_dépendance.verrou_ecriture();
-        graphe->prepare_visite();
+        graphe->prépare_visite();
 
         POUR (globales_avec_déclarations) {
-            auto noeud = it->decl->noeud_dependance;
+            auto noeud = it->decl->noeud_dépendance;
             assert(noeud);
 
             if (rassembleuse_atomes.possède(it)) {
                 continue;
             }
 
-            graphe->traverse(noeud, [&](NoeudDependance const *relation) {
+            graphe->traverse(noeud, [&](NoeudDépendance const *relation) {
                 if (noeud == relation) {
                     return;
                 }
@@ -2455,6 +2455,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             return;
         }
         case GenreNoeud::INSTRUCTION_RETOUR:
+        case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
         {
             auto inst = noeud->comme_retourne();
 
@@ -2463,6 +2464,21 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             if (inst->expression) {
                 génère_ri_pour_expression_droite(inst->expression, nullptr);
                 valeur_ret = depile_valeur();
+
+                if (inst->genre == GenreNoeud::INSTRUCTION_RETOUR) {
+                    /* Création manuelle d'une assignation dans le paramètre de retour.
+                     * Nous ne pouvons le faire lors de la simplification sans créer de blocs
+                     * inutiles, et nous avons besoin de cette assignation pour que la détection de
+                     * retour de pointeurs locales fonctionne (elle se base sur la destination des
+                     * stockages). */
+                    auto param_sortie = m_fonction_courante->decl->param_sortie;
+                    if (!param_sortie->atome) {
+                        génère_ri_pour_noeud(param_sortie);
+                    }
+                    auto atome_valeur_retour = param_sortie->atome;
+                    m_constructrice.crée_stocke_mem(inst, atome_valeur_retour, valeur_ret);
+                    valeur_ret = m_constructrice.crée_charge_mem(inst, atome_valeur_retour);
+                }
             }
 
             auto bloc_final = NoeudBloc::nul();

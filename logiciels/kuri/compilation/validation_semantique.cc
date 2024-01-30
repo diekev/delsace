@@ -774,12 +774,12 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                     auto type_tabl = type1->comme_type_tableau_fixe();
                     expr->type = type_déréférencé_pour(type1);
 
-                    auto res = evalue_expression(m_compilatrice, enfant2->bloc_parent, enfant2);
+                    auto res = évalue_expression(m_compilatrice, enfant2->bloc_parent, enfant2);
 
-                    if (!res.est_errone && res.valeur.est_entiere()) {
-                        if (res.valeur.entiere() >= type_tabl->taille) {
+                    if (!res.est_erroné && res.valeur.est_entière()) {
+                        if (res.valeur.entière() >= type_tabl->taille) {
                             rapporte_erreur_accès_hors_limites(
-                                enfant2, type_tabl, res.valeur.entiere());
+                                enfant2, type_tabl, res.valeur.entière());
                             return CodeRetourValidation::Erreur;
                         }
 
@@ -839,6 +839,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto inst = noeud->comme_retourne();
             return valide_expression_retour(inst);
         }
+        case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+        {
+            auto inst = noeud->comme_retourne_multiple();
+            return valide_instruction_retourne_multiple(inst);
+        }
         case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
         {
             noeud->type = TypeBase::CHAINE;
@@ -868,20 +873,20 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto inst = noeud->comme_si_statique();
 
             if (inst->visite == false) {
-                auto res = evalue_expression(m_compilatrice, inst->bloc_parent, inst->condition);
+                auto res = évalue_expression(m_compilatrice, inst->bloc_parent, inst->condition);
 
-                if (res.est_errone) {
+                if (res.est_erroné) {
                     rapporte_erreur(
                         res.message_erreur, res.noeud_erreur, erreur::Genre::VARIABLE_REDEFINIE);
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (!res.valeur.est_booleenne()) {
+                if (!res.valeur.est_booléenne()) {
                     rapporte_erreur("L'expression d'un #si doit être de type booléenne", noeud);
                     return CodeRetourValidation::Erreur;
                 }
 
-                auto condition_est_vraie = res.valeur.booleenne();
+                auto condition_est_vraie = res.valeur.booléenne();
                 inst->condition_est_vraie = condition_est_vraie;
 
                 if (inst->est_saufsi_statique()) {
@@ -1468,11 +1473,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
                 auto di = derniere_instruction(inst->bloc);
 
-                if (di == nullptr || !dls::outils::est_element(di->genre,
-                                                               GenreNoeud::INSTRUCTION_RETOUR,
-                                                               GenreNoeud::INSTRUCTION_ARRETE,
-                                                               GenreNoeud::INSTRUCTION_CONTINUE,
-                                                               GenreNoeud::INSTRUCTION_REPRENDS)) {
+                if (di == nullptr ||
+                    !dls::outils::est_element(di->genre,
+                                              GenreNoeud::INSTRUCTION_RETOUR,
+                                              GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE,
+                                              GenreNoeud::INSTRUCTION_ARRETE,
+                                              GenreNoeud::INSTRUCTION_CONTINUE,
+                                              GenreNoeud::INSTRUCTION_REPRENDS)) {
                     rapporte_erreur("Un bloc de piège doit obligatoirement retourner, ou si dans "
                                     "une boucle, la continuer, l'arrêter, ou la reprendre",
                                     inst);
@@ -2317,7 +2324,7 @@ static void rassemble_expressions(NoeudExpression *expr,
     }
 }
 
-RésultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
+RésultatValidation Sémanticienne::valide_expression_retour(NoeudInstructionRetour *inst)
 {
     auto fonction = fonction_courante();
     auto type_sortie = Type::nul();
@@ -2391,14 +2398,90 @@ RésultatValidation Sémanticienne::valide_expression_retour(NoeudRetour *inst)
         }
 
         inst->type = TypeBase::CHAINE;
-
-        DonneesAssignations donnees;
-        donnees.expression = inst->expression;
-        donnees.variables.ajoute(fonction_courante()->params_sorties[0]);
-        donnees.transformations.ajoute({});
-
-        inst->donnees_exprs.ajoute(std::move(donnees));
         return CodeRetourValidation::OK;
+    }
+
+    if (type_sortie->est_type_rien()) {
+        m_espace->rapporte_erreur(inst->expression,
+                                  "Retour d'une valeur d'une fonction qui ne retourne rien");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto expression = inst->expression;
+    auto ident_variable = IdentifiantCode::nul();
+    if (expression->est_assignation_variable()) {
+        auto assignation = expression->comme_assignation_variable();
+        ident_variable = assignation->comme_reference_declaration()->ident;
+        expression = assignation->expression;
+    }
+
+    if (ident_variable && ident_variable != fonction->params_sorties[0]->ident) {
+        m_espace->rapporte_erreur(
+            inst->expression,
+            "Le nom de la variable de retour n'est pas le nom du paramètre de sortie");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto résultat = cherche_transformation(expression->type, type_sortie);
+
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
+    }
+
+    auto transformation = std::get<TransformationType>(résultat);
+
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+        rapporte_erreur_assignation_type_différents(type_sortie, expression->type, expression);
+        return CodeRetourValidation::Erreur;
+    }
+
+    crée_transtypage_implicite_au_besoin(inst->expression, transformation);
+
+    inst->type = type_sortie;
+
+    return CodeRetourValidation::OK;
+}
+
+RésultatValidation Sémanticienne::valide_instruction_retourne_multiple(
+    NoeudInstructionRetourMultiple *inst)
+{
+    auto fonction = fonction_courante();
+    auto type_sortie = Type::nul();
+    auto est_corps_texte = false;
+
+    if (fonction) {
+        auto type_fonc = fonction_courante()->type->comme_type_fonction();
+        type_sortie = type_fonc->type_sortie;
+        est_corps_texte = fonction_courante()->corps->est_corps_texte;
+    }
+    else {
+        /* Nous pouvons être dans le bloc d'un #test, auquel cas la fonction n'a pas encore été
+         * créée car la validation du bloc se fait avant le noeud. Vérifions si tel est le cas. */
+        if (!(racine_validation()->est_execute() && racine_validation()->ident == ID::test)) {
+            m_espace->rapporte_erreur(inst,
+                                      "Utilisation de « retourne » en dehors d'une fonction, d'un "
+                                      "opérateur, ou d'un #test");
+            return CodeRetourValidation::Erreur;
+        }
+
+        /* Un #test ne doit rien retourner. */
+        type_sortie = TypeBase::RIEN;
+    }
+
+    auto const bloc_parent = inst->bloc_parent;
+    if (bloc_est_dans_differe(bloc_parent)) {
+        rapporte_erreur("« retourne » utilisée dans un bloc « diffère »", inst);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (inst->expression == nullptr) {
+        rapporte_erreur("Expression de retour manquante", inst);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (est_corps_texte) {
+        rapporte_erreur("Trop d'expression de retour pour le corps texte", inst->expression);
+        return CodeRetourValidation::Erreur;
     }
 
     if (type_sortie->est_type_rien()) {
@@ -3364,15 +3447,15 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
         assert(!valeur.est_valide());
 
         if (expr != nullptr) {
-            auto res = evalue_expression(m_compilatrice, decl->bloc, expr);
+            auto res = évalue_expression(m_compilatrice, decl->bloc, expr);
 
-            if (res.est_errone) {
+            if (res.est_erroné) {
                 m_espace->rapporte_erreur(res.noeud_erreur, res.message_erreur);
                 return CodeRetourValidation::Erreur;
             }
 
             if (N == VALIDE_ENUM_ERREUR) {
-                if (res.valeur.entiere() == 0) {
+                if (res.valeur.entière() == 0) {
                     m_espace->rapporte_erreur(
                         expr,
                         "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette "
@@ -3381,7 +3464,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                 }
             }
 
-            if (!res.valeur.est_entiere()) {
+            if (!res.valeur.est_entière()) {
                 m_espace->rapporte_erreur(
                     expr, "L'expression d'une énumération doit être de type entier");
                 return CodeRetourValidation::Erreur;
@@ -3396,9 +3479,9 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
             }
             else {
                 if (N == VALIDE_ENUM_DRAPEAU) {
-                    valeur = derniere_valeur.entiere() * 2;
+                    valeur = derniere_valeur.entière() * 2;
 
-                    if (!est_puissance_de_2(valeur.entiere())) {
+                    if (!est_puissance_de_2(valeur.entière())) {
                         m_espace->rapporte_erreur(decl_expr,
                                                   "La valeur implicite d'une énumération drapeau "
                                                   "doit être une puissance de 2 !");
@@ -3406,12 +3489,12 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                     }
                 }
                 else {
-                    valeur = derniere_valeur.entiere() + 1;
+                    valeur = derniere_valeur.entière() + 1;
                 }
             }
         }
 
-        if (est_hors_des_limites(valeur.entiere(), decl->type_sous_jacent)) {
+        if (est_hors_des_limites(valeur.entière(), decl->type_sous_jacent)) {
             auto e = m_espace->rapporte_erreur(
                 decl_expr, "Valeur hors des limites pour le type de l'énumération");
             e.ajoute_message("Le type des données de l'énumération est « ",
@@ -3422,18 +3505,18 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                              " et ",
                              valeur_max(decl->type_sous_jacent),
                              ".\n");
-            e.ajoute_message("Or, la valeur courante est de ", valeur.entiere(), ".\n");
+            e.ajoute_message("Or, la valeur courante est de ", valeur.entière(), ".\n");
             return CodeRetourValidation::Erreur;
         }
 
-        valeur_enum_min = std::min(valeur.entiere(), valeur_enum_min);
-        valeur_enum_max = std::max(valeur.entiere(), valeur_enum_max);
+        valeur_enum_min = std::min(valeur.entière(), valeur_enum_min);
+        valeur_enum_max = std::max(valeur.entière(), valeur_enum_max);
 
         if (N == VALIDE_ENUM_DRAPEAU) {
-            valeurs_legales |= valeur.entiere();
+            valeurs_legales |= valeur.entière();
         }
 
-        membres.ajoute({nullptr, decl, it->ident, 0, static_cast<int>(valeur.entiere())});
+        membres.ajoute({nullptr, decl, it->ident, 0, static_cast<int>(valeur.entière())});
 
         derniere_valeur = valeur;
     }
@@ -4664,9 +4747,9 @@ RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclarati
             return CodeRetourValidation::Erreur;
         }
 
-        auto res_exec = evalue_expression(m_compilatrice, decl->bloc_parent, expression);
+        auto res_exec = évalue_expression(m_compilatrice, decl->bloc_parent, expression);
 
-        if (res_exec.est_errone) {
+        if (res_exec.est_erroné) {
             rapporte_erreur("Impossible d'évaluer l'expression de la constante", expression);
             return CodeRetourValidation::Erreur;
         }
@@ -5533,15 +5616,15 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     }
 
     if (est_decalage_bits(expr->lexeme->genre)) {
-        auto résultat_decalage = evalue_expression(
+        auto résultat_decalage = évalue_expression(
             m_compilatrice, expr->bloc_parent, expr->operande_droite);
         /* Un résultat erroné veut dire que l'expression n'est pas constante.
          * À FAIRE : granularise pour différencier les expressions non-constantes des erreurs
          * réelles. */
-        if (!résultat_decalage.est_errone) {
+        if (!résultat_decalage.est_erroné) {
             auto const bits_max = nombre_de_bits_pour_type(type1);
-            auto const decalage = résultat_decalage.valeur.entiere();
-            if (résultat_decalage.valeur.entiere() >= bits_max) {
+            auto const decalage = résultat_decalage.valeur.entière();
+            if (résultat_decalage.valeur.entière() >= bits_max) {
                 m_espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")
                     .ajoute_message("Le nombre de bits de décalage est de ", decalage, "\n")
                     .ajoute_message("Alors que le nombre maximum de bits de décalage est de ",
@@ -6408,26 +6491,26 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
         return CodeRetourValidation::OK;
     }
 
-    auto res = evalue_expression(
+    auto res = évalue_expression(
         m_compilatrice, expression_taille->bloc_parent, expression_taille);
 
-    if (res.est_errone) {
+    if (res.est_erroné) {
         rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
         return CodeRetourValidation::Erreur;
     }
 
-    if (!res.valeur.est_entiere()) {
+    if (!res.valeur.est_entière()) {
         rapporte_erreur("L'expression n'est pas de type entier", expression_taille);
         return CodeRetourValidation::Erreur;
     }
 
-    if (res.valeur.entiere() == 0) {
+    if (res.valeur.entière() == 0) {
         m_espace->rapporte_erreur(expression_taille,
                                   "Impossible de définir un tableau fixe de taille 0 !\n");
         return CodeRetourValidation::Erreur;
     }
 
-    auto taille_tableau = res.valeur.entiere();
+    auto taille_tableau = res.valeur.entière();
 
     auto type_de_donnees = type_expression_type->comme_type_type_de_donnees();
     auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;

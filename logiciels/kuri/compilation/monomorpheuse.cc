@@ -18,6 +18,19 @@
 #include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"
 
+static kuri::chaine_statique commentaire_pour_genre(ItemMonomorphisation const &item)
+{
+    if (item.genre == GenreItem::VALEUR) {
+        return "une valeur";
+    }
+
+    if (item.genre == GenreItem::TYPE_DE_DONNÉES) {
+        return "un type";
+    }
+
+    return "indéfini";
+}
+
 kuri::chaine ErreurMonomorphisation::message() const
 {
 #define SI_ERREUR_EST(Type)                                                                       \
@@ -43,10 +56,9 @@ kuri::chaine ErreurMonomorphisation::message() const
         }
 
         enchaineuse << "\t\tNous voulions "
-                    << (données_erreur.item_contrainte.est_type ? "un type" : "une valeur")
-                    << ".\n";
+                    << commentaire_pour_genre(données_erreur.item_contrainte) << ".\n";
         enchaineuse << "\t\tMais nous avons reçu "
-                    << (données_erreur.item_reçu.est_type ? "un type" : "une valeur") << ".\n";
+                    << commentaire_pour_genre(données_erreur.item_reçu) << ".\n";
         return enchaineuse.chaine();
     }
     FIN_ERREUR(DonnéesErreurContrainte)
@@ -143,29 +155,29 @@ Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
         if (it->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             if (!it->type) {
                 /* Valeur taille polymorphique. */
-                items.ajoute({it->ident, nullptr, {}, false});
+                items.ajoute({it->ident, nullptr, {}, GenreItem::VALEUR});
             }
             else if (it->type->est_type_type_de_donnees()) {
                 /* $T: type_de_données */
-                items.ajoute({it->ident, nullptr, {}, true});
+                items.ajoute({it->ident, nullptr, {}, GenreItem::TYPE_DE_DONNÉES});
             }
             else {
                 /* Par exemple : $N: z32, ou $F: fonc()(rien). */
                 items.ajoute({it->ident,
                               it->type,
                               {},
-                              false,
+                              GenreItem::VALEUR,
                               it->comme_declaration_constante()->expression_type});
             }
         }
         else if (it->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
             /* $T */
-            items.ajoute({it->ident, nullptr, {}, true});
+            items.ajoute({it->ident, nullptr, {}, GenreItem::INDÉFINI});
         }
     }
 
     POUR (items) {
-        items_résultat.ajoute({it.ident, nullptr, {}, false});
+        items_résultat.ajoute({it.ident, nullptr, {}, GenreItem::INDÉFINI});
     }
 }
 
@@ -194,11 +206,11 @@ ItemMonomorphisation *Monomorpheuse::item_résultat_pour_ident(IdentifiantCode c
     return trouve_item_pour_ident(items_résultat, ident);
 }
 
-ValeurExpression Monomorpheuse::evalue_valeur(const NoeudExpression *expr)
+ValeurExpression Monomorpheuse::évalue_valeur(const NoeudExpression *expr)
 {
-    auto résultat = evalue_expression(espace.compilatrice(), expr->bloc_parent, expr);
+    auto résultat = évalue_expression(espace.compilatrice(), expr->bloc_parent, expr);
 
-    if (résultat.est_errone) {
+    if (résultat.est_erroné) {
         erreur_sémantique(expr, "l'expression n'est pas constante");
         return {};
     }
@@ -299,17 +311,17 @@ void Monomorpheuse::ajoute_candidat(const IdentifiantCode *ident, const Type *ty
         type_reçu = typeuse().type_type_de_donnees(const_cast<Type *>(type_reçu));
     }
 
-    candidats.ajoute({ident, type_reçu, {}, true});
+    candidats.ajoute({ident, type_reçu, {}, GenreItem::TYPE_DE_DONNÉES});
 }
 
 void Monomorpheuse::ajoute_candidat_valeur(const IdentifiantCode *ident,
                                            const Type *type,
                                            const ValeurExpression valeur)
 {
-    candidats.ajoute({ident, type, valeur, false});
+    candidats.ajoute({ident, type, valeur, GenreItem::VALEUR});
 }
 
-void Monomorpheuse::ajoute_candidat_depuis_reference_declaration(
+void Monomorpheuse::ajoute_candidat_depuis_référence_déclaration(
     const NoeudExpressionReference *reference, const Type *type_reçu)
 {
     auto const decl = reference->declaration_referee;
@@ -319,7 +331,7 @@ void Monomorpheuse::ajoute_candidat_depuis_reference_declaration(
     }
     else if (decl->est_type_structure()) {
         auto const structure = decl->comme_type_structure();
-        ajoute_candidats_depuis_declaration_structure(structure, type_reçu);
+        ajoute_candidats_depuis_déclaration_structure(structure, type_reçu);
     }
 }
 
@@ -370,7 +382,7 @@ void Monomorpheuse::ajoute_candidats_depuis_type_fonction(
     }
 }
 
-void Monomorpheuse::ajoute_candidats_depuis_declaration_structure(const NoeudStruct *structure,
+void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudStruct *structure,
                                                                   const Type *type_reçu)
 {
     if (!structure->est_polymorphe) {
@@ -458,25 +470,16 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
             continue;
         }
 
-        auto decl_referee = it->comme_reference_declaration()->declaration_referee;
+        auto param_poly = membre_pour_ident_ou_index(
+            decl_struct_type->bloc_constantes, ident_param, i);
 
-        if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            auto param_poly = membre_pour_ident_ou_index(
-                decl_struct_type->bloc_constantes, ident_param, i);
-            if (decl_referee->type->est_type_type_de_donnees()) {
-                ajoute_candidat(it->ident, param_poly->type);
-            }
-            else {
-                ajoute_candidat_valeur(
-                    it->ident,
-                    param_poly->type,
-                    param_poly->comme_declaration_constante()->valeur_expression);
-            }
-        }
-        else if (decl_referee->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-            auto param_poly = membre_pour_ident_ou_index(
-                decl_struct_type->bloc_constantes, ident_param, i);
+        if (param_poly->type->est_type_type_de_donnees()) {
             ajoute_candidat(it->ident, param_poly->type);
+        }
+        else {
+            ajoute_candidat_valeur(it->ident,
+                                   param_poly->type,
+                                   param_poly->comme_declaration_constante()->valeur_expression);
         }
     }
 }
@@ -516,7 +519,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_opaque(
     }
 }
 
-void Monomorpheuse::ajoute_candidats_depuis_declaration_tranche(
+void Monomorpheuse::ajoute_candidats_depuis_déclaration_tranche(
     const NoeudExpressionTypeTranche *expr_type_tranche,
     const NoeudExpression *site,
     const Type *type_reçu)
@@ -544,7 +547,7 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_tranche(
     parse_candidats(expression_type, site, type_élément);
 }
 
-void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
+void Monomorpheuse::ajoute_candidats_depuis_déclaration_tableau(
     const NoeudExpressionTypeTableauDynamique *expr_type_tableau,
     const NoeudExpression *site,
     const Type *type_reçu)
@@ -560,7 +563,7 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
     parse_candidats(expression_type, site, type_tableau->type_pointe);
 }
 
-void Monomorpheuse::ajoute_candidats_depuis_declaration_tableau(
+void Monomorpheuse::ajoute_candidats_depuis_déclaration_tableau(
     const NoeudExpressionTypeTableauFixe *expr_type_tableau,
     const NoeudExpression *site,
     const Type *type_reçu)
@@ -618,20 +621,20 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
     }
     else if (expression_polymorphique->est_expression_type_tranche()) {
         auto type_tranche = expression_polymorphique->comme_expression_type_tranche();
-        ajoute_candidats_depuis_declaration_tranche(type_tranche, site, type_reçu);
+        ajoute_candidats_depuis_déclaration_tranche(type_tranche, site, type_reçu);
     }
     else if (expression_polymorphique->est_expression_type_tableau_dynamique()) {
         auto type_tableau_dynamique =
             expression_polymorphique->comme_expression_type_tableau_dynamique();
-        ajoute_candidats_depuis_declaration_tableau(type_tableau_dynamique, site, type_reçu);
+        ajoute_candidats_depuis_déclaration_tableau(type_tableau_dynamique, site, type_reçu);
     }
     else if (expression_polymorphique->est_expression_type_tableau_fixe()) {
         auto type_tableau_fixe = expression_polymorphique->comme_expression_type_tableau_fixe();
-        ajoute_candidats_depuis_declaration_tableau(type_tableau_fixe, site, type_reçu);
+        ajoute_candidats_depuis_déclaration_tableau(type_tableau_fixe, site, type_reçu);
     }
     else if (expression_polymorphique->est_reference_declaration()) {
         auto const ref_decl = expression_polymorphique->comme_reference_declaration();
-        ajoute_candidat_depuis_reference_declaration(ref_decl, type_reçu);
+        ajoute_candidat_depuis_référence_déclaration(ref_decl, type_reçu);
     }
     else if (expression_polymorphique->est_construction_structure()) {
         auto const construction = expression_polymorphique->comme_construction_structure();
@@ -878,7 +881,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
 
     kuri::tablet<ItemMonomorphisation, 6> items_structure;
     POUR (*structure_construite->bloc_constantes->membres.verrou_lecture()) {
-        items_structure.ajoute({it->ident, nullptr, {}, true});
+        items_structure.ajoute({it->ident, nullptr, {}, GenreItem::TYPE_DE_DONNÉES});
     }
 
     /* Extrait les items du résultat qui sont applicables à la structure. */
@@ -908,7 +911,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
         assert(item_structure);
 
         /* Copie tout sauf l'identifiant qui peut être différent. */
-        item_structure->est_type = item_résultat->est_type;
+        item_structure->genre = item_résultat->genre;
         item_structure->type = item_résultat->type;
         item_structure->valeur = item_résultat->valeur;
     }
@@ -992,14 +995,14 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
     if (expression_taille->est_reference_declaration()) {
         auto item = trouve_item_pour_ident(items_résultat, expression_taille->ident);
         assert(item);
-        return typeuse().type_tableau_fixe(type_pointe, int32_t(item->valeur.entiere()));
+        return typeuse().type_tableau_fixe(type_pointe, int32_t(item->valeur.entière()));
     }
-    auto valeur_taille = evalue_valeur(expression_taille);
-    if (!valeur_taille.est_entiere()) {
+    auto valeur_taille = évalue_valeur(expression_taille);
+    if (!valeur_taille.est_entière()) {
         erreur_sémantique(expression_taille, "La taille du tableau n'est pas une valeur entière");
         return nullptr;
     }
-    return typeuse().type_tableau_fixe(type_pointe, static_cast<int>(valeur_taille.entiere()));
+    return typeuse().type_tableau_fixe(type_pointe, static_cast<int>(valeur_taille.entière()));
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_expansion_variadique(
@@ -1020,11 +1023,11 @@ Typeuse &Monomorpheuse::typeuse()
 RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation const &item,
                                                       ItemMonomorphisation const &candidat)
 {
-    if (item.est_type != candidat.est_type) {
+    if (item.genre != candidat.genre) {
         return ÉtatRésolutionContrainte::PasLaMêmeChose;
     }
 
-    if (item.est_type) {
+    if (item.genre == GenreItem::TYPE_DE_DONNÉES) {
         /* Nous avons un type, donc tout est bon. */
         return ÉtatRésolutionContrainte::Ok;
     }
@@ -1059,7 +1062,7 @@ RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation cons
 RésultatCompatibilité Monomorpheuse::sont_compatibles(ItemMonomorphisation const &item,
                                                       ItemMonomorphisation const &candidat)
 {
-    if (item.est_type) {
+    if (item.genre == GenreItem::TYPE_DE_DONNÉES) {
         auto résultat = cherche_transformation(candidat.type, item.type);
         if (std::holds_alternative<Attente>(résultat)) {
             return std::get<Attente>(résultat);
@@ -1090,15 +1093,23 @@ RésultatUnification Monomorpheuse::unifie()
             return erreur().value();
         }
 
-        auto résultat_contrainte = applique_contrainte(*contrainte, it);
-        if (std::holds_alternative<Attente>(résultat_contrainte)) {
-            return std::get<Attente>(résultat_contrainte);
+        if (contrainte->genre == GenreItem::INDÉFINI) {
+            contrainte->genre = it.genre;
+            contrainte->type = it.type;
+            contrainte->valeur = it.valeur;
+            contrainte->expression_type = it.expression_type;
         }
+        else {
+            auto résultat_contrainte = applique_contrainte(*contrainte, it);
+            if (std::holds_alternative<Attente>(résultat_contrainte)) {
+                return std::get<Attente>(résultat_contrainte);
+            }
 
-        auto erreur_cont = std::get<ÉtatRésolutionContrainte>(résultat_contrainte);
-        if (erreur_cont != ÉtatRésolutionContrainte::Ok) {
-            erreur_contrainte(nullptr, erreur_cont, *contrainte, it);
-            return erreur().value();
+            auto erreur_cont = std::get<ÉtatRésolutionContrainte>(résultat_contrainte);
+            if (erreur_cont != ÉtatRésolutionContrainte::Ok) {
+                erreur_contrainte(nullptr, erreur_cont, *contrainte, it);
+                return erreur().value();
+            }
         }
 
         auto résultat = item_résultat_pour_ident(it.ident);
@@ -1132,7 +1143,7 @@ RésultatUnification Monomorpheuse::unifie()
 RésultatMonomorphisation détermine_monomorphisation(
     Monomorpheuse &monomorpheuse,
     const NoeudDeclarationEnteteFonction *entête,
-    const kuri::tableau_statique<NoeudExpression *> &arguments_reçus)
+    kuri::tableau_statique<NoeudExpression *> arguments_reçus)
 {
 #if 0
     SUR_SORTIE_PORTEE {
@@ -1156,7 +1167,7 @@ RésultatMonomorphisation détermine_monomorphisation(
                 monomorpheuse.ajoute_candidat(param->ident, slot->type);
             }
             else {
-                auto valeur = monomorpheuse.evalue_valeur(slot);
+                auto valeur = monomorpheuse.évalue_valeur(slot);
                 monomorpheuse.ajoute_candidat_valeur(param->ident, slot->type, valeur);
             }
         }
