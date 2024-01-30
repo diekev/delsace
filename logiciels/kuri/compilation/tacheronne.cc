@@ -538,7 +538,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
          * entêtes que nous avons déjà vu. */
         auto types_utilises = kuri::ensemblon<Type *, 16>();
 
-        auto noeud_dep = entete_possible->noeud_dependance;
+        auto noeud_dep = entete_possible->noeud_dépendance;
 
         POUR (noeud_dep->relations().plage()) {
             if (!it.noeud_fin->est_type()) {
