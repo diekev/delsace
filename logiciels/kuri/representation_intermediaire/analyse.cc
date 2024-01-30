@@ -627,6 +627,27 @@ static bool est_stockage_valide(InstructionStockeMem const &stockage,
     return false;
 }
 
+static bool est_retour_valide(InstructionRetour const &retour,
+                              SourceAdresseAtome source,
+                              SourceAdresseAtome destination)
+{
+    auto const valeur = retour.valeur;
+    if (!valeur) {
+        return true;
+    }
+
+    /* Nous ne sommes intéressés que par les stockage d'adresses. */
+    if (!valeur->type->est_type_pointeur()) {
+        return true;
+    }
+
+    if (est_stockage_adresse_valide(source, destination)) {
+        return true;
+    }
+
+    return false;
+}
+
 static SourceAdresseAtome détermine_source_adresse_atome(
     AtomeFonction const &fonction,
     Atome const &atome,
