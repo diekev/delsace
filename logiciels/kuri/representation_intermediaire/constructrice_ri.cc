@@ -1556,17 +1556,17 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
     kuri::rassembleuse<AtomeGlobale *> rassembleuse_atomes;
     {
         auto graphe = compilatrice.graphe_dépendance.verrou_ecriture();
-        graphe->prepare_visite();
+        graphe->prépare_visite();
 
         POUR (globales_avec_déclarations) {
-            auto noeud = it->decl->noeud_dependance;
+            auto noeud = it->decl->noeud_dépendance;
             assert(noeud);
 
             if (rassembleuse_atomes.possède(it)) {
                 continue;
             }
 
-            graphe->traverse(noeud, [&](NoeudDependance const *relation) {
+            graphe->traverse(noeud, [&](NoeudDépendance const *relation) {
                 if (noeud == relation) {
                     return;
                 }
@@ -2469,6 +2469,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             return;
         }
         case GenreNoeud::INSTRUCTION_RETOUR:
+        case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
         {
             auto inst = noeud->comme_retourne();
 
@@ -2477,6 +2478,21 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             if (inst->expression) {
                 génère_ri_pour_expression_droite(inst->expression, nullptr);
                 valeur_ret = depile_valeur();
+
+                if (inst->genre == GenreNoeud::INSTRUCTION_RETOUR) {
+                    /* Création manuelle d'une assignation dans le paramètre de retour.
+                     * Nous ne pouvons le faire lors de la simplification sans créer de blocs
+                     * inutiles, et nous avons besoin de cette assignation pour que la détection de
+                     * retour de pointeurs locales fonctionne (elle se base sur la destination des
+                     * stockages). */
+                    auto param_sortie = m_fonction_courante->decl->param_sortie;
+                    if (!param_sortie->atome) {
+                        génère_ri_pour_noeud(param_sortie);
+                    }
+                    auto atome_valeur_retour = param_sortie->atome;
+                    m_constructrice.crée_stocke_mem(inst, atome_valeur_retour, valeur_ret);
+                    valeur_ret = m_constructrice.crée_charge_mem(inst, atome_valeur_retour);
+                }
             }
 
             auto bloc_final = NoeudBloc::nul();
@@ -4613,14 +4629,28 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_structs_employées(
         return m_tableau_structs_employées_vide;
     }
 
-    kuri::tableau<AtomeConstante *> valeurs_structs_employees;
+    kuri::tablet<AtomeConstante *, 6> valeurs_structs_employees;
     valeurs_structs_employees.réserve(type_structure->types_employés.taille());
 
     POUR (type_structure->types_employés) {
         valeurs_structs_employees.ajoute(crée_info_type(it->type, site));
     }
 
-    /* À FAIRE : déduplique les autres tableaux. */
+    auto tableau_existant = m_trie_structs_employées.trouve_valeur_ou_noeud_insertion(
+        valeurs_structs_employees);
+
+    if (std::holds_alternative<AtomeConstante *>(tableau_existant)) {
+        auto résultat = std::get<AtomeConstante *>(tableau_existant);
+
+        if (type_structure->types_employés.taille() == 0) {
+            m_tableau_structs_employées_vide = résultat;
+        }
+
+        return résultat;
+    }
+
+    using TypeNoeudInsertion = kuri::trie<AtomeConstante *, AtomeConstante *>::Noeud;
+    auto noeud_insertion = std::get<TypeNoeudInsertion *>(tableau_existant);
 
     auto type_info_struct = m_compilatrice.typeuse.type_info_type_structure;
 
@@ -4628,12 +4658,18 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_structs_employées(
         "structs_employées");
     auto type_pointeur_info_struct = m_compilatrice.typeuse.type_pointeur_pour(type_info_struct,
                                                                                false);
+
+    auto tableau_valeurs = kuri::tableau<AtomeConstante *>();
+    kuri::copie_tablet_tableau(valeurs_structs_employees, tableau_valeurs);
+
     auto résultat = m_constructrice.crée_tranche_globale(
-        *ident_structs_employées, type_pointeur_info_struct, std::move(valeurs_structs_employees));
+        *ident_structs_employées, type_pointeur_info_struct, std::move(tableau_valeurs));
 
     if (type_structure->types_employés.taille() == 0) {
         m_tableau_structs_employées_vide = résultat;
     }
+
+    noeud_insertion->données = résultat;
 
     return résultat;
 }
@@ -4645,24 +4681,45 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_types_entrées(const TypeFonc
         return m_tableau_types_entrées_vide;
     }
 
-    kuri::tableau<AtomeConstante *> types_entree;
-    types_entree.réserve(type_fonction->types_entrees.taille());
+    kuri::tablet<Type *, 6> types_entrées;
+    types_entrées.réserve(type_fonction->types_entrees.taille());
     POUR (type_fonction->types_entrees) {
-        types_entree.ajoute(crée_info_type_avec_transtype(it, site));
+        types_entrées.ajoute(it);
     }
 
-    /* À FAIRE : déduplique les autres tableaux. */
+    auto tableau_existant = m_trie_types_entrée_sortie.trouve_valeur_ou_noeud_insertion(
+        types_entrées);
+
+    if (std::holds_alternative<AtomeConstante *>(tableau_existant)) {
+        auto résultat = std::get<AtomeConstante *>(tableau_existant);
+
+        if (type_fonction->types_entrees.taille() == 0) {
+            m_tableau_types_entrées_vide = résultat;
+        }
+
+        return résultat;
+    }
+
+    kuri::tableau<AtomeConstante *> tableau_types_entrée;
+    tableau_types_entrée.réserve(types_entrées.taille());
+    POUR (types_entrées) {
+        tableau_types_entrée.ajoute(crée_info_type_avec_transtype(it, site));
+    }
 
     auto type_élément = m_compilatrice.typeuse.type_pointeur_pour(
         m_compilatrice.typeuse.type_info_type_, false);
 
     auto ident = m_compilatrice.donne_identifiant_pour_globale("types_entrée");
     auto résultat = m_constructrice.crée_tranche_globale(
-        *ident, type_élément, std::move(types_entree));
+        *ident, type_élément, std::move(tableau_types_entrée));
 
     if (type_fonction->types_entrees.est_vide()) {
         m_tableau_types_entrées_vide = résultat;
     }
+
+    using TypeNoeudInsertion = kuri::trie<Type *, AtomeConstante *>::Noeud;
+    auto noeud_insertion = std::get<TypeNoeudInsertion *>(tableau_existant);
+    noeud_insertion->données = résultat;
 
     return résultat;
 }
@@ -4675,27 +4732,44 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_type_sortie(const TypeFonctio
         return m_tableau_types_sorties_rien;
     }
 
-    kuri::tableau<AtomeConstante *> types_sortie;
+    kuri::tablet<Type *, 6> types_sortie;
     if (type_sortie->est_type_tuple()) {
         auto tuple = type_sortie->comme_type_tuple();
 
         types_sortie.réserve(tuple->membres.taille());
         POUR (tuple->membres) {
-            types_sortie.ajoute(crée_info_type_avec_transtype(it.type, site));
+            types_sortie.ajoute(it.type);
         }
     }
     else {
         types_sortie.réserve(1);
-        types_sortie.ajoute(crée_info_type_avec_transtype(type_fonction->type_sortie, site));
+        types_sortie.ajoute(type_fonction->type_sortie);
     }
 
-    /* À FAIRE : déduplique les autres tableaux. */
+    auto tableau_existant = m_trie_types_entrée_sortie.trouve_valeur_ou_noeud_insertion(
+        types_sortie);
+
+    if (std::holds_alternative<AtomeConstante *>(tableau_existant)) {
+        auto résultat = std::get<AtomeConstante *>(tableau_existant);
+
+        if (type_sortie->est_type_rien()) {
+            m_tableau_types_sorties_rien = résultat;
+        }
+
+        return résultat;
+    }
+
+    kuri::tableau<AtomeConstante *> tableau_types_sortie;
+    tableau_types_sortie.réserve(types_sortie.taille());
+    POUR (types_sortie) {
+        tableau_types_sortie.ajoute(crée_info_type_avec_transtype(it, site));
+    }
 
     auto ident = m_compilatrice.donne_identifiant_pour_globale("types_sortie");
     auto type_élément = m_compilatrice.typeuse.type_pointeur_pour(
         m_compilatrice.typeuse.type_info_type_, false);
     auto résultat = m_constructrice.crée_tranche_globale(
-        *ident, type_élément, std::move(types_sortie));
+        *ident, type_élément, std::move(tableau_types_sortie));
 
     if (type_sortie->est_type_rien()) {
         m_tableau_types_sorties_rien = résultat;
@@ -5521,6 +5595,15 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
 void CompilatriceRI::rassemble_statistiques(Statistiques &stats)
 {
     m_constructrice.rassemble_statistiques(stats);
+
+    auto mémoire = int64_t(0);
+    mémoire += m_pile.taille_mémoire();
+    mémoire += m_instructions_diffères.taille_mémoire();
+    mémoire += m_registre_annotations.mémoire_utilisée();
+    mémoire += m_trie_structs_employées.mémoire_utilisée();
+    mémoire += m_trie_types_entrée_sortie.mémoire_utilisée();
+
+    stats.ajoute_mémoire_utilisée("RI", mémoire);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -5558,6 +5641,17 @@ void RegistreAnnotations::ajoute_annotation(const Annotation &annotation, AtomeG
     auto tableau = kuri::tableau<PaireValeurGlobale, int>();
     tableau.ajoute(paire);
     m_table.insère(annotation.nom, tableau);
+}
+
+int64_t RegistreAnnotations::mémoire_utilisée() const
+{
+    auto résultat = m_table.taille_mémoire();
+
+    m_table.pour_chaque_élément([&](kuri::tableau<PaireValeurGlobale, int> const &tableau) {
+        résultat += tableau.taille_mémoire();
+    });
+
+    return résultat;
 }
 
 /** \} */

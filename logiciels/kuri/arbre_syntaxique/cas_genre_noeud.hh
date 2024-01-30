@@ -74,6 +74,7 @@
     case GenreNoeud::INSTRUCTION_REPRENDS:                                                        \
     case GenreNoeud::INSTRUCTION_RETIENS:                                                         \
     case GenreNoeud::INSTRUCTION_RETOUR:                                                          \
+    case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:                                                 \
     case GenreNoeud::INSTRUCTION_SAUFSI:                                                          \
     case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:                                                 \
     case GenreNoeud::INSTRUCTION_SI:                                                              \
