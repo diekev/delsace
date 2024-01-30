@@ -11,7 +11,7 @@ void IdentifiantADN::préserve_accents_si_nom_le_requiers()
 {
     if (nom == "OpérateurUnaire" || nom == "OpérateurBinaire" || nom == "VisibilitéSymbole" ||
         nom == "DonnéesSymboleExterne" || nom == "MembreTypeComposé" || nom == "TableOpérateurs" ||
-        nom == "Lexème" || nom == "GenreLexème") {
+        nom == "Lexème" || nom == "GenreLexème" || nom == "NoeudDépendance") {
 
         std::cerr << "Préserve accent : " << nom << "\n";
         préserve_accents();
