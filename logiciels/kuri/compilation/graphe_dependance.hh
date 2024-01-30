@@ -12,11 +12,11 @@
 
 struct AtomeFonction;
 struct EspaceDeTravail;
-struct GrapheDependance;
+struct GrapheDépendance;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationSymbole;
 struct NoeudDeclarationVariable;
-struct NoeudDependance;
+struct NoeudDépendance;
 struct NoeudExpression;
 struct Statistiques;
 struct NoeudDeclarationType;
@@ -54,16 +54,16 @@ std::ostream &operator<<(std::ostream &os, TypeRelation type);
 
 struct Relation {
     TypeRelation type = TypeRelation::INVALIDE;
-    NoeudDependance *noeud_debut = nullptr;
-    NoeudDependance *noeud_fin = nullptr;
+    NoeudDépendance *noeud_début = nullptr;
+    NoeudDépendance *noeud_fin = nullptr;
 };
 
 inline bool operator==(Relation const &r1, Relation const &r2)
 {
-    return r1.type == r2.type && r1.noeud_debut == r2.noeud_debut && r1.noeud_fin == r2.noeud_fin;
+    return r1.type == r2.type && r1.noeud_début == r2.noeud_début && r1.noeud_fin == r2.noeud_fin;
 }
 
-struct NoeudDependance {
+struct NoeudDépendance {
   private:
     kuri::tableau_compresse<Relation> m_relations{};
 
@@ -81,9 +81,9 @@ struct NoeudDependance {
     /* pour certains algorithmes de travail sur le graphe */
     char drapeaux = 0;
 
-    explicit NoeudDependance(NoeudDeclarationVariable *globale);
-    explicit NoeudDependance(NoeudDeclarationEnteteFonction *fonction);
-    explicit NoeudDependance(Type *t);
+    explicit NoeudDépendance(NoeudDeclarationVariable *globale);
+    explicit NoeudDépendance(NoeudDeclarationEnteteFonction *fonction);
+    explicit NoeudDépendance(Type *t);
 
     inline bool est_type() const
     {
@@ -118,43 +118,43 @@ struct NoeudDependance {
         return m_noeud_globale;
     }
 
-    void ajoute_relation(Badge<GrapheDependance>, const Relation &relation);
+    void ajoute_relation(Badge<GrapheDépendance>, const Relation &relation);
 
     kuri::tableau_compresse<Relation> const &relations() const;
 
-    void relations(Badge<GrapheDependance>, kuri::tableau_compresse<Relation> &&relations);
+    void relations(Badge<GrapheDépendance>, kuri::tableau_compresse<Relation> &&relations);
 };
 
-struct DonneesDependance {
-    kuri::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisees{};
-    kuri::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisees{};
-    kuri::ensemblon<Type *, 16> types_utilises{};
+struct DonnéesDépendance {
+    kuri::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisées{};
+    kuri::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisées{};
+    kuri::ensemblon<Type *, 16> types_utilisés{};
 
-    void fusionne(DonneesDependance const &autre);
+    void fusionne(DonnéesDépendance const &autre);
 
     void efface()
     {
-        fonctions_utilisees.efface();
-        globales_utilisees.efface();
-        types_utilises.efface();
+        fonctions_utilisées.efface();
+        globales_utilisées.efface();
+        types_utilisés.efface();
     }
 
     int64_t mémoire_utilisée() const
     {
         auto résultat = int64_t(0);
-        résultat += fonctions_utilisees.mémoire_utilisée();
-        résultat += types_utilises.mémoire_utilisée();
-        résultat += globales_utilisees.mémoire_utilisée();
+        résultat += fonctions_utilisées.mémoire_utilisée();
+        résultat += types_utilisés.mémoire_utilisée();
+        résultat += globales_utilisées.mémoire_utilisée();
         return résultat;
     }
 };
 
-void imprime_dependances(const DonneesDependance &dependances,
+void imprime_dépendances(const DonnéesDépendance &dependances,
                          EspaceDeTravail *espace,
                          const char *message,
                          std::ostream &flux);
 
-struct GrapheDependance {
+struct GrapheDépendance {
   private:
     /* Index de la visite. Chaque traversée du graphe peut avoir un index de visite différent
      * (#prepare_visite() doit être utilisé pour indiquer une nouvelle visite). Les noeuds sont
@@ -162,50 +162,50 @@ struct GrapheDependance {
     int index_visite = 0;
 
   public:
-    tableau_page<NoeudDependance> noeuds{};
+    tableau_page<NoeudDépendance> noeuds{};
 
     // CRÉE (:FONCTION { nom = $nom })
-    NoeudDependance *crée_noeud_fonction(NoeudDeclarationEnteteFonction *noeud_syntaxique);
+    NoeudDépendance *crée_noeud_fonction(NoeudDeclarationEnteteFonction *noeud_syntaxique);
 
     // CRÉE (:GLOBALE { nom = $nom })
-    NoeudDependance *crée_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique);
+    NoeudDépendance *crée_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique);
 
     // FUSIONNE (:TYPE { index = $index })
-    NoeudDependance *crée_noeud_type(Type *type);
+    NoeudDépendance *crée_noeud_type(Type *type);
 
     // CHERCHE (type1 :TYPE { index = $index1 })
     // CHERCHE (type2 :TYPE { index = $index1 })
     // FUSIONNE (type1)-[:UTILISE_TYPE]->(type2)
-    void connecte_type_type(NoeudDependance &type1,
-                            NoeudDependance &type2,
+    void connecte_type_type(NoeudDépendance &type1,
+                            NoeudDépendance &type2,
                             TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
     void connecte_type_type(Type *type1,
                             Type *type2,
                             TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
-    void ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees);
+    void ajoute_dépendances(NoeudDépendance &noeud, DonnéesDépendance &donnees);
 
-    void connecte_noeuds(NoeudDependance &noeud1,
-                         NoeudDependance &noeud2,
+    void connecte_noeuds(NoeudDépendance &noeud1,
+                         NoeudDépendance &noeud2,
                          TypeRelation type_relation);
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-    void reduction_transitive();
+    void réduction_transitive();
 
-    void prepare_visite();
+    void prépare_visite();
 
-    void rassemble_fonctions_utilisees(NoeudDependance *racine,
+    void rassemble_fonctions_utilisées(NoeudDépendance *racine,
                                        kuri::tableau<AtomeFonction *> &fonctions,
                                        kuri::ensemble<AtomeFonction *> &utilises);
 
     /* Crée un noeud de dépendance pour le noeud spécifié en paramètre, et retourne un pointeur
      * vers celui-ci. Retourne nul si le noeud n'est pas supposé avoir un noeud de dépendance. */
-    NoeudDependance *garantie_noeud_dépendance(EspaceDeTravail *espace, NoeudExpression *noeud);
+    NoeudDépendance *garantie_noeud_dépendance(EspaceDeTravail *espace, NoeudExpression *noeud);
 
     template <typename Rappel>
-    void traverse(NoeudDependance *racine, Rappel rappel)
+    void traverse(NoeudDépendance *racine, Rappel rappel)
     {
         racine->index_visite = index_visite;
 
@@ -229,7 +229,7 @@ struct GrapheDependance {
     }
 };
 
-void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);
+void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dependance);
 
 /* Impression des dépendances directes. */
 [[nodiscard]] kuri::chaine imprime_dépendances(NoeudDeclarationSymbole const *symbole);

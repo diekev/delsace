@@ -827,7 +827,8 @@ static RésultatAppariement apparie_appel_fonction_pour_cuisson(
         }
 
         auto type = it.expr->type->comme_type_type_de_donnees();
-        items_monomorphisation.ajoute({it.ident, type, ValeurExpression(), true});
+        items_monomorphisation.ajoute(
+            {it.ident, type, ValeurExpression(), GenreItem::TYPE_DE_DONNÉES});
     }
 
     return CandidateAppariement::cuisson_fonction(
@@ -1149,7 +1150,8 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
                 return ErreurAppariement::métypage_argument(it, param->type, it->type);
             }
 
-            items_monomorphisation.ajoute({param->ident, it->type, ValeurExpression(), true});
+            items_monomorphisation.ajoute(
+                {param->ident, it->type, ValeurExpression(), GenreItem::TYPE_DE_DONNÉES});
         }
         else {
             if (!(it->type == param->type ||
@@ -1157,13 +1159,14 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
                 return ErreurAppariement::métypage_argument(it, param->type, it->type);
             }
 
-            auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
+            auto valeur = évalue_expression(espace.compilatrice(), it->bloc_parent, it);
 
-            if (valeur.est_errone) {
+            if (valeur.est_erroné) {
                 espace.rapporte_erreur(it, "La valeur n'est pas constante");
             }
 
-            items_monomorphisation.ajoute({param->ident, param->type, valeur.valeur, false});
+            items_monomorphisation.ajoute(
+                {param->ident, param->type, valeur.valeur, GenreItem::VALEUR});
         }
     }
 
@@ -1652,7 +1655,7 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
                                       DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->type = const_cast<Type *>(it.type);
 
-        if (!it.est_type) {
+        if (it.genre == GenreItem::VALEUR) {
             decl_constante->valeur_expression = it.valeur;
         }
     }

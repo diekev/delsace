@@ -33,7 +33,7 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationTypeTranche;
 struct NoeudDeclarationTypeOpaque;
 struct NoeudDeclarationOperateurPour;
-struct NoeudDependance;
+struct NoeudDépendance;
 struct NoeudEnum;
 struct NoeudExpression;
 struct NoeudStruct;
