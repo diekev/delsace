@@ -22,7 +22,6 @@ void Copieuse::copie_membres_de_bases_et_insère(const NoeudExpression *racine,
                                                 NoeudExpression *nracine)
 {
     insere_copie(racine, nracine);
-    nracine->ident = racine->ident;
     nracine->type = racine->type;
     nracine->drapeaux = racine->drapeaux;
     /* Les paramètres des copies des opérateurs « pour » ne sont pas revalidés. */

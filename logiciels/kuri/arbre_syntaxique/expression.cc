@@ -246,8 +246,9 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
         {
             auto fichier = compilatrice.fichier(b->lexeme->fichier);
+            auto référence = b->comme_reference_declaration();
             auto decl = trouve_dans_bloc_ou_module(
-                bloc, b->ident, fichier, bloc->appartiens_à_fonction);
+                bloc, référence->ident, fichier, bloc->appartiens_à_fonction);
 
             if (decl == nullptr) {
                 return erreur_évaluation(b, "La variable n'existe pas !");

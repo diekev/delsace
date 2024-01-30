@@ -29,7 +29,6 @@ struct NoeudExpression {
     char _rembourrage
     DrapeauxNoeud drapeaux
     Lexème const * lexème [code]
-    IdentifiantCode * ident [code]
     NoeudDéclarationType * type [code]
 
     NoeudBloc * bloc_parent [copie]
@@ -292,6 +291,7 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
     @code  NoeudCodeDéclarationSymbole
     @genre_valeur INVALIDE
 
+    IdentifiantCode * ident [copie code]
     NoeudDépendance *noeud_dépendance [préserve_accents]
     Atome *atome
 
@@ -410,6 +410,7 @@ struct NoeudExpressionReference : NoeudExpression {
     @code  NoeudCodeRéférenceDéclaration
     @genre_valeur INVALIDE
 
+    IdentifiantCode * ident [copie code]
     NoeudDéclaration *déclaration_référée [copie]
 }
 
@@ -511,6 +512,7 @@ struct NoeudExpressionMembre : NoeudExpression {
     @code  NoeudCodeRéférenceMembre
     @genre_valeur TRANSCENDANTALE
 
+    IdentifiantCode * ident [copie code]
     NoeudExpression *accédée [code enfant]
 
     /* Pour l'accès à des modules. */
@@ -997,6 +999,7 @@ struct NoeudPour : NoeudExpression {
     @code  NoeudCodePour
     @genre_valeur INVALIDE
 
+    IdentifiantCode * ident [copie code]
     NoeudExpression *variable [code enfant]
     NoeudExpression *expression [code enfant]
     NoeudBloc *bloc [code enfant]
@@ -1024,6 +1027,7 @@ struct NoeudBoucle : NoeudExpression {
     @code  NoeudCodeBoucle
     @genre_valeur INVALIDE
 
+    IdentifiantCode * ident [copie code]
     NoeudExpression *condition [code enfant]
     NoeudBloc *bloc [code enfant]
 
@@ -1252,4 +1256,6 @@ struct NoeudDirectiveIntrospection : NoeudExpression {
     @comme directive_instrospection
     @code NoeudCodeDirectiveIntrospection
     @genre_valeur DROITE
+
+    IdentifiantCode * ident [copie code]
 }

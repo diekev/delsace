@@ -926,7 +926,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         {
-            if (noeud->ident == ID::chemin_de_ce_fichier) {
+            auto directive = noeud->comme_directive_instrospection();
+            if (directive->ident == ID::chemin_de_ce_fichier) {
                 auto &compilatrice = espace->compilatrice();
                 auto littérale_chaine = assem->crée_litterale_chaine(noeud->lexeme);
                 littérale_chaine->drapeaux |=
@@ -937,7 +938,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
             }
-            else if (noeud->ident == ID::chemin_de_ce_module) {
+            else if (directive->ident == ID::chemin_de_ce_module) {
                 auto &compilatrice = espace->compilatrice();
                 auto littérale_chaine = assem->crée_litterale_chaine(noeud->lexeme);
                 littérale_chaine->drapeaux |=
@@ -948,7 +949,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
             }
-            else if (noeud->ident == ID::nom_de_cette_fonction) {
+            else if (directive->ident == ID::nom_de_cette_fonction) {
                 assert(fonction_courante);
                 auto &compilatrice = espace->compilatrice();
                 auto littérale_chaine = assem->crée_litterale_chaine(noeud->lexeme);
@@ -959,8 +960,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
             }
-            else if (noeud->ident == ID::type_de_cette_fonction ||
-                     noeud->ident == ID::type_de_cette_structure) {
+            else if (directive->ident == ID::type_de_cette_fonction ||
+                     directive->ident == ID::type_de_cette_structure) {
                 noeud->substitution = assem->crée_reference_type(noeud->lexeme, noeud->type);
             }
 

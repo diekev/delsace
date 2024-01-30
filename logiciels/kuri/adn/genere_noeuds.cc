@@ -282,7 +282,7 @@ struct GeneratriceCodeCPP {
             os << "\t\t\tos << chaine_indentations(profondeur);\n";
             os << "\t\t\tos << \"<" << it->accede_nom_comme();
 
-            os << " \" << (racine->ident ? racine->ident->nom : \"\") << \"";
+            // os << " \" << (racine->ident ? racine->ident->nom : \"\") << \"";
 
             // À FAIRE : ceci ne prend pas en compte les ancêtres
             if (it->possède_enfants()) {
@@ -1351,7 +1351,24 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
         noeud->bloc_parent = bloc_courant();
 
         if (noeud->lexeme && (noeud->lexeme->genre == GenreLexème::CHAINE_CARACTERE)) {
-            noeud->ident = lexeme->ident;
+            if (noeud->est_declaration_symbole()) {
+                noeud->comme_declaration_symbole()->ident = lexeme->ident;
+            }
+            else if (noeud->est_reference_declaration()) {
+                noeud->comme_reference_declaration()->ident = lexeme->ident;
+            }
+            else if (noeud->est_directive_instrospection()) {
+                noeud->comme_directive_instrospection()->ident = lexeme->ident;
+            }
+            else if (noeud->est_boucle()) {
+                noeud->comme_pour()->ident = lexeme->ident;
+            }
+            else if (noeud->est_boucle()) {
+                noeud->comme_pour()->ident = lexeme->ident;
+            }
+            else if (noeud->est_reference_membre()) {
+                noeud->comme_reference_membre()->ident = lexeme->ident;
+            }
         }
 
         if (genre == GenreNoeud::DECLARATION_ENTETE_FONCTION) {
