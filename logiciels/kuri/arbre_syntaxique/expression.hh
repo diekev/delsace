@@ -77,17 +77,17 @@ struct ValeurExpression {
         return v.index() != std::variant_npos && v.index() != 0;
     }
 
-    inline bool est_entiere() const
+    inline bool est_entière() const
     {
         return std::holds_alternative<int64_t>(v);
     }
 
-    inline bool est_booleenne() const
+    inline bool est_booléenne() const
     {
         return std::holds_alternative<bool>(v);
     }
 
-    inline bool est_reelle() const
+    inline bool est_réelle() const
     {
         return std::holds_alternative<double>(v);
     }
@@ -114,17 +114,17 @@ struct ValeurExpression {
 
     /* Accès. */
 
-    inline bool booleenne() const
+    inline bool booléenne() const
     {
         return std::get<bool>(v);
     }
 
-    inline int64_t entiere() const
+    inline int64_t entière() const
     {
         return std::get<int64_t>(v);
     }
 
-    inline double reelle() const
+    inline double réelle() const
     {
         return std::get<double>(v);
     }
@@ -149,7 +149,7 @@ struct ValeurExpression {
         return std::get<Type *>(v);
     }
 
-    inline bool est_egale_a(ValeurExpression v2) const
+    inline bool est_égale_à(ValeurExpression v2) const
     {
         return v == v2.v;
     }
@@ -157,7 +157,7 @@ struct ValeurExpression {
 
 inline bool operator==(ValeurExpression v1, ValeurExpression v2)
 {
-    return v1.est_egale_a(v2);
+    return v1.est_égale_à(v2);
 }
 
 inline bool operator!=(ValeurExpression v1, ValeurExpression v2)
@@ -167,21 +167,21 @@ inline bool operator!=(ValeurExpression v1, ValeurExpression v2)
 
 std::ostream &operator<<(std::ostream &os, ValeurExpression valeur);
 
-struct ResultatExpression {
+struct RésultatExpression {
     ValeurExpression valeur{};
-    bool est_errone = true;
+    bool est_erroné = true;
     const NoeudExpression *noeud_erreur = nullptr;
     const char *message_erreur = nullptr;
 
-    ResultatExpression() = default;
+    RésultatExpression() = default;
 
-    ResultatExpression(ValeurExpression valeur_valide) : valeur(valeur_valide), est_errone(false)
+    RésultatExpression(ValeurExpression valeur_valide) : valeur(valeur_valide), est_erroné(false)
     {
     }
 
-    COPIE_CONSTRUCT(ResultatExpression);
+    COPIE_CONSTRUCT(RésultatExpression);
 };
 
-ResultatExpression evalue_expression(const Compilatrice &compilatrice,
+RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                                      NoeudBloc *bloc,
                                      const NoeudExpression *b);
