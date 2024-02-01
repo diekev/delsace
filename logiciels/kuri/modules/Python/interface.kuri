@@ -1343,3 +1343,120 @@ PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject,
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom GIL
+ * \{ */
+
+PyGILState_STATE :: énum {
+    PyGILState_LOCKED :: 0
+    PyGILState_UNLOCKED :: 1
+}
+
+PyGILState_Ensure :: fonc () -> PyGILState_STATE #externe libpython
+
+PyGILState_Release :: fonc (state: PyGILState_STATE) -> z32 #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Object
+ * https://docs.python.org/3/c-api/object.html
+ * \{ */
+
+PyObject_Str :: fonc (o: *PyObject) -> *PyObject #externe libpython
+
+imprime_object :: fonc (o: *PyObject) -> chaine
+{
+    str := PyObject_Str(o)
+    diffère Py_DECREF(str)
+
+    retourne PyUnicode_AsChaine(str)
+}
+
+PyObject_GetAttr :: fonc (o: *PyObject, attr_name: *PyObject) -> *PyObject #externe libpython
+
+PyObject_GetAttrString :: fonc (o: *PyObject, attr_name: ChaineC) -> *PyObject #externe libpython
+
+donne_attribut :: fonc (o: *PyObject, nom_attribut: chaine) -> *PyObject
+{
+    nom_attribut_c := crée_chaine_c(nom_attribut)
+    diffère détruit_chaine_c(nom_attribut_c)
+
+    retourne PyObject_GetAttrString(o, nom_attribut_c)
+}
+
+/* Ces deux fonctions implémente `len(o)`. Retourne -1 si erreur. */
+PyObject_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+PyObject_Length :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Modules
+ * \{ */
+
+PyModule_GetDict :: fonc (module: *PyObject) -> *PyObject #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Import Module.
+ * \{ */
+
+PyImport_ImportModule :: fonc (name: ChaineC) -> *PyObject #externe libpython
+
+importe_module :: fonc (name: chaine) -> *PyObject
+{
+    chn_c := crée_chaine_c(name)
+    diffère détruit_chaine_c(chn_c)
+
+    retourne PyImport_ImportModule(chn_c)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Erreurs.
+ * \{ */
+
+PyErr_PrintEx :: fonc (set_sys_last_vars: z32) -> rien #externe libpython
+
+PyErr_Print :: fonc ()
+{
+    PyErr_PrintEx(1)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Protocol Appel
+ * https://docs.python.org/3/c-api/call.html
+ * \{ */
+
+PyObject_CallMethod :: fonc (obj: *PyObject, name: ChaineC, format: ChaineC, args: ...) -> *PyObject #externe libpython
+
+PyObject_CallMethodObjArgs :: fonc (obj: *PyObject, name: *PyObject,  args: ...) -> *PyObject #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom List Object
+ * https://docs.python.org/3/c-api/list.html
+ * \{ */
+
+PyList_New :: fonc (len: Py_ssize_t) -> *PyObject #externe libpython
+
+PyList_SetItem :: fonc (list: *PyObject, index: Py_ssize_t, item: *PyObject) -> z32 #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Set Object
+ * \{ */
+
+/* Crée un `set` (`set(o)`) depuis un objet itérable.
+ * TypeError si l'objet n'est pas itérable. */
+PySet_New :: fonc (iterable: *PyObject) -> *PyObject #externe libpython
+
+/** } */
