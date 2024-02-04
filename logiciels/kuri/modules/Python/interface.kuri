@@ -575,6 +575,17 @@ PySequenceMethods :: struct {
     sq_inplace_repeat: ssizeargfunc
 }
 
+PySequence_Check :: fonc (o: *PyObject) -> z32 #externe libpython
+
+PySequence_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+PySequence_Length :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+
+PySequence_GetItem :: fonc (o: *PyObject, i: Py_ssize_t) -> *PyObject #externe libpython
+
+PySequence_GetSlice :: fonc (o: *PyObject, i1: Py_ssize_t, i2: Py_ssize_t) -> *PyObject #externe libpython
+
+PySequence_SetItem :: fonc (o: *PyObject, i: Py_ssize_t, v: *PyObject) -> z32 #externe libpython
+
 // ---------------------------------------------------
 // Buffer Interface
 
@@ -1366,12 +1377,19 @@ PyGILState_Release :: fonc (state: PyGILState_STATE) -> z32 #externe libpython
 
 PyObject_Str :: fonc (o: *PyObject) -> *PyObject #externe libpython
 
-imprime_object :: fonc (o: *PyObject) -> chaine
+donne_chaine_object :: fonc (o: *PyObject) -> chaine
 {
     str := PyObject_Str(o)
     diffère Py_DECREF(str)
 
-    retourne PyUnicode_AsChaine(str)
+    retourne copie_chaine(PyUnicode_AsChaine(str))
+}
+
+imprime_object :: fonc (format: chaine, object: *PyObject)
+{
+    chn := donne_chaine_object(object)
+    diffère déloge(chn)
+    imprime(format, chn)
 }
 
 PyObject_GetAttr :: fonc (o: *PyObject, attr_name: *PyObject) -> *PyObject #externe libpython
@@ -1438,6 +1456,8 @@ PyObject_CallMethod :: fonc (obj: *PyObject, name: ChaineC, format: ChaineC, arg
 
 PyObject_CallMethodObjArgs :: fonc (obj: *PyObject, name: *PyObject,  args: ...) -> *PyObject #externe libpython
 
+PyObject_CallFunctionObjArgs :: fonc (callable: *PyObject, args: ...) -> *PyObject #externe libpython
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -1458,5 +1478,23 @@ PyList_SetItem :: fonc (list: *PyObject, index: Py_ssize_t, item: *PyObject) -> 
 /* Crée un `set` (`set(o)`) depuis un objet itérable.
  * TypeError si l'objet n'est pas itérable. */
 PySet_New :: fonc (iterable: *PyObject) -> *PyObject #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Tuple Object.
+ * https://docs.python.org/3/c-api/tuple.html
+ * \{ */
+
+PyTuple_Type : PyTypeObject #externe libpython
+
+PyTuple_Check :: fonc (ob: *PyObject) -> bool
+{
+    retourne PyObject_TypeCheck(ob, *PyTuple_Type)
+}
+
+PyTuple_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+
+PyTuple_GetItem :: fonc (p: *PyObject, pos: Py_ssize_t) -> *PyObject #externe libpython
 
 /** } */
