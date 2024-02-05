@@ -37,10 +37,10 @@ compilation
 #    define TERMINE_STAT(stat)
 #endif
 
-#define TACHE_AJOUTEE(genre) espace->tache_ajoutee(GenreTache::genre, m_compilatrice->messagère)
+#define TACHE_AJOUTEE(genre) espace->tache_ajoutee(GenreTâche::genre, m_compilatrice->messagère)
 #define TACHE_TERMINEE(genre, envoyer_changement_de_phase)                                        \
     espace->tache_terminee(                                                                       \
-        GenreTache::genre, m_compilatrice->messagère, envoyer_changement_de_phase)
+        GenreTâche::genre, m_compilatrice->messagère, envoyer_changement_de_phase)
 
 /* ------------------------------------------------------------------------- */
 /** \name État chargement fichiers
