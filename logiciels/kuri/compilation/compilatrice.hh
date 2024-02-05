@@ -150,10 +150,6 @@ struct Compilatrice {
 
     RegistreSymboliqueRI *registre_ri = nullptr;
 
-    /* À FAIRE : nous pourrions stocker les tâcheronnes, et utiliser la première tâcheronne
-     * disponible. */
-    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
-
     Broyeuse *broyeuse = nullptr;
 
     /* Tous les tableaux créés pour les appels à #compilatrice_fonctions_parsées. */
@@ -176,6 +172,9 @@ struct Compilatrice {
 
     std::mutex m_mutex_sémanticiennes{};
     kuri::tableau<Sémanticienne *> m_sémanticiennes{};
+
+    std::mutex m_mutex_convertisseuses_noeud_code{};
+    kuri::tableau<ConvertisseuseNoeudCode *> m_convertisseuses_noeud_code{};
 
   public:
     /* ********************************************************************** */
@@ -329,6 +328,8 @@ struct Compilatrice {
 
     Sémanticienne *donne_sémanticienne_disponible(Tacheronne &tacheronne);
     void dépose_sémanticienne(Sémanticienne *sémanticienne);
+    ConvertisseuseNoeudCode *donne_convertisseuse_noeud_code_disponible();
+    void dépose_convertisseuse(ConvertisseuseNoeudCode *convertisseuse);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);
