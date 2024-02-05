@@ -459,7 +459,9 @@ void Tacheronne::gere_tache()
                 // validés
                 // À FAIRE(noeuds codes) : ne convertis pas les déclarations référées
                 // (créer un NoeudCode prématurément peut se faire)
-                convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, noeud);
+                auto convertisseuse = compilatrice.donne_convertisseuse_noeud_code_disponible();
+                convertisseuse->convertis_noeud_syntaxique(espace, noeud);
+                compilatrice.dépose_convertisseuse(convertisseuse);
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 break;
             }
@@ -1066,7 +1068,6 @@ void Tacheronne::rassemble_statistiques(Statistiques &stats)
     allocatrice_noeud.rassemble_statistiques(stats);
 
     stats.ajoute_mémoire_utilisée("Compilatrice", lexemes_extra.memoire_utilisee());
-    stats.ajoute_mémoire_utilisée("Compilatrice", convertisseuse_noeud_code.memoire_utilisee());
 
     if (mv) {
         mv->rassemble_statistiques(stats);

@@ -117,6 +117,10 @@ Compilatrice::~Compilatrice()
         memoire::deloge("Sémanticienne", it);
     }
 
+    POUR (m_convertisseuses_noeud_code) {
+        memoire::deloge("ConvertisseuseNoeudCode", it);
+    }
+
     memoire::deloge("Broyeuse", broyeuse);
     memoire::deloge("RegistreSymboliqueRI", registre_ri);
     memoire::deloge("GestionnaireCode", gestionnaire_code);
@@ -315,6 +319,9 @@ int64_t Compilatrice::memoire_utilisee() const
     résultat += m_sémanticiennes.taille_mémoire() +
                 taille_de(Sémanticienne) * m_sémanticiennes.taille();
 
+    résultat += m_convertisseuses_noeud_code.taille_mémoire() +
+                taille_de(ConvertisseuseNoeudCode) * m_convertisseuses_noeud_code.taille();
+
     return résultat;
 }
 
@@ -352,6 +359,10 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 #ifdef STATISTIQUES_DETAILLEES
         it->donne_stats_typage().imprime_stats();
 #endif
+    }
+
+    POUR (m_convertisseuses_noeud_code) {
+        stats.ajoute_mémoire_utilisée("Compilatrice", it->mémoire_utilisée());
     }
 }
 
@@ -528,6 +539,7 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
 kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsees(
     EspaceDeTravail *espace)
 {
+    auto convertisseuse = donne_convertisseuse_noeud_code_disponible();
     auto entetes = gestionnaire_code->fonctions_parsees();
     auto résultat = kuri::tableau<NoeudCodeEnteteFonction *>();
     résultat.réserve(entetes.taille());
@@ -536,10 +548,11 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
             it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
             continue;
         }
-        auto code_entete = convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, it);
+        auto code_entete = convertisseuse->convertis_noeud_syntaxique(espace, it);
         résultat.ajoute(code_entete->comme_entete_fonction());
     }
     m_tableaux_code_fonctions.ajoute(résultat);
+    dépose_convertisseuse(convertisseuse);
     return m_tableaux_code_fonctions.dernier_élément();
 }
 
@@ -716,6 +729,31 @@ void Compilatrice::dépose_sémanticienne(Sémanticienne *sémanticienne)
 {
     std::unique_lock l(m_mutex_sémanticiennes);
     m_sémanticiennes.ajoute(sémanticienne);
+}
+
+/* ************************************************************************** */
+
+ConvertisseuseNoeudCode *Compilatrice::donne_convertisseuse_noeud_code_disponible()
+{
+    std::unique_lock l(m_mutex_convertisseuses_noeud_code);
+
+    ConvertisseuseNoeudCode *résultat;
+
+    if (!m_convertisseuses_noeud_code.est_vide()) {
+        résultat = m_convertisseuses_noeud_code.dernier_élément();
+        m_convertisseuses_noeud_code.supprime_dernier();
+    }
+    else {
+        résultat = memoire::loge<ConvertisseuseNoeudCode>("ConvertisseuseNoeudCode");
+    }
+
+    return résultat;
+}
+
+void Compilatrice::dépose_convertisseuse(ConvertisseuseNoeudCode *convertisseuse)
+{
+    std::unique_lock l(m_mutex_convertisseuses_noeud_code);
+    m_convertisseuses_noeud_code.ajoute(convertisseuse);
 }
 
 /* ************************************************************************** */
