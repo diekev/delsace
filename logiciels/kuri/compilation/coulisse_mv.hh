@@ -11,9 +11,6 @@ struct Programme;
 
 struct CoulisseMV final : public Coulisse {
   private:
-    /* Pour la création des infos types. */
-    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
-
     std::optional<ErreurCoulisse> génère_code_impl(ArgsGénérationCode const &args) override;
 
     std::optional<ErreurCoulisse> crée_fichier_objet_impl(
