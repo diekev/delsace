@@ -426,10 +426,10 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
      * Pour une structure appelée « Structure », la version Python s'appelera « StructurePourPython ». */
     enchaineuse.ajoute_au_tampon(type.nom_sauf, "PourPython :: struct {\n")
     si type.drapeaux.TYPE_EST_TABLEAU {
-        enchaineuse.ajoute_au_tampon("    empl base: BasePyBuffer\n")
+        enchaineuse.ajoute_au_tampon("    empl base_py_buffer: BasePyBuffer\n")
     }
     sinon {
-        enchaineuse.ajoute_au_tampon("    empl base: PyObject\n")
+        enchaineuse.ajoute_au_tampon("    empl base_py_object: PyObject\n")
     }
     symbole_pointeur := ""
     si type.drapeaux.TOUJOURS_COMME_POINTEUR {

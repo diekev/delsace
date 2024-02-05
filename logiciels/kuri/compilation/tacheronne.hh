@@ -6,7 +6,6 @@
 #include "biblinternes/outils/badge.hh"
 
 #include "arbre_syntaxique/allocatrice.hh"
-#include "arbre_syntaxique/noeud_code.hh"
 
 #include "structures/file.hh"
 
@@ -126,8 +125,6 @@ struct Tacheronne {
 
     AllocatriceNoeud allocatrice_noeud{};
     AssembleuseArbre *assembleuse = nullptr;
-
-    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
     tableau_page<Lexème> lexemes_extra{};
 

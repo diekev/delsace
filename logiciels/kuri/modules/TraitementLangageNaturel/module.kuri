@@ -1,0 +1,576 @@
+/* Module d'interface de la bibliothèque Python "Natural Language ToolKit" (NLTK).
+ * À FAIRE : erreur de compilation si NLTK n'est pas installé pour la version de Python connu.
+ */
+
+importe Fondation
+importe Python
+
+/* nltk.word_tokenize
+ * https://www.nltk.org/api/nltk.tokenize.word_tokenize.html */
+word_tokenize :: fonc (text: chaine, language := "english", preserve_line := faux) -> *PyObject
+{
+    nom_méthode := PyUnicode_FromChaine("word_tokenize")
+    diffère Py_DECREF(nom_méthode)
+
+    arg_text := PyUnicode_FromChaine(text)
+    diffère Py_DECREF(arg_text)
+
+    arg_language := PyUnicode_FromChaine(language)
+    diffère Py_DECREF(arg_language)
+
+    arg_preserve_line := PyBool_FromBool(preserve_line)
+    diffère Py_DECREF(arg_preserve_line)
+
+    nltk := donne_module_nltk()
+    saufsi nltk {
+        retourne nul
+    }
+
+    retourne PyObject_CallMethodObjArgs(nltk, nom_méthode, arg_text, arg_language, arg_preserve_line, nul)
+}
+
+/* https://www.nltk.org/api/nltk.tag.pos_tag.html */
+pos_tag :: fonc (mots: *PyObject) -> *PyObject
+{
+    nom_méthode := PyUnicode_FromChaine("pos_tag")
+    diffère Py_DECREF(nom_méthode)
+
+    nltk := donne_module_nltk()
+    saufsi nltk {
+        retourne nul
+    }
+
+    retourne PyObject_CallMethodObjArgs(nltk, nom_méthode, mots, nul)
+}
+
+PaireChaines :: struct {
+    valeur1: chaine
+    valeur2: chaine
+}
+
+convertis_séquence_paire_chaine :: fonc (séquence: *PyObject) -> Optionnel([..]PaireChaines)
+{
+    saufsi PySequence_Check(séquence) {
+        imprime("L'objet n'est pas une séquence.\n")
+        retourne
+    }
+
+    nombre_éléments := PySequence_Size(séquence)
+    imprime("Nombre éléments : %\n", nombre_éléments)
+
+    résultat: [..]PaireChaines
+
+    pour index_item dans nombre_éléments {
+        item := PySequence_GetItem(séquence, index_item)
+        // imprime_object("%\n", item)
+
+        saufsi PyTuple_Check(item) {
+            imprime("Pas un tuple\n")
+            retourne
+        }
+
+        si PyTuple_Size(item) != 2 {
+            imprime("Trop d'éléments dans le tuple, voulu 2, obtenu %\n", PyTuple_Size(item))
+            retourne
+        }
+
+        élément1 := PyTuple_GetItem(item, 0)
+        saufsi PyUnicode_Check(élément1) {
+            imprime("Le premier élément du tuple n'est pas une chaine\n")
+            retourne
+        }
+        élément2 := PyTuple_GetItem(item, 1)
+        saufsi PyUnicode_Check(élément2) {
+            imprime("Le deuxième élément du tuple n'est pas une chaine\n")
+            retourne
+        }
+
+        valeur1 := PyUnicode_AsChaine(élément1)
+        valeur2 := PyUnicode_AsChaine(élément2)
+
+        tableau_ajoute(*résultat, PaireChaines(valeur1, valeur2))
+    }
+
+    retourne résultat
+}
+
+donne_étiquetage_pos :: fonc (mots: *PyObject) -> Optionnel([..]PaireChaines)
+{
+    py_tags := pos_tag(mots)
+    diffère Py_DECREF(py_tags)
+    // imprime_object("%\n", py_tags)
+
+    retourne convertis_séquence_paire_chaine(py_tags)
+}
+
+donne_étiquette_universel :: fonc (étiquette: chaine) -> chaine
+{
+    nom_méthode := PyUnicode_FromChaine("map_tag")
+    diffère Py_DECREF(nom_méthode)
+
+    arg_étiquette := PyUnicode_FromChaine(étiquette)
+    diffère Py_DECREF(arg_étiquette)
+
+    // À FAIRE : paramétrise
+    arg_étiquetage_origine := PyUnicode_FromChaine("en-ptb")
+    diffère Py_DECREF(arg_étiquetage_origine)
+
+    arg_étiquetage_cible := PyUnicode_FromChaine("universal")
+    diffère Py_DECREF(arg_étiquetage_cible)
+
+    nltk := donne_module_nltk()
+
+    résultat := PyObject_CallMethodObjArgs(nltk, nom_méthode, arg_étiquetage_origine, arg_étiquetage_cible, arg_étiquette, nul)
+    saufsi résultat {
+        imprime("Impossible de trouver un tag pour %\n", étiquette)
+        retourne étiquette
+    }
+    retourne PyUnicode_AsChaine(résultat)
+}
+
+/* https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html */
+
+ÉtiquettePennTreebank :: énum {
+    ConjonctionDeCoordination
+    NombreCardinal
+    Déterminant
+    ThereExistentiel
+    MotÉtranger
+    ConjonctionDeSubordination // Préposition
+    Adjectif
+    AdjectifComparatif
+    AdjectifSuperlatif
+    MarqueurItemListe
+    Modal
+    Nom // singulier ou masse
+    NomPluriel
+    NomPropre
+    NomProprePluriel
+    Prédéterminant
+    TerminaisonPossessive
+    PronomPersonnel
+    PronomPossessif
+    Adverbe
+    AdverbeComparatif
+    AdverbeSuperlatif
+    Particule
+    Symbole
+    To // "vers", "pour"
+    Interjection
+    VerbeFormeBasique
+    VerbeConjuguéPassé
+    VerbeParticipePrésent // gérondif
+    VerbeParticipePassé
+    VerbeSingulierPrésent
+    VerbeSingulierPrésentTiercePersonne
+    DéterminantWh // Who, what, where, when, whose, etc.
+    PronomWh // Who, what, where, when, whose, etc.
+    PronomWhPossessif // Who, what, where, when, whose, etc.
+    PronomWhActif // Who, what, where, when, whose, etc.
+}
+
+__table_conversion_chaine_étiquette_penn_treebank : [ÉtiquettePennTreebank.nombre_éléments]chaine
+__table_conversion_chaine_étiquette_penn_treebank_initialisé := faux
+
+donne_table_conversion_chaine_étiquette_penn_treebank :: fonc () -> [ÉtiquettePennTreebank.nombre_éléments]chaine
+{
+    si __table_conversion_chaine_étiquette_penn_treebank_initialisé {
+        retourne __table_conversion_chaine_étiquette_penn_treebank
+    }
+
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.ConjonctionDeCoordination] = "CC"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.NombreCardinal] = "CD"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.Déterminant] = "DT"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.ThereExistentiel] = "EX"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.MotÉtranger] = "FW"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.ConjonctionDeSubordination] = "IN"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.Adjectif] = "JJ"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.AdjectifComparatif] = "JJR"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.AdjectifSuperlatif] = "JJS"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.MarqueurItemListe] = "LS"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.Modal] = "MD"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.Nom] = "NN"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.NomPluriel] = "NNS"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.NomPropre] = "NNP"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.NomProprePluriel] = "NNPS"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.Prédéterminant] = "PDT"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.TerminaisonPossessive] = "POS"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.PronomPersonnel] = "PRP"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.PronomPossessif] = "PRP$"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.Adverbe] = "RB"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.AdverbeComparatif] = "RBR"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.AdverbeSuperlatif] = "RBS"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.Particule] = "RP"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.Symbole] = "SYM"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.To] = "TO"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.Interjection] = "UH"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.VerbeFormeBasique] = "VB"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.VerbeConjuguéPassé] = "VBD"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.VerbeParticipePrésent] = "VBG"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.VerbeParticipePassé] = "VBN"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.VerbeSingulierPrésent] = "VBP"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.VerbeSingulierPrésentTiercePersonne] = "VBZ"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.DéterminantWh] = "WDT"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.PronomWh] = "WP"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.PronomWhPossessif] = "WP$"
+    __table_conversion_chaine_étiquette_penn_treebank[ÉtiquettePennTreebank.PronomWhActif] = "WRB"
+
+    retourne __table_conversion_chaine_étiquette_penn_treebank
+}
+
+convertis_chaine_étiquette_penn_treebank :: fonc (chn: chaine) -> ÉtiquettePennTreebank
+{
+    pour donne_table_conversion_chaine_étiquette_penn_treebank() {
+        si chn == it {
+            retourne (index_it comme z32) comme ÉtiquettePennTreebank
+        }
+    }
+
+    /* Par défaut retourne un nom. */
+    retourne ÉtiquettePennTreebank.Nom
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom Étiquette Universelle.
+ * https://www.nltk.org/api/nltk.tag.mapping.html
+ * \{ */
+
+ÉtiquetteUniverselle :: énum {
+    Verbe
+    Nom
+    Pronom
+    Adjectif
+    Adverbe
+    Adposition
+    Conjonction
+    Déterminant
+    Nombre
+    Particule
+    Autre
+    Ponctuation
+}
+
+__table_conversion_chaine_étiquette_universelle : [ÉtiquetteUniverselle.nombre_éléments]chaine
+__table_conversion_chaine_étiquette_universelle_initialisé := faux
+
+donne_table_conversion_chaine_étiquette_universelle :: fonc () -> [ÉtiquetteUniverselle.nombre_éléments]chaine
+{
+    si __table_conversion_chaine_étiquette_universelle_initialisé {
+        retourne __table_conversion_chaine_étiquette_universelle
+    }
+
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Verbe] = "VERB"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Nom] = "NOUN"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Pronom] = "PRON"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Adjectif] = "ADJ"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Adverbe] = "ADV"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Adposition] = "ADP"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Conjonction] = "CONJ"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Déterminant] = "DET"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Nombre] = "NUM"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Particule] = "PRT"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Autre] = "X"
+    __table_conversion_chaine_étiquette_universelle[ÉtiquetteUniverselle.Ponctuation] = "."
+
+    retourne __table_conversion_chaine_étiquette_universelle
+}
+
+convertis_chaine_étiquette_universelle :: fonc (chn: chaine) -> ÉtiquetteUniverselle
+{
+    pour donne_table_conversion_chaine_étiquette_universelle() {
+        si chn == it {
+            retourne (index_it comme z32) comme ÉtiquetteUniverselle
+        }
+    }
+
+    /* Par défaut retourne un nom. */
+    retourne ÉtiquetteUniverselle.Nom
+}
+
+/** } */
+
+exemple_livres :: fonc ()
+{
+    opt_livres := donne_livres_nltk()
+    saufsi opt_livres.possède_valeur() {
+        retourne
+    }
+    livres := opt_livres.Quelque
+    diffère détruit_livres_nltk(livres)
+
+    opt_texte1 := livres.donne_texte("text1")
+    saufsi opt_texte1.possède_valeur() {
+        retourne
+    }
+    texte1 := opt_texte1.Quelque
+    diffère détruit_texte(texte1)
+
+    imprime("-------- Similiratité\n")
+    texte1.imprime_similarité("monstrous")
+
+    opt_text2 := livres.donne_texte("text2")
+    saufsi opt_text2.possède_valeur() {
+        retourne
+    }
+    text2 := opt_text2.Quelque
+    diffère détruit_texte(text2)
+
+    imprime("-------- Similiratité\n")
+    text2.imprime_similarité("monstrous")
+    imprime("-------- Contextes communs\n")
+    text2.imprime_contextes_communs(["monstrous", "very"])
+
+    opt_text3 := livres.donne_texte("text3")
+    saufsi opt_text3.possède_valeur() {
+        retourne
+    }
+    text3 := opt_text3.Quelque
+    diffère détruit_texte(text3)
+
+    longueur_text3 := text3.donne_longueur()
+
+    ensemble := text3.donne_ensemble()
+    diffère Py_DECREF(ensemble)
+
+    longueur_ensemble_text3 := PyObject_Length(ensemble)
+
+    imprime("Longueur text3 : %\n", longueur_text3)
+    imprime("Longueur ensemble text3 : %\n", longueur_ensemble_text3)
+    imprime("Utilisation moyenne mot : %\n", (longueur_text3 comme r64) / (longueur_ensemble_text3 comme r64))
+
+    mot := "smote"
+    imprime("Occurences de '%' : %\n", mot, text3.donne_nombre_occurence(mot))
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom LivresNLTK
+ * \{ */
+
+LivresNLTK :: struct {
+    module: *PyObject
+}
+
+donne_livres_nltk :: fonc () -> Optionnel(LivresNLTK)
+{
+    nltk_book := importe_module("nltk.book")
+    saufsi nltk_book {
+        PyErr_Print()
+        retourne
+    }
+
+    retourne LivresNLTK(nltk_book)
+}
+
+détruit_livres_nltk :: fonc (livres: LivresNLTK)
+{
+    Py_DECREF(livres.module)
+}
+
+donne_texte :: fonc (livres: LivresNLTK, nom: chaine) -> Optionnel(TexteNLTK)
+{
+    résultat := livres.module.donne_attribut(nom)
+    saufsi résultat {
+        PyErr_Print()
+        retourne
+    }
+    retourne TexteNLTK(résultat)
+}
+
+/** } */
+
+module_nltk : *PyObject
+type_text_nltk : *PyObject
+
+donne_module_nltk :: fonc () -> *PyObject
+{
+    si module_nltk {
+        retourne module_nltk
+    }
+
+    module_nltk = importe_module("nltk")
+    saufsi module_nltk {
+        PyErr_Print()
+    }
+    retourne module_nltk
+}
+
+donne_type_texte_nltk :: fonc () -> *PyObject
+{
+    si type_text_nltk {
+        retourne type_text_nltk
+    }
+
+    nltk := donne_module_nltk()
+    saufsi nltk {
+        retourne nul
+    }
+
+    type_text_nltk = donne_attribut(nltk, "Text")
+    saufsi type_text_nltk {
+        PyErr_Print()
+    }
+    retourne type_text_nltk
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom TexteNLTK
+ * Structure pour découvrir la bibliothèque.
+ * \{ */
+
+TexteNLTK :: struct {
+    object: *PyObject
+}
+
+crée_texte_nltk :: fonc (texte: chaine) -> TexteNLTK
+{
+    /* À FAIRE : erreur. */
+    mots := word_tokenize(texte)
+    retourne crée_texte_nltk(mots)
+}
+
+crée_texte_nltk :: fonc (mots: []chaine) -> TexteNLTK
+{
+    py_mots := convertis_liste_mots(mots)
+    retourne crée_texte_nltk(py_mots)
+}
+
+crée_texte_nltk :: fonc (mots: *PyObject) -> TexteNLTK
+{
+    type_texte := donne_type_texte_nltk()
+    
+    instance := PyObject_CallFunctionObjArgs(type_texte, mots, nul)
+    saufsi instance {
+        PyErr_Print()
+    }
+    retourne TexteNLTK(instance)
+}
+
+détruit_texte :: fonc (texte: TexteNLTK)
+{
+    Py_DECREF(texte.object)
+}
+
+donne_longueur :: fonc (texte: TexteNLTK) -> z64
+{
+    retourne PyObject_Length(texte.object)
+}
+
+donne_ensemble :: fonc (texte: TexteNLTK) -> *PyObject
+{
+    retourne PySet_New(texte.object)
+}
+
+donne_diversité_lexicale :: fonc (texte: TexteNLTK)
+{
+    longueur_text3 := text3.donne_longueur()
+
+    ensemble := text3.donne_ensemble()
+    diffère Py_DECREF(ensemble)
+
+    longueur_ensemble_text3 := PyObject_Length(ensemble)
+}
+
+donne_nombre_occurence :: fonc (texte: TexteNLTK, mot: chaine) -> z64
+{
+    nom_méthode := PyUnicode_FromChaine("count")
+    diffère Py_DECREF(nom_méthode)
+
+    arg_mot := PyUnicode_FromChaine(mot)
+    diffère Py_DECREF(arg_mot)
+
+    résultat := PyObject_CallMethodObjArgs(texte.object, nom_méthode, arg_mot, nul)
+    saufsi résultat {
+        retourne 0
+    }
+
+    retourne PyLong_AsLong(résultat)
+}
+
+imprime_concordance :: fonc (texte: TexteNLTK, mot: chaine)
+{
+    nom_méthode := PyUnicode_FromChaine("concordance")
+    diffère Py_DECREF(nom_méthode)
+
+    arg_mot := PyUnicode_FromChaine(mot)
+    diffère Py_DECREF(arg_mot)
+
+    résultat := PyObject_CallMethodObjArgs(texte.object, nom_méthode, arg_mot, nul)
+    saufsi résultat {
+        retourne
+    }
+}
+
+imprime_collocations :: fonc (texte: TexteNLTK, num := 20, taille_fenêtre := 2)
+{
+    nom_méthode := PyUnicode_FromChaine("collocations")
+    diffère Py_DECREF(nom_méthode)
+
+    arg_num := PyLong_FromLong(num)
+    diffère Py_DECREF(arg_num)
+
+    arg_taille_fenêtre := PyLong_FromLong(taille_fenêtre)
+    diffère Py_DECREF(arg_taille_fenêtre)
+
+    résultat := PyObject_CallMethodObjArgs(texte.object, nom_méthode, arg_num, arg_taille_fenêtre, nul)
+    saufsi résultat {
+        retourne
+    }
+}
+
+imprime_similarité :: fonc (texte: TexteNLTK, mot: chaine)
+{
+    nom_méthode := PyUnicode_FromChaine("similar")
+    diffère Py_DECREF(nom_méthode)
+
+    arg_mot := PyUnicode_FromChaine(mot)
+    diffère Py_DECREF(arg_mot)
+
+    résultat := PyObject_CallMethodObjArgs(texte.object, nom_méthode, arg_mot, nul)
+    saufsi résultat {
+        retourne
+    }
+}
+
+convertis_liste_mots :: fonc (mots: []chaine) -> *PyObject
+{
+    /* À FAIRE : généralise la construction de List ou utilise le protocol de buffer. */
+    résultat := PyList_New(mots.taille)
+    saufsi résultat {
+        imprime("Impossible de créer un ListObject !\n")
+        retourne nul
+    }
+
+    pour mots {
+        item := PyUnicode_FromChaine(it)
+        si PyList_SetItem(résultat, index_it, item) == -1 {
+            imprime("Impossible d'insérer une item\n");
+            PyErr_Print()
+            Py_DECREF(résultat)
+            retourne
+        }
+    }
+
+    retourne résultat
+}
+
+imprime_contextes_communs :: fonc (texte: TexteNLTK, mots: []chaine, nombre := 20)
+{
+    arg_mot := convertis_liste_mots(mots)
+    saufsi arg_mot {
+        retourne
+    }
+    diffère Py_DECREF(arg_mots)
+
+    nom_méthode := PyUnicode_FromChaine("common_contexts")
+    diffère Py_DECREF(nom_méthode)
+
+    arg_nombre := PyLong_FromLong(nombre)
+    diffère Py_DECREF(arg_nombre)
+
+    résultat := PyObject_CallMethodObjArgs(texte.object, nom_méthode, arg_mots, arg_nombre, nul)
+    saufsi résultat {
+        retourne
+    }
+}
+
+/** } */

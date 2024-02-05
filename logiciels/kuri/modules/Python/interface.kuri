@@ -575,6 +575,17 @@ PySequenceMethods :: struct {
     sq_inplace_repeat: ssizeargfunc
 }
 
+PySequence_Check :: fonc (o: *PyObject) -> z32 #externe libpython
+
+PySequence_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+PySequence_Length :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+
+PySequence_GetItem :: fonc (o: *PyObject, i: Py_ssize_t) -> *PyObject #externe libpython
+
+PySequence_GetSlice :: fonc (o: *PyObject, i1: Py_ssize_t, i2: Py_ssize_t) -> *PyObject #externe libpython
+
+PySequence_SetItem :: fonc (o: *PyObject, i: Py_ssize_t, v: *PyObject) -> z32 #externe libpython
+
 // ---------------------------------------------------
 // Buffer Interface
 
@@ -836,6 +847,10 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
         TABLEAU_FIXE {
             tableau := info comme *InfoTypeTableauFixe
             retourne format_tampon_pour_info_type(tableau.type_pointé)
+        }
+        TRANCHE {
+            tranche := info comme *InfoTypeTranche
+            retourne format_tampon_pour_info_type(tranche.type_élément)
         }
         CHAINE,
         RIEN,
@@ -1233,7 +1248,7 @@ DonnéesAjoutType :: struct {
     nom: ChaineC
 }
 
-Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: [..]DonnéesAjoutType) -> *PyObject
+Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -> *PyObject
 {
     /* Initialisation des types. */
     pour types {
@@ -1337,5 +1352,149 @@ PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject,
 {
     retourne PyEval_EvalCodeEx(co, globals, locals, args.pointeur, args.taille comme z32, kws.pointeur, kws.taille comme z32, defs.pointeur, defs.taille comme z32)
 }
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom GIL
+ * \{ */
+
+PyGILState_STATE :: énum {
+    PyGILState_LOCKED :: 0
+    PyGILState_UNLOCKED :: 1
+}
+
+PyGILState_Ensure :: fonc () -> PyGILState_STATE #externe libpython
+
+PyGILState_Release :: fonc (state: PyGILState_STATE) -> z32 #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Object
+ * https://docs.python.org/3/c-api/object.html
+ * \{ */
+
+PyObject_Str :: fonc (o: *PyObject) -> *PyObject #externe libpython
+
+donne_chaine_object :: fonc (o: *PyObject) -> chaine
+{
+    str := PyObject_Str(o)
+    diffère Py_DECREF(str)
+
+    retourne copie_chaine(PyUnicode_AsChaine(str))
+}
+
+imprime_object :: fonc (format: chaine, object: *PyObject)
+{
+    chn := donne_chaine_object(object)
+    diffère déloge(chn)
+    imprime(format, chn)
+}
+
+PyObject_GetAttr :: fonc (o: *PyObject, attr_name: *PyObject) -> *PyObject #externe libpython
+
+PyObject_GetAttrString :: fonc (o: *PyObject, attr_name: ChaineC) -> *PyObject #externe libpython
+
+donne_attribut :: fonc (o: *PyObject, nom_attribut: chaine) -> *PyObject
+{
+    nom_attribut_c := crée_chaine_c(nom_attribut)
+    diffère détruit_chaine_c(nom_attribut_c)
+
+    retourne PyObject_GetAttrString(o, nom_attribut_c)
+}
+
+/* Ces deux fonctions implémente `len(o)`. Retourne -1 si erreur. */
+PyObject_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+PyObject_Length :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Modules
+ * \{ */
+
+PyModule_GetDict :: fonc (module: *PyObject) -> *PyObject #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Import Module.
+ * \{ */
+
+PyImport_ImportModule :: fonc (name: ChaineC) -> *PyObject #externe libpython
+
+importe_module :: fonc (name: chaine) -> *PyObject
+{
+    chn_c := crée_chaine_c(name)
+    diffère détruit_chaine_c(chn_c)
+
+    retourne PyImport_ImportModule(chn_c)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Erreurs.
+ * \{ */
+
+PyErr_PrintEx :: fonc (set_sys_last_vars: z32) -> rien #externe libpython
+
+PyErr_Print :: fonc ()
+{
+    PyErr_PrintEx(1)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Protocol Appel
+ * https://docs.python.org/3/c-api/call.html
+ * \{ */
+
+PyObject_CallMethod :: fonc (obj: *PyObject, name: ChaineC, format: ChaineC, args: ...) -> *PyObject #externe libpython
+
+PyObject_CallMethodObjArgs :: fonc (obj: *PyObject, name: *PyObject,  args: ...) -> *PyObject #externe libpython
+
+PyObject_CallFunctionObjArgs :: fonc (callable: *PyObject, args: ...) -> *PyObject #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom List Object
+ * https://docs.python.org/3/c-api/list.html
+ * \{ */
+
+PyList_New :: fonc (len: Py_ssize_t) -> *PyObject #externe libpython
+
+PyList_SetItem :: fonc (list: *PyObject, index: Py_ssize_t, item: *PyObject) -> z32 #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Set Object
+ * \{ */
+
+/* Crée un `set` (`set(o)`) depuis un objet itérable.
+ * TypeError si l'objet n'est pas itérable. */
+PySet_New :: fonc (iterable: *PyObject) -> *PyObject #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Tuple Object.
+ * https://docs.python.org/3/c-api/tuple.html
+ * \{ */
+
+PyTuple_Type : PyTypeObject #externe libpython
+
+PyTuple_Check :: fonc (ob: *PyObject) -> bool
+{
+    retourne PyObject_TypeCheck(ob, *PyTuple_Type)
+}
+
+PyTuple_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
+
+PyTuple_GetItem :: fonc (p: *PyObject, pos: Py_ssize_t) -> *PyObject #externe libpython
 
 /** } */

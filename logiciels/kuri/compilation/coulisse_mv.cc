@@ -31,6 +31,8 @@ std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérat
     auto métaprogramme = programme.pour_métaprogramme();
     assert(métaprogramme);
 
+    auto convertisseuse_noeud_code = compilatrice.donne_convertisseuse_noeud_code_disponible();
+
     /* Génère les infos type manquants. Les globales représentant des infos types sont substitutées
      * par l'adresse de l'infotype. */
     POUR (repr_inter.donne_globales()) {
@@ -39,10 +41,12 @@ std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérat
         }
 
         auto type = it->est_info_type_de;
-        type->info_type = convertisseuse_noeud_code.crée_info_type_pour(compilatrice.typeuse,
-                                                                        const_cast<Type *>(type));
+        type->info_type = convertisseuse_noeud_code->crée_info_type_pour(compilatrice.typeuse,
+                                                                         const_cast<Type *>(type));
         assert(type->info_type);
     }
+
+    compilatrice.dépose_convertisseuse(convertisseuse_noeud_code);
 
     POUR (repr_inter.donne_fonctions()) {
         métaprogramme->cibles_appels.insère(it);
@@ -123,5 +127,5 @@ std::optional<ErreurCoulisse> CoulisseMV::crée_exécutable_impl(const ArgsLiais
 
 int64_t CoulisseMV::mémoire_utilisée() const
 {
-    return convertisseuse_noeud_code.memoire_utilisee();
+    return 0;
 }
