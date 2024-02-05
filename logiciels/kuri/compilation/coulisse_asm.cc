@@ -462,28 +462,20 @@ std::optional<ErreurCoulisse> CoulisseASM::génère_code_impl(const ArgsGénéra
 std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
     const ArgsCréationFichiersObjets &args)
 {
-    auto &compilatrice_ri = *args.compilatrice_ri;
     auto &espace = *args.espace;
     auto const &programme = *args.programme;
 
     std::ostream &fichier_sortie = std::cerr;
     Enchaineuse enchaineuse;
 
-    /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = représentation_intermédiaire_programme(
-        espace, compilatrice_ri, programme);
-
-    if (!repr_inter_programme.has_value()) {
-        return ErreurCoulisse{"Impossible d'obtenir la représentation intermédiaire du programme"};
-    }
-
+    auto &repr_inter_programme = *args.ri_programme;
     // genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
     // genere_code_pour_types(compilatrice, graphe, enchaineuse);
 
     auto generatrice = GeneratriceCodeASM(espace);
-    generatrice.genere_code(repr_inter_programme->donne_globales(),
-                            repr_inter_programme->donne_fonctions(),
+    generatrice.genere_code(repr_inter_programme.donne_globales(),
+                            repr_inter_programme.donne_fonctions(),
                             enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);

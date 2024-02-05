@@ -17,8 +17,6 @@ struct NoeudDeclarationType;
 using Type = NoeudDeclarationType;
 
 struct CoulisseC final : public Coulisse {
-    kuri::tableau<Bibliotheque *> m_bibliothèques{};
-
     struct FichierC {
         kuri::chaine chemin_fichier{};
         kuri::chaine chemin_fichier_objet{};

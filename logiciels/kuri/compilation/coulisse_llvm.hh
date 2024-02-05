@@ -38,7 +38,6 @@ struct DonnéesModule {
 
 struct CoulisseLLVM final : public Coulisse {
   private:
-    kuri::tableau<Bibliotheque *> m_bibliothèques{};
     llvm::TargetMachine *m_machine_cible = nullptr;
 
     kuri::tableau<DonnéesModule *> m_modules{};
