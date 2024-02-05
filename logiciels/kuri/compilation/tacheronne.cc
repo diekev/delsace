@@ -395,8 +395,17 @@ void Tacheronne::gere_tache()
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 auto coulisse = programme->coulisse();
+                auto &espace = *tache.unite->espace;
+                auto repr_inter = représentation_intermédiaire_programme(
+                    espace, constructrice_ri, *programme);
+                if (!repr_inter.has_value()) {
+                    espace.rapporte_erreur_sans_site(
+                        "Impossible de générer le code machine car une erreur est survenue lors "
+                        "de la création de la représentation intermédiaire du programme.");
+                    return;
+                }
                 auto args = crée_args_génération_code(
-                    compilatrice, *tache.unite->espace, programme, constructrice_ri, broyeuse);
+                    compilatrice, *tache.unite->espace, programme, *repr_inter, broyeuse);
                 if (coulisse->crée_fichier_objet(args)) {
                     compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
