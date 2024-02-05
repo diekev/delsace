@@ -9,10 +9,10 @@
 
 class Broyeuse;
 struct Compilatrice;
-struct CompilatriceRI;
 struct EspaceDeTravail;
 struct OptionsDeCompilation;
 struct Programme;
+struct ProgrammeRepreInter;
 struct Statistiques;
 
 /* Arguments pour la génération de code.
@@ -27,14 +27,14 @@ struct ArgsGénérationCode {
     Compilatrice *compilatrice = nullptr;
     EspaceDeTravail *espace = nullptr;
     Programme const *programme = nullptr;
-    CompilatriceRI *compilatrice_ri = nullptr;
     Broyeuse *broyeuse = nullptr;
+    ProgrammeRepreInter *ri_programme = nullptr;
 };
 
 ArgsGénérationCode crée_args_génération_code(Compilatrice &compilatrice,
                                              EspaceDeTravail &espace,
                                              Programme const *programme,
-                                             CompilatriceRI &compilatrice_ri,
+                                             ProgrammeRepreInter &ri_programme,
                                              Broyeuse &broyeuse);
 
 /* Arguments pour la création des fichiers d'objets. */
@@ -42,13 +42,13 @@ struct ArgsCréationFichiersObjets {
     Compilatrice *compilatrice = nullptr;
     EspaceDeTravail *espace = nullptr;
     Programme const *programme = nullptr;
-    CompilatriceRI *compilatrice_ri = nullptr;
+    ProgrammeRepreInter *ri_programme = nullptr;
 };
 
 ArgsCréationFichiersObjets crée_args_création_fichier_objet(Compilatrice &compilatrice,
                                                             EspaceDeTravail &espace,
                                                             Programme const *programme,
-                                                            CompilatriceRI &compilatrice_ri);
+                                                            ProgrammeRepreInter &ri_programme);
 
 /* Arguments pour la liaison de l'exécutable depuis le fichier objet.
  *

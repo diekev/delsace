@@ -2007,21 +2007,13 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
 std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérationCode &args)
 {
-    auto &compilatrice_ri = *args.compilatrice_ri;
     auto &espace = *args.espace;
+    auto &repr_inter_programme = *args.ri_programme;
     auto const &programme = *args.programme;
 
     m_bibliothèques.efface();
 
-    /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = représentation_intermédiaire_programme(
-        espace, compilatrice_ri, programme);
-
-    if (!repr_inter_programme.has_value()) {
-        return ErreurCoulisse{"Impossible d'obtenir la représentation intermédiaire du programme"};
-    }
-
-    crée_fichiers(*repr_inter_programme, espace.options);
+    crée_fichiers(repr_inter_programme, espace.options);
 
     POUR (m_fichiers) {
         if (!kuri::chemin_systeme::supprime(it.chemin_fichier)) {
@@ -2042,7 +2034,7 @@ std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérati
 
     m_mémoire_génératrice += génératrice.mémoire_utilisée();
 
-    m_bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
+    m_bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
     return {};
 }
 
