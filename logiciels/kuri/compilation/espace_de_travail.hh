@@ -31,7 +31,7 @@ struct UniteCompilation;
  */
 struct EspaceDeTravail {
   private:
-    std::atomic<int> nombre_de_taches[size_t(GenreTache::NOMBRE_ELEMENTS)] = {};
+    std::atomic<int> nombre_de_taches[size_t(GenreTâche::NOMBRE_ELEMENTS)] = {};
 
     PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
     /* Identifiant de la phase de compilation. À chaque fois que nous régressons la phase de
@@ -74,15 +74,15 @@ struct EspaceDeTravail {
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-    void tache_ajoutee(GenreTache genre_tache, dls::outils::Synchrone<Messagère> &messagère);
-    void tache_terminee(GenreTache genre_tache,
+    void tache_ajoutee(GenreTâche genre_tache, dls::outils::Synchrone<Messagère> &messagère);
+    void tache_terminee(GenreTâche genre_tache,
                         dls::outils::Synchrone<Messagère> &messagère,
                         bool peut_envoyer_changement_de_phase);
 
-    void progresse_phase_pour_tache_terminee(GenreTache genre_tache,
+    void progresse_phase_pour_tache_terminee(GenreTâche genre_tache,
                                              dls::outils::Synchrone<Messagère> &messagère,
                                              bool peut_envoyer_changement_de_phase);
-    void regresse_phase_pour_tache_ajoutee(GenreTache genre_tache,
+    void regresse_phase_pour_tache_ajoutee(GenreTâche genre_tache,
                                            dls::outils::Synchrone<Messagère> &messagère);
 
     bool peut_generer_code_final() const;

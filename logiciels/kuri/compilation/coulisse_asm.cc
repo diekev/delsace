@@ -463,7 +463,6 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
     const ArgsCréationFichiersObjets &args)
 {
     auto &espace = *args.espace;
-    auto const &programme = *args.programme;
 
     std::ostream &fichier_sortie = std::cerr;
     Enchaineuse enchaineuse;

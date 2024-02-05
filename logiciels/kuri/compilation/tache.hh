@@ -27,7 +27,7 @@ struct UniteCompilation;
     O(COMPILATION_TERMINEE, COMPILATION_TERMINEE, "compilation terminée", 0)                      \
     ENUMERE_TACHES_POSSIBLES(O)
 
-enum class GenreTache {
+enum class GenreTâche {
 #define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX) ACTION,
     ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
 #undef ENUMERE_GENRE_TACHE
@@ -35,20 +35,20 @@ enum class GenreTache {
         NOMBRE_ELEMENTS
 };
 
-const char *chaine_genre_tache(GenreTache genre);
+const char *chaine_genre_tâche(GenreTâche genre);
 
-std::ostream &operator<<(std::ostream &os, GenreTache genre);
+std::ostream &operator<<(std::ostream &os, GenreTâche genre);
 
-struct Tache {
-    GenreTache genre = GenreTache::DORS;
-    UniteCompilation *unite = nullptr;
+struct Tâche {
+    GenreTâche genre = GenreTâche::DORS;
+    UniteCompilation *unité = nullptr;
     EspaceDeTravail *espace = nullptr;
 
-    static Tache dors(EspaceDeTravail *espace_);
+    static Tâche dors(EspaceDeTravail *espace_);
 
-    static Tache compilation_terminee();
+    static Tâche compilation_terminée();
 
-    static Tache genere_fichier_objet(EspaceDeTravail *espace_);
+    static Tâche génération_code_machine(EspaceDeTravail *espace_);
 
-    static Tache liaison_objet(EspaceDeTravail *espace_);
+    static Tâche liaison_objet(EspaceDeTravail *espace_);
 };
