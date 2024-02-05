@@ -18,16 +18,9 @@
 std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérationCode &args)
 {
     auto &compilatrice = *args.compilatrice;
-    auto &compilatrice_ri = *args.compilatrice_ri;
     auto &espace = *args.espace;
     auto const &programme = *args.programme;
-
-    auto opt_repr_inter = représentation_intermédiaire_programme(
-        espace, compilatrice_ri, programme);
-    if (!opt_repr_inter.has_value()) {
-        return ErreurCoulisse{"Impossible d'obtenir la représentation intermédiaire du programme"};
-    }
-    auto &repr_inter = opt_repr_inter.value();
+    auto &repr_inter = *args.ri_programme;
     auto métaprogramme = programme.pour_métaprogramme();
     assert(métaprogramme);
 
