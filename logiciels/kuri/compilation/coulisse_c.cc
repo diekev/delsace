@@ -2205,7 +2205,6 @@ std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérati
 {
     auto &espace = *args.espace;
     auto &repr_inter_programme = *args.ri_programme;
-    auto const &programme = *args.programme;
 
     m_bibliothèques.efface();
 
