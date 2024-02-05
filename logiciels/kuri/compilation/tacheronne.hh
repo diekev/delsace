@@ -54,7 +54,7 @@ struct OrdonnanceuseTache {
   private:
     Compilatrice *m_compilatrice = nullptr;
 
-    kuri::file<Tache> taches[NOMBRE_FILES];
+    kuri::file<Tâche> taches[NOMBRE_FILES];
 
     int nombre_de_tacheronnes = 0;
     bool compilation_terminee = false;
@@ -95,7 +95,7 @@ struct OrdonnanceuseTache {
 
     void crée_tache_pour_unite(UniteCompilation *unite);
 
-    Tache tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux);
+    Tâche tache_suivante(Tâche &tache_terminee, DrapeauxTacheronne drapeaux);
 
     int64_t memoire_utilisee() const;
 

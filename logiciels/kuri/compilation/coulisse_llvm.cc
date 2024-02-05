@@ -1563,7 +1563,6 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
 
     auto &espace = *args.espace;
     auto &repr_inter = *args.ri_programme;
-    auto const &programme = *args.programme;
 
     auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 

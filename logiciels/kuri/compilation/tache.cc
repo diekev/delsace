@@ -5,14 +5,14 @@
 
 #include <ostream>
 
-const char *chaine_genre_tache(GenreTache genre)
+const char *chaine_genre_tâche(GenreTâche genre)
 {
 #define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX)                                         \
-    case GenreTache::ACTION:                                                                      \
+    case GenreTâche::ACTION:                                                                      \
         return CHAINE;
     switch (genre) {
         ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
-        case GenreTache::NOMBRE_ELEMENTS:
+        case GenreTâche::NOMBRE_ELEMENTS:
         {
             break;
         }
@@ -22,39 +22,39 @@ const char *chaine_genre_tache(GenreTache genre)
     return "erreur";
 }
 
-std::ostream &operator<<(std::ostream &os, GenreTache genre)
+std::ostream &operator<<(std::ostream &os, GenreTâche genre)
 {
-    os << chaine_genre_tache(genre);
+    os << chaine_genre_tâche(genre);
     return os;
 }
 
-Tache Tache::dors(EspaceDeTravail *espace_)
+Tâche Tâche::dors(EspaceDeTravail *espace_)
 {
-    Tache t;
-    t.genre = GenreTache::DORS;
+    Tâche t;
+    t.genre = GenreTâche::DORS;
     t.espace = espace_;
     return t;
 }
 
-Tache Tache::compilation_terminee()
+Tâche Tâche::compilation_terminée()
 {
-    Tache t;
-    t.genre = GenreTache::COMPILATION_TERMINEE;
+    Tâche t;
+    t.genre = GenreTâche::COMPILATION_TERMINEE;
     return t;
 }
 
-Tache Tache::genere_fichier_objet(EspaceDeTravail *espace_)
+Tâche Tâche::génération_code_machine(EspaceDeTravail *espace_)
 {
-    Tache t;
-    t.genre = GenreTache::GENERATION_CODE_MACHINE;
+    Tâche t;
+    t.genre = GenreTâche::GENERATION_CODE_MACHINE;
     t.espace = espace_;
     return t;
 }
 
-Tache Tache::liaison_objet(EspaceDeTravail *espace_)
+Tâche Tâche::liaison_objet(EspaceDeTravail *espace_)
 {
-    Tache t;
-    t.genre = GenreTache::LIAISON_PROGRAMME;
+    Tâche t;
+    t.genre = GenreTâche::LIAISON_PROGRAMME;
     t.espace = espace_;
     return t;
 }
