@@ -865,7 +865,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             }
 
             os << "\ttableau_page<" << it->nom() << "> noeuds_expr_" << it->accede_nom_comme()
-               << ";\n";
+               << "{};\n";
         }
         os << "\n";
 
@@ -880,7 +880,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "\tInfoType *crée_info_type_pour(Typeuse &typeuse, Type *type);\n\n";
         os << "\tType *convertis_info_type(Typeuse &typeuse, InfoType *type);\n\n";
         os << "\tvoid rassemble_statistiques(Statistiques &stats) const;\n\n";
-        os << "\tint64_t memoire_utilisee() const;\n";
+        os << "\tint64_t mémoire_utilisée() const;\n";
 
         os << "};\n\n";
     }
@@ -1173,7 +1173,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "\treturn noeud;\n";
         os << "}\n\n";
 
-        os << "int64_t ConvertisseuseNoeudCode::memoire_utilisee() const\n";
+        os << "int64_t ConvertisseuseNoeudCode::mémoire_utilisée() const\n";
         os << "{\n";
 
         os << "\tauto mem = int64_t(0);\n";
