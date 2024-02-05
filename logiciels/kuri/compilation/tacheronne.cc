@@ -104,10 +104,10 @@ void OrdonnanceuseTache::crée_tache_pour_unite(UniteCompilation *unite)
 
     const auto index_file = file_pour_raison_d_etre(unite->donne_raison_d_être());
 
-    auto tache = Tache{};
-    tache.unite = unite;
+    auto tache = Tâche{};
+    tache.unité = unite;
     tache.espace = unite->espace;
-    tache.genre = static_cast<GenreTache>(index_file + 2);
+    tache.genre = static_cast<GenreTâche>(index_file + 2);
 
     taches[index_file].enfile(tache);
 
@@ -124,14 +124,14 @@ int64_t OrdonnanceuseTache::nombre_de_taches_en_attente() const
     return résultat;
 }
 
-Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux)
+Tâche OrdonnanceuseTache::tache_suivante(Tâche &tache_terminee, DrapeauxTacheronne drapeaux)
 {
     if (nombre_de_taches_en_attente() == 0) {
         m_compilatrice->gestionnaire_code->crée_taches(*this);
     }
 
     if (compilation_terminee) {
-        return Tache::compilation_terminee();
+        return Tâche::compilation_terminée();
     }
 
     for (int i = 0; i < NOMBRE_FILES; ++i) {
@@ -144,7 +144,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
         }
     }
 
-    auto unite = tache_terminee.unite;
+    auto unite = tache_terminee.unité;
     auto espace = EspaceDeTravail::nul();
 
     // unité peut-être nulle pour les tâches DORS du début de la compilation
@@ -162,14 +162,14 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
         espace = m_compilatrice->espace_defaut_compilation();
     }
 
-    return Tache::dors(espace);
+    return Tâche::dors(espace);
 }
 
 int64_t OrdonnanceuseTache::memoire_utilisee() const
 {
     auto memoire = int64_t(0);
     POUR (pique_taille.taches) {
-        memoire += it * taille_de(Tache);
+        memoire += it * taille_de(Tâche);
     }
     return memoire;
 }
@@ -189,7 +189,7 @@ void OrdonnanceuseTache::supprime_toutes_les_taches()
      * un nombre égal de tâcheronnes de tâches de fin de compilation. */
     for (int i = 0; i < nombre_de_tacheronnes; ++i) {
         POUR (taches) {
-            it.enfile(Tache::compilation_terminee());
+            it.enfile(Tâche::compilation_terminée());
         }
     }
 }
@@ -197,14 +197,14 @@ void OrdonnanceuseTache::supprime_toutes_les_taches()
 void OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace(const EspaceDeTravail *espace,
                                                                 UniteCompilation::État état)
 {
-    auto predicat = [&](Tache const &tache) { return tache.espace == espace; };
+    auto predicat = [&](Tâche const &tache) { return tache.espace == espace; };
     POUR (taches) {
         for (auto &tache : it) {
             if (tache.espace != espace) {
                 continue;
             }
 
-            tache.unite->définis_état(état);
+            tache.unité->définis_état(état);
         }
 
         it.efface_si(predicat);
@@ -239,28 +239,28 @@ Tacheronne::~Tacheronne()
 void Tacheronne::gere_tache()
 {
     auto temps_debut = dls::chrono::compte_seconde();
-    auto tache = Tache::dors(compilatrice.espace_de_travail_defaut);
+    auto tache = Tâche::dors(compilatrice.espace_de_travail_defaut);
     auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
     while (true) {
         tache = ordonnanceuse->tache_suivante(tache, drapeaux);
 
-        if (tache.genre != GenreTache::DORS) {
+        if (tache.genre != GenreTâche::DORS) {
             nombre_dodos = 0;
         }
 
-        if (tache.unite) {
-            tache.unite->définis_état(
+        if (tache.unité) {
+            tache.unité->définis_état(
                 UniteCompilation::État::EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE);
         }
 
         switch (tache.genre) {
-            case GenreTache::COMPILATION_TERMINEE:
+            case GenreTâche::COMPILATION_TERMINEE:
             {
                 temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
                 return;
             }
-            case GenreTache::DORS:
+            case GenreTâche::DORS:
             {
                 /* les tâches d'exécutions sont marquées comme terminées dès que leurs
                  * métaprogrammes sont ajoutés à la machine virtuelle, il se peut qu'il en reste à
@@ -277,9 +277,9 @@ void Tacheronne::gere_tache()
 
                 break;
             }
-            case GenreTache::CHARGEMENT:
+            case GenreTâche::CHARGEMENT:
             {
-                auto fichier = tache.unite->fichier;
+                auto fichier = tache.unité->fichier;
 
                 if (!fichier->fut_chargé) {
                     fichier->mutex.lock();
@@ -299,19 +299,19 @@ void Tacheronne::gere_tache()
                 }
 
                 if (fichier->fut_chargé) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unité);
                 }
                 else {
-                    compilatrice.gestionnaire_code->mets_en_attente(tache.unite,
+                    compilatrice.gestionnaire_code->mets_en_attente(tache.unité,
                                                                     Attente::sur_lexage(fichier));
                 }
 
                 break;
             }
-            case GenreTache::LEXAGE:
+            case GenreTâche::LEXAGE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
-                auto unite = tache.unite;
+                auto unite = tache.unité;
                 auto fichier = unite->fichier;
 
                 if (!fichier->fut_lexé) {
@@ -331,65 +331,65 @@ void Tacheronne::gere_tache()
                 }
 
                 if (fichier->fut_lexé) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unité);
                 }
                 else {
                     compilatrice.gestionnaire_code->mets_en_attente(
-                        tache.unite, Attente::sur_chargement(fichier));
+                        tache.unité, Attente::sur_chargement(fichier));
                 }
 
                 break;
             }
-            case GenreTache::PARSAGE:
+            case GenreTâche::PARSAGE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
-                auto unite = tache.unite;
+                auto unite = tache.unité;
                 auto debut_parsage = dls::chrono::compte_seconde();
                 auto syntaxeuse = Syntaxeuse(*this, unite);
                 syntaxeuse.analyse();
                 unite->fichier->fut_parsé = true;
-                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unité);
                 temps_parsage += debut_parsage.temps();
                 break;
             }
-            case GenreTache::TYPAGE:
+            case GenreTâche::TYPAGE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
-                auto unite = tache.unite;
+                auto unite = tache.unité;
                 auto debut_validation = dls::chrono::compte_seconde();
                 gere_unite_pour_typage(unite);
                 temps_validation += debut_validation.temps();
                 break;
             }
-            case GenreTache::GENERATION_RI:
+            case GenreTâche::GENERATION_RI:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
                 auto debut_generation = dls::chrono::compte_seconde();
-                if (gere_unite_pour_ri(tache.unite)) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
+                if (gere_unite_pour_ri(tache.unité)) {
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unité);
                 }
                 constructrice_ri.temps_generation += debut_generation.temps();
                 break;
             }
-            case GenreTache::OPTIMISATION:
+            case GenreTâche::OPTIMISATION:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER));
                 auto debut_generation = dls::chrono::compte_seconde();
                 temps_optimisation += debut_generation.temps();
                 break;
             }
-            case GenreTache::EXECUTION:
+            case GenreTâche::EXECUTION:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
-                gere_unite_pour_execution(tache.unite);
+                gere_unite_pour_execution(tache.unité);
                 break;
             }
-            case GenreTache::GENERATION_CODE_MACHINE:
+            case GenreTâche::GENERATION_CODE_MACHINE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-                auto programme = tache.unite->programme;
+                auto programme = tache.unité->programme;
                 auto coulisse = programme->coulisse();
-                auto &espace = *tache.unite->espace;
+                auto &espace = *tache.unité->espace;
                 auto repr_inter = représentation_intermédiaire_programme(
                     espace, constructrice_ri, *programme);
                 if (!repr_inter.has_value()) {
@@ -399,31 +399,31 @@ void Tacheronne::gere_tache()
                     return;
                 }
                 auto args = crée_args_génération_code(
-                    compilatrice, *tache.unite->espace, programme, *repr_inter, broyeuse);
+                    compilatrice, *tache.unité->espace, programme, *repr_inter, broyeuse);
                 if (coulisse->crée_fichier_objet(args)) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unité);
                 }
                 temps_generation_code += coulisse->temps_génération_code;
                 temps_fichier_objet += coulisse->temps_fichier_objet;
                 break;
             }
-            case GenreTache::LIAISON_PROGRAMME:
+            case GenreTâche::LIAISON_PROGRAMME:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-                auto programme = tache.unite->programme;
+                auto programme = tache.unité->programme;
                 auto coulisse = programme->coulisse();
                 auto args = crée_args_liaison_objets(compilatrice, *tache.espace, programme);
                 if (coulisse->crée_exécutable(args)) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unité);
                 }
                 temps_executable += coulisse->temps_exécutable;
                 break;
             }
-            case GenreTache::CONVERSION_NOEUD_CODE:
+            case GenreTâche::CONVERSION_NOEUD_CODE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_CONVERTIR_NOEUD_CODE));
-                auto espace = tache.unite->espace;
-                auto noeud = tache.unite->noeud;
+                auto espace = tache.unité->espace;
+                auto noeud = tache.unité->noeud;
 
                 auto types_utilises = kuri::ensemblon<Type *, 16>();
                 visite_noeud(noeud,
@@ -453,7 +453,7 @@ void Tacheronne::gere_tache()
                 auto attente_possible = attente_sur_type_si_drapeau_manquant(
                     types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
                 if (attente_possible) {
-                    compilatrice.gestionnaire_code->mets_en_attente(tache.unite,
+                    compilatrice.gestionnaire_code->mets_en_attente(tache.unité,
                                                                     attente_possible.value());
                     break;
                 }
@@ -465,22 +465,22 @@ void Tacheronne::gere_tache()
                 auto convertisseuse = compilatrice.donne_convertisseuse_noeud_code_disponible();
                 convertisseuse->convertis_noeud_syntaxique(espace, noeud);
                 compilatrice.dépose_convertisseuse(convertisseuse);
-                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unité);
                 break;
             }
-            case GenreTache::ENVOIE_MESSAGE:
+            case GenreTâche::ENVOIE_MESSAGE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
-                compilatrice.messagère->envoie_message(tache.unite->message);
-                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
+                compilatrice.messagère->envoie_message(tache.unité->message);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unité);
                 break;
             }
-            case GenreTache::CREATION_FONCTION_INIT_TYPE:
+            case GenreTâche::CREATION_FONCTION_INIT_TYPE:
             {
                 assert(drapeau_est_actif(drapeaux,
                                          DrapeauxTacheronne::PEUT_CREER_FONCTION_INIT_TYPE));
 
-                auto unite = tache.unite;
+                auto unite = tache.unité;
                 auto espace = unite->espace;
                 auto type = unite->type;
                 assert(type);
@@ -489,7 +489,7 @@ void Tacheronne::gere_tache()
                 compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
                 break;
             }
-            case GenreTache::NOMBRE_ELEMENTS:
+            case GenreTâche::NOMBRE_ELEMENTS:
             {
                 break;
             }
