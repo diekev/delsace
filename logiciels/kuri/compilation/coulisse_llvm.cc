@@ -1561,8 +1561,8 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         return ErreurCoulisse{"Impossible d'intialiser LLVM."};
     }
 
-    auto &compilatrice_ri = *args.compilatrice_ri;
     auto &espace = *args.espace;
+    auto &repr_inter = *args.ri_programme;
     auto const &programme = *args.programme;
 
     auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
@@ -1581,18 +1581,13 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         return ErreurCoulisse{message_erreur};
     }
 
-    auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, programme);
-    if (!repr_inter.has_value()) {
-        return ErreurCoulisse{"Impossible d'obtenir la représentation intermédiaire du programme"};
-    }
-
     auto CPU = "generic";
     auto feature = "";
     auto options_cible = llvm::TargetOptions{};
     auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
     m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
-    crée_modules(*repr_inter, triplet_cible);
+    crée_modules(repr_inter, triplet_cible);
 
     POUR (m_modules) {
         auto generatrice = GénératriceCodeLLVM(espace, *it);
@@ -1611,8 +1606,6 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         }
     }
 #endif
-
-    m_bibliothèques = repr_inter->donne_bibliothèques_utilisées();
 
     return {};
 }
@@ -1774,7 +1767,6 @@ DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
 int64_t CoulisseLLVM::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
-    résultat += m_bibliothèques.taille();
     résultat += m_modules.taille();
 
     POUR (m_modules) {
