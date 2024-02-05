@@ -6,8 +6,10 @@
 #include <optional>
 
 #include "structures/chaine.hh"
+#include "structures/tableau.hh"
 
 class Broyeuse;
+struct Bibliotheque;
 struct Compilatrice;
 struct EspaceDeTravail;
 struct OptionsDeCompilation;
@@ -70,6 +72,10 @@ struct ErreurCoulisse {
 };
 
 struct Coulisse {
+  protected:
+    kuri::tableau<Bibliotheque *> m_bibliothèques{};
+
+  public:
     double temps_génération_code = 0.0;
     double temps_fichier_objet = 0.0;
     double temps_exécutable = 0.0;

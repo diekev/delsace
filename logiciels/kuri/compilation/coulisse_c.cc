@@ -2034,7 +2034,6 @@ std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérati
 
     m_mémoire_génératrice += génératrice.mémoire_utilisée();
 
-    m_bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
     return {};
 }
 
@@ -2149,7 +2148,6 @@ int64_t CoulisseC::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
 
-    résultat += m_bibliothèques.taille_mémoire();
     résultat += m_fichiers.taille_mémoire();
 
     POUR (m_fichiers) {

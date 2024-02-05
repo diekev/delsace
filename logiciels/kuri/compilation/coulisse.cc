@@ -13,6 +13,7 @@
 #include "coulisse_mv.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
+#include "programme.hh"
 #include "utilitaires/log.hh"
 
 #include "statistiques/statistiques.hh"
@@ -131,6 +132,8 @@ bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
     }
     temps_génération_code = début_génération_code.temps();
 
+    m_bibliothèques = args.ri_programme->donne_bibliothèques_utilisées();
+
     if (!est_coulisse_métaprogramme()) {
         info() << "Création du fichier objet...";
     }
@@ -167,7 +170,9 @@ bool Coulisse::crée_exécutable(ArgsLiaisonObjets const &args)
 
 void Coulisse::rassemble_statistiques(Statistiques &stats)
 {
-    stats.ajoute_mémoire_utilisée("Coulisse", mémoire_utilisée());
+    auto mémoire_sous_classe = mémoire_utilisée();
+    mémoire_sous_classe += m_bibliothèques.taille_mémoire();
+    stats.ajoute_mémoire_utilisée("Coulisse", mémoire_sous_classe);
 }
 
 bool Coulisse::est_coulisse_métaprogramme() const

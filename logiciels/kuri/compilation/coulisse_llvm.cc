@@ -1607,8 +1607,6 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
     }
 #endif
 
-    m_bibliothèques = repr_inter.donne_bibliothèques_utilisées();
-
     return {};
 }
 
@@ -1769,7 +1767,6 @@ DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
 int64_t CoulisseLLVM::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
-    résultat += m_bibliothèques.taille();
     résultat += m_modules.taille();
 
     POUR (m_modules) {
