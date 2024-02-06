@@ -12,6 +12,7 @@
 
 #include "parsage/identifiant.hh"
 
+#include "representation_intermediaire/impression.hh"
 #include "representation_intermediaire/instructions.hh"
 
 #include "utilitaires/algorithmes.hh"
@@ -353,6 +354,18 @@ void Programme::imprime_diagnostique(std::ostream &os, bool ignore_doublon)
     }
 
     m_dernier_diagnostique = diag;
+}
+
+kuri::chemin_systeme Programme::donne_chemin_pour_fichier_ri() const
+{
+    auto nom_fichier = enchaine(m_espace->nom, ".ri");
+    POUR (nom_fichier) {
+        if (it == ' ') {
+            it = '_';
+        }
+    }
+
+    return kuri::chemin_systeme::chemin_temporaire(nom_fichier);
 }
 
 void Programme::verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &diagnostique) const
@@ -1585,6 +1598,121 @@ int64_t ProgrammeRepreInter::mémoire_utilisée() const
     résultat += types.taille_mémoire();
     résultat += m_données_constantes.tableaux_constants.taille_mémoire();
     return résultat;
+}
+
+static kuri::chaine_statique donne_classe_type(Type const &type)
+{
+    if (type.est_type_structure()) {
+        return "structure";
+    }
+
+    if (type.est_type_tuple()) {
+        return "tuple";
+    }
+
+    if (type.est_type_union()) {
+        return "union";
+    }
+
+    if (type.est_type_enum()) {
+        return "énum";
+    }
+
+    if (type.est_type_opaque()) {
+        return "opaque";
+    }
+
+    if (type.est_type_union()) {
+        auto const type_union = type.comme_type_union();
+        if (type_union->est_nonsure) {
+            return "union_nonsûre";
+        }
+
+        return "union";
+    }
+
+    return "inconnu";
+}
+
+static void imprime_déclaration_type_ri(TypeCompose const *type_structure,
+                                        std::ostream &os,
+                                        OptionsImpressionType options)
+{
+    os << donne_classe_type(*type_structure) << " " << chaine_type(type_structure, options)
+       << " = ";
+
+    auto virgule = "{ ";
+
+    auto const membres = type_structure->donne_membres_pour_code_machine();
+    POUR_NOMME (membre, membres) {
+        os << virgule;
+
+        if (membre.nom) {
+            os << membre.nom->nom << " ";
+        }
+
+        os << chaine_type(membre.type, options);
+        virgule = ", ";
+    }
+
+    if (membres.taille() == 0) {
+        os << "{ ";
+    }
+    os << " }\n";
+}
+
+void imprime_ri_programme(ProgrammeRepreInter const &programme, std::ostream &os)
+{
+    OptionsImpressionType options = OptionsImpressionType::AUCUNE;
+    options |= OptionsImpressionType::EXCLUS_TYPE_SOUS_JACENT;
+    options |= OptionsImpressionType::NORMALISE_PARENTHÈSE_PARAMÈTRE;
+
+    POUR (programme.donne_types()) {
+        if (it->est_type_structure()) {
+            auto type_structure = it->comme_type_compose();
+            imprime_déclaration_type_ri(type_structure, os, options);
+            continue;
+        }
+
+        if (it->est_type_union()) {
+            auto type_structure = it->comme_type_union();
+            imprime_déclaration_type_ri(type_structure, os, options);
+            continue;
+        }
+
+        if (it->est_type_enum()) {
+            auto type_énum = it->comme_type_enum();
+            os << donne_classe_type(*type_énum) << " " << chaine_type(it, options) << " = "
+               << chaine_type(type_énum->type_sous_jacent, options) << "\n";
+            continue;
+        }
+
+        if (it->est_type_opaque()) {
+            auto type_opaque = it->comme_type_opaque();
+            os << donne_classe_type(*type_opaque) << " " << chaine_type(it, options) << " = "
+               << chaine_type(type_opaque->type_opacifie, options) << "\n";
+            continue;
+        }
+    }
+    os << "\n";
+
+    auto opt_données_constantes = programme.donne_données_constantes();
+    if (opt_données_constantes.has_value()) {
+        auto données_constantes = opt_données_constantes.value();
+        POUR (données_constantes->tableaux_constants) {
+            os << imprime_atome(it.globale, options);
+        }
+        os << "\n";
+    }
+
+    POUR (programme.donne_globales()) {
+        os << imprime_atome(it, options);
+    }
+    os << "\n";
+
+    POUR (programme.donne_fonctions()) {
+        os << imprime_fonction(it, options);
+    }
 }
 
 /** \} */
