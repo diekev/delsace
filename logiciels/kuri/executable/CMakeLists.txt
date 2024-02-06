@@ -81,6 +81,20 @@ install(
 
 ################################################################################
 
+add_executable(syntaxage_ri
+    syntaxage_ri.cc
+)
+
+target_include_directories(syntaxage_ri PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(syntaxage_ri "${BIBLIOTHEQUES}")
+
+install(
+    TARGETS syntaxage_ri RUNTIME DESTINATION ${RACINE_INSTALLATION}
+)
+
+################################################################################
+
 if(AVEC_LLVM)
     set(NOM_PROJET parcer)
 
