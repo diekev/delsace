@@ -220,58 +220,6 @@ void BaseSyntaxeuseRI<Impl>::gère_erreur_rapportée(const kuri::chaine &message
     dbg() << message_erreur;
 }
 
-#define REQUIERS_LEXEME(genre, message)                                                           \
-    if (!apparie(GenreLexème::genre)) {                                                           \
-        rapporte_erreur(message);                                                                 \
-        return;                                                                                   \
-    }
-
-#define REQUIERS_CONDITION(condition, message)                                                    \
-    if (!condition) {                                                                             \
-        rapporte_erreur(message);                                                                 \
-        return;                                                                                   \
-    }
-
-#define REQUIERS_NOMBRE_ENTIER(message) REQUIERS_LEXEME(NOMBRE_ENTIER, message)
-
-#define CONSOMME_LEXEME(genre, message, ...)                                                      \
-    if (!apparie(GenreLexème::genre)) {                                                           \
-        rapporte_erreur(message);                                                                 \
-        return __VA_ARGS__;                                                                       \
-    }                                                                                             \
-    consomme()
-
-#define CONSOMME_IDENTIFIANT_CODE(id, message)                                                    \
-    if (!apparie(GenreLexème::CHAINE_CARACTERE)) {                                                \
-        rapporte_erreur(message);                                                                 \
-        return;                                                                                   \
-    }                                                                                             \
-    if (lexème_courant()->ident != ID::id) {                                                      \
-        rapporte_erreur(message);                                                                 \
-    }                                                                                             \
-    consomme()
-
-#define CONSOMME_IDENTIFIANT(nom, message, ...)                                                   \
-    if (!apparie(GenreLexème::CHAINE_CARACTERE)) {                                                \
-        rapporte_erreur(message);                                                                 \
-        return __VA_ARGS__;                                                                       \
-    }                                                                                             \
-    auto const lexeme_##nom = lexème_courant();                                                   \
-    consomme()
-
-#define CONSOMME_NOMBRE_ENTIER(nom, message, ...)                                                 \
-    if (!apparie(GenreLexème::NOMBRE_ENTIER)) {                                                   \
-        rapporte_erreur(message);                                                                 \
-        return __VA_ARGS__;                                                                       \
-    }                                                                                             \
-    auto const lexeme_##nom = lexème_courant();                                                   \
-    consomme()
-
-#define CONSOMME_POINT_VIRGULE                                                                    \
-    if (apparie(GenreLexème::POINT_VIRGULE)) {                                                    \
-        consomme();                                                                               \
-    }
-
 template <typename Impl>
 void BaseSyntaxeuseRI<Impl>::analyse_fonction()
 {
@@ -294,7 +242,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_fonction()
         CONSOMME_IDENTIFIANT(param, "Attendu un identifiant de paramètre");
 
         auto paramètre = ParamètreFonction{};
-        paramètre.nom = lexeme_param;
+        paramètre.nom = lexème_param;
         paramètre.type = analyse_type();
 
         résultat.paramètres.ajoute(paramètre);
@@ -313,7 +261,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_fonction()
     CONSOMME_IDENTIFIANT(nom_valeur_retour,
                          "Attendu une chaine de caractère pour le nom du retour.");
 
-    résultat.nom_retour = lexeme_nom_valeur_retour;
+    résultat.nom_retour = lexème_nom_valeur_retour;
     résultat.type_retour = analyse_type();
 
     impl()->débute_fonction(résultat);
@@ -926,9 +874,9 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
         consomme();
 
         if (apparie(GenreLexème::NOMBRE_ENTIER) || apparie(GenreLexème::CHAINE_CARACTERE)) {
-            auto const lexeme_id = lexème_courant();
+            auto const lexème_id = lexème_courant();
             consomme();
-            return impl()->crée_référence_instruction(type, lexeme_id);
+            return impl()->crée_référence_instruction(type, lexème_id);
         }
 
         rapporte_erreur(
@@ -953,7 +901,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
 
             auto atome_membre = analyse_atome_typé();
 
-            membres.ajoute({lexeme_nom_membre, atome_membre});
+            membres.ajoute({lexème_nom_membre, atome_membre});
 
             if (!apparie(GenreLexème::VIRGULE)) {
                 break;
@@ -970,32 +918,32 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
     }
 
     if (apparie(GenreLexème::NOMBRE_ENTIER)) {
-        auto const lexeme_id = m_lexème_courant;
+        auto const lexème_id = m_lexème_courant;
         consomme();
-        return impl()->crée_constante_entière(type, lexeme_id);
+        return impl()->crée_constante_entière(type, lexème_id);
     }
 
     if (apparie(GenreLexème::NOMBRE_REEL)) {
-        auto const lexeme_id = m_lexème_courant;
+        auto const lexème_id = m_lexème_courant;
         consomme();
-        return impl()->crée_constante_réelle(type, lexeme_id);
+        return impl()->crée_constante_réelle(type, lexème_id);
     }
 
     if (apparie(GenreLexème::MOINS) || apparie(GenreLexème::MOINS_UNAIRE)) {
         consomme();
 
         if (apparie(GenreLexème::NOMBRE_ENTIER)) {
-            auto const lexeme_id = m_lexème_courant;
+            auto const lexème_id = m_lexème_courant;
             m_lexème_courant->valeur_entiere = -m_lexème_courant->valeur_entiere;
             consomme();
-            return impl()->crée_constante_entière(type, lexeme_id);
+            return impl()->crée_constante_entière(type, lexème_id);
         }
 
         if (apparie(GenreLexème::NOMBRE_REEL)) {
-            auto const lexeme_id = m_lexème_courant;
+            auto const lexème_id = m_lexème_courant;
             m_lexème_courant->valeur_reelle = -m_lexème_courant->valeur_reelle;
             consomme();
-            return impl()->crée_constante_réelle(type, lexeme_id);
+            return impl()->crée_constante_réelle(type, lexème_id);
         }
 
         rapporte_erreur("Attendu un nombre entier ou réel après « - »");
@@ -1011,7 +959,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
         consomme();
         CONSOMME_IDENTIFIANT(globale, "Attendu l'identifiant de la globale après « @ »", {});
 
-        auto globale = impl()->crée_référence_globale(type, lexeme_globale);
+        auto globale = impl()->crée_référence_globale(type, lexème_globale);
 
         if (apparie(GenreLexème::CROCHET_OUVRANT)) {
             consomme();
@@ -1023,14 +971,14 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
             CONSOMME_LEXEME(
                 CROCHET_FERMANT, "Attendu un crochet pour terminer l'accès d'index constant.", {});
 
-            return impl()->crée_indexage_constant(type, lexeme_index_accès, globale);
+            return impl()->crée_indexage_constant(type, lexème_index_accès, globale);
         }
 
         return globale;
     }
 
     if (apparie(GenreLexème::TAILLE_DE)) {
-        auto const lexeme_taille_de = m_lexème_courant;
+        auto const lexème_taille_de = m_lexème_courant;
         consomme();
 
         CONSOMME_LEXEME(
@@ -1041,11 +989,11 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
         CONSOMME_LEXEME(PARENTHESE_FERMANTE,
                         "Attendu une parenthèse fermante après le type de « taille_de »",
                         {});
-        return impl()->crée_taille_de(lexeme_taille_de, type_de_données);
+        return impl()->crée_taille_de(lexème_taille_de, type_de_données);
     }
 
     if (apparie(ID::index_de)) {
-        auto const lexeme_index_de = m_lexème_courant;
+        auto const lexème_index_de = m_lexème_courant;
         consomme();
 
         CONSOMME_LEXEME(
@@ -1057,11 +1005,11 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
                         "Attendu une parenthèse fermante après le type de « index_de »",
                         {});
 
-        return impl()->crée_index_de(lexeme_index_de, type_de_données);
+        return impl()->crée_index_de(lexème_index_de, type_de_données);
     }
 
     if (apparie(ID::transtype)) {
-        auto const lexeme_transtype = m_lexème_courant;
+        auto const lexème_transtype = m_lexème_courant;
         consomme();
         auto atome_transtypé = analyse_atome_typé();
         if (!apparie(ID::vers)) {
@@ -1070,7 +1018,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
         }
         consomme();
         auto type_destiné = analyse_type();
-        return impl()->crée_transtypage_constant(lexeme_transtype, atome_transtypé, type_destiné);
+        return impl()->crée_transtypage_constant(lexème_transtype, atome_transtypé, type_destiné);
     }
 
     if (apparie(ID::init_tableau)) {
@@ -1082,9 +1030,9 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
     /* Test les chaines en dernier pour ne pas confondre les mot-clés sans lexème spécifique avec
      * des fonctions. */
     if (apparie(GenreLexème::CHAINE_CARACTERE)) {
-        auto const lexeme_fonction = m_lexème_courant;
+        auto const lexème_fonction = m_lexème_courant;
         consomme();
-        return impl()->parse_référence_fonction(type, lexeme_fonction);
+        return impl()->parse_référence_fonction(type, lexème_fonction);
     }
 
     if (apparie(GenreLexème::CROCHET_OUVRANT)) {
@@ -1220,7 +1168,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_si()
     CONSOMME_POINT_VIRGULE;
 
     impl()->crée_si(
-        atome_prédicat, lexeme_si_vrai->valeur_entiere, lexeme_si_faux->valeur_entiere);
+        atome_prédicat, lexème_si_vrai->valeur_entiere, lexème_si_faux->valeur_entiere);
 }
 
 template <typename Impl>
@@ -1274,7 +1222,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_branche()
     CONSOMME_NOMBRE_ENTIER(id_cible, "attendu un nombre entier après '%'");
     CONSOMME_POINT_VIRGULE;
 
-    impl()->crée_branche(lexeme_id_cible->valeur_entiere);
+    impl()->crée_branche(lexème_id_cible->valeur_entiere);
 }
 
 template <typename Impl>
@@ -1309,25 +1257,9 @@ void BaseSyntaxeuseRI<Impl>::analyse_opérateur_binaire(OpérateurBinaire::Genre
 
 #undef IMPRIME_RI
 
-enum class TypeDescriptionAtome : int32_t {
-    INVALIDE,
-    INSTRUCTION,
-    GLOBALE,
-    CONSTANTE_ENTIER,
-    CONSTANTE_RÉELLE,
-    CONSTANTE_NUL,
-    CONSTRUCTION_STRUCTURE,
-    FONCTION,
-    TAILLE_DE,
-    INDEX_DE,
-    CONSTRUCTION_TABLEAU,
-    INDEX_CONSTANT,
-    DONNÉES_CONSTANTES,
-};
-
 struct DescriptionAtome {
-    TypeDescriptionAtome type = {};
-    Lexème const *lexeme = nullptr;
+    Atome::Genre genre = {};
+    Lexème const *lexème = nullptr;
     LexèmesType desc_type{};
 };
 
@@ -1343,79 +1275,104 @@ static kuri::chaine chaine_type(kuri::tableau_statique<Lexème *> lexèmes)
 
 static std::ostream &operator<<(std::ostream &os, DescriptionAtome desc)
 {
-    if (desc.type != TypeDescriptionAtome::INVALIDE && !desc.desc_type.est_vide()) {
+    if (!desc.desc_type.est_vide()) {
         os << chaine_type(desc.desc_type) << ' ';
     }
 
-    switch (desc.type) {
-        case TypeDescriptionAtome::INVALIDE:
+    switch (desc.genre) {
+        case Atome::Genre::INSTRUCTION:
         {
-            os << "ATOME INVALIDE";
-            break;
-        }
-        case TypeDescriptionAtome::INSTRUCTION:
-        {
-            if (desc.lexeme->genre == GenreLexème::CHAINE_CARACTERE) {
-                os << "%" << desc.lexeme->ident->nom;
+            if (desc.lexème->genre == GenreLexème::CHAINE_CARACTERE) {
+                os << "%" << desc.lexème->ident->nom;
             }
             else {
-                os << "%" << desc.lexeme->valeur_entiere;
+                os << "%" << desc.lexème->valeur_entiere;
             }
             break;
         }
-        case TypeDescriptionAtome::CONSTANTE_ENTIER:
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
-            os << desc.lexeme->valeur_entiere;
+            os << desc.lexème->valeur_entiere;
             break;
         }
-        case TypeDescriptionAtome::CONSTANTE_RÉELLE:
+        case Atome::Genre::CONSTANTE_RÉELLE:
         {
-            os << desc.lexeme->valeur_reelle;
+            os << desc.lexème->valeur_reelle;
             break;
         }
-        case TypeDescriptionAtome::CONSTANTE_NUL:
+        case Atome::Genre::CONSTANTE_NULLE:
         {
             os << "nul";
             break;
         }
-        case TypeDescriptionAtome::GLOBALE:
+        case Atome::Genre::GLOBALE:
         {
-            os << "@" << desc.lexeme->chaine;
+            os << "@" << desc.lexème->chaine;
             break;
         }
-        case TypeDescriptionAtome::FONCTION:
+        case Atome::Genre::FONCTION:
         {
-            os << desc.lexeme->chaine;
+            os << desc.lexème->chaine;
             break;
         }
-        case TypeDescriptionAtome::CONSTRUCTION_STRUCTURE:
+        case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             os << "{}";
             break;
         }
-        case TypeDescriptionAtome::CONSTRUCTION_TABLEAU:
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
         {
             os << "[]";
             break;
         }
-        case TypeDescriptionAtome::TAILLE_DE:
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
             os << "taille_de(" << chaine_type(desc.desc_type) << ")";
             break;
         }
-        case TypeDescriptionAtome::INDEX_DE:
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
         {
             os << "index_de(" << chaine_type(desc.desc_type) << ")";
             break;
         }
-        case TypeDescriptionAtome::INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
             os << "index constant";
             break;
         }
-        case TypeDescriptionAtome::DONNÉES_CONSTANTES:
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
             os << "données_constantes";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        {
+            os << "constante caractère";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        {
+            os << "constante booléenne";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_TYPE:
+        {
+            os << "constante type";
+            break;
+        }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            os << "init_tableau";
+            break;
+        }
+        case Atome::Genre::TRANSTYPE_CONSTANT:
+        {
+            os << "transtype constant";
+            break;
+        }
+        case Atome::Genre::NON_INITIALISATION:
+        {
+            os << "---";
             break;
         }
     }
@@ -1528,7 +1485,7 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 
     DescriptionAtome crée_atome_nul() const
     {
-        return {TypeDescriptionAtome::INVALIDE, nullptr, {}};
+        return {Atome::Genre::CONSTANTE_NULLE, nullptr, {}};
     }
 
     DescriptionAtome parse_données_constantes(LexèmesType const &type)
@@ -1541,7 +1498,7 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
             consomme();
         }
 
-        return {TypeDescriptionAtome::DONNÉES_CONSTANTES, nullptr, type};
+        return {Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES, nullptr, type};
     }
 
     void crée_globale(Lexème const *lexème,
@@ -1552,7 +1509,7 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 
 #ifdef IMPRIME_RI
         std::cerr << "globale @" << lexème->chaine << " = ";
-        if (initialisateur.type == TypeDescriptionAtome::INVALIDE) {
+        if (initialisateur.lexème == nullptr) {
             std::cerr << chaine_type(type);
         }
         else {
@@ -1564,51 +1521,51 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 
     DescriptionAtome crée_référence_instruction(LexèmesType const &type, Lexème const *lexème)
     {
-        return {TypeDescriptionAtome::INSTRUCTION, lexème, type};
+        return {Atome::Genre::INSTRUCTION, lexème, type};
     }
 
     DescriptionAtome crée_construction_structure(
         LexèmesType const &type, kuri::tableau_statique<InfoInitMembreStructure> membres)
     {
-        return {TypeDescriptionAtome::CONSTRUCTION_STRUCTURE, nullptr, type};
+        return {Atome::Genre::CONSTANTE_STRUCTURE, nullptr, type};
     }
 
     DescriptionAtome crée_constante_entière(LexèmesType const &type, Lexème const *lexème)
     {
-        return {TypeDescriptionAtome::CONSTANTE_ENTIER, lexème};
+        return {Atome::Genre::CONSTANTE_ENTIÈRE, lexème};
     }
 
     DescriptionAtome crée_constante_réelle(LexèmesType const &type, Lexème const *lexème)
     {
-        return {TypeDescriptionAtome::CONSTANTE_RÉELLE, lexème};
+        return {Atome::Genre::CONSTANTE_RÉELLE, lexème};
     }
 
     DescriptionAtome crée_constante_nulle(LexèmesType const &type)
     {
-        return {TypeDescriptionAtome::CONSTANTE_NUL, nullptr};
+        return {Atome::Genre::CONSTANTE_NULLE, nullptr};
     }
 
     DescriptionAtome crée_référence_globale(LexèmesType const &type, Lexème const *lexème)
     {
-        return {TypeDescriptionAtome::GLOBALE, lexème};
+        return {Atome::Genre::GLOBALE, lexème};
     }
 
     DescriptionAtome crée_indexage_constant(LexèmesType const &type,
-                                            Lexème const *lexeme_nombre,
+                                            Lexème const *lexème_nombre,
                                             DescriptionAtome const &globale)
     {
         /* À FAIRE. */
-        return {TypeDescriptionAtome::INDEX_CONSTANT, lexeme_nombre, type};
+        return {Atome::Genre::ACCÈS_INDEX_CONSTANT, lexème_nombre, type};
     }
 
     DescriptionAtome crée_taille_de(Lexème const *lexème, LexèmesType const &type)
     {
-        return {TypeDescriptionAtome::TAILLE_DE, lexème, type};
+        return {Atome::Genre::CONSTANTE_TAILLE_DE, lexème, type};
     }
 
     DescriptionAtome crée_index_de(Lexème const *lexème, LexèmesType const &type)
     {
-        return {TypeDescriptionAtome::INDEX_DE, lexème, type};
+        return {Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE, lexème, type};
     }
 
     DescriptionAtome crée_transtypage_constant(Lexème const *lexème,
@@ -1627,13 +1584,13 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 
     DescriptionAtome parse_référence_fonction(LexèmesType const &type, Lexème const *lexème)
     {
-        return {TypeDescriptionAtome::FONCTION, lexème, type};
+        return {Atome::Genre::FONCTION, lexème, type};
     }
 
     DescriptionAtome crée_construction_tableau(LexèmesType const &type,
                                                kuri::tableau_statique<DescriptionAtome> valeurs)
     {
-        return {TypeDescriptionAtome::CONSTRUCTION_TABLEAU, nullptr, type};
+        return {Atome::Genre::CONSTANTE_TABLEAU_FIXE, nullptr, type};
     }
 
     void crée_déclaration_type_structure(DonnéesTypeComposé const &données)
@@ -1798,7 +1755,7 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 #ifdef IMPRIME_RI
         imprime_numéro_instruction(false);
         std::cerr << "retourne";
-        if (valeur.type != TypeDescriptionAtome::INVALIDE) {
+        if (valeur.lexème != nullptr) {
             std::cerr << " " << valeur;
         }
         std::cerr << '\n';
@@ -2059,13 +2016,13 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 
             CONSOMME_NOMBRE_ENTIER(octet, "Attendu un nombre entier.", nullptr);
 
-            auto valeur_entière = lexeme_octet->valeur_entiere;
+            auto valeur_entière = lexème_octet->valeur_entiere;
             if (valeur_entière > 255) {
                 rapporte_erreur("Valeur trop grande pour l'octet des données constantes.");
                 return nullptr;
             }
 
-            données.ajoute(char(lexeme_octet->valeur_entiere));
+            données.ajoute(char(lexème_octet->valeur_entiere));
 
             if (!apparie(GenreLexème::VIRGULE)) {
                 break;
@@ -2137,7 +2094,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         return globale;
     }
 
-    Atome *crée_indexage_constant(Type *type, Lexème const *lexeme_nombre, Atome *globale)
+    Atome *crée_indexage_constant(Type *type, Lexème const *lexème_nombre, Atome *globale)
     {
         if (!globale->est_constante() && !globale->est_globale()) {
             rapporte_erreur("Valeur non constante pour l'indexage constant.");
@@ -2146,7 +2103,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         /* À FAIRE : passe le type. */
         globale->type = type;
         return m_constructrice.crée_accès_index_constant(static_cast<AtomeConstante *>(globale),
-                                                         int64_t(lexeme_nombre->valeur_entiere));
+                                                         int64_t(lexème_nombre->valeur_entiere));
     }
 
     Atome *crée_taille_de(Lexème const *lexème, Type *type)

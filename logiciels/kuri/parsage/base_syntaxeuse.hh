@@ -13,6 +13,58 @@
 
 struct Fichier;
 
+#define REQUIERS_LEXEME(genre, message)                                                           \
+    if (!apparie(GenreLexème::genre)) {                                                           \
+        rapporte_erreur(message);                                                                 \
+        return;                                                                                   \
+    }
+
+#define REQUIERS_CONDITION(condition, message)                                                    \
+    if (!condition) {                                                                             \
+        rapporte_erreur(message);                                                                 \
+        return;                                                                                   \
+    }
+
+#define REQUIERS_NOMBRE_ENTIER(message) REQUIERS_LEXEME(NOMBRE_ENTIER, message)
+
+#define CONSOMME_LEXEME(genre, message, ...)                                                      \
+    if (!apparie(GenreLexème::genre)) {                                                           \
+        rapporte_erreur(message);                                                                 \
+        return __VA_ARGS__;                                                                       \
+    }                                                                                             \
+    consomme()
+
+#define CONSOMME_IDENTIFIANT_CODE(id, message)                                                    \
+    if (!apparie(GenreLexème::CHAINE_CARACTERE)) {                                                \
+        rapporte_erreur(message);                                                                 \
+        return;                                                                                   \
+    }                                                                                             \
+    if (lexème_courant()->ident != ID::id) {                                                      \
+        rapporte_erreur(message);                                                                 \
+    }                                                                                             \
+    consomme()
+
+#define CONSOMME_IDENTIFIANT(nom, message, ...)                                                   \
+    if (!apparie(GenreLexème::CHAINE_CARACTERE)) {                                                \
+        rapporte_erreur(message);                                                                 \
+        return __VA_ARGS__;                                                                       \
+    }                                                                                             \
+    auto const lexème_##nom = lexème_courant();                                                   \
+    consomme()
+
+#define CONSOMME_NOMBRE_ENTIER(nom, message, ...)                                                 \
+    if (!apparie(GenreLexème::NOMBRE_ENTIER)) {                                                   \
+        rapporte_erreur(message);                                                                 \
+        return __VA_ARGS__;                                                                       \
+    }                                                                                             \
+    auto const lexème_##nom = lexème_courant();                                                   \
+    consomme()
+
+#define CONSOMME_POINT_VIRGULE                                                                    \
+    if (apparie(GenreLexème::POINT_VIRGULE)) {                                                    \
+        consomme();                                                                               \
+    }
+
 struct BaseSyntaxeuse {
   protected:
     /* Pour les messages d'erreurs. */
