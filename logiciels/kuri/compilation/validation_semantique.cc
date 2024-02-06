@@ -515,7 +515,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             auto metaprogramme = crée_métaprogramme_pour_directive(noeud_directive);
 
-            m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(m_espace,
+            m_compilatrice.gestionnaire_code->requiers_compilation_métaprogramme(m_espace,
                                                                                  metaprogramme);
 
             noeud->type = expression->type;
@@ -3351,7 +3351,7 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonctio
          * la fonction soit validée afin de le compiler.
          */
         auto metaprogramme = m_compilatrice.metaprogramme_pour_fonction(entete);
-        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(m_espace,
+        m_compilatrice.gestionnaire_code->requiers_compilation_métaprogramme(m_espace,
                                                                              metaprogramme);
     }
 
@@ -3904,7 +3904,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
         auto metaprogramme = decl->metaprogramme_corps_texte;
         auto fichier = m_compilatrice.crée_fichier_pour_metaprogramme(metaprogramme);
-        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(m_espace,
+        m_compilatrice.gestionnaire_code->requiers_compilation_métaprogramme(m_espace,
                                                                              metaprogramme);
         return Attente::sur_parsage(fichier);
     }
@@ -4146,7 +4146,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
         auto metaprogramme = decl->metaprogramme_corps_texte;
         auto fichier = m_compilatrice.crée_fichier_pour_metaprogramme(metaprogramme);
-        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(m_espace,
+        m_compilatrice.gestionnaire_code->requiers_compilation_métaprogramme(m_espace,
                                                                              metaprogramme);
         return Attente::sur_parsage(fichier);
     }

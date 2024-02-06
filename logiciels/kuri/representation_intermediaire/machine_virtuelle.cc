@@ -680,7 +680,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
          * vérrouiller par quelqu'un, et par le passé la Messagère prévenait le GestionnaireCode,
          * causant un verrou mort. */
         auto &gestionnaire = compilatrice.gestionnaire_code;
-        gestionnaire->interception_message_terminee(espace_recu);
+        gestionnaire->interception_message_terminée(espace_recu);
         return;
     }
 
@@ -791,7 +791,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(compilatrice_message_recu)) {
         auto message = dépile<Message *>();
         RAPPORTE_ERREUR_SI_NUL(message, "Reçu un message nul");
-        compilatrice.gestionnaire_code->message_recu(message);
+        compilatrice.gestionnaire_code->message_reçu(message);
         return;
     }
 

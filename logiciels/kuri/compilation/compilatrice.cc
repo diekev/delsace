@@ -396,7 +396,7 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation
 {
     auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
     espaces_de_travail->ajoute(espace);
-    gestionnaire_code->espace_cree(espace);
+    gestionnaire_code->espace_créé(espace);
     return espace;
 }
 
@@ -540,7 +540,7 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
     EspaceDeTravail *espace)
 {
     auto convertisseuse = donne_convertisseuse_noeud_code_disponible();
-    auto entetes = gestionnaire_code->fonctions_parsees();
+    auto entetes = gestionnaire_code->fonctions_parsées();
     auto résultat = kuri::tableau<NoeudCodeEnteteFonction *>();
     résultat.réserve(entetes.taille());
     POUR (entetes) {
