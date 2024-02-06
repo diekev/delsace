@@ -27,6 +27,10 @@ struct Statistiques;
 struct NoeudDeclarationType;
 using Type = NoeudDeclarationType;
 
+namespace kuri {
+struct chemin_systeme;
+}
+
 /* ------------------------------------------------------------------------- */
 /** \name ÉtatCompilation.
  * \{ */
@@ -265,6 +269,8 @@ struct Programme {
      */
     void imprime_diagnostique(std::ostream &os, bool ignore_doublon = true);
 
+    kuri::chemin_systeme donne_chemin_pour_fichier_ri() const;
+
   private:
     void verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &diagnostique) const;
 
@@ -385,5 +391,7 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme,
 
 std::optional<ProgrammeRepreInter> représentation_intermédiaire_programme(
     EspaceDeTravail &espace, CompilatriceRI &compilatrice_ri, Programme const &programme);
+
+void imprime_ri_programme(ProgrammeRepreInter const &programme, std::ostream &os);
 
 /** \} */
