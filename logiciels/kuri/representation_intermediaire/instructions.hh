@@ -724,6 +724,8 @@ enum TypeTranstypage {
 
 kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type);
 
+TypeTranstypage type_transtypage_depuis_ident(IdentifiantCode const *ident);
+
 struct InstructionTranstype : public Instruction {
     explicit InstructionTranstype(NoeudExpression const *site_)
     {
