@@ -9,6 +9,8 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "parsage/identifiant.hh"
+
 #include "code_binaire.hh"
 
 std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome)
@@ -277,6 +279,19 @@ kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type)
 
 #undef ENUMERE_TYPE_TRANSTYPAGE_EX
     return "erreur";
+}
+
+TypeTranstypage type_transtypage_depuis_ident(IdentifiantCode const *ident)
+{
+#define ENUMERE_TYPE_TRANSTYPAGE_EX(genre, ident_)                                                \
+    if (ident == ID::ident_) {                                                                    \
+        return TypeTranstypage::genre;                                                            \
+    }
+    ENUMERE_TYPE_TRANSTYPAGE(ENUMERE_TYPE_TRANSTYPAGE_EX)
+#undef ENUMERE_TYPE_TRANSTYPAGE_EX
+
+    assert(false);
+    return TypeTranstypage::BITS;
 }
 
 InstructionTranstype::InstructionTranstype(NoeudExpression const *site_,
