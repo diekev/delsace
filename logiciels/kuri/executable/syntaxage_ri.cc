@@ -1259,7 +1259,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_opérateur_binaire(OpérateurBinaire::Genre
 
 struct DescriptionAtome {
     Atome::Genre type = {};
-    Lexème const *lexeme = nullptr;
+    Lexème const *lexème = nullptr;
     LexèmesType desc_type{};
 };
 
@@ -1282,22 +1282,22 @@ static std::ostream &operator<<(std::ostream &os, DescriptionAtome desc)
     switch (desc.type) {
         case Atome::Genre::INSTRUCTION:
         {
-            if (desc.lexeme->genre == GenreLexème::CHAINE_CARACTERE) {
-                os << "%" << desc.lexeme->ident->nom;
+            if (desc.lexème->genre == GenreLexème::CHAINE_CARACTERE) {
+                os << "%" << desc.lexème->ident->nom;
             }
             else {
-                os << "%" << desc.lexeme->valeur_entiere;
+                os << "%" << desc.lexème->valeur_entiere;
             }
             break;
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
-            os << desc.lexeme->valeur_entiere;
+            os << desc.lexème->valeur_entiere;
             break;
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
-            os << desc.lexeme->valeur_reelle;
+            os << desc.lexème->valeur_reelle;
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:
@@ -1307,12 +1307,12 @@ static std::ostream &operator<<(std::ostream &os, DescriptionAtome desc)
         }
         case Atome::Genre::GLOBALE:
         {
-            os << "@" << desc.lexeme->chaine;
+            os << "@" << desc.lexème->chaine;
             break;
         }
         case Atome::Genre::FONCTION:
         {
-            os << desc.lexeme->chaine;
+            os << desc.lexème->chaine;
             break;
         }
         case Atome::Genre::CONSTANTE_STRUCTURE:
@@ -1509,7 +1509,7 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 
 #ifdef IMPRIME_RI
         std::cerr << "globale @" << lexème->chaine << " = ";
-        if (initialisateur.lexeme == nullptr) {
+        if (initialisateur.lexème == nullptr) {
             std::cerr << chaine_type(type);
         }
         else {
@@ -1755,7 +1755,7 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 #ifdef IMPRIME_RI
         imprime_numéro_instruction(false);
         std::cerr << "retourne";
-        if (valeur.lexeme != nullptr) {
+        if (valeur.lexème != nullptr) {
             std::cerr << " " << valeur;
         }
         std::cerr << '\n';
