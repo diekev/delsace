@@ -129,7 +129,7 @@ int64_t OrdonnanceuseTache::nombre_de_taches_en_attente() const
 Tâche OrdonnanceuseTache::tache_suivante(Tâche &tache_terminee, DrapeauxTacheronne drapeaux)
 {
     if (nombre_de_taches_en_attente() == 0) {
-        m_compilatrice->gestionnaire_code->crée_taches(*this);
+        m_compilatrice->gestionnaire_code->crée_tâches(*this);
     }
 
     if (compilation_terminee) {
