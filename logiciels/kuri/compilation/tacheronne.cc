@@ -3,6 +3,8 @@
 
 #include "tacheronne.hh"
 
+#include <fstream>
+
 #include "parsage/lexeuse.hh"
 
 #include "arbre_syntaxique/assembleuse.hh"
@@ -397,6 +399,12 @@ void Tacheronne::gere_tache()
                         "Impossible de générer le code machine car une erreur est survenue lors "
                         "de la création de la représentation intermédiaire du programme.");
                     return;
+                }
+                if (compilatrice.arguments.émets_ri && !programme->pour_métaprogramme()) {
+                    auto chemin_fichier_ri = programme->donne_chemin_pour_fichier_ri();
+                    info() << "Écriture de '" << chemin_fichier_ri << "' ...";
+                    std::ofstream of(vers_std_path(chemin_fichier_ri));
+                    imprime_ri_programme(*repr_inter, of);
                 }
                 auto args = crée_args_génération_code(
                     compilatrice, *tache.unité->espace, programme, *repr_inter, broyeuse);
