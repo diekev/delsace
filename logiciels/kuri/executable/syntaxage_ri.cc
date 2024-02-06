@@ -1258,7 +1258,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_opérateur_binaire(OpérateurBinaire::Genre
 #undef IMPRIME_RI
 
 struct DescriptionAtome {
-    Atome::Genre type = {};
+    Atome::Genre genre = {};
     Lexème const *lexème = nullptr;
     LexèmesType desc_type{};
 };
@@ -1279,7 +1279,7 @@ static std::ostream &operator<<(std::ostream &os, DescriptionAtome desc)
         os << chaine_type(desc.desc_type) << ' ';
     }
 
-    switch (desc.type) {
+    switch (desc.genre) {
         case Atome::Genre::INSTRUCTION:
         {
             if (desc.lexème->genre == GenreLexème::CHAINE_CARACTERE) {
