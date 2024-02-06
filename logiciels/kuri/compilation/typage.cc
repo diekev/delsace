@@ -1326,6 +1326,9 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
 
     type->type_structure = typeuse.réserve_type_structure();
 
+    /* À FAIRE : ceci ne fonctionnera pas pour des architectures en 32-bit.
+     * Il faudra remplacer le type_le_plus_grand par une union et transtyper proprement dans les
+     * accès. */
     if (type->type_le_plus_grand) {
         auto membres_ = kuri::tableau<MembreTypeComposé, int>(2);
         membres_[0] = {nullptr, type->type_le_plus_grand, ID::valeur, 0};
