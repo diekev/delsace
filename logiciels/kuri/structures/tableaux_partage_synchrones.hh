@@ -65,6 +65,11 @@ struct tableaux_partage_synchrones {
     {
         return données_locales;
     }
+
+    int64_t taille_mémoire() const
+    {
+        return données_globales->taille_mémoire() + données_locales.taille_mémoire();
+    }
 };
 
 /** \} */
