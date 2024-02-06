@@ -49,7 +49,7 @@ struct Fichier;
         rapporte_erreur(message);                                                                 \
         return __VA_ARGS__;                                                                       \
     }                                                                                             \
-    auto const lexeme_##nom = lexème_courant();                                                   \
+    auto const lexème_##nom = lexème_courant();                                                   \
     consomme()
 
 #define CONSOMME_NOMBRE_ENTIER(nom, message, ...)                                                 \
@@ -57,7 +57,7 @@ struct Fichier;
         rapporte_erreur(message);                                                                 \
         return __VA_ARGS__;                                                                       \
     }                                                                                             \
-    auto const lexeme_##nom = lexème_courant();                                                   \
+    auto const lexème_##nom = lexème_courant();                                                   \
     consomme()
 
 #define CONSOMME_POINT_VIRGULE                                                                    \
