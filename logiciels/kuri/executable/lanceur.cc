@@ -204,6 +204,9 @@ static ActionParsageArgument gère_argument_coulisse(ParseuseArguments &parseuse
 static ActionParsageArgument gère_argument_stats_détaillées(ParseuseArguments & /*parseuse*/,
                                                             ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_émission_ri(ParseuseArguments & /*parseuse*/,
+                                                       ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--",
@@ -269,6 +272,13 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "--coulisse {c|asm|llvm}",
      "Détermine quelle coulisse utilisée pour l'espace par défaut de compilation",
      gère_argument_coulisse},
+    {"--émets_ri",
+     "",
+     "",
+     "Imprime la Représentation Intermédiaire des programmes des espaces dans un fichier .ri. Le "
+     "nom du fichier dérive du nom de l'espace, avec les espaces remplacées par des tirets-bas. "
+     "Par exemple, si un espace s'appelle « Espace 1 », le fichier s'appelera « Espace_1.ri »",
+     gère_argument_émission_ri},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -435,6 +445,13 @@ static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArgument
                                                                ArgumentsCompilatrice &résultat)
 {
     résultat.sans_traces_d_appel = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_émission_ri(ParseuseArguments & /*parseuse*/,
+                                                       ArgumentsCompilatrice &résultat)
+{
+    résultat.émets_ri = true;
     return ActionParsageArgument::CONTINUE;
 }
 
