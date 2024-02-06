@@ -176,13 +176,13 @@ GestionnaireCode::~GestionnaireCode()
     memoire::deloge("AssembleuseArbre", m_assembleuse);
 }
 
-void GestionnaireCode::espace_cree(EspaceDeTravail *espace)
+void GestionnaireCode::espace_créé(EspaceDeTravail *espace)
 {
     assert(espace->programme);
     ajoute_programme(espace->programme);
 }
 
-void GestionnaireCode::metaprogramme_cree(MetaProgramme *metaprogramme)
+void GestionnaireCode::métaprogramme_créé(MetaProgramme *metaprogramme)
 {
     assert(metaprogramme->programme);
     ajoute_programme(metaprogramme->programme);
@@ -208,17 +208,17 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
     return noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE);
 }
 
-static bool ajoute_dependances_au_programme(GrapheDépendance &graphe,
-                                            DonnneesResolutionDependances &données_dependances,
+static bool ajoute_dépendances_au_programme(GrapheDépendance &graphe,
+                                            DonnéesRésolutionDépendances &données_dépendances,
                                             EspaceDeTravail *espace,
                                             Programme &programme,
                                             NoeudExpression *noeud)
 {
     auto possède_erreur = false;
-    auto &dependances = données_dependances.dependances;
+    auto &dépendances = données_dépendances.dépendances;
 
     /* Ajoute les fonctions. */
-    kuri::pour_chaque_élément(dependances.fonctions_utilisées, [&](auto &fonction) {
+    kuri::pour_chaque_élément(dépendances.fonctions_utilisées, [&](auto &fonction) {
         if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE) &&
             !programme.pour_métaprogramme()) {
             possède_erreur = true;
@@ -240,40 +240,40 @@ static bool ajoute_dependances_au_programme(GrapheDépendance &graphe,
     }
 
     /* Ajoute les globales. */
-    kuri::pour_chaque_élément(dependances.globales_utilisées, [&](auto &globale) {
+    kuri::pour_chaque_élément(dépendances.globales_utilisées, [&](auto &globale) {
         programme.ajoute_globale(const_cast<NoeudDeclarationVariable *>(globale));
         return kuri::DécisionItération::Continue;
     });
 
     /* Ajoute les types. */
-    kuri::pour_chaque_élément(dependances.types_utilisés, [&](auto &type) {
+    kuri::pour_chaque_élément(dépendances.types_utilisés, [&](auto &type) {
         programme.ajoute_type(type, RaisonAjoutType::DÉPENDANCE_DIRECTE, noeud);
         return kuri::DécisionItération::Continue;
     });
 
-    auto dependances_manquantes = programme.dépendances_manquantes();
+    auto dépendances_manquantes = programme.dépendances_manquantes();
     programme.dépendances_manquantes().efface();
 
     graphe.prépare_visite();
 
-    dependances_manquantes.pour_chaque_element([&](NoeudDeclaration *decl) {
+    dépendances_manquantes.pour_chaque_element([&](NoeudDeclaration *decl) {
         auto noeud_dep = graphe.garantie_noeud_dépendance(espace, decl);
 
         graphe.traverse(noeud_dep, [&](NoeudDépendance const *relation) {
             if (relation->est_fonction()) {
                 programme.ajoute_fonction(relation->fonction());
-                données_dependances.dependances_ependues.fonctions_utilisées.insère(
+                données_dépendances.dépendances_épendues.fonctions_utilisées.insère(
                     relation->fonction());
             }
             else if (relation->est_globale()) {
                 programme.ajoute_globale(relation->globale());
-                données_dependances.dependances_ependues.globales_utilisées.insère(
+                données_dépendances.dépendances_épendues.globales_utilisées.insère(
                     relation->globale());
             }
             else if (relation->est_type()) {
                 programme.ajoute_type(
                     relation->type(), RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
-                données_dependances.dependances_ependues.types_utilisés.insère(relation->type());
+                données_dépendances.dépendances_épendues.types_utilisés.insère(relation->type());
             }
         });
     });
@@ -282,7 +282,7 @@ static bool ajoute_dependances_au_programme(GrapheDépendance &graphe,
 }
 
 struct RassembleuseDependances {
-    DonnéesDépendance &dependances;
+    DonnéesDépendance &dépendances;
     Compilatrice *compilatrice;
     NoeudExpression *racine_;
 
@@ -298,32 +298,32 @@ struct RassembleuseDependances {
             return;
         }
 
-        dependances.types_utilisés.insère(type);
+        dépendances.types_utilisés.insère(type);
     }
 
     void ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     {
-        dependances.fonctions_utilisées.insère(fonction);
+        dépendances.fonctions_utilisées.insère(fonction);
     }
 
     void ajoute_globale(NoeudDeclarationVariable *globale)
     {
-        dependances.globales_utilisées.insère(globale);
+        dépendances.globales_utilisées.insère(globale);
     }
 
-    void rassemble_dependances()
+    void rassemble_dépendances()
     {
-        rassemble_dependances(racine_);
+        rassemble_dépendances(racine_);
     }
 
-    void rassemble_dependances(NoeudExpression *racine);
+    void rassemble_dépendances(NoeudExpression *racine);
 };
 
 /* Traverse l'arbre syntaxique de la racine spécifiée et rassemble les fonctions, types, et
  * globales utilisées. */
-void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
+void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
 {
-    auto rassemble_dependances_transformation = [&](TransformationType transformation,
+    auto rassemble_dépendances_transformation = [&](TransformationType transformation,
                                                     Type *type) {
         /* Marque les dépendances sur les fonctions d'interface de kuri. */
         auto interface = compilatrice->interface_kuri;
@@ -362,10 +362,10 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
         }
     };
 
-    auto rassemble_dependances_transformations =
+    auto rassemble_dépendances_transformations =
         [&](kuri::tableau_compresse<TransformationType, int> const &transformations, Type *type) {
             POUR (transformations.plage()) {
-                rassemble_dependances_transformation(it, type);
+                rassemble_dépendances_transformation(it, type);
             }
         };
 
@@ -516,7 +516,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
             }
             else if (noeud->est_comme()) {
                 auto comme = noeud->comme_comme();
-                rassemble_dependances_transformation(comme->transformation,
+                rassemble_dépendances_transformation(comme->transformation,
                                                      comme->expression->type);
             }
             else if (noeud->est_appel()) {
@@ -545,15 +545,15 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
             }
             else if (noeud->est_assignation_variable()) {
                 auto assignation = noeud->comme_assignation_variable();
-                rassemble_dependances(assignation->expression);
+                rassemble_dépendances(assignation->expression);
             }
             else if (noeud->est_assignation_multiple()) {
                 auto assignation = noeud->comme_assignation_multiple();
 
                 POUR (assignation->données_exprs.plage()) {
-                    rassemble_dependances(it.expression);
+                    rassemble_dépendances(it.expression);
                     auto type_expression = it.expression ? it.expression->type : Type::nul();
-                    rassemble_dependances_transformations(it.transformations, type_expression);
+                    rassemble_dépendances_transformations(it.transformations, type_expression);
                 }
             }
             else if (noeud->est_declaration_variable()) {
@@ -561,7 +561,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 assert_rappel(declaration->type,
                               [&]() { dbg() << "Type nul pour " << declaration->ident->nom; });
                 ajoute_type(declaration->type);
-                rassemble_dependances(declaration->expression);
+                rassemble_dépendances(declaration->expression);
             }
             else if (noeud->est_declaration_variable_multiple()) {
                 auto declaration = noeud->comme_declaration_variable_multiple();
@@ -570,9 +570,9 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                     for (auto &var : it.variables.plage()) {
                         ajoute_type(var->type);
                     }
-                    rassemble_dependances(it.expression);
+                    rassemble_dépendances(it.expression);
                     auto type_expression = it.expression ? it.expression->type : Type::nul();
-                    rassemble_dependances_transformations(it.transformations, type_expression);
+                    rassemble_dépendances_transformations(it.transformations, type_expression);
                 }
             }
 
@@ -580,12 +580,12 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
         });
 }
 
-static void rassemble_dependances(NoeudExpression *racine,
+static void rassemble_dépendances(NoeudExpression *racine,
                                   Compilatrice *compilatrice,
-                                  DonnéesDépendance &dependances)
+                                  DonnéesDépendance &dépendances)
 {
-    RassembleuseDependances rassembleuse{dependances, compilatrice, racine};
-    rassembleuse.rassemble_dependances();
+    RassembleuseDependances rassembleuse{dépendances, compilatrice, racine};
+    rassembleuse.rassemble_dépendances();
 }
 
 static bool type_requiers_typage(NoeudDeclarationType const *type)
@@ -614,12 +614,12 @@ static bool type_requiers_typage(NoeudDeclarationType const *type)
 }
 
 /* Requiers le typage de toutes les dépendances. */
-static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
-                                            DonnéesDépendance const &dependances,
+static void garantie_typage_des_dépendances(GestionnaireCode &gestionnaire,
+                                            DonnéesDépendance const &dépendances,
                                             EspaceDeTravail *espace)
 {
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
-    kuri::pour_chaque_élément(dependances.fonctions_utilisées, [&](auto &fonction) {
+    kuri::pour_chaque_élément(dépendances.fonctions_utilisées, [&](auto &fonction) {
         if (!fonction->corps->unité &&
             !fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
                                        DrapeauxNoeudFonction::EST_EXTERNE)) {
@@ -629,7 +629,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 
     /* Requiers le typage de toutes les déclarations utilisées. */
-    kuri::pour_chaque_élément(dependances.globales_utilisées, [&](auto &globale) {
+    kuri::pour_chaque_élément(dépendances.globales_utilisées, [&](auto &globale) {
         if (!globale->unité) {
             gestionnaire.requiers_typage(espace, const_cast<NoeudDeclarationVariable *>(globale));
         }
@@ -637,7 +637,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 
     /* Requiers le typage de tous les types utilisés. */
-    kuri::pour_chaque_élément(dependances.types_utilisés, [&](auto &type) {
+    kuri::pour_chaque_élément(dépendances.types_utilisés, [&](auto &type) {
         if (type_requiers_typage(type)) {
             gestionnaire.requiers_typage(espace, type);
         }
@@ -674,8 +674,8 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 }
 
-/* Détermine si nous devons ajouter les dépendances du noeud au programme. */
-static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Programme *programme)
+/* Déterminé si nous devons ajouter les dépendances du noeud au programme. */
+static bool doit_ajouter_les_dépendances_au_programme(NoeudExpression *noeud, Programme *programme)
 {
     if (noeud->est_entete_fonction()) {
         return programme->possède(noeud->comme_entete_fonction());
@@ -703,15 +703,15 @@ static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Pr
 
 /* Construit les dépendances de l'unité (fonctions, globales, types) et crée des unités de typage
  * pour chacune des dépendances non-encore typée. */
-void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
+void GestionnaireCode::determiné_dépendances(NoeudExpression *noeud,
                                              EspaceDeTravail *espace,
                                              GrapheDépendance &graphe)
 {
     DÉBUTE_STAT(DÉTERMINE_DÉPENDANCES);
-    dependances.reinitialise();
+    dépendances.reinitialise();
 
     DÉBUTE_STAT(RASSEMBLE_DÉPENDANCES);
-    rassemble_dependances(noeud, m_compilatrice, dependances.dependances);
+    rassemble_dépendances(noeud, m_compilatrice, dépendances.dépendances);
     TERMINE_STAT(RASSEMBLE_DÉPENDANCES);
 
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
@@ -719,7 +719,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
         DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
         NoeudDépendance *noeud_dependance = graphe.garantie_noeud_dépendance(espace, noeud);
-        graphe.ajoute_dépendances(*noeud_dependance, dependances.dependances);
+        graphe.ajoute_dépendances(*noeud_dependance, dépendances.dépendances);
         TERMINE_STAT(AJOUTE_DÉPENDANCES);
     }
 
@@ -743,33 +743,33 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     }
 
     /* Ajoute les dépendances au programme si nécessaire. */
-    auto dependances_ajoutees = false;
+    auto dépendances_ajoutees = false;
     POUR (programmes_en_cours) {
-        if (!doit_ajouter_les_dependances_au_programme(noeud, it)) {
+        if (!doit_ajouter_les_dépendances_au_programme(noeud, it)) {
             continue;
         }
-        if (!ajoute_dependances_au_programme(graphe, dependances, espace, *it, noeud)) {
+        if (!ajoute_dépendances_au_programme(graphe, dépendances, espace, *it, noeud)) {
             break;
         }
-        dependances_ajoutees = true;
+        dépendances_ajoutees = true;
     }
 
     /* Crée les unités de typage si nécessaire. */
-    if (dependances_ajoutees) {
+    if (dépendances_ajoutees) {
         DÉBUTE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
-        dependances.dependances.fusionne(dependances.dependances_ependues);
-        garantie_typage_des_dependances(*this, dependances.dependances, espace);
+        dépendances.dépendances.fusionne(dépendances.dépendances_épendues);
+        garantie_typage_des_dépendances(*this, dépendances.dépendances, espace);
         TERMINE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
     }
     TERMINE_STAT(DÉTERMINE_DÉPENDANCES);
     noeud->drapeaux |= DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES;
 }
 
-UniteCompilation *GestionnaireCode::crée_unite(EspaceDeTravail *espace,
+UniteCompilation *GestionnaireCode::crée_unité(EspaceDeTravail *espace,
                                                RaisonDEtre raison,
                                                bool met_en_attente)
 {
-    auto unite = unites.ajoute_element(espace);
+    auto unite = unités.ajoute_element(espace);
     unite->mute_raison_d_être(raison);
     if (met_en_attente) {
         ajoute_unité_à_liste_attente(unite);
@@ -777,21 +777,21 @@ UniteCompilation *GestionnaireCode::crée_unite(EspaceDeTravail *espace,
     return unite;
 }
 
-UniteCompilation *GestionnaireCode::crée_unite_pour_fichier(EspaceDeTravail *espace,
+UniteCompilation *GestionnaireCode::crée_unité_pour_fichier(EspaceDeTravail *espace,
                                                             Fichier *fichier,
                                                             RaisonDEtre raison)
 {
-    auto unite = crée_unite(espace, raison, true);
+    auto unite = crée_unité(espace, raison, true);
     unite->fichier = fichier;
     return unite;
 }
 
-UniteCompilation *GestionnaireCode::crée_unite_pour_noeud(EspaceDeTravail *espace,
+UniteCompilation *GestionnaireCode::crée_unité_pour_noeud(EspaceDeTravail *espace,
                                                           NoeudExpression *noeud,
                                                           RaisonDEtre raison,
                                                           bool met_en_attente)
 {
-    auto unite = crée_unite(espace, raison, met_en_attente);
+    auto unite = crée_unité(espace, raison, met_en_attente);
     unite->noeud = noeud;
     *donne_adresse_unité(noeud) = unite;
     return unite;
@@ -800,7 +800,7 @@ UniteCompilation *GestionnaireCode::crée_unite_pour_noeud(EspaceDeTravail *espa
 void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fichier)
 {
     TACHE_AJOUTEE(CHARGEMENT);
-    auto unité = crée_unite_pour_fichier(espace, fichier, RaisonDEtre::CHARGEMENT_FICHIER);
+    auto unité = crée_unité_pour_fichier(espace, fichier, RaisonDEtre::CHARGEMENT_FICHIER);
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
@@ -808,7 +808,7 @@ void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier
 {
     assert(fichier->fut_chargé);
     TACHE_AJOUTEE(LEXAGE);
-    auto unité = crée_unite_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
+    auto unité = crée_unité_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
@@ -816,42 +816,42 @@ void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichie
 {
     assert(fichier->fut_lexé);
     TACHE_AJOUTEE(PARSAGE);
-    auto unité = crée_unite_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
+    auto unité = crée_unité_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
 void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     TACHE_AJOUTEE(TYPAGE);
-    crée_unite_pour_noeud(espace, noeud, RaisonDEtre::TYPAGE, true);
+    crée_unité_pour_noeud(espace, noeud, RaisonDEtre::TYPAGE, true);
 }
 
-void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
+void GestionnaireCode::requiers_génération_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     TACHE_AJOUTEE(GENERATION_RI);
-    crée_unite_pour_noeud(espace, noeud, RaisonDEtre::GENERATION_RI, true);
+    crée_unité_pour_noeud(espace, noeud, RaisonDEtre::GENERATION_RI, true);
 }
 
-void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
+void GestionnaireCode::requiers_génération_ri_principale_métaprogramme(
     EspaceDeTravail *espace, MetaProgramme *metaprogramme, bool peut_planifier_compilation)
 {
     TACHE_AJOUTEE(GENERATION_RI);
 
-    auto unite = crée_unite_pour_noeud(espace,
+    auto unite = crée_unité_pour_noeud(espace,
                                        metaprogramme->fonction,
                                        RaisonDEtre::GENERATION_RI_PRINCIPALE_MP,
                                        peut_planifier_compilation);
 
     if (!peut_planifier_compilation) {
         assert(metaprogrammes_en_attente_de_crée_contexte_est_ouvert);
-        metaprogrammes_en_attente_de_crée_contexte.ajoute(unite);
+        métaprogrammes_en_attente_de_crée_contexte.ajoute(unite);
     }
 }
 
-UniteCompilation *GestionnaireCode::crée_unite_pour_message(EspaceDeTravail *espace,
+UniteCompilation *GestionnaireCode::crée_unité_pour_message(EspaceDeTravail *espace,
                                                             Message *message)
 {
-    auto unite = crée_unite(espace, RaisonDEtre::ENVOIE_MESSAGE, true);
+    auto unite = crée_unité(espace, RaisonDEtre::ENVOIE_MESSAGE, true);
     unite->message = message;
     return unite;
 }
@@ -873,7 +873,7 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
 
     type->drapeaux_type |= DrapeauxTypes::INITIALISATION_TYPE_FUT_REQUISE;
 
-    auto unite = crée_unite(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
+    auto unite = crée_unité(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
     unite->type = type;
 
     if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -886,7 +886,7 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
 UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
                                                         NoeudExpression *noeud)
 {
-    auto unite = crée_unite(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
+    auto unite = crée_unité(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
     unite->noeud = noeud;
     return unite;
 }
@@ -894,10 +894,10 @@ UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
 void GestionnaireCode::ajoute_unité_à_liste_attente(UniteCompilation *unité)
 {
     unité->définis_état(UniteCompilation::État::EN_ATTENTE);
-    unites_en_attente.ajoute(unité);
+    unités_en_attente.ajoute(unité);
 }
 
-bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
+bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTravail *espace,
                                                                     Programme *programme,
                                                                     GrapheDépendance &graphe)
 {
@@ -919,7 +919,7 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
         return false;
     }
 
-    determine_dependances(decl_creation_contexte, espace, graphe);
+    determiné_dépendances(decl_creation_contexte, espace, graphe);
 
     if (!decl_creation_contexte->corps->unité) {
         requiers_typage(espace, decl_creation_contexte->corps);
@@ -930,7 +930,7 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
         return false;
     }
 
-    determine_dependances(decl_creation_contexte->corps, espace, graphe);
+    determiné_dépendances(decl_creation_contexte->corps, espace, graphe);
 
     if (!decl_creation_contexte->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         return false;
@@ -939,29 +939,29 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
     return true;
 }
 
-void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espace,
+void GestionnaireCode::requiers_compilation_métaprogramme(EspaceDeTravail *espace,
                                                           MetaProgramme *metaprogramme)
 {
     assert(metaprogramme->fonction);
     assert(metaprogramme->fonction->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
 
-    /* Indique directement à l'espace qu'une exécution sera requise afin de ne pas terminer la
+    /* Indique directement à l'espace qu'une exécution sera requise afin de ne pas terminér la
      * compilation trop rapidement si le métaprogramme modifie ses options de compilation. */
     TACHE_AJOUTEE(EXECUTION);
 
     /* Ajoute le programme à la liste des programmes avant de traiter les dépendances. */
-    metaprogramme_cree(metaprogramme);
+    métaprogramme_créé(metaprogramme);
 
     auto programme = metaprogramme->programme;
     programme->ajoute_fonction(metaprogramme->fonction);
 
     auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    determine_dependances(metaprogramme->fonction, espace, *graphe);
-    determine_dependances(metaprogramme->fonction->corps, espace, *graphe);
+    determiné_dépendances(metaprogramme->fonction, espace, *graphe);
+    determiné_dépendances(metaprogramme->fonction->corps, espace, *graphe);
 
-    auto ri_crée_contexte_est_disponible = tente_de_garantir_presence_creation_contexte(
+    auto ri_crée_contexte_est_disponible = tente_de_garantir_présence_création_contexte(
         espace, programme, *graphe);
-    requiers_generation_ri_principale_metaprogramme(
+    requiers_génération_ri_principale_métaprogramme(
         espace, metaprogramme, ri_crée_contexte_est_disponible);
 
     if (metaprogramme->corps_texte) {
@@ -985,17 +985,17 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     }
 }
 
-void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
+void GestionnaireCode::requiers_exécution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
 {
-    auto unite = crée_unite(espace, RaisonDEtre::EXECUTION, true);
+    auto unite = crée_unité(espace, RaisonDEtre::EXECUTION, true);
     unite->metaprogramme = metaprogramme;
     metaprogramme->unite = unite;
 }
 
-UniteCompilation *GestionnaireCode::requiers_generation_code_machine(EspaceDeTravail *espace,
+UniteCompilation *GestionnaireCode::requiers_génération_code_machine(EspaceDeTravail *espace,
                                                                      Programme *programme)
 {
-    auto unite = crée_unite(espace, RaisonDEtre::GENERATION_CODE_MACHINE, true);
+    auto unite = crée_unité(espace, RaisonDEtre::GENERATION_CODE_MACHINE, true);
     unite->programme = programme;
     TACHE_AJOUTEE(GENERATION_CODE_MACHINE);
     return unite;
@@ -1003,7 +1003,7 @@ UniteCompilation *GestionnaireCode::requiers_generation_code_machine(EspaceDeTra
 
 void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme)
 {
-    auto unite = crée_unite(espace, RaisonDEtre::LIAISON_PROGRAMME, true);
+    auto unite = crée_unité(espace, RaisonDEtre::LIAISON_PROGRAMME, true);
     unite->programme = programme;
     TACHE_AJOUTEE(LIAISON_PROGRAMME);
 }
@@ -1093,19 +1093,19 @@ void GestionnaireCode::flush_noeuds_à_typer()
 void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
 {
     auto mémoire = int64_t(0);
-    mémoire += unites.memoire_utilisee();
-    mémoire += unites_en_attente.taille_mémoire();
-    mémoire += metaprogrammes_en_attente_de_crée_contexte.taille_mémoire();
+    mémoire += unités.memoire_utilisee();
+    mémoire += unités_en_attente.taille_mémoire();
+    mémoire += métaprogrammes_en_attente_de_crée_contexte.taille_mémoire();
     mémoire += programmes_en_cours.taille_mémoire();
-    mémoire += m_fonctions_parsees.taille_mémoire();
+    mémoire += m_fonctions_parsées.taille_mémoire();
     mémoire += m_noeuds_à_valider.taille_mémoire();
     mémoire += m_fonctions_init_type_requises.taille_mémoire();
     mémoire += m_nouvelles_unités.taille_mémoire();
 
-    mémoire += dependances.dependances.mémoire_utilisée();
-    mémoire += dependances.dependances_ependues.mémoire_utilisée();
+    mémoire += dépendances.dépendances.mémoire_utilisée();
+    mémoire += dépendances.dépendances_épendues.mémoire_utilisée();
 
-    POUR_TABLEAU_PAGE (unites) {
+    POUR_TABLEAU_PAGE (unités) {
         mémoire += it.mémoire_utilisée();
     }
 
@@ -1150,68 +1150,68 @@ void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
         }
         case RaisonDEtre::CHARGEMENT_FICHIER:
         {
-            chargement_fichier_termine(unité);
+            chargement_fichier_terminé(unité);
             break;
         }
         case RaisonDEtre::LEXAGE_FICHIER:
         {
-            lexage_fichier_termine(unité);
+            lexage_fichier_terminé(unité);
             break;
         }
         case RaisonDEtre::PARSAGE_FICHIER:
         {
-            parsage_fichier_termine(unité);
+            parsage_fichier_terminé(unité);
             break;
         }
         case RaisonDEtre::CREATION_FONCTION_INIT_TYPE:
         {
-            fonction_initialisation_type_creee(unité);
+            fonction_initialisation_type_créée(unité);
             break;
         }
         case RaisonDEtre::TYPAGE:
         {
-            typage_termine(unité);
+            typage_terminé(unité);
             break;
         }
         case RaisonDEtre::CONVERSION_NOEUD_CODE:
         {
-            conversion_noeud_code_terminee(unité);
+            conversion_noeud_code_terminée(unité);
             break;
         }
         case RaisonDEtre::ENVOIE_MESSAGE:
         {
-            envoi_message_termine(unité);
+            envoi_message_terminé(unité);
             break;
         }
         case RaisonDEtre::GENERATION_RI:
         {
-            generation_ri_terminee(unité);
+            generation_ri_terminée(unité);
             break;
         }
         case RaisonDEtre::GENERATION_RI_PRINCIPALE_MP:
         {
-            generation_ri_terminee(unité);
+            generation_ri_terminée(unité);
             break;
         }
         case RaisonDEtre::EXECUTION:
         {
-            execution_terminee(unité);
+            execution_terminée(unité);
             break;
         }
         case RaisonDEtre::LIAISON_PROGRAMME:
         {
-            liaison_programme_terminee(unité);
+            liaison_programme_terminée(unité);
             break;
         }
         case RaisonDEtre::GENERATION_CODE_MACHINE:
         {
-            generation_code_machine_terminee(unité);
+            generation_code_machine_terminée(unité);
             break;
         }
     }
 }
 
-void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
+void GestionnaireCode::chargement_fichier_terminé(UniteCompilation *unite)
 {
     assert(unite->fichier);
     assert(unite->fichier->fut_chargé);
@@ -1227,7 +1227,7 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
     TACHE_AJOUTEE(LEXAGE);
 }
 
-void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
+void GestionnaireCode::lexage_fichier_terminé(UniteCompilation *unite)
 {
     assert(unite->fichier);
     assert(unite->fichier->fut_lexé);
@@ -1242,7 +1242,7 @@ void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
     TACHE_AJOUTEE(PARSAGE);
 }
 
-void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
+void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unite)
 {
     assert(unite->fichier);
     assert(unite->fichier->fut_parsé);
@@ -1331,7 +1331,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     return false;
 }
 
-static bool doit_determiner_les_dependances(NoeudExpression *noeud)
+static bool doit_determinér_les_dépendances(NoeudExpression *noeud)
 {
     if (noeud->est_declaration()) {
         if (est_déclaration_polymorphique(noeud->comme_declaration())) {
@@ -1433,7 +1433,7 @@ static bool verifie_que_toutes_les_entetes_sont_validees(SystèmeModule &sys_mod
     return true;
 }
 
-void GestionnaireCode::typage_termine(UniteCompilation *unite)
+void GestionnaireCode::typage_terminé(UniteCompilation *unite)
 {
     DÉBUTE_STAT(TYPAGE_TERMINÉ);
     assert(unite->noeud);
@@ -1457,10 +1457,10 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
     auto noeud = unite->noeud;
     DÉBUTE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
-    auto const détermine_dépendances = doit_determiner_les_dependances(unite->noeud);
+    auto const déterminé_dépendances = doit_determinér_les_dépendances(unite->noeud);
     TERMINE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
-    if (détermine_dépendances) {
-        determine_dependances(unite->noeud, unite->espace, *graphe);
+    if (déterminé_dépendances) {
+        determiné_dépendances(unite->noeud, unite->espace, *graphe);
     }
 
     /* Envoi un message, nous attendrons dessus si nécessaire. */
@@ -1474,7 +1474,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
 
     if (message) {
         auto unite_noeud_code = requiers_noeud_code(espace, noeud);
-        auto unite_message = crée_unite_pour_message(espace, message);
+        auto unite_message = crée_unité_pour_message(espace, message);
         unite_message->ajoute_attente(Attente::sur_noeud_code(unite_noeud_code, noeud));
         unite->ajoute_attente(Attente::sur_message(unite_message, message));
     }
@@ -1489,7 +1489,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     TACHE_TERMINEE(TYPAGE, peut_envoyer_changement_de_phase);
 
     if (noeud->est_entete_fonction()) {
-        m_fonctions_parsees.ajoute(noeud->comme_entete_fonction());
+        m_fonctions_parsées.ajoute(noeud->comme_entete_fonction());
     }
     TERMINE_STAT(TYPAGE_TERMINÉ);
 }
@@ -1503,7 +1503,7 @@ static inline bool est_corps_de(NoeudExpression const *noeud,
     return noeud == fonction->corps;
 }
 
-void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
+void GestionnaireCode::generation_ri_terminée(UniteCompilation *unite)
 {
     assert(unite->noeud);
     assert_rappel(unite->noeud->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&] {
@@ -1521,13 +1521,13 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
      */
     if (est_corps_de(unite->noeud,
                      espace->compilatrice().interface_kuri->decl_creation_contexte)) {
-        flush_metaprogrammes_en_attente_de_crée_contexte();
+        flush_métaprogrammes_en_attente_de_crée_contexte();
     }
 
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
+void GestionnaireCode::optimisation_terminée(UniteCompilation *unite)
 {
     assert(unite->noeud);
     auto espace = unite->espace;
@@ -1535,17 +1535,17 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::envoi_message_termine(UniteCompilation *unité)
+void GestionnaireCode::envoi_message_terminé(UniteCompilation *unité)
 {
     unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::message_recu(Message const *message)
+void GestionnaireCode::message_reçu(Message const *message)
 {
     const_cast<Message *>(message)->message_recu = true;
 }
 
-void GestionnaireCode::execution_terminee(UniteCompilation *unite)
+void GestionnaireCode::execution_terminée(UniteCompilation *unite)
 {
     assert(unite->metaprogramme);
     assert(unite->metaprogramme->fut_execute);
@@ -1573,7 +1573,7 @@ static bool programme_requiers_liaison_exécutable(OptionsDeCompilation const &o
     return false;
 }
 
-void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
+void GestionnaireCode::generation_code_machine_terminée(UniteCompilation *unite)
 {
     assert(unite->programme);
 
@@ -1602,7 +1602,7 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
+void GestionnaireCode::liaison_programme_terminée(UniteCompilation *unite)
 {
     assert(unite->programme);
 
@@ -1613,7 +1613,7 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
         auto metaprogramme = programme->pour_métaprogramme();
         programme->change_de_phase(PhaseCompilation::APRES_LIAISON_EXECUTABLE);
         programme->change_de_phase(PhaseCompilation::COMPILATION_TERMINEE);
-        requiers_execution(unite->espace, metaprogramme);
+        requiers_exécution(unite->espace, metaprogramme);
     }
     else {
         TACHE_TERMINEE(LIAISON_PROGRAMME, true);
@@ -1623,12 +1623,12 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
+void GestionnaireCode::conversion_noeud_code_terminée(UniteCompilation *unite)
 {
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unite)
+void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *unite)
 {
     assert(unite->type->possède_drapeau(DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE));
 
@@ -1647,8 +1647,8 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     }
 
     auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    determine_dependances(fonction, unite->espace, *graphe);
-    determine_dependances(fonction->corps, unite->espace, *graphe);
+    determiné_dépendances(fonction, unite->espace, *graphe);
+    determiné_dépendances(fonction->corps, unite->espace, *graphe);
 
     assert(toutes_les_entêtes_à_valider_le_sont());
 
@@ -1660,11 +1660,11 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     ajoute_unité_à_liste_attente(unite);
 }
 
-void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
+void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
 {
     m_nouvelles_unités.efface();
 
-    if (plus_rien_n_est_a_faire()) {
+    if (plus_rien_n_est_à_faire()) {
         ordonnanceuse.marque_compilation_terminee();
         return;
     }
@@ -1677,7 +1677,7 @@ void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
     ordonnanceuse.imprime_donnees_files(std::cerr);
 #endif
 
-    POUR (unites_en_attente) {
+    POUR (unités_en_attente) {
         if (it->espace->possède_erreur) {
             it->définis_état(UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
             continue;
@@ -1708,7 +1708,7 @@ void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
             case UniteCompilation::ÉtatAttentes::ATTENTES_BLOQUÉES:
             {
                 it->rapporte_erreur();
-                unites_en_attente.efface();
+                unités_en_attente.efface();
                 ordonnanceuse.supprime_toutes_les_taches();
                 return;
             }
@@ -1750,7 +1750,7 @@ void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
         ordonnanceuse.supprime_toutes_les_taches();
     }
 
-    unites_en_attente.permute(m_nouvelles_unités);
+    unités_en_attente.permute(m_nouvelles_unités);
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
     std::cerr << "Unités en attente après la création des tâches : " << unites_en_attente.taille()
@@ -1760,7 +1760,7 @@ void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
 #endif
 }
 
-bool GestionnaireCode::plus_rien_n_est_a_faire()
+bool GestionnaireCode::plus_rien_n_est_à_faire()
 {
     if (m_compilatrice->possède_erreur()) {
         return true;
@@ -1796,20 +1796,20 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
             continue;
         }
 
-        tente_de_garantir_fonction_point_d_entree(espace);
+        tente_de_garantir_fonction_point_d_entrée(espace);
 
         if (it->pour_métaprogramme()) {
             auto etat = it->ajourne_etat_compilation();
 
             if (etat.phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE) {
                 it->change_de_phase(PhaseCompilation::AVANT_GENERATION_OBJET);
-                requiers_generation_code_machine(espace, it);
+                requiers_génération_code_machine(espace, it);
             }
         }
         else {
             if (espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE &&
                 it->ri_generees()) {
-                finalise_programme_avant_generation_code_machine(espace, it);
+                finalise_programme_avant_génération_code_machine(espace, it);
             }
         }
     }
@@ -1823,7 +1823,7 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
         }
     }
 
-    if (!unites_en_attente.est_vide() || !metaprogrammes_en_attente_de_crée_contexte.est_vide()) {
+    if (!unités_en_attente.est_vide() || !métaprogrammes_en_attente_de_crée_contexte.est_vide()) {
         return false;
     }
 
@@ -1844,7 +1844,7 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
         });
 }
 
-void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace)
+void GestionnaireCode::tente_de_garantir_fonction_point_d_entrée(EspaceDeTravail *espace)
 {
     auto copie_et_valide_point_d_entree = [&](NoeudDeclarationEnteteFonction *point_d_entree) {
         auto copie = copie_noeud(m_assembleuse,
@@ -1884,7 +1884,7 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
     }
 }
 
-void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDeTravail *espace,
+void GestionnaireCode::finalise_programme_avant_génération_code_machine(EspaceDeTravail *espace,
                                                                         Programme *programme)
 {
     if (espace->options.résultat == ResultatCompilation::RIEN) {
@@ -1911,7 +1911,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
              * dans l'espace demandant son exécution afin que le compte de taches d'exécution dans
              * l'espace soit cohérent. */
             execute->metaprogramme->programme->change_d_espace(espace);
-            requiers_compilation_metaprogramme(espace, execute->metaprogramme);
+            requiers_compilation_métaprogramme(espace, execute->metaprogramme);
             module->exécution_directive_requise = true;
             executions_requises = true;
         }
@@ -1932,15 +1932,15 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
 
     auto ri_requise = false;
     if (!decl_ajoute_fini->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
-        requiers_generation_ri(espace, decl_ajoute_fini);
+        requiers_génération_ri(espace, decl_ajoute_fini);
         ri_requise = true;
     }
     if (!decl_ajoute_init->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
-        requiers_generation_ri(espace, decl_ajoute_init);
+        requiers_génération_ri(espace, decl_ajoute_init);
         ri_requise = true;
     }
     if (!decl_init_globales->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
-        requiers_generation_ri(espace, decl_init_globales);
+        requiers_génération_ri(espace, decl_init_globales);
         ri_requise = true;
     }
 
@@ -1962,7 +1962,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
         TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
     }
 
-    auto unite_code_machine = requiers_generation_code_machine(espace, espace->programme);
+    auto unite_code_machine = requiers_génération_code_machine(espace, espace->programme);
 
     espace->unite_pour_code_machine = unite_code_machine;
 
@@ -1971,24 +1971,24 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     }
 }
 
-void GestionnaireCode::flush_metaprogrammes_en_attente_de_crée_contexte()
+void GestionnaireCode::flush_métaprogrammes_en_attente_de_crée_contexte()
 {
     assert(metaprogrammes_en_attente_de_crée_contexte_est_ouvert);
-    POUR (metaprogrammes_en_attente_de_crée_contexte) {
+    POUR (métaprogrammes_en_attente_de_crée_contexte) {
         ajoute_unité_à_liste_attente(it);
     }
-    metaprogrammes_en_attente_de_crée_contexte.efface();
+    métaprogrammes_en_attente_de_crée_contexte.efface();
     metaprogrammes_en_attente_de_crée_contexte_est_ouvert = false;
 }
 
-void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
+void GestionnaireCode::interception_message_terminée(EspaceDeTravail *espace)
 {
     m_compilatrice->messagère->termine_interception(espace);
 
     kuri::tableau<UniteCompilation *> nouvelles_unites;
-    nouvelles_unites.réserve(unites_en_attente.taille());
+    nouvelles_unites.réserve(unités_en_attente.taille());
 
-    POUR (unites_en_attente) {
+    POUR (unités_en_attente) {
         if (it->donne_raison_d_être() == RaisonDEtre::ENVOIE_MESSAGE) {
             continue;
         }
@@ -1997,7 +1997,7 @@ void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
         nouvelles_unites.ajoute(it);
     }
 
-    unites_en_attente = nouvelles_unites;
+    unités_en_attente = nouvelles_unites;
 }
 
 void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace)
