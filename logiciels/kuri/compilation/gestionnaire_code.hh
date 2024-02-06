@@ -23,13 +23,10 @@ struct DonnneesResolutionDependances {
     DonnéesDépendance dependances;
     DonnéesDépendance dependances_ependues;
 
-    kuri::tableau<NoeudDépendance *> noeuds_dependances;
-
     void reinitialise()
     {
         dependances.efface();
         dependances_ependues.efface();
-        noeuds_dependances.efface();
     }
 };
 
