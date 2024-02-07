@@ -75,19 +75,6 @@ enum class DrapeauxNoeud : uint32_t {
      * assertions. */
     LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION = (1u << 23),
 
-    /* Drapeaux pour définir où se trouve le noeud dans l'arbre syntaxique. */
-
-    /* Le noeud est à droite de '=' ou ':='. */
-    DROITE_ASSIGNATION = (1u << 24),
-    /* Le noeud est utilisé comme condition pour une boucle ou si/saufsi. */
-    DROITE_CONDITION = (1u << 25),
-    /* Le noeud est utilisé comme expression d'appel (p.e. noeud(...)). */
-    GAUCHE_EXPRESSION_APPEL = (1 << 26),
-    /* Le noeud est une expression de bloc d'une instruction si. */
-    EXPRESSION_BLOC_SI = (1u << 27),
-    /* Le noeud est une expression de test d'une discrimination (NoeudPaireDiscr.expression). */
-    EXPRESSION_TEST_DISCRIMINATION = (1u << 28),
-
     EST_LOCALE = (1u << 29),  // decl var
     /* La déclaration est celle d'une variable déclarée dans une expression virgule
      * (p.e. a, b := ...). */
@@ -99,6 +86,31 @@ enum class DrapeauxNoeud : uint32_t {
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
 
 std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name PositionCodeNoeud
+ * Drapeaux pour définir où se trouve le noeud dans l'arbre syntaxique.
+ * \{ */
+
+enum class PositionCodeNoeud : uint8_t {
+    AUCUNE = 0,
+
+    /* Le noeud est à droite de '=' ou ':='. */
+    DROITE_ASSIGNATION = (1u << 0),
+    /* Le noeud est utilisé comme condition pour une boucle ou si/saufsi. */
+    DROITE_CONDITION = (1u << 1),
+    /* Le noeud est utilisé comme expression d'appel (p.e. noeud(...)). */
+    GAUCHE_EXPRESSION_APPEL = (1 << 2),
+    /* Le noeud est une expression de bloc d'une instruction si. */
+    EXPRESSION_BLOC_SI = (1u << 3),
+    /* Le noeud est une expression de test d'une discrimination (NoeudPaireDiscr.expression). */
+    EXPRESSION_TEST_DISCRIMINATION = (1u << 4),
+};
+DEFINIS_OPERATEURS_DRAPEAU(PositionCodeNoeud)
+
+std::ostream &operator<<(std::ostream &os, PositionCodeNoeud const drapeaux);
 
 /** \} */
 

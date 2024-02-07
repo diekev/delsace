@@ -1700,7 +1700,7 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
         auto type_compose = type->comme_type_compose();
         auto info_membre = donne_membre_pour_nom(type_compose, expression_membre->ident);
         if (!info_membre.has_value()) {
-            if (expression_membre->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+            if (expression_membre->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
                 /* Laisse la validation d'appel gérer ce cas. */
                 expression_membre->aide_generation_code = PEUT_ÊTRE_APPEL_UNIFORME;
                 return CodeRetourValidation::OK;
@@ -1757,7 +1757,7 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
         return CodeRetourValidation::OK;
     }
 
-    if (expression_membre->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+    if (expression_membre->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
         /* Laisse la validation d'appel gérer ce cas. */
         expression_membre->aide_generation_code = PEUT_ÊTRE_APPEL_UNIFORME;
         return CodeRetourValidation::OK;
@@ -2716,7 +2716,7 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
     }
 
     if (est_déclaration_polymorphique(decl) &&
-        !expr->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+        !expr->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
         espace
             ->rapporte_erreur(
                 expr,
@@ -2729,7 +2729,7 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
     if (decl->est_entete_fonction()) {
         auto entête = decl->comme_entete_fonction();
         if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE) &&
-            !expr->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+            !expr->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
             espace
                 ->rapporte_erreur(
                     expr,
@@ -2760,7 +2760,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
     auto recherche_est_pour_expression_discrimination_énum = false;
     auto bloc_recherche_original = NoeudBloc::nul();
 
-    if (expr->possède_drapeau(DrapeauxNoeud::EXPRESSION_TEST_DISCRIMINATION)) {
+    if (expr->possède_drapeau(PositionCodeNoeud::EXPRESSION_TEST_DISCRIMINATION)) {
         auto const noeud_discr = expr->bloc_parent->appartiens_à_discr;
         assert(noeud_discr);
 
@@ -6169,7 +6169,7 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
         return CodeRetourValidation::Erreur;
     }
 
-    if (!inst->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+    if (!inst->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
         return CodeRetourValidation::OK;
     }
 

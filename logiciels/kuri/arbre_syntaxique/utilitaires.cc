@@ -63,13 +63,47 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
     SI_DRAPEAU_UTILISE(DÉPENDANCES_FURENT_RÉSOLUES)
     SI_DRAPEAU_UTILISE(IDENTIFIANT_EST_ACCENTUÉ_GRAVE)
     SI_DRAPEAU_UTILISE(LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION)
+    SI_DRAPEAU_UTILISE(EST_LOCALE)
+    SI_DRAPEAU_UTILISE(EST_DÉCLARATION_EXPRESSION_VIRGULE)
+
+    auto virgule = "";
+
+    POUR (identifiants) {
+        os << virgule << it;
+        virgule = " | ";
+    }
+
+#undef SI_DRAPEAU_UTILISE
+
+    return os;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name PositionCodeNoeud
+ * Drapeaux pour définir où se trouve le noeud dans l'arbre syntaxique.
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, PositionCodeNoeud const position)
+{
+    if (position == PositionCodeNoeud::AUCUNE) {
+        os << "AUCUNE";
+        return os;
+    }
+
+#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
+    if ((position & PositionCodeNoeud::drapeau) != PositionCodeNoeud::AUCUNE) {                   \
+        identifiants.ajoute(#drapeau);                                                            \
+    }
+
+    kuri::tablet<kuri::chaine_statique, 32> identifiants;
+
     SI_DRAPEAU_UTILISE(DROITE_ASSIGNATION)
     SI_DRAPEAU_UTILISE(DROITE_CONDITION)
     SI_DRAPEAU_UTILISE(GAUCHE_EXPRESSION_APPEL)
     SI_DRAPEAU_UTILISE(EXPRESSION_BLOC_SI)
     SI_DRAPEAU_UTILISE(EXPRESSION_TEST_DISCRIMINATION)
-    SI_DRAPEAU_UTILISE(EST_LOCALE)
-    SI_DRAPEAU_UTILISE(EST_DÉCLARATION_EXPRESSION_VIRGULE)
 
     auto virgule = "";
 
@@ -239,7 +273,7 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTypes const drapeaux)
 
 static void aplatis_arbre(NoeudExpression *racine,
                           kuri::tableau<NoeudExpression *, int> &arbre_aplatis,
-                          DrapeauxNoeud drapeau);
+                          PositionCodeNoeud position);
 
 /* Fonction pour aplatir l'arbre d'une entête de fonction. Pour les déclarations de types
  * fonctions (fonc()(rien)) l'arbre aplatis est l'arbre du noeud parent (structure, fonction,
@@ -269,7 +303,7 @@ static void aplatis_entête_fonction(NoeudDeclarationEnteteFonction *entête,
 
 static void aplatis_arbre(NoeudExpression *racine,
                           kuri::tableau<NoeudExpression *, int> &arbre_aplatis,
-                          DrapeauxNoeud drapeau)
+                          PositionCodeNoeud position)
 {
     if (racine == nullptr) {
         return;
@@ -291,21 +325,21 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
         {
             auto ajoute_init = racine->comme_ajoute_init();
-            aplatis_arbre(ajoute_init->expression, arbre_aplatis, drapeau);
+            aplatis_arbre(ajoute_init->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(ajoute_init);
             break;
         }
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
         {
             auto ajoute_fini = racine->comme_ajoute_fini();
-            aplatis_arbre(ajoute_fini->expression, arbre_aplatis, drapeau);
+            aplatis_arbre(ajoute_fini->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(ajoute_fini);
             break;
         }
         case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
         {
             auto pre_executable = racine->comme_pre_executable();
-            aplatis_arbre(pre_executable->expression, arbre_aplatis, drapeau);
+            aplatis_arbre(pre_executable->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(pre_executable);
             break;
         }
@@ -318,12 +352,12 @@ static void aplatis_arbre(NoeudExpression *racine,
             /* Supprime ce drapeau si nous l'avons hérité, il ne doit pas être utilisé pour des
              * instructions si/saufsi qui ne sont pas des enfants de l'instruction si/saufsi
              * parent. */
-            drapeau &= ~DrapeauxNoeud::EXPRESSION_BLOC_SI;
+            position &= ~PositionCodeNoeud::EXPRESSION_BLOC_SI;
 
             auto dernière_expression = expressions->taille() ? expressions->dernier_élément() :
                                                                NoeudExpression::nul();
             POUR (*expressions) {
-                auto drapeaux = it == dernière_expression ? drapeau : DrapeauxNoeud::AUCUN;
+                auto drapeaux = it == dernière_expression ? position : PositionCodeNoeud::AUCUNE;
                 aplatis_arbre(it, arbre_aplatis, drapeaux);
             }
 
@@ -365,7 +399,7 @@ static void aplatis_arbre(NoeudExpression *racine,
              * la déclaration n'est dans aucun bloc. */
             if (!opaque->expression_type->possède_drapeau(
                     DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-                aplatis_arbre(opaque->expression_type, arbre_aplatis, drapeau);
+                aplatis_arbre(opaque->expression_type, arbre_aplatis, position);
             }
             arbre_aplatis.ajoute(racine);
             break;
@@ -375,9 +409,10 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto expr = racine->comme_declaration_variable();
 
             aplatis_arbre(
-                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-            aplatis_arbre(
-                expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+                expr->expression, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(expr->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
 
             arbre_aplatis.ajoute(expr);
 
@@ -389,9 +424,10 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             // N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
             aplatis_arbre(
-                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-            aplatis_arbre(
-                expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+                expr->expression, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(expr->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
 
             arbre_aplatis.ajoute(expr);
 
@@ -402,22 +438,23 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto constante = racine->comme_declaration_constante();
 
             // N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
-            aplatis_arbre(
-                constante->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(constante->expression,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
             aplatis_arbre(constante->expression_type,
                           arbre_aplatis,
-                          drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(constante);
             break;
         }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
         {
             auto expr = racine->comme_assignation_variable();
-            expr->drapeaux |= drapeau;
+            expr->position |= position;
 
-            aplatis_arbre(expr->assignée, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->assignée, arbre_aplatis, position);
             aplatis_arbre(
-                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+                expr->expression, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(expr);
 
             break;
@@ -425,11 +462,11 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_ASSIGNATION_MULTIPLE:
         {
             auto expr = racine->comme_assignation_multiple();
-            expr->drapeaux |= drapeau;
+            expr->position |= position;
 
-            aplatis_arbre(expr->assignées, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->assignées, arbre_aplatis, position);
             aplatis_arbre(
-                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+                expr->expression, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(expr);
 
             break;
@@ -437,10 +474,11 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto expr = racine->comme_comme();
-            expr->drapeaux |= drapeau;
-            aplatis_arbre(expr->expression, arbre_aplatis, drapeau);
-            aplatis_arbre(
-                expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+            expr->position |= position;
+            aplatis_arbre(expr->expression, arbre_aplatis, position);
+            aplatis_arbre(expr->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(expr);
             break;
         }
@@ -448,10 +486,10 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         {
             auto expr = racine->comme_expression_binaire();
-            expr->drapeaux |= drapeau;
+            expr->position |= position;
 
-            aplatis_arbre(expr->operande_gauche, arbre_aplatis, drapeau);
-            aplatis_arbre(expr->operande_droite, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->operande_gauche, arbre_aplatis, position);
+            aplatis_arbre(expr->operande_droite, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
 
             break;
@@ -459,23 +497,23 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_PLAGE:
         {
             auto expr = racine->comme_plage();
-            expr->drapeaux |= drapeau;
-            aplatis_arbre(expr->debut, arbre_aplatis, drapeau);
-            aplatis_arbre(expr->fin, arbre_aplatis, drapeau);
+            expr->position |= position;
+            aplatis_arbre(expr->debut, arbre_aplatis, position);
+            aplatis_arbre(expr->fin, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
             break;
         }
         case GenreNoeud::OPERATEUR_BINAIRE:
         {
             auto expr = racine->comme_expression_binaire();
-            expr->drapeaux |= drapeau;
+            expr->position |= position;
 
             if (est_assignation_composée(expr->lexeme->genre)) {
-                drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
+                position |= PositionCodeNoeud::DROITE_ASSIGNATION;
             }
 
-            aplatis_arbre(expr->operande_gauche, arbre_aplatis, drapeau);
-            aplatis_arbre(expr->operande_droite, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->operande_gauche, arbre_aplatis, position);
+            aplatis_arbre(expr->operande_droite, arbre_aplatis, position);
 
             if (expr->lexeme->genre != GenreLexème::VIRGULE) {
                 arbre_aplatis.ajoute(expr);
@@ -486,9 +524,9 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_LOGIQUE:
         {
             auto logique = racine->comme_expression_logique();
-            logique->drapeaux |= drapeau;
-            aplatis_arbre(logique->opérande_gauche, arbre_aplatis, drapeau);
-            aplatis_arbre(logique->opérande_droite, arbre_aplatis, drapeau);
+            logique->position |= position;
+            aplatis_arbre(logique->opérande_gauche, arbre_aplatis, position);
+            aplatis_arbre(logique->opérande_droite, arbre_aplatis, position);
             arbre_aplatis.ajoute(logique);
             break;
         }
@@ -496,9 +534,9 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         {
             auto expr = racine->comme_reference_membre();
-            expr->drapeaux |= drapeau;
+            expr->position |= position;
 
-            aplatis_arbre(expr->accedee, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->accedee, arbre_aplatis, position);
             // n'ajoute pas le membre, car la validation sémantique le considérera
             // comme une référence déclaration, ce qui soit clashera avec une variable
             // du même nom, soit résultera en une erreur de compilation
@@ -510,10 +548,11 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto expr = racine->comme_appel();
-            expr->drapeaux |= drapeau;
+            expr->position |= position;
 
-            aplatis_arbre(
-                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL);
+            aplatis_arbre(expr->expression,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL);
 
             POUR (expr->parametres) {
                 if (it->est_assignation_variable()) {
@@ -522,10 +561,11 @@ static void aplatis_arbre(NoeudExpression *racine,
                     auto expr_assing = it->comme_assignation_variable();
                     aplatis_arbre(expr_assing->expression,
                                   arbre_aplatis,
-                                  drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+                                  position | PositionCodeNoeud::DROITE_ASSIGNATION);
                 }
                 else {
-                    aplatis_arbre(it, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+                    aplatis_arbre(
+                        it, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
                 }
             }
 
@@ -544,63 +584,63 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_EMPL:
         {
             auto expr = static_cast<NoeudExpressionUnaire *>(racine);
-            expr->drapeaux |= drapeau;
-            aplatis_arbre(expr->operande, arbre_aplatis, drapeau);
+            expr->position |= position;
+            aplatis_arbre(expr->operande, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
             break;
         }
         case GenreNoeud::EXPRESSION_PRISE_ADRESSE:
         {
             auto prise_adresse = racine->comme_prise_adresse();
-            prise_adresse->drapeaux |= drapeau;
-            aplatis_arbre(prise_adresse->opérande, arbre_aplatis, drapeau);
+            prise_adresse->position |= position;
+            aplatis_arbre(prise_adresse->opérande, arbre_aplatis, position);
             arbre_aplatis.ajoute(prise_adresse);
             break;
         }
         case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
         {
             auto prise_référence = racine->comme_prise_reference();
-            prise_référence->drapeaux |= drapeau;
-            aplatis_arbre(prise_référence->opérande, arbre_aplatis, drapeau);
+            prise_référence->position |= position;
+            aplatis_arbre(prise_référence->opérande, arbre_aplatis, position);
             arbre_aplatis.ajoute(prise_référence);
             break;
         }
         case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
         {
             auto négation = racine->comme_negation_logique();
-            négation->drapeaux |= drapeau;
-            aplatis_arbre(négation->opérande, arbre_aplatis, drapeau);
+            négation->position |= position;
+            aplatis_arbre(négation->opérande, arbre_aplatis, position);
             arbre_aplatis.ajoute(négation);
             break;
         }
         case GenreNoeud::INSTRUCTION_ARRETE:
         {
             auto inst = racine->comme_arrete();
-            inst->drapeaux |= drapeau;
-            aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+            inst->position |= position;
+            aplatis_arbre(inst->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(inst);
             break;
         }
         case GenreNoeud::INSTRUCTION_CONTINUE:
         {
             auto inst = racine->comme_continue();
-            inst->drapeaux |= drapeau;
-            aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+            inst->position |= position;
+            aplatis_arbre(inst->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(inst);
             break;
         }
         case GenreNoeud::INSTRUCTION_REPRENDS:
         {
             auto inst = racine->comme_reprends();
-            inst->drapeaux |= drapeau;
-            aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+            inst->position |= position;
+            aplatis_arbre(inst->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(inst);
             break;
         }
         case GenreNoeud::INSTRUCTION_CHARGE:
         case GenreNoeud::INSTRUCTION_IMPORTE:
         {
-            racine->drapeaux |= drapeau;
+            racine->position |= position;
             arbre_aplatis.ajoute(racine);
             break;
         }
@@ -608,50 +648,50 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
         {
             auto inst = racine->comme_retourne();
-            inst->drapeaux |= drapeau;
-            drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
-            aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+            inst->position |= position;
+            position |= PositionCodeNoeud::DROITE_ASSIGNATION;
+            aplatis_arbre(inst->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(inst);
             break;
         }
         case GenreNoeud::INSTRUCTION_RETIENS:
         {
             auto inst = racine->comme_retiens();
-            inst->drapeaux |= drapeau;
-            drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
-            aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+            inst->position |= position;
+            position |= PositionCodeNoeud::DROITE_ASSIGNATION;
+            aplatis_arbre(inst->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(inst);
             break;
         }
         case GenreNoeud::DIRECTIVE_CUISINE:
         {
             auto cuisine = racine->comme_cuisine();
-            cuisine->drapeaux |= drapeau;
+            cuisine->position |= position;
 
-            drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
-            drapeau |= DrapeauxNoeud::POUR_CUISSON;
+            position |= PositionCodeNoeud::DROITE_ASSIGNATION;
+            cuisine->expression->drapeaux |= DrapeauxNoeud::POUR_CUISSON;
 
-            aplatis_arbre(cuisine->expression, arbre_aplatis, drapeau);
+            aplatis_arbre(cuisine->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(cuisine);
             break;
         }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         {
             auto expr = racine->comme_execute();
-            expr->drapeaux |= drapeau;
+            expr->position |= position;
 
             if (expr->ident == ID::assert_ || expr->ident == ID::test) {
-                drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
+                position |= PositionCodeNoeud::DROITE_ASSIGNATION;
             }
 
-            aplatis_arbre(expr->expression, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
             break;
         }
         case GenreNoeud::EXPRESSION_INIT_DE:
         {
             auto init_de = racine->comme_init_de();
-            aplatis_arbre(init_de->expression, arbre_aplatis, drapeau);
+            aplatis_arbre(init_de->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(racine);
             break;
         }
@@ -664,7 +704,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
         {
-            racine->drapeaux |= drapeau;
+            racine->position |= position;
             arbre_aplatis.ajoute(racine);
             break;
         }
@@ -681,9 +721,10 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             aplatis_arbre(expr->condition,
                           arbre_aplatis,
-                          DrapeauxNoeud::DROITE_ASSIGNATION | DrapeauxNoeud::DROITE_CONDITION);
+                          PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::DROITE_CONDITION);
             arbre_aplatis.ajoute(expr);
-            aplatis_arbre(expr->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
+            aplatis_arbre(expr->bloc, arbre_aplatis, PositionCodeNoeud::AUCUNE);
 
             break;
         }
@@ -692,12 +733,12 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto expr = racine->comme_pour();
 
             // n'ajoute pas la variable, sa déclaration n'a pas de type
-            aplatis_arbre(expr->expression, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(expr->expression, arbre_aplatis, PositionCodeNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(expr);
 
-            aplatis_arbre(expr->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
-            aplatis_arbre(expr->bloc_sansarret, arbre_aplatis, DrapeauxNoeud::AUCUN);
-            aplatis_arbre(expr->bloc_sinon, arbre_aplatis, DrapeauxNoeud::AUCUN);
+            aplatis_arbre(expr->bloc, arbre_aplatis, PositionCodeNoeud::AUCUNE);
+            aplatis_arbre(expr->bloc_sansarret, arbre_aplatis, PositionCodeNoeud::AUCUNE);
+            aplatis_arbre(expr->bloc_sinon, arbre_aplatis, PositionCodeNoeud::AUCUNE);
 
             break;
         }
@@ -707,15 +748,16 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto expr = racine->comme_discr();
 
-            aplatis_arbre(
-                expr->expression_discriminee, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(expr->expression_discriminee,
+                          arbre_aplatis,
+                          PositionCodeNoeud::DROITE_ASSIGNATION);
 
             POUR (expr->paires_discr) {
                 for (auto expression : it->expression->comme_virgule()->expressions) {
                     if (!expression->est_appel()) {
                         aplatis_arbre(expression,
                                       arbre_aplatis,
-                                      DrapeauxNoeud::EXPRESSION_TEST_DISCRIMINATION);
+                                      PositionCodeNoeud::EXPRESSION_TEST_DISCRIMINATION);
                         continue;
                     }
 
@@ -726,17 +768,17 @@ static void aplatis_arbre(NoeudExpression *racine,
                     auto appel = expression->comme_appel();
                     aplatis_arbre(appel->expression,
                                   arbre_aplatis,
-                                  DrapeauxNoeud::EXPRESSION_TEST_DISCRIMINATION);
+                                  PositionCodeNoeud::EXPRESSION_TEST_DISCRIMINATION);
                 }
             }
 
             arbre_aplatis.ajoute(expr);
 
             POUR (expr->paires_discr) {
-                aplatis_arbre(it->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
+                aplatis_arbre(it->bloc, arbre_aplatis, PositionCodeNoeud::AUCUNE);
             }
 
-            aplatis_arbre(expr->bloc_sinon, arbre_aplatis, DrapeauxNoeud::AUCUN);
+            aplatis_arbre(expr->bloc_sinon, arbre_aplatis, PositionCodeNoeud::AUCUNE);
 
             break;
         }
@@ -751,22 +793,25 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto expr = racine->comme_si();
 
             /* préserve le drapeau au cas où nous serions à droite d'une expression */
-            expr->drapeaux |= drapeau;
+            expr->position |= position;
 
             /* Seul l'expression racine, directement après l'assignation, doit être marquée comme
              * tel. */
-            if ((drapeau & DrapeauxNoeud::EXPRESSION_BLOC_SI) ==
-                DrapeauxNoeud::EXPRESSION_BLOC_SI) {
-                expr->drapeaux &= ~DrapeauxNoeud::DROITE_ASSIGNATION;
+            if ((position & PositionCodeNoeud::EXPRESSION_BLOC_SI) ==
+                PositionCodeNoeud::EXPRESSION_BLOC_SI) {
+                expr->position &= ~PositionCodeNoeud::DROITE_ASSIGNATION;
             }
 
             aplatis_arbre(expr->condition,
                           arbre_aplatis,
-                          DrapeauxNoeud::DROITE_ASSIGNATION | DrapeauxNoeud::DROITE_CONDITION);
-            aplatis_arbre(
-                expr->bloc_si_vrai, arbre_aplatis, drapeau | DrapeauxNoeud::EXPRESSION_BLOC_SI);
-            aplatis_arbre(
-                expr->bloc_si_faux, arbre_aplatis, drapeau | DrapeauxNoeud::EXPRESSION_BLOC_SI);
+                          PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::DROITE_CONDITION);
+            aplatis_arbre(expr->bloc_si_vrai,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_BLOC_SI);
+            aplatis_arbre(expr->bloc_si_faux,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_BLOC_SI);
 
             /* mets l'instruction à la fin afin de pouvoir déterminer le type de
              * l'expression selon les blocs si nous sommes à droite d'une expression */
@@ -778,13 +823,13 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
         {
             auto inst = racine->comme_si_statique();
-            aplatis_arbre(inst->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(inst->condition, arbre_aplatis, PositionCodeNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(inst);
-            aplatis_arbre(inst->bloc_si_vrai, arbre_aplatis, DrapeauxNoeud::AUCUN);
+            aplatis_arbre(inst->bloc_si_vrai, arbre_aplatis, PositionCodeNoeud::AUCUNE);
             arbre_aplatis.ajoute(inst);  // insère une deuxième fois pour pouvoir sauter le code du
                                          // bloc_si_faux si la condition évalue à « vrai »
             inst->index_bloc_si_faux = arbre_aplatis.taille() - 1;
-            aplatis_arbre(inst->bloc_si_faux, arbre_aplatis, DrapeauxNoeud::AUCUN);
+            aplatis_arbre(inst->bloc_si_faux, arbre_aplatis, PositionCodeNoeud::AUCUNE);
             inst->index_apres = arbre_aplatis.taille() - 1;
             break;
         }
@@ -792,24 +837,24 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto expr = racine->comme_pousse_contexte();
 
-            aplatis_arbre(expr->expression, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(expr->expression, arbre_aplatis, PositionCodeNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(expr);
-            aplatis_arbre(expr->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
+            aplatis_arbre(expr->bloc, arbre_aplatis, PositionCodeNoeud::AUCUNE);
 
             break;
         }
         case GenreNoeud::INSTRUCTION_TENTE:
         {
             auto inst = racine->comme_tente();
-            inst->drapeaux |= drapeau;
+            inst->position |= position;
 
             if (inst->expression_piegee) {
-                drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
+                position |= PositionCodeNoeud::DROITE_ASSIGNATION;
             }
 
-            aplatis_arbre(inst->expression_appelee, arbre_aplatis, drapeau);
+            aplatis_arbre(inst->expression_appelee, arbre_aplatis, position);
             arbre_aplatis.ajoute(inst);
-            aplatis_arbre(inst->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
+            aplatis_arbre(inst->bloc, arbre_aplatis, PositionCodeNoeud::AUCUNE);
 
             break;
         }
@@ -823,7 +868,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto expr = racine->comme_virgule();
 
             POUR (expr->expressions) {
-                aplatis_arbre(it, arbre_aplatis, drapeau);
+                aplatis_arbre(it, arbre_aplatis, position);
             }
 
             break;
@@ -831,29 +876,29 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_DIFFERE:
         {
             auto inst = racine->comme_differe();
-            aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+            aplatis_arbre(inst->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(inst);
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
         {
             auto expr = racine->comme_expression_type_tableau_fixe();
-            aplatis_arbre(expr->expression_taille, arbre_aplatis, drapeau);
-            aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->expression_taille, arbre_aplatis, position);
+            aplatis_arbre(expr->expression_type, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
         {
             auto expr = racine->comme_expression_type_tableau_dynamique();
-            aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->expression_type, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
         {
             auto expr = racine->comme_expression_type_tranche();
-            aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->expression_type, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
             break;
         }
@@ -861,10 +906,10 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto expr = racine->comme_expression_type_fonction();
             POUR (expr->types_entrée) {
-                aplatis_arbre(it, arbre_aplatis, drapeau);
+                aplatis_arbre(it, arbre_aplatis, position);
             }
             POUR (expr->types_sortie) {
-                aplatis_arbre(it, arbre_aplatis, drapeau);
+                aplatis_arbre(it, arbre_aplatis, position);
             }
             arbre_aplatis.ajoute(expr);
             break;
