@@ -152,28 +152,7 @@ Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
     : espace(ref_espace), polymorphe(entete)
 {
     POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
-        if (it->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            if (!it->type) {
-                /* Valeur taille polymorphique. */
-                items.ajoute({it->ident, nullptr, {}, GenreItem::VALEUR});
-            }
-            else if (it->type->est_type_type_de_donnees()) {
-                /* $T: type_de_données */
-                items.ajoute({it->ident, nullptr, {}, GenreItem::TYPE_DE_DONNÉES});
-            }
-            else {
-                /* Par exemple : $N: z32, ou $F: fonc()(rien). */
-                items.ajoute({it->ident,
-                              it->type,
-                              {},
-                              GenreItem::VALEUR,
-                              it->comme_declaration_constante()->expression_type});
-            }
-        }
-        else if (it->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-            /* $T */
-            items.ajoute({it->ident, nullptr, {}, GenreItem::INDÉFINI});
-        }
+        ajoute_item_pour_constante(it->comme_declaration_constante());
     }
 
     POUR (items) {
@@ -799,6 +778,35 @@ void Monomorpheuse::logue() const
     }
 
     dbg() << sortie.chaine();
+}
+
+void Monomorpheuse::ajoute_item_pour_constante(NoeudDeclarationConstante *constante)
+{
+    ItemMonomorphisation item;
+    item.ident = constante->ident;
+
+    if (constante->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+        if (!constante->type) {
+            /* Valeur taille polymorphique. */
+            item.genre = GenreItem::VALEUR;
+        }
+        else if (constante->type->est_type_type_de_donnees()) {
+            /* $T: type_de_données */
+            item.genre = GenreItem::TYPE_DE_DONNÉES;
+        }
+        else {
+            /* Par exemple : $N: z32, ou $F: fonc()(rien). */
+            item.genre = GenreItem::VALEUR;
+            item.type = constante->type;
+            item.expression_type = constante->expression_type;
+        }
+    }
+    else if (constante->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
+        /* $T */
+        item.genre = GenreItem::INDÉFINI;
+    }
+
+    items.ajoute(item);
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(

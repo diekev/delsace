@@ -15,6 +15,7 @@
 
 struct Attente;
 struct EspaceDeTravail;
+struct NoeudDeclarationConstante;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
 struct NoeudExpressionExpansionVariadique;
@@ -275,6 +276,10 @@ class Monomorpheuse {
     void logue() const;
 
   private:
+    /* Ajout une item pour la constante polymorphique. Ceci doit être appelé lors de la
+     * construction de la monomorpheuse afin de peupler la liste d'item à résoudre. */
+    void ajoute_item_pour_constante(NoeudDeclarationConstante *constante);
+
     /* Ajout de candidats. */
 
     void ajoute_candidat_depuis_référence_déclaration(const NoeudExpressionReference *reference,
