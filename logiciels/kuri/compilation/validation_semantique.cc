@@ -5474,20 +5474,43 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_chaine(NoeudExpres
     return CodeRetourValidation::OK;
 }
 
+static void extrait_types_feuilles_opérateur_binaire(kuri::tablet<NoeudExpression *, 6> &résultat,
+                                                     NoeudExpressionBinaire *expression)
+{
+    auto gauche = expression->operande_gauche;
+    if (gauche->est_expression_binaire()) {
+        extrait_types_feuilles_opérateur_binaire(résultat, gauche->comme_expression_binaire());
+    }
+    else {
+        résultat.ajoute(gauche);
+    }
+
+    auto droite = expression->operande_droite;
+    if (droite->est_expression_binaire()) {
+        extrait_types_feuilles_opérateur_binaire(résultat, droite->comme_expression_binaire());
+    }
+    else {
+        résultat.ajoute(droite);
+    }
+}
+
+static kuri::tablet<NoeudExpression *, 6> extrait_types_feuilles_opérateur_binaire(
+    NoeudExpressionBinaire *expr)
+{
+    kuri::tablet<NoeudExpression *, 6> résultat;
+    extrait_types_feuilles_opérateur_binaire(résultat, expr);
+    return résultat;
+}
+
 RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressionBinaire *expr)
 {
-    auto enfant1 = expr->operande_gauche;
     auto enfant2 = expr->operande_droite;
-    auto type1 = enfant1->type;
     auto type2 = enfant2->type;
 
     if (!type2->est_type_type_de_donnees()) {
         rapporte_erreur("Opération impossible entre un type et autre chose", expr);
         return CodeRetourValidation::Erreur;
     }
-
-    auto type_type1 = type1->comme_type_type_de_donnees();
-    auto type_type2 = type2->comme_type_type_de_donnees();
 
     switch (expr->lexeme->genre) {
         default:
@@ -5497,33 +5520,59 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
         }
         case GenreLexème::BARRE:
         {
-            if (type_type1->type_connu == nullptr) {
-                rapporte_erreur("Opération impossible car le type n'est pas connu", expr);
-                return CodeRetourValidation::Erreur;
+            kuri::ensemblon<NoeudDeclarationType *, 6> types_rencontrés;
+
+            /* Nous transformons les expressions de types « x | y | z » en unions de trois membres,
+             * au lieu de les transformations en unions de deux membres « x » et « y | z ». Puisque
+             * l'arbre est aplatis, ceci créera des unions anonymes à tous les niveaux; ce qui
+             * gâche un peu de mémoire et de temps. */
+            auto expressions_membres = extrait_types_feuilles_opérateur_binaire(expr);
+            POUR (expressions_membres) {
+                auto type_membre = it->type;
+                if (!type_membre->est_type_type_de_donnees()) {
+                    rapporte_erreur(
+                        "Impossible de créer une union anonyme entre un type et autre chose", it);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                auto type_de_données = type_membre->comme_type_type_de_donnees();
+                auto type_connu = type_de_données->type_connu;
+                if (type_connu == nullptr) {
+                    rapporte_erreur(
+                        "Impossible de créer une union anonyme car le type n'est pas connu", it);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                if (!type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                    return Attente::sur_type(type_connu);
+                }
+
+                if (types_rencontrés.possède(type_connu)) {
+                    rapporte_erreur(
+                        "Impossible de créer une union anonyme depuis des types similaires\n", it);
+                    return CodeRetourValidation::Erreur;
+                }
+                types_rencontrés.insère(type_connu);
             }
 
-            if (type_type2->type_connu == nullptr) {
-                rapporte_erreur("Opération impossible car le type n'est pas connu", expr);
-                return CodeRetourValidation::Erreur;
+            auto noms_membres = kuri::tablet<IdentifiantCode *, 6>();
+            noms_membres.ajoute(ID::_0);
+            noms_membres.ajoute(ID::_1);
+
+            auto &table_identifiants = m_compilatrice.table_identifiants;
+
+            for (auto i = 2; i < expressions_membres.taille(); i++) {
+                auto ident = table_identifiants->identifiant_pour_nouvelle_chaine(enchaine(i));
+                noms_membres.ajoute(ident);
             }
 
-            if (type_type1->type_connu == type_type2->type_connu) {
-                rapporte_erreur("Impossible de créer une union depuis des types similaires\n",
-                                expr);
-                return CodeRetourValidation::Erreur;
+            auto membres = kuri::tablet<MembreTypeComposé, 6>(expressions_membres.taille());
+            POUR_INDEX (expressions_membres) {
+                auto type_membre = it->type;
+                auto type_de_données = type_membre->comme_type_type_de_donnees();
+                auto type_connu = type_de_données->type_connu;
+                membres[index_it] = {nullptr, type_connu, noms_membres[index_it]};
             }
-
-            if (!type_type1->type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_type(type_type1->type_connu);
-            }
-
-            if (!type_type2->type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_type(type_type2->type_connu);
-            }
-
-            auto membres = kuri::tablet<MembreTypeComposé, 6>(2);
-            membres[0] = {nullptr, type_type1->type_connu, ID::_0};
-            membres[1] = {nullptr, type_type2->type_connu, ID::_1};
 
             auto type_union = m_compilatrice.typeuse.union_anonyme(
                 expr->lexeme, expr->bloc_parent, membres);
