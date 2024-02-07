@@ -383,6 +383,7 @@ class Monomorpheuse {
  * passer les arguments dans le désordre doivent avoir été trié avant la détermination. Sinon,
  * une erreur de typage sera émise.
  */
-RésultatMonomorphisation détermine_monomorphisation(Monomorpheuse &monomorpheuse,
+RésultatMonomorphisation détermine_monomorphisation(
+    Monomorpheuse &monomorpheuse,
     const NoeudDeclarationEnteteFonction *entête,
     kuri::tableau_statique<NoeudExpression *> arguments_reçus);
