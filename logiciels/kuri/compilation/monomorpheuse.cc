@@ -55,6 +55,16 @@ kuri::chaine ErreurMonomorphisation::message() const
             return enchaineuse.chaine();
         }
 
+        if (données_erreur.résultat == ÉtatRésolutionContrainte::ContrainteNonRespectée) {
+            auto const type_reçu =
+                données_erreur.item_reçu.type->comme_type_type_de_donnees()->type_connu;
+            enchaineuse << "\t\tLa contrainte requiers un type compatible avec « "
+                        << chaine_type(données_erreur.item_contrainte.contrainte_type)
+                        << " », mais le type reçu « " << chaine_type(type_reçu)
+                        << " » n'est pas compatible.\n";
+            return enchaineuse.chaine();
+        }
+
         enchaineuse << "\t\tNous voulions "
                     << commentaire_pour_genre(données_erreur.item_contrainte) << ".\n";
         enchaineuse << "\t\tMais nous avons reçu "
@@ -152,28 +162,7 @@ Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
     : espace(ref_espace), polymorphe(entete)
 {
     POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
-        if (it->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            if (!it->type) {
-                /* Valeur taille polymorphique. */
-                items.ajoute({it->ident, nullptr, {}, GenreItem::VALEUR});
-            }
-            else if (it->type->est_type_type_de_donnees()) {
-                /* $T: type_de_données */
-                items.ajoute({it->ident, nullptr, {}, GenreItem::TYPE_DE_DONNÉES});
-            }
-            else {
-                /* Par exemple : $N: z32, ou $F: fonc()(rien). */
-                items.ajoute({it->ident,
-                              it->type,
-                              {},
-                              GenreItem::VALEUR,
-                              it->comme_declaration_constante()->expression_type});
-            }
-        }
-        else if (it->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-            /* $T */
-            items.ajoute({it->ident, nullptr, {}, GenreItem::INDÉFINI});
-        }
+        ajoute_item_pour_constante(it->comme_declaration_constante());
     }
 
     POUR (items) {
@@ -661,6 +650,10 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
     else if (expression_polymorphique->est_reference_type()) {
         /* Rien à faire. */
     }
+    else if (expression_polymorphique->est_expression_binaire()) {
+        auto expression = expression_polymorphique->comme_expression_binaire();
+        parse_candidats(expression->operande_gauche, site, type_reçu);
+    }
     else {
         erreur_interne(site, enchaine("type de noeud non géré ", expression_polymorphique->genre));
     }
@@ -753,6 +746,10 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
     else if (expression_polymorphique->est_reference_type()) {
         return expression_polymorphique->type->comme_type_type_de_donnees()->type_connu;
     }
+    else if (expression_polymorphique->est_expression_binaire()) {
+        auto expression = expression_polymorphique->comme_expression_binaire();
+        return résoud_type_final_impl(expression->operande_gauche);
+    }
     else {
         erreur_interne(expression_polymorphique,
                        enchaine("type de noeud non géré ", expression_polymorphique->genre));
@@ -799,6 +796,42 @@ void Monomorpheuse::logue() const
     }
 
     dbg() << sortie.chaine();
+}
+
+void Monomorpheuse::ajoute_item_pour_constante(NoeudDeclarationConstante *constante)
+{
+    ItemMonomorphisation item;
+    item.ident = constante->ident;
+
+    if (constante->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+        if (!constante->type) {
+            /* Valeur taille polymorphique. */
+            item.genre = GenreItem::VALEUR;
+        }
+        else if (constante->type->est_type_type_de_donnees()) {
+            /* $T: type_de_données */
+            item.genre = GenreItem::TYPE_DE_DONNÉES;
+        }
+        else {
+            /* Par exemple : $N: z32, ou $F: fonc()(rien). */
+            item.genre = GenreItem::VALEUR;
+            item.type = constante->type;
+            item.expression_type = constante->expression_type;
+        }
+    }
+    else if (constante->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
+        /* $T ou $T/Contrainte */
+        if (constante->possède_drapeau(DrapeauxNoeud::EXPRESSION_TYPE_EST_CONTRAINTE_POLY)) {
+            item.genre = GenreItem::TYPE_DE_DONNÉES;
+            item.contrainte_type =
+                constante->expression_type->type->comme_type_type_de_donnees()->type_connu;
+        }
+        else {
+            item.genre = GenreItem::INDÉFINI;
+        }
+    }
+
+    items.ajoute(item);
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(
@@ -1028,7 +1061,42 @@ RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation cons
     }
 
     if (item.genre == GenreItem::TYPE_DE_DONNÉES) {
-        /* Nous avons un type, donc tout est bon. */
+        /* Nous avons un type sans contrainte, donc tout est bon. */
+        if (!item.contrainte_type) {
+            return ÉtatRésolutionContrainte::Ok;
+        }
+
+        /* Vérifie que la containte est respectée. */
+
+        auto type_de_données = candidat.type->comme_type_type_de_donnees();
+
+        /* Vérifie si la contrainte est celle d'un type polymorphique. */
+        if (type_de_données->type_connu->est_type_structure()) {
+            auto type_structure = type_de_données->type_connu->comme_type_structure();
+            if (item.contrainte_type == type_structure->polymorphe_de_base) {
+                return ÉtatRésolutionContrainte::Ok;
+            }
+        }
+        else if (type_de_données->type_connu->est_type_union()) {
+            auto type_union = type_de_données->type_connu->comme_type_union();
+            if (item.contrainte_type == type_union->polymorphe_de_base) {
+                return ÉtatRésolutionContrainte::Ok;
+            }
+        }
+
+        /* Vérification pour un type normal. */
+
+        auto résultat = cherche_transformation_pour_transtypage(type_de_données->type_connu,
+                                                                item.contrainte_type);
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
+        }
+
+        auto transformation = std::get<TransformationType>(résultat);
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            return ÉtatRésolutionContrainte::ContrainteNonRespectée;
+        }
+
         return ÉtatRésolutionContrainte::Ok;
     }
 
