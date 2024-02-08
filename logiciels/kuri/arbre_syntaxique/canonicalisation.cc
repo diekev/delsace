@@ -655,7 +655,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(si->bloc_si_vrai);
             simplifie(si->bloc_si_faux);
 
-            if (si->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+            if (si->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
                 /*
 
                   x := si y { z } sinon { w }
@@ -1677,7 +1677,7 @@ void Simplificatrice::simplifie_expression_logique(NoeudExpressionLogique *logiq
 #else
     // À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&,
     // il faudra également modifier la RI pour prendre en compte la substitution
-    if (logique->possède_drapeau(DrapeauxNoeud::DROITE_CONDITION)) {
+    if (logique->possède_drapeau(PositionCodeNoeud::DROITE_CONDITION)) {
         simplifie(logique->opérande_droite);
         simplifie(logique->opérande_gauche);
         return;
