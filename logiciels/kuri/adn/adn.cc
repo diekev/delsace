@@ -174,6 +174,10 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\t{\n";
             os << "\t\treturn (drapeaux & drapeaux_) != DrapeauxNoeud::AUCUN;\n";
             os << "\t}\n";
+            os << "\tinline bool possède_drapeau(PositionCodeNoeud position_) const\n";
+            os << "\t{\n";
+            os << "\t\treturn (position & position_) != PositionCodeNoeud::AUCUNE;\n";
+            os << "\t}\n";
         }
         else if (m_nom.nom_cpp() == "NoeudDeclarationEnteteFonction") {
             os << "\t";

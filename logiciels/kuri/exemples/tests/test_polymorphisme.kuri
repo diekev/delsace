@@ -134,6 +134,7 @@ principale :: fonc () -> z32
 
     test_tranche_polymorphique()
     test_imprime_tableau_fixe_polymorphique()
+    test_contraintes()
     retourne 0
 }
 
@@ -172,3 +173,44 @@ test_imprime_tableau_fixe_polymorphique :: fonc ()
     tabl_entier := [16, 32, 64, 128]
     imprime_tableau_fixe_polymorphique(tabl_entier)
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Contraintes.
+ * \{ */
+
+ContrainteNombreEntierRelatif :: z8 | z16 | z32 | z64
+
+contrainte_entier_relatif :: fonc (n: $T/ContrainteNombreEntierRelatif)
+{
+    imprime("%\n", n)
+}
+
+ContrainteStructure :: struct {
+    x: z32
+}
+
+contrainte_structure :: fonc (n: $T/ContrainteStructure)
+{
+    imprime("%\n", n)
+}
+
+ContrainteStructurePolymorphique :: struct ($T: type_de_données) {
+    x: T
+}
+
+contrainte_structure_polymorphique :: fonc (n: $T/ContrainteStructurePolymorphique)
+{
+    imprime("%\n", n)
+}
+
+test_contraintes :: fonc ()
+{
+    contrainte_entier_relatif(5)
+
+    contrainte_structure(ContrainteStructure(5))
+
+    c := ContrainteStructurePolymorphique(z32)(5)
+    contrainte_structure_polymorphique(c)
+}
+
+/** } */

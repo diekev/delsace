@@ -263,12 +263,6 @@ lambdas
 
     x => x.nom // crée une fonction foo :: (x: $T) -> chaine { retourne x.nom }
 
-
-avoir un système de détermination de contraintes pour les fonctions polymorphiques
-
-    ajoute :: fonc (a: $T/TypeOuInterface) // force T à être un dérivé de TypeOuInterface
-        comment faire pour contraindre sur des types scalaires (entier ou réél)
-
 currying
     #cuisine ma_fonction(T = z32) // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
     #cuisine ma_fonction(x = 5)   // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
