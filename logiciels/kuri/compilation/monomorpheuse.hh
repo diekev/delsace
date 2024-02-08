@@ -43,6 +43,8 @@ enum class ÉtatRésolutionContrainte {
     PasLaMêmeChose,
     /* Le type reçu n'est pas le bon. Par exemple « $N: z32 » recevant un r32. */
     PasLeMêmeType,
+    /* La contrainte n'est pas applicable. */
+    ContrainteNonRespectée,
 };
 
 /* État de la résolution d'une valeur ou d'un type polymorphique, pour les expressions « a: $T ».

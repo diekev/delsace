@@ -2716,11 +2716,12 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
     }
 
     if (est_déclaration_polymorphique(decl) &&
-        !expr->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
+        !expr->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL |
+                               PositionCodeNoeud::DROITE_CONTRAINTE_POLYMORPHIQUE)) {
         espace
-            ->rapporte_erreur(
-                expr,
-                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel.")
+            ->rapporte_erreur(expr,
+                              "Référence d'une déclaration polymorphique en dehors d'une "
+                              "expression d'appel ou d'une contrainte polymorphique.")
             .ajoute_message("Le polymorphe fut déclaré ici :\n\n")
             .ajoute_site(decl);
         return false;
@@ -5517,6 +5518,79 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
         {
             rapporte_erreur("Opérateur inapplicable sur des types", expr);
             return CodeRetourValidation::Erreur;
+        }
+        case GenreLexème::DIVISE:
+        {
+            auto gauche = expr->operande_gauche;
+
+            /* Si nous sommes dans une monomorphisation retourne le type à gauche. */
+            if (fonction_courante() && fonction_courante()->possède_drapeau(
+                                           DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+                expr->type = gauche->type;
+                return CodeRetourValidation::OK;
+            }
+
+            if (auto type_courant = union_ou_structure_courante()) {
+                if (type_courant->est_type_structure()) {
+                    auto structure_courante = type_courant->comme_type_structure();
+                    if (structure_courante->est_monomorphisation) {
+                        expr->type = gauche->type;
+                        return CodeRetourValidation::OK;
+                    }
+                }
+                else if (type_courant->est_type_union()) {
+                    auto union_courante = type_courant->comme_type_union();
+                    if (union_courante->est_monomorphisation) {
+                        expr->type = gauche->type;
+                        return CodeRetourValidation::OK;
+                    }
+                }
+            }
+
+            /* Nous sommes dans un polymorphe ou autre chose : validons. */
+
+            if (!gauche->est_reference_declaration() ||
+                !gauche->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
+                m_espace->rapporte_erreur(gauche,
+                                          "Expression invalide à gauche de '/'. Attendu la "
+                                          "déclaration d'un type polymorphique.");
+                return CodeRetourValidation::Erreur;
+            }
+
+            auto déclaration_référée = gauche->comme_reference_declaration()->declaration_referee;
+            if (!déclaration_référée->est_declaration_constante() ||
+                !déclaration_référée->possède_drapeau(
+                    DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
+                m_espace->rapporte_erreur(
+                    gauche, "L'expression ne réfère pas à une constante polymorphique.");
+                return CodeRetourValidation::Erreur;
+            }
+
+            auto type_contrainte = type2->comme_type_type_de_donnees();
+            if (!type_contrainte->type_connu) {
+                m_espace->rapporte_erreur(
+                    enfant2, "Impossible de déterminer le type de la contrainte polymorphique.");
+                return CodeRetourValidation::Erreur;
+            }
+
+            auto constante_poly = déclaration_référée->comme_declaration_constante();
+            if (constante_poly->expression_type) {
+                m_espace
+                    ->rapporte_erreur(
+                        expr,
+                        "Ajout d'une contrainte sur une expression polymorphique alors que "
+                        "l'expression possède déjà une expression de type.")
+                    .ajoute_message("L'expression de type fut déclarée ici :\n")
+                    .ajoute_site(constante_poly->expression_type);
+                return CodeRetourValidation::Erreur;
+            }
+
+            constante_poly->expression_type = enfant2;
+            constante_poly->drapeaux |= DrapeauxNoeud::EXPRESSION_TYPE_EST_CONTRAINTE_POLY;
+
+            expr->type = déclaration_référée->type;
+
+            return CodeRetourValidation::OK;
         }
         case GenreLexème::BARRE:
         {

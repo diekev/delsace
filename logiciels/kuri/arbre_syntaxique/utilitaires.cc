@@ -48,6 +48,7 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
     SI_DRAPEAU_UTILISE(EST_VARIADIQUE)
     SI_DRAPEAU_UTILISE(EST_IMPLICITE)
     SI_DRAPEAU_UTILISE(EST_GLOBALE)
+    SI_DRAPEAU_UTILISE(EXPRESSION_TYPE_EST_CONTRAINTE_POLY)
     SI_DRAPEAU_UTILISE(DECLARATION_TYPE_POLYMORPHIQUE)
     SI_DRAPEAU_UTILISE(DECLARATION_FUT_VALIDEE)
     SI_DRAPEAU_UTILISE(RI_FUT_GENEREE)
@@ -104,6 +105,7 @@ std::ostream &operator<<(std::ostream &os, PositionCodeNoeud const position)
     SI_DRAPEAU_UTILISE(GAUCHE_EXPRESSION_APPEL)
     SI_DRAPEAU_UTILISE(EXPRESSION_BLOC_SI)
     SI_DRAPEAU_UTILISE(EXPRESSION_TEST_DISCRIMINATION)
+    SI_DRAPEAU_UTILISE(DROITE_CONTRAINTE_POLYMORPHIQUE)
 
     auto virgule = "";
 
@@ -513,6 +515,13 @@ static void aplatis_arbre(NoeudExpression *racine,
             }
 
             aplatis_arbre(expr->operande_gauche, arbre_aplatis, position);
+
+            if (expr->lexeme->genre == GenreLexème::DIVISE) {
+                /* Pour les contraintes polymorphiques. Peut être granulariser dans le future (à
+                 * savoir, ne gérer que les choses marquées comme polymorphiques). */
+                position |= PositionCodeNoeud::DROITE_CONTRAINTE_POLYMORPHIQUE;
+            }
+
             aplatis_arbre(expr->operande_droite, arbre_aplatis, position);
 
             if (expr->lexeme->genre != GenreLexème::VIRGULE) {
