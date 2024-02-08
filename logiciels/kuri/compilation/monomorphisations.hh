@@ -36,6 +36,7 @@ struct ItemMonomorphisation {
     ValeurExpression valeur{};
     GenreItem genre = GenreItem::INDÉFINI;
     NoeudExpression *expression_type = nullptr;
+    NoeudDeclarationType *contrainte_type = nullptr;
 
     bool operator==(ItemMonomorphisation const &autre) const
     {

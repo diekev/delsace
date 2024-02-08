@@ -1406,6 +1406,15 @@ static kuri::chaine_statique donne_séparateur_paramètres_fonction(
     return ", ";
 }
 
+static kuri::chaine_statique donne_séparateur_membres_union_anonyme(
+    OptionsImpressionType const options)
+{
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SÉPARATEUR_MEMBRES_ANONYMES)) {
+        return "_";
+    }
+    return " | ";
+}
+
 static kuri::chaine_statique donne_séparateur_hiérarchie(OptionsImpressionType const options)
 {
     if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SÉPARATEUR_HIÉRARCHIE)) {
@@ -1572,8 +1581,13 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         {
             auto type_union = static_cast<TypeUnion const *>(type);
 
-            if (!type_union->ident) {
-                enchaineuse.ajoute("union.anonyme");
+            if (type_union->est_anonyme) {
+                auto séparateur = donne_séparateur_membres_union_anonyme(options);
+                auto virgule = kuri::chaine_statique("");
+                POUR (type_union->donne_membres_pour_code_machine()) {
+                    enchaineuse << virgule << chaine_type(it.type, options);
+                    virgule = séparateur;
+                }
                 return;
             }
 

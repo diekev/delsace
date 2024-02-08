@@ -26,7 +26,7 @@ struct NoeudExpression {
     GenreNoeud genre [code]
     GenreValeur genre_valeur
     char aide_generation_code
-    char _rembourrage
+    PositionCodeNoeud position
     DrapeauxNoeud drapeaux
     Lexème const * lexème [code]
     NoeudDéclarationType * type [code]
