@@ -15,6 +15,7 @@
 
 struct Attente;
 struct EspaceDeTravail;
+struct NoeudDeclarationConstante;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
 struct NoeudExpressionExpansionVariadique;
@@ -42,6 +43,8 @@ enum class ÉtatRésolutionContrainte {
     PasLaMêmeChose,
     /* Le type reçu n'est pas le bon. Par exemple « $N: z32 » recevant un r32. */
     PasLeMêmeType,
+    /* La contrainte n'est pas applicable. */
+    ContrainteNonRespectée,
 };
 
 /* État de la résolution d'une valeur ou d'un type polymorphique, pour les expressions « a: $T ».
@@ -275,6 +278,10 @@ class Monomorpheuse {
     void logue() const;
 
   private:
+    /* Ajout une item pour la constante polymorphique. Ceci doit être appelé lors de la
+     * construction de la monomorpheuse afin de peupler la liste d'item à résoudre. */
+    void ajoute_item_pour_constante(NoeudDeclarationConstante *constante);
+
     /* Ajout de candidats. */
 
     void ajoute_candidat_depuis_référence_déclaration(const NoeudExpressionReference *reference,
@@ -378,6 +385,7 @@ class Monomorpheuse {
  * passer les arguments dans le désordre doivent avoir été trié avant la détermination. Sinon,
  * une erreur de typage sera émise.
  */
-RésultatMonomorphisation détermine_monomorphisation(Monomorpheuse &monomorpheuse,
+RésultatMonomorphisation détermine_monomorphisation(
+    Monomorpheuse &monomorpheuse,
     const NoeudDeclarationEnteteFonction *entête,
     kuri::tableau_statique<NoeudExpression *> arguments_reçus);
