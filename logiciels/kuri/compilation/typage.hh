@@ -512,11 +512,13 @@ enum class OptionsImpressionType : uint32_t {
     NORMALISE_PARENTHÈSE_FONCTION = (1u << 4),
     NORMALISE_SPÉCIFIANT_TYPE = (1u << 5),
     INCLUS_HIÉRARCHIE = (1u << 6),
+    NORMALISE_SÉPARATEUR_MEMBRES_ANONYMES = (1u << 7),
 
     /* Options pour le nom des fonctions d'initialisation. */
     POUR_FONCTION_INITIALISATION = (INCLUS_HIÉRARCHIE | NORMALISE_PARENTHÈSE_PARAMÈTRE |
                                     NORMALISE_SÉPARATEUR_HIÉRARCHIE |
-                                    NORMALISE_PARENTHÈSE_FONCTION | NORMALISE_SPÉCIFIANT_TYPE),
+                                    NORMALISE_PARENTHÈSE_FONCTION | NORMALISE_SPÉCIFIANT_TYPE |
+                                    NORMALISE_SÉPARATEUR_MEMBRES_ANONYMES),
 };
 DEFINIS_OPERATEURS_DRAPEAU(OptionsImpressionType)
 

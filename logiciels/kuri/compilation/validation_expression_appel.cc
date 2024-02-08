@@ -2009,7 +2009,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto type_fonc = decl_fonction_appelée->type->comme_type_fonction();
         auto type_sortie = type_fonc->type_sortie;
 
-        auto expr_gauche = !expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
+        auto expr_gauche = !expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION);
         if (!type_sortie->est_type_rien() && expr_gauche) {
             espace
                 .rapporte_erreur(
@@ -2098,7 +2098,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
         expr->noeud_fonction_appelee = const_cast<NoeudExpression *>(candidate->noeud_decl);
 
-        if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+        if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
             espace.rapporte_erreur(
                 expr,
                 "La valeur de l'expression de construction de structure n'est pas "
@@ -2119,7 +2119,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         applique_transformations(contexte, candidate, expr);
 
-        auto expr_gauche = !expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
+        auto expr_gauche = !expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION);
         if (!expr->type->est_type_rien() && expr_gauche) {
             espace
                 .rapporte_erreur(expr,
@@ -2148,7 +2148,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->type = TypeBase::RIEN;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
-        if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+        if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
             espace.rapporte_erreur(
                 expr,
                 "La valeur de l'expression de construction d'opaque n'est pas "
@@ -2174,7 +2174,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->noeud_fonction_appelee = const_cast<TypeOpaque *>(type_opaque);
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE_DEPUIS_STRUCTURE) {
-        if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+        if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
             espace.rapporte_erreur(
                 expr,
                 "La valeur de l'expression de construction d'opaque n'est pas "
