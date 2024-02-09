@@ -247,6 +247,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie_expression_logique(logique);
             return;
         }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
+        {
+            auto logique = noeud->comme_assignation_logique();
+            simplifie_assignation_logique(logique);
+            return;
+        }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto expr_un = noeud->comme_expression_unaire();
@@ -583,6 +589,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
             auto tableau = noeud->comme_construction_tableau();
+            simplifie(tableau->expression);
+            return;
+        }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
+        {
+            auto tableau = noeud->comme_construction_tableau_type();
             simplifie(tableau->expression);
             return;
         }
@@ -1728,6 +1740,44 @@ void Simplificatrice::simplifie_expression_logique(NoeudExpressionLogique *logiq
     bloc->ajoute_expression(temp->valeur);
     logique->substitution = bloc;
 #endif
+}
+
+void Simplificatrice::simplifie_assignation_logique(NoeudExpressionAssignationLogique *logique)
+{
+    auto gauche = logique->opérande_gauche;
+    auto droite = logique->opérande_droite;
+
+    simplifie(gauche);
+    simplifie(droite);
+
+    auto bloc_parent = logique->bloc_parent;
+    auto const lexème = logique->lexeme;
+    if (lexème->genre == GenreLexème::BARRE_BARRE_EGAL) {
+        auto inst_saufsi = assem->crée_saufsi(lexème);
+        inst_saufsi->bloc_parent = bloc_parent;
+        inst_saufsi->condition = gauche;
+
+        auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
+        inst_saufsi->bloc_si_vrai = bloc;
+
+        auto assignation = assem->crée_assignation_variable(lexème, gauche, droite);
+        bloc->ajoute_expression(assignation);
+
+        logique->substitution = inst_saufsi;
+    }
+    else {
+        auto inst_si = assem->crée_si(lexème);
+        inst_si->bloc_parent = bloc_parent;
+        inst_si->condition = gauche;
+
+        auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
+        inst_si->bloc_si_vrai = bloc;
+
+        auto assignation = assem->crée_assignation_variable(lexème, gauche, droite);
+        bloc->ajoute_expression(assignation);
+
+        logique->substitution = inst_si;
+    }
 }
 
 void Simplificatrice::simplifie_construction_union(
