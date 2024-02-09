@@ -92,6 +92,15 @@ struct NoeudExpressionConstructionTableau : NoeudExpression {
     NoeudExpression * expression [code enfant]
 }
 
+struct NoeudExpressionConstructionTableauTypé : NoeudExpressionConstructionTableau {
+    @genre EXPRESSION_CONSTRUCTION_TABLEAU_TYPÉ
+    @comme construction_tableau_typé
+    @code  NoeudCodeConstructionTableauTypé
+    @genre_valeur DROITE
+
+    NoeudExpression * expression_type [code enfant]
+}
+
 struct NoeudExpressionTypeTableauFixe : NoeudExpression {
     @genre EXPRESSION_TYPE_TABLEAU_FIXE
     @comme expression_type_tableau_fixe

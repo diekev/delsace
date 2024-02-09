@@ -592,6 +592,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(tableau->expression);
             return;
         }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
+        {
+            auto tableau = noeud->comme_construction_tableau_type();
+            simplifie(tableau->expression);
+            return;
+        }
         case GenreNoeud::EXPRESSION_VIRGULE:
         {
             auto virgule = noeud->comme_virgule();

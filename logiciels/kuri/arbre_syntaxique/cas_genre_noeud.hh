@@ -28,6 +28,7 @@
     case GenreNoeud::EXPRESSION_COMME:                                                            \
     case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:                                           \
     case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:                                             \
+    case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:                                        \
     case GenreNoeud::EXPRESSION_INDEXAGE:                                                         \
     case GenreNoeud::EXPRESSION_INFO_DE:                                                          \
     case GenreNoeud::EXPRESSION_INIT_DE:                                                          \

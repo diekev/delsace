@@ -623,9 +623,6 @@ Idées
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
 - controler la génération d'exécutable depuis les métaprogrammes
 
-- type.[] pour créer des tableaux d'un certain type :
-    z32.[0, 1, 2, 3]
-
 Zones d'ombres
 --------------
 - concurrence, moultfilage

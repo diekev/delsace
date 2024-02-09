@@ -608,6 +608,15 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(expr);
             break;
         }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
+        {
+            auto tableau = racine->comme_construction_tableau_type();
+            tableau->position |= position;
+            aplatis_arbre(tableau->expression_type, arbre_aplatis, position);
+            aplatis_arbre(tableau->expression, arbre_aplatis, position);
+            arbre_aplatis.ajoute(tableau);
+            break;
+        }
         case GenreNoeud::EXPRESSION_PRISE_ADRESSE:
         {
             auto prise_adresse = racine->comme_prise_adresse();

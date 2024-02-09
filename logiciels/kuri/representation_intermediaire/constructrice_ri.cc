@@ -2770,6 +2770,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             break;
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
         {
             auto expr = noeud->comme_construction_tableau();
             génère_ri_pour_construction_tableau(expr, place);

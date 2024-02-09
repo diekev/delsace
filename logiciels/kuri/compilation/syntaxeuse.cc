@@ -1676,6 +1676,26 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             consomme();
 
+            if (apparie(GenreLexème::CROCHET_OUVRANT)) {
+                consomme();
+
+                auto ancien_noeud_virgule = m_noeud_expression_virgule;
+                m_noeud_expression_virgule = nullptr;
+                auto expression = analyse_expression(
+                    {}, GenreLexème::CROCHET_OUVRANT, GenreLexème::INCONNU);
+                m_noeud_expression_virgule = ancien_noeud_virgule;
+
+                if (!apparie(GenreLexème::CROCHET_FERMANT)) {
+                    rapporte_erreur("Attendu un crochet fermant.");
+                }
+                consomme();
+
+                auto noeud = m_tacheronne.assembleuse->crée_construction_tableau_type(lexème);
+                noeud->expression_type = gauche;
+                noeud->expression = expression;
+                return noeud;
+            }
+
             if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
                 rapporte_erreur("Attendu un identifiant après '.'");
             }

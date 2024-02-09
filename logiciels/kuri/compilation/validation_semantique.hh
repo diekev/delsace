@@ -41,6 +41,7 @@ struct NoeudDiscr;
 struct NoeudEnum;
 struct NoeudExpressionAssignationLogique;
 struct NoeudExpressionBinaire;
+struct NoeudExpressionConstructionTableauType;
 struct NoeudExpressionLitteraleBool;
 struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
@@ -340,4 +341,7 @@ struct Sémanticienne {
     RésultatValidation valide_expression_type_tranche(NoeudExpressionTypeTranche *expr);
 
     RésultatValidation valide_expression_type_fonction(NoeudExpressionTypeFonction *expr);
+
+    RésultatValidation valide_construction_tableau_typé(
+        NoeudExpressionConstructionTableauType *tableau);
 };

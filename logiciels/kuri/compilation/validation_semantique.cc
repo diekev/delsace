@@ -1078,6 +1078,10 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                                                                    feuilles->expressions.taille());
             break;
         }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
+        {
+            return valide_construction_tableau_typé(noeud->comme_construction_tableau_type());
+        }
         case GenreNoeud::EXPRESSION_INFO_DE:
         {
             auto noeud_expr = noeud->comme_info_de();
@@ -6795,6 +6799,66 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
 
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
     expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_fonction);
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Construction tableau typé.
+ * \{ */
+
+static bool est_type_élément_tableau_valide(Type const *type)
+{
+    return !type->est_type_rien();
+}
+
+RésultatValidation Sémanticienne::valide_construction_tableau_typé(
+    NoeudExpressionConstructionTableauType *tableau)
+{
+    auto expression_type = tableau->expression_type;
+    auto type_élément = Type::nul();
+    TENTE(résoud_type_final(tableau->expression_type, type_élément));
+
+    if (!est_type_élément_tableau_valide(type_élément)) {
+        m_espace->rapporte_erreur(
+            expression_type,
+            "Le type ne peut être utilisé pour être le type des éléments d'un tableau.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto feuilles = tableau->expression->comme_virgule();
+
+    if (feuilles->expressions.est_vide()) {
+        m_espace->rapporte_erreur(
+            tableau, "Une construction de tableau typé doit avoir au moins un (1) élément.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    for (auto i = 0; i < feuilles->expressions.taille(); ++i) {
+        auto expression = feuilles->expressions[i];
+
+        auto résultat = cherche_transformation_pour_transtypage(expression->type, type_élément);
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
+        }
+
+        auto transformation = std::get<TransformationType>(résultat);
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_assignation_type_différents(
+                type_élément, expression->type, expression);
+            return CodeRetourValidation::Erreur;
+        }
+
+        TENTE(crée_transtypage_implicite_si_possible(
+            feuilles->expressions[i],
+            type_élément,
+            RaisonTranstypageImplicite::POUR_CONSTRUCTION_TABLEAU));
+    }
+
+    tableau->type = m_compilatrice.typeuse.type_tableau_fixe(type_élément,
+                                                             feuilles->expressions.taille());
+
     return CodeRetourValidation::OK;
 }
 
