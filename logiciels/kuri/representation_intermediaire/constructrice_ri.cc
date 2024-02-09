@@ -1881,6 +1881,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         case GenreNoeud::DECLARATION_OPERATEUR_POUR:
+        case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : un noeud ne fut pas simplifié !\n"
@@ -2755,6 +2756,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             break;
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
         {
             auto expr = noeud->comme_construction_tableau();
             génère_ri_pour_construction_tableau(expr, place);

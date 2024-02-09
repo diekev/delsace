@@ -598,12 +598,16 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         {
             return valide_expression_logique(noeud->comme_expression_logique());
         }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
+        {
+            return valide_assignation_logique(noeud->comme_assignation_logique());
+        }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto expr = noeud->comme_expression_unaire();
 
-            auto enfant = expr->operande;
-            auto type = enfant->type;
+            auto opérande = expr->operande;
+            auto type = opérande->type;
 
             CHRONO_TYPAGE(m_stats_typage.opérateurs_unaire, OPERATEUR_UNAIRE__OPERATEUR_UNAIRE);
             if (type->est_type_reference()) {
@@ -745,41 +749,41 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         {
             auto expr = noeud->comme_indexage();
 
-            auto enfant1 = expr->operande_gauche;
-            auto enfant2 = expr->operande_droite;
-            auto type1 = enfant1->type;
-            auto type2 = enfant2->type;
+            auto gauche = expr->operande_gauche;
+            auto droite = expr->operande_droite;
+            auto type_gauche = gauche->type;
+            auto type_droite = droite->type;
 
-            if (type1->est_type_reference()) {
+            if (type_gauche->est_type_reference()) {
                 crée_transtypage_implicite_au_besoin(
                     expr->operande_gauche, TransformationType(TypeTransformation::DEREFERENCE));
-                type1 = type_déréférencé_pour(type1);
+                type_gauche = type_déréférencé_pour(type_gauche);
             }
 
             // À FAIRE : vérifie qu'aucun opérateur ne soit définie sur le type opaque
-            if (type1->est_type_opaque()) {
-                type1 = type1->comme_type_opaque()->type_opacifie;
+            if (type_gauche->est_type_opaque()) {
+                type_gauche = type_gauche->comme_type_opaque()->type_opacifie;
             }
 
-            switch (type1->genre) {
+            switch (type_gauche->genre) {
                 case GenreNoeud::VARIADIQUE:
                 case GenreNoeud::TABLEAU_DYNAMIQUE:
                 case GenreNoeud::TYPE_TRANCHE:
                 {
-                    expr->type = type_déréférencé_pour(type1);
+                    expr->type = type_déréférencé_pour(type_gauche);
                     break;
                 }
                 case GenreNoeud::TABLEAU_FIXE:
                 {
-                    auto type_tabl = type1->comme_type_tableau_fixe();
-                    expr->type = type_déréférencé_pour(type1);
+                    auto type_tabl = type_gauche->comme_type_tableau_fixe();
+                    expr->type = type_déréférencé_pour(type_gauche);
 
-                    auto res = évalue_expression(m_compilatrice, enfant2->bloc_parent, enfant2);
+                    auto res = évalue_expression(m_compilatrice, droite->bloc_parent, droite);
 
                     if (!res.est_erroné && res.valeur.est_entière()) {
                         if (res.valeur.entière() >= type_tabl->taille) {
                             rapporte_erreur_accès_hors_limites(
-                                enfant2, type_tabl, res.valeur.entière());
+                                droite, type_tabl, res.valeur.entière());
                             return CodeRetourValidation::Erreur;
                         }
 
@@ -792,13 +796,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 }
                 case GenreNoeud::POINTEUR:
                 {
-                    expr->type = type_déréférencé_pour(type1);
+                    expr->type = type_déréférencé_pour(type_gauche);
                     break;
                 }
                 default:
                 {
                     auto résultat = trouve_opérateur_pour_expression(
-                        *m_espace, expr, type1, type2, GenreLexème::CROCHET_OUVRANT);
+                        *m_espace, expr, type_gauche, type_droite, GenreLexème::CROCHET_OUVRANT);
 
                     if (std::holds_alternative<Attente>(résultat)) {
                         return std::get<Attente>(résultat);
@@ -818,7 +822,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             }
 
             auto type_cible = TypeBase::Z64;
-            auto type_index = enfant2->type;
+            auto type_index = droite->type;
 
             if (est_type_implicitement_utilisable_pour_indexage(type_index)) {
                 crée_transtypage_implicite_au_besoin(
@@ -961,50 +965,50 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::EXPRESSION_PLAGE:
         {
             auto inst = noeud->comme_plage();
-            auto enfant1 = inst->debut;
-            auto enfant2 = inst->fin;
+            auto début = inst->debut;
+            auto fin = inst->fin;
 
-            auto type_debut = enfant1->type;
-            auto type_fin = enfant2->type;
+            auto type_début = début->type;
+            auto type_fin = fin->type;
 
-            assert(type_debut);
+            assert(type_début);
             assert(type_fin);
 
-            if (type_debut != type_fin) {
-                if (type_debut->est_type_entier_constant() && est_type_entier(type_fin)) {
-                    type_debut = type_fin;
-                    enfant1->type = type_debut;
+            if (type_début != type_fin) {
+                if (type_début->est_type_entier_constant() && est_type_entier(type_fin)) {
+                    type_début = type_fin;
+                    début->type = type_début;
                     crée_transtypage_implicite_au_besoin(
-                        inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
+                        inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_début});
                 }
-                else if (type_fin->est_type_entier_constant() && est_type_entier(type_debut)) {
-                    type_fin = type_debut;
-                    enfant2->type = type_fin;
+                else if (type_fin->est_type_entier_constant() && est_type_entier(type_début)) {
+                    type_fin = type_début;
+                    fin->type = type_fin;
                     crée_transtypage_implicite_au_besoin(
                         inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_fin});
                 }
                 else {
-                    rapporte_erreur_type_opération(type_debut, type_fin, noeud);
+                    rapporte_erreur_type_opération(type_début, type_fin, noeud);
                     return CodeRetourValidation::Erreur;
                 }
             }
-            else if (type_debut->est_type_entier_constant()) {
-                type_debut = TypeBase::Z32;
+            else if (type_début->est_type_entier_constant()) {
+                type_début = TypeBase::Z32;
                 crée_transtypage_implicite_au_besoin(
-                    inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
+                    inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_début});
                 crée_transtypage_implicite_au_besoin(
-                    inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
+                    inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_début});
             }
 
-            if (!type_debut->est_type_entier_naturel() && !type_debut->est_type_entier_relatif() &&
-                !type_debut->est_type_reel()) {
+            if (!type_début->est_type_entier_naturel() && !type_début->est_type_entier_relatif() &&
+                !type_début->est_type_reel()) {
                 rapporte_erreur("Attendu des types réguliers dans la plage de la boucle 'pour'",
                                 noeud,
                                 erreur::Genre::TYPE_DIFFERENTS);
                 return CodeRetourValidation::Erreur;
             }
 
-            noeud->type = type_debut;
+            noeud->type = type_début;
 
             break;
         }
@@ -1068,6 +1072,10 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             noeud->type = m_compilatrice.typeuse.type_tableau_fixe(type_feuille,
                                                                    feuilles->expressions.taille());
             break;
+        }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
+        {
+            return valide_construction_tableau_typé(noeud->comme_construction_tableau_type());
         }
         case GenreNoeud::EXPRESSION_INFO_DE:
         {
@@ -3711,19 +3719,19 @@ struct ConstructriceMembresTypeComposé {
     void ajoute_membre_simple(NoeudExpression *membre, NoeudExpression *initialisateur)
     {
         m_membres_non_constant += 1;
-        auto decl_var_enfant = NoeudDeclarationVariable::nul();
+        auto decl_var_membre = NoeudDeclarationVariable::nul();
         if (membre->est_declaration_variable()) {
-            decl_var_enfant = membre->comme_declaration_variable();
+            decl_var_membre = membre->comme_declaration_variable();
         }
         else if (membre->est_reference_declaration()) {
             auto ref = membre->comme_reference_declaration();
             if (ref->declaration_referee->est_declaration_variable()) {
-                decl_var_enfant = ref->declaration_referee->comme_declaration_variable();
+                decl_var_membre = ref->declaration_referee->comme_declaration_variable();
             }
         }
 
         m_type_composé.membres.ajoute(
-            {decl_var_enfant, membre->type, membre->ident, 0, 0, initialisateur, 0});
+            {decl_var_membre, membre->type, membre->ident, 0, 0, initialisateur, 0});
     }
 
     void ajoute_membre_invisible()
@@ -5365,29 +5373,27 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire(NoeudExpressionBin
 {
     CHRONO_TYPAGE(m_stats_typage.opérateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
 
-    auto enfant1 = expr->operande_gauche;
-    auto enfant2 = expr->operande_droite;
-    auto type1 = enfant1->type;
+    auto gauche = expr->operande_gauche;
+    auto droite = expr->operande_droite;
+    auto type_gauche = gauche->type;
 
-    if (type1->est_type_type_de_donnees()) {
+    if (type_gauche->est_type_type_de_donnees()) {
         return valide_opérateur_binaire_type(expr);
     }
 
     auto type_op = expr->lexeme->genre;
 
     /* détecte a comp b comp c */
-    if (est_opérateur_comparaison(type_op) && est_opérateur_comparaison(enfant1->lexeme->genre)) {
+    if (est_opérateur_comparaison(type_op) && est_opérateur_comparaison(gauche->lexeme->genre)) {
         return valide_opérateur_binaire_chaine(expr);
     }
 
-    if (est_accès_énum_drapeau(enfant1) && enfant2->est_litterale_bool()) {
-        return valide_comparaison_énum_drapeau_bool(
-            expr, enfant1, enfant2->comme_litterale_bool());
+    if (est_accès_énum_drapeau(gauche) && droite->est_litterale_bool()) {
+        return valide_comparaison_énum_drapeau_bool(expr, gauche, droite->comme_litterale_bool());
     }
 
-    if (est_accès_énum_drapeau(enfant2) && enfant1->est_litterale_bool()) {
-        return valide_comparaison_énum_drapeau_bool(
-            expr, enfant2, enfant1->comme_litterale_bool());
+    if (est_accès_énum_drapeau(droite) && gauche->est_litterale_bool()) {
+        return valide_comparaison_énum_drapeau_bool(expr, droite, gauche->comme_litterale_bool());
     }
 
     return valide_opérateur_binaire_générique(expr);
@@ -5500,10 +5506,10 @@ static kuri::tablet<NoeudExpression *, 6> extrait_types_feuilles_opérateur_bina
 
 RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressionBinaire *expr)
 {
-    auto enfant2 = expr->operande_droite;
-    auto type2 = enfant2->type;
+    auto droite = expr->operande_droite;
+    auto type_droite = droite->type;
 
-    if (!type2->est_type_type_de_donnees()) {
+    if (!type_droite->est_type_type_de_donnees()) {
         rapporte_erreur("Opération impossible entre un type et autre chose", expr);
         return CodeRetourValidation::Erreur;
     }
@@ -5561,10 +5567,10 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            auto type_contrainte = type2->comme_type_type_de_donnees();
+            auto type_contrainte = type_droite->comme_type_type_de_donnees();
             if (!type_contrainte->type_connu) {
                 m_espace->rapporte_erreur(
-                    enfant2, "Impossible de déterminer le type de la contrainte polymorphique.");
+                    droite, "Impossible de déterminer le type de la contrainte polymorphique.");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -5580,7 +5586,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            constante_poly->expression_type = enfant2;
+            constante_poly->expression_type = droite;
             constante_poly->drapeaux |= DrapeauxNoeud::EXPRESSION_TYPE_EST_CONTRAINTE_POLY;
 
             expr->type = déclaration_référée->type;
@@ -5680,25 +5686,26 @@ static bool est_decalage_bits(GenreLexème genre)
 RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudExpressionBinaire *expr)
 {
     auto type_op = expr->lexeme->genre;
-    auto assignation_composee = est_assignation_composée(type_op);
-    auto enfant1 = expr->operande_gauche;
-    auto enfant2 = expr->operande_droite;
-    auto type1 = enfant1->type;
-    auto type2 = enfant2->type;
+    auto assignation_composée = est_assignation_composée(type_op);
+    auto gauche = expr->operande_gauche;
+    auto droite = expr->operande_droite;
+    auto type_gauche = gauche->type;
+    auto type_droite = droite->type;
 
-    bool type_gauche_est_reference = false;
-    if (assignation_composee) {
+    bool type_gauche_est_référence = false;
+    if (assignation_composée) {
         type_op = operateur_pour_assignation_composee(type_op);
 
-        if (type1->est_type_reference()) {
-            type_gauche_est_reference = true;
-            type1 = type1->comme_type_reference()->type_pointe;
+        if (type_gauche->est_type_reference()) {
+            type_gauche_est_référence = true;
+            type_gauche = type_gauche->comme_type_reference()->type_pointe;
             crée_transtypage_implicite_au_besoin(
                 expr->operande_gauche, TransformationType(TypeTransformation::DEREFERENCE));
         }
     }
 
-    auto résultat = trouve_opérateur_pour_expression(*m_espace, expr, type1, type2, type_op);
+    auto résultat = trouve_opérateur_pour_expression(
+        *m_espace, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5710,7 +5717,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     expr->op = candidat.op;
     expr->permute_operandes = candidat.permute_opérandes;
 
-    if (type_gauche_est_reference &&
+    if (type_gauche_est_référence &&
         candidat.transformation_type1.type != TypeTransformation::INUTILE) {
         m_espace->rapporte_erreur(expr->operande_gauche,
                                   "Impossible de transtyper la valeur à gauche pour une "
@@ -5721,10 +5728,10 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     crée_transtypage_implicite_au_besoin(expr->operande_gauche, candidat.transformation_type1);
     crée_transtypage_implicite_au_besoin(expr->operande_droite, candidat.transformation_type2);
 
-    if (assignation_composee) {
+    if (assignation_composée) {
         expr->drapeaux |= DrapeauxNoeud::EST_ASSIGNATION_COMPOSEE;
 
-        auto résultat_tfm = cherche_transformation(expr->type, type1);
+        auto résultat_tfm = cherche_transformation(expr->type, type_gauche);
 
         if (std::holds_alternative<Attente>(résultat_tfm)) {
             return std::get<Attente>(résultat_tfm);
@@ -5733,7 +5740,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
         auto transformation = std::get<TransformationType>(résultat_tfm);
 
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-            rapporte_erreur_assignation_type_différents(type1, expr->type, enfant2);
+            rapporte_erreur_assignation_type_différents(type_gauche, expr->type, droite);
             return CodeRetourValidation::Erreur;
         }
     }
@@ -5745,7 +5752,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
          * À FAIRE : granularise pour différencier les expressions non-constantes des erreurs
          * réelles. */
         if (!résultat_decalage.est_erroné) {
-            auto const bits_max = nombre_de_bits_pour_type(type1);
+            auto const bits_max = nombre_de_bits_pour_type(type_gauche);
             auto const decalage = résultat_decalage.valeur.entière();
             if (résultat_decalage.valeur.entière() >= bits_max) {
                 m_espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")
@@ -5753,7 +5760,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
                     .ajoute_message("Alors que le nombre maximum de bits de décalage est de ",
                                     bits_max - 1,
                                     " pour le type ",
-                                    chaine_type(type1));
+                                    chaine_type(type_gauche));
                 return CodeRetourValidation::Erreur;
             }
         }
@@ -5836,6 +5843,50 @@ RésultatValidation Sémanticienne::valide_expression_logique(NoeudExpressionLog
     }
 
     logique->type = TypeBase::BOOL;
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Assignation logique.
+ * \{ */
+
+RésultatValidation Sémanticienne::valide_assignation_logique(
+    NoeudExpressionAssignationLogique *logique)
+{
+    auto gauche = logique->opérande_gauche;
+    auto droite = logique->opérande_droite;
+
+    auto type_gauche = gauche->type;
+    auto type_droite = droite->type;
+
+    if (type_gauche->est_type_reference()) {
+        type_gauche = type_déréférencé_pour(type_gauche);
+        crée_transtypage_implicite_au_besoin(logique->opérande_gauche,
+                                             TransformationType(TypeTransformation::DEREFERENCE));
+    }
+
+    if (type_droite->est_type_reference()) {
+        type_droite = type_déréférencé_pour(type_droite);
+        crée_transtypage_implicite_au_besoin(logique->opérande_droite,
+                                             TransformationType(TypeTransformation::DEREFERENCE));
+    }
+
+    if (!type_gauche->est_type_bool()) {
+        m_espace->rapporte_erreur(logique->opérande_gauche,
+                                  "Attendu un type booléen à gauche de l'assignation "
+                                  "logique.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!type_droite->est_type_bool()) {
+        m_espace->rapporte_erreur(logique->opérande_droite,
+                                  "Attendu un type booléen à droite de l'assignation "
+                                  "logique.");
+        return CodeRetourValidation::Erreur;
+    }
+
     return CodeRetourValidation::OK;
 }
 
@@ -6051,9 +6102,9 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     }
 
     /* Le type ne doit plus être un entier_constant après determine_itérande,
-     * donc nous pouvons directement l'assigner à enfant2->type.
+     * donc nous pouvons directement l'assigner à expression->type.
      * Ceci est nécessaire car la simplification du code accède aux opérateurs
-     * selon le type de enfant2. */
+     * selon le type de l'expression. */
     if (expression->type->est_type_entier_constant()) {
         assert(!typage_itérande.type_variable->est_type_entier_constant());
         expression->type = typage_itérande.type_variable;
@@ -6524,9 +6575,10 @@ RésultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
         return CodeRetourValidation::Erreur;
     }
 
-    auto enfant = expr->expression;
-    if (enfant->type == nullptr) {
-        rapporte_erreur("Ne peut calculer le type d'origine", enfant, erreur::Genre::TYPE_INCONNU);
+    auto expression = expr->expression;
+    if (expression->type == nullptr) {
+        rapporte_erreur(
+            "Ne peut calculer le type d'origine", expression, erreur::Genre::TYPE_INCONNU);
         return CodeRetourValidation::Erreur;
     }
 
@@ -6537,7 +6589,7 @@ RésultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
 
     auto transformation = std::get<TransformationType>(résultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        if (!enfant->type->est_type_reference()) {
+        if (!expression->type->est_type_reference()) {
             rapporte_erreur_type_arguments(expr, expr->expression);
             return CodeRetourValidation::Erreur;
         }
@@ -6742,6 +6794,66 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
 
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
     expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_fonction);
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Construction tableau typé.
+ * \{ */
+
+static bool est_type_élément_tableau_valide(Type const *type)
+{
+    return !type->est_type_rien();
+}
+
+RésultatValidation Sémanticienne::valide_construction_tableau_typé(
+    NoeudExpressionConstructionTableauType *tableau)
+{
+    auto expression_type = tableau->expression_type;
+    auto type_élément = Type::nul();
+    TENTE(résoud_type_final(tableau->expression_type, type_élément));
+
+    if (!est_type_élément_tableau_valide(type_élément)) {
+        m_espace->rapporte_erreur(
+            expression_type,
+            "Le type ne peut être utilisé pour être le type des éléments d'un tableau.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto feuilles = tableau->expression->comme_virgule();
+
+    if (feuilles->expressions.est_vide()) {
+        m_espace->rapporte_erreur(
+            tableau, "Une construction de tableau typé doit avoir au moins un (1) élément.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    for (auto i = 0; i < feuilles->expressions.taille(); ++i) {
+        auto expression = feuilles->expressions[i];
+
+        auto résultat = cherche_transformation_pour_transtypage(expression->type, type_élément);
+        if (std::holds_alternative<Attente>(résultat)) {
+            return std::get<Attente>(résultat);
+        }
+
+        auto transformation = std::get<TransformationType>(résultat);
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_assignation_type_différents(
+                type_élément, expression->type, expression);
+            return CodeRetourValidation::Erreur;
+        }
+
+        TENTE(crée_transtypage_implicite_si_possible(
+            feuilles->expressions[i],
+            type_élément,
+            RaisonTranstypageImplicite::POUR_CONSTRUCTION_TABLEAU));
+    }
+
+    tableau->type = m_compilatrice.typeuse.type_tableau_fixe(type_élément,
+                                                             feuilles->expressions.taille());
+
     return CodeRetourValidation::OK;
 }
 

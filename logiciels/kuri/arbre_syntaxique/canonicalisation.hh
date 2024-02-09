@@ -16,6 +16,7 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
+struct NoeudExpressionAssignationLogique;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
 struct NoeudExpressionLogique;
@@ -136,6 +137,7 @@ struct Simplificatrice {
                                                    NoeudExpression *expression_à_initialiser);
 
     void simplifie_expression_logique(NoeudExpressionLogique *logique);
+    void simplifie_assignation_logique(NoeudExpressionAssignationLogique *logique);
 };
 
 /** \} */
