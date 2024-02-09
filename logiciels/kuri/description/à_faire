@@ -623,23 +623,6 @@ Idées
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
 - controler la génération d'exécutable depuis les métaprogrammes
 
-- type.[] pour créer des tableaux d'un certain type :
-    z32.[0, 1, 2, 3]
-
-- court-circuit pour les assignations logiques :
-    a ||= expression_complexe_à_calculer()
-
-    devient :
-
-    saufsi a {
-        a = expression_complexe_à_calculer
-    }
-
-    a &&= expression_complexe_à_calculer()
-    si a {
-        a = expression_complexe_à_calculer()
-    }
-
 Zones d'ombres
 --------------
 - concurrence, moultfilage
