@@ -163,6 +163,7 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_ponctuation("!=", "DIFFERENCE", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation("%=", "MODULO_EGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("&&", "ESP_ESP", EST_OPÉRATEUR_BOOL);
+    lexèmes.ajoute_ponctuation("&&=", "ESP_ESP_EGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("&=", "ET_EGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("*/", "FIN_BLOC_COMMENTAIRE");
     lexèmes.ajoute_ponctuation("*=", "MULTIPLIE_EGAL", EST_ASSIGNATION_COMPOSÉE);
@@ -185,6 +186,7 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_ponctuation("^=", "OUX_EGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("|=", "OU_EGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("||", "BARRE_BARRE", EST_OPÉRATEUR_BOOL);
+    lexèmes.ajoute_ponctuation("||=", "BARRE_BARRE_EGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("---", "NON_INITIALISATION");
     lexèmes.ajoute_ponctuation("...", "TROIS_POINTS", EST_SPÉCIFIANT_TYPE);
     lexèmes.ajoute_ponctuation("..", "DEUX_POINTS", EST_SPÉCIFIANT_TYPE);
