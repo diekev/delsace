@@ -1,5 +1,6 @@
 // Encodage/Décodage de données dans certaines bases (64 seulement pour l'instant)
 
+importe Compilatrice
 importe Fondation
 
 charge "format_url"
@@ -200,7 +201,7 @@ crée_codec_base64_url :: fonc () -> CodecBase64
 // Encodage de données séquentielles par différence (delta).
 // https://fr.wikipedia.org/wiki/Codage_diff%C3%A9rentiel
 
-encode_par_différence_en_place :: fonc (données: [..]$T)
+encode_par_différence_en_place :: fonc (données: []$T)
 {
     précédent : T
 
@@ -212,7 +213,7 @@ encode_par_différence_en_place :: fonc (données: [..]$T)
     }
 }
 
-encode_par_différence :: fonc (données: [..]$T) -> [..]T
+encode_par_différence :: fonc (données: []$T) -> [..]T
 {
     résultat : [..]T
 
@@ -232,7 +233,7 @@ encode_par_différence :: fonc (données: [..]$T) -> [..]T
     retourne résultat
 }
 
-décode_par_différence_en_place :: fonc (données: [..]$T)
+décode_par_différence_en_place :: fonc (données: []$T)
 {
     précédent : T
 
@@ -242,7 +243,7 @@ décode_par_différence_en_place :: fonc (données: [..]$T)
     }
 }
 
-décode_par_différence :: fonc (données: [..]$T) -> [..]T
+décode_par_différence :: fonc (données: []$T) -> [..]T
 {
     résultat : [..]T
 
@@ -267,7 +268,7 @@ décode_par_différence :: fonc (données: [..]$T) -> [..]T
 // Encodage de données séquentielles par plage.
 // https://fr.wikipedia.org/wiki/Codage_par_plages
 
-encode_par_plages :: fonc (données: [..]$T) -> [..]T
+encode_par_plages :: fonc (données: []$T) -> [..]T
 {
     résultat: [..]T
     saufsi données {
@@ -302,7 +303,7 @@ encode_par_plages :: fonc (données: [..]$T) -> [..]T
     retourne résultat
 }
 
-décode_par_plages :: fonc (données: [..]$T) -> [..]T
+décode_par_plages :: fonc (données: []$T) -> [..]T
 {
     résultat : [..]T
 
@@ -327,6 +328,132 @@ décode_par_plages :: fonc (données: [..]$T) -> [..]T
 
     retourne résultat
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Test pour les codecs du dessus.
+ * \{ */
+
+imprime_tableau :: fonc (message: chaine, tableau: []z32)
+{
+    imprime("% : ", message)
+    virgule := "[ "
+    pour tableau {
+        imprime("%%", virgule, it)
+        virgule = ", "
+    }
+    saufsi tableau {
+        imprime("[")
+    }
+    imprime(" ]\n")
+}
+
+imprime_tableaux :: fonc (sortie_voulue: []z32, sortie_reçue: []z32)
+{
+    imprime_tableau("Sortie voulue", sortie_voulue)
+    imprime_tableau("Sortie reçue ", sortie_reçue)
+}
+
+compare_tableaux :: fonc (sortie_voulue: []z32, sortie_reçue: []z32) -> bool
+{
+    si sortie_voulue.taille != sortie_reçue.taille {
+        retourne faux
+    }
+
+    pour sortie_voulue.taille {
+        si sortie_voulue[it] != sortie_reçue[it] {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+test_fonction_codec :: fonc (entrée: []z32, sortie: []z32, fonction_codec: fonc([]z32)([..]z32)) -> bool
+{
+    résultat := fonction_codec(entrée)
+    diffère déloge(résultat)
+
+    saufsi compare_tableaux(sortie, résultat) {
+        imprime_tableaux(sortie, résultat)
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+test_encodage_par_plages :: fonc (entrée: []z32, sortie: []z32) -> bool
+{
+    fonction_codec := #cuisine encode_par_plages(T = z32)
+    retourne test_fonction_codec(entrée, sortie, fonction_codec)
+}
+
+test_décodage_par_plages :: fonc (entrée: []z32, sortie: []z32) -> bool
+{
+    fonction_codec := #cuisine décode_par_plages(T = z32)
+    retourne test_fonction_codec(entrée, sortie, fonction_codec)
+}
+
+test_encodage_par_différence :: fonc (entrée: []z32, sortie: []z32) -> bool
+{
+    fonction_codec := #cuisine encode_par_différence(T = z32)
+    retourne test_fonction_codec(entrée, sortie, fonction_codec)
+}
+
+test_décodage_par_différence :: fonc (entrée: []z32, sortie: []z32) -> bool
+{
+    fonction_codec := #cuisine décode_par_différence(T = z32)
+    retourne test_fonction_codec(entrée, sortie, fonction_codec)
+}
+
+test_encodage_plages_après_différence :: fonc (entrée: []z32, sortie: []z32) -> bool
+{
+    encodé_par_différence := encode_par_différence(entrée)
+    diffère déloge(encodé_par_différence)
+
+    fonction_codec := #cuisine encode_par_plages(T = z32)
+    retourne test_fonction_codec(encodé_par_différence, sortie, fonction_codec)
+}
+
+test_décodage_plages_après_différence :: fonc (entrée: []z32, sortie: []z32) -> bool
+{
+    encodé_par_différence := décode_par_plages(entrée)
+    diffère déloge(encodé_par_différence)
+
+    fonction_codec := #cuisine décode_par_différence(T = z32)
+    retourne test_fonction_codec(encodé_par_différence, sortie, fonction_codec)
+}
+
+/* D'autres idées :
+ * https://github.com/rcsb/mmtf/blob/master/spec.md#packingrecursive-indexing-encoding
+ * https://github.com/rcsb/mmtf/blob/master/spec.md#integer-encoding
+ */
+#test {
+    {
+        entrée : []z32 = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1 ]
+        sortie : []z32 = [ 1, 10, 2, 1, 1, 4 ]
+
+        compilatrice_vérifie(test_encodage_par_plages(entrée, sortie))
+        compilatrice_vérifie(test_décodage_par_plages(sortie, entrée))
+    }
+
+    {
+        entrée : []z32 = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16 ]
+        sortie : []z32 = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1 ]
+
+        compilatrice_vérifie(test_encodage_par_différence(entrée, sortie))
+        compilatrice_vérifie(test_décodage_par_différence(sortie, entrée))
+    }
+
+    {
+        entrée : []z32 = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16 ]
+        sortie : []z32 = [ 1, 10, 2, 1, 1, 4 ]
+
+        compilatrice_vérifie(test_encodage_plages_après_différence(entrée, sortie))
+        compilatrice_vérifie(test_décodage_plages_après_différence(sortie, entrée))
+    }
+}
+
+/** } */
 
 // -------------------------------------------------------------------
 

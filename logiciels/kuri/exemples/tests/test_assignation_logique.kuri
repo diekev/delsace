@@ -1,0 +1,48 @@
+importe Fondation
+
+retourne_vrai_fut_appelé := faux
+retourne_vrai :: fonc () -> bool
+{
+    retourne_vrai_fut_appelé = vrai
+    retourne vrai
+}
+
+retourne_faux_fut_appelé := faux
+retourne_faux :: fonc () -> bool
+{
+    retourne_faux_fut_appelé = vrai
+    retourne faux
+}
+
+test_assignation_conjonction :: fonc (valeur_de_base: bool)
+{
+    a := valeur_de_base
+    a ||= retourne_vrai()
+
+    assert(a == vrai)
+    assert(retourne_vrai_fut_appelé != valeur_de_base)
+
+    retourne_vrai_fut_appelé = faux
+}
+
+test_assignation_disjonction :: fonc (valeur_de_base: bool)
+{
+    a := valeur_de_base
+    a &&= retourne_faux()
+
+    assert(a == faux)
+    assert(retourne_faux_fut_appelé == valeur_de_base)
+
+    retourne_faux_fut_appelé = faux
+}
+
+principale :: fonc () -> z32
+{
+    test_assignation_conjonction(vrai)
+    test_assignation_conjonction(faux)
+
+    test_assignation_disjonction(vrai)
+    test_assignation_disjonction(faux)
+
+    retourne 0
+}

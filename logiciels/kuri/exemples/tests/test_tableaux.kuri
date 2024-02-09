@@ -1,0 +1,10 @@
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    tableau_z32 := z32.[0, 1, 2, 3]
+    imprime("%\n", tableau_z32)
+    tableau_r64 := r64.[0, 1, 2, 3]
+    imprime("%\n", tableau_r64)
+    retourne 0
+}

@@ -61,5 +61,13 @@ GenreLexème operateur_pour_assignation_composee(GenreLexème type)
         {
             return GenreLexème::DECALAGE_GAUCHE;
         }
+        case GenreLexème::ESP_ESP_EGAL:
+        {
+            return GenreLexème::ESP_ESP;
+        }
+        case GenreLexème::BARRE_BARRE_EGAL:
+        {
+            return GenreLexème::BARRE_BARRE;
+        }
     }
 }

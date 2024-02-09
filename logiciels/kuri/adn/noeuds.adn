@@ -92,6 +92,15 @@ struct NoeudExpressionConstructionTableau : NoeudExpression {
     NoeudExpression * expression [code enfant]
 }
 
+struct NoeudExpressionConstructionTableauTypé : NoeudExpressionConstructionTableau {
+    @genre EXPRESSION_CONSTRUCTION_TABLEAU_TYPÉ
+    @comme construction_tableau_typé
+    @code  NoeudCodeConstructionTableauTypé
+    @genre_valeur DROITE
+
+    NoeudExpression * expression_type [code enfant]
+}
+
 struct NoeudExpressionTypeTableauFixe : NoeudExpression {
     @genre EXPRESSION_TYPE_TABLEAU_FIXE
     @comme expression_type_tableau_fixe
@@ -481,6 +490,17 @@ struct NoeudExpressionLogique : NoeudExpression {
     @comme expression_logique
     @code  NoeudCodeExpressionLogique
     @genre_valeur DROITE
+
+    NoeudExpression *opérande_gauche [code enfant préserve_accents]
+    NoeudExpression *opérande_droite [code enfant préserve_accents]
+}
+
+/* ||= et &&= */
+struct NoeudExpressionAssignationLogique : NoeudExpression {
+    @genre EXPRESSION_ASSIGNATION_LOGIQUE
+    @comme assignation_logique
+    @code  NoeudCodeExpressionAssignationLogique
+    @genre_valeur INVALIDE
 
     NoeudExpression *opérande_gauche [code enfant préserve_accents]
     NoeudExpression *opérande_droite [code enfant préserve_accents]

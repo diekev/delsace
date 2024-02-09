@@ -539,6 +539,16 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(logique);
             break;
         }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
+        {
+            auto logique = racine->comme_assignation_logique();
+            logique->position |= position;
+            aplatis_arbre(logique->opérande_gauche, arbre_aplatis, position);
+            position |= PositionCodeNoeud::DROITE_ASSIGNATION;
+            aplatis_arbre(logique->opérande_droite, arbre_aplatis, position);
+            arbre_aplatis.ajoute(logique);
+            break;
+        }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         {
@@ -596,6 +606,15 @@ static void aplatis_arbre(NoeudExpression *racine,
             expr->position |= position;
             aplatis_arbre(expr->operande, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
+        {
+            auto tableau = racine->comme_construction_tableau_type();
+            tableau->position |= position;
+            aplatis_arbre(tableau->expression_type, arbre_aplatis, position);
+            aplatis_arbre(tableau->expression, arbre_aplatis, position);
+            arbre_aplatis.ajoute(tableau);
             break;
         }
         case GenreNoeud::EXPRESSION_PRISE_ADRESSE:
