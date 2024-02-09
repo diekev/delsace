@@ -81,6 +81,11 @@ ErreurAppariement ErreurAppariement::ménommage_arguments(const NoeudExpression 
     return erreur;
 }
 
+ErreurAppariement ErreurAppariement::nommage_manquant_pour_cuisson(const NoeudExpression *site)
+{
+    return crée_erreur(RaisonErreurAppariement::NOMMAGE_MANQUANT_POUR_CUISSON, site);
+}
+
 ErreurAppariement ErreurAppariement::renommage_argument(const NoeudExpression *site,
                                                         IdentifiantCode *ident)
 {
@@ -816,6 +821,10 @@ static RésultatAppariement apparie_appel_fonction_pour_cuisson(
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
     auto noms_rencontrés = kuri::ensemblon<IdentifiantCode *, 10>();
     POUR (args) {
+        if (!it.ident) {
+            return ErreurAppariement::nommage_manquant_pour_cuisson(it.expr);
+        }
+
         if (noms_rencontrés.possède(it.ident)) {
             return ErreurAppariement::renommage_argument(it.expr, it.ident);
         }

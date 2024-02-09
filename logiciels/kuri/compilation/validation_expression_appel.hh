@@ -51,6 +51,7 @@ enum class RaisonErreurAppariement : uint8_t {
     EXPANSION_VARIADIQUE_APRÈS_ARGUMENTS_VARIADIQUES,
     ARGUMENTS_VARIADIQEUS_APRÈS_EXPANSION_VARIAQUES,
     MONOMORPHISATION,
+    NOMMAGE_MANQUANT_POUR_CUISSON,
 };
 
 enum {
@@ -107,6 +108,8 @@ struct ErreurAppariement {
 
     static ErreurAppariement ménommage_arguments(NoeudExpression const *site,
                                                  IdentifiantCode *ident);
+
+    static ErreurAppariement nommage_manquant_pour_cuisson(const NoeudExpression *site);
 
     static ErreurAppariement renommage_argument(NoeudExpression const *site,
                                                 IdentifiantCode *ident);
