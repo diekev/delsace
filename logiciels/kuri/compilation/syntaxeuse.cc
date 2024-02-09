@@ -200,6 +200,8 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::MULTIPLIE_EGAL:
             case GenreLexème::OUX_EGAL:
             case GenreLexème::OU_EGAL:
+            case GenreLexème::ESP_ESP_EGAL:
+            case GenreLexème::BARRE_BARRE_EGAL:
             case GenreLexème::PARENTHESE_OUVRANTE:
             case GenreLexème::PLUS:
             case GenreLexème::PLUS_EGAL:
@@ -276,6 +278,8 @@ static constexpr auto table_associativité_lexèmes = [] {
             case GenreLexème::DEC_GAUCHE_EGAL:
             case GenreLexème::BARRE_BARRE:
             case GenreLexème::ESP_ESP:
+            case GenreLexème::ESP_ESP_EGAL:
+            case GenreLexème::BARRE_BARRE_EGAL:
             case GenreLexème::BARRE:
             case GenreLexème::CHAPEAU:
             case GenreLexème::ESPERLUETTE:
@@ -351,6 +355,8 @@ static constexpr auto table_précédence_lexèmes = [] {
             case GenreLexème::OUX_EGAL:
             case GenreLexème::DEC_DROITE_EGAL:
             case GenreLexème::DEC_GAUCHE_EGAL:
+            case GenreLexème::ESP_ESP_EGAL:
+            case GenreLexème::BARRE_BARRE_EGAL:
             {
                 t[i] = 2;
                 break;
@@ -1320,6 +1326,19 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 données_précédence, racine_expression, lexème_final);
 
             auto noeud = m_tacheronne.assembleuse->crée_expression_logique(lexème);
+            noeud->opérande_gauche = gauche;
+            noeud->opérande_droite = opérande_droite;
+            return noeud;
+        }
+        case GenreLexème::BARRE_BARRE_EGAL:
+        case GenreLexème::ESP_ESP_EGAL:
+        {
+            consomme();
+
+            auto opérande_droite = analyse_expression(
+                données_précédence, racine_expression, lexème_final);
+
+            auto noeud = m_tacheronne.assembleuse->crée_assignation_logique(lexème);
             noeud->opérande_gauche = gauche;
             noeud->opérande_droite = opérande_droite;
             return noeud;

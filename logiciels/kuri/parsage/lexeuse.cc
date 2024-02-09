@@ -581,12 +581,14 @@ Lexème Lexeuse::donne_lexème_suivant()
             }
 
             if (c == '&') {
+                APPARIE_2_CARACTERES_SUIVANTS('&', '=', GenreLexème::ESP_ESP_EGAL)
                 APPARIE_CARACTERE_SUIVANT('&', GenreLexème::ESP_ESP)
                 APPARIE_CARACTERE_SUIVANT('=', GenreLexème::ET_EGAL)
                 return crée_lexème_opérateur(1, GenreLexème::ESPERLUETTE);
             }
 
             if (c == '|') {
+                APPARIE_2_CARACTERES_SUIVANTS('|', '=', GenreLexème::BARRE_BARRE_EGAL)
                 APPARIE_CARACTERE_SUIVANT('|', GenreLexème::BARRE_BARRE)
                 APPARIE_CARACTERE_SUIVANT('=', GenreLexème::OU_EGAL)
                 return crée_lexème_opérateur(1, GenreLexème::BARRE);

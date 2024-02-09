@@ -486,6 +486,17 @@ struct NoeudExpressionLogique : NoeudExpression {
     NoeudExpression *opérande_droite [code enfant préserve_accents]
 }
 
+/* ||= et &&= */
+struct NoeudExpressionAssignationLogique : NoeudExpression {
+    @genre EXPRESSION_ASSIGNATION_LOGIQUE
+    @comme assignation_logique
+    @code  NoeudCodeExpressionAssignationLogique
+    @genre_valeur INVALIDE
+
+    NoeudExpression *opérande_gauche [code enfant préserve_accents]
+    NoeudExpression *opérande_droite [code enfant préserve_accents]
+}
+
 struct NoeudExpressionParenthèse : NoeudExpression {
     @genre EXPRESSION_PARENTHÈSE
     @comme parenthèse

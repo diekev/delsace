@@ -539,6 +539,16 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(logique);
             break;
         }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
+        {
+            auto logique = racine->comme_assignation_logique();
+            logique->position |= position;
+            aplatis_arbre(logique->opérande_gauche, arbre_aplatis, position);
+            position |= PositionCodeNoeud::DROITE_ASSIGNATION;
+            aplatis_arbre(logique->opérande_droite, arbre_aplatis, position);
+            arbre_aplatis.ajoute(logique);
+            break;
+        }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         {

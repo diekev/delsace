@@ -598,6 +598,10 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         {
             return valide_expression_logique(noeud->comme_expression_logique());
         }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
+        {
+            return valide_assignation_logique(noeud->comme_assignation_logique());
+        }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto expr = noeud->comme_expression_unaire();
@@ -5840,6 +5844,50 @@ RésultatValidation Sémanticienne::valide_expression_logique(NoeudExpressionLog
     }
 
     logique->type = TypeBase::BOOL;
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Assignation logique.
+ * \{ */
+
+RésultatValidation Sémanticienne::valide_assignation_logique(
+    NoeudExpressionAssignationLogique *logique)
+{
+    auto gauche = logique->opérande_gauche;
+    auto droite = logique->opérande_droite;
+
+    auto type_gauche = gauche->type;
+    auto type_droite = droite->type;
+
+    if (type_gauche->est_type_reference()) {
+        type_gauche = type_déréférencé_pour(type_gauche);
+        crée_transtypage_implicite_au_besoin(logique->opérande_gauche,
+                                             TransformationType(TypeTransformation::DEREFERENCE));
+    }
+
+    if (type_droite->est_type_reference()) {
+        type_droite = type_déréférencé_pour(type_droite);
+        crée_transtypage_implicite_au_besoin(logique->opérande_droite,
+                                             TransformationType(TypeTransformation::DEREFERENCE));
+    }
+
+    if (!type_gauche->est_type_bool()) {
+        m_espace->rapporte_erreur(logique->opérande_gauche,
+                                  "Attendu un type booléen à gauche de l'assignation "
+                                  "logique.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!type_droite->est_type_bool()) {
+        m_espace->rapporte_erreur(logique->opérande_droite,
+                                  "Attendu un type booléen à droite de l'assignation "
+                                  "logique.");
+        return CodeRetourValidation::Erreur;
+    }
+
     return CodeRetourValidation::OK;
 }
 
