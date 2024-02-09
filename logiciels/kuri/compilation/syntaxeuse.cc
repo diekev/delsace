@@ -200,6 +200,8 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::MULTIPLIE_EGAL:
             case GenreLexème::OUX_EGAL:
             case GenreLexème::OU_EGAL:
+            case GenreLexème::ESP_ESP_EGAL:
+            case GenreLexème::BARRE_BARRE_EGAL:
             case GenreLexème::PARENTHESE_OUVRANTE:
             case GenreLexème::PLUS:
             case GenreLexème::PLUS_EGAL:
@@ -276,6 +278,8 @@ static constexpr auto table_associativité_lexèmes = [] {
             case GenreLexème::DEC_GAUCHE_EGAL:
             case GenreLexème::BARRE_BARRE:
             case GenreLexème::ESP_ESP:
+            case GenreLexème::ESP_ESP_EGAL:
+            case GenreLexème::BARRE_BARRE_EGAL:
             case GenreLexème::BARRE:
             case GenreLexème::CHAPEAU:
             case GenreLexème::ESPERLUETTE:
@@ -351,6 +355,8 @@ static constexpr auto table_précédence_lexèmes = [] {
             case GenreLexème::OUX_EGAL:
             case GenreLexème::DEC_DROITE_EGAL:
             case GenreLexème::DEC_GAUCHE_EGAL:
+            case GenreLexème::ESP_ESP_EGAL:
+            case GenreLexème::BARRE_BARRE_EGAL:
             {
                 t[i] = 2;
                 break;
@@ -1324,6 +1330,19 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             noeud->opérande_droite = opérande_droite;
             return noeud;
         }
+        case GenreLexème::BARRE_BARRE_EGAL:
+        case GenreLexème::ESP_ESP_EGAL:
+        {
+            consomme();
+
+            auto opérande_droite = analyse_expression(
+                données_précédence, racine_expression, lexème_final);
+
+            auto noeud = m_tacheronne.assembleuse->crée_assignation_logique(lexème);
+            noeud->opérande_gauche = gauche;
+            noeud->opérande_droite = opérande_droite;
+            return noeud;
+        }
         case GenreLexème::VIRGULE:
         {
             consomme();
@@ -1656,6 +1675,26 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         case GenreLexème::POINT:
         {
             consomme();
+
+            if (apparie(GenreLexème::CROCHET_OUVRANT)) {
+                consomme();
+
+                auto ancien_noeud_virgule = m_noeud_expression_virgule;
+                m_noeud_expression_virgule = nullptr;
+                auto expression = analyse_expression(
+                    {}, GenreLexème::CROCHET_OUVRANT, GenreLexème::INCONNU);
+                m_noeud_expression_virgule = ancien_noeud_virgule;
+
+                if (!apparie(GenreLexème::CROCHET_FERMANT)) {
+                    rapporte_erreur("Attendu un crochet fermant.");
+                }
+                consomme();
+
+                auto noeud = m_tacheronne.assembleuse->crée_construction_tableau_type(lexème);
+                noeud->expression_type = gauche;
+                noeud->expression = expression;
+                return noeud;
+            }
 
             if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
                 rapporte_erreur("Attendu un identifiant après '.'");
