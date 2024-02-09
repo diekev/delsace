@@ -30,10 +30,10 @@
 /* ************************************************************************** */
 
 enum {
-    CARACTERE_PEUT_SUIVRE_ZERO = (1 << 0),
-    CARACTERE_PEUT_SUIVRE_CHIFFRE = (1 << 1),
-    CARACTERE_CHIFFRE_OCTAL = (1 << 2),
-    CARACTERE_CHIFFRE_DECIMAL = (1 << 3),
+    CARACTÈRE_PEUT_SUIVRE_ZÉRO = (1 << 0),
+    CARACTÈRE_PEUT_SUIVRE_CHIFFRE = (1 << 1),
+    CARACTÈRE_CHIFFRE_OCTAL = (1 << 2),
+    CARACTÈRE_CHIFFRE_DÉCIMAL = (1 << 3),
     PEUT_COMMENCER_NOMBRE = (1 << 4),
     PEUT_COMMENCER_IDENTIFIANT = (1 << 5),
     PEUT_SUIVRE_IDENTIFIANT = (1 << 6),
@@ -47,11 +47,11 @@ static constexpr auto table_drapeaux_caractères = [] {
         t[i] = 0;
 
         if ('0' <= i && i <= '7') {
-            t[i] |= CARACTERE_CHIFFRE_OCTAL;
+            t[i] |= CARACTÈRE_CHIFFRE_OCTAL;
         }
 
         if ('0' <= i && i <= '9') {
-            t[i] |= (CARACTERE_CHIFFRE_DECIMAL | PEUT_COMMENCER_NOMBRE | PEUT_SUIVRE_IDENTIFIANT);
+            t[i] |= (CARACTÈRE_CHIFFRE_DÉCIMAL | PEUT_COMMENCER_NOMBRE | PEUT_SUIVRE_IDENTIFIANT);
         }
 
         if ('a' <= i && i <= 'z') {
@@ -72,7 +72,7 @@ static constexpr auto table_drapeaux_caractères = [] {
             case 'r':
             case 'R':
             {
-                t[i] |= CARACTERE_PEUT_SUIVRE_ZERO;
+                t[i] |= CARACTÈRE_PEUT_SUIVRE_ZÉRO;
                 break;
             }
             case '0':
@@ -89,7 +89,7 @@ static constexpr auto table_drapeaux_caractères = [] {
             case 'e':
             case '-':
             {
-                t[i] |= (CARACTERE_PEUT_SUIVRE_ZERO | CARACTERE_PEUT_SUIVRE_CHIFFRE);
+                t[i] |= (CARACTÈRE_PEUT_SUIVRE_ZÉRO | CARACTÈRE_PEUT_SUIVRE_CHIFFRE);
                 break;
             }
             case ' ':
@@ -104,7 +104,7 @@ static constexpr auto table_drapeaux_caractères = [] {
             }
             case '_':
             {
-                t[i] |= (CARACTERE_PEUT_SUIVRE_ZERO | CARACTERE_PEUT_SUIVRE_CHIFFRE |
+                t[i] |= (CARACTÈRE_PEUT_SUIVRE_ZÉRO | CARACTÈRE_PEUT_SUIVRE_CHIFFRE |
                          PEUT_SUIVRE_IDENTIFIANT | PEUT_COMMENCER_IDENTIFIANT);
                 break;
             }
@@ -117,25 +117,25 @@ static constexpr auto table_drapeaux_caractères = [] {
 inline static bool peut_suivre_zero(char c)
 {
     return (table_drapeaux_caractères[static_cast<unsigned char>(c)] &
-            CARACTERE_PEUT_SUIVRE_ZERO) != 0;
+            CARACTÈRE_PEUT_SUIVRE_ZÉRO) != 0;
 }
 
 inline static bool peut_suivre_chiffre(char c)
 {
     return (table_drapeaux_caractères[static_cast<unsigned char>(c)] &
-            CARACTERE_PEUT_SUIVRE_CHIFFRE) != 0;
+            CARACTÈRE_PEUT_SUIVRE_CHIFFRE) != 0;
 }
 
 inline static bool est_caractère_octal(char c)
 {
-    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] & CARACTERE_CHIFFRE_OCTAL) !=
+    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] & CARACTÈRE_CHIFFRE_OCTAL) !=
            0;
 }
 
 inline static bool est_caractère_décimal(char c)
 {
     return (table_drapeaux_caractères[static_cast<unsigned char>(c)] &
-            CARACTERE_CHIFFRE_DECIMAL) != 0;
+            CARACTÈRE_CHIFFRE_DÉCIMAL) != 0;
 }
 
 inline static bool est_espace_blanche(char c)
@@ -581,12 +581,14 @@ Lexème Lexeuse::donne_lexème_suivant()
             }
 
             if (c == '&') {
+                APPARIE_2_CARACTERES_SUIVANTS('&', '=', GenreLexème::ESP_ESP_EGAL)
                 APPARIE_CARACTERE_SUIVANT('&', GenreLexème::ESP_ESP)
                 APPARIE_CARACTERE_SUIVANT('=', GenreLexème::ET_EGAL)
                 return crée_lexème_opérateur(1, GenreLexème::ESPERLUETTE);
             }
 
             if (c == '|') {
+                APPARIE_2_CARACTERES_SUIVANTS('|', '=', GenreLexème::BARRE_BARRE_EGAL)
                 APPARIE_CARACTERE_SUIVANT('|', GenreLexème::BARRE_BARRE)
                 APPARIE_CARACTERE_SUIVANT('=', GenreLexème::OU_EGAL)
                 return crée_lexème_opérateur(1, GenreLexème::BARRE);

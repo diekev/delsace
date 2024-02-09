@@ -39,7 +39,9 @@ struct NoeudDirectiveDependanceBibliotheque;
 struct NoeudDirectiveExecute;
 struct NoeudDiscr;
 struct NoeudEnum;
+struct NoeudExpressionAssignationLogique;
 struct NoeudExpressionBinaire;
+struct NoeudExpressionConstructionTableauType;
 struct NoeudExpressionLitteraleBool;
 struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
@@ -259,6 +261,7 @@ struct Sémanticienne {
         NoeudExpressionLitteraleBool *expr_bool);
 
     RésultatValidation valide_expression_logique(NoeudExpressionLogique *logique);
+    RésultatValidation valide_assignation_logique(NoeudExpressionAssignationLogique *logique);
 
     RésultatValidation valide_discrimination(NoeudDiscr *inst);
     RésultatValidation valide_discr_énum(NoeudDiscr *inst, Type *type);
@@ -338,4 +341,7 @@ struct Sémanticienne {
     RésultatValidation valide_expression_type_tranche(NoeudExpressionTypeTranche *expr);
 
     RésultatValidation valide_expression_type_fonction(NoeudExpressionTypeFonction *expr);
+
+    RésultatValidation valide_construction_tableau_typé(
+        NoeudExpressionConstructionTableauType *tableau);
 };
