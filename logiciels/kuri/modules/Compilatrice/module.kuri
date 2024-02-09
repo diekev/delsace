@@ -116,6 +116,17 @@ compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionC
     déloge(message) // @fuite de mémoire : la compilation s'arrêtera dès que l'erreur sera lancée
 }
 
+compilatrice_vérifie :: fonc (valeur: bool, position_code := PositionCodeSource())
+{
+    si valeur {
+        retourne
+    }
+
+    message := "Échec du test, la valeur est fausse !\n"
+    espace := compilatrice_espace_courant()
+    compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message)
+}
+
 // ---------------------------------------------------------------------------------------
 // Fonctions auxilliaires pour travailler sur les fonctions parsées lors de la compilation
 
