@@ -174,6 +174,12 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
             }
             break;
         }
+        case RaisonErreurAppariement::NOMMAGE_MANQUANT_POUR_CUISSON:
+        {
+            e.ajoute_site(dc.site_erreur);
+            e.ajoute_message("\tL'argument doit être nommé pour une cuisson.");
+            break;
+        }
         case RaisonErreurAppariement::RENOMMAGE_ARG:
         {
             e.genre_erreur(erreur::Genre::ARGUMENT_REDEFINI);
