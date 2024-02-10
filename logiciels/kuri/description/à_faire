@@ -1,4 +1,3 @@
-réusine opérateurs (partage entre types)
 
 - ne crée pas de trace d'appels pour les fonctions pures
 
@@ -14,22 +13,20 @@ compilatrice_notifie_fonctions_parsées
 Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un seul pointeur
 --> ident := compilatrice_donne_identifiant_pour("...")
 
-Erreur si nous utilisons une adresse locale dans une condition.
-
-// -----------------------------------
+// ----------------------------------------------------------------------------
 // Noms des types
 
 - centralise la création des noms des types (noms pour LLVM, etc.)
 - différents cas pour chaine_type (avec ou sans points, etc.)
 
-// -----------------------------------
+// ----------------------------------------------------------------------------
 // Réusinage Arbre (pour les allouer dans un tampon plat)
 
 - supprime assembleuse de la validation sémantique
 - syntaxe en mettant en place les valeurs après la création du noeud les recevant
 - trouve une solution pour les tables de symboles
 
-// -----------------------------------
+// ----------------------------------------------------------------------------
 // Directives
 
 - ajout de #portée_fichier
@@ -49,7 +46,7 @@ Erreur si nous utilisons une adresse locale dans une condition.
 - directive pour définir quelle fonction doit-être la fonction principale
     les programmeurs pourront alors définir une fonction qui ne s'appelle pas « principale »
 
-// -----------------------------------
+// ----------------------------------------------------------------------------
 // Bugs
 
 - crash dans les exécutables quand nous prenons l'adresse d'une référence
@@ -59,7 +56,7 @@ Erreur si nous utilisons une adresse locale dans une condition.
 Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
     - nous ne devrions utiliser que la fonction du module courant
 
-// -----------------------------------
+// ----------------------------------------------------------------------------
 // Architecture/Qualité de code
 
 - supprime chaine::ajoute, en faveur de l'enchaineuse
@@ -67,7 +64,6 @@ Confusion quand plusieurs modules définissent une fonction pré_exécutable du 
 - chaine: ajoute de TypeIndex
 - ajout de identifiant_pour_nouvelle_chaine(args...) afin d'éviter les allocations temporaires si possible
 - améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
-- vérifie que les opérateurs sont surchargeables durant le typage (pour compenser les syntaxes correctes, mais sémantiques incorrectes)
 - pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
 - trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
 - pouvoir compiler plusieurs exécutables depuis le même espace de travail, par exemple afin de compiler les exécutables pour un système d'exploitation
@@ -78,20 +74,7 @@ Confusion quand plusieurs modules définissent une fonction pré_exécutable du 
 - transforme les PositionCode en globales:
     -- ceci nous éviterait de générer pas mal de code, et ainsi d'exécuter pas mal d'instructions
 
-- opérateur <=> pour n'implémenter qu'une seul comparaison
-
-- labels pour toutes les boucles :
-    - boucle xxx {}
-    - répète xxx {}
-    - tantque xxx: x != 10
-
-- expression pour la valeur suivant d'une boucle :
-    - boucle xxx suivant x += 1
-    - tantque xxx: wxvwxv suivant x += 1
-    - répète xxxx suivant x += 1
-    - pour j dans ... suivant x += 1
-
-// -----------------------------------
+// ----------------------------------------------------------------------------
 // Fonctionnalités diverses
 
 - trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
@@ -119,7 +102,7 @@ Test pour les retours de pointeurs
 
 discr énumérations : ignore les noms qui ont des valeurs similaires, rapporte erreur si deux noms de valeurs égales sont utilisés en même temps
 
-// -----------------------------------
+// ----------------------------------------------------------------------------
 // Table des types
 
 ajout de TableDesTypes + suppression Type.index_dans_table_des_types
@@ -157,28 +140,8 @@ struct TableDesTypes {
         }
 };
 
-// -----------------------------------
-// Avertissements
-
-- fonction non utilisée
-- membre structure (ou union) non utilisé
-- structure ou union non utilisée
-- module non utilisé dans un fichier
-
-// -----------------------------------
-// Fonctionnalités pour moultfilage
-
-- async
-- attends
-- corout
-- retiens
-- thead_local
-- thread
-- mutex
-- correctitude de constance
-- nursery
-
-// --------------------------- Compilatrice
+// ----------------------------------------------------------------------------
+// Compilatrice
 
 nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 
@@ -202,25 +165,20 @@ fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'
 
 - déduplique TypeTranstypage et TypeTransformation
 
-// --------------------------- Lexage
+// ----------------------------------------------------------------------------
+// Lexage
 
 ajout de drapeaux aux lexèmes des nombres littéraux pour indiquer la taille du nombre
 
-// -------------------
-
-Résultat de l'algorithme d'unification :
-- si la fonction ou structure est polymorphique :
--- doit monomorpher, résultat final
--- doit monomorpher, mais certains paramètres sont toujours polymorphique
--- pour la cuisson de paramètres non-constants : remplace les paramètres par des constantes
-
-// --------------------------- Contexte Implicite
+// ----------------------------------------------------------------------------
+// Contexte Implicite
 
 permettre aux utilisateurs du langage d'y ajouter des variables
 
 option de compilation pour définir la taille du stockage temporaire
 
-// --------------------------- Fonctions
+// ----------------------------------------------------------------------------
+// Fonctions
 
 passe un type à une fonction pour instantier automatiquement une valeur temporaire dont on ne se soucie pas de la valeur
 
@@ -243,7 +201,8 @@ permet de ne pas avoir un retour si la dernière instruction est celle d'une dis
         cas_2 { retourne 1 }
     }
 
-// --------------------------- Polymorphie / Monomorphisation
+// ----------------------------------------------------------------------------
+// Polymorphie / Monomorphisation
 
 pouvoir instantier une fonction polymorphique lorsqu'on la passe à une autre
 
@@ -271,7 +230,14 @@ information que la structure est polymorphique dans les infos-types
 
 impression des paramètres dans les messages d'erreur en cas de mésappariement
 
-// --------------------------- Métaprogrammation
+Résultat de l'algorithme d'unification :
+- si la fonction ou structure est polymorphique :
+-- doit monomorpher, résultat final
+-- doit monomorpher, mais certains paramètres sont toujours polymorphique
+-- pour la cuisson de paramètres non-constants : remplace les paramètres par des constantes
+
+// ----------------------------------------------------------------------------
+// Métaprogrammation
 
 permet de modifier la valeur des globales via les métaprogrammes, la génération de code final devra pendre les valeurs se trouvant dans le code binaire
     complexe
@@ -283,7 +249,8 @@ permet de modifier la valeur des globales via les métaprogrammes, la générati
 - optimise la quantité de mémoire utilisée pour stocker les variables dans les métaprogrammes
 -- pour cela il faut pouvoir déterminer quand une locale est hors de portée, en incluant les boucles (une allocation en début de boucle doit être désallouée en fin de boucle)
 
-// --------------------------- Opérateurs
+// ----------------------------------------------------------------------------
+// Opérateurs
 
 considère la surchage pour '='
 
@@ -305,8 +272,14 @@ Opérateurs implicites :
 - pour les comparaisons de nombres réels, il faut savoir comment ordonnées
 ---- définis un epsilon lors de la compilation ? ULP ?
 
+- vérifie que les opérateurs sont surchargeables durant le typage (pour compenser les syntaxes correctes, mais sémantiques incorrectes)
 
-// --------------------------- Bas Fruitage
+- opérateur <=> pour n'implémenter qu'une seul comparaison
+
+partage entre types
+
+// ----------------------------------------------------------------------------
+// Bas Fruitage
 
 ajout d'une propriété "pointeur" aux tableaux fixes pour obtenir le pointeur vers le premier élément (au lien de @x[0])
    -- mention dans test_logement.kuri
@@ -316,7 +289,8 @@ ajout de tranches pour les tableaux et les chaines
     chn1 := "une chaine"
     chn2 := chn1[ 4 ... chn.taille - 1 ] // nous donne "chaine"
 
-// --------------------------- Types
+// ----------------------------------------------------------------------------
+// Types
 
 unions : utilise le plus petit type possible pour représenter le discriminant
 
@@ -410,7 +384,8 @@ sûreté de type pour les adresse
     /* Représente une adresse sous forme d'entier. */
     adresse_plate -> n64
 
-// --------------------------- Discriminations
+// ----------------------------------------------------------------------------
+// Discriminations
 
 avoir une meilleure sécurité de type pour les einis, via discr et un transtypage automatique
 
@@ -451,15 +426,26 @@ que les types de bases et dérivés
         ...
     }
 
-// --------------------------- Boucles
+// ----------------------------------------------------------------------------
+// Boucles
 
 - amélioration boucle pour :
 -- itération sur plusieurs variables de même type
 ---- pour chn1, chn2 { ... }, la variable implicite sera un type produit accédé via it.N où N est un nombre
 
+- labels pour toutes les boucles :
+    - boucle xxx {}
+    - répète xxx {}
+    - tantque xxx: x != 10
 
+- expression pour la valeur suivant d'une boucle :
+    - boucle xxx suivant x += 1
+    - tantque xxx: wxvwxv suivant x += 1
+    - répète xxxx suivant x += 1
+    - pour j dans ... suivant x += 1
 
-// --------------------------- Modules / Espaces de Noms
+// ----------------------------------------------------------------------------
+// Modules / Espaces de Noms
 
 utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
 
@@ -477,8 +463,10 @@ empl importe Fondation
 renomme un import
 F :: importe Fondation
 
+- pouvoir renommer les symboles d'un import pour une utilisation locale (importe Fondation ma_fonction_de_renommage) ?
 
-// --------------------------- Interfaces / Traits
+// ----------------------------------------------------------------------------
+// Interfaces / Traits
 
 MonInterface :: entreface {
     x :: fonc ()...
@@ -525,15 +513,21 @@ définis n64 {
 
 - différencier entre les membres et l'interface
 
-
-// --------------------------- Optimisations / Génération de Code
+// ----------------------------------------------------------------------------
+// Optimisations / Génération de Code
 
 force l'enlignage des fonctions via un mot-clé, peut être fait durant le typage ?
 
 a := enligne ajoute(5, 6)
 
+-- supression de code mort
+-- débouclement (tableau fixes, plages connues)
+-- évaluation d'expressions constantes
+-- évaluation des conditions
+-- langage pour les optimisations (remplacement d'instructions)
 
-// --------------------------- Analyse Statique
+// ----------------------------------------------------------------------------
+// Analyse Statique
 
 != || != => toujours vraie, avertissement
 
@@ -543,8 +537,16 @@ nombres littéraux :
 ---- v < 256 => n8, z16
 ---- v < 65536 => n16, z32, etc....
 
+Avertissements
+- fonction non utilisée
+- membre structure (ou union) non utilisé
+- structure ou union non utilisée
+- module non utilisé dans un fichier
 
-// --------------------------- Environnemnt / Autres
+Erreur si nous utilisons une adresse locale dans une condition.
+
+// ----------------------------------------------------------------------------
+// Environnemnt / Autres
 
 avoir un « runtime » par machine cible où nous implémentons les fonctions ou instructions n'étant pas disponible sur celle-ci (voir Zig)
 
@@ -565,18 +567,11 @@ considération des assertions statiques lors de la compilation de plusieurs espa
     peut-être qu'un espace devra pouvoir partager le code avec les autres
     un espace peut avoir un type contexte différent des autres... => stocke le type contexte dans l'espace, mais le code partagé ne pourra pas l'utiliser...
 
-
-- générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
 - stack canaries (coulisse LLVM)
-- coroutines en dehors de boucles
 
-- généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
--- paramètres des appels
 - pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
 - pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)
-- pouvoir renommer les symboles d'un import pour une utilisation locale (importe Fondation ma_fonction_de_renommage) ?
-- ajout des arbres aplatis aux noeuds codes déclarations
 - documentation des instructions via kuri --manuel|-m inst
 - type les expressions constantes (a :: 0x1) lors du parsage ?
 - supprime les arbres aplatis et utilise un autre algorithme pour stopper/arrêter la compilation ?
@@ -617,28 +612,34 @@ Idées
 - utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++, ou les gestionnaires de contextes en Python avec "with")
 - fonction membres de structures similaire à Python avec 'self' explicit, ou appel explicit en passant l'objet en premier paramètre
 - passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
-- mot-clés pour un mutli-threading par système de tâches concurrentes, avec maintenance des fonctions auxilliaires par le compileur
 - transformer les messages d'erreur en tutoriaux
 - ajout de valeur par défaut au type de retour
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
 - controler la génération d'exécutable depuis les métaprogrammes
 
+// ----------------------------------------------------------------------------
+// Concurrence, moultfilage
+
 Zones d'ombres
---------------
-- concurrence, moultfilage
 
+- mot-clés pour un mutli-threading par système de tâches concurrentes, avec maintenance des fonctions auxilliaires par le compileur
 
-// optimisations (avant la génération de code) :
-// -- supression de code mort
-// -- débouclement (tableau fixes, plages connues)
-// -- évaluation d'expressions constantes
+- async
+- attends
+- corout
+- retiens
+- thead_local
+- thread
+- mutex
+- correctitude de constance
+- nursery
 
-/: évaluation des conditions
+- générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
+- coroutines en dehors de boucles
 
+// ----------------------------------------------------------------------------
+// Tests
 
-
-À faire (tests)
----------------
 - test caractère simple (assignation + modification)
 - test opérateurs simple
 - test mélanges types/nombres littéraux
@@ -650,60 +651,8 @@ Zones d'ombres
 - test coroutine
 - test valeurs de retours multiples
 
--- débogueur pour la machine virtuelle
--- langage pour les optimisations (remplacement d'instructions)
-
-struct Allocatrice {
-	long nombre_allocations = 0;
-
-	template <typename T>
-	T *loge()
-	{
-		return nullptr;
-	}
-
-	template <typename T>
-	void deloge(T *&ptr)
-	{
-		ptr = nullptr;
-		return;
-	}
-};
-
-/* kuri::tableau
- * kuri::tablet
- * kuri::tableau_statique (pour l'interface)
- * kuri::chaine
- * kuri::chaine_statique (pour l'interface, et les « vues »)
- * kuri::file
- * kuri::filonne (allouée sur la pile)
- * kuri::ensemble
- * kuri::ensemblon (allouée sur la pile)
- * kuri::table_hachage
- * kuri::plage (begin + end)
- *
- * interface de base:
- *
- * ctor(Allocatrice)
- * copy_ctor()
- * move_ctor()
- *
- * plage()
- *
- * operator[](long)
- *
- * reserve()
- * redimensionne()
- *
- * efface()
- *
- * premier()
- * dernier()
- *
- * ajoute()
- */
-
-// documentation JAI
+// ----------------------------------------------------------------------------
+// Documentation
 
 001_first.jai
 002_number_types.jai
@@ -728,8 +677,6 @@ struct Allocatrice {
 700_stack_trace.jai
 935_type_info_reduction.jai
 
-// à documenter Kuri
-
 -- polymorphisme
 -- union (syntaxes a | b)
 -- erreur
@@ -743,7 +690,7 @@ Déduplique les références (et les références de membres) lors du syntaxage.
     - afin d'économiser un peu de mémoire
     - afin d'accélérer un peu la validation sémantique
 
-Il faudra faire attention aux sites pour les rapports de mémoire qui ne seront alors plus continus.
+Il faudra faire attention aux sites pour les rapports d'erreur qui ne seront alors plus continus.
 
 class TableRéférences {
     kuri::tableau<NoeudExpressionReference *, int> m_références{};
