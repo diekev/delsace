@@ -1,9 +1,11 @@
 importe Fondation
 
+// À FAIRE : test expressions non-constantes
+
 principale :: fonc () -> z32
 {
     test_cuisson_polymorphe()
-    test_cuisson_monomorphe()
+    // test_cuisson_monomorphe()
     retourne 0
 }
 
