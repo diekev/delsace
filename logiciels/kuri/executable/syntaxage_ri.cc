@@ -2571,9 +2571,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto graphe_dépendances = dls::outils::Synchrone<GrapheDépendance>();
     auto registre_opérateurs = dls::outils::Synchrone<RegistreDesOpérateurs>();
-    Typeuse typeuse(graphe_dépendances, registre_opérateurs);
+    Typeuse typeuse(registre_opérateurs);
 
     PrésyntaxeuseRI pré_syntaxeuse(&fichier);
     pré_syntaxeuse.analyse();

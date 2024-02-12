@@ -225,7 +225,7 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
     résultat.ajoute("-Wno-error=maybe-uninitialized");
 
     résultat.ajoute("-Wall");
-    résultat.ajoute("-Wpedantic");
+    // résultat.ajoute("-Wpedantic");
     résultat.ajoute("-Wextra");
     résultat.ajoute("-Winit-self");
     résultat.ajoute("-Werror");

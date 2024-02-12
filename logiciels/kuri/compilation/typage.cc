@@ -778,8 +778,7 @@ NoeudDeclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
     if (insère_dans_graphe) {
-        auto graphe = graphe_.verrou_ecriture();
-        graphe->connecte_type_type(type, type_élément);
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type_élément});
     }
 
     return type;

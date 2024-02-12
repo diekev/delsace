@@ -145,7 +145,7 @@ Tâche OrdonnanceuseTache::tache_suivante(Tâche &tache_terminee, DrapeauxTacher
              * et les fils des Tâcheronnes
              * (OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace peut alors ignorer
              * certaines tâches). */
-            if (tache.unite->espace->possède_erreur) {
+            if (tache.unité->espace->possède_erreur) {
                 continue;
             }
             return tache;
@@ -487,10 +487,10 @@ void Tacheronne::gere_tache()
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
                 auto messagère = compilatrice.messagère.verrou_ecriture();
                 if (!messagère->est_interception_commencée()) {
-                    compilatrice.gestionnaire_code->message_recu(tache.unite->message);
+                    compilatrice.gestionnaire_code->message_reçu(tache.unité->message);
                 }
                 else {
-                    messagère->envoie_message(tache.unite->message);
+                    messagère->envoie_message(tache.unité->message);
                 }
 
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unité);

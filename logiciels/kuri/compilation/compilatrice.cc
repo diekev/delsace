@@ -79,7 +79,7 @@ int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
 Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
     : ordonnanceuse(this), messagère(this),
       gestionnaire_code(memoire::loge<GestionnaireCode>("GestionnaireCode", this)),
-      gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
+      gestionnaire_bibliothèques(GestionnaireBibliotheques(*this)), arguments(arguments_),
       racine_kuri(chemin_racine_kuri), typeuse(this->opérateurs),
       registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
 {
