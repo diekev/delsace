@@ -78,16 +78,17 @@ RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *t
             auto membre = info_membre->membre;
 
             if (membre.est_implicite()) {
-                m_espace->rapporte_erreur(f,
-                                        "Les membres implicites des énumérations ne peuvent être "
-                                        "utilisés comme expression de discrimination");
+                m_espace->rapporte_erreur(
+                    f,
+                    "Les membres implicites des énumérations ne peuvent être "
+                    "utilisés comme expression de discrimination");
                 return CodeRetourValidation::Erreur;
             }
 
             if (membre.est_constant()) {
                 m_espace->rapporte_erreur(f,
-                                        "Les membres constants des énumérations ne peuvent être "
-                                        "utilisés comme expression de discrimination");
+                                          "Les membres constants des énumérations ne peuvent être "
+                                          "utilisés comme expression de discrimination");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -269,15 +270,15 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
 
         if (membre.est_implicite()) {
             m_espace->rapporte_erreur(feuille,
-                                    "Les membres implicites des unions ne peuvent être "
-                                    "utilisés comme expression de discrimination");
+                                      "Les membres implicites des unions ne peuvent être "
+                                      "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
         if (membre.est_constant()) {
             m_espace->rapporte_erreur(feuille,
-                                    "Les membres constants des unions ne peuvent être "
-                                    "utilisés comme expression de discrimination");
+                                      "Les membres constants des unions ne peuvent être "
+                                      "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
@@ -295,8 +296,8 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
         if (expression_valide->est_expression_appel) {
             if (membre.type->est_type_rien()) {
                 m_espace->rapporte_erreur(expression_valide->est_expression_appel,
-                                        "Impossible de capturer une variable depuis un membre "
-                                        "d'union de type « rien »");
+                                          "Impossible de capturer une variable depuis un membre "
+                                          "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
             crée_variable_pour_expression_test(m_espace,
@@ -369,15 +370,15 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
 
         if (membre.est_implicite()) {
             m_espace->rapporte_erreur(feuille,
-                                    "Les membres implicites des unions ne peuvent être "
-                                    "utilisés comme expression de discrimination");
+                                      "Les membres implicites des unions ne peuvent être "
+                                      "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
         if (membre.est_constant()) {
             m_espace->rapporte_erreur(feuille,
-                                    "Les membres constants des unions ne peuvent être "
-                                    "utilisés comme expression de discrimination");
+                                      "Les membres constants des unions ne peuvent être "
+                                      "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
@@ -396,8 +397,8 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
         if (expression_valide->est_expression_appel) {
             if (référence_type->type->est_type_rien()) {
                 m_espace->rapporte_erreur(expression_valide->est_expression_appel,
-                                        "Impossible de capturer une variable depuis un membre "
-                                        "d'union de type « rien »");
+                                          "Impossible de capturer une variable depuis un membre "
+                                          "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
             crée_variable_pour_expression_test(m_espace,
@@ -497,8 +498,8 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
 
     if (inst->bloc_sinon == nullptr) {
         m_espace->rapporte_erreur(inst,
-                                "Les discriminations de valeurs scalaires doivent "
-                                "avoir un bloc « sinon »");
+                                  "Les discriminations de valeurs scalaires doivent "
+                                  "avoir un bloc « sinon »");
         return CodeRetourValidation::Erreur;
     }
 
