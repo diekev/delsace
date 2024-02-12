@@ -636,8 +636,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     os << "\t\t\t}\n";
                 }
                 else {
-                    os << "copie->" << nom_enfant << " = "
-                       << "orig->" << nom_enfant << ";\n";
+                    os << "copie->" << nom_enfant << " = " << "orig->" << nom_enfant << ";\n";
                 }
             });
 
@@ -1459,11 +1458,10 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
             }
 
             os << "\tstats_arbre.fusionne_entrée({" << '"' << it->nom() << '"' << ", "
-               << "m_noeuds_" << it->accede_nom_comme() << ".taille(), "
-               << "m_noeuds_" << it->accede_nom_comme() << ".memoire_utilisee()});\n";
+               << "m_noeuds_" << it->accede_nom_comme() << ".taille(), " << "m_noeuds_"
+               << it->accede_nom_comme() << ".memoire_utilisee()});\n";
             os << "\tstats_gaspillage.fusionne_entrée({" << '"' << it->nom() << '"' << ", "
-               << "1, "
-               << "m_noeuds_" << it->accede_nom_comme() << ".gaspillage_mémoire()});\n";
+               << "1, " << "m_noeuds_" << it->accede_nom_comme() << ".gaspillage_mémoire()});\n";
         }
 
         // stats pour les tableaux
@@ -1518,8 +1516,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
                     os << membre.type->accesseur() << "taille());\n";
                     os << "memoire_" << nom_comme << " += noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille_mémoire();\n";
-                    os << "mémoire_gaspillée"
-                       << " += noeud." << nom_membre;
+                    os << "mémoire_gaspillée" << " += noeud." << nom_membre;
                     os << membre.type->accesseur() << "gaspillage_mémoire();\n";
                 }
                 else if (membre.nom.nom_cpp() == "monomorphisations") {
@@ -1536,8 +1533,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
             });
             os << "});\n";
 
-            os << "\tstats_arbre.fusionne_entrée({" << '"' << it->nom() << '"' << ", "
-               << "0, "
+            os << "\tstats_arbre.fusionne_entrée({" << '"' << it->nom() << '"' << ", " << "0, "
                << "memoire_" << nom_comme << "});\n";
         }
 
