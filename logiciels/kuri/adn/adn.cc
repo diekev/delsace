@@ -608,8 +608,7 @@ void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
         }
     }
 
-    os << ")"
-       << " -> " << *m_type_sortie;
+    os << ")" << " -> " << *m_type_sortie;
 
     if (m_est_intrinsèque) {
         os << " #intrinsèque \"" << m_symbole_gcc << "\"";
