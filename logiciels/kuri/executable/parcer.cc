@@ -2025,7 +2025,8 @@ struct Convertisseuse {
         CXCursor enfant_bloc;
 
         if (!est_declaration) {
-            est_declaration = enfants.dernier_élément().kind != CXCursorKind::CXCursor_CompoundStmt;
+            est_declaration = enfants.dernier_élément().kind !=
+                              CXCursorKind::CXCursor_CompoundStmt;
 
             if (!est_declaration) {
                 /* Nous n'avons pas une déclaration */
