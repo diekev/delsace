@@ -1599,10 +1599,12 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
 
 void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
 {
+    DÉBUTE_STAT(CRÉATION_TÂCHES);
     m_nouvelles_unités.efface();
 
     if (plus_rien_n_est_à_faire()) {
         ordonnanceuse.marque_compilation_terminee();
+        TERMINE_STAT(CRÉATION_TÂCHES);
         return;
     }
 
@@ -1688,6 +1690,8 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
     }
 
     unités_en_attente.permute(m_nouvelles_unités);
+
+    TERMINE_STAT(CRÉATION_TÂCHES);
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
     std::cerr << "Unités en attente après la création des tâches : " << unites_en_attente.taille()
