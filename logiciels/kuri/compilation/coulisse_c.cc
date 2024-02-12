@@ -851,8 +851,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
         /* Cas pour les structures vides. */
         if (it.nom == ID::chaine_vide) {
-            enchaineuse << "membre_invisible"
-                        << ";\n";
+            enchaineuse << "membre_invisible" << ";\n";
         }
         else if (!it.nom) {
             /* Les membres des tuples n'ont pas de nom. */
