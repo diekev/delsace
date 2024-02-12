@@ -2543,8 +2543,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 int main(int argc, char **argv)
 {
     if (argc < 2) {
-        dbg() << "Utilisation " << argv[0] << " "
-              << "FICHIER_RI";
+        dbg() << "Utilisation " << argv[0] << " " << "FICHIER_RI";
         return 1;
     }
 
