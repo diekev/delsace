@@ -117,5 +117,4 @@
     case GenreNoeud::VARIADIQUE
 
 #define CAS_POUR_NOEUDS_TYPES                                                                     \
-    CAS_POUR_NOEUDS_TYPES_PERSONALISABLES:                                                        \
-    CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX
+    CAS_POUR_NOEUDS_TYPES_PERSONALISABLES : CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX

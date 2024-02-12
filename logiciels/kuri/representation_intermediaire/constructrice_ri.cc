@@ -657,8 +657,8 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
     assert_rappel(type_dest_et_type_source_sont_compatibles(ou->type, valeur->type), [&]() {
         auto type_élément_dest = type_déréférencé_pour(ou->type);
         dbg() << "\tType élément destination : " << chaine_type(type_élément_dest) << " ("
-              << type_élément_dest << ") "
-              << ", type source : " << chaine_type(valeur->type) << " (" << valeur->type << ")\n"
+              << type_élément_dest << ") " << ", type source : " << chaine_type(valeur->type)
+              << " (" << valeur->type << ")\n"
               << imprime_site(site_);
     });
 
@@ -1481,8 +1481,8 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     auto &stats_gaspillage = stats.stats_gaspillage;
 #define ENUMERE_GENRE_ATOME_EX(genre, classe, ident)                                              \
     if (m_##ident.taille() != 0) {                                                                \
-        stats_ri.fusionne_entrée({#ident, m_##ident.taille(), m_##ident.memoire_utilisee()});     \
-        stats_gaspillage.fusionne_entrée({#ident, 1, m_##ident.gaspillage_mémoire()});            \
+        stats_ri.fusionne_entrée({ #ident, m_##ident.taille(), m_##ident.memoire_utilisee() });   \
+        stats_gaspillage.fusionne_entrée({ #ident, 1, m_##ident.gaspillage_mémoire() });          \
     }
 
     ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
