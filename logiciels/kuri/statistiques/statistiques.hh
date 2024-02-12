@@ -12,19 +12,15 @@
 
 #ifdef STATISTIQUES_DETAILLEES
 #    define CHRONO_TYPAGE(entrée_stats, index)                                                    \
-        dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)([&](double temps) {      \
-            entrée_stats.fusionne_entrée(index, {"", temps});                                     \
-        })
+        dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)(                         \
+            [&](double temps) { entrée_stats.fusionne_entrée(index, {"", temps}); })
 #else
 #    define CHRONO_TYPAGE(entrée_stats, nom)
 #endif
 
 #if defined __cpp_concepts && __cpp_concepts >= 201507
 template <typename T>
-concept TypeEntréesStats = requires(T a, T b)
-{
-    a += b;
-};
+concept TypeEntréesStats = requires(T a, T b) { a += b; };
 #else
 #    define TypeEntréesStats typename
 #endif
