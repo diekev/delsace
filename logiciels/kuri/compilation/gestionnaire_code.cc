@@ -677,7 +677,7 @@ static bool doit_ajouter_les_dépendances_au_programme(NoeudExpression *noeud, P
 
 /* Construit les dépendances de l'unité (fonctions, globales, types) et crée des unités de typage
  * pour chacune des dépendances non-encore typée. */
-void GestionnaireCode::determiné_dépendances(NoeudExpression *noeud,
+void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
                                              EspaceDeTravail *espace,
                                              GrapheDépendance &graphe)
 {
@@ -893,7 +893,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    determiné_dépendances(decl_creation_contexte, espace, graphe);
+    détermine_dépendances(decl_creation_contexte, espace, graphe);
 
     if (!decl_creation_contexte->corps->unité) {
         requiers_typage(espace, decl_creation_contexte->corps);
@@ -904,7 +904,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    determiné_dépendances(decl_creation_contexte->corps, espace, graphe);
+    détermine_dépendances(decl_creation_contexte->corps, espace, graphe);
 
     if (!decl_creation_contexte->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         return false;
@@ -930,8 +930,8 @@ void GestionnaireCode::requiers_compilation_métaprogramme(EspaceDeTravail *espa
     programme->ajoute_fonction(metaprogramme->fonction);
 
     auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    determiné_dépendances(metaprogramme->fonction, espace, *graphe);
-    determiné_dépendances(metaprogramme->fonction->corps, espace, *graphe);
+    détermine_dépendances(metaprogramme->fonction, espace, *graphe);
+    détermine_dépendances(metaprogramme->fonction->corps, espace, *graphe);
 
     auto ri_crée_contexte_est_disponible = tente_de_garantir_présence_création_contexte(
         espace, programme, *graphe);
@@ -1271,7 +1271,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     return false;
 }
 
-static bool doit_determinér_les_dépendances(NoeudExpression *noeud)
+static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
 {
     if (noeud->est_declaration()) {
         if (est_déclaration_polymorphique(noeud->comme_declaration())) {
@@ -1396,10 +1396,10 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
     auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
     auto noeud = unité->noeud;
     DÉBUTE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
-    auto const déterminé_dépendances = doit_determinér_les_dépendances(unité->noeud);
+    auto const détermine_les_dépendances = doit_déterminer_les_dépendances(unité->noeud);
     TERMINE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
-    if (déterminé_dépendances) {
-        determiné_dépendances(unité->noeud, unité->espace, *graphe);
+    if (détermine_les_dépendances) {
+        détermine_dépendances(unité->noeud, unité->espace, *graphe);
     }
 
     /* Envoi un message, nous attendrons dessus si nécessaire. */
@@ -1586,8 +1586,8 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
     }
 
     auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    determiné_dépendances(fonction, unité->espace, *graphe);
-    determiné_dépendances(fonction->corps, unité->espace, *graphe);
+    détermine_dépendances(fonction, unité->espace, *graphe);
+    détermine_dépendances(fonction->corps, unité->espace, *graphe);
 
     unité->mute_raison_d_être(RaisonDEtre::GENERATION_RI);
     auto espace = unité->espace;
