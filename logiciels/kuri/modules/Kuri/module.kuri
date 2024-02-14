@@ -247,7 +247,7 @@ StockageTemporaire :: struct #interface {
 InfoFonctionTraceAppel :: struct #interface {
     nom : chaine
     fichier : chaine
-    adresse : *rien
+    adresse : adresse_fonction
     // peut-être que nous pourrions avoir ceci dans le future, en fonction des besoins
     // position: PositionCodeSource
     // desc_type: *InfoTypeFonction

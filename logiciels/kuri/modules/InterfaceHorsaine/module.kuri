@@ -430,6 +430,9 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
         VARIADIQUE {
             compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers C/C++ pour le moment")
         }
+        ADRESSE_FONCTION {
+            compilatrice_rapporte_erreur("Les types « adresse_fonction » ne sont pas convertibles vers C/C++ pour le moment")
+        }
     }
 
     retourne résultat

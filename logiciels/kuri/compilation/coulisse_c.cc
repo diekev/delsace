@@ -411,6 +411,11 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
             type_c.typedef_ = "int64_t";
             break;
         }
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        {
+            type_c.typedef_ = "adresse_fonction";
+            break;
+        }
         case GenreNoeud::REEL:
         {
             if (type->taille_octet == 2) {
@@ -649,6 +654,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::TYPE_DE_DONNEES:
         case GenreNoeud::REEL:
         case GenreNoeud::RIEN:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             /* Rien à faire pour ces types-là. */
             return;
@@ -921,6 +927,7 @@ typedef uint8_t bool;
 typedef uint8_t octet;
 typedef void Ksnul;
 typedef int8_t ** KPKPKsz8;
+typedef void(*adresse_fonction)();
 )";
 
     enchaineuse << préambule;

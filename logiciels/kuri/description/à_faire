@@ -213,7 +213,6 @@ passe un type à une fonction pour instantier automatiquement une valeur tempora
     fonction(MonType)
 
 pouvoir prendre les adresses des fonctions
-    il faut définir le type de manière générique (*rien ?)
     voir mise en place de la trace d'appel dans Kuri/module.kuri
 
 
@@ -400,8 +399,6 @@ révision des transtypages :
     - instruction vers -> convertis le type, les types doivent être parenté, ou la conversion valide selon les règles du langage
 
 sûreté de type pour les adresse
-    /* Représente l'adresse d'une fonction. */
-    adresse_fonction -> void(*)()
     /* Représente l'adresse d'un objet */
     adresse_objet -> void*
     /* Représente une adresse sous forme d'entier. */
