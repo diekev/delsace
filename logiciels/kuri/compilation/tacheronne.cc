@@ -99,7 +99,7 @@ OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice) : m_compilatr
 {
 }
 
-void OrdonnanceuseTache::crée_tache_pour_unite(UniteCompilation *unite)
+void OrdonnanceuseTache::crée_tâche_pour_unité(UniteCompilation *unite)
 {
     assert(unite);
     assert(unite->espace);
@@ -636,7 +636,7 @@ void Tacheronne::execute_metaprogrammes()
     mv->exécute_métaprogrammes_courants();
 
     POUR (mv->métaprogrammes_terminés()) {
-        auto espace = it->unite->espace;
+        auto espace = it->unité->espace;
 
         // À FAIRE : précision des messages d'erreurs
         if (it->résultat == MetaProgramme::RésultatExécution::ERREUR) {
@@ -715,7 +715,7 @@ void Tacheronne::execute_metaprogrammes()
 
         mv->déloge_données_exécution(it->données_exécution);
 
-        compilatrice.gestionnaire_code->tâche_unité_terminée(it->unite);
+        compilatrice.gestionnaire_code->tâche_unité_terminée(it->unité);
     }
 }
 

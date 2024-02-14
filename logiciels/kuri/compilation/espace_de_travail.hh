@@ -44,7 +44,7 @@ struct EspaceDeTravail {
     OptionsDeCompilation options{};
 
     Programme *programme = nullptr;
-    UniteCompilation *unite_pour_code_machine = nullptr;
+    UniteCompilation *unité_pour_code_machine = nullptr;
 
     /* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
     NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
