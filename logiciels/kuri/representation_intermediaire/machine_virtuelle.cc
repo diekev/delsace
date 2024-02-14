@@ -41,7 +41,7 @@ static void rapporte_avertissement_pour_fuite_de_mémoire(MetaProgramme *métapr
                                                          size_t taille_bloc,
                                                          kuri::tableau<FrameAppel> const &frames)
 {
-    auto espace = métaprogramme->unite->espace;
+    auto espace = métaprogramme->unité->espace;
 
     auto &logueuse = métaprogramme->donne_logueuse(TypeLogMétaprogramme::FUITES_DE_MÉMOIRE);
     logueuse << "-----------------------------------------------------------------------------\n";
@@ -125,7 +125,7 @@ void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)
     enchaineuse
         << "Veuillez-vous référer au fichier de log du métaprogramme pour plus de détails.";
 
-    auto espace = métaprogramme->unite->espace;
+    auto espace = métaprogramme->unité->espace;
     espace->rapporte_avertissement(métaprogramme->directive, enchaineuse.chaine());
 }
 
@@ -633,7 +633,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     /* Détermine ici si nous avons une fonction de l'IPA pour prendre en compte les appels via des
      * pointeurs de fonctions. */
     if (EST_FONCTION_COMPILATRICE(compilatrice_espace_courant)) {
-        empile(m_métaprogramme->unite->espace);
+        empile(m_métaprogramme->unité->espace);
         return;
     }
 
@@ -669,7 +669,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
             auto const site = donne_site_adresse_courante();
             /* L'espace du « site » est celui de métaprogramme, et non
              * l'espace reçu en paramètre. */
-            m_métaprogramme->unite->espace->rapporte_erreur(
+            m_métaprogramme->unité->espace->rapporte_erreur(
                 site,
                 "Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
         }
@@ -687,7 +687,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
         auto const site = donne_site_adresse_courante();
         auto chemin_recu = dépile<kuri::chaine_statique>();
-        auto espace = m_métaprogramme->unite->espace;
+        auto espace = m_métaprogramme->unité->espace;
         auto lexemes = compilatrice.lexe_fichier(espace, chemin_recu, site);
         empile(lexemes);
         return;
@@ -796,7 +796,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_fonctions_parsees)) {
-        auto espace = m_métaprogramme->unite->espace;
+        auto espace = m_métaprogramme->unité->espace;
         auto fonctions = compilatrice.fonctions_parsees(espace);
         empile(fonctions);
         return;
@@ -2010,16 +2010,16 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
 void MachineVirtuelle::imprime_trace_appel(NoeudExpression const *site)
 {
-    dbg() << erreur::imprime_site(*m_métaprogramme->unite->espace, site);
+    dbg() << erreur::imprime_site(*m_métaprogramme->unité->espace, site);
     for (int i = profondeur_appel - 1; i >= 0; --i) {
-        dbg() << erreur::imprime_site(*m_métaprogramme->unite->espace, frames[i].site);
+        dbg() << erreur::imprime_site(*m_métaprogramme->unité->espace, frames[i].site);
     }
 }
 
 void MachineVirtuelle::rapporte_erreur_exécution(kuri::chaine_statique message)
 {
     auto const site = donne_site_adresse_courante();
-    auto e = m_métaprogramme->unite->espace->rapporte_erreur(site, message);
+    auto e = m_métaprogramme->unité->espace->rapporte_erreur(site, message);
 
     if (site) {
         e.ajoute_message("Le type du site est « ", chaine_type(site->type), " »\n\n");
@@ -2085,7 +2085,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::notifie_dépile(Fra
 
         auto site_empilage = données.frame->fonction->données_exécution->chunk
                                  .donne_site_pour_adresse(données.adresse);
-        auto chaine_site_empilage = erreur::imprime_site(*m_métaprogramme->unite->espace,
+        auto chaine_site_empilage = erreur::imprime_site(*m_métaprogramme->unité->espace,
                                                          site_empilage);
 
         auto message = enchaine("Dans l'exécution du métaprogramme \"",
@@ -2127,7 +2127,7 @@ bool MachineVirtuelle::adressage_est_possible(const void *adresse_ou,
                                      "machine virtuelle lors d'une assignation !" :
                                      "Erreur interne : superposition de la copie dans la "
                                      "machine virtuelle lors d'un chargement !";
-        m_métaprogramme->unite->espace->rapporte_erreur(site, message)
+        m_métaprogramme->unité->espace->rapporte_erreur(site, message)
             .ajoute_message("La taille à copier est de    : ", taille, ".\n")
             .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
             .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
@@ -2153,7 +2153,7 @@ bool MachineVirtuelle::adressage_est_possible(const void *adresse_ou,
 
     if (!assignation) {
         if (!adresse_est_assignable(adresse_ou)) {
-            m_métaprogramme->unite->espace
+            m_métaprogramme->unité->espace
                 ->rapporte_erreur(site, "Copie vers une adresse non-assignable !")
                 .ajoute_message("L'adresse est : ", adresse_ou, "\n");
             return false;
@@ -2184,7 +2184,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::vérifie_cible_appe
 {
     if (!m_métaprogramme->cibles_appels.possède(ptr_fonction)) {
         auto const site = donne_site_adresse_courante();
-        auto espace = m_métaprogramme->unite->espace;
+        auto espace = m_métaprogramme->unité->espace;
         espace
             ->rapporte_erreur(site,
                               "Alors que j'exécute un métaprogramme, je rencontre une instruction "
