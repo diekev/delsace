@@ -27,6 +27,15 @@ Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un
 - trouve une solution pour les tables de symboles
 
 // ----------------------------------------------------------------------------
+// Préparsage (pour ne pas allouer de mémoire pour les fonctions ou structures inutiles aux programmes)
+
+- Noter la plage de lexèmes des déclarations (fonctions, structures, etc.),
+  afin de pouvoir commencer à syntaxer au premier endroit.
+- Avoir un type d'expression pour le préparsage, qui retourne des noeuds simples
+- [À Voir] utilisation d'une « Usine » pour abstraire la création des noeuds
+  https://source.chromium.org/chromium/v8/v8.git/+/e3b2feb3aade83c02e4bd2fa46965a69215cd821:src/parsing/preparser.h
+
+// ----------------------------------------------------------------------------
 // Directives
 
 - ajout de #portée_fichier
@@ -45,6 +54,7 @@ Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un
     ce pourra être utile pour l'optimisation du code
 - directive pour définir quelle fonction doit-être la fonction principale
     les programmeurs pourront alors définir une fonction qui ne s'appelle pas « principale »
+- ajout de #entête_code_de_cette_fonction -> retourne une globale de type *NoeudCode pour la fonction courante
 
 // ----------------------------------------------------------------------------
 // Bugs
@@ -55,6 +65,16 @@ Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un
 
 Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
     - nous ne devrions utiliser que la fonction du module courant
+
+// ----------------------------------------------------------------------------
+// Gestion
+
+peut_envoyer_en_ri
+- fonctions d'initialisation des types
+- validation de tous les types (pour les infos types)
+
+peut_envoyer_en_conversion_noeud_code
+- validation de tous les types (pour les infos types)
 
 // ----------------------------------------------------------------------------
 // Architecture/Qualité de code
@@ -73,6 +93,9 @@ Confusion quand plusieurs modules définissent une fonction pré_exécutable du 
     -- peut-être utiliser une table pour les rappels de fonctions selon le genre de noeud
 - transforme les PositionCode en globales:
     -- ceci nous éviterait de générer pas mal de code, et ainsi d'exécuter pas mal d'instructions
+- révise la manière de stocker les dépendances entre unités afin d'éviter les boucles sur unités_en_attentes dans le gestionnaire
+    - ces boucles peuvent ralentir la compilation quand les tâcheronnes veulent notifier de leurs travail ou lors de la création de tâches
+    - [?] ajouter kuri::tableau<UnitéCompilation> unité_attendantes; dans UniteCompilation
 
 // ----------------------------------------------------------------------------
 // Fonctionnalités diverses
@@ -557,6 +580,8 @@ instructions SIMD
 idée pour sécurité du controle flux : https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
     -- nécéssite support de la part du système d'exploitation
 
+options de compilation pour la pile inviisble (shadow_stack, -mshstk pour GCC)
+
 génère des statistiques pour chaque espace de travail si demandé, au lieu de statistiques pour toute la compilation
     -- imprime quand même la durée de compilation à la fin?
 
@@ -616,6 +641,7 @@ Idées
 - ajout de valeur par défaut au type de retour
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
 - controler la génération d'exécutable depuis les métaprogrammes
+- ajout de structure d'infos-types pour les atomes/instructions servant de sorte de tables virtuelles avec des fonctions de rappel pour gérer les cas pour chaque switch existant sur le genre d'atome/instruction.
 
 // ----------------------------------------------------------------------------
 // Concurrence, moultfilage
