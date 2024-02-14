@@ -130,7 +130,7 @@ struct MetaProgramme {
     /* la fonction qui sera exécutée */
     NoeudDeclarationEnteteFonction *fonction = nullptr;
 
-    UniteCompilation *unite = nullptr;
+    UniteCompilation *unité = nullptr;
 
     bool fut_execute = false;
     bool a_rapporté_une_erreur = false;

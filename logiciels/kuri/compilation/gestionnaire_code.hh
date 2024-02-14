@@ -284,7 +284,7 @@ class GestionnaireCode {
 
     void enleve_programme(Programme *programme);
 
-    void determiné_dépendances(NoeudExpression *noeud,
+    void détermine_dépendances(NoeudExpression *noeud,
                                EspaceDeTravail *espace,
                                GrapheDépendance &graphe);
 
