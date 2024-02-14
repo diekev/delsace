@@ -703,7 +703,7 @@ static bool doit_ajouter_les_dépendances_au_programme(NoeudExpression *noeud, P
 
 /* Construit les dépendances de l'unité (fonctions, globales, types) et crée des unités de typage
  * pour chacune des dépendances non-encore typée. */
-void GestionnaireCode::determiné_dépendances(NoeudExpression *noeud,
+void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
                                              EspaceDeTravail *espace,
                                              GrapheDépendance &graphe)
 {
@@ -769,21 +769,21 @@ UniteCompilation *GestionnaireCode::crée_unité(EspaceDeTravail *espace,
                                                RaisonDEtre raison,
                                                bool met_en_attente)
 {
-    auto unite = unités.ajoute_element(espace);
-    unite->mute_raison_d_être(raison);
+    auto unité = unités.ajoute_element(espace);
+    unité->mute_raison_d_être(raison);
     if (met_en_attente) {
-        ajoute_unité_à_liste_attente(unite);
+        ajoute_unité_à_liste_attente(unité);
     }
-    return unite;
+    return unité;
 }
 
 UniteCompilation *GestionnaireCode::crée_unité_pour_fichier(EspaceDeTravail *espace,
                                                             Fichier *fichier,
                                                             RaisonDEtre raison)
 {
-    auto unite = crée_unité(espace, raison, true);
-    unite->fichier = fichier;
-    return unite;
+    auto unité = crée_unité(espace, raison, true);
+    unité->fichier = fichier;
+    return unité;
 }
 
 UniteCompilation *GestionnaireCode::crée_unité_pour_noeud(EspaceDeTravail *espace,
@@ -791,10 +791,10 @@ UniteCompilation *GestionnaireCode::crée_unité_pour_noeud(EspaceDeTravail *esp
                                                           RaisonDEtre raison,
                                                           bool met_en_attente)
 {
-    auto unite = crée_unité(espace, raison, met_en_attente);
-    unite->noeud = noeud;
-    *donne_adresse_unité(noeud) = unite;
-    return unite;
+    auto unité = crée_unité(espace, raison, met_en_attente);
+    unité->noeud = noeud;
+    *donne_adresse_unité(noeud) = unité;
+    return unité;
 }
 
 void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fichier)
@@ -837,23 +837,23 @@ void GestionnaireCode::requiers_génération_ri_principale_métaprogramme(
 {
     TACHE_AJOUTEE(GENERATION_RI);
 
-    auto unite = crée_unité_pour_noeud(espace,
+    auto unité = crée_unité_pour_noeud(espace,
                                        metaprogramme->fonction,
                                        RaisonDEtre::GENERATION_RI_PRINCIPALE_MP,
                                        peut_planifier_compilation);
 
     if (!peut_planifier_compilation) {
         assert(metaprogrammes_en_attente_de_crée_contexte_est_ouvert);
-        métaprogrammes_en_attente_de_crée_contexte.ajoute(unite);
+        métaprogrammes_en_attente_de_crée_contexte.ajoute(unité);
     }
 }
 
 UniteCompilation *GestionnaireCode::crée_unité_pour_message(EspaceDeTravail *espace,
                                                             Message *message)
 {
-    auto unite = crée_unité(espace, RaisonDEtre::ENVOIE_MESSAGE, true);
-    unite->message = message;
-    return unite;
+    auto unité = crée_unité(espace, RaisonDEtre::ENVOIE_MESSAGE, true);
+    unité->message = message;
+    return unité;
 }
 
 void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Type *type)
@@ -873,11 +873,11 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
 
     type->drapeaux_type |= DrapeauxTypes::INITIALISATION_TYPE_FUT_REQUISE;
 
-    auto unite = crée_unité(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
-    unite->type = type;
+    auto unité = crée_unité(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
+    unité->type = type;
 
     if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-        unite->ajoute_attente(Attente::sur_type(type));
+        unité->ajoute_attente(Attente::sur_type(type));
     }
 
     type->drapeaux_type |= DrapeauxTypes::UNITE_POUR_INITIALISATION_FUT_CREE;
@@ -886,9 +886,9 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
 UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
                                                         NoeudExpression *noeud)
 {
-    auto unite = crée_unité(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
-    unite->noeud = noeud;
-    return unite;
+    auto unité = crée_unité(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
+    unité->noeud = noeud;
+    return unité;
 }
 
 void GestionnaireCode::ajoute_unité_à_liste_attente(UniteCompilation *unité)
@@ -919,7 +919,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    determiné_dépendances(decl_creation_contexte, espace, graphe);
+    détermine_dépendances(decl_creation_contexte, espace, graphe);
 
     if (!decl_creation_contexte->corps->unité) {
         requiers_typage(espace, decl_creation_contexte->corps);
@@ -930,7 +930,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    determiné_dépendances(decl_creation_contexte->corps, espace, graphe);
+    détermine_dépendances(decl_creation_contexte->corps, espace, graphe);
 
     if (!decl_creation_contexte->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         return false;
@@ -956,8 +956,8 @@ void GestionnaireCode::requiers_compilation_métaprogramme(EspaceDeTravail *espa
     programme->ajoute_fonction(metaprogramme->fonction);
 
     auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    determiné_dépendances(metaprogramme->fonction, espace, *graphe);
-    determiné_dépendances(metaprogramme->fonction->corps, espace, *graphe);
+    détermine_dépendances(metaprogramme->fonction, espace, *graphe);
+    détermine_dépendances(metaprogramme->fonction->corps, espace, *graphe);
 
     auto ri_crée_contexte_est_disponible = tente_de_garantir_présence_création_contexte(
         espace, programme, *graphe);
@@ -987,24 +987,24 @@ void GestionnaireCode::requiers_compilation_métaprogramme(EspaceDeTravail *espa
 
 void GestionnaireCode::requiers_exécution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
 {
-    auto unite = crée_unité(espace, RaisonDEtre::EXECUTION, true);
-    unite->metaprogramme = metaprogramme;
-    metaprogramme->unite = unite;
+    auto unité = crée_unité(espace, RaisonDEtre::EXECUTION, true);
+    unité->metaprogramme = metaprogramme;
+    metaprogramme->unité = unité;
 }
 
 UniteCompilation *GestionnaireCode::requiers_génération_code_machine(EspaceDeTravail *espace,
                                                                      Programme *programme)
 {
-    auto unite = crée_unité(espace, RaisonDEtre::GENERATION_CODE_MACHINE, true);
-    unite->programme = programme;
+    auto unité = crée_unité(espace, RaisonDEtre::GENERATION_CODE_MACHINE, true);
+    unité->programme = programme;
     TACHE_AJOUTEE(GENERATION_CODE_MACHINE);
-    return unite;
+    return unité;
 }
 
 void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme)
 {
-    auto unite = crée_unité(espace, RaisonDEtre::LIAISON_PROGRAMME, true);
-    unite->programme = programme;
+    auto unité = crée_unité(espace, RaisonDEtre::LIAISON_PROGRAMME, true);
+    unité->programme = programme;
     TACHE_AJOUTEE(LIAISON_PROGRAMME);
 }
 
@@ -1114,30 +1114,30 @@ void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
     statistiques.ajoute_mémoire_utilisée("Gestionnaire Code", mémoire);
 }
 
-void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
+void GestionnaireCode::mets_en_attente(UniteCompilation *unité_attendante, Attente attente)
 {
     assert(attente.est_valide());
-    assert(unite_attendante->est_prête());
-    auto espace = unite_attendante->espace;
+    assert(unité_attendante->est_prête());
+    auto espace = unité_attendante->espace;
     ajoute_requêtes_pour_attente(espace, attente);
-    unite_attendante->ajoute_attente(attente);
-    ajoute_unité_à_liste_attente(unite_attendante);
+    unité_attendante->ajoute_attente(attente);
+    ajoute_unité_à_liste_attente(unité_attendante);
 }
 
-void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
+void GestionnaireCode::mets_en_attente(UniteCompilation *unité_attendante,
                                        kuri::tableau_statique<Attente> attentes)
 {
     assert(attentes.taille() != 0);
-    assert(unite_attendante->est_prête());
+    assert(unité_attendante->est_prête());
 
-    auto espace = unite_attendante->espace;
+    auto espace = unité_attendante->espace;
 
     POUR (attentes) {
         ajoute_requêtes_pour_attente(espace, it);
-        unite_attendante->ajoute_attente(it);
+        unité_attendante->ajoute_attente(it);
     }
 
-    ajoute_unité_à_liste_attente(unite_attendante);
+    ajoute_unité_à_liste_attente(unité_attendante);
 }
 
 void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
@@ -1211,47 +1211,47 @@ void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
     }
 }
 
-void GestionnaireCode::chargement_fichier_terminé(UniteCompilation *unite)
+void GestionnaireCode::chargement_fichier_terminé(UniteCompilation *unité)
 {
-    assert(unite->fichier);
-    assert(unite->fichier->fut_chargé);
+    assert(unité->fichier);
+    assert(unité->fichier->fut_chargé);
 
-    auto espace = unite->espace;
+    auto espace = unité->espace;
     TACHE_TERMINEE(CHARGEMENT, true);
-    m_compilatrice->messagère->ajoute_message_fichier_fermé(espace, unite->fichier->chemin());
+    m_compilatrice->messagère->ajoute_message_fichier_fermé(espace, unité->fichier->chemin());
 
     /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
-    unite->mute_raison_d_être(RaisonDEtre::LEXAGE_FICHIER);
-    m_état_chargement_fichiers.déplace_unité_pour_chargement_fichier(unite);
-    ajoute_unité_à_liste_attente(unite);
+    unité->mute_raison_d_être(RaisonDEtre::LEXAGE_FICHIER);
+    m_état_chargement_fichiers.déplace_unité_pour_chargement_fichier(unité);
+    ajoute_unité_à_liste_attente(unité);
     TACHE_AJOUTEE(LEXAGE);
 }
 
-void GestionnaireCode::lexage_fichier_terminé(UniteCompilation *unite)
+void GestionnaireCode::lexage_fichier_terminé(UniteCompilation *unité)
 {
-    assert(unite->fichier);
-    assert(unite->fichier->fut_lexé);
+    assert(unité->fichier);
+    assert(unité->fichier->fut_lexé);
 
-    auto espace = unite->espace;
+    auto espace = unité->espace;
     TACHE_TERMINEE(LEXAGE, true);
 
     /* Une fois que nous avons lexer un fichier, il faut le parser. */
-    unite->mute_raison_d_être(RaisonDEtre::PARSAGE_FICHIER);
-    m_état_chargement_fichiers.déplace_unité_pour_chargement_fichier(unite);
-    ajoute_unité_à_liste_attente(unite);
+    unité->mute_raison_d_être(RaisonDEtre::PARSAGE_FICHIER);
+    m_état_chargement_fichiers.déplace_unité_pour_chargement_fichier(unité);
+    ajoute_unité_à_liste_attente(unité);
     TACHE_AJOUTEE(PARSAGE);
 }
 
-void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unite)
+void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
 {
-    assert(unite->fichier);
-    assert(unite->fichier->fut_parsé);
-    auto espace = unite->espace;
+    assert(unité->fichier);
+    assert(unité->fichier->fut_parsé);
+    auto espace = unité->espace;
     TACHE_TERMINEE(PARSAGE, true);
-    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
-    m_état_chargement_fichiers.supprime_unité_pour_chargement_fichier(unite);
+    unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    m_état_chargement_fichiers.supprime_unité_pour_chargement_fichier(unité);
 
-    POUR (unite->fichier->noeuds_à_valider) {
+    POUR (unité->fichier->noeuds_à_valider) {
         /* Nous avons sans doute déjà requis le typage de ce noeud. */
         auto adresse_unité = donne_adresse_unité(it);
         if (*adresse_unité) {
@@ -1331,7 +1331,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     return false;
 }
 
-static bool doit_determinér_les_dépendances(NoeudExpression *noeud)
+static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
 {
     if (noeud->est_declaration()) {
         if (est_déclaration_polymorphique(noeud->comme_declaration())) {
@@ -1371,13 +1371,13 @@ static bool declaration_est_invalide(NoeudExpression *decl)
     if (!adresse_unité) {
         return true;
     }
-    auto unite = *adresse_unité;
-    if (!unite) {
+    auto unité = *adresse_unité;
+    if (!unité) {
         /* Pas encore d'unité, nous ne pouvons savoir si la déclaration est valide. */
         return true;
     }
 
-    if (unite->espace->possède_erreur) {
+    if (unité->espace->possède_erreur) {
         /* Si l'espace responsable de l'unité de l'entête possède une erreur, nous devons
          * ignorer les entêtes invalides, car sinon la compilation serait infinie. */
         return false;
@@ -1433,34 +1433,34 @@ static bool verifie_que_toutes_les_entetes_sont_validees(SystèmeModule &sys_mod
     return true;
 }
 
-void GestionnaireCode::typage_terminé(UniteCompilation *unite)
+void GestionnaireCode::typage_terminé(UniteCompilation *unité)
 {
     DÉBUTE_STAT(TYPAGE_TERMINÉ);
-    assert(unite->noeud);
-    assert_rappel(unite->noeud->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [&] {
-        dbg() << "Le noeud de genre " << unite->noeud->genre << " ne fut pas validé !\n"
-              << erreur::imprime_site(*unite->espace, unite->noeud);
+    assert(unité->noeud);
+    assert_rappel(unité->noeud->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [&] {
+        dbg() << "Le noeud de genre " << unité->noeud->genre << " ne fut pas validé !\n"
+              << erreur::imprime_site(*unité->espace, unité->noeud);
     });
 
-    auto espace = unite->espace;
+    auto espace = unité->espace;
 
-    if (unite->noeud->est_charge() || unite->noeud->est_importe()) {
-        m_état_chargement_fichiers.supprime_unité_pour_charge_ou_importe(unite);
+    if (unité->noeud->est_charge() || unité->noeud->est_importe()) {
+        m_état_chargement_fichiers.supprime_unité_pour_charge_ou_importe(unité);
         flush_noeuds_à_typer();
     }
-    else if (unite->noeud->est_entete_fonction()) {
-        m_état_chargement_fichiers.supprime_unité_pour_validation_entête(unite);
+    else if (unité->noeud->est_entete_fonction()) {
+        m_état_chargement_fichiers.supprime_unité_pour_validation_entête(unité);
         flush_noeuds_à_typer();
     }
 
     // rassemble toutes les dépendances de la fonction ou de la globale
     auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    auto noeud = unite->noeud;
+    auto noeud = unité->noeud;
     DÉBUTE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
-    auto const déterminé_dépendances = doit_determinér_les_dépendances(unite->noeud);
+    auto const détermine_les_dépendances = doit_déterminer_les_dépendances(unité->noeud);
     TERMINE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
-    if (déterminé_dépendances) {
-        determiné_dépendances(unite->noeud, unite->espace, *graphe);
+    if (détermine_les_dépendances) {
+        détermine_dépendances(unité->noeud, unité->espace, *graphe);
     }
 
     /* Envoi un message, nous attendrons dessus si nécessaire. */
@@ -1468,15 +1468,15 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unite)
     const auto doit_envoyer_en_ri = noeud_requiers_generation_ri(noeud);
     if (doit_envoyer_en_ri) {
         TACHE_AJOUTEE(GENERATION_RI);
-        unite->mute_raison_d_être(RaisonDEtre::GENERATION_RI);
-        ajoute_unité_à_liste_attente(unite);
+        unité->mute_raison_d_être(RaisonDEtre::GENERATION_RI);
+        ajoute_unité_à_liste_attente(unité);
     }
 
     if (message) {
-        auto unite_noeud_code = requiers_noeud_code(espace, noeud);
-        auto unite_message = crée_unité_pour_message(espace, message);
-        unite_message->ajoute_attente(Attente::sur_noeud_code(unite_noeud_code, noeud));
-        unite->ajoute_attente(Attente::sur_message(unite_message, message));
+        auto unité_noeud_code = requiers_noeud_code(espace, noeud);
+        auto unité_message = crée_unité_pour_message(espace, message);
+        unité_message->ajoute_attente(Attente::sur_noeud_code(unité_noeud_code, noeud));
+        unité->ajoute_attente(Attente::sur_message(unité_message, message));
     }
 
     DÉBUTE_STAT(VÉRIFIE_ENTÊTE_VALIDÉES);
@@ -1503,15 +1503,15 @@ static inline bool est_corps_de(NoeudExpression const *noeud,
     return noeud == fonction->corps;
 }
 
-void GestionnaireCode::generation_ri_terminée(UniteCompilation *unite)
+void GestionnaireCode::generation_ri_terminée(UniteCompilation *unité)
 {
-    assert(unite->noeud);
-    assert_rappel(unite->noeud->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&] {
-        dbg() << "Le noeud de genre " << unite->noeud->genre << " n'eu pas de RI générée !\n"
-              << erreur::imprime_site(*unite->espace, unite->noeud);
+    assert(unité->noeud);
+    assert_rappel(unité->noeud->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&] {
+        dbg() << "Le noeud de genre " << unité->noeud->genre << " n'eu pas de RI générée !\n"
+              << erreur::imprime_site(*unité->espace, unité->noeud);
     });
 
-    auto espace = unite->espace;
+    auto espace = unité->espace;
     TACHE_TERMINEE(GENERATION_RI, true);
     if (espace->optimisations) {
         // À FAIRE(gestion) : tâches d'optimisations
@@ -1519,20 +1519,20 @@ void GestionnaireCode::generation_ri_terminée(UniteCompilation *unite)
 
     /* Si nous avons la RI pour #crée_contexte, il nout faut ajouter toutes les unités l'attendant.
      */
-    if (est_corps_de(unite->noeud,
+    if (est_corps_de(unité->noeud,
                      espace->compilatrice().interface_kuri->decl_creation_contexte)) {
         flush_métaprogrammes_en_attente_de_crée_contexte();
     }
 
-    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::optimisation_terminée(UniteCompilation *unite)
+void GestionnaireCode::optimisation_terminée(UniteCompilation *unité)
 {
-    assert(unite->noeud);
-    auto espace = unite->espace;
+    assert(unité->noeud);
+    auto espace = unité->espace;
     TACHE_TERMINEE(OPTIMISATION, true);
-    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 void GestionnaireCode::envoi_message_terminé(UniteCompilation *unité)
@@ -1545,14 +1545,14 @@ void GestionnaireCode::message_reçu(Message const *message)
     const_cast<Message *>(message)->message_recu = true;
 }
 
-void GestionnaireCode::execution_terminée(UniteCompilation *unite)
+void GestionnaireCode::execution_terminée(UniteCompilation *unité)
 {
-    assert(unite->metaprogramme);
-    assert(unite->metaprogramme->fut_execute);
-    auto espace = unite->espace;
+    assert(unité->metaprogramme);
+    assert(unité->metaprogramme->fut_execute);
+    auto espace = unité->espace;
     TACHE_TERMINEE(EXECUTION, true);
-    enleve_programme(unite->metaprogramme->programme);
-    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    enleve_programme(unité->metaprogramme->programme);
+    unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 static bool programme_requiers_liaison_exécutable(OptionsDeCompilation const &options)
@@ -1573,17 +1573,17 @@ static bool programme_requiers_liaison_exécutable(OptionsDeCompilation const &o
     return false;
 }
 
-void GestionnaireCode::generation_code_machine_terminée(UniteCompilation *unite)
+void GestionnaireCode::generation_code_machine_terminée(UniteCompilation *unité)
 {
-    assert(unite->programme);
+    assert(unité->programme);
 
-    auto programme = unite->programme;
-    auto espace = unite->espace;
+    auto programme = unité->programme;
+    auto espace = unité->espace;
 
     if (programme->pour_métaprogramme()) {
         programme->change_de_phase(PhaseCompilation::APRES_GENERATION_OBJET);
         programme->change_de_phase(PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
-        requiers_liaison_executable(espace, unite->programme);
+        requiers_liaison_executable(espace, unité->programme);
     }
     else {
         TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
@@ -1591,7 +1591,7 @@ void GestionnaireCode::generation_code_machine_terminée(UniteCompilation *unite
         if (programme_requiers_liaison_exécutable(espace->options)) {
             espace->change_de_phase(m_compilatrice->messagère,
                                     PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
-            requiers_liaison_executable(espace, unite->programme);
+            requiers_liaison_executable(espace, unité->programme);
         }
         else {
             espace->change_de_phase(m_compilatrice->messagère,
@@ -1599,40 +1599,40 @@ void GestionnaireCode::generation_code_machine_terminée(UniteCompilation *unite
         }
     }
 
-    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::liaison_programme_terminée(UniteCompilation *unite)
+void GestionnaireCode::liaison_programme_terminée(UniteCompilation *unité)
 {
-    assert(unite->programme);
+    assert(unité->programme);
 
-    auto programme = unite->programme;
-    auto espace = unite->espace;
+    auto programme = unité->programme;
+    auto espace = unité->espace;
 
     if (programme->pour_métaprogramme()) {
         auto metaprogramme = programme->pour_métaprogramme();
         programme->change_de_phase(PhaseCompilation::APRES_LIAISON_EXECUTABLE);
         programme->change_de_phase(PhaseCompilation::COMPILATION_TERMINEE);
-        requiers_exécution(unite->espace, metaprogramme);
+        requiers_exécution(unité->espace, metaprogramme);
     }
     else {
         TACHE_TERMINEE(LIAISON_PROGRAMME, true);
         espace->change_de_phase(m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINEE);
     }
 
-    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::conversion_noeud_code_terminée(UniteCompilation *unite)
+void GestionnaireCode::conversion_noeud_code_terminée(UniteCompilation *unité)
 {
-    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
-void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *unite)
+void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *unité)
 {
-    assert(unite->type->possède_drapeau(DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE));
+    assert(unité->type->possède_drapeau(DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE));
 
-    auto fonction = unite->type->fonction_init;
+    auto fonction = unité->type->fonction_init;
     if (fonction->unité) {
         /* Pour les pointeurs, énums, et fonctions, la fonction est partagée, nous ne devrions pas
          * générer la RI plusieurs fois. L'unité de compilation est utilisée pour indiquée que la
@@ -1641,38 +1641,40 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
     }
 
     POUR (programmes_en_cours) {
-        if (it->possède(unite->type)) {
+        if (it->possède(unité->type)) {
             it->ajoute_fonction(fonction);
         }
     }
 
     auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    determiné_dépendances(fonction, unite->espace, *graphe);
-    determiné_dépendances(fonction->corps, unite->espace, *graphe);
+    détermine_dépendances(fonction, unité->espace, *graphe);
+    détermine_dépendances(fonction->corps, unité->espace, *graphe);
 
     assert(toutes_les_entêtes_à_valider_le_sont());
 
-    unite->mute_raison_d_être(RaisonDEtre::GENERATION_RI);
-    auto espace = unite->espace;
+    unité->mute_raison_d_être(RaisonDEtre::GENERATION_RI);
+    auto espace = unité->espace;
     TACHE_AJOUTEE(GENERATION_RI);
-    unite->noeud = fonction;
-    fonction->unité = unite;
-    ajoute_unité_à_liste_attente(unite);
+    unité->noeud = fonction;
+    fonction->unité = unité;
+    ajoute_unité_à_liste_attente(unité);
 }
 
 void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
 {
+    DÉBUTE_STAT(CRÉATION_TÂCHES);
     m_nouvelles_unités.efface();
 
     if (plus_rien_n_est_à_faire()) {
         ordonnanceuse.marque_compilation_terminee();
+        TERMINE_STAT(CRÉATION_TÂCHES);
         return;
     }
 
 #undef DEBUG_UNITES_EN_ATTENTES
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
-    std::cerr << "Unités en attente avant la création des tâches : " << unites_en_attente.taille()
+    std::cerr << "Unités en attente avant la création des tâches : " << unités_en_attente.taille()
               << '\n';
     ordonnanceuse.imprime_donnees_files(std::cerr);
 #endif
@@ -1722,7 +1724,7 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
             case UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU:
             {
                 it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
-                ordonnanceuse.crée_tache_pour_unite(it);
+                ordonnanceuse.crée_tâche_pour_unité(it);
                 break;
             }
         }
@@ -1752,8 +1754,10 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
 
     unités_en_attente.permute(m_nouvelles_unités);
 
+    TERMINE_STAT(CRÉATION_TÂCHES);
+
 #ifdef DEBUG_UNITES_EN_ATTENTES
-    std::cerr << "Unités en attente après la création des tâches : " << unites_en_attente.taille()
+    std::cerr << "Unités en attente après la création des tâches : " << unités_en_attente.taille()
               << '\n';
     ordonnanceuse.imprime_donnees_files(std::cerr);
     std::cerr << "--------------------------------------------------------\n";
@@ -1956,18 +1960,18 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
     /* Nous avions déjà créé une unité pour générer le code machine, mais un métaprogramme a sans
      * doute ajouté du code. Il faut annuler l'unité précédente qui peut toujours être dans la file
      * d'attente. */
-    if (espace->unite_pour_code_machine) {
-        espace->unite_pour_code_machine->définis_état(
+    if (espace->unité_pour_code_machine) {
+        espace->unité_pour_code_machine->définis_état(
             UniteCompilation::État::ANNULÉE_CAR_REMPLACÉE);
         TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
     }
 
-    auto unite_code_machine = requiers_génération_code_machine(espace, espace->programme);
+    auto unité_code_machine = requiers_génération_code_machine(espace, espace->programme);
 
-    espace->unite_pour_code_machine = unite_code_machine;
+    espace->unité_pour_code_machine = unité_code_machine;
 
     if (message) {
-        unite_code_machine->ajoute_attente(Attente::sur_message(nullptr, message));
+        unité_code_machine->ajoute_attente(Attente::sur_message(nullptr, message));
     }
 }
 
@@ -1985,8 +1989,8 @@ void GestionnaireCode::interception_message_terminée(EspaceDeTravail *espace)
 {
     m_compilatrice->messagère->termine_interception(espace);
 
-    kuri::tableau<UniteCompilation *> nouvelles_unites;
-    nouvelles_unites.réserve(unités_en_attente.taille());
+    kuri::tableau<UniteCompilation *> nouvelles_unités;
+    nouvelles_unités.réserve(unités_en_attente.taille());
 
     POUR (unités_en_attente) {
         if (it->donne_raison_d_être() == RaisonDEtre::ENVOIE_MESSAGE) {
@@ -1994,10 +1998,10 @@ void GestionnaireCode::interception_message_terminée(EspaceDeTravail *espace)
         }
 
         it->supprime_attentes_sur_messages();
-        nouvelles_unites.ajoute(it);
+        nouvelles_unités.ajoute(it);
     }
 
-    unités_en_attente = nouvelles_unites;
+    unités_en_attente = nouvelles_unités;
 }
 
 void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace)
