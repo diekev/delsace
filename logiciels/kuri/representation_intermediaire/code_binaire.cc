@@ -1162,6 +1162,7 @@ ffi_type *converti_type_ffi(Type const *type)
         case GenreNoeud::POINTEUR:
         case GenreNoeud::REFERENCE:
         case GenreNoeud::FONCTION:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             return &ffi_type_pointer;
         }

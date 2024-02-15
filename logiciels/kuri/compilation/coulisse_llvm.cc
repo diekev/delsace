@@ -485,6 +485,13 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         {
             return convertis_type_composé(type->comme_type_tuple(), "tuple");
         }
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        {
+            /* Convertis vers void(*)(), comme en C. */
+            auto type_sortie_llvm = llvm::Type::getVoidTy(m_contexte_llvm);
+            auto type_fonction = llvm::FunctionType::get(type_sortie_llvm, false);
+            return type_fonction->getPointerTo();
+        }
         case GenreNoeud::FONCTION:
         {
             auto type_fonc = type->comme_type_fonction();
