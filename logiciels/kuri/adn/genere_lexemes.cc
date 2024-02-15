@@ -70,6 +70,7 @@ struct ListeLexèmes {
 
 static void construit_lexèmes(ListeLexèmes &lexèmes)
 {
+    lexèmes.ajoute_mot_clé("adresse_fonction", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("arrête");
     lexèmes.ajoute_mot_clé("bool", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("boucle");

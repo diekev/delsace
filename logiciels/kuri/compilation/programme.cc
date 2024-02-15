@@ -616,6 +616,7 @@ struct VisiteuseType {
             case GenreNoeud::ENTIER_NATUREL:
             case GenreNoeud::ENTIER_RELATIF:
             case GenreNoeud::REEL:
+            case GenreNoeud::TYPE_ADRESSE_FONCTION:
             {
                 break;
             }

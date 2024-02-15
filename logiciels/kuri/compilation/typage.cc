@@ -179,6 +179,17 @@ static Type *crée_type_octet()
     return type;
 }
 
+static Type *crée_type_adresse_fonction()
+{
+    auto type = memoire::loge<Type>("Type");
+    type->ident = ID::adresse_fonction;
+    type->genre = GenreNoeud::TYPE_ADRESSE_FONCTION;
+    type->taille_octet = 8;
+    type->alignement = 8;
+    type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+    return type;
+}
+
 /** \} */
 
 static void initialise_type_pointeur(TypePointeur *résultat, Type *type_pointe_)
@@ -403,6 +414,10 @@ static Type *crée_type_pour_lexeme(GenreLexème lexeme)
         {
             return crée_type_rien();
         }
+        case GenreLexème::ADRESSE_FONCTION:
+        {
+            return crée_type_adresse_fonction();
+        }
         default:
         {
             return nullptr;
@@ -437,6 +452,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDépendance> &g,
     CREE_TYPE_SIMPLE(RIEN);
     CREE_TYPE_SIMPLE(BOOL);
     CREE_TYPE_SIMPLE(OCTET);
+    CREE_TYPE_SIMPLE(ADRESSE_FONCTION);
 
 #undef CREE_TYPE_SIMPLE
 
@@ -528,6 +544,7 @@ void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
     gestionnaire->requiers_initialisation_type(espace, TypeBase::Z32);
     gestionnaire->requiers_initialisation_type(espace, TypeBase::Z64);
     gestionnaire->requiers_initialisation_type(espace, TypeBase::PTR_RIEN);
+    gestionnaire->requiers_initialisation_type(espace, TypeBase::ADRESSE_FONCTION);
 }
 
 Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
@@ -600,6 +617,10 @@ Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
         case GenreLexème::TYPE_DE_DONNEES:
         {
             return type_type_de_donnees_;
+        }
+        case GenreLexème::ADRESSE_FONCTION:
+        {
+            return TypeBase::ADRESSE_FONCTION;
         }
         default:
         {
@@ -1734,6 +1755,11 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             enchaineuse << ")";
             return;
         }
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        {
+            enchaineuse << "adresse_fonction";
+            return;
+        }
         CAS_POUR_NOEUDS_HORS_TYPES:
         {
             assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
@@ -2266,6 +2292,7 @@ bool est_type_fondamental(const Type *type)
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             return true;
         }
@@ -2330,6 +2357,7 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
             case GenreNoeud::DECLARATION_ENUM:
             case GenreNoeud::ERREUR:
             case GenreNoeud::ENUM_DRAPEAU:
+            case GenreNoeud::TYPE_ADRESSE_FONCTION:
             {
                 break;
             }

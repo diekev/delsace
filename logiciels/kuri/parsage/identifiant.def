@@ -133,6 +133,7 @@ ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(type_de_cette_fonction, "type_de_cette_fonctio
 ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(type_de_cette_structure, "type_de_cette_structure")
 
 /* Types fondamentaux. */
+ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(adresse_fonction, "adresse_fonction")
 ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bool_, "bool")
 ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chaine, "chaine")
 ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(eini, "eini")

@@ -421,6 +421,13 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             type->info_type = info_type;
             break;
         }
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        {
+            auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
+            info_type->genre = GenreInfoType::ADRESSE_FONCTION;
+            info_type->taille_en_octet = type->taille_octet;
+            return info_type;
+        }
         CAS_POUR_NOEUDS_HORS_TYPES:
         {
             assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
@@ -512,6 +519,10 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
         case GenreInfoType::RIEN:
         {
             return TypeBase::RIEN;
+        }
+        case GenreInfoType::ADRESSE_FONCTION:
+        {
+            return TypeBase::ADRESSE_FONCTION;
         }
         case GenreInfoType::POINTEUR:
         {
