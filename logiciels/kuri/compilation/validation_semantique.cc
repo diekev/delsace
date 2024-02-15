@@ -1126,6 +1126,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 case GenreNoeud::OCTET:
                 case GenreNoeud::TYPE_DE_DONNEES:
                 case GenreNoeud::REEL:
+                case GenreNoeud::TYPE_ADRESSE_FONCTION:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_;
                     break;

@@ -162,6 +162,7 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::CHAINE_CARACTERE:
             case GenreLexème::OCTET:
             case GenreLexème::TYPE_DE_DONNEES:
+            case GenreLexème::ADRESSE_FONCTION:
             {
                 t[i] |= EST_LEXÈME_TYPE;
                 t[i] |= EST_EXPRESSION;

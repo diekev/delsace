@@ -422,6 +422,9 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         VARIADIQUE {
             compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers Python pour le moment")
         }
+        ADRESSE_FONCTION {
+            compilatrice_rapporte_erreur("Les types « adresse_fonction » ne sont pas convertibles vers Python pour le moment")
+        }
     }
 
     si type_python {

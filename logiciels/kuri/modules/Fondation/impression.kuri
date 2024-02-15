@@ -628,6 +628,11 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
             x := mémoire(valeur.pointeur comme **z8)
             imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n64, 16))
         }
+        ADRESSE_FONCTION {
+            // Ne pas oublier qu'il y a un niveau d'indirection.
+            x := mémoire(valeur.pointeur comme **z8)
+            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n64, 16))
+        }
         EINI {
             x := mémoire(valeur.pointeur comme *eini)
 
@@ -983,6 +988,9 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
                 /* Les types variadiques externes n'ont pas de type élément. */
                 imprime_type(enchaineuse, info_arg.type_élément)
             }
+        }
+        ADRESSE_FONCTION {
+            ajoute_au_tampon(enchaineuse, "adresse_fonction")
         }
     }
 }
