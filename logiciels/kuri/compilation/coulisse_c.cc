@@ -1887,24 +1887,6 @@ void GénératriceCodeC::génère_code_source(CoulisseC::FichierC const &fichier
 
     génère_code_pour_tableaux_données_constantes(os, fichier.données_constantes, false);
 
-    /* À FAIRE : les types de pointeurs de fonctions ne peuvent être convertis vers des types de
-     * pointeurs d'objets. Nous devrons avoir des types distincts et supprimer *rien. En attendant,
-     * désactivation de l'avertissement "pedantic" car les globales des traces d'appel prennent des
-     * pointeurs de fonctions comme paramètres convertis vers *rien. */
-    auto const désactive_pedantic = R"(
-#if defined(__GNUC__)
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wpedantic"
-#endif
-)";
-    auto const active_pedantic = R"(
-#if defined(__GNUC__)
-#    pragma GCC diagnostic pop
-#endif
-)";
-
-    os << désactive_pedantic;
-
     /* Définis les globales. */
     POUR (fichier.globales) {
         auto valeur_initialisateur = kuri::chaine_statique();
@@ -1921,7 +1903,6 @@ void GénératriceCodeC::génère_code_source(CoulisseC::FichierC const &fichier
 
         os << ";\n";
     }
-    os << active_pedantic;
 
     /* Définis les fonctions. */
     POUR (fichier.fonctions) {
