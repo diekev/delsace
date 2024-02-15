@@ -5450,7 +5450,8 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     kuri::tableau<AtomeConstante *> valeurs(3);
     valeurs[0] = nom_fonction;
     valeurs[1] = nom_fichier;
-    valeurs[2] = m_constructrice.crée_transtype_constant(TypeBase::PTR_RIEN, pour_fonction);
+    valeurs[2] = m_constructrice.crée_transtype_constant(TypeBase::ADRESSE_FONCTION,
+                                                         pour_fonction);
 
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_fonction_trace_appel,
                                                                    std::move(valeurs));

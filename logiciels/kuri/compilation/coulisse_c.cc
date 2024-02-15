@@ -927,7 +927,7 @@ typedef uint8_t bool;
 typedef uint8_t octet;
 typedef void Ksnul;
 typedef int8_t ** KPKPKsz8;
-typedef void(*adresse_fonction)();
+typedef void(*adresse_fonction)(void);
 )";
 
     enchaineuse << préambule;
