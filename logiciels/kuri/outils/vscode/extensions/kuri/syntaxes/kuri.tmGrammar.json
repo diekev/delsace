@@ -65,7 +65,7 @@
         },
         "typename": {
             "name": "support.type.kuri",
-            "match": "\\b(rien|octet|n8|n16|n32|n64|z8|z16|z32|z64|r16|r32|r64|bool|chaine|eini|type_de_données)\\b"
+            "match": "\\b(rien|octet|n8|n16|n32|n64|z8|z16|z32|z64|r16|r32|r64|bool|chaine|eini|type_de_données|adresse_fonction)\\b"
         }
     }
 }

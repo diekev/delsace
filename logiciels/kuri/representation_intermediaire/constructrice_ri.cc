@@ -1349,6 +1349,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         case GenreNoeud::REFERENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::FONCTION:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             return crée_constante_nulle(type);
         }
@@ -1805,6 +1806,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
         case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
         case GenreNoeud::EXPRESSION_TYPE_FONCTION:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             break;
         }
@@ -4106,6 +4108,11 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             assert_rappel(false, []() { dbg() << "Obtenu un type tuple ou polymophique"; });
             break;
         }
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        {
+            type->atome_info_type = crée_info_type_défaut(GenreInfoType::ADRESSE_FONCTION, type);
+            break;
+        }
         case GenreNoeud::BOOL:
         {
             type->atome_info_type = crée_info_type_défaut(GenreInfoType::BOOLÉEN, type);
@@ -5429,7 +5436,8 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     kuri::tableau<AtomeConstante *> valeurs(3);
     valeurs[0] = nom_fonction;
     valeurs[1] = nom_fichier;
-    valeurs[2] = m_constructrice.crée_transtype_constant(TypeBase::PTR_RIEN, pour_fonction);
+    valeurs[2] = m_constructrice.crée_transtype_constant(TypeBase::ADRESSE_FONCTION,
+                                                         pour_fonction);
 
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_fonction_trace_appel,
                                                                    std::move(valeurs));
