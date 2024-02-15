@@ -36,6 +36,7 @@ enum class GenreInfoType : int32_t {
     VARIADIQUE = 15,
     TRANCHE = 16,
     TABLEAU_FIXE = 17,
+    ADRESSE_FONCTION = 18,
 };
 
 struct InfoType {

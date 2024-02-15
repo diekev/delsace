@@ -2085,6 +2085,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         }
         case GenreNoeud::POINTEUR:
         case GenreNoeud::FONCTION:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             auto valeur_défaut = assembleuse->crée_litterale_nul(&lexème_sentinel);
             valeur_défaut->type = ref_param->type;
@@ -2292,6 +2293,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             auto deref = assembleuse->crée_memoire(&lexème_sentinel);
             deref->expression = ref_param;

@@ -956,6 +956,13 @@ struct NoeudDéclarationTypeTypeDeDonnées : NoeudDéclarationType {
     NoeudDéclarationType *type_connu [code enfant]
 }
 
+struct NoeudDéclarationTypeAdresseFonction : NoeudDéclarationType {
+    @genre TYPE_ADRESSE_FONCTION
+    @comme type_adresse_fonction
+    @code  NoeudCodeAdresseFonction
+    @genre_valeur DROITE
+}
+
 struct NoeudDéclarationTypePolymorphique : NoeudDéclarationType {
     @genre POLYMORPHIQUE
     @comme type_polymorphique

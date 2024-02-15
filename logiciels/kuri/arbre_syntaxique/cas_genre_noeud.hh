@@ -112,6 +112,7 @@
     case GenreNoeud::TABLEAU_DYNAMIQUE:                                                           \
     case GenreNoeud::TABLEAU_FIXE:                                                                \
     case GenreNoeud::TUPLE:                                                                       \
+    case GenreNoeud::TYPE_ADRESSE_FONCTION:                                                       \
     case GenreNoeud::TYPE_DE_DONNEES:                                                             \
     case GenreNoeud::TYPE_TRANCHE:                                                                \
     case GenreNoeud::VARIADIQUE

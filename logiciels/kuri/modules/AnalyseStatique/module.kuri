@@ -152,6 +152,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
         CHAINE {}
         EINI {}
         VARIADIQUE {}
+        ADRESSE_FONCTION {}
     }
 }
 

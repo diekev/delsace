@@ -733,6 +733,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::REFERENCE:
         case GenreNoeud::VARIADIQUE:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             espace
                 ->rapporte_erreur(directive,

@@ -287,6 +287,28 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
+    if (type_vers->est_type_adresse_fonction()) {
+        /* x : adresse_fonction = nul; */
+        if (type_de->est_type_pointeur() &&
+            type_de->comme_type_pointeur()->type_pointe == nullptr) {
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+        }
+
+        if (type_de->est_type_fonction()) {
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+        }
+
+        if (POUR_TRANSTYPAGE) {
+            if (type_de == TypeBase::PTR_RIEN) {
+                return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+            }
+        }
+
+        /* Nous savons que les types sont différents, donc si l'un des deux est un
+         * pointeur fonction, nous pouvons retourner faux. */
+        return TransformationType(TypeTransformation::IMPOSSIBLE);
+    }
+
     if (type_vers->est_type_reference()) {
         auto type_élément_vers = type_vers->comme_type_reference()->type_pointe;
 
@@ -370,15 +392,6 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
 
         return TransformationType(TypeTransformation::IMPOSSIBLE);
-    }
-
-    if (type_vers->est_type_pointeur() && type_de->est_type_fonction()) {
-        auto type_pointe_vers = type_vers->comme_type_pointeur()->type_pointe;
-
-        /* x : *z8 = y (*rien) */
-        if (type_pointe_vers->est_type_rien()) {
-            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-        }
     }
 
     if (type_vers->est_type_pointeur() && type_de->est_type_pointeur()) {
@@ -466,7 +479,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (POUR_TRANSTYPAGE) {
-        if ((type_de->est_type_pointeur() || type_de->est_type_fonction()) &&
+        if ((type_de->est_type_pointeur() || type_de->est_type_fonction() ||
+             type_de->est_type_adresse_fonction()) &&
             est_type_entier(type_vers) && type_vers->taille_octet == 8) {
             return TransformationType{TypeTransformation::POINTEUR_VERS_ENTIER, type_vers};
         }
