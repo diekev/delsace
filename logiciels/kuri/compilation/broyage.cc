@@ -120,6 +120,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         case GenreNoeud::ENTIER_RELATIF:
         case GenreNoeud::REEL:
         case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             enchaineuse << "Ks" << type->ident->nom;
             break;
