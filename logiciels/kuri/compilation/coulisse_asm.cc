@@ -95,6 +95,7 @@ static ClasseArgument donne_classe_argument(Type const *type)
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_RELATIF:
         case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             return ClasseArgument::INTEGER;
         }

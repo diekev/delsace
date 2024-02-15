@@ -140,7 +140,8 @@ namespace TypeBase {
     O(TABL_EINI)                                                                                  \
     O(TABL_CHAINE)                                                                                \
     O(TABL_BOOL)                                                                                  \
-    O(TABL_OCTET)
+    O(TABL_OCTET)                                                                                 \
+    O(ADRESSE_FONCTION)
 
 #define DECLARE_EXTERNE_TYPE(nom) extern Type *nom;
 ENUMERE_TYPE_FONDAMENTAL(DECLARE_EXTERNE_TYPE)
