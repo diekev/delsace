@@ -329,6 +329,10 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
         VARIADIQUE {
             compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers C/C++ pour le moment")
         }
+        ADRESSE_FONCTION {
+            compilatrice_rapporte_erreur("Les types adresse_fonction ne sont pas convertibles vers Python pour le moment")
+            retourne nul
+        }
     }
 
     si nouveau_type.nom_type_kuri_c == "" {
@@ -1612,7 +1616,8 @@ convertis_variable_type_kuri_vers_type_c :: fonc (enchaineuse: *Enchaineuse, typ
         OPAQUE,
         TYPE_DE_DONNÉES,
         EINI,
-        VARIADIQUE {
+        VARIADIQUE,
+        ADRESSE_FONCTION {
             /* Rien à faire. */
         }
         STRUCTURE {
@@ -1710,6 +1715,9 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
             ajoute_au_tampon(enchaineuse, "\n")
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n")
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n")
+        }
+        ADRESSE_FONCTION {
+            /* Non-supportés. */
         }
     }
 }
