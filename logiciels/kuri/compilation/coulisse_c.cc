@@ -422,6 +422,11 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
             type_c.typedef_ = "int64_t";
             break;
         }
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        {
+            type_c.typedef_ = "adresse_fonction";
+            break;
+        }
         case GenreNoeud::REEL:
         {
             if (type->taille_octet == 2) {
@@ -660,6 +665,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::TYPE_DE_DONNEES:
         case GenreNoeud::REEL:
         case GenreNoeud::RIEN:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             /* Rien à faire pour ces types-là. */
             return;
@@ -1028,6 +1034,7 @@ typedef uint8_t bool;
 typedef uint8_t octet;
 typedef void Ksnul;
 typedef int8_t ** KPKPKsz8;
+typedef void(*adresse_fonction)(void);
 )";
 
     enchaineuse << préambule;
@@ -2076,24 +2083,6 @@ void GénératriceCodeC::génère_code_source(CoulisseC::FichierC const &fichier
 
     génère_code_pour_tableaux_données_constantes(os, fichier.données_constantes, false);
 
-    /* À FAIRE : les types de pointeurs de fonctions ne peuvent être convertis vers des types de
-     * pointeurs d'objets. Nous devrons avoir des types distincts et supprimer *rien. En attendant,
-     * désactivation de l'avertissement "pedantic" car les globales des traces d'appel prennent des
-     * pointeurs de fonctions comme paramètres convertis vers *rien. */
-    auto const désactive_pedantic = R"(
-#if defined(__GNUC__)
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wpedantic"
-#endif
-)";
-    auto const active_pedantic = R"(
-#if defined(__GNUC__)
-#    pragma GCC diagnostic pop
-#endif
-)";
-
-    os << désactive_pedantic;
-
     /* Définis les globales. */
     POUR (fichier.globales) {
         auto valeur_initialisateur = kuri::chaine_statique();
@@ -2110,7 +2099,6 @@ void GénératriceCodeC::génère_code_source(CoulisseC::FichierC const &fichier
 
         os << ";\n";
     }
-    os << active_pedantic;
 
     /* Définis les fonctions. */
     POUR (fichier.fonctions) {

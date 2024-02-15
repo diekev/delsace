@@ -1080,7 +1080,8 @@ parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
         TRANCHE,
         ÉNUM,
         EINI,
-        VARIADIQUE {
+        VARIADIQUE,
+        ADRESSE_FONCTION {
             retourne faux
         }
     }
