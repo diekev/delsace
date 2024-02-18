@@ -35,16 +35,16 @@ struct Programme;
     O(LIAISON_PROGRAMME, liaison_programme, "liaison programme")                                  \
     O(GENERATION_CODE_MACHINE, generation_code_machine, "génération code machine")
 
-enum class RaisonDEtre : unsigned char {
+enum class RaisonDÊtre : unsigned char {
 #define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine) Genre,
     ENUMERE_RAISON_D_ETRE(ENUMERE_RAISON_D_ETRE_EX)
 #undef ENUMERE_RAISON_D_ETRE_EX
 };
 
-#define NOMBRE_DE_RAISON_D_ETRE (int(RaisonDEtre::GENERATION_CODE_MACHINE) + 1)
+#define NOMBRE_DE_RAISON_D_ETRE (int(RaisonDÊtre::GENERATION_CODE_MACHINE) + 1)
 
-const char *chaine_raison_d_etre(RaisonDEtre raison_d_etre);
-std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
+const char *chaine_raison_d_être(RaisonDÊtre raison_d_être);
+std::ostream &operator<<(std::ostream &os, RaisonDÊtre raison_d_être);
 
 #define ENUMERE_ETAT_UNITE_COMPILATION(O)                                                         \
     O(EN_COURS_DE_COMPILATION)                                                                    \
@@ -81,7 +81,7 @@ struct UniteCompilation {
 
   private:
     État état = État::EN_COURS_DE_COMPILATION;
-    RaisonDEtre m_raison_d_être = RaisonDEtre::AUCUNE;
+    RaisonDÊtre m_raison_d_être = RaisonDÊtre::AUCUNE;
 
   public:
     /* Le nombre de cycles d'attentes, à savoir le nombre de fois où nous avons vérifié que
@@ -95,7 +95,7 @@ struct UniteCompilation {
         /* L'état lors de cet enregistrement. */
         État état{};
         /* La raison d'être lors de cet enregistrement. */
-        RaisonDEtre raison{};
+        RaisonDÊtre raison{};
         /* La fonction qui a ajouté cet enregistrement. */
         const char *fonction{};
     };
@@ -172,7 +172,7 @@ struct UniteCompilation {
                état == État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR;
     }
 
-    void mute_raison_d_être(RaisonDEtre nouvelle_raison)
+    void mute_raison_d_être(RaisonDÊtre nouvelle_raison)
     {
         m_raison_d_être = nouvelle_raison;
 #ifdef ENREGISTRE_HISTORIQUE
@@ -180,7 +180,7 @@ struct UniteCompilation {
 #endif
     }
 
-    RaisonDEtre donne_raison_d_être() const
+    RaisonDÊtre donne_raison_d_être() const
     {
         return m_raison_d_être;
     }
@@ -241,7 +241,7 @@ struct UniteCompilation {
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
     inline bool est_pour_##nom() const                                                            \
     {                                                                                             \
-        return m_raison_d_être == RaisonDEtre::Genre;                                             \
+        return m_raison_d_être == RaisonDÊtre::Genre;                                             \
     }
 
     ENUMERE_RAISON_D_ETRE(DEFINIS_DISCRIMINATION)

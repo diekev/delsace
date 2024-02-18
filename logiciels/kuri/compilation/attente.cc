@@ -94,22 +94,22 @@ RAPPEL_POUR_ERREUR(type)
     /* À FAIRE : garantis un site valide pour chaque attente. */
     auto site = NoeudExpression::nul();
     switch (unite->donne_raison_d_être()) {
-        case RaisonDEtre::AUCUNE:
-        case RaisonDEtre::CHARGEMENT_FICHIER:
-        case RaisonDEtre::LEXAGE_FICHIER:
-        case RaisonDEtre::PARSAGE_FICHIER:
-        case RaisonDEtre::CREATION_FONCTION_INIT_TYPE:
-        case RaisonDEtre::CONVERSION_NOEUD_CODE:
-        case RaisonDEtre::ENVOIE_MESSAGE:
-        case RaisonDEtre::GENERATION_RI:
-        case RaisonDEtre::GENERATION_RI_PRINCIPALE_MP:
-        case RaisonDEtre::EXECUTION:
-        case RaisonDEtre::LIAISON_PROGRAMME:
-        case RaisonDEtre::GENERATION_CODE_MACHINE:
+        case RaisonDÊtre::AUCUNE:
+        case RaisonDÊtre::CHARGEMENT_FICHIER:
+        case RaisonDÊtre::LEXAGE_FICHIER:
+        case RaisonDÊtre::PARSAGE_FICHIER:
+        case RaisonDÊtre::CREATION_FONCTION_INIT_TYPE:
+        case RaisonDÊtre::CONVERSION_NOEUD_CODE:
+        case RaisonDÊtre::ENVOIE_MESSAGE:
+        case RaisonDÊtre::GENERATION_RI:
+        case RaisonDÊtre::GENERATION_RI_PRINCIPALE_MP:
+        case RaisonDÊtre::EXECUTION:
+        case RaisonDÊtre::LIAISON_PROGRAMME:
+        case RaisonDÊtre::GENERATION_CODE_MACHINE:
         {
             break;
         }
-        case RaisonDEtre::TYPAGE:
+        case RaisonDÊtre::TYPAGE:
         {
             site = unite->noeud;
             break;
