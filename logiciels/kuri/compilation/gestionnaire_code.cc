@@ -993,8 +993,8 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
          * RI. */
         requiers_initialisation_type(espace, type);
     }
-    else if (attente.est<AttenteSurDeclaration>()) {
-        NoeudDeclaration *decl = attente.declaration();
+    else if (attente.est<AttenteSurDéclaration>()) {
+        NoeudDeclaration *decl = attente.déclaration();
         if (*donne_adresse_unité(decl) == nullptr) {
             requiers_typage(espace, decl);
         }

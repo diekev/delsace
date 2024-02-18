@@ -385,11 +385,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto fini_execution = m_compilatrice.interface_kuri->decl_fini_execution_kuri;
             assert(fini_execution);
             if (!fini_execution->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(fini_execution);
+                return Attente::sur_déclaration(fini_execution);
             }
             auto corps = fini_execution->corps;
             if (!corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(corps);
+                return Attente::sur_déclaration(corps);
             }
             auto ajoute_fini = noeud->comme_ajoute_fini();
             corps->bloc->expressions->ajoute_au_début(ajoute_fini->expression);
@@ -401,11 +401,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto init_execution = m_compilatrice.interface_kuri->decl_init_execution_kuri;
             assert(init_execution);
             if (!init_execution->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(init_execution);
+                return Attente::sur_déclaration(init_execution);
             }
             auto corps = init_execution->corps;
             if (!corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(corps);
+                return Attente::sur_déclaration(corps);
             }
             auto ajoute_init = noeud->comme_ajoute_init();
             corps->bloc->expressions->ajoute_au_début(ajoute_init->expression);
@@ -466,7 +466,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto decl = noeud->comme_corps_fonction();
 
             if (!decl->entete->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(decl->entete);
+                return Attente::sur_déclaration(decl->entete);
             }
 
             if (decl->entete->est_operateur) {
@@ -522,7 +522,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             if (racine_validation() != noeud) {
                 /* avance l'index car il est inutile de revalider ce noeud */
                 m_arbre_courant->index_courant += 1;
-                return Attente::sur_metaprogramme(metaprogramme);
+                return Attente::sur_métaprogramme(metaprogramme);
             }
 
             noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -626,7 +626,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto op = cherche_opérateur_unaire(*operateurs, type, expr->lexeme->genre);
 
             if (op == nullptr) {
-                return Attente::sur_operateur(noeud);
+                return Attente::sur_opérateur(noeud);
             }
 
             expr->type = op->type_résultat;
@@ -1315,7 +1315,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             if (!m_compilatrice.globale_contexte_programme->possède_drapeau(
                     DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(m_compilatrice.globale_contexte_programme);
+                return Attente::sur_déclaration(m_compilatrice.globale_contexte_programme);
             }
 
             if (variable->type != m_compilatrice.typeuse.type_contexte) {
@@ -1677,7 +1677,7 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
             }
 
             if (!déclaration_référée->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(déclaration_référée);
+                return Attente::sur_déclaration(déclaration_référée);
             }
 
             expression_membre->genre_valeur = déclaration_référée->genre_valeur;
@@ -2242,7 +2242,7 @@ RésultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declar
         if (noeud_enfant->est_declaration_type() && noeud_enfant != racine_validation()) {
             /* Les types ont leurs propres unités de compilation. */
             if (!noeud_enfant->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(noeud_enfant->comme_declaration_type());
+                return Attente::sur_déclaration(noeud_enfant->comme_declaration_type());
             }
 
             continue;
@@ -2252,7 +2252,7 @@ RésultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declar
             /* Les fonctions nichées dans d'autres fonctions ont leurs propres unités de
              * compilation. */
             if (!noeud_enfant->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(noeud_enfant->comme_entete_fonction());
+                return Attente::sur_déclaration(noeud_enfant->comme_entete_fonction());
             }
 
             continue;
@@ -2781,7 +2781,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
         if (type_discriminée->est_type_enum()) {
             auto type_énum = type_discriminée->comme_type_enum();
             if (!type_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(type_énum);
+                return Attente::sur_déclaration(type_énum);
             }
 
             bloc_recherche_original = bloc_recherche;
@@ -2791,7 +2791,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
         else if (type_discriminée->est_type_union()) {
             auto type_union = type_discriminée->comme_type_union();
             if (!type_union->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(type_union);
+                return Attente::sur_déclaration(type_union);
             }
 
             /* Les unions anonymes n'ont pas de bloc. */
@@ -2914,7 +2914,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
     if (decl->est_declaration_type()) {
         if (decl->est_type_opaque() &&
             !decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            return Attente::sur_declaration(decl);
+            return Attente::sur_déclaration(decl);
         }
 
         /* Ne vérifions pas seulement le drapeau DrapeauxNoeud::DECLARATION_FUT_VALIDEE, car la
@@ -2947,7 +2947,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
                                           "Utilisation d'une variable dans sa définition !\n");
                 return CodeRetourValidation::Erreur;
             }
-            return Attente::sur_declaration(decl);
+            return Attente::sur_déclaration(decl);
         }
 
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
@@ -3908,7 +3908,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
             }
 
             m_compilatrice.gestionnaire_code->requiers_typage(m_espace, fonction->corps);
-            return Attente::sur_declaration(fonction->corps);
+            return Attente::sur_déclaration(fonction->corps);
         }
 
         auto metaprogramme = decl->metaprogramme_corps_texte;
@@ -4150,7 +4150,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
             }
 
             m_compilatrice.gestionnaire_code->requiers_typage(m_espace, fonction->corps);
-            return Attente::sur_declaration(fonction->corps);
+            return Attente::sur_déclaration(fonction->corps);
         }
 
         auto metaprogramme = decl->metaprogramme_corps_texte;
@@ -6214,7 +6214,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     m_arbre_courant->index_courant += 1;
 
     /* Attend sur la validation sémantique du macro. */
-    return Attente::sur_declaration(corps_copie_macro);
+    return Attente::sur_déclaration(corps_copie_macro);
 }
 
 /** \} */

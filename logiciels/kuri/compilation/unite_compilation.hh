@@ -231,7 +231,7 @@ struct UniteCompilation {
     inline bool attend_sur_déclaration(NoeudDeclaration *decl)
     {
         POUR (m_attentes) {
-            if (it.est<AttenteSurDeclaration>() && it.declaration() == decl) {
+            if (it.est<AttenteSurDéclaration>() && it.déclaration() == decl) {
                 return false;
             }
         }
