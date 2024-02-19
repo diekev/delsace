@@ -2165,6 +2165,13 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
 
     auto type_accédé = donne_type_accédé_effectif(accédée->type);
 
+    if (type_accédé->est_type_type_de_donnees()) {
+        auto type_de_donnees = type_accédé->comme_type_type_de_donnees();
+        if (type_de_donnees->type_connu != nullptr) {
+            type_accédé = type_de_donnees->type_connu;
+        }
+    }
+
     if (type_accédé->est_type_tableau_fixe()) {
         auto taille = type_accédé->comme_type_tableau_fixe()->taille;
         ref_membre->substitution = assem->crée_litterale_entier(
@@ -2177,13 +2184,6 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
         auto valeur_énum = type_enum->membres[ref_membre->index_membre].valeur;
         ref_membre->substitution = assem->crée_litterale_entier(
             lexème, type_enum, static_cast<unsigned>(valeur_énum));
-        return;
-    }
-
-    if (type_accédé->est_type_type_de_donnees() &&
-        ref_membre->genre_valeur == GenreValeur::DROITE) {
-        ref_membre->substitution = assem->crée_reference_type(
-            lexème, typeuse.type_type_de_donnees(ref_membre->type));
         return;
     }
 

@@ -1695,9 +1695,6 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
 
         if (type_de_donnees->type_connu != nullptr) {
             type = type_de_donnees->type_connu;
-            // change le type de la structure également pour simplifier la génération
-            // de la RI (nous nous basons sur le type pour ça)
-            structure->type = type;
         }
     }
 
@@ -1740,8 +1737,7 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
              * compilation
              * - MonÉnum.CONSTANTE, où MonÉnum est un type -> OK
              */
-            if (structure->type->est_type_enum() &&
-                structure->genre_valeur != GenreValeur::DROITE) {
+            if (type->est_type_enum() && structure->genre_valeur != GenreValeur::DROITE) {
                 if (type->est_type_enum_drapeau()) {
                     if (!membre_est_implicite) {
                         expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
