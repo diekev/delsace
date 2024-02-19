@@ -15,6 +15,7 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationSymbole;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
+struct NoeudExpressionReference;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
 struct NoeudStruct;
@@ -34,6 +35,31 @@ struct DonnéesPrécédence {
     Associativité associativité = Associativité::GAUCHE;
 };
 
+/* ------------------------------------------------------------------------- */
+/** \name TableRéférences
+ * À FAIRE : ceci ne prend pas en compte le recyclage des noeuds créés inutilement
+ * À FAIRE : ceci ne prend pas en compte les blocs parents (à cause du recyclage)
+ * \{ */
+
+class TableRéférences {
+    kuri::tableau<NoeudExpressionReference *, int> m_références{};
+
+    kuri::pile<int> m_références_par_blocs{};
+
+  public:
+    void réinitialise();
+
+    NoeudExpressionReference *trouve_référence_pour(Lexème const *lexème) const;
+
+    void ajoute_référence(NoeudExpressionReference *noeud);
+
+    void empile_état();
+
+    void dépile_état();
+};
+
+/** \} */
+
 struct Syntaxeuse : BaseSyntaxeuse {
   private:
     Compilatrice &m_compilatrice;
@@ -50,6 +76,9 @@ struct Syntaxeuse : BaseSyntaxeuse {
     kuri::pile<NoeudDeclarationEnteteFonction *> fonctions_courantes{};
 
     bool m_fonction_courante_retourne_plusieurs_valeurs = false;
+
+    kuri::pile<TableRéférences *> m_pile_tables_références{};
+    kuri::tableau<TableRéférences *> m_tables_références{};
 
   public:
     Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite);
@@ -126,4 +155,9 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     void analyse_directive_déclaration_variable(NoeudDeclarationVariable *déclaration);
     void analyse_directive_symbole_externe(NoeudDeclarationSymbole *déclaration_symbole);
+
+    void empile_table_références();
+    void dépile_table_références();
+
+    NoeudExpressionReference *crée_référence_déclaration(Lexème const *lexème);
 };

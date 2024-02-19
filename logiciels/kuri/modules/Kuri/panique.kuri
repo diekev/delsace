@@ -44,7 +44,7 @@ panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface
 {
     rappel := contexte().rappel_panique
     si rappel != nul {
-        rappel()
+        //rappel()
     }
 
     imprime("\n\x1b[1;31mErreur :\x1b[0m ")
