@@ -2087,7 +2087,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
             noeud_discr->bloc_sinon = analyse_bloc();
         }
         else {
+            m_désactive_réutilisation_référence = true;
             auto expr = analyse_expression({}, GenreLexème::INCONNU, GenreLexème::INCONNU);
+            m_désactive_réutilisation_référence = false;
             auto bloc = analyse_bloc();
 
             if (!expr->est_virgule()) {
@@ -3519,7 +3521,7 @@ void Syntaxeuse::dépile_table_références()
 
 NoeudExpressionReference *Syntaxeuse::crée_référence_déclaration(Lexème const *lexème)
 {
-    if (m_pile_tables_références.est_vide()) {
+    if (m_désactive_réutilisation_référence || m_pile_tables_références.est_vide()) {
         return m_tacheronne.assembleuse->crée_reference_declaration(lexème);
     }
 

@@ -81,6 +81,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     kuri::pile<TableRéférences *> m_pile_tables_références{};
     kuri::tableau<TableRéférences *> m_tables_références{};
+    bool m_désactive_réutilisation_référence = false;
 
   public:
     Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite);

@@ -734,6 +734,15 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
             dbg() << "Espéré " << chaine_type(it);
             dbg() << "Obtenu " << chaine_type(args[index_it]->type);
             dbg() << imprime_site(site_);
+            dbg() << "L'index de l'argument est " << index_it;
+            if (site_ && site_->est_appel()) {
+                auto appel = site_->comme_appel();
+                auto param = appel->parametres_resolus[index_it];
+                dbg() << "Noeud param : " << param->genre
+                      << ", type : " << chaine_type(param->type)
+                      << ", substitution : " << param->substitution->genre
+                      << ", type substitution : " << chaine_type(param->substitution->type);
+            }
             if (appelé->est_fonction()) {
                 auto fonction_appelé = appelé->comme_fonction();
                 if (fonction_appelé->decl) {
