@@ -39,6 +39,7 @@ struct DonnéesPrécédence {
 /** \name TableRéférences
  * À FAIRE : ceci ne prend pas en compte le recyclage des noeuds créés inutilement
  * À FAIRE : ceci ne prend pas en compte les blocs parents (à cause du recyclage)
+ * À FAIRE : les substitutions ne seront pas les bonnes pour les appels de fonctions (etc. ?)
  * \{ */
 
 class TableRéférences {
@@ -52,6 +53,7 @@ class TableRéférences {
     NoeudExpressionReference *trouve_référence_pour(Lexème const *lexème) const;
 
     void ajoute_référence(NoeudExpressionReference *noeud);
+    void invalide_référence(NoeudExpressionReference *noeud);
 
     void empile_état();
 
@@ -160,4 +162,6 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void dépile_table_références();
 
     NoeudExpressionReference *crée_référence_déclaration(Lexème const *lexème);
+
+    void recycle_référence(NoeudExpressionReference *référence);
 };

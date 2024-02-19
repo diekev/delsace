@@ -41,6 +41,10 @@ NoeudExpressionReference *TableRéférences::trouve_référence_pour(Lexème con
     for (int i = m_références.taille() - 1; i >= 0; i--) {
         auto référence = m_références[i];
 
+        if (!référence) {
+            continue;
+        }
+
         if (référence->ident == lexème->ident) {
             return référence;
         }
@@ -52,6 +56,16 @@ NoeudExpressionReference *TableRéférences::trouve_référence_pour(Lexème con
 void TableRéférences::ajoute_référence(NoeudExpressionReference *noeud)
 {
     m_références.ajoute(noeud);
+}
+
+void TableRéférences::invalide_référence(NoeudExpressionReference *noeud)
+{
+    POUR (m_références) {
+        if (it == noeud) {
+            it = nullptr;
+            break;
+        }
+    }
 }
 
 void TableRéférences::empile_état()
@@ -1123,6 +1137,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
                     noeud->expression_piegee = analyse_expression(
                         {}, GenreLexème::PIEGE, GenreLexème::INCONNU);
                     noeud->bloc = analyse_bloc();
+
+                    /* Pour que les références subséquentes cherchent la déclaration dans le bon
+                     * bloc... */
+                    noeud->expression_piegee->bloc_parent = noeud->bloc;
                     m_pile_tables_références.haut()->dépile_état();
                 }
             }
@@ -1570,7 +1588,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 // nous avons la déclaration d'un type (a: z32)
                 auto decl = m_tacheronne.assembleuse->crée_declaration_variable(
                     gauche->comme_reference_declaration());
-                // m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
+                recycle_référence(gauche->comme_reference_declaration());
                 decl->expression_type = analyse_expression(
                     données_précédence, racine_expression, lexème_final);
                 if (!bloc_constantes_polymorphiques.est_vide()) {
@@ -1650,7 +1668,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             /* Vérifie que nous avons une référence car nous ne nous arrêtons pas en cas d'erreur
              * de syntaxe. */
             if (gauche->est_reference_declaration()) {
-                // m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
+                recycle_référence(gauche->comme_reference_declaration());
             }
             noeud->expression = expression;
             analyse_annotations(noeud->annotations);
@@ -2205,6 +2223,12 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 
     noeud->bloc = analyse_bloc();
     noeud->bloc->appartiens_a_boucle = noeud;
+
+    /* Pour que les références subséquentes cherchent la déclaration dans le bon
+     * bloc... */
+    POUR (noeud->variable->comme_virgule()->expressions) {
+        it->bloc_parent = noeud->bloc;
+    }
 
     if (apparie(GenreLexème::SANSARRET)) {
         consomme();
@@ -3508,4 +3532,15 @@ NoeudExpressionReference *Syntaxeuse::crée_référence_déclaration(Lexème con
     résultat = m_tacheronne.assembleuse->crée_reference_declaration(lexème);
     table->ajoute_référence(résultat);
     return résultat;
+}
+
+void Syntaxeuse::recycle_référence(NoeudExpressionReference *référence)
+{
+    // m_tacheronne.assembleuse->recycle_référence(référence);
+
+    if (!m_pile_tables_références.est_vide()) {
+        /* Pour éviter que les références créées pour les déclarations nous empêchent de valider
+         * sémantiquement les références suivantes. */
+        m_pile_tables_références.haut()->invalide_référence(référence);
+    }
 }
