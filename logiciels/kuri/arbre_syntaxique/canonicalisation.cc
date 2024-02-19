@@ -746,8 +746,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             if (appel->noeud_fonction_appelee) {
-                appel->expression->substitution = assem->crée_reference_declaration(
-                    appel->lexeme, appel->noeud_fonction_appelee->comme_declaration_symbole());
+                if (!appel->expression->est_reference_declaration() ||
+                    appel->expression->comme_reference_declaration()->declaration_referee !=
+                        appel->noeud_fonction_appelee) {
+                    appel->expression->substitution = assem->crée_reference_declaration(
+                        appel->lexeme, appel->noeud_fonction_appelee->comme_declaration_symbole());
+                }
             }
             else {
                 simplifie(appel->expression);
