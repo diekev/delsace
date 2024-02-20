@@ -1546,7 +1546,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
             else if (decl->est_type_opaque()) {
                 auto decl_opaque = decl->comme_type_opaque();
                 if (!decl_opaque->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                    return Attente::sur_declaration(decl_opaque);
+                    return Attente::sur_déclaration(decl_opaque);
                 }
                 état->résultats.ajoute(
                     apparie_construction_opaque(espace, expr, decl_opaque, état->args));
@@ -1555,7 +1555,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                 auto decl_fonc = decl->comme_entete_fonction();
 
                 if (!decl_fonc->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                    return Attente::sur_declaration(decl_fonc);
+                    return Attente::sur_déclaration(decl_fonc);
                 }
 
                 état->résultats.ajoute(
@@ -1565,7 +1565,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                 auto type = decl->type;
 
                 if (!decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                    return Attente::sur_declaration(decl->comme_base_declaration_variable());
+                    return Attente::sur_déclaration(decl->comme_base_declaration_variable());
                 }
 
                 /* Nous pouvons avoir une constante polymorphique ou un alias. */
@@ -2007,7 +2007,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             if (doit_monomorpher ||
                 !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(noeud_decl);
+                return Attente::sur_déclaration(noeud_decl);
             }
 
             decl_fonction_appelée = noeud_decl;
@@ -2065,7 +2065,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             if (doit_monomorpher ||
                 !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(noeud_decl);
+                return Attente::sur_déclaration(noeud_decl);
             }
 
             decl_fonction_appelée = noeud_decl;
