@@ -3664,11 +3664,6 @@ NoeudExpressionReference *Syntaxeuse::crée_référence_déclaration(Lexème con
 NoeudExpressionMembre *Syntaxeuse::crée_référence_membre(Lexème const *lexème,
                                                          NoeudExpression *gauche)
 {
-#if 1
-    auto noeud = m_tacheronne.assembleuse->crée_reference_membre(lexème);
-    noeud->accedee = gauche;
-    return noeud;
-#else
     if (!m_pile_tables_références.est_vide()) {
         auto table = m_pile_tables_références.haut();
         auto résultat = table->trouve_référence_membre_pour(lexème, gauche);
@@ -3686,7 +3681,6 @@ NoeudExpressionMembre *Syntaxeuse::crée_référence_membre(Lexème const *lexè
         table->ajoute_référence_membre(noeud);
     }
     return noeud;
-#endif
 }
 
 NoeudExpressionLitteraleChaine *Syntaxeuse::crée_littérale_chaine(Lexème const *lexème)

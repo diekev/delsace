@@ -756,8 +756,17 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     }
                 }
                 else {
-                    appel->expression->substitution = assem->crée_reference_declaration(
-                        appel->lexeme, appel->noeud_fonction_appelee->comme_declaration_symbole());
+                    /* Crée une nouvelle expression pour les expressions partagées. */
+                    if (appel->expression->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ)) {
+                        appel->expression = assem->crée_reference_declaration(
+                            appel->lexeme,
+                            appel->noeud_fonction_appelee->comme_declaration_symbole());
+                    }
+                    else {
+                        appel->expression->substitution = assem->crée_reference_declaration(
+                            appel->lexeme,
+                            appel->noeud_fonction_appelee->comme_declaration_symbole());
+                    }
                 }
             }
             else {
