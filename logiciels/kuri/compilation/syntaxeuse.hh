@@ -29,7 +29,7 @@ enum class Associativité : int {
     DROITE,
 };
 
-struct DonneesPrecedence {
+struct DonnéesPrécédence {
     int précédence = 0;
     Associativité associativité = Associativité::GAUCHE;
 };
@@ -68,14 +68,14 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     /* NOTE: lexème_final n'est utilisé que pour éviter de traiter les virgules comme des
      * opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
-    NoeudExpression *analyse_expression(DonneesPrecedence const &donnees_precedence,
+    NoeudExpression *analyse_expression(DonnéesPrécédence const &donnees_precedence,
                                         GenreLexème racine_expression,
                                         GenreLexème lexème_final);
     NoeudExpression *analyse_expression_unaire(GenreLexème lexème_final);
     NoeudExpression *analyse_expression_primaire(GenreLexème racine_expression,
                                                  GenreLexème lexème_final);
     NoeudExpression *analyse_expression_secondaire(NoeudExpression *gauche,
-                                                   DonneesPrecedence const &donnees_precedence,
+                                                   DonnéesPrécédence const &donnees_precedence,
                                                    GenreLexème racine_expression,
                                                    GenreLexème lexème_final);
 

@@ -75,12 +75,12 @@ enum class DrapeauxNoeud : uint32_t {
      * assertions. */
     LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION = (1u << 23),
 
-    EST_LOCALE = (1u << 29),  // decl var
+    EST_LOCALE = (1u << 24),  // decl var
     /* La déclaration est celle d'une variable déclarée dans une expression virgule
      * (p.e. a, b := ...). */
-    EST_DÉCLARATION_EXPRESSION_VIRGULE = (1u << 30),  // decl var
+    EST_DÉCLARATION_EXPRESSION_VIRGULE = (1u << 25),  // decl var
 
-    FUT_SIMPLIFIÉ = (1u << 31),
+    FUT_SIMPLIFIÉ = (1u << 26),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
