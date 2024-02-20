@@ -38,55 +38,55 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
     return os;
 }
 
-static int file_pour_raison_d_etre(RaisonDEtre raison_d_etre)
+static int file_pour_raison_d_être(RaisonDÊtre raison_d_être)
 {
-    switch (raison_d_etre) {
-        case RaisonDEtre::CHARGEMENT_FICHIER:
+    switch (raison_d_être) {
+        case RaisonDÊtre::CHARGEMENT_FICHIER:
         {
             return OrdonnanceuseTache::FILE_CHARGEMENT;
         }
-        case RaisonDEtre::LEXAGE_FICHIER:
+        case RaisonDÊtre::LEXAGE_FICHIER:
         {
             return OrdonnanceuseTache::FILE_LEXAGE;
         }
-        case RaisonDEtre::PARSAGE_FICHIER:
+        case RaisonDÊtre::PARSAGE_FICHIER:
         {
             return OrdonnanceuseTache::FILE_PARSAGE;
         }
-        case RaisonDEtre::TYPAGE:
+        case RaisonDÊtre::TYPAGE:
         {
             return OrdonnanceuseTache::FILE_TYPAGE;
         }
-        case RaisonDEtre::GENERATION_RI:
-        case RaisonDEtre::GENERATION_RI_PRINCIPALE_MP:
+        case RaisonDÊtre::GENERATION_RI:
+        case RaisonDÊtre::GENERATION_RI_PRINCIPALE_MP:
         {
             return OrdonnanceuseTache::FILE_GENERATION_RI;
         }
-        case RaisonDEtre::EXECUTION:
+        case RaisonDÊtre::EXECUTION:
         {
             return OrdonnanceuseTache::FILE_EXECUTION;
         }
-        case RaisonDEtre::GENERATION_CODE_MACHINE:
+        case RaisonDÊtre::GENERATION_CODE_MACHINE:
         {
             return OrdonnanceuseTache::FILE_GENERATION_CODE_MACHINE;
         }
-        case RaisonDEtre::LIAISON_PROGRAMME:
+        case RaisonDÊtre::LIAISON_PROGRAMME:
         {
             return OrdonnanceuseTache::FILE_LIAISON_PROGRAMME;
         }
-        case RaisonDEtre::ENVOIE_MESSAGE:
+        case RaisonDÊtre::ENVOIE_MESSAGE:
         {
             return OrdonnanceuseTache::FILE_ENVOIE_MESSAGE;
         }
-        case RaisonDEtre::CONVERSION_NOEUD_CODE:
+        case RaisonDÊtre::CONVERSION_NOEUD_CODE:
         {
             return OrdonnanceuseTache::FILE_CONVERSION_NOEUD_CODE;
         }
-        case RaisonDEtre::CREATION_FONCTION_INIT_TYPE:
+        case RaisonDÊtre::CREATION_FONCTION_INIT_TYPE:
         {
             return OrdonnanceuseTache::FILE_CREATION_FONCTION_INIT_TYPE;
         }
-        case RaisonDEtre::AUCUNE:
+        case RaisonDÊtre::AUCUNE:
         {
             return -1;
         }
@@ -104,7 +104,7 @@ void OrdonnanceuseTache::crée_tâche_pour_unité(UniteCompilation *unite)
     assert(unite);
     assert(unite->espace);
 
-    const auto index_file = file_pour_raison_d_etre(unite->donne_raison_d_être());
+    const auto index_file = file_pour_raison_d_être(unite->donne_raison_d_être());
 
     auto tache = Tâche{};
     tache.unité = unite;
