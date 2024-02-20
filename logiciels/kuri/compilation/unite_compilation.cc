@@ -16,12 +16,12 @@
 
 static constexpr auto CYCLES_MAXIMUM = 1000;
 
-const char *chaine_raison_d_etre(RaisonDEtre raison_d_etre)
+const char *chaine_raison_d_être(RaisonDÊtre raison_d_être)
 {
 #define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine)                                              \
-    case RaisonDEtre::Genre:                                                                      \
+    case RaisonDÊtre::Genre:                                                                      \
         return chaine;
-    switch (raison_d_etre) {
+    switch (raison_d_être) {
         ENUMERE_RAISON_D_ETRE(ENUMERE_RAISON_D_ETRE_EX)
     }
 #undef ENUMERE_RAISON_D_ETRE_EX
@@ -36,9 +36,9 @@ static UniteCompilation *unité_pour_attente(Attente const &attente)
     return nullptr;
 }
 
-std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
+std::ostream &operator<<(std::ostream &os, RaisonDÊtre raison_d_être)
 {
-    return os << chaine_raison_d_etre(raison_d_etre);
+    return os << chaine_raison_d_être(raison_d_être);
 }
 
 void UniteCompilation::ajoute_attente(Attente attente)
@@ -76,17 +76,17 @@ bool UniteCompilation::est_bloquée() const
         return false;
     }
 
-    auto visitees = kuri::ensemblon<UniteCompilation const *, 16>();
-    visitees.insère(this);
+    auto visitées = kuri::ensemblon<UniteCompilation const *, 16>();
+    visitées.insère(this);
 
     auto attendue = unité_pour_attente(*attente_bloquée);
     while (attendue) {
-        if (visitees.possède(attendue)) {
+        if (visitées.possède(attendue)) {
             /* La dépendance cyclique sera rapportée via le message d'erreur qui appelera
              * « chaine_attente_recursive() ». */
             return true;
         }
-        visitees.insère(attendue);
+        visitées.insère(attendue);
 
         attente_bloquée = attendue->première_attente_bloquée();
         if (!attente_bloquée) {
@@ -192,8 +192,8 @@ kuri::chaine UniteCompilation::chaine_attentes_récursives() const
         fc << "    " << commentaire << " est bloquée !\n";
     }
 
-    kuri::ensemble<UniteCompilation const *> unite_visite;
-    unite_visite.insère(this);
+    kuri::ensemble<UniteCompilation const *> unités_visitées;
+    unités_visitées.insère(this);
 
     while (attendue) {
         if (attendue->est_prête()) {
@@ -201,7 +201,7 @@ kuri::chaine UniteCompilation::chaine_attentes_récursives() const
             break;
         }
 
-        if (unite_visite.possède(attendue)) {
+        if (unités_visitées.possède(attendue)) {
             fc << "    erreur : dépendance cyclique !\n";
             break;
         }
@@ -211,7 +211,7 @@ kuri::chaine UniteCompilation::chaine_attentes_récursives() const
         commentaire = commentaire_pour_attente(*attente);
         fc << commentaire << '\n';
 
-        unite_visite.insère(attendue);
+        unités_visitées.insère(attendue);
 
         attendue = unité_pour_attente(*attente);
     }
@@ -253,7 +253,7 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
 
         /* À FAIRE : généralise. */
         if (it.est<AttenteSurNoeudCode>()) {
-            assert(m_raison_d_être == RaisonDEtre::ENVOIE_MESSAGE);
+            assert(m_raison_d_être == RaisonDÊtre::ENVOIE_MESSAGE);
             static_cast<MessageTypageCodeTermine *>(message)->code =
                 it.noeud_code().noeud->noeud_code;
         }

@@ -102,6 +102,8 @@ enum class TypeLogMétaprogramme : uint32_t {
     FUITES_DE_MÉMOIRE,
     /* Les empilages et dépilages lors des exécutions. */
     PILE_DE_VALEURS,
+    /* Le code binaire, si --émet_code_binaire est passé sur la ligne de commande. */
+    CODE_BINAIRE,
 
     NOMBRE_DE_LOGS,
 };
