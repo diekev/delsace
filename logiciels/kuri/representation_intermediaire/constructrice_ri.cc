@@ -2820,7 +2820,14 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto expr = noeud->comme_taille_de();
             auto expr_type = expr->expression;
-            auto constante = m_constructrice.crée_constante_taille_de(expr_type->type);
+            auto type = expr_type->type;
+            /* Nous pouvons avoir un type de données si l'expression provient d'une déduplication.
+             */
+            if (type->est_type_type_de_donnees() &&
+                type->comme_type_type_de_donnees()->type_connu) {
+                type = type->comme_type_type_de_donnees()->type_connu;
+            }
+            auto constante = m_constructrice.crée_constante_taille_de(type);
             empile_valeur(constante);
             break;
         }

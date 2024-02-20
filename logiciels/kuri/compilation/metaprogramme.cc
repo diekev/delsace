@@ -102,7 +102,7 @@ kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
 
     Enchaineuse enchaineuse;
 
-    auto const espace = unité->espace;
+    auto const espace = unité ? unité->espace : programme->espace();
     auto const fichier_directive = espace->compilatrice().fichier(directive->lexeme->fichier);
     auto const hiérarchie = donne_les_noms_de_la_hiérarchie(directive->bloc_parent);
     auto const date = espace->compilatrice().donne_date_début_compilation();
