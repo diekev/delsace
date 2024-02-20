@@ -13,6 +13,8 @@
 #include "espace_de_travail.hh"
 #include "metaprogramme.hh"
 #include "programme.hh"
+
+#include "utilitaires/algorithmes.hh"
 #include "utilitaires/log.hh"
 
 std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérationCode &args)
@@ -50,6 +52,33 @@ std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérat
     auto compilatrice_cb = CompilatriceCodeBinaire(&espace, métaprogramme);
     if (!compilatrice_cb.génère_code(repr_inter)) {
         return ErreurCoulisse{"Impossible de générer le code binaire."};
+    }
+
+    if (compilatrice.arguments.émets_code_binaire) {
+        /* Tri les fonctions selon leurs noms. */
+        auto fonctions_repr_inter = repr_inter.donne_fonctions();
+
+        kuri::tableau<AtomeFonction *> fonctions;
+        fonctions.réserve(fonctions_repr_inter.taille());
+
+        POUR (fonctions_repr_inter) {
+            if (it->est_externe) {
+                continue;
+            }
+
+            fonctions.ajoute(it);
+        }
+
+        kuri::tri_rapide(
+            kuri::tableau_statique<AtomeFonction *>(fonctions),
+            [](AtomeFonction const *a, AtomeFonction const *b) { return a->nom < b->nom; });
+
+        /* Émets le code binaire. */
+        auto &logueuse = programme.pour_métaprogramme()->donne_logueuse(
+            TypeLogMétaprogramme::CODE_BINAIRE);
+        POUR (fonctions) {
+            logueuse << désassemble(it->données_exécution->chunk, it->nom);
+        }
     }
 
     return {};

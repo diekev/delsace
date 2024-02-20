@@ -58,4 +58,16 @@ void tri_stable(tableau_statique<Type> éléments, Prédicat prédicat)
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name Triage de tableaux.
+ * \{ */
+
+template <typename Type, typename Prédicat>
+void tri_rapide(tableau_statique<Type> éléments, Prédicat prédicat)
+{
+    std::sort(éléments.begin(), éléments.end(), std::move(prédicat));
+}
+
+/** \} */
+
 }  // namespace kuri

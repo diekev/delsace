@@ -20,7 +20,7 @@
 
 struct UniteCompilation;
 
-#define NOM_RAPPEL_POUR_UNITÉ(__nom__) unite_pour_attente_##__nom__
+#define NOM_RAPPEL_POUR_UNITÉ(__nom__) unité_pour_attente_##__nom__
 #define RAPPEL_POUR_UNITÉ(__nom__)                                                                \
     static UniteCompilation *NOM_RAPPEL_POUR_UNITÉ(__nom__)(Attente const &attente)
 
@@ -34,7 +34,7 @@ struct UniteCompilation;
 
 #define NOM_RAPPEL_POUR_ERREUR(__nom__) émets_erreur_pour_attente_sur_##__nom__
 #define RAPPEL_POUR_ERREUR(__nom__)                                                               \
-    void NOM_RAPPEL_POUR_ERREUR(__nom__)(UniteCompilation const *unite, Attente const &attente)
+    void NOM_RAPPEL_POUR_ERREUR(__nom__)(UniteCompilation const *unité, Attente const &attente)
 
 /** -----------------------------------------------------------------
  * \{ */
@@ -44,16 +44,16 @@ static ConditionBlocageAttente condition_blocage_défaut(Attente const & /*atten
     return {PhaseCompilation::PARSAGE_TERMINE};
 }
 
-static void émets_erreur_pour_attente_défaut(UniteCompilation const *unite, Attente const &attente)
+static void émets_erreur_pour_attente_défaut(UniteCompilation const *unité, Attente const &attente)
 {
-    auto espace = unite->espace;
-    auto noeud = unite->noeud;
+    auto espace = unité->espace;
+    auto noeud = unité->noeud;
     espace
         ->rapporte_erreur(noeud,
                           "Je ne peux pas continuer la compilation car une unité est "
                           "bloquée dans un cycle")
         .ajoute_message("\nNote : l'unité est dans l'état : ")
-        .ajoute_message(unite->chaine_attentes_récursives())
+        .ajoute_message(unité->chaine_attentes_récursives())
         .ajoute_message("\n");
 }
 
@@ -89,36 +89,36 @@ RAPPEL_POUR_EST_RÉSOLUE(type)
 
 RAPPEL_POUR_ERREUR(type)
 {
-    auto espace = unite->espace;
+    auto espace = unité->espace;
 
     /* À FAIRE : garantis un site valide pour chaque attente. */
     auto site = NoeudExpression::nul();
-    switch (unite->donne_raison_d_être()) {
-        case RaisonDEtre::AUCUNE:
-        case RaisonDEtre::CHARGEMENT_FICHIER:
-        case RaisonDEtre::LEXAGE_FICHIER:
-        case RaisonDEtre::PARSAGE_FICHIER:
-        case RaisonDEtre::CREATION_FONCTION_INIT_TYPE:
-        case RaisonDEtre::CONVERSION_NOEUD_CODE:
-        case RaisonDEtre::ENVOIE_MESSAGE:
-        case RaisonDEtre::GENERATION_RI:
-        case RaisonDEtre::GENERATION_RI_PRINCIPALE_MP:
-        case RaisonDEtre::EXECUTION:
-        case RaisonDEtre::LIAISON_PROGRAMME:
-        case RaisonDEtre::GENERATION_CODE_MACHINE:
+    switch (unité->donne_raison_d_être()) {
+        case RaisonDÊtre::AUCUNE:
+        case RaisonDÊtre::CHARGEMENT_FICHIER:
+        case RaisonDÊtre::LEXAGE_FICHIER:
+        case RaisonDÊtre::PARSAGE_FICHIER:
+        case RaisonDÊtre::CREATION_FONCTION_INIT_TYPE:
+        case RaisonDÊtre::CONVERSION_NOEUD_CODE:
+        case RaisonDÊtre::ENVOIE_MESSAGE:
+        case RaisonDÊtre::GENERATION_RI:
+        case RaisonDÊtre::GENERATION_RI_PRINCIPALE_MP:
+        case RaisonDÊtre::EXECUTION:
+        case RaisonDÊtre::LIAISON_PROGRAMME:
+        case RaisonDÊtre::GENERATION_CODE_MACHINE:
         {
             break;
         }
-        case RaisonDEtre::TYPAGE:
+        case RaisonDÊtre::TYPAGE:
         {
-            site = unite->noeud;
+            site = unité->noeud;
             break;
         }
     }
 
     if (site && site->est_corps_fonction()) {
-        if (unite->arbre_aplatis) {
-            site = unite->arbre_aplatis->noeuds[unite->arbre_aplatis->index_courant];
+        if (unité->arbre_aplatis) {
+            site = unité->arbre_aplatis->noeuds[unité->arbre_aplatis->index_courant];
         }
     }
 
@@ -131,7 +131,7 @@ RAPPEL_POUR_ERREUR(type)
         .ajoute_message(chaine_type(attente.type()))
         .ajoute_message("\n")
         .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
-        .ajoute_message(unite->chaine_attentes_récursives())
+        .ajoute_message(unité->chaine_attentes_récursives())
         .ajoute_message("\n");
 }
 
@@ -149,30 +149,30 @@ InfoTypeAttente info_type_attente_sur_type = {NOM_RAPPEL_POUR_UNITÉ(type),
 
 RAPPEL_POUR_UNITÉ(déclaration)
 {
-    auto adresse = donne_adresse_unité(attente.declaration());
+    auto adresse = donne_adresse_unité(attente.déclaration());
     if (adresse) {
         return *adresse;
     }
     return nullptr;
 }
 
-RAPPEL_POUR_COMMENTAIRE(declaration)
+RAPPEL_POUR_COMMENTAIRE(déclaration)
 {
-    return enchaine("(decl) ", attente.declaration()->ident->nom);
+    return enchaine("(decl) ", attente.déclaration()->ident->nom);
 }
 
 RAPPEL_POUR_EST_RÉSOLUE(déclaration)
 {
-    auto declaration_attendue = attente.declaration();
-    if (!declaration_attendue->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+    auto déclaration_attendue = attente.déclaration();
+    if (!déclaration_attendue->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
     // À FAIRE : est-ce nécessaire ?
-    if (declaration_attendue == espace->compilatrice().interface_kuri->decl_creation_contexte) {
+    if (déclaration_attendue == espace->compilatrice().interface_kuri->decl_creation_contexte) {
         /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
          * nous faut le code. */
-        attente = Attente::sur_ri(&declaration_attendue->comme_entete_fonction()->atome);
+        attente = Attente::sur_ri(&déclaration_attendue->comme_entete_fonction()->atome);
         return false;
     }
 
@@ -181,30 +181,30 @@ RAPPEL_POUR_EST_RÉSOLUE(déclaration)
 
 RAPPEL_POUR_ERREUR(déclaration)
 {
-    auto espace = unite->espace;
-    auto decl = attente.declaration();
-    auto unite_decl = donne_adresse_unité(decl);
+    auto espace = unité->espace;
+    auto decl = attente.déclaration();
+    auto unité_decl = donne_adresse_unité(decl);
     auto erreur = espace->rapporte_erreur(
         decl, "Je ne peux pas continuer la compilation car une déclaration ne peut être typée.");
 
     // À FAIRE : ne devrait pas arriver
-    if (unite_decl && *unite_decl) {
+    if (unité_decl && *unité_decl) {
         erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
-            .ajoute_message(unite->chaine_attentes_récursives())
+            .ajoute_message(unité->chaine_attentes_récursives())
             .ajoute_message("\n");
     }
 }
 
 InfoTypeAttente info_type_attente_sur_déclaration = {NOM_RAPPEL_POUR_UNITÉ(déclaration),
                                                      condition_blocage_défaut,
-                                                     NOM_RAPPEL_POUR_COMMENTAIRE(declaration),
+                                                     NOM_RAPPEL_POUR_COMMENTAIRE(déclaration),
                                                      NOM_RAPPEL_POUR_EST_RÉSOLUE(déclaration),
                                                      NOM_RAPPEL_POUR_ERREUR(déclaration)};
 
 /** \} */
 
 /** -----------------------------------------------------------------
- * AttenteSurOperateur
+ * AttenteSurOpérateur
  * \{ */
 
 RAPPEL_POUR_UNITÉ(opérateur)
@@ -214,7 +214,7 @@ RAPPEL_POUR_UNITÉ(opérateur)
 
 RAPPEL_POUR_COMMENTAIRE(opérateur)
 {
-    return enchaine("opérateur ", attente.operateur()->lexeme->chaine);
+    return enchaine("opérateur ", attente.opérateur()->lexeme->chaine);
 }
 
 /* À FAIRE(gestion) : détermine comment détecter la disponibilité d'un opérateur.
@@ -258,8 +258,8 @@ static void imprime_operateurs_pour(Erreur &e,
 
 RAPPEL_POUR_ERREUR(opérateur)
 {
-    auto espace = unite->espace;
-    auto operateur_attendu = attente.operateur();
+    auto espace = unité->espace;
+    auto operateur_attendu = attente.opérateur();
     if (operateur_attendu->est_expression_binaire() || operateur_attendu->est_indexage()) {
         auto expression_operation = operateur_attendu->comme_expression_binaire();
         auto type1 = expression_operation->operande_gauche->type;
@@ -363,7 +363,7 @@ InfoTypeAttente info_type_attente_sur_opérateur = {NOM_RAPPEL_POUR_UNITÉ(opér
 
 RAPPEL_POUR_UNITÉ(métaprogramme)
 {
-    auto metaprogramme_attendu = attente.metaprogramme();
+    auto metaprogramme_attendu = attente.métaprogramme();
     // À FAIRE(gestion) : le métaprogramme attend sur l'unité de la fonction
     // il nous faudra sans doute une raison pour l'attente (RI, CODE, etc.).
     return metaprogramme_attendu->fonction->unité;
@@ -371,7 +371,7 @@ RAPPEL_POUR_UNITÉ(métaprogramme)
 
 RAPPEL_POUR_COMMENTAIRE(métaprogramme)
 {
-    auto metaprogramme_attendu = attente.metaprogramme();
+    auto metaprogramme_attendu = attente.métaprogramme();
     auto résultat = Enchaineuse();
     résultat << "métaprogramme";
 
@@ -405,7 +405,7 @@ RAPPEL_POUR_COMMENTAIRE(métaprogramme)
 
 RAPPEL_POUR_EST_RÉSOLUE(métaprogramme)
 {
-    auto metaprogramme_attendu = attente.metaprogramme();
+    auto metaprogramme_attendu = attente.métaprogramme();
     return metaprogramme_attendu->fut_execute;
 }
 
@@ -500,7 +500,7 @@ RAPPEL_POUR_EST_RÉSOLUE(symbole)
 
 RAPPEL_POUR_ERREUR(symbole)
 {
-    auto espace = unite->espace;
+    auto espace = unité->espace;
     espace
         ->rapporte_erreur(attente.symbole(),
                           "Trop de cycles : arrêt de la compilation sur un symbole inconnu")
@@ -597,7 +597,7 @@ RAPPEL_POUR_COMMENTAIRE(chargement)
 
 RAPPEL_POUR_EST_RÉSOLUE(chargement)
 {
-    auto fichier_attendu = attente.fichier_a_charger();
+    auto fichier_attendu = attente.fichier_à_charger();
     return fichier_attendu->fut_chargé;
 }
 
@@ -620,7 +620,7 @@ RAPPEL_POUR_COMMENTAIRE(lexage)
 
 RAPPEL_POUR_EST_RÉSOLUE(lexage)
 {
-    auto fichier_attendu = attente.fichier_a_lexer();
+    auto fichier_attendu = attente.fichier_à_lexer();
     return fichier_attendu->fut_lexé;
 }
 
@@ -643,7 +643,7 @@ RAPPEL_POUR_COMMENTAIRE(parsage)
 
 RAPPEL_POUR_EST_RÉSOLUE(parsage)
 {
-    auto fichier_attendu = attente.fichier_a_parser();
+    auto fichier_attendu = attente.fichier_à_parser();
     return fichier_attendu->fut_parsé;
 }
 
@@ -702,8 +702,8 @@ RAPPEL_POUR_EST_RÉSOLUE(opérateur_pour)
 
 RAPPEL_POUR_ERREUR(opérateur_pour)
 {
-    auto espace = unite->espace;
-    auto noeud = unite->noeud;
+    auto espace = unité->espace;
+    auto noeud = unité->noeud;
     auto type = attente.opérateur_pour();
 
     auto message = enchaine(

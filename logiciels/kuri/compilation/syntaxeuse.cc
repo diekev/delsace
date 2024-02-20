@@ -702,7 +702,7 @@ bool Syntaxeuse::apparie_instruction() const
     return (table_drapeaux_lexèmes[static_cast<size_t>(genre)] & EST_INSTRUCTION) != 0;
 }
 
-NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &données_précédence,
+NoeudExpression *Syntaxeuse::analyse_expression(DonnéesPrécédence const &données_précédence,
                                                 GenreLexème racine_expression,
                                                 GenreLexème lexème_final)
 {
@@ -1276,7 +1276,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
 
 NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
     NoeudExpression *gauche,
-    const DonneesPrecedence &données_précédence,
+    const DonnéesPrécédence &données_précédence,
     GenreLexème racine_expression,
     GenreLexème lexème_final)
 {

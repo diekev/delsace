@@ -102,7 +102,8 @@ kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
 
     Enchaineuse enchaineuse;
 
-    auto const espace = unité->espace;
+    /* L'unité peut être nulle tant que l'exécution n'est pas imminente. */
+    auto const espace = unité ? unité->espace : programme->espace();
     auto const fichier_directive = espace->compilatrice().fichier(directive->lexeme->fichier);
     auto const hiérarchie = donne_les_noms_de_la_hiérarchie(directive->bloc_parent);
     auto const date = espace->compilatrice().donne_date_début_compilation();
@@ -168,6 +169,10 @@ static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme t
         case TypeLogMétaprogramme::PILE_DE_VALEURS:
         {
             return "pile_de_valeurs";
+        }
+        case TypeLogMétaprogramme::CODE_BINAIRE:
+        {
+            return "code_binaire";
         }
         case TypeLogMétaprogramme::NOMBRE_DE_LOGS:
         {

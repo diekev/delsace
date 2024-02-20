@@ -516,6 +516,16 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         {
             auto ref_membre = b->comme_reference_membre();
             auto type_accede = ref_membre->accedee->type;
+            type_accede = donne_type_accédé_effectif(type_accede);
+
+            if (type_accede->est_type_type_de_donnees()) {
+                type_accede = type_accede->comme_type_type_de_donnees()->type_connu;
+                if (!type_accede) {
+                    return erreur_évaluation(b,
+                                             "L'expression de référence de membre n'est pas une "
+                                             "référence d'un type de données connu.");
+                }
+            }
 
             if (type_accede->est_type_enum() || type_accede->est_type_erreur()) {
                 auto type_enum = static_cast<TypeEnum *>(type_accede);
