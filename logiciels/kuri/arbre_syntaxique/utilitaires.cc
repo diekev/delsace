@@ -1128,16 +1128,23 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
 
             auto type_accédé = donne_type_accédé_effectif(accédé->type);
 
+            if (type_accédé->est_type_type_de_donnees()) {
+                if (référence_membre->genre_valeur == GenreValeur::DROITE) {
+                    /* Nous accédons à une valeur constante. */
+                    return nullptr;
+                }
+
+                type_accédé = type_accédé->comme_type_type_de_donnees()->type_connu;
+                /* Puisque nous accédons à quelque chose, nous ne devrions pas avoir une
+                 * type_de_données inconnu. */
+                assert(type_accédé);
+            }
+
             if (type_accédé->est_type_tableau_fixe()) {
                 /* Seul l'accès à la taille est correcte, sinon nous ne serions pas ici. */
                 return nullptr;
             }
             if (type_accédé->est_type_enum() || type_accédé->est_type_erreur()) {
-                return nullptr;
-            }
-            if (type_accédé->est_type_type_de_donnees() &&
-                référence_membre->genre_valeur == GenreValeur::DROITE) {
-                /* Nous accédons à une valeur constante. */
                 return nullptr;
             }
             auto type_compose = type_accédé->comme_type_compose();
@@ -1441,7 +1448,10 @@ static void ajoute_à_ensemble_de_surcharge(NoeudDeclaration *decl, NoeudDeclara
         return;
     }
 
-    assert_rappel(false, [&]() { dbg() << "Pas d'ensemble de surcharges pour " << decl->genre; });
+    assert_rappel(false, [&]() {
+        dbg() << "Pas d'ensemble de surcharges pour " << decl->genre << ", "
+              << nom_humainement_lisible(decl);
+    });
 }
 
 void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)

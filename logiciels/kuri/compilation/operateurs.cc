@@ -719,7 +719,7 @@ static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
         !type2_est_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type2_est_énum);
     }
-    return Attente::sur_operateur(noeud);
+    return Attente::sur_opérateur(noeud);
 }
 
 RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
