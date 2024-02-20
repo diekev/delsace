@@ -15,7 +15,11 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationSymbole;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
+struct NoeudExpressionLitteraleChaine;
+struct NoeudExpressionMembre;
+struct NoeudExpressionPriseAdresse;
 struct NoeudExpressionReference;
+struct NoeudExpressionReferenceType;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
 struct NoeudStruct;
@@ -44,6 +48,10 @@ struct DonnéesPrécédence {
 
 class TableRéférences {
     kuri::tableau<NoeudExpressionReference *, int> m_références{};
+    kuri::tableau<NoeudExpressionMembre *, int> m_références_membres{};
+    kuri::tableau<NoeudExpressionLitteraleChaine *, int> m_littérales_chaines{};
+    kuri::tableau<NoeudExpressionPriseAdresse *, int> m_prises_adresses{};
+    kuri::tableau<NoeudExpressionReferenceType *, int> m_références_types{};
 
     kuri::pile<int> m_références_par_blocs{};
 
@@ -54,6 +62,23 @@ class TableRéférences {
 
     void ajoute_référence(NoeudExpressionReference *noeud);
     void invalide_référence(NoeudExpressionReference *noeud);
+
+    NoeudExpressionMembre *trouve_référence_membre_pour(Lexème const *lexème,
+                                                        NoeudExpression *gauche);
+
+    void ajoute_référence_membre(NoeudExpressionMembre *noeud);
+
+    /* Littérale chaine. */
+    NoeudExpressionLitteraleChaine *trouve_littérale_chaine_pour(Lexème const *lexème) const;
+    void ajoute_littérale_chaine(NoeudExpressionLitteraleChaine *noeud);
+
+    /* Prise adresse. */
+    NoeudExpressionPriseAdresse *trouve_prise_adresse_pour(NoeudExpression const *gauche) const;
+    void ajoute_prise_adresse(NoeudExpressionPriseAdresse *noeud);
+
+    /* Référence type. */
+    NoeudExpressionReferenceType *trouve_référence_type_pour(Lexème const *lexème) const;
+    void ajoute_référence_type(NoeudExpressionReferenceType *noeud);
 
     void empile_état();
 
@@ -165,6 +190,11 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void dépile_table_références();
 
     NoeudExpressionReference *crée_référence_déclaration(Lexème const *lexème);
+    NoeudExpressionMembre *crée_référence_membre(Lexème const *lexème, NoeudExpression *gauche);
+    NoeudExpressionLitteraleChaine *crée_littérale_chaine(Lexème const *lexème);
+    NoeudExpressionPriseAdresse *crée_prise_adresse(Lexème const *lexème,
+                                                    NoeudExpression *opérande);
+    NoeudExpressionReferenceType *crée_référence_type(Lexème const *lexème);
 
     void recycle_référence(NoeudExpressionReference *référence);
 };

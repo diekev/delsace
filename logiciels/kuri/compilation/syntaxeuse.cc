@@ -33,7 +33,11 @@
 void TableRéférences::réinitialise()
 {
     m_références.efface();
+    m_références_membres.efface();
     m_références_par_blocs.efface();
+    m_références_types.efface();
+    m_prises_adresses.efface();
+    m_littérales_chaines.efface();
 }
 
 NoeudExpressionReference *TableRéférences::trouve_référence_pour(Lexème const *lexème) const
@@ -67,6 +71,86 @@ void TableRéférences::invalide_référence(NoeudExpressionReference *noeud)
             break;
         }
     }
+}
+
+NoeudExpressionMembre *TableRéférences::trouve_référence_membre_pour(Lexème const *lexème,
+                                                                     NoeudExpression *gauche)
+{
+    POUR (m_références_membres) {
+        if (it->accedee != gauche) {
+            continue;
+        }
+
+        if (it->lexeme->ident != lexème->ident) {
+            continue;
+        }
+
+        return it;
+    }
+
+    return nullptr;
+}
+
+void TableRéférences::ajoute_référence_membre(NoeudExpressionMembre *noeud)
+{
+    m_références_membres.ajoute(noeud);
+}
+
+NoeudExpressionLitteraleChaine *TableRéférences::trouve_littérale_chaine_pour(
+    Lexème const *lexème) const
+{
+    POUR (m_littérales_chaines) {
+        if (it->lexeme->index_chaine != lexème->index_chaine) {
+            continue;
+        }
+
+        return it;
+    }
+
+    return nullptr;
+}
+
+void TableRéférences::ajoute_littérale_chaine(NoeudExpressionLitteraleChaine *noeud)
+{
+    m_littérales_chaines.ajoute(noeud);
+}
+
+NoeudExpressionPriseAdresse *TableRéférences::trouve_prise_adresse_pour(
+    NoeudExpression const *gauche) const
+{
+    POUR (m_prises_adresses) {
+        if (it->opérande != gauche) {
+            continue;
+        }
+
+        return it;
+    }
+
+    return nullptr;
+}
+
+void TableRéférences::ajoute_prise_adresse(NoeudExpressionPriseAdresse *noeud)
+{
+    m_prises_adresses.ajoute(noeud);
+}
+
+NoeudExpressionReferenceType *TableRéférences::trouve_référence_type_pour(
+    Lexème const *lexème) const
+{
+    POUR (m_références_types) {
+        if (it->lexeme->genre != lexème->genre) {
+            continue;
+        }
+
+        return it;
+    }
+
+    return nullptr;
+}
+
+void TableRéférences::ajoute_référence_type(NoeudExpressionReferenceType *noeud)
+{
+    m_références_types.ajoute(noeud);
 }
 
 void TableRéférences::empile_état()
@@ -868,9 +952,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexème lexème_fina
         auto opérande = analyse_expression(
             {précédence, associativité}, GenreLexème::INCONNU, lexème_final);
 
-        auto noeud = m_tacheronne.assembleuse->crée_prise_adresse(lexème);
-        noeud->opérande = opérande;
-        return noeud;
+        return crée_prise_adresse(lexème, opérande);
     }
 
     if (lexème->genre == GenreLexème::ESP_UNAIRE) {
@@ -927,7 +1009,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
         case GenreLexème::CHAINE_LITTERALE:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_litterale_chaine(lexème);
+            return crée_littérale_chaine(lexème);
         }
         case GenreLexème::TABLEAU:
         case GenreLexème::CROCHET_OUVRANT:
@@ -1330,7 +1412,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
         {
             if (est_identifiant_type(lexème->genre)) {
                 consomme();
-                return m_tacheronne.assembleuse->crée_reference_type(lexème);
+                return crée_référence_type(lexème);
             }
 
             rapporte_erreur("attendu une expression primaire");
@@ -1763,9 +1845,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             lexème = lexème_courant();
             consomme();
 
-            auto noeud = m_tacheronne.assembleuse->crée_reference_membre(lexème);
-            noeud->accedee = gauche;
-            return noeud;
+            return crée_référence_membre(lexème, gauche);
         }
         case GenreLexème::TROIS_POINTS:
         {
@@ -3578,6 +3658,92 @@ NoeudExpressionReference *Syntaxeuse::crée_référence_déclaration(Lexème con
 
     résultat = m_tacheronne.assembleuse->crée_reference_declaration(lexème);
     table->ajoute_référence(résultat);
+    return résultat;
+}
+
+NoeudExpressionMembre *Syntaxeuse::crée_référence_membre(Lexème const *lexème,
+                                                         NoeudExpression *gauche)
+{
+#if 1
+    auto noeud = m_tacheronne.assembleuse->crée_reference_membre(lexème);
+    noeud->accedee = gauche;
+    return noeud;
+#else
+    if (!m_pile_tables_références.est_vide()) {
+        auto table = m_pile_tables_références.haut();
+        auto résultat = table->trouve_référence_membre_pour(lexème, gauche);
+        if (résultat) {
+            résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
+            return résultat;
+        }
+    }
+
+    auto noeud = m_tacheronne.assembleuse->crée_reference_membre(lexème);
+    noeud->accedee = gauche;
+
+    if (!m_pile_tables_références.est_vide()) {
+        auto table = m_pile_tables_références.haut();
+        table->ajoute_référence_membre(noeud);
+    }
+    return noeud;
+#endif
+}
+
+NoeudExpressionLitteraleChaine *Syntaxeuse::crée_littérale_chaine(Lexème const *lexème)
+{
+    if (m_pile_tables_références.est_vide()) {
+        return m_tacheronne.assembleuse->crée_litterale_chaine(lexème);
+    }
+
+    auto table = m_pile_tables_références.haut();
+    auto résultat = table->trouve_littérale_chaine_pour(lexème);
+    if (résultat) {
+        résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
+        return résultat;
+    }
+
+    résultat = m_tacheronne.assembleuse->crée_litterale_chaine(lexème);
+    table->ajoute_littérale_chaine(résultat);
+    return résultat;
+}
+
+NoeudExpressionPriseAdresse *Syntaxeuse::crée_prise_adresse(Lexème const *lexème,
+                                                            NoeudExpression *opérande)
+{
+    if (m_pile_tables_références.est_vide()) {
+        auto résultat = m_tacheronne.assembleuse->crée_prise_adresse(lexème);
+        résultat->opérande = opérande;
+        return résultat;
+    }
+
+    auto table = m_pile_tables_références.haut();
+    auto résultat = table->trouve_prise_adresse_pour(opérande);
+    if (résultat) {
+        résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
+        return résultat;
+    }
+
+    résultat = m_tacheronne.assembleuse->crée_prise_adresse(lexème);
+    résultat->opérande = opérande;
+    table->ajoute_prise_adresse(résultat);
+    return résultat;
+}
+
+NoeudExpressionReferenceType *Syntaxeuse::crée_référence_type(Lexème const *lexème)
+{
+    if (m_pile_tables_références.est_vide()) {
+        return m_tacheronne.assembleuse->crée_reference_type(lexème);
+    }
+
+    auto table = m_pile_tables_références.haut();
+    auto résultat = table->trouve_référence_type_pour(lexème);
+    if (résultat) {
+        résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
+        return résultat;
+    }
+
+    résultat = m_tacheronne.assembleuse->crée_reference_type(lexème);
+    table->ajoute_référence_type(résultat);
     return résultat;
 }
 
