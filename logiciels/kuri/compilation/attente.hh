@@ -73,15 +73,15 @@ struct AttenteSur {
 // Types spéciaux pour attendre le chargement ou le lexage d'un fichier. Cette attente n'est
 // possible que pour les fichiers devant être chargés plusieurs fois pour différents espaces (le
 // chargement et le lexage sont uniques).
-struct FichierACharger {
+struct FichierÀCharger {
     Fichier *fichier;
 };
 
-struct FichierALexer {
+struct FichierÀLexer {
     Fichier *fichier;
 };
 
-struct FichierAParser {
+struct FichierÀParser {
     Fichier *fichier;
 };
 
@@ -100,15 +100,15 @@ struct DonnéesAttenteMessage {
 };
 
 using AttenteSurType = AttenteSur<Type const *>;
-using AttenteSurMetaProgramme = AttenteSur<MetaProgramme *>;
-using AttenteSurDeclaration = AttenteSur<NoeudDeclaration *>;
+using AttenteSurMétaProgramme = AttenteSur<MetaProgramme *>;
+using AttenteSurDéclaration = AttenteSur<NoeudDeclaration *>;
 using AttenteSurSymbole = AttenteSur<NoeudExpressionReference *>;
-using AttenteSurOperateur = AttenteSur<NoeudExpression *>;
+using AttenteSurOpérateur = AttenteSur<NoeudExpression *>;
 using AttenteSurMessage = AttenteSur<DonnéesAttenteMessage>;
 using AttenteSurRI = AttenteSur<Atome **>;
-using AttenteSurChargement = AttenteSur<FichierACharger>;
-using AttenteSurLexage = AttenteSur<FichierALexer>;
-using AttenteSurParsage = AttenteSur<FichierAParser>;
+using AttenteSurChargement = AttenteSur<FichierÀCharger>;
+using AttenteSurLexage = AttenteSur<FichierÀLexer>;
+using AttenteSurParsage = AttenteSur<FichierÀParser>;
 using AttenteSurNoeudCode = AttenteSur<DonnéesAttenteNoeudCode>;
 using AttenteSurOpérateurPour = AttenteSur<OpérateurPour>;
 
@@ -129,9 +129,9 @@ struct SélecteurInfoTypeAttente;
     }
 
 DÉCLARE_INFO_TYPE_ATTENTE(type, AttenteSurType);
-DÉCLARE_INFO_TYPE_ATTENTE(déclaration, AttenteSurDeclaration);
-DÉCLARE_INFO_TYPE_ATTENTE(opérateur, AttenteSurOperateur);
-DÉCLARE_INFO_TYPE_ATTENTE(métaprogramme, AttenteSurMetaProgramme);
+DÉCLARE_INFO_TYPE_ATTENTE(déclaration, AttenteSurDéclaration);
+DÉCLARE_INFO_TYPE_ATTENTE(opérateur, AttenteSurOpérateur);
+DÉCLARE_INFO_TYPE_ATTENTE(métaprogramme, AttenteSurMétaProgramme);
 DÉCLARE_INFO_TYPE_ATTENTE(ri, AttenteSurRI);
 DÉCLARE_INFO_TYPE_ATTENTE(symbole, AttenteSurSymbole);
 DÉCLARE_INFO_TYPE_ATTENTE(message, AttenteSurMessage);
@@ -154,10 +154,10 @@ struct Attente {
   protected:
     using TypeAttente = std::variant<std::monostate,
                                      AttenteSurType,
-                                     AttenteSurMetaProgramme,
-                                     AttenteSurDeclaration,
+                                     AttenteSurMétaProgramme,
+                                     AttenteSurDéclaration,
                                      AttenteSurSymbole,
-                                     AttenteSurOperateur,
+                                     AttenteSurOpérateur,
                                      AttenteSurMessage,
                                      AttenteSurRI,
                                      AttenteSurChargement,
@@ -186,19 +186,19 @@ struct Attente {
     static Attente sur_lexage(Fichier *fichier)
     {
         assert(fichier);
-        return AttenteSurLexage{FichierALexer{fichier}};
+        return AttenteSurLexage{FichierÀLexer{fichier}};
     }
 
     static Attente sur_chargement(Fichier *fichier)
     {
         assert(fichier);
-        return AttenteSurChargement{FichierACharger{fichier}};
+        return AttenteSurChargement{FichierÀCharger{fichier}};
     }
 
     static Attente sur_parsage(Fichier *fichier)
     {
         assert(fichier);
-        return AttenteSurParsage{FichierAParser{fichier}};
+        return AttenteSurParsage{FichierÀParser{fichier}};
     }
 
     static Attente sur_type(Type const *type)
@@ -207,16 +207,16 @@ struct Attente {
         return AttenteSurType{type};
     }
 
-    static Attente sur_metaprogramme(MetaProgramme *metaprogramme)
+    static Attente sur_métaprogramme(MetaProgramme *metaprogramme)
     {
         assert(metaprogramme);
-        return AttenteSurMetaProgramme{metaprogramme};
+        return AttenteSurMétaProgramme{metaprogramme};
     }
 
-    static Attente sur_declaration(NoeudDeclaration *declaration)
+    static Attente sur_déclaration(NoeudDeclaration *déclaration)
     {
-        assert(declaration);
-        return AttenteSurDeclaration{declaration};
+        assert(déclaration);
+        return AttenteSurDéclaration{déclaration};
     }
 
     static Attente sur_symbole(NoeudExpressionReference *ident)
@@ -225,10 +225,10 @@ struct Attente {
         return AttenteSurSymbole{ident};
     }
 
-    static Attente sur_operateur(NoeudExpression *operateur)
+    static Attente sur_opérateur(NoeudExpression *operateur)
     {
         assert(operateur);
-        return AttenteSurOperateur{operateur};
+        return AttenteSurOpérateur{operateur};
     }
 
     static Attente sur_message(UniteCompilation *unité, Message *message)
@@ -278,16 +278,16 @@ struct Attente {
         return std::get<AttenteSurType>(attente).valeur;
     }
 
-    MetaProgramme *metaprogramme() const
+    MetaProgramme *métaprogramme() const
     {
-        assert(est<AttenteSurMetaProgramme>());
-        return std::get<AttenteSurMetaProgramme>(attente).valeur;
+        assert(est<AttenteSurMétaProgramme>());
+        return std::get<AttenteSurMétaProgramme>(attente).valeur;
     }
 
-    NoeudDeclaration *declaration() const
+    NoeudDeclaration *déclaration() const
     {
-        assert(est<AttenteSurDeclaration>());
-        return std::get<AttenteSurDeclaration>(attente).valeur;
+        assert(est<AttenteSurDéclaration>());
+        return std::get<AttenteSurDéclaration>(attente).valeur;
     }
 
     NoeudExpressionReference *symbole() const
@@ -296,10 +296,10 @@ struct Attente {
         return std::get<AttenteSurSymbole>(attente).valeur;
     }
 
-    NoeudExpression *operateur() const
+    NoeudExpression *opérateur() const
     {
-        assert(est<AttenteSurOperateur>());
-        return std::get<AttenteSurOperateur>(attente).valeur;
+        assert(est<AttenteSurOpérateur>());
+        return std::get<AttenteSurOpérateur>(attente).valeur;
     }
 
     DonnéesAttenteMessage message() const
@@ -314,19 +314,19 @@ struct Attente {
         return std::get<AttenteSurRI>(attente).valeur;
     }
 
-    Fichier *fichier_a_charger() const
+    Fichier *fichier_à_charger() const
     {
         assert(est<AttenteSurChargement>());
         return std::get<AttenteSurChargement>(attente).valeur.fichier;
     }
 
-    Fichier *fichier_a_lexer() const
+    Fichier *fichier_à_lexer() const
     {
         assert(est<AttenteSurLexage>());
         return std::get<AttenteSurLexage>(attente).valeur.fichier;
     }
 
-    Fichier *fichier_a_parser() const
+    Fichier *fichier_à_parser() const
     {
         assert(est<AttenteSurParsage>());
         return std::get<AttenteSurParsage>(attente).valeur.fichier;
