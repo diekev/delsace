@@ -169,6 +169,10 @@ static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme t
         {
             return "pile_de_valeurs";
         }
+        case TypeLogMétaprogramme::CODE_BINAIRE:
+        {
+            return "code_binaire";
+        }
         case TypeLogMétaprogramme::NOMBRE_DE_LOGS:
         {
             break;
