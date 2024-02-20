@@ -62,6 +62,7 @@ void TableRéférences::invalide_référence(NoeudExpressionReference *noeud)
 {
     POUR (m_références) {
         if (it == noeud) {
+            // dbg() << __func__ << " : " << noeud->ident->nom;
             it = nullptr;
             break;
         }
@@ -77,7 +78,9 @@ void TableRéférences::empile_état()
 void TableRéférences::dépile_état()
 {
     // dbg() << __func__ << " " << m_références_par_blocs.taille();
-    m_références.redimensionne(m_références_par_blocs.depile());
+    auto taille = m_références_par_blocs.depile();
+    m_références.redimensionne(taille);
+    assert(m_références.taille() == taille);
 }
 
 /** \} */
@@ -1567,6 +1570,16 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     if (!it->est_reference_declaration()) {
                         rapporte_erreur_avec_site(
                             it, "Expression inattendue dans l'expression virgule.");
+                        continue;
+                    }
+
+                    assert(!it->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ));
+
+                    if (!m_pile_tables_références.est_vide()) {
+                        /* Pour éviter que les références créées pour les déclarations nous
+                         * empêchent de valider sémantiquement les références suivantes. */
+                        m_pile_tables_références.haut()->invalide_référence(
+                            it->comme_reference_declaration());
                     }
                 }
 
@@ -1633,6 +1646,22 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
                     if (!it->est_reference_declaration()) {
                         rapporte_erreur_avec_site(it, "Expression inattendue à gauche de « := »");
+                        continue;
+                    }
+
+                    // assert(!it->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ));
+                    if (it->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ)) {
+                        rapporte_erreur_avec_site(it,
+                                                  "Réutilisation du noeud pour une déclaration.");
+                    }
+
+                    if (!m_pile_tables_références.est_vide()) {
+                        /* Pour éviter que les références créées pour les
+                        déclarations nous
+                         * empêchent de valider sémantiquement les références
+                         suivantes. */
+                        m_pile_tables_références.haut()->invalide_référence(
+                            it->comme_reference_declaration());
                     }
 
                     auto decl = m_tacheronne.assembleuse->crée_declaration_variable(
@@ -1957,6 +1986,10 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
      * un point-vigule implicite ici que de le faire pour chaque instruction. */
     ignore_point_virgule_implicite();
 
+    if (!m_pile_tables_références.est_vide()) {
+        m_pile_tables_références.haut()->empile_état();
+    }
+
     auto lexème = lexème_courant();
     empile_état("dans l'analyse du bloc", lexème);
 
@@ -1997,6 +2030,10 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
     }
 
     dépile_état();
+
+    if (!m_pile_tables_références.est_vide()) {
+        m_pile_tables_références.haut()->dépile_état();
+    }
 
     return bloc;
 }
@@ -3528,6 +3565,7 @@ NoeudExpressionReference *Syntaxeuse::crée_référence_déclaration(Lexème con
     auto table = m_pile_tables_références.haut();
     auto résultat = table->trouve_référence_pour(lexème);
     if (résultat) {
+        résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
         return résultat;
     }
 

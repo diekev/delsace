@@ -81,6 +81,9 @@ enum class DrapeauxNoeud : uint32_t {
     EST_DÉCLARATION_EXPRESSION_VIRGULE = (1u << 25),  // decl var
 
     FUT_SIMPLIFIÉ = (1u << 26),
+
+    /* Pour la déduplication des noeuds dans l'arbre syntaxique, ceci marque un noeud réutilisé. */
+    EST_RÉUTILISÉ = (1u << 27),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

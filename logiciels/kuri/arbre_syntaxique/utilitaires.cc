@@ -1448,7 +1448,10 @@ static void ajoute_à_ensemble_de_surcharge(NoeudDeclaration *decl, NoeudDeclara
         return;
     }
 
-    assert_rappel(false, [&]() { dbg() << "Pas d'ensemble de surcharges pour " << decl->genre; });
+    assert_rappel(false, [&]() {
+        dbg() << "Pas d'ensemble de surcharges pour " << decl->genre << ", "
+              << nom_humainement_lisible(decl);
+    });
 }
 
 void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
