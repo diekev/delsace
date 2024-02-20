@@ -3414,7 +3414,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDeclarationC
 
             auto decl_membre = m_tacheronne.assembleuse->crée_declaration_variable(
                 noeud->comme_reference_declaration());
-            // m_tacheronne.assembleuse->recycle_référence(noeud->comme_reference_declaration());
+            recycle_référence(noeud->comme_reference_declaration());
             noeud = decl_membre;
 
             static const Lexème lexème_rien = {"rien", {}, GenreLexème::RIEN, 0, 0, 0};
@@ -3583,7 +3583,7 @@ NoeudExpressionReference *Syntaxeuse::crée_référence_déclaration(Lexème con
 
 void Syntaxeuse::recycle_référence(NoeudExpressionReference *référence)
 {
-    // m_tacheronne.assembleuse->recycle_référence(référence);
+    m_tacheronne.assembleuse->recycle_référence(référence);
 
     if (!m_pile_tables_références.est_vide()) {
         /* Pour éviter que les références créées pour les déclarations nous empêchent de valider
