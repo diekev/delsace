@@ -206,6 +206,9 @@ static ActionParsageArgument gère_argument_stats_détaillées(ParseuseArguments
 static ActionParsageArgument gère_argument_émission_ri(ParseuseArguments & /*parseuse*/,
                                                        ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_émission_code_binaire(ParseuseArguments & /*parseuse*/,
+                                                                 ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--",
@@ -278,6 +281,13 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "nom du fichier dérive du nom de l'espace, avec les espaces remplacées par des tirets-bas. "
      "Par exemple, si un espace s'appelle « Espace 1 », le fichier s'appelera « Espace_1.ri »",
      gère_argument_émission_ri},
+    {"--émets_code_binaire",
+     "",
+     "",
+     "Imprime le code binaire, sous forme textuelle, de chaque métaprogramme exécuté. Le code "
+     "binaire est émis avant l'exécution desdits métaprogrammes. Le fichier texte est émis comme "
+     "un log standard de métaprogramme, dont la racine du nom est « code_binaire.txt ».",
+     gère_argument_émission_code_binaire},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -451,6 +461,13 @@ static ActionParsageArgument gère_argument_émission_ri(ParseuseArguments & /*p
                                                        ArgumentsCompilatrice &résultat)
 {
     résultat.émets_ri = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_émission_code_binaire(ParseuseArguments & /*parseuse*/,
+                                                                 ArgumentsCompilatrice &résultat)
+{
+    résultat.émets_code_binaire = true;
     return ActionParsageArgument::CONTINUE;
 }
 
