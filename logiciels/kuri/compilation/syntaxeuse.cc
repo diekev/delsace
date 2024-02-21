@@ -1643,7 +1643,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         continue;
                     }
 
-                    assert(!it->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ));
+                    if (it->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ)) {
+                        rapporte_erreur_avec_site(it,
+                                                  "Réutilisation du noeud pour une déclaration.");
+                    }
 
                     if (!m_pile_tables_références.est_vide()) {
                         /* Pour éviter que les références créées pour les déclarations nous
@@ -1719,7 +1722,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         continue;
                     }
 
-                    // assert(!it->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ));
                     if (it->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ)) {
                         rapporte_erreur_avec_site(it,
                                                   "Réutilisation du noeud pour une déclaration.");
