@@ -1236,6 +1236,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
                     consomme();
                 }
                 else {
+                    /* Pour garantir que la référence à la variable piégée ne pollue pas
+                     * les autres blocs. */
                     m_pile_tables_références.haut()->empile_état_références();
                     noeud->expression_piegee = analyse_expression(
                         {}, GenreLexème::PIEGE, GenreLexème::INCONNU);
@@ -2147,10 +2149,6 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_boucle()
 {
-    m_pile_tables_références.haut()->empile_état_références();
-    SUR_SORTIE_PORTEE {
-        m_pile_tables_références.haut()->dépile_état_références();
-    };
     auto noeud = m_tacheronne.assembleuse->crée_boucle(lexème_courant());
     consomme();
     noeud->bloc = analyse_bloc();
@@ -2282,10 +2280,13 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 {
+    /* Pour garantir que les références aux variables d'itérations ne polluent pas les autres
+     * blocs. */
     m_pile_tables_références.haut()->empile_état_références();
     SUR_SORTIE_PORTEE {
         m_pile_tables_références.haut()->dépile_état_références();
     };
+
     auto noeud = m_tacheronne.assembleuse->crée_pour(lexème_courant());
     consomme();
 
@@ -2361,10 +2362,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
 
 NoeudExpression *Syntaxeuse::analyse_instruction_répète()
 {
-    m_pile_tables_références.haut()->empile_état_références();
-    SUR_SORTIE_PORTEE {
-        m_pile_tables_références.haut()->dépile_état_références();
-    };
     auto noeud = m_tacheronne.assembleuse->crée_repete(lexème_courant());
     consomme();
 
@@ -2381,14 +2378,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_répète()
 NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 {
     empile_état("dans l'analyse de l'instruction si", lexème_courant());
-    if (!m_pile_tables_références.est_vide()) {
-        m_pile_tables_références.haut()->empile_état_références();
-    }
-    SUR_SORTIE_PORTEE {
-        if (!m_pile_tables_références.est_vide()) {
-            m_pile_tables_références.haut()->dépile_état_références();
-        }
-    };
 
     auto noeud = m_tacheronne.assembleuse->crée_si(lexème_courant(), genre_noeud);
     consomme();
@@ -2480,11 +2469,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexème *lexème)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
 {
-    m_pile_tables_références.haut()->empile_état_références();
-    SUR_SORTIE_PORTEE {
-        m_pile_tables_références.haut()->dépile_état_références();
-    };
-
     auto noeud = m_tacheronne.assembleuse->crée_tantque(lexème_courant());
     consomme();
 
