@@ -43,7 +43,8 @@ struct DonnéesPrécédence {
 /** \name TableRéférences
  * À FAIRE : ceci ne prend pas en compte le recyclage des noeuds créés inutilement
  * À FAIRE : ceci ne prend pas en compte les blocs parents (à cause du recyclage)
- * À FAIRE : les substitutions ne seront pas les bonnes pour les appels de fonctions (etc. ?)
+ * À FAIRE : les substitutions ne seront pas les bonnes pour les appels de fonctions, les accès
+ * d'énums drapeaux (etc. ?)
  * \{ */
 
 class TableRéférences {
