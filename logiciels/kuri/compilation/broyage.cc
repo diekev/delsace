@@ -22,21 +22,21 @@
 
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom)
 {
-    auto debut = nom.pointeur();
+    auto début = nom.pointeur();
     auto fin = nom.pointeur() + nom.taille();
 
-    while (debut < fin) {
-        auto no = lng::nombre_octets(debut);
+    while (début < fin) {
+        auto no = lng::nombre_octets(début);
 
         switch (no) {
             case 0:
             {
-                debut += 1;
+                début += 1;
                 break;
             }
             case 1:
             {
-                enchaineuse.pousse_caractere(*debut);
+                enchaineuse.pousse_caractere(*début);
                 break;
             }
             default:
@@ -44,16 +44,16 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom
                 for (int i = 0; i < no; ++i) {
                     enchaineuse.pousse_caractere('x');
                     enchaineuse.pousse_caractere(
-                        dls::num::char_depuis_hex(static_cast<char>((debut[i] & 0xf0) >> 4)));
+                        dls::num::char_depuis_hex(static_cast<char>((début[i] & 0xf0) >> 4)));
                     enchaineuse.pousse_caractere(
-                        dls::num::char_depuis_hex(static_cast<char>(debut[i] & 0x0f)));
+                        dls::num::char_depuis_hex(static_cast<char>(début[i] & 0x0f)));
                 }
 
                 break;
             }
         }
 
-        debut += no;
+        début += no;
     }
 }
 
@@ -135,13 +135,13 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         {
             enchaineuse << "KP";
 
-            auto type_pointe = type->comme_type_pointeur()->type_pointe;
+            auto type_élément = type->comme_type_pointeur()->type_pointe;
 
-            if (type_pointe == nullptr) {
+            if (type_élément == nullptr) {
                 enchaineuse << "nul";
             }
             else {
-                broye_nom_type(enchaineuse, type_pointe);
+                broye_nom_type(enchaineuse, type_élément);
             }
 
             break;
@@ -197,12 +197,12 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         }
         case GenreNoeud::VARIADIQUE:
         {
-            auto type_pointe = type->comme_type_variadique()->type_pointe;
+            auto type_élément = type->comme_type_variadique()->type_pointe;
 
             // les arguments variadiques sont transformés en tranches, donc utilise Kz
-            if (type_pointe != nullptr) {
+            if (type_élément != nullptr) {
                 enchaineuse << "Kz";
-                broye_nom_type(enchaineuse, type_pointe);
+                broye_nom_type(enchaineuse, type_élément);
             }
             else {
                 enchaineuse << "Kv";
@@ -250,9 +250,9 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         {
-            auto type_enum = static_cast<TypeEnum *>(type);
+            auto type_énum = static_cast<TypeEnum *>(type);
             enchaineuse << "Ks";
-            broye_nom_simple(enchaineuse, donne_nom_portable(type_enum));
+            broye_nom_simple(enchaineuse, donne_nom_portable(type_énum));
             break;
         }
         case GenreNoeud::DECLARATION_OPAQUE:
