@@ -695,6 +695,11 @@ void Syntaxeuse::quand_commence()
 
     auto métaprogramme = m_fichier->métaprogramme_corps_texte;
 
+    empile_table_références();
+    SUR_SORTIE_PORTEE {
+        dépile_table_références();
+    };
+
     if (métaprogramme->corps_texte_pour_fonction) {
         auto récipiente = métaprogramme->corps_texte_pour_fonction;
         m_tacheronne.assembleuse->bloc_courant(récipiente->bloc_parametres);
@@ -2376,9 +2381,13 @@ NoeudExpression *Syntaxeuse::analyse_instruction_répète()
 NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 {
     empile_état("dans l'analyse de l'instruction si", lexème_courant());
-    m_pile_tables_références.haut()->empile_état_références();
+    if (!m_pile_tables_références.est_vide()) {
+        m_pile_tables_références.haut()->empile_état_références();
+    }
     SUR_SORTIE_PORTEE {
-        m_pile_tables_références.haut()->dépile_état_références();
+        if (!m_pile_tables_références.est_vide()) {
+            m_pile_tables_références.haut()->dépile_état_références();
+        }
     };
 
     auto noeud = m_tacheronne.assembleuse->crée_si(lexème_courant(), genre_noeud);
