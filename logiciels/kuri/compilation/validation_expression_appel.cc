@@ -2045,7 +2045,9 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
          * utilise le type de la première fonction trouvée, c'est ici que nous résolvons la bonne
          * fonction). Changeons alors le type pour éviter toute confusion dans les assertions ou
          * les étapes suivantes de compilation. */
-        expr->expression->type = expr->noeud_fonction_appelee->type;
+        if (!expr->expression->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ)) {
+            expr->expression->type = expr->noeud_fonction_appelee->type;
+        }
 
         if (expr->type == nullptr) {
             expr->type = type_sortie;
