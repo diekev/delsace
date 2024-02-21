@@ -196,6 +196,6 @@ struct BaseSyntaxeuse {
     void rapporte_erreur(kuri::chaine_statique message);
 
     void sauvegarde_position_lexème();
-
+    void annule_sauvegarde_position();
     void restaure_position_lexème();
 };

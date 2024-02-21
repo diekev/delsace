@@ -86,6 +86,13 @@ void BaseSyntaxeuse::sauvegarde_position_lexème()
     m_position_fut_sauvegardée = true;
 }
 
+void BaseSyntaxeuse::annule_sauvegarde_position()
+{
+    assert(m_position_fut_sauvegardée);
+    m_lexème_sauvegardé = nullptr;
+    m_position_fut_sauvegardée = false;
+}
+
 void BaseSyntaxeuse::restaure_position_lexème()
 {
     assert(m_position_fut_sauvegardée);
