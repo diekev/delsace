@@ -36,16 +36,16 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom
             }
             case 1:
             {
-                enchaineuse.pousse_caractere(*début);
+                enchaineuse.ajoute_caractère(*début);
                 break;
             }
             default:
             {
                 for (int i = 0; i < no; ++i) {
-                    enchaineuse.pousse_caractere('x');
-                    enchaineuse.pousse_caractere(
+                    enchaineuse.ajoute_caractère('x');
+                    enchaineuse.ajoute_caractère(
                         dls::num::char_depuis_hex(static_cast<char>((début[i] & 0xf0) >> 4)));
-                    enchaineuse.pousse_caractere(
+                    enchaineuse.ajoute_caractère(
                         dls::num::char_depuis_hex(static_cast<char>(début[i] & 0x0f)));
                 }
 
