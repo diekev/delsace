@@ -2797,7 +2797,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 type = type->comme_type_type_de_donnees()->type_connu;
             }
             auto valeur = crée_info_type(type, noeud);
-            // dbg() << chaine_type(type);
 
             /* utilise une temporaire pour simplifier la compilation d'expressions du style :
              * info_de(z32).id */
