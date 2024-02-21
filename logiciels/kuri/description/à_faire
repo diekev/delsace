@@ -754,3 +754,37 @@ class TableRéférences {
             m_références.redimensionne(m_références.m_références_par_blocs);
         }
 };
+
++-------------+------------+------------+---------+---------+
+| Programme   | Noeuds Av. | Noeuds Ap. |    Gain |  Pourc. |
++-------------+------------+------------+---------+---------+
+| LCC         |    136 389 |    119 784 |  16 605 | 12.17 % |
+| Jorjala     |    322 128 |    292 454 |  29 674 |  7.63 % |
+| RNA Blender |    850 023 |    726 031 | 123 992 | 14.58 % |
++-------------+------------+------------+---------+---------+
+
++-------------+-------------+-------------+-----------+--------+
+| Programme   | Mémoire Av. | Mémoire Ap. |      Gain | Pourc. |
++-------------+-------------+-------------+-----------+--------+
+| LCC         |  29 294 648 |  27 510 840 | 1 783 808 | 6.08 % |
+| Jorjala     |  54 569 976 |  52 346 008 | 2 223 968 | 4.07 % |
+| RNA Blender | 120 783 792 | 112 122 800 | 8 660 992 | 7.17 % |
++-------------+-------------+-------------+-----------+--------+
+
+RNA Blender 
+
+NoeudExpressionReference     -> 165 866 -> 107 779
+NoeudExpressionPriseAdresse  ->  70 261 ->  42 974
+NoeudExpressionReferenceType ->  58 583 ->  27 512
+
+Jorjala
+
+NoeudExpressionReference     -> 76 269 -> 55 177
+NoeudExpressionPriseAdresse  ->  9 760 ->  8 294
+NoeudExpressionReferenceType -> 13 359 -> 10 263
+
+LCC
+
+NoeudExpressionReference     -> 36 431 -> 25 036
+NoeudExpressionPriseAdresse  ->  2 846 ->  2 206
+NoeudExpressionReferenceType ->  5 599 ->  4 266
