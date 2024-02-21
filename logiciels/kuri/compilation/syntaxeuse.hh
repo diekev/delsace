@@ -47,13 +47,33 @@ struct DonnéesPrécédence {
  * \{ */
 
 class TableRéférences {
-    kuri::tableau<NoeudExpressionReference *, int> m_références{};
-    kuri::tableau<NoeudExpressionMembre *, int> m_références_membres{};
-    kuri::tableau<NoeudExpressionLitteraleChaine *, int> m_littérales_chaines{};
-    kuri::tableau<NoeudExpressionPriseAdresse *, int> m_prises_adresses{};
-    kuri::tableau<NoeudExpressionReferenceType *, int> m_références_types{};
+    template <typename T>
+    struct XXX {
+        kuri::tableau<T, int> éléments{};
+        kuri::pile<int> comptes_par_portée{};
 
-    kuri::pile<int> m_références_par_blocs{};
+        void enregistre_compte()
+        {
+            comptes_par_portée.empile(éléments.taille());
+        }
+
+        void restaure_compte()
+        {
+            éléments.redimensionne(comptes_par_portée.depile());
+        }
+
+        void efface()
+        {
+            éléments.efface();
+            comptes_par_portée.efface();
+        }
+    };
+
+    XXX<NoeudExpressionReference *> m_références{};
+    XXX<NoeudExpressionMembre *> m_références_membres{};
+    XXX<NoeudExpressionLitteraleChaine *> m_littérales_chaines{};
+    XXX<NoeudExpressionPriseAdresse *> m_prises_adresses{};
+    XXX<NoeudExpressionReferenceType *> m_références_types{};
 
   public:
     void réinitialise();
@@ -81,8 +101,10 @@ class TableRéférences {
     void ajoute_référence_type(NoeudExpressionReferenceType *noeud);
 
     void empile_état();
-
     void dépile_état();
+
+    void empile_état_références();
+    void dépile_état_références();
 };
 
 /** \} */

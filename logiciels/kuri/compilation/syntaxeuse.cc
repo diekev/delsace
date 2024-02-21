@@ -34,7 +34,6 @@ void TableRéférences::réinitialise()
 {
     m_références.efface();
     m_références_membres.efface();
-    m_références_par_blocs.efface();
     m_références_types.efface();
     m_prises_adresses.efface();
     m_littérales_chaines.efface();
@@ -42,8 +41,8 @@ void TableRéférences::réinitialise()
 
 NoeudExpressionReference *TableRéférences::trouve_référence_pour(Lexème const *lexème) const
 {
-    for (int i = m_références.taille() - 1; i >= 0; i--) {
-        auto référence = m_références[i];
+    for (int i = m_références.éléments.taille() - 1; i >= 0; i--) {
+        auto référence = m_références.éléments[i];
 
         if (!référence) {
             continue;
@@ -59,12 +58,12 @@ NoeudExpressionReference *TableRéférences::trouve_référence_pour(Lexème con
 
 void TableRéférences::ajoute_référence(NoeudExpressionReference *noeud)
 {
-    m_références.ajoute(noeud);
+    m_références.éléments.ajoute(noeud);
 }
 
 void TableRéférences::invalide_référence(NoeudExpressionReference *noeud)
 {
-    POUR (m_références) {
+    POUR (m_références.éléments) {
         if (it == noeud) {
             // dbg() << __func__ << " : " << noeud->ident->nom;
             it = nullptr;
@@ -76,7 +75,7 @@ void TableRéférences::invalide_référence(NoeudExpressionReference *noeud)
 NoeudExpressionMembre *TableRéférences::trouve_référence_membre_pour(Lexème const *lexème,
                                                                      NoeudExpression *gauche)
 {
-    POUR (m_références_membres) {
+    POUR (m_références_membres.éléments) {
         if (it->accedee != gauche) {
             continue;
         }
@@ -93,13 +92,13 @@ NoeudExpressionMembre *TableRéférences::trouve_référence_membre_pour(Lexème
 
 void TableRéférences::ajoute_référence_membre(NoeudExpressionMembre *noeud)
 {
-    m_références_membres.ajoute(noeud);
+    m_références_membres.éléments.ajoute(noeud);
 }
 
 NoeudExpressionLitteraleChaine *TableRéférences::trouve_littérale_chaine_pour(
     Lexème const *lexème) const
 {
-    POUR (m_littérales_chaines) {
+    POUR (m_littérales_chaines.éléments) {
         if (it->lexeme->index_chaine != lexème->index_chaine) {
             continue;
         }
@@ -112,13 +111,13 @@ NoeudExpressionLitteraleChaine *TableRéférences::trouve_littérale_chaine_pour
 
 void TableRéférences::ajoute_littérale_chaine(NoeudExpressionLitteraleChaine *noeud)
 {
-    m_littérales_chaines.ajoute(noeud);
+    m_littérales_chaines.éléments.ajoute(noeud);
 }
 
 NoeudExpressionPriseAdresse *TableRéférences::trouve_prise_adresse_pour(
     NoeudExpression const *gauche) const
 {
-    POUR (m_prises_adresses) {
+    POUR (m_prises_adresses.éléments) {
         if (it->opérande != gauche) {
             continue;
         }
@@ -131,13 +130,13 @@ NoeudExpressionPriseAdresse *TableRéférences::trouve_prise_adresse_pour(
 
 void TableRéférences::ajoute_prise_adresse(NoeudExpressionPriseAdresse *noeud)
 {
-    m_prises_adresses.ajoute(noeud);
+    m_prises_adresses.éléments.ajoute(noeud);
 }
 
 NoeudExpressionReferenceType *TableRéférences::trouve_référence_type_pour(
     Lexème const *lexème) const
 {
-    POUR (m_références_types) {
+    POUR (m_références_types.éléments) {
         if (it->lexeme->genre != lexème->genre) {
             continue;
         }
@@ -150,21 +149,35 @@ NoeudExpressionReferenceType *TableRéférences::trouve_référence_type_pour(
 
 void TableRéférences::ajoute_référence_type(NoeudExpressionReferenceType *noeud)
 {
-    m_références_types.ajoute(noeud);
+    m_références_types.éléments.ajoute(noeud);
 }
 
 void TableRéférences::empile_état()
 {
-    // dbg() << __func__ << " " << m_références.taille();
-    m_références_par_blocs.empile(m_références.taille());
+    m_références.enregistre_compte();
+    m_références_membres.enregistre_compte();
+    m_références_types.enregistre_compte();
+    m_prises_adresses.enregistre_compte();
+    m_littérales_chaines.enregistre_compte();
 }
 
 void TableRéférences::dépile_état()
 {
-    // dbg() << __func__ << " " << m_références_par_blocs.taille();
-    auto taille = m_références_par_blocs.depile();
-    m_références.redimensionne(taille);
-    assert(m_références.taille() == taille);
+    m_références.restaure_compte();
+    m_références_membres.restaure_compte();
+    m_références_types.restaure_compte();
+    m_prises_adresses.restaure_compte();
+    m_littérales_chaines.restaure_compte();
+}
+
+void TableRéférences::empile_état_références()
+{
+    m_références.enregistre_compte();
+}
+
+void TableRéférences::dépile_état_références()
+{
+    m_références.restaure_compte();
 }
 
 /** \} */
@@ -1218,7 +1231,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
                     consomme();
                 }
                 else {
-                    m_pile_tables_références.haut()->empile_état();
+                    m_pile_tables_références.haut()->empile_état_références();
                     noeud->expression_piegee = analyse_expression(
                         {}, GenreLexème::PIEGE, GenreLexème::INCONNU);
                     noeud->bloc = analyse_bloc();
@@ -1226,7 +1239,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
                     /* Pour que les références subséquentes cherchent la déclaration dans le bon
                      * bloc... */
                     noeud->expression_piegee->bloc_parent = noeud->bloc;
-                    m_pile_tables_références.haut()->dépile_état();
+                    m_pile_tables_références.haut()->dépile_état_références();
                 }
             }
 
@@ -2035,7 +2048,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
     ignore_point_virgule_implicite();
 
     if (!m_pile_tables_références.est_vide()) {
-        m_pile_tables_références.haut()->empile_état();
+        m_pile_tables_références.haut()->empile_état_références();
     }
 
     auto lexème = lexème_courant();
@@ -2080,7 +2093,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
     dépile_état();
 
     if (!m_pile_tables_références.est_vide()) {
-        m_pile_tables_références.haut()->dépile_état();
+        m_pile_tables_références.haut()->dépile_état_références();
     }
 
     return bloc;
@@ -2129,9 +2142,9 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_boucle()
 {
-    m_pile_tables_références.haut()->empile_état();
+    m_pile_tables_références.haut()->empile_état_références();
     SUR_SORTIE_PORTEE {
-        m_pile_tables_références.haut()->dépile_état();
+        m_pile_tables_références.haut()->dépile_état_références();
     };
     auto noeud = m_tacheronne.assembleuse->crée_boucle(lexème_courant());
     consomme();
@@ -2264,9 +2277,9 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 {
-    m_pile_tables_références.haut()->empile_état();
+    m_pile_tables_références.haut()->empile_état_références();
     SUR_SORTIE_PORTEE {
-        m_pile_tables_références.haut()->dépile_état();
+        m_pile_tables_références.haut()->dépile_état_références();
     };
     auto noeud = m_tacheronne.assembleuse->crée_pour(lexème_courant());
     consomme();
@@ -2343,9 +2356,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
 
 NoeudExpression *Syntaxeuse::analyse_instruction_répète()
 {
-    m_pile_tables_références.haut()->empile_état();
+    m_pile_tables_références.haut()->empile_état_références();
     SUR_SORTIE_PORTEE {
-        m_pile_tables_références.haut()->dépile_état();
+        m_pile_tables_références.haut()->dépile_état_références();
     };
     auto noeud = m_tacheronne.assembleuse->crée_repete(lexème_courant());
     consomme();
@@ -2363,9 +2376,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction_répète()
 NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 {
     empile_état("dans l'analyse de l'instruction si", lexème_courant());
-    m_pile_tables_références.haut()->empile_état();
+    m_pile_tables_références.haut()->empile_état_références();
     SUR_SORTIE_PORTEE {
-        m_pile_tables_références.haut()->dépile_état();
+        m_pile_tables_références.haut()->dépile_état_références();
     };
 
     auto noeud = m_tacheronne.assembleuse->crée_si(lexème_courant(), genre_noeud);
@@ -2458,9 +2471,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexème *lexème)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
 {
-    m_pile_tables_références.haut()->empile_état();
+    m_pile_tables_références.haut()->empile_état_références();
     SUR_SORTIE_PORTEE {
-        m_pile_tables_références.haut()->dépile_état();
+        m_pile_tables_références.haut()->dépile_état_références();
     };
 
     auto noeud = m_tacheronne.assembleuse->crée_tantque(lexème_courant());

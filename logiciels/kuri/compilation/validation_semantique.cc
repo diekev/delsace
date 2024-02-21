@@ -754,6 +754,10 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto type_gauche = gauche->type;
             auto type_droite = droite->type;
 
+            if (!type_gauche) {
+                dbg() << erreur::imprime_site(*m_espace, expr);
+            }
+
             if (type_gauche->est_type_reference()) {
                 crée_transtypage_implicite_au_besoin(
                     expr->operande_gauche, TransformationType(TypeTransformation::DEREFERENCE));
