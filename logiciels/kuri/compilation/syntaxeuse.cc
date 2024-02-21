@@ -863,7 +863,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
         case GenreLexème::CHAINE_CARACTERE:
         {
             consomme();
-            return m_tacheronne.assembleuse->crée_reference_declaration(lexème);
+            return analyse_référence_déclaration(lexème);
         }
         case GenreLexème::CHAINE_LITTERALE:
         {
@@ -1391,38 +1391,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 default:
                 {
                     break;
-                }
-                case GenreLexème::COROUT:
-                case GenreLexème::FONC:
-                {
-                    auto lexème_gauche = gauche->lexeme;
-                    m_tacheronne.assembleuse->recycle_référence(
-                        gauche->comme_reference_declaration());
-
-                    auto noeud_fonction = analyse_déclaration_fonction(lexème_gauche);
-
-                    if (noeud_fonction->est_expression_type_fonction()) {
-                        auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
-                        noeud->ident = lexème_gauche->ident;
-                        noeud->expression = noeud_fonction;
-                        return noeud;
-                    }
-
-                    return noeud_fonction;
-                }
-                case GenreLexème::STRUCT:
-                {
-                    return analyse_déclaration_structure(gauche);
-                }
-                case GenreLexème::UNION:
-                {
-                    return analyse_déclaration_union(gauche);
-                }
-                case GenreLexème::ENUM:
-                case GenreLexème::ENUM_DRAPEAU:
-                case GenreLexème::ERREUR:
-                {
-                    return analyse_déclaration_enum(gauche);
                 }
                 case GenreLexème::DIRECTIVE:
                 {
@@ -2323,6 +2291,59 @@ NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(GenreLexème lexèm
     return virgule;
 }
 
+NoeudExpression *Syntaxeuse::analyse_référence_déclaration(Lexème const *lexème_référence)
+{
+    sauvegarde_position_lexème();
+
+    if (!m_noeud_expression_virgule && apparie(GenreLexème::DECLARATION_CONSTANTE)) {
+        consomme();
+
+        auto lexème = lexème_courant();
+        switch (lexème->genre) {
+            case GenreLexème::COROUT:
+            case GenreLexème::FONC:
+            {
+                annule_sauvegarde_position();
+
+                auto noeud_fonction = analyse_déclaration_fonction(lexème_référence);
+
+                if (noeud_fonction->est_expression_type_fonction()) {
+                    auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexème);
+                    noeud->ident = lexème_référence->ident;
+                    noeud->expression = noeud_fonction;
+                    return noeud;
+                }
+
+                return noeud_fonction;
+            }
+            case GenreLexème::STRUCT:
+            {
+                annule_sauvegarde_position();
+                return analyse_déclaration_structure(lexème_référence);
+            }
+            case GenreLexème::UNION:
+            {
+                annule_sauvegarde_position();
+                return analyse_déclaration_union(lexème_référence);
+            }
+            case GenreLexème::ENUM:
+            case GenreLexème::ENUM_DRAPEAU:
+            case GenreLexème::ERREUR:
+            {
+                annule_sauvegarde_position();
+                return analyse_déclaration_enum(lexème_référence);
+            }
+            default:
+            {
+                break;
+            }
+        }
+    }
+
+    restaure_position_lexème();
+    return m_tacheronne.assembleuse->crée_reference_declaration(lexème_référence);
+}
+
 void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations)
 {
     while (!fini() && apparie(GenreLexème::AROBASE)) {
@@ -2348,7 +2369,7 @@ void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations
     }
 }
 
-NoeudExpression *Syntaxeuse::analyse_déclaration_enum(NoeudExpression *gauche)
+NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_nom)
 {
     auto lexème = lexème_courant();
     empile_état("dans le syntaxage de l'énumération", lexème);
@@ -2357,17 +2378,15 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(NoeudExpression *gauche)
     auto noeud_decl = NoeudEnum::nul();
 
     if (lexème->genre == GenreLexème::ENUM) {
-        noeud_decl = m_tacheronne.assembleuse->crée_type_enum(gauche->lexeme);
+        noeud_decl = m_tacheronne.assembleuse->crée_type_enum(lexème_nom);
     }
     else if (lexème->genre == GenreLexème::ENUM_DRAPEAU) {
-        noeud_decl = m_tacheronne.assembleuse->crée_type_enum_drapeau(gauche->lexeme);
+        noeud_decl = m_tacheronne.assembleuse->crée_type_enum_drapeau(lexème_nom);
     }
     else {
         assert(lexème->genre == GenreLexème::ERREUR);
-        noeud_decl = m_tacheronne.assembleuse->crée_type_erreur(gauche->lexeme);
+        noeud_decl = m_tacheronne.assembleuse->crée_type_erreur(lexème_nom);
     }
-
-    m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
 
     if (lexème->genre != GenreLexème::ERREUR) {
         if (!apparie(GenreLexème::ACCOLADE_OUVRANTE)) {
@@ -3008,26 +3027,20 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
 /** \name Structures et unions.
  * \{ */
 
-NoeudExpression *Syntaxeuse::analyse_déclaration_structure(NoeudExpression *gauche)
+NoeudExpression *Syntaxeuse::analyse_déclaration_structure(Lexème const *lexème_nom)
 {
     auto lexème_mot_clé = lexème_courant();
     empile_état("dans le syntaxage de la structure", lexème_mot_clé);
     consomme();
 
-    if (!gauche->est_reference_declaration()) {
-        this->rapporte_erreur("Expression inattendue pour nommer la structure");
-    }
+    auto noeud_decl = m_tacheronne.assembleuse->crée_type_structure(lexème_nom);
 
-    auto noeud_decl = m_tacheronne.assembleuse->crée_type_structure(gauche->lexeme);
-
-    if (gauche->ident == ID::InfoType) {
+    if (lexème_nom->ident == ID::InfoType) {
         m_compilatrice.typeuse.type_info_type_ = noeud_decl;
     }
-    else if (gauche->ident == ID::ContexteProgramme) {
+    else if (lexème_nom->ident == ID::ContexteProgramme) {
         m_compilatrice.typeuse.type_contexte = noeud_decl;
     }
-
-    m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
 
     analyse_paramètres_polymorphiques_structure_ou_union(noeud_decl);
     analyse_directives_structure(noeud_decl);
@@ -3047,19 +3060,13 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_structure(NoeudExpression *gau
     return noeud_decl;
 }
 
-NoeudExpression *Syntaxeuse::analyse_déclaration_union(NoeudExpression *gauche)
+NoeudExpression *Syntaxeuse::analyse_déclaration_union(Lexème const *lexème_nom)
 {
     auto lexème_mot_clé = lexème_courant();
     empile_état("dans le syntaxage de l'union", lexème_mot_clé);
     consomme();
 
-    if (!gauche->est_reference_declaration()) {
-        this->rapporte_erreur("Expression inattendue pour nommer l'union");
-    }
-
-    m_tacheronne.assembleuse->recycle_référence(gauche->comme_reference_declaration());
-
-    auto noeud_decl = m_tacheronne.assembleuse->crée_type_union(gauche->lexeme);
+    auto noeud_decl = m_tacheronne.assembleuse->crée_type_union(lexème_nom);
 
     if (apparie(GenreLexème::NONSUR)) {
         noeud_decl->est_nonsure = true;
