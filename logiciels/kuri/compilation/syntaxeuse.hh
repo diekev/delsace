@@ -83,7 +83,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     NoeudExpression *analyse_appel_fonction(NoeudExpression *gauche);
 
-    NoeudExpression *analyse_déclaration_enum(NoeudExpression *gauche);
+    NoeudExpression *analyse_déclaration_enum(Lexème const *lexème_nom);
     bool est_déclaration_type_fonction();
     NoeudExpression *analyse_déclaration_fonction(Lexème const *lexeme);
     NoeudExpression *analyse_déclaration_type_fonction(Lexème const *lexeme);
@@ -92,8 +92,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
                                         bool pour_operateur);
 
     /* Structures et unions. */
-    NoeudExpression *analyse_déclaration_structure(NoeudExpression *gauche);
-    NoeudExpression *analyse_déclaration_union(NoeudExpression *gauche);
+    NoeudExpression *analyse_déclaration_structure(Lexème const *lexème_nom);
+    NoeudExpression *analyse_déclaration_union(Lexème const *lexème_nom);
     void analyse_directives_structure(NoeudStruct *noeud);
     void analyse_directives_union(NoeudUnion *noeud);
     void analyse_paramètres_polymorphiques_structure_ou_union(NoeudDeclarationClasse *noeud);
@@ -113,6 +113,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     /* Analyse une série d'expressions séparées par des virgules. */
     NoeudExpression *analyse_expression_avec_virgule(GenreLexème lexème_racine);
+
+    NoeudExpression *analyse_référence_déclaration(Lexème const *lexème_référence);
 
     void analyse_annotations(kuri::tableau<Annotation, int> &annotations);
 
