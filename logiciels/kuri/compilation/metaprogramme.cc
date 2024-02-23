@@ -104,14 +104,18 @@ kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
 
     /* L'unité peut être nulle tant que l'exécution n'est pas imminente. */
     auto const espace = unité ? unité->espace : programme->espace();
-    auto const fichier_directive = espace->compilatrice().fichier(directive->lexeme->fichier);
-    auto const hiérarchie = donne_les_noms_de_la_hiérarchie(directive->bloc_parent);
+    const NoeudExpression *site = directive;
+    if (!site) {
+        site = corps_texte;
+    }
+    auto const fichier_directive = espace->compilatrice().fichier(site->lexeme->fichier);
+    auto const hiérarchie = donne_les_noms_de_la_hiérarchie(site->bloc_parent);
     auto const date = espace->compilatrice().donne_date_début_compilation();
 
     imprime_date_format_iso(date, enchaineuse);
     enchaineuse << '_';
 
-    enchaineuse << directive->ident->nom;
+    enchaineuse << site->ident->nom;
 
     for (auto i = hiérarchie.taille() - 1; i >= 0; i--) {
         auto nom = hiérarchie[i];
@@ -120,7 +124,7 @@ kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
         }
     }
 
-    enchaineuse << '_' << fichier_directive->nom() << '_' << directive->lexeme->ligne;
+    enchaineuse << '_' << fichier_directive->nom() << '_' << site->lexeme->ligne;
 
     auto nom = enchaineuse.chaine_statique();
     auto nombre_occurences = espace->compilatrice().donne_nombre_occurences_chaine(nom);
