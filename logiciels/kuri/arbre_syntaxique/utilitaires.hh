@@ -10,6 +10,7 @@
 
 #include "structures/chaine_statique.hh"
 #include "structures/tableau_compresse.hh"
+#include "structures/tablet.hh"
 
 #include "utilitaires/macros.hh"
 
@@ -22,6 +23,7 @@ struct IdentifiantCode;
 struct Lexème;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationSymbole;
 struct NoeudDeclarationType;
 struct NoeudDeclarationTypeCompose;
 struct NoeudDeclarationTypePointeur;
@@ -37,8 +39,6 @@ using TypeCompose = NoeudDeclarationTypeCompose;
 
 namespace kuri {
 struct chaine;
-template <typename T, uint64_t>
-class tablet;
 }  // namespace kuri
 
 /* ------------------------------------------------------------------------- */
@@ -350,12 +350,37 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);
  */
 Type *donne_type_accédé_effectif(Type *type_accédé);
 
+/* ------------------------------------------------------------------------- */
+/** \name HiérarchieDeNoms
+ * Représente la hiérarchie des symboles vers un autre symbole.
+ * Par exemple : Module.Struct1.Struct2 pour Struct2 étant membre de Struct1 membre de Module.
+ * \{ */
+
+struct HiérarchieDeNoms {
+    /* L'identifiant du module. */
+    IdentifiantCode const *ident_module = nullptr;
+    /* Les noeuds de la hiérarchie, stockés de bas (enfant) en haut (parent). Ceci ne contient pas
+     * le module, puisque ce ne sont pas des noeuds. */
+    kuri::tablet<NoeudDeclarationSymbole const *, 6> hiérarchie{};
+
+    NoeudDeclarationSymbole const *donne_feuille() const
+    {
+        return hiérarchie[0];
+    }
+};
+
+HiérarchieDeNoms donne_hiérarchie_nom(NoeudDeclarationSymbole const *symbole);
+
+void imprime_hiérarchie_nom(HiérarchieDeNoms const &hiérarchie);
+
 /**
  * Retourne les noms des blocs constituant la hiérarchie de blocs de ce bloc. Les noms incluent
  * celui du bloc passé en paramètre, et sont ordonnés du plus « jeune » ou plus « vieux » (c-à-d,
  * le nom du module, le bloc le plus vieux, sera le dernier).
  */
 kuri::tablet<IdentifiantCode *, 6> donne_les_noms_de_la_hiérarchie(NoeudBloc *bloc);
+
+/** \} */
 
 NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *type,
                                                                      Compilatrice &compilatrice,

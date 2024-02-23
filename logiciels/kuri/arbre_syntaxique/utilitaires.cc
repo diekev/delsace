@@ -1347,8 +1347,65 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
 
 /** \} */
 
-// -----------------------------------------------------------------------------
-// Implémentation des méthodes supplémentaires de l'arbre syntaxique
+/* ------------------------------------------------------------------------- */
+/** \name HiérarchieDeNoms
+ * \{ */
+
+HiérarchieDeNoms donne_hiérarchie_nom(NoeudDeclarationSymbole const *symbole)
+{
+    HiérarchieDeNoms résultat;
+
+    kuri::ensemblon<NoeudExpression *, 6> noeuds_visités;
+
+    résultat.hiérarchie.ajoute(symbole);
+
+    if (symbole->est_declaration_classe() && symbole->comme_declaration_classe()->est_anonyme) {
+        /* Place les unions anonymes dans le contexte globale car sinon nous aurions des
+         * dépendances cycliques quand la première définition fut rencontrée dans le type de retour
+         * d'une fonction. */
+        return résultat;
+    }
+
+    auto bloc = symbole->bloc_parent;
+    while (bloc) {
+        if (bloc->appartiens_à_fonction) {
+            if (!noeuds_visités.possède(bloc->appartiens_à_fonction)) {
+                résultat.hiérarchie.ajoute(bloc->appartiens_à_fonction);
+                noeuds_visités.insère(bloc->appartiens_à_fonction);
+            }
+        }
+        else if (bloc->appartiens_à_type) {
+            if (!noeuds_visités.possède(bloc->appartiens_à_type)) {
+                résultat.hiérarchie.ajoute(bloc->appartiens_à_type);
+                noeuds_visités.insère(bloc->appartiens_à_type);
+            }
+        }
+
+        if (bloc->bloc_parent == nullptr) {
+            /* Bloc du module. */
+            résultat.ident_module = bloc->ident;
+            break;
+        }
+
+        bloc = bloc->bloc_parent;
+    }
+
+    return résultat;
+}
+
+void imprime_hiérarchie_nom(HiérarchieDeNoms const &hiérarchie)
+{
+    dbg() << "============ Hiérarchie";
+
+    if (hiérarchie.ident_module && hiérarchie.ident_module != ID::chaine_vide) {
+        dbg() << "-- " << hiérarchie.ident_module->nom;
+    }
+
+    for (auto i = hiérarchie.hiérarchie.taille() - 1; i >= 0; i -= 1) {
+        auto noeud = hiérarchie.hiérarchie[i];
+        dbg() << "-- " << nom_humainement_lisible(noeud);
+    }
+}
 
 kuri::tablet<IdentifiantCode *, 6> donne_les_noms_de_la_hiérarchie(NoeudBloc *bloc)
 {
@@ -1364,6 +1421,11 @@ kuri::tablet<IdentifiantCode *, 6> donne_les_noms_de_la_hiérarchie(NoeudBloc *b
 
     return noms;
 }
+
+/** \} */
+
+// -----------------------------------------------------------------------------
+// Implémentation des méthodes supplémentaires de l'arbre syntaxique
 
 kuri::chaine_statique NoeudDeclarationEnteteFonction::donne_nom_broyé(Broyeuse &broyeuse)
 {

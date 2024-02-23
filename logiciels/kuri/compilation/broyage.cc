@@ -83,69 +83,6 @@ int64_t Broyeuse::mémoire_utilisée() const
     return stockage_chaines.mémoire_utilisée() + stockage_chaines.mémoire_utilisée();
 }
 
-struct HiérarchieDeNoms {
-    NoeudDeclarationSymbole const *feuille = nullptr;
-    IdentifiantCode const *ident_module = nullptr;
-    kuri::tablet<NoeudDeclarationSymbole const *, 6> hiérarchie{};
-};
-
-static HiérarchieDeNoms donne_hiérarchie_nom(NoeudDeclarationSymbole const *symbole)
-{
-    HiérarchieDeNoms résultat;
-    résultat.feuille = symbole;
-
-    kuri::ensemblon<NoeudExpression *, 6> noeuds_visités;
-
-    résultat.hiérarchie.ajoute(symbole);
-
-    if (symbole->est_declaration_classe() && symbole->comme_declaration_classe()->est_anonyme) {
-        /* Place les unions anonymes dans le contexte globale car sinon nous aurions des
-         * dépendances cycliques quand la première définition fut rencontrée dans le type de retour
-         * d'une fonction. */
-        return résultat;
-    }
-
-    auto bloc = symbole->bloc_parent;
-    while (bloc) {
-        if (bloc->appartiens_à_fonction) {
-            if (!noeuds_visités.possède(bloc->appartiens_à_fonction)) {
-                résultat.hiérarchie.ajoute(bloc->appartiens_à_fonction);
-                noeuds_visités.insère(bloc->appartiens_à_fonction);
-            }
-        }
-        else if (bloc->appartiens_à_type) {
-            if (!noeuds_visités.possède(bloc->appartiens_à_type)) {
-                résultat.hiérarchie.ajoute(bloc->appartiens_à_type);
-                noeuds_visités.insère(bloc->appartiens_à_type);
-            }
-        }
-
-        if (bloc->bloc_parent == nullptr) {
-            /* Bloc du module. */
-            résultat.ident_module = bloc->ident;
-            break;
-        }
-
-        bloc = bloc->bloc_parent;
-    }
-
-    return résultat;
-}
-
-static void imprime_hiérarchie(HiérarchieDeNoms const &hiérarchie)
-{
-    dbg() << "============ Hiérarchie";
-
-    if (hiérarchie.ident_module && hiérarchie.ident_module != ID::chaine_vide) {
-        dbg() << "-- " << hiérarchie.ident_module->nom;
-    }
-
-    for (auto i = hiérarchie.hiérarchie.taille() - 1; i >= 0; i -= 1) {
-        auto noeud = hiérarchie.hiérarchie[i];
-        dbg() << "-- " << nom_humainement_lisible(noeud);
-    }
-}
-
 static void broye_nom_hiérarchique(Enchaineuse &enchaineuse, HiérarchieDeNoms const &hiérarchie);
 
 static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiérarchie);
@@ -236,8 +173,10 @@ static void broye_nom_hiérarchique(Enchaineuse &enchaineuse, HiérarchieDeNoms 
         enchaineuse << virgule;
 
         if (noeud->est_entete_fonction()) {
-            broye_nom_fonction(
-                enchaineuse, noeud->comme_entete_fonction(), true, noeud == hiérarchie.feuille);
+            broye_nom_fonction(enchaineuse,
+                               noeud->comme_entete_fonction(),
+                               true,
+                               noeud == hiérarchie.donne_feuille());
         }
         else {
             auto type = const_cast<Type *>(noeud->comme_declaration_type());
