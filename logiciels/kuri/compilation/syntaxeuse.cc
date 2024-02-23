@@ -2620,6 +2620,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
 
     auto bloc = m_tacheronne.assembleuse->empile_bloc(lexème_bloc, nullptr);
 
+    bloc->appartiens_à_type = noeud_decl;
+
     auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
     while (!fini() && !apparie(GenreLexème::ACCOLADE_FERMANTE)) {
@@ -3454,6 +3456,8 @@ void Syntaxeuse::analyse_membres_structure_ou_union(NoeudDeclarationClasse *decl
     else {
         bloc = analyse_bloc_membres_structure_ou_union(decl_struct);
     }
+
+    bloc->appartiens_à_type = decl_struct;
 
     m_fonction_courante_retourne_plusieurs_valeurs = ancien_état_retour;
 
