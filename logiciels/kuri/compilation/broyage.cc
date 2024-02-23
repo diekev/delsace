@@ -22,38 +22,38 @@
 
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom)
 {
-    auto debut = nom.pointeur();
+    auto début = nom.pointeur();
     auto fin = nom.pointeur() + nom.taille();
 
-    while (debut < fin) {
-        auto no = lng::nombre_octets(debut);
+    while (début < fin) {
+        auto no = lng::nombre_octets(début);
 
         switch (no) {
             case 0:
             {
-                debut += 1;
+                début += 1;
                 break;
             }
             case 1:
             {
-                enchaineuse.pousse_caractere(*debut);
+                enchaineuse.ajoute_caractère(*début);
                 break;
             }
             default:
             {
                 for (int i = 0; i < no; ++i) {
-                    enchaineuse.pousse_caractere('x');
-                    enchaineuse.pousse_caractere(
-                        dls::num::char_depuis_hex(static_cast<char>((debut[i] & 0xf0) >> 4)));
-                    enchaineuse.pousse_caractere(
-                        dls::num::char_depuis_hex(static_cast<char>(debut[i] & 0x0f)));
+                    enchaineuse.ajoute_caractère('x');
+                    enchaineuse.ajoute_caractère(
+                        dls::num::char_depuis_hex(static_cast<char>((début[i] & 0xf0) >> 4)));
+                    enchaineuse.ajoute_caractère(
+                        dls::num::char_depuis_hex(static_cast<char>(début[i] & 0x0f)));
                 }
 
                 break;
             }
         }
 
-        debut += no;
+        début += no;
     }
 }
 
@@ -83,6 +83,214 @@ int64_t Broyeuse::mémoire_utilisée() const
     return stockage_chaines.mémoire_utilisée() + stockage_chaines.mémoire_utilisée();
 }
 
+struct HiérarchieDeNoms {
+    NoeudDeclarationSymbole const *feuille = nullptr;
+    IdentifiantCode const *ident_module = nullptr;
+    kuri::tablet<NoeudDeclarationSymbole const *, 6> hiérarchie{};
+};
+
+static HiérarchieDeNoms donne_hiérarchie_nom(NoeudDeclarationSymbole const *symbole)
+{
+    HiérarchieDeNoms résultat;
+    résultat.feuille = symbole;
+
+    kuri::ensemblon<NoeudExpression *, 6> noeuds_visités;
+
+    résultat.hiérarchie.ajoute(symbole);
+
+    if (symbole->est_declaration_classe() && symbole->comme_declaration_classe()->est_anonyme) {
+        /* Place les unions anonymes dans le contexte globale car sinon nous aurions des
+         * dépendances cycliques quand la première définition fut rencontrée dans le type de retour
+         * d'une fonction. */
+        return résultat;
+    }
+
+    auto bloc = symbole->bloc_parent;
+    while (bloc) {
+        if (bloc->appartiens_à_fonction) {
+            if (!noeuds_visités.possède(bloc->appartiens_à_fonction)) {
+                résultat.hiérarchie.ajoute(bloc->appartiens_à_fonction);
+                noeuds_visités.insère(bloc->appartiens_à_fonction);
+            }
+        }
+        else if (bloc->appartiens_à_type) {
+            if (!noeuds_visités.possède(bloc->appartiens_à_type)) {
+                résultat.hiérarchie.ajoute(bloc->appartiens_à_type);
+                noeuds_visités.insère(bloc->appartiens_à_type);
+            }
+        }
+
+        if (bloc->bloc_parent == nullptr) {
+            /* Bloc du module. */
+            résultat.ident_module = bloc->ident;
+            break;
+        }
+
+        bloc = bloc->bloc_parent;
+    }
+
+    return résultat;
+}
+
+static void imprime_hiérarchie(HiérarchieDeNoms const &hiérarchie)
+{
+    dbg() << "============ Hiérarchie";
+
+    if (hiérarchie.ident_module && hiérarchie.ident_module != ID::chaine_vide) {
+        dbg() << "-- " << hiérarchie.ident_module->nom;
+    }
+
+    for (auto i = hiérarchie.hiérarchie.taille() - 1; i >= 0; i -= 1) {
+        auto noeud = hiérarchie.hiérarchie[i];
+        dbg() << "-- " << nom_humainement_lisible(noeud);
+    }
+}
+
+static void broye_nom_hiérarchique(Enchaineuse &enchaineuse, HiérarchieDeNoms const &hiérarchie);
+
+static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiérarchie);
+
+static const char *nom_pour_operateur(Lexème const &lexeme);
+
+static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc);
+
+static void ajoute_broyage_paramètres(Enchaineuse &enchaineuse,
+                                      NoeudDeclarationEnteteFonction const *entête)
+{
+    if (entête->params.est_vide()) {
+        return;
+    }
+
+    enchaineuse << "_E" << entête->params.taille() << "_";
+
+    for (auto i = 0; i < entête->params.taille(); ++i) {
+        auto param = entête->parametre_entree(i);
+
+        auto nom_ascii = param->ident->nom_broye;
+        enchaineuse << nom_ascii.taille();
+        enchaineuse << nom_ascii;
+
+        auto nom_broye = param->type->nom_broye;
+        enchaineuse << nom_broye.taille();
+        enchaineuse << nom_broye;
+    }
+}
+
+static void broye_nom_fonction(Enchaineuse &enchaineuse,
+                               NoeudDeclarationEnteteFonction const *entête,
+                               bool pour_hiérarchie,
+                               bool est_feuille_hiérarchie)
+{
+    /* Module et nom. */
+    if (!est_feuille_hiérarchie) {
+        enchaineuse << "_K";
+        enchaineuse << (entête->est_coroutine ? "C" : "F");
+    }
+
+    if (!pour_hiérarchie) {
+        auto hiérachie = donne_hiérarchie_nom(entête);
+        broye_nom_hiérarchique(enchaineuse, hiérachie);
+        return;
+    }
+
+    /* nom de la fonction */
+    if (entête->est_operateur) {
+        enchaineuse << "operateur" << nom_pour_operateur(*entête->lexeme);
+    }
+    else {
+        // À FAIRE
+        //        auto nom_ascii_fonction = broye_nom_simple(entête->ident);
+        //        enchaineuse << nom_ascii_fonction.taille();
+        //        enchaineuse << nom_ascii_fonction;
+
+        broye_nom_simple(enchaineuse, entête->ident->nom);
+    }
+
+    /* paramètres */
+    ajoute_broyage_constantes(enchaineuse, entête->bloc_constantes);
+
+    /* entrées */
+    ajoute_broyage_paramètres(enchaineuse, entête);
+
+    /* sortie. */
+    enchaineuse << "_S_";
+
+    auto type_fonc = entête->type->comme_type_fonction();
+    auto nom_broye = type_fonc->type_sortie->nom_broye;
+    enchaineuse << nom_broye.taille();
+    enchaineuse << nom_broye;
+}
+
+static void broye_nom_hiérarchique(Enchaineuse &enchaineuse, HiérarchieDeNoms const &hiérarchie)
+{
+    auto virgule = kuri::chaine_statique("");
+
+    if (hiérarchie.ident_module && hiérarchie.ident_module != ID::chaine_vide) {
+        virgule = "_";
+        broye_nom_simple(enchaineuse, hiérarchie.ident_module->nom);
+    }
+
+    for (auto i = hiérarchie.hiérarchie.taille() - 1; i >= 0; i -= 1) {
+        auto noeud = hiérarchie.hiérarchie[i];
+
+        enchaineuse << virgule;
+
+        if (noeud->est_entete_fonction()) {
+            broye_nom_fonction(
+                enchaineuse, noeud->comme_entete_fonction(), true, noeud == hiérarchie.feuille);
+        }
+        else {
+            auto type = const_cast<Type *>(noeud->comme_declaration_type());
+            broye_nom_type(enchaineuse, type, true);
+        }
+
+        virgule = "_";
+    }
+}
+
+static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc)
+{
+    if (!bloc || bloc->membres->est_vide()) {
+        return;
+    }
+
+    enchaineuse << "_P" << bloc->membres->taille();
+
+    POUR (*bloc->membres.verrou_lecture()) {
+        auto constante = it->comme_declaration_constante();
+        auto type_membre = constante->type;
+        if (type_membre->est_type_type_de_donnees()) {
+            /* Préfixe pour un type. */
+            enchaineuse << "_T";
+            type_membre = type_membre->comme_type_type_de_donnees()->type_connu;
+            broye_nom_type(enchaineuse, type_membre, false);
+        }
+        else {
+            /* Préfixe pour une valeur. */
+            enchaineuse << "_V";
+            auto valeur = constante->valeur_expression;
+            if (valeur.est_booléenne() || valeur.est_entière()) {
+                enchaineuse << constante->valeur_expression;
+            }
+            else if (valeur.est_chaine()) {
+                broye_nom_simple(enchaineuse, valeur.chaine()->lexeme->chaine);
+            }
+            else if (valeur.est_fonction()) {
+                broye_nom_fonction(enchaineuse, valeur.fonction(), true, false);
+            }
+            else if (valeur.est_type()) {
+                broye_nom_type(enchaineuse, valeur.type(), false);
+            }
+            else {
+                // À FAIRE : imprime la valeur selon le type en faisant en sorte que la
+                // valeur ne contient que des caractères légaux.
+            }
+
+            broye_nom_type(enchaineuse, type_membre, false);
+        }
+    }
+}
+
 /* Broye le nom d'un type.
  *
  * Convention :
@@ -101,7 +309,7 @@ int64_t Broyeuse::mémoire_utilisée() const
  * *z8 devient KPKsz8
  * &[..]Foo devient KRKtKsFoo
  */
-static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
+static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiérarchie)
 {
     switch (type->genre) {
         case GenreNoeud::POLYMORPHIQUE:
@@ -128,20 +336,20 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         case GenreNoeud::REFERENCE:
         {
             enchaineuse << "KR";
-            broye_nom_type(enchaineuse, type->comme_type_reference()->type_pointe);
+            broye_nom_type(enchaineuse, type->comme_type_reference()->type_pointe, false);
             break;
         }
         case GenreNoeud::POINTEUR:
         {
             enchaineuse << "KP";
 
-            auto type_pointe = type->comme_type_pointeur()->type_pointe;
+            auto type_élément = type->comme_type_pointeur()->type_pointe;
 
-            if (type_pointe == nullptr) {
+            if (type_élément == nullptr) {
                 enchaineuse << "nul";
             }
             else {
-                broye_nom_type(enchaineuse, type_pointe);
+                broye_nom_type(enchaineuse, type_élément, false);
             }
 
             break;
@@ -149,22 +357,27 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         case GenreNoeud::DECLARATION_UNION:
         {
             auto type_union = static_cast<TypeUnion const *>(type);
-            enchaineuse << "Ks";
-            broye_nom_simple(enchaineuse, donne_nom_portable(const_cast<TypeUnion *>(type_union)));
 
-            // ajout du pointeur au nom afin de différencier les différents types anonymes ou
-            // monomorphisations
-            if (type_union->est_anonyme) {
-                enchaineuse << type_union->type_structure;
+            if (!pour_hiérarchie) {
+                enchaineuse << "Ks";
+                auto hiérarchie = donne_hiérarchie_nom(type);
+                broye_nom_hiérarchique(enchaineuse, hiérarchie);
             }
-            else if (type_union->est_monomorphisation) {
-                POUR (*type_union->bloc_constantes->membres.verrou_lecture()) {
-                    auto type_membre = it->type;
-                    if (type_membre->est_type_type_de_donnees()) {
-                        type_membre = type_membre->comme_type_type_de_donnees()->type_connu;
-                    }
+            else {
+                if (type->ident) {
+                    broye_nom_simple(enchaineuse, type->ident->nom);
+                }
+                else {
+                    enchaineuse << "union_anonyme";
+                }
 
-                    broye_nom_type(enchaineuse, type_membre);
+                // ajout du pointeur au nom afin de différencier les différents types anonymes ou
+                // monomorphisations
+                if (type_union->est_anonyme) {
+                    enchaineuse << type_union->type_structure;
+                }
+                else if (type_union->est_monomorphisation) {
+                    ajoute_broyage_constantes(enchaineuse, type_union->bloc_constantes);
                 }
             }
 
@@ -172,24 +385,27 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         }
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
-            auto type_structure = static_cast<TypeStructure const *>(type);
-            enchaineuse << "Ks";
-            broye_nom_simple(enchaineuse,
-                             donne_nom_portable(const_cast<TypeStructure *>(type_structure)));
-
-            // ajout du pointeur au nom afin de différencier les différents types anonymes ou
-            // monomorphisations
-            if (type_structure->est_anonyme) {
-                enchaineuse << type_structure;
+            if (!pour_hiérarchie) {
+                enchaineuse << "Ks";
+                auto hiérarchie = donne_hiérarchie_nom(type);
+                broye_nom_hiérarchique(enchaineuse, hiérarchie);
             }
-            else if (type_structure->est_monomorphisation) {
-                POUR (*type_structure->bloc_constantes->membres.verrou_lecture()) {
-                    auto type_membre = it->type;
-                    if (type_membre->est_type_type_de_donnees()) {
-                        type_membre = type_membre->comme_type_type_de_donnees()->type_connu;
-                    }
+            else {
+                if (type->ident) {
+                    broye_nom_simple(enchaineuse, type->ident->nom);
+                }
+                else {
+                    enchaineuse << "struct_anonyme";
+                }
 
-                    broye_nom_type(enchaineuse, type_membre);
+                auto type_structure = static_cast<TypeStructure const *>(type);
+                // ajout du pointeur au nom afin de différencier les différents types anonymes ou
+                // monomorphisations
+                if (type_structure->est_anonyme) {
+                    enchaineuse << type_structure;
+                }
+                else if (type_structure->est_monomorphisation) {
+                    ajoute_broyage_constantes(enchaineuse, type_structure->bloc_constantes);
                 }
             }
 
@@ -197,12 +413,12 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         }
         case GenreNoeud::VARIADIQUE:
         {
-            auto type_pointe = type->comme_type_variadique()->type_pointe;
+            auto type_élément = type->comme_type_variadique()->type_pointe;
 
             // les arguments variadiques sont transformés en tranches, donc utilise Kz
-            if (type_pointe != nullptr) {
+            if (type_élément != nullptr) {
                 enchaineuse << "Kz";
-                broye_nom_type(enchaineuse, type_pointe);
+                broye_nom_type(enchaineuse, type_élément, false);
             }
             else {
                 enchaineuse << "Kv";
@@ -213,13 +429,13 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         case GenreNoeud::TYPE_TRANCHE:
         {
             enchaineuse << "Kz";
-            broye_nom_type(enchaineuse, type->comme_type_tranche()->type_élément);
+            broye_nom_type(enchaineuse, type->comme_type_tranche()->type_élément, false);
             break;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             enchaineuse << "Kt";
-            broye_nom_type(enchaineuse, type->comme_type_tableau_dynamique()->type_pointe);
+            broye_nom_type(enchaineuse, type->comme_type_tableau_dynamique()->type_pointe, false);
             break;
         }
         case GenreNoeud::TABLEAU_FIXE:
@@ -228,7 +444,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
 
             enchaineuse << "KT";
             enchaineuse << type_tabl->taille;
-            broye_nom_type(enchaineuse, type_tabl->type_pointe);
+            broye_nom_type(enchaineuse, type_tabl->type_pointe, false);
             break;
         }
         case GenreNoeud::FONCTION:
@@ -238,11 +454,11 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
             enchaineuse << type_fonction->types_entrees.taille();
 
             POUR (type_fonction->types_entrees) {
-                broye_nom_type(enchaineuse, it);
+                broye_nom_type(enchaineuse, it, false);
             }
 
             enchaineuse << 1;
-            broye_nom_type(enchaineuse, type_fonction->type_sortie);
+            broye_nom_type(enchaineuse, type_fonction->type_sortie, false);
 
             break;
         }
@@ -250,18 +466,30 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type)
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         {
-            auto type_enum = static_cast<TypeEnum *>(type);
-            enchaineuse << "Ks";
-            broye_nom_simple(enchaineuse, donne_nom_portable(type_enum));
+            if (!pour_hiérarchie) {
+                enchaineuse << "Ks";
+                auto hiérarchie = donne_hiérarchie_nom(type);
+                broye_nom_hiérarchique(enchaineuse, hiérarchie);
+            }
+            else {
+                broye_nom_simple(enchaineuse, type->ident->nom);
+            }
+
             break;
         }
         case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            enchaineuse << "Ks";
-            broye_nom_simple(enchaineuse, donne_nom_portable(type_opaque));
+
+            if (!pour_hiérarchie) {
+                enchaineuse << "Ks";
+                auto hiérarchie = donne_hiérarchie_nom(type);
+                broye_nom_hiérarchique(enchaineuse, hiérarchie);
+            }
+
+            broye_nom_simple(enchaineuse, type->ident->nom);
             /* inclus le nom du type opacifié afin de prendre en compte les monomorphisations */
-            broye_nom_type(enchaineuse, type_opaque->type_opacifie);
+            broye_nom_type(enchaineuse, type_opaque->type_opacifie, false);
             break;
         }
         case GenreNoeud::TUPLE:
@@ -284,7 +512,7 @@ kuri::chaine_statique Broyeuse::nom_broyé_type(Type *type)
     }
 
     stockage_temp.réinitialise();
-    ::broye_nom_type(stockage_temp, type);
+    ::broye_nom_type(stockage_temp, type, false);
 
     type->nom_broye = chaine_finale_pour_stockage_temp();
     stockage_temp.réinitialise();
@@ -412,8 +640,6 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
 {
     stockage_temp.réinitialise();
 
-    auto type_fonc = decl->type->comme_type_fonction();
-
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME)) {
         stockage_temp << "metaprogramme" << decl;
         return chaine_finale_pour_stockage_temp();
@@ -433,7 +659,6 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
     POUR (noms_hiérarchie) {
         noms_broyés_hiérarchie.ajoute(broye_nom_simple(it));
     }
-    auto nom_ascii_fonction = broye_nom_simple(decl->ident);
 
     decl->bloc_constantes->membres.avec_verrou_lecture(
         [&](kuri::tableau<NoeudDeclaration *, int> const &membres) {
@@ -456,83 +681,12 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
         nom_broyé_type(param->type);
     }
 
+    auto type_fonc = decl->type->comme_type_fonction();
     nom_broyé_type(type_fonc->type_sortie);
 
-    /* Crée le nom broyé. */
-    stockage_temp.réinitialise();
-
-    /* Module et nom. */
     stockage_temp << "_K";
     stockage_temp << (decl->est_coroutine ? "C" : "F");
-
-    for (auto i = noms_broyés_hiérarchie.taille() - 1; i >= 0; --i) {
-        auto nom_broyé_hiérarchie = noms_broyés_hiérarchie[i];
-        stockage_temp << nom_broyé_hiérarchie.taille();
-        stockage_temp << nom_broyé_hiérarchie;
-    }
-
-    /* nom de la fonction */
-    if (decl->est_operateur) {
-        stockage_temp << "operateur" << nom_pour_operateur(*decl->lexeme);
-    }
-    else {
-        stockage_temp << nom_ascii_fonction.taille();
-        stockage_temp << nom_ascii_fonction;
-    }
-
-    /* paramètres */
-    stockage_temp << "_P";
-    stockage_temp << decl->bloc_constantes->nombre_de_membres();
-    stockage_temp << "_";
-
-    decl->bloc_constantes->membres.avec_verrou_lecture(
-        [&](kuri::tableau<NoeudDeclaration *, int> const &membres) {
-            POUR (membres) {
-                auto nom_ascii = it->ident->nom_broye;
-                stockage_temp << nom_ascii.taille();
-                stockage_temp << nom_ascii;
-
-                auto type = it->type;
-                if (type->est_type_type_de_donnees() &&
-                    type->comme_type_type_de_donnees()->type_connu) {
-                    type = type->comme_type_type_de_donnees()->type_connu;
-                }
-
-                auto nom_broye = type->nom_broye;
-                stockage_temp << nom_broye.taille();
-                stockage_temp << nom_broye;
-            }
-        });
-
-    /* entrées */
-    stockage_temp << "_E";
-    stockage_temp << decl->params.taille();
-    stockage_temp << "_";
-
-    for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i);
-
-        auto nom_ascii = param->ident->nom_broye;
-        stockage_temp << nom_ascii.taille();
-        stockage_temp << nom_ascii;
-
-        auto nom_broye = param->type->nom_broye;
-        stockage_temp << nom_broye.taille();
-        stockage_temp << nom_broye;
-    }
-
-    /* sorties */
-    stockage_temp << "_S";
-    stockage_temp << "_";
-
-    auto nom_broye = type_fonc->type_sortie->nom_broye;
-    stockage_temp << nom_broye.taille();
-    stockage_temp << nom_broye;
-
-    /* Ajout du pointeur car les fonctions nichées dans des fonctions polymorphiques peuvent finir
-     * avec le même nom broyé. */
-    stockage_temp << decl;
-
+    ::broye_nom_fonction(stockage_temp, decl, false, true);
     return chaine_finale_pour_stockage_temp();
 }
 

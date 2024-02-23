@@ -31,7 +31,7 @@ void Enchaineuse::ajoute(const kuri::chaine_statique &chn)
 void Enchaineuse::ajoute_inverse(const kuri::chaine_statique &chn)
 {
     for (auto i = chn.taille() - 1; i >= 0; --i) {
-        pousse_caractere(chn.pointeur()[i]);
+        ajoute_caractère(chn.pointeur()[i]);
     }
 }
 
@@ -69,7 +69,7 @@ void Enchaineuse::ajoute(const char *c_str, int64_t N)
     }
 }
 
-void Enchaineuse::pousse_caractere(char c)
+void Enchaineuse::ajoute_caractère(char c)
 {
     auto tampon = tampon_courant;
 
