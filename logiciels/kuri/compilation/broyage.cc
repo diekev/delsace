@@ -634,9 +634,7 @@ static const char *nom_pour_operateur(Lexème const &lexeme)
  * fonc test(x : z32) : z32 (module Test)
  * -> _KF4Test4test_P2_E1_1x3z32_S1_3z32
  */
-kuri::chaine_statique Broyeuse::broye_nom_fonction(
-    NoeudDeclarationEnteteFonction *decl,
-    kuri::tablet<IdentifiantCode *, 6> const &noms_hiérarchie)
+kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonction *decl)
 {
     stockage_temp.réinitialise();
 
@@ -652,12 +650,6 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
         stockage_temp.réinitialise();
         stockage_temp << "initialise_" << nom_type_broyé;
         return chaine_finale_pour_stockage_temp();
-    }
-
-    /* Prépare les données afin de ne pas polluer l'enchaineuse. */
-    kuri::tablet<kuri::chaine_statique, 6> noms_broyés_hiérarchie;
-    POUR (noms_hiérarchie) {
-        noms_broyés_hiérarchie.ajoute(broye_nom_simple(it));
     }
 
     decl->bloc_constantes->membres.avec_verrou_lecture(

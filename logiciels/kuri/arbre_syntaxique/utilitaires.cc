@@ -1373,8 +1373,7 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::donne_nom_broyé(Broyeuse 
 
     if (ident != ID::principale && !possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE |
                                                     DrapeauxNoeudFonction::FORCE_SANSBROYAGE)) {
-        auto noms = donne_les_noms_de_la_hiérarchie(bloc_parent);
-        nom_broye_ = broyeuse.broye_nom_fonction(this, noms);
+        nom_broye_ = broyeuse.broye_nom_fonction(this);
     }
     else if (données_externes) {
         nom_broye_ = données_externes->nom_symbole;
