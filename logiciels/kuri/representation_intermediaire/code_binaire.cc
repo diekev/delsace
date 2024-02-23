@@ -756,6 +756,26 @@ void Chunk::émets_rembourrage(uint32_t rembourrage)
 
 /* ************************************************************************** */
 
+template <typename T>
+struct DésassembleuseValeur {
+    static T donne_valeur(Chunk const &chunk, int64_t &décalage)
+    {
+        auto résultat = *reinterpret_cast<T *>(&chunk.code[décalage]);
+        décalage += int64_t(sizeof(T));
+        return résultat;
+    }
+};
+
+template <>
+struct DésassembleuseValeur<AtomeFonction *> {
+    static kuri::chaine_statique donne_valeur(Chunk const &chunk, int64_t &décalage)
+    {
+        auto fonction = *reinterpret_cast<AtomeFonction **>(&chunk.code[décalage]);
+        décalage += int64_t(sizeof(AtomeFonction *));
+        return fonction->nom;
+    }
+};
+
 static int64_t instruction_simple(int64_t décalage, Enchaineuse &os)
 {
     os << '\n';
@@ -766,33 +786,27 @@ template <typename T>
 static int64_t instruction_1d(Chunk const &chunk, int64_t décalage, Enchaineuse &os)
 {
     décalage += 1;
-    auto index = *reinterpret_cast<T *>(&chunk.code[décalage]);
-    os << ' ' << index << '\n';
-    return décalage + static_cast<int64_t>(sizeof(T));
+    os << ' ' << DésassembleuseValeur<T>::donne_valeur(chunk, décalage) << '\n';
+    return décalage;
 }
 
 template <typename T1, typename T2>
 static int64_t instruction_2d(Chunk const &chunk, int64_t décalage, Enchaineuse &os)
 {
     décalage += 1;
-    auto v1 = *reinterpret_cast<T1 *>(&chunk.code[décalage]);
-    décalage += static_cast<int64_t>(sizeof(T1));
-    auto v2 = *reinterpret_cast<T2 *>(&chunk.code[décalage]);
-    os << ' ' << v1 << ", " << v2 << "\n";
-    return décalage + static_cast<int64_t>(sizeof(T2));
+    os << ' ' << DésassembleuseValeur<T1>::donne_valeur(chunk, décalage) << ", ";
+    os << DésassembleuseValeur<T2>::donne_valeur(chunk, décalage) << '\n';
+    return décalage;
 }
 
 template <typename T1, typename T2, typename T3>
 static int64_t instruction_3d(Chunk const &chunk, int64_t décalage, Enchaineuse &os)
 {
     décalage += 1;
-    auto v1 = *reinterpret_cast<T1 *>(&chunk.code[décalage]);
-    décalage += static_cast<int64_t>(sizeof(T1));
-    auto v2 = *reinterpret_cast<T2 *>(&chunk.code[décalage]);
-    décalage += static_cast<int64_t>(sizeof(T2));
-    auto v3 = *reinterpret_cast<T3 *>(&chunk.code[décalage]);
-    os << ' ' << v1 << ", " << v2 << ", " << v3 << "\n";
-    return décalage + static_cast<int64_t>(sizeof(T3));
+    os << ' ' << DésassembleuseValeur<T1>::donne_valeur(chunk, décalage) << ", ";
+    os << DésassembleuseValeur<T2>::donne_valeur(chunk, décalage) << ", ";
+    os << DésassembleuseValeur<T3>::donne_valeur(chunk, décalage) << '\n';
+    return décalage;
 }
 
 int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaineuse &os)
@@ -986,16 +1000,16 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         }
         case OP_APPEL:
         {
-            return instruction_2d<void *, int>(chunk, décalage, os);
+            return instruction_2d<AtomeFonction *, int>(chunk, décalage, os);
         }
         case OP_APPEL_EXTERNE:
         {
-            return instruction_3d<void *, int, void *>(chunk, décalage, os);
+            return instruction_3d<AtomeFonction *, int, void *>(chunk, décalage, os);
         }
         case OP_APPEL_COMPILATRICE:
         case OP_APPEL_INTRINSÈQUE:
         {
-            return instruction_1d<void *>(chunk, décalage, os);
+            return instruction_1d<AtomeFonction *>(chunk, décalage, os);
         }
         case OP_COPIE_LOCALE:
         {

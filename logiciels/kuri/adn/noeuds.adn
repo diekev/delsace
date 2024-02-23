@@ -1101,6 +1101,7 @@ struct NoeudBloc : NoeudExpression {
     NoeudDiscr *appartiens_à_discr [préserve_accents copie]
     /* Si le bloc est un bloc appartenant à une fonction (bloc constantes, paramètres, etc.). */
     NoeudDéclarationEnteteFonction *appartiens_à_fonction [préserve_accents copie]
+    NoeudDéclarationType *appartiens_à_type [préserve_accents copie]
     NoeudDéclaration * [synchrone] membres [code]
     NoeudExpression * [synchrone]  expressions [code enfant]
     bool est_nonsur
