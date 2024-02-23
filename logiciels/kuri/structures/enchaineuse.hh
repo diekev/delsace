@@ -36,7 +36,7 @@ struct Enchaineuse {
 
     void ajoute(const char *c_str, int64_t N);
 
-    void pousse_caractere(char c);
+    void ajoute_caractère(char c);
 
     void imprime_dans_flux(std::ostream &flux);
 
@@ -149,7 +149,7 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
 
     if constexpr (std::is_signed_v<T>) {
         if (valeur < 0) {
-            enchaineuse.pousse_caractere('-');
+            enchaineuse.ajoute_caractère('-');
             valeur = -valeur;
         }
     }
@@ -188,7 +188,7 @@ inline Enchaineuse &operator<<(Enchaineuse &enchaineuse, T *valeur)
 template <>
 inline Enchaineuse &operator<<(Enchaineuse &enchaineuse, char valeur)
 {
-    enchaineuse.pousse_caractere(valeur);
+    enchaineuse.ajoute_caractère(valeur);
     return enchaineuse;
 }
 
