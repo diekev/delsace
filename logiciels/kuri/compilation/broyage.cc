@@ -87,7 +87,7 @@ static void broye_nom_hiérarchique(Enchaineuse &enchaineuse, HiérarchieDeNoms 
 
 static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiérarchie);
 
-static const char *nom_pour_operateur(Lexème const &lexeme);
+static const char *nom_pour_opérateur(Lexème const &lexème);
 
 static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc);
 
@@ -132,7 +132,7 @@ static void broye_nom_fonction(Enchaineuse &enchaineuse,
 
     /* nom de la fonction */
     if (entête->est_operateur) {
-        enchaineuse << "operateur" << nom_pour_operateur(*entête->lexeme);
+        enchaineuse << "operateur" << nom_pour_opérateur(*entête->lexeme);
     }
     else {
         // À FAIRE
@@ -462,14 +462,14 @@ kuri::chaine_statique Broyeuse::nom_broyé_type(Type *type)
     return type->nom_broye;
 }
 
-static const char *nom_pour_operateur(Lexème const &lexeme)
+static const char *nom_pour_opérateur(Lexème const &lexème)
 {
-    switch (lexeme.genre) {
+    switch (lexème.genre) {
         default:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Lexème inattendu pour les opérateurs dans le broyage de nom : "
-                      << chaine_du_genre_de_lexème(lexeme.genre);
+                      << chaine_du_genre_de_lexème(lexème.genre);
             });
             break;
         }
