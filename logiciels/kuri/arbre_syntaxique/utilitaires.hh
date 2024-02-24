@@ -383,7 +383,6 @@ kuri::tablet<IdentifiantCode *, 6> donne_les_noms_de_la_hiérarchie(NoeudBloc *b
 /** \} */
 
 NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *type,
-                                                                     Compilatrice &compilatrice,
                                                                      AssembleuseArbre *assembleuse,
                                                                      Typeuse &typeuse);
 

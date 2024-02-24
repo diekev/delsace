@@ -1993,7 +1993,6 @@ Type *donne_type_accédé_effectif(Type *type_accédé)
 static Lexème lexème_sentinel = {};
 
 NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *type,
-                                                                     Compilatrice &compilatrice,
                                                                      AssembleuseArbre *assembleuse,
                                                                      Typeuse &typeuse)
 {
@@ -2088,7 +2087,6 @@ static void crée_assignation(AssembleuseArbre *assembleuse,
 }
 
 static void crée_initialisation_defaut_pour_type(Type *type,
-                                                 Compilatrice &compilatrice,
                                                  AssembleuseArbre *assembleuse,
                                                  NoeudExpression *ref_param,
                                                  NoeudExpression *expr_valeur_défaut,
@@ -2115,8 +2113,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         {
             auto prise_adresse = crée_prise_adresse(
                 assembleuse, &lexème_sentinel, ref_param, typeuse.type_pointeur_pour(type));
-            auto fonction = crée_entête_pour_initialisation_type(
-                type, compilatrice, assembleuse, typeuse);
+            auto fonction = crée_entête_pour_initialisation_type(type, assembleuse, typeuse);
             auto appel = assembleuse->crée_appel(&lexème_sentinel, fonction, TypeBase::RIEN);
             appel->parametres_resolus.ajoute(prise_adresse);
             assembleuse->bloc_courant()->ajoute_expression(appel);
@@ -2211,7 +2208,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
                 &lexème_sentinel, TypeBase::Z64, ID::index_it, nullptr);
 
             auto fonction = crée_entête_pour_initialisation_type(
-                type_élément, compilatrice, assembleuse, typeuse);
+                type_élément, assembleuse, typeuse);
             auto appel = assembleuse->crée_appel(&lexème_sentinel, fonction, TypeBase::RIEN);
             appel->parametres_resolus.ajoute(ref_it);
 
@@ -2239,7 +2236,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, comme->type};
 
             auto fonc_init = crée_entête_pour_initialisation_type(
-                type_opacifié, compilatrice, assembleuse, typeuse);
+                type_opacifié, assembleuse, typeuse);
             auto appel = assembleuse->crée_appel(&lexème_sentinel, fonc_init, TypeBase::RIEN);
             appel->parametres_resolus.ajoute(comme);
             assembleuse->bloc_courant()->ajoute_expression(appel);
@@ -2328,8 +2325,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         return;
     }
 
-    auto entête = crée_entête_pour_initialisation_type(
-        type, espace->compilatrice(), assembleuse, typeuse);
+    auto entête = crée_entête_pour_initialisation_type(type, assembleuse, typeuse);
 
     sauvegarde_fonction_init(typeuse, type, entête);
 
@@ -2369,8 +2365,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
             auto deref = assembleuse->crée_memoire(&lexème_sentinel);
             deref->expression = ref_param;
             deref->type = type;
-            crée_initialisation_defaut_pour_type(
-                type, espace->compilatrice(), assembleuse, deref, nullptr, typeuse);
+            crée_initialisation_defaut_pour_type(type, assembleuse, deref, nullptr, typeuse);
             break;
         }
         case GenreNoeud::DECLARATION_OPAQUE:
@@ -2389,7 +2384,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
             deref->type = type_opacifié;
 
             crée_initialisation_defaut_pour_type(
-                type_opacifié, espace->compilatrice(), assembleuse, deref, nullptr, typeuse);
+                type_opacifié, assembleuse, deref, nullptr, typeuse);
             break;
         }
         case GenreNoeud::EINI:
@@ -2423,12 +2418,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
 
                 auto ref_membre = assembleuse->crée_reference_membre(
                     &lexème_sentinel, ref_param, it.type, index_it);
-                crée_initialisation_defaut_pour_type(it.type,
-                                                     espace->compilatrice(),
-                                                     assembleuse,
-                                                     ref_membre,
-                                                     it.expression_valeur_defaut,
-                                                     typeuse);
+                crée_initialisation_defaut_pour_type(
+                    it.type, assembleuse, ref_membre, it.expression_valeur_defaut, typeuse);
             }
 
             break;
@@ -2467,12 +2458,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 deref->expression = transtype;
                 deref->type = membre.type;
 
-                crée_initialisation_defaut_pour_type(membre.type,
-                                                     espace->compilatrice(),
-                                                     assembleuse,
-                                                     deref,
-                                                     membre.expression_valeur_defaut,
-                                                     typeuse);
+                crée_initialisation_defaut_pour_type(
+                    membre.type, assembleuse, deref, membre.expression_valeur_defaut, typeuse);
             }
             else {
                 /* Transtype l'argument vers le type de la structure.
@@ -2503,12 +2490,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                     ref_membre->index_membre = 0;
                     ref_membre->type = TypeBase::Z32;
                     ref_membre->aide_generation_code = IGNORE_VERIFICATION;
-                    crée_initialisation_defaut_pour_type(TypeBase::Z32,
-                                                         espace->compilatrice(),
-                                                         assembleuse,
-                                                         ref_membre,
-                                                         nullptr,
-                                                         typeuse);
+                    crée_initialisation_defaut_pour_type(
+                        TypeBase::Z32, assembleuse, ref_membre, nullptr, typeuse);
                     break;
                 }
 
@@ -2518,7 +2501,6 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 ref_membre->type = membre.type;
                 ref_membre->aide_generation_code = IGNORE_VERIFICATION;
                 crée_initialisation_defaut_pour_type(membre.type,
-                                                     espace->compilatrice(),
                                                      assembleuse,
                                                      ref_membre,
                                                      membre.expression_valeur_defaut,
@@ -2529,12 +2511,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 ref_membre->index_membre = 1;
                 ref_membre->type = TypeBase::Z32;
                 ref_membre->aide_generation_code = IGNORE_VERIFICATION;
-                crée_initialisation_defaut_pour_type(TypeBase::Z32,
-                                                     espace->compilatrice(),
-                                                     assembleuse,
-                                                     ref_membre,
-                                                     nullptr,
-                                                     typeuse);
+                crée_initialisation_defaut_pour_type(
+                    TypeBase::Z32, assembleuse, ref_membre, nullptr, typeuse);
             }
 
             break;
