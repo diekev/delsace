@@ -120,6 +120,19 @@ traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud, $T)(Décisi
     }
 }
 
+/* Version de traverse_noeud sans données utilisateur spécifique. */
+traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud)(DécisionTraversée))
+{
+    pour noeud.enfants {
+        décision := rappel_traverse(it)
+        si décision == DécisionTraversée.IGNORE_ENFANTS {
+            continue
+        }
+
+        traverse_noeud(it, rappel_traverse)
+    }
+}
+
 /** } */
 
 // ces fonctions devraient plutôt être dans noeud.kuri, mais nous avons des
