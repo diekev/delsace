@@ -10,12 +10,10 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
 #include "compilation/metaprogramme.hh"
-#include "utilitaires/log.hh"
 
 #include "parsage/identifiant.hh"
 
@@ -23,6 +21,7 @@
 #include "structures/table_hachage.hh"
 
 #include "utilitaires/calcul.hh"
+#include "utilitaires/log.hh"
 
 #include "instructions.hh"
 
