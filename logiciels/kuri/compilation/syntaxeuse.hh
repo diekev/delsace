@@ -82,16 +82,14 @@ class TableRéférences {
 #undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 
   public:
-    void réinitialise();
-
+    /* Références déclarations. */
     NoeudExpressionReference *trouve_référence_pour(Lexème const *lexème) const;
-
     void ajoute_référence(NoeudExpressionReference *noeud);
     void invalide_référence(NoeudExpressionReference *noeud);
 
+    /* Références membres. */
     NoeudExpressionMembre *trouve_référence_membre_pour(Lexème const *lexème,
                                                         NoeudExpression *gauche);
-
     void ajoute_référence_membre(NoeudExpressionMembre *noeud);
 
     /* Littérale chaine. */
@@ -105,6 +103,8 @@ class TableRéférences {
     /* Référence type. */
     NoeudExpressionReferenceType *trouve_référence_type_pour(Lexème const *lexème) const;
     void ajoute_référence_type(NoeudExpressionReferenceType *noeud);
+
+    void réinitialise();
 
     void empile_état();
     void dépile_état();

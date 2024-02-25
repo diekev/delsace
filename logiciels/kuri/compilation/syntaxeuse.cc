@@ -30,12 +30,6 @@
 /** \name TableRéférences
  * \{ */
 
-void TableRéférences::réinitialise(){
-#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) m_##__nom.efface();
-    ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
-#undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
-}
-
 NoeudExpressionReference *TableRéférences::trouve_référence_pour(Lexème const *lexème) const
 {
     for (int i = m_références.éléments.taille() - 1; i >= 0; i--) {
@@ -152,6 +146,13 @@ NoeudExpressionReferenceType *TableRéférences::trouve_référence_type_pour(
 void TableRéférences::ajoute_référence_type(NoeudExpressionReferenceType *noeud)
 {
     m_références_types.éléments.ajoute(noeud);
+}
+
+void TableRéférences::réinitialise()
+{
+#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) m_##__nom.efface();
+    ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
+#undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 }
 
 void TableRéférences::empile_état()
