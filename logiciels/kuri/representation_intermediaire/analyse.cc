@@ -9,14 +9,17 @@
 
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
-#include "utilitaires/log.hh"
+
+#include "parsage/identifiant.hh"
 
 #include "structures/ensemble.hh"
 #include "structures/file.hh"
 
 #include "utilitaires/calcul.hh"
+#include "utilitaires/log.hh"
 
 #include "bloc_basique.hh"
+#include "constructrice_ri.hh"
 #include "impression.hh"
 #include "instructions.hh"
 #include "visite_instructions.hh"
