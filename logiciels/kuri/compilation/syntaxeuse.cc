@@ -30,13 +30,10 @@
 /** \name TableRéférences
  * \{ */
 
-void TableRéférences::réinitialise()
-{
-    m_références.efface();
-    m_références_membres.efface();
-    m_références_types.efface();
-    m_prises_adresses.efface();
-    m_littérales_chaines.efface();
+void TableRéférences::réinitialise(){
+#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) m_##__nom.efface();
+    ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
+#undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 }
 
 NoeudExpressionReference *TableRéférences::trouve_référence_pour(Lexème const *lexème) const
@@ -159,20 +156,16 @@ void TableRéférences::ajoute_référence_type(NoeudExpressionReferenceType *no
 
 void TableRéférences::empile_état()
 {
-    m_références.enregistre_compte();
-    m_références_membres.enregistre_compte();
-    m_références_types.enregistre_compte();
-    m_prises_adresses.enregistre_compte();
-    m_littérales_chaines.enregistre_compte();
+#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) m_##__nom.enregistre_compte();
+    ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
+#undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 }
 
 void TableRéférences::dépile_état()
 {
-    m_références.restaure_compte();
-    m_références_membres.restaure_compte();
-    m_références_types.restaure_compte();
-    m_prises_adresses.restaure_compte();
-    m_littérales_chaines.restaure_compte();
+#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) m_##__nom.restaure_compte();
+    ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
+#undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 }
 
 void TableRéférences::empile_état_références()

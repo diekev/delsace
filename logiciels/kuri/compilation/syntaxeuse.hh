@@ -47,6 +47,13 @@ struct DonnéesPrécédence {
  * d'énums drapeaux (etc. ?)
  * \{ */
 
+#define ENUMERE_NOEUDS_DEDUPLICABLE(O)                                                            \
+    O(NoeudExpressionReference, références)                                                       \
+    O(NoeudExpressionMembre, références_membres)                                                  \
+    O(NoeudExpressionLitteraleChaine, littérales_chaines)                                         \
+    O(NoeudExpressionPriseAdresse, prises_adresses)                                               \
+    O(NoeudExpressionReferenceType, références_types)
+
 class TableRéférences {
     template <typename T>
     struct XXX {
@@ -70,11 +77,9 @@ class TableRéférences {
         }
     };
 
-    XXX<NoeudExpressionReference *> m_références{};
-    XXX<NoeudExpressionMembre *> m_références_membres{};
-    XXX<NoeudExpressionLitteraleChaine *> m_littérales_chaines{};
-    XXX<NoeudExpressionPriseAdresse *> m_prises_adresses{};
-    XXX<NoeudExpressionReferenceType *> m_références_types{};
+#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) XXX<__type *> m_##__nom{};
+    ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
+#undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 
   public:
     void réinitialise();
