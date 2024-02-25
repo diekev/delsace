@@ -4,6 +4,9 @@
 #include "bloc_basique.hh"
 
 #include "compilation/espace_de_travail.hh"
+
+#include "structures/enchaineuse.hh"
+
 #include "utilitaires/log.hh"
 
 #include "constructrice_ri.hh"
