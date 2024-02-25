@@ -73,6 +73,30 @@ rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudText
     }
 }
 
+/* Fonction auxillaire pour extraire le texte d'un noeud et de ses enfants. */
+extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
+{
+    ExtractriceTexte :: struct {
+        texte: ChaineUTF16
+    }
+
+    rappel_pour_extraction_texte :: fonc (noeud_texte: *NoeudTexte, données: eini)
+    {
+        extractrice := mémoire(données.pointeur comme **ExtractriceTexte)
+
+        pour noeud_texte.données.unités {
+            tableau_ajoute(*extractrice.texte.unités, it)
+        }
+    }
+
+    extractrice : ExtractriceTexte
+    diffère détruit_chaine(extractrice.texte)
+
+    rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice)
+
+    retourne imprime_chaine("%", extractrice.texte)
+}
+
 traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud, eini)(rien), données: eini)
 {
     pour noeud.enfants {
