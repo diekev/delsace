@@ -56,7 +56,7 @@ struct DonnéesPrécédence {
 
 class TableRéférences {
     template <typename T>
-    struct XXX {
+    struct TableauEtPile {
         kuri::tableau<T, int> éléments{};
         kuri::pile<int> comptes_par_portée{};
 
@@ -77,7 +77,7 @@ class TableRéférences {
         }
     };
 
-#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) XXX<__type *> m_##__nom{};
+#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) TableauEtPile<__type *> m_##__nom{};
     ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
 #undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 
