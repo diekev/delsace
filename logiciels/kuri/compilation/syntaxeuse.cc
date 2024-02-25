@@ -49,6 +49,7 @@ NoeudExpressionReference *TableRéférences::trouve_référence_pour(Lexème con
         }
 
         if (référence->ident == lexème->ident) {
+            référence->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
             return référence;
         }
     }
@@ -84,6 +85,7 @@ NoeudExpressionMembre *TableRéférences::trouve_référence_membre_pour(Lexème
             continue;
         }
 
+        it->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
         return it;
     }
 
@@ -103,6 +105,7 @@ NoeudExpressionLitteraleChaine *TableRéférences::trouve_littérale_chaine_pour
             continue;
         }
 
+        it->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
         return it;
     }
 
@@ -122,6 +125,7 @@ NoeudExpressionPriseAdresse *TableRéférences::trouve_prise_adresse_pour(
             continue;
         }
 
+        it->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
         return it;
     }
 
@@ -141,6 +145,7 @@ NoeudExpressionReferenceType *TableRéférences::trouve_référence_type_pour(
             continue;
         }
 
+        it->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
         return it;
     }
 
@@ -3664,7 +3669,6 @@ NoeudExpressionReference *Syntaxeuse::crée_référence_déclaration(Lexème con
     auto table = m_pile_tables_références.haut();
     auto résultat = table->trouve_référence_pour(lexème);
     if (résultat) {
-        résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
         return résultat;
     }
 
@@ -3680,7 +3684,6 @@ NoeudExpressionMembre *Syntaxeuse::crée_référence_membre(Lexème const *lexè
         auto table = m_pile_tables_références.haut();
         auto résultat = table->trouve_référence_membre_pour(lexème, gauche);
         if (résultat) {
-            résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
             return résultat;
         }
     }
@@ -3704,7 +3707,6 @@ NoeudExpressionLitteraleChaine *Syntaxeuse::crée_littérale_chaine(Lexème cons
     auto table = m_pile_tables_références.haut();
     auto résultat = table->trouve_littérale_chaine_pour(lexème);
     if (résultat) {
-        résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
         return résultat;
     }
 
@@ -3725,7 +3727,6 @@ NoeudExpressionPriseAdresse *Syntaxeuse::crée_prise_adresse(Lexème const *lex�
     auto table = m_pile_tables_références.haut();
     auto résultat = table->trouve_prise_adresse_pour(opérande);
     if (résultat) {
-        résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
         return résultat;
     }
 
@@ -3744,7 +3745,6 @@ NoeudExpressionReferenceType *Syntaxeuse::crée_référence_type(Lexème const *
     auto table = m_pile_tables_références.haut();
     auto résultat = table->trouve_référence_type_pour(lexème);
     if (résultat) {
-        résultat->drapeaux |= DrapeauxNoeud::EST_RÉUTILISÉ;
         return résultat;
     }
 
