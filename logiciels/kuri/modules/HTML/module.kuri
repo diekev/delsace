@@ -108,7 +108,7 @@ DécisionTraversée :: énum {
     IGNORE_ENFANTS
 }
 
-traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud, eini)(DécisionTraversée), données: eini)
+traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud, $T)(DécisionTraversée), données: T)
 {
     pour noeud.enfants {
         décision := rappel_traverse(it, données)
