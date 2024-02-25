@@ -83,74 +83,11 @@ int64_t Broyeuse::mémoire_utilisée() const
     return stockage_chaines.mémoire_utilisée() + stockage_chaines.mémoire_utilisée();
 }
 
-struct HiérarchieDeNoms {
-    NoeudDeclarationSymbole const *feuille = nullptr;
-    IdentifiantCode const *ident_module = nullptr;
-    kuri::tablet<NoeudDeclarationSymbole const *, 6> hiérarchie{};
-};
-
-static HiérarchieDeNoms donne_hiérarchie_nom(NoeudDeclarationSymbole const *symbole)
-{
-    HiérarchieDeNoms résultat;
-    résultat.feuille = symbole;
-
-    kuri::ensemblon<NoeudExpression *, 6> noeuds_visités;
-
-    résultat.hiérarchie.ajoute(symbole);
-
-    if (symbole->est_declaration_classe() && symbole->comme_declaration_classe()->est_anonyme) {
-        /* Place les unions anonymes dans le contexte globale car sinon nous aurions des
-         * dépendances cycliques quand la première définition fut rencontrée dans le type de retour
-         * d'une fonction. */
-        return résultat;
-    }
-
-    auto bloc = symbole->bloc_parent;
-    while (bloc) {
-        if (bloc->appartiens_à_fonction) {
-            if (!noeuds_visités.possède(bloc->appartiens_à_fonction)) {
-                résultat.hiérarchie.ajoute(bloc->appartiens_à_fonction);
-                noeuds_visités.insère(bloc->appartiens_à_fonction);
-            }
-        }
-        else if (bloc->appartiens_à_type) {
-            if (!noeuds_visités.possède(bloc->appartiens_à_type)) {
-                résultat.hiérarchie.ajoute(bloc->appartiens_à_type);
-                noeuds_visités.insère(bloc->appartiens_à_type);
-            }
-        }
-
-        if (bloc->bloc_parent == nullptr) {
-            /* Bloc du module. */
-            résultat.ident_module = bloc->ident;
-            break;
-        }
-
-        bloc = bloc->bloc_parent;
-    }
-
-    return résultat;
-}
-
-static void imprime_hiérarchie(HiérarchieDeNoms const &hiérarchie)
-{
-    dbg() << "============ Hiérarchie";
-
-    if (hiérarchie.ident_module && hiérarchie.ident_module != ID::chaine_vide) {
-        dbg() << "-- " << hiérarchie.ident_module->nom;
-    }
-
-    for (auto i = hiérarchie.hiérarchie.taille() - 1; i >= 0; i -= 1) {
-        auto noeud = hiérarchie.hiérarchie[i];
-        dbg() << "-- " << nom_humainement_lisible(noeud);
-    }
-}
-
 static void broye_nom_hiérarchique(Enchaineuse &enchaineuse, HiérarchieDeNoms const &hiérarchie);
 
 static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiérarchie);
 
-static const char *nom_pour_operateur(Lexème const &lexeme);
+static const char *nom_pour_opérateur(Lexème const &lexème);
 
 static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc);
 
@@ -195,7 +132,7 @@ static void broye_nom_fonction(Enchaineuse &enchaineuse,
 
     /* nom de la fonction */
     if (entête->est_operateur) {
-        enchaineuse << "operateur" << nom_pour_operateur(*entête->lexeme);
+        enchaineuse << "operateur" << nom_pour_opérateur(*entête->lexeme);
     }
     else {
         // À FAIRE
@@ -236,8 +173,10 @@ static void broye_nom_hiérarchique(Enchaineuse &enchaineuse, HiérarchieDeNoms 
         enchaineuse << virgule;
 
         if (noeud->est_entete_fonction()) {
-            broye_nom_fonction(
-                enchaineuse, noeud->comme_entete_fonction(), true, noeud == hiérarchie.feuille);
+            broye_nom_fonction(enchaineuse,
+                               noeud->comme_entete_fonction(),
+                               true,
+                               noeud == hiérarchie.donne_feuille());
         }
         else {
             auto type = const_cast<Type *>(noeud->comme_declaration_type());
@@ -523,14 +462,14 @@ kuri::chaine_statique Broyeuse::nom_broyé_type(Type *type)
     return type->nom_broye;
 }
 
-static const char *nom_pour_operateur(Lexème const &lexeme)
+static const char *nom_pour_opérateur(Lexème const &lexème)
 {
-    switch (lexeme.genre) {
+    switch (lexème.genre) {
         default:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Lexème inattendu pour les opérateurs dans le broyage de nom : "
-                      << chaine_du_genre_de_lexème(lexeme.genre);
+                      << chaine_du_genre_de_lexème(lexème.genre);
             });
             break;
         }
@@ -634,9 +573,7 @@ static const char *nom_pour_operateur(Lexème const &lexeme)
  * fonc test(x : z32) : z32 (module Test)
  * -> _KF4Test4test_P2_E1_1x3z32_S1_3z32
  */
-kuri::chaine_statique Broyeuse::broye_nom_fonction(
-    NoeudDeclarationEnteteFonction *decl,
-    kuri::tablet<IdentifiantCode *, 6> const &noms_hiérarchie)
+kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonction *decl)
 {
     stockage_temp.réinitialise();
 
@@ -652,12 +589,6 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
         stockage_temp.réinitialise();
         stockage_temp << "initialise_" << nom_type_broyé;
         return chaine_finale_pour_stockage_temp();
-    }
-
-    /* Prépare les données afin de ne pas polluer l'enchaineuse. */
-    kuri::tablet<kuri::chaine_statique, 6> noms_broyés_hiérarchie;
-    POUR (noms_hiérarchie) {
-        noms_broyés_hiérarchie.ajoute(broye_nom_simple(it));
     }
 
     decl->bloc_constantes->membres.avec_verrou_lecture(
