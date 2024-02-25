@@ -11,11 +11,6 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationType;
 using Type = NoeudDeclarationType;
 
-namespace kuri {
-template <typename T, uint64_t>
-class tablet;
-}
-
 /**
  * Une Broyeuse s'occupe de transformer une chaine de caractère en une chaine unique.
  * Cette structure n'est pas sure pour le moultfilage: chaque fil doit avoir sa propre
@@ -40,9 +35,7 @@ class Broyeuse {
 
     /* Retourne le nom broyé de la fonction.
      * Le résultat sera mis en cache dans la fonction. */
-    kuri::chaine_statique broye_nom_fonction(
-        NoeudDeclarationEnteteFonction *decl,
-        const kuri::tablet<IdentifiantCode *, 6> &noms_hiérarchie);
+    kuri::chaine_statique broye_nom_fonction(NoeudDeclarationEnteteFonction *decl);
 
     /* Retourne le nom broyé de l'identifiant.
      * Le résultat sera mis en cache dans l'identifiant. */
