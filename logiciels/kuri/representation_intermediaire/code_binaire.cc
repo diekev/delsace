@@ -17,13 +17,17 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
-#include "compilation/operateurs.hh"
+#include "compilation/metaprogramme.hh"
 #include "compilation/programme.hh"
-#include "utilitaires/log.hh"
 
 #include "parsage/outils_lexemes.hh"
 
+#include "structures/enchaineuse.hh"
+
+#include "utilitaires/log.hh"
+
 #include "impression.hh"
+#include "instructions.hh"
 
 kuri::chaine_statique chaine_code_operation(octet_t code_operation)
 {
