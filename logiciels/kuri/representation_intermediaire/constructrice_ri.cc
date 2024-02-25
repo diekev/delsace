@@ -18,7 +18,6 @@
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/portee.hh"
-#include "utilitaires/log.hh"
 
 #include "parsage/outils_lexemes.hh"
 
@@ -26,6 +25,8 @@
 
 #include "structures/enchaineuse.hh"
 #include "structures/rassembleuse.hh"
+
+#include "utilitaires/log.hh"
 
 #include "analyse.hh"
 #include "impression.hh"
