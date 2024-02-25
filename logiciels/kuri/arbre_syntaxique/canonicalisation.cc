@@ -1642,8 +1642,7 @@ NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
     Lexème const *lexeme, NoeudExpression *expression_à_initialiser)
 {
     auto type_expression = expression_à_initialiser->type;
-    auto fonction_init = crée_entête_pour_initialisation_type(
-        type_expression, espace->compilatrice(), assem, typeuse);
+    auto fonction_init = crée_entête_pour_initialisation_type(type_expression, assem, typeuse);
 
     auto prise_adresse = crée_prise_adresse(
         assem, lexeme, expression_à_initialiser, typeuse.type_pointeur_pour(type_expression));
