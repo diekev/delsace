@@ -97,13 +97,30 @@ extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
     retourne imprime_chaine("%", extractrice.texte)
 }
 
-traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud, eini)(rien), données: eini)
+/* ------------------------------------------------------------------------- */
+/** \nom Traversée, visite, d'un noeud et de ses enfants.
+ * \{ */
+
+DécisionTraversée :: énum {
+    /* Continue la traversée vers les enfants du noeuds. */
+    CONTINUE
+    /* Ignore les enfants de ce noeuds. */
+    IGNORE_ENFANTS
+}
+
+traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud, eini)(DécisionTraversée), données: eini)
 {
     pour noeud.enfants {
-        rappel_traverse(it, données)
+        décision := rappel_traverse(it, données)
+        si décision == DécisionTraversée.IGNORE_ENFANTS {
+            continue
+        }
+
         traverse_noeud(it, rappel_traverse, données)
     }
 }
+
+/** } */
 
 // ces fonctions devraient plutôt être dans noeud.kuri, mais nous avons des
 // dépendances cycliques entre les modules que le langage ne sait pas encore gérer
