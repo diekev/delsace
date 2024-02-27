@@ -64,6 +64,46 @@ ErreurURI :: erreur {
     PORT_TROP_GRAND
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom MasqueURI : énum_drapeau servant à décrire quels éléments d'un URI
+ * sont définis (schéma, hôte, etc.).
+ * \{ */
+
+/* Énum drapeau pour chaque élément d'un URI. */
+MasqueURI :: énum_drapeau n8 {
+    SCHÉMA
+
+    /* Les différents composants de l'autorité. */
+    NOM_UTILISATEUR
+    MOT_DE_PASSE
+    HÔTE
+    PORT
+
+    /* Les différents composants du chemin. */
+    CHEMIN
+    REQUÊTE
+    FRAGMENT
+
+    CHEMIN_COMPLET :: (CHEMIN | REQUÊTE | FRAGMENT)
+    AUTORITÉ :: (NOM_UTILISATEUR | MOT_DE_PASSE | HÔTE | PORT)
+}
+
+donne_masque_uri :: fonc (uri: URI) -> MasqueURI
+{
+    résultat: MasqueURI
+    résultat.SCHÉMA = uri.schéma.taille != 0
+    résultat.NOM_UTILISATEUR = uri.nom_utilisateur.taille != 0
+    résultat.MOT_DE_PASSE = uri.mot_de_passe.taille != 0
+    résultat.HÔTE = uri.hôte.taille != 0
+    résultat.PORT = uri.port.taille != 0
+    résultat.CHEMIN = uri.chemin.taille != 0
+    résultat.REQUÊTE = uri.requête.taille != 0
+    résultat.FRAGMENT = uri.fragment.taille != 0
+    retourne résultat
+}
+
+/** } */
+
 URI :: struct {
     // la chaine originale
     uri : chaine  // @privé
