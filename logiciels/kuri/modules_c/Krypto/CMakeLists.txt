@@ -26,25 +26,25 @@ enable_language(ASM)
 set(CMAKE_ASM_FLAGS "${CXXFLAGS} -x assembler-with-cpp")
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	bcrypt.c
-	crypt_blowfish.c
-	crypt_gensalt.c
-	krypto.cc
-	wrapper.c
+    bcrypt.c
+    crypt_blowfish.c
+    crypt_gensalt.c
+    krypto.cc
+    wrapper.c
 
-	crc32.cpp
+    crc32.cpp
     #digest.cpp
-	#keccak.cpp
-	md5.cpp
-	sha1.cpp
-	sha3.cpp
+    #keccak.cpp
+    md5.cpp
+    sha1.cpp
+    sha3.cpp
     sha256.cpp
 
     crc32.h
@@ -56,14 +56,14 @@ set(SOURCES
     sha3.h
     sha256.h
 
-	bcrypt.h
-	crypt.h
-	crypt_blowfish.h
-	crypt_gensalt.h
-	krypto.h
-	ow-crypt.h
+    bcrypt.h
+    crypt.h
+    crypt_blowfish.h
+    crypt_gensalt.h
+    krypto.h
+    ow-crypt.h
 
-	x86.S
+    x86.S
 )
 
 compile_module_c(${NOM_PROJET} krypto krypto.h Krypto "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
