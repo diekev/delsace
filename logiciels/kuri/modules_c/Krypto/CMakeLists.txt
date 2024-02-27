@@ -41,7 +41,7 @@ set(SOURCES
 
     crc32.cpp
     #digest.cpp
-    #keccak.cpp
+    keccak.cpp
     md5.cpp
     outils.cc
     sha1.cpp

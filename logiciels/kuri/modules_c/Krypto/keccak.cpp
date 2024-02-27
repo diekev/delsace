@@ -213,11 +213,12 @@ void Keccak::processBuffer()
 }
 
 /// return latest hash as 16 hex characters
-void Keccak::getHash(char *sortie)
+void Keccak::getHash(unsigned char *sortie)
 {
     // process remaining bytes
     processBuffer();
 
+#if 0
     // convert hash to string
     static const char dec2hex[16 + 1] = "0123456789abcdef";
 
@@ -244,4 +245,21 @@ void Keccak::getHash(char *sortie)
 
         processed += 8;
     }
+#else
+    // number of significant elements in hash (uint64_t)
+    uint32_t hashLength = static_cast<unsigned>(m_bits / 64);
+
+    for (uint32_t i = 0; i < hashLength; i++)
+        for (uint32_t j = 0; j < 8; j++) {  // 64 bits => 8 bytes
+            *sortie++ = (unsigned char)(m_hash[i] >> (8 * j));
+        }
+
+    // Keccak224's last entry in m_hash provides only 32 bits instead of 64 bits
+    uint32_t remainder = static_cast<unsigned>(m_bits) - hashLength * 64;
+    uint32_t processed = 0;
+    while (processed < remainder) {
+        *sortie++ = (unsigned char)(m_hash[hashLength] >> processed);
+        processed += 8;
+    }
+#endif
 }

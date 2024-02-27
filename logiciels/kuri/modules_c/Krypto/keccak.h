@@ -19,6 +19,9 @@ typedef unsigned __int64 uint64_t;
 #    include <stdint.h>
 #endif
 
+#define DETERMINE_TAILLE_BLOC_KECCAK(x) (200 - 2 * ((x) / 8))
+#define DETERMINE_TAILLE_HASH_KECCAK(x) (x / 8)
+
 /// compute Keccak hash (designated SHA3)
 /** Usage:
     Keccak keccak;
@@ -44,7 +47,7 @@ class Keccak /* : public Hash */ {
     void add(const void *data, size_t numBytes);
 
     /// return latest hash as hex characters
-    void getHash(char *sortie);
+    void getHash(unsigned char *sortie);
 
     /// restart
     void reset();
@@ -70,4 +73,52 @@ class Keccak /* : public Hash */ {
     uint8_t m_buffer[MaxBlockSize];
     /// variant
     Bits m_bits;
+};
+
+class Keccak_224bits : public Keccak {
+  public:
+    enum {
+        HashBytes = DETERMINE_TAILLE_HASH_KECCAK(224),
+        BlockSize = DETERMINE_TAILLE_BLOC_KECCAK(224),
+    };
+
+    Keccak_224bits() : Keccak(Keccak224)
+    {
+    }
+};
+
+class Keccak_256bits : public Keccak {
+  public:
+    enum {
+        HashBytes = DETERMINE_TAILLE_HASH_KECCAK(256),
+        BlockSize = DETERMINE_TAILLE_BLOC_KECCAK(256),
+    };
+
+    Keccak_256bits() : Keccak(Keccak256)
+    {
+    }
+};
+
+class Keccak_384bits : public Keccak {
+  public:
+    enum {
+        HashBytes = DETERMINE_TAILLE_HASH_KECCAK(384),
+        BlockSize = DETERMINE_TAILLE_BLOC_KECCAK(384),
+    };
+
+    Keccak_384bits() : Keccak(Keccak384)
+    {
+    }
+};
+
+class Keccak_512bits : public Keccak {
+  public:
+    enum {
+        HashBytes = DETERMINE_TAILLE_HASH_KECCAK(512),
+        BlockSize = DETERMINE_TAILLE_BLOC_KECCAK(512),
+    };
+
+    Keccak_512bits() : Keccak(Keccak512)
+    {
+    }
 };

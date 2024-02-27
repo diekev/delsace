@@ -52,6 +52,46 @@ crée_sha256 :: fonc () -> *HACHEUSE
     retourne KRYPTO_HACHEUSE_cree_sha256()
 }
 
+crée_sha3_224bits :: fonc () -> *HACHEUSE
+{
+    retourne KRYPTO_HACHEUSE_cree_sha3_224bits()
+}
+
+crée_sha3_256bits :: fonc () -> *HACHEUSE
+{
+    retourne KRYPTO_HACHEUSE_cree_sha3_256bits()
+}
+
+crée_sha3_384bits :: fonc () -> *HACHEUSE
+{
+    retourne KRYPTO_HACHEUSE_cree_sha3_384bits()
+}
+
+crée_sha3_512bits :: fonc () -> *HACHEUSE
+{
+    retourne KRYPTO_HACHEUSE_cree_sha3_512bits()
+}
+
+crée_keccak_224bits :: fonc () -> *HACHEUSE
+{
+    retourne KRYPTO_HACHEUSE_cree_keccak_224bits()
+}
+
+crée_keccak_256bits :: fonc () -> *HACHEUSE
+{
+    retourne KRYPTO_HACHEUSE_cree_keccak_256bits()
+}
+
+crée_keccak_384bits :: fonc () -> *HACHEUSE
+{
+    retourne KRYPTO_HACHEUSE_cree_keccak_384bits()
+}
+
+crée_keccak_512bits :: fonc () -> *HACHEUSE
+{
+    retourne KRYPTO_HACHEUSE_cree_keccak_512bits()
+}
+
 TypeHMAC :: énum {
     MD5
     SHA1

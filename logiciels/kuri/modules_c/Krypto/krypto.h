@@ -19,6 +19,14 @@ struct HACHEUSE;
 
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha1();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha256();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_224bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_256bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_384bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_512bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_224bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_256bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_384bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_512bits();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_md5();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_crc32();
 
