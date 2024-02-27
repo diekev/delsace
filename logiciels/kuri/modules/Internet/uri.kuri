@@ -393,7 +393,15 @@ recompose_uri :: fonc (uri: *URI) -> chaine
         append(*résultat, uri.autorité)
     }
 
-    append(*résultat, uri.chemin)
+    si uri.chemin.taille == 0 {
+        append(*résultat, "/")
+    }
+    sinon {
+        si uri.chemin[0] != '/' {
+            append(*résultat, "/")
+        }
+        append(*résultat, uri.chemin)
+    }
 
     si uri.requête_est_définie {
         append(*résultat, "?")
