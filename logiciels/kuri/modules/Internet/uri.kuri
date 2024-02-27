@@ -111,6 +111,17 @@ extrait_schéma :: fonc (chn: chaine, schéma: *chaine) -> RésultatExtraction
         retourne faux
     }
 
+    si chn[0] == '/' || chn[0] == '#' {
+        /* Peut-être un chemin relatif. */
+        retourne faux
+    }
+
+    position_double_point := trouve_caractère_depuis_le_début(chn, ':')
+    si position_double_point == -1 {
+        /* Aucun schéma. */
+        retourne faux
+    }
+
     pour c, i dans chn {
         si c == ':' {
             mémoire(schéma) = construit_chaine(*chn[0], i)
