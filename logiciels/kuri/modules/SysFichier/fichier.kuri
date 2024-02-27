@@ -126,6 +126,16 @@ ouvre_fichier_crée_si_non_existant :: fonc (chemin: CheminFichier, raison: Rais
     retourne ouvre_fichier(chemin, raison, 0o644)
 }
 
+synchronise :: fonc (fichier: *Fichier) -> Optionnel(ErreurFichier)
+{
+    retourne système_synchronise(fichier.desc)
+}
+
+synchronise_métadonnées :: fonc (fichier: *Fichier) -> Optionnel(ErreurFichier)
+{
+    retourne système_synchronise_données(fichier.desc)
+}
+
 ferme :: fonc (fichier: *Fichier) -> Optionnel(ErreurFichier)
 {
     retourne système_ferme(fichier.desc)
