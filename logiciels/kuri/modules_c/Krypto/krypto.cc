@@ -35,6 +35,7 @@ class BaseHacheuse {
     virtual int taille_bloc() const = 0;
     virtual int taille_condensat() const = 0;
     virtual const char *nom() = 0;
+    virtual void réinitialise() = 0;
 };
 
 template <typename TypeHacheuse>
@@ -108,6 +109,12 @@ class HacheuseHMAC : public BaseHacheuse {
         return TypeHacheuse::HashBytes;
     }
 
+    void réinitialise() override
+    {
+        /* À FAIRE : réinitialise les autres données. */
+        hacheuse_interne.reset();
+    }
+
     const char *nom() override
     {
         return "hmac";
@@ -148,6 +155,11 @@ class Hacheuse : public BaseHacheuse {
     int taille_condensat() const override
     {
         return TypeHacheuse::HashBytes;
+    }
+
+    void réinitialise() override
+    {
+        hacheuse_interne.reset();
     }
 
     const char *nom() override
@@ -250,6 +262,12 @@ void KRYPTO_HACHEUSE_ajourne(HACHEUSE *poignee, const void *donnees, size_t tail
 {
     auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignee);
     hacheuse->ajourne(donnees, taille_donnees);
+}
+
+void KRYPTO_HACHEUSE_reinitialise(HACHEUSE *poignée)
+{
+    auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignée);
+    hacheuse->réinitialise();
 }
 
 void KRYPTO_HACHEUSE_condensat(HACHEUSE *poignee, unsigned char *sortie)

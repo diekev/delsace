@@ -103,6 +103,11 @@ ajourne :: fonc (hacheuse: *HACHEUSE, message: $T)
     KRYPTO_HACHEUSE_ajourne(hacheuse, c.pointeur, c.taille comme n64)
 }
 
+réinitialise :: fonc (hacheuse: *HACHEUSE)
+{
+    KRYPTO_HACHEUSE_reinitialise(hacheuse)
+}
+
 condensat :: fonc (hacheuse: *HACHEUSE) -> chaine
 {
     résultat := loge_chaine(taille_condensat(hacheuse))

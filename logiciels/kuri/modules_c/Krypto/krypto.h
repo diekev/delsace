@@ -37,6 +37,7 @@ struct HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha256(const void *key,
 
 void KRYPTO_HACHEUSE_detruit(struct HACHEUSE *poignee);
 void KRYPTO_HACHEUSE_ajourne(struct HACHEUSE *poignee, const void *data, uint64_t numDataBytes);
+void KRYPTO_HACHEUSE_reinitialise(struct HACHEUSE *poignee);
 void KRYPTO_HACHEUSE_condensat(struct HACHEUSE *poignee, unsigned char *sortie);
 void KRYPTO_HACHEUSE_condensat_hex(struct HACHEUSE *poignee, char *sortie);
 int KRYPTO_HACHEUSE_taille_condensat(struct HACHEUSE *poignee);
