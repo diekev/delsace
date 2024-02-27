@@ -193,7 +193,7 @@ parse_autorité :: fonc (uri: *URI) -> ErreurURI
 {
     début := trouve_caractère_depuis_la_fin(uri.autorité, '@')
 
-    si uri.autorité[début] == '@' {
+    si début != -1 && uri.autorité[début] == '@' {
         composant_usager := construit_chaine(uri.autorité.pointeur, début)
         composant_serveur := avance(uri.autorité, début + 1)
 
