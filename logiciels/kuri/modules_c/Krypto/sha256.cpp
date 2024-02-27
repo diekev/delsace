@@ -6,10 +6,7 @@
 
 #include "sha256.h"
 
-// big endian architectures need #define __BYTE_ORDER __BIG_ENDIAN
-#ifndef _MSC_VER
-#    include <endian.h>
-#endif
+#include "outils.hh"
 
 /// same as reset()
 SHA256::SHA256()
@@ -35,23 +32,6 @@ void SHA256::reset()
 }
 
 namespace {
-inline uint32_t rotate(uint32_t a, uint32_t c)
-{
-    return (a >> c) | (a << (32 - c));
-}
-
-inline uint32_t swap(uint32_t x)
-{
-#if defined(__GNUC__) || defined(__clang__)
-    return __builtin_bswap32(x);
-#endif
-#ifdef MSC_VER
-    return _byteswap_ulong(x);
-#endif
-
-    return (x >> 24) | ((x >> 8) & 0x0000FF00) | ((x << 8) & 0x00FF0000) | (x << 24);
-}
-
 // mix functions for processBlock()
 inline uint32_t f1(uint32_t e, uint32_t f, uint32_t g)
 {

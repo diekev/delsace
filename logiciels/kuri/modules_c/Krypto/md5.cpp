@@ -6,9 +6,7 @@
 
 #include "md5.h"
 
-#ifndef _MSC_VER
-#    include <endian.h>
-#endif
+#include "outils.hh"
 
 /// same as reset()
 MD5::MD5()
@@ -50,25 +48,6 @@ inline uint32_t f4(uint32_t b, uint32_t c, uint32_t d)
 {
     return c ^ (b | ~d);
 }
-
-inline uint32_t rotate(uint32_t a, uint32_t c)
-{
-    return (a << c) | (a >> (32 - c));
-}
-
-#if defined(__BYTE_ORDER) && (__BYTE_ORDER != 0) && (__BYTE_ORDER == __BIG_ENDIAN)
-inline uint32_t swap(uint32_t x)
-{
-#    if defined(__GNUC__) || defined(__clang__)
-    return __builtin_bswap32(x);
-#    endif
-#    ifdef MSC_VER
-    return _byteswap_ulong(x);
-#    endif
-
-    return (x >> 24) | ((x >> 8) & 0x0000FF00) | ((x << 8) & 0x00FF0000) | (x << 24);
-}
-#endif
 }  // namespace
 
 /// process 64 bytes
@@ -84,11 +63,6 @@ void MD5::processBlock(const void *data)
     const uint32_t *words = (uint32_t *)data;
 
     // computations are little endian, swap data if necessary
-#if defined(__BYTE_ORDER) && (__BYTE_ORDER != 0) && (__BYTE_ORDER == __BIG_ENDIAN)
-#    define LITTLEENDIAN(x) swap(x)
-#else
-#    define LITTLEENDIAN(x) (x)
-#endif
 
     // first round
     uint32_t word0 = LITTLEENDIAN(words[0]);

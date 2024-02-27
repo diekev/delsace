@@ -43,6 +43,7 @@ set(SOURCES
     #digest.cpp
     #keccak.cpp
     md5.cpp
+    outils.cc
     sha1.cpp
     sha3.cpp
     sha256.cpp
@@ -52,6 +53,7 @@ set(SOURCES
     hmac.h
     keccak.h
     md5.h
+    outils.hh
     sha1.h
     sha3.h
     sha256.h
