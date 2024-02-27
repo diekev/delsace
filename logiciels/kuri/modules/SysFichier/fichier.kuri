@@ -291,7 +291,7 @@ lis_entier :: fonc (fichier: *Fichier, $T: type_de_données) -> Optionnel(T)
         retourne
     }
 
-    si octets_lus != taille_de(T) {
+    si octets_lus != taille_de(T) comme z32 {
         retourne
     }
 
