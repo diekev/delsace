@@ -6,7 +6,7 @@
 
 #pragma once
 
-//#include "hash.h"
+// #include "hash.h"
 #include <string>
 
 // define fixed size integer types
@@ -32,8 +32,7 @@ typedef unsigned __int64 uint64_t;
       sha3.add(pointer to fresh data, number of new bytes);
     std::string myHash3 = sha3.getHash();
   */
-class SHA3  //: public Hash
-{
+class SHA3 /* : public Hash */ {
   public:
     /// algorithm variants
     enum Bits { Bits224 = 224, Bits256 = 256, Bits384 = 384, Bits512 = 512 };
