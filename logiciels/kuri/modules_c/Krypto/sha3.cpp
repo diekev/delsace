@@ -9,7 +9,7 @@
 #include "outils.hh"
 
 /// same as reset()
-SHA3::SHA3(Bits bits) : m_blockSize(static_cast<size_t>(200 - 2 * (bits / 8))), m_bits(bits)
+SHA3::SHA3(Bits bits) : m_blockSize(static_cast<size_t>(DETERMINE_TAILLE_BLOC(bits))), m_bits(bits)
 {
     reset();
 }

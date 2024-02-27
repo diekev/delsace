@@ -19,6 +19,8 @@ typedef unsigned __int64 uint64_t;
 #    include <stdint.h>
 #endif
 
+#define DETERMINE_TAILLE_BLOC(x) (200 - 2 * ((x) / 8))
+
 /// compute SHA3 hash
 /** Usage:
     SHA3 sha3;
@@ -56,7 +58,7 @@ class SHA3 /* : public Hash */ {
     void processBuffer();
 
     /// 1600 bits, stored as 25x64 bit, BlockSize is no more than 1152 bits (Keccak224)
-    enum { StateSize = 1600 / (8 * 8), MaxBlockSize = 200 - 2 * (224 / 8) };
+    enum { StateSize = 1600 / (8 * 8), MaxBlockSize = DETERMINE_TAILLE_BLOC(224) };
 
     /// hash
     uint64_t m_hash[StateSize];
