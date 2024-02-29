@@ -6,7 +6,7 @@
 
 #pragma once
 
-//#include "hash.h"
+// #include "hash.h"
 #include <string>
 
 // define fixed size integer types
@@ -33,8 +33,7 @@ typedef unsigned __int64 uint64_t;
       sha1.add(pointer to fresh data, number of new bytes);
     std::string myHash3 = sha1.getHash();
   */
-class SHA1  //: public Hash
-{
+class SHA1 /* : public Hash */ {
   public:
     /// split into 64 byte blocks (=> 512 bits), hash is 20 bytes long
     enum { BlockSize = 512 / 8, HashBytes = 20 };

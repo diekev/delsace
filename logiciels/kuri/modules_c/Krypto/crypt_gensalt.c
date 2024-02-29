@@ -22,103 +22,103 @@
 
 #include <errno.h>
 #ifndef __set_errno
-#define __set_errno(val) errno = (val)
+#    define __set_errno(val) errno = (val)
 #endif
 
 /* Just to make sure the prototypes match the actual definitions */
 #include "crypt_gensalt.h"
 
 unsigned char _crypt_itoa64[64 + 1] =
-	"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-char *_crypt_gensalt_traditional_rn(const char *prefix, uint64_t count,
-	const char *input, int size, char *output, int output_size)
+char *_crypt_gensalt_traditional_rn(
+    const char *prefix, uint64_t count, const char *input, int size, char *output, int output_size)
 {
-	(void) prefix;
+    (void)prefix;
 
-	if (size < 2 || output_size < 2 + 1 || (count && count != 25)) {
-		if (output_size > 0) output[0] = '\0';
-		__set_errno((output_size < 2 + 1) ? ERANGE : EINVAL);
-		return NULL;
-	}
+    if (size < 2 || output_size < 2 + 1 || (count && count != 25)) {
+        if (output_size > 0)
+            output[0] = '\0';
+        __set_errno((output_size < 2 + 1) ? ERANGE : EINVAL);
+        return NULL;
+    }
 
-	output[0] = (char)_crypt_itoa64[(uint32_t)input[0] & 0x3f];
-	output[1] = (char)_crypt_itoa64[(uint32_t)input[1] & 0x3f];
-	output[2] = '\0';
+    output[0] = (char)_crypt_itoa64[(uint32_t)input[0] & 0x3f];
+    output[1] = (char)_crypt_itoa64[(uint32_t)input[1] & 0x3f];
+    output[2] = '\0';
 
-	return output;
+    return output;
 }
 
-char *_crypt_gensalt_extended_rn(const char *prefix, uint64_t count,
-	const char *input, int size, char *output, int output_size)
+char *_crypt_gensalt_extended_rn(
+    const char *prefix, uint64_t count, const char *input, int size, char *output, int output_size)
 {
-	uint64_t value;
+    uint64_t value;
 
-	(void) prefix;
+    (void)prefix;
 
-/* Even iteration counts make it easier to detect weak DES keys from a look
- * at the hash, so they should be avoided */
-	if (size < 3 || output_size < 1 + 4 + 4 + 1 ||
-	    (count && (count > 0xffffff || !(count & 1)))) {
-		if (output_size > 0) output[0] = '\0';
-		__set_errno((output_size < 1 + 4 + 4 + 1) ? ERANGE : EINVAL);
-		return NULL;
-	}
+    /* Even iteration counts make it easier to detect weak DES keys from a look
+     * at the hash, so they should be avoided */
+    if (size < 3 || output_size < 1 + 4 + 4 + 1 || (count && (count > 0xffffff || !(count & 1)))) {
+        if (output_size > 0)
+            output[0] = '\0';
+        __set_errno((output_size < 1 + 4 + 4 + 1) ? ERANGE : EINVAL);
+        return NULL;
+    }
 
-	if (!count) count = 725;
+    if (!count)
+        count = 725;
 
-	output[0] = '_';
-	output[1] = (char)_crypt_itoa64[count & 0x3f];
-	output[2] = (char)_crypt_itoa64[(count >> 6) & 0x3f];
-	output[3] = (char)_crypt_itoa64[(count >> 12) & 0x3f];
-	output[4] = (char)_crypt_itoa64[(count >> 18) & 0x3f];
-	value = (uint64_t)(unsigned char)input[0] |
-		((uint64_t)(unsigned char)input[1] << 8) |
-		((uint64_t)(unsigned char)input[2] << 16);
-	output[5] = (char)_crypt_itoa64[value & 0x3f];
-	output[6] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
-	output[7] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
-	output[8] = (char)_crypt_itoa64[(value >> 18) & 0x3f];
-	output[9] = '\0';
+    output[0] = '_';
+    output[1] = (char)_crypt_itoa64[count & 0x3f];
+    output[2] = (char)_crypt_itoa64[(count >> 6) & 0x3f];
+    output[3] = (char)_crypt_itoa64[(count >> 12) & 0x3f];
+    output[4] = (char)_crypt_itoa64[(count >> 18) & 0x3f];
+    value = (uint64_t)(unsigned char)input[0] | ((uint64_t)(unsigned char)input[1] << 8) |
+            ((uint64_t)(unsigned char)input[2] << 16);
+    output[5] = (char)_crypt_itoa64[value & 0x3f];
+    output[6] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
+    output[7] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
+    output[8] = (char)_crypt_itoa64[(value >> 18) & 0x3f];
+    output[9] = '\0';
 
-	return output;
+    return output;
 }
 
-char *_crypt_gensalt_md5_rn(const char *prefix, uint64_t count,
-	const char *input, int size, char *output, int output_size)
+char *_crypt_gensalt_md5_rn(
+    const char *prefix, uint64_t count, const char *input, int size, char *output, int output_size)
 {
-	uint64_t value;
+    uint64_t value;
 
-	(void) prefix;
+    (void)prefix;
 
-	if (size < 3 || output_size < 3 + 4 + 1 || (count && count != 1000)) {
-		if (output_size > 0) output[0] = '\0';
-		__set_errno((output_size < 3 + 4 + 1) ? ERANGE : EINVAL);
-		return NULL;
-	}
+    if (size < 3 || output_size < 3 + 4 + 1 || (count && count != 1000)) {
+        if (output_size > 0)
+            output[0] = '\0';
+        __set_errno((output_size < 3 + 4 + 1) ? ERANGE : EINVAL);
+        return NULL;
+    }
 
-	output[0] = '$';
-	output[1] = '1';
-	output[2] = '$';
-	value = (uint64_t)(unsigned char)input[0] |
-		((uint64_t)(unsigned char)input[1] << 8) |
-		((uint64_t)(unsigned char)input[2] << 16);
-	output[3] = (char)_crypt_itoa64[value & 0x3f];
-	output[4] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
-	output[5] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
-	output[6] = (char)_crypt_itoa64[(value >> 18) & 0x3f];
-	output[7] = '\0';
+    output[0] = '$';
+    output[1] = '1';
+    output[2] = '$';
+    value = (uint64_t)(unsigned char)input[0] | ((uint64_t)(unsigned char)input[1] << 8) |
+            ((uint64_t)(unsigned char)input[2] << 16);
+    output[3] = (char)_crypt_itoa64[value & 0x3f];
+    output[4] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
+    output[5] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
+    output[6] = (char)_crypt_itoa64[(value >> 18) & 0x3f];
+    output[7] = '\0';
 
-	if (size >= 6 && output_size >= 3 + 4 + 4 + 1) {
-		value = (uint64_t)(unsigned char)input[3] |
-			((uint64_t)(unsigned char)input[4] << 8) |
-			((uint64_t)(unsigned char)input[5] << 16);
-		output[7] = (char)_crypt_itoa64[value & 0x3f];
-		output[8] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
-		output[9] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
-		output[10] = (char)_crypt_itoa64[(value >> 18) & 0x3f];
-		output[11] = '\0';
-	}
+    if (size >= 6 && output_size >= 3 + 4 + 4 + 1) {
+        value = (uint64_t)(unsigned char)input[3] | ((uint64_t)(unsigned char)input[4] << 8) |
+                ((uint64_t)(unsigned char)input[5] << 16);
+        output[7] = (char)_crypt_itoa64[value & 0x3f];
+        output[8] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
+        output[9] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
+        output[10] = (char)_crypt_itoa64[(value >> 18) & 0x3f];
+        output[11] = '\0';
+    }
 
-	return output;
+    return output;
 }
