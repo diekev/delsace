@@ -61,7 +61,7 @@ crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32
             continue
         }
 
-        ptr_résultat[taille] = converti_utf8_utf32(*ptr_source[curseur]) comme n32
+        ptr_résultat[taille] = converti_utf8_utf32(*ptr_source[curseur], no) comme n32
 
         taille += 1
         curseur += no comme z32

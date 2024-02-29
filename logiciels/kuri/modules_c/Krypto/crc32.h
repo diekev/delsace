@@ -6,7 +6,7 @@
 
 #pragma once
 
-//#include "hash.h"
+// #include "hash.h"
 #include <string>
 
 // define fixed size integer types
@@ -37,8 +37,7 @@ typedef unsigned __int32 uint32_t;
     http://create.stephan-brumme.com/crc32/
     Its unrolled version is about twice as fast but its look-up table doubled in size as well.
   */
-class CRC32  //: public Hash
-{
+class CRC32 /* : public Hash */ {
   public:
     /// hash is 4 bytes long
     enum { BlockSize = 1, HashBytes = 4 };
