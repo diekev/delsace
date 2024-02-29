@@ -84,3 +84,20 @@ cherche_attribut :: fonc (noeud: *Noeud, nom: chaine) -> *Attribut
 {
     retourne cherche_attribut(noeud.attributs, nom)
 }
+
+/* Retourne le premier enfant ayant le tag donné, ou nul si le noeud n'a pas
+ * d'enfants ou aucun enfant du tag donné. */
+donne_premier_enfant_taggé :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Noeud
+{
+    saufsi noeud {
+        retourne nul
+    }
+
+    pour noeud.enfants {
+        si it.est_élément_type(tag) {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
