@@ -35,6 +35,7 @@ class BaseHacheuse {
     virtual int taille_bloc() const = 0;
     virtual int taille_condensat() const = 0;
     virtual const char *nom() = 0;
+    virtual void réinitialise() = 0;
 };
 
 template <typename TypeHacheuse>
@@ -108,6 +109,12 @@ class HacheuseHMAC : public BaseHacheuse {
         return TypeHacheuse::HashBytes;
     }
 
+    void réinitialise() override
+    {
+        /* À FAIRE : réinitialise les autres données. */
+        hacheuse_interne.reset();
+    }
+
     const char *nom() override
     {
         return "hmac";
@@ -150,6 +157,11 @@ class Hacheuse : public BaseHacheuse {
         return TypeHacheuse::HashBytes;
     }
 
+    void réinitialise() override
+    {
+        hacheuse_interne.reset();
+    }
+
     const char *nom() override
     {
         return "hmac";
@@ -157,9 +169,17 @@ class Hacheuse : public BaseHacheuse {
 };
 
 using HacheuseCRC32 = Hacheuse<CRC32>;
+using HacheuseKeccak_224 = Hacheuse<Keccak_224bits>;
+using HacheuseKeccak_256 = Hacheuse<Keccak_256bits>;
+using HacheuseKeccak_384 = Hacheuse<Keccak_384bits>;
+using HacheuseKeccak_512 = Hacheuse<Keccak_512bits>;
 using HacheuseMD5 = Hacheuse<MD5>;
 using HacheuseSHA1 = Hacheuse<SHA1>;
 using HacheuseSHA256 = Hacheuse<SHA256>;
+using HacheuseSHA3_224 = Hacheuse<SHA3_224bits>;
+using HacheuseSHA3_256 = Hacheuse<SHA3_256bits>;
+using HacheuseSHA3_384 = Hacheuse<SHA3_384bits>;
+using HacheuseSHA3_512 = Hacheuse<SHA3_512bits>;
 
 extern "C" {
 
@@ -206,6 +226,46 @@ HACHEUSE *KRYPTO_HACHEUSE_cree_sha256()
     return POIGNEE(new HacheuseSHA256());
 }
 
+HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_224bits()
+{
+    return POIGNEE(new HacheuseSHA3_224());
+}
+
+HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_256bits()
+{
+    return POIGNEE(new HacheuseSHA3_256());
+}
+
+HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_384bits()
+{
+    return POIGNEE(new HacheuseSHA3_384());
+}
+
+HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_512bits()
+{
+    return POIGNEE(new HacheuseSHA3_512());
+}
+
+HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_224bits()
+{
+    return POIGNEE(new HacheuseKeccak_224());
+}
+
+HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_256bits()
+{
+    return POIGNEE(new HacheuseKeccak_256());
+}
+
+HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_384bits()
+{
+    return POIGNEE(new HacheuseKeccak_384());
+}
+
+HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_512bits()
+{
+    return POIGNEE(new HacheuseKeccak_512());
+}
+
 HACHEUSE *KRYPTO_HACHEUSE_cree_md5()
 {
     return POIGNEE(new HacheuseMD5());
@@ -250,6 +310,12 @@ void KRYPTO_HACHEUSE_ajourne(HACHEUSE *poignee, const void *donnees, size_t tail
 {
     auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignee);
     hacheuse->ajourne(donnees, taille_donnees);
+}
+
+void KRYPTO_HACHEUSE_reinitialise(HACHEUSE *poignée)
+{
+    auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignée);
+    hacheuse->réinitialise();
 }
 
 void KRYPTO_HACHEUSE_condensat(HACHEUSE *poignee, unsigned char *sortie)
