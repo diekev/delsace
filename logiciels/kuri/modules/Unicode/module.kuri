@@ -184,43 +184,8 @@ converti_utf8_utf32 :: fonc(caractère : *z8, n : z64) -> z32
 
 converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
 {
-    si caractère == nul {
-        retourne -1
-    }
-
-    c0 := caractère[0] comme z32
-
-    si (c0 & 0x80) == 0x0 {
-        retourne c0
-    }
-
-    si (c0 & 0xC0) == 0xC0 {
-        c1 := caractère[1] comme z32
-        retourne ((c0 & 0x3F) << 6) | (c1 & 0x3F)
-    }
-
-    si (c0 & 0xE0) == 0xE0 {
-        c1 := caractère[1] comme z32
-        c2 := caractère[2] comme z32
-        retourne ((c0 & 0x1F) << 12) | ((c1 & 0x3F) << 6) | (c2 & 0x3F)
-    }
-
-    si (c0 & 0xF0) == 0xF0 {
-        c1 := caractère[1] comme z32
-        c2 := caractère[2] comme z32
-        c3 := caractère[3] comme z32
-        retourne ((c0 & 0x0F) << 18) | ((c1 & 0x3F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F)
-    }
-
-    si (c0 & 0xF8) == 0xF8 {
-        c1 := caractère[1] comme z32
-        c2 := caractère[2] comme z32
-        c3 := caractère[3] comme z32
-        c4 := caractère[4] comme z32
-        retourne ((c0 & 0x07) << 24) | ((c1 & 0x3F) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F)
-    }
-
-    retourne -1
+    n := nombre_octets_utf8_rapide(caractère)
+    retourne converti_utf8_utf32(caractère, n)
 }
 
 point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
