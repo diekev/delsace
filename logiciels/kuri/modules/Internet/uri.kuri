@@ -64,6 +64,46 @@ ErreurURI :: erreur {
     PORT_TROP_GRAND
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom MasqueURI : énum_drapeau servant à décrire quels éléments d'un URI
+ * sont définis (schéma, hôte, etc.).
+ * \{ */
+
+/* Énum drapeau pour chaque élément d'un URI. */
+MasqueURI :: énum_drapeau n8 {
+    SCHÉMA
+
+    /* Les différents composants de l'autorité. */
+    NOM_UTILISATEUR
+    MOT_DE_PASSE
+    HÔTE
+    PORT
+
+    /* Les différents composants du chemin. */
+    CHEMIN
+    REQUÊTE
+    FRAGMENT
+
+    CHEMIN_COMPLET :: (CHEMIN | REQUÊTE | FRAGMENT)
+    AUTORITÉ :: (NOM_UTILISATEUR | MOT_DE_PASSE | HÔTE | PORT)
+}
+
+donne_masque_uri :: fonc (uri: URI) -> MasqueURI
+{
+    résultat: MasqueURI
+    résultat.SCHÉMA = uri.schéma.taille != 0
+    résultat.NOM_UTILISATEUR = uri.nom_utilisateur.taille != 0
+    résultat.MOT_DE_PASSE = uri.mot_de_passe.taille != 0
+    résultat.HÔTE = uri.hôte.taille != 0
+    résultat.PORT = uri.port.taille != 0
+    résultat.CHEMIN = uri.chemin.taille != 0
+    résultat.REQUÊTE = uri.requête.taille != 0
+    résultat.FRAGMENT = uri.fragment.taille != 0
+    retourne résultat
+}
+
+/** } */
+
 URI :: struct {
     // la chaine originale
     uri : chaine  // @privé
@@ -108,6 +148,17 @@ extrait_schéma :: fonc (chn: chaine, schéma: *chaine) -> RésultatExtraction
 
     // l'entrée est vide ou ne contenant que des espaces blancs
     si chn.taille == 0 {
+        retourne faux
+    }
+
+    si chn[0] == '/' || chn[0] == '#' {
+        /* Peut-être un chemin relatif. */
+        retourne faux
+    }
+
+    position_double_point := trouve_caractère_depuis_le_début(chn, ':')
+    si position_double_point == -1 {
+        /* Aucun schéma. */
         retourne faux
     }
 
@@ -193,7 +244,7 @@ parse_autorité :: fonc (uri: *URI) -> ErreurURI
 {
     début := trouve_caractère_depuis_la_fin(uri.autorité, '@')
 
-    si uri.autorité[début] == '@' {
+    si début != -1 && uri.autorité[début] == '@' {
         composant_usager := construit_chaine(uri.autorité.pointeur, début)
         composant_serveur := avance(uri.autorité, début + 1)
 
@@ -382,7 +433,15 @@ recompose_uri :: fonc (uri: *URI) -> chaine
         append(*résultat, uri.autorité)
     }
 
-    append(*résultat, uri.chemin)
+    si uri.chemin.taille == 0 {
+        append(*résultat, "/")
+    }
+    sinon {
+        si uri.chemin[0] != '/' {
+            append(*résultat, "/")
+        }
+        append(*résultat, uri.chemin)
+    }
 
     si uri.requête_est_définie {
         append(*résultat, "?")
@@ -519,6 +578,177 @@ chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chain
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Relativité URI. Sers à savoir si un URI est relatif, et à créer un
+ * URI absolu.
+ * \{ */
+
+RelativitéURI :: énum {
+    /* L'URI n'est pas relatif. */
+    AUCUNE
+    /* Relatif au schéma : //x.yz/ */
+    SCHÉMA
+    /* Relatif au répertoire courant : ./chemin/ */
+    RÉPERTOIRE_COURANT
+    /* Relatif au répertoire parent : ../chemin/ */
+    RÉPERTOIRE_PARENT
+    /* Relatif à l'hôte : /chemin */
+    HÔTE
+    /* Relatif à la racine du document : chemin */
+    RACINE_DOCUMENT
+    /* Pour les fragments. */
+    FRAGMENT_CHEMIN_COURANT
+}
+
+détermine_relativité_uri :: fonc (uri: URI) -> RelativitéURI
+{
+    si uri.chemin_complet.taille == 0 {
+        retourne RelativitéURI.AUCUNE
+    }
+
+    si uri.hôte.taille != 0 {
+        si uri.schéma.taille == 0 {
+            retourne RelativitéURI.SCHÉMA
+        }
+
+        /* Nous avons un hôte et un schéma. */
+        retourne RelativitéURI.AUCUNE
+    }
+
+    si uri.chemin.commence_par("./") {
+        retourne RelativitéURI.RÉPERTOIRE_COURANT
+    }
+
+    si uri.chemin.commence_par("../") {
+        retourne RelativitéURI.RÉPERTOIRE_PARENT
+    }
+
+    si uri.chemin_complet.commence_par("#") {
+        retourne RelativitéURI.FRAGMENT_CHEMIN_COURANT
+    }
+
+    si uri.chemin.commence_par("/") {
+        retourne RelativitéURI.HÔTE
+    }
+
+    retourne RelativitéURI.RACINE_DOCUMENT
+}
+
+crée_uri_absolu :: fonc (base: URI, relatif: URI) -> URI
+{
+    relativité := détermine_relativité_uri(relatif)
+    retourne crée_uri_absolu(base, relatif, relativité)
+}
+
+crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) -> URI
+{
+    discr relativité {
+        AUCUNE {
+            retourne relatif
+        }
+        SCHÉMA {
+            relatif.schéma = base.schéma
+            relatif.schéma_est_défini = base.schéma_est_défini
+            retourne relatif
+        }
+        RÉPERTOIRE_COURANT {
+            morceaux_base := divise(base.chemin, '/')
+            diffère déloge(morceaux_base)
+
+            enchaineuse: Enchaineuse
+            initialise_enchaineuse(*enchaineuse)
+            diffère détruit_tampons(*enchaineuse)
+
+            pour 0 ... morceaux_base.taille - 2 {
+                ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it])
+            }
+
+            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin.avance(2))
+
+            relatif.schéma = base.schéma
+            relatif.autorité = base.autorité
+            relatif.hôte = base.hôte
+            relatif.nom_utilisateur = base.nom_utilisateur
+            relatif.mot_de_passe = base.mot_de_passe
+            relatif.port = base.port
+            relatif.schéma_est_défini = base.schéma_est_défini
+            relatif.autorité_est_définie = base.autorité_est_définie
+            relatif.chemin = chaine_depuis_enchaineuse(*enchaineuse)
+            retourne relatif
+        }
+        RÉPERTOIRE_PARENT {
+            morceaux_base := divise(base.chemin, '/')
+            diffère déloge(morceaux_base)
+
+            enchaineuse: Enchaineuse
+            initialise_enchaineuse(*enchaineuse)
+            diffère détruit_tampons(*enchaineuse)
+
+            pour 0 ... morceaux_base.taille - 3 {
+                ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it])
+            }
+
+            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin.avance(3))
+
+            relatif.schéma = base.schéma
+            relatif.autorité = base.autorité
+            relatif.hôte = base.hôte
+            relatif.nom_utilisateur = base.nom_utilisateur
+            relatif.mot_de_passe = base.mot_de_passe
+            relatif.port = base.port
+            relatif.schéma_est_défini = base.schéma_est_défini
+            relatif.autorité_est_définie = base.autorité_est_définie
+            relatif.chemin = chaine_depuis_enchaineuse(*enchaineuse)
+            retourne relatif
+        }
+        RACINE_DOCUMENT {
+            morceaux_base := divise(base.chemin, '/')
+            diffère déloge(morceaux_base)
+
+            enchaineuse: Enchaineuse
+            initialise_enchaineuse(*enchaineuse)
+            diffère détruit_tampons(*enchaineuse)
+
+            pour 0 ... morceaux_base.taille - 2 {
+                ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it])
+            }
+
+            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin)
+
+            relatif.schéma = base.schéma
+            relatif.autorité = base.autorité
+            relatif.hôte = base.hôte
+            relatif.nom_utilisateur = base.nom_utilisateur
+            relatif.mot_de_passe = base.mot_de_passe
+            relatif.port = base.port
+            relatif.schéma_est_défini = base.schéma_est_défini
+            relatif.autorité_est_définie = base.autorité_est_définie
+            relatif.chemin = chaine_depuis_enchaineuse(*enchaineuse)
+            retourne relatif
+        }
+        HÔTE {
+            relatif.schéma = base.schéma
+            relatif.autorité = base.autorité
+            relatif.hôte = base.hôte
+            relatif.nom_utilisateur = base.nom_utilisateur
+            relatif.mot_de_passe = base.mot_de_passe
+            relatif.port = base.port
+            relatif.schéma_est_défini = base.schéma_est_défini
+            relatif.autorité_est_définie = base.autorité_est_définie
+            retourne relatif
+        }
+        FRAGMENT_CHEMIN_COURANT {
+            base.fragment = relatif.fragment
+            base.fragment_est_défini = relatif.fragment_est_défini
+            retourne base
+        }
+    }
+
+    retourne relatif
+}
+
+/** } */
 
 /*
 // https://url.spec.whatwg.org/
