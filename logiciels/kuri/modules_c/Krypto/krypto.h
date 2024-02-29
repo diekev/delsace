@@ -19,6 +19,14 @@ struct HACHEUSE;
 
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha1();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha256();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_224bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_256bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_384bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_512bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_224bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_256bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_384bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_512bits();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_md5();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_crc32();
 
@@ -37,6 +45,7 @@ struct HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha256(const void *key,
 
 void KRYPTO_HACHEUSE_detruit(struct HACHEUSE *poignee);
 void KRYPTO_HACHEUSE_ajourne(struct HACHEUSE *poignee, const void *data, uint64_t numDataBytes);
+void KRYPTO_HACHEUSE_reinitialise(struct HACHEUSE *poignee);
 void KRYPTO_HACHEUSE_condensat(struct HACHEUSE *poignee, unsigned char *sortie);
 void KRYPTO_HACHEUSE_condensat_hex(struct HACHEUSE *poignee, char *sortie);
 int KRYPTO_HACHEUSE_taille_condensat(struct HACHEUSE *poignee);
