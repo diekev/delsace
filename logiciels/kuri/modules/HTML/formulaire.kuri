@@ -78,3 +78,29 @@ génère_données_formulaire :: fonc (formulaire: &Formulaire) -> chaine
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
+
+/* Idée pour générer des requêtes depuis des formulaires. */
+rappel_recherche_formulaire :: fonc (noeud: *Noeud, données: eini @inutilisée)
+{
+    élément := est_élément_type(noeud, TAG_form)
+    saufsi élément {
+        retourne
+    }
+
+    formulaire := formulaire_depuis_élément(élément)
+    diffère déloge(formulaire.entrées)
+
+    données_envoi_formulaire := génère_données_formulaire(formulaire)
+    diffère déloge(données_envoi_formulaire)
+
+    si formulaire.méthode == "GET" {
+        imprime("GET %?% HTTP/1.1\r\n", formulaire.action, données_envoi_formulaire)
+    }
+    sinon {
+        imprime("POST % HTTP/1.1\r\n", formulaire.action)
+        imprime("Content-Length: %\r\n", données_envoi_formulaire.taille)
+        imprime("Content-Encoding: application/x-www-form-urlencoded\r\n")
+        imprime("\r\n")
+        imprime("%",données_envoi_formulaire)
+    }
+}
