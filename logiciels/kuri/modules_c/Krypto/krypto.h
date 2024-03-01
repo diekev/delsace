@@ -15,18 +15,44 @@ void BCrypt_genere_empreinte(char *mot_de_passe, int charge_travail, char *sorti
 
 int BCrypt_compare_empreinte(char *mot_de_passe, char *empreinte);
 
+typedef enum TypeHacheuse {
+    HACHEUSE_CRC32,
+    HACHEUSE_KECCAK_224,
+    HACHEUSE_KECCAK_256,
+    HACHEUSE_KECCAK_384,
+    HACHEUSE_KECCAK_512,
+    HACHEUSE_MD5,
+    HACHEUSE_SHA1,
+    HACHEUSE_SHA256,
+    HACHEUSE_SHA3_224,
+    HACHEUSE_SHA3_256,
+    HACHEUSE_SHA3_384,
+    HACHEUSE_SHA3_512,
+} TypeHacheuse;
+
+struct InfoTypeHacheuse {
+    const char *nom;
+    TypeHacheuse type;
+    int taille_bloc;
+    int taille_condensant;
+};
+
 struct HACHEUSE;
+
+struct InfoTypeHacheuse *KRYPTO_donne_info_type_hacheuse_pour(enum TypeHacheuse type);
+
+struct HACHEUSE *KRYPTO_cree_hacheuse_pour_type(enum TypeHacheuse type);
 
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha1();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha256();
-struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_224bits();
-struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_256bits();
-struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_384bits();
-struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_512bits();
-struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_224bits();
-struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_256bits();
-struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_384bits();
-struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_512bits();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_224();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_256();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_384();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_sha3_512();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_224();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_256();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_384();
+struct HACHEUSE *KRYPTO_HACHEUSE_cree_keccak_512();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_md5();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_crc32();
 
