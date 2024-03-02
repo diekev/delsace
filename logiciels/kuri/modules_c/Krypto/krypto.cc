@@ -249,17 +249,18 @@ HACHEUSE *KRYPTO_cree_hacheuse_pour_type(TypeHacheuse type)
 }
 
 #define POIGNEE(x) reinterpret_cast<HACHEUSE *>(x)
+#define POIGNEE_HMAC(x) reinterpret_cast<HACHEUSE_HMAC *>(x)
 
 #define DEFINIS_FONCTION_CREATION(nom_enum, nom_hacheuse, nom_classe, ident)                      \
     HACHEUSE *KRYPTO_HACHEUSE_cree_##ident()                                                      \
     {                                                                                             \
         return POIGNEE(KRYPTO_cree_hacheuse_pour_type(TypeHacheuse::HACHEUSE_##nom_enum));        \
     }                                                                                             \
-    HACHEUSE *KRYPTO_HACHEUSE_HMAC_cree_##ident(                                                  \
+    HACHEUSE_HMAC *KRYPTO_HACHEUSE_HMAC_cree_##ident(                                             \
         const void *key, uint64_t numKeyBytes, const void *data, uint64_t numDataBytes)           \
     {                                                                                             \
-        auto poignée = POIGNEE(new HacheuseHMAC<nom_classe>(key, numKeyBytes));                   \
-        KRYPTO_HACHEUSE_ajourne(poignée, data, numDataBytes);                                     \
+        auto poignée = POIGNEE_HMAC(new HacheuseHMAC<nom_classe>(key, numKeyBytes));              \
+        KRYPTO_HACHEUSE_HMAC_ajourne(poignée, data, numDataBytes);                                \
         return poignée;                                                                           \
     }
 
@@ -267,11 +268,11 @@ ENUMERE_TYPE_HACHEUSE(DEFINIS_FONCTION_CREATION)
 
 #undef DEFINIS_FONCTION_CREATION
 
-HACHEUSE *KRYPTO_cree_hacheuse_hmac_pour_type(enum TypeHacheuse type,
-                                              const void *key,
-                                              uint64_t numKeyBytes,
-                                              const void *data,
-                                              uint64_t numDataBytes)
+HACHEUSE_HMAC *KRYPTO_cree_hacheuse_hmac_pour_type(enum TypeHacheuse type,
+                                                   const void *key,
+                                                   uint64_t numKeyBytes,
+                                                   const void *data,
+                                                   uint64_t numDataBytes)
 {
 #define DEFINIS_CAS(nom_enum, nom_hacheuse, nom_classe, ident)                                    \
     case TypeHacheuse::HACHEUSE_##nom_enum:                                                       \
@@ -286,6 +287,10 @@ HACHEUSE *KRYPTO_cree_hacheuse_hmac_pour_type(enum TypeHacheuse type,
     return nullptr;
 #undef DEFINIS_CAS
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name HACHEUSE
+ * \{ */
 
 void KRYPTO_HACHEUSE_detruit(HACHEUSE *poignee)
 {
@@ -328,6 +333,52 @@ int KRYPTO_HACHEUSE_taille_bloc(HACHEUSE *poignee)
     auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignee);
     return hacheuse->taille_bloc();
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name HACHEUSE HMAC
+ * \{ */
+
+void KRYPTO_HACHEUSE_HMAC_detruit(HACHEUSE_HMAC *poignee)
+{
+    auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignee);
+    delete hacheuse;
+}
+
+void KRYPTO_HACHEUSE_HMAC_ajourne(HACHEUSE_HMAC *poignee,
+                                  const void *donnees,
+                                  size_t taille_donnees)
+{
+    auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignee);
+    hacheuse->ajourne(donnees, taille_donnees);
+}
+
+void KRYPTO_HACHEUSE_HMAC_condensat(HACHEUSE_HMAC *poignee, unsigned char *sortie)
+{
+    auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignee);
+    hacheuse->condensat(sortie);
+}
+
+void KRYPTO_HACHEUSE_HMAC_condensat_hex(HACHEUSE_HMAC *poignee, char *sortie)
+{
+    auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignee);
+    hacheuse->condensat_hex(sortie);
+}
+
+int KRYPTO_HACHEUSE_HMAC_taille_condensat(HACHEUSE_HMAC *poignee)
+{
+    auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignee);
+    return hacheuse->taille_condensat();
+}
+
+int KRYPTO_HACHEUSE_HMAC_taille_bloc(HACHEUSE_HMAC *poignee)
+{
+    auto hacheuse = reinterpret_cast<BaseHacheuse *>(poignee);
+    return hacheuse->taille_bloc();
+}
+
+/** \} */
 
 int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a,
                                       uint64_t taille_a,

@@ -32,6 +32,10 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bo
 //    retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom HACHEUSE
+ * \{ */
+
 crée_crc32 :: fonc () -> *HACHEUSE
 {
     retourne KRYPTO_HACHEUSE_cree_crc32()
@@ -92,38 +96,6 @@ crée_keccak_512bits :: fonc () -> *HACHEUSE
     retourne KRYPTO_HACHEUSE_cree_keccak_512bits()
 }
 
-TypeHMAC :: énum {
-    MD5
-    SHA1
-    SHA256
-}
-
-crée_hmac :: fonc (clé: chaine, type := TypeHMAC.SHA256) -> *HACHEUSE
-{
-    si type == TypeHMAC.MD5 {
-        retourne KRYPTO_HACHEUSE_cree_hmac_md5(clé.pointeur, clé.taille comme n64, nul, 0)
-    }
-
-    si type == TypeHMAC.SHA1 {
-        retourne KRYPTO_HACHEUSE_cree_hmac_sha1(clé.pointeur, clé.taille comme n64, nul, 0)
-    }
-
-    retourne KRYPTO_HACHEUSE_cree_hmac_sha256(clé.pointeur, clé.taille comme n64, nul, 0)
-}
-
-crée_hmac :: fonc (clé: chaine, message: chaine, type := TypeHMAC.SHA256) -> *HACHEUSE
-{
-    si type == TypeHMAC.MD5 {
-        retourne KRYPTO_HACHEUSE_cree_hmac_md5(clé.pointeur, clé.taille comme n64, message.pointeur, message.taille comme n64)
-    }
-
-    si type == TypeHMAC.SHA1 {
-        retourne KRYPTO_HACHEUSE_cree_hmac_sha1(clé.pointeur, clé.taille comme n64, message.pointeur, message.taille comme n64)
-    }
-
-    retourne KRYPTO_HACHEUSE_cree_hmac_sha256(clé.pointeur, clé.taille comme n64, message.pointeur, message.taille comme n64)
-}
-
 détruit :: fonc (hacheuse: &*HACHEUSE)
 {
     KRYPTO_HACHEUSE_detruit(hacheuse)
@@ -171,6 +143,117 @@ taille_condensat :: fonc (hacheuse: *HACHEUSE) -> z32
 {
     retourne KRYPTO_HACHEUSE_taille_condensat(hacheuse)
 }
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HACHEUSE HMAC
+ * \{ */
+
+crée_hmac_crc32 :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_crc32()
+}
+
+crée_hmac_md5 :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_md5()
+}
+
+crée_hmac_sha1 :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_sha1()
+}
+
+crée_hmac_sha256 :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_sha256()
+}
+
+crée_hmac_sha3_224bits :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_sha3_224bits()
+}
+
+crée_hmac_sha3_256bits :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_sha3_256bits()
+}
+
+crée_hmac_sha3_384bits :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_sha3_384bits()
+}
+
+crée_hmac_sha3_512bits :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_sha3_512bits()
+}
+
+crée_hmac_keccak_224bits :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_keccak_224bits()
+}
+
+crée_hmac_keccak_256bits :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_keccak_256bits()
+}
+
+crée_hmac_keccak_384bits :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_keccak_384bits()
+}
+
+crée_hmac_keccak_512bits :: fonc () -> *HACHEUSE_HMAC
+{
+    retourne KRYPTO_HACHEUSE_HMAC_cree_keccak_512bits()
+}
+
+détruit :: fonc (hacheuse: &*HACHEUSE_HMAC)
+{
+    KRYPTO_HACHEUSE_HMAC_detruit(hacheuse)
+    hacheuse = nul
+}
+
+ajourne :: fonc (hacheuse: *HACHEUSE_HMAC, message: chaine)
+{
+    KRYPTO_HACHEUSE_HMAC_ajourne(hacheuse, message.pointeur, message.taille comme n64)
+}
+
+ajourne :: fonc (hacheuse: *HACHEUSE_HMAC, message: $T)
+{
+    c : chaine = ---
+    c.pointeur = *message comme *z8
+    c.taille = taille_de(T) comme z64
+    KRYPTO_HACHEUSE_HMAC_ajourne(hacheuse, c.pointeur, c.taille comme n64)
+}
+
+condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> chaine
+{
+    résultat := loge_chaine(taille_condensat(hacheuse))
+    KRYPTO_HACHEUSE_HMAC_condensat(hacheuse, résultat.pointeur comme *n8)
+    retourne résultat
+}
+
+condensat_hex :: fonc (hacheuse: *HACHEUSE_HMAC) -> chaine
+{
+    résultat := loge_chaine(2 * taille_condensat(hacheuse))
+    KRYPTO_HACHEUSE_HMAC_condensat_hex(hacheuse, résultat.pointeur)
+    retourne résultat
+}
+
+taille_bloc :: fonc (hacheuse: *HACHEUSE_HMAC) -> z32
+{
+    retourne KRYPTO_HACHEUSE_HMAC_taille_bloc(hacheuse)
+}
+
+taille_condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> z32
+{
+    retourne KRYPTO_HACHEUSE_HMAC_taille_condensat(hacheuse)
+}
+
+/** } */
 
 compare_condensat :: fonc (a: chaine, b: chaine) -> bool
 {

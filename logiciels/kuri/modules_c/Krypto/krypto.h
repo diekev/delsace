@@ -52,19 +52,20 @@ struct InfoTypeHacheuse {
 };
 
 struct HACHEUSE;
+struct HACHEUSE_HMAC;
 
 struct InfoTypeHacheuse *KRYPTO_donne_info_type_hacheuse_pour(enum TypeHacheuse type);
 
 struct HACHEUSE *KRYPTO_cree_hacheuse_pour_type(enum TypeHacheuse type);
-struct HACHEUSE *KRYPTO_cree_hacheuse_hmac_pour_type(enum TypeHacheuse type,
-                                                     const void *key,
-                                                     uint64_t numKeyBytes,
-                                                     const void *data,
-                                                     uint64_t numDataBytes);
+struct HACHEUSE_HMAC *KRYPTO_cree_hacheuse_hmac_pour_type(enum TypeHacheuse type,
+                                                          const void *key,
+                                                          uint64_t numKeyBytes,
+                                                          const void *data,
+                                                          uint64_t numDataBytes);
 
 #define DECLARE_FONCTION_CREATION(nom_enum, nom_hacheuse, nom_classe, ident)                      \
     struct HACHEUSE *KRYPTO_HACHEUSE_cree_##ident();                                              \
-    struct HACHEUSE *KRYPTO_HACHEUSE_HMAC_cree_##ident(                                           \
+    struct HACHEUSE_HMAC *KRYPTO_HACHEUSE_HMAC_cree_##ident(                                      \
         const void *key, uint64_t numKeyBytes, const void *data, uint64_t numDataBytes);
 
 ENUMERE_TYPE_HACHEUSE(DECLARE_FONCTION_CREATION)
@@ -78,6 +79,15 @@ void KRYPTO_HACHEUSE_condensat(struct HACHEUSE *poignee, unsigned char *sortie);
 void KRYPTO_HACHEUSE_condensat_hex(struct HACHEUSE *poignee, char *sortie);
 int KRYPTO_HACHEUSE_taille_condensat(struct HACHEUSE *poignee);
 int KRYPTO_HACHEUSE_taille_bloc(struct HACHEUSE *poignee);
+
+void KRYPTO_HACHEUSE_HMAC_detruit(struct HACHEUSE_HMAC *poignee);
+void KRYPTO_HACHEUSE_HMAC_ajourne(struct HACHEUSE_HMAC *poignee,
+                                  const void *data,
+                                  uint64_t numDataBytes);
+void KRYPTO_HACHEUSE_HMAC_condensat(struct HACHEUSE_HMAC *poignee, unsigned char *sortie);
+void KRYPTO_HACHEUSE_HMAC_condensat_hex(struct HACHEUSE_HMAC *poignee, char *sortie);
+int KRYPTO_HACHEUSE_HMAC_taille_condensat(struct HACHEUSE_HMAC *poignee);
+int KRYPTO_HACHEUSE_HMAC_taille_bloc(struct HACHEUSE_HMAC *poignee);
 
 int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a,
                                       uint64_t taille_a,
