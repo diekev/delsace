@@ -187,19 +187,6 @@ class Hacheuse : public BaseHacheuse {
     }
 };
 
-using HacheuseCRC32 = Hacheuse<CRC32>;
-using HacheuseKeccak_224 = Hacheuse<Keccak_224bits>;
-using HacheuseKeccak_256 = Hacheuse<Keccak_256bits>;
-using HacheuseKeccak_384 = Hacheuse<Keccak_384bits>;
-using HacheuseKeccak_512 = Hacheuse<Keccak_512bits>;
-using HacheuseMD5 = Hacheuse<MD5>;
-using HacheuseSHA1 = Hacheuse<SHA1>;
-using HacheuseSHA256 = Hacheuse<SHA256>;
-using HacheuseSHA3_224 = Hacheuse<SHA3_224bits>;
-using HacheuseSHA3_256 = Hacheuse<SHA3_256bits>;
-using HacheuseSHA3_384 = Hacheuse<SHA3_384bits>;
-using HacheuseSHA3_512 = Hacheuse<SHA3_512bits>;
-
 /* Définis les infos-types des hacheuses. */
 #define DEFINIS_INFO_TYPE_HACHEUSE(nom_enum, nom_hacheuse, nom_classe, ident)                     \
     static InfoTypeHacheuse info_type_##nom_enum = {                                              \
