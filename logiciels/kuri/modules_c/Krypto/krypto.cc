@@ -38,27 +38,13 @@ class BaseHacheuse {
     virtual void réinitialise() = 0;
 };
 
-#define ENUMERE_TYPE_HACHEUSE(O)                                                                  \
-    O(CRC32, "crc32", CRC32, crc32)                                                               \
-    O(KECCAK_224, "keccak-224", Keccak_224bits, keccak_224)                                       \
-    O(KECCAK_256, "keccak-256", Keccak_256bits, keccak_256)                                       \
-    O(KECCAK_384, "keccak-384", Keccak_384bits, keccak_384)                                       \
-    O(KECCAK_512, "keccak-512", Keccak_512bits, keccak_512)                                       \
-    O(MD5, "md5", MD5, md5)                                                                       \
-    O(SHA1, "sha1", SHA1, sha1)                                                                   \
-    O(SHA256, "sha256", SHA256, sha256)                                                           \
-    O(SHA3_224, "sha3-224", SHA3_224bits, sha3_224)                                               \
-    O(SHA3_256, "sha3-256", SHA3_256bits, sha3_256)                                               \
-    O(SHA3_384, "sha3-384", SHA3_384bits, sha3_384)                                               \
-    O(SHA3_512, "sha3-512", SHA3_512bits, sha3_512)
-
 template <typename TypeHacheuse>
 class HacheuseHMAC : public BaseHacheuse {
     unsigned char usedKey[TypeHacheuse::BlockSize] = {0};
     TypeHacheuse hacheuse_interne;
 
   public:
-    HacheuseHMAC(const void *key, size_t numKeyBytes, const void *data, size_t numDataBytes)
+    HacheuseHMAC(const void *key, size_t numKeyBytes)
     {
         // adjust length of key: must contain exactly blockSize bytes
         if (numKeyBytes <= TypeHacheuse::BlockSize) {
@@ -78,10 +64,6 @@ class HacheuseHMAC : public BaseHacheuse {
         }
 
         hacheuse_interne.add(usedKey, TypeHacheuse::BlockSize);
-
-        if (data) {
-            ajourne(data, numDataBytes);
-        }
     }
 
     void ajourne(const void *donnees, size_t taille_donnees) override
@@ -272,34 +254,37 @@ HACHEUSE *KRYPTO_cree_hacheuse_pour_type(TypeHacheuse type)
     HACHEUSE *KRYPTO_HACHEUSE_cree_##ident()                                                      \
     {                                                                                             \
         return POIGNEE(KRYPTO_cree_hacheuse_pour_type(TypeHacheuse::HACHEUSE_##nom_enum));        \
+    }                                                                                             \
+    HACHEUSE *KRYPTO_HACHEUSE_HMAC_cree_##ident(                                                  \
+        const void *key, uint64_t numKeyBytes, const void *data, uint64_t numDataBytes)           \
+    {                                                                                             \
+        auto poignée = POIGNEE(new HacheuseHMAC<nom_classe>(key, numKeyBytes));                   \
+        KRYPTO_HACHEUSE_ajourne(poignée, data, numDataBytes);                                     \
+        return poignée;                                                                           \
     }
 
 ENUMERE_TYPE_HACHEUSE(DEFINIS_FONCTION_CREATION)
 
 #undef DEFINIS_FONCTION_CREATION
 
-HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_md5(const void *key,
-                                        uint64_t numKeyBytes,
-                                        const void *data,
-                                        uint64_t numDataBytes)
+HACHEUSE *KRYPTO_cree_hacheuse_hmac_pour_type(enum TypeHacheuse type,
+                                              const void *key,
+                                              uint64_t numKeyBytes,
+                                              const void *data,
+                                              uint64_t numDataBytes)
 {
-    return POIGNEE(new HacheuseHMACMD5(key, numKeyBytes, data, numDataBytes));
-}
+#define DEFINIS_CAS(nom_enum, nom_hacheuse, nom_classe, ident)                                    \
+    case TypeHacheuse::HACHEUSE_##nom_enum:                                                       \
+    {                                                                                             \
+        return KRYPTO_HACHEUSE_HMAC_cree_##ident(key, numKeyBytes, data, numDataBytes);           \
+    }
 
-HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha1(const void *key,
-                                         uint64_t numKeyBytes,
-                                         const void *data,
-                                         uint64_t numDataBytes)
-{
-    return POIGNEE(new HacheuseHMACSHA1(key, numKeyBytes, data, numDataBytes));
-}
+    switch (type) {
+        ENUMERE_TYPE_HACHEUSE(DEFINIS_CAS)
+    }
 
-HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha256(const void *key,
-                                           uint64_t numKeyBytes,
-                                           const void *data,
-                                           uint64_t numDataBytes)
-{
-    return POIGNEE(new HacheuseHMACSHA256(key, numKeyBytes, data, numDataBytes));
+    return nullptr;
+#undef DEFINIS_CAS
 }
 
 void KRYPTO_HACHEUSE_detruit(HACHEUSE *poignee)
