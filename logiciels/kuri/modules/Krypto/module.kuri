@@ -1,12 +1,12 @@
 // Interface Kuri pour Krypto
 
+importe CodecDonnées
 importe Fondation
 
 charge "interface_krypto"
 
 // À FAIRE : implémente avec notre langage toutes ces fonctions (il semble qu'il y a un problème de boutisme ou de signe dans le langage)
 // À FAIRE : la bibliothèque BCrypt à l'air brisée ?, il faudra de toute manière utiliser Argon2 qui a l'air d'être une meilleure fonction
-// À FAIRE : type Condensat (voir Alembic)
 // À FAIRE : bibliothèque de fonctions non cryptographiques
 // À FAIRE : ne passe pas des chaines mais des tableaux d'octets
 
@@ -31,6 +31,59 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bo
     retourne ok
 //    retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Condensat
+ * \{ */
+
+/* À FAIRE : version fixe. */
+Condensat :: struct {
+    données: [..]octet
+}
+
+détruit_données :: fonc (condensat: *Condensat)
+{
+    déloge(condensat.données)
+}
+
+donne_chaine :: fonc (condensat: Condensat) -> chaine
+{
+    chn : chaine = ---
+    chn.pointeur = condensat.données.pointeur comme *z8
+    chn.taille = condensat.données.taille
+    retourne chn
+}
+
+donne_copie_chaine :: fonc (condensat: Condensat) -> chaine
+{
+    retourne copie_chaine(donne_chaine(condensat))
+}
+
+donne_chaine_hex :: fonc (condensat: Condensat) -> chaine
+{
+    retourne encode_hexadécimal(condensat.données)
+}
+
+imprime_condensant :: fonc (enchaineuse: *Enchaineuse, condensat: *Condensat)
+{
+    saufsi condensat {
+        retourne
+    }
+
+    encode_hexadécimal(enchaineuse, condensat.données)
+} @FormattageImpression
+
+opérateur < :: fonc (condensat1: Condensat, condensat2: Condensat) -> bool
+{
+    retourne condensat1.donne_chaine() < condensat2.donne_chaine()
+}
+
+opérateur == :: fonc (condensat1: Condensat, condensat2: Condensat) -> bool
+{
+    retourne condensat1.donne_chaine() == condensat2.donne_chaine()
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom HACHEUSE
@@ -120,14 +173,20 @@ réinitialise :: fonc (hacheuse: *HACHEUSE)
     KRYPTO_HACHEUSE_reinitialise(hacheuse)
 }
 
-condensat :: fonc (hacheuse: *HACHEUSE) -> chaine
+donne_condensat :: fonc (hacheuse: *HACHEUSE) -> Condensat
 {
-    résultat := loge_chaine(taille_condensat(hacheuse))
-    KRYPTO_HACHEUSE_condensat(hacheuse, résultat.pointeur comme *n8)
+    résultat : Condensat
+    donne_condensat(hacheuse, *résultat)
     retourne résultat
 }
 
-condensat_hex :: fonc (hacheuse: *HACHEUSE) -> chaine
+donne_condensat :: fonc (hacheuse: *HACHEUSE, résultat: *Condensat)
+{
+    tableau_redimensionne(résultat.données, taille_condensat(hacheuse))
+    KRYPTO_HACHEUSE_condensat(hacheuse, résultat.données.pointeur comme *n8)
+}
+
+donne_condensat_hex :: fonc (hacheuse: *HACHEUSE) -> chaine
 {
     résultat := loge_chaine(2 * taille_condensat(hacheuse))
     KRYPTO_HACHEUSE_condensat_hex(hacheuse, résultat.pointeur)
@@ -229,14 +288,20 @@ ajourne :: fonc (hacheuse: *HACHEUSE_HMAC, message: $T)
     KRYPTO_HACHEUSE_HMAC_ajourne(hacheuse, c.pointeur, c.taille comme n64)
 }
 
-condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> chaine
+donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> Condensat
 {
-    résultat := loge_chaine(taille_condensat(hacheuse))
-    KRYPTO_HACHEUSE_HMAC_condensat(hacheuse, résultat.pointeur comme *n8)
+    résultat : Condensat
+    donne_condensat(hacheuse, *résultat)
     retourne résultat
 }
 
-condensat_hex :: fonc (hacheuse: *HACHEUSE_HMAC) -> chaine
+donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC, résultat: *Condensat)
+{
+    tableau_redimensionne(résultat.données, taille_condensat(hacheuse))
+    KRYPTO_HACHEUSE_HMAC_condensat(hacheuse, résultat.données.pointeur comme *n8)
+}
+
+donne_condensat_hex :: fonc (hacheuse: *HACHEUSE_HMAC) -> chaine
 {
     résultat := loge_chaine(2 * taille_condensat(hacheuse))
     KRYPTO_HACHEUSE_HMAC_condensat_hex(hacheuse, résultat.pointeur)
