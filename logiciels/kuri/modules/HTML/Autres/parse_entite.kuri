@@ -131,14 +131,14 @@ principale :: fonc () -> z32
 
     virgule = "[ "
 
-    pour données.symboles {
-        ajoute_au_tampon(*enchaineuse, virgule)
-        ajoute_au_tampon(*enchaineuse, "[0x")
-        ajoute_au_tampon(*enchaineuse, FormatEntier(valeur = it.points_de_code[0], base = 16))
-        ajoute_au_tampon(*enchaineuse, ",0x")
-        ajoute_au_tampon(*enchaineuse, FormatEntier(valeur = it.points_de_code[1], base = 16))
-        ajoute_au_tampon(*enchaineuse, "]")
-        virgule = ","
+    ctx := contexte()
+    ctx.format_entier.base = 16
+
+    pousse_contexte ctx {
+        pour données.symboles {
+            imprime_dans_enchaineuse(*enchaineuse, "%[0x%,0x%]", virgule, it.points_de_code[0], it.points_de_code[1])
+            virgule = ","
+        }
     }
 
     ajoute_au_tampon(*enchaineuse, "]\n")
