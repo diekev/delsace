@@ -21,15 +21,19 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
         retourne
     }
 
-    tantque ligne[0] != '"' {
+    tantque ligne.taille > 0 && ligne[0] != '"' {
         ligne = avance(ligne, 1)
     }
+    si ligne.taille == 0 {
+        retourne
+    }
+
     ligne = avance(ligne, 1)
 
     symbole := ligne
     symbole.taille = 0
 
-    tantque ligne[0] != '"' {
+    tantque ligne.taille > 0 && ligne[0] != '"' {
         ligne = avance(ligne, 1)
         symbole.taille += 1
     }
@@ -37,7 +41,7 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
     données_symbole : DonnéesSymbole
     données_symbole.symbole = symbole
 
-    tantque ligne[0] != '[' {
+    tantque ligne.taille > 0 && ligne[0] != '[' {
         ligne = avance(ligne, 1)
     }
     ligne = avance(ligne, 1)
@@ -47,7 +51,7 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
 
     point_de_code_rencontré := faux
 
-    tantque ligne[0] != ']' {
+    tantque ligne.taille > 0 && ligne[0] != ']' {
 
         si ligne[0] == ' ' {
             ligne = avance(ligne, 1)
