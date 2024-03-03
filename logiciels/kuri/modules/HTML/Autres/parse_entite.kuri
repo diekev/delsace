@@ -14,10 +14,8 @@ TableSymboles :: struct {
     symboles: [..]DonnéesSymbole
 }
 
-rappel_pour_chaque_ligne :: fonc (ligne: chaine, données: eini)
+rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
 {
-    table := mémoire(données.pointeur comme **TableSymboles)
-
     // "symbole" :
     si ligne.taille == 0 {
         retourne
