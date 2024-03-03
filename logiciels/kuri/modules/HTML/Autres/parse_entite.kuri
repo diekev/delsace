@@ -143,9 +143,12 @@ principale :: fonc () -> z32
 
     ajoute_au_tampon(*enchaineuse, "]\n")
 
-    tente copie_enchaineuse_fichier(*enchaineuse, CheminFichier("entités.kuri")) piège err {
-        imprime("Impossible d'écrire le fichier d'entités : %\n", err)
-        retourne 1
+    tente copie_enchaineuse_fichier(*enchaineuse, CheminFichier("../entités.kuri")) piège err {
+        si err != 0 comme ErreurFichier {
+            imprime("Impossible d'écrire le fichier d'entités : %\n", err)
+            retourne 1
+        }
+        retourne 0
     }
 
     retourne 0
