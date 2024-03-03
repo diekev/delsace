@@ -46,7 +46,6 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
     chn_point_de_code.taille = 0
 
     point_de_code_rencontré := faux
-    point_de_code_final := 0
 
     tantque ligne[0] != ']' {
 
