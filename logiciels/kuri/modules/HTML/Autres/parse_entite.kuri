@@ -12,6 +12,8 @@ DonnéesSymbole :: struct {
 
 TableSymboles :: struct {
     symboles: [..]DonnéesSymbole
+    taille_max_symbole : z64 = 0
+    taille_min_symbole : z64 = 1_000_000
 }
 
 rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
@@ -91,6 +93,14 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
        données_symbole.points_de_code[1] = 0
     }
 
+    si symbole.taille > table.taille_max_symbole {
+        table.taille_max_symbole = symbole.taille
+    }
+
+    si symbole.taille < table.taille_min_symbole {
+        table.taille_min_symbole = symbole.taille
+    }
+
     tableau_ajoute(*table.symboles, données_symbole)
 }
 
@@ -112,6 +122,9 @@ principale :: fonc () -> z32
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
+
+    imprime_dans_enchaineuse(*enchaineuse, "taille_max_nom_entité :: %\n", données.taille_max_symbole)
+    imprime_dans_enchaineuse(*enchaineuse, "taille_min_nom_entité :: %\n", données.taille_min_symbole)
 
     ajoute_au_tampon(*enchaineuse, "symboles_entités : []chaine = ")
 
