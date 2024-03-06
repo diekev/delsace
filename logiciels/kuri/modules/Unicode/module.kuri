@@ -198,8 +198,8 @@ point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
 
     /* Plan universel. */
     si point_de_code <= 0x7FF {
-        séquence[0] = ((point_de_code >> 6) + 192) comme n8
-        séquence[1] = ((point_de_code & 63) + 128) comme n8
+        séquence[0] = (((point_de_code >> 6) & 0x1f) | 0xc0) comme n8
+        séquence[1] = ((point_de_code & 0x3f) | 0x80) comme n8
         retourne 2
     }
 
@@ -209,18 +209,18 @@ point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
     }
 
     si point_de_code <= 0xFFFF {
-        séquence[0] = ((point_de_code >> 12) + 224) comme n8
-        séquence[1] = (((point_de_code >> 6) & 63) + 128) comme n8
-        séquence[2] = ((point_de_code & 63) + 128) comme n8
+        séquence[0] = ((point_de_code >> 12) | 224) comme n8
+        séquence[1] = (((point_de_code >> 6) & 63) | 128) comme n8
+        séquence[2] = ((point_de_code & 63) | 128) comme n8
         retourne 3;
     }
 
     /* ceci n'est pas nécessaire si nous savons que le point de code est valide */
     si point_de_code <= 0x10FFFF {
-        séquence[0] = ((point_de_code >> 18) + 240) comme n8
-        séquence[1] = (((point_de_code >> 12) & 63) + 128) comme n8
-        séquence[2] = (((point_de_code >> 6) & 63) + 128) comme n8
-        séquence[3] = ((point_de_code & 63) + 128) comme n8
+        séquence[0] = ((point_de_code >> 18) | 240) comme n8
+        séquence[1] = (((point_de_code >> 12) & 63) | 128) comme n8
+        séquence[2] = (((point_de_code >> 6) & 63) | 128) comme n8
+        séquence[3] = ((point_de_code & 63) | 128) comme n8
         retourne 4
     }
 

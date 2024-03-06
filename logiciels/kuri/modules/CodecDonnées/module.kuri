@@ -457,21 +457,25 @@ test_décodage_plages_après_différence :: fonc (entrée: []z32, sortie: []z32)
 
 // -------------------------------------------------------------------
 
-encode_hexadécimal :: fonc (entrée: [..]octet) -> chaine
+encode_hexadécimal :: fonc (entrée: []octet) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
+    encode_hexadécimal(*enchaineuse, entrée)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+encode_hexadécimal :: fonc (enchaineuse: *Enchaineuse, entrée: []octet)
+{
     pour entrée {
         a := (it >> 4) & 0xf
         b := it & 0xf
 
-        ajoute_au_tampon(*enchaineuse, caractères_hex_minuscules[a])
-        ajoute_au_tampon(*enchaineuse, caractères_hex_minuscules[b])
+        ajoute_au_tampon(enchaineuse, caractères_hex_minuscules[a])
+        ajoute_au_tampon(enchaineuse, caractères_hex_minuscules[b])
     }
-
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 nombre_depuis_hex :: fonc (hex: z8) -> z8

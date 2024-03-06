@@ -9,7 +9,7 @@ empreinte_contexte :: fonc () -> chaine
     diffère sha256.détruit()
 
     sha256.ajourne(ctx)
-    retourne sha256.condensat_hex()
+    retourne sha256.donne_condensat_hex()
 }
 
 principale :: fonc () -> z32
