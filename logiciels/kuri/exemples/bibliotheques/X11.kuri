@@ -232,7 +232,7 @@ principale :: fonc () -> z32
     _ := XSelectInput(d, w, _ExposureMask | _KeyPressMask);
     _ := XMapWindow(d, w);
 
-    gc_défaut := DefaultGC(d, 0)
+    gc_défaut := DefaultGC(d, s)
 
     boucle {
         e : _XEvent
