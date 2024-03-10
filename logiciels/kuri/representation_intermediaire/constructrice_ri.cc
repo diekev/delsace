@@ -2783,7 +2783,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto inst = noeud->comme_info_de();
             auto enfant = inst->expression;
-            auto valeur = crée_info_type(enfant->type, noeud);
+            auto type = enfant->type;
+            type = type->comme_type_type_de_donnees()->type_connu;
+            auto valeur = crée_info_type(type, noeud);
 
             /* utilise une temporaire pour simplifier la compilation d'expressions du style :
              * info_de(z32).id */
@@ -2806,7 +2808,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto expr = noeud->comme_taille_de();
             auto expr_type = expr->expression;
-            auto constante = m_constructrice.crée_constante_taille_de(expr_type->type);
+            auto type = expr_type->type;
+            type = type->comme_type_type_de_donnees()->type_connu;
+            auto constante = m_constructrice.crée_constante_taille_de(type);
             empile_valeur(constante);
             break;
         }
