@@ -652,6 +652,11 @@ action_pour_exception_en_point_flottant :: fonc (signum: z32 @inutilisée)
     panique("exception en point flottant")
 }
 
+action_pour_avortement :: fonc (signum: z32 @inutilisée)
+{
+    panique("avortement")
+}
+
 ajoute_action_pour_erreur :: fonc (signal: z32, rappel: sighandler_t) -> bool
 {
     act: sigaction_struct
@@ -666,6 +671,9 @@ système_ajoute_action_pour_action_erreur_de_segmentation :: fonc ()
         retourne
     }
     saufsi ajoute_action_pour_erreur(SIGFPE, action_pour_exception_en_point_flottant) {
+        retourne
+    }
+    saufsi ajoute_action_pour_erreur(SIGABRT, action_pour_avortement) {
         retourne
     }
 }
