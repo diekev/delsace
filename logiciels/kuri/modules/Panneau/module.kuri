@@ -153,7 +153,12 @@ gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSo
     }
     sansarrêt {
         si clique.action != ActionSouris.PRESSÉE && menus_affichés.taille != 0 {
-            menus_affichés[0].panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+            si menus_affichés[0].panneau_barre_de_menu {
+                menus_affichés[0].panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+            }
+            sinon {
+                contexte.détruit_panneau_menu()
+            }
         }
     }
     // si menu_affiché && panneau_cliqué != menu_affiché {
