@@ -956,14 +956,15 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             expr->type = TypeBase::N32;
 
             auto expr_type = expr->expression;
-            if (résoud_type_final(expr_type, expr_type->type) == CodeRetourValidation::Erreur) {
+            auto type = Type::nul();
+            if (résoud_type_final(expr_type, type) == CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
             }
 
-            if (!expr_type->type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+            if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 /* ce n'est plus la peine de revenir ici une fois que le type sera validé */
                 m_arbre_courant->index_courant += 1;
-                return Attente::sur_type(expr_type->type);
+                return Attente::sur_type(type);
             }
 
             break;
@@ -1107,11 +1108,9 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return attente_possible.value();
             }
 
-            expr->type = type;
-
             auto type_info_type = Type::nul();
 
-            switch (expr->type->genre) {
+            switch (type->genre) {
                 case GenreNoeud::POLYMORPHIQUE:
                 case GenreNoeud::TUPLE:
                 {
