@@ -298,6 +298,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         {
             auto expr_taille_de = b->comme_taille_de();
             auto type = expr_taille_de->expression->type;
+            type = type->comme_type_type_de_donnees()->type_connu;
             return ValeurExpression(type->taille_octet);
         }
         case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:

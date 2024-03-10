@@ -66,7 +66,7 @@ Screen :: struct #externe {
     ndepths: z32        /* number of depths possible */
     depths: *Depth /* list of allowable depths on the screen */
     root_depth: z32        /* bits per pixel */
-    root_visual: Visual    /* root visual */
+    root_visual: *Visual    /* root visual */
     default_gc: GC        /* GC for the root root visual */
     cmap: Colormap        /* default color map */
     white_pixel: n64
@@ -232,7 +232,7 @@ principale :: fonc () -> z32
     _ := XSelectInput(d, w, _ExposureMask | _KeyPressMask);
     _ := XMapWindow(d, w);
 
-    gc_défaut := DefaultGC(d, 0)
+    gc_défaut := DefaultGC(d, s)
 
     boucle {
         e : _XEvent
