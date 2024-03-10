@@ -305,6 +305,10 @@ PanneauMenu :: struct {
     état : État
 
     menu_fut_affiché: *PanneauMenu
+
+    /* Largeur requise par le parent. Si non-nulle, elle sera utilisée pour
+     * définir la largeur du menu. */
+    largeur_requise := 0
 }
 
 crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
@@ -328,7 +332,12 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
         si clique.action == ActionSouris.RELACHÉE {
             élément := menu.éléments[état.élément_pressé]
             gère_clique_souris(élément)
-            panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+            si panneau_barre_de_menu {
+                panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+            }
+            sinon {
+                contexte.détruit_panneau_menu()
+            }
             retourne vrai
         }
 
@@ -396,6 +405,9 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
     pour menu.éléments {
         élément: PanneauMenu.Élément
         élément.largeur = donne_largeur_texte(ctx.fonte, it.texte)
+        si élément.largeur < largeur_requise {
+            élément.largeur = largeur_requise
+        }
 
         si élément.largeur > largeur_max_élément {
             largeur_max_élément = élément.largeur
@@ -420,6 +432,9 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
     }
 
     largeur_panneau := largeur_max_élément + décalage_élément_x * 2
+    si largeur_panneau > largeur_requise && largeur_requise != 0 {
+        largeur_panneau = largeur_requise
+    }
     décalage_élément := hauteur_panneau
 
     pour menu.éléments {

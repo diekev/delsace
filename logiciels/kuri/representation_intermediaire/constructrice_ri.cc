@@ -2769,7 +2769,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto inst = noeud->comme_info_de();
             auto enfant = inst->expression;
-            auto valeur = crée_info_type(enfant->type, noeud);
+            auto type = enfant->type;
+            type = type->comme_type_type_de_donnees()->type_connu;
+            auto valeur = crée_info_type(type, noeud);
 
             /* utilise une temporaire pour simplifier la compilation d'expressions du style :
              * info_de(z32).id */
@@ -2792,7 +2794,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto expr = noeud->comme_taille_de();
             auto expr_type = expr->expression;
-            auto constante = m_constructrice.crée_constante_taille_de(expr_type->type);
+            auto type = expr_type->type;
+            type = type->comme_type_type_de_donnees()->type_connu;
+            auto constante = m_constructrice.crée_constante_taille_de(type);
             empile_valeur(constante);
             break;
         }
@@ -2919,7 +2923,10 @@ void CompilatriceRI::génère_ri_transformee_pour_noeud(NoeudExpression const *n
     transforme_valeur(noeud, valeur, transformation, place);
 }
 
-static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src, Type const *dst)
+static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src,
+                                                          Type const *dst,
+                                                          NoeudExpression const *noeud,
+                                                          EspaceDeTravail const &espace)
 {
 #ifndef NDEBUG
     auto const src_originale = src;
@@ -2990,9 +2997,28 @@ static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src, Type
         }
     }
 
+    if (src->est_type_octet()) {
+        if (dst->est_type_entier_relatif()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF;
+            }
+
+            return TypeTranstypage::BITS;
+        }
+
+        if (dst->est_type_entier_naturel()) {
+            if (src->taille_octet < dst->taille_octet) {
+                return TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL;
+            }
+
+            return TypeTranstypage::BITS;
+        }
+    }
+
     assert_rappel(false, [&]() {
         dbg() << "Type transtypage défaut non-géré : " << chaine_type(src_originale) << " -> "
-              << chaine_type(dst_originale);
+              << chaine_type(dst_originale) << "\n"
+              << erreur::imprime_site(espace, noeud);
     });
 
     return TypeTranstypage::BITS;
@@ -3189,7 +3215,8 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             auto type_valeur = valeur->type;
             auto type_cible = transformation.type_cible;
-            auto type_transtypage = donne_type_transtypage_pour_défaut(type_valeur, type_cible);
+            auto type_transtypage = donne_type_transtypage_pour_défaut(
+                type_valeur, type_cible, noeud, *espace());
 
             valeur = m_constructrice.crée_transtype(noeud, type_cible, valeur, type_transtypage);
             break;
