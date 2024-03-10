@@ -177,6 +177,11 @@ donne_valeur_énum_pour_nom :: fonc (info: *InfoTypeÉnum, nom: chaine) -> z32, 
     retourne 0, faux
 }
 
+donne_nom_énum_pour_valeur :: fonc (valeur: eini) -> chaine
+{
+    retourne donne_nom_énum_pour_valeur(valeur.info comme *InfoTypeÉnum, mémoire(valeur.pointeur comme *z32))
+}
+
 donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: z32) -> chaine
 {
     pour info.valeurs {
