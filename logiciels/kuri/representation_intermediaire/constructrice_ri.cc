@@ -40,20 +40,20 @@
 
 /* Retourne la déclaration de la fontion si l'expression d'appel est un appel vers une telle
  * fontion. */
-static NoeudDeclarationEnteteFonction *est_appel_fonction_initialisation(
+static NoeudDéclarationEntêteFonction *est_appel_fonction_initialisation(
     NoeudExpression *expression)
 {
-    if (expression->est_entete_fonction()) {
-        auto entete = expression->comme_entete_fonction();
+    if (expression->est_entête_fonction()) {
+        auto entete = expression->comme_entête_fonction();
         if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
             return entete;
         }
         return nullptr;
     }
 
-    if (expression->est_reference_declaration()) {
+    if (expression->est_référence_déclaration()) {
         return est_appel_fonction_initialisation(
-            expression->comme_reference_declaration()->déclaration_référée);
+            expression->comme_référence_déclaration()->déclaration_référée);
     }
 
     return nullptr;
@@ -61,11 +61,11 @@ static NoeudDeclarationEnteteFonction *est_appel_fonction_initialisation(
 
 static bool est_référence_compatible_pointeur(Type const *type_dest, Type const *type_source)
 {
-    if (!type_source->est_type_reference()) {
+    if (!type_source->est_type_référence()) {
         return false;
     }
 
-    if (type_source->comme_type_reference()->type_pointé !=
+    if (type_source->comme_type_référence()->type_pointé !=
         type_dest->comme_type_pointeur()->type_pointé) {
         return false;
     }
@@ -82,7 +82,7 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
     }
 
     /* Nous avons différents types de données selon le type connu lors de la compilation. */
-    if (type_élément_dest->est_type_type_de_donnees() && type_source->est_type_type_de_donnees()) {
+    if (type_élément_dest->est_type_type_de_données() && type_source->est_type_type_de_données()) {
         return true;
     }
 
@@ -116,11 +116,11 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
 #ifndef NDEBUG
 static bool est_type_sous_jacent_énum(Type const *gauche, Type const *droite)
 {
-    if (!gauche->est_type_enum()) {
+    if (!gauche->est_type_énum()) {
         return false;
     }
 
-    auto type_énum = gauche->comme_type_enum();
+    auto type_énum = gauche->comme_type_énum();
     return type_énum->type_sous_jacent == droite;
 }
 
@@ -129,7 +129,7 @@ static bool sont_types_compatibles_pour_opérateur_binaire(Type const *gauche, T
     if (gauche == droite) {
         return true;
     }
-    if (droite->est_type_type_de_donnees() && gauche->est_type_type_de_donnees()) {
+    if (droite->est_type_type_de_données() && gauche->est_type_type_de_données()) {
         return true;
     }
     if (est_type_entier(droite) && gauche->est_type_entier_constant()) {
@@ -160,7 +160,7 @@ static bool sont_types_compatibles_pour_param_appel(Type const *paramètre, Type
         }
         return expression == type_variadique->type_tranche;
     }
-    if (expression->est_type_type_de_donnees() && paramètre->est_type_type_de_donnees()) {
+    if (expression->est_type_type_de_données() && paramètre->est_type_type_de_données()) {
         return true;
     }
     if (est_type_entier(expression) && paramètre->est_type_entier_constant()) {
@@ -199,7 +199,7 @@ AtomeFonction *RegistreSymboliqueRI::crée_fonction(kuri::chaine_statique nom_fo
 }
 
 AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
-    NoeudDeclarationEnteteFonction *decl)
+    NoeudDéclarationEntêteFonction *decl)
 {
     std::unique_lock lock(mutex_atomes_fonctions);
 
@@ -211,7 +211,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     params.redimensionne(decl->params.taille());
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i)->comme_declaration_variable();
+        auto param = decl->parametre_entree(i)->comme_déclaration_variable();
         auto atome = m_constructrice->crée_allocation(param, param->type, param->ident);
         param->atome = atome;
         params[i] = atome;
@@ -229,7 +229,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
 
     if (decl->params_sorties.taille() > 1) {
         POUR_INDEX (decl->params_sorties) {
-            it->comme_declaration_variable()->atome = m_constructrice->crée_référence_membre(
+            it->comme_déclaration_variable()->atome = m_constructrice->crée_référence_membre(
                 it, atome_param_sortie, index_it, true);
         }
     }
@@ -259,18 +259,18 @@ AtomeGlobale *RegistreSymboliqueRI::crée_globale(IdentifiantCode &ident,
                                    est_constante);
 }
 
-AtomeGlobale *RegistreSymboliqueRI::trouve_globale(NoeudDeclaration *decl)
+AtomeGlobale *RegistreSymboliqueRI::trouve_globale(NoeudDéclaration *decl)
 {
     std::unique_lock lock(mutex_atomes_globales);
-    auto decl_var = decl->comme_declaration_variable();
+    auto decl_var = decl->comme_déclaration_variable();
     return decl_var->atome->comme_globale();
 }
 
-AtomeGlobale *RegistreSymboliqueRI::trouve_ou_insère_globale(NoeudDeclaration *decl)
+AtomeGlobale *RegistreSymboliqueRI::trouve_ou_insère_globale(NoeudDéclaration *decl)
 {
     std::unique_lock lock(mutex_atomes_globales);
 
-    auto decl_var = decl->comme_declaration_variable();
+    auto decl_var = decl->comme_déclaration_variable();
 
     if (decl_var->atome == nullptr) {
         auto est_externe = decl->possède_drapeau(DrapeauxNoeud::EST_EXTERNE);
@@ -335,7 +335,7 @@ AtomeFonction *ConstructriceRI::crée_fonction(kuri::chaine_statique nom_fonctio
     return m_registre.crée_fonction(nom_fonction);
 }
 
-AtomeFonction *ConstructriceRI::trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl)
+AtomeFonction *ConstructriceRI::trouve_ou_insère_fonction(NoeudDéclarationEntêteFonction *decl)
 {
     return m_registre.trouve_ou_insère_fonction(decl);
 }
@@ -349,12 +349,12 @@ AtomeGlobale *ConstructriceRI::crée_globale(IdentifiantCode &ident,
     return m_registre.crée_globale(ident, type, initialisateur, est_externe, est_constante);
 }
 
-AtomeGlobale *ConstructriceRI::trouve_globale(NoeudDeclaration *decl)
+AtomeGlobale *ConstructriceRI::trouve_globale(NoeudDéclaration *decl)
 {
     return m_registre.trouve_globale(decl);
 }
 
-AtomeGlobale *ConstructriceRI::trouve_ou_insère_globale(NoeudDeclaration *decl)
+AtomeGlobale *ConstructriceRI::trouve_ou_insère_globale(NoeudDéclaration *decl)
 {
     return m_registre.trouve_ou_insère_globale(decl);
 }
@@ -444,9 +444,9 @@ AtomeConstanteStructure *ConstructriceRI::crée_constante_structure(
 {
     /* À FAIRE : attend sur la validation des types avant de générer la RI. */
 #if 0
-    assert_rappel(valeurs.taille() == type->comme_type_compose()->nombre_de_membres_réels, [&]() {
+    assert_rappel(valeurs.taille() == type->comme_type_composé()->nombre_de_membres_réels, [&]() {
         dbg() << "Le type est " << chaine_type(type) << "\nLe nombre de membres est "
-              << type->comme_type_compose()->nombre_de_membres_réels
+              << type->comme_type_composé()->nombre_de_membres_réels
               << ".\nLe nombre de valeurs est " << valeurs.taille() << ".";
     });
 #endif
@@ -650,7 +650,7 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
                                                        Atome *valeur,
                                                        bool crée_seulement)
 {
-    assert_rappel(ou->type->est_type_pointeur() || ou->type->est_type_reference(), [&]() {
+    assert_rappel(ou->type->est_type_pointeur() || ou->type->est_type_référence(), [&]() {
         dbg() << "Le type n'est pas un pointeur : " << chaine_type(ou->type) << '\n'
               << imprime_site(site_);
     });
@@ -681,7 +681,7 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *s
                                                        bool crée_seulement)
 {
     /* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
-    assert_rappel(ou->type->est_type_pointeur() || ou->type->est_type_reference(), [&]() {
+    assert_rappel(ou->type->est_type_pointeur() || ou->type->est_type_référence(), [&]() {
         dbg() << "Le type est '" << chaine_type(ou->type) << "'\n" << imprime_site(site_);
     });
 
@@ -896,7 +896,7 @@ InstructionAccèdeMembre *ConstructriceRI::crée_référence_membre(NoeudExpress
                                                                 int index,
                                                                 bool crée_seulement)
 {
-    assert_rappel(accédé->type->est_type_pointeur() || accédé->type->est_type_reference(),
+    assert_rappel(accédé->type->est_type_pointeur() || accédé->type->est_type_référence(),
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
     auto type_élément = type_déréférencé_pour(accédé->type);
@@ -904,11 +904,11 @@ InstructionAccèdeMembre *ConstructriceRI::crée_référence_membre(NoeudExpress
         type_élément = type_élément->comme_type_opaque()->type_opacifié;
     }
 
-    assert_rappel(type_élément->est_type_compose(), [&]() {
+    assert_rappel(type_élément->est_type_composé(), [&]() {
         dbg() << "Type accédé : '" << chaine_type(type_élément) << "'\n" << imprime_site(site_);
     });
 
-    auto type_composé = type_élément->comme_type_compose();
+    auto type_composé = type_élément->comme_type_composé();
     if (type_composé->est_type_union()) {
         type_composé = type_composé->comme_type_union()->type_structure;
     }
@@ -1270,7 +1270,7 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
 
     if (valeur->est_constante_entière()) {
         if (op == TypeTranstypage::BITS) {
-            if (type->est_type_opaque() || type->est_type_enum() || type->est_type_octet()) {
+            if (type->est_type_opaque() || type->est_type_énum() || type->est_type_octet()) {
                 return crée_constante_nombre_entier(type,
                                                     valeur->comme_constante_entière()->valeur);
             }
@@ -1280,7 +1280,7 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
             return crée_constante_booléenne(valeur->comme_constante_entière()->valeur != 0);
         }
 
-        if (type->est_type_enum()) {
+        if (type->est_type_énum()) {
             return crée_constante_nombre_entier(type, valeur->comme_constante_entière()->valeur);
         }
 
@@ -1294,7 +1294,7 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
         }
     }
 
-    if (valeur->est_constante_réelle() && type->est_type_reel()) {
+    if (valeur->est_constante_réelle() && type->est_type_réel()) {
         auto valeur_réelle = valeur->comme_constante_réelle();
         return crée_constante_nombre_réel(type, valeur_réelle->valeur);
     }
@@ -1347,7 +1347,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         }
         /* Les seules réféences pouvant être nulles sont celles générées par la compilatrice pour
          * les boucles pour. */
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::FONCTION:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
@@ -1357,7 +1357,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         case GenreNoeud::OCTET:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             return crée_constante_nombre_entier(type, 0);
         }
@@ -1365,7 +1365,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         {
             return crée_constante_nombre_entier(TypeBase::Z32, 0);
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             if (type->taille_octet == 2) {
                 return crée_constante_nombre_entier(TypeBase::N16, 0);
@@ -1379,7 +1379,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
             auto valeur = crée_initialisation_défaut_pour_type(type_tableau->type_pointé);
             return crée_initialisation_tableau(type_tableau, valeur);
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
 
@@ -1397,13 +1397,13 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         }
         case GenreNoeud::CHAINE:
         case GenreNoeud::EINI:
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         case GenreNoeud::TYPE_TRANCHE:
         case GenreNoeud::VARIADIQUE:
         case GenreNoeud::TUPLE:
         {
-            auto type_composé = type->comme_type_compose();
+            auto type_composé = type->comme_type_composé();
             auto valeurs = kuri::tableau<AtomeConstante *>();
             valeurs.réserve(type_composé->membres.taille());
 
@@ -1414,14 +1414,14 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
 
             return crée_constante_structure(type, std::move(valeurs));
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
             return crée_constante_nombre_entier(type_enum, 0);
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             auto valeur = crée_initialisation_défaut_pour_type(type_opaque->type_opacifié);
@@ -1525,7 +1525,7 @@ void CompilatriceRI::génère_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpres
 }
 
 void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
-    EspaceDeTravail *espace, NoeudDeclarationEnteteFonction *fonction)
+    EspaceDeTravail *espace, NoeudDéclarationEntêteFonction *fonction)
 {
     m_espace = espace;
     génère_ri_pour_fonction_métaprogramme(fonction);
@@ -1715,7 +1715,7 @@ void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression const *site_
         argument = m_constructrice.crée_transtype(
             site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
     }
-    else if (type->est_type_enum()) {
+    else if (type->est_type_énum()) {
         auto type_enum = static_cast<TypeEnum const *>(type);
         auto type_sousjacent = type_enum->type_sous_jacent;
         auto &typeuse = m_compilatrice.typeuse;
@@ -1723,7 +1723,7 @@ void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression const *site_
         argument = m_constructrice.crée_transtype(
             site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
     }
-    else if (argument->type->comme_type_pointeur()->type_pointé->est_type_enum()) {
+    else if (argument->type->comme_type_pointeur()->type_pointé->est_type_énum()) {
         auto type_enum = static_cast<TypeEnum const *>(
             argument->type->comme_type_pointeur()->type_pointé);
         auto type_sousjacent = type_enum->type_sous_jacent;
@@ -1770,26 +1770,26 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
     }
 
     switch (noeud->genre) {
-        case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
-        case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
-        case GenreNoeud::DECLARATION_ENUM:
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
+        case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         case GenreNoeud::EXPRESSION_PLAGE:
         case GenreNoeud::EXPRESSION_VIRGULE:
         case GenreNoeud::INSTRUCTION_CHARGE:
         case GenreNoeud::INSTRUCTION_EMPL:
         case GenreNoeud::INSTRUCTION_IMPORTE:
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
-        case GenreNoeud::DECLARATION_MODULE:
+        case GenreNoeud::DÉCLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::OCTET:
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_RELATIF:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::CHAINE:
         case GenreNoeud::POINTEUR:
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::EINI:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
@@ -1800,7 +1800,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::TYPE_TRANCHE:
         case GenreNoeud::FONCTION:
         case GenreNoeud::VARIADIQUE:
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::TUPLE:
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_FIXE:
@@ -1811,7 +1811,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             break;
         }
-        case GenreNoeud::DECLARATION_CONSTANTE:
+        case GenreNoeud::DÉCLARATION_CONSTANTE:
         {
             assert_rappel(!noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
                 dbg() << "Obtenu une constante dans la RI.\n"
@@ -1820,8 +1820,8 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             break;
         }
         /* Les déclarations de structures doivent passer par les fonctions d'initialisation. */
-        case GenreNoeud::DECLARATION_STRUCTURE:
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             /* Il est possible d'avoir des déclarations de structures dans les fonctions, donc il
              * est possible d'en avoir une ici. */
@@ -1835,7 +1835,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
          * l'environnement d'exécution */
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
-        case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
+        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : une " << noeud->genre << " se retrouve dans la RI !\n"
@@ -1854,9 +1854,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             });
             break;
         }
-        case GenreNoeud::DIRECTIVE_EXECUTE:
+        case GenreNoeud::DIRECTIVE_EXÉCUTE:
         {
-            auto directive = noeud->comme_execute();
+            auto directive = noeud->comme_exécute();
             assert_rappel(directive->ident == ID::assert_, [&]() {
                 dbg() << "Erreur interne : un directive ne fut pas simplifié !\n"
                       << erreur::imprime_site(*m_espace, noeud);
@@ -1873,17 +1873,17 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             });
             break;
         }
-        case GenreNoeud::EXPRESSION_PARENTHESE:
+        case GenreNoeud::EXPRESSION_PARENTHÈSE:
         case GenreNoeud::EXPRESSION_TYPE_DE:
         case GenreNoeud::INSTRUCTION_DISCR:
-        case GenreNoeud::INSTRUCTION_DISCR_ENUM:
+        case GenreNoeud::INSTRUCTION_DISCR_ÉNUM:
         case GenreNoeud::INSTRUCTION_DISCR_UNION:
         case GenreNoeud::INSTRUCTION_POUR:
         case GenreNoeud::INSTRUCTION_RETIENS:
-        case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+        case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
-        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
+        case GenreNoeud::DÉCLARATION_OPÉRATEUR_POUR:
         case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
         {
             assert_rappel(false, [&]() {
@@ -1893,28 +1893,28 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             });
             break;
         }
-        case GenreNoeud::DECLARATION_ENTETE_FONCTION:
+        case GenreNoeud::DÉCLARATION_ENTÊTE_FONCTION:
         {
-            auto decl = noeud->comme_entete_fonction();
+            auto decl = noeud->comme_entête_fonction();
             génère_ri_pour_fonction(decl);
             if (!decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
                 assert(decl->corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
             }
             break;
         }
-        case GenreNoeud::DECLARATION_CORPS_FONCTION:
+        case GenreNoeud::DÉCLARATION_CORPS_FONCTION:
         {
             auto corps = noeud->comme_corps_fonction();
             assert(corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
             génère_ri_pour_fonction(corps->entête);
             break;
         }
-        case GenreNoeud::INSTRUCTION_DIFFERE:
+        case GenreNoeud::INSTRUCTION_DIFFÈRE:
         {
             m_instructions_diffères.ajoute(noeud);
             break;
         }
-        case GenreNoeud::INSTRUCTION_COMPOSEE:
+        case GenreNoeud::INSTRUCTION_COMPOSÉE:
         {
             auto noeud_bloc = noeud->comme_bloc();
 
@@ -1929,7 +1929,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             }
 
             POUR (*noeud_bloc->expressions.verrou_lecture()) {
-                if (it->est_entete_fonction()) {
+                if (it->est_entête_fonction()) {
                     continue;
                 }
                 if (m_label_après_controle) {
@@ -1944,7 +1944,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                  * formée et n'avoir qu'une seule branche ou un seul retour
                  * bloc. */
                 if (it->est_continue() || it->est_retourne() || it->est_reprends() ||
-                    it->est_arrete()) {
+                    it->est_arrête()) {
                     if (it != dernière_expression) {
                         m_constructrice.crée_label(it);
                     }
@@ -2054,9 +2054,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             break;
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
         {
-            auto expr_ref = noeud->comme_reference_declaration();
+            auto expr_ref = noeud->comme_référence_déclaration();
             auto decl_ref = expr_ref->déclaration_référée;
 
             assert_rappel(decl_ref, [&]() {
@@ -2065,9 +2065,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                       << chaine_type(noeud->type) << ")\n";
             });
 
-            if (decl_ref->est_entete_fonction()) {
+            if (decl_ref->est_entête_fonction()) {
                 auto atome_fonc = m_constructrice.trouve_ou_insère_fonction(
-                    decl_ref->comme_entete_fonction());
+                    decl_ref->comme_entête_fonction());
                 empile_valeur(atome_fonc);
                 return;
             }
@@ -2077,7 +2077,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 return;
             }
 
-            auto locale = decl_ref->comme_declaration_symbole()->atome;
+            auto locale = decl_ref->comme_déclaration_symbole()->atome;
             assert_rappel(locale, [&]() {
                 Enchaineuse enchaineuse;
 
@@ -2098,19 +2098,19 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             empile_valeur(locale);
             break;
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
         {
-            génère_ri_pour_accès_membre(noeud->comme_reference_membre());
+            génère_ri_pour_accès_membre(noeud->comme_référence_membre());
             break;
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION:
         {
-            génère_ri_pour_accès_membre_union(noeud->comme_reference_membre_union());
+            génère_ri_pour_accès_membre_union(noeud->comme_référence_membre_union());
             break;
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:
         {
-            auto type_de_donnees = noeud->type->comme_type_type_de_donnees();
+            auto type_de_donnees = noeud->type->comme_type_type_de_données();
 
             if (type_de_donnees->type_connu) {
                 empile_valeur(m_constructrice.crée_constante_type(type_de_donnees->type_connu));
@@ -2132,53 +2132,53 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             génère_ri_pour_assignation_variable(expr_ass->données_exprs);
             break;
         }
-        case GenreNoeud::DECLARATION_VARIABLE:
+        case GenreNoeud::DÉCLARATION_VARIABLE:
         {
-            génère_ri_pour_déclaration_variable(noeud->comme_declaration_variable());
+            génère_ri_pour_déclaration_variable(noeud->comme_déclaration_variable());
             break;
         }
-        case GenreNoeud::DECLARATION_VARIABLE_MULTIPLE:
+        case GenreNoeud::DÉCLARATION_VARIABLE_MULTIPLE:
         {
-            compile_déclaration_variable_multiple(noeud->comme_declaration_variable_multiple());
+            compile_déclaration_variable_multiple(noeud->comme_déclaration_variable_multiple());
             break;
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_RÉEL:
         {
             empile_valeur(m_constructrice.crée_constante_nombre_réel(
-                noeud->type, noeud->comme_litterale_reel()->valeur));
+                noeud->type, noeud->comme_littérale_réel()->valeur));
             break;
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_ENTIER:
         {
-            if (noeud->type->est_type_reel()) {
+            if (noeud->type->est_type_réel()) {
                 empile_valeur(m_constructrice.crée_constante_nombre_réel(
-                    noeud->type, static_cast<double>(noeud->comme_litterale_entier()->valeur)));
+                    noeud->type, static_cast<double>(noeud->comme_littérale_entier()->valeur)));
             }
             else {
                 empile_valeur(m_constructrice.crée_constante_nombre_entier(
-                    noeud->type, noeud->comme_litterale_entier()->valeur));
+                    noeud->type, noeud->comme_littérale_entier()->valeur));
             }
 
             break;
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
         {
-            auto lit_chaine = noeud->comme_litterale_chaine();
+            auto lit_chaine = noeud->comme_littérale_chaine();
             auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(lit_chaine->valeur);
             auto constante = crée_chaine(chaine);
 
             assert_rappel(
-                (noeud->lexeme->chaine.taille() != 0 && chaine.taille() != 0) ||
-                    (noeud->lexeme->chaine.taille() == 0 && chaine.taille() == 0) ||
+                (noeud->lexème->chaine.taille() != 0 && chaine.taille() != 0) ||
+                    (noeud->lexème->chaine.taille() == 0 && chaine.taille() == 0) ||
                     noeud->possède_drapeau(DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION),
                 [&]() {
                     dbg() << erreur::imprime_site(*espace(), noeud) << '\n'
                           << "La chaine n'est pas de la bonne taille !\n"
-                          << "Le lexème a une chaine taille de " << noeud->lexeme->chaine.taille()
+                          << "Le lexème a une chaine taille de " << noeud->lexème->chaine.taille()
                           << " alors que la chaine littérale a une taille de " << chaine.taille()
                           << '\n'
                           << "L'index de la chaine est de " << lit_chaine->valeur << '\n'
-                          << "La valeur de la chaine du lexème est \"" << noeud->lexeme->chaine
+                          << "La valeur de la chaine du lexème est \"" << noeud->lexème->chaine
                           << "\"\n"
                           << "La valeur de la chaine littérale est \"" << chaine << "\"";
                 });
@@ -2191,26 +2191,26 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             crée_temporaire_ou_mets_dans_place(noeud, constante, place);
             break;
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_BOOLÉEN:
         {
             empile_valeur(
-                m_constructrice.crée_constante_booléenne(noeud->comme_litterale_bool()->valeur));
+                m_constructrice.crée_constante_booléenne(noeud->comme_littérale_bool()->valeur));
             break;
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
         {
             // À FAIRE : caractères Unicode
             auto caractere = static_cast<unsigned char>(
-                noeud->comme_litterale_caractere()->valeur);
+                noeud->comme_littérale_caractère()->valeur);
             empile_valeur(m_constructrice.crée_constante_caractère(noeud->type, caractere));
             break;
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_NUL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NUL:
         {
             empile_valeur(m_constructrice.crée_constante_nulle(noeud->type));
             break;
         }
-        case GenreNoeud::OPERATEUR_BINAIRE:
+        case GenreNoeud::OPÉRATEUR_BINAIRE:
         {
             auto expr_bin = noeud->comme_expression_binaire();
 
@@ -2350,7 +2350,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             assert(!type_gauche->est_type_chaine());
             break;
         }
-        case GenreNoeud::OPERATEUR_UNAIRE:
+        case GenreNoeud::OPÉRATEUR_UNAIRE:
         {
             auto expr_un = noeud->comme_expression_unaire();
             génère_ri_pour_expression_droite(expr_un->opérande, nullptr);
@@ -2364,7 +2364,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto prise_adresse = noeud->comme_prise_adresse();
             génère_ri_pour_noeud(prise_adresse->opérande);
             auto valeur = depile_valeur();
-            if (prise_adresse->opérande->type->est_type_reference()) {
+            if (prise_adresse->opérande->type->est_type_référence()) {
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             }
 
@@ -2375,7 +2375,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             empile_valeur(valeur);
             return;
         }
-        case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
+        case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Prise de référence dans la RI :\n"
@@ -2383,10 +2383,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             });
             return;
         }
-        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:
         {
             // @simplifie
-            auto négation = noeud->comme_negation_logique();
+            auto négation = noeud->comme_négation_logique();
             auto condition = négation->opérande;
             auto type_condition = condition->type;
             auto valeur = static_cast<Atome *>(nullptr);
@@ -2502,9 +2502,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto label_si_vrai = m_constructrice.réserve_label(noeud);
             auto label_si_faux = m_constructrice.réserve_label(noeud);
 
-            if (inst_si->condition->est_declaration_variable()) {
+            if (inst_si->condition->est_déclaration_variable()) {
                 génère_ri_pour_noeud(inst_si->condition);
-                auto atome = inst_si->condition->comme_declaration_variable()->atome;
+                auto atome = inst_si->condition->comme_déclaration_variable()->atome;
                 assert(atome);
 
                 auto valeur = m_constructrice.crée_charge_mem(inst_si->condition, atome);
@@ -2552,7 +2552,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             break;
         }
         case GenreNoeud::INSTRUCTION_BOUCLE:
-        case GenreNoeud::INSTRUCTION_REPETE:
+        case GenreNoeud::INSTRUCTION_RÉPÈTE:
         case GenreNoeud::INSTRUCTION_TANTQUE:
         {
             auto boucle = noeud->comme_boucle();
@@ -2643,9 +2643,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             break;
         }
-        case GenreNoeud::INSTRUCTION_ARRETE:
+        case GenreNoeud::INSTRUCTION_ARRÊTE:
         {
-            auto inst = noeud->comme_arrete();
+            auto inst = noeud->comme_arrête();
             auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlée);
 
             if (inst->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE)) {
@@ -2759,7 +2759,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             break;
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
-        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPÉ:
         {
             auto expr = noeud->comme_construction_tableau();
             génère_ri_pour_construction_tableau(expr, place);
@@ -2770,7 +2770,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto inst = noeud->comme_info_de();
             auto enfant = inst->expression;
             auto type = enfant->type;
-            type = type->comme_type_type_de_donnees()->type_connu;
+            type = type->comme_type_type_de_données()->type_connu;
             auto valeur = crée_info_type(type, noeud);
 
             /* utilise une temporaire pour simplifier la compilation d'expressions du style :
@@ -2795,14 +2795,14 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto expr = noeud->comme_taille_de();
             auto expr_type = expr->expression;
             auto type = expr_type->type;
-            type = type->comme_type_type_de_donnees()->type_connu;
+            type = type->comme_type_type_de_données()->type_connu;
             auto constante = m_constructrice.crée_constante_taille_de(type);
             empile_valeur(constante);
             break;
         }
-        case GenreNoeud::EXPRESSION_MEMOIRE:
+        case GenreNoeud::EXPRESSION_MÉMOIRE:
         {
-            auto inst_mem = noeud->comme_memoire();
+            auto inst_mem = noeud->comme_mémoire();
             génère_ri_pour_noeud(inst_mem->expression);
             auto valeur = depile_valeur();
 
@@ -2839,7 +2839,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
     }
 }
 
-void CompilatriceRI::génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl)
+void CompilatriceRI::génère_ri_pour_fonction(NoeudDéclarationEntêteFonction *decl)
 {
     auto atome_fonc = m_constructrice.trouve_ou_insère_fonction(decl);
 
@@ -2943,13 +2943,13 @@ static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src,
         return TypeTranstypage::BITS;
     }
 
-    if (src->est_type_enum()) {
-        auto type_énum = src->comme_type_enum();
+    if (src->est_type_énum()) {
+        auto type_énum = src->comme_type_énum();
         src = type_énum->type_sous_jacent;
     }
 
-    if (dst->est_type_enum()) {
-        auto type_énum = dst->comme_type_enum();
+    if (dst->est_type_énum()) {
+        auto type_énum = dst->comme_type_énum();
         dst = type_énum->type_sous_jacent;
     }
 
@@ -3031,7 +3031,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 {
     auto transforme_avec_fonction = [this](NoeudExpression const *noeud_,
                                            Atome *valeur_,
-                                           NoeudDeclarationEnteteFonction *fonction) {
+                                           NoeudDéclarationEntêteFonction *fonction) {
         auto atome_fonction = m_constructrice.trouve_ou_insère_fonction(fonction);
 
         valeur_ = crée_charge_mem_si_chargeable(noeud_, valeur_);
@@ -3068,7 +3068,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 auto constante_entière = valeur->comme_constante_entière();
                 auto valeur_entière = constante_entière->valeur;
 
-                if (transformation.type_cible->est_type_reel()) {
+                if (transformation.type_cible->est_type_réel()) {
                     auto valeur_réelle = static_cast<double>(valeur_entière);
                     valeur = m_constructrice.crée_constante_nombre_réel(transformation.type_cible,
                                                                         valeur_réelle);
@@ -3202,7 +3202,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
-            if (noeud->genre != GenreNoeud::EXPRESSION_LITTERALE_NUL) {
+            if (noeud->genre != GenreNoeud::EXPRESSION_LITTÉRALE_NUL) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, TypeBase::PTR_RIEN, valeur, TypeTranstypage::BITS);
             }
@@ -3255,7 +3255,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
-            if (noeud->type->est_type_reel()) {
+            if (noeud->type->est_type_réel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_REEL);
             }
@@ -3306,7 +3306,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
-            if (noeud->type->est_type_reel()) {
+            if (noeud->type->est_type_réel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_REEL);
             }
@@ -3690,8 +3690,8 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
             auto var_expr_piegee = m_constructrice.crée_allocation(
                 noeud, gen_tente.type_piege, noeud->expression_piégée->ident);
             auto decl_expr_piegee =
-                noeud->expression_piégée->comme_reference_declaration()->déclaration_référée;
-            static_cast<NoeudDeclarationSymbole *>(decl_expr_piegee)->atome = var_expr_piegee;
+                noeud->expression_piégée->comme_référence_déclaration()->déclaration_référée;
+            static_cast<NoeudDéclarationSymbole *>(decl_expr_piegee)->atome = var_expr_piegee;
 
             m_constructrice.crée_stocke_mem(
                 noeud->expression_piégée, var_expr_piegee, valeur_expression);
@@ -3759,8 +3759,8 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
                 membre_erreur,
                 TypeTranstypage::BITS);
             auto decl_expr_piegee =
-                noeud->expression_piégée->comme_reference_declaration()->déclaration_référée;
-            static_cast<NoeudDeclarationSymbole *>(decl_expr_piegee)->atome = membre_erreur;
+                noeud->expression_piégée->comme_référence_déclaration()->déclaration_référée;
+            static_cast<NoeudDéclarationSymbole *>(decl_expr_piegee)->atome = membre_erreur;
             génère_ri_pour_noeud(noeud->bloc);
         }
 
@@ -3802,7 +3802,7 @@ void CompilatriceRI::génère_ri_pour_accès_membre(NoeudExpressionMembre const 
     génère_ri_pour_noeud(accede);
     auto pointeur_accede = depile_valeur();
 
-    while (type_accede->est_type_pointeur() || type_accede->est_type_reference()) {
+    while (type_accede->est_type_pointeur() || type_accede->est_type_référence()) {
         type_accede = type_déréférencé_pour(type_accede);
         pointeur_accede = m_constructrice.crée_charge_mem(noeud, pointeur_accede);
     }
@@ -3824,7 +3824,7 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
     auto ptr_union = depile_valeur();
     auto type = noeud->accédée->type;
 
-    while (type->est_type_pointeur() || type->est_type_reference()) {
+    while (type->est_type_pointeur() || type->est_type_référence()) {
         type = type_déréférencé_pour(type);
         ptr_union = m_constructrice.crée_charge_mem(noeud, ptr_union);
     }
@@ -3890,7 +3890,7 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
                                               InstructionLabel *label_si_vrai,
                                               InstructionLabel *label_si_faux)
 {
-    auto genre_lexeme = condition->lexeme->genre;
+    auto genre_lexeme = condition->lexème->genre;
 
     if (est_opérateur_comparaison(genre_lexeme) ||
         condition->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
@@ -3919,7 +3919,7 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
         génère_ri_pour_condition(cond2, label_si_vrai, label_si_faux);
     }
     else if (genre_lexeme == GenreLexème::EXCLAMATION) {
-        auto expr_unaire = condition->comme_negation_logique();
+        auto expr_unaire = condition->comme_négation_logique();
         génère_ri_pour_condition(expr_unaire->opérande, label_si_faux, label_si_vrai);
     }
     else if (genre_lexeme == GenreLexème::VRAI) {
@@ -3928,8 +3928,8 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
     else if (genre_lexeme == GenreLexème::FAUX) {
         m_constructrice.crée_branche(condition, label_si_faux);
     }
-    else if (condition->genre == GenreNoeud::EXPRESSION_PARENTHESE) {
-        auto expr_unaire = condition->comme_parenthese();
+    else if (condition->genre == GenreNoeud::EXPRESSION_PARENTHÈSE) {
+        auto expr_unaire = condition->comme_parenthèse();
         génère_ri_pour_condition(expr_unaire->expression, label_si_vrai, label_si_faux);
     }
     else {
@@ -4072,7 +4072,7 @@ void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
         if (expr->est_bloc()) {
             continue;
         }
-        auto instruction_differee = expr->comme_differe();
+        auto instruction_differee = expr->comme_diffère();
         génère_ri_pour_noeud(instruction_differee->expression);
     }
 
@@ -4187,12 +4187,12 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             }
             break;
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             type->atome_info_type = crée_info_type_défaut(GenreInfoType::RÉEL, type);
             break;
         }
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         {
             auto type_deref = type_déréférencé_pour(type);
@@ -4208,13 +4208,13 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                     m_compilatrice.typeuse.type_info_type_, false);
                 valeurs[1] = m_constructrice.crée_constante_nulle(type_pointeur_info_type);
             }
-            valeurs[2] = m_constructrice.crée_constante_booléenne(type->est_type_reference());
+            valeurs[2] = m_constructrice.crée_constante_booléenne(type->est_type_référence());
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_pointeur, std::move(valeurs));
             break;
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         {
@@ -4280,7 +4280,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_compilatrice.typeuse.type_info_type_enum, std::move(valeurs));
             break;
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
 
@@ -4333,7 +4333,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             valeurs[1] = crée_chaine(donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
             valeurs[2] = tableau_membre;
             valeurs[3] = info_type_plus_grand;
-            valeurs[4] = m_constructrice.crée_z64(type_union->decalage_index);
+            valeurs[4] = m_constructrice.crée_z64(type_union->décalage_index);
             valeurs[5] = m_constructrice.crée_constante_booléenne(!type_union->est_nonsure);
             valeurs[6] = crée_tableau_annotations_pour_info_membre(type_union->annotations);
 
@@ -4342,7 +4342,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             break;
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto type_struct = type->comme_type_structure();
 
@@ -4480,12 +4480,12 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             type->atome_info_type = crée_info_type_défaut(GenreInfoType::CHAINE, type);
             break;
         }
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             type->atome_info_type = crée_info_type_défaut(GenreInfoType::TYPE_DE_DONNÉES, type);
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             auto type_opacifie = type_opaque->type_opacifié;
@@ -4626,13 +4626,13 @@ AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeC
     valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(membre.drapeaux));
 
     if (membre.decl) {
-        if (membre.decl->est_declaration_variable()) {
+        if (membre.decl->est_déclaration_variable()) {
             valeurs[4] = crée_tableau_annotations_pour_info_membre(
-                membre.decl->comme_declaration_variable()->annotations);
+                membre.decl->comme_déclaration_variable()->annotations);
         }
-        else if (membre.decl->est_declaration_constante()) {
+        else if (membre.decl->est_déclaration_constante()) {
             valeurs[4] = crée_tableau_annotations_pour_info_membre(
-                membre.decl->comme_declaration_constante()->annotations);
+                membre.decl->comme_déclaration_constante()->annotations);
         }
         else {
             valeurs[4] = crée_tableau_annotations_pour_info_membre({});
@@ -4939,7 +4939,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
 }
 
 void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
-    NoeudDeclarationEnteteFonction *fonction)
+    NoeudDéclarationEntêteFonction *fonction)
 {
     assert(fonction->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME));
     auto atome_fonc = m_constructrice.trouve_ou_insère_fonction(fonction);
@@ -5016,7 +5016,7 @@ static MéthodeConstructionGlobale détermine_méthode_construction_globale(
     return MéthodeConstructionGlobale::NORMALE;
 }
 
-void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl)
+void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDéclarationVariable *decl)
 {
     if (m_fonction_courante == nullptr) {
         génère_ri_pour_variable_globale(decl);
@@ -5026,7 +5026,7 @@ void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDeclarationVari
     génère_ri_pour_variable_locale(decl);
 }
 
-void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl)
+void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDéclarationVariable *decl)
 {
     auto transformation = TransformationType{};
     auto expression = decl->expression;
@@ -5048,13 +5048,13 @@ void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable 
     decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
 }
 
-void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable *decl)
+void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDéclarationVariable *decl)
 {
     decl->atome = m_constructrice.crée_allocation(decl, decl->type, decl->ident);
     compile_locale(decl, decl->expression, {});
 }
 
-void CompilatriceRI::compile_déclaration_variable_multiple(NoeudDeclarationVariableMultiple *decl)
+void CompilatriceRI::compile_déclaration_variable_multiple(NoeudDéclarationVariableMultiple *decl)
 {
     if (m_fonction_courante == nullptr) {
         compile_déclaration_globale_multiple(decl);
@@ -5064,14 +5064,14 @@ void CompilatriceRI::compile_déclaration_variable_multiple(NoeudDeclarationVari
     compile_déclaration_locale_multiple(decl);
 }
 
-void CompilatriceRI::compile_déclaration_globale_multiple(NoeudDeclarationVariableMultiple *decl)
+void CompilatriceRI::compile_déclaration_globale_multiple(NoeudDéclarationVariableMultiple *decl)
 {
     POUR (decl->données_decl.plage()) {
         for (auto i = 0; i < it.variables.taille(); ++i) {
             auto var = it.variables[i];
-            auto globale = var->comme_reference_declaration()
-                               ->déclaration_référée->comme_declaration_variable();
-            compile_globale(var->comme_reference_declaration()->déclaration_référée,
+            auto globale = var->comme_référence_déclaration()
+                               ->déclaration_référée->comme_déclaration_variable();
+            compile_globale(var->comme_référence_déclaration()->déclaration_référée,
                             it.expression,
                             it.transformations[i]);
             globale->atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
@@ -5082,14 +5082,14 @@ void CompilatriceRI::compile_déclaration_globale_multiple(NoeudDeclarationVaria
     decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
 }
 
-void CompilatriceRI::compile_déclaration_locale_multiple(NoeudDeclarationVariableMultiple *decl)
+void CompilatriceRI::compile_déclaration_locale_multiple(NoeudDéclarationVariableMultiple *decl)
 {
     /* Crée d'abord les allocations. */
     POUR (decl->données_decl.plage()) {
         POUR_NOMME (var, it.variables.plage()) {
             auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
-            auto decl_var = var->comme_reference_declaration()
-                                ->déclaration_référée->comme_declaration_symbole();
+            auto decl_var = var->comme_référence_déclaration()
+                                ->déclaration_référée->comme_déclaration_symbole();
             decl_var->atome = pointeur;
         }
     }
@@ -5098,7 +5098,7 @@ void CompilatriceRI::compile_déclaration_locale_multiple(NoeudDeclarationVariab
     génère_ri_pour_assignation_variable(decl->données_decl);
 }
 
-void CompilatriceRI::compile_globale(NoeudDeclaration *decl,
+void CompilatriceRI::compile_globale(NoeudDéclaration *decl,
                                      NoeudExpression *expression,
                                      TransformationType const &transformation)
 {
@@ -5205,16 +5205,16 @@ void CompilatriceRI::compile_locale(NoeudExpression *variable,
 
 Atome *CompilatriceRI::donne_atome_pour_locale(NoeudExpression *expression)
 {
-    if (expression->est_reference_declaration()) {
-        auto référence = expression->comme_reference_declaration();
-        auto decl_var = référence->déclaration_référée->comme_declaration_symbole();
+    if (expression->est_référence_déclaration()) {
+        auto référence = expression->comme_référence_déclaration();
+        auto decl_var = référence->déclaration_référée->comme_déclaration_symbole();
         if (decl_var->atome) {
             return decl_var->atome;
         }
     }
 
-    if (expression->est_declaration_variable()) {
-        auto decl_var = expression->comme_declaration_variable();
+    if (expression->est_déclaration_variable()) {
+        auto decl_var = expression->comme_déclaration_variable();
         assert(decl_var->atome);
         return decl_var->atome;
     }
@@ -5305,12 +5305,12 @@ static bool peut_être_compilé_en_données_constantes(NoeudExpressionConstructi
 {
     auto const type_tableau = expr->type->comme_type_tableau_fixe();
     if (!est_type_entier(type_tableau->type_pointé) &&
-        !type_tableau->type_pointé->est_type_reel()) {
+        !type_tableau->type_pointé->est_type_réel()) {
         return false;
     }
 
     POUR (expr->expression->comme_virgule()->expressions) {
-        if (!it->est_litterale_entier() && !it->est_litterale_reel()) {
+        if (!it->est_littérale_entier() && !it->est_littérale_réel()) {
             return false;
         }
     }
@@ -5323,7 +5323,7 @@ static void remplis_données_constantes_entières(T *données_constantes,
                                                 NoeudExpressionVirgule const *expressions)
 {
     POUR (expressions->expressions) {
-        auto valeur_constante = it->comme_litterale_entier()->valeur;
+        auto valeur_constante = it->comme_littérale_entier()->valeur;
         *données_constantes++ = static_cast<T>(valeur_constante);
     }
 }
@@ -5354,12 +5354,12 @@ static void remplis_données_constantes_réelles(T *données_constantes,
                                                NoeudExpressionVirgule const *expressions)
 {
     POUR (expressions->expressions) {
-        if (it->est_litterale_entier()) {
-            auto valeur_constante = it->comme_litterale_entier()->valeur;
+        if (it->est_littérale_entier()) {
+            auto valeur_constante = it->comme_littérale_entier()->valeur;
             *données_constantes++ = static_cast<T>(valeur_constante);
         }
         else {
-            auto valeur_constante = it->comme_litterale_reel()->valeur;
+            auto valeur_constante = it->comme_littérale_réel()->valeur;
             *données_constantes++ = static_cast<T>(valeur_constante);
         }
     }
@@ -5402,7 +5402,7 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(
                     &données_constantes[0], type_élément, feuilles);
             }
             else {
-                assert(type_élément->est_type_reel());
+                assert(type_élément->est_type_réel());
                 remplis_données_constantes_réelles(&données_constantes[0], type_élément, feuilles);
             }
 
@@ -5457,7 +5457,7 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
 
     auto type_info_fonction_trace_appel = m_compilatrice.typeuse.type_info_fonction_trace_appel;
     auto decl = pour_fonction->decl;
-    auto fichier = m_compilatrice.fichier(decl->lexeme->fichier);
+    auto fichier = m_compilatrice.fichier(decl->lexème->fichier);
     auto nom_fonction = decl->ident ? crée_chaine(decl->ident->nom) : crée_chaine("???");
     auto nom_fichier = crée_chaine(fichier->nom());
 
@@ -5491,8 +5491,8 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
     /* Ligne colonne texte. */
     kuri::tableau<AtomeConstante *> valeurs(3);
     if (pour_appel->site) {
-        auto const lexeme = pour_appel->site->lexeme;
-        auto const fichier = m_compilatrice.fichier(pour_appel->site->lexeme->fichier);
+        auto const lexeme = pour_appel->site->lexème;
+        auto const fichier = m_compilatrice.fichier(pour_appel->site->lexème->fichier);
         auto const texte_ligne = fichier->tampon()[lexeme->ligne];
 
         valeurs[0] = m_constructrice.crée_z32(uint64_t(lexeme->ligne));
@@ -5517,10 +5517,10 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
 
 void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
 {
-    auto type_trace_appel = m_compilatrice.typeuse.type_trace_appel->comme_type_compose();
+    auto type_trace_appel = m_compilatrice.typeuse.type_trace_appel->comme_type_composé();
     auto contexte_fil_principale = m_constructrice.trouve_globale(
         m_compilatrice.globale_contexte_programme);
-    auto type_contexte_fil_principal = m_compilatrice.typeuse.type_contexte->comme_type_compose();
+    auto type_contexte_fil_principal = m_compilatrice.typeuse.type_contexte->comme_type_composé();
     auto index_trace_appel_contexte =
         donne_membre_pour_nom(type_contexte_fil_principal, ID::trace_appel)->index_membre;
 

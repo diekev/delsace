@@ -27,7 +27,7 @@ struct DescriptionLexème {
     kuri::chaine_statique chaine = "";
     kuri::chaine_statique nom_énum = "";
 
-    kuri::chaine nom_énum_sans_accent = "";
+    kuri::chaine nom_énum_final = "";
 
     uint32_t drapeaux = 0;
 };
@@ -161,7 +161,7 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_ponctuation("|", "BARRE");
     lexèmes.ajoute_ponctuation("}", "ACCOLADE_FERMANTE");
     lexèmes.ajoute_ponctuation("~", "TILDE", EST_OPÉRATEUR_UNAIRE);
-    lexèmes.ajoute_ponctuation("!=", "DIFFERENCE", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
+    lexèmes.ajoute_ponctuation("!=", "DIFFÉRENCE", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation("%=", "MODULO_EGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("&&", "ESP_ESP", EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation("&&=", "ESP_ESP_EGAL", EST_ASSIGNATION_COMPOSÉE);
@@ -205,7 +205,7 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_extra("*", "POINTEUR");
     lexèmes.ajoute_extra("[..]", "TABLEAU", EST_OPÉRATEUR_UNAIRE);
     lexèmes.ajoute_extra("&", "REFERENCE");
-    lexèmes.ajoute_extra("", "CARACTERE_BLANC");
+    lexèmes.ajoute_extra("", "CARACTÈRE_BLANC");
     lexèmes.ajoute_extra("// commentaire", "COMMENTAIRE");
     lexèmes.ajoute_extra("...", "EXPANSION_VARIADIQUE");
     lexèmes.ajoute_extra("...", "INCONNU");
@@ -215,18 +215,10 @@ static void construit_nom_énums(ListeLexèmes &lexèmes)
 {
     POUR (lexèmes.lexèmes) {
         if (it.nom_énum == "") {
-            auto chaine = supprime_accents(it.chaine);
-
-            for (auto &c : chaine) {
-                if (c >= 'a' && c <= 'z') {
-                    c = (static_cast<char>(c - 0x20));
-                }
-            }
-
-            it.nom_énum_sans_accent = chaine;
+            it.nom_énum_final = en_majuscule(it.chaine);
         }
         else {
-            it.nom_énum_sans_accent = supprime_accents(it.nom_énum);
+            it.nom_énum_final = it.nom_énum;
         }
     }
 }
@@ -235,7 +227,7 @@ static void génère_enum(const ListeLexèmes &lexèmes, std::ostream &os)
 {
     os << "enum class GenreLexème : uint32_t {\n";
     POUR (lexèmes.lexèmes) {
-        os << "\t" << it.nom_énum_sans_accent << ",\n";
+        os << "\t" << it.nom_énum_final << ",\n";
     }
     os << "};\n";
 }
@@ -256,7 +248,7 @@ static void génère_fonction_cpp_pour_drapeau(const ListeLexèmes &lexèmes,
         if ((it.drapeaux & drapeau) == 0) {
             continue;
         }
-        os << "\t\tcase GenreLexème::" << it.nom_énum_sans_accent << ":\n";
+        os << "\t\tcase GenreLexème::" << it.nom_énum_final << ":\n";
     }
     os << "\t\t{\n";
     os << "\t\t\treturn true;\n";
@@ -275,7 +267,7 @@ static void génère_impression_lexème(const ListeLexèmes &lexèmes, std::ostr
     os << "static kuri::chaine_statique noms_genres_lexèmes[" << lexèmes.lexèmes.taille()
        << "] = {\n";
     POUR (lexèmes.lexèmes) {
-        os << "\t" << '"' << it.nom_énum_sans_accent << '"' << ",\n";
+        os << "\t" << '"' << it.nom_énum_final << '"' << ",\n";
     }
     os << "};\n\n";
 
@@ -401,7 +393,7 @@ static void génère_fonction_kuri_pour_drapeau(const ListeLexèmes &lexèmes,
             continue;
         }
 
-        os << virgule << it.nom_énum_sans_accent;
+        os << virgule << it.nom_énum_final;
         virgule = ",\n\t\t";
     }
     os << " { retourne vrai; }\n";
@@ -415,7 +407,7 @@ static void génère_fichier_kuri(const ListeLexèmes &lexèmes, std::ostream &o
     os << "/* Fichier générer automatiquement, NE PAS ÉDITER ! */\n\n";
     os << "GenreLexème :: énum n32 {\n";
     POUR (lexèmes.lexèmes) {
-        os << "\t" << it.nom_énum_sans_accent << '\n';
+        os << "\t" << it.nom_énum_final << '\n';
     }
     os << "}\n\n";
     os << "Lexème :: struct {\n";
@@ -476,8 +468,7 @@ inline GenreLexème lexème_pour_chaine(dls::vue_chaine_compacte chn)
 
     POUR (lexèmes.lexèmes) {
         if ((it.drapeaux & EST_MOT_CLÉ) != 0) {
-            fichier_tmp << "\"" << it.chaine << "\", GenreLexème::" << it.nom_énum_sans_accent
-                        << '\n';
+            fichier_tmp << "\"" << it.chaine << "\", GenreLexème::" << it.nom_énum_final << '\n';
         }
     }
 

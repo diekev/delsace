@@ -28,7 +28,7 @@
 class Broyeuse;
 struct ContexteLexage;
 struct EspaceDeTravail;
-struct NoeudCodeEnteteFonction;
+struct NoeudCodeEntêteFonction;
 struct OptionsDeCompilation;
 struct Sémanticienne;
 struct Statistiques;
@@ -96,7 +96,7 @@ struct Compilatrice {
 
     dls::outils::Synchrone<GestionnaireCode> gestionnaire_code{};
 
-    dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliothèques;
+    dls::outils::Synchrone<GestionnaireBibliothèques> gestionnaire_bibliothèques;
 
     /* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment.
      */
@@ -124,12 +124,12 @@ struct Compilatrice {
     Typeuse typeuse;
 
     dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
-    NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
-    NoeudDeclarationEnteteFonction *fonction_point_d_entree_dynamique = nullptr;
-    NoeudDeclarationEnteteFonction *fonction_point_de_sortie_dynamique = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_point_d_entree = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_point_d_entree_dynamique = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_point_de_sortie_dynamique = nullptr;
 
     /* Globale pour __contexte_fil_principal, définie dans le module Kuri. */
-    NoeudDeclarationVariable *globale_contexte_programme = nullptr;
+    NoeudDéclarationVariable *globale_contexte_programme = nullptr;
 
     /* Pour les executions des métaprogrammes. */
     std::mutex mutex_données_constantes_exécutions{};
@@ -155,12 +155,12 @@ struct Compilatrice {
     Broyeuse *broyeuse = nullptr;
 
     /* Tous les tableaux créés pour les appels à #compilatrice_fonctions_parsées. */
-    kuri::tableau<kuri::tableau<NoeudCodeEnteteFonction *>> m_tableaux_code_fonctions{};
+    kuri::tableau<kuri::tableau<NoeudCodeEntêteFonction *>> m_tableaux_code_fonctions{};
 
     /* Tous les tableaux créés pour les appels à #compilatrice_lèxe_fichier. */
     kuri::tableau<kuri::tableau<kuri::Lexème>> m_tableaux_lexèmes{};
 
-    kuri::tableau<EtatResolutionAppel *> m_états_libres{};
+    kuri::tableau<ÉtatRésolutionAppel *> m_états_libres{};
 
   private:
     /* Note la date de début de la compilation. Principalement utilisé pour générer les noms des
@@ -310,12 +310,12 @@ struct Compilatrice {
                                                       kuri::chaine_statique chemin_donne,
                                                       const NoeudExpression *site);
 
-    kuri::tableau_statique<NoeudCodeEnteteFonction *> fonctions_parsees(EspaceDeTravail *espace);
-    MetaProgramme *metaprogramme_pour_fonction(const NoeudDeclarationEnteteFonction *entete);
+    kuri::tableau_statique<NoeudCodeEntêteFonction *> fonctions_parsees(EspaceDeTravail *espace);
+    MetaProgramme *metaprogramme_pour_fonction(const NoeudDéclarationEntêteFonction *entete);
 
     /* Création/suppression d'états pour les résolutions des expressions d'appels. */
-    EtatResolutionAppel *crée_ou_donne_état_résolution_appel();
-    void libère_état_résolution_appel(EtatResolutionAppel *&état);
+    ÉtatRésolutionAppel *crée_ou_donne_état_résolution_appel();
+    void libère_état_résolution_appel(ÉtatRésolutionAppel *&état);
 
     Date donne_date_début_compilation() const
     {

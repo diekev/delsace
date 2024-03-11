@@ -153,7 +153,7 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexème genre_
             }
             return OpérateurBinaire::Genre::Comp_Egal;
         }
-        case GenreLexème::DIFFERENCE:
+        case GenreLexème::DIFFÉRENCE:
         {
             if (type_opérandes == IndiceTypeOp::REEL) {
                 return OpérateurBinaire::Genre::Comp_Inegal_Reel;
@@ -200,7 +200,7 @@ static OpérateurUnaire::Genre genre_op_unaire_pour_lexeme(GenreLexème genre_le
 // types comparaisons :
 // ==, !=, <, >, <=, =>
 static GenreLexème opérateurs_comparaisons[] = {GenreLexème::EGALITE,
-                                                GenreLexème::DIFFERENCE,
+                                                GenreLexème::DIFFÉRENCE,
                                                 GenreLexème::INFERIEUR,
                                                 GenreLexème::SUPERIEUR,
                                                 GenreLexème::INFERIEUR_EGAL,
@@ -239,7 +239,7 @@ static bool est_commutatif(GenreLexème id)
         case GenreLexème::PLUS:
         case GenreLexème::FOIS:
         case GenreLexème::EGALITE:
-        case GenreLexème::DIFFERENCE:
+        case GenreLexème::DIFFÉRENCE:
         {
             return true;
         }
@@ -402,7 +402,7 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexème id,
                                          Type *type1,
                                          Type *type2,
                                          Type *type_résultat,
-                                         NoeudDeclarationEnteteFonction *decl)
+                                         NoeudDéclarationEntêteFonction *decl)
 {
     auto table = donne_ou_crée_table_opérateurs(type1);
     auto op = opérateurs_binaires[index_op_binaire(id)].ajoute_element();
@@ -421,7 +421,7 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexème id,
 void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexème id,
                                                 Type *type,
                                                 Type *type_résultat,
-                                                NoeudDeclarationEnteteFonction *decl)
+                                                NoeudDéclarationEntêteFonction *decl)
 {
     auto op = opérateurs_unaires[index_op_unaire(id)].ajoute_element();
     op->type_opérande = type;
@@ -491,7 +491,7 @@ void RegistreDesOpérateurs::ajoute_opérateurs_basiques_fonction(TypeFonction *
     auto const &type_bool = TypeBase::BOOL;
 
     ajoute_basique(GenreLexème::EGALITE, type, type_bool, indice);
-    ajoute_basique(GenreLexème::DIFFERENCE, type, type_bool, indice);
+    ajoute_basique(GenreLexème::DIFFÉRENCE, type, type_bool, indice);
 }
 
 void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
@@ -546,7 +546,7 @@ void RegistreDesOpérateurs::ajoute_opérateurs_comparaison(Type *pour_type, Ind
         else if (op == GenreLexème::EGALITE) {
             table->opérateur_egt = op_bin;
         }
-        else if (op == GenreLexème::DIFFERENCE) {
+        else if (op == GenreLexème::DIFFÉRENCE) {
             table->opérateur_dif = op_bin;
         }
     }
@@ -699,12 +699,12 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
 static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
 {
     auto est_énum_ou_référence_énum = [](Type *t) -> TypeEnum * {
-        if (t->est_type_enum()) {
-            return t->comme_type_enum();
+        if (t->est_type_énum()) {
+            return t->comme_type_énum();
         }
 
-        if (t->est_type_reference() && t->comme_type_reference()->type_pointé->est_type_enum()) {
-            return t->comme_type_reference()->type_pointé->comme_type_enum();
+        if (t->est_type_référence() && t->comme_type_référence()->type_pointé->est_type_énum()) {
+            return t->comme_type_référence()->type_pointé->comme_type_énum();
         }
 
         return nullptr;
@@ -838,14 +838,14 @@ void enregistre_opérateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &r
     registre.ajoute_basique(
         GenreLexème::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
     registre.ajoute_basique(
-        GenreLexème::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+        GenreLexème::DIFFÉRENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 
     auto type_type_de_données = typeuse.type_type_de_donnees_;
 
     registre.op_comp_égal_types = registre.ajoute_basique(
         GenreLexème::EGALITE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
     registre.op_comp_diff_types = registre.ajoute_basique(
-        GenreLexème::DIFFERENCE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+        GenreLexème::DIFFÉRENCE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 }
 
 kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op)

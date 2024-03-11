@@ -17,21 +17,21 @@
 
 enum class GenreLexème : uint32_t;
 struct EspaceDeTravail;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationOperateurPour;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationOpérateurPour;
 struct NoeudExpressionBinaire;
 struct Statistiques;
 struct Typeuse;
 
-struct NoeudDeclarationType;
+struct NoeudDéclarationType;
 struct NoeudEnum;
-struct NoeudDeclarationTypeFonction;
-struct NoeudDeclarationTypePointeur;
+struct NoeudDéclarationTypeFonction;
+struct NoeudDéclarationTypePointeur;
 
-using Type = NoeudDeclarationType;
+using Type = NoeudDéclarationType;
 using TypeEnum = NoeudEnum;
-using TypeFonction = NoeudDeclarationTypeFonction;
-using TypePointeur = NoeudDeclarationTypePointeur;
+using TypeFonction = NoeudDéclarationTypeFonction;
+using TypePointeur = NoeudDéclarationTypePointeur;
 
 namespace kuri {
 struct chaine_statique;
@@ -60,7 +60,7 @@ struct OpérateurUnaire {
     Type *type_opérande = nullptr;
     Type *type_résultat = nullptr;
 
-    NoeudDeclarationEnteteFonction *déclaration = nullptr;
+    NoeudDéclarationEntêteFonction *déclaration = nullptr;
 
     Genre genre{};
     bool est_basique = true;
@@ -117,7 +117,7 @@ struct OpérateurBinaire {
     Type *type2{};
     Type *type_résultat{};
 
-    NoeudDeclarationEnteteFonction *decl = nullptr;
+    NoeudDéclarationEntêteFonction *decl = nullptr;
 
     Genre genre{};
 
@@ -163,7 +163,7 @@ struct TableOpérateurs {
     OpérateurUnaire *opérateur_non = nullptr;
 
     /* Opérateur 'pour'. */
-    NoeudDeclarationOperateurPour *opérateur_pour = nullptr;
+    NoeudDéclarationOpérateurPour *opérateur_pour = nullptr;
 
     void ajoute(GenreLexème lexeme, OpérateurBinaire *operateur);
 
@@ -219,12 +219,12 @@ struct RegistreDesOpérateurs {
                       Type *type1,
                       Type *type2,
                       Type *type_résultat,
-                      NoeudDeclarationEnteteFonction *decl);
+                      NoeudDéclarationEntêteFonction *decl);
 
     void ajoute_perso_unaire(GenreLexème id,
                              Type *type,
                              Type *type_résultat,
-                             NoeudDeclarationEnteteFonction *decl);
+                             NoeudDéclarationEntêteFonction *decl);
 
     void ajoute_opérateur_basique_enum(TypeEnum *type);
 

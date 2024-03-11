@@ -12,7 +12,7 @@ struct AssembleuseArbre;
 struct EspaceDeTravail;
 struct Lexème;
 struct NoeudBloc;
-struct NoeudDeclarationEnteteFonction;
+struct NoeudDéclarationEntêteFonction;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
@@ -21,7 +21,7 @@ struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
 struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
-struct NoeudExpressionReference;
+struct NoeudExpressionRéférence;
 struct NoeudPour;
 struct NoeudRetiens;
 struct NoeudInstructionRetour;
@@ -46,7 +46,7 @@ struct Simplificatrice {
     AssembleuseArbre *assem;
     Typeuse &typeuse;
 
-    NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_courante = nullptr;
 
     /* Tiens trace des appels de fonction. Quand nous visitons les paramètres de d'appel d'une
      * fonction, si l'un des paramètres est la construction d'une instance de PositionCodeSource,
@@ -95,7 +95,7 @@ struct Simplificatrice {
     void simplifie_boucle_pour(NoeudPour *inst);
     void simplifie_boucle_pour_opérateur(NoeudPour *inst);
     void simplifie_comparaison_chainée(NoeudExpressionBinaire *comp);
-    void simplifie_coroutine(NoeudDeclarationEnteteFonction *corout);
+    void simplifie_coroutine(NoeudDéclarationEntêteFonction *corout);
     void simplifie_discr(NoeudDiscr *discr);
     template <int N>
     void simplifie_discr_impl(NoeudDiscr *discr);
@@ -107,7 +107,7 @@ struct Simplificatrice {
     void simplifie_construction_structure_position_code_source(
         NoeudExpressionConstructionStructure *construction);
     void simplifie_construction_structure_impl(NoeudExpressionConstructionStructure *construction);
-    NoeudExpressionReference *génère_simplification_construction_structure(
+    NoeudExpressionRéférence *génère_simplification_construction_structure(
         NoeudExpressionAppel *construction, TypeStructure *type_struct, NoeudBloc *bloc);
     void simplifie_construction_opaque_depuis_structure(NoeudExpressionAppel *appel);
     void simplifie_référence_membre(NoeudExpressionMembre *ref_membre);
@@ -129,7 +129,7 @@ struct Simplificatrice {
      * conditions à droite des assigations */
     void corrige_bloc_pour_assignation(NoeudExpression *expr, NoeudExpression *ref_temp);
 
-    void crée_retourne_union_via_rien(NoeudDeclarationEnteteFonction *entête,
+    void crée_retourne_union_via_rien(NoeudDéclarationEntêteFonction *entête,
                                       NoeudBloc *bloc_d_insertion,
                                       const Lexème *lexeme_reference);
 
