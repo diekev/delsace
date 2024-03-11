@@ -380,7 +380,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
 
             break;
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ENTIER_NATUREL:
@@ -405,7 +405,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
             os << (*reinterpret_cast<bool *>(pointeur) ? "vrai" : "faux");
             break;
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             if (type->taille_octet == 4) {
                 os << *reinterpret_cast<float *>(pointeur);
@@ -422,7 +422,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
             os << *reinterpret_cast<void **>(pointeur);
             break;
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto type_structure = type->comme_type_structure();
 
@@ -682,7 +682,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
+    if (EST_FONCTION_COMPILATRICE(compilatrice_lèxe_fichier)) {
         auto const site = donne_site_adresse_courante();
         auto chemin_recu = dépile<kuri::chaine_statique>();
         auto espace = m_métaprogramme->unité->espace;
@@ -704,7 +704,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(ajoute_chaine_a_la_compilation)) {
+    if (EST_FONCTION_COMPILATRICE(ajoute_chaine_à_la_compilation)) {
         auto const site = donne_site_adresse_courante();
         auto chaine = dépile<kuri::chaine_statique>();
         auto espace = dépile<EspaceDeTravail *>();
@@ -713,7 +713,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(ajoute_fichier_a_la_compilation)) {
+    if (EST_FONCTION_COMPILATRICE(ajoute_fichier_à_la_compilation)) {
         auto const site = donne_site_adresse_courante();
         auto chaine = dépile<kuri::chaine_statique>();
         auto espace = dépile<EspaceDeTravail *>();
@@ -733,7 +733,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(demarre_un_espace_de_travail)) {
+    if (EST_FONCTION_COMPILATRICE(démarre_un_espace_de_travail)) {
         auto options = dépile<OptionsDeCompilation *>();
         auto nom = dépile<kuri::chaine_statique>();
         RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options nulles");
@@ -742,7 +742,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(espace_defaut_compilation)) {
+    if (EST_FONCTION_COMPILATRICE(espace_défaut_compilation)) {
         auto espace = compilatrice.espace_defaut_compilation();
         empile(espace);
         return;
@@ -771,7 +771,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_possede_erreur)) {
+    if (EST_FONCTION_COMPILATRICE(compilatrice_possède_erreur)) {
         auto espace = dépile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         empile(compilatrice.possède_erreur(espace));
@@ -780,20 +780,20 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_courant)) {
         auto const site = donne_site_adresse_courante();
-        auto fichier = compilatrice.fichier(site->lexeme->fichier);
+        auto fichier = compilatrice.fichier(site->lexème->fichier);
         auto module = fichier->module;
         empile(module);
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_message_recu)) {
+    if (EST_FONCTION_COMPILATRICE(compilatrice_message_reçu)) {
         auto message = dépile<Message *>();
         RAPPORTE_ERREUR_SI_NUL(message, "Reçu un message nul");
         compilatrice.gestionnaire_code->message_reçu(message);
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_fonctions_parsees)) {
+    if (EST_FONCTION_COMPILATRICE(compilatrice_fonctions_parsées)) {
         auto espace = m_métaprogramme->unité->espace;
         auto fonctions = compilatrice.fonctions_parsees(espace);
         empile(fonctions);
@@ -818,7 +818,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
             empile(nullptr);
             return;
         }
-        const auto fichier = compilatrice.fichier(decl->lexeme->fichier);
+        const auto fichier = compilatrice.fichier(decl->lexème->fichier);
         if (!fichier) {
             empile(nullptr);
             return;

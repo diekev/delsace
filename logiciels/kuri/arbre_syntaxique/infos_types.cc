@@ -77,8 +77,8 @@ static void remplis_membre_info_type(AllocatriceInfosType &allocatrice_infos_typ
     auto annotations = kuri::tablet<const Annotation *, 6>();
 
     if (membre.decl) {
-        if (membre.decl->est_base_declaration_variable()) {
-            copie_annotations(membre.decl->comme_base_declaration_variable()->annotations,
+        if (membre.decl->est_base_déclaration_variable()) {
+            copie_annotations(membre.decl->comme_base_déclaration_variable()->annotations,
                               annotations);
         }
         info_type_membre->annotations = allocatrice_infos_types.donne_tranche(annotations);
@@ -218,7 +218,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             type->info_type = crée_info_type_entier(type->taille_octet, true);
             break;
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
             info_type->genre = GenreInfoType::RÉEL;
@@ -236,7 +236,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             type->info_type = info_type;
             break;
         }
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
             info_type->genre = GenreInfoType::TYPE_DE_DONNÉES;
@@ -246,18 +246,18 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             break;
         }
         case GenreNoeud::POINTEUR:
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         {
             auto info_type = allocatrice_infos_types.infos_types_pointeurs.ajoute_element();
             info_type->genre = GenreInfoType::POINTEUR;
             info_type->type_pointé = crée_info_type_pour(typeuse, type_déréférencé_pour(type));
             info_type->taille_en_octet = type->taille_octet;
-            info_type->est_référence = type->est_type_reference();
+            info_type->est_référence = type->est_type_référence();
 
             type->info_type = info_type;
             break;
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto type_struct = type->comme_type_structure();
 
@@ -304,7 +304,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
             break;
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
 
@@ -313,7 +313,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->est_sûre = !type_union->est_nonsure;
             info_type->type_le_plus_grand = crée_info_type_pour(typeuse,
                                                                 type_union->type_le_plus_grand);
-            info_type->décalage_index = type_union->decalage_index;
+            info_type->décalage_index = type_union->décalage_index;
             info_type->taille_en_octet = type_union->taille_octet;
             info_type->nom = donne_nom_hiérarchique(type_union);
 
@@ -337,7 +337,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             type->info_type = info_type;
             break;
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         {
@@ -409,7 +409,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             type->info_type = info_type;
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
 

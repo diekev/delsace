@@ -15,8 +15,8 @@ struct ArbreAplatis;
 struct EspaceDeTravail;
 struct Fichier;
 struct MetaProgramme;
-struct NoeudDeclarationCorpsFonction;
-struct NoeudDeclarationEnteteFonction;
+struct NoeudDéclarationCorpsFonction;
+struct NoeudDéclarationEntêteFonction;
 struct NoeudExpression;
 struct Programme;
 
@@ -228,7 +228,7 @@ struct UniteCompilation {
         return nullptr;
     }
 
-    inline bool attend_sur_déclaration(NoeudDeclaration *decl)
+    inline bool attend_sur_déclaration(NoeudDéclaration *decl)
     {
         POUR (m_attentes) {
             if (it.est<AttenteSurDéclaration>() && it.déclaration() == decl) {
