@@ -40,12 +40,12 @@ AtomeConstanteTableauFixe::~AtomeConstanteTableauFixe()
 
 const Type *AtomeGlobale::donne_type_alloué() const
 {
-    return type->comme_type_pointeur()->type_pointe;
+    return type->comme_type_pointeur()->type_pointé;
 }
 
 const Type *AccèdeIndexConstant::donne_type_accédé() const
 {
-    return accédé->type->comme_type_pointeur()->type_pointe;
+    return accédé->type->comme_type_pointeur()->type_pointé;
 }
 
 VisibilitéSymbole AtomeGlobale::donne_visibilité_symbole() const
@@ -136,7 +136,7 @@ InstructionAllocation::InstructionAllocation(NoeudExpression const *site_,
 
 const Type *InstructionAllocation::donne_type_alloué() const
 {
-    return type->comme_type_pointeur()->type_pointe;
+    return type->comme_type_pointeur()->type_pointé;
 }
 
 InstructionRetour::InstructionRetour(NoeudExpression const *site_, Atome *valeur_)
@@ -227,16 +227,16 @@ const Type *InstructionAccèdeMembre::donne_type_accédé() const
 {
     auto type_accédé = accédé->type;
     if (type_accédé->est_type_reference()) {
-        return type_accédé->comme_type_reference()->type_pointe;
+        return type_accédé->comme_type_reference()->type_pointé;
     }
-    return type_accédé->comme_type_pointeur()->type_pointe;
+    return type_accédé->comme_type_pointeur()->type_pointé;
 }
 
 const MembreTypeComposé &InstructionAccèdeMembre::donne_membre_accédé() const
 {
     auto type_adressé = donne_type_accédé();
     if (type_adressé->est_type_opaque()) {
-        type_adressé = type_adressé->comme_type_opaque()->type_opacifie;
+        type_adressé = type_adressé->comme_type_opaque()->type_opacifié;
     }
 
     auto type_composé = type_adressé->comme_type_compose();
@@ -262,7 +262,7 @@ InstructionAccèdeIndex::InstructionAccèdeIndex(NoeudExpression const *site_,
 
 const Type *InstructionAccèdeIndex::donne_type_accédé() const
 {
-    return accédé->type->comme_type_pointeur()->type_pointe;
+    return accédé->type->comme_type_pointeur()->type_pointé;
 }
 
 kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type)

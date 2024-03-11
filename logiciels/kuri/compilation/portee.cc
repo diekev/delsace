@@ -198,8 +198,8 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
 NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode const *ident_boucle)
 {
     while (bloc->bloc_parent) {
-        if (bloc->appartiens_a_boucle) {
-            auto boucle = bloc->appartiens_a_boucle;
+        if (bloc->appartiens_à_boucle) {
+            auto boucle = bloc->appartiens_à_boucle;
 
             if (ident_boucle == nullptr) {
                 return boucle;
@@ -219,7 +219,7 @@ NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode con
 bool bloc_est_dans_differe(NoeudBloc const *bloc)
 {
     while (bloc->bloc_parent) {
-        if (bloc->appartiens_a_differe) {
+        if (bloc->appartiens_à_diffère) {
             return true;
         }
 
