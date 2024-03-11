@@ -168,7 +168,7 @@ struct Tacheronne {
     /* Pour convertir le résultat des métaprogrammes en noeuds syntaxiques. */
     NoeudExpression *noeud_syntaxique_depuis_résultat(
         EspaceDeTravail *espace,
-        NoeudDirectiveExecute *directive,
+        NoeudDirectiveExécute *directive,
         Lexème const *lexeme,
         Type *type,
         octet_t *pointeur,

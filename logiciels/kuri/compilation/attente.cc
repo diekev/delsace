@@ -41,7 +41,7 @@ struct UniteCompilation;
 
 static ConditionBlocageAttente condition_blocage_défaut(Attente const & /*attente*/)
 {
-    return {PhaseCompilation::PARSAGE_TERMINE};
+    return {PhaseCompilation::PARSAGE_TERMINÉ};
 }
 
 static void émets_erreur_pour_attente_défaut(UniteCompilation const *unité, Attente const &attente)
@@ -172,7 +172,7 @@ RAPPEL_POUR_EST_RÉSOLUE(déclaration)
     if (déclaration_attendue == espace->compilatrice().interface_kuri->decl_creation_contexte) {
         /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
          * nous faut le code. */
-        attente = Attente::sur_ri(&déclaration_attendue->comme_entete_fonction()->atome);
+        attente = Attente::sur_ri(&déclaration_attendue->comme_entête_fonction()->atome);
         return false;
     }
 
@@ -214,7 +214,7 @@ RAPPEL_POUR_UNITÉ(opérateur)
 
 RAPPEL_POUR_COMMENTAIRE(opérateur)
 {
-    return enchaine("opérateur ", attente.opérateur()->lexeme->chaine);
+    return enchaine("opérateur ", attente.opérateur()->lexème->chaine);
 }
 
 /* À FAIRE(gestion) : détermine comment détecter la disponibilité d'un opérateur.
@@ -230,7 +230,7 @@ RAPPEL_POUR_COMMENTAIRE(opérateur)
 RAPPEL_POUR_EST_RÉSOLUE(opérateur)
 {
     auto p = espace->phase_courante();
-    return p < PhaseCompilation::PARSAGE_TERMINE;
+    return p < PhaseCompilation::PARSAGE_TERMINÉ;
 }
 
 static void imprime_operateurs_pour(Erreur &e,
@@ -242,14 +242,14 @@ static void imprime_operateurs_pour(Erreur &e,
         return;
     }
 
-    auto &operateurs = type.table_opérateurs->opérateurs(operateur_attendu.lexeme->genre);
+    auto &operateurs = type.table_opérateurs->opérateurs(operateur_attendu.lexème->genre);
 
     e.ajoute_message("\nNOTE : les opérateurs du type ", chaine_type(&type), " sont :\n");
     POUR (operateurs.plage()) {
         e.ajoute_message("    ",
                          chaine_type(it->type1),
                          " ",
-                         operateur_attendu.lexeme->chaine,
+                         operateur_attendu.lexème->chaine,
                          " ",
                          chaine_type(it->type2),
                          "\n");
@@ -316,7 +316,7 @@ RAPPEL_POUR_ERREUR(opérateur)
                          "non-communs, vous pouvez définir vos propres opérateurs avec "
                          "la syntaxe suivante :\n\n");
         e.ajoute_message("opérateur ",
-                         operateur_attendu->lexeme->chaine,
+                         operateur_attendu->lexème->chaine,
                          " :: fonc (a: ",
                          chaine_type(type1),
                          ", b: ",
@@ -340,7 +340,7 @@ RAPPEL_POUR_ERREUR(opérateur)
                             "non-communs, vous pouvez définir vos propres opérateurs avec "
                             "la syntaxe suivante :\n\n")
             .ajoute_message("opérateur ",
-                            operateur_attendu->lexeme->chaine,
+                            operateur_attendu->lexème->chaine,
                             " :: fonc (a: ",
                             chaine_type(type_operande),
                             ")")
@@ -450,7 +450,7 @@ RAPPEL_POUR_COMMENTAIRE(ri)
                 return enchaine("RI de ", fonction->decl->ident->nom);
             }
             /* Utilisation du lexème, par exemple pour les opérateurs. */
-            return enchaine("RI de ", fonction->decl->lexeme->chaine);
+            return enchaine("RI de ", fonction->decl->lexème->chaine);
         }
         return enchaine("RI d'une fonction inconnue");
     }
@@ -495,7 +495,7 @@ RAPPEL_POUR_EST_RÉSOLUE(symbole)
     // À FAIRE : granularise ceci pour ne pas tenter de recompiler quelque chose
     // si le symbole ne fut pas encore défini (par exemple en utilisant un ensemble de symboles
     // définis depuis le dernier ajournement, dans GestionnaireCode::crée_taches).
-    return p < PhaseCompilation::PARSAGE_TERMINE;
+    return p < PhaseCompilation::PARSAGE_TERMINÉ;
 }
 
 RAPPEL_POUR_ERREUR(symbole)
@@ -533,22 +533,22 @@ RAPPEL_POUR_COMMENTAIRE(message)
 
     switch (message->genre) {
         case GenreMessage::FICHIER_OUVERT:
-        case GenreMessage::FICHIER_FERME:
+        case GenreMessage::FICHIER_FERMÉ:
         {
             auto message_fichier = static_cast<MessageFichier *>(message);
             résultat << " " << message_fichier->chemin;
             break;
         }
         case GenreMessage::MODULE_OUVERT:
-        case GenreMessage::MODULE_FERME:
+        case GenreMessage::MODULE_FERMÉ:
         {
             auto message_module = static_cast<MessageModule *>(message);
             résultat << " " << message_module->chemin;
             break;
         }
-        case GenreMessage::TYPAGE_CODE_TERMINE:
+        case GenreMessage::TYPAGE_CODE_TERMINÉ:
         {
-            auto message_code = static_cast<MessageTypageCodeTermine *>(message);
+            auto message_code = static_cast<MessageTypageCodeTerminé *>(message);
             if (message_code->code) {
                 résultat << " " << message_code->code->nom;
             }
@@ -566,7 +566,7 @@ RAPPEL_POUR_COMMENTAIRE(message)
     }
 
     résultat << " (espace \"" << message->espace->nom
-             << "\"); message reçu : " << (message->message_recu ? "oui" : "non") << "; adresse "
+             << "\"); message reçu : " << (message->message_reçu ? "oui" : "non") << "; adresse "
              << message;
 
     return résultat.chaine();
@@ -575,7 +575,7 @@ RAPPEL_POUR_COMMENTAIRE(message)
 RAPPEL_POUR_EST_RÉSOLUE(message)
 {
     auto données = attente.message();
-    return données.message->message_recu;
+    return données.message->message_reçu;
 }
 
 InfoTypeAttente info_type_attente_sur_message = {NOM_RAPPEL_POUR_UNITÉ(message),
