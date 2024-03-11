@@ -16,28 +16,28 @@
 
 struct ArbreAplatis;
 struct AssembleuseArbre;
-struct BaseDeclarationVariable;
+struct BaseDéclarationVariable;
 struct Compilatrice;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Lexème;
 struct NoeudBloc;
-struct NoeudDeclaration;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationSymbole;
-struct NoeudDeclarationType;
-struct NoeudDeclarationTypeCompose;
-struct NoeudDeclarationTypePointeur;
-struct NoeudDeclarationVariable;
+struct NoeudDéclaration;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationSymbole;
+struct NoeudDéclarationType;
+struct NoeudDéclarationTypeComposé;
+struct NoeudDéclarationTypePointeur;
+struct NoeudDéclarationVariable;
 struct NoeudExpression;
-struct NoeudExpressionReference;
+struct NoeudExpressionRéférence;
 struct NoeudExpressionPriseAdresse;
 struct Symbole;
 struct UniteCompilation;
-using Type = NoeudDeclarationType;
-using TypePointeur = NoeudDeclarationTypePointeur;
+using Type = NoeudDéclarationType;
+using TypePointeur = NoeudDéclarationTypePointeur;
 struct Typeuse;
-using TypeCompose = NoeudDeclarationTypeCompose;
+using TypeCompose = NoeudDéclarationTypeComposé;
 
 namespace kuri {
 struct chaine;
@@ -327,11 +327,11 @@ NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
                                                 NoeudExpression *expression,
                                                 TypePointeur *type_résultat);
 
-NoeudDeclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
+NoeudDéclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
                                                       Lexème const *lexème);
 
 void imprime_détails_fonction(EspaceDeTravail *espace,
-                              NoeudDeclarationEnteteFonction const *entête,
+                              NoeudDéclarationEntêteFonction const *entête,
                               std::ostream &os);
 
 /**
@@ -368,15 +368,15 @@ struct HiérarchieDeNoms {
     IdentifiantCode const *ident_module = nullptr;
     /* Les noeuds de la hiérarchie, stockés de bas (enfant) en haut (parent). Ceci ne contient pas
      * le module, puisque ce ne sont pas des noeuds. */
-    kuri::tablet<NoeudDeclarationSymbole const *, 6> hiérarchie{};
+    kuri::tablet<NoeudDéclarationSymbole const *, 6> hiérarchie{};
 
-    NoeudDeclarationSymbole const *donne_feuille() const
+    NoeudDéclarationSymbole const *donne_feuille() const
     {
         return hiérarchie[0];
     }
 };
 
-HiérarchieDeNoms donne_hiérarchie_nom(NoeudDeclarationSymbole const *symbole);
+HiérarchieDeNoms donne_hiérarchie_nom(NoeudDéclarationSymbole const *symbole);
 
 void imprime_hiérarchie_nom(HiérarchieDeNoms const &hiérarchie);
 
@@ -389,7 +389,7 @@ kuri::tablet<IdentifiantCode *, 6> donne_les_noms_de_la_hiérarchie(NoeudBloc *b
 
 /** \} */
 
-NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *type,
+NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *type,
                                                                      AssembleuseArbre *assembleuse,
                                                                      Typeuse &typeuse);
 
@@ -397,9 +397,9 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,
                                     AssembleuseArbre *assembleuse);
 
-bool possède_annotation(const BaseDeclarationVariable *decl, kuri::chaine_statique annotation);
+bool possède_annotation(const BaseDéclarationVariable *decl, kuri::chaine_statique annotation);
 
-bool est_déclaration_polymorphique(NoeudDeclaration const *decl);
+bool est_déclaration_polymorphique(NoeudDéclaration const *decl);
 
 void imprime_membres_blocs_récursifs(NoeudBloc const *bloc);
 
@@ -426,7 +426,7 @@ struct MembreTypeComposé {
         MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
     };
 
-    BaseDeclarationVariable *decl = nullptr;
+    BaseDéclarationVariable *decl = nullptr;
     Type *type = nullptr;
     IdentifiantCode *nom = nullptr;
     unsigned decalage = 0;

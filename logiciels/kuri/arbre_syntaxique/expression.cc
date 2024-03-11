@@ -174,7 +174,7 @@ static auto applique_opérateur_binaire_comp(GenreLexème id, T a, T b)
         {
             return a >= b;
         }
-        case GenreLexème::DIFFERENCE:
+        case GenreLexème::DIFFÉRENCE:
         {
             return a != b;
         }
@@ -195,7 +195,7 @@ static bool est_type_opaque_utilisable_pour_constante(Type const *type)
         return true;
     }
 
-    if (type->est_type_reel()) {
+    if (type->est_type_réel()) {
         return true;
     }
 
@@ -207,7 +207,7 @@ static bool est_type_opaque_utilisable_pour_constante(Type const *type)
         return true;
     }
 
-    if (type->est_type_enum() || type->est_type_erreur()) {
+    if (type->est_type_énum() || type->est_type_erreur()) {
         return true;
     }
 
@@ -238,14 +238,14 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             return erreur_évaluation(
                 b, "L'expression n'est pas constante et ne peut être calculée !");
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:
         case GenreNoeud::EXPRESSION_TYPE_DE:
         {
-            return ValeurExpression(b->type->comme_type_type_de_donnees()->type_connu);
+            return ValeurExpression(b->type->comme_type_type_de_données()->type_connu);
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
         {
-            auto fichier = compilatrice.fichier(b->lexeme->fichier);
+            auto fichier = compilatrice.fichier(b->lexème->fichier);
             auto decl = trouve_dans_bloc_ou_module(
                 bloc, b->ident, fichier, bloc->appartiens_à_fonction);
 
@@ -253,23 +253,23 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                 return erreur_évaluation(b, "La variable n'existe pas !");
             }
 
-            if (decl->est_entete_fonction()) {
-                return ValeurExpression(decl->comme_entete_fonction());
+            if (decl->est_entête_fonction()) {
+                return ValeurExpression(decl->comme_entête_fonction());
             }
 
-            if (!decl->est_declaration_constante()) {
+            if (!decl->est_déclaration_constante()) {
                 return erreur_évaluation(
                     b, "La référence n'est pas celle d'une variable constante !");
             }
 
-            auto decl_var = decl->comme_declaration_constante();
+            auto decl_var = decl->comme_déclaration_constante();
 
             if (decl_var->valeur_expression.est_valide()) {
                 return decl_var->valeur_expression;
             }
 
             if (decl_var->expression == nullptr) {
-                if (decl_var->type->est_type_enum()) {
+                if (decl_var->type->est_type_énum()) {
                     auto type_enum = static_cast<TypeEnum *>(decl_var->type);
 
                     auto info_membre = donne_membre_pour_nom(type_enum, decl_var->ident);
@@ -278,8 +278,8 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                     }
                 }
 
-                if (decl_var->type->est_type_type_de_donnees()) {
-                    auto type_de_données = decl_var->type->comme_type_type_de_donnees();
+                if (decl_var->type->est_type_type_de_données()) {
+                    auto type_de_données = decl_var->type->comme_type_type_de_données();
                     if (type_de_données->type_connu == nullptr) {
                         return erreur_évaluation(
                             b, "La déclaration n'a pas de type de données connu !");
@@ -298,46 +298,46 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         {
             auto expr_taille_de = b->comme_taille_de();
             auto type = expr_taille_de->expression->type;
-            type = type->comme_type_type_de_donnees()->type_connu;
+            type = type->comme_type_type_de_données()->type_connu;
             return ValeurExpression(type->taille_octet);
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_BOOLÉEN:
         {
-            return ValeurExpression(b->lexeme->chaine == "vrai");
+            return ValeurExpression(b->lexème->chaine == "vrai");
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_ENTIER:
         {
             /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
              * valeur car ce n'est pas un lexème de code source. */
             if (b->possède_drapeau(DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
-                return ValeurExpression(static_cast<int64_t>(b->comme_litterale_entier()->valeur));
+                return ValeurExpression(static_cast<int64_t>(b->comme_littérale_entier()->valeur));
             }
 
-            return ValeurExpression(static_cast<int64_t>(b->lexeme->valeur_entiere));
+            return ValeurExpression(static_cast<int64_t>(b->lexème->valeur_entiere));
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
         {
             /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
              * valeur car ce n'est pas un lexème de code source. */
             if (b->possède_drapeau(DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
-                return ValeurExpression(static_cast<int64_t>(b->comme_litterale_entier()->valeur));
+                return ValeurExpression(static_cast<int64_t>(b->comme_littérale_entier()->valeur));
             }
 
-            return ValeurExpression(static_cast<int64_t>(b->lexeme->valeur_entiere));
+            return ValeurExpression(static_cast<int64_t>(b->lexème->valeur_entiere));
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_RÉEL:
         {
             /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
              * valeur car ce n'est pas un lexème de code source. */
             if (b->possède_drapeau(DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
-                return ValeurExpression(b->comme_litterale_reel()->valeur);
+                return ValeurExpression(b->comme_littérale_réel()->valeur);
             }
 
-            return ValeurExpression(b->lexeme->valeur_reelle);
+            return ValeurExpression(b->lexème->valeur_reelle);
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
         {
-            return ValeurExpression(b->comme_litterale_chaine());
+            return ValeurExpression(b->comme_littérale_chaine());
         }
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
@@ -364,7 +364,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
 
             return res;
         }
-        case GenreNoeud::OPERATEUR_UNAIRE:
+        case GenreNoeud::OPÉRATEUR_UNAIRE:
         {
             auto inst = b->comme_expression_unaire();
             auto res = évalue_expression(compilatrice, bloc, inst->opérande);
@@ -374,17 +374,17 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             }
 
             if (res.valeur.est_réelle()) {
-                res.valeur = applique_opérateur_unaire(inst->lexeme->genre, res.valeur.réelle());
+                res.valeur = applique_opérateur_unaire(inst->lexème->genre, res.valeur.réelle());
             }
             else if (res.valeur.est_entière()) {
-                res.valeur = applique_opérateur_unaire(inst->lexeme->genre, res.valeur.entière());
+                res.valeur = applique_opérateur_unaire(inst->lexème->genre, res.valeur.entière());
             }
 
             return res;
         }
-        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:
         {
-            auto négation = b->comme_negation_logique();
+            auto négation = b->comme_négation_logique();
             auto res = évalue_expression(compilatrice, bloc, négation->opérande);
             if (res.est_erroné) {
                 return res;
@@ -401,7 +401,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             }
             else if (res.valeur.est_chaine()) {
                 auto chaine = res.valeur.chaine();
-                res.valeur = chaine->lexeme->chaine.taille() == 0;
+                res.valeur = chaine->lexème->chaine.taille() == 0;
             }
             else {
                 return erreur_évaluation(b,
@@ -411,7 +411,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
 
             return res;
         }
-        case GenreNoeud::OPERATEUR_BINAIRE:
+        case GenreNoeud::OPÉRATEUR_BINAIRE:
         {
             auto inst = b->comme_expression_binaire();
             auto res1 = évalue_expression(compilatrice, bloc, inst->opérande_gauche);
@@ -428,22 +428,22 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
 
             ValeurExpression res = ValeurExpression();
 
-            if (est_opérateur_bool(inst->lexeme->genre)) {
+            if (est_opérateur_bool(inst->lexème->genre)) {
                 if (res1.valeur.est_réelle() && res2.valeur.est_réelle()) {
                     res = applique_opérateur_binaire_comp(
-                        inst->lexeme->genre, res1.valeur.réelle(), res2.valeur.réelle());
+                        inst->lexème->genre, res1.valeur.réelle(), res2.valeur.réelle());
                 }
                 else if (res1.valeur.est_booléenne() && res2.valeur.est_booléenne()) {
                     res = applique_opérateur_binaire_comp(
-                        inst->lexeme->genre, res1.valeur.booléenne(), res2.valeur.booléenne());
+                        inst->lexème->genre, res1.valeur.booléenne(), res2.valeur.booléenne());
                 }
                 else if (res1.valeur.est_entière() && res2.valeur.est_entière()) {
                     res = applique_opérateur_binaire_comp(
-                        inst->lexeme->genre, res1.valeur.entière(), res2.valeur.entière());
+                        inst->lexème->genre, res1.valeur.entière(), res2.valeur.entière());
                 }
                 else if (res1.valeur.est_type() && res2.valeur.est_type()) {
                     res = applique_opérateur_binaire_comp(
-                        inst->lexeme->genre, res1.valeur.type(), res2.valeur.type());
+                        inst->lexème->genre, res1.valeur.type(), res2.valeur.type());
                 }
                 else {
                     return erreur_évaluation(b,
@@ -454,11 +454,11 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             else {
                 if (res1.valeur.est_réelle() && res2.valeur.est_réelle()) {
                     res = applique_opérateur_binaire(
-                        inst->lexeme->genre, res1.valeur.réelle(), res2.valeur.réelle());
+                        inst->lexème->genre, res1.valeur.réelle(), res2.valeur.réelle());
                 }
                 else if (res1.valeur.est_entière() && res2.valeur.est_entière()) {
                     res = applique_opérateur_binaire(
-                        inst->lexeme->genre, res1.valeur.entière(), res2.valeur.entière());
+                        inst->lexème->genre, res1.valeur.entière(), res2.valeur.entière());
                 }
                 else {
                     return erreur_évaluation(b,
@@ -494,7 +494,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             }
 
             ValeurExpression res = ValeurExpression();
-            if (logique->lexeme->genre == GenreLexème::ESP_ESP) {
+            if (logique->lexème->genre == GenreLexème::ESP_ESP) {
                 res = res1.valeur.booléenne() && res2.valeur.booléenne();
             }
             else {
@@ -502,9 +502,9 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             }
             return res;
         }
-        case GenreNoeud::EXPRESSION_PARENTHESE:
+        case GenreNoeud::EXPRESSION_PARENTHÈSE:
         {
-            auto inst = b->comme_parenthese();
+            auto inst = b->comme_parenthèse();
             return évalue_expression(compilatrice, bloc, inst->expression);
         }
         case GenreNoeud::EXPRESSION_COMME:
@@ -513,14 +513,14 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             auto inst = b->comme_comme();
             return évalue_expression(compilatrice, bloc, inst->expression);
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
         {
-            auto ref_membre = b->comme_reference_membre();
+            auto ref_membre = b->comme_référence_membre();
             auto type_accede = ref_membre->accédée->type;
             type_accede = donne_type_accédé_effectif(type_accede);
 
-            if (type_accede->est_type_type_de_donnees()) {
-                type_accede = type_accede->comme_type_type_de_donnees()->type_connu;
+            if (type_accede->est_type_type_de_données()) {
+                type_accede = type_accede->comme_type_type_de_données()->type_connu;
                 if (!type_accede) {
                     return erreur_évaluation(b,
                                              "L'expression de référence de membre n'est pas une "
@@ -528,7 +528,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                 }
             }
 
-            if (type_accede->est_type_enum() || type_accede->est_type_erreur()) {
+            if (type_accede->est_type_énum() || type_accede->est_type_erreur()) {
                 auto type_enum = static_cast<TypeEnum *>(type_accede);
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
                 return ValeurExpression(valeur_enum);
@@ -552,7 +552,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             auto cuisine = b->comme_cuisine();
             auto expr = cuisine->expression;
             auto appel = expr->comme_appel();
-            auto fonction = appel->expression->comme_entete_fonction();
+            auto fonction = appel->expression->comme_entête_fonction();
 
             return ValeurExpression(fonction);
         }
@@ -607,7 +607,7 @@ std::ostream &operator<<(std::ostream &os, ValeurExpression valeur)
     }
     else if (valeur.est_chaine()) {
         auto chaine = valeur.chaine();
-        os << chaine->lexeme->chaine;
+        os << chaine->lexème->chaine;
     }
     else if (valeur.est_tableau_fixe()) {
         os << "[...]";

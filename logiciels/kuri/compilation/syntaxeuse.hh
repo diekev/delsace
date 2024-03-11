@@ -10,16 +10,16 @@
 struct Annotation;
 struct Compilatrice;
 struct NoeudBloc;
-struct NoeudDeclarationClasse;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationSymbole;
-struct NoeudDeclarationVariable;
+struct NoeudDéclarationClasse;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationSymbole;
+struct NoeudDéclarationVariable;
 struct NoeudExpression;
-struct NoeudExpressionLitteraleChaine;
+struct NoeudExpressionLittéraleChaine;
 struct NoeudExpressionMembre;
 struct NoeudExpressionPriseAdresse;
-struct NoeudExpressionReference;
-struct NoeudExpressionReferenceType;
+struct NoeudExpressionRéférence;
+struct NoeudExpressionRéférenceType;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
 struct NoeudStruct;
@@ -48,11 +48,11 @@ struct DonnéesPrécédence {
  * \{ */
 
 #define ENUMERE_NOEUDS_DEDUPLICABLE(O)                                                            \
-    O(NoeudExpressionReference, références)                                                       \
+    O(NoeudExpressionRéférence, références)                                                       \
     O(NoeudExpressionMembre, références_membres)                                                  \
-    O(NoeudExpressionLitteraleChaine, littérales_chaines)                                         \
+    O(NoeudExpressionLittéraleChaine, littérales_chaines)                                         \
     O(NoeudExpressionPriseAdresse, prises_adresses)                                               \
-    O(NoeudExpressionReferenceType, références_types)
+    O(NoeudExpressionRéférenceType, références_types)
 
 class TableRéférences {
     template <typename T>
@@ -83,9 +83,9 @@ class TableRéférences {
 
   public:
     /* Références déclarations. */
-    NoeudExpressionReference *trouve_référence_pour(Lexème const *lexème) const;
-    void ajoute_référence(NoeudExpressionReference *noeud);
-    void invalide_référence(NoeudExpressionReference *noeud);
+    NoeudExpressionRéférence *trouve_référence_pour(Lexème const *lexème) const;
+    void ajoute_référence(NoeudExpressionRéférence *noeud);
+    void invalide_référence(NoeudExpressionRéférence *noeud);
 
     /* Références membres. */
     NoeudExpressionMembre *trouve_référence_membre_pour(Lexème const *lexème,
@@ -93,16 +93,16 @@ class TableRéférences {
     void ajoute_référence_membre(NoeudExpressionMembre *noeud);
 
     /* Littérale chaine. */
-    NoeudExpressionLitteraleChaine *trouve_littérale_chaine_pour(Lexème const *lexème) const;
-    void ajoute_littérale_chaine(NoeudExpressionLitteraleChaine *noeud);
+    NoeudExpressionLittéraleChaine *trouve_littérale_chaine_pour(Lexème const *lexème) const;
+    void ajoute_littérale_chaine(NoeudExpressionLittéraleChaine *noeud);
 
     /* Prise adresse. */
     NoeudExpressionPriseAdresse *trouve_prise_adresse_pour(NoeudExpression const *gauche) const;
     void ajoute_prise_adresse(NoeudExpressionPriseAdresse *noeud);
 
     /* Référence type. */
-    NoeudExpressionReferenceType *trouve_référence_type_pour(Lexème const *lexème) const;
-    void ajoute_référence_type(NoeudExpressionReferenceType *noeud);
+    NoeudExpressionRéférenceType *trouve_référence_type_pour(Lexème const *lexème) const;
+    void ajoute_référence_type(NoeudExpressionRéférenceType *noeud);
 
     void réinitialise();
 
@@ -128,7 +128,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     /* Bloc courant recevant les constantes polymorphiques. */
     kuri::pile<NoeudBloc *> bloc_constantes_polymorphiques{};
 
-    kuri::pile<NoeudDeclarationEnteteFonction *> fonctions_courantes{};
+    kuri::pile<NoeudDéclarationEntêteFonction *> fonctions_courantes{};
 
     bool m_fonction_courante_retourne_plusieurs_valeurs = false;
 
@@ -173,7 +173,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_déclaration_fonction(Lexème const *lexeme);
     NoeudExpression *analyse_déclaration_type_fonction(Lexème const *lexeme);
     NoeudExpression *analyse_déclaration_opérateur();
-    void analyse_expression_retour_type(NoeudDeclarationEnteteFonction *noeud,
+    void analyse_expression_retour_type(NoeudDéclarationEntêteFonction *noeud,
                                         bool pour_operateur);
 
     /* Structures et unions. */
@@ -181,9 +181,9 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_déclaration_union(Lexème const *lexème_nom);
     void analyse_directives_structure(NoeudStruct *noeud);
     void analyse_directives_union(NoeudUnion *noeud);
-    void analyse_paramètres_polymorphiques_structure_ou_union(NoeudDeclarationClasse *noeud);
-    void analyse_membres_structure_ou_union(NoeudDeclarationClasse *decl_struct);
-    NoeudBloc *analyse_bloc_membres_structure_ou_union(NoeudDeclarationClasse *decl_struct);
+    void analyse_paramètres_polymorphiques_structure_ou_union(NoeudDéclarationClasse *noeud);
+    void analyse_membres_structure_ou_union(NoeudDéclarationClasse *decl_struct);
+    NoeudBloc *analyse_bloc_membres_structure_ou_union(NoeudDéclarationClasse *decl_struct);
 
     NoeudExpression *analyse_instruction();
     NoeudExpression *analyse_instruction_boucle();
@@ -211,18 +211,18 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     bool ignore_point_virgule_implicite();
 
-    void analyse_directive_déclaration_variable(NoeudDeclarationVariable *déclaration);
-    void analyse_directive_symbole_externe(NoeudDeclarationSymbole *déclaration_symbole);
+    void analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration);
+    void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole);
 
     void empile_table_références();
     void dépile_table_références();
 
-    NoeudExpressionReference *crée_référence_déclaration(Lexème const *lexème);
+    NoeudExpressionRéférence *crée_référence_déclaration(Lexème const *lexème);
     NoeudExpressionMembre *crée_référence_membre(Lexème const *lexème, NoeudExpression *gauche);
-    NoeudExpressionLitteraleChaine *crée_littérale_chaine(Lexème const *lexème);
+    NoeudExpressionLittéraleChaine *crée_littérale_chaine(Lexème const *lexème);
     NoeudExpressionPriseAdresse *crée_prise_adresse(Lexème const *lexème,
                                                     NoeudExpression *opérande);
-    NoeudExpressionReferenceType *crée_référence_type(Lexème const *lexème);
+    NoeudExpressionRéférenceType *crée_référence_type(Lexème const *lexème);
 
-    void recycle_référence(NoeudExpressionReference *référence);
+    void recycle_référence(NoeudExpressionRéférence *référence);
 };
