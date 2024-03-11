@@ -77,7 +77,7 @@ int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
 
 Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
     : ordonnanceuse(this), messagère(this), gestionnaire_code(this),
-      gestionnaire_bibliothèques(GestionnaireBibliotheques(*this)), arguments(arguments_),
+      gestionnaire_bibliothèques(GestionnaireBibliothèques(*this)), arguments(arguments_),
       racine_kuri(chemin_racine_kuri), typeuse(graphe_dépendance, this->opérateurs),
       registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
 {
@@ -108,7 +108,7 @@ Compilatrice::~Compilatrice()
     }
 
     POUR (m_états_libres) {
-        memoire::deloge("EtatResolutionAppel", it);
+        memoire::deloge("ÉtatRésolutionAppel", it);
     }
 
     POUR (m_sémanticiennes) {
@@ -305,7 +305,7 @@ int64_t Compilatrice::memoire_utilisee() const
 
     résultat += m_états_libres.taille_mémoire();
     POUR (m_états_libres) {
-        résultat += taille_de(EtatResolutionAppel);
+        résultat += taille_de(ÉtatRésolutionAppel);
         résultat += it->args.taille_mémoire();
     }
 
@@ -533,12 +533,12 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
     return m_tableaux_lexèmes.dernier_élément();
 }
 
-kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsees(
+kuri::tableau_statique<NoeudCodeEntêteFonction *> Compilatrice::fonctions_parsees(
     EspaceDeTravail *espace)
 {
     auto convertisseuse = donne_convertisseuse_noeud_code_disponible();
     auto entetes = gestionnaire_code->fonctions_parsées();
-    auto résultat = kuri::tableau<NoeudCodeEnteteFonction *>();
+    auto résultat = kuri::tableau<NoeudCodeEntêteFonction *>();
     résultat.réserve(entetes.taille());
     POUR (entetes) {
         if (it->est_opérateur || it->est_coroutine ||
@@ -546,7 +546,7 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
             continue;
         }
         auto code_entete = convertisseuse->convertis_noeud_syntaxique(espace, it);
-        résultat.ajoute(code_entete->comme_entete_fonction());
+        résultat.ajoute(code_entete->comme_entête_fonction());
     }
     m_tableaux_code_fonctions.ajoute(résultat);
     dépose_convertisseuse(convertisseuse);
@@ -561,10 +561,10 @@ Module *Compilatrice::trouve_ou_crée_module(IdentifiantCode *nom_module,
     /* Initialise les chemins des bibliothèques internes au module. */
     if (module->chemin_bibliothèque_32bits.taille() == 0) {
         module->chemin_bibliothèque_32bits = module->chemin() /
-                                             suffixe_chemin_module_pour_bibliotheque(
+                                             suffixe_chemin_module_pour_bibliothèque(
                                                  ArchitectureCible::X86);
         module->chemin_bibliothèque_64bits = module->chemin() /
-                                             suffixe_chemin_module_pour_bibliotheque(
+                                             suffixe_chemin_module_pour_bibliothèque(
                                                  ArchitectureCible::X64);
     }
 
@@ -595,7 +595,7 @@ RésultatFichier Compilatrice::trouve_ou_crée_fichier(Module *module,
 }
 
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
-    NoeudDeclarationEnteteFonction const *entete)
+    NoeudDéclarationEntêteFonction const *entete)
 {
     POUR_TABLEAU_PAGE ((*métaprogrammes.verrou_ecriture())) {
         if (it.fonction == entete) {
@@ -608,7 +608,7 @@ MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
 
 Fichier *Compilatrice::crée_fichier_pour_metaprogramme(MetaProgramme *metaprogramme_)
 {
-    auto fichier_racine = this->fichier(metaprogramme_->corps_texte->lexeme->fichier);
+    auto fichier_racine = this->fichier(metaprogramme_->corps_texte->lexème->fichier);
     auto module = fichier_racine->module;
     auto nom_fichier = enchaine(metaprogramme_);
     auto résultat_fichier = this->trouve_ou_crée_fichier(module, nom_fichier, nom_fichier, false);
@@ -647,7 +647,7 @@ MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
 
 /* ************************************************************************** */
 
-EtatResolutionAppel *Compilatrice::crée_ou_donne_état_résolution_appel()
+ÉtatRésolutionAppel *Compilatrice::crée_ou_donne_état_résolution_appel()
 {
     if (!m_états_libres.est_vide()) {
         auto résultat = m_états_libres.dernier_élément();
@@ -656,10 +656,10 @@ EtatResolutionAppel *Compilatrice::crée_ou_donne_état_résolution_appel()
         return résultat;
     }
 
-    return memoire::loge<EtatResolutionAppel>("EtatResolutionAppel");
+    return memoire::loge<ÉtatRésolutionAppel>("ÉtatRésolutionAppel");
 }
 
-void Compilatrice::libère_état_résolution_appel(EtatResolutionAppel *&état)
+void Compilatrice::libère_état_résolution_appel(ÉtatRésolutionAppel *&état)
 {
     m_états_libres.ajoute(état);
     état = nullptr;

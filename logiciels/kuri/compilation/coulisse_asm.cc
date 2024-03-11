@@ -85,41 +85,41 @@ static ClasseArgument donne_classe_argument(Type const *type)
         }
         case GenreNoeud::BOOL:
         case GenreNoeud::OCTET:
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         case GenreNoeud::FONCTION:
         case GenreNoeud::POINTEUR:
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             return ClasseArgument::INTEGER;
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             /* @Incomplet : __m128, __m256, etc. */
             return ClasseArgument::SSE;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto const type_opaque = type->comme_type_opaque();
             return donne_classe_argument(type_opaque->type_opacifié);
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         case GenreNoeud::TABLEAU_FIXE:
         case GenreNoeud::TUPLE:
         case GenreNoeud::VARIADIQUE:
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
         case GenreNoeud::TYPE_TRANCHE:
         {
-            return détermine_classe_argument_aggrégé(type->comme_type_compose());
+            return détermine_classe_argument_aggrégé(type->comme_type_composé());
         }
         CAS_POUR_NOEUDS_HORS_TYPES:
         {

@@ -55,44 +55,28 @@ FluxSortieCPP &operator<<(FluxSortieCPP &flux, const T &valeur)
 
 struct IdentifiantADN {
   private:
-    kuri::chaine_statique nom = "";
-    kuri::chaine nom_sans_accent = "";
+    kuri::chaine_statique m_nom = "";
 
   public:
     IdentifiantADN() = default;
 
-    IdentifiantADN(dls::vue_chaine_compacte n) : nom(n), nom_sans_accent(supprime_accents(nom))
+    IdentifiantADN(dls::vue_chaine_compacte n) : m_nom(n)
     {
-        préserve_accents_si_nom_le_requiers();
     }
 
-    IdentifiantADN(kuri::chaine_statique n) : nom(n), nom_sans_accent(supprime_accents(nom))
+    IdentifiantADN(kuri::chaine_statique n) : m_nom(n)
     {
-        préserve_accents_si_nom_le_requiers();
     }
 
-    kuri::chaine_statique nom_cpp() const
+    kuri::chaine_statique nom() const
     {
-        return nom_sans_accent;
-    }
-
-    kuri::chaine_statique nom_kuri() const
-    {
-        return nom;
+        return m_nom;
     }
 
     bool est_nul() const
     {
-        return nom == "";
+        return m_nom == "";
     }
-
-    void préserve_accents()
-    {
-        nom_sans_accent = nom;
-    }
-
-  private:
-    void préserve_accents_si_nom_le_requiers();
 };
 
 FluxSortieCPP &operator<<(FluxSortieCPP &flux, IdentifiantADN const &ident);
@@ -225,16 +209,16 @@ struct TypeNominal final : public Type {
 
     virtual kuri::chaine_statique valeur_defaut() const override
     {
-        if (nom_cpp.nom_cpp() == "bool") {
+        if (nom_cpp.nom() == "bool") {
             return "false";
         }
 
         // chaine et chaine_statique
-        if (nom_kuri.nom_cpp() == "chaine") {
+        if (nom_kuri.nom() == "chaine") {
             return R"("")";
         }
 
-        if (nom_kuri.nom_cpp() == "rien") {
+        if (nom_kuri.nom() == "rien") {
             return "";
         }
 
@@ -251,7 +235,7 @@ bool Type::est_nominal(TypesChaines... chaines) const
     }
 
     const auto type_nominal = comme_nominal();
-    return ((type_nominal->nom_cpp.nom_cpp() == chaines) || ...);
+    return ((type_nominal->nom_cpp.nom() == chaines) || ...);
 }
 
 bool est_type_noeud(Type const *type);
@@ -433,7 +417,7 @@ class ProteineStruct final : public Proteine {
 
     void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
-    void genere_code_cpp_apres_declaration(FluxSortieCPP &os);
+    void genere_code_cpp_apres_déclaration(FluxSortieCPP &os);
 
     void genere_code_kuri(FluxSortieKuri &os) override;
 

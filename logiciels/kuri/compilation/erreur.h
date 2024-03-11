@@ -11,10 +11,10 @@ struct ErreurAppariement;
 struct EspaceDeTravail;
 struct NoeudExpression;
 struct SiteSource;
-struct NoeudDeclarationType;
-struct NoeudDeclarationTypeCompose;
-using Type = NoeudDeclarationType;
-using TypeCompose = NoeudDeclarationTypeCompose;
+struct NoeudDéclarationType;
+struct NoeudDéclarationTypeComposé;
+using Type = NoeudDéclarationType;
+using TypeCompose = NoeudDéclarationTypeComposé;
 
 namespace kuri {
 template <class T, uint64_t TAILLE_INITIALE>

@@ -248,17 +248,17 @@ static bool doit_ajouter_point_virgule(GenreLexème dernier_id)
         case GenreLexème::CHAINE:
         case GenreLexème::OCTET:
         case GenreLexème::CHAINE_CARACTERE:
-        case GenreLexème::TYPE_DE_DONNEES:
+        case GenreLexème::TYPE_DE_DONNÉES:
         /* littérales */
         case GenreLexème::CHAINE_LITTERALE:
         case GenreLexème::NOMBRE_REEL:
         case GenreLexème::NOMBRE_ENTIER:
-        case GenreLexème::CARACTERE:
+        case GenreLexème::CARACTÈRE:
         case GenreLexème::VRAI:
         case GenreLexème::FAUX:
         case GenreLexème::NUL:
         /* instructions */
-        case GenreLexème::ARRETE:
+        case GenreLexème::ARRÊTE:
         case GenreLexème::CONTINUE:
         case GenreLexème::REPRENDS:
         case GenreLexème::RETOURNE:
@@ -419,7 +419,7 @@ void Lexeuse::consomme_espaces_blanches()
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                     this->enregistre_pos_mot();
                     this->ajoute_caractère();
-                    this->ajoute_lexème(GenreLexème::CARACTERE_BLANC);
+                    this->ajoute_lexème(GenreLexème::CARACTÈRE_BLANC);
                 }
 
                 if (c == '\n') {
@@ -465,7 +465,7 @@ void Lexeuse::consomme_espaces_blanches()
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                     this->enregistre_pos_mot();
                     this->ajoute_caractère(nombre_octet);
-                    this->ajoute_lexème(GenreLexème::CARACTERE_BLANC);
+                    this->ajoute_lexème(GenreLexème::CARACTÈRE_BLANC);
                 }
 
                 this->avance_sans_nouvelle_ligne(nombre_octet);
@@ -609,7 +609,7 @@ Lexème Lexeuse::donne_lexème_suivant()
             APPARIE_CARACTERE_SIMPLE(')', GenreLexème::PARENTHESE_FERMANTE)
 
             APPARIE_CARACTERE_DOUBLE_EGAL('+', GenreLexème::PLUS, GenreLexème::PLUS_EGAL)
-            APPARIE_CARACTERE_DOUBLE_EGAL('!', GenreLexème::EXCLAMATION, GenreLexème::DIFFERENCE)
+            APPARIE_CARACTERE_DOUBLE_EGAL('!', GenreLexème::EXCLAMATION, GenreLexème::DIFFÉRENCE)
             APPARIE_CARACTERE_DOUBLE_EGAL('=', GenreLexème::EGAL, GenreLexème::EGALITE)
             APPARIE_CARACTERE_DOUBLE_EGAL('%', GenreLexème::POURCENT, GenreLexème::MODULO_EGAL)
             APPARIE_CARACTERE_DOUBLE_EGAL('^', GenreLexème::CHAPEAU, GenreLexème::OUX_EGAL)
@@ -790,7 +790,7 @@ Lexème Lexeuse::lèxe_caractère_littérale()
     this->avance_fixe<1>();
     Lexème résultat = {mot_courant(),
                        {valeur},
-                       GenreLexème::CARACTERE,
+                       GenreLexème::CARACTÈRE,
                        static_cast<int>(m_données->id()),
                        m_compte_ligne,
                        m_pos_mot};

@@ -7,9 +7,9 @@
 #include "structures/enchaineuse.hh"
 
 struct IdentifiantCode;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationType;
-using Type = NoeudDeclarationType;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationType;
+using Type = NoeudDéclarationType;
 
 /**
  * Une Broyeuse s'occupe de transformer une chaine de caractère en une chaine unique.
@@ -35,7 +35,7 @@ class Broyeuse {
 
     /* Retourne le nom broyé de la fonction.
      * Le résultat sera mis en cache dans la fonction. */
-    kuri::chaine_statique broye_nom_fonction(NoeudDeclarationEnteteFonction *decl);
+    kuri::chaine_statique broye_nom_fonction(NoeudDéclarationEntêteFonction *decl);
 
     /* Retourne le nom broyé de l'identifiant.
      * Le résultat sera mis en cache dans l'identifiant. */

@@ -53,7 +53,7 @@ RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *t
     inst->op = type_énum->table_opérateurs->opérateur_egt;
 
     auto membres_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
-    inst->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
+    inst->genre = GenreNoeud::INSTRUCTION_DISCR_ÉNUM;
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {
         auto expr_paire = inst->paires_discr[i]->expression;
@@ -61,7 +61,7 @@ RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *t
         auto feuilles = expr_paire->comme_virgule();
 
         for (auto f : feuilles->expressions) {
-            if (f->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+            if (f->genre != GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION) {
                 rapporte_erreur("expression inattendue dans la discrimination, seules les "
                                 "références de déclarations sont supportées pour le moment",
                                 f);
@@ -117,17 +117,17 @@ struct ExpressionTestDiscrimination {
 static std::optional<ExpressionTestDiscrimination> expression_valide_discrimination(
     NoeudExpression *expression, bool opérande_appel_doit_être_référence)
 {
-    if (expression->est_reference_declaration()) {
+    if (expression->est_référence_déclaration()) {
         auto résultat = ExpressionTestDiscrimination{};
         résultat.ident = expression->ident;
-        résultat.référence = expression->comme_reference_declaration();
+        résultat.référence = expression->comme_référence_déclaration();
         return résultat;
     }
 
-    if (expression->est_reference_type()) {
+    if (expression->est_référence_type()) {
         auto résultat = ExpressionTestDiscrimination{};
         résultat.ident = expression->ident;
-        résultat.référence = expression->comme_reference_type();
+        résultat.référence = expression->comme_référence_type();
         return résultat;
     }
 
@@ -135,8 +135,8 @@ static std::optional<ExpressionTestDiscrimination> expression_valide_discriminat
         auto appel = expression->comme_appel();
 
         auto expression_ref = appel->expression;
-        if (opérande_appel_doit_être_référence && (!expression_ref->est_reference_declaration() &&
-                                                   !expression_ref->est_reference_type())) {
+        if (opérande_appel_doit_être_référence && (!expression_ref->est_référence_déclaration() &&
+                                                   !expression_ref->est_référence_type())) {
             return {};
         }
 
@@ -176,7 +176,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
 
     auto param = appel->paramètres[0];
 
-    if (!param->est_reference_declaration()) {
+    if (!param->est_référence_déclaration()) {
         espace->rapporte_erreur(param,
                                 "Le paramètre d'une destructuration de la valeur de l'union doit "
                                 "être une référence de déclaration");
@@ -203,14 +203,14 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
 
     /* L'initialisation est une extraction de la valeur de l'union.
      * À FAIRE(discr) : ignore la vérification sur l'activité du membre. */
-    auto initialisation_déclaration = assembleuse->crée_comme(param->lexeme);
+    auto initialisation_déclaration = assembleuse->crée_comme(param->lexème);
     initialisation_déclaration->expression = expression;
     initialisation_déclaration->type = type_membre;
     initialisation_déclaration->transformation = {
         TypeTransformation::EXTRAIT_UNION, type_membre, info_membre.index_membre};
 
-    auto déclaration_pour_expression = assembleuse->crée_declaration_variable(
-        param->comme_reference_declaration(), initialisation_déclaration);
+    auto déclaration_pour_expression = assembleuse->crée_déclaration_variable(
+        param->comme_référence_déclaration(), initialisation_déclaration);
     déclaration_pour_expression->bloc_parent = bloc_insertion;
     déclaration_pour_expression->type = type_membre;
     déclaration_pour_expression->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -436,7 +436,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
 RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type *type)
 {
     auto type_pour_la_recherche = type;
-    if (type->est_type_type_de_donnees()) {
+    if (type->est_type_type_de_données()) {
         type_pour_la_recherche = m_compilatrice.typeuse.type_type_de_donnees_;
     }
 
@@ -511,10 +511,10 @@ RésultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
     auto expression = inst->expression_discriminée;
     auto type = expression->type;
 
-    if (type->est_type_reference()) {
+    if (type->est_type_référence()) {
         crée_transtypage_implicite_au_besoin(inst->expression_discriminée,
                                              TransformationType(TypeTransformation::DEREFERENCE));
-        type = type->comme_type_reference()->type_pointé;
+        type = type->comme_type_référence()->type_pointé;
     }
 
     if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -529,7 +529,7 @@ RésultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
         return valide_discr_union(inst, type);
     }
 
-    if (type->est_type_enum() || type->est_type_erreur()) {
+    if (type->est_type_énum() || type->est_type_erreur()) {
         return valide_discr_énum(inst, type);
     }
 
