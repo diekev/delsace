@@ -9,7 +9,7 @@
 #include "structures/tableau.hh"
 
 class Broyeuse;
-struct Bibliotheque;
+struct Bibliothèque;
 struct Compilatrice;
 struct EspaceDeTravail;
 struct OptionsDeCompilation;
@@ -73,7 +73,7 @@ struct ErreurCoulisse {
 
 struct Coulisse {
   protected:
-    kuri::tableau<Bibliotheque *> m_bibliothèques{};
+    kuri::tableau<Bibliothèque *> m_bibliothèques{};
 
   public:
     double temps_génération_code = 0.0;

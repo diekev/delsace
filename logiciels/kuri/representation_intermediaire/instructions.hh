@@ -15,8 +15,8 @@
 
 struct DonnéesExécutionFonction;
 struct IdentifiantCode;
-struct NoeudDeclarationType;
-using Type = NoeudDeclarationType;
+struct NoeudDéclarationType;
+using Type = NoeudDéclarationType;
 
 enum class VisibilitéSymbole : uint8_t;
 
@@ -334,7 +334,7 @@ struct AtomeGlobale : public AtomeConstante {
      * InfoType créé par la compilatrice. */
     const Type *est_info_type_de = nullptr;
 
-    NoeudDeclarationVariable *decl = nullptr;
+    NoeudDéclarationVariable *decl = nullptr;
 
     EMPECHE_COPIE(AtomeGlobale);
 
@@ -407,7 +407,7 @@ struct AtomeFonction : public AtomeConstante {
     bool sanstrace = false;
     bool est_externe = false;
     bool enligne = false;
-    NoeudDeclarationEnteteFonction const *decl = nullptr;
+    NoeudDéclarationEntêteFonction const *decl = nullptr;
 
     /* Pour les exécutions dans la machine virtuelle. */
     DonnéesExécutionFonction *données_exécution = nullptr;
@@ -416,13 +416,13 @@ struct AtomeFonction : public AtomeConstante {
 
     AtomeGlobale *info_trace_appel = nullptr;
 
-    AtomeFonction(NoeudDeclarationEnteteFonction const *decl_, kuri::chaine_statique nom_)
+    AtomeFonction(NoeudDéclarationEntêteFonction const *decl_, kuri::chaine_statique nom_)
         : nom(nom_), decl(decl_)
     {
         genre_atome = Genre::FONCTION;
     }
 
-    AtomeFonction(NoeudDeclarationEnteteFonction const *decl_,
+    AtomeFonction(NoeudDéclarationEntêteFonction const *decl_,
                   kuri::chaine_statique nom_,
                   kuri::tableau<InstructionAllocation *, int> &&params_,
                   InstructionAllocation *param_sortie_)

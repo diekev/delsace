@@ -14,14 +14,14 @@ struct Enchaineuse;
 struct IdentifiantCode;
 struct Fichier;
 struct NoeudBloc;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDirectiveExecute;
-struct NoeudDeclarationType;
-struct NoeudDeclarationClasse;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDirectiveExécute;
+struct NoeudDéclarationType;
+struct NoeudDéclarationClasse;
 struct Programme;
 struct Statistiques;
 struct UniteCompilation;
-using Type = NoeudDeclarationType;
+using Type = NoeudDéclarationType;
 
 enum {
     DONNÉES_CONSTANTES,
@@ -121,16 +121,16 @@ struct MetaProgramme {
     };
 
     /* non-nul pour les directives d'exécutions (exécute, corps texte, etc.) */
-    NoeudDirectiveExecute *directive = nullptr;
+    NoeudDirectiveExécute *directive = nullptr;
 
     /* non-nuls pour les corps-textes */
     NoeudBloc *corps_texte = nullptr;
-    NoeudDeclarationEnteteFonction *corps_texte_pour_fonction = nullptr;
-    NoeudDeclarationClasse *corps_texte_pour_structure = nullptr;
+    NoeudDéclarationEntêteFonction *corps_texte_pour_fonction = nullptr;
+    NoeudDéclarationClasse *corps_texte_pour_structure = nullptr;
     Fichier *fichier = nullptr;
 
     /* la fonction qui sera exécutée */
-    NoeudDeclarationEnteteFonction *fonction = nullptr;
+    NoeudDéclarationEntêteFonction *fonction = nullptr;
 
     UniteCompilation *unité = nullptr;
 

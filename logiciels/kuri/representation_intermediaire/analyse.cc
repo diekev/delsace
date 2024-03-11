@@ -559,12 +559,12 @@ static bool detecte_declarations_inutilisees_compte_utilisation(EspaceDeTravail 
         /* Si le site n'est pas une déclaration de variable (le contexte implicite n'a pas de
          * site propre, celui de la fonction est utilisé), ajoutons-la à la liste des
          * allocations non-utilisées pour avoir un avertissement. */
-        if (!decl_alloc || !decl_alloc->est_declaration_variable()) {
+        if (!decl_alloc || !decl_alloc->est_déclaration_variable()) {
             allocs_inutilisees.ajoute(alloc);
             continue;
         }
 
-        auto decl_var = decl_alloc->comme_declaration_variable();
+        auto decl_var = decl_alloc->comme_déclaration_variable();
         if (!possède_annotation(decl_var, "inutilisée")) {
             allocs_inutilisees.ajoute(it);
         }
@@ -1301,7 +1301,7 @@ static bool fonction_est_pure(AtomeFonction const *fonction)
             auto op_binaire = it->comme_op_binaire();
             /* Le mode d'arrondissement des nombres réels peut être modifié lors de l'exécution.
              * Ainsi, tous les opérations binaires sont impures. */
-            if (op_binaire->valeur_droite->type->est_type_reel()) {
+            if (op_binaire->valeur_droite->type->est_type_réel()) {
                 return false;
             }
         }

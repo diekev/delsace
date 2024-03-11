@@ -21,11 +21,11 @@ struct Sémanticienne;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct ItemMonomorphisation;
-struct NoeudDeclaration;
+struct NoeudDéclaration;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
-struct NoeudDeclarationType;
-using Type = NoeudDeclarationType;
+struct NoeudDéclarationType;
+using Type = NoeudDéclarationType;
 
 struct IdentifiantEtExpression {
     IdentifiantCode *ident;
@@ -79,7 +79,7 @@ struct ErreurAppariement {
 
     kuri::tablet<IdentifiantCode *, 10> arguments_manquants_{};
     NoeudExpression const *site_erreur = nullptr;
-    NoeudDeclaration const *noeud_decl = nullptr;
+    NoeudDéclaration const *noeud_decl = nullptr;
 
     ErreurMonomorphisation erreur_monomorphisation = {};
 
@@ -268,7 +268,7 @@ using ListeCandidatesExpressionAppel =
  * de pouvoir reprendre la résolution de l'expression après qu'une attente fut
  * émise pour ne pas refaire du travail redondant.
  */
-struct EtatResolutionAppel {
+struct ÉtatRésolutionAppel {
     enum class État {
         RÉSOLUTION_NON_COMMENCÉE,
         ARGUMENTS_RASSEMBLÉS,

@@ -13,19 +13,19 @@
 struct AtomeGlobale;
 struct AtomeFonction;
 struct AtomeConstanteDonnéesConstantes;
-struct Bibliotheque;
+struct Bibliothèque;
 struct CompilatriceRI;
 struct Coulisse;
 struct EspaceDeTravail;
 struct Fichier;
 struct MetaProgramme;
-struct NoeudDeclaration;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationVariable;
+struct NoeudDéclaration;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationVariable;
 struct NoeudExpression;
 struct Statistiques;
-struct NoeudDeclarationType;
-using Type = NoeudDeclarationType;
+struct NoeudDéclarationType;
+using Type = NoeudDéclarationType;
 
 namespace kuri {
 struct chemin_systeme;
@@ -42,7 +42,7 @@ class ÉtatCompilation {
   public:
     void avance_état()
     {
-        if (m_phase_courante == PhaseCompilation::COMPILATION_TERMINEE) {
+        if (m_phase_courante == PhaseCompilation::COMPILATION_TERMINÉE) {
             return;
         }
 
@@ -85,11 +85,11 @@ struct DiagnostiqueÉtatCompilation {
     bool toutes_les_ri_sont_generees = false;
 
     Type *type_à_valider = nullptr;
-    NoeudDeclaration *déclaration_à_valider = nullptr;
+    NoeudDéclaration *déclaration_à_valider = nullptr;
 
     Type *ri_type_à_générer = nullptr;
     Type *fonction_initialisation_type_à_créer = nullptr;
-    NoeudDeclaration *ri_déclaration_à_générer = nullptr;
+    NoeudDéclaration *ri_déclaration_à_générer = nullptr;
 };
 
 void imprime_diagnostique(DiagnostiqueÉtatCompilation const &diagnostique, std::ostream &os);
@@ -116,14 +116,14 @@ enum RaisonAjoutType {
  * par les fonctions qui le composent. */
 struct Programme {
   protected:
-    kuri::tableau<NoeudDeclarationEnteteFonction *> m_fonctions{};
-    kuri::ensemble<NoeudDeclarationEnteteFonction *> m_fonctions_utilisees{};
+    kuri::tableau<NoeudDéclarationEntêteFonction *> m_fonctions{};
+    kuri::ensemble<NoeudDéclarationEntêteFonction *> m_fonctions_utilisees{};
 
     /* Fonctions dont les dépendances sont potentiellement manquantes. */
-    kuri::ensemble<NoeudDeclaration *> m_dépendances_manquantes{};
+    kuri::ensemble<NoeudDéclaration *> m_dépendances_manquantes{};
 
-    kuri::tableau<NoeudDeclarationVariable *> m_globales{};
-    kuri::ensemble<NoeudDeclarationVariable *> m_globales_utilisees{};
+    kuri::tableau<NoeudDéclarationVariable *> m_globales{};
+    kuri::ensemble<NoeudDéclarationVariable *> m_globales_utilisees{};
 
     kuri::tableau<Type *> m_types{};
     kuri::ensemble<Type *> m_types_utilises{};
@@ -183,18 +183,18 @@ struct Programme {
 
     /* Modifications. */
 
-    void ajoute_fonction(NoeudDeclarationEnteteFonction *fonction);
+    void ajoute_fonction(NoeudDéclarationEntêteFonction *fonction);
 
-    void ajoute_globale(NoeudDeclarationVariable *globale);
+    void ajoute_globale(NoeudDéclarationVariable *globale);
 
     void ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud);
 
-    bool possède(NoeudDeclarationEnteteFonction *fonction) const
+    bool possède(NoeudDéclarationEntêteFonction *fonction) const
     {
         return m_fonctions_utilisees.possède(fonction);
     }
 
-    bool possède(NoeudDeclarationVariable *globale) const
+    bool possède(NoeudDéclarationVariable *globale) const
     {
         return m_globales_utilisees.possède(globale);
     }
@@ -204,12 +204,12 @@ struct Programme {
         return m_types_utilises.possède(type);
     }
 
-    kuri::tableau<NoeudDeclarationEnteteFonction *> const &fonctions() const
+    kuri::tableau<NoeudDéclarationEntêteFonction *> const &fonctions() const
     {
         return m_fonctions;
     }
 
-    kuri::tableau<NoeudDeclarationVariable *> const &globales() const
+    kuri::tableau<NoeudDéclarationVariable *> const &globales() const
     {
         return m_globales;
     }
@@ -234,7 +234,7 @@ struct Programme {
         return m_pour_metaprogramme;
     }
 
-    void ajoute_racine(NoeudDeclarationEnteteFonction *racine);
+    void ajoute_racine(NoeudDéclarationEntêteFonction *racine);
 
     Coulisse *coulisse() const
     {
@@ -260,7 +260,7 @@ struct Programme {
 
     void ajourne_pour_nouvelles_options_espace();
 
-    kuri::ensemble<NoeudDeclaration *> &dépendances_manquantes();
+    kuri::ensemble<NoeudDéclaration *> &dépendances_manquantes();
 
     /* Imprime le diagnostique de compilation dans le flux de sortie spécifié.
      * Ceci n'imprimera le diagnostique que lors du premier appel sauf si :
@@ -380,7 +380,7 @@ struct ProgrammeRepreInter {
 
     std::optional<DonnéesConstantes const *> donne_données_constantes() const;
 
-    kuri::tableau<Bibliotheque *> donne_bibliothèques_utilisées() const;
+    kuri::tableau<Bibliothèque *> donne_bibliothèques_utilisées() const;
 
     int64_t mémoire_utilisée() const;
 };

@@ -26,7 +26,7 @@ struct IdentifiantCode;
 struct MetaProgramme;
 struct Module;
 struct NoeudBloc;
-struct NoeudDirectivePreExecutable;
+struct NoeudDirectivePréExécutable;
 struct NoeudExpression;
 struct SiteSource;
 struct Statistiques;
@@ -169,7 +169,7 @@ struct Module {
     bool fichiers_sont_sales = true;
     bool exécution_directive_requise = false;
 
-    NoeudDirectivePreExecutable *directive_pré_exécutable = nullptr;
+    NoeudDirectivePréExécutable *directive_pré_exécutable = nullptr;
 
     Module(kuri::chaine chm) : chemin_(chm)
     {
