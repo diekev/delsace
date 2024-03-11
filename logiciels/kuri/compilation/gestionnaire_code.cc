@@ -376,7 +376,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             if (noeud->est_reference_declaration()) {
                 auto ref = noeud->comme_reference_declaration();
 
-                auto decl = ref->declaration_referee;
+                auto decl = ref->déclaration_référée;
 
                 if (!decl) {
                     return DecisionVisiteNoeud::CONTINUE;
@@ -412,9 +412,9 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
 
                 /* Nous ne devrions pas avoir de référence ici, la validation sémantique s'est
                  * chargée de transtyper automatiquement. */
-                auto type_indexe = indexage->operande_gauche->type;
+                auto type_indexe = indexage->opérande_gauche->type;
                 if (type_indexe->est_type_opaque()) {
-                    type_indexe = type_indexe->comme_type_opaque()->type_opacifie;
+                    type_indexe = type_indexe->comme_type_opaque()->type_opacifié;
                 }
 
                 switch (type_indexe->genre) {
@@ -428,7 +428,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                     case GenreNoeud::TABLEAU_FIXE:
                     {
                         assert(interface->decl_panique_tableau);
-                        if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
+                        if (indexage->aide_génération_code != IGNORE_VERIFICATION) {
                             ajoute_fonction(interface->decl_panique_tableau);
                         }
                         break;
@@ -436,7 +436,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                     case GenreNoeud::CHAINE:
                     {
                         assert(interface->decl_panique_chaine);
-                        if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
+                        if (indexage->aide_génération_code != IGNORE_VERIFICATION) {
                             ajoute_fonction(interface->decl_panique_chaine);
                         }
                         break;
@@ -471,14 +471,14 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
 
                 /* Ajout également du type de pointeur pour la génération de code C. */
                 auto type_feuille =
-                    construction_tableau->type->comme_type_tableau_fixe()->type_pointe;
+                    construction_tableau->type->comme_type_tableau_fixe()->type_pointé;
                 auto type_ptr = compilatrice->typeuse.type_pointeur_pour(type_feuille);
                 ajoute_type(type_ptr);
             }
             else if (noeud->est_tente()) {
                 auto tente = noeud->comme_tente();
 
-                if (!tente->expression_piegee) {
+                if (!tente->expression_piégée) {
                     auto interface = compilatrice->interface_kuri;
                     assert(interface->decl_panique_erreur);
                     ajoute_fonction(interface->decl_panique_erreur);
@@ -496,7 +496,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             }
             else if (noeud->est_appel()) {
                 auto appel = noeud->comme_appel();
-                auto appelee = appel->noeud_fonction_appelee;
+                auto appelee = appel->noeud_fonction_appelée;
 
                 if (appelee) {
                     if (appelee->est_entete_fonction()) {
@@ -541,7 +541,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             else if (noeud->est_declaration_variable_multiple()) {
                 auto declaration = noeud->comme_declaration_variable_multiple();
 
-                POUR (declaration->donnees_decl.plage()) {
+                POUR (declaration->données_decl.plage()) {
                     for (auto &var : it.variables.plage()) {
                         ajoute_type(var->type);
                     }
@@ -657,7 +657,7 @@ static bool doit_ajouter_les_dépendances_au_programme(NoeudExpression *noeud, P
     }
 
     if (noeud->est_corps_fonction()) {
-        auto entete = noeud->comme_corps_fonction()->entete;
+        auto entete = noeud->comme_corps_fonction()->entête;
         return programme->possède(entete);
     }
 
@@ -1190,7 +1190,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     }
 
     if (noeud->est_corps_fonction()) {
-        auto entete = noeud->comme_corps_fonction()->entete;
+        auto entete = noeud->comme_corps_fonction()->entête;
 
         /* Puisque les métaprogrammes peuvent ajouter des chaines à la compilation, nous devons
          * attendre la génération de code final avant de générer la RI pour ces fonctions. */
@@ -1841,15 +1841,15 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
              * code, mais nous devons avoir le métaprogramme (qui hérite de l'espace du programme)
              * dans l'espace demandant son exécution afin que le compte de taches d'exécution dans
              * l'espace soit cohérent. */
-            execute->metaprogramme->programme->change_d_espace(espace);
-            requiers_compilation_métaprogramme(espace, execute->metaprogramme);
+            execute->métaprogramme->programme->change_d_espace(espace);
+            requiers_compilation_métaprogramme(espace, execute->métaprogramme);
             module->exécution_directive_requise = true;
             executions_requises = true;
         }
 
         /* Nous devons attendre la fin de l'exécution de ces métaprogrammes avant de pouvoir généré
          * le code machine. */
-        executions_en_cours |= !execute->metaprogramme->fut_execute;
+        executions_en_cours |= !execute->métaprogramme->fut_execute;
     });
 
     if (executions_requises || executions_en_cours) {

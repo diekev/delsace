@@ -193,7 +193,7 @@ static Type *crée_type_adresse_fonction()
 
 static void initialise_type_pointeur(TypePointeur *résultat, Type *type_pointe_)
 {
-    résultat->type_pointe = type_pointe_;
+    résultat->type_pointé = type_pointe_;
     résultat->taille_octet = 8;
     résultat->alignement = 8;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -211,7 +211,7 @@ static void initialise_type_référence(TypeReference *résultat, Type *type_poi
 {
     assert(type_pointe_);
 
-    résultat->type_pointe = type_pointe_;
+    résultat->type_pointé = type_pointe_;
     résultat->taille_octet = 8;
     résultat->alignement = 8;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -227,9 +227,9 @@ static void initialise_type_fonction(TypeFonction *résultat,
                                      kuri::tablet<Type *, 6> const &entrees,
                                      Type *sortie)
 {
-    résultat->types_entrees.réserve(static_cast<int>(entrees.taille()));
+    résultat->types_entrées.réserve(static_cast<int>(entrees.taille()));
     POUR (entrees) {
-        résultat->types_entrees.ajoute(it);
+        résultat->types_entrées.ajoute(it);
     }
 
     résultat->type_sortie = sortie;
@@ -249,7 +249,7 @@ static void initialise_type_tableau_fixe(TypeTableauFixe *résultat,
 
     résultat->membres = std::move(membres_);
     résultat->nombre_de_membres_réels = 0;
-    résultat->type_pointe = type_pointe_;
+    résultat->type_pointé = type_pointe_;
     résultat->taille = taille_;
     résultat->alignement = type_pointe_->alignement;
     résultat->taille_octet = type_pointe_->taille_octet * static_cast<unsigned>(taille_);
@@ -270,7 +270,7 @@ static void initialise_type_tableau_dynamique(TypeTableauDynamique *résultat,
 
     résultat->membres = std::move(membres_);
     résultat->nombre_de_membres_réels = résultat->membres.taille();
-    résultat->type_pointe = type_pointe_;
+    résultat->type_pointé = type_pointe_;
     résultat->taille_octet = 24;
     résultat->alignement = 8;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -306,7 +306,7 @@ static void initialise_type_variadique(TypeVariadique *résultat,
                                        Type *type_pointe_,
                                        kuri::tableau<MembreTypeComposé, int> &&membres_)
 {
-    résultat->type_pointe = type_pointe_;
+    résultat->type_pointé = type_pointe_;
 
     if (type_pointe_ && type_pointe_->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
@@ -342,7 +342,7 @@ static void initialise_type_polymorphique(TypePolymorphique *résultat, Identifi
 
 static void initialise_type_opaque(TypeOpaque *résultat, Type *opacifie)
 {
-    résultat->type_opacifie = opacifie;
+    résultat->type_opacifié = opacifie;
     résultat->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     résultat->taille_octet = opacifie->taille_octet;
     résultat->alignement = opacifie->alignement;
@@ -681,7 +681,7 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 
     if (type->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_REFERENCE)) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_reference) {
-            if (it.type_pointe == type) {
+            if (it.type_pointé == type) {
                 return &it;
             }
         }
@@ -702,7 +702,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
 
     if (type_pointe->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TABLEAU_FIXE)) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tableau_fixe) {
-            if (it.type_pointe == type_pointe && it.taille == taille) {
+            if (it.type_pointé == type_pointe && it.taille == taille) {
                 return &it;
             }
         }
@@ -733,7 +733,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(NoeudExpression const *expression_ta
 
     if (type_élément->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TABLEAU_FIXE)) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tableau_fixe) {
-            if (it.expression_taille == expression_taille && it.type_pointe == type_élément) {
+            if (it.expression_taille == expression_taille && it.type_pointé == type_élément) {
                 return &it;
             }
         }
@@ -742,7 +742,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(NoeudExpression const *expression_ta
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_element();
     type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
     type->expression_taille = const_cast<NoeudExpression *>(expression_taille);
-    type->type_pointe = type_élément;
+    type->type_pointé = type_élément;
 
     return type;
 }
@@ -753,7 +753,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
 
     if (type_pointe->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TABLEAU_DYNAMIQUE)) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tableau_dynamique) {
-            if (it.type_pointe == type_pointe) {
+            if (it.type_pointé == type_pointe) {
                 return &it;
             }
         }
@@ -810,7 +810,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     VERROUILLE(types_variadiques);
 
     POUR_TABLEAU_PAGE (alloc->m_noeuds_type_variadique) {
-        if (it.type_pointe == type_pointe) {
+        if (it.type_pointé == type_pointe) {
             return &it;
         }
     }
@@ -846,12 +846,12 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it,
                                            kuri::tablet<Type *, 6> const &entrees)
 {
-    if (it->types_entrees.taille() != entrees.taille()) {
+    if (it->types_entrées.taille() != entrees.taille()) {
         return nullptr;
     }
 
-    for (int i = 0; i < it->types_entrees.taille(); ++i) {
-        if (it->types_entrees[i] != entrees[i]) {
+    for (int i = 0; i < it->types_entrées.taille(); ++i) {
+        if (it->types_entrées[i] != entrees[i]) {
             return nullptr;
         }
     }
@@ -884,7 +884,7 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
         operateurs_->ajoute_opérateurs_basiques_fonction(type);
     }
 
-    POUR (type->types_entrees) {
+    POUR (type->types_entrées) {
         types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, it});
     }
 
@@ -1008,7 +1008,7 @@ TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque const *decl,
             continue;
         }
 
-        if (it.type_opacifie == type_monomorphique) {
+        if (it.type_opacifié == type_monomorphique) {
             return &it;
         }
     }
@@ -1304,7 +1304,7 @@ kuri::chaine_statique donne_nom_portable(TypeStructure *type)
 
 void marque_polymorphique(TypeFonction *type)
 {
-    POUR (type->types_entrees) {
+    POUR (type->types_entrées) {
         if (it->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
             return;
@@ -1573,12 +1573,12 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         {
             enchaineuse.ajoute(donne_spécifiant_référence(options));
             chaine_type(
-                enchaineuse, static_cast<TypeReference const *>(type)->type_pointe, options);
+                enchaineuse, static_cast<TypeReference const *>(type)->type_pointé, options);
             return;
         }
         case GenreNoeud::POINTEUR:
         {
-            auto const type_pointe = type->comme_type_pointeur()->type_pointe;
+            auto const type_pointe = type->comme_type_pointeur()->type_pointé;
             if (type_pointe == nullptr) {
                 enchaineuse.ajoute("type_de(nul)");
             }
@@ -1622,7 +1622,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             auto parenthèse = donne_spécifiant_tableau(options);
             enchaineuse << parenthèse.début << parenthèse.fin;
             chaine_type(enchaineuse,
-                        static_cast<TypeTableauDynamique const *>(type)->type_pointe,
+                        static_cast<TypeTableauDynamique const *>(type)->type_pointé,
                         options);
             return;
         }
@@ -1649,7 +1649,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             }
 
             enchaineuse << parenthèse.fin;
-            chaine_type(enchaineuse, type_tabl->type_pointe, options);
+            chaine_type(enchaineuse, type_tabl->type_pointé, options);
             return;
         }
         case GenreNoeud::VARIADIQUE:
@@ -1657,8 +1657,8 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             auto type_variadique = static_cast<TypeVariadique const *>(type);
             enchaineuse << donne_spécifiant_variadique(options);
             /* N'imprime rien pour les types variadiques externes. */
-            if (type_variadique->type_pointe) {
-                chaine_type(enchaineuse, type_variadique->type_pointe, options);
+            if (type_variadique->type_pointé) {
+                chaine_type(enchaineuse, type_variadique->type_pointé, options);
             }
             return;
         }
@@ -1671,13 +1671,13 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
 
             auto virgule = parenthèses.début;
 
-            POUR (type_fonc->types_entrees) {
+            POUR (type_fonc->types_entrées) {
                 enchaineuse << virgule;
                 chaine_type(enchaineuse, it, options);
                 virgule = donne_séparateur_paramètres_fonction(options);
             }
 
-            if (type_fonc->types_entrees.est_vide()) {
+            if (type_fonc->types_entrées.est_vide()) {
                 enchaineuse << virgule;
             }
             enchaineuse << parenthèses.fin;
@@ -1725,7 +1725,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             if (drapeau_est_actif(options,
                                   OptionsImpressionType::AJOUTE_PARAMÈTRES_POLYMORPHIQUE)) {
                 enchaineuse << "(";
-                chaine_type(enchaineuse, type_opaque->type_opacifie, options);
+                chaine_type(enchaineuse, type_opaque->type_opacifié, options);
                 enchaineuse << ")";
             }
             return;
@@ -1776,19 +1776,19 @@ kuri::chaine chaine_type(const Type *type, bool ajoute_nom_paramètres_polymorph
 Type *type_déréférencé_pour(Type const *type)
 {
     if (type->est_type_pointeur()) {
-        return type->comme_type_pointeur()->type_pointe;
+        return type->comme_type_pointeur()->type_pointé;
     }
 
     if (type->est_type_reference()) {
-        return type->comme_type_reference()->type_pointe;
+        return type->comme_type_reference()->type_pointé;
     }
 
     if (type->est_type_tableau_fixe()) {
-        return type->comme_type_tableau_fixe()->type_pointe;
+        return type->comme_type_tableau_fixe()->type_pointé;
     }
 
     if (type->est_type_tableau_dynamique()) {
-        return type->comme_type_tableau_dynamique()->type_pointe;
+        return type->comme_type_tableau_dynamique()->type_pointé;
     }
 
     if (type->est_type_tranche()) {
@@ -1796,11 +1796,11 @@ Type *type_déréférencé_pour(Type const *type)
     }
 
     if (type->est_type_variadique()) {
-        return type->comme_type_variadique()->type_pointe;
+        return type->comme_type_variadique()->type_pointé;
     }
 
     if (type->est_type_opaque()) {
-        return type_déréférencé_pour(type->comme_type_opaque()->type_opacifie);
+        return type_déréférencé_pour(type->comme_type_opaque()->type_opacifié);
     }
 
     return nullptr;
@@ -1969,7 +1969,7 @@ bool est_type_tableau_fixe(Type const *type)
 {
     return type->est_type_tableau_fixe() ||
            (type->est_type_opaque() &&
-            type->comme_type_opaque()->type_opacifie->est_type_tableau_fixe());
+            type->comme_type_opaque()->type_opacifié->est_type_tableau_fixe());
 }
 
 bool est_pointeur_vers_tableau_fixe(Type const *type)
@@ -1980,11 +1980,11 @@ bool est_pointeur_vers_tableau_fixe(Type const *type)
 
     auto const type_pointeur = type->comme_type_pointeur();
 
-    if (!type_pointeur->type_pointe) {
+    if (!type_pointeur->type_pointé) {
         return false;
     }
 
-    return est_type_tableau_fixe(type_pointeur->type_pointe);
+    return est_type_tableau_fixe(type_pointeur->type_pointé);
 }
 
 /* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
@@ -2007,9 +2007,9 @@ bool est_structure_info_type_défaut(GenreNoeud genre)
 
 Type const *donne_type_opacifié_racine(TypeOpaque const *type_opaque)
 {
-    Type const *résultat = type_opaque->type_opacifie;
+    Type const *résultat = type_opaque->type_opacifié;
     while (résultat->est_type_opaque()) {
-        résultat = résultat->comme_type_opaque()->type_opacifie;
+        résultat = résultat->comme_type_opaque()->type_opacifié;
     }
     return résultat;
 }
@@ -2041,7 +2041,7 @@ Type const *type_entier_sous_jacent(Type const *type)
     }
 
     if (type->est_type_opaque()) {
-        return type_entier_sous_jacent(type->comme_type_opaque()->type_opacifie);
+        return type_entier_sous_jacent(type->comme_type_opaque()->type_opacifié);
     }
 
     return nullptr;
@@ -2078,7 +2078,7 @@ std::optional<uint32_t> est_type_de_base(Type const *type_dérivé, Type const *
 
 bool est_type_pointeur_nul(Type const *type)
 {
-    return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointe == nullptr;
+    return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointé == nullptr;
 }
 
 ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose const *type,
@@ -2104,8 +2104,8 @@ ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose c
                 index_membre = index_courant;
             }
             else {
-                auto type_pointe_de = type_a_tester->comme_type_pointeur()->type_pointe;
-                auto type_pointe_vers = it.type->comme_type_pointeur()->type_pointe;
+                auto type_pointe_de = type_a_tester->comme_type_pointeur()->type_pointé;
+                auto type_pointe_vers = it.type->comme_type_pointeur()->type_pointé;
 
                 if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
                     if (index_membre != -1) {
@@ -2204,7 +2204,7 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
 
     if (type->est_type_opaque()) {
         return est_type_implicitement_utilisable_pour_indexage(
-            type->comme_type_opaque()->type_opacifie);
+            type->comme_type_opaque()->type_opacifié);
     }
 
     return false;
@@ -2247,7 +2247,7 @@ bool peut_etre_type_constante(Type const *type)
 bool est_type_opacifié(Type const *type_dest, Type const *type_source)
 {
     return type_dest->est_type_opaque() &&
-           type_dest->comme_type_opaque()->type_opacifie == type_source;
+           type_dest->comme_type_opaque()->type_opacifié == type_source;
 }
 
 bool est_type_fondamental(const Type *type)
@@ -2286,7 +2286,7 @@ bool est_type_fondamental(const Type *type)
         }
         case GenreNoeud::DECLARATION_OPAQUE:
         {
-            return est_type_fondamental(type->comme_type_opaque()->type_opacifie);
+            return est_type_fondamental(type->comme_type_opaque()->type_opacifié);
         }
         CAS_POUR_NOEUDS_HORS_TYPES:
         {
@@ -2352,7 +2352,7 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
             case GenreNoeud::FONCTION:
             {
                 auto type_fonction = type_courant->comme_type_fonction();
-                POUR (type_fonction->types_entrees) {
+                POUR (type_fonction->types_entrées) {
                     pile.empile(it);
                 }
                 pile.empile(type_fonction->type_sortie);
@@ -2369,22 +2369,22 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
             }
             case GenreNoeud::REFERENCE:
             {
-                pile.empile(type_courant->comme_type_reference()->type_pointe);
+                pile.empile(type_courant->comme_type_reference()->type_pointé);
                 break;
             }
             case GenreNoeud::POINTEUR:
             {
-                pile.empile(type_courant->comme_type_pointeur()->type_pointe);
+                pile.empile(type_courant->comme_type_pointeur()->type_pointé);
                 break;
             }
             case GenreNoeud::VARIADIQUE:
             {
-                pile.empile(type_courant->comme_type_variadique()->type_pointe);
+                pile.empile(type_courant->comme_type_variadique()->type_pointé);
                 break;
             }
             case GenreNoeud::TABLEAU_DYNAMIQUE:
             {
-                pile.empile(type_courant->comme_type_tableau_dynamique()->type_pointe);
+                pile.empile(type_courant->comme_type_tableau_dynamique()->type_pointé);
                 break;
             }
             case GenreNoeud::TYPE_TRANCHE:
@@ -2394,12 +2394,12 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
             }
             case GenreNoeud::TABLEAU_FIXE:
             {
-                pile.empile(type_courant->comme_type_tableau_fixe()->type_pointe);
+                pile.empile(type_courant->comme_type_tableau_fixe()->type_pointé);
                 break;
             }
             case GenreNoeud::DECLARATION_OPAQUE:
             {
-                pile.empile(type_courant->comme_type_opaque()->type_opacifie);
+                pile.empile(type_courant->comme_type_opaque()->type_opacifié);
                 break;
             }
             CAS_POUR_NOEUDS_HORS_TYPES:

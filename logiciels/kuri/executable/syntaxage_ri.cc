@@ -2250,7 +2250,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         }
 
         auto opaque = déclaration->comme_type_opaque();
-        opaque->type_opacifie = données.type_sous_jacent;
+        opaque->type_opacifié = données.type_sous_jacent;
     }
 
     void débute_fonction(Fonction const &données_fonction)

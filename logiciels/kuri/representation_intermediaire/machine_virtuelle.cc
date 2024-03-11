@@ -466,7 +466,7 @@ static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
 
     auto type_fonction = fonction->type->comme_type_fonction();
     auto pointeur_lecture_retour = pointeur_debut_entree;
-    POUR_INDEX (type_fonction->types_entrees) {
+    POUR_INDEX (type_fonction->types_entrées) {
         logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << index_it << " ("
                  << chaine_type(it) << ") : ";
         lis_valeur(pointeur_lecture_retour, it, logueuse);
@@ -934,7 +934,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     auto decalage_argument = 0u;
 
     if (ptr_fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
-        auto nombre_arguments_fixes = static_cast<unsigned>(type_fonction->types_entrees.taille() -
+        auto nombre_arguments_fixes = static_cast<unsigned>(type_fonction->types_entrées.taille() -
                                                             1);
         auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille());
 
@@ -976,7 +976,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         }
     }
     else {
-        POUR (type_fonction->types_entrees) {
+        POUR (type_fonction->types_entrées) {
             auto ptr = &pointeur_arguments[decalage_argument];
             pointeurs_arguments.ajoute(ptr);
             decalage_argument += it->taille_octet;

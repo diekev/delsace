@@ -547,7 +547,7 @@ static NoeudDeclarationEnteteFonction *entete_fonction(NoeudExpression *noeud)
     }
 
     if (noeud->est_corps_fonction()) {
-        return noeud->comme_corps_fonction()->entete;
+        return noeud->comme_corps_fonction()->entête;
     }
 
     return nullptr;
@@ -856,7 +856,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                                                                      it.type,
                                                                      pointeur_membre,
                                                                      détectrice_fuites_de_mémoire);
-                construction_structure->parametres_resolus.ajoute(noeud_membre);
+                construction_structure->paramètres_résolus.ajoute(noeud_membre);
             }
 
             return construction_structure;
@@ -873,7 +873,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                                                              type_union->type_le_plus_grand,
                                                              pointeur,
                                                              détectrice_fuites_de_mémoire);
-                construction_union->parametres_resolus.ajoute(expr);
+                construction_union->paramètres_résolus.ajoute(expr);
             }
             else {
                 auto pointeur_donnees = pointeur;
@@ -884,7 +884,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 auto type_donnees = type_union->membres[index_membre].type;
 
                 for (auto i = 0; i < index_membre; ++i) {
-                    construction_union->parametres_resolus.ajoute(nullptr);
+                    construction_union->paramètres_résolus.ajoute(nullptr);
                 }
 
                 auto expr = noeud_syntaxique_depuis_résultat(espace,
@@ -893,7 +893,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                                                              type_donnees,
                                                              pointeur_donnees,
                                                              détectrice_fuites_de_mémoire);
-                construction_union->parametres_resolus.ajoute(expr);
+                construction_union->paramètres_résolus.ajoute(expr);
             }
 
             return construction_union;
@@ -944,7 +944,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                          directive,
                                                          lexeme,
-                                                         type_opaque->type_opacifie,
+                                                         type_opaque->type_opacifié,
                                                          pointeur,
                                                          détectrice_fuites_de_mémoire);
 
@@ -965,12 +965,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             virgule->expressions.réserve(type_tableau->taille);
 
             for (auto i = 0; i < type_tableau->taille; ++i) {
-                auto pointeur_valeur = pointeur + type_tableau->type_pointe->taille_octet *
+                auto pointeur_valeur = pointeur + type_tableau->type_pointé->taille_octet *
                                                       static_cast<unsigned>(i);
                 auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                              directive,
                                                              lexeme,
-                                                             type_tableau->type_pointe,
+                                                             type_tableau->type_pointé,
                                                              pointeur_valeur,
                                                              détectrice_fuites_de_mémoire);
                 virgule->expressions.ajoute(expr);
@@ -998,7 +998,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             /* crée un tableau fixe */
             auto type_tableau_fixe = compilatrice.typeuse.type_tableau_fixe(
-                type_tableau->type_pointe, static_cast<int>(taille_donnees));
+                type_tableau->type_pointé, static_cast<int>(taille_donnees));
             auto construction = noeud_syntaxique_depuis_résultat(espace,
                                                                  directive,
                                                                  lexeme,
@@ -1008,7 +1008,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             /* convertis vers un tableau dynamique */
             auto comme = assembleuse->crée_comme(lexeme);
-            comme->type = compilatrice.typeuse.crée_type_tranche(type_tableau->type_pointe);
+            comme->type = compilatrice.typeuse.crée_type_tranche(type_tableau->type_pointé);
             comme->expression = construction;
             comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};
