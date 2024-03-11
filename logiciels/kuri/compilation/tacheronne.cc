@@ -263,7 +263,7 @@ void Tacheronne::gere_tache()
         }
 
         switch (tache.genre) {
-            case GenreTâche::COMPILATION_TERMINEE:
+            case GenreTâche::COMPILATION_TERMINÉE:
             {
                 temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
                 return;
@@ -449,8 +449,8 @@ void Tacheronne::gere_tache()
                                      types_utilises.insère(type);
                                  }
 
-                                 if (racine->est_entete_fonction()) {
-                                     auto entete = racine->comme_entete_fonction();
+                                 if (racine->est_entête_fonction()) {
+                                     auto entete = racine->comme_entête_fonction();
 
                                      POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
                                          if (it->type) {
@@ -540,10 +540,10 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
     compilatrice.dépose_sémanticienne(sémanticienne);
 }
 
-static NoeudDeclarationEnteteFonction *entete_fonction(NoeudExpression *noeud)
+static NoeudDéclarationEntêteFonction *entete_fonction(NoeudExpression *noeud)
 {
-    if (noeud->est_entete_fonction()) {
-        return noeud->comme_entete_fonction();
+    if (noeud->est_entête_fonction()) {
+        return noeud->comme_entête_fonction();
     }
 
     if (noeud->est_corps_fonction()) {
@@ -557,7 +557,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
 
-    if (noeud->type == nullptr && !noeud->est_declaration_variable_multiple()) {
+    if (noeud->type == nullptr && !noeud->est_déclaration_variable_multiple()) {
         unite->espace->rapporte_erreur(
             noeud, "Erreur interne: type nul sur une déclaration avant la génération de RI");
         return false;
@@ -593,7 +593,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 
     if (unite->est_pour_generation_ri_principale_mp()) {
         constructrice_ri.génère_ri_pour_fonction_métaprogramme(unite->espace,
-                                                               noeud->comme_entete_fonction());
+                                                               noeud->comme_entête_fonction());
     }
     else {
         constructrice_ri.génère_ri_pour_noeud(unite->espace, noeud);
@@ -676,7 +676,7 @@ void Tacheronne::execute_metaprogrammes()
                     auto résultat = noeud_syntaxique_depuis_résultat(
                         espace,
                         it->directive,
-                        it->directive->lexeme,
+                        it->directive->lexème,
                         type,
                         pointeur,
                         it->données_exécution->détectrice_fuite_de_mémoire);
@@ -734,7 +734,7 @@ void Tacheronne::execute_metaprogrammes()
 
 NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
     EspaceDeTravail *espace,
-    NoeudDirectiveExecute *directive,
+    NoeudDirectiveExécute *directive,
     Lexème const *lexeme,
     Type *type,
     octet_t *pointeur,
@@ -744,7 +744,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         case GenreNoeud::EINI:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::POLYMORPHIQUE:
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::VARIADIQUE:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
@@ -796,9 +796,9 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 valeur = static_cast<uint64_t>(*reinterpret_cast<int64_t *>(pointeur));
             }
 
-            return assembleuse->crée_litterale_entier(lexeme, type, valeur);
+            return assembleuse->crée_littérale_entier(lexeme, type, valeur);
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENTIER_NATUREL:
@@ -817,17 +817,17 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 valeur = *reinterpret_cast<uint64_t *>(pointeur);
             }
 
-            return assembleuse->crée_litterale_entier(lexeme, type, valeur);
+            return assembleuse->crée_littérale_entier(lexeme, type, valeur);
         }
         case GenreNoeud::BOOL:
         {
             auto valeur = *reinterpret_cast<bool *>(pointeur);
-            auto noeud_syntaxique = assembleuse->crée_litterale_bool(lexeme);
+            auto noeud_syntaxique = assembleuse->crée_littérale_bool(lexeme);
             noeud_syntaxique->valeur = valeur;
             noeud_syntaxique->type = type;
             return noeud_syntaxique;
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             double valeur = 0.0;
 
@@ -839,9 +839,9 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 valeur = *reinterpret_cast<double *>(pointeur);
             }
 
-            return assembleuse->crée_litterale_reel(lexeme, type, valeur);
+            return assembleuse->crée_littérale_réel(lexeme, type, valeur);
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto type_structure = type->comme_type_structure();
 
@@ -861,7 +861,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             return construction_structure;
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
             auto construction_union = assembleuse->crée_construction_structure(lexeme, type_union);
@@ -878,7 +878,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             else {
                 auto pointeur_donnees = pointeur;
                 auto pointeur_discriminant = *reinterpret_cast<int *>(pointeur +
-                                                                      type_union->decalage_index);
+                                                                      type_union->décalage_index);
                 auto index_membre = pointeur_discriminant - 1;
 
                 auto type_donnees = type_union->membres[index_membre].type;
@@ -910,7 +910,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             auto const la_mémoire_fut_allouée = détectrice_fuites_de_mémoire.supprime_bloc(
                 const_cast<char *>(chaine.pointeur()));
 
-            auto lit_chaine = assembleuse->crée_litterale_chaine(lexeme);
+            auto lit_chaine = assembleuse->crée_littérale_chaine(lexeme);
             lit_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(chaine);
             lit_chaine->type = type;
 
@@ -920,11 +920,11 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             return lit_chaine;
         }
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             auto type_de_donnees = *reinterpret_cast<Type **>(pointeur);
             type_de_donnees = compilatrice.typeuse.type_type_de_donnees(type_de_donnees);
-            return assembleuse->crée_reference_type(lexeme, type_de_donnees);
+            return assembleuse->crée_référence_type(lexeme, type_de_donnees);
         }
         case GenreNoeud::FONCTION:
         {
@@ -935,10 +935,10 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                                         "La fonction retournée n'a pas de déclaration !\n");
             }
 
-            return assembleuse->crée_reference_declaration(
-                lexeme, const_cast<NoeudDeclarationEnteteFonction *>(fonction->decl));
+            return assembleuse->crée_référence_déclaration(
+                lexeme, const_cast<NoeudDéclarationEntêteFonction *>(fonction->decl));
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             auto expr = noeud_syntaxique_depuis_résultat(espace,

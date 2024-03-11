@@ -147,7 +147,7 @@ class GestionnaireCode {
 
     /* Toutes les fonctions parsées et typées lors de la compilation, qui ont traversées
      * typage_terminé. Accessible via les métaprogrammes, via compilatrice_fonctions_parsées(). */
-    kuri::tableau<NoeudDeclarationEnteteFonction *> m_fonctions_parsées{};
+    kuri::tableau<NoeudDéclarationEntêteFonction *> m_fonctions_parsées{};
 
     mutable StatistiquesGestion stats{};
 
@@ -290,7 +290,7 @@ class GestionnaireCode {
     void crée_tâches_pour_ordonnanceuse();
 
   public:
-    const kuri::tableau<NoeudDeclarationEnteteFonction *> &fonctions_parsées() const
+    const kuri::tableau<NoeudDéclarationEntêteFonction *> &fonctions_parsées() const
     {
         return m_fonctions_parsées;
     }

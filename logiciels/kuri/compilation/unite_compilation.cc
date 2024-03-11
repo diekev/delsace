@@ -290,7 +290,7 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
         /* À FAIRE : généralise. */
         if (it.est<AttenteSurNoeudCode>()) {
             assert(m_raison_d_être == RaisonDÊtre::ENVOIE_MESSAGE);
-            static_cast<MessageTypageCodeTermine *>(message)->code =
+            static_cast<MessageTypageCodeTerminé *>(message)->code =
                 it.noeud_code().noeud->noeud_code;
         }
 

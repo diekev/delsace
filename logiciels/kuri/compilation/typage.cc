@@ -139,7 +139,7 @@ static Type *crée_type_reel(IdentifiantCode *ident, unsigned taille_octet)
 {
     auto type = memoire::loge<Type>("Type");
     type->ident = ident;
-    type->genre = GenreNoeud::REEL;
+    type->genre = GenreNoeud::RÉEL;
     type->taille_octet = taille_octet;
     type->alignement = taille_octet;
     type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -282,7 +282,7 @@ static void initialise_type_tableau_dynamique(TypeTableauDynamique *résultat,
     type_pointe_->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_TABLEAU_DYNAMIQUE;
 }
 
-static void initialise_type_tranche(NoeudDeclarationTypeTranche *résultat,
+static void initialise_type_tranche(NoeudDéclarationTypeTranche *résultat,
                                     Type *type_élément,
                                     kuri::tableau<MembreTypeComposé, int> &&membres_)
 {
@@ -461,7 +461,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<RegistreDesOpérateurs> &o) : operateurs
     TypeBase::EINI = crée_type_eini();
     TypeBase::CHAINE = crée_type_chaine();
 
-    type_type_de_donnees_ = alloc->m_noeuds_type_type_de_donnees.ajoute_element();
+    type_type_de_donnees_ = alloc->m_noeuds_type_type_de_données.ajoute_element();
     initialise_type_type_de_données(type_type_de_donnees_, nullptr);
 
     // nous devons créer le pointeur nul avant les autres types, car nous en avons besoin pour
@@ -496,12 +496,12 @@ Typeuse::Typeuse(dls::outils::Synchrone<RegistreDesOpérateurs> &o) : operateurs
     membres_eini.ajoute({nullptr, TypeBase::PTR_RIEN, ID::pointeur, 0});
     /* À FAIRE : type_info_type_ n'est pas encore parsé. */
     membres_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
-    auto type_eini = TypeBase::EINI->comme_type_compose();
+    auto type_eini = TypeBase::EINI->comme_type_composé();
     type_eini->membres = std::move(membres_eini);
     type_eini->nombre_de_membres_réels = type_eini->membres.taille();
     type_eini->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
-    auto type_chaine = TypeBase::CHAINE->comme_type_compose();
+    auto type_chaine = TypeBase::CHAINE->comme_type_composé();
     auto membres_chaine = kuri::tableau<MembreTypeComposé, int>();
     membres_chaine.ajoute({nullptr, TypeBase::PTR_Z8, ID::pointeur, 0});
     membres_chaine.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
@@ -516,9 +516,9 @@ Typeuse::~Typeuse()
         memoire::deloge("Type", ptr);
     }
 
-    auto type_chaine = TypeBase::CHAINE->comme_type_compose();
+    auto type_chaine = TypeBase::CHAINE->comme_type_composé();
     memoire::deloge("TypeCompose", type_chaine);
-    auto type_eini = TypeBase::EINI->comme_type_compose();
+    auto type_eini = TypeBase::EINI->comme_type_composé();
     memoire::deloge("TypeCompose", type_eini);
     memoire::deloge("AllocatriceNoeud", alloc);
 }
@@ -610,7 +610,7 @@ Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
         {
             return TypeBase::RIEN;
         }
-        case GenreLexème::TYPE_DE_DONNEES:
+        case GenreLexème::TYPE_DE_DONNÉES:
         {
             return type_type_de_donnees_;
         }
@@ -680,14 +680,14 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
     VERROUILLE(types_references);
 
     if (type->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_REFERENCE)) {
-        POUR_TABLEAU_PAGE (alloc->m_noeuds_type_reference) {
+        POUR_TABLEAU_PAGE (alloc->m_noeuds_type_référence) {
             if (it.type_pointé == type) {
                 return &it;
             }
         }
     }
 
-    auto résultat = alloc->m_noeuds_type_reference.ajoute_element();
+    auto résultat = alloc->m_noeuds_type_référence.ajoute_element();
     initialise_type_référence(résultat, type);
 
     types_à_insérer_dans_graphe.ajoute_aux_données_globales({résultat, type});
@@ -776,7 +776,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     return type;
 }
 
-NoeudDeclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
+NoeudDéclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
                                                         bool insère_dans_graphe)
 {
     VERROUILLE(types_tranches);
@@ -912,7 +912,7 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
         return table_types_de_donnees.valeur_ou(type_connu, nullptr);
     }
 
-    auto résultat = alloc->m_noeuds_type_type_de_donnees.ajoute_element();
+    auto résultat = alloc->m_noeuds_type_type_de_données.ajoute_element();
     initialise_type_type_de_données(résultat, type_connu);
     table_types_de_donnees.insère(type_connu, résultat);
     return résultat;
@@ -954,7 +954,7 @@ TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
 
     auto type = alloc->m_noeuds_type_union.ajoute_element();
     type->ident = ID::anonyme;
-    type->lexeme = lexeme;
+    type->lexème = lexeme;
     type->bloc_parent = bloc_parent;
 
     type->membres.réserve(static_cast<int>(membres.taille()));
@@ -970,7 +970,7 @@ TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
 
     if (!type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         calcule_taille_type_composé(type, false, 0);
-        crée_type_structure(*this, type, type->decalage_index);
+        crée_type_structure(*this, type, type->décalage_index);
     }
 
     return type;
@@ -998,7 +998,7 @@ TypePolymorphique *Typeuse::crée_polymorphique(IdentifiantCode *ident)
     return résultat;
 }
 
-TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque const *decl,
+TypeOpaque *Typeuse::monomorphe_opaque(NoeudDéclarationTypeOpaque const *decl,
                                        Type *type_monomorphique)
 {
     VERROUILLE(types_opaques);
@@ -1090,7 +1090,7 @@ void Typeuse::définis_info_type_pour_type(const InfoType *info_type, const Type
     m_infos_types_vers_types.insère(info_type, type);
 }
 
-NoeudDeclaration const *Typeuse::decl_pour_info_type(InfoType const *info_type)
+NoeudDéclaration const *Typeuse::decl_pour_info_type(InfoType const *info_type)
 {
     VERROUILLE(infos_types_vers_types);
     bool trouvé = false;
@@ -1099,7 +1099,7 @@ NoeudDeclaration const *Typeuse::decl_pour_info_type(InfoType const *info_type)
         return nullptr;
     }
 
-    if (!résultat->lexeme) {
+    if (!résultat->lexème) {
         return nullptr;
     }
 
@@ -1110,7 +1110,7 @@ NoeudDeclaration const *Typeuse::decl_pour_info_type(InfoType const *info_type)
 /** \name Fonctions diverses pour les types.
  * \{ */
 
-void assigne_fonction_init(Type *type, NoeudDeclarationEnteteFonction *fonction)
+void assigne_fonction_init(Type *type, NoeudDéclarationEntêteFonction *fonction)
 {
     type->fonction_init = fonction;
     type->drapeaux_type |= DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE;
@@ -1364,7 +1364,7 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
     }
 
     type->type_structure->bloc_parent = type->bloc_parent;
-    type->type_structure->lexeme = type->lexeme;
+    type->type_structure->lexème = type->lexème;
     type->type_structure->ident = type->ident;
     type->type_structure->taille_octet = type->taille_octet;
     type->type_structure->alignement = type->alignement;
@@ -1491,7 +1491,7 @@ static ParenthèseParamètres donne_spécifiant_tranche(OptionsImpressionType co
 }
 
 static void chaine_type_structure(Enchaineuse &enchaineuse,
-                                  const NoeudDeclarationClasse *decl,
+                                  const NoeudDéclarationClasse *decl,
                                   OptionsImpressionType options)
 {
     enchaineuse << decl->ident->nom;
@@ -1508,7 +1508,7 @@ static void chaine_type_structure(Enchaineuse &enchaineuse,
                 enchaineuse << it->ident->nom << ": ";
             }
 
-            if (it->type->est_type_type_de_donnees()) {
+            if (it->type->est_type_type_de_données()) {
                 auto nouvelles_options = options;
                 if (drapeau_est_actif(options,
                                       OptionsImpressionType::NORMALISE_PARENTHÈSE_PARAMÈTRE)) {
@@ -1517,11 +1517,11 @@ static void chaine_type_structure(Enchaineuse &enchaineuse,
                     nouvelles_options |= OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE;
                 }
 
-                enchaineuse << chaine_type(it->type->comme_type_type_de_donnees()->type_connu,
+                enchaineuse << chaine_type(it->type->comme_type_type_de_données()->type_connu,
                                            nouvelles_options);
             }
             else {
-                enchaineuse << it->comme_declaration_constante()->valeur_expression;
+                enchaineuse << it->comme_déclaration_constante()->valeur_expression;
             }
 
             virgule = donne_séparateur_paramètres(options);
@@ -1564,12 +1564,12 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             enchaineuse.ajoute(type->ident->nom);
             return;
         }
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         {
             enchaineuse.ajoute(donne_spécifiant_référence(options));
             chaine_type(
@@ -1588,7 +1588,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             }
             return;
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = static_cast<TypeUnion const *>(type);
 
@@ -1605,7 +1605,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             chaine_type_structure(enchaineuse, type_union, options);
             return;
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto type_structure = static_cast<TypeStructure const *>(type);
 
@@ -1695,16 +1695,16 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             }
             return;
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         {
             enchaineuse << type->ident->nom;
             return;
         }
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         {
-            auto type_de_donnees = type->comme_type_type_de_donnees();
+            auto type_de_donnees = type->comme_type_type_de_données();
             enchaineuse << "type_de_données";
             if (type_de_donnees->type_connu) {
                 enchaineuse << '(' << chaine_type(type_de_donnees->type_connu) << ')';
@@ -1717,7 +1717,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             enchaineuse << "$" << type_polymorphique->ident->nom;
             return;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = static_cast<TypeOpaque const *>(type);
             enchaineuse << static_cast<TypeOpaque const *>(type)->ident->nom;
@@ -1779,8 +1779,8 @@ Type *type_déréférencé_pour(Type const *type)
         return type->comme_type_pointeur()->type_pointé;
     }
 
-    if (type->est_type_reference()) {
-        return type->comme_type_reference()->type_pointé;
+    if (type->est_type_référence()) {
+        return type->comme_type_référence()->type_pointé;
     }
 
     if (type->est_type_tableau_fixe()) {
@@ -1920,7 +1920,7 @@ void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t ali
                 taille_union += marge_pour_alignement(max_alignement, taille_union);
             }
 
-            type_union->decalage_index = taille_union;
+            type_union->décalage_index = taille_union;
 
             /* ajoute la taille du membre actif */
             taille_union += static_cast<unsigned>(taille_de(int));
@@ -1995,8 +1995,8 @@ bool est_structure_info_type_défaut(GenreNoeud genre)
         case GenreNoeud::EINI:
         case GenreNoeud::RIEN:
         case GenreNoeud::CHAINE:
-        case GenreNoeud::TYPE_DE_DONNEES:
-        case GenreNoeud::REEL:
+        case GenreNoeud::TYPE_DE_DONNÉES:
+        case GenreNoeud::RÉEL:
         case GenreNoeud::OCTET:
         case GenreNoeud::BOOL:
             return true;
@@ -2020,15 +2020,15 @@ Type const *type_entier_sous_jacent(Type const *type)
         return TypeBase::Z32;
     }
 
-    if (type->est_type_enum()) {
-        return type->comme_type_enum()->type_sous_jacent;
+    if (type->est_type_énum()) {
+        return type->comme_type_énum()->type_sous_jacent;
     }
 
     if (type->est_type_erreur()) {
         return type->comme_type_erreur()->type_sous_jacent;
     }
 
-    if (type->est_type_type_de_donnees()) {
+    if (type->est_type_type_de_données()) {
         return TypeBase::Z64;
     }
 
@@ -2186,7 +2186,7 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
         return true;
     }
 
-    if (type->est_type_enum()) {
+    if (type->est_type_énum()) {
         /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les index peuvent être
          * arbitrairement larges. */
         return !type->est_type_enum_drapeau();
@@ -2196,7 +2196,7 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
         return true;
     }
 
-    if (type->est_type_type_de_donnees()) {
+    if (type->est_type_type_de_données()) {
         /* Les type_de_données doivent pouvoir être utilisé pour indexer la table des types, car
          * leurs valeurs dépends de l'index du type dans ladite table. */
         return true;
@@ -2214,7 +2214,7 @@ bool peut_etre_type_constante(Type const *type)
 {
     switch (type->genre) {
         /* Possible mais non supporté pour le moment. */
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         /* Il n'est pas encore clair comment prendre le pointeur de la constante pour les tableaux
          * dynamiques. */
         case GenreNoeud::TABLEAU_DYNAMIQUE:
@@ -2224,13 +2224,13 @@ bool peut_etre_type_constante(Type const *type)
         /* Il n'est pas claire comment gérer les unions, les sûres doivent avoir un membre
          * actif, et les valeurs pour les sûres ou nonsûres doivent être transtypées sur le
          * lieu d'utilisation. */
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         /* Un eini doit avoir une info-type, et prendre une valeur par pointeur, qui n'est pas
          * encore supporté pour les constantes. */
         case GenreNoeud::EINI:
         /* Les tuples ne sont que pour les retours de fonctions. */
         case GenreNoeud::TUPLE:
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::RIEN:
@@ -2256,9 +2256,9 @@ bool est_type_fondamental(const Type *type)
         case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
         case GenreNoeud::RIEN:
-        case GenreNoeud::REFERENCE:
-        case GenreNoeud::DECLARATION_UNION:
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::RÉFÉRENCE:
+        case GenreNoeud::DÉCLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         case GenreNoeud::TABLEAU_FIXE:
         case GenreNoeud::TYPE_TRANCHE:
@@ -2273,18 +2273,18 @@ bool est_type_fondamental(const Type *type)
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::FONCTION:
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             return true;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             return est_type_fondamental(type->comme_type_opaque()->type_opacifié);
         }
@@ -2337,12 +2337,12 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
             case GenreNoeud::RIEN:
             case GenreNoeud::BOOL:
             case GenreNoeud::OCTET:
-            case GenreNoeud::TYPE_DE_DONNEES:
-            case GenreNoeud::REEL:
+            case GenreNoeud::TYPE_DE_DONNÉES:
+            case GenreNoeud::RÉEL:
             case GenreNoeud::ENTIER_CONSTANT:
             case GenreNoeud::ENTIER_NATUREL:
             case GenreNoeud::ENTIER_RELATIF:
-            case GenreNoeud::DECLARATION_ENUM:
+            case GenreNoeud::DÉCLARATION_ÉNUM:
             case GenreNoeud::ERREUR:
             case GenreNoeud::ENUM_DRAPEAU:
             case GenreNoeud::TYPE_ADRESSE_FONCTION:
@@ -2358,18 +2358,18 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
                 pile.empile(type_fonction->type_sortie);
                 break;
             }
-            case GenreNoeud::DECLARATION_UNION:
-            case GenreNoeud::DECLARATION_STRUCTURE:
+            case GenreNoeud::DÉCLARATION_UNION:
+            case GenreNoeud::DÉCLARATION_STRUCTURE:
             {
-                auto type_compose = type_courant->comme_type_compose();
+                auto type_compose = type_courant->comme_type_composé();
                 POUR (type_compose->donne_membres_pour_code_machine()) {
                     pile.empile(it.type);
                 }
                 break;
             }
-            case GenreNoeud::REFERENCE:
+            case GenreNoeud::RÉFÉRENCE:
             {
-                pile.empile(type_courant->comme_type_reference()->type_pointé);
+                pile.empile(type_courant->comme_type_référence()->type_pointé);
                 break;
             }
             case GenreNoeud::POINTEUR:
@@ -2397,7 +2397,7 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
                 pile.empile(type_courant->comme_type_tableau_fixe()->type_pointé);
                 break;
             }
-            case GenreNoeud::DECLARATION_OPAQUE:
+            case GenreNoeud::DÉCLARATION_OPAQUE:
             {
                 pile.empile(type_courant->comme_type_opaque()->type_opacifié);
                 break;
