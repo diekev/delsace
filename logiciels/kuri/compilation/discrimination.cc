@@ -48,7 +48,7 @@ static RésultatValidation valide_présence_membre(
 
 RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *type)
 {
-    auto expression = inst->expression_discriminee;
+    auto expression = inst->expression_discriminée;
     auto type_énum = static_cast<TypeEnum *>(type);
     inst->op = type_énum->table_opérateurs->opérateur_egt;
 
@@ -168,13 +168,13 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
                                                NoeudExpressionAppel *appel,
                                                NoeudBloc *bloc_final_recherche_variable)
 {
-    if (appel->parametres.taille() != 1) {
+    if (appel->paramètres.taille() != 1) {
         espace->rapporte_erreur(
             appel, "Trop d'expressions pour la destructuration de la valeur de l'union");
         return false;
     }
 
-    auto param = appel->parametres[0];
+    auto param = appel->paramètres[0];
 
     if (!param->est_reference_declaration()) {
         espace->rapporte_erreur(param,
@@ -219,14 +219,14 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
     bloc_insertion->expressions->ajoute_au_début(déclaration_pour_expression);
     bloc_insertion->ajoute_membre(déclaration_pour_expression);
 
-    paire_discr->variable_capturee = déclaration_pour_expression;
+    paire_discr->variable_capturée = déclaration_pour_expression;
 
     return true;
 }
 
 RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *type)
 {
-    auto expression = inst->expression_discriminee;
+    auto expression = inst->expression_discriminée;
     auto type_union = type->comme_type_union();
     inst->op = TypeBase::Z32->table_opérateurs->opérateur_egt;
 
@@ -403,7 +403,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
             }
             crée_variable_pour_expression_test(m_espace,
                                                m_tacheronne->assembleuse,
-                                               inst->expression_discriminee,
+                                               inst->expression_discriminée,
                                                type_union,
                                                inst->bloc_parent,
                                                inst->paires_discr[i],
@@ -508,13 +508,13 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
 
 RésultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
 {
-    auto expression = inst->expression_discriminee;
+    auto expression = inst->expression_discriminée;
     auto type = expression->type;
 
     if (type->est_type_reference()) {
-        crée_transtypage_implicite_au_besoin(inst->expression_discriminee,
+        crée_transtypage_implicite_au_besoin(inst->expression_discriminée,
                                              TransformationType(TypeTransformation::DEREFERENCE));
-        type = type->comme_type_reference()->type_pointe;
+        type = type->comme_type_reference()->type_pointé;
     }
 
     if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
