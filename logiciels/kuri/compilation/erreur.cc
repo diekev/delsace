@@ -45,7 +45,7 @@ std::ostream &operator<<(std::ostream &os, Genre genre)
 
 kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr)
 {
-    auto lexeme = expr->lexeme;
+    auto lexeme = expr->lexème;
     auto fichier = espace.compilatrice().fichier(lexeme->fichier);
     auto etendue_expr = calcule_etendue_noeud(expr);
     auto ligne = fichier->tampon()[lexeme->ligne];
@@ -141,8 +141,8 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
             e.ajoute_site(dc.site_erreur);
             e.ajoute_message("\tArgument « ", dc.nom_arg->nom, " » inconnu.\n");
 
-            if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
-                auto decl_fonc = decl->comme_entete_fonction();
+            if (decl && decl->genre == GenreNoeud::DÉCLARATION_CORPS_FONCTION) {
+                auto decl_fonc = decl->comme_entête_fonction();
                 e.ajoute_message("\tLes arguments de la fonction sont : \n");
 
                 for (auto i = 0; i < decl_fonc->params.taille(); ++i) {
@@ -152,7 +152,7 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
 
                 e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
             }
-            else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+            else if (decl && decl->genre == GenreNoeud::DÉCLARATION_STRUCTURE) {
                 auto decl_struct = decl->comme_type_structure();
 
                 if (decl_struct->est_polymorphe) {
@@ -304,7 +304,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
         e.ajoute_message("\nCandidate :");
 
         if (decl != nullptr) {
-            auto const &lexeme_df = decl->lexeme;
+            auto const &lexeme_df = decl->lexème;
             auto fichier_df = espace.compilatrice().fichier(lexeme_df->fichier);
             auto pos_df = position_lexeme(*lexeme_df);
 
@@ -403,7 +403,7 @@ void membre_inconnu(EspaceDeTravail const &espace,
 
     const char *message;
 
-    if (type->est_type_enum()) {
+    if (type->est_type_énum()) {
         message = "de l'énumération";
     }
     else if (type->est_type_union()) {
@@ -482,7 +482,7 @@ void imprime_site(Enchaineuse &enchaineuse,
         return;
     }
 
-    auto lexeme = site->lexeme;
+    auto lexeme = site->lexème;
     auto fichier = espace.compilatrice().fichier(lexeme->fichier);
 
     if (fichier->source == SourceFichier::DISQUE) {

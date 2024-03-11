@@ -15,7 +15,7 @@ struct tableau_statique;
 }  // namespace kuri
 
 enum class ArchitectureCible : int;
-struct Bibliotheque;
+struct Bibliothèque;
 struct OptionsDeCompilation;
 
 /* Retourne le nom suffixé de l'extension native pour un fichier objet. */
@@ -54,7 +54,7 @@ kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom
  *
  * Par exemple, pour un module "Module", le suffixe sur Linux 64-bit sera "lib/x86_64-linux-gnu",
  * pour générer le chemin "Module/lib/x86_64-linux-gnu". */
-kuri::chemin_systeme suffixe_chemin_module_pour_bibliotheque(ArchitectureCible architecture_cible);
+kuri::chemin_systeme suffixe_chemin_module_pour_bibliothèque(ArchitectureCible architecture_cible);
 
 /* Retourne le chemin où la bibliothèque r16 sera installée pour l'architecture donnée. */
 kuri::chemin_systeme chemin_de_base_pour_bibliothèque_r16(ArchitectureCible architecture_cible);
@@ -73,7 +73,7 @@ kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
  */
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
-                                   kuri::tableau_statique<Bibliotheque *> bibliotheques);
+                                   kuri::tableau_statique<Bibliothèque *> bibliotheques);
 
 bool precompile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri);
 

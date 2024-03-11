@@ -12,13 +12,13 @@ struct EspaceDeTravail;
 struct Fichier;
 struct Message;
 struct MetaProgramme;
-struct NoeudDeclaration;
+struct NoeudDéclaration;
 struct NoeudExpression;
-struct NoeudExpressionReference;
+struct NoeudExpressionRéférence;
 struct UniteCompilation;
-struct NoeudDeclarationType;
+struct NoeudDéclarationType;
 
-using Type = NoeudDeclarationType;
+using Type = NoeudDéclarationType;
 
 namespace kuri {
 struct chaine;
@@ -101,8 +101,8 @@ struct DonnéesAttenteMessage {
 
 using AttenteSurType = AttenteSur<Type const *>;
 using AttenteSurMétaProgramme = AttenteSur<MetaProgramme *>;
-using AttenteSurDéclaration = AttenteSur<NoeudDeclaration *>;
-using AttenteSurSymbole = AttenteSur<NoeudExpressionReference *>;
+using AttenteSurDéclaration = AttenteSur<NoeudDéclaration *>;
+using AttenteSurSymbole = AttenteSur<NoeudExpressionRéférence *>;
 using AttenteSurOpérateur = AttenteSur<NoeudExpression *>;
 using AttenteSurMessage = AttenteSur<DonnéesAttenteMessage>;
 using AttenteSurRI = AttenteSur<Atome **>;
@@ -213,13 +213,13 @@ struct Attente {
         return AttenteSurMétaProgramme{metaprogramme};
     }
 
-    static Attente sur_déclaration(NoeudDeclaration *déclaration)
+    static Attente sur_déclaration(NoeudDéclaration *déclaration)
     {
         assert(déclaration);
         return AttenteSurDéclaration{déclaration};
     }
 
-    static Attente sur_symbole(NoeudExpressionReference *ident)
+    static Attente sur_symbole(NoeudExpressionRéférence *ident)
     {
         assert(ident);
         return AttenteSurSymbole{ident};
@@ -284,13 +284,13 @@ struct Attente {
         return std::get<AttenteSurMétaProgramme>(attente).valeur;
     }
 
-    NoeudDeclaration *déclaration() const
+    NoeudDéclaration *déclaration() const
     {
         assert(est<AttenteSurDéclaration>());
         return std::get<AttenteSurDéclaration>(attente).valeur;
     }
 
-    NoeudExpressionReference *symbole() const
+    NoeudExpressionRéférence *symbole() const
     {
         assert(est<AttenteSurSymbole>());
         return std::get<AttenteSurSymbole>(attente).valeur;

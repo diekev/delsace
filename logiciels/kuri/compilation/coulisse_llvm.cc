@@ -545,12 +545,12 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
 
             break;
         }
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             type_llvm = llvm::Type::getInt64Ty(m_contexte_llvm);
             break;
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             if (type->taille_octet == 2) {
                 type_llvm = llvm::Type::getInt16Ty(m_contexte_llvm);
@@ -564,7 +564,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
 
             break;
         }
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         {
             auto type_deref = type_déréférencé_pour(type);
@@ -579,7 +579,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
             type_llvm = llvm::PointerType::get(type_deref_llvm, 0);
             break;
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_struct = type->comme_type_union();
 
@@ -600,7 +600,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
                 m_contexte_llvm, {type_max_llvm}, vers_string_ref(nom_nonsur));
             break;
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             return convertis_type_composé(type->comme_type_structure(), "struct");
         }
@@ -629,7 +629,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
             type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<uint64_t>(taille));
             break;
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         {
@@ -637,7 +637,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
             type_llvm = convertis_type_llvm(type_enum->type_sous_jacent);
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             type_llvm = convertis_type_llvm(type_opaque->type_opacifié);
@@ -808,7 +808,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             auto structure = atome->comme_constante_structure();
-            auto type = structure->type->comme_type_compose();
+            auto type = structure->type->comme_type_composé();
             auto tableau_valeur = structure->donne_atomes_membres();
 
             auto tableau_membre = std::vector<llvm::Constant *>();
@@ -1012,7 +1012,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                 }
                 case OpérateurUnaire::Genre::Complement:
                 {
-                    if (inst_un->type->est_type_reel()) {
+                    if (inst_un->type->est_type_réel()) {
                         valeur = m_builder.CreateFNeg(valeur);
                     }
                     else {
@@ -1145,7 +1145,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                     liste_index.push_back(m_builder.getInt32(0));
                 }
                 else if (inst_accédée->est_appel() && (inst_accédée->type->est_type_pointeur() ||
-                                                       inst_accédée->type->est_type_reference())) {
+                                                       inst_accédée->type->est_type_référence())) {
                     liste_index.push_back(m_builder.getInt32(0));
                 }
                 else if (inst_accédée->est_acces_index()) {
@@ -1249,7 +1249,7 @@ llvm::Value *GénératriceCodeLLVM::génère_valeur_données_constantes(
         return llvm::ConstantDataArray::get(m_contexte_llvm, données);
     }
 
-    if (type_élément->est_type_reel()) {
+    if (type_élément->est_type_réel()) {
         if (type_élément->taille_octet == 2) {
             assert_rappel(false, []() { dbg() << "Type r16 dans les données constantes."; });
         }
@@ -1430,7 +1430,7 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
     if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
         for (auto &param : atome_fonc->decl->params_sorties) {
             génère_code_pour_instruction(
-                param->comme_declaration_variable()->atome->comme_instruction());
+                param->comme_déclaration_variable()->atome->comme_instruction());
         }
     }
 
@@ -1648,7 +1648,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_fichier_objet_impl(
 
 static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation const &options)
 {
-    if (options.résultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+    if (options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
         return "fichiers/point_d_entree_dynamique.c";
     }
 

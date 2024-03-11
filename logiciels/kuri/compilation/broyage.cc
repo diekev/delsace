@@ -92,7 +92,7 @@ static const char *nom_pour_opérateur(Lexème const &lexème);
 static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc);
 
 static void ajoute_broyage_paramètres(Enchaineuse &enchaineuse,
-                                      NoeudDeclarationEnteteFonction const *entête)
+                                      NoeudDéclarationEntêteFonction const *entête)
 {
     if (entête->params.est_vide()) {
         return;
@@ -114,7 +114,7 @@ static void ajoute_broyage_paramètres(Enchaineuse &enchaineuse,
 }
 
 static void broye_nom_fonction(Enchaineuse &enchaineuse,
-                               NoeudDeclarationEnteteFonction const *entête,
+                               NoeudDéclarationEntêteFonction const *entête,
                                bool pour_hiérarchie,
                                bool est_feuille_hiérarchie)
 {
@@ -132,7 +132,7 @@ static void broye_nom_fonction(Enchaineuse &enchaineuse,
 
     /* nom de la fonction */
     if (entête->est_opérateur) {
-        enchaineuse << "operateur" << nom_pour_opérateur(*entête->lexeme);
+        enchaineuse << "operateur" << nom_pour_opérateur(*entête->lexème);
     }
     else {
         // À FAIRE
@@ -172,14 +172,14 @@ static void broye_nom_hiérarchique(Enchaineuse &enchaineuse, HiérarchieDeNoms 
 
         enchaineuse << virgule;
 
-        if (noeud->est_entete_fonction()) {
+        if (noeud->est_entête_fonction()) {
             broye_nom_fonction(enchaineuse,
-                               noeud->comme_entete_fonction(),
+                               noeud->comme_entête_fonction(),
                                true,
                                noeud == hiérarchie.donne_feuille());
         }
         else {
-            auto type = const_cast<Type *>(noeud->comme_declaration_type());
+            auto type = const_cast<Type *>(noeud->comme_déclaration_type());
             broye_nom_type(enchaineuse, type, true);
         }
 
@@ -196,12 +196,12 @@ static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc)
     enchaineuse << "_P" << bloc->membres->taille();
 
     POUR (*bloc->membres.verrou_lecture()) {
-        auto constante = it->comme_declaration_constante();
+        auto constante = it->comme_déclaration_constante();
         auto type_membre = constante->type;
-        if (type_membre->est_type_type_de_donnees()) {
+        if (type_membre->est_type_type_de_données()) {
             /* Préfixe pour un type. */
             enchaineuse << "_T";
-            type_membre = type_membre->comme_type_type_de_donnees()->type_connu;
+            type_membre = type_membre->comme_type_type_de_données()->type_connu;
             broye_nom_type(enchaineuse, type_membre, false);
         }
         else {
@@ -212,7 +212,7 @@ static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc)
                 enchaineuse << constante->valeur_expression;
             }
             else if (valeur.est_chaine()) {
-                broye_nom_simple(enchaineuse, valeur.chaine()->lexeme->chaine);
+                broye_nom_simple(enchaineuse, valeur.chaine()->lexème->chaine);
             }
             else if (valeur.est_fonction()) {
                 broye_nom_fonction(enchaineuse, valeur.fonction(), true, false);
@@ -265,17 +265,17 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::REEL:
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::RÉEL:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             enchaineuse << "Ks" << type->ident->nom;
             break;
         }
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         {
             enchaineuse << "KR";
-            broye_nom_type(enchaineuse, type->comme_type_reference()->type_pointé, false);
+            broye_nom_type(enchaineuse, type->comme_type_référence()->type_pointé, false);
             break;
         }
         case GenreNoeud::POINTEUR:
@@ -293,7 +293,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
 
             break;
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = static_cast<TypeUnion const *>(type);
 
@@ -322,7 +322,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
 
             break;
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             if (!pour_hiérarchie) {
                 enchaineuse << "Ks";
@@ -401,7 +401,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
 
             break;
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         {
@@ -416,7 +416,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
 
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
 
@@ -489,7 +489,7 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
         {
             return "supeg";
         }
-        case GenreLexème::DIFFERENCE:
+        case GenreLexème::DIFFÉRENCE:
         {
             return "dif";
         }
@@ -573,7 +573,7 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
  * fonc test(x : z32) : z32 (module Test)
  * -> _KF4Test4test_P2_E1_1x3z32_S1_3z32
  */
-kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonction *decl)
+kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDéclarationEntêteFonction *decl)
 {
     stockage_temp.réinitialise();
 
@@ -592,14 +592,14 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
     }
 
     decl->bloc_constantes->membres.avec_verrou_lecture(
-        [&](kuri::tableau<NoeudDeclaration *, int> const &membres) {
+        [&](kuri::tableau<NoeudDéclaration *, int> const &membres) {
             POUR (membres) {
                 broye_nom_simple(it->ident);
 
                 auto type = it->type;
-                if (type->est_type_type_de_donnees() &&
-                    type->comme_type_type_de_donnees()->type_connu) {
-                    type = type->comme_type_type_de_donnees()->type_connu;
+                if (type->est_type_type_de_données() &&
+                    type->comme_type_type_de_données()->type_connu) {
+                    type = type->comme_type_type_de_données()->type_connu;
                 }
 
                 nom_broyé_type(type);

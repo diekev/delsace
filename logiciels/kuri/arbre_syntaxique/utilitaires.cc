@@ -280,7 +280,7 @@ static void aplatis_arbre(NoeudExpression *racine,
 /* Fonction pour aplatir l'arbre d'une entête de fonction. Pour les déclarations de types
  * fonctions (fonc()(rien)) l'arbre aplatis est l'arbre du noeud parent (structure, fonction,
  * etc.), et non celui de l'entête. */
-static void aplatis_entête_fonction(NoeudDeclarationEnteteFonction *entête,
+static void aplatis_entête_fonction(NoeudDéclarationEntêteFonction *entête,
                                     kuri::tableau<NoeudExpression *, int> &arbre_aplatis)
 {
     /* aplatis_arbre pour les bloc n'aplatis que les expressions. */
@@ -312,9 +312,9 @@ static void aplatis_arbre(NoeudExpression *racine,
     }
 
     switch (racine->genre) {
-        case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
-        case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
-        case GenreNoeud::DECLARATION_MODULE:
+        case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
+        case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:
+        case GenreNoeud::DÉCLARATION_MODULE:
         {
             break;
         }
@@ -338,14 +338,14 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(ajoute_fini);
             break;
         }
-        case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
+        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
         {
-            auto pre_executable = racine->comme_pre_executable();
+            auto pre_executable = racine->comme_pré_exécutable();
             aplatis_arbre(pre_executable->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(pre_executable);
             break;
         }
-        case GenreNoeud::INSTRUCTION_COMPOSEE:
+        case GenreNoeud::INSTRUCTION_COMPOSÉE:
         {
             auto bloc = racine->comme_bloc();
 
@@ -368,33 +368,33 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             break;
         }
-        case GenreNoeud::DECLARATION_ENTETE_FONCTION:
+        case GenreNoeud::DÉCLARATION_ENTÊTE_FONCTION:
         {
             /* L'aplatissement d'une fonction dans une fonction doit déjà avoir été fait. */
             arbre_aplatis.ajoute(racine);
             break;
         }
-        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
-        case GenreNoeud::DECLARATION_CORPS_FONCTION:
+        case GenreNoeud::DÉCLARATION_OPÉRATEUR_POUR:
+        case GenreNoeud::DÉCLARATION_CORPS_FONCTION:
         {
             /* L'aplatissement d'une fonction dans une fonction doit déjà avoir été fait */
             arbre_aplatis.ajoute(racine);
             break;
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         {
             arbre_aplatis.ajoute(racine);
             break;
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             arbre_aplatis.ajoute(racine);
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto opaque = racine->comme_type_opaque();
             /* Évite les déclarations de types polymorphiques car cela gène la validation puisque
@@ -406,9 +406,9 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(racine);
             break;
         }
-        case GenreNoeud::DECLARATION_VARIABLE:
+        case GenreNoeud::DÉCLARATION_VARIABLE:
         {
-            auto expr = racine->comme_declaration_variable();
+            auto expr = racine->comme_déclaration_variable();
 
             aplatis_arbre(
                 expr->expression, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
@@ -420,9 +420,9 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             break;
         }
-        case GenreNoeud::DECLARATION_VARIABLE_MULTIPLE:
+        case GenreNoeud::DÉCLARATION_VARIABLE_MULTIPLE:
         {
-            auto expr = racine->comme_declaration_variable_multiple();
+            auto expr = racine->comme_déclaration_variable_multiple();
 
             // N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
             aplatis_arbre(
@@ -435,9 +435,9 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             break;
         }
-        case GenreNoeud::DECLARATION_CONSTANTE:
+        case GenreNoeud::DÉCLARATION_CONSTANTE:
         {
-            auto constante = racine->comme_declaration_constante();
+            auto constante = racine->comme_déclaration_constante();
 
             // N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
             aplatis_arbre(constante->expression,
@@ -485,7 +485,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::EXPRESSION_INDEXAGE:
-        case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+        case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:
         {
             auto expr = racine->comme_expression_binaire();
             expr->position |= position;
@@ -505,18 +505,18 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(expr);
             break;
         }
-        case GenreNoeud::OPERATEUR_BINAIRE:
+        case GenreNoeud::OPÉRATEUR_BINAIRE:
         {
             auto expr = racine->comme_expression_binaire();
             expr->position |= position;
 
-            if (est_assignation_composée(expr->lexeme->genre)) {
+            if (est_assignation_composée(expr->lexème->genre)) {
                 position |= PositionCodeNoeud::DROITE_ASSIGNATION;
             }
 
             aplatis_arbre(expr->opérande_gauche, arbre_aplatis, position);
 
-            if (expr->lexeme->genre == GenreLexème::DIVISE) {
+            if (expr->lexème->genre == GenreLexème::DIVISE) {
                 /* Pour les contraintes polymorphiques. Peut être granulariser dans le future (à
                  * savoir, ne gérer que les choses marquées comme polymorphiques). */
                 position |= PositionCodeNoeud::DROITE_CONTRAINTE_POLYMORPHIQUE;
@@ -524,7 +524,7 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             aplatis_arbre(expr->opérande_droite, arbre_aplatis, position);
 
-            if (expr->lexeme->genre != GenreLexème::VIRGULE) {
+            if (expr->lexème->genre != GenreLexème::VIRGULE) {
                 arbre_aplatis.ajoute(expr);
             }
 
@@ -549,10 +549,10 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(logique);
             break;
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
-        case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION:
         {
-            auto expr = racine->comme_reference_membre();
+            auto expr = racine->comme_référence_membre();
             expr->position |= position;
 
             aplatis_arbre(expr->accédée, arbre_aplatis, position);
@@ -594,9 +594,9 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         case GenreNoeud::EXPRESSION_INFO_DE:
-        case GenreNoeud::EXPRESSION_MEMOIRE:
-        case GenreNoeud::EXPRESSION_PARENTHESE:
-        case GenreNoeud::OPERATEUR_UNAIRE:
+        case GenreNoeud::EXPRESSION_MÉMOIRE:
+        case GenreNoeud::EXPRESSION_PARENTHÈSE:
+        case GenreNoeud::OPÉRATEUR_UNAIRE:
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         case GenreNoeud::EXPANSION_VARIADIQUE:
         case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -608,9 +608,9 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(expr);
             break;
         }
-        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPE:
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU_TYPÉ:
         {
-            auto tableau = racine->comme_construction_tableau_type();
+            auto tableau = racine->comme_construction_tableau_typé();
             tableau->position |= position;
             aplatis_arbre(tableau->expression_type, arbre_aplatis, position);
             aplatis_arbre(tableau->expression, arbre_aplatis, position);
@@ -625,25 +625,25 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(prise_adresse);
             break;
         }
-        case GenreNoeud::EXPRESSION_PRISE_REFERENCE:
+        case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:
         {
-            auto prise_référence = racine->comme_prise_reference();
+            auto prise_référence = racine->comme_prise_référence();
             prise_référence->position |= position;
             aplatis_arbre(prise_référence->opérande, arbre_aplatis, position);
             arbre_aplatis.ajoute(prise_référence);
             break;
         }
-        case GenreNoeud::EXPRESSION_NEGATION_LOGIQUE:
+        case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:
         {
-            auto négation = racine->comme_negation_logique();
+            auto négation = racine->comme_négation_logique();
             négation->position |= position;
             aplatis_arbre(négation->opérande, arbre_aplatis, position);
             arbre_aplatis.ajoute(négation);
             break;
         }
-        case GenreNoeud::INSTRUCTION_ARRETE:
+        case GenreNoeud::INSTRUCTION_ARRÊTE:
         {
-            auto inst = racine->comme_arrete();
+            auto inst = racine->comme_arrête();
             inst->position |= position;
             aplatis_arbre(inst->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(inst);
@@ -703,9 +703,9 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(cuisine);
             break;
         }
-        case GenreNoeud::DIRECTIVE_EXECUTE:
+        case GenreNoeud::DIRECTIVE_EXÉCUTE:
         {
-            auto expr = racine->comme_execute();
+            auto expr = racine->comme_exécute();
             expr->position |= position;
 
             if (expr->ident == ID::assert_ || expr->ident == ID::test) {
@@ -723,14 +723,14 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(racine);
             break;
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
-        case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
-        case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
-        case GenreNoeud::EXPRESSION_LITTERALE_NUL:
-        case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
-        case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_BOOLÉEN:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_RÉEL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_ENTIER:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NUL:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:
         {
             racine->position |= position;
             arbre_aplatis.ajoute(racine);
@@ -742,7 +742,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::INSTRUCTION_BOUCLE:
-        case GenreNoeud::INSTRUCTION_REPETE:
+        case GenreNoeud::INSTRUCTION_RÉPÈTE:
         case GenreNoeud::INSTRUCTION_TANTQUE:
         {
             auto expr = racine->comme_boucle();
@@ -771,7 +771,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::INSTRUCTION_DISCR:
-        case GenreNoeud::INSTRUCTION_DISCR_ENUM:
+        case GenreNoeud::INSTRUCTION_DISCR_ÉNUM:
         case GenreNoeud::INSTRUCTION_DISCR_UNION:
         {
             auto expr = racine->comme_discr();
@@ -901,9 +901,9 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             break;
         }
-        case GenreNoeud::INSTRUCTION_DIFFERE:
+        case GenreNoeud::INSTRUCTION_DIFFÈRE:
         {
-            auto inst = racine->comme_differe();
+            auto inst = racine->comme_diffère();
             aplatis_arbre(inst->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(inst);
             break;
@@ -954,8 +954,8 @@ static void aplatis_arbre(NoeudExpression *racine,
 
 void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
 {
-    if (declaration->est_entete_fonction()) {
-        auto entete = declaration->comme_entete_fonction();
+    if (declaration->est_entête_fonction()) {
+        auto entete = declaration->comme_entête_fonction();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_entête_fonction(entete, arbre_aplatis->noeuds);
         }
@@ -970,8 +970,8 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
         return;
     }
 
-    if (declaration->est_declaration_classe()) {
-        auto structure = declaration->comme_declaration_classe();
+    if (declaration->est_déclaration_classe()) {
+        auto structure = declaration->comme_déclaration_classe();
 
         if (arbre_aplatis->noeuds.taille() == 0) {
             if (structure->est_polymorphe) {
@@ -986,32 +986,32 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
         return;
     }
 
-    if (declaration->est_execute()) {
-        auto execute = declaration->comme_execute();
+    if (declaration->est_exécute()) {
+        auto execute = declaration->comme_exécute();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(execute, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_declaration_variable()) {
-        auto declaration_variable = declaration->comme_declaration_variable();
+    if (declaration->est_déclaration_variable()) {
+        auto declaration_variable = declaration->comme_déclaration_variable();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_declaration_variable_multiple()) {
-        auto declaration_variable = declaration->comme_declaration_variable_multiple();
+    if (declaration->est_déclaration_variable_multiple()) {
+        auto declaration_variable = declaration->comme_déclaration_variable_multiple();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_declaration_constante()) {
-        auto declaration_variable = declaration->comme_declaration_constante();
+    if (declaration->est_déclaration_constante()) {
+        auto declaration_variable = declaration->comme_déclaration_constante();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
         }
@@ -1065,57 +1065,57 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
         {
             return expression;
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_NUL:
-        case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
-        case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
-        case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NUL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_RÉEL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_ENTIER:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_BOOLÉEN:
         case GenreNoeud::EXPRESSION_TYPE_DE:
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         case GenreNoeud::EXPRESSION_INFO_DE:
-        case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         {
             return nullptr;
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
         {
-            auto référence_déclaration = expression->comme_reference_declaration();
+            auto référence_déclaration = expression->comme_référence_déclaration();
             if (!référence_déclaration->déclaration_référée) {
                 return référence_déclaration;
             }
 
             auto déclaration_référée = référence_déclaration->déclaration_référée;
-            if (déclaration_référée->est_declaration_type()) {
+            if (déclaration_référée->est_déclaration_type()) {
                 return nullptr;
             }
 
-            if (déclaration_référée->est_declaration_module()) {
+            if (déclaration_référée->est_déclaration_module()) {
                 return nullptr;
             }
 
-            if (déclaration_référée->est_entete_fonction()) {
+            if (déclaration_référée->est_entête_fonction()) {
                 return nullptr;
             }
 
-            if (déclaration_référée->est_declaration_constante()) {
+            if (déclaration_référée->est_déclaration_constante()) {
                 return nullptr;
             }
 
             return référence_déclaration;
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
         {
-            auto référence_membre = expression->comme_reference_membre();
+            auto référence_membre = expression->comme_référence_membre();
             auto accédé = référence_membre->accédée;
             if (auto expr_variable = trouve_expression_non_constante(accédé)) {
                 return expr_variable;
             }
 
-            if (accédé->est_reference_declaration()) {
-                if (accédé->comme_reference_declaration()
-                        ->déclaration_référée->est_declaration_module()) {
+            if (accédé->est_référence_déclaration()) {
+                if (accédé->comme_référence_déclaration()
+                        ->déclaration_référée->est_déclaration_module()) {
                     assert(référence_membre->déclaration_référée);
                     return trouve_expression_non_constante(référence_membre->déclaration_référée);
                 }
@@ -1128,13 +1128,13 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
 
             auto type_accédé = donne_type_accédé_effectif(accédé->type);
 
-            if (type_accédé->est_type_type_de_donnees()) {
+            if (type_accédé->est_type_type_de_données()) {
                 if (référence_membre->genre_valeur == GenreValeur::DROITE) {
                     /* Nous accédons à une valeur constante. */
                     return nullptr;
                 }
 
-                type_accédé = type_accédé->comme_type_type_de_donnees()->type_connu;
+                type_accédé = type_accédé->comme_type_type_de_données()->type_connu;
                 /* Puisque nous accédons à quelque chose, nous ne devrions pas avoir une
                  * type_de_données inconnu. */
                 assert(type_accédé);
@@ -1144,10 +1144,10 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 /* Seul l'accès à la taille est correcte, sinon nous ne serions pas ici. */
                 return nullptr;
             }
-            if (type_accédé->est_type_enum() || type_accédé->est_type_erreur()) {
+            if (type_accédé->est_type_énum() || type_accédé->est_type_erreur()) {
                 return nullptr;
             }
-            auto type_compose = type_accédé->comme_type_compose();
+            auto type_compose = type_accédé->comme_type_composé();
             auto &membre = type_compose->membres[référence_membre->index_membre];
 
             if (membre.drapeaux == MembreTypeComposé::EST_CONSTANT) {
@@ -1156,9 +1156,9 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
 
             return référence_membre;
         }
-        case GenreNoeud::EXPRESSION_PARENTHESE:
+        case GenreNoeud::EXPRESSION_PARENTHÈSE:
         {
-            auto op = expression->comme_parenthese();
+            auto op = expression->comme_parenthèse();
             return trouve_expression_non_constante(op->expression);
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
@@ -1166,13 +1166,13 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
             auto op = expression->comme_construction_tableau();
             return trouve_expression_non_constante(op->expression);
         }
-        case GenreNoeud::OPERATEUR_UNAIRE:
+        case GenreNoeud::OPÉRATEUR_UNAIRE:
         {
             auto op = expression->comme_expression_unaire();
             return trouve_expression_non_constante(op->opérande);
         }
-        case GenreNoeud::OPERATEUR_BINAIRE:
-        case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+        case GenreNoeud::OPÉRATEUR_BINAIRE:
+        case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:
         case GenreNoeud::EXPRESSION_INDEXAGE:
         {
             auto op = expression->comme_expression_binaire();
@@ -1262,33 +1262,33 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
         {
             return false;
         }
-        case GenreNoeud::EXPRESSION_LITTERALE_NUL:
-        case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
-        case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
-        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
-        case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NUL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_RÉEL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_ENTIER:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_BOOLÉEN:
         case GenreNoeud::EXPRESSION_TYPE_DE:
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         case GenreNoeud::EXPRESSION_INFO_DE:
-        case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         {
             return true;
         }
-        case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
         {
-            auto référence_déclaration = expression->comme_reference_declaration();
+            auto référence_déclaration = expression->comme_référence_déclaration();
             if (!référence_déclaration->déclaration_référée) {
                 return false;
             }
 
             auto déclaration_référée = référence_déclaration->déclaration_référée;
-            if (déclaration_référée->est_declaration_type()) {
+            if (déclaration_référée->est_déclaration_type()) {
                 return true;
             }
 
-            if (déclaration_référée->est_entete_fonction()) {
+            if (déclaration_référée->est_entête_fonction()) {
                 return true;
             }
 
@@ -1296,7 +1296,7 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
                 return true;
             }
 
-            if (déclaration_référée->est_declaration_constante()) {
+            if (déclaration_référée->est_déclaration_constante()) {
                 return true;
             }
 
@@ -1308,9 +1308,9 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
             return peut_être_utilisée_pour_initialisation_constante_globale(
                 prise_adresse->opérande);
         }
-        case GenreNoeud::EXPRESSION_PARENTHESE:
+        case GenreNoeud::EXPRESSION_PARENTHÈSE:
         {
-            auto op = expression->comme_parenthese();
+            auto op = expression->comme_parenthèse();
             return peut_être_utilisée_pour_initialisation_constante_globale(op->expression);
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
@@ -1351,7 +1351,7 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
 /** \name HiérarchieDeNoms
  * \{ */
 
-HiérarchieDeNoms donne_hiérarchie_nom(NoeudDeclarationSymbole const *symbole)
+HiérarchieDeNoms donne_hiérarchie_nom(NoeudDéclarationSymbole const *symbole)
 {
     HiérarchieDeNoms résultat;
 
@@ -1359,7 +1359,7 @@ HiérarchieDeNoms donne_hiérarchie_nom(NoeudDeclarationSymbole const *symbole)
 
     résultat.hiérarchie.ajoute(symbole);
 
-    if (symbole->est_declaration_classe() && symbole->comme_declaration_classe()->est_anonyme) {
+    if (symbole->est_déclaration_classe() && symbole->comme_déclaration_classe()->est_anonyme) {
         /* Place les unions anonymes dans le contexte globale car sinon nous aurions des
          * dépendances cycliques quand la première définition fut rencontrée dans le type de retour
          * d'une fonction. */
@@ -1427,7 +1427,7 @@ kuri::tablet<IdentifiantCode *, 6> donne_les_noms_de_la_hiérarchie(NoeudBloc *b
 // -----------------------------------------------------------------------------
 // Implémentation des méthodes supplémentaires de l'arbre syntaxique
 
-kuri::chaine_statique NoeudDeclarationEnteteFonction::donne_nom_broyé(Broyeuse &broyeuse)
+kuri::chaine_statique NoeudDéclarationEntêteFonction::donne_nom_broyé(Broyeuse &broyeuse)
 {
     if (nom_broyé_ != "") {
         return nom_broyé_;
@@ -1444,13 +1444,13 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::donne_nom_broyé(Broyeuse 
         nom_broyé_ = ident->nom;
     }
     else {
-        nom_broyé_ = lexeme->chaine;
+        nom_broyé_ = lexème->chaine;
     }
 
     return nom_broyé_;
 }
 
-Type *NoeudDeclarationEnteteFonction::type_initialisé() const
+Type *NoeudDéclarationEntêteFonction::type_initialisé() const
 {
     assert(possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE));
     return params[0]->type->comme_type_pointeur()->type_pointé;
@@ -1471,9 +1471,9 @@ static constexpr auto TAILLE_MAX_TABLEAU_MEMBRES = 16;
 template <typename T>
 using PointeurTableauVerrouille = typename kuri::tableau_synchrone<T>::PointeurVerrouille;
 
-using TableMembres = kuri::table_hachage<IdentifiantCode const *, NoeudDeclaration *>;
+using TableMembres = kuri::table_hachage<IdentifiantCode const *, NoeudDéclaration *>;
 
-static void ajoute_membre(TableMembres &table_membres, NoeudDeclaration *decl)
+static void ajoute_membre(TableMembres &table_membres, NoeudDéclaration *decl)
 {
     /* Nous devons faire en sorte que seul le premier membre du nom est ajouté, afin que l'ensemble
      * de surcharge lui soit réservé, et que c'est ce membre qui est retourné. */
@@ -1483,7 +1483,7 @@ static void ajoute_membre(TableMembres &table_membres, NoeudDeclaration *decl)
     table_membres.insère(decl->ident, decl);
 }
 
-static void init_table_hachage_membres(PointeurTableauVerrouille<NoeudDeclaration *> &membres,
+static void init_table_hachage_membres(PointeurTableauVerrouille<NoeudDéclaration *> &membres,
                                        TableMembres &table_membres)
 {
     if (table_membres.taille() != 0) {
@@ -1495,17 +1495,17 @@ static void init_table_hachage_membres(PointeurTableauVerrouille<NoeudDeclaratio
     }
 }
 
-static void ajoute_à_ensemble_de_surcharge(NoeudDeclaration *decl, NoeudDeclaration *à_ajouter)
+static void ajoute_à_ensemble_de_surcharge(NoeudDéclaration *decl, NoeudDéclaration *à_ajouter)
 {
-    if (decl->est_entete_fonction()) {
-        auto entête_existante = decl->comme_entete_fonction();
-        entête_existante->ensemble_de_surchages->ajoute(à_ajouter->comme_declaration_symbole());
+    if (decl->est_entête_fonction()) {
+        auto entête_existante = decl->comme_entête_fonction();
+        entête_existante->ensemble_de_surchages->ajoute(à_ajouter->comme_déclaration_symbole());
         return;
     }
 
-    if (decl->est_declaration_type()) {
-        auto type_existant = decl->comme_declaration_type();
-        type_existant->ensemble_de_surchages->ajoute(à_ajouter->comme_declaration_symbole());
+    if (decl->est_déclaration_type()) {
+        auto type_existant = decl->comme_déclaration_type();
+        type_existant->ensemble_de_surchages->ajoute(à_ajouter->comme_déclaration_symbole());
         return;
     }
 
@@ -1515,7 +1515,7 @@ static void ajoute_à_ensemble_de_surcharge(NoeudDeclaration *decl, NoeudDeclara
     });
 }
 
-void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
+void NoeudBloc::ajoute_membre(NoeudDéclaration *decl)
 {
     if (decl->ident == ID::_ || decl->ident == nullptr) {
         /* Inutile d'avoir les variables ignorées ou les temporaires créées lors de la
@@ -1524,9 +1524,9 @@ void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
         return;
     }
 
-    if (decl->est_declaration_symbole()) {
+    if (decl->est_déclaration_symbole()) {
         auto decl_existante = declaration_pour_ident(decl->ident);
-        if (decl_existante && decl_existante->est_declaration_symbole()) {
+        if (decl_existante && decl_existante->est_déclaration_symbole()) {
             ajoute_à_ensemble_de_surcharge(decl_existante, decl);
         }
     }
@@ -1541,7 +1541,7 @@ void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
     membres_sont_sales = true;
 }
 
-void NoeudBloc::ajoute_membre_au_debut(NoeudDeclaration *decl)
+void NoeudBloc::ajoute_membre_au_debut(NoeudDéclaration *decl)
 {
     auto membres_ = membres.verrou_ecriture();
     if (membres_->taille() >= TAILLE_MAX_TABLEAU_MEMBRES) {
@@ -1565,12 +1565,12 @@ void NoeudBloc::fusionne_membres(NoeudBloc *de)
     }
 }
 
-NoeudDeclaration *NoeudBloc::membre_pour_index(int index) const
+NoeudDéclaration *NoeudBloc::membre_pour_index(int index) const
 {
     return membres->a(index);
 }
 
-NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche) const
+NoeudDéclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche) const
 {
     auto membres_ = membres.verrou_lecture();
     nombre_recherches += 1;
@@ -1587,7 +1587,7 @@ NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident
     return nullptr;
 }
 
-NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr) const
+NoeudDéclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr) const
 {
     auto membres_ = membres.verrou_lecture();
     nombre_recherches += 1;
@@ -1614,7 +1614,7 @@ void NoeudBloc::ajoute_expression(NoeudExpression *expr)
     expressions_sont_sales = true;
 }
 
-kuri::tableau_statique<const MembreTypeComposé> NoeudDeclarationTypeCompose::
+kuri::tableau_statique<const MembreTypeComposé> NoeudDéclarationTypeComposé::
     donne_membres_pour_code_machine() const
 {
     return {membres.begin(), nombre_de_membres_réels};
@@ -1638,10 +1638,10 @@ NoeudExpressionBinaire *AssembleuseArbre::crée_expression_binaire(const Lexème
     return op_bin;
 }
 
-NoeudExpressionReference *AssembleuseArbre::crée_reference_declaration(const Lexème *lexeme,
-                                                                       NoeudDeclaration *decl)
+NoeudExpressionRéférence *AssembleuseArbre::crée_référence_déclaration(const Lexème *lexeme,
+                                                                       NoeudDéclaration *decl)
 {
-    auto ref = crée_reference_declaration(lexeme);
+    auto ref = crée_référence_déclaration(lexeme);
     ref->déclaration_référée = decl;
     ref->type = decl->type;
     ref->ident = decl->ident;
@@ -1659,7 +1659,7 @@ NoeudSi *AssembleuseArbre::crée_si(const Lexème *lexeme, GenreNoeud genre_noeu
 
 NoeudBloc *AssembleuseArbre::crée_bloc_seul(const Lexème *lexeme, NoeudBloc *bloc_parent)
 {
-    auto bloc = crée_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme)->comme_bloc();
+    auto bloc = crée_noeud<GenreNoeud::INSTRUCTION_COMPOSÉE>(lexeme)->comme_bloc();
     bloc->bloc_parent = bloc_parent;
     return bloc;
 }
@@ -1677,40 +1677,40 @@ NoeudAssignation *AssembleuseArbre::crée_assignation_variable(const Lexème *le
     return assignation;
 }
 
-NoeudDeclarationVariable *AssembleuseArbre::crée_declaration_variable(const Lexème *lexeme,
+NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(const Lexème *lexeme,
                                                                       Type *type,
                                                                       IdentifiantCode *ident,
                                                                       NoeudExpression *expression)
 {
-    auto decl = crée_declaration_variable(lexeme);
+    auto decl = crée_déclaration_variable(lexeme);
     decl->ident = ident;
     decl->type = type;
     decl->expression = expression;
     return decl;
 }
 
-NoeudDeclarationVariable *AssembleuseArbre::crée_declaration_variable(
-    NoeudExpressionReference *ref, NoeudExpression *expression)
+NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(
+    NoeudExpressionRéférence *ref, NoeudExpression *expression)
 {
-    auto declaration = crée_declaration_variable(ref->lexeme, ref->type, ref->ident, expression);
+    auto declaration = crée_déclaration_variable(ref->lexème, ref->type, ref->ident, expression);
     ref->déclaration_référée = declaration;
     return declaration;
 }
 
-NoeudDeclarationVariable *AssembleuseArbre::crée_declaration_variable(
-    NoeudExpressionReference *ref)
+NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(
+    NoeudExpressionRéférence *ref)
 {
-    auto decl = crée_declaration_variable(ref, nullptr);
+    auto decl = crée_déclaration_variable(ref, nullptr);
     ref->déclaration_référée = decl;
     return decl;
 }
 
-NoeudExpressionMembre *AssembleuseArbre::crée_reference_membre(const Lexème *lexeme,
+NoeudExpressionMembre *AssembleuseArbre::crée_référence_membre(const Lexème *lexeme,
                                                                NoeudExpression *accede,
                                                                Type *type,
                                                                int index)
 {
-    auto acces = crée_reference_membre(lexeme);
+    auto acces = crée_référence_membre(lexeme);
     acces->accédée = accede;
     acces->type = type;
     acces->index_membre = index;
@@ -1740,8 +1740,8 @@ NoeudExpressionAppel *AssembleuseArbre::crée_appel(const Lexème *lexeme,
     appel->noeud_fonction_appelée = appelee;
     appel->type = type;
 
-    if (appelee->est_entete_fonction()) {
-        appel->expression = crée_reference_declaration(lexeme, appelee->comme_entete_fonction());
+    if (appelee->est_entête_fonction()) {
+        appel->expression = crée_référence_déclaration(lexeme, appelee->comme_entête_fonction());
     }
     else {
         appel->expression = appelee;
@@ -1762,39 +1762,39 @@ NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexè
     return structure;
 }
 
-NoeudExpressionLitteraleEntier *AssembleuseArbre::crée_litterale_entier(Lexème const *lexeme,
+NoeudExpressionLittéraleEntier *AssembleuseArbre::crée_littérale_entier(Lexème const *lexeme,
                                                                         Type *type,
                                                                         uint64_t valeur)
 {
-    auto lit = crée_litterale_entier(lexeme);
+    auto lit = crée_littérale_entier(lexeme);
     lit->type = type;
     lit->valeur = valeur;
     return lit;
 }
 
-NoeudExpressionLitteraleBool *AssembleuseArbre::crée_litterale_bool(Lexème const *lexeme,
+NoeudExpressionLittéraleBool *AssembleuseArbre::crée_littérale_bool(Lexème const *lexeme,
                                                                     Type *type,
                                                                     bool valeur)
 {
-    auto lit = crée_litterale_bool(lexeme);
+    auto lit = crée_littérale_bool(lexeme);
     lit->type = type;
     lit->valeur = valeur;
     return lit;
 }
 
-NoeudExpressionLitteraleReel *AssembleuseArbre::crée_litterale_reel(Lexème const *lexeme,
+NoeudExpressionLittéraleRéel *AssembleuseArbre::crée_littérale_réel(Lexème const *lexeme,
                                                                     Type *type,
                                                                     double valeur)
 {
-    auto lit = crée_litterale_reel(lexeme);
+    auto lit = crée_littérale_réel(lexeme);
     lit->type = type;
     lit->valeur = valeur;
     return lit;
 }
 
-NoeudExpression *AssembleuseArbre::crée_reference_type(Lexème const *lexeme, Type *type)
+NoeudExpression *AssembleuseArbre::crée_référence_type(Lexème const *lexeme, Type *type)
 {
-    auto ref_type = crée_reference_type(lexeme);
+    auto ref_type = crée_référence_type(lexeme);
     ref_type->type = type;
     return ref_type;
 }
@@ -1811,14 +1811,14 @@ NoeudAssignation *AssembleuseArbre::crée_incrementation(const Lexème *lexeme,
     inc->type = type;
 
     if (est_type_entier(type)) {
-        inc->opérande_droite = crée_litterale_entier(valeur->lexeme, type, 1);
+        inc->opérande_droite = crée_littérale_entier(valeur->lexème, type, 1);
     }
-    else if (type->est_type_reel()) {
+    else if (type->est_type_réel()) {
         // À FAIRE(r16)
-        inc->opérande_droite = crée_litterale_reel(valeur->lexeme, type, 1.0);
+        inc->opérande_droite = crée_littérale_réel(valeur->lexème, type, 1.0);
     }
 
-    return crée_assignation_variable(valeur->lexeme, valeur, inc);
+    return crée_assignation_variable(valeur->lexème, valeur, inc);
 }
 
 NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexème *lexeme,
@@ -1833,14 +1833,14 @@ NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexème *lexeme,
     inc->type = type;
 
     if (est_type_entier(type)) {
-        inc->opérande_droite = crée_litterale_entier(valeur->lexeme, type, 1);
+        inc->opérande_droite = crée_littérale_entier(valeur->lexème, type, 1);
     }
-    else if (type->est_type_reel()) {
+    else if (type->est_type_réel()) {
         // À FAIRE(r16)
-        inc->opérande_droite = crée_litterale_reel(valeur->lexeme, type, 1.0);
+        inc->opérande_droite = crée_littérale_réel(valeur->lexème, type, 1.0);
     }
 
-    return crée_assignation_variable(valeur->lexeme, valeur, inc);
+    return crée_assignation_variable(valeur->lexème, valeur, inc);
 }
 
 NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
@@ -1856,12 +1856,12 @@ NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
     return résultat;
 }
 
-NoeudDeclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
+NoeudDéclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
                                                       Lexème const *lexème)
 {
-    auto type_declaré = assembleuse->crée_reference_type(lexème);
+    auto type_declaré = assembleuse->crée_référence_type(lexème);
 
-    auto déclaration_paramètre = assembleuse->crée_declaration_variable(
+    auto déclaration_paramètre = assembleuse->crée_déclaration_variable(
         lexème, TypeBase::RIEN, ID::__ret0, nullptr);
     déclaration_paramètre->expression_type = type_declaré;
     déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
@@ -1870,7 +1870,7 @@ NoeudDeclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assemb
 
 /** \} */
 
-static const char *ordre_fonction(NoeudDeclarationEnteteFonction const *entete)
+static const char *ordre_fonction(NoeudDéclarationEntêteFonction const *entete)
 {
     if (entete->est_opérateur) {
         return "l'opérateur";
@@ -1884,10 +1884,10 @@ static const char *ordre_fonction(NoeudDeclarationEnteteFonction const *entete)
 }
 
 void imprime_détails_fonction(EspaceDeTravail *espace,
-                              NoeudDeclarationEnteteFonction const *entête,
+                              NoeudDéclarationEntêteFonction const *entête,
                               std::ostream &os)
 {
-    os << "Détail pour " << ordre_fonction(entête) << " " << entête->lexeme->chaine << " :\n";
+    os << "Détail pour " << ordre_fonction(entête) << " " << entête->lexème->chaine << " :\n";
     os << "-- Type                    : " << chaine_type(entête->type) << '\n';
     os << "-- Est polymorphique       : " << std::boolalpha
        << entête->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) << '\n';
@@ -1915,8 +1915,8 @@ void imprime_détails_fonction(EspaceDeTravail *espace,
 
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
 {
-    if (noeud->est_entete_fonction()) {
-        auto entete = noeud->comme_entete_fonction();
+    if (noeud->est_entête_fonction()) {
+        auto entete = noeud->comme_entête_fonction();
 
         if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
             return enchaine("init_de(", chaine_type(entete->type_initialisé()), ")");
@@ -1927,7 +1927,7 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
                 auto const type1 = entete->parametre_entree(0)->type;
                 auto const type2 = entete->parametre_entree(1)->type;
                 return enchaine("opérateur ",
-                                entete->lexeme->chaine,
+                                entete->lexème->chaine,
                                 " (",
                                 chaine_type(type1),
                                 ", ",
@@ -1938,10 +1938,10 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
             if (entete->params.taille() == 1) {
                 auto const type1 = entete->parametre_entree(0)->type;
                 return enchaine(
-                    "opérateur ", entete->lexeme->chaine, " (", chaine_type(type1), ")");
+                    "opérateur ", entete->lexème->chaine, " (", chaine_type(type1), ")");
             }
 
-            return enchaine("opérateur ", entete->lexeme->chaine);
+            return enchaine("opérateur ", entete->lexème->chaine);
         }
 
         if (entete->ident) {
@@ -1975,7 +1975,7 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
 Type *donne_type_accédé_effectif(Type *type_accédé)
 {
     /* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
-    while (type_accédé->est_type_pointeur() || type_accédé->est_type_reference()) {
+    while (type_accédé->est_type_pointeur() || type_accédé->est_type_référence()) {
         type_accédé = type_déréférencé_pour(type_accédé);
     }
 
@@ -1992,7 +1992,7 @@ Type *donne_type_accédé_effectif(Type *type_accédé)
 
 static Lexème lexème_sentinel = {};
 
-NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *type,
+NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *type,
                                                                      AssembleuseArbre *assembleuse,
                                                                      Typeuse &typeuse)
 {
@@ -2000,10 +2000,10 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
         return type->fonction_init;
     }
 
-    if (type->est_type_enum()) {
+    if (type->est_type_énum()) {
         /* Les fonctions pour les types de bases durent être créées au début de la compilation. */
-        assert(type->comme_type_enum()->type_sous_jacent->fonction_init);
-        return type->comme_type_enum()->type_sous_jacent->fonction_init;
+        assert(type->comme_type_énum()->type_sous_jacent->fonction_init);
+        return type->comme_type_énum()->type_sous_jacent->fonction_init;
     }
 
     auto type_param = typeuse.type_pointeur_pour(type);
@@ -2017,7 +2017,7 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
     auto type_fonction = typeuse.type_fonction(types_entrées, TypeBase::RIEN, false);
 
     static Lexème lexème_entête = {};
-    auto entête = assembleuse->crée_entete_fonction(&lexème_entête);
+    auto entête = assembleuse->crée_entête_fonction(&lexème_entête);
     entête->drapeaux_fonction |= DrapeauxNoeudFonction::EST_INITIALISATION_TYPE;
 
     entête->bloc_constantes = assembleuse->crée_bloc_seul(&lexème_sentinel, nullptr);
@@ -2027,11 +2027,11 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
     /* Paramètre d'entrée. */
     {
         static Lexème lexème_déclaration = {};
-        auto déclaration_paramètre = assembleuse->crée_declaration_variable(
+        auto déclaration_paramètre = assembleuse->crée_déclaration_variable(
             &lexème_déclaration, type_param, ID::pointeur, nullptr);
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-        if (type->est_type_reference()) {
+        if (type->est_type_référence()) {
             /* Les références ne sont pas initialisées. Marquons-les comme tel afin de plaire aux
              * coulisses. */
             déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE;
@@ -2105,11 +2105,11 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         }
         case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         case GenreNoeud::TYPE_TRANCHE:
         case GenreNoeud::VARIADIQUE:
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto prise_adresse = crée_prise_adresse(
                 assembleuse, &lexème_sentinel, ref_param, typeuse.type_pointeur_pour(type));
@@ -2123,7 +2123,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         {
             static Lexème littéral_bool = {};
             littéral_bool.genre = GenreLexème::FAUX;
-            auto valeur_défaut = assembleuse->crée_litterale_bool(&littéral_bool);
+            auto valeur_défaut = assembleuse->crée_littérale_bool(&littéral_bool);
             valeur_défaut->type = type;
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
@@ -2132,22 +2132,22 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::TYPE_DE_DONNEES:
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::TYPE_DE_DONNÉES:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         {
-            auto valeur_défaut = assembleuse->crée_litterale_entier(&lexème_sentinel, type, 0);
+            auto valeur_défaut = assembleuse->crée_littérale_entier(&lexème_sentinel, type, 0);
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
-            auto valeur_défaut = assembleuse->crée_litterale_reel(&lexème_sentinel, type, 0);
+            auto valeur_défaut = assembleuse->crée_littérale_réel(&lexème_sentinel, type, 0);
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
         }
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         {
             break;
         }
@@ -2155,7 +2155,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         case GenreNoeud::FONCTION:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
-            auto valeur_défaut = assembleuse->crée_litterale_nul(&lexème_sentinel);
+            auto valeur_défaut = assembleuse->crée_littérale_nul(&lexème_sentinel);
             valeur_défaut->type = ref_param->type;
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
@@ -2171,24 +2171,24 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             /* NOTE: pour les tableaux fixes, puisque le déréférencement de pointeur est compliqué
              * avec les indexages, nous passons par une variable locale temporaire et copierons la
              * variable initialisée dans la mémoire pointée par le paramètre. */
-            auto valeur_résultat = assembleuse->crée_declaration_variable(
+            auto valeur_résultat = assembleuse->crée_déclaration_variable(
                 &lexème_sentinel,
                 type_tableau,
                 nullptr,
                 assembleuse->crée_non_initialisation(&lexème_sentinel));
             assembleuse->bloc_courant()->ajoute_membre(valeur_résultat);
             assembleuse->bloc_courant()->ajoute_expression(valeur_résultat);
-            auto ref_résultat = assembleuse->crée_reference_declaration(&lexème_sentinel,
+            auto ref_résultat = assembleuse->crée_référence_déclaration(&lexème_sentinel,
                                                                         valeur_résultat);
 
             /* Toutes les variables doivent être initialisées (ou nous devons nous assurer que tous
              * les types possibles créés par la compilation ont une fonction d'initalisation). */
-            auto init_it = assembleuse->crée_litterale_nul(&lexème_sentinel);
+            auto init_it = assembleuse->crée_littérale_nul(&lexème_sentinel);
             init_it->type = type_pointeur_type_pointe;
 
-            auto decl_it = assembleuse->crée_declaration_variable(
+            auto decl_it = assembleuse->crée_déclaration_variable(
                 &lexème_sentinel, type_pointeur_type_pointe, nullptr, init_it);
-            auto ref_it = assembleuse->crée_reference_declaration(&lexème_sentinel, decl_it);
+            auto ref_it = assembleuse->crée_référence_déclaration(&lexème_sentinel, decl_it);
 
             assembleuse->bloc_courant()->ajoute_membre(decl_it);
 
@@ -2204,7 +2204,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             pour->aide_génération_code = GENERE_BOUCLE_TABLEAU;
             pour->variable = variable;
             pour->decl_it = decl_it;
-            pour->decl_index_it = assembleuse->crée_declaration_variable(
+            pour->decl_index_it = assembleuse->crée_déclaration_variable(
                 &lexème_sentinel, TypeBase::Z64, ID::index_it, nullptr);
 
             auto fonction = crée_entête_pour_initialisation_type(
@@ -2221,7 +2221,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             assembleuse->bloc_courant()->ajoute_expression(assignation_résultat);
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto opaque = type->comme_type_opaque();
             auto type_opacifié = opaque->type_opacifié;
@@ -2284,7 +2284,7 @@ static void assigne_fonction_init_énum(Typeuse &typeuse, TypeEnum *type)
 /* Sauvegarde dans la typeuse la fonction d'intialisation du type si celle-ci est à sauvegarder. */
 static void sauvegarde_fonction_init(Typeuse &typeuse,
                                      Type *type,
-                                     NoeudDeclarationEnteteFonction *entete)
+                                     NoeudDéclarationEntêteFonction *entete)
 {
 #define ASSIGNE_SI(ident_maj, ident_min)                                                          \
     if (type == TypeBase::ident_maj) {                                                            \
@@ -2311,8 +2311,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
 {
     auto &typeuse = espace->compilatrice().typeuse;
 
-    if (type->est_type_enum()) {
-        assigne_fonction_init_énum(typeuse, type->comme_type_enum());
+    if (type->est_type_énum()) {
+        assigne_fonction_init_énum(typeuse, type->comme_type_énum());
         return;
     }
 
@@ -2337,8 +2337,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
     assert(assembleuse->bloc_courant() == nullptr);
     assembleuse->bloc_courant(corps->bloc);
 
-    auto decl_param = entête->params[0]->comme_declaration_variable();
-    auto ref_param = assembleuse->crée_reference_declaration(&lexème_sentinel, decl_param);
+    auto decl_param = entête->params[0]->comme_déclaration_variable();
+    auto ref_param = assembleuse->crée_référence_déclaration(&lexème_sentinel, decl_param);
 
     switch (type->genre) {
         case GenreNoeud::RIEN:
@@ -2351,24 +2351,24 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::TYPE_DE_DONNEES:
-        case GenreNoeud::REEL:
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::TYPE_DE_DONNÉES:
+        case GenreNoeud::RÉEL:
+        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::FONCTION:
         case GenreNoeud::TABLEAU_FIXE:
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
-            auto deref = assembleuse->crée_memoire(&lexème_sentinel);
+            auto deref = assembleuse->crée_mémoire(&lexème_sentinel);
             deref->expression = ref_param;
             deref->type = type;
             crée_initialisation_defaut_pour_type(type, assembleuse, deref, nullptr, typeuse);
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opacifié = type->comme_type_opaque()->type_opacifié;
             auto type_pointeur_opacifié = typeuse.type_pointeur_pour(type_opacifié);
@@ -2379,7 +2379,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                                                    type_pointeur_opacifié};
             comme_type_opacifie->type = type_pointeur_opacifié;
 
-            auto deref = assembleuse->crée_memoire(&lexème_sentinel);
+            auto deref = assembleuse->crée_mémoire(&lexème_sentinel);
             deref->expression = comme_type_opacifie;
             deref->type = type_opacifié;
 
@@ -2389,12 +2389,12 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         }
         case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         case GenreNoeud::TYPE_TRANCHE:
         case GenreNoeud::VARIADIQUE:
         {
-            auto type_composé = type->comme_type_compose();
+            auto type_composé = type->comme_type_composé();
 
             if (type_composé->est_type_structure()) {
                 auto decl = type_composé->comme_type_structure();
@@ -2416,7 +2416,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                     continue;
                 }
 
-                auto ref_membre = assembleuse->crée_reference_membre(
+                auto ref_membre = assembleuse->crée_référence_membre(
                     &lexème_sentinel, ref_param, it.type, index_it);
                 crée_initialisation_defaut_pour_type(
                     it.type, assembleuse, ref_membre, it.expression_valeur_defaut, typeuse);
@@ -2424,7 +2424,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
 
             break;
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto const type_union = type->comme_type_union();
 
@@ -2454,7 +2454,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                     typeuse.type_pointeur_pour(membre.type)};
                 transtype->type = const_cast<Type *>(transtype->transformation.type_cible);
 
-                auto deref = assembleuse->crée_memoire(&lexème_sentinel);
+                auto deref = assembleuse->crée_mémoire(&lexème_sentinel);
                 deref->expression = transtype;
                 deref->type = membre.type;
 
@@ -2485,7 +2485,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 if (membre.type->est_type_rien()) {
                     /* Seul l'index doit être initialisé. (Support union ne contenant que « rien »
                      * comme types des membres). */
-                    auto ref_membre = assembleuse->crée_reference_membre(&lexème_sentinel);
+                    auto ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel);
                     ref_membre->accédée = param_comme_structure;
                     ref_membre->index_membre = 0;
                     ref_membre->type = TypeBase::Z32;
@@ -2495,7 +2495,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                     break;
                 }
 
-                auto ref_membre = assembleuse->crée_reference_membre(&lexème_sentinel);
+                auto ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel);
                 ref_membre->accédée = param_comme_structure;
                 ref_membre->index_membre = 0;
                 ref_membre->type = membre.type;
@@ -2506,7 +2506,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                                                      membre.expression_valeur_defaut,
                                                      typeuse);
 
-                ref_membre = assembleuse->crée_reference_membre(&lexème_sentinel);
+                ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel);
                 ref_membre->accédée = param_comme_structure;
                 ref_membre->index_membre = 1;
                 ref_membre->type = TypeBase::Z32;
@@ -2538,7 +2538,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
 
 /** \} */
 
-bool possède_annotation(const BaseDeclarationVariable *decl, kuri::chaine_statique annotation)
+bool possède_annotation(const BaseDéclarationVariable *decl, kuri::chaine_statique annotation)
 {
     POUR (decl->annotations) {
         if (it.nom == annotation) {
@@ -2549,10 +2549,10 @@ bool possède_annotation(const BaseDeclarationVariable *decl, kuri::chaine_stati
     return false;
 }
 
-bool est_déclaration_polymorphique(NoeudDeclaration const *decl)
+bool est_déclaration_polymorphique(NoeudDéclaration const *decl)
 {
-    if (decl->est_entete_fonction()) {
-        auto const entete = decl->comme_entete_fonction();
+    if (decl->est_entête_fonction()) {
+        auto const entete = decl->comme_entête_fonction();
         return entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);
     }
 
@@ -2577,7 +2577,7 @@ bool est_déclaration_polymorphique(NoeudDeclaration const *decl)
 
 #if 0
 static bool les_invariants_de_la_fonction_sont_respectés(
-    NoeudDeclarationEnteteFonction const *fonction)
+    NoeudDéclarationEntêteFonction const *fonction)
 {
     if (!fonction) {
         return true;
@@ -2620,8 +2620,8 @@ void imprime_membres_blocs_récursifs(NoeudBloc const *bloc)
 
 UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
 {
-    if (noeud->est_entete_fonction()) {
-        return &noeud->comme_entete_fonction()->unité;
+    if (noeud->est_entête_fonction()) {
+        return &noeud->comme_entête_fonction()->unité;
     }
     if (noeud->est_corps_fonction()) {
         return &noeud->comme_corps_fonction()->unité;
@@ -2632,29 +2632,29 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     if (noeud->est_charge()) {
         return &noeud->comme_charge()->unité;
     }
-    if (noeud->est_declaration_variable()) {
-        return &noeud->comme_declaration_variable()->unité;
+    if (noeud->est_déclaration_variable()) {
+        return &noeud->comme_déclaration_variable()->unité;
     }
-    if (noeud->est_declaration_variable_multiple()) {
-        return &noeud->comme_declaration_variable_multiple()->unité;
+    if (noeud->est_déclaration_variable_multiple()) {
+        return &noeud->comme_déclaration_variable_multiple()->unité;
     }
-    if (noeud->est_execute()) {
-        return &noeud->comme_execute()->unité;
+    if (noeud->est_exécute()) {
+        return &noeud->comme_exécute()->unité;
     }
-    if (noeud->est_declaration_classe()) {
-        return &noeud->comme_declaration_classe()->unité;
+    if (noeud->est_déclaration_classe()) {
+        return &noeud->comme_déclaration_classe()->unité;
     }
-    if (noeud->est_declaration_bibliotheque()) {
-        return &noeud->comme_declaration_bibliotheque()->unité;
+    if (noeud->est_déclaration_bibliothèque()) {
+        return &noeud->comme_déclaration_bibliothèque()->unité;
     }
     if (noeud->est_type_opaque()) {
         return &noeud->comme_type_opaque()->unité;
     }
-    if (noeud->est_dependance_bibliotheque()) {
-        return &noeud->comme_dependance_bibliotheque()->unité;
+    if (noeud->est_dépendance_bibliothèque()) {
+        return &noeud->comme_dépendance_bibliothèque()->unité;
     }
-    if (noeud->est_type_enum()) {
-        return &noeud->comme_type_enum()->unité;
+    if (noeud->est_type_énum()) {
+        return &noeud->comme_type_énum()->unité;
     }
     if (noeud->est_ajoute_fini()) {
         return &noeud->comme_ajoute_fini()->unité;
@@ -2662,8 +2662,8 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     if (noeud->est_ajoute_init()) {
         return &noeud->comme_ajoute_init()->unité;
     }
-    if (noeud->est_declaration_constante()) {
-        return &noeud->comme_declaration_constante()->unité;
+    if (noeud->est_déclaration_constante()) {
+        return &noeud->comme_déclaration_constante()->unité;
     }
 
     assert_rappel(false, [&]() {

@@ -13,14 +13,14 @@
 struct AtomeFonction;
 struct EspaceDeTravail;
 struct GrapheDépendance;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationSymbole;
-struct NoeudDeclarationVariable;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationSymbole;
+struct NoeudDéclarationVariable;
 struct NoeudDépendance;
 struct NoeudExpression;
 struct Statistiques;
-struct NoeudDeclarationType;
-using Type = NoeudDeclarationType;
+struct NoeudDéclarationType;
+using Type = NoeudDéclarationType;
 
 namespace kuri {
 struct chaine;
@@ -69,8 +69,8 @@ struct NoeudDépendance {
 
     union {
         Type *m_type;
-        NoeudDeclarationEnteteFonction *m_noeud_fonction;
-        NoeudDeclarationVariable *m_noeud_globale;
+        NoeudDéclarationEntêteFonction *m_noeud_fonction;
+        NoeudDéclarationVariable *m_noeud_globale;
     };
 
     TypeNoeudDependance m_type_noeud = TypeNoeudDependance::INVALIDE;
@@ -81,8 +81,8 @@ struct NoeudDépendance {
     /* pour certains algorithmes de travail sur le graphe */
     char drapeaux = 0;
 
-    explicit NoeudDépendance(NoeudDeclarationVariable *globale);
-    explicit NoeudDépendance(NoeudDeclarationEnteteFonction *fonction);
+    explicit NoeudDépendance(NoeudDéclarationVariable *globale);
+    explicit NoeudDépendance(NoeudDéclarationEntêteFonction *fonction);
     explicit NoeudDépendance(Type *t);
 
     inline bool est_type() const
@@ -106,13 +106,13 @@ struct NoeudDépendance {
         return m_type;
     }
 
-    inline NoeudDeclarationEnteteFonction *fonction() const
+    inline NoeudDéclarationEntêteFonction *fonction() const
     {
         assert(est_fonction());
         return m_noeud_fonction;
     }
 
-    inline NoeudDeclarationVariable *globale() const
+    inline NoeudDéclarationVariable *globale() const
     {
         assert(est_globale());
         return m_noeud_globale;
@@ -126,8 +126,8 @@ struct NoeudDépendance {
 };
 
 struct DonnéesDépendance {
-    kuri::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisées{};
-    kuri::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisées{};
+    kuri::ensemblon<NoeudDéclarationEntêteFonction *, 16> fonctions_utilisées{};
+    kuri::ensemblon<NoeudDéclarationVariable *, 16> globales_utilisées{};
     kuri::ensemblon<Type *, 16> types_utilisés{};
 
     void fusionne(DonnéesDépendance const &autre);
@@ -165,10 +165,10 @@ struct GrapheDépendance {
     tableau_page<NoeudDépendance> noeuds{};
 
     // CRÉE (:FONCTION { nom = $nom })
-    NoeudDépendance *crée_noeud_fonction(NoeudDeclarationEnteteFonction *noeud_syntaxique);
+    NoeudDépendance *crée_noeud_fonction(NoeudDéclarationEntêteFonction *noeud_syntaxique);
 
     // CRÉE (:GLOBALE { nom = $nom })
-    NoeudDépendance *crée_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique);
+    NoeudDépendance *crée_noeud_globale(NoeudDéclarationVariable *noeud_syntaxique);
 
     // FUSIONNE (:TYPE { index = $index })
     NoeudDépendance *crée_noeud_type(Type *type);
@@ -232,5 +232,5 @@ struct GrapheDépendance {
 void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dependance);
 
 /* Impression des dépendances directes. */
-[[nodiscard]] kuri::chaine imprime_dépendances(NoeudDeclarationSymbole const *symbole);
+[[nodiscard]] kuri::chaine imprime_dépendances(NoeudDéclarationSymbole const *symbole);
 [[nodiscard]] kuri::chaine imprime_dépendances(Type const *type);

@@ -12,7 +12,7 @@
 #include "structures/chemin_systeme.hh"
 #include "structures/tableau_compresse.hh"
 
-struct Bibliotheque;
+struct Bibliothèque;
 struct Compilatrice;
 struct EspaceDeTravail;
 struct NoeudExpression;
@@ -44,7 +44,7 @@ struct Symbole {
     using type_adresse_fonction = void (*)();
     using type_adresse_objet = void *;
 
-    Bibliotheque *bibliotheque = nullptr;
+    Bibliothèque *bibliotheque = nullptr;
     kuri::chaine nom = "";
     EtatRechercheSymbole etat_recherche = EtatRechercheSymbole::NON_RECHERCHE;
 
@@ -86,7 +86,7 @@ struct Symbole {
     type_adresse_objet donne_adresse_objet_pour_exécution();
 };
 
-enum class EtatRechercheBibliotheque : unsigned char {
+enum class EtatRechercheBibliothèque : unsigned char {
     NON_RECHERCHEE,
     TROUVEE,
     INTROUVEE,
@@ -117,7 +117,7 @@ enum {
     NUM_TYPES_INFORMATION_BIBLIOTHEQUE,
 };
 
-struct Bibliotheque {
+struct Bibliothèque {
     /* l'identifiant qui sera utilisé après les directives #externe, défini via ident ::
      * #bibliothèque "nom" */
     IdentifiantCode *ident = nullptr;
@@ -127,7 +127,7 @@ struct Bibliotheque {
     NoeudExpression *site = nullptr;
     dls::systeme_fichier::shared_library bib{};
 
-    EtatRechercheBibliotheque etat_recherche = EtatRechercheBibliotheque::NON_RECHERCHEE;
+    EtatRechercheBibliothèque etat_recherche = EtatRechercheBibliothèque::NON_RECHERCHEE;
 
     kuri::chemin_systeme chemins_de_base[NUM_TYPES_PLATEFORME] = {};
     kuri::chemin_systeme chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHEQUE]
@@ -135,7 +135,7 @@ struct Bibliotheque {
 
     kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
 
-    kuri::tableau_compresse<Bibliotheque *, int> dependances{};
+    kuri::tableau_compresse<Bibliothèque *, int> dependances{};
     tableau_page<Symbole> symboles{};
 
     Symbole *crée_symbole(kuri::chaine_statique nom_symbole, TypeSymbole type);
@@ -155,11 +155,11 @@ struct Bibliotheque {
     }
 };
 
-struct GestionnaireBibliotheques {
+struct GestionnaireBibliothèques {
     Compilatrice &compilatrice;
-    tableau_page<Bibliotheque> bibliotheques{};
+    tableau_page<Bibliothèque> bibliotheques{};
 
-    GestionnaireBibliotheques(Compilatrice &compilatrice_);
+    GestionnaireBibliothèques(Compilatrice &compilatrice_);
 
     /**
      * Charge les bibliothèques requises pour l'exécution des métaprogrammes.
@@ -167,13 +167,13 @@ struct GestionnaireBibliotheques {
      */
     static bool initialise_bibliotheques_pour_execution(Compilatrice &compilatrice);
 
-    Bibliotheque *trouve_bibliotheque(IdentifiantCode *ident);
+    Bibliothèque *trouve_bibliothèque(IdentifiantCode *ident);
 
-    Bibliotheque *trouve_ou_crée_bibliotheque(EspaceDeTravail &espace, IdentifiantCode *ident);
+    Bibliothèque *trouve_ou_crée_bibliothèque(EspaceDeTravail &espace, IdentifiantCode *ident);
 
-    Bibliotheque *crée_bibliotheque(EspaceDeTravail &espace, NoeudExpression *site);
+    Bibliothèque *crée_bibliothèque(EspaceDeTravail &espace, NoeudExpression *site);
 
-    Bibliotheque *crée_bibliotheque(EspaceDeTravail &espace,
+    Bibliothèque *crée_bibliothèque(EspaceDeTravail &espace,
                                     NoeudExpression *site,
                                     IdentifiantCode *ident,
                                     kuri::chaine_statique nom);
@@ -183,9 +183,9 @@ struct GestionnaireBibliotheques {
     void rassemble_statistiques(Statistiques &stats) const;
 
   private:
-    void resoud_chemins_bibliotheque(EspaceDeTravail &espace,
+    void resoud_chemins_bibliothèque(EspaceDeTravail &espace,
                                      NoeudExpression *site,
-                                     Bibliotheque *bibliotheque);
+                                     Bibliothèque *bibliotheque);
 };
 
 void *notre_malloc(size_t n);

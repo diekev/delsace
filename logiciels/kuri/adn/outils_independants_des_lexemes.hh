@@ -10,7 +10,8 @@ struct chaine;
 struct chaine_statique;
 }  // namespace kuri
 
-kuri::chaine supprime_accents(kuri::chaine_statique avec_accent);
+kuri::chaine en_majuscule(kuri::chaine_statique minuscule);
+
 bool remplace(std::string &std_string, std::string_view motif, std::string_view remplacement);
 
 void inclus_systeme(std::ostream &os, kuri::chaine_statique fichier);

@@ -15,11 +15,11 @@
 
 struct Attente;
 struct EspaceDeTravail;
-struct NoeudDeclarationConstante;
+struct NoeudDéclarationConstante;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
 struct NoeudExpressionExpansionVariadique;
-struct NoeudExpressionReference;
+struct NoeudExpressionRéférence;
 struct NoeudExpressionTypeFonction;
 struct NoeudExpressionTypeTableauDynamique;
 struct NoeudExpressionTypeTableauFixe;
@@ -185,7 +185,7 @@ class Monomorpheuse {
     int profondeur_appariement_type = 0;
 
   public:
-    Monomorpheuse(EspaceDeTravail &ref_espace, const NoeudDeclarationEnteteFonction *entete);
+    Monomorpheuse(EspaceDeTravail &ref_espace, const NoeudDéclarationEntêteFonction *entete);
 
     EMPECHE_COPIE(Monomorpheuse);
 
@@ -280,11 +280,11 @@ class Monomorpheuse {
   private:
     /* Ajout une item pour la constante polymorphique. Ceci doit être appelé lors de la
      * construction de la monomorpheuse afin de peupler la liste d'item à résoudre. */
-    void ajoute_item_pour_constante(NoeudDeclarationConstante *constante);
+    void ajoute_item_pour_constante(NoeudDéclarationConstante *constante);
 
     /* Ajout de candidats. */
 
-    void ajoute_candidat_depuis_référence_déclaration(const NoeudExpressionReference *reference,
+    void ajoute_candidat_depuis_référence_déclaration(const NoeudExpressionRéférence *reference,
                                                       const Type *type_reçu);
     void ajoute_candidats_depuis_type_fonction(
         const NoeudExpressionTypeFonction *decl_type_fonction,
@@ -321,7 +321,7 @@ class Monomorpheuse {
 
     Type *résoud_type_final_impl(const NoeudExpression *expression_polymorphique);
 
-    Type *résoud_type_final_pour_référence_déclaration(const NoeudExpressionReference *reference);
+    Type *résoud_type_final_pour_référence_déclaration(const NoeudExpressionRéférence *reference);
     Type *résoud_type_final_pour_type_fonction(
         const NoeudExpressionTypeFonction *decl_type_fonction);
     Type *résoud_type_final_pour_construction_structure(
@@ -387,5 +387,5 @@ class Monomorpheuse {
  */
 RésultatMonomorphisation détermine_monomorphisation(
     Monomorpheuse &monomorpheuse,
-    const NoeudDeclarationEnteteFonction *entête,
+    const NoeudDéclarationEntêteFonction *entête,
     kuri::tableau_statique<NoeudExpression *> arguments_reçus);

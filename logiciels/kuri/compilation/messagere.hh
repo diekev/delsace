@@ -17,7 +17,7 @@ struct Messagère {
   private:
     tableau_page<MessageFichier> messages_fichiers{};
     tableau_page<MessageModule> messages_modules{};
-    tableau_page<MessageTypageCodeTermine> messages_typage_code{};
+    tableau_page<MessageTypageCodeTerminé> messages_typage_code{};
     tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
 
     int64_t pic_de_message = 0;

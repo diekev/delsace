@@ -7,17 +7,6 @@
 
 #include "structures/ensemble.hh"
 
-void IdentifiantADN::préserve_accents_si_nom_le_requiers()
-{
-    if (nom == "OpérateurUnaire" || nom == "OpérateurBinaire" || nom == "VisibilitéSymbole" ||
-        nom == "DonnéesSymboleExterne" || nom == "MembreTypeComposé" || nom == "TableOpérateurs" ||
-        nom == "Lexème" || nom == "GenreLexème" || nom == "NoeudDépendance") {
-
-        std::cerr << "Préserve accent : " << nom << "\n";
-        préserve_accents();
-    }
-}
-
 const IdentifiantADN &Type::accede_nom() const
 {
     if (est_pointeur()) {
@@ -33,12 +22,12 @@ const IdentifiantADN &Type::accede_nom() const
 
 FluxSortieCPP &operator<<(FluxSortieCPP &flux, const IdentifiantADN &ident)
 {
-    return flux << ident.nom_cpp();
+    return flux << ident.nom();
 }
 
 FluxSortieKuri &operator<<(FluxSortieKuri &flux, const IdentifiantADN &ident)
 {
-    return flux << ident.nom_kuri();
+    return flux << ident.nom();
 }
 
 FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type)
@@ -105,10 +94,10 @@ ProteineStruct::ProteineStruct(IdentifiantADN nom) : Proteine(nom), m_nom_code(n
 void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 {
     if (pour_entete) {
-        os << "struct " << m_nom.nom_cpp();
+        os << "struct " << m_nom;
 
         if (m_mere) {
-            os << " : public " << m_mere->nom().nom_cpp();
+            os << " : public " << m_mere->nom().nom();
         }
 
         os << " {\n";
@@ -139,7 +128,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                 os << "mutable ";
             }
 
-            os << *it.type << ' ' << it.nom.nom_cpp();
+            os << *it.type << ' ' << it.nom.nom();
 
             if (it.valeur_defaut != "") {
                 os << " = ";
@@ -158,7 +147,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                     os << "false";
                 }
                 else {
-                    os << supprime_accents(it.valeur_defaut);
+                    os << it.valeur_defaut;
                 }
             }
             else {
@@ -168,7 +157,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << ";\n";
         }
 
-        if (m_nom.nom_cpp() == "NoeudExpression") {
+        if (m_nom.nom() == "NoeudExpression") {
             os << "\n";
             os << "\tinline bool possède_drapeau(DrapeauxNoeud drapeaux_) const\n";
             os << "\t{\n";
@@ -179,18 +168,18 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\t\treturn (position & position_) != PositionCodeNoeud::AUCUNE;\n";
             os << "\t}\n";
         }
-        else if (m_nom.nom_cpp() == "NoeudDeclarationEnteteFonction") {
+        else if (m_nom.nom() == "NoeudDéclarationEntêteFonction") {
             os << "\t";
-            os << "\tBaseDeclarationVariable *parametre_entree(int64_t i) const\n";
+            os << "\tBaseDéclarationVariable *parametre_entree(int64_t i) const\n";
             os << "\t{\n";
             os << "\t\tauto param = params[static_cast<int>(i)];\n";
 
             os << "\t\tif (param->est_empl()) {\n";
             os << "\t\t\treturn "
-                  "param->comme_empl()->expression->comme_base_declaration_variable();\n";
+                  "param->comme_empl()->expression->comme_base_déclaration_variable();\n";
             os << "\t\t}\n";
 
-            os << "\t\treturn param->comme_base_declaration_variable();\n";
+            os << "\t\treturn param->comme_base_déclaration_variable();\n";
             os << "\t}\n";
 
             os << "\tkuri::chaine_statique donne_nom_broyé(Broyeuse &broyeuse);\n";
@@ -204,23 +193,23 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\t\treturn (drapeaux_fonction & drapeaux_) != DrapeauxNoeudFonction::AUCUN;\n";
             os << "\t}\n";
         }
-        else if (m_nom.nom_cpp() == "NoeudBloc") {
+        else if (m_nom.nom() == "NoeudBloc") {
             os << "\tmutable int nombre_recherches = 0;\n";
-            os << "\tkuri::table_hachage<IdentifiantCode const *, NoeudDeclaration *> "
+            os << "\tkuri::table_hachage<IdentifiantCode const *, NoeudDéclaration *> "
                   "table_membres{\"membres_bloc\"};\n";
             os << "\tint nombre_de_membres() const;\n";
             os << "\tvoid réserve_membres(int nombre);\n";
-            os << "\tvoid ajoute_membre(NoeudDeclaration *decl);\n";
-            os << "\tvoid ajoute_membre_au_debut(NoeudDeclaration *decl);\n";
+            os << "\tvoid ajoute_membre(NoeudDéclaration *decl);\n";
+            os << "\tvoid ajoute_membre_au_debut(NoeudDéclaration *decl);\n";
             os << "\tvoid fusionne_membres(NoeudBloc *de);\n";
-            os << "\tNoeudDeclaration *membre_pour_index(int index) const;\n";
-            os << "\tNoeudDeclaration *declaration_pour_ident(IdentifiantCode const "
+            os << "\tNoeudDéclaration *membre_pour_index(int index) const;\n";
+            os << "\tNoeudDéclaration *declaration_pour_ident(IdentifiantCode const "
                   "*ident_recherche) const;\n";
-            os << "\tNoeudDeclaration *declaration_avec_meme_ident_que(NoeudExpression const "
+            os << "\tNoeudDéclaration *declaration_avec_meme_ident_que(NoeudExpression const "
                   "*expr) const;\n";
             os << "\tvoid ajoute_expression(NoeudExpression *expr);\n";
         }
-        else if (m_nom.nom_cpp() == "NoeudDeclarationType") {
+        else if (m_nom.nom() == "NoeudDéclarationType") {
             os << "\tinline bool possède_drapeau(DrapeauxNoeud drapeaux_) const\n";
             os << "\t{\n";
             os << "\t\treturn (drapeaux & drapeaux_) != DrapeauxNoeud::AUCUN;\n";
@@ -230,7 +219,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\t\treturn (drapeaux_type & drapeaux_) != DrapeauxTypes::AUCUN;\n";
             os << "\t}\n";
         }
-        else if (m_nom.nom_cpp() == "NoeudDeclarationTypeCompose") {
+        else if (m_nom.nom() == "NoeudDéclarationTypeComposé") {
             os << "\tkuri::tableau_statique<const MembreTypeComposé> "
                   "donne_membres_pour_code_machine() "
                   "const;\n";
@@ -239,7 +228,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         // Prodéclare les fonctions de discrimination.
         if (est_racine_hiérarchie()) {
             pour_chaque_derivee_recursif([&os](const ProteineStruct &derivee) {
-                if (derivee.m_nom_comme.nom_cpp() == "") {
+                if (derivee.m_nom_comme.nom() == "") {
                     return;
                 }
 
@@ -253,19 +242,16 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     }
 
     if (!pour_entete) {
-        os << "static void imprime_membres(std::ostream &os, " << m_nom.nom_cpp()
-           << " const &valeur)\n";
+        os << "static void imprime_membres(std::ostream &os, " << m_nom << " const &valeur)\n";
         os << "{\n";
 
         if (m_mere) {
-            os << "\timprime_membres(os, static_cast<" << m_mere->nom().nom_cpp()
-               << " const &>(valeur));\n";
+            os << "\timprime_membres(os, static_cast<" << m_mere->nom() << " const &>(valeur));\n";
         }
 
         POUR (m_membres) {
             if (it.type->est_tableau()) {
-                os << "\tos << \"\\t" << it.nom.nom_cpp() << " : \" << valeur."
-                   << it.nom.nom_cpp();
+                os << "\tos << \"\\t" << it.nom << " : \" << valeur." << it.nom;
                 const auto type_tableau = it.type->comme_tableau();
                 if (type_tableau->est_synchrone) {
                     os << "->";
@@ -277,13 +263,13 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                 continue;
             }
 
-            os << "\tos << \"\\t" << it.nom.nom_cpp() << " : \" << valeur." << it.nom.nom_cpp()
-               << " << '\\n';" << '\n';
+            os << "\tos << \"\\t" << it.nom << " : \" << valeur." << it.nom << " << '\\n';"
+               << '\n';
         }
         os << "}\n\n";
     }
 
-    os << "std::ostream &operator<<(std::ostream &os, " << m_nom.nom_cpp() << " const &valeur)";
+    os << "std::ostream &operator<<(std::ostream &os, " << m_nom << " const &valeur)";
 
     if (pour_entete) {
         os << ";\n\n";
@@ -291,14 +277,14 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     else {
         os << "\n";
         os << "{\n";
-        os << "\tos << \"" << m_nom.nom_cpp() << " : {\\n\";" << '\n';
+        os << "\tos << \"" << m_nom << " : {\\n\";" << '\n';
         os << "\timprime_membres(os, valeur);\n";
         os << "\tos << \"}\\n\";\n";
         os << "\treturn os;\n";
         os << "}\n\n";
     }
 
-    os << "bool est_valide(" << m_nom.nom_cpp() << " const &valeur)";
+    os << "bool est_valide(" << m_nom << " const &valeur)";
 
     if (pour_entete) {
         os << ";\n\n";
@@ -317,7 +303,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         pour_chaque_membre_recursif([&os](Membre const &it) {
             if (it.type->est_nominal() && it.type->comme_nominal()->est_proteine &&
                 it.type->comme_nominal()->est_proteine->comme_enum()) {
-                os << "\tif (!est_valeur_legale(valeur." << it.nom.nom_cpp() << ")) {\n";
+                os << "\tif (!est_valeur_legale(valeur." << it.nom << ")) {\n";
                 os << "\t\treturn false;\n";
                 os << "\t}\n";
             }
@@ -328,18 +314,18 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     }
 }
 
-void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
+void ProteineStruct::genere_code_cpp_apres_déclaration(FluxSortieCPP &os)
 {
     // Implémente les fonctions de discrimination.
     // Nous devons attendre que toutes les structures soient déclarées avant de
     // pouvoir faire ceci.
     if (est_racine_hiérarchie()) {
         pour_chaque_derivee_recursif([&os, this](const ProteineStruct &derivee) {
-            if (derivee.m_nom_comme.nom_cpp() == "") {
+            if (derivee.m_nom_comme.nom() == "") {
                 return;
             }
 
-            génère_définition_fonctions_discrimination(os, m_nom.nom_cpp(), derivee, false);
+            génère_définition_fonctions_discrimination(os, m_nom.nom(), derivee, false);
         });
     }
 }
@@ -347,7 +333,7 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
 void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom_code << " :: struct ";
-    if (m_nom_code.nom_kuri() == "AnnotationCode") {
+    if (m_nom_code.nom() == "AnnotationCode") {
         os << "#interface ";
     }
     os << "{";
@@ -365,7 +351,7 @@ void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
         os << "\n";
     }
 
-    const auto est_chaine_litterale = m_nom_code.nom_kuri() == "NoeudCodeLittéraleChaine";
+    const auto est_chaine_litterale = m_nom_code.nom() == "NoeudCodeLittéraleChaine";
 
     POUR (m_membres) {
         if (it.type->est_pointeur() &&
@@ -384,12 +370,12 @@ void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
         }
 
         if (it.type->est_pointeur() &&
-            it.type->comme_pointeur()->type_pointe->est_nominal("NoeudDeclarationType")) {
-            os << "\t" << it.nom.nom_kuri() << ": *InfoType\n";
+            it.type->comme_pointeur()->type_pointe->est_nominal("NoeudDéclarationType")) {
+            os << "\t" << it.nom.nom() << ": *InfoType\n";
             continue;
         }
 
-        if (est_chaine_litterale && it.nom.nom_cpp() == "valeur") {
+        if (est_chaine_litterale && it.nom.nom() == "valeur") {
             os << "\tvaleur: chaine\n";
             continue;
         }
@@ -495,27 +481,27 @@ ProteineEnum::ProteineEnum(IdentifiantADN nom) : Proteine(nom)
 void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 {
     if (pour_entete) {
-        os << "enum class " << m_nom.nom_cpp() << " : " << *m_type << " {\n";
+        os << "enum class " << m_nom << " : " << *m_type << " {\n";
 
         POUR (m_membres) {
-            os << "\t" << it.nom.nom_cpp() << ",\n";
+            os << "\t" << it.nom << ",\n";
         }
 
         os << "};\n\n";
     }
 
     if (!pour_entete) {
-        os << "static kuri::chaine_statique chaines_membres_" << m_nom.nom_cpp() << "["
-           << m_membres.taille() << "] = {\n";
+        os << "static kuri::chaine_statique chaines_membres_" << m_nom << "[" << m_membres.taille()
+           << "] = {\n";
 
         POUR (m_membres) {
-            os << "\t\"" << it.nom.nom_cpp() << "\",\n";
+            os << "\t\"" << it.nom << "\",\n";
         }
 
         os << "};\n\n";
     }
 
-    os << "std::ostream &operator<<(std::ostream &os, " << m_nom.nom_cpp() << " valeur)";
+    os << "std::ostream &operator<<(std::ostream &os, " << m_nom << " valeur)";
 
     if (pour_entete) {
         os << ";\n\n";
@@ -523,12 +509,11 @@ void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     else {
         os << "\n";
         os << "{\n";
-        os << "\treturn os << chaines_membres_" << m_nom.nom_cpp()
-           << "[static_cast<int>(valeur)];\n";
+        os << "\treturn os << chaines_membres_" << m_nom << "[static_cast<int>(valeur)];\n";
         os << "}\n\n";
     }
 
-    os << "bool est_valeur_legale(" << m_nom.nom_cpp() << " valeur)";
+    os << "bool est_valeur_legale(" << m_nom << " valeur)";
 
     if (pour_entete) {
         os << ";\n\n";
@@ -539,17 +524,17 @@ void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
         os << "\n";
         os << "{\n";
-        os << "\treturn valeur >= " << m_nom.nom_cpp() << "::" << premier_membre.nom.nom_cpp()
-           << " && valeur <= " << m_nom.nom_cpp() << "::" << dernier_membre.nom.nom_cpp() << ";\n";
+        os << "\treturn valeur >= " << m_nom << "::" << premier_membre.nom
+           << " && valeur <= " << m_nom << "::" << dernier_membre.nom << ";\n";
         os << "}\n\n";
     }
 }
 
 void ProteineEnum::genere_code_kuri(FluxSortieKuri &os)
 {
-    os << m_nom.nom_kuri() << " :: énum " << *m_type << " {\n";
+    os << m_nom << " :: énum " << *m_type << " {\n";
     POUR (m_membres) {
-        os << "\t" << it.nom.nom_kuri() << "\n";
+        os << "\t" << it.nom << "\n";
     }
     os << "}\n\n";
 }
@@ -565,7 +550,7 @@ ProteineFonction::ProteineFonction(IdentifiantADN nom) : Proteine(nom)
 
 void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 {
-    os << *m_type_sortie << ' ' << m_nom.nom_cpp();
+    os << *m_type_sortie << ' ' << m_nom;
 
     auto virgule = "(";
 
@@ -574,7 +559,7 @@ void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     }
     else {
         for (auto &param : m_parametres) {
-            os << virgule << *param.type << ' ' << param.nom.nom_cpp();
+            os << virgule << *param.type << ' ' << param.nom;
             virgule = ", ";
         }
     }
@@ -594,7 +579,7 @@ void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
 void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
 {
-    os << m_nom.nom_kuri() << " :: fonc ";
+    os << m_nom << " :: fonc ";
 
     auto virgule = "(";
 
@@ -603,7 +588,7 @@ void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
     }
     else {
         for (auto &param : m_parametres) {
-            os << virgule << param.nom.nom_kuri() << ": " << *param.type;
+            os << virgule << param.nom << ": " << *param.type;
             virgule = ", ";
         }
     }
@@ -845,7 +830,7 @@ void SyntaxeuseADN::parse_struct()
         auto nom_struct_mere = lexème_courant()->chaine;
 
         POUR (proteines) {
-            if (it->nom().nom_kuri() == kuri::chaine_statique(nom_struct_mere)) {
+            if (it->nom().nom() == kuri::chaine_statique(nom_struct_mere)) {
                 if (!it->comme_struct()) {
                     rapporte_erreur("Impossible de trouver la structure mère !");
                 }
@@ -929,8 +914,8 @@ void SyntaxeuseADN::parse_struct()
                     continue;
                 }
 
-                if (it->nom().nom_cpp() == kuri::chaine_statique(type_enum)) {
-                    if (it->comme_enum()->type_discrimine() != proteine->nom().nom_cpp()) {
+                if (it->nom().nom() == kuri::chaine_statique(type_enum)) {
+                    if (it->comme_enum()->type_discrimine() != proteine->nom().nom()) {
                         rapporte_erreur("L'énumération devant discriminer le noeud n'est pas "
                                         "déclarée comme le discriminant");
                     }
@@ -995,9 +980,6 @@ void SyntaxeuseADN::parse_struct()
                 else if (apparie("copie")) {
                     membre.est_a_copier = true;
                 }
-                else if (apparie("préserve_accents")) {
-                    membre.nom.préserve_accents();
-                }
                 else if (apparie("mutable")) {
                     membre.est_mutable = true;
                 }
@@ -1033,7 +1015,7 @@ Type *SyntaxeuseADN::parse_type()
     Type *type = type_nominal;
 
     POUR (proteines) {
-        if (it->nom().nom_cpp() == type_nominal->nom_cpp.nom_cpp()) {
+        if (it->nom().nom() == type_nominal->nom_cpp.nom()) {
             if (it->comme_enum()) {
                 type_nominal->est_proteine = it;
             }
@@ -1114,7 +1096,7 @@ bool est_type_noeud(const Type *type)
          * une structure. */
         auto proteine = proteine_->comme_struct();
         while (proteine) {
-            if (proteine->nom().nom_cpp() == "NoeudExpression") {
+            if (proteine->nom().nom() == "NoeudExpression") {
                 return true;
             }
 
@@ -1155,7 +1137,7 @@ void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &prot
         if (!it->est_fonction()) {
             continue;
         }
-        identifiants.insère(it->nom().nom_kuri());
+        identifiants.insère(it->nom().nom());
     }
 
     os << "namespace ID {\n";
@@ -1200,7 +1182,7 @@ void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
     const auto &nom_genre = derivee.accede_nom_genre();
 
     // À FAIRE: si/discr
-    if (derivee.est_racine_soushierachie() && nom_genre.nom_cpp() == "") {
+    if (derivee.est_racine_soushierachie() && nom_genre.nom() == "") {
         os << "inline bool " << nom_classe << "::est_" << nom_comme << "() const\n";
         os << "{\n";
         os << "\t ";
