@@ -155,7 +155,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
             info_type->genre = GenreInfoType::TABLEAU;
             info_type->taille_en_octet = type->taille_octet;
-            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointe);
+            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointé);
 
             type->info_type = info_type;
             break;
@@ -182,9 +182,9 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
             // type nul pour les types variadiques des fonctions externes (p.e. printf(const char
             // *, ...))
-            if (type_variadique->type_pointe) {
+            if (type_variadique->type_pointé) {
                 info_type->type_élément = crée_info_type_pour(typeuse,
-                                                              type_variadique->type_pointe);
+                                                              type_variadique->type_pointé);
             }
 
             type->info_type = info_type;
@@ -198,7 +198,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->genre = GenreInfoType::TABLEAU_FIXE;
             info_type->taille_en_octet = type->taille_octet;
             info_type->nombre_éléments = uint32_t(type_tableau->taille);
-            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointe);
+            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointé);
 
             type->info_type = info_type;
             break;
@@ -381,9 +381,9 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->taille_en_octet = type->taille_octet;
 
             auto types_entrée = kuri::tablet<InfoType *, 6>();
-            types_entrée.réserve(type_fonction->types_entrees.taille());
+            types_entrée.réserve(type_fonction->types_entrées.taille());
 
-            POUR (type_fonction->types_entrees) {
+            POUR (type_fonction->types_entrées) {
                 types_entrée.ajoute(crée_info_type_pour(typeuse, it));
             }
 
@@ -416,7 +416,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_element();
             info_type->genre = GenreInfoType::OPAQUE;
             info_type->nom = donne_nom_hiérarchique(type_opaque);
-            info_type->type_opacifié = crée_info_type_pour(typeuse, type_opaque->type_opacifie);
+            info_type->type_opacifié = crée_info_type_pour(typeuse, type_opaque->type_opacifié);
 
             type->info_type = info_type;
             break;

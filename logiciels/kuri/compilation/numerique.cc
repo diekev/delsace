@@ -112,7 +112,7 @@ uint64_t valeur_max(Type *type)
 int nombre_de_bits_pour_type(Type *type)
 {
     while (type->est_type_opaque()) {
-        type = type->comme_type_opaque()->type_opacifie;
+        type = type->comme_type_opaque()->type_opacifié;
     }
 
     /* Utilisation de unsigned car signed enlève 1 bit pour le signe. */
