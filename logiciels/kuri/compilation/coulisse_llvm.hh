@@ -13,7 +13,7 @@ void issitialise_llvm();
 
 struct AtomeGlobale;
 struct AtomeFonction;
-struct Bibliotheque;
+struct Bibliothèque;
 struct DonnéesConstantes;
 struct ProgrammeRepreInter;
 

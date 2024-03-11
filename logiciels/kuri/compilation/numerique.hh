@@ -5,8 +5,8 @@
 
 #include <cstdint>
 
-struct NoeudDeclarationType;
-using Type = NoeudDeclarationType;
+struct NoeudDéclarationType;
+using Type = NoeudDéclarationType;
 
 /**
  * Retourne si la valeur passée est une puissance de 2. 0 est exclus car nous ne supportons pas les

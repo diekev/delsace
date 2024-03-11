@@ -12,7 +12,7 @@
 
 struct Compilatrice;
 struct MetaProgramme;
-struct NoeudDeclarationEnteteFonction;
+struct NoeudDéclarationEntêteFonction;
 struct Programme;
 struct SiteSource;
 struct UniteCompilation;
@@ -47,11 +47,11 @@ struct EspaceDeTravail {
     UniteCompilation *unité_pour_code_machine = nullptr;
 
     /* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
-    NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_principale = nullptr;
 
-    NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
-    NoeudDeclarationEnteteFonction *fonction_point_d_entree_dynamique = nullptr;
-    NoeudDeclarationEnteteFonction *fonction_point_de_sortie_dynamique = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_point_d_entree = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_point_d_entree_dynamique = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_point_de_sortie_dynamique = nullptr;
 
     /* Le métaprogramme controlant la compilation dans cette espace. */
     MetaProgramme *metaprogramme = nullptr;
