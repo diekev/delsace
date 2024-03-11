@@ -87,7 +87,7 @@ static bool est_type_rien(Type const *type)
         return false;
     }
 
-    return type->comme_nominal()->accede_nom().nom_cpp() == "void";
+    return type->comme_nominal()->accede_nom().nom() == "void";
 }
 
 static void genere_code_appel_intrinsèque_défaut(FluxSortieCPP &os, ProteineFonction *fonction)
@@ -139,7 +139,7 @@ static void genere_code_appel_intrinsèque_ignorée(FluxSortieCPP &os,
     }
 
     for (auto const &params : fonction->donne_paramètres()) {
-        if (params.nom.nom_cpp() == argument_résultat) {
+        if (params.nom.nom() == argument_résultat) {
             continue;
         }
         os << "        static_cast<void>(" << params.nom << ");\n";
@@ -159,7 +159,7 @@ static void genere_code_appel_intrinsèque(FluxSortieCPP &os, ProteineFonction *
     }
     else if (symbole == "__builtin_expect" || symbole == "__builtin_expect_with_probability") {
         genere_code_appel_intrinsèque_ignorée(
-            os, fonction, fonction->donne_paramètres()[0].nom.nom_cpp());
+            os, fonction, fonction->donne_paramètres()[0].nom.nom());
     }
     else {
         genere_code_appel_intrinsèque_défaut(os, fonction);

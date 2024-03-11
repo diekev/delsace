@@ -175,7 +175,7 @@ static void imprime_atome_ex(Atome const *atome,
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             auto structure_const = atome->comme_constante_structure();
-            auto type = atome->type->comme_type_compose();
+            auto type = atome->type->comme_type_composé();
             auto atomes_membres = structure_const->donne_atomes_membres();
 
             if (pour_operande) {

@@ -12,8 +12,8 @@
 
 struct Enchaineuse;
 struct IdentifiantCode;
-struct NoeudDeclarationType;
-using Type = NoeudDeclarationType;
+struct NoeudDéclarationType;
+using Type = NoeudDéclarationType;
 
 namespace kuri {
 struct chaine_statique;
@@ -36,7 +36,7 @@ struct ItemMonomorphisation {
     ValeurExpression valeur{};
     GenreItem genre = GenreItem::INDÉFINI;
     NoeudExpression *expression_type = nullptr;
-    NoeudDeclarationType *contrainte_type = nullptr;
+    NoeudDéclarationType *contrainte_type = nullptr;
 
     bool operator==(ItemMonomorphisation const &autre) const
     {

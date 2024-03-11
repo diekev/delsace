@@ -11,48 +11,48 @@ struct IdentifiantCode;
 struct Module;
 struct NoeudExpression;
 struct NoeudBloc;
-struct NoeudDeclaration;
-struct NoeudDeclarationEnteteFonction;
+struct NoeudDéclaration;
+struct NoeudDéclarationEntêteFonction;
 
 struct ContexteRechecheSymbole {
     NoeudBloc const *bloc_racine = nullptr;
     Fichier const *fichier = nullptr;
-    NoeudDeclarationEnteteFonction const *fonction_courante = nullptr;
+    NoeudDéclarationEntêteFonction const *fonction_courante = nullptr;
 };
 
-NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode const *ident);
+NoeudDéclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode const *ident);
 
-NoeudDeclaration *trouve_dans_bloc(
+NoeudDéclaration *trouve_dans_bloc(
     NoeudBloc const *bloc,
     IdentifiantCode const *ident,
     NoeudBloc const *bloc_final = nullptr,
-    NoeudDeclarationEnteteFonction const *fonction_courante = nullptr);
+    NoeudDéclarationEntêteFonction const *fonction_courante = nullptr);
 
-NoeudDeclaration *trouve_dans_bloc(
+NoeudDéclaration *trouve_dans_bloc(
     NoeudBloc const *bloc,
-    NoeudDeclaration const *decl,
+    NoeudDéclaration const *decl,
     NoeudBloc const *bloc_final = nullptr,
-    const NoeudDeclarationEnteteFonction *fonction_courante = nullptr);
+    const NoeudDéclarationEntêteFonction *fonction_courante = nullptr);
 
-NoeudDeclaration *trouve_dans_bloc_ou_module(
+NoeudDéclaration *trouve_dans_bloc_ou_module(
     NoeudBloc const *bloc,
     IdentifiantCode const *ident,
     Fichier const *fichier,
-    NoeudDeclarationEnteteFonction const *fonction_courante);
+    NoeudDéclarationEntêteFonction const *fonction_courante);
 
-NoeudDeclaration *trouve_dans_bloc_ou_module(ContexteRechecheSymbole const contexte,
+NoeudDéclaration *trouve_dans_bloc_ou_module(ContexteRechecheSymbole const contexte,
                                              IdentifiantCode const *ident);
 
-void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &declarations,
                                    NoeudBloc const *bloc,
                                    IdentifiantCode const *ident);
 
-void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
                                              NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier);
 
-void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
                                              kuri::ensemblon<Module const *, 10> &modules_visites,
                                              NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
@@ -60,6 +60,6 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
 
 NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode const *ident_boucle);
 
-bool bloc_est_dans_differe(NoeudBloc const *bloc);
+bool bloc_est_dans_diffère(NoeudBloc const *bloc);
 
 NoeudExpression *derniere_instruction(NoeudBloc const *b);

@@ -84,22 +84,22 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
         case GenreTâche::PARSAGE:
         {
             if (parsage_termine()) {
-                nouvelle_phase = PhaseCompilation::PARSAGE_TERMINE;
+                nouvelle_phase = PhaseCompilation::PARSAGE_TERMINÉ;
             }
             break;
         }
         case GenreTâche::TYPAGE:
         {
             if (nombre_de_taches[size_t(genre_tache)] == 0 &&
-                phase == PhaseCompilation::PARSAGE_TERMINE && peut_envoyer_changement_de_phase) {
-                nouvelle_phase = PhaseCompilation::TYPAGE_TERMINE;
+                phase == PhaseCompilation::PARSAGE_TERMINÉ && peut_envoyer_changement_de_phase) {
+                nouvelle_phase = PhaseCompilation::TYPAGE_TERMINÉ;
 
                 /* Il est possible que les dernières tâches de typages soient pour des choses qui
-                 * n'ont pas de RI, donc avançons jusqu'à GENERATION_CODE_TERMINEE. */
+                 * n'ont pas de RI, donc avançons jusqu'à GÉNÉRATION_CODE_TERMINÉE. */
                 if (nombre_de_taches[size_t(GenreTâche::GENERATION_RI)] == 0) {
                     /* Notifie pour le changement de phase précédent. */
                     change_de_phase(messagère, nouvelle_phase);
-                    nouvelle_phase = PhaseCompilation::GENERATION_CODE_TERMINEE;
+                    nouvelle_phase = PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE;
                 }
             }
             break;
@@ -109,13 +109,13 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
         {
             if (nombre_de_taches[size_t(GenreTâche::GENERATION_RI)] == 0 &&
                 nombre_de_taches[size_t(GenreTâche::OPTIMISATION)] == 0 &&
-                phase == PhaseCompilation::TYPAGE_TERMINE) {
-                nouvelle_phase = PhaseCompilation::GENERATION_CODE_TERMINEE;
+                phase == PhaseCompilation::TYPAGE_TERMINÉ) {
+                nouvelle_phase = PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE;
             }
             break;
         }
         case GenreTâche::DORS:
-        case GenreTâche::COMPILATION_TERMINEE:
+        case GenreTâche::COMPILATION_TERMINÉE:
         case GenreTâche::CREATION_FONCTION_INIT_TYPE:
         case GenreTâche::CONVERSION_NOEUD_CODE:
         case GenreTâche::ENVOIE_MESSAGE:
@@ -147,35 +147,35 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
         }
         case GenreTâche::TYPAGE:
         {
-            if (phase > PhaseCompilation::PARSAGE_TERMINE) {
-                nouvelle_phase = PhaseCompilation::PARSAGE_TERMINE;
+            if (phase > PhaseCompilation::PARSAGE_TERMINÉ) {
+                nouvelle_phase = PhaseCompilation::PARSAGE_TERMINÉ;
             }
             break;
         }
         case GenreTâche::GENERATION_RI:
         case GenreTâche::OPTIMISATION:
         {
-            if (phase > PhaseCompilation::TYPAGE_TERMINE) {
-                nouvelle_phase = PhaseCompilation::TYPAGE_TERMINE;
+            if (phase > PhaseCompilation::TYPAGE_TERMINÉ) {
+                nouvelle_phase = PhaseCompilation::TYPAGE_TERMINÉ;
             }
             break;
         }
         case GenreTâche::GENERATION_CODE_MACHINE:
         {
-            if (phase > PhaseCompilation::APRES_GENERATION_OBJET) {
-                nouvelle_phase = PhaseCompilation::APRES_GENERATION_OBJET;
+            if (phase > PhaseCompilation::APRÈS_GÉNÉRATION_OBJET) {
+                nouvelle_phase = PhaseCompilation::APRÈS_GÉNÉRATION_OBJET;
             }
             break;
         }
         case GenreTâche::LIAISON_PROGRAMME:
         {
-            if (phase > PhaseCompilation::APRES_LIAISON_EXECUTABLE) {
-                nouvelle_phase = PhaseCompilation::APRES_LIAISON_EXECUTABLE;
+            if (phase > PhaseCompilation::APRÈS_LIAISON_EXÉCUTABLE) {
+                nouvelle_phase = PhaseCompilation::APRÈS_LIAISON_EXÉCUTABLE;
             }
             break;
         }
         case GenreTâche::DORS:
-        case GenreTâche::COMPILATION_TERMINEE:
+        case GenreTâche::COMPILATION_TERMINÉE:
         case GenreTâche::CREATION_FONCTION_INIT_TYPE:
         case GenreTâche::CONVERSION_NOEUD_CODE:
         case GenreTâche::ENVOIE_MESSAGE:
@@ -194,7 +194,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
 
 bool EspaceDeTravail::peut_generer_code_final() const
 {
-    if (phase != PhaseCompilation::GENERATION_CODE_TERMINEE) {
+    if (phase != PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE) {
         return false;
     }
 
@@ -234,7 +234,7 @@ Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &me
         dbg() << __func__ << " : " << nouvelle_phase << ", id " << id_phase;                      \
     }
 
-    if (phase == PhaseCompilation::COMPILATION_TERMINEE) {
+    if (phase == PhaseCompilation::COMPILATION_TERMINÉE) {
         /* Il est possible qu'un espace ajoute des choses à compiler mais que celui-ci n'utilise
          * pas le code. Or, les tâches de typage subséquentes feront regresser sa phase de
          * compilation si la compilation est terminée pour celui-ci. Si tel est le cas, la
@@ -255,7 +255,7 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
         return {};
     }
 
-    auto const lexeme = noeud->lexeme;
+    auto const lexeme = noeud->lexème;
     auto const fichier = compilatrice().fichier(lexeme->fichier);
     return SiteSource::cree(fichier, lexeme);
 }
