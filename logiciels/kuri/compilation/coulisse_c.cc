@@ -367,9 +367,9 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            génère_typedef(type_opaque->type_opacifie, enchaineuse);
+            génère_typedef(type_opaque->type_opacifié, enchaineuse);
             auto nom_broye_type_opacifie = génératrice_code.donne_nom_pour_type(
-                type_opaque->type_opacifie);
+                type_opaque->type_opacifié);
             type_c.typedef_ = nom_broye_type_opacifie;
             break;
         }
@@ -443,7 +443,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         }
         case GenreNoeud::REFERENCE:
         {
-            auto type_pointe = type->comme_type_reference()->type_pointe;
+            auto type_pointe = type->comme_type_reference()->type_pointé;
             génère_typedef(type_pointe, enchaineuse);
             auto &type_c_pointe = type_c_pour(type_pointe);
             type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
@@ -451,7 +451,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         }
         case GenreNoeud::POINTEUR:
         {
-            auto type_pointe = type->comme_type_pointeur()->type_pointe;
+            auto type_pointe = type->comme_type_pointeur()->type_pointé;
 
             if (type_pointe) {
                 génère_typedef(type_pointe, enchaineuse);
@@ -521,7 +521,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             auto tableau_dynamique = type->comme_type_tableau_dynamique();
-            auto type_pointe = tableau_dynamique->type_pointe;
+            auto type_pointe = tableau_dynamique->type_pointé;
 
             if (type_pointe == nullptr) {
                 /* Aucun typedef. */
@@ -550,7 +550,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         {
             auto type_fonc = type->comme_type_fonction();
 
-            POUR (type_fonc->types_entrees) {
+            POUR (type_fonc->types_entrées) {
                 génère_typedef(it, enchaineuse);
             }
 
@@ -563,13 +563,13 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
 
             auto virgule = "(";
 
-            POUR (type_fonc->types_entrees) {
+            POUR (type_fonc->types_entrées) {
                 auto type_entrée = génératrice_code.donne_nom_pour_type(it);
                 enchaineuse_tmp << virgule << type_entrée;
                 virgule = ",";
             }
 
-            if (type_fonc->types_entrees.taille() == 0) {
+            if (type_fonc->types_entrées.taille() == 0) {
                 enchaineuse_tmp << virgule;
             }
             enchaineuse_tmp << ")";
@@ -681,17 +681,17 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto opaque = type->comme_type_opaque();
-            génère_code_pour_type(opaque->type_opacifie, enchaineuse);
+            génère_code_pour_type(opaque->type_opacifié, enchaineuse);
             break;
         }
         case GenreNoeud::REFERENCE:
         {
-            génère_code_pour_type(type->comme_type_reference()->type_pointe, enchaineuse);
+            génère_code_pour_type(type->comme_type_reference()->type_pointé, enchaineuse);
             break;
         }
         case GenreNoeud::POINTEUR:
         {
-            génère_code_pour_type(type->comme_type_pointeur()->type_pointe, enchaineuse);
+            génère_code_pour_type(type->comme_type_pointeur()->type_pointé, enchaineuse);
             break;
         }
         case GenreNoeud::EINI:
@@ -723,7 +723,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 
             POUR (type_composé->membres) {
                 if (it.type->est_type_pointeur()) {
-                    génère_code_pour_type(it.type->comme_type_pointeur()->type_pointe,
+                    génère_code_pour_type(it.type->comme_type_pointeur()->type_pointé,
                                           enchaineuse);
                     continue;
                 }
@@ -744,7 +744,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto tableau_fixe = type->comme_type_tableau_fixe();
-            génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
+            génère_code_pour_type(tableau_fixe->type_pointé, enchaineuse);
             auto nom_broyé = génératrice_code.donne_nom_pour_type(type);
             kuri::chaine_statique préfixe = "";
             if (génératrice_code.préserve_symboles()) {
@@ -753,7 +753,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             }
 
             enchaineuse << "typedef struct " << préfixe << nom_broyé << " {\n  "
-                        << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointe);
+                        << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointé);
             enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];\n";
             enchaineuse << "} " << préfixe << nom_broyé << ";\n\n";
             break;
@@ -761,14 +761,14 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::VARIADIQUE:
         {
             auto variadique = type->comme_type_variadique();
-            génère_code_pour_type(variadique->type_pointe, enchaineuse);
+            génère_code_pour_type(variadique->type_pointé, enchaineuse);
             génère_code_pour_type(variadique->type_tranche, enchaineuse);
             return;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             auto tableau_dynamique = type->comme_type_tableau_dynamique();
-            auto type_élément = tableau_dynamique->type_pointe;
+            auto type_élément = tableau_dynamique->type_pointé;
 
             if (type_élément == nullptr) {
                 return;
@@ -806,7 +806,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::FONCTION:
         {
             auto type_fonction = type->comme_type_fonction();
-            POUR (type_fonction->types_entrees) {
+            POUR (type_fonction->types_entrées) {
                 génère_code_pour_type(it, enchaineuse);
             }
             génère_code_pour_type(type_fonction->type_sortie, enchaineuse);
@@ -1558,7 +1558,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                  * membre de la structure qui est le tableau, et sert également à proprement
                  * générer le code pour les indexages. */
                 if (est_pointeur_vers_tableau_fixe(
-                        charge->type->comme_type_pointeur()->type_pointe)) {
+                        charge->type->comme_type_pointeur()->type_pointé)) {
                     valeur_chargée = enchaine("&(*", valeur.sous_chaine(1), ")");
                 }
                 else {
@@ -1844,7 +1844,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
         os << virgule;
 
         auto type_pointeur = it->type->comme_type_pointeur();
-        auto type_param = type_pointeur->type_pointe;
+        auto type_param = type_pointeur->type_pointé;
         auto type_opt = type_paramètre_pour_fonction_clé(atome_fonc->decl, index_it);
         if (type_opt.has_value()) {
             os << type_opt.value();
@@ -1856,7 +1856,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
         /* Dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
          * (void fonction(...)), n'imprime pas de nom. */
         if (type_param->est_type_variadique() &&
-            type_param->comme_type_variadique()->type_pointe == nullptr) {
+            type_param->comme_type_variadique()->type_pointé == nullptr) {
             continue;
         }
 
@@ -1931,7 +1931,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
         auto param = atome_fonc->param_sortie;
         auto type_pointeur = param->type->comme_type_pointeur();
         os << "  ";
-        os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
+        os << donne_nom_pour_type(type_pointeur->type_pointé) << ' ';
         os << donne_nom_pour_instruction(param);
         os << ";\n";
 

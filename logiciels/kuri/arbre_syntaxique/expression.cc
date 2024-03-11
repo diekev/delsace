@@ -367,7 +367,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto inst = b->comme_expression_unaire();
-            auto res = évalue_expression(compilatrice, bloc, inst->operande);
+            auto res = évalue_expression(compilatrice, bloc, inst->opérande);
 
             if (res.est_erroné) {
                 return res;
@@ -414,13 +414,13 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::OPERATEUR_BINAIRE:
         {
             auto inst = b->comme_expression_binaire();
-            auto res1 = évalue_expression(compilatrice, bloc, inst->operande_gauche);
+            auto res1 = évalue_expression(compilatrice, bloc, inst->opérande_gauche);
 
             if (res1.est_erroné) {
                 return res1;
             }
 
-            auto res2 = évalue_expression(compilatrice, bloc, inst->operande_droite);
+            auto res2 = évalue_expression(compilatrice, bloc, inst->opérande_droite);
 
             if (res2.est_erroné) {
                 return res2;
@@ -516,7 +516,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
         {
             auto ref_membre = b->comme_reference_membre();
-            auto type_accede = ref_membre->accedee->type;
+            auto type_accede = ref_membre->accédée->type;
             type_accede = donne_type_accédé_effectif(type_accede);
 
             if (type_accede->est_type_type_de_donnees()) {
@@ -560,13 +560,13 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         {
             auto expression_appel = b->comme_appel();
 
-            if (expression_appel->aide_generation_code != CONSTRUIT_OPAQUE) {
+            if (expression_appel->aide_génération_code != CONSTRUIT_OPAQUE) {
                 return erreur_évaluation(b,
                                          "Impossible d'utiliser une expression d'appel qui n'est "
                                          "pas la construction d'un type opaque");
             }
 
-            auto type_opacifié = b->type->comme_type_opaque()->type_opacifie;
+            auto type_opacifié = b->type->comme_type_opaque()->type_opacifié;
 
             if (!est_type_opaque_utilisable_pour_constante(type_opacifié)) {
                 return erreur_évaluation(b,
@@ -575,7 +575,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                                          "booléen, réel, énumération, ou type erreur");
             }
 
-            auto const nombre_de_paramètres = expression_appel->parametres_resolus.taille();
+            auto const nombre_de_paramètres = expression_appel->paramètres_résolus.taille();
             if (nombre_de_paramètres == 0) {
                 return erreur_évaluation(b,
                                          "Impossible de construire une expression constante "
@@ -589,7 +589,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             }
 
             /* L'assignation du type opaque à la valeur se fera par quiconque nous a appelé. */
-            return évalue_expression(compilatrice, bloc, expression_appel->parametres_resolus[0]);
+            return évalue_expression(compilatrice, bloc, expression_appel->paramètres_résolus[0]);
         }
     }
 }
