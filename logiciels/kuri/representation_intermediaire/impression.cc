@@ -516,7 +516,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
         os << param->ident->nom << ' ';
 
         auto type_pointeur = param->type->comme_type_pointeur();
-        os << chaine_type(type_pointeur->type_pointe, options);
+        os << chaine_type(type_pointeur->type_pointé, options);
 
         virgule = ", ";
     }
