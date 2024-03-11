@@ -14,8 +14,8 @@ struct Compilatrice;
 struct ConstructriceRI;
 struct DonneesAssignations;
 struct NoeudBloc;
-struct NoeudDeclarationVariable;
-struct NoeudDeclarationVariableMultiple;
+struct NoeudDéclarationVariable;
+struct NoeudDéclarationVariableMultiple;
 struct NoeudExpression;
 struct NoeudExpressionConstructionTableau;
 struct NoeudExpressionLogique;
@@ -24,8 +24,8 @@ struct NoeudInstructionTente;
 
 struct NoeudEnum;
 using TypeEnum = NoeudEnum;
-struct NoeudDeclarationTypeTableauFixe;
-using TypeTableauFixe = NoeudDeclarationTypeTableauFixe;
+struct NoeudDéclarationTypeTableauFixe;
+using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
 
 enum class GenreInfoType : int32_t;
 
@@ -63,7 +63,7 @@ struct RegistreSymboliqueRI {
      * pointeur vers l'atome d'une fonction si nous l'avons déjà généré, soit de le
      * créer en préparation de la génération de la RI de son corps.
      */
-    AtomeFonction *trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl);
+    AtomeFonction *trouve_ou_insère_fonction(NoeudDéclarationEntêteFonction *decl);
 
     AtomeGlobale *crée_globale(IdentifiantCode &ident,
                                Type const *type,
@@ -71,9 +71,9 @@ struct RegistreSymboliqueRI {
                                bool est_externe,
                                bool est_constante);
 
-    AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
+    AtomeGlobale *trouve_globale(NoeudDéclaration *decl);
 
-    AtomeGlobale *trouve_ou_insère_globale(NoeudDeclaration *decl);
+    AtomeGlobale *trouve_ou_insère_globale(NoeudDéclaration *decl);
 
     void rassemble_statistiques(Statistiques &stats) const;
 };
@@ -115,7 +115,7 @@ struct ConstructriceRI {
 
     AtomeFonction *crée_fonction(kuri::chaine_statique nom_fonction);
 
-    AtomeFonction *trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl);
+    AtomeFonction *trouve_ou_insère_fonction(NoeudDéclarationEntêteFonction *decl);
 
     AtomeGlobale *crée_globale(IdentifiantCode &ident,
                                Type const *type,
@@ -123,9 +123,9 @@ struct ConstructriceRI {
                                bool est_externe,
                                bool est_constante);
 
-    AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
+    AtomeGlobale *trouve_globale(NoeudDéclaration *decl);
 
-    AtomeGlobale *trouve_ou_insère_globale(NoeudDeclaration *decl);
+    AtomeGlobale *trouve_ou_insère_globale(NoeudDéclaration *decl);
 
     InstructionAllocation *crée_allocation(NoeudExpression const *site_,
                                            Type const *type,
@@ -334,7 +334,7 @@ struct CompilatriceRI {
 
     void génère_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
     void génère_ri_pour_fonction_métaprogramme(EspaceDeTravail *espace,
-                                               NoeudDeclarationEnteteFonction *fonction);
+                                               NoeudDéclarationEntêteFonction *fonction);
     AtomeFonction *genere_fonction_init_globales_et_appel(
         EspaceDeTravail *espace,
         kuri::tableau_statique<AtomeGlobale *> globales,
@@ -393,8 +393,8 @@ struct CompilatriceRI {
         kuri::tableau_statique<AtomeGlobale *> globales, AtomeFonction *fonction_pour);
 
     void génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place = nullptr);
-    void génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
-    void génère_ri_pour_fonction_métaprogramme(NoeudDeclarationEnteteFonction *fonction);
+    void génère_ri_pour_fonction(NoeudDéclarationEntêteFonction *decl);
+    void génère_ri_pour_fonction_métaprogramme(NoeudDéclarationEntêteFonction *fonction);
     void génère_ri_pour_expression_droite(NoeudExpression const *noeud, Atome *place);
     void génère_ri_transformee_pour_noeud(NoeudExpression const *noeud,
                                           Atome *place,
@@ -410,13 +410,13 @@ struct CompilatriceRI {
                                             InstructionLabel *label_si_faux);
     void génère_ri_pour_expression_logique(NoeudExpressionLogique const *noeud, Atome *place);
     void génère_ri_insts_différées(NoeudBloc const *bloc_final);
-    void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
-    void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
-    void génère_ri_pour_variable_locale(NoeudDeclarationVariable *decl);
-    void compile_déclaration_variable_multiple(NoeudDeclarationVariableMultiple *decl);
-    void compile_déclaration_globale_multiple(NoeudDeclarationVariableMultiple *decl);
-    void compile_déclaration_locale_multiple(NoeudDeclarationVariableMultiple *decl);
-    void compile_globale(NoeudDeclaration *decl,
+    void génère_ri_pour_déclaration_variable(NoeudDéclarationVariable *decl);
+    void génère_ri_pour_variable_globale(NoeudDéclarationVariable *decl);
+    void génère_ri_pour_variable_locale(NoeudDéclarationVariable *decl);
+    void compile_déclaration_variable_multiple(NoeudDéclarationVariableMultiple *decl);
+    void compile_déclaration_globale_multiple(NoeudDéclarationVariableMultiple *decl);
+    void compile_déclaration_locale_multiple(NoeudDéclarationVariableMultiple *decl);
+    void compile_globale(NoeudDéclaration *decl,
                          NoeudExpression *expression,
                          TransformationType const &transformation);
     void compile_locale(NoeudExpression *variable,

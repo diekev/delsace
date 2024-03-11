@@ -200,7 +200,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_une_chose()
     else if (apparie(ID::opaque)) {
         analyse_opaque();
     }
-    else if (apparie(ID::énum) || apparie(GenreLexème::ENUM)) {
+    else if (apparie(ID::énum) || apparie(GenreLexème::ÉNUM)) {
         analyse_énum();
     }
     else if (apparie(GenreLexème::UNION)) {
@@ -624,7 +624,7 @@ std::optional<LexèmeType> BaseSyntaxeuseRI<Impl>::apparie_lexème_type() const
     if (apparie(GenreLexème::TROIS_POINTS)) {
         return LexèmeType::VARIADIQUE;
     }
-    if (apparie(GenreLexème::TYPE_DE_DONNEES)) {
+    if (apparie(GenreLexème::TYPE_DE_DONNÉES)) {
         return LexèmeType::TYPE_DE_DONNEES;
     }
     if (apparie(GenreLexème::CHAINE_CARACTERE)) {
@@ -1847,7 +1847,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
     using TypeTrieBloc = kuri::trie<IdentifiantCode *, NoeudBloc *>;
     using TypeNoeudTrieBloc = TypeTrieBloc::Noeud;
 
-    using TypeTrie = kuri::trie<IdentifiantCode *, NoeudDeclarationType *>;
+    using TypeTrie = kuri::trie<IdentifiantCode *, NoeudDéclarationType *>;
     using TypeNoeudTrie = TypeTrie::Noeud;
 
     TypeTrie m_trie_types{};
@@ -1881,19 +1881,19 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
     {
         auto données_préparsage = pré_syntaxeuse.donne_données_préparsage();
         POUR (données_préparsage->structures) {
-            crée_type_préparsé(it.données_types_nominal, GenreNoeud::DECLARATION_STRUCTURE);
+            crée_type_préparsé(it.données_types_nominal, GenreNoeud::DÉCLARATION_STRUCTURE);
         }
 
         POUR (données_préparsage->unions) {
-            crée_type_préparsé(it.données_types_nominal, GenreNoeud::DECLARATION_UNION);
+            crée_type_préparsé(it.données_types_nominal, GenreNoeud::DÉCLARATION_UNION);
         }
 
         POUR (données_préparsage->énums) {
-            crée_type_préparsé(it.données_types_nominal, GenreNoeud::DECLARATION_ENUM);
+            crée_type_préparsé(it.données_types_nominal, GenreNoeud::DÉCLARATION_ÉNUM);
         }
 
         POUR (données_préparsage->opaques) {
-            crée_type_préparsé(it.données_types_nominal, GenreNoeud::DECLARATION_OPAQUE);
+            crée_type_préparsé(it.données_types_nominal, GenreNoeud::DÉCLARATION_OPAQUE);
         }
 
         POUR (données_préparsage->globales) {
@@ -2190,7 +2190,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 
         if (structure->ident == ID::InfoType) {
             m_typeuse.type_info_type_ = structure;
-            TypeBase::EINI->comme_type_compose()->membres[1].type = m_typeuse.type_pointeur_pour(
+            TypeBase::EINI->comme_type_composé()->membres[1].type = m_typeuse.type_pointeur_pour(
                 structure);
         }
     }
@@ -2235,7 +2235,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
             return;
         }
 
-        auto énum = déclaration->comme_type_enum();
+        auto énum = déclaration->comme_type_énum();
         énum->type_sous_jacent = données.type_sous_jacent;
     }
 
@@ -2441,7 +2441,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         return nullptr;
     }
 
-    NoeudDeclarationType *donne_déclaration_pour_type_nominale(
+    NoeudDéclarationType *donne_déclaration_pour_type_nominale(
         kuri::tableau_statique<Lexème *> lexèmes)
     {
         auto ident_modules = kuri::tablet<IdentifiantCode *, 6>();
@@ -2451,14 +2451,14 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         }
 
         auto résultat = m_trie_types.trouve_valeur_ou_noeud_insertion(ident_modules);
-        if (!std::holds_alternative<NoeudDeclarationType *>(résultat)) {
+        if (!std::holds_alternative<NoeudDéclarationType *>(résultat)) {
             return nullptr;
         }
 
-        return std::get<NoeudDeclarationType *>(résultat);
+        return std::get<NoeudDéclarationType *>(résultat);
     }
 
-    NoeudDeclarationType *crée_type_préparsé(kuri::tableau_statique<Lexème *> données_type_nominal,
+    NoeudDéclarationType *crée_type_préparsé(kuri::tableau_statique<Lexème *> données_type_nominal,
                                              GenreNoeud genre)
     {
         auto nom_type = *(données_type_nominal.end() - 1);
@@ -2473,7 +2473,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         ident_modules.ajoute(nom_type->ident);
 
         auto résultat = m_trie_types.trouve_valeur_ou_noeud_insertion(ident_modules);
-        if (std::holds_alternative<NoeudDeclarationType *>(résultat)) {
+        if (std::holds_alternative<NoeudDéclarationType *>(résultat)) {
             return nullptr;
         }
 
@@ -2486,22 +2486,22 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         return type;
     }
 
-    NoeudDeclarationType *crée_type_nominal_pour_genre(Lexème const *lexème, GenreNoeud genre)
+    NoeudDéclarationType *crée_type_nominal_pour_genre(Lexème const *lexème, GenreNoeud genre)
     {
         switch (genre) {
-            case GenreNoeud::DECLARATION_STRUCTURE:
+            case GenreNoeud::DÉCLARATION_STRUCTURE:
             {
                 return m_assembleuse.crée_type_structure(lexème);
             }
-            case GenreNoeud::DECLARATION_UNION:
+            case GenreNoeud::DÉCLARATION_UNION:
             {
                 return m_assembleuse.crée_type_union(lexème);
             }
-            case GenreNoeud::DECLARATION_ENUM:
+            case GenreNoeud::DÉCLARATION_ÉNUM:
             {
-                return m_assembleuse.crée_type_enum(lexème);
+                return m_assembleuse.crée_type_énum(lexème);
             }
-            case GenreNoeud::DECLARATION_OPAQUE:
+            case GenreNoeud::DÉCLARATION_OPAQUE:
             {
                 return m_assembleuse.crée_type_opaque(lexème);
             }

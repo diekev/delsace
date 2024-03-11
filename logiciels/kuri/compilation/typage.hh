@@ -28,11 +28,11 @@ struct OpérateurBinaire;
 struct OpérateurUnaire;
 struct MembreTypeComposé;
 struct NoeudBloc;
-struct NoeudDeclarationVariable;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationTypeTranche;
-struct NoeudDeclarationTypeOpaque;
-struct NoeudDeclarationOperateurPour;
+struct NoeudDéclarationVariable;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationTypeTranche;
+struct NoeudDéclarationTypeOpaque;
+struct NoeudDéclarationOpérateurPour;
 struct NoeudDépendance;
 struct NoeudEnum;
 struct NoeudExpression;
@@ -40,34 +40,34 @@ struct NoeudStruct;
 struct Statistiques;
 struct Typeuse;
 
-struct NoeudDeclarationType;
-struct NoeudDeclarationTypeCompose;
-struct NoeudDeclarationTypeFonction;
-struct NoeudDeclarationTypePointeur;
-struct NoeudDeclarationTypePolymorphique;
-struct NoeudDeclarationTypeReference;
-struct NoeudDeclarationTypeTableauDynamique;
-struct NoeudDeclarationTypeTableauFixe;
-struct NoeudDeclarationTypeTuple;
-struct NoeudDeclarationTypeTypeDeDonnees;
-struct NoeudDeclarationTypeVariadique;
+struct NoeudDéclarationType;
+struct NoeudDéclarationTypeComposé;
+struct NoeudDéclarationTypeFonction;
+struct NoeudDéclarationTypePointeur;
+struct NoeudDéclarationTypePolymorphique;
+struct NoeudDéclarationTypeRéférence;
+struct NoeudDéclarationTypeTableauDynamique;
+struct NoeudDéclarationTypeTableauFixe;
+struct NoeudDéclarationTypeTuple;
+struct NoeudDéclarationTypeTypeDeDonnées;
+struct NoeudDéclarationTypeVariadique;
 struct NoeudUnion;
 
-using Type = NoeudDeclarationType;
+using Type = NoeudDéclarationType;
 using TypeStructure = NoeudStruct;
 using TypeEnum = NoeudEnum;
-using TypeFonction = NoeudDeclarationTypeFonction;
-using TypeOpaque = NoeudDeclarationTypeOpaque;
-using TypePointeur = NoeudDeclarationTypePointeur;
-using TypePolymorphique = NoeudDeclarationTypePolymorphique;
-using TypeReference = NoeudDeclarationTypeReference;
-using TypeTableauDynamique = NoeudDeclarationTypeTableauDynamique;
-using TypeTableauFixe = NoeudDeclarationTypeTableauFixe;
-using TypeTuple = NoeudDeclarationTypeTuple;
-using TypeTypeDeDonnees = NoeudDeclarationTypeTypeDeDonnees;
+using TypeFonction = NoeudDéclarationTypeFonction;
+using TypeOpaque = NoeudDéclarationTypeOpaque;
+using TypePointeur = NoeudDéclarationTypePointeur;
+using TypePolymorphique = NoeudDéclarationTypePolymorphique;
+using TypeReference = NoeudDéclarationTypeRéférence;
+using TypeTableauDynamique = NoeudDéclarationTypeTableauDynamique;
+using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
+using TypeTuple = NoeudDéclarationTypeTuple;
+using TypeTypeDeDonnees = NoeudDéclarationTypeTypeDeDonnées;
 using TypeUnion = NoeudUnion;
-using TypeVariadique = NoeudDeclarationTypeVariadique;
-using TypeCompose = NoeudDeclarationTypeCompose;
+using TypeVariadique = NoeudDéclarationTypeVariadique;
+using TypeCompose = NoeudDéclarationTypeComposé;
 
 enum class GenreNoeud : uint8_t;
 enum class DrapeauxNoeud : uint32_t;
@@ -275,15 +275,15 @@ struct Typeuse {
     /* Sauvegarde des fonctions d'initialisation des types pour les partager entre types.
      * Ces fonctions sont créées avant que tout autre travail de compilation soit effectué, et
      * donc nous n'avons pas besoin de synchroniser la lecture ou l'écriture de ces données. */
-    NoeudDeclarationEnteteFonction *init_type_n8 = nullptr;
-    NoeudDeclarationEnteteFonction *init_type_n16 = nullptr;
-    NoeudDeclarationEnteteFonction *init_type_n32 = nullptr;
-    NoeudDeclarationEnteteFonction *init_type_n64 = nullptr;
-    NoeudDeclarationEnteteFonction *init_type_z8 = nullptr;
-    NoeudDeclarationEnteteFonction *init_type_z16 = nullptr;
-    NoeudDeclarationEnteteFonction *init_type_z32 = nullptr;
-    NoeudDeclarationEnteteFonction *init_type_z64 = nullptr;
-    NoeudDeclarationEnteteFonction *init_type_pointeur = nullptr;
+    NoeudDéclarationEntêteFonction *init_type_n8 = nullptr;
+    NoeudDéclarationEntêteFonction *init_type_n16 = nullptr;
+    NoeudDéclarationEntêteFonction *init_type_n32 = nullptr;
+    NoeudDéclarationEntêteFonction *init_type_n64 = nullptr;
+    NoeudDéclarationEntêteFonction *init_type_z8 = nullptr;
+    NoeudDéclarationEntêteFonction *init_type_z16 = nullptr;
+    NoeudDéclarationEntêteFonction *init_type_z32 = nullptr;
+    NoeudDéclarationEntêteFonction *init_type_z64 = nullptr;
+    NoeudDéclarationEntêteFonction *init_type_pointeur = nullptr;
 
   private:
     std::mutex mutex_infos_types_vers_types{};
@@ -322,7 +322,7 @@ struct Typeuse {
     TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe,
                                                  bool insere_dans_graphe = true);
 
-    NoeudDeclarationTypeTranche *crée_type_tranche(Type *type_élément,
+    NoeudDéclarationTypeTranche *crée_type_tranche(Type *type_élément,
                                                    bool insère_dans_graphe = true);
 
     TypeVariadique *type_variadique(Type *type_pointe);
@@ -343,7 +343,7 @@ struct Typeuse {
 
     TypePolymorphique *crée_polymorphique(IdentifiantCode *ident);
 
-    TypeOpaque *monomorphe_opaque(NoeudDeclarationTypeOpaque const *decl,
+    TypeOpaque *monomorphe_opaque(NoeudDéclarationTypeOpaque const *decl,
                                   Type *type_monomorphique);
 
     TypeTuple *crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres);
@@ -352,14 +352,14 @@ struct Typeuse {
 
     void définis_info_type_pour_type(const InfoType *info_type, const Type *type);
 
-    NoeudDeclaration const *decl_pour_info_type(const InfoType *info_type);
+    NoeudDéclaration const *decl_pour_info_type(const InfoType *info_type);
 };
 
 /* ------------------------------------------------------------------------- */
 /** \name Fonctions diverses pour les types.
  * \{ */
 
-void assigne_fonction_init(Type *type, NoeudDeclarationEnteteFonction *fonction);
+void assigne_fonction_init(Type *type, NoeudDéclarationEntêteFonction *fonction);
 
 /* Retourne vrai si le type à besoin d'une fonction d'initialisation que celle-ci soit partagée
  * ou non.

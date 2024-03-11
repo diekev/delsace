@@ -74,7 +74,7 @@ kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom
     return kuri::chemin_systeme::chemin_temporaire(nom_executable_pour(nom_base));
 }
 
-kuri::chemin_systeme suffixe_chemin_module_pour_bibliotheque(ArchitectureCible architecture_cible)
+kuri::chemin_systeme suffixe_chemin_module_pour_bibliothèque(ArchitectureCible architecture_cible)
 {
     const kuri::chaine_statique suffixes[2] = {
         "lib/i386-linux-gnu",
@@ -86,7 +86,7 @@ kuri::chemin_systeme suffixe_chemin_module_pour_bibliotheque(ArchitectureCible a
 
 kuri::chemin_systeme chemin_de_base_pour_bibliothèque_r16(ArchitectureCible architecture_cible)
 {
-    const auto suffixe = suffixe_chemin_module_pour_bibliotheque(architecture_cible);
+    const auto suffixe = suffixe_chemin_module_pour_bibliothèque(architecture_cible);
     return kuri::chemin_systeme::chemin_temporaire(suffixe);
 }
 
@@ -141,7 +141,7 @@ static void ajoute_options_pour_niveau_options(TableauOptions &résultat,
             résultat.ajoute(chaine_pour_niveau_optimisation(options.niveau_optimisation));
             break;
         }
-        case CompilationPour::DEBOGAGE:
+        case CompilationPour::DÉBOGAGE:
         {
             résultat.ajoute("-g");
             résultat.ajoute("-Og");
@@ -179,8 +179,8 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
 
     résultat.ajoute("-c");
 
-    if (options.résultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE ||
-        options.code_independent_de_position) {
+    if (options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE ||
+        options.code_indépendent_de_position) {
         /* Un fichier objet pour une bibliothèque dynamique doit compiler du code indépendant de la
          * position. */
         résultat.ajoute("-fPIC");
@@ -231,7 +231,7 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
     résultat.ajoute("-Winit-self");
     résultat.ajoute("-Werror");
 
-    if (!options.protege_pile) {
+    if (!options.protège_pile) {
         résultat.ajoute("-fno-stack-protector");
     }
 
@@ -247,7 +247,7 @@ static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
 {
     TableauOptions résultat;
 
-    if (options.résultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+    if (options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
         résultat.ajoute("-shared");
         résultat.ajoute("-fPIC");
     }
@@ -264,7 +264,7 @@ static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
      * lieu d'une chaine littérale à printf et al. */
     résultat.ajoute("-Wno-format-security");
 
-    if (!options.protege_pile) {
+    if (!options.protège_pile) {
         résultat.ajoute("-fno-stack-protector");
     }
 
@@ -307,7 +307,7 @@ kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
 
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
-                                   kuri::tableau_statique<Bibliotheque *> bibliotheques)
+                                   kuri::tableau_statique<Bibliothèque *> bibliotheques)
 {
     auto compilateur = donne_compilateur_cpp();
     auto options_compilateur = options_pour_liaison(compilateur, options);
@@ -474,8 +474,8 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
 
     OptionsDeCompilation options;
     options.architecture = architecture_cible;
-    options.résultat = ResultatCompilation::FICHIER_OBJET;
-    options.code_independent_de_position = true;
+    options.résultat = RésultatCompilation::FICHIER_OBJET;
+    options.code_indépendent_de_position = true;
 
     const auto commande = commande_pour_fichier_objet_r16(options, chemin_fichier, chemin_objet);
 

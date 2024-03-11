@@ -29,7 +29,7 @@ static const char *copie_extra_entete_fonction = R"(
              * sont placés par la Syntaxeuse directement dans les membres. */
             POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
                 auto copie_membre = copie_noeud(it);
-                copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_constante());
+                copie->bloc_constantes->ajoute_membre(copie_membre->comme_déclaration_constante());
             }
             copie->drapeaux_fonction = (orig->drapeaux_fonction & DrapeauxNoeudFonction::BITS_COPIABLES);
             )";
@@ -39,15 +39,15 @@ static const char *copie_extra_entête_opérateur_pour = R"(
                 for (int64_t i = 0; i < copie->params.taille(); i++) {
                     copie->bloc_paramètres->membres->ajoute(copie->parametre_entree(i));
                 }
-                copie->bloc_paramètres->membres->ajoute(copie->param_sortie->comme_base_declaration_variable());
+                copie->bloc_paramètres->membres->ajoute(copie->param_sortie->comme_base_déclaration_variable());
             }
             )";
 
 static const char *copie_extra_bloc = R"(
             copie->réserve_membres(orig->nombre_de_membres());
             POUR (*copie->expressions.verrou_lecture()) {
-                if (it->est_declaration_type() || it->est_entete_fonction()) {
-                    copie->ajoute_membre(it->comme_declaration());
+                if (it->est_déclaration_type() || it->est_entête_fonction()) {
+                    copie->ajoute_membre(it->comme_déclaration());
                 }
             })";
 
@@ -58,7 +58,7 @@ static const char *copie_extra_structure = R"(
                  * sont placés par la Syntaxeuse directement dans les membres. */
                 POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
                     auto copie_membre = copie_noeud(it);
-                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_constante());
+                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_déclaration_constante());
                 }
             }
 )";
@@ -70,7 +70,7 @@ static const char *copie_extra_union = R"(
                  * sont placés par la Syntaxeuse directement dans les membres. */
                 POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
                     auto copie_membre = copie_noeud(it);
-                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_constante());
+                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_déclaration_constante());
                 }
             }
 )";
@@ -85,10 +85,10 @@ static const char *copie_extra_énum = R"(
 static const char *copie_déclaration_référée = R"(
             auto référence_existante = trouve_copie(orig->déclaration_référée);
             if (référence_existante) {
-                copie->déclaration_référée = référence_existante->comme_declaration();
+                copie->déclaration_référée = référence_existante->comme_déclaration();
             }
             else if (orig->déclaration_référée && orig->déclaration_référée->possède_drapeau(DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE)) {
-                copie->déclaration_référée = copie_noeud(orig->déclaration_référée)->comme_declaration();
+                copie->déclaration_référée = copie_noeud(orig->déclaration_référée)->comme_déclaration();
             }
             else {
                 copie->déclaration_référée = orig->déclaration_référée;
@@ -160,12 +160,12 @@ struct GeneratriceCodeCPP {
                     }
 
                     const auto type_nominal = type_pointe->comme_nominal();
-                    const auto nom_type = type_nominal->nom_cpp.nom_cpp();
+                    const auto nom_type = type_nominal->nom_cpp.nom();
 
                     noms_struct.insère(nom_type);
                 });
 
-                noms_struct.insère(it->nom().nom_cpp());
+                noms_struct.insère(it->nom().nom());
             }
         }
 
@@ -181,7 +181,7 @@ struct GeneratriceCodeCPP {
         os << "void imprime_genre_noeud_pour_assert(const NoeudExpression *noeud);\n\n";
 
         POUR (proteines_struct) {
-            it->genere_code_cpp_apres_declaration(os);
+            it->genere_code_cpp_apres_déclaration(os);
         }
 
         // Impression de l'arbre
@@ -355,7 +355,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "\tif (!racine) {\n";
         os << "\t\treturn {};\n";
         os << "\t}\n";
-        os << "\tconst auto lexeme = racine->lexeme;\n";
+        os << "\tconst auto lexeme = racine->lexème;\n";
         os << "\tif (!lexeme) {\n";
         os << "\t\treturn {};\n";
         os << "\t}\n";
@@ -431,10 +431,10 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
             os << "\t\t{\n";
 
-            if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SI_STATIQUE" ||
-                it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SAUFSI_STATIQUE") {
+            if (it->accede_nom_genre().nom() == "INSTRUCTION_SI_STATIQUE" ||
+                it->accede_nom_genre().nom() == "INSTRUCTION_SAUFSI_STATIQUE") {
                 os << "\t\t\tif (ignore_blocs_non_traversables_des_si_statiques) {\n";
-                os << "\t\t\t\tconst auto racine_typee = racine->comme_si_statique();\n";
+                os << "\t\t\t\tauto racine_typee = racine->comme_si_statique();\n";
                 os << "\t\t\t\tvisite_noeud(racine_typee->condition, preference, "
                       "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
                 os << "\t\t\t\tif (racine_typee->condition_est_vraie) {\n";
@@ -451,10 +451,10 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             genere_code_pour_enfant(
                 os, it, false, [&os, &it](ProteineStruct &, Membre const &membre) {
                     if (membre.type->est_tableau()) {
-                        auto nom_membre = membre.nom.nom_cpp();
-                        if (it->accede_nom_genre().nom_cpp() == "EXPRESSION_APPEL" &&
-                            nom_membre == "parametres") {
-                            nom_membre = "parametres_resolus";
+                        auto nom_membre = membre.nom.nom();
+                        if (it->accede_nom_genre().nom() == "EXPRESSION_APPEL" &&
+                            nom_membre == "paramètres") {
+                            nom_membre = "paramètres_résolus";
                         }
 
                         const auto type_tableau = membre.type->comme_tableau();
@@ -476,7 +476,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     }
                 });
 
-            if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_BOUCLE") {
+            if (it->accede_nom_genre().nom() == "INSTRUCTION_BOUCLE") {
                 os << "\t\t\tif (preference == PreferenceVisiteNoeud::SUBSTITUTION) {\n";
                 os << "\t\t\t\tvisite_noeud(racine_typee->bloc_pré, preference, "
                       "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
@@ -488,8 +488,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                       "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
                 os << "\t\t\t}\n";
             }
-            else if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SI_STATIQUE" ||
-                     it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SAUFSI_STATIQUE") {
+            else if (it->accede_nom_genre().nom() == "INSTRUCTION_SI_STATIQUE" ||
+                     it->accede_nom_genre().nom() == "INSTRUCTION_SAUFSI_STATIQUE") {
                 os << "\t\t\t}\n";
             }
 
@@ -526,14 +526,14 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             os << "\t\t\tconst auto orig = racine->comme_" << nom_comme << "();\n";
 
             /* Les corps sont créés directement avec les entêtes. */
-            if (nom_genre.nom_cpp() == "DECLARATION_CORPS_FONCTION") {
+            if (nom_genre.nom() == "DÉCLARATION_CORPS_FONCTION") {
                 os << "\t\t\tauto copie_entete = "
-                      "trouve_copie(orig->entête)->comme_entete_fonction();\n";
+                      "trouve_copie(orig->entête)->comme_entête_fonction();\n";
                 os << "\t\t\tnracine = copie_entete->corps;\n";
             }
             else {
                 os << "\t\t\tnracine = assem->crée_noeud<GenreNoeud::" << nom_genre
-                   << ">(racine->lexeme);\n";
+                   << ">(racine->lexème);\n";
             }
 
             os << "\t\t\tcopie_membres_de_bases_et_insère(racine, nracine);\n";
@@ -549,8 +549,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             auto copie_noeud = [&](const Membre &enfant) {
                 const auto nom_enfant = enfant.nom;
 
-                if (it->accede_nom_genre().nom_cpp() == "EXPRESSION_REFERENCE_DECLARATION") {
-                    if (enfant.nom.nom_cpp() == "declaration_referee") {
+                if (it->accede_nom_genre().nom() == "EXPRESSION_RÉFÉRENCE_DÉCLARATION") {
+                    if (enfant.nom.nom() == "déclaration_référée") {
                         os << copie_déclaration_référée;
                         return;
                     }
@@ -575,13 +575,13 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     os << "\t\t\t\t";
                     os << "copie->" << nom_enfant << enfant.type->accesseur() << "ajoute(";
 
-                    if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
+                    if (enfant.type->accede_nom().nom() != "NoeudExpression") {
                         os << "static_cast<" << enfant.type->accede_nom() << " *>(";
                     }
 
                     os << "copie_noeud(it)";
 
-                    if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
+                    if (enfant.type->accede_nom().nom() != "NoeudExpression") {
                         os << ")";
                     }
 
@@ -592,13 +592,13 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 else {
                     os << "copie->" << nom_enfant << " = ";
 
-                    if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
+                    if (enfant.type->accede_nom().nom() != "NoeudExpression") {
                         os << "static_cast<" << enfant.type->accede_nom() << " *>(";
                     }
 
                     os << "copie_noeud(orig->" << nom_enfant << ")";
 
-                    if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
+                    if (enfant.type->accede_nom().nom() != "NoeudExpression") {
                         os << ")";
                     }
 
@@ -640,24 +640,24 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 }
             });
 
-            if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION") {
+            if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION") {
                 os << copie_extra_entete_fonction << "\n";
             }
-            else if (nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
+            else if (nom_genre.nom() == "DÉCLARATION_OPÉRATEUR_POUR") {
                 os << copie_extra_entete_fonction << "\n";
                 os << copie_extra_entête_opérateur_pour << "\n";
             }
-            else if (nom_genre.nom_cpp() == "DECLARATION_STRUCTURE") {
+            else if (nom_genre.nom() == "DÉCLARATION_STRUCTURE") {
                 os << copie_extra_structure;
             }
-            else if (nom_genre.nom_cpp() == "DECLARATION_UNION") {
+            else if (nom_genre.nom() == "DÉCLARATION_UNION") {
                 os << copie_extra_union;
             }
-            else if (nom_genre.nom_cpp() == "INSTRUCTION_COMPOSEE") {
+            else if (nom_genre.nom() == "INSTRUCTION_COMPOSÉE") {
                 os << copie_extra_bloc << "\n";
             }
-            else if (nom_genre.nom_cpp() == "DECLARATION_ENUM" ||
-                     nom_genre.nom_cpp() == "ERREUR" || nom_genre.nom_cpp() == "ENUM_DRAPEAU") {
+            else if (nom_genre.nom() == "DÉCLARATION_ÉNUM" || nom_genre.nom() == "ERREUR" ||
+                     nom_genre.nom() == "ENUM_DRAPEAU") {
                 os << copie_extra_énum << "\n";
             }
 
@@ -689,7 +689,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         POUR (proteines_struct) {
             const auto nom_code = it->accede_nom_code();
             if (!nom_code.est_nul()) {
-                noms_struct.insère(nom_code.nom_cpp());
+                noms_struct.insère(nom_code.nom());
             }
         }
 
@@ -741,12 +741,12 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 }
                 const auto nom_membre = membre.nom;
 
-                if (nom_membre.nom_cpp() == "type") {
+                if (nom_membre.nom() == "type") {
                     os << "\tInfoType *type = nullptr;\n";
                     continue;
                 }
 
-                if (nom_membre.nom_cpp() == "lexeme") {
+                if (nom_membre.nom() == "lexème") {
                     os << "\tkuri::chaine_statique chemin_fichier{};\n";
                     os << "\tkuri::chaine_statique nom_fichier{};\n";
                     os << "\tint numero_ligne = 0;\n";
@@ -754,13 +754,12 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     continue;
                 }
 
-                if (nom_membre.nom_cpp() == "ident") {
+                if (nom_membre.nom() == "ident") {
                     os << "\tkuri::chaine_statique nom{};\n";
                     continue;
                 }
 
-                if (nom_membre.nom_cpp() == "valeur" &&
-                    nom_code.nom_cpp() == "NoeudCodeLitteraleChaine") {
+                if (nom_membre.nom() == "valeur" && nom_code.nom() == "NoeudCodeLittéraleChaine") {
                     os << "\tkuri::chaine_statique valeur{};\n";
                     continue;
                 }
@@ -772,7 +771,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 }
 
                 const auto ident_type = type_nominal_membre_pour_noeud_code(membre.type);
-                const auto type_membre = supprime_accents(ident_type.nom_cpp());
+                const auto type_membre = ident_type.nom();
                 os << type_membre;
 
                 if (membre.type->est_pointeur() ||
@@ -790,7 +789,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             }
 
             // Déclarations des fonctions de transtypage
-            if (nom_code.nom_cpp() == "NoeudCode") {
+            if (nom_code.nom() == "NoeudCode") {
                 for (const auto &noeud : proteines_struct) {
                     const auto nom_comme = noeud->accede_nom_comme();
 
@@ -841,7 +840,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
-            if (it->nom().nom_cpp() == "Annotation") {
+            if (it->nom().nom() == "Annotation") {
                 continue;
             }
 
@@ -859,7 +858,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
-            if (it->nom().nom_cpp() == "Annotation") {
+            if (it->nom().nom() == "Annotation") {
                 continue;
             }
 
@@ -931,23 +930,23 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 os, it, true, [&os, it, this](ProteineStruct &, Membre const &membre) {
                     const auto nom_membre = membre.nom;
 
-                    if (nom_membre.nom_cpp() == "type") {
+                    if (nom_membre.nom() == "type") {
                         return;
                     }
 
-                    if (nom_membre.nom_cpp() == "lexeme") {
+                    if (nom_membre.nom() == "lexème") {
                         return;
                     }
 
-                    if (nom_membre.nom_cpp() == "ident") {
+                    if (nom_membre.nom() == "ident") {
                         return;
                     }
 
-                    if (nom_membre.nom_cpp() == "genre") {
+                    if (nom_membre.nom() == "genre") {
                         return;
                     }
 
-                    if (nom_membre.nom_cpp() == "annotations") {
+                    if (nom_membre.nom() == "annotations") {
                         os << "\t\t\t\tn->annotations.réserve(racine_typee->annotations.taille());"
                               "\n";
                         os << "\t\t\tPOUR (racine_typee->annotations) {\n";
@@ -956,8 +955,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         return;
                     }
 
-                    const auto desc_type = table_desc.valeur_ou(
-                        membre.type->accede_nom().nom_kuri(), nullptr);
+                    const auto desc_type = table_desc.valeur_ou(membre.type->accede_nom().nom(),
+                                                                nullptr);
 
                     if (!desc_type) {
                         if (membre.type->est_tableau()) {
@@ -973,10 +972,10 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                             os << "\t\t\t}\n";
                         }
                         else {
-                            if (nom_membre.nom_cpp() == "valeur" &&
-                                it->accede_nom_code().nom_cpp() == "NoeudCodeLitteraleChaine") {
-                                os << "\t\t\tn->valeur = { &racine_typee->lexeme->chaine[0], "
-                                      "racine_typee->lexeme->chaine.taille() };\n";
+                            if (nom_membre.nom() == "valeur" &&
+                                it->accede_nom_code().nom() == "NoeudCodeLittéraleChaine") {
+                                os << "\t\t\tn->valeur = { &racine_typee->lexème->chaine[0], "
+                                      "racine_typee->lexème->chaine.taille() };\n";
                             }
                             else {
                                 os << "\t\t\tn->" << nom_membre << " = racine_typee->"
@@ -999,8 +998,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         os << "\t\t\t\tn->" << nom_membre
                            << ".ajoute(convertis_noeud_syntaxique(espace, it)";
 
-                        if (desc_type->accede_nom_code().nom_cpp() != "NoeudCode" &&
-                            desc_type->accede_nom_code().nom_cpp() != "") {
+                        if (desc_type->accede_nom_code().nom() != "NoeudCode" &&
+                            desc_type->accede_nom_code().nom() != "") {
                             os << "->comme_" << desc_type->accede_nom_comme() << "()";
                         }
 
@@ -1012,8 +1011,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         os << "\t\t\t\tn->" << nom_membre
                            << " = convertis_noeud_syntaxique(espace, racine_typee->" << nom_membre
                            << ")";
-                        if (desc_type->accede_nom_code().nom_cpp() != "NoeudCode" &&
-                            desc_type->accede_nom_code().nom_cpp() != "") {
+                        if (desc_type->accede_nom_code().nom() != "NoeudCode" &&
+                            desc_type->accede_nom_code().nom() != "") {
                             os << "->comme_" << desc_type->accede_nom_comme() << "()";
                         }
 
@@ -1026,7 +1025,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             os << "\t\t\tn->type = crée_info_type_pour(espace->compilatrice().typeuse, "
                   "racine_typee->type);\n";
             os << "\t\t\tif (racine_typee->ident) { n->nom = racine_typee->ident->nom; } else if "
-                  "(racine_typee->lexeme) { n->nom = racine_typee->lexeme->chaine; }\n";
+                  "(racine_typee->lexème) { n->nom = racine_typee->lexème->chaine; }\n";
 
             os << "\t\t\tnoeud = n;\n";
             os << "\t\t\tbreak;\n";
@@ -1035,7 +1034,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
         os << "\t}\n";
 
-        os << "\tconst auto lexeme = racine->lexeme;\n";
+        os << "\tconst auto lexeme = racine->lexème;\n";
         os << "\t// lexeme peut-être nul pour les blocs\n";
         os << "\tif (lexeme) {\n";
         os << "\t\tconst auto fichier = espace->compilatrice().fichier(lexeme->fichier);\n";
@@ -1081,23 +1080,23 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 os, it, true, [&os, it, this](ProteineStruct &, Membre const &membre) {
                     const auto nom_membre = membre.nom;
 
-                    if (nom_membre.nom_cpp() == "type") {
+                    if (nom_membre.nom() == "type") {
                         return;
                     }
 
-                    if (nom_membre.nom_cpp() == "lexeme") {
+                    if (nom_membre.nom() == "lexème") {
                         return;
                     }
 
-                    if (nom_membre.nom_cpp() == "ident") {
+                    if (nom_membre.nom() == "ident") {
                         return;
                     }
 
-                    if (nom_membre.nom_cpp() == "genre") {
+                    if (nom_membre.nom() == "genre") {
                         return;
                     }
 
-                    if (nom_membre.nom_cpp() == "annotations") {
+                    if (nom_membre.nom() == "annotations") {
                         os << "\t\t\t\tn->annotations.réserve(static_cast<int>(racine_typee->"
                               "annotations.taille()));"
                               "\n";
@@ -1107,8 +1106,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         return;
                     }
 
-                    const auto desc_type = table_desc.valeur_ou(
-                        membre.type->accede_nom().nom_kuri(), nullptr);
+                    const auto desc_type = table_desc.valeur_ou(membre.type->accede_nom().nom(),
+                                                                nullptr);
 
                     if (!desc_type) {
                         if (membre.type->est_tableau()) {
@@ -1118,8 +1117,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                             os << "\t\t\t}\n";
                         }
                         else {
-                            if (nom_membre.nom_cpp() == "valeur" &&
-                                it->accede_nom_code().nom_cpp() == "NoeudCodeLitteraleChaine") {
+                            if (nom_membre.nom() == "valeur" &&
+                                it->accede_nom_code().nom() == "NoeudCodeLittéraleChaine") {
                                 os << "\t\tn->valeur = "
                                       "gerante_chaine.ajoute_chaine(racine_typee->valeur);\n";
                             }
@@ -1137,7 +1136,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         os << "\t\t\t\tn->" << nom_membre << membre.type->accesseur();
                         os << "ajoute(convertis_noeud_code(espace, gerante_chaine, it)";
 
-                        if (desc_type->accede_nom_code().nom_cpp() != "NoeudCode") {
+                        if (desc_type->accede_nom_code().nom() != "NoeudCode") {
                             os << "->comme_" << desc_type->accede_nom_comme() << "()";
                         }
 
@@ -1150,7 +1149,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                            << " = convertis_noeud_code(espace, gerante_chaine, racine_typee->"
                            << nom_membre << ")";
 
-                        if (desc_type->accede_nom_code().nom_cpp() != "NoeudCode") {
+                        if (desc_type->accede_nom_code().nom() != "NoeudCode") {
                             os << "->comme_" << desc_type->accede_nom_comme() << "()";
                         }
 
@@ -1229,8 +1228,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             return;
         }
 
-        os << "\t\t\tconst auto racine_typee = racine->comme_" << racine->accede_nom_comme()
-           << "();\n";
+        os << "\t\t\tauto racine_typee = racine->comme_" << racine->accede_nom_comme() << "();\n";
 
         noeud_courant = racine;
 
@@ -1250,9 +1248,9 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "#include \"assembleuse.hh\"\n";
 
         const char *empile_bloc = R"(
-NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction)
+NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclarationEntêteFonction *appartiens_à_fonction)
 {
-    auto bloc = crée_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme)->comme_bloc();
+    auto bloc = crée_noeud<GenreNoeud::INSTRUCTION_COMPOSÉE>(lexeme)->comme_bloc();
     bloc->appartiens_à_fonction = appartiens_à_fonction;
     bloc->bloc_parent = bloc_courant();
     m_blocs.empile(bloc);
@@ -1263,8 +1261,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
     if (!m_références.est_vide()) {
         auto résultat = m_références.dernier_élément();
         m_références.supprime_dernier();
-        new (résultat) NoeudExpressionReference;
-        résultat->lexeme = lexeme;
+        new (résultat) NoeudExpressionRéférence;
+        résultat->lexème = lexeme;
         résultat->ident = lexeme->ident;
         résultat->bloc_parent = bloc_courant();
         return résultat;
@@ -1283,7 +1281,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
                << "(const Lexème *lexeme)\n";
             os << "{\n";
 
-            if (it->nom().nom_cpp() == "NoeudExpressionReference") {
+            if (it->nom().nom() == "NoeudExpressionRéférence") {
                 os << recycle_référence;
             }
 
@@ -1298,13 +1296,13 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
         os << "#pragma once\n";
         os << "#include \"allocatrice.hh\"\n";
         os << "#include \"structures/pile.hh\"\n";
-        os << "struct NoeudDeclarationTypeCompose;\n";
-        os << "using TypeCompose = NoeudDeclarationTypeCompose;\n";
+        os << "struct NoeudDéclarationTypeComposé;\n";
+        os << "using TypeCompose = NoeudDéclarationTypeComposé;\n";
         os << "struct AssembleuseArbre {\n";
         os << "private:\n";
         os << "\tAllocatriceNoeud &m_allocatrice;\n";
         os << "\tkuri::pile<NoeudBloc *> m_blocs{};\n";
-        os << "\tkuri::tableau<NoeudExpressionReference *> m_références{};\n";
+        os << "\tkuri::tableau<NoeudExpressionRéférence *> m_références{};\n";
         os << "public:\n";
 
         const char *methodes = R"(
@@ -1312,7 +1310,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
         : m_allocatrice(allocatrice)
     {}
 
-    NoeudBloc *empile_bloc(Lexème const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction);
+    NoeudBloc *empile_bloc(Lexème const *lexeme, NoeudDéclarationEntêteFonction *appartiens_à_fonction);
 
     NoeudBloc *bloc_courant() const
     {
@@ -1346,29 +1344,29 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
     {
         auto noeud = m_allocatrice.crée_noeud<genre>();
         noeud->genre = genre;
-        noeud->lexeme = lexeme;
+        noeud->lexème = lexeme;
         noeud->bloc_parent = bloc_courant();
 
-        if (noeud->lexeme && (noeud->lexeme->genre == GenreLexème::CHAINE_CARACTERE)) {
+        if (noeud->lexème && (noeud->lexème->genre == GenreLexème::CHAINE_CARACTERE)) {
             noeud->ident = lexeme->ident;
         }
 
-        if (genre == GenreNoeud::DECLARATION_ENTETE_FONCTION) {
-            auto entete = noeud->comme_entete_fonction();
-            entete->corps->lexeme = lexeme;
+        if (genre == GenreNoeud::DÉCLARATION_ENTÊTE_FONCTION) {
+            auto entete = noeud->comme_entête_fonction();
+            entete->corps->lexème = lexeme;
             entete->corps->ident = lexeme->ident;
             entete->corps->bloc_parent = entete->bloc_parent;
         }
 
-        if (genre == GenreNoeud::EXPRESSION_LITTERALE_CHAINE) {
+        if (genre == GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE) {
             /* transfère l'index car les lexèmes peuvent être partagés lors de la simplification du code ou des exécutions */
-            noeud->comme_litterale_chaine()->valeur = lexeme->index_chaine;
+            noeud->comme_littérale_chaine()->valeur = lexeme->index_chaine;
         }
 
         return noeud;
     }
 
-    void recycle_référence(NoeudExpressionReference *référence)
+    void recycle_référence(NoeudExpressionRéférence *référence)
     {
         m_références.ajoute(référence);
     }
@@ -1388,22 +1386,22 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
 
         const char *decls_extras = R"(
     NoeudSi *crée_si(const Lexème *lexeme, GenreNoeud genre_noeud);
-    NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref);
+    NoeudDéclarationVariable *crée_déclaration_variable(NoeudExpressionRéférence *ref);
     NoeudAssignation *crée_assignation_variable(const Lexème *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
     NoeudAssignation *crée_incrementation(const Lexème *lexeme, NoeudExpression *valeur);
     NoeudAssignation *crée_decrementation(const Lexème *lexeme, NoeudExpression *valeur);
     NoeudBloc *crée_bloc_seul(const Lexème *lexeme, NoeudBloc *bloc_parent);
-    NoeudDeclarationVariable *crée_declaration_variable(const Lexème *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
-    NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
-    NoeudExpressionLitteraleEntier *crée_litterale_entier(const Lexème *lexeme, Type *type, uint64_t valeur);
-    NoeudExpressionLitteraleBool *crée_litterale_bool(const Lexème *lexeme, Type *type, bool valeur);
-    NoeudExpressionLitteraleReel *crée_litterale_reel(const Lexème *lexeme, Type *type, double valeur);
-    NoeudExpression *crée_reference_type(const Lexème *lexeme, Type *type);
+    NoeudDéclarationVariable *crée_déclaration_variable(const Lexème *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
+    NoeudDéclarationVariable *crée_déclaration_variable(NoeudExpressionRéférence *ref, NoeudExpression *expression);
+    NoeudExpressionLittéraleEntier *crée_littérale_entier(const Lexème *lexeme, Type *type, uint64_t valeur);
+    NoeudExpressionLittéraleBool *crée_littérale_bool(const Lexème *lexeme, Type *type, bool valeur);
+    NoeudExpressionLittéraleRéel *crée_littérale_réel(const Lexème *lexeme, Type *type, double valeur);
+    NoeudExpression *crée_référence_type(const Lexème *lexeme, Type *type);
     NoeudExpressionAppel *crée_appel(const Lexème *lexeme, NoeudExpression *appelee, Type *type);
     NoeudExpressionBinaire *crée_indexage(const Lexème *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
     NoeudExpressionBinaire *crée_expression_binaire(const Lexème *lexeme, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
-    NoeudExpressionMembre *crée_reference_membre(const Lexème *lexeme, NoeudExpression *accede, Type *type, int index);
-    NoeudExpressionReference *crée_reference_declaration(const Lexème *lexeme, NoeudDeclaration *decl);
+    NoeudExpressionMembre *crée_référence_membre(const Lexème *lexeme, NoeudExpression *accede, Type *type, int index);
+    NoeudExpressionRéférence *crée_référence_déclaration(const Lexème *lexeme, NoeudDéclaration *decl);
     NoeudExpressionAppel *crée_construction_structure(const Lexème *lexeme, TypeCompose *type);
 )";
 
@@ -1465,9 +1463,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
             }
 
             it->pour_chaque_membre_recursif([&](const Membre &membre) {
-                if (membre.type->est_tableau() || membre.nom.nom_cpp() == "monomorphisations") {
-                    const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom_cpp(),
-                                                              membre.nom.nom_cpp());
+                if (membre.type->est_tableau() || membre.nom.nom() == "monomorphisations") {
+                    const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom(),
+                                                              membre.nom.nom());
                     os << "auto " << nom_tableau << " = 0;\n";
                     noms_tableaux.insère(nom_tableau);
                 }
@@ -1493,8 +1491,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
             it->pour_chaque_membre_recursif([&](const Membre &membre) {
                 if (membre.type->est_tableau()) {
                     const auto nom_membre = membre.nom;
-                    const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom_cpp(),
-                                                              nom_membre.nom_cpp());
+                    const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom(),
+                                                              nom_membre.nom());
                     os << nom_tableau << " = std::max(" << nom_tableau << ", noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille());\n";
                     os << "memoire_" << nom_comme << " += noeud." << nom_membre;
@@ -1502,9 +1500,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
                     os << "mémoire_gaspillée" << " += noeud." << nom_membre;
                     os << membre.type->accesseur() << "gaspillage_mémoire();\n";
                 }
-                else if (membre.nom.nom_cpp() == "monomorphisations") {
-                    const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom_cpp(),
-                                                              membre.nom.nom_cpp());
+                else if (membre.nom.nom() == "monomorphisations") {
+                    const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom(),
+                                                              membre.nom.nom());
 
                     os << "if (noeud.monomorphisations) {\n";
                     os << "memoire_" << nom_comme
@@ -1577,20 +1575,20 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
             os << "\t\t\t{\n";
 
             // Entêtes et corps alloués ensembles
-            if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
-                nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
-                if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION") {
-                    os << "\t\t\t\tauto entete = m_noeuds_entete_fonction.ajoute_element();\n";
+            if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION" ||
+                nom_genre.nom() == "DÉCLARATION_OPÉRATEUR_POUR") {
+                if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION") {
+                    os << "\t\t\t\tauto entete = m_noeuds_entête_fonction.ajoute_element();\n";
                 }
                 else {
-                    os << "\t\t\t\tauto entete = m_noeuds_operateur_pour.ajoute_element();\n";
+                    os << "\t\t\t\tauto entete = m_noeuds_opérateur_pour.ajoute_element();\n";
                 }
                 os << "\t\t\t\tauto corps  = m_noeuds_corps_fonction.ajoute_element();\n";
                 os << "\t\t\t\tentete->corps = corps;\n";
                 os << "\t\t\t\tcorps->entête = entete;\n";
                 os << "\t\t\t\treturn entete;\n";
             }
-            else if (nom_genre.nom_cpp() == "DECLARATION_CORPS_FONCTION") {
+            else if (nom_genre.nom() == "DÉCLARATION_CORPS_FONCTION") {
                 os << "\t\t\t\treturn nullptr;\n";
             }
             else {
@@ -1700,7 +1698,7 @@ int main(int argc, char **argv)
             continue;
         }
 
-        table_desc.insère(it->nom().nom_kuri(), it->comme_struct());
+        table_desc.insère(it->nom().nom(), it->comme_struct());
     }
 
     GeneratriceCodeCPP generatrice;
