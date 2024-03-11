@@ -1192,7 +1192,7 @@ ffi_type *converti_type_ffi(Type const *type)
         case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            return converti_type_ffi(type_opaque->type_opacifie);
+            return converti_type_ffi(type_opaque->type_opacifié);
         }
         case GenreNoeud::DECLARATION_UNION:
         {
@@ -1344,9 +1344,9 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
         }
 
         auto type_fonction = fonction->type->comme_type_fonction();
-        donnees_externe.types_entrées.réserve(type_fonction->types_entrees.taille());
+        donnees_externe.types_entrées.réserve(type_fonction->types_entrées.taille());
 
-        POUR (type_fonction->types_entrees) {
+        POUR (type_fonction->types_entrées) {
             donnees_externe.types_entrées.ajoute(converti_type_ffi(it));
         }
 
@@ -1646,7 +1646,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                 }
             }
 
-            chunk.émets_accès_index(index->site, type_pointeur->type_pointe);
+            chunk.émets_accès_index(index->site, type_pointeur->type_pointé);
             break;
         }
         case GenreInstruction::ACCEDE_MEMBRE:
@@ -1740,7 +1740,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             auto type_pointeur = index_constant->type->comme_type_pointeur();
             chunk.émets_constante(index_constant->index);
             génère_code_pour_atome(index_constant->accédé, chunk);
-            chunk.émets_accès_index(nullptr, type_pointeur->type_pointe);
+            chunk.émets_accès_index(nullptr, type_pointeur->type_pointé);
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:
@@ -1856,7 +1856,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         {
             auto tableau = atome->comme_constante_tableau();
             auto type = tableau->type;
-            auto type_élément = type->comme_type_tableau_fixe()->type_pointe;
+            auto type_élément = type->comme_type_tableau_fixe()->type_pointé;
             auto éléments = tableau->donne_atomes_éléments();
 
             auto décalage = chunk.émets_structure_constante(type->taille_octet);
@@ -1880,7 +1880,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         {
             auto init_tableau = atome->comme_initialisation_tableau();
             auto type_tableau = init_tableau->type->comme_type_tableau_fixe();
-            auto type_élément = type_tableau->type_pointe;
+            auto type_élément = type_tableau->type_pointé;
 
             auto décalage = chunk.émets_structure_constante(type_tableau->taille_octet);
             auto destination = chunk.code + décalage;
@@ -2116,7 +2116,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         {
             auto tableau_fixe = atome->comme_constante_tableau();
             auto type_tableau = atome->type->comme_type_tableau_fixe();
-            auto type_élément = type_tableau->type_pointe;
+            auto type_élément = type_tableau->type_pointé;
 
             auto destination_élément = destination;
             auto décalage_élément = décalage;
@@ -2132,7 +2132,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         {
             auto init_tableau = atome->comme_initialisation_tableau();
             auto type_tableau = init_tableau->type->comme_type_tableau_fixe();
-            auto type_élément = type_tableau->type_pointe;
+            auto type_élément = type_tableau->type_pointé;
 
             auto décalage_élément = décalage;
             auto destination_élément = destination;
