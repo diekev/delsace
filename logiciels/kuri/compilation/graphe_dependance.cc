@@ -33,12 +33,12 @@ std::ostream &operator<<(std::ostream &os, TypeRelation type)
     return os;
 }
 
-NoeudDépendance::NoeudDépendance(NoeudDeclarationVariable *globale)
+NoeudDépendance::NoeudDépendance(NoeudDéclarationVariable *globale)
     : m_noeud_globale(globale), m_type_noeud(TypeNoeudDependance::GLOBALE)
 {
 }
 
-NoeudDépendance::NoeudDépendance(NoeudDeclarationEnteteFonction *fonction)
+NoeudDépendance::NoeudDépendance(NoeudDéclarationEntêteFonction *fonction)
     : m_noeud_fonction(fonction), m_type_noeud(TypeNoeudDependance::FONCTION)
 {
 }
@@ -70,7 +70,7 @@ void NoeudDépendance::relations(Badge<GrapheDépendance>,
 }
 
 NoeudDépendance *GrapheDépendance::crée_noeud_fonction(
-    NoeudDeclarationEnteteFonction *noeud_syntaxique)
+    NoeudDéclarationEntêteFonction *noeud_syntaxique)
 {
     if (noeud_syntaxique->noeud_dépendance == nullptr) {
         auto noeud = noeuds.ajoute_element(noeud_syntaxique);
@@ -80,7 +80,7 @@ NoeudDépendance *GrapheDépendance::crée_noeud_fonction(
     return noeud_syntaxique->noeud_dépendance;
 }
 
-NoeudDépendance *GrapheDépendance::crée_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique)
+NoeudDépendance *GrapheDépendance::crée_noeud_globale(NoeudDéclarationVariable *noeud_syntaxique)
 {
     if (noeud_syntaxique->noeud_dépendance == nullptr) {
         auto noeud = noeuds.ajoute_element(noeud_syntaxique);
@@ -148,14 +148,14 @@ void GrapheDépendance::ajoute_dépendances(NoeudDépendance &noeud, DonnéesDé
 
     kuri::pour_chaque_élément(donnees.fonctions_utilisées, [&](auto &fonction_utilisee) {
         auto noeud_type = crée_noeud_fonction(
-            const_cast<NoeudDeclarationEnteteFonction *>(fonction_utilisee));
+            const_cast<NoeudDéclarationEntêteFonction *>(fonction_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
         return kuri::DécisionItération::Continue;
     });
 
     kuri::pour_chaque_élément(donnees.globales_utilisées, [&](auto &globale_utilisee) {
         auto noeud_type = crée_noeud_globale(
-            const_cast<NoeudDeclarationVariable *>(globale_utilisee));
+            const_cast<NoeudDéclarationVariable *>(globale_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
         return kuri::DécisionItération::Continue;
     });
@@ -321,35 +321,35 @@ NoeudDépendance *GrapheDépendance::garantie_noeud_dépendance(EspaceDeTravail 
 {
     /* N'utilise pas est_declaration_variable_globale car nous voulons également les opaques et
      * les constantes. */
-    if (noeud->est_declaration_variable()) {
+    if (noeud->est_déclaration_variable()) {
         assert_rappel(noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
             dbg() << erreur::imprime_site(*espace, noeud) << '\n' << *noeud;
         });
-        return crée_noeud_globale(noeud->comme_declaration_variable());
+        return crée_noeud_globale(noeud->comme_déclaration_variable());
     }
 
-    if (noeud->est_declaration_variable_multiple()) {
+    if (noeud->est_déclaration_variable_multiple()) {
         assert_rappel(noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
             dbg() << erreur::imprime_site(*espace, noeud) << '\n' << *noeud;
         });
 
-        auto decl = noeud->comme_declaration_variable_multiple();
+        auto decl = noeud->comme_déclaration_variable_multiple();
         POUR (decl->données_decl.plage()) {
             POUR_NOMME (ref, it.variables.plage()) {
-                crée_noeud_globale(ref->comme_reference_declaration()
-                                       ->déclaration_référée->comme_declaration_variable());
+                crée_noeud_globale(ref->comme_référence_déclaration()
+                                       ->déclaration_référée->comme_déclaration_variable());
             }
         }
 
         /* À FAIRE : retourne tous les noeuds. */
         return crée_noeud_globale(decl->données_decl[0]
                                       .variables[0]
-                                      ->comme_reference_declaration()
-                                      ->déclaration_référée->comme_declaration_variable());
+                                      ->comme_référence_déclaration()
+                                      ->déclaration_référée->comme_déclaration_variable());
     }
 
-    if (noeud->est_entete_fonction()) {
-        return crée_noeud_fonction(noeud->comme_entete_fonction());
+    if (noeud->est_entête_fonction()) {
+        return crée_noeud_fonction(noeud->comme_entête_fonction());
     }
 
     if (noeud->est_corps_fonction()) {
@@ -357,16 +357,16 @@ NoeudDépendance *GrapheDépendance::garantie_noeud_dépendance(EspaceDeTravail 
         return crée_noeud_fonction(corps->entête);
     }
 
-    if (noeud->est_execute()) {
-        auto execute = noeud->comme_execute();
+    if (noeud->est_exécute()) {
+        auto execute = noeud->comme_exécute();
         assert(execute->métaprogramme);
         auto metaprogramme = execute->métaprogramme;
         assert(metaprogramme->fonction);
         return crée_noeud_fonction(metaprogramme->fonction);
     }
 
-    if (noeud->est_declaration_type()) {
-        return crée_noeud_type(noeud->comme_declaration_type());
+    if (noeud->est_déclaration_type()) {
+        return crée_noeud_type(noeud->comme_déclaration_type());
     }
 
     assert(!"Noeud non géré pour les dépendances !\n");
@@ -405,8 +405,8 @@ void DonnéesDépendance::fusionne(const DonnéesDépendance &autre)
 {
     /* Ajoute les nouveaux types aux dépendances courantes. */
     pour_chaque_élément(autre.types_utilisés, [&](auto &type) {
-        if (type->est_type_type_de_donnees()) {
-            auto type_de_donnees = type->comme_type_type_de_donnees();
+        if (type->est_type_type_de_données()) {
+            auto type_de_donnees = type->comme_type_type_de_données();
             if (type_de_donnees->type_connu) {
                 types_utilisés.insère(type_de_donnees->type_connu);
             }
@@ -451,7 +451,7 @@ static void imprime_dépendances(NoeudDépendance const *noeud_dep,
     }
 }
 
-kuri::chaine imprime_dépendances(NoeudDeclarationSymbole const *symbole)
+kuri::chaine imprime_dépendances(NoeudDéclarationSymbole const *symbole)
 {
     Enchaineuse sortie;
     imprime_dépendances(

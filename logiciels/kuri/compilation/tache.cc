@@ -39,7 +39,7 @@ Tâche Tâche::dors(EspaceDeTravail *espace_)
 Tâche Tâche::compilation_terminée()
 {
     Tâche t;
-    t.genre = GenreTâche::COMPILATION_TERMINEE;
+    t.genre = GenreTâche::COMPILATION_TERMINÉE;
     return t;
 }
 
