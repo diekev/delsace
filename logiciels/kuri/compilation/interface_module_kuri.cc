@@ -7,7 +7,7 @@
 
 #include "typage.hh"
 
-NoeudDeclarationEnteteFonction *InterfaceKuri::declaration_pour_ident(const IdentifiantCode *ident)
+NoeudDéclarationEntêteFonction *InterfaceKuri::declaration_pour_ident(const IdentifiantCode *ident)
 {
 #define RETOURNE_SI_APPARIEMENT_IDENT(nom_membre, nom_ident)                                      \
     if (ident == nom_ident) {                                                                     \
@@ -18,7 +18,7 @@ NoeudDeclarationEnteteFonction *InterfaceKuri::declaration_pour_ident(const Iden
     return nullptr;
 }
 
-void InterfaceKuri::mute_membre(NoeudDeclarationEnteteFonction *noeud)
+void InterfaceKuri::mute_membre(NoeudDéclarationEntêteFonction *noeud)
 {
 #define INIT_MEMBRE(membre, nom)                                                                  \
     if (noeud->ident == nom) {                                                                    \

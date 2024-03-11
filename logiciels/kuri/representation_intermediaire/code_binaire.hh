@@ -25,11 +25,11 @@ struct Instruction;
 struct InstructionAllocation;
 struct InstructionAppel;
 struct MetaProgramme;
-struct NoeudDeclarationEnteteFonction;
+struct NoeudDéclarationEntêteFonction;
 struct NoeudExpression;
-struct NoeudDeclarationType;
+struct NoeudDéclarationType;
 struct ProgrammeRepreInter;
-using Type = NoeudDeclarationType;
+using Type = NoeudDéclarationType;
 
 namespace kuri {
 struct chaine_statique;
@@ -37,7 +37,7 @@ struct chaine_statique;
 
 struct ContexteGénérationCodeBinaire {
     EspaceDeTravail *espace = nullptr;
-    const NoeudDeclarationEnteteFonction *fonction = nullptr;
+    const NoeudDéclarationEntêteFonction *fonction = nullptr;
 };
 
 using octet_t = unsigned char;
@@ -409,7 +409,7 @@ class CompilatriceCodeBinaire {
     EspaceDeTravail *espace = nullptr;
     DonnéesConstantesExécutions *données_exécutions = nullptr;
 
-    const NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
+    const NoeudDéclarationEntêteFonction *fonction_courante = nullptr;
     AtomeFonction *m_atome_fonction_courante = nullptr;
 
     /* Le métaprogramme pour lequel nous devons générer du code. Il est là avant pour stocker les

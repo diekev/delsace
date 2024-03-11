@@ -7,13 +7,13 @@
 #include "espace_de_travail.hh"
 #include "parsage/modules.hh"
 
-NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode const *ident)
+NoeudDéclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode const *ident)
 {
     return bloc->declaration_pour_ident(ident);
 }
 
-static bool la_fonction_courante_a_changé(NoeudDeclarationEnteteFonction const *fonction_courante,
-                                          NoeudDeclarationEnteteFonction const *nouvelle_fonction)
+static bool la_fonction_courante_a_changé(NoeudDéclarationEntêteFonction const *fonction_courante,
+                                          NoeudDéclarationEntêteFonction const *nouvelle_fonction)
 {
     if (fonction_courante == nouvelle_fonction) {
         return false;
@@ -30,7 +30,7 @@ static bool est_locale_ou_paramètre_non_polymorphique(NoeudExpression const *no
         return false;
     }
 
-    if (noeud->est_declaration_constante()) {
+    if (noeud->est_déclaration_constante()) {
         return false;
     }
 
@@ -42,10 +42,10 @@ static bool est_locale_ou_paramètre_non_polymorphique(NoeudExpression const *no
     return false;
 }
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
+NoeudDéclaration *trouve_dans_bloc(NoeudBloc const *bloc,
                                    IdentifiantCode const *ident,
                                    NoeudBloc const *bloc_final,
-                                   NoeudDeclarationEnteteFonction const *fonction_courante)
+                                   NoeudDéclarationEntêteFonction const *fonction_courante)
 {
     auto bloc_courant = bloc;
     auto ignore_paramètres_et_locales = false;
@@ -69,10 +69,10 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
-                                   NoeudDeclaration const *decl,
+NoeudDéclaration *trouve_dans_bloc(NoeudBloc const *bloc,
+                                   NoeudDéclaration const *decl,
                                    NoeudBloc const *bloc_final,
-                                   NoeudDeclarationEnteteFonction const *fonction_courante)
+                                   NoeudDéclarationEntêteFonction const *fonction_courante)
 {
     auto bloc_courant = bloc;
     auto ignore_paramètres_et_locales = false;
@@ -98,11 +98,11 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc_ou_module(
+NoeudDéclaration *trouve_dans_bloc_ou_module(
     NoeudBloc const *bloc,
     IdentifiantCode const *ident,
     Fichier const *fichier,
-    NoeudDeclarationEnteteFonction const *fonction_courante)
+    NoeudDéclarationEntêteFonction const *fonction_courante)
 {
     auto decl = trouve_dans_bloc(bloc, ident, nullptr, fonction_courante);
 
@@ -124,14 +124,14 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
     return decl;
 }
 
-NoeudDeclaration *trouve_dans_bloc_ou_module(ContexteRechecheSymbole const contexte,
+NoeudDéclaration *trouve_dans_bloc_ou_module(ContexteRechecheSymbole const contexte,
                                              IdentifiantCode const *ident)
 {
     return trouve_dans_bloc_ou_module(
         contexte.bloc_racine, ident, contexte.fichier, contexte.fonction_courante);
 }
 
-void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &declarations,
                                    NoeudBloc const *bloc,
                                    IdentifiantCode const *ident)
 {
@@ -139,16 +139,16 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declara
 
     while (bloc_courant != nullptr) {
         auto decl = bloc_courant->declaration_pour_ident(ident);
-        if (decl && decl->est_declaration_symbole()) {
+        if (decl && decl->est_déclaration_symbole()) {
             declarations.ajoute(decl);
-            if (decl->est_entete_fonction()) {
-                auto entête = decl->comme_entete_fonction();
+            if (decl->est_entête_fonction()) {
+                auto entête = decl->comme_entête_fonction();
                 POUR (*entête->ensemble_de_surchages.verrou_lecture()) {
                     declarations.ajoute(it);
                 }
             }
-            else if (decl->est_declaration_type()) {
-                auto type = decl->comme_declaration_type();
+            else if (decl->est_déclaration_type()) {
+                auto type = decl->comme_déclaration_type();
                 POUR (*type->ensemble_de_surchages.verrou_lecture()) {
                     declarations.ajoute(it);
                 }
@@ -158,7 +158,7 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declara
     }
 }
 
-void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
                                              NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
@@ -172,7 +172,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
     });
 }
 
-void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
                                              kuri::ensemblon<Module const *, 10> &modules_visites,
                                              NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
@@ -216,7 +216,7 @@ NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode con
     return nullptr;
 }
 
-bool bloc_est_dans_differe(NoeudBloc const *bloc)
+bool bloc_est_dans_diffère(NoeudBloc const *bloc)
 {
     while (bloc->bloc_parent) {
         if (bloc->appartiens_à_diffère) {
@@ -240,7 +240,7 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b)
 
     auto di = expressions->a(taille - 1);
 
-    if (di->est_retourne() || di->est_arrete() || di->est_continue() || di->est_reprends()) {
+    if (di->est_retourne() || di->est_arrête() || di->est_continue() || di->est_reprends()) {
         return di;
     }
 

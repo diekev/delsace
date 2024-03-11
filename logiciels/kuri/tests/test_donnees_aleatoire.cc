@@ -85,7 +85,7 @@ static GenreLexème id_operateurs_binaire[] = {
     GenreLexème::DIVISE,         GenreLexème::ESPERLUETTE,     GenreLexème::POURCENT,
     GenreLexème::INFERIEUR,      GenreLexème::INFERIEUR_EGAL,  GenreLexème::SUPERIEUR,
     GenreLexème::SUPERIEUR_EGAL, GenreLexème::DECALAGE_DROITE, GenreLexème::DECALAGE_GAUCHE,
-    GenreLexème::DIFFERENCE,     GenreLexème::ESP_ESP,         GenreLexème::EGALITE,
+    GenreLexème::DIFFÉRENCE,     GenreLexème::ESP_ESP,         GenreLexème::EGALITE,
     GenreLexème::BARRE_BARRE,    GenreLexème::BARRE,           GenreLexème::CHAPEAU,
     GenreLexème::EGAL,           GenreLexème::POINT,
 };
@@ -94,7 +94,7 @@ static GenreLexème id_variables[] = {
     GenreLexème::CHAINE_CARACTERE,
     GenreLexème::NOMBRE_ENTIER,
     GenreLexème::NOMBRE_REEL,
-    GenreLexème::CARACTERE,
+    GenreLexème::CARACTÈRE,
 };
 
 struct expression {

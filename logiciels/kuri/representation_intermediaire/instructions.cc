@@ -95,7 +95,7 @@ int32_t AtomeFonction::numérote_instructions() const
 
         if (decl && decl->params_sorties.taille() > 1) {
             POUR (decl->params_sorties) {
-                auto inst = it->comme_declaration_variable()->atome->comme_instruction();
+                auto inst = it->comme_déclaration_variable()->atome->comme_instruction();
                 inst->numero = résultat++;
             }
         }
@@ -226,8 +226,8 @@ InstructionAccèdeMembre::InstructionAccèdeMembre(NoeudExpression const *site_,
 const Type *InstructionAccèdeMembre::donne_type_accédé() const
 {
     auto type_accédé = accédé->type;
-    if (type_accédé->est_type_reference()) {
-        return type_accédé->comme_type_reference()->type_pointé;
+    if (type_accédé->est_type_référence()) {
+        return type_accédé->comme_type_référence()->type_pointé;
     }
     return type_accédé->comme_type_pointeur()->type_pointé;
 }
@@ -239,7 +239,7 @@ const MembreTypeComposé &InstructionAccèdeMembre::donne_membre_accédé() cons
         type_adressé = type_adressé->comme_type_opaque()->type_opacifié;
     }
 
-    auto type_composé = type_adressé->comme_type_compose();
+    auto type_composé = type_adressé->comme_type_composé();
     /* Pour les unions, l'accès de membre se fait via le type structure qui est valeur unie
      * + index. */
     if (type_composé->est_type_union()) {

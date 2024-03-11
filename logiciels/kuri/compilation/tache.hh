@@ -24,7 +24,7 @@ struct UniteCompilation;
 
 #define ENUMERE_GENRES_TACHE(O)                                                                   \
     O(DORMIR, DORS, "dormir", 0)                                                                  \
-    O(COMPILATION_TERMINEE, COMPILATION_TERMINEE, "compilation terminée", 0)                      \
+    O(COMPILATION_TERMINÉE, COMPILATION_TERMINÉE, "compilation terminée", 0)                      \
     ENUMERE_TACHES_POSSIBLES(O)
 
 enum class GenreTâche {

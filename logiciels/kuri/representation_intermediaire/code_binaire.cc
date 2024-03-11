@@ -602,7 +602,7 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
     émets_notifie_dépilage(site, taille_type);
 
     if (op == OpérateurUnaire::Genre::Complement) {
-        if (type->est_type_reel()) {
+        if (type->est_type_réel()) {
             émets_entête_op(OP_COMPLEMENT_REEL, site);
         }
         else {
@@ -1157,7 +1157,7 @@ ffi_type *converti_type_ffi(Type const *type)
 
             break;
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             if (type->taille_octet == 2) {
                 return &ffi_type_uint16;
@@ -1178,23 +1178,23 @@ ffi_type *converti_type_ffi(Type const *type)
             return &ffi_type_void;
         }
         case GenreNoeud::POINTEUR:
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::FONCTION:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             return &ffi_type_pointer;
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             // non supporté pour le moment, nous devrions uniquement passer des pointeurs
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             return converti_type_ffi(type_opaque->type_opacifié);
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
 
@@ -1205,13 +1205,13 @@ ffi_type *converti_type_ffi(Type const *type)
             // non supporté
             break;
         }
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         {
             return converti_type_ffi(static_cast<TypeEnum const *>(type)->type_sous_jacent);
         }
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             return &ffi_type_sint64;
         }
@@ -1835,7 +1835,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             auto décalage = chunk.émets_structure_constante(type->taille_octet);
             auto destination = chunk.code + décalage;
 
-            auto type_composé = type->comme_type_compose();
+            auto type_composé = type->comme_type_composé();
 
             auto adressage_destination = AdresseDonnéesExécution{
                 CODE_FONCTION, 0, m_atome_fonction_courante};
@@ -2099,7 +2099,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             auto structure = atome->comme_constante_structure();
             auto type = atome->type;
             auto tableau_valeur = structure->donne_atomes_membres();
-            auto type_composé = type->comme_type_compose();
+            auto type_composé = type->comme_type_composé();
 
             POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
                 auto destination_membre = destination + it.decalage;

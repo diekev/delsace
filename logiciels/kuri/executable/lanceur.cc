@@ -39,7 +39,7 @@ static void valide_blocs_modules(EspaceDeTravail const &espace)
 
 		auto noeud = it.noeud_syntaxique;
 
-		auto fichier = espace.fichier(noeud->lexeme->fichier);
+		auto fichier = espace.fichier(noeud->lexème->fichier);
 		auto module = fichier->module;
 
 		auto bloc = noeud->bloc_parent;
@@ -83,7 +83,7 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
                                    Statistiques &stats,
                                    kuri::tableau<Tacheronne *> const &tacheronnes)
 {
-    if (!compilatrice.espace_de_travail_defaut->options.emets_metriques) {
+    if (!compilatrice.espace_de_travail_defaut->options.émets_métriques) {
         return;
     }
 
@@ -100,7 +100,7 @@ static void imprime_stats(Compilatrice const &compilatrice,
                           Statistiques const &stats,
                           dls::chrono::compte_seconde debut_compilation)
 {
-    if (!compilatrice.espace_de_travail_defaut->options.emets_metriques) {
+    if (!compilatrice.espace_de_travail_defaut->options.émets_métriques) {
         return;
     }
 
@@ -577,7 +577,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     }
 
     /* Initialise les bibliothèques après avoir généré les objets r16. */
-    if (!GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(compilatrice)) {
+    if (!GestionnaireBibliothèques::initialise_bibliotheques_pour_execution(compilatrice)) {
         return false;
     }
 

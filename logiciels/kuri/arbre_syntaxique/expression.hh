@@ -11,13 +11,13 @@
 
 struct Compilatrice;
 struct NoeudBloc;
-struct NoeudDeclarationEnteteFonction;
+struct NoeudDéclarationEntêteFonction;
 struct NoeudExpression;
-struct NoeudExpressionLitteraleChaine;
+struct NoeudExpressionLittéraleChaine;
 struct NoeudExpressionConstructionTableau;
-struct NoeudDeclarationType;
+struct NoeudDéclarationType;
 
-using Type = NoeudDeclarationType;
+using Type = NoeudDéclarationType;
 
 /* ************************************************************************** */
 
@@ -27,9 +27,9 @@ struct ValeurExpression {
                                      bool,
                                      double,
                                      int64_t,
-                                     NoeudExpressionLitteraleChaine *,
+                                     NoeudExpressionLittéraleChaine *,
                                      NoeudExpressionConstructionTableau *,
-                                     NoeudDeclarationEnteteFonction *,
+                                     NoeudDéclarationEntêteFonction *,
                                      Type *>;
     TypeVariant v{};
 
@@ -62,7 +62,7 @@ struct ValeurExpression {
     {
     }
 
-    ValeurExpression(NoeudDeclarationEnteteFonction *t) : v(t)
+    ValeurExpression(NoeudDéclarationEntêteFonction *t) : v(t)
     {
     }
 
@@ -94,7 +94,7 @@ struct ValeurExpression {
 
     inline bool est_chaine() const
     {
-        return std::holds_alternative<NoeudExpressionLitteraleChaine *>(v);
+        return std::holds_alternative<NoeudExpressionLittéraleChaine *>(v);
     }
 
     inline bool est_tableau_fixe() const
@@ -104,7 +104,7 @@ struct ValeurExpression {
 
     inline bool est_fonction() const
     {
-        return std::holds_alternative<NoeudDeclarationEnteteFonction *>(v);
+        return std::holds_alternative<NoeudDéclarationEntêteFonction *>(v);
     }
 
     inline bool est_type() const
@@ -129,9 +129,9 @@ struct ValeurExpression {
         return std::get<double>(v);
     }
 
-    inline NoeudExpressionLitteraleChaine *chaine() const
+    inline NoeudExpressionLittéraleChaine *chaine() const
     {
-        return std::get<NoeudExpressionLitteraleChaine *>(v);
+        return std::get<NoeudExpressionLittéraleChaine *>(v);
     }
 
     inline NoeudExpressionConstructionTableau *tableau_fixe() const
@@ -139,9 +139,9 @@ struct ValeurExpression {
         return std::get<NoeudExpressionConstructionTableau *>(v);
     }
 
-    inline NoeudDeclarationEnteteFonction *fonction() const
+    inline NoeudDéclarationEntêteFonction *fonction() const
     {
-        return std::get<NoeudDeclarationEnteteFonction *>(v);
+        return std::get<NoeudDéclarationEntêteFonction *>(v);
     }
 
     inline Type *type() const

@@ -10,9 +10,9 @@
 #include "attente.hh"
 
 struct NoeudExpression;
-struct NoeudDeclarationType;
+struct NoeudDéclarationType;
 
-using Type = NoeudDeclarationType;
+using Type = NoeudDéclarationType;
 
 #define ENUMERE_TYPES_TRANSFORMATION                                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(INUTILE)                                                       \

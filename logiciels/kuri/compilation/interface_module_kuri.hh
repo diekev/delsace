@@ -8,10 +8,10 @@
 
 #include "parsage/identifiant.hh"
 
-struct NoeudDeclarationEnteteFonction;
+struct NoeudDéclarationEntêteFonction;
 struct Typeuse;
-struct NoeudDeclarationType;
-using Type = NoeudDeclarationType;
+struct NoeudDéclarationType;
+using Type = NoeudDéclarationType;
 
 #define ENUMERE_TYPE_INTERFACE_MODULE_KURI(O)                                                     \
     O(type_info_type_, ID::InfoType)                                                              \
@@ -52,15 +52,15 @@ using Type = NoeudDeclarationType;
                                         Op(decl_init_globales_kuri, ID::init_globales_kuri)
 
 struct InterfaceKuri {
-#define DECLARATION_MEMBRE(nom_membre, id) NoeudDeclarationEnteteFonction *nom_membre = nullptr;
+#define DECLARATION_MEMBRE(nom_membre, id) NoeudDéclarationEntêteFonction *nom_membre = nullptr;
 
     ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(DECLARATION_MEMBRE)
 
 #undef DECLARATION_MEMBRE
 
-    NoeudDeclarationEnteteFonction *declaration_pour_ident(const IdentifiantCode *ident);
+    NoeudDéclarationEntêteFonction *declaration_pour_ident(const IdentifiantCode *ident);
 
-    void mute_membre(NoeudDeclarationEnteteFonction *noeud);
+    void mute_membre(NoeudDéclarationEntêteFonction *noeud);
 };
 
 void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Type *type);

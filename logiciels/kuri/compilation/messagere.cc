@@ -29,7 +29,7 @@ void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, const ku
     }
 
     auto message = messages_fichiers.ajoute_element();
-    message->genre = GenreMessage::FICHIER_FERME;
+    message->genre = GenreMessage::FICHIER_FERMÉ;
     message->espace = espace;
     message->chemin = chemin;
 
@@ -58,7 +58,7 @@ void Messagère::ajoute_message_module_fermé(EspaceDeTravail *espace, Module *m
     }
 
     auto message = messages_modules.ajoute_element();
-    message->genre = GenreMessage::MODULE_FERME;
+    message->genre = GenreMessage::MODULE_FERMÉ;
     message->espace = espace;
     message->chemin = module->chemin();
     message->module = module;
@@ -73,7 +73,7 @@ Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudEx
     }
 
     auto message = messages_typage_code.ajoute_element();
-    message->genre = GenreMessage::TYPAGE_CODE_TERMINE;
+    message->genre = GenreMessage::TYPAGE_CODE_TERMINÉ;
     message->espace = espace;
 
     /* Les messages de typages ne sont pas directement envoyés. */

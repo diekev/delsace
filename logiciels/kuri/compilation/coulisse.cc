@@ -191,7 +191,7 @@ static kuri::chaine_statique nom_fichier_sortie(OptionsDeCompilation const &ops)
 
 kuri::chaine nom_sortie_fichier_objet(OptionsDeCompilation const &ops)
 {
-    if (ops.résultat == ResultatCompilation::FICHIER_OBJET) {
+    if (ops.résultat == RésultatCompilation::FICHIER_OBJET) {
         return nom_fichier_objet_pour(nom_fichier_sortie(ops));
     }
 
@@ -200,15 +200,15 @@ kuri::chaine nom_sortie_fichier_objet(OptionsDeCompilation const &ops)
 
 kuri::chaine nom_sortie_résultat_final(OptionsDeCompilation const &ops)
 {
-    if (ops.résultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+    if (ops.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
         return nom_bibliothèque_dynamique_pour(nom_fichier_sortie(ops));
     }
 
-    if (ops.résultat == ResultatCompilation::BIBLIOTHEQUE_STATIQUE) {
+    if (ops.résultat == RésultatCompilation::BIBLIOTHÈQUE_STATIQUE) {
         return nom_bibliothèque_statique_pour(nom_fichier_sortie(ops));
     }
 
-    if (ops.résultat == ResultatCompilation::FICHIER_OBJET) {
+    if (ops.résultat == RésultatCompilation::FICHIER_OBJET) {
         return nom_fichier_objet_pour(nom_fichier_sortie(ops));
     }
 

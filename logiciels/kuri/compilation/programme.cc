@@ -60,14 +60,14 @@ Programme::~Programme()
     Coulisse::détruit(m_coulisse);
 }
 
-void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
+void Programme::ajoute_fonction(NoeudDéclarationEntêteFonction *fonction)
 {
     if (possède(fonction)) {
         return;
     }
     m_fonctions.ajoute(fonction);
     m_fonctions_utilisees.insère(fonction);
-    ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexeme->fichier));
+    ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexème->fichier));
     elements_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
     elements_sont_sales[FONCTIONS][POUR_RI] = true;
     if (fonction->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
@@ -95,14 +95,14 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     }
 }
 
-void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
+void Programme::ajoute_globale(NoeudDéclarationVariable *globale)
 {
     if (possède(globale)) {
         return;
     }
     m_globales.ajoute(globale);
     m_globales_utilisees.insère(globale);
-    ajoute_fichier(m_espace->compilatrice().fichier(globale->lexeme->fichier));
+    ajoute_fichier(m_espace->compilatrice().fichier(globale->lexème->fichier));
     elements_sont_sales[GLOBALES][POUR_TYPAGE] = true;
     elements_sont_sales[GLOBALES][POUR_RI] = true;
     if (globale->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
@@ -267,14 +267,14 @@ DiagnostiqueÉtatCompilation Programme::diagnostique_compilation() const
 
     // À FAIRE(gestion) : ceci n'est que pour les métaprogrammes
     m_etat_compilation.essaie_d_aller_à(PhaseCompilation::PARSAGE_EN_COURS);
-    m_etat_compilation.essaie_d_aller_à(PhaseCompilation::PARSAGE_TERMINE);
+    m_etat_compilation.essaie_d_aller_à(PhaseCompilation::PARSAGE_TERMINÉ);
 
     if (diagnostic.toutes_les_déclarations_à_typer_le_sont) {
-        m_etat_compilation.essaie_d_aller_à(PhaseCompilation::TYPAGE_TERMINE);
+        m_etat_compilation.essaie_d_aller_à(PhaseCompilation::TYPAGE_TERMINÉ);
     }
 
     if (diagnostic.toutes_les_ri_sont_generees) {
-        m_etat_compilation.essaie_d_aller_à(PhaseCompilation::GENERATION_CODE_TERMINEE);
+        m_etat_compilation.essaie_d_aller_à(PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE);
     }
 
     return m_etat_compilation;
@@ -327,7 +327,7 @@ void Programme::ajourne_pour_nouvelles_options_espace()
     POUR (m_fonctions) {
         /* Supprime le point d'entrée. */
         if (it == espace()->fonction_point_d_entree &&
-            espace()->options.résultat != ResultatCompilation::EXECUTABLE) {
+            espace()->options.résultat != RésultatCompilation::EXÉCUTABLE) {
             std::swap(m_fonctions[index], m_fonctions[m_fonctions.taille() - 1]);
             m_fonctions.redimensionne(m_fonctions.taille() - 1);
             break;
@@ -337,7 +337,7 @@ void Programme::ajourne_pour_nouvelles_options_espace()
     }
 }
 
-kuri::ensemble<NoeudDeclaration *> &Programme::dépendances_manquantes()
+kuri::ensemble<NoeudDéclaration *> &Programme::dépendances_manquantes()
 {
     return m_dépendances_manquantes;
 }
@@ -406,7 +406,7 @@ void Programme::ajoute_fichier(Fichier *fichier)
     m_fichiers_sont_sales = true;
 }
 
-void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
+void Programme::ajoute_racine(NoeudDéclarationEntêteFonction *racine)
 {
     if (pour_métaprogramme()) {
         /* Pour les métaprogrammes, nous n'ajoutons que les racines pour la création de
@@ -452,9 +452,9 @@ void imprime_contenu_programme(const Programme &programme, uint32_t quoi, std::o
 /** \name Diagnostique état compilation.
  * \{ */
 
-static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDeclaration *déclaration)
+static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDéclaration *déclaration)
 {
-    if (!déclaration->est_entete_fonction()) {
+    if (!déclaration->est_entête_fonction()) {
         os << "-- validation non performée pour déclaration "
            << nom_humainement_lisible(déclaration) << '\n';
         return;
@@ -466,7 +466,7 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDecl
         return;
     }
 
-    auto corps = déclaration->comme_entete_fonction();
+    auto corps = déclaration->comme_entête_fonction();
     if (corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         /* NOTE : ceci peut-être un faux positif car un thread différent peut mettre en place le
          * drapeau... */
@@ -487,11 +487,11 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDecl
        << "\n";
 }
 
-static void imprime_détails_ri_à_générée(std::ostream &os, NoeudDeclaration *déclaration)
+static void imprime_détails_ri_à_générée(std::ostream &os, NoeudDéclaration *déclaration)
 {
     os << "-- RI non générée pour ";
 
-    if (déclaration->est_entete_fonction()) {
+    if (déclaration->est_entête_fonction()) {
         os << "la fonction";
     }
     else {
@@ -500,8 +500,8 @@ static void imprime_détails_ri_à_générée(std::ostream &os, NoeudDeclaration
 
     os << " " << nom_humainement_lisible(déclaration) << '\n';
 
-    if (déclaration->est_entete_fonction()) {
-        auto entête = déclaration->comme_entete_fonction();
+    if (déclaration->est_entête_fonction()) {
+        auto entête = déclaration->comme_entête_fonction();
         os << "-- état de l'unité de l'entête :\n";
         imprime_état_unité(os, entête->unité);
         if (entête->corps->unité) {
@@ -613,14 +613,14 @@ struct VisiteuseType {
             case GenreNoeud::ENTIER_CONSTANT:
             case GenreNoeud::ENTIER_NATUREL:
             case GenreNoeud::ENTIER_RELATIF:
-            case GenreNoeud::REEL:
+            case GenreNoeud::RÉEL:
             case GenreNoeud::TYPE_ADRESSE_FONCTION:
             {
                 break;
             }
-            case GenreNoeud::REFERENCE:
+            case GenreNoeud::RÉFÉRENCE:
             {
-                auto reference = type->comme_type_reference();
+                auto reference = type->comme_type_référence();
                 visite_type(reference->type_pointé, rappel);
                 break;
             }
@@ -630,7 +630,7 @@ struct VisiteuseType {
                 visite_type(pointeur->type_pointé, rappel);
                 break;
             }
-            case GenreNoeud::DECLARATION_UNION:
+            case GenreNoeud::DÉCLARATION_UNION:
             {
                 auto type_union = type->comme_type_union();
                 POUR (type_union->membres) {
@@ -638,7 +638,7 @@ struct VisiteuseType {
                 }
                 break;
             }
-            case GenreNoeud::DECLARATION_STRUCTURE:
+            case GenreNoeud::DÉCLARATION_STRUCTURE:
             {
                 auto type_structure = type->comme_type_structure();
                 POUR (type_structure->membres) {
@@ -679,7 +679,7 @@ struct VisiteuseType {
                 visite_type(fonction->type_sortie, rappel);
                 break;
             }
-            case GenreNoeud::DECLARATION_ENUM:
+            case GenreNoeud::DÉCLARATION_ÉNUM:
             case GenreNoeud::ERREUR:
             case GenreNoeud::ENUM_DRAPEAU:
             {
@@ -687,7 +687,7 @@ struct VisiteuseType {
                 visite_type(type_enum->type_sous_jacent, rappel);
                 break;
             }
-            case GenreNoeud::TYPE_DE_DONNEES:
+            case GenreNoeud::TYPE_DE_DONNÉES:
             {
                 break;
             }
@@ -695,7 +695,7 @@ struct VisiteuseType {
             {
                 break;
             }
-            case GenreNoeud::DECLARATION_OPAQUE:
+            case GenreNoeud::DÉCLARATION_OPAQUE:
             {
                 auto type_opaque = type->comme_type_opaque();
                 visite_type(type_opaque->type_opacifié, rappel);
@@ -959,11 +959,11 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     génère_table_des_types();
 
     switch (m_espace.options.résultat) {
-        case ResultatCompilation::RIEN:
+        case RésultatCompilation::RIEN:
         {
             break;
         }
-        case ResultatCompilation::EXECUTABLE:
+        case RésultatCompilation::EXÉCUTABLE:
         {
             if (decl_principale == nullptr) {
                 assert(m_espace.fonction_principale == nullptr);
@@ -972,9 +972,9 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
             }
             break;
         }
-        case ResultatCompilation::FICHIER_OBJET:
-        case ResultatCompilation::BIBLIOTHEQUE_STATIQUE:
-        case ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE:
+        case RésultatCompilation::FICHIER_OBJET:
+        case RésultatCompilation::BIBLIOTHÈQUE_STATIQUE:
+        case RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE:
         {
             if (nombre_fonctions_racines == 0) {
                 m_espace.rapporte_erreur_sans_site(
@@ -1319,11 +1319,11 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
         }
 
         POUR (*module.bloc->membres.verrou_lecture()) {
-            if (!it->est_entete_fonction()) {
+            if (!it->est_entête_fonction()) {
                 continue;
             }
 
-            auto fonction = it->comme_entete_fonction();
+            auto fonction = it->comme_entête_fonction();
             if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
                 if (!fonction->monomorphisations || fonction->monomorphisations->taille() == 0) {
                     dbg() << "Fonction inutilisée : " << nom_humainement_lisible(fonction);
@@ -1550,9 +1550,9 @@ std::optional<const DonnéesConstantes *> ProgrammeRepreInter::donne_données_co
     return &m_données_constantes;
 }
 
-static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliotheque *> &bibliothèques,
-                                              kuri::ensemble<Bibliotheque *> &utilisées,
-                                              Bibliotheque *bibliothèque)
+static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliothèque *> &bibliothèques,
+                                              kuri::ensemble<Bibliothèque *> &utilisées,
+                                              Bibliothèque *bibliothèque)
 {
     if (utilisées.possède(bibliothèque)) {
         return;
@@ -1566,10 +1566,10 @@ static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliotheque *> &b
     }
 }
 
-kuri::tableau<Bibliotheque *> ProgrammeRepreInter::donne_bibliothèques_utilisées() const
+kuri::tableau<Bibliothèque *> ProgrammeRepreInter::donne_bibliothèques_utilisées() const
 {
-    kuri::tableau<Bibliotheque *> résultat;
-    kuri::ensemble<Bibliotheque *> bibliothèques_utilisées;
+    kuri::tableau<Bibliothèque *> résultat;
+    kuri::ensemble<Bibliothèque *> bibliothèques_utilisées;
     POUR (fonctions) {
         if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
             it->decl->données_externes && it->decl->données_externes->symbole) {
@@ -1615,7 +1615,7 @@ static kuri::chaine_statique donne_classe_type(Type const &type)
         return "union";
     }
 
-    if (type.est_type_enum()) {
+    if (type.est_type_énum()) {
         return "énum";
     }
 
@@ -1670,7 +1670,7 @@ void imprime_ri_programme(ProgrammeRepreInter const &programme, std::ostream &os
 
     POUR (programme.donne_types()) {
         if (it->est_type_structure()) {
-            auto type_structure = it->comme_type_compose();
+            auto type_structure = it->comme_type_composé();
             imprime_déclaration_type_ri(type_structure, os, options);
             continue;
         }
@@ -1681,8 +1681,8 @@ void imprime_ri_programme(ProgrammeRepreInter const &programme, std::ostream &os
             continue;
         }
 
-        if (it->est_type_enum()) {
-            auto type_énum = it->comme_type_enum();
+        if (it->est_type_énum()) {
+            auto type_énum = it->comme_type_énum();
             os << donne_classe_type(*type_énum) << " " << chaine_type(it, options) << " = "
                << chaine_type(type_énum->type_sous_jacent, options) << "\n";
             continue;

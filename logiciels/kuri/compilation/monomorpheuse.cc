@@ -57,7 +57,7 @@ kuri::chaine ErreurMonomorphisation::message() const
 
         if (données_erreur.résultat == ÉtatRésolutionContrainte::ContrainteNonRespectée) {
             auto const type_reçu =
-                données_erreur.item_reçu.type->comme_type_type_de_donnees()->type_connu;
+                données_erreur.item_reçu.type->comme_type_type_de_données()->type_connu;
             enchaineuse << "\t\tLa contrainte requiers un type compatible avec « "
                         << chaine_type(données_erreur.item_contrainte.contrainte_type)
                         << " », mais le type reçu « " << chaine_type(type_reçu)
@@ -86,9 +86,9 @@ kuri::chaine ErreurMonomorphisation::message() const
         }
         else {
             auto const type_voulu =
-                données_erreur.item_contrainte.type->comme_type_type_de_donnees()->type_connu;
+                données_erreur.item_contrainte.type->comme_type_type_de_données()->type_connu;
             auto const type_obtenu =
-                données_erreur.item_reçu.type->comme_type_type_de_donnees()->type_connu;
+                données_erreur.item_reçu.type->comme_type_type_de_données()->type_connu;
             enchaineuse << "\t\tNous voulions le type " << chaine_type(type_voulu) << ".\n";
             enchaineuse << "\t\tMais nous avons obtenu le type " << chaine_type(type_obtenu)
                         << ".\n";
@@ -158,11 +158,11 @@ kuri::chaine ErreurMonomorphisation::message() const
 }
 
 Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
-                             const NoeudDeclarationEnteteFonction *entete)
+                             const NoeudDéclarationEntêteFonction *entete)
     : espace(ref_espace), polymorphe(entete)
 {
     POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
-        ajoute_item_pour_constante(it->comme_declaration_constante());
+        ajoute_item_pour_constante(it->comme_déclaration_constante());
     }
 
     POUR (items) {
@@ -291,7 +291,7 @@ void Monomorpheuse::ajoute_candidat(const IdentifiantCode *ident, const Type *ty
      * l'appel.
      * Vérifie que le type n'est pas nul car il pourrait s'agir de l'élément du type nul.
      * À FAIRE : considère avoir un type élémént non nul pour type_de(nul). */
-    if (!type_reçu || !type_reçu->est_type_type_de_donnees()) {
+    if (!type_reçu || !type_reçu->est_type_type_de_données()) {
         /* Garantie que nous n'avons pas d'entiers constants dans les résultats. */
         if (type_reçu && type_reçu->est_type_entier_constant()) {
             type_reçu = TypeBase::Z32;
@@ -311,7 +311,7 @@ void Monomorpheuse::ajoute_candidat_valeur(const IdentifiantCode *ident,
 }
 
 void Monomorpheuse::ajoute_candidat_depuis_référence_déclaration(
-    const NoeudExpressionReference *reference, const Type *type_reçu)
+    const NoeudExpressionRéférence *reference, const Type *type_reçu)
 {
     auto const decl = reference->déclaration_référée;
 
@@ -383,7 +383,7 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudSt
         return;
     }
 
-    auto decl_struct = type_reçu->comme_declaration_classe();
+    auto decl_struct = type_reçu->comme_déclaration_classe();
     if (decl_struct->polymorphe_de_base != structure) {
         erreur_genre_type(nullptr, type_reçu, "n'est pas une forme du polymorphe");
         return;
@@ -393,12 +393,12 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudSt
         auto param_poly = trouve_dans_bloc(structure->bloc_constantes, it->ident);
 
         if (param_poly->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            if (it->type->est_type_type_de_donnees()) {
+            if (it->type->est_type_type_de_données()) {
                 ajoute_candidat(it->ident, it->type);
             }
             else {
                 ajoute_candidat_valeur(
-                    it->ident, it->type, it->comme_declaration_constante()->valeur_expression);
+                    it->ident, it->type, it->comme_déclaration_constante()->valeur_expression);
             }
         }
         else if (param_poly->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
@@ -407,7 +407,7 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudSt
     }
 }
 
-static NoeudDeclaration *membre_pour_ident_ou_index(NoeudBloc *bloc,
+static NoeudDéclaration *membre_pour_ident_ou_index(NoeudBloc *bloc,
                                                     const IdentifiantCode *ident,
                                                     int index)
 {
@@ -429,7 +429,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
         return;
     }
 
-    auto structure_construite = declaration_appelee->comme_declaration_classe();
+    auto structure_construite = declaration_appelee->comme_déclaration_classe();
     if (!structure_construite->est_polymorphe) {
         return;
     }
@@ -439,7 +439,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
         return;
     }
 
-    auto decl_struct_type = type_reçu->comme_declaration_classe();
+    auto decl_struct_type = type_reçu->comme_déclaration_classe();
     if (decl_struct_type->polymorphe_de_base != structure_construite) {
         erreur_genre_type(site, type_reçu, "n'est pas une forme du polymorphe");
         return;
@@ -455,20 +455,20 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
             ident_param = assign->assignée->ident;
         }
 
-        if (!it->est_reference_declaration()) {
+        if (!it->est_référence_déclaration()) {
             continue;
         }
 
         auto param_poly = membre_pour_ident_ou_index(
             decl_struct_type->bloc_constantes, ident_param, i);
 
-        if (param_poly->type->est_type_type_de_donnees()) {
+        if (param_poly->type->est_type_type_de_données()) {
             ajoute_candidat(it->ident, param_poly->type);
         }
         else {
             ajoute_candidat_valeur(it->ident,
                                    param_poly->type,
-                                   param_poly->comme_declaration_constante()->valeur_expression);
+                                   param_poly->comme_déclaration_constante()->valeur_expression);
         }
     }
 }
@@ -487,14 +487,14 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_opaque(
 
     for (int i = 0; i < construction->paramètres.taille(); i++) {
         auto it = construction->paramètres[i];
-        if (!it->est_reference_declaration()) {
+        if (!it->est_référence_déclaration()) {
             continue;
         }
 
-        auto decl_referee = it->comme_reference_declaration()->déclaration_référée;
+        auto decl_referee = it->comme_référence_déclaration()->déclaration_référée;
 
         if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            if (decl_referee->type->est_type_type_de_donnees()) {
+            if (decl_referee->type->est_type_type_de_données()) {
                 ajoute_candidat(it->ident, decl_referee->type);
             }
             else {
@@ -564,8 +564,8 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_tableau(
 
     auto const expression_taille = expr_type_tableau->expression_taille;
     auto const type_tableau = type_reçu->comme_type_tableau_fixe();
-    if (expression_taille->est_reference_declaration()) {
-        auto decl_referee = expression_taille->comme_reference_declaration()->déclaration_référée;
+    if (expression_taille->est_référence_déclaration()) {
+        auto decl_referee = expression_taille->comme_référence_déclaration()->déclaration_référée;
         if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
                                           DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
             ValeurExpression valeur = type_tableau->taille;
@@ -581,7 +581,7 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
                                     const NoeudExpression *site,
                                     const Type *type_reçu)
 {
-    if (expression_polymorphique->est_declaration_variable()) {
+    if (expression_polymorphique->est_déclaration_variable()) {
         if (expression_polymorphique->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             ajoute_candidat(expression_polymorphique->ident, type_reçu);
         }
@@ -596,11 +596,11 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
             erreur_genre_type(site, type_reçu, "n'est pas un pointeur");
         }
     }
-    else if (expression_polymorphique->est_prise_reference()) {
-        auto const prise_référence = expression_polymorphique->comme_prise_reference();
-        if (type_reçu->est_type_reference()) {
+    else if (expression_polymorphique->est_prise_référence()) {
+        auto const prise_référence = expression_polymorphique->comme_prise_référence();
+        if (type_reçu->est_type_référence()) {
             parse_candidats(
-                prise_référence->opérande, site, type_reçu->comme_type_reference()->type_pointé);
+                prise_référence->opérande, site, type_reçu->comme_type_référence()->type_pointé);
         }
         else {
             /* Il est possible que la référence soit implicite, donc tente d'apparier avec le
@@ -621,8 +621,8 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
         auto type_tableau_fixe = expression_polymorphique->comme_expression_type_tableau_fixe();
         ajoute_candidats_depuis_déclaration_tableau(type_tableau_fixe, site, type_reçu);
     }
-    else if (expression_polymorphique->est_reference_declaration()) {
-        auto const ref_decl = expression_polymorphique->comme_reference_declaration();
+    else if (expression_polymorphique->est_référence_déclaration()) {
+        auto const ref_decl = expression_polymorphique->comme_référence_déclaration();
         ajoute_candidat_depuis_référence_déclaration(ref_decl, type_reçu);
     }
     else if (expression_polymorphique->est_construction_structure()) {
@@ -644,10 +644,10 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
         auto expansion = expression_polymorphique->comme_expansion_variadique();
         ajoute_candidats_depuis_expansion_variadique(expansion, site, type_reçu);
     }
-    else if (expression_polymorphique->est_reference_membre()) {
+    else if (expression_polymorphique->est_référence_membre()) {
         erreur_interne(site, "les références de membre ne sont pas encore implémentées");
     }
-    else if (expression_polymorphique->est_reference_type()) {
+    else if (expression_polymorphique->est_référence_type()) {
         /* Rien à faire. */
     }
     else if (expression_polymorphique->est_expression_binaire()) {
@@ -696,8 +696,8 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         }
         return typeuse().type_pointeur_pour(type_pointe);
     }
-    else if (expression_polymorphique->est_prise_reference()) {
-        auto const prise_référence = expression_polymorphique->comme_prise_reference();
+    else if (expression_polymorphique->est_prise_référence()) {
+        auto const prise_référence = expression_polymorphique->comme_prise_référence();
         auto type_pointe = résoud_type_final_impl(prise_référence->opérande);
         if (!type_pointe) {
             return nullptr;
@@ -718,8 +718,8 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
             expression_polymorphique->comme_expression_type_tableau_dynamique();
         return résoud_type_final_pour_déclaration_tableau_dynamique(type_tableau_dynamique);
     }
-    else if (expression_polymorphique->est_reference_declaration()) {
-        auto const ref_decl = expression_polymorphique->comme_reference_declaration();
+    else if (expression_polymorphique->est_référence_déclaration()) {
+        auto const ref_decl = expression_polymorphique->comme_référence_déclaration();
         return résoud_type_final_pour_référence_déclaration(ref_decl);
     }
     else if (expression_polymorphique->est_construction_structure()) {
@@ -739,12 +739,12 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         auto expansion = expression_polymorphique->comme_expansion_variadique();
         return résoud_type_final_pour_expansion_variadique(expansion);
     }
-    else if (expression_polymorphique->est_reference_membre()) {
+    else if (expression_polymorphique->est_référence_membre()) {
         erreur_interne(expression_polymorphique,
                        "les références de membre ne sont pas encore implémentées");
     }
-    else if (expression_polymorphique->est_reference_type()) {
-        return expression_polymorphique->type->comme_type_type_de_donnees()->type_connu;
+    else if (expression_polymorphique->est_référence_type()) {
+        return expression_polymorphique->type->comme_type_type_de_données()->type_connu;
     }
     else if (expression_polymorphique->est_expression_binaire()) {
         auto expression = expression_polymorphique->comme_expression_binaire();
@@ -798,7 +798,7 @@ void Monomorpheuse::logue() const
     dbg() << sortie.chaine();
 }
 
-void Monomorpheuse::ajoute_item_pour_constante(NoeudDeclarationConstante *constante)
+void Monomorpheuse::ajoute_item_pour_constante(NoeudDéclarationConstante *constante)
 {
     ItemMonomorphisation item;
     item.ident = constante->ident;
@@ -808,7 +808,7 @@ void Monomorpheuse::ajoute_item_pour_constante(NoeudDeclarationConstante *consta
             /* Valeur taille polymorphique. */
             item.genre = GenreItem::VALEUR;
         }
-        else if (constante->type->est_type_type_de_donnees()) {
+        else if (constante->type->est_type_type_de_données()) {
             /* $T: type_de_données */
             item.genre = GenreItem::TYPE_DE_DONNÉES;
         }
@@ -824,7 +824,7 @@ void Monomorpheuse::ajoute_item_pour_constante(NoeudDeclarationConstante *consta
         if (constante->possède_drapeau(DrapeauxNoeud::EXPRESSION_TYPE_EST_CONTRAINTE_POLY)) {
             item.genre = GenreItem::TYPE_DE_DONNÉES;
             item.contrainte_type =
-                constante->expression_type->type->comme_type_type_de_donnees()->type_connu;
+                constante->expression_type->type->comme_type_type_de_données()->type_connu;
         }
         else {
             item.genre = GenreItem::INDÉFINI;
@@ -835,13 +835,13 @@ void Monomorpheuse::ajoute_item_pour_constante(NoeudDeclarationConstante *consta
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(
-    const NoeudExpressionReference *reference)
+    const NoeudExpressionRéférence *reference)
 {
     auto decl_referee = reference->déclaration_référée;
 
     if (!decl_referee->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-        if (decl_referee->est_declaration_type()) {
-            return decl_referee->comme_declaration_type();
+        if (decl_referee->est_déclaration_type()) {
+            return decl_referee->comme_déclaration_type();
         }
         return decl_referee->type;
     }
@@ -852,8 +852,8 @@ Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(
         return nullptr;
     }
 
-    if (item->type->est_type_type_de_donnees()) {
-        return item->type->comme_type_type_de_donnees()->type_connu;
+    if (item->type->est_type_type_de_données()) {
+        return item->type->comme_type_type_de_données()->type_connu;
     }
 
     return const_cast<Type *>(item->type);
@@ -907,7 +907,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
         return résoud_type_final_pour_construction_opaque(construction);
     }
 
-    auto structure_construite = declaration_appelee->comme_declaration_classe();
+    auto structure_construite = declaration_appelee->comme_déclaration_classe();
     if (!structure_construite->est_polymorphe) {
         return structure_construite;
     }
@@ -929,12 +929,12 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
             ident_param = assign->assignée->ident;
         }
 
-        if (!it->est_reference_declaration()) {
+        if (!it->est_référence_déclaration()) {
             // À FAIRE(monomorphisation) : erreur ?
             continue;
         }
 
-        auto decl_referee = it->comme_reference_declaration()->déclaration_référée;
+        auto decl_referee = it->comme_référence_déclaration()->déclaration_référée;
 
         auto item_résultat = trouve_item_pour_ident(items_résultat, decl_referee->ident);
         assert(item_résultat);
@@ -957,7 +957,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
         return nullptr;
     }
 
-    return monomorphisation->comme_declaration_type();
+    return monomorphisation->comme_déclaration_type();
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_construction_opaque(
@@ -980,12 +980,12 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_opaque(
         param = assign->expression;
     }
 
-    if (!param->est_reference_declaration()) {
+    if (!param->est_référence_déclaration()) {
         // À FAIRE(monomorphisation) : erreur ?
         return nullptr;
     }
 
-    auto decl_referee = param->comme_reference_declaration()->déclaration_référée;
+    auto decl_referee = param->comme_référence_déclaration()->déclaration_référée;
 
     auto item_résultat = trouve_item_pour_ident(items_résultat, decl_referee->ident);
     assert(item_résultat);
@@ -993,7 +993,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_opaque(
     /* À FAIRE(opaque) : il faudrait pouvoir vérifier que la monomorphisation existe. */
     return typeuse().monomorphe_opaque(
         opaque_construite,
-        const_cast<Type *>(item_résultat->type->comme_type_type_de_donnees()->type_connu));
+        const_cast<Type *>(item_résultat->type->comme_type_type_de_données()->type_connu));
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_déclaration_tranche(
@@ -1025,7 +1025,7 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
     }
 
     auto expression_taille = expr_tableau_fixe->expression_taille;
-    if (expression_taille->est_reference_declaration()) {
+    if (expression_taille->est_référence_déclaration()) {
         auto item = trouve_item_pour_ident(items_résultat, expression_taille->ident);
         assert(item);
         return typeuse().type_tableau_fixe(type_pointe, int32_t(item->valeur.entière()));
@@ -1068,7 +1068,7 @@ RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation cons
 
         /* Vérifie que la containte est respectée. */
 
-        auto type_de_données = candidat.type->comme_type_type_de_donnees();
+        auto type_de_données = candidat.type->comme_type_type_de_données();
 
         /* Vérifie si la contrainte est celle d'un type polymorphique. */
         if (type_de_données->type_connu->est_type_structure()) {
@@ -1210,7 +1210,7 @@ RésultatUnification Monomorpheuse::unifie()
 
 RésultatMonomorphisation détermine_monomorphisation(
     Monomorpheuse &monomorpheuse,
-    const NoeudDeclarationEnteteFonction *entête,
+    const NoeudDéclarationEntêteFonction *entête,
     kuri::tableau_statique<NoeudExpression *> arguments_reçus)
 {
 #if 0
@@ -1231,7 +1231,7 @@ RésultatMonomorphisation détermine_monomorphisation(
         }
 
         if (param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            if (param->type->est_type_type_de_donnees()) {
+            if (param->type->est_type_type_de_données()) {
                 monomorpheuse.ajoute_candidat(param->ident, slot->type);
             }
             else {

@@ -23,26 +23,26 @@ struct NoeudAssignation;
 struct NoeudAssignationMultiple;
 struct NoeudBloc;
 struct NoeudComme;
-struct NoeudDeclarationConstante;
-struct NoeudDeclarationCorpsFonction;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationOperateurPour;
-struct NoeudDeclarationSymbole;
-struct NoeudDeclarationType;
-struct NoeudDeclarationTypeCompose;
-struct NoeudDeclarationTypeOpaque;
-struct NoeudDeclarationTypeTableauFixe;
-struct NoeudDeclarationVariable;
-struct NoeudDeclarationVariableMultiple;
+struct NoeudDéclarationConstante;
+struct NoeudDéclarationCorpsFonction;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationOpérateurPour;
+struct NoeudDéclarationSymbole;
+struct NoeudDéclarationType;
+struct NoeudDéclarationTypeComposé;
+struct NoeudDéclarationTypeOpaque;
+struct NoeudDéclarationTypeTableauFixe;
+struct NoeudDéclarationVariable;
+struct NoeudDéclarationVariableMultiple;
 struct NoeudDirectiveCuisine;
-struct NoeudDirectiveDependanceBibliotheque;
-struct NoeudDirectiveExecute;
+struct NoeudDirectiveDépendanceBibliothèque;
+struct NoeudDirectiveExécute;
 struct NoeudDiscr;
 struct NoeudEnum;
 struct NoeudExpressionAssignationLogique;
 struct NoeudExpressionBinaire;
-struct NoeudExpressionConstructionTableauType;
-struct NoeudExpressionLitteraleBool;
+struct NoeudExpressionConstructionTableauTypé;
+struct NoeudExpressionLittéraleBool;
 struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
 struct NoeudExpressionTypeFonction;
@@ -60,9 +60,9 @@ struct Tacheronne;
 struct TransformationType;
 struct UniteCompilation;
 
-using Type = NoeudDeclarationType;
-using TypeCompose = NoeudDeclarationTypeCompose;
-using TypeTableauFixe = NoeudDeclarationTypeTableauFixe;
+using Type = NoeudDéclarationType;
+using TypeCompose = NoeudDéclarationTypeComposé;
+using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
 
 namespace erreur {
 enum class Genre : int;
@@ -101,7 +101,7 @@ inline bool est_ok(RésultatValidation const &résultat)
 struct ContexteValidationDéclaration {
     struct DéclarationEtRéférence {
         NoeudExpression *ref_decl = nullptr;
-        NoeudDeclarationVariable *decl = nullptr;
+        NoeudDéclarationVariable *decl = nullptr;
     };
 
     /* Les variables déclarées, entre les virgules, si quelqu'une. */
@@ -186,7 +186,7 @@ struct Sémanticienne {
 
     RésultatValidation valide(UniteCompilation *unité);
 
-    NoeudDeclarationEnteteFonction *fonction_courante() const;
+    NoeudDéclarationEntêteFonction *fonction_courante() const;
 
     Type *union_ou_structure_courante() const;
 
@@ -215,17 +215,17 @@ struct Sémanticienne {
     RésultatValidation valide_sémantique_noeud(NoeudExpression *);
     RésultatValidation valide_accès_membre(NoeudExpressionMembre *expression_membre);
 
-    RésultatValidation valide_entête_fonction(NoeudDeclarationEnteteFonction *);
-    RésultatValidation valide_entête_opérateur(NoeudDeclarationEnteteFonction *);
-    RésultatValidation valide_entête_opérateur_pour(NoeudDeclarationOperateurPour *);
-    void valide_paramètres_constants_fonction(NoeudDeclarationEnteteFonction *);
-    RésultatValidation valide_paramètres_fonction(NoeudDeclarationEnteteFonction *);
-    RésultatValidation valide_types_paramètres_fonction(NoeudDeclarationEnteteFonction *);
-    RésultatValidation valide_définition_unique_fonction(NoeudDeclarationEnteteFonction *);
-    RésultatValidation valide_définition_unique_opérateur(NoeudDeclarationEnteteFonction *);
-    RésultatValidation valide_symbole_externe(NoeudDeclarationSymbole *, TypeSymbole type_symbole);
-    RésultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
-    RésultatValidation valide_opérateur(NoeudDeclarationCorpsFonction *);
+    RésultatValidation valide_entête_fonction(NoeudDéclarationEntêteFonction *);
+    RésultatValidation valide_entête_opérateur(NoeudDéclarationEntêteFonction *);
+    RésultatValidation valide_entête_opérateur_pour(NoeudDéclarationOpérateurPour *);
+    void valide_paramètres_constants_fonction(NoeudDéclarationEntêteFonction *);
+    RésultatValidation valide_paramètres_fonction(NoeudDéclarationEntêteFonction *);
+    RésultatValidation valide_types_paramètres_fonction(NoeudDéclarationEntêteFonction *);
+    RésultatValidation valide_définition_unique_fonction(NoeudDéclarationEntêteFonction *);
+    RésultatValidation valide_définition_unique_opérateur(NoeudDéclarationEntêteFonction *);
+    RésultatValidation valide_symbole_externe(NoeudDéclarationSymbole *, TypeSymbole type_symbole);
+    RésultatValidation valide_fonction(NoeudDéclarationCorpsFonction *);
+    RésultatValidation valide_opérateur(NoeudDéclarationCorpsFonction *);
 
     template <int N>
     RésultatValidation valide_énum_impl(NoeudEnum *decl);
@@ -233,10 +233,10 @@ struct Sémanticienne {
 
     RésultatValidation valide_structure(NoeudStruct *);
     RésultatValidation valide_union(NoeudUnion *);
-    RésultatValidation valide_déclaration_variable(NoeudDeclarationVariable *decl);
+    RésultatValidation valide_déclaration_variable(NoeudDéclarationVariable *decl);
     RésultatValidation valide_déclaration_variable_multiple(
-        NoeudDeclarationVariableMultiple *decl);
-    RésultatValidation valide_déclaration_constante(NoeudDeclarationConstante *decl);
+        NoeudDéclarationVariableMultiple *decl);
+    RésultatValidation valide_déclaration_constante(NoeudDéclarationConstante *decl);
     RésultatValidation valide_assignation(NoeudAssignation *inst);
     RésultatValidation valide_assignation_multiple(NoeudAssignationMultiple *inst);
     RésultatValidation valide_arbre_aplatis(NoeudExpression *declaration);
@@ -244,9 +244,9 @@ struct Sémanticienne {
     RésultatValidation valide_instruction_retourne_multiple(
         NoeudInstructionRetourMultiple *inst_retour);
     RésultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
-    RésultatValidation valide_référence_déclaration(NoeudExpressionReference *expr,
+    RésultatValidation valide_référence_déclaration(NoeudExpressionRéférence *expr,
                                                     NoeudBloc *bloc_recherche);
-    RésultatValidation valide_type_opaque(NoeudDeclarationTypeOpaque *decl);
+    RésultatValidation valide_type_opaque(NoeudDéclarationTypeOpaque *decl);
 
     template <typename TypeControleBoucle>
     CodeRetourValidation valide_controle_boucle(TypeControleBoucle *inst);
@@ -258,7 +258,7 @@ struct Sémanticienne {
     RésultatValidation valide_comparaison_énum_drapeau_bool(
         NoeudExpressionBinaire *expr,
         NoeudExpression *expr_acces_enum,
-        NoeudExpressionLitteraleBool *expr_bool);
+        NoeudExpressionLittéraleBool *expr_bool);
 
     RésultatValidation valide_expression_logique(NoeudExpressionLogique *logique);
     RésultatValidation valide_assignation_logique(NoeudExpressionAssignationLogique *logique);
@@ -272,9 +272,9 @@ struct Sémanticienne {
     CodeRetourValidation résoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
     void rapporte_erreur(const char *message, const NoeudExpression *noeud, erreur::Genre genre);
-    void rapporte_erreur_redéfinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
-    void rapporte_erreur_redéfinition_fonction(NoeudDeclarationEnteteFonction *decl,
-                                               NoeudDeclaration *decl_prec);
+    void rapporte_erreur_redéfinition_symbole(NoeudExpression *decl, NoeudDéclaration *decl_prec);
+    void rapporte_erreur_redéfinition_fonction(NoeudDéclarationEntêteFonction *decl,
+                                               NoeudDéclaration *decl_prec);
     void rapporte_erreur_type_arguments(NoeudExpression *type_arg, NoeudExpression *type_enf);
     void rapporte_erreur_assignation_type_différents(const Type *type_gauche,
                                                      const Type *type_droite,
@@ -316,7 +316,7 @@ struct Sémanticienne {
                                                   NoeudBloc *bloc_parent,
                                                   const Lexème *lexème);
 
-    MetaProgramme *crée_métaprogramme_pour_directive(NoeudDirectiveExecute *directive);
+    MetaProgramme *crée_métaprogramme_pour_directive(NoeudDirectiveExécute *directive);
 
     CodeRetourValidation valide_expression_pour_condition(NoeudExpression const *condition,
                                                           bool permet_déclaration);
@@ -325,7 +325,7 @@ struct Sémanticienne {
 
     RésultatValidation valide_instruction_si(NoeudSi *inst);
 
-    RésultatValidation valide_dépendance_bibliothèque(NoeudDirectiveDependanceBibliotheque *noeud);
+    RésultatValidation valide_dépendance_bibliothèque(NoeudDirectiveDépendanceBibliothèque *noeud);
 
     RésultatValidation valide_instruction_importe(NoeudInstructionImporte *inst);
 
@@ -343,5 +343,5 @@ struct Sémanticienne {
     RésultatValidation valide_expression_type_fonction(NoeudExpressionTypeFonction *expr);
 
     RésultatValidation valide_construction_tableau_typé(
-        NoeudExpressionConstructionTableauType *tableau);
+        NoeudExpressionConstructionTableauTypé *tableau);
 };
