@@ -334,18 +334,18 @@ NoeudDépendance *GrapheDépendance::garantie_noeud_dépendance(EspaceDeTravail 
         });
 
         auto decl = noeud->comme_declaration_variable_multiple();
-        POUR (decl->donnees_decl.plage()) {
+        POUR (decl->données_decl.plage()) {
             POUR_NOMME (ref, it.variables.plage()) {
                 crée_noeud_globale(ref->comme_reference_declaration()
-                                       ->declaration_referee->comme_declaration_variable());
+                                       ->déclaration_référée->comme_declaration_variable());
             }
         }
 
         /* À FAIRE : retourne tous les noeuds. */
-        return crée_noeud_globale(decl->donnees_decl[0]
+        return crée_noeud_globale(decl->données_decl[0]
                                       .variables[0]
                                       ->comme_reference_declaration()
-                                      ->declaration_referee->comme_declaration_variable());
+                                      ->déclaration_référée->comme_declaration_variable());
     }
 
     if (noeud->est_entete_fonction()) {
@@ -354,13 +354,13 @@ NoeudDépendance *GrapheDépendance::garantie_noeud_dépendance(EspaceDeTravail 
 
     if (noeud->est_corps_fonction()) {
         auto corps = noeud->comme_corps_fonction();
-        return crée_noeud_fonction(corps->entete);
+        return crée_noeud_fonction(corps->entête);
     }
 
     if (noeud->est_execute()) {
         auto execute = noeud->comme_execute();
-        assert(execute->metaprogramme);
-        auto metaprogramme = execute->metaprogramme;
+        assert(execute->métaprogramme);
+        auto metaprogramme = execute->métaprogramme;
         assert(metaprogramme->fonction);
         return crée_noeud_fonction(metaprogramme->fonction);
     }

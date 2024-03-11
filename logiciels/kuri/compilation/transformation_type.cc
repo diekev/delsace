@@ -122,7 +122,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
 
         if (type_de->est_type_opaque() &&
-            type_vers == type_de->comme_type_opaque()->type_opacifie) {
+            type_vers == type_de->comme_type_opaque()->type_opacifié) {
             // on pourrait se passer de la conversion, ou normaliser le type
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
@@ -278,7 +278,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     if (type_vers->est_type_fonction()) {
         /* x : fonc()rien = nul; */
         if (type_de->est_type_pointeur() &&
-            type_de->comme_type_pointeur()->type_pointe == nullptr) {
+            type_de->comme_type_pointeur()->type_pointé == nullptr) {
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
@@ -290,7 +290,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     if (type_vers->est_type_adresse_fonction()) {
         /* x : adresse_fonction = nul; */
         if (type_de->est_type_pointeur() &&
-            type_de->comme_type_pointeur()->type_pointe == nullptr) {
+            type_de->comme_type_pointeur()->type_pointé == nullptr) {
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
@@ -310,10 +310,10 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_vers->est_type_reference()) {
-        auto type_élément_vers = type_vers->comme_type_reference()->type_pointe;
+        auto type_élément_vers = type_vers->comme_type_reference()->type_pointé;
 
         if (type_de->est_type_reference()) {
-            auto type_élément_de = type_de->comme_type_reference()->type_pointe;
+            auto type_élément_de = type_de->comme_type_reference()->type_pointé;
 
             if (!type_élément_de->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_type(type_élément_de);
@@ -349,18 +349,18 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_de->est_type_reference()) {
-        if (type_de->comme_type_reference()->type_pointe == type_vers) {
+        if (type_de->comme_type_reference()->type_pointé == type_vers) {
             return TransformationType(TypeTransformation::DEREFERENCE);
         }
     }
 
     if (type_vers->est_type_tableau_dynamique()) {
-        auto type_pointe = type_vers->comme_type_tableau_dynamique()->type_pointe;
+        auto type_pointe = type_vers->comme_type_tableau_dynamique()->type_pointé;
 
         if (type_pointe->est_type_octet()) {
             // a : [..]octet = nul, voir bug19
             if (type_de->est_type_pointeur()) {
-                auto type_pointe_de = type_de->comme_type_pointeur()->type_pointe;
+                auto type_pointe_de = type_de->comme_type_pointeur()->type_pointé;
 
                 if (type_pointe_de == nullptr) {
                     return TransformationType(TypeTransformation::IMPOSSIBLE);
@@ -376,7 +376,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     if (type_vers->est_type_tranche()) {
         auto type_élément = type_vers->comme_type_tranche()->type_élément;
         if (type_de->est_type_tableau_fixe()) {
-            if (type_élément == type_de->comme_type_tableau_fixe()->type_pointe) {
+            if (type_élément == type_de->comme_type_tableau_fixe()->type_pointé) {
                 return TransformationType(TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
                                           type_vers);
             }
@@ -384,7 +384,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
 
         if (type_de->est_type_tableau_dynamique()) {
-            if (type_élément == type_de->comme_type_tableau_dynamique()->type_pointe) {
+            if (type_élément == type_de->comme_type_tableau_dynamique()->type_pointé) {
                 return TransformationType(
                     TypeTransformation::CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE, type_vers);
             }
@@ -395,8 +395,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_vers->est_type_pointeur() && type_de->est_type_pointeur()) {
-        auto type_pointe_de = type_de->comme_type_pointeur()->type_pointe;
-        auto type_pointe_vers = type_vers->comme_type_pointeur()->type_pointe;
+        auto type_pointe_de = type_de->comme_type_pointeur()->type_pointé;
+        auto type_pointe_vers = type_vers->comme_type_pointeur()->type_pointé;
 
         /* x = nul; */
         if (type_pointe_de == nullptr) {
@@ -456,7 +456,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_de->est_type_opaque()) {
-        auto type_opacifié = type_de->comme_type_opaque()->type_opacifie;
+        auto type_opacifié = type_de->comme_type_opaque()->type_opacifié;
         auto résultat = cherche_transformation(type_opacifié, type_vers);
         if (!std::holds_alternative<TransformationType>(résultat)) {
             return résultat;
@@ -491,8 +491,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
 
         if (type_de->est_type_reference() && type_vers->est_type_reference()) {
-            auto type_pointe_de = type_de->comme_type_reference()->type_pointe;
-            auto type_pointe_vers = type_vers->comme_type_reference()->type_pointe;
+            auto type_pointe_de = type_de->comme_type_reference()->type_pointé;
+            auto type_pointe_vers = type_vers->comme_type_reference()->type_pointé;
 
             if (type_pointe_de->est_type_structure() && type_pointe_vers->est_type_structure()) {
                 auto ts_de = type_pointe_de->comme_type_structure();
@@ -533,7 +533,7 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type 
     if (transformation.type == TypeTransformation::INUTILE) {
         /* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
         if (type_vers->est_type_pointeur() &&
-            type_vers->comme_type_pointeur()->type_pointe == nullptr && type_vers != type_de) {
+            type_vers->comme_type_pointeur()->type_pointé == nullptr && type_vers != type_de) {
             return PoidsTransformation{transformation, 0.0};
         }
 

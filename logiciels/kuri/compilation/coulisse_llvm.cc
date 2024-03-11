@@ -640,7 +640,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            type_llvm = convertis_type_llvm(type_opaque->type_opacifie);
+            type_llvm = convertis_type_llvm(type_opaque->type_opacifié);
             break;
         }
         CAS_POUR_NOEUDS_HORS_TYPES:
@@ -657,15 +657,15 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
 llvm::FunctionType *GénératriceCodeLLVM::convertis_type_fonction(TypeFonction const *type)
 {
     std::vector<llvm::Type *> paramètres;
-    paramètres.reserve(static_cast<size_t>(type->types_entrees.taille()));
+    paramètres.reserve(static_cast<size_t>(type->types_entrées.taille()));
 
     auto est_variadique = false;
 
-    POUR (type->types_entrees) {
+    POUR (type->types_entrées) {
         if (it->est_type_variadique()) {
             auto type_variadique = it->comme_type_variadique();
             /* Type variadique externe. */
-            if (type_variadique->type_pointe == nullptr) {
+            if (type_variadique->type_pointé == nullptr) {
                 est_variadique = true;
                 break;
             }
@@ -1207,7 +1207,7 @@ llvm::Value *GénératriceCodeLLVM::génère_valeur_données_constantes(
 {
     auto const type_tableau = constante->type->comme_type_tableau_fixe();
     auto const taille_tableau = type_tableau->taille;
-    auto const type_élément = type_tableau->type_pointe;
+    auto const type_élément = type_tableau->type_pointé;
 
     if (type_élément->est_type_entier_relatif() || type_élément->est_type_entier_constant()) {
         if (type_élément->taille_octet == 1) {

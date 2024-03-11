@@ -107,7 +107,7 @@ static ClasseArgument donne_classe_argument(Type const *type)
         case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto const type_opaque = type->comme_type_opaque();
-            return donne_classe_argument(type_opaque->type_opacifie);
+            return donne_classe_argument(type_opaque->type_opacifié);
         }
         case GenreNoeud::DECLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
@@ -140,7 +140,7 @@ static ClasseArgumentAppel détermine_classes_arguments(TypeFonction const *type
 {
     auto résultat = ClasseArgumentAppel{};
 
-    POUR (type->types_entrees) {
+    POUR (type->types_entrées) {
         résultat.entrées.ajoute(donne_classe_argument(it));
     }
 
@@ -1704,7 +1704,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
     if (!fonction->param_sortie->type->est_type_rien()) {
         /* À FAIRE : multiple types de retour. */
         auto type_pointeur = fonction->param_sortie->type->comme_type_pointeur();
-        taille_allouée += type_pointeur->type_pointe->taille_octet;
+        taille_allouée += type_pointeur->type_pointé->taille_octet;
         table_valeurs[fonction->param_sortie->numero] = donne_adresse_stack();
     }
 

@@ -541,7 +541,7 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
     auto résultat = kuri::tableau<NoeudCodeEnteteFonction *>();
     résultat.réserve(entetes.taille());
     POUR (entetes) {
-        if (it->est_operateur || it->est_coroutine ||
+        if (it->est_opérateur || it->est_coroutine ||
             it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
             continue;
         }

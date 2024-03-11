@@ -101,8 +101,7 @@ void EXETRON_detruit_fil(ContexteKuri *ctx_kuri, FilExecution *ptr_fil)
     kuri_deloge(ctx_kuri, ptr_fil);
 }
 
-struct Mutex : public std::mutex {
-};
+struct Mutex : public std::mutex {};
 
 Mutex *EXETRON_cree_mutex(ContexteKuri *ctx_kuri)
 {
@@ -124,8 +123,7 @@ void EXETRON_detruit_mutex(ContexteKuri *ctx_kuri, Mutex *mutex)
     kuri_deloge(ctx_kuri, mutex);
 }
 
-struct VariableCondition : public std::condition_variable {
-};
+struct VariableCondition : public std::condition_variable {};
 
 VariableCondition *EXETRON_cree_variable_condition(ContexteKuri *ctx_kuri)
 {

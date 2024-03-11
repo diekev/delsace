@@ -618,7 +618,7 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
     rassemble_opérateurs_pour_type(*type1, type_op, op_candidats);
 
     if (type1->est_type_opaque()) {
-        auto type_opacifié = type1->comme_type_opaque()->type_opacifie;
+        auto type_opacifié = type1->comme_type_opaque()->type_opacifié;
         rassemble_opérateurs_pour_type(*type_opacifié, type_op, op_candidats);
     }
 
@@ -626,7 +626,7 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
         rassemble_opérateurs_pour_type(*type2, type_op, op_candidats);
 
         if (type2->est_type_opaque()) {
-            auto type_opacifié = type2->comme_type_opaque()->type_opacifie;
+            auto type_opacifié = type2->comme_type_opaque()->type_opacifié;
             rassemble_opérateurs_pour_type(*type_opacifié, type_op, op_candidats);
         }
     }
@@ -700,20 +700,20 @@ static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
             return t->comme_type_enum();
         }
 
-        if (t->est_type_reference() && t->comme_type_reference()->type_pointe->est_type_enum()) {
-            return t->comme_type_reference()->type_pointe->comme_type_enum();
+        if (t->est_type_reference() && t->comme_type_reference()->type_pointé->est_type_enum()) {
+            return t->comme_type_reference()->type_pointé->comme_type_enum();
         }
 
         return nullptr;
     };
 
-    auto type1 = noeud->operande_gauche->type;
+    auto type1 = noeud->opérande_gauche->type;
     auto type1_est_énum = est_énum_ou_référence_énum(type1);
     if (type1_est_énum &&
         !type1_est_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type1_est_énum);
     }
-    auto type2 = noeud->operande_droite->type;
+    auto type2 = noeud->opérande_droite->type;
     auto type2_est_énum = est_énum_ou_référence_énum(type2);
     if (type2_est_énum &&
         !type2_est_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
