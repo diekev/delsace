@@ -262,8 +262,8 @@ RAPPEL_POUR_ERREUR(opérateur)
     auto operateur_attendu = attente.opérateur();
     if (operateur_attendu->est_expression_binaire() || operateur_attendu->est_indexage()) {
         auto expression_operation = operateur_attendu->comme_expression_binaire();
-        auto type1 = expression_operation->operande_gauche->type;
-        auto type2 = expression_operation->operande_droite->type;
+        auto type1 = expression_operation->opérande_gauche->type;
+        auto type2 = expression_operation->opérande_droite->type;
 
         auto candidats = kuri::tablet<OpérateurCandidat, 10>();
         auto résultat = cherche_candidats_opérateurs(
@@ -327,7 +327,7 @@ RAPPEL_POUR_ERREUR(opérateur)
     }
     else {
         auto expression_operation = operateur_attendu->comme_expression_unaire();
-        auto type_operande = expression_operation->operande->type;
+        auto type_operande = expression_operation->opérande->type;
         espace
             ->rapporte_erreur(operateur_attendu,
                               "Je ne peux pas continuer la compilation car je "

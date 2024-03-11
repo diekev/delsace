@@ -131,7 +131,7 @@ static void broye_nom_fonction(Enchaineuse &enchaineuse,
     }
 
     /* nom de la fonction */
-    if (entête->est_operateur) {
+    if (entête->est_opérateur) {
         enchaineuse << "operateur" << nom_pour_opérateur(*entête->lexeme);
     }
     else {
@@ -275,14 +275,14 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
         case GenreNoeud::REFERENCE:
         {
             enchaineuse << "KR";
-            broye_nom_type(enchaineuse, type->comme_type_reference()->type_pointe, false);
+            broye_nom_type(enchaineuse, type->comme_type_reference()->type_pointé, false);
             break;
         }
         case GenreNoeud::POINTEUR:
         {
             enchaineuse << "KP";
 
-            auto type_élément = type->comme_type_pointeur()->type_pointe;
+            auto type_élément = type->comme_type_pointeur()->type_pointé;
 
             if (type_élément == nullptr) {
                 enchaineuse << "nul";
@@ -352,7 +352,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
         }
         case GenreNoeud::VARIADIQUE:
         {
-            auto type_élément = type->comme_type_variadique()->type_pointe;
+            auto type_élément = type->comme_type_variadique()->type_pointé;
 
             // les arguments variadiques sont transformés en tranches, donc utilise Kz
             if (type_élément != nullptr) {
@@ -374,7 +374,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             enchaineuse << "Kt";
-            broye_nom_type(enchaineuse, type->comme_type_tableau_dynamique()->type_pointe, false);
+            broye_nom_type(enchaineuse, type->comme_type_tableau_dynamique()->type_pointé, false);
             break;
         }
         case GenreNoeud::TABLEAU_FIXE:
@@ -383,16 +383,16 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
 
             enchaineuse << "KT";
             enchaineuse << type_tabl->taille;
-            broye_nom_type(enchaineuse, type_tabl->type_pointe, false);
+            broye_nom_type(enchaineuse, type_tabl->type_pointé, false);
             break;
         }
         case GenreNoeud::FONCTION:
         {
             auto const type_fonction = type->comme_type_fonction();
             enchaineuse << "Kf";
-            enchaineuse << type_fonction->types_entrees.taille();
+            enchaineuse << type_fonction->types_entrées.taille();
 
-            POUR (type_fonction->types_entrees) {
+            POUR (type_fonction->types_entrées) {
                 broye_nom_type(enchaineuse, it, false);
             }
 
@@ -428,7 +428,7 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
 
             broye_nom_simple(enchaineuse, type->ident->nom);
             /* inclus le nom du type opacifié afin de prendre en compte les monomorphisations */
-            broye_nom_type(enchaineuse, type_opaque->type_opacifie, false);
+            broye_nom_type(enchaineuse, type_opaque->type_opacifié, false);
             break;
         }
         case GenreNoeud::TUPLE:
