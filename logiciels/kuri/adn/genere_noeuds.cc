@@ -453,8 +453,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     if (membre.type->est_tableau()) {
                         auto nom_membre = membre.nom.nom_cpp();
                         if (it->accede_nom_genre().nom_cpp() == "EXPRESSION_APPEL" &&
-                            nom_membre == "parametres") {
-                            nom_membre = "parametres_resolus";
+                            nom_membre == "paramètres") {
+                            nom_membre = "paramètres_résolus";
                         }
 
                         const auto type_tableau = membre.type->comme_tableau();
@@ -550,7 +550,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 const auto nom_enfant = enfant.nom;
 
                 if (it->accede_nom_genre().nom_cpp() == "EXPRESSION_REFERENCE_DECLARATION") {
-                    if (enfant.nom.nom_cpp() == "declaration_referee") {
+                    if (enfant.nom.nom_cpp() == "déclaration_référée") {
                         os << copie_déclaration_référée;
                         return;
                     }
