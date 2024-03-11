@@ -9,12 +9,12 @@
 
 struct AtomeFonction;
 struct AtomeGlobale;
-struct Bibliotheque;
+struct Bibliothèque;
 struct DonnéesConstantes;
 struct ProgrammeRepreInter;
 
-struct NoeudDeclarationType;
-using Type = NoeudDeclarationType;
+struct NoeudDéclarationType;
+using Type = NoeudDéclarationType;
 
 struct CoulisseC final : public Coulisse {
     struct FichierC {

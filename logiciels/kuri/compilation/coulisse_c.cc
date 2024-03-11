@@ -71,7 +71,7 @@ static bool transtypage_est_utile(InstructionTranstype const *transtype)
 /* Pour garantir que les déclarations des fonctions externes correspondent à ce qu'elles doivent
  * être. */
 static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
-    NoeudDeclarationEnteteFonction const *entête, int index)
+    NoeudDéclarationEntêteFonction const *entête, int index)
 {
     if (!entête) {
         return {};
@@ -276,7 +276,7 @@ struct ConvertisseuseTypeC {
     void génère_code_pour_type(Type const *type, Enchaineuse &enchaineuse);
 
     void génère_déclaration_structure(Enchaineuse &enchaineuse,
-                                      const NoeudDeclarationTypeCompose *type_composé);
+                                      const NoeudDéclarationTypeComposé *type_composé);
 };
 
 /** \} */
@@ -344,7 +344,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         }
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
             génère_typedef(type_enum->type_sous_jacent, enchaineuse);
@@ -353,7 +353,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
             type_c.typedef_ = nom_broye_type_donnees;
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             génère_typedef(type_opaque->type_opacifié, enchaineuse);
@@ -406,7 +406,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
 
             break;
         }
-        case GenreNoeud::TYPE_DE_DONNEES:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             type_c.typedef_ = "int64_t";
             break;
@@ -416,7 +416,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
             type_c.typedef_ = "adresse_fonction";
             break;
         }
-        case GenreNoeud::REEL:
+        case GenreNoeud::RÉEL:
         {
             if (type->taille_octet == 2) {
                 type_c.typedef_ = "uint16_t";
@@ -430,9 +430,9 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
 
             break;
         }
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         {
-            auto type_pointe = type->comme_type_reference()->type_pointé;
+            auto type_pointe = type->comme_type_référence()->type_pointé;
             génère_typedef(type_pointe, enchaineuse);
             auto &type_c_pointe = type_c_pour(type_pointe);
             type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
@@ -453,7 +453,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
 
             break;
         }
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto type_struct = type->comme_type_structure();
 
@@ -466,7 +466,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
             génère_typedef_pour_type_composé(type_c, type_struct, enchaineuse);
             break;
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
             POUR (type_union->membres) {
@@ -579,7 +579,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         case GenreNoeud::CHAINE:
         case GenreNoeud::TUPLE:
         {
-            génère_typedef_pour_type_composé(type_c, type->comme_type_compose(), enchaineuse);
+            génère_typedef_pour_type_composé(type_c, type->comme_type_composé(), enchaineuse);
             break;
         }
         CAS_POUR_NOEUDS_HORS_TYPES:
@@ -593,7 +593,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
 }
 
 static kuri::chaine_statique donne_préfixe_struct_pour_type(
-    NoeudDeclarationTypeCompose const *type)
+    NoeudDéclarationTypeComposé const *type)
 {
     if (type->est_type_tableau_dynamique()) {
         return "Tableau_";
@@ -651,8 +651,8 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::OCTET:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::TYPE_DE_DONNEES:
-        case GenreNoeud::REEL:
+        case GenreNoeud::TYPE_DE_DONNÉES:
+        case GenreNoeud::RÉEL:
         case GenreNoeud::RIEN:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
@@ -661,21 +661,21 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         }
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
-        case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
         {
-            auto type_enum = type->comme_type_enum();
+            auto type_enum = type->comme_type_énum();
             génère_code_pour_type(type_enum->type_sous_jacent, enchaineuse);
             break;
         }
-        case GenreNoeud::DECLARATION_OPAQUE:
+        case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto opaque = type->comme_type_opaque();
             génère_code_pour_type(opaque->type_opacifié, enchaineuse);
             break;
         }
-        case GenreNoeud::REFERENCE:
+        case GenreNoeud::RÉFÉRENCE:
         {
-            génère_code_pour_type(type->comme_type_reference()->type_pointé, enchaineuse);
+            génère_code_pour_type(type->comme_type_référence()->type_pointé, enchaineuse);
             break;
         }
         case GenreNoeud::POINTEUR:
@@ -686,9 +686,9 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
         case GenreNoeud::TUPLE:
-        case GenreNoeud::DECLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
-            auto type_composé = type->comme_type_compose();
+            auto type_composé = type->comme_type_composé();
 
             if (type_composé->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
                 return;
@@ -720,7 +720,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 
             break;
         }
-        case GenreNoeud::DECLARATION_UNION:
+        case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
             type_c.code_machine_fut_généré = true;
@@ -812,7 +812,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 }
 
 void ConvertisseuseTypeC::génère_déclaration_structure(
-    Enchaineuse &enchaineuse, const NoeudDeclarationTypeCompose *type_composé)
+    Enchaineuse &enchaineuse, const NoeudDéclarationTypeComposé *type_composé)
 {
     auto nom_type = génératrice_code.donne_nom_pour_type(type_composé);
     kuri::chaine_statique préfixe = "";
@@ -1073,8 +1073,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         case Atome::Genre::CONSTANTE_TYPE:
         {
             auto type = atome->comme_constante_type()->type_de_données;
-            if (type->est_type_type_de_donnees()) {
-                auto type_de_données = type->comme_type_type_de_donnees();
+            if (type->est_type_type_de_données()) {
+                auto type_de_données = type->comme_type_type_de_données();
                 if (type_de_données->type_connu) {
                     return enchaine(type_de_données->type_connu->index_dans_table_types);
                 }
@@ -1156,7 +1156,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             auto structure = atome->comme_constante_structure();
-            auto type = structure->type->comme_type_compose();
+            auto type = structure->type->comme_type_composé();
             auto tableau_valeur = structure->donne_atomes_membres();
             auto résultat = Enchaineuse();
 
@@ -1772,7 +1772,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     /* Générons le code pour les accès de membres des retours multiples. */
     if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
         for (auto &param : atome_fonc->decl->params_sorties) {
-            auto inst = param->comme_declaration_variable()->atome->comme_instruction();
+            auto inst = param->comme_déclaration_variable()->atome->comme_instruction();
             génère_code_pour_instruction(inst, os);
         }
     }
@@ -2053,7 +2053,7 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
         }
         poule_de_tâches.ajoute_tâche([&]() {
             kuri::chaine nom_sortie = it.chemin_fichier_objet;
-            if (espace.options.résultat == ResultatCompilation::FICHIER_OBJET) {
+            if (espace.options.résultat == RésultatCompilation::FICHIER_OBJET) {
                 nom_sortie = nom_sortie_résultat_final(espace.options);
             }
 
@@ -2168,7 +2168,7 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
 
     /* Si nous compilons un fichier objet, mets tout le code dans un seul fichier, car nous ne
      * pouvons assembler plusieurs fichiers objets en un seul. */
-    if (options.résultat == ResultatCompilation::FICHIER_OBJET) {
+    if (options.résultat == RésultatCompilation::FICHIER_OBJET) {
         auto &fichier = ajoute_fichier_c(false);
         fichier.données_constantes = données_constantes;
         fichier.types = repr_inter.donne_types();

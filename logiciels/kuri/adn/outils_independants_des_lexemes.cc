@@ -38,19 +38,21 @@ bool remplace(std::string &std_string, std::string_view motif, std::string_view 
     return remplacement_effectue;
 }
 
-kuri::chaine supprime_accents(kuri::chaine_statique avec_accent)
+kuri::chaine en_majuscule(kuri::chaine_statique minuscule)
 {
-    auto std_string = vers_std_string(avec_accent);
+    auto std_string = vers_std_string(minuscule);
+    remplace(std_string, "à", "À");
+    remplace(std_string, "é", "É");
+    remplace(std_string, "è", "È");
+    remplace(std_string, "ê", "Ê");
+    remplace(std_string, "û", "Û");
+    remplace(std_string, "ç", "Ç");
 
-    remplace(std_string, "à", "a");
-    remplace(std_string, "é", "e");
-    remplace(std_string, "è", "e");
-    remplace(std_string, "ê", "e");
-    remplace(std_string, "û", "u");
-    remplace(std_string, "ç", "c");
-    remplace(std_string, "É", "E");
-    remplace(std_string, "È", "E");
-    remplace(std_string, "Ê", "E");
+    for (auto &c : std_string) {
+        if (c >= 'a' && c <= 'z') {
+            c = (static_cast<char>(c - 0x20));
+        }
+    }
 
     return kuri::chaine(std_string.c_str(), static_cast<int64_t>(std_string.size()));
 }
