@@ -10,10 +10,10 @@
 struct Annotation;
 struct Compilatrice;
 struct NoeudBloc;
-struct NoeudDeclarationClasse;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationSymbole;
-struct NoeudDeclarationVariable;
+struct NoeudDéclarationClasse;
+struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationSymbole;
+struct NoeudDéclarationVariable;
 struct NoeudExpression;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
@@ -47,7 +47,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     /* Bloc courant recevant les constantes polymorphiques. */
     kuri::pile<NoeudBloc *> bloc_constantes_polymorphiques{};
 
-    kuri::pile<NoeudDeclarationEnteteFonction *> fonctions_courantes{};
+    kuri::pile<NoeudDéclarationEntêteFonction *> fonctions_courantes{};
 
     bool m_fonction_courante_retourne_plusieurs_valeurs = false;
 
@@ -88,7 +88,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_déclaration_fonction(Lexème const *lexeme);
     NoeudExpression *analyse_déclaration_type_fonction(Lexème const *lexeme);
     NoeudExpression *analyse_déclaration_opérateur();
-    void analyse_expression_retour_type(NoeudDeclarationEnteteFonction *noeud,
+    void analyse_expression_retour_type(NoeudDéclarationEntêteFonction *noeud,
                                         bool pour_operateur);
 
     /* Structures et unions. */
@@ -96,9 +96,9 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_déclaration_union(Lexème const *lexème_nom);
     void analyse_directives_structure(NoeudStruct *noeud);
     void analyse_directives_union(NoeudUnion *noeud);
-    void analyse_paramètres_polymorphiques_structure_ou_union(NoeudDeclarationClasse *noeud);
-    void analyse_membres_structure_ou_union(NoeudDeclarationClasse *decl_struct);
-    NoeudBloc *analyse_bloc_membres_structure_ou_union(NoeudDeclarationClasse *decl_struct);
+    void analyse_paramètres_polymorphiques_structure_ou_union(NoeudDéclarationClasse *noeud);
+    void analyse_membres_structure_ou_union(NoeudDéclarationClasse *decl_struct);
+    NoeudBloc *analyse_bloc_membres_structure_ou_union(NoeudDéclarationClasse *decl_struct);
 
     NoeudExpression *analyse_instruction();
     NoeudExpression *analyse_instruction_boucle();
@@ -126,6 +126,6 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     bool ignore_point_virgule_implicite();
 
-    void analyse_directive_déclaration_variable(NoeudDeclarationVariable *déclaration);
-    void analyse_directive_symbole_externe(NoeudDeclarationSymbole *déclaration_symbole);
+    void analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration);
+    void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole);
 };

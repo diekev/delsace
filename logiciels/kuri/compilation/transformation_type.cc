@@ -55,14 +55,14 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
     /* nous avons un type de données pour chaque type connu lors de la
      * compilation, donc testons manuellement la compatibilité */
-    if (type_de->est_type_type_de_donnees() && type_vers->est_type_type_de_donnees()) {
+    if (type_de->est_type_type_de_données() && type_vers->est_type_type_de_données()) {
         return TransformationType(TypeTransformation::INUTILE);
     }
 
     // À FAIRE(r16)
     if (type_de->est_type_entier_constant() &&
         (est_type_entier(type_vers) || type_vers->est_type_octet() ||
-         type_vers->est_type_reel())) {
+         type_vers->est_type_réel())) {
         return TransformationType{TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers};
     }
 
@@ -101,7 +101,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TransformationType(TypeTransformation::INUTILE);
         }
 
-        if (type_de->est_type_enum()) {
+        if (type_de->est_type_énum()) {
             if (type_vers == static_cast<TypeEnum const *>(type_de)->type_sous_jacent) {
                 // on pourrait se passer de la conversion, ou normaliser le type
                 return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
@@ -115,7 +115,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             }
         }
 
-        if (type_vers->est_type_enum() &&
+        if (type_vers->est_type_énum() &&
             static_cast<TypeEnum const *>(type_vers)->type_sous_jacent == type_de) {
             // on pourrait se passer de la conversion, ou normaliser le type
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
@@ -128,7 +128,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
     }
 
-    if (type_de->est_type_entier_constant() && type_vers->est_type_enum()) {
+    if (type_de->est_type_entier_constant() && type_vers->est_type_énum()) {
         // on pourrait se passer de la conversion, ou normaliser le type
         return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
     }
@@ -162,11 +162,11 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (POUR_TRANSTYPAGE) {
-        if (est_type_entier(type_de) && type_vers->est_type_reel()) {
+        if (est_type_entier(type_de) && type_vers->est_type_réel()) {
             return TransformationType{TypeTransformation::ENTIER_VERS_REEL, type_vers};
         }
 
-        if (est_type_entier(type_vers) && type_de->est_type_reel()) {
+        if (est_type_entier(type_vers) && type_de->est_type_réel()) {
             return TransformationType{TypeTransformation::REEL_VERS_ENTIER, type_vers};
         }
 
@@ -184,7 +184,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
     }
 
-    if (type_de->est_type_reel() && type_vers->est_type_reel()) {
+    if (type_de->est_type_réel() && type_vers->est_type_réel()) {
         /* cas spéciaux pour R16 */
         if (type_de->taille_octet == 2) {
             if (type_vers->taille_octet == 4) {
@@ -309,11 +309,11 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
-    if (type_vers->est_type_reference()) {
-        auto type_élément_vers = type_vers->comme_type_reference()->type_pointé;
+    if (type_vers->est_type_référence()) {
+        auto type_élément_vers = type_vers->comme_type_référence()->type_pointé;
 
-        if (type_de->est_type_reference()) {
-            auto type_élément_de = type_de->comme_type_reference()->type_pointé;
+        if (type_de->est_type_référence()) {
+            auto type_élément_de = type_de->comme_type_référence()->type_pointé;
 
             if (!type_élément_de->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_type(type_élément_de);
@@ -348,8 +348,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
     }
 
-    if (type_de->est_type_reference()) {
-        if (type_de->comme_type_reference()->type_pointé == type_vers) {
+    if (type_de->est_type_référence()) {
+        if (type_de->comme_type_référence()->type_pointé == type_vers) {
             return TransformationType(TypeTransformation::DEREFERENCE);
         }
     }
@@ -490,9 +490,9 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TransformationType{TypeTransformation::ENTIER_VERS_POINTEUR, type_vers};
         }
 
-        if (type_de->est_type_reference() && type_vers->est_type_reference()) {
-            auto type_pointe_de = type_de->comme_type_reference()->type_pointé;
-            auto type_pointe_vers = type_vers->comme_type_reference()->type_pointé;
+        if (type_de->est_type_référence() && type_vers->est_type_référence()) {
+            auto type_pointe_de = type_de->comme_type_référence()->type_pointé;
+            auto type_pointe_vers = type_vers->comme_type_référence()->type_pointé;
 
             if (type_pointe_de->est_type_structure() && type_pointe_vers->est_type_structure()) {
                 auto ts_de = type_pointe_de->comme_type_structure();

@@ -51,7 +51,7 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
         prodeclare_struct(os, "Module");
         prodeclare_struct(os, "OptionsDeCompilation");
         prodeclare_struct(os, "NoeudCode");
-        prodeclare_struct(os, "NoeudCodeEnteteFonction");
+        prodeclare_struct(os, "NoeudCodeEntêteFonction");
         prodeclare_struct(os, "InfoType");
         os << "\n";
         prodeclare_struct_espace(os, "chaine_statique", "kuri", "");
@@ -91,8 +91,8 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
             if (!it->est_fonction()) {
                 continue;
             }
-            os << "\tif (ident == ID::" << it->nom().nom_kuri() << ") {\n";
-            os << "\t\treturn reinterpret_cast<type_fonction_compilatrice>(" << it->nom().nom_cpp()
+            os << "\tif (ident == ID::" << it->nom() << ") {\n";
+            os << "\t\treturn reinterpret_cast<type_fonction_compilatrice>(" << it->nom()
                << ");\n";
             os << "\t}\n\n";
         }
@@ -112,7 +112,7 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
             if (!it->est_fonction()) {
                 continue;
             }
-            os << "\tif (ident == ID::" << it->nom().nom_kuri() << ") {\n";
+            os << "\tif (ident == ID::" << it->nom() << ") {\n";
             os << "\t\treturn true;\n";
             os << "\t}\n\n";
         }
