@@ -37,9 +37,9 @@ static const char *copie_extra_entete_fonction = R"(
 static const char *copie_extra_entête_opérateur_pour = R"(
             if ((m_options & OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_MEMBRES) != OptionsCopieNoeud(0)) {
                 for (int64_t i = 0; i < copie->params.taille(); i++) {
-                    copie->bloc_parametres->membres->ajoute(copie->parametre_entree(i));
+                    copie->bloc_paramètres->membres->ajoute(copie->parametre_entree(i));
                 }
-                copie->bloc_parametres->membres->ajoute(copie->param_sortie->comme_base_declaration_variable());
+                copie->bloc_paramètres->membres->ajoute(copie->param_sortie->comme_base_declaration_variable());
             }
             )";
 
@@ -83,15 +83,15 @@ static const char *copie_extra_énum = R"(
  * qui font partie de la fonction ou de la structure copiée. Autrement, nous risquerions de copier
  * tout le module. */
 static const char *copie_déclaration_référée = R"(
-            auto référence_existante = trouve_copie(orig->declaration_referee);
+            auto référence_existante = trouve_copie(orig->déclaration_référée);
             if (référence_existante) {
-                copie->declaration_referee = référence_existante->comme_declaration();
+                copie->déclaration_référée = référence_existante->comme_declaration();
             }
-            else if (orig->declaration_referee && orig->declaration_referee->possède_drapeau(DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE)) {
-                copie->declaration_referee = copie_noeud(orig->declaration_referee)->comme_declaration();
+            else if (orig->déclaration_référée && orig->déclaration_référée->possède_drapeau(DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE)) {
+                copie->déclaration_référée = copie_noeud(orig->déclaration_référée)->comme_declaration();
             }
             else {
-                copie->declaration_referee = orig->declaration_referee;
+                copie->déclaration_référée = orig->déclaration_référée;
             }
 )";
 
@@ -478,11 +478,11 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
             if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_BOUCLE") {
                 os << "\t\t\tif (preference == PreferenceVisiteNoeud::SUBSTITUTION) {\n";
-                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_pre, preference, "
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_pré, preference, "
                       "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
                 os << "\t\t\t\tvisite_noeud(racine_typee->bloc_inc, preference, "
                       "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
-                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sansarret, preference, "
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sansarrêt, preference, "
                       "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
                 os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sinon, preference, "
                       "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
@@ -528,7 +528,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             /* Les corps sont créés directement avec les entêtes. */
             if (nom_genre.nom_cpp() == "DECLARATION_CORPS_FONCTION") {
                 os << "\t\t\tauto copie_entete = "
-                      "trouve_copie(orig->entete)->comme_entete_fonction();\n";
+                      "trouve_copie(orig->entête)->comme_entete_fonction();\n";
                 os << "\t\t\tnracine = copie_entete->corps;\n";
             }
             else {
@@ -1604,7 +1604,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDeclaration
                 }
                 os << "\t\t\t\tauto corps  = m_noeuds_corps_fonction.ajoute_element();\n";
                 os << "\t\t\t\tentete->corps = corps;\n";
-                os << "\t\t\t\tcorps->entete = entete;\n";
+                os << "\t\t\t\tcorps->entête = entete;\n";
                 os << "\t\t\t\treturn entete;\n";
             }
             else if (nom_genre.nom_cpp() == "DECLARATION_CORPS_FONCTION") {

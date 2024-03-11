@@ -621,13 +621,13 @@ struct VisiteuseType {
             case GenreNoeud::REFERENCE:
             {
                 auto reference = type->comme_type_reference();
-                visite_type(reference->type_pointe, rappel);
+                visite_type(reference->type_pointé, rappel);
                 break;
             }
             case GenreNoeud::POINTEUR:
             {
                 auto pointeur = type->comme_type_pointeur();
-                visite_type(pointeur->type_pointe, rappel);
+                visite_type(pointeur->type_pointé, rappel);
                 break;
             }
             case GenreNoeud::DECLARATION_UNION:
@@ -649,7 +649,7 @@ struct VisiteuseType {
             case GenreNoeud::TABLEAU_DYNAMIQUE:
             {
                 auto tableau = type->comme_type_tableau_dynamique();
-                visite_type(tableau->type_pointe, rappel);
+                visite_type(tableau->type_pointé, rappel);
                 break;
             }
             case GenreNoeud::TYPE_TRANCHE:
@@ -661,19 +661,19 @@ struct VisiteuseType {
             case GenreNoeud::TABLEAU_FIXE:
             {
                 auto tableau = type->comme_type_tableau_fixe();
-                visite_type(tableau->type_pointe, rappel);
+                visite_type(tableau->type_pointé, rappel);
                 break;
             }
             case GenreNoeud::VARIADIQUE:
             {
                 auto variadique = type->comme_type_variadique();
-                visite_type(variadique->type_pointe, rappel);
+                visite_type(variadique->type_pointé, rappel);
                 break;
             }
             case GenreNoeud::FONCTION:
             {
                 auto fonction = type->comme_type_fonction();
-                POUR (fonction->types_entrees) {
+                POUR (fonction->types_entrées) {
                     visite_type(it, rappel);
                 }
                 visite_type(fonction->type_sortie, rappel);
@@ -698,7 +698,7 @@ struct VisiteuseType {
             case GenreNoeud::DECLARATION_OPAQUE:
             {
                 auto type_opaque = type->comme_type_opaque();
-                visite_type(type_opaque->type_opacifie, rappel);
+                visite_type(type_opaque->type_opacifié, rappel);
                 break;
             }
             case GenreNoeud::TUPLE:
@@ -735,11 +735,11 @@ static bool est_type_pointeur_tuple(Type const *type)
     }
 
     auto type_pointeur = type->comme_type_pointeur();
-    if (!type_pointeur->type_pointe) {
+    if (!type_pointeur->type_pointé) {
         return false;
     }
 
-    return type_pointeur->type_pointe->est_type_tuple();
+    return type_pointeur->type_pointé->est_type_tuple();
 }
 
 /* Détecte les types tuples et les types associés à leurs initialisation pour pouvoir les exclure
@@ -752,11 +752,11 @@ static bool est_type_tuple_ou_fonction_init_tuple(Type const *type)
 
     if (type->est_type_fonction()) {
         auto const type_fonction = type->comme_type_fonction();
-        if (type_fonction->types_entrees.taille() != 1) {
+        if (type_fonction->types_entrées.taille() != 1) {
             return false;
         }
 
-        auto type_entrée = type_fonction->types_entrees[0];
+        auto type_entrée = type_fonction->types_entrées[0];
         if (!est_type_pointeur_tuple(type_entrée)) {
             return false;
         }
@@ -1505,7 +1505,7 @@ kuri::tableau_statique<Type *> ProgrammeRepreInter::donne_types() const
 
 static Type const *donne_type_élément(AtomeConstanteDonnéesConstantes const *tableau)
 {
-    return tableau->type->comme_type_tableau_fixe()->type_pointe;
+    return tableau->type->comme_type_tableau_fixe()->type_pointé;
 }
 
 std::optional<const DonnéesConstantes *> ProgrammeRepreInter::donne_données_constantes() const
@@ -1691,7 +1691,7 @@ void imprime_ri_programme(ProgrammeRepreInter const &programme, std::ostream &os
         if (it->est_type_opaque()) {
             auto type_opaque = it->comme_type_opaque();
             os << donne_classe_type(*type_opaque) << " " << chaine_type(it, options) << " = "
-               << chaine_type(type_opaque->type_opacifie, options) << "\n";
+               << chaine_type(type_opaque->type_opacifié, options) << "\n";
             continue;
         }
     }

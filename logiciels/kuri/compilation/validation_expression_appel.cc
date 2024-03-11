@@ -654,7 +654,7 @@ static void applique_transformations(Sémanticienne &contexte,
     auto i = 0;
     /* les drapeaux pour les arguments simples */
     for (; i < nombre_args_simples; ++i) {
-        contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+        contexte.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
                                                       candidate->transformations[i]);
     }
 
@@ -699,8 +699,8 @@ static RésultatAppariement apparie_appel_pointeur(
     auto fonction_variadique = false;
 
     ApparieuseParams apparieuse(ChoseÀApparier::POINTEUR_DE_FONCTION);
-    for (auto i = 0; i < type_fonction->types_entrees.taille(); ++i) {
-        auto type_prm = type_fonction->types_entrees[i];
+    for (auto i = 0; i < type_fonction->types_entrées.taille(); ++i) {
+        auto type_prm = type_fonction->types_entrées[i];
         fonction_variadique |= type_prm->est_type_variadique();
         apparieuse.ajoute_param(nullptr, nullptr, type_prm->est_type_variadique());
     }
@@ -713,7 +713,7 @@ static RésultatAppariement apparie_appel_pointeur(
 
     if (!apparieuse.tous_les_slots_sont_remplis()) {
         return ErreurAppariement::mécomptage_arguments(
-            b, type_fonction->types_entrees.taille(), args.taille());
+            b, type_fonction->types_entrées.taille(), args.taille());
     }
 
     auto &slots = apparieuse.slots();
@@ -724,9 +724,9 @@ static RésultatAppariement apparie_appel_pointeur(
     /* Validation des types passés en paramètre. */
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
         auto index_param = std::min(
-            i, static_cast<int64_t>(type_fonction->types_entrees.taille() - 1));
+            i, static_cast<int64_t>(type_fonction->types_entrées.taille() - 1));
         auto slot = slots[i];
-        auto type_prm = type_fonction->types_entrees[static_cast<int>(index_param)];
+        auto type_prm = type_fonction->types_entrées[static_cast<int>(index_param)];
         auto type_enf = slot->type;
 
         auto résultat = apparie_type_paramètre_appel_fonction(slot, type_prm, type_enf);
@@ -756,16 +756,16 @@ static RésultatAppariement apparie_appel_pointeur(
     }
 
     if (fonction_variadique) {
-        auto nombre_args = type_fonction->types_entrees.taille();
+        auto nombre_args = type_fonction->types_entrées.taille();
         auto dernier_type_paramètre =
-            type_fonction->types_entrees[type_fonction->types_entrees.taille() - 1];
+            type_fonction->types_entrées[type_fonction->types_entrées.taille() - 1];
         auto type_données_argument_variadique = type_déréférencé_pour(dernier_type_paramètre);
         crée_tableau_args_variadiques(
             contexte, b->lexeme, slots, nombre_args, type_données_argument_variadique);
     }
 
     auto exprs = kuri::tablet<NoeudExpression *, 10>();
-    exprs.réserve(type_fonction->types_entrees.taille());
+    exprs.réserve(type_fonction->types_entrées.taille());
 
     POUR (slots) {
         exprs.ajoute(it);
@@ -783,7 +783,7 @@ static RésultatAppariement apparie_appel_init_de(
     }
 
     auto type_fonction = expr->type->comme_type_fonction();
-    auto type_pointeur = type_fonction->types_entrees[0];
+    auto type_pointeur = type_fonction->types_entrées[0];
 
     if (type_pointeur != args[0].expr->type) {
         return ErreurAppariement::métypage_argument(
@@ -1081,7 +1081,7 @@ static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *e
     if (expr->est_reference_declaration()) {
         auto ref_decl = expr->comme_reference_declaration();
 
-        if (ref_decl->declaration_referee->possède_drapeau(
+        if (ref_decl->déclaration_référée->possède_drapeau(
                 DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             return true;
         }
@@ -1105,9 +1105,9 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
     NoeudDeclarationType const *déclaration_type_composé,
     NoeudBloc const *params_polymorphiques)
 {
-    if (expr->parametres.taille() != params_polymorphiques->nombre_de_membres()) {
+    if (expr->paramètres.taille() != params_polymorphiques->nombre_de_membres()) {
         return ErreurAppariement::mécomptage_arguments(
-            expr, params_polymorphiques->nombre_de_membres(), expr->parametres.taille());
+            expr, params_polymorphiques->nombre_de_membres(), expr->paramètres.taille());
     }
 
     auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
@@ -1283,11 +1283,11 @@ static RésultatAppariement apparie_construction_union(
             espace, expr, arguments, decl_struct, decl_struct->bloc_constantes);
     }
 
-    if (expr->parametres.taille() > 1) {
+    if (expr->paramètres.taille() > 1) {
         return ErreurAppariement::expression_extra_pour_union(expr);
     }
 
-    if (expr->parametres.taille() == 0) {
+    if (expr->paramètres.taille() == 0) {
         return ErreurAppariement::expression_manquante_union(expr);
     }
 
@@ -1393,7 +1393,7 @@ static RésultatAppariement apparie_construction_opaque(
                 espace, expr, type_opaque, type_structure, arguments);
         }
 
-        return ErreurAppariement::métypage_argument(arg, type_opaque->type_opacifie, arg->type);
+        return ErreurAppariement::métypage_argument(arg, type_opaque->type_opacifié, arg->type);
     }
 
     auto exprs = kuri::crée_tablet<NoeudExpression *, 10>(arg);
@@ -1425,18 +1425,18 @@ static CodeRetourValidation trouve_candidates_pour_appel(
     if (appelée->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
         auto accès = appelée->comme_reference_membre();
 
-        if (accès->aide_generation_code == PEUT_ÊTRE_APPEL_UNIFORME) {
+        if (accès->aide_génération_code == PEUT_ÊTRE_APPEL_UNIFORME) {
             auto référence = NoeudExpression();
             référence.lexeme = accès->lexeme;
             référence.bloc_parent = accès->bloc_parent;
             référence.ident = accès->ident;
             trouve_candidates_pour_expression(contexte, espace, &référence, fichier, candidates);
-            accès->accedee->genre_valeur = GenreValeur::TRANSCENDANTALE;
-            args.ajoute_au_début({nullptr, nullptr, accès->accedee});
+            accès->accédée->genre_valeur = GenreValeur::TRANSCENDANTALE;
+            args.ajoute_au_début({nullptr, nullptr, accès->accédée});
             return CodeRetourValidation::OK;
         }
 
-        auto accédé = accès->accedee;
+        auto accédé = accès->accédée;
         if (accès->déclaration_référée) {
             auto module = espace.compilatrice().module(accédé->ident);
             auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
@@ -1751,7 +1751,7 @@ static NoeudDeclarationClasse *monomorphise_au_besoin(
 static NoeudExpressionReference *symbole_pour_expression(NoeudExpression *expression)
 {
     if (expression->est_reference_membre()) {
-        return expression->comme_reference_membre()->accedee->comme_reference_declaration();
+        return expression->comme_reference_membre()->accédée->comme_reference_declaration();
     }
 
     return expression->comme_reference_declaration();
@@ -1812,8 +1812,8 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel const *expr,
                                              EtatResolutionAppel *état)
 {
     auto &args = état->args;
-    args.réserve(expr->parametres.taille());
-    POUR (expr->parametres) {
+    args.réserve(expr->paramètres.taille());
+    POUR (expr->paramètres) {
         // l'argument est nommé
         if (it->est_assignation_variable()) {
             auto assign = it->comme_assignation_variable();
@@ -1982,11 +1982,11 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
     CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel, VALIDATION_APPEL__COPIE_DONNEES);
 
-    expr->parametres_resolus.efface();
-    expr->parametres_resolus.réserve(static_cast<int>(candidate->exprs.taille()));
+    expr->paramètres_résolus.efface();
+    expr->paramètres_résolus.réserve(static_cast<int>(candidate->exprs.taille()));
 
     for (auto enfant : candidate->exprs) {
-        expr->parametres_resolus.ajoute(enfant);
+        expr->paramètres_résolus.ajoute(enfant);
     }
 
     if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
@@ -2037,15 +2037,15 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         applique_transformations(contexte, candidate, expr);
 
-        expr->noeud_fonction_appelee = const_cast<NoeudDeclarationEnteteFonction *>(
+        expr->noeud_fonction_appelée = const_cast<NoeudDeclarationEnteteFonction *>(
             decl_fonction_appelée);
-        expr->noeud_fonction_appelee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+        expr->noeud_fonction_appelée->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
         /* Il est possible que le type ne fut pas initialisé, ou alors que le type est celui d'une
          * autre fonction assignée lors de la validation sémantique de l'expression (une référence
          * utilise le type de la première fonction trouvée, c'est ici que nous résolvons la bonne
          * fonction). Changeons alors le type pour éviter toute confusion dans les assertions ou
          * les étapes suivantes de compilation. */
-        expr->expression->type = expr->noeud_fonction_appelee->type;
+        expr->expression->type = expr->noeud_fonction_appelée->type;
 
         if (expr->type == nullptr) {
             expr->type = type_sortie;
@@ -2092,19 +2092,19 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
             return Attente::sur_type(copie);
         }
-        expr->noeud_fonction_appelee = copie;
+        expr->noeud_fonction_appelée = copie;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
         expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
         expr->type = const_cast<Type *>(candidate->type->comme_type_type_de_donnees()->type_connu);
 
-        for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
-            if (expr->parametres_resolus[i] != nullptr) {
-                contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+        for (auto i = 0; i < expr->paramètres_résolus.taille(); ++i) {
+            if (expr->paramètres_résolus[i] != nullptr) {
+                contexte.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
                                                               candidate->transformations[i]);
             }
         }
-        expr->noeud_fonction_appelee = const_cast<NoeudExpression *>(candidate->noeud_decl);
+        expr->noeud_fonction_appelée = const_cast<NoeudExpression *>(candidate->noeud_decl);
 
         if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
             espace.rapporte_erreur(
@@ -2117,7 +2117,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
         expr->type = const_cast<Type *>(candidate->type);
-        expr->noeud_fonction_appelee =
+        expr->noeud_fonction_appelée =
             (expr->type->comme_type_type_de_donnees()->type_connu->comme_declaration_type());
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
@@ -2148,7 +2148,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         if (expr->expression->est_reference_declaration()) {
             auto ref = expr->expression->comme_reference_declaration();
-            ref->declaration_referee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+            ref->déclaration_référée->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
         }
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
@@ -2171,15 +2171,15 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 type_opaque, candidate->exprs[0]->type);
         }
         else {
-            for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
-                contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+            for (auto i = 0; i < expr->paramètres_résolus.taille(); ++i) {
+                contexte.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
                                                               candidate->transformations[i]);
             }
         }
 
         expr->type = const_cast<TypeOpaque *>(type_opaque);
-        expr->aide_generation_code = CONSTRUIT_OPAQUE;
-        expr->noeud_fonction_appelee = const_cast<TypeOpaque *>(type_opaque);
+        expr->aide_génération_code = CONSTRUIT_OPAQUE;
+        expr->noeud_fonction_appelée = const_cast<TypeOpaque *>(type_opaque);
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE_DEPUIS_STRUCTURE) {
         if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
@@ -2192,14 +2192,14 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         auto type_opaque = candidate->type->comme_type_opaque();
-        for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
-            contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+        for (auto i = 0; i < expr->paramètres_résolus.taille(); ++i) {
+            contexte.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
                                                           candidate->transformations[i]);
         }
 
         expr->type = const_cast<TypeOpaque *>(type_opaque);
-        expr->aide_generation_code = CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE;
-        expr->noeud_fonction_appelee = const_cast<TypeOpaque *>(type_opaque);
+        expr->aide_génération_code = CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE;
+        expr->noeud_fonction_appelée = const_cast<TypeOpaque *>(type_opaque);
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {
         auto type_opaque = candidate->type->comme_type_opaque();
@@ -2211,10 +2211,10 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 type_opaque, type_opacifie->type_connu);
         }
 
-        expr->noeud_fonction_appelee = const_cast<TypeOpaque *>(type_opaque);
+        expr->noeud_fonction_appelée = const_cast<TypeOpaque *>(type_opaque);
         expr->type = espace.compilatrice().typeuse.type_type_de_donnees(
             const_cast<TypeOpaque *>(type_opaque));
-        expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
+        expr->aide_génération_code = MONOMORPHE_TYPE_OPAQUE;
     }
 
 #ifdef STATISTIQUES_DETAILLEES
