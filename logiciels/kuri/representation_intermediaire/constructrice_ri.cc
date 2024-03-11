@@ -53,7 +53,7 @@ static NoeudDeclarationEnteteFonction *est_appel_fonction_initialisation(
 
     if (expression->est_reference_declaration()) {
         return est_appel_fonction_initialisation(
-            expression->comme_reference_declaration()->declaration_referee);
+            expression->comme_reference_declaration()->déclaration_référée);
     }
 
     return nullptr;
@@ -65,8 +65,8 @@ static bool est_référence_compatible_pointeur(Type const *type_dest, Type cons
         return false;
     }
 
-    if (type_source->comme_type_reference()->type_pointe !=
-        type_dest->comme_type_pointeur()->type_pointe) {
+    if (type_source->comme_type_reference()->type_pointé !=
+        type_dest->comme_type_pointeur()->type_pointé) {
         return false;
     }
 
@@ -155,7 +155,7 @@ static bool sont_types_compatibles_pour_param_appel(Type const *paramètre, Type
     }
     if (paramètre->est_type_variadique()) {
         auto type_variadique = paramètre->comme_type_variadique();
-        if (!type_variadique->type_pointe) {
+        if (!type_variadique->type_pointé) {
             return true;
         }
         return expression == type_variadique->type_tranche;
@@ -512,12 +512,12 @@ AtomeConstante *ConstructriceRI::crée_initialisation_tableau_global(
 {
     AtomeConstante *ptr_premier_élément = crée_accès_index_constant(globale_tableau_fixe, 0);
     auto valeur_taille = crée_z64(static_cast<unsigned>(type_tableau_fixe->taille));
-    auto type_tranche = m_typeuse.crée_type_tranche(type_tableau_fixe->type_pointe);
+    auto type_tranche = m_typeuse.crée_type_tranche(type_tableau_fixe->type_pointé);
 
     if (est_globale_pour_tableau_données_constantes(globale_tableau_fixe)) {
-        if (type_tableau_fixe->type_pointe != TypeBase::Z8) {
+        if (type_tableau_fixe->type_pointé != TypeBase::Z8) {
             /* Nous devons transtypé vers le type pointeur idoine. */
-            auto type_cible = m_typeuse.type_pointeur_pour(type_tableau_fixe->type_pointe);
+            auto type_cible = m_typeuse.type_pointeur_pour(type_tableau_fixe->type_pointé);
             ptr_premier_élément = crée_transtype_constant(type_cible, ptr_premier_élément);
         }
     }
@@ -727,10 +727,10 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
         type_fonction = appelé->type->comme_type_fonction();
     }
     else {
-        type_fonction = appelé->type->comme_type_pointeur()->type_pointe->comme_type_fonction();
+        type_fonction = appelé->type->comme_type_pointeur()->type_pointé->comme_type_fonction();
     }
 
-    POUR_INDEX (type_fonction->types_entrees) {
+    POUR_INDEX (type_fonction->types_entrées) {
         assert_rappel(sont_types_compatibles_pour_param_appel(it, args[index_it]->type), [&]() {
             dbg() << "Espéré " << chaine_type(it);
             dbg() << "Obtenu " << chaine_type(args[index_it]->type);
@@ -861,14 +861,14 @@ InstructionAccèdeIndex *ConstructriceRI::crée_accès_index(NoeudExpression con
         assert_rappel(accédé->type->est_type_pointeur(),
                       [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
         auto type_pointeur = accédé->type->comme_type_pointeur();
-        type_élément = type_pointeur->type_pointe;
+        type_élément = type_pointeur->type_pointé;
     }
 
     assert_rappel(
         dls::outils::est_element(
             type_élément->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE) ||
             (type_élément->est_type_opaque() &&
-             dls::outils::est_element(type_élément->comme_type_opaque()->type_opacifie->genre,
+             dls::outils::est_element(type_élément->comme_type_opaque()->type_opacifié->genre,
                                       GenreNoeud::POINTEUR,
                                       GenreNoeud::TABLEAU_FIXE)),
         [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
@@ -901,7 +901,7 @@ InstructionAccèdeMembre *ConstructriceRI::crée_référence_membre(NoeudExpress
 
     auto type_élément = type_déréférencé_pour(accédé->type);
     if (type_élément->est_type_opaque()) {
-        type_élément = type_élément->comme_type_opaque()->type_opacifie;
+        type_élément = type_élément->comme_type_opaque()->type_opacifié;
     }
 
     assert_rappel(type_élément->est_type_compose(), [&]() {
@@ -1324,10 +1324,10 @@ AccèdeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstant
     auto type_pointeur = accédé->type->comme_type_pointeur();
     assert_rappel(
         dls::outils::est_element(
-            type_pointeur->type_pointe->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE),
-        [=]() { dbg() << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'"; });
+            type_pointeur->type_pointé->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE),
+        [=]() { dbg() << "Type accédé : '" << chaine_type(type_pointeur->type_pointé) << "'"; });
 
-    auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_pointeur->type_pointe),
+    auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_pointeur->type_pointé),
                                              false);
 
     return m_accès_index_constant.ajoute_element(type, accédé, index);
@@ -1376,7 +1376,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto type_tableau = type->comme_type_tableau_fixe();
-            auto valeur = crée_initialisation_défaut_pour_type(type_tableau->type_pointe);
+            auto valeur = crée_initialisation_défaut_pour_type(type_tableau->type_pointé);
             return crée_initialisation_tableau(type_tableau, valeur);
         }
         case GenreNoeud::DECLARATION_UNION:
@@ -1424,7 +1424,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            auto valeur = crée_initialisation_défaut_pour_type(type_opaque->type_opacifie);
+            auto valeur = crée_initialisation_défaut_pour_type(type_opaque->type_opacifié);
             valeur->type = type_opaque;
             return valeur;
         }
@@ -1723,9 +1723,9 @@ void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression const *site_
         argument = m_constructrice.crée_transtype(
             site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
     }
-    else if (argument->type->comme_type_pointeur()->type_pointe->est_type_enum()) {
+    else if (argument->type->comme_type_pointeur()->type_pointé->est_type_enum()) {
         auto type_enum = static_cast<TypeEnum const *>(
-            argument->type->comme_type_pointeur()->type_pointe);
+            argument->type->comme_type_pointeur()->type_pointé);
         auto type_sousjacent = type_enum->type_sous_jacent;
         auto &typeuse = m_compilatrice.typeuse;
         auto type_ptr_ptr_rien = typeuse.type_pointeur_pour(type_sousjacent);
@@ -1744,8 +1744,8 @@ static NoeudExpression *boucle_controlée_effective(NoeudExpression *boucle_cont
     if (boucle_controlée->est_pour()) {
         auto noeud_pour = boucle_controlée->comme_pour();
 
-        if (noeud_pour->corps_operateur_pour) {
-            auto directive = noeud_pour->corps_operateur_pour->corps_boucle;
+        if (noeud_pour->corps_opérateur_pour) {
+            auto directive = noeud_pour->corps_opérateur_pour->corps_boucle;
             assert(directive);
 
             /* Nous devons retourner la première boucle parent de #corps_boucle. */
@@ -1906,7 +1906,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto corps = noeud->comme_corps_fonction();
             assert(corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
-            génère_ri_pour_fonction(corps->entete);
+            génère_ri_pour_fonction(corps->entête);
             break;
         }
         case GenreNoeud::INSTRUCTION_DIFFERE:
@@ -1973,13 +1973,13 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto expr_appel = noeud->comme_appel();
 
             auto args = kuri::tableau<Atome *, int>();
-            args.réserve(expr_appel->parametres_resolus.taille());
+            args.réserve(expr_appel->paramètres_résolus.taille());
 
             /* Nous pouvons avoir des initialisations de type ici qui furent créés lors de la
              * création de fonctions d'initialisations d'autres types. */
             auto fonction_init = est_appel_fonction_initialisation(expr_appel->expression);
             if (fonction_init) {
-                auto argument = expr_appel->parametres_resolus[0];
+                auto argument = expr_appel->paramètres_résolus[0];
                 génère_ri_pour_expression_droite(argument, nullptr);
                 auto valeur = depile_valeur();
                 auto type = fonction_init->type_initialisé();
@@ -1987,7 +1987,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 return;
             }
 
-            POUR (expr_appel->parametres_resolus) {
+            POUR (expr_appel->paramètres_résolus) {
                 génère_ri_pour_expression_droite(it, nullptr);
                 auto valeur = depile_valeur();
 
@@ -2057,7 +2057,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
         {
             auto expr_ref = noeud->comme_reference_declaration();
-            auto decl_ref = expr_ref->declaration_referee;
+            auto decl_ref = expr_ref->déclaration_référée;
 
             assert_rappel(decl_ref, [&]() {
                 dbg() << erreur::imprime_site(*m_espace, noeud) << '\n'
@@ -2214,9 +2214,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto expr_bin = noeud->comme_expression_binaire();
 
-            génère_ri_pour_expression_droite(expr_bin->operande_gauche, nullptr);
+            génère_ri_pour_expression_droite(expr_bin->opérande_gauche, nullptr);
             auto valeur_gauche = depile_valeur();
-            génère_ri_pour_expression_droite(expr_bin->operande_droite, nullptr);
+            génère_ri_pour_expression_droite(expr_bin->opérande_droite, nullptr);
             auto valeur_droite = depile_valeur();
             auto résultat = m_constructrice.crée_op_binaire(
                 noeud, noeud->type, expr_bin->op->genre, valeur_gauche, valeur_droite);
@@ -2243,15 +2243,15 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_INDEXAGE:
         {
             auto expr_bin = noeud->comme_indexage();
-            auto type_gauche = expr_bin->operande_gauche->type;
+            auto type_gauche = expr_bin->opérande_gauche->type;
 
             if (type_gauche->est_type_opaque()) {
-                type_gauche = type_gauche->comme_type_opaque()->type_opacifie;
+                type_gauche = type_gauche->comme_type_opaque()->type_opacifié;
             }
 
-            génère_ri_pour_noeud(expr_bin->operande_gauche);
+            génère_ri_pour_noeud(expr_bin->opérande_gauche);
             auto pointeur = depile_valeur();
-            génère_ri_pour_expression_droite(expr_bin->operande_droite, nullptr);
+            génère_ri_pour_expression_droite(expr_bin->opérande_droite, nullptr);
             auto valeur = depile_valeur();
 
             if (type_gauche->est_type_pointeur()) {
@@ -2317,7 +2317,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 };
 
             if (type_gauche->est_type_tableau_fixe()) {
-                if (noeud->aide_generation_code != IGNORE_VERIFICATION) {
+                if (noeud->aide_génération_code != IGNORE_VERIFICATION) {
                     auto type_tableau_fixe = type_gauche->comme_type_tableau_fixe();
                     auto acces_taille = m_constructrice.crée_z64(
                         static_cast<unsigned>(type_tableau_fixe->taille));
@@ -2333,7 +2333,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             if (type_gauche->est_type_tableau_dynamique() || type_gauche->est_type_variadique() ||
                 type_gauche->est_type_tranche()) {
-                if (noeud->aide_generation_code != IGNORE_VERIFICATION) {
+                if (noeud->aide_génération_code != IGNORE_VERIFICATION) {
                     auto acces_taille = m_constructrice.crée_reference_membre_et_charge(
                         noeud, pointeur, 1);
                     genere_protection_limites(
@@ -2353,7 +2353,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto expr_un = noeud->comme_expression_unaire();
-            génère_ri_pour_expression_droite(expr_un->operande, nullptr);
+            génère_ri_pour_expression_droite(expr_un->opérande, nullptr);
             auto valeur = depile_valeur();
             empile_valeur(
                 m_constructrice.crée_op_unaire(noeud, expr_un->type, expr_un->op->genre, valeur));
@@ -2577,7 +2577,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 label_pour_continue = label_boucle;
             }
 
-            if (boucle->bloc_sansarret) {
+            if (boucle->bloc_sansarrêt) {
                 label_pour_sansarret = m_constructrice.réserve_label(boucle);
                 label_pour_arret_implicite = label_pour_sansarret;
             }
@@ -2593,13 +2593,13 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 label_pour_arret = label_apres_boucle;
             }
 
-            boucle->label_pour_arrete = label_pour_arret;
-            boucle->label_pour_arrete_implicite = label_pour_arret_implicite;
+            boucle->label_pour_arrête = label_pour_arret;
+            boucle->label_pour_arrête_implicite = label_pour_arret_implicite;
             boucle->label_pour_continue = label_pour_continue;
             boucle->label_pour_reprends = label_boucle;
 
-            if (boucle->bloc_pre) {
-                génère_ri_pour_noeud(boucle->bloc_pre);
+            if (boucle->bloc_pré) {
+                génère_ri_pour_noeud(boucle->bloc_pré);
                 m_constructrice.crée_branche(noeud, label_boucle);
             }
 
@@ -2621,9 +2621,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 m_constructrice.crée_branche(noeud, label_boucle);
             }
 
-            if (boucle->bloc_sansarret) {
+            if (boucle->bloc_sansarrêt) {
                 m_constructrice.insère_label(label_pour_sansarret);
-                génère_ri_pour_noeud(boucle->bloc_sansarret);
+                génère_ri_pour_noeud(boucle->bloc_sansarrêt);
                 di = m_fonction_courante->dernière_instruction();
                 if (!di->est_branche_ou_retourne()) {
                     m_constructrice.crée_branche(boucle, label_apres_boucle);
@@ -2646,14 +2646,14 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::INSTRUCTION_ARRETE:
         {
             auto inst = noeud->comme_arrete();
-            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
+            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlée);
 
             if (inst->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE)) {
-                auto label = boucle_controlee->comme_boucle()->label_pour_arrete_implicite;
+                auto label = boucle_controlee->comme_boucle()->label_pour_arrête_implicite;
                 m_constructrice.crée_branche(noeud, label);
             }
             else {
-                auto label = boucle_controlee->comme_boucle()->label_pour_arrete;
+                auto label = boucle_controlee->comme_boucle()->label_pour_arrête;
                 génère_ri_insts_différées(boucle_controlee->bloc_parent);
                 m_constructrice.crée_branche(noeud, label);
             }
@@ -2663,7 +2663,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::INSTRUCTION_CONTINUE:
         {
             auto inst = noeud->comme_continue();
-            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
+            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlée);
             auto label = boucle_controlee->comme_boucle()->label_pour_continue;
             génère_ri_insts_différées(boucle_controlee->bloc_parent);
             m_constructrice.crée_branche(noeud, label);
@@ -2672,7 +2672,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::INSTRUCTION_REPRENDS:
         {
             auto inst = noeud->comme_reprends();
-            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
+            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlée);
             auto label = boucle_controlee->comme_boucle()->label_pour_reprends;
             génère_ri_insts_différées(boucle_controlee->bloc_parent);
             m_constructrice.crée_branche(noeud, label);
@@ -2781,8 +2781,8 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_INIT_DE:
         {
             auto type_fonction = noeud->type->comme_type_fonction();
-            auto type_pointeur = type_fonction->types_entrees[0];
-            auto type_arg = type_pointeur->comme_type_pointeur()->type_pointe;
+            auto type_pointeur = type_fonction->types_entrées[0];
+            auto type_arg = type_pointeur->comme_type_pointeur()->type_pointé;
             assert_rappel(type_arg->fonction_init, [&]() {
                 dbg() << "Aucune fonction init pour " << chaine_type(type_arg);
                 dbg() << erreur::imprime_site(*espace(), noeud);
@@ -3417,7 +3417,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 }
                 case GenreNoeud::POINTEUR:
                 {
-                    auto type_pointe = noeud->type->comme_type_pointeur()->type_pointe;
+                    auto type_pointe = noeud->type->comme_type_pointeur()->type_pointé;
                     valeur = m_constructrice.crée_transtype(
                         noeud, type_cible, valeur, TypeTranstypage::BITS);
                     valeur_pointeur = valeur;
@@ -3437,7 +3437,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 }
                 case GenreNoeud::TABLEAU_DYNAMIQUE:
                 {
-                    auto type_pointer = noeud->type->comme_type_tableau_dynamique()->type_pointe;
+                    auto type_pointer = noeud->type->comme_type_tableau_dynamique()->type_pointé;
 
                     valeur_pointeur = m_constructrice.crée_reference_membre_et_charge(
                         noeud, valeur, 0);
@@ -3482,7 +3482,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 case GenreNoeud::TABLEAU_FIXE:
                 {
                     auto type_tabl = noeud->type->comme_type_tableau_fixe();
-                    auto type_pointe = type_tabl->type_pointe;
+                    auto type_pointe = type_tabl->type_pointé;
                     auto taille_type = type_pointe->taille_octet;
 
                     valeur_pointeur = m_constructrice.crée_accès_index(
@@ -3651,7 +3651,7 @@ Atome *CompilatriceRI::crée_transtype_entre_base_et_dérivé(
 void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
 {
     // À FAIRE(retours multiples)
-    génère_ri_pour_expression_droite(noeud->expression_appelee, nullptr);
+    génère_ri_pour_expression_droite(noeud->expression_appelée, nullptr);
     auto valeur_expression = depile_valeur();
 
     struct DonneesGenerationCodeTente {
@@ -3662,10 +3662,10 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
         Type const *type_variable = nullptr;
     };
 
-    if (noeud->expression_appelee->type->est_type_erreur()) {
+    if (noeud->expression_appelée->type->est_type_erreur()) {
 
         DonneesGenerationCodeTente gen_tente;
-        gen_tente.type_piege = noeud->expression_appelee->type;
+        gen_tente.type_piege = noeud->expression_appelée->type;
         gen_tente.acces_erreur = valeur_expression;
         gen_tente.acces_erreur_pour_test = gen_tente.acces_erreur;
 
@@ -3676,25 +3676,25 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
             noeud,
             OpérateurBinaire::Genre::Comp_Inegal,
             gen_tente.acces_erreur_pour_test,
-            m_constructrice.crée_constante_nombre_entier(noeud->expression_appelee->type, 0));
+            m_constructrice.crée_constante_nombre_entier(noeud->expression_appelée->type, 0));
 
         m_constructrice.crée_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
 
         m_constructrice.insère_label(label_si_vrai);
-        if (noeud->expression_piegee == nullptr) {
+        if (noeud->expression_piégée == nullptr) {
             m_constructrice.crée_appel(noeud,
                                        m_constructrice.trouve_ou_insère_fonction(
                                            m_compilatrice.interface_kuri->decl_panique_erreur));
         }
         else {
             auto var_expr_piegee = m_constructrice.crée_allocation(
-                noeud, gen_tente.type_piege, noeud->expression_piegee->ident);
+                noeud, gen_tente.type_piege, noeud->expression_piégée->ident);
             auto decl_expr_piegee =
-                noeud->expression_piegee->comme_reference_declaration()->declaration_referee;
+                noeud->expression_piégée->comme_reference_declaration()->déclaration_référée;
             static_cast<NoeudDeclarationSymbole *>(decl_expr_piegee)->atome = var_expr_piegee;
 
             m_constructrice.crée_stocke_mem(
-                noeud->expression_piegee, var_expr_piegee, valeur_expression);
+                noeud->expression_piégée, var_expr_piegee, valeur_expression);
 
             génère_ri_pour_noeud(noeud->bloc);
         }
@@ -3706,9 +3706,9 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
         }
         return;
     }
-    else if (noeud->expression_appelee->type->est_type_union()) {
+    else if (noeud->expression_appelée->type->est_type_union()) {
         DonneesGenerationCodeTente gen_tente;
-        auto type_union = noeud->expression_appelee->type->comme_type_union();
+        auto type_union = noeud->expression_appelée->type->comme_type_union();
         auto index_membre_erreur = 0;
 
         if (type_union->membres.taille() == 2) {
@@ -3745,7 +3745,7 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
             noeud, condition_membre_actif, label_si_vrai, label_si_faux);
 
         m_constructrice.insère_label(label_si_vrai);
-        if (noeud->expression_piegee == nullptr) {
+        if (noeud->expression_piégée == nullptr) {
             m_constructrice.crée_appel(noeud,
                                        m_constructrice.trouve_ou_insère_fonction(
                                            m_compilatrice.interface_kuri->decl_panique_erreur));
@@ -3759,7 +3759,7 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
                 membre_erreur,
                 TypeTranstypage::BITS);
             auto decl_expr_piegee =
-                noeud->expression_piegee->comme_reference_declaration()->declaration_referee;
+                noeud->expression_piégée->comme_reference_declaration()->déclaration_référée;
             static_cast<NoeudDeclarationSymbole *>(decl_expr_piegee)->atome = membre_erreur;
             génère_ri_pour_noeud(noeud->bloc);
         }
@@ -3796,7 +3796,7 @@ Atome *CompilatriceRI::depile_valeur()
 
 void CompilatriceRI::génère_ri_pour_accès_membre(NoeudExpressionMembre const *noeud)
 {
-    auto accede = noeud->accedee;
+    auto accede = noeud->accédée;
     auto type_accede = accede->type;
 
     génère_ri_pour_noeud(accede);
@@ -3820,9 +3820,9 @@ void CompilatriceRI::génère_ri_pour_accès_membre(NoeudExpressionMembre const 
 
 void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre const *noeud)
 {
-    génère_ri_pour_noeud(noeud->accedee);
+    génère_ri_pour_noeud(noeud->accédée);
     auto ptr_union = depile_valeur();
-    auto type = noeud->accedee->type;
+    auto type = noeud->accédée->type;
 
     while (type->est_type_pointeur() || type->est_type_reference()) {
         type = type_déréférencé_pour(type);
@@ -3945,7 +3945,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
     auto valeur = static_cast<Atome *>(nullptr);
 
     if (type_condition->est_type_opaque()) {
-        type_condition = type_condition->comme_type_opaque()->type_opacifie;
+        type_condition = type_condition->comme_type_opaque()->type_opacifié;
     }
 
     switch (type_condition->genre) {
@@ -4441,7 +4441,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             /* { membres basiques, type_pointé, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::TABLEAU_FIXE, type);
-            valeurs[1] = crée_info_type_avec_transtype(type_tableau->type_pointe, site);
+            valeurs[1] = crée_info_type_avec_transtype(type_tableau->type_pointé, site);
             valeurs[2] = m_constructrice.crée_z32(static_cast<unsigned>(type_tableau->taille));
 
             type->atome_info_type = crée_globale_info_type(
@@ -4488,7 +4488,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         case GenreNoeud::DECLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            auto type_opacifie = type_opaque->type_opacifie;
+            auto type_opacifie = type_opaque->type_opacifié;
 
             /* { membres basiques, nom, type_opacifié } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
@@ -4504,7 +4504,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         case GenreNoeud::VARIADIQUE:
         {
             auto type_variadique = type->comme_type_variadique();
-            auto type_élément = type_variadique->type_pointe;
+            auto type_élément = type_variadique->type_pointé;
             auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
                 m_compilatrice.typeuse.type_info_type_, false);
 
@@ -4700,13 +4700,13 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_structs_employées(
 AtomeConstante *CompilatriceRI::donne_tableau_pour_types_entrées(const TypeFonction *type_fonction,
                                                                  const NoeudExpression *site)
 {
-    if (type_fonction->types_entrees.est_vide() && m_tableau_types_entrées_vide) {
+    if (type_fonction->types_entrées.est_vide() && m_tableau_types_entrées_vide) {
         return m_tableau_types_entrées_vide;
     }
 
     kuri::tablet<Type *, 6> types_entrées;
-    types_entrées.réserve(type_fonction->types_entrees.taille());
-    POUR (type_fonction->types_entrees) {
+    types_entrées.réserve(type_fonction->types_entrées.taille());
+    POUR (type_fonction->types_entrées) {
         types_entrées.ajoute(it);
     }
 
@@ -4716,7 +4716,7 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_types_entrées(const TypeFonc
     if (std::holds_alternative<AtomeConstante *>(tableau_existant)) {
         auto résultat = std::get<AtomeConstante *>(tableau_existant);
 
-        if (type_fonction->types_entrees.taille() == 0) {
+        if (type_fonction->types_entrées.taille() == 0) {
             m_tableau_types_entrées_vide = résultat;
         }
 
@@ -4736,7 +4736,7 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_types_entrées(const TypeFonc
     auto résultat = m_constructrice.crée_tranche_globale(
         *ident, type_élément, std::move(tableau_types_entrée));
 
-    if (type_fonction->types_entrees.est_vide()) {
+    if (type_fonction->types_entrées.est_vide()) {
         m_tableau_types_entrées_vide = résultat;
     }
 
@@ -4810,7 +4810,7 @@ Atome *CompilatriceRI::convertis_vers_tranche(NoeudExpression const *noeud,
 
     if (alloc_tranche == nullptr) {
         auto type_tranche = m_compilatrice.typeuse.crée_type_tranche(
-            type_tableau_fixe->type_pointe);
+            type_tableau_fixe->type_pointé);
         alloc_tranche = m_constructrice.crée_allocation(noeud, type_tranche, nullptr);
     }
 
@@ -4835,7 +4835,7 @@ Atome *CompilatriceRI::convertis_vers_tranche(NoeudExpression const *noeud,
 
     if (alloc_tranche == nullptr) {
         auto type_tranche = m_compilatrice.typeuse.crée_type_tranche(
-            type_tableau_fixe->type_pointe);
+            type_tableau_fixe->type_pointé);
         alloc_tranche = m_constructrice.crée_allocation(noeud, type_tranche, nullptr);
     }
 
@@ -5066,12 +5066,12 @@ void CompilatriceRI::compile_déclaration_variable_multiple(NoeudDeclarationVari
 
 void CompilatriceRI::compile_déclaration_globale_multiple(NoeudDeclarationVariableMultiple *decl)
 {
-    POUR (decl->donnees_decl.plage()) {
+    POUR (decl->données_decl.plage()) {
         for (auto i = 0; i < it.variables.taille(); ++i) {
             auto var = it.variables[i];
             auto globale = var->comme_reference_declaration()
-                               ->declaration_referee->comme_declaration_variable();
-            compile_globale(var->comme_reference_declaration()->declaration_referee,
+                               ->déclaration_référée->comme_declaration_variable();
+            compile_globale(var->comme_reference_declaration()->déclaration_référée,
                             it.expression,
                             it.transformations[i]);
             globale->atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
@@ -5085,17 +5085,17 @@ void CompilatriceRI::compile_déclaration_globale_multiple(NoeudDeclarationVaria
 void CompilatriceRI::compile_déclaration_locale_multiple(NoeudDeclarationVariableMultiple *decl)
 {
     /* Crée d'abord les allocations. */
-    POUR (decl->donnees_decl.plage()) {
+    POUR (decl->données_decl.plage()) {
         POUR_NOMME (var, it.variables.plage()) {
             auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
             auto decl_var = var->comme_reference_declaration()
-                                ->declaration_referee->comme_declaration_symbole();
+                                ->déclaration_référée->comme_declaration_symbole();
             decl_var->atome = pointeur;
         }
     }
 
     /* Génère le code pour les expressions. */
-    génère_ri_pour_assignation_variable(decl->donnees_decl);
+    génère_ri_pour_assignation_variable(decl->données_decl);
 }
 
 void CompilatriceRI::compile_globale(NoeudDeclaration *decl,
@@ -5207,7 +5207,7 @@ Atome *CompilatriceRI::donne_atome_pour_locale(NoeudExpression *expression)
 {
     if (expression->est_reference_declaration()) {
         auto référence = expression->comme_reference_declaration();
-        auto decl_var = référence->declaration_referee->comme_declaration_symbole();
+        auto decl_var = référence->déclaration_référée->comme_declaration_symbole();
         if (decl_var->atome) {
             return decl_var->atome;
         }
@@ -5304,8 +5304,8 @@ void CompilatriceRI::génère_ri_pour_assignation_variable(
 static bool peut_être_compilé_en_données_constantes(NoeudExpressionConstructionTableau const *expr)
 {
     auto const type_tableau = expr->type->comme_type_tableau_fixe();
-    if (!est_type_entier(type_tableau->type_pointe) &&
-        !type_tableau->type_pointe->est_type_reel()) {
+    if (!est_type_entier(type_tableau->type_pointé) &&
+        !type_tableau->type_pointé->est_type_reel()) {
         return false;
     }
 
@@ -5393,7 +5393,7 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(
         auto type_tableau_fixe = expr->type->comme_type_tableau_fixe();
 
         if (peut_être_compilé_en_données_constantes(expr)) {
-            auto type_élément = type_tableau_fixe->type_pointe;
+            auto type_élément = type_tableau_fixe->type_pointé;
             kuri::tableau<char> données_constantes(feuilles->expressions.taille() *
                                                    int(type_élément->taille_octet));
 
