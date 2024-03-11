@@ -25,7 +25,7 @@ struct NoeudExpression {
 
     GenreNoeud genre [code]
     GenreValeur genre_valeur
-    char aide_génération_code [préserve_accents]
+    char aide_génération_code
     PositionCodeNoeud position
     DrapeauxNoeud drapeaux
     Lexème const * lexème [code]
@@ -134,8 +134,8 @@ struct NoeudExpressionTypeFonction : NoeudExpression {
     @code  NoeudCodeExpressionTypeFonction
     @genre_valeur DROITE
 
-    NoeudExpression * [] types_entrée [code enfant préserve_accents]
-    NoeudExpression * [] types_sortie [code enfant préserve_accents]
+    NoeudExpression * [] types_entrée [code enfant]
+    NoeudExpression * [] types_sortie [code enfant]
 }
 
 struct NoeudExpressionExpansionVariadique : NoeudExpression {
@@ -162,7 +162,7 @@ struct NoeudInstructionCharge : NoeudExpression {
     @code  NoeudCodeCharge
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité [préserve_accents]
+    UniteCompilation * unité
     NoeudExpression * expression [code enfant]
 }
 
@@ -175,7 +175,7 @@ struct NoeudInstructionArrête : NoeudExpression {
     NoeudExpression *expression [code enfant]
 
     /* La boucle qui est controlée par cette instruction. */
-    NoeudExpression *boucle_controlée [code préserve_accents]
+    NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionContinue : NoeudExpression {
@@ -187,7 +187,7 @@ struct NoeudInstructionContinue : NoeudExpression {
     NoeudExpression *expression [code enfant]
 
     /* La boucle qui est controlée par cette instruction. */
-    NoeudExpression *boucle_controlée [code préserve_accents]
+    NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionReprends : NoeudExpression {
@@ -199,7 +199,7 @@ struct NoeudInstructionReprends : NoeudExpression {
     NoeudExpression *expression [code enfant]
 
     /* La boucle qui est controlée par cette instruction. */
-    NoeudExpression *boucle_controlée [code préserve_accents]
+    NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionEmpl : NoeudExpression {
@@ -217,7 +217,7 @@ struct NoeudInstructionImporte : NoeudExpression {
     @code  NoeudCodeImporte
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité [préserve_accents]
+    UniteCompilation * unité
     NoeudExpression * expression [code enfant]
 }
 
@@ -301,12 +301,12 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
     @genre_valeur INVALIDE
 
     IdentifiantCode * ident [copie code]
-    NoeudDépendance *noeud_dépendance [préserve_accents]
+    NoeudDépendance *noeud_dépendance
     Atome *atome
 
-    DonnéesSymboleExterne * données_externes [préserve_accents]
+    DonnéesSymboleExterne * données_externes
 
-    VisibilitéSymbole visibilité_symbole [préserve_accents]
+    VisibilitéSymbole visibilité_symbole
 }
 
 struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
@@ -315,15 +315,15 @@ struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
     @genre DÉCLARATION_BIBLIOTHÈQUE
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité [préserve_accents]
-    Bibliothèque *bibliothèque [préserve_accents]
+    UniteCompilation * unité
+    Bibliothèque *bibliothèque
 }
 
 struct BaseDéclarationVariable : NoeudDéclarationSymbole {
     @comme base_déclaration_variable
     @code  NoeudCodeBaseDéclarationVariable
 
-    UniteCompilation * unité [préserve_accents]
+    UniteCompilation * unité
 
     NoeudExpression * expression [code enfant]
     NoeudExpression * expression_type [code enfant]
@@ -338,8 +338,8 @@ struct NoeudDéclarationVariable : BaseDéclarationVariable {
     @code  NoeudCodeDéclarationVariable
     @genre_valeur INVALIDE
 
-    NoeudDéclarationSymbole *déclaration_vient_d_un_emploi [préserve_accents]
-    int index_membre_employé [préserve_accents]
+    NoeudDéclarationSymbole *déclaration_vient_d_un_emploi
+    int index_membre_employé
 }
 
 /* a, b := ... */
@@ -350,7 +350,7 @@ struct NoeudDéclarationVariableMultiple : BaseDéclarationVariable {
     @genre_valeur INVALIDE
 
     NoeudExpression * valeur [code enfant]
-    DonneesAssignations [compressé] données_decl [préserve_accents]
+    DonneesAssignations [compressé] données_decl
 }
 
 struct NoeudDéclarationConstante : BaseDéclarationVariable {
@@ -368,8 +368,8 @@ struct NoeudAssignation : NoeudExpression {
     @code  NoeudCodeAssignation
     @genre_valeur INVALIDE
 
-    NoeudExpression *assignée [code enfant préserve_accents]
-    NoeudExpression *expression [code enfant préserve_accents]
+    NoeudExpression *assignée [code enfant]
+    NoeudExpression *expression [code enfant]
 }
 
 struct NoeudAssignationMultiple : NoeudExpression {
@@ -378,10 +378,10 @@ struct NoeudAssignationMultiple : NoeudExpression {
     @code  NoeudCodeAssignationMultiple
     @genre_valeur INVALIDE
 
-    NoeudExpressionVirgule *assignées [code enfant préserve_accents]
-    NoeudExpression *expression [code enfant préserve_accents]
+    NoeudExpressionVirgule *assignées [code enfant]
+    NoeudExpression *expression [code enfant]
 
-    DonneesAssignations [compressé] données_exprs [préserve_accents]
+    DonneesAssignations [compressé] données_exprs
 }
 
 struct NoeudInstructionRetour : NoeudExpression {
@@ -400,7 +400,7 @@ struct NoeudInstructionRetourMultiple : NoeudInstructionRetour {
     @code  NoeudCodeInstructionRetourMultiple
     @genre_valeur INVALIDE
 
-    DonneesAssignations [compressé] données_exprs [préserve_accents]
+    DonneesAssignations [compressé] données_exprs
 }
 
 struct NoeudRetiens : NoeudExpression {
@@ -410,17 +410,17 @@ struct NoeudRetiens : NoeudExpression {
     @genre_valeur INVALIDE
 
     NoeudExpression *expression [code enfant]
-    DonneesAssignations [compressé] données_exprs [préserve_accents]
+    DonneesAssignations [compressé] données_exprs
 }
 
-struct NoeudExpressionReference : NoeudExpression {
+struct NoeudExpressionRéférence : NoeudExpression {
     @genre EXPRESSION_RÉFÉRENCE_DÉCLARATION
     @comme référence_déclaration
     @code  NoeudCodeRéférenceDéclaration
     @genre_valeur INVALIDE
 
     IdentifiantCode * ident [copie code]
-    NoeudDéclaration *déclaration_référée [copie préserve_accents]
+    NoeudDéclaration *déclaration_référée [copie]
 }
 
 struct NoeudExpressionUnaire : NoeudExpression {
@@ -429,7 +429,7 @@ struct NoeudExpressionUnaire : NoeudExpression {
     @code  NoeudCodeExpressionUnaire
     @genre_valeur DROITE
 
-    NoeudExpression *opérande [code enfant préserve_accents]
+    NoeudExpression *opérande [code enfant]
     OpérateurUnaire const *op
 }
 
@@ -439,7 +439,7 @@ struct NoeudExpressionPriseAdresse : NoeudExpression {
     @code  NoeudCodeExpressionPriseAdresse
     @genre_valeur DROITE
 
-    NoeudExpression *opérande [code enfant préserve_accents]
+    NoeudExpression *opérande [code enfant]
 }
 
 struct NoeudExpressionPriseRéférence : NoeudExpression {
@@ -448,7 +448,7 @@ struct NoeudExpressionPriseRéférence : NoeudExpression {
     @code  NoeudCodeExpressionPriseRéférence
     @genre_valeur DROITE
 
-    NoeudExpression *opérande [code enfant préserve_accents]
+    NoeudExpression *opérande [code enfant]
 }
 
 struct NoeudExpressionNégationLogique : NoeudExpression {
@@ -457,7 +457,7 @@ struct NoeudExpressionNégationLogique : NoeudExpression {
     @code  NoeudCodeExpressionNégationLogique
     @genre_valeur DROITE
 
-    NoeudExpression *opérande [code enfant préserve_accents]
+    NoeudExpression *opérande [code enfant]
 }
 
 struct NoeudExpressionBinaire : NoeudExpression {
@@ -466,10 +466,10 @@ struct NoeudExpressionBinaire : NoeudExpression {
     @code  NoeudCodeExpressionBinaire
     @genre_valeur DROITE
 
-    NoeudExpression *opérande_gauche [code enfant préserve_accents]
-    NoeudExpression *opérande_droite [code enfant préserve_accents]
+    NoeudExpression *opérande_gauche [code enfant]
+    NoeudExpression *opérande_droite [code enfant]
     OpérateurBinaire const *op
-    bool permute_opérandes [préserve_accents]
+    bool permute_opérandes
 }
 
 struct NoeudExpressionComparaisonChainée : NoeudExpressionBinaire {
@@ -492,8 +492,8 @@ struct NoeudExpressionLogique : NoeudExpression {
     @code  NoeudCodeExpressionLogique
     @genre_valeur DROITE
 
-    NoeudExpression *opérande_gauche [code enfant préserve_accents]
-    NoeudExpression *opérande_droite [code enfant préserve_accents]
+    NoeudExpression *opérande_gauche [code enfant]
+    NoeudExpression *opérande_droite [code enfant]
 }
 
 /* ||= et &&= */
@@ -503,8 +503,8 @@ struct NoeudExpressionAssignationLogique : NoeudExpression {
     @code  NoeudCodeExpressionAssignationLogique
     @genre_valeur INVALIDE
 
-    NoeudExpression *opérande_gauche [code enfant préserve_accents]
-    NoeudExpression *opérande_droite [code enfant préserve_accents]
+    NoeudExpression *opérande_gauche [code enfant]
+    NoeudExpression *opérande_droite [code enfant]
 }
 
 struct NoeudExpressionParenthèse : NoeudExpression {
@@ -522,7 +522,7 @@ struct NoeudExpressionPlage : NoeudExpression {
     @code  NoeudCodeExpressionPlage
     @genre_valeur INVALIDE
 
-    NoeudExpression *début [code enfant préserve_accents]
+    NoeudExpression *début [code enfant]
     NoeudExpression *fin [code enfant]
 }
 
@@ -533,10 +533,10 @@ struct NoeudExpressionMembre : NoeudExpression {
     @genre_valeur TRANSCENDANTALE
 
     IdentifiantCode * ident [copie code]
-    NoeudExpression *accédée [code enfant préserve_accents]
+    NoeudExpression *accédée [code enfant]
 
     /* Pour l'accès à des modules. */
-    NoeudDéclaration *déclaration_référée [préserve_accents]
+    NoeudDéclaration *déclaration_référée
     /* Pour l'accès à des structures. */
     int index_membre
 }
@@ -549,13 +549,13 @@ struct NoeudExpressionMembreUnion : NoeudExpressionMembre {
 }
 
 // À FAIRE(poly) : opérateurs polymorphiques
-struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
+struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
     @genre DÉCLARATION_ENTÊTE_FONCTION
     @comme entête_fonction
     @code  NoeudCodeEntêteFonction
     @genre_valeur DROITE
 
-    UniteCompilation * unité [préserve_accents]
+    UniteCompilation * unité
     NoeudDéclarationCorpsFonction *corps [code enfant]
 
     // Ceux-ci ne peuvent pas être des NoeudDéclarationVariables car la structure est partagée avec les types
@@ -569,9 +569,9 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
      * --- bloc_corps (qui se trouve dans NoeudDéclarationCorpsFonction)
      */
     NoeudBloc *bloc_constantes [copie]
-    NoeudBloc *bloc_paramètres [copie préserve_accents]
+    NoeudBloc *bloc_paramètres [copie]
 
-    chaine_statique nom_broyé_ [préserve_accents]
+    chaine_statique nom_broyé_
 
     Monomorphisations *monomorphisations
     /* Le site où la première monomorphisation eu lieu, afin de pouvoir chercher les fonctions
@@ -582,7 +582,7 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 
     DrapeauxNoeudFonction drapeaux_fonction;
 
-    bool est_opérateur [code copie préserve_accents]
+    bool est_opérateur [code copie]
     bool est_coroutine [code copie]
 
     /* Le paramètre de sortie :
@@ -603,8 +603,8 @@ struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
     @code  NoeudCodeCorpsFonction
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité [préserve_accents]
-    NoeudDéclarationEnteteFonction *entête [code préserve_accents]
+    UniteCompilation * unité
+    NoeudDéclarationEntêteFonction *entête [code]
     NoeudBloc *bloc [code enfant]
     bool est_corps_texte [copie]
 
@@ -619,7 +619,7 @@ struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
     NoeudDirectiveCorpsBoucle *corps_boucle;
 }
 
-struct NoeudDéclarationOpérateurPour : NoeudDéclarationEnteteFonction {
+struct NoeudDéclarationOpérateurPour : NoeudDéclarationEntêteFonction {
     @genre DÉCLARATION_OPÉRATEUR_POUR
     @comme opérateur_pour
     @code  NoeudCodeOpérateurPour
@@ -633,10 +633,10 @@ struct NoeudExpressionAppel : NoeudExpression {
     @genre_valeur DROITE
 
     NoeudExpression * expression [code enfant]
-    NoeudExpression * [] paramètres [code enfant préserve_accents]
-    NoeudExpression * [] paramètres_résolus [préserve_accents]
-    NoeudExpression const * noeud_fonction_appelée [préserve_accents]
-    ÉtatRésolutionAppel * état_résolution_appel [préserve_accents]
+    NoeudExpression * [] paramètres [code enfant]
+    NoeudExpression * [] paramètres_résolus
+    NoeudExpression const * noeud_fonction_appelée
+    ÉtatRésolutionAppel * état_résolution_appel
 }
 
 struct NoeudExpressionConstructionStructure : NoeudExpressionAppel {
@@ -651,13 +651,13 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
     @code  NoeudCodeDéclarationType
     @genre_valeur DROITE
 
-    UniteCompilation * unité [préserve_accents]
+    UniteCompilation * unité
 
     InfoType * info_type [mutable]
     AtomeGlobale *atome_info_type [mutable]
 
     /* La fonction sous-jacente de init_de(type). */
-    NoeudDéclarationEnteteFonction *fonction_init
+    NoeudDéclarationEntêteFonction *fonction_init
 
     /* À FAIRE : remplace par infos. */
     unsigned taille_octet = 0
@@ -672,7 +672,7 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
     /* À FAIRE: déplace ceci dans une table? */
     NoeudDéclarationTypePointeur *type_pointeur
 
-    TableOpérateurs *table_opérateurs [préserve_accents]
+    TableOpérateurs *table_opérateurs
 
     /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
      * identifiant. Ceci n'est mis en place que pour le premier symbole
@@ -695,9 +695,9 @@ struct NoeudDéclarationTypeComposé : NoeudDéclarationType {
      * Ceci est le nom qui sera utilisé dans les infos types.
      * À FAIRE : remplace ceci par l'utilisation d'un pointeur dans les infos-types contenant la
      * type parent. */
-    chaine nom_hiérarchique_ [préserve_accents]
+    chaine nom_hiérarchique_
 
-    int nombre_de_membres_réels = 0 [préserve_accents]
+    int nombre_de_membres_réels = 0
 }
 
 struct NoeudDéclarationClasse : NoeudDéclarationTypeComposé {
@@ -712,7 +712,7 @@ struct NoeudDéclarationClasse : NoeudDéclarationTypeComposé {
 
     Monomorphisations *monomorphisations
 
-    MetaProgramme *métaprogramme_corps_texte [préserve_accents]
+    MetaProgramme *métaprogramme_corps_texte
 
     bool est_externe [copie]
     bool est_polymorphe [copie]
@@ -733,7 +733,7 @@ struct NoeudStruct : NoeudDéclarationClasse {
     bool est_compacte [copie]
 
     /* Stocke les membres pour avoir accès à leurs décalages. */
-    MembreTypeComposé * [] types_employés [préserve_accents]
+    MembreTypeComposé * [] types_employés
 
     NoeudUnion * union_originelle
 }
@@ -804,7 +804,7 @@ struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
     NoeudExpression *expression_type [code enfant]
 
     /* Données pour le type résolu. */
-    NoeudDéclarationType *type_opacifié [code préserve_accents]
+    NoeudDéclarationType *type_opacifié [code]
 
     NoeudDéclarationTypeOpaque const *polymorphe_de_base
 
@@ -816,7 +816,7 @@ struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
      * Ceci est le nom qui sera utilisé dans les infos types.
      * À FAIRE : remplace ceci par l'utilisation d'un pointeur dans les infos-types contenant la
      * type parent. */
-    chaine nom_hiérarchique_ [préserve_accents]
+    chaine nom_hiérarchique_
 }
 
 struct NoeudDéclarationTypePointeur : NoeudDéclarationType {
@@ -826,7 +826,7 @@ struct NoeudDéclarationTypePointeur : NoeudDéclarationType {
     @genre_valeur DROITE
 
     /* Données pour le type résolu. */
-    NoeudDéclarationType *type_pointé [code enfant préserve_accents]
+    NoeudDéclarationType *type_pointé [code enfant]
 }
 
 struct NoeudDéclarationTypeRéférence : NoeudDéclarationType {
@@ -836,7 +836,7 @@ struct NoeudDéclarationTypeRéférence : NoeudDéclarationType {
     @genre_valeur DROITE
 
     /* Données pour le type résolu. */
-    NoeudDéclarationType *type_pointé [code enfant préserve_accents]
+    NoeudDéclarationType *type_pointé [code enfant]
 }
 
 struct NoeudDéclarationTypeRéel : NoeudDéclarationType {
@@ -895,7 +895,7 @@ struct NoeudDéclarationTypeTableauFixe : NoeudDéclarationTypeComposé {
     @genre_valeur DROITE
 
     /* Données pour le type résolu. */
-    NoeudDéclarationType *type_pointé [code enfant préserve_accents]
+    NoeudDéclarationType *type_pointé [code enfant]
     /* Pour les expressions de taille polymorphique. */
     NoeudExpression *expression_taille [code enfant]
     /* Si la taille est connue. */
@@ -909,7 +909,7 @@ struct NoeudDéclarationTypeTableauDynamique : NoeudDéclarationTypeComposé {
     @genre_valeur DROITE
 
     /* Données pour le type résolu. */
-    NoeudDéclarationType *type_pointé [code enfant préserve_accents]
+    NoeudDéclarationType *type_pointé [code enfant]
 }
 
 struct NoeudDéclarationTypeTranche : NoeudDéclarationTypeComposé {
@@ -918,7 +918,7 @@ struct NoeudDéclarationTypeTranche : NoeudDéclarationTypeComposé {
     @code  NoeudCodeTypeTranche
     @genre_valeur DROITE
 
-    NoeudDéclarationType * type_élément [code enfant préserve_accents]
+    NoeudDéclarationType * type_élément [code enfant]
 }
 
 struct NoeudDéclarationTypeFonction : NoeudDéclarationType {
@@ -927,7 +927,7 @@ struct NoeudDéclarationTypeFonction : NoeudDéclarationType {
     @code  NoeudCodeTypeFonction
     @genre_valeur DROITE
 
-    NoeudDéclarationType * [] types_entrées [code enfant préserve_accents]
+    NoeudDéclarationType * [] types_entrées [code enfant]
     NoeudDéclarationType * type_sortie [code enfant]
 }
 
@@ -938,7 +938,7 @@ struct NoeudDéclarationTypeVariadique : NoeudDéclarationTypeComposé {
     @genre_valeur DROITE
 
     /* Données pour le type résolu. */
-    NoeudDéclarationType *type_pointé [code enfant préserve_accents]
+    NoeudDéclarationType *type_pointé [code enfant]
     /* Type tableau dynamique pour la génération de code, si le type est ...z32, le type
      * tableau dynamique sera []z32. */
     NoeudDéclarationTypeTranche *type_tranche [code]
@@ -1008,9 +1008,9 @@ struct NoeudSiStatique : NoeudExpression {
     NoeudExpression *bloc_si_faux [code enfant]
 
     int index_bloc_si_faux
-    int index_après [préserve_accents]
+    int index_après
     bool condition_est_vraie
-    bool visité [préserve_accents]
+    bool visité
 }
 
 struct NoeudSaufsiStatique : NoeudSiStatique {
@@ -1030,12 +1030,12 @@ struct NoeudPour : NoeudExpression {
     NoeudExpression *variable [code enfant]
     NoeudExpression *expression [code enfant]
     NoeudBloc *bloc [code enfant]
-    NoeudBloc *bloc_sansarrêt [code enfant préserve_accents]
+    NoeudBloc *bloc_sansarrêt [code enfant]
     NoeudBloc *bloc_sinon [code enfant]
 
-    bool prend_référence [copie préserve_accents]
+    bool prend_référence [copie]
     bool prend_pointeur [copie]
-    GenreLexème lexème_op = .INFERIEUR [copie préserve_accents]
+    GenreLexème lexème_op = .INFERIEUR [copie]
 
     /* Sauvegarde des déclarations pour « it » et « index_it », afin de ne pas
      * se soucier si ces variables sont implicites, et donc nommées
@@ -1045,7 +1045,7 @@ struct NoeudPour : NoeudExpression {
 
     /* Le code du corps de l'opérateur surchargé « pour », utilisé lors de la
      * simplification de l'arbre. */
-    NoeudDéclarationCorpsFonction *corps_opérateur_pour [préserve_accents];
+    NoeudDéclarationCorpsFonction *corps_opérateur_pour;
 }
 
 struct NoeudBoucle : NoeudExpression {
@@ -1061,19 +1061,19 @@ struct NoeudBoucle : NoeudExpression {
     /* pour la simplification du [code] des boucles pour */
 
     /* bloc utilisé pour définir les varibles d'itérations */
-    NoeudBloc *bloc_pré [préserve_accents]
+    NoeudBloc *bloc_pré
 
     /* bloc utilisé pour définir l'incrémentation des variables d'itérations,
     * cible de l'instruction « continue » des « pour » */
     NoeudBloc *bloc_inc
 
     /* blocs venant directement du bloc pour */
-    NoeudBloc *bloc_sansarrêt [préserve_accents]
+    NoeudBloc *bloc_sansarrêt
     NoeudBloc *bloc_sinon
 
     /* Pour le ciblage des instructions de controle. */
-    InstructionLabel *label_pour_arrête [préserve_accents]
-    InstructionLabel *label_pour_arrête_implicite [préserve_accents]
+    InstructionLabel *label_pour_arrête
+    InstructionLabel *label_pour_arrête_implicite
     InstructionLabel *label_pour_continue
     InstructionLabel *label_pour_reprends
 }
@@ -1099,13 +1099,13 @@ struct NoeudBloc : NoeudExpression {
     @genre_valeur INVALIDE
 
     // NoeudExpression car NoeudPour ne dérive pas de NoeudBoucle
-    NoeudExpression *appartiens_à_boucle [copie préserve_accents]
+    NoeudExpression *appartiens_à_boucle [copie]
     // À FAIRE: utilisation de variant
-    NoeudExpression *appartiens_à_diffère [copie préserve_accents]
-    NoeudDiscr *appartiens_à_discr [préserve_accents copie]
+    NoeudExpression *appartiens_à_diffère [copie]
+    NoeudDiscr *appartiens_à_discr [copie]
     /* Si le bloc est un bloc appartenant à une fonction (bloc constantes, paramètres, etc.). */
-    NoeudDéclarationEnteteFonction *appartiens_à_fonction [préserve_accents copie]
-    NoeudDéclarationType *appartiens_à_type [préserve_accents copie]
+    NoeudDéclarationEntêteFonction *appartiens_à_fonction [copie]
+    NoeudDéclarationType *appartiens_à_type [copie]
     NoeudDéclaration * [synchrone] membres [code]
     NoeudExpression * [synchrone]  expressions [code enfant]
     bool est_nonsur
@@ -1123,7 +1123,7 @@ struct NoeudPaireDiscr : NoeudExpression {
 
     NoeudExpression * expression [code enfant]
     NoeudBloc * bloc [code enfant]
-    NoeudExpression * variable_capturée [préserve_accents]
+    NoeudExpression * variable_capturée
 }
 
 struct NoeudDiscr : NoeudExpression {
@@ -1132,7 +1132,7 @@ struct NoeudDiscr : NoeudExpression {
     @code  NoeudCodeDiscr
     @genre_valeur INVALIDE
 
-    NoeudExpression *expression_discriminée [code enfant préserve_accents]
+    NoeudExpression *expression_discriminée [code enfant]
     NoeudPaireDiscr * [] paires_discr [code enfant]
     NoeudBloc *bloc [copie code enfant]
     NoeudBloc *bloc_sinon [code enfant]
@@ -1178,8 +1178,8 @@ struct NoeudInstructionTente : NoeudExpression {
     @code  NoeudIntructionTente
     @genre_valeur DROITE
 
-    NoeudExpression *expression_appelée [code enfant préserve_accents]
-    NoeudExpression *expression_piégée [code enfant préserve_accents]
+    NoeudExpression *expression_appelée [code enfant]
+    NoeudExpression *expression_piégée [code enfant]
     NoeudBloc *bloc [code enfant]
 }
 
@@ -1189,10 +1189,10 @@ struct NoeudDirectiveExécute : NoeudExpression {
     @code  NoeudCodeDirectiveExécute
     @genre_valeur DROITE
 
-    UniteCompilation * unité [préserve_accents]
+    UniteCompilation * unité
     NoeudExpression *expression [code enfant]
 
-    MetaProgramme *métaprogramme [préserve_accents]
+    MetaProgramme *métaprogramme
 }
 
 struct NoeudDirectiveCuisine : NoeudDirectiveExécute {
@@ -1245,9 +1245,9 @@ struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
     @code  NoeudCodeDépendanceBibliothèque
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité [préserve_accents]
-    NoeudExpressionReference *bibliothèque_dépendante [code enfant préserve_accents]
-    NoeudExpressionReference *bibliothèque_dépendue [code enfant préserve_accents]
+    UniteCompilation * unité
+    NoeudExpressionRéférence *bibliothèque_dépendante [code enfant]
+    NoeudExpressionRéférence *bibliothèque_dépendue [code enfant]
 }
 
 struct NoeudDirectiveAjouteInit : NoeudExpression {
@@ -1256,7 +1256,7 @@ struct NoeudDirectiveAjouteInit : NoeudExpression {
     @code NoeudCodeAjouteInit
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité [préserve_accents]
+    UniteCompilation * unité
     NoeudExpression *expression [code enfant]
 }
 
@@ -1266,7 +1266,7 @@ struct NoeudDirectiveAjouteFini : NoeudExpression {
     @code NoeudCodeAjouteFini
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité [préserve_accents]
+    UniteCompilation * unité
     NoeudExpression *expression [code enfant]
 }
 
