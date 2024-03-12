@@ -937,9 +937,8 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             /* comme dans la simplification de l'arbre, ceci doit être un transtypage vers le type
              * opaque */
-            auto comme = assembleuse->crée_comme(lexeme);
+            auto comme = assembleuse->crée_comme(lexeme, expr, nullptr);
             comme->type = type_opaque;
-            comme->expression = expr;
             comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_opaque};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
             return comme;
@@ -963,9 +962,8 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 virgule->expressions.ajoute(expr);
             }
 
-            auto construction = assembleuse->crée_construction_tableau(lexeme);
+            auto construction = assembleuse->crée_construction_tableau(lexeme, virgule);
             construction->type = type_tableau;
-            construction->expression = virgule;
             return construction;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
@@ -994,9 +992,8 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                                                                  détectrice_fuites_de_mémoire);
 
             /* convertis vers un tableau dynamique */
-            auto comme = assembleuse->crée_comme(lexeme);
+            auto comme = assembleuse->crée_comme(lexeme, construction, nullptr);
             comme->type = compilatrice.typeuse.crée_type_tranche(type_tableau->type_pointé);
-            comme->expression = construction;
             comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
@@ -1033,9 +1030,8 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                                                                  détectrice_fuites_de_mémoire);
 
             /* convertis vers un tableau dynamique */
-            auto comme = assembleuse->crée_comme(lexeme);
+            auto comme = assembleuse->crée_comme(lexeme, construction, nullptr);
             comme->type = type_tranche;
-            comme->expression = construction;
             comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;

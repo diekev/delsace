@@ -1630,9 +1630,7 @@ NoeudExpressionBinaire *AssembleuseArbre::crée_expression_binaire(const Lexème
                                                                   NoeudExpression *expr2)
 {
     assert(op);
-    auto op_bin = crée_expression_binaire(lexeme);
-    op_bin->opérande_gauche = expr1;
-    op_bin->opérande_droite = expr2;
+    auto op_bin = crée_expression_binaire(lexeme, expr1, expr2);
     op_bin->op = op;
     op_bin->type = op->type_résultat;
     return op_bin;
@@ -1664,28 +1662,14 @@ NoeudBloc *AssembleuseArbre::crée_bloc_seul(const Lexème *lexeme, NoeudBloc *b
     return bloc;
 }
 
-NoeudAssignation *AssembleuseArbre::crée_assignation_variable(const Lexème *lexeme,
-                                                              NoeudExpression *assignee,
-                                                              NoeudExpression *expression)
-{
-    auto assignation = crée_noeud<GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE>(lexeme)
-                           ->comme_assignation_variable();
-
-    assignation->assignée = assignee;
-    assignation->expression = expression;
-
-    return assignation;
-}
-
 NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(const Lexème *lexeme,
                                                                       Type *type,
                                                                       IdentifiantCode *ident,
                                                                       NoeudExpression *expression)
 {
-    auto decl = crée_déclaration_variable(lexeme);
+    auto decl = crée_déclaration_variable(lexeme, expression, nullptr);
     decl->ident = ident;
     decl->type = type;
-    decl->expression = expression;
     return decl;
 }
 
@@ -1710,8 +1694,7 @@ NoeudExpressionMembre *AssembleuseArbre::crée_référence_membre(const Lexème 
                                                                Type *type,
                                                                int index)
 {
-    auto acces = crée_référence_membre(lexeme);
-    acces->accédée = accede;
+    auto acces = crée_référence_membre(lexeme, accede);
     acces->type = type;
     acces->index_membre = index;
     return acces;
@@ -1736,27 +1719,26 @@ NoeudExpressionAppel *AssembleuseArbre::crée_appel(const Lexème *lexeme,
                                                    NoeudExpression *appelee,
                                                    Type *type)
 {
-    auto appel = crée_appel(lexeme);
-    appel->noeud_fonction_appelée = appelee;
-    appel->type = type;
-
+    auto expression = NoeudExpression::nul();
     if (appelee->est_entête_fonction()) {
-        appel->expression = crée_référence_déclaration(lexeme, appelee->comme_entête_fonction());
+        expression = crée_référence_déclaration(lexeme, appelee->comme_entête_fonction());
     }
     else {
-        appel->expression = appelee;
+        expression = appelee;
     }
 
+    auto appel = crée_appel(lexeme, expression);
+    appel->noeud_fonction_appelée = appelee;
+    appel->type = type;
     return appel;
 }
 
 NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexème *lexeme,
                                                                     TypeCompose *type)
 {
-    auto structure = crée_appel(lexeme);
+    auto structure = crée_appel(lexeme, type);
     structure->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
     structure->paramètres_résolus.réserve(type->membres.taille());
-    structure->expression = type;
     structure->noeud_fonction_appelée = type;
     structure->type = type;
     return structure;
@@ -1804,19 +1786,19 @@ NoeudAssignation *AssembleuseArbre::crée_incrementation(const Lexème *lexeme,
 {
     auto type = valeur->type;
 
-    auto inc = crée_expression_binaire(lexeme);
-    inc->op = type->table_opérateurs->opérateur_ajt;
-    assert(inc->op);
-    inc->opérande_gauche = valeur;
-    inc->type = type;
-
+    auto opérande_droite = NoeudExpression::nul();
     if (est_type_entier(type)) {
-        inc->opérande_droite = crée_littérale_entier(valeur->lexème, type, 1);
+        opérande_droite = crée_littérale_entier(valeur->lexème, type, 1);
     }
     else if (type->est_type_réel()) {
         // À FAIRE(r16)
-        inc->opérande_droite = crée_littérale_réel(valeur->lexème, type, 1.0);
+        opérande_droite = crée_littérale_réel(valeur->lexème, type, 1.0);
     }
+
+    auto inc = crée_expression_binaire(lexeme, valeur, opérande_droite);
+    inc->op = type->table_opérateurs->opérateur_ajt;
+    assert(inc->op);
+    inc->type = type;
 
     return crée_assignation_variable(valeur->lexème, valeur, inc);
 }
@@ -1826,19 +1808,19 @@ NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexème *lexeme,
 {
     auto type = valeur->type;
 
-    auto inc = crée_expression_binaire(lexeme);
-    inc->op = type->table_opérateurs->opérateur_sst;
-    assert(inc->op);
-    inc->opérande_gauche = valeur;
-    inc->type = type;
-
+    auto opérande_droite = NoeudExpression::nul();
     if (est_type_entier(type)) {
-        inc->opérande_droite = crée_littérale_entier(valeur->lexème, type, 1);
+        opérande_droite = crée_littérale_entier(valeur->lexème, type, 1);
     }
     else if (type->est_type_réel()) {
         // À FAIRE(r16)
-        inc->opérande_droite = crée_littérale_réel(valeur->lexème, type, 1.0);
+        opérande_droite = crée_littérale_réel(valeur->lexème, type, 1.0);
     }
+
+    auto inc = crée_expression_binaire(lexeme, valeur, opérande_droite);
+    inc->op = type->table_opérateurs->opérateur_sst;
+    assert(inc->op);
+    inc->type = type;
 
     return crée_assignation_variable(valeur->lexème, valeur, inc);
 }
@@ -1850,8 +1832,7 @@ NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
 {
     assert(type_résultat->type_pointé == expression->type);
 
-    auto résultat = assem->crée_prise_adresse(lexème);
-    résultat->opérande = expression;
+    auto résultat = assem->crée_prise_adresse(lexème, expression);
     résultat->type = type_résultat;
     return résultat;
 }
@@ -2197,12 +2178,10 @@ static void crée_initialisation_defaut_pour_type(Type *type,
 
             // il nous faut créer une boucle sur le tableau.
             // pour * tableau { initialise_type(it); }
-            auto pour = assembleuse->crée_pour(&lexème_sentinel);
+            auto pour = assembleuse->crée_pour(&lexème_sentinel, variable, ref_résultat);
             pour->prend_pointeur = true;
-            pour->expression = ref_résultat;
             pour->bloc = assembleuse->crée_bloc(&lexème_sentinel);
             pour->aide_génération_code = GENERE_BOUCLE_TABLEAU;
-            pour->variable = variable;
             pour->decl_it = decl_it;
             pour->decl_index_it = assembleuse->crée_déclaration_variable(
                 &lexème_sentinel, TypeBase::Z64, ID::index_it, nullptr);
@@ -2230,8 +2209,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             auto prise_adresse = crée_prise_adresse(
                 assembleuse, &lexème_sentinel, ref_param, typeuse.type_pointeur_pour(type));
 
-            auto comme = assembleuse->crée_comme(&lexème_sentinel);
-            comme->expression = prise_adresse;
+            auto comme = assembleuse->crée_comme(&lexème_sentinel, prise_adresse, nullptr);
             comme->type = typeuse.type_pointeur_pour(type_opacifié);
             comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, comme->type};
 
@@ -2362,8 +2340,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreNoeud::ERREUR:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
-            auto deref = assembleuse->crée_mémoire(&lexème_sentinel);
-            deref->expression = ref_param;
+            auto deref = assembleuse->crée_mémoire(&lexème_sentinel, ref_param);
             deref->type = type;
             crée_initialisation_defaut_pour_type(type, assembleuse, deref, nullptr, typeuse);
             break;
@@ -2373,14 +2350,13 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
             auto type_opacifié = type->comme_type_opaque()->type_opacifié;
             auto type_pointeur_opacifié = typeuse.type_pointeur_pour(type_opacifié);
 
-            auto comme_type_opacifie = assembleuse->crée_comme(&lexème_sentinel);
-            comme_type_opacifie->expression = ref_param;
+            auto comme_type_opacifie = assembleuse->crée_comme(
+                &lexème_sentinel, ref_param, nullptr);
             comme_type_opacifie->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                                                    type_pointeur_opacifié};
             comme_type_opacifie->type = type_pointeur_opacifié;
 
-            auto deref = assembleuse->crée_mémoire(&lexème_sentinel);
-            deref->expression = comme_type_opacifie;
+            auto deref = assembleuse->crée_mémoire(&lexème_sentinel, comme_type_opacifie);
             deref->type = type_opacifié;
 
             crée_initialisation_defaut_pour_type(
@@ -2447,15 +2423,13 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
             // À FAIRE(union) : test proprement cette logique
             if (type_union->est_nonsure) {
                 /* Stocke directement dans le paramètre. */
-                auto transtype = assembleuse->crée_comme(&lexème_sentinel);
-                transtype->expression = ref_param;
+                auto transtype = assembleuse->crée_comme(&lexème_sentinel, ref_param, nullptr);
                 transtype->transformation = TransformationType{
                     TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                     typeuse.type_pointeur_pour(membre.type)};
                 transtype->type = const_cast<Type *>(transtype->transformation.type_cible);
 
-                auto deref = assembleuse->crée_mémoire(&lexème_sentinel);
-                deref->expression = transtype;
+                auto deref = assembleuse->crée_mémoire(&lexème_sentinel, transtype);
                 deref->type = membre.type;
 
                 crée_initialisation_defaut_pour_type(
@@ -2476,17 +2450,17 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 auto type_pointeur_type_structure = typeuse.type_pointeur_pour(
                     type_union->type_structure, false, false);
 
-                auto param_comme_structure = assembleuse->crée_comme(&lexème_sentinel);
+                auto param_comme_structure = assembleuse->crée_comme(
+                    &lexème_sentinel, ref_param, nullptr);
                 param_comme_structure->type = type_pointeur_type_structure;
-                param_comme_structure->expression = ref_param;
                 param_comme_structure->transformation = TransformationType{
                     TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_pointeur_type_structure};
 
                 if (membre.type->est_type_rien()) {
                     /* Seul l'index doit être initialisé. (Support union ne contenant que « rien »
                      * comme types des membres). */
-                    auto ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel);
-                    ref_membre->accédée = param_comme_structure;
+                    auto ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel,
+                                                                         param_comme_structure);
                     ref_membre->index_membre = 0;
                     ref_membre->type = TypeBase::Z32;
                     ref_membre->aide_génération_code = IGNORE_VERIFICATION;
@@ -2495,8 +2469,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                     break;
                 }
 
-                auto ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel);
-                ref_membre->accédée = param_comme_structure;
+                auto ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel,
+                                                                     param_comme_structure);
                 ref_membre->index_membre = 0;
                 ref_membre->type = membre.type;
                 ref_membre->aide_génération_code = IGNORE_VERIFICATION;
@@ -2506,8 +2480,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                                                      membre.expression_valeur_defaut,
                                                      typeuse);
 
-                ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel);
-                ref_membre->accédée = param_comme_structure;
+                ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel,
+                                                                param_comme_structure);
                 ref_membre->index_membre = 1;
                 ref_membre->type = TypeBase::Z32;
                 ref_membre->aide_génération_code = IGNORE_VERIFICATION;
