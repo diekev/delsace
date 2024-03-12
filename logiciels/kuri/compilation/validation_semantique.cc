@@ -212,7 +212,8 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
         auto tuple = type_expression->comme_type_tuple();
 
         POUR (tuple->membres) {
-            auto decl_sortie = assembleuse->crée_déclaration_variable(directive->lexème);
+            auto decl_sortie = assembleuse->crée_déclaration_variable(
+                directive->lexème, nullptr, nullptr);
             decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(
                 "__ret0");
             decl_sortie->type = it.type;
@@ -220,19 +221,22 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
             decl_entete->params_sorties.ajoute(decl_sortie);
         }
 
-        decl_entete->param_sortie = assembleuse->crée_déclaration_variable(directive->lexème);
+        decl_entete->param_sortie = assembleuse->crée_déclaration_variable(
+            directive->lexème, nullptr, nullptr);
         decl_entete->param_sortie->ident =
             m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
         decl_entete->param_sortie->type = type_expression;
     }
     else {
-        auto decl_sortie = assembleuse->crée_déclaration_variable(directive->lexème);
+        auto decl_sortie = assembleuse->crée_déclaration_variable(
+            directive->lexème, nullptr, nullptr);
         decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
         decl_sortie->type = type_expression;
         decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
         decl_entete->params_sorties.ajoute(decl_sortie);
-        decl_entete->param_sortie = assembleuse->crée_déclaration_variable(directive->lexème);
+        decl_entete->param_sortie = assembleuse->crée_déclaration_variable(
+            directive->lexème, nullptr, nullptr);
         decl_entete->param_sortie->type = type_expression;
     }
 
@@ -244,7 +248,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     decl_corps->bloc = assembleuse->empile_bloc(directive->lexème, decl_entete);
 
     static Lexème lexème_retourne = {"retourne", {}, GenreLexème::RETOURNE, 0, 0, 0};
-    auto expr_ret = assembleuse->crée_retourne(&lexème_retourne);
+    auto expr_ret = assembleuse->crée_retourne(&lexème_retourne, nullptr);
 
 #ifndef NDEBUG
     /* Dépile manuellement en mode débogage afin de vérifier que les assembleuses sont proprement
@@ -1472,7 +1476,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 var_piege->type = type_de_l_erreur;
 
                 auto decl_var_piege = m_tacheronne->assembleuse->crée_déclaration_variable(
-                    var_piege->lexème);
+                    var_piege->lexème, nullptr, nullptr);
                 decl_var_piege->bloc_parent = inst->bloc;
                 decl_var_piege->type = var_piege->type;
                 decl_var_piege->ident = var_piege->ident;
@@ -1573,7 +1577,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 }
 
                 auto decl_membre = m_tacheronne->assembleuse->crée_déclaration_variable(
-                    decl->lexème);
+                    decl->lexème, nullptr, nullptr);
                 decl_membre->ident = it.nom;
                 decl_membre->type = it.type;
                 decl_membre->bloc_parent = bloc_parent;
@@ -3054,7 +3058,8 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_corps_texte(NoeudBloc *bloc_
     fonction->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                     DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
-    auto decl_sortie = m_tacheronne->assembleuse->crée_déclaration_variable(lexème);
+    auto decl_sortie = m_tacheronne->assembleuse->crée_déclaration_variable(
+        lexème, nullptr, nullptr);
     decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
     decl_sortie->type = TypeBase::CHAINE;
     decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -5342,10 +5347,10 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     auto tfm = transformation;
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE) {
-        auto noeud_comme = m_tacheronne->assembleuse->crée_comme(expression->lexème);
+        auto noeud_comme = m_tacheronne->assembleuse->crée_comme(
+            expression->lexème, expression, nullptr);
         noeud_comme->bloc_parent = expression->bloc_parent;
         noeud_comme->type = m_compilatrice.typeuse.type_reference_pour(expression->type);
-        noeud_comme->expression = expression;
         noeud_comme->transformation = TransformationType(TypeTransformation::PREND_REFERENCE);
         noeud_comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
@@ -5353,10 +5358,10 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
         tfm.type = TypeTransformation::CONVERTI_VERS_BASE;
     }
 
-    auto noeud_comme = m_tacheronne->assembleuse->crée_comme(expression->lexème);
+    auto noeud_comme = m_tacheronne->assembleuse->crée_comme(
+        expression->lexème, expression, nullptr);
     noeud_comme->bloc_parent = expression->bloc_parent;
     noeud_comme->type = const_cast<Type *>(type_cible);
-    noeud_comme->expression = expression;
     noeud_comme->transformation = tfm;
     noeud_comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
