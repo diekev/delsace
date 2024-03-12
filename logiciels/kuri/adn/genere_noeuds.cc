@@ -1278,15 +1278,34 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             }
 
             os << it->nom() << " *AssembleuseArbre::crée_" << it->accede_nom_comme()
-               << "(const Lexème *lexeme)\n";
-            os << "{\n";
+               << "(const Lexème *lexeme";
+
+            auto membres_construction = it->donne_membres_pour_construction();
+            POUR_NOMME (membre, membres_construction) {
+                os << ", " << *membre.type << " " << membre.nom;
+            }
+
+            os << ")\n{\n";
 
             if (it->nom().nom() == "NoeudExpressionRéférence") {
                 os << recycle_référence;
             }
 
-            os << "\treturn crée_noeud<GenreNoeud::" << nom_genre << ">(lexeme)->comme_"
-               << it->accede_nom_comme() << "();\n";
+            if (membres_construction.est_vide()) {
+                os << "\treturn crée_noeud<GenreNoeud::" << nom_genre << ">(lexeme)->comme_"
+                   << it->accede_nom_comme() << "();\n";
+            }
+            else {
+                os << "\tauto résultat = crée_noeud<GenreNoeud::" << nom_genre
+                   << ">(lexeme)->comme_" << it->accede_nom_comme() << "();\n";
+
+                POUR_NOMME (membre, membres_construction) {
+                    os << "\trésultat->" << membre.nom << " = " << membre.nom << ";\n";
+                }
+
+                os << "\treturn résultat;\n";
+            }
+
             os << "}\n";
         }
     }
@@ -1398,13 +1417,19 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             }
 
             os << "\t" << it->nom() << " *crée_" << it->accede_nom_comme()
-               << "(const Lexème *lexeme);\n";
+               << "(const Lexème *lexeme";
+
+            auto membres_construction = it->donne_membres_pour_construction();
+            POUR_NOMME (membre, membres_construction) {
+                os << ", " << *membre.type << " " << membre.nom;
+            }
+
+            os << ");\n";
         }
 
         const char *decls_extras = R"(
     NoeudSi *crée_si(const Lexème *lexeme, GenreNoeud genre_noeud);
     NoeudDéclarationVariable *crée_déclaration_variable(NoeudExpressionRéférence *ref);
-    NoeudAssignation *crée_assignation_variable(const Lexème *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
     NoeudAssignation *crée_incrementation(const Lexème *lexeme, NoeudExpression *valeur);
     NoeudAssignation *crée_decrementation(const Lexème *lexeme, NoeudExpression *valeur);
     NoeudBloc *crée_bloc_seul(const Lexème *lexeme, NoeudBloc *bloc_parent);

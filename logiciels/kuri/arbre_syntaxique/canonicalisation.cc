@@ -99,7 +99,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             m_dans_fonction = fut_dans_fonction;
 
             if (corps->aide_génération_code == REQUIERS_CODE_EXTRA_RETOUR) {
-                auto retourne = assem->crée_retourne(corps->lexème);
+                auto retourne = assem->crée_retourne(corps->lexème, nullptr);
                 retourne->bloc_parent = corps->bloc;
                 corps->bloc->ajoute_expression(retourne);
             }
@@ -136,9 +136,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             if (expr_bin->op && expr_bin->op->est_arithmétique_pointeur) {
                 auto comme_type = [&](NoeudExpression *expr_ptr, Type *type) {
-                    auto comme = assem->crée_comme(expr_ptr->lexème);
+                    auto comme = assem->crée_comme(expr_ptr->lexème, expr_ptr, nullptr);
                     comme->type = type;
-                    comme->expression = expr_ptr;
                     comme->transformation = {TypeTransformation::POINTEUR_VERS_ENTIER, type};
                     return comme;
                 };
@@ -213,9 +212,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     auto arithm = assem->crée_expression_binaire(
                         expr_bin->lexème, op_arithm, comme_type(expr_pointeur, type_entier), mul);
 
-                    auto comme_pointeur = assem->crée_comme(expr_bin->lexème);
+                    auto comme_pointeur = assem->crée_comme(expr_bin->lexème, arithm, nullptr);
                     comme_pointeur->type = type_pointeur;
-                    comme_pointeur->expression = arithm;
                     comme_pointeur->transformation = {TypeTransformation::ENTIER_VERS_POINTEUR,
                                                       type_pointeur};
 
@@ -526,7 +524,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(boucle->condition);
             simplifie(boucle->bloc);
 
-            auto nouvelle_boucle = assem->crée_boucle(noeud->lexème);
+            auto nouvelle_boucle = assem->crée_boucle(noeud->lexème, nullptr);
             nouvelle_boucle->bloc_parent = boucle->bloc_parent;
 
             auto condition = crée_condition_boucle(nouvelle_boucle,
@@ -560,7 +558,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(boucle->condition);
             simplifie(boucle->bloc);
 
-            auto nouvelle_boucle = assem->crée_boucle(noeud->lexème);
+            auto nouvelle_boucle = assem->crée_boucle(noeud->lexème, nullptr);
             nouvelle_boucle->bloc_parent = boucle->bloc_parent;
 
             auto condition = crée_condition_boucle(nouvelle_boucle,
@@ -724,9 +722,9 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             if (appel->aide_génération_code == CONSTRUIT_OPAQUE) {
                 simplifie(appel->paramètres_résolus[0]);
 
-                auto comme = assem->crée_comme(appel->lexème);
+                auto comme = assem->crée_comme(
+                    appel->lexème, appel->paramètres_résolus[0], nullptr);
                 comme->type = appel->type;
-                comme->expression = appel->paramètres_résolus[0];
                 comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                                          appel->type};
                 comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
@@ -857,10 +855,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
              *
              * diffère __contexte_fil_principal = sauvegarde_contexte
              */
-            auto inst_diffère = assem->crée_diffère(pousse_contexte->lexème);
-            inst_diffère->bloc_parent = bloc_substitution;
-            inst_diffère->expression = assem->crée_assignation_variable(
+            auto expression_différée = assem->crée_assignation_variable(
                 pousse_contexte->lexème, ref_contexte_courant, ref_sauvegarde_contexte);
+            auto inst_diffère = assem->crée_diffère(pousse_contexte->lexème, expression_différée);
+            inst_diffère->bloc_parent = bloc_substitution;
             bloc_substitution->ajoute_expression(inst_diffère);
 
             /* À FAIRE : surécrire le bloc_parent d'un bloc avec un bloc de substitution peut avoir
@@ -1049,7 +1047,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     auto bloc_sans_arrêt = inst->bloc_sansarrêt;
     auto bloc_sinon = inst->bloc_sinon;
 
-    auto boucle = assem->crée_boucle(inst->lexème);
+    auto boucle = assem->crée_boucle(inst->lexème, nullptr);
     boucle->ident = it->ident;
     boucle->bloc_parent = inst->bloc_parent;
     boucle->bloc = assem->crée_bloc_seul(inst->lexème, boucle->bloc_parent);
@@ -1260,9 +1258,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             NoeudExpression *expression_assignee = indexage;
 
             if (inst->prend_référence || inst->prend_pointeur) {
-                auto noeud_comme = assem->crée_comme(it->lexème);
+                auto noeud_comme = assem->crée_comme(it->lexème, indexage, nullptr);
                 noeud_comme->type = it->type;
-                noeud_comme->expression = indexage;
                 noeud_comme->transformation = TransformationType(
                     TypeTransformation::PREND_REFERENCE);
                 noeud_comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
@@ -1462,9 +1459,7 @@ NoeudExpression *Simplificatrice::crée_expression_pour_op_chainée(
         auto a = exprs.depile();
         auto b = exprs.depile();
 
-        auto et = assem->crée_expression_logique(lexeme_op_logique);
-        et->opérande_gauche = a;
-        et->opérande_droite = b;
+        auto et = assem->crée_expression_logique(lexeme_op_logique, a, b);
 
         if (exprs.est_vide()) {
             résultat = et;
@@ -1537,8 +1532,6 @@ void Simplificatrice::crée_retourne_union_via_rien(NoeudDéclarationEntêteFonc
                                                    Lexème const *lexeme_reference)
 {
     auto type_sortie = entête->type->comme_type_fonction()->type_sortie->comme_type_union();
-    auto retourne = assem->crée_retourne(lexeme_reference);
-    retourne->bloc_parent = bloc_d_insertion;
 
     auto param_sortie = entête->param_sortie;
     auto ref_param_sortie = assem->crée_référence_déclaration(lexeme_reference, param_sortie);
@@ -1557,7 +1550,8 @@ void Simplificatrice::crée_retourne_union_via_rien(NoeudDéclarationEntêteFonc
     auto assignation = assem->crée_assignation_variable(
         lexeme_reference, ref_membre, valeur_index);
 
-    retourne->expression = ref_param_sortie;
+    auto retourne = assem->crée_retourne(lexeme_reference, ref_param_sortie);
+    retourne->bloc_parent = bloc_d_insertion;
 
     bloc_d_insertion->ajoute_expression(assignation);
     bloc_d_insertion->ajoute_expression(retourne);
@@ -1601,13 +1595,12 @@ void Simplificatrice::simplifie_retour(NoeudInstructionRetourMultiple *inst)
         }
     }
 
-    auto assignation = assem->crée_assignation_multiple(inst->lexème);
-    assignation->expression = inst->expression;
+    auto assignation = assem->crée_assignation_multiple(inst->lexème, nullptr, inst->expression);
     assignation->données_exprs = std::move(inst->données_exprs);
 
-    auto retour = assem->crée_retourne(inst->lexème);
-    retour->expression = assem->crée_référence_déclaration(fonction_courante->param_sortie->lexème,
-                                                           fonction_courante->param_sortie);
+    auto expression_retournée = assem->crée_référence_déclaration(
+        fonction_courante->param_sortie->lexème, fonction_courante->param_sortie);
+    auto retour = assem->crée_retourne(inst->lexème, expression_retournée);
 
     auto bloc = assem->crée_bloc_seul(inst->lexème, inst->bloc_parent);
     bloc->ajoute_expression(assignation);
@@ -1756,9 +1749,8 @@ void Simplificatrice::simplifie_assignation_logique(NoeudExpressionAssignationLo
     auto bloc_parent = logique->bloc_parent;
     auto const lexème = logique->lexème;
     if (lexème->genre == GenreLexème::BARRE_BARRE_EGAL) {
-        auto inst_saufsi = assem->crée_saufsi(lexème);
+        auto inst_saufsi = assem->crée_saufsi(lexème, gauche);
         inst_saufsi->bloc_parent = bloc_parent;
-        inst_saufsi->condition = gauche;
 
         auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
         inst_saufsi->bloc_si_vrai = bloc;
@@ -1769,9 +1761,8 @@ void Simplificatrice::simplifie_assignation_logique(NoeudExpressionAssignationLo
         logique->substitution = inst_saufsi;
     }
     else {
-        auto inst_si = assem->crée_si(lexème);
+        auto inst_si = assem->crée_si(lexème, gauche);
         inst_si->bloc_parent = bloc_parent;
-        inst_si->condition = gauche;
 
         auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
         inst_si->bloc_si_vrai = bloc;
@@ -1827,10 +1818,9 @@ void Simplificatrice::simplifie_construction_union(
 
     /* Nous devons transtyper l'expression, la RI s'occupera d'initialiser le membre implicite en
      * cas d'union sûre. */
-    auto comme = assem->crée_comme(lexème);
+    auto comme = assem->crée_comme(lexème, expression_initialisation, nullptr);
     comme->type = type_union;
     comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-    comme->expression = expression_initialisation;
     comme->transformation = {TypeTransformation::CONSTRUIT_UNION, type_union, index_membre};
 
     construction->substitution = comme;
@@ -1993,9 +1983,8 @@ void Simplificatrice::simplifie_construction_opaque_depuis_structure(NoeudExpres
     auto ref_struct = génère_simplification_construction_structure(appel, type_struct, bloc);
 
     /* ref_opaque := ref_struct comme TypeOpaque */
-    auto comme = assem->crée_comme(appel->lexème);
+    auto comme = assem->crée_comme(appel->lexème, ref_struct, nullptr);
     comme->type = type_opaque;
-    comme->expression = ref_struct;
     comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_opaque};
     comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
@@ -2267,19 +2256,17 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
     auto ref_b = expression->substitution ? expression->substitution : expression;
 
     /* Convertis l'expression booléenne vers n8 car ils ont la même taille en octet. */
-    auto comme = assem->crée_comme(var->lexème);
+    auto comme = assem->crée_comme(var->lexème, ref_b, nullptr);
     comme->type = TypeBase::N8;
     comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-    comme->expression = ref_b;
     comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, TypeBase::N8};
 
     /* Augmente la taille du n8 si ce n'est pas le type sous-jacent de l'énum drapeau. */
     if (type_sous_jacent != TypeBase::N8) {
         auto ancien_comme = comme;
-        comme = assem->crée_comme(var->lexème);
+        comme = assem->crée_comme(var->lexème, ancien_comme, nullptr);
         comme->type = type_sous_jacent;
         comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-        comme->expression = ancien_comme;
         comme->transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_sous_jacent};
     }
 
@@ -2291,10 +2278,9 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
     /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
      * type.
      */
-    auto moins_b = assem->crée_comme(var->lexème);
+    auto moins_b = assem->crée_comme(var->lexème, moins_b_type_sous_jacent, nullptr);
     moins_b->type = type_énum;
     moins_b->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-    moins_b->expression = moins_b_type_sous_jacent;
     moins_b->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_énum};
 
     /* b - 1 */
@@ -2305,10 +2291,9 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
     /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
      * type.
      */
-    auto b_moins_un = assem->crée_comme(var->lexème);
+    auto b_moins_un = assem->crée_comme(var->lexème, b_moins_un_type_sous_jacent, nullptr);
     b_moins_un->type = type_énum;
     b_moins_un->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-    b_moins_un->expression = b_moins_un_type_sous_jacent;
     b_moins_un->transformation = TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                                                     type_énum};
 
@@ -2623,7 +2608,7 @@ NoeudSi *Simplificatrice::crée_condition_boucle(NoeudExpression *inst, GenreNoe
     auto condition = assem->crée_si(inst->lexème, genre_noeud);
     auto bloc_si_vrai = assem->crée_bloc_seul(inst->lexème, inst->bloc_parent);
 
-    auto arrête = assem->crée_arrête(&lexème_arrête);
+    auto arrête = assem->crée_arrête(&lexème_arrête, nullptr);
     arrête->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
     arrête->boucle_controlée = inst;
     arrête->bloc_parent = bloc_si_vrai;

@@ -52,7 +52,7 @@ struct NoeudExpressionInfoDe : NoeudExpression {
     @code  NoeudCodeInfoDe
     @genre_valeur DROITE
 
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudExpressionInitDe : NoeudExpression {
@@ -61,7 +61,7 @@ struct NoeudExpressionInitDe : NoeudExpression {
     @code  NoeudCodeInitDe
     @genre_valeur DROITE
 
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudExpressionTailleDe : NoeudExpression {
@@ -70,7 +70,7 @@ struct NoeudExpressionTailleDe : NoeudExpression {
     @code  NoeudCodeTailleDe
     @genre_valeur DROITE
 
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudExpressionTypeDe : NoeudExpression {
@@ -79,7 +79,7 @@ struct NoeudExpressionTypeDe : NoeudExpression {
     @code  NoeudCodeTypeDe
     @genre_valeur DROITE
 
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudExpressionConstructionTableau : NoeudExpression {
@@ -88,7 +88,7 @@ struct NoeudExpressionConstructionTableau : NoeudExpression {
     @code  NoeudCodeConstructionTableau
     @genre_valeur DROITE
 
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudExpressionConstructionTableauTypé : NoeudExpressionConstructionTableau {
@@ -97,7 +97,7 @@ struct NoeudExpressionConstructionTableauTypé : NoeudExpressionConstructionTabl
     @code  NoeudCodeConstructionTableauTypé
     @genre_valeur DROITE
 
-    NoeudExpression * expression_type [code enfant]
+    NoeudExpression * expression_type [code enfant construction]
 }
 
 struct NoeudExpressionTypeTableauFixe : NoeudExpression {
@@ -106,8 +106,8 @@ struct NoeudExpressionTypeTableauFixe : NoeudExpression {
     @code  NoeudCodeExpressionTypeTableauFixe
     @genre_valeur DROITE
 
-    NoeudExpression * expression_taille [code enfant]
-    NoeudExpression * expression_type [code enfant]
+    NoeudExpression * expression_taille [code enfant construction]
+    NoeudExpression * expression_type [code enfant construction]
 }
 
 struct NoeudExpressionTypeTableauDynamique : NoeudExpression {
@@ -116,7 +116,7 @@ struct NoeudExpressionTypeTableauDynamique : NoeudExpression {
     @code  NoeudCodeExpressionTypeTableauDynamique
     @genre_valeur DROITE
 
-    NoeudExpression * expression_type [code enfant]
+    NoeudExpression * expression_type [code enfant construction]
 }
 
 struct NoeudExpressionTypeTranche : NoeudExpression {
@@ -125,7 +125,7 @@ struct NoeudExpressionTypeTranche : NoeudExpression {
     @code  NoeudCodeExpressionTypeTranche
     @genre_valeur DROITE
 
-    NoeudExpression * expression_type [code enfant]
+    NoeudExpression * expression_type [code enfant construction]
 }
 
 struct NoeudExpressionTypeFonction : NoeudExpression {
@@ -144,7 +144,7 @@ struct NoeudExpressionExpansionVariadique : NoeudExpression {
     @code  NoeudCodeExpansionVariadique
     @genre_valeur DROITE
 
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudExpressionMémoire : NoeudExpression {
@@ -153,7 +153,7 @@ struct NoeudExpressionMémoire : NoeudExpression {
     @code  NoeudCodeMémoire
     @genre_valeur TRANSCENDANTALE
 
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudInstructionCharge : NoeudExpression {
@@ -163,7 +163,7 @@ struct NoeudInstructionCharge : NoeudExpression {
     @genre_valeur INVALIDE
 
     UniteCompilation * unité
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudInstructionArrête : NoeudExpression {
@@ -172,7 +172,7 @@ struct NoeudInstructionArrête : NoeudExpression {
     @code  NoeudCodeInstructionArrête
     @genre_valeur INVALIDE
 
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
 
     /* La boucle qui est controlée par cette instruction. */
     NoeudExpression *boucle_controlée [code]
@@ -184,7 +184,7 @@ struct NoeudInstructionContinue : NoeudExpression {
     @code  NoeudCodeInstructionContinue
     @genre_valeur INVALIDE
 
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
 
     /* La boucle qui est controlée par cette instruction. */
     NoeudExpression *boucle_controlée [code]
@@ -196,7 +196,7 @@ struct NoeudInstructionReprends : NoeudExpression {
     @code  NoeudCodeInstructionReprends
     @genre_valeur INVALIDE
 
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
 
     /* La boucle qui est controlée par cette instruction. */
     NoeudExpression *boucle_controlée [code]
@@ -208,7 +208,7 @@ struct NoeudInstructionEmpl : NoeudExpression {
     @code  NoeudCodeEmpl
     @genre_valeur INVALIDE
 
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudInstructionImporte : NoeudExpression {
@@ -218,7 +218,7 @@ struct NoeudInstructionImporte : NoeudExpression {
     @genre_valeur INVALIDE
 
     UniteCompilation * unité
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
 }
 
 struct NoeudExpressionNonIntialisation : NoeudExpression {
@@ -325,8 +325,8 @@ struct BaseDéclarationVariable : NoeudDéclarationSymbole {
 
     UniteCompilation * unité
 
-    NoeudExpression * expression [code enfant]
-    NoeudExpression * expression_type [code enfant]
+    NoeudExpression * expression [code enfant construction]
+    NoeudExpression * expression_type [code enfant construction]
 
     Annotation [] annotations [code copie]
 }
@@ -349,7 +349,7 @@ struct NoeudDéclarationVariableMultiple : BaseDéclarationVariable {
     @code  NoeudCodeDéclarationVariableMultiple
     @genre_valeur INVALIDE
 
-    NoeudExpression * valeur [code enfant]
+    NoeudExpression * valeur [code enfant construction]
     DonneesAssignations [compressé] données_decl
 }
 
@@ -368,8 +368,8 @@ struct NoeudAssignation : NoeudExpression {
     @code  NoeudCodeAssignation
     @genre_valeur INVALIDE
 
-    NoeudExpression *assignée [code enfant]
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *assignée [code enfant construction]
+    NoeudExpression *expression [code enfant construction]
 }
 
 struct NoeudAssignationMultiple : NoeudExpression {
@@ -378,8 +378,8 @@ struct NoeudAssignationMultiple : NoeudExpression {
     @code  NoeudCodeAssignationMultiple
     @genre_valeur INVALIDE
 
-    NoeudExpressionVirgule *assignées [code enfant]
-    NoeudExpression *expression [code enfant]
+    NoeudExpressionVirgule *assignées [code enfant construction]
+    NoeudExpression *expression [code enfant construction]
 
     DonneesAssignations [compressé] données_exprs
 }
@@ -390,7 +390,7 @@ struct NoeudInstructionRetour : NoeudExpression {
     @code  NoeudCodeInstructionRetour
     @genre_valeur INVALIDE
 
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
 }
 
 /* Pour les fonctions retournant plusieurs valeurs. */
@@ -409,7 +409,7 @@ struct NoeudRetiens : NoeudExpression {
     @code  NoeudCodeRetiens
     @genre_valeur INVALIDE
 
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
     DonneesAssignations [compressé] données_exprs
 }
 
@@ -429,7 +429,7 @@ struct NoeudExpressionUnaire : NoeudExpression {
     @code  NoeudCodeExpressionUnaire
     @genre_valeur DROITE
 
-    NoeudExpression *opérande [code enfant]
+    NoeudExpression *opérande [code enfant construction]
     OpérateurUnaire const *op
 }
 
@@ -439,7 +439,7 @@ struct NoeudExpressionPriseAdresse : NoeudExpression {
     @code  NoeudCodeExpressionPriseAdresse
     @genre_valeur DROITE
 
-    NoeudExpression *opérande [code enfant]
+    NoeudExpression *opérande [code enfant construction]
 }
 
 struct NoeudExpressionPriseRéférence : NoeudExpression {
@@ -448,7 +448,7 @@ struct NoeudExpressionPriseRéférence : NoeudExpression {
     @code  NoeudCodeExpressionPriseRéférence
     @genre_valeur DROITE
 
-    NoeudExpression *opérande [code enfant]
+    NoeudExpression *opérande [code enfant construction]
 }
 
 struct NoeudExpressionNégationLogique : NoeudExpression {
@@ -457,7 +457,7 @@ struct NoeudExpressionNégationLogique : NoeudExpression {
     @code  NoeudCodeExpressionNégationLogique
     @genre_valeur DROITE
 
-    NoeudExpression *opérande [code enfant]
+    NoeudExpression *opérande [code enfant construction]
 }
 
 struct NoeudExpressionBinaire : NoeudExpression {
@@ -466,8 +466,8 @@ struct NoeudExpressionBinaire : NoeudExpression {
     @code  NoeudCodeExpressionBinaire
     @genre_valeur DROITE
 
-    NoeudExpression *opérande_gauche [code enfant]
-    NoeudExpression *opérande_droite [code enfant]
+    NoeudExpression *opérande_gauche [code enfant construction]
+    NoeudExpression *opérande_droite [code enfant construction]
     OpérateurBinaire const *op
     bool permute_opérandes
 }
@@ -492,8 +492,8 @@ struct NoeudExpressionLogique : NoeudExpression {
     @code  NoeudCodeExpressionLogique
     @genre_valeur DROITE
 
-    NoeudExpression *opérande_gauche [code enfant]
-    NoeudExpression *opérande_droite [code enfant]
+    NoeudExpression *opérande_gauche [code enfant construction]
+    NoeudExpression *opérande_droite [code enfant construction]
 }
 
 /* ||= et &&= */
@@ -503,8 +503,8 @@ struct NoeudExpressionAssignationLogique : NoeudExpression {
     @code  NoeudCodeExpressionAssignationLogique
     @genre_valeur INVALIDE
 
-    NoeudExpression *opérande_gauche [code enfant]
-    NoeudExpression *opérande_droite [code enfant]
+    NoeudExpression *opérande_gauche [code enfant construction]
+    NoeudExpression *opérande_droite [code enfant construction]
 }
 
 struct NoeudExpressionParenthèse : NoeudExpression {
@@ -513,7 +513,7 @@ struct NoeudExpressionParenthèse : NoeudExpression {
     @code  NoeudCodeParenthèse
     @genre_valeur TRANSCENDANTALE
 
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
 }
 
 struct NoeudExpressionPlage : NoeudExpression {
@@ -522,8 +522,8 @@ struct NoeudExpressionPlage : NoeudExpression {
     @code  NoeudCodeExpressionPlage
     @genre_valeur INVALIDE
 
-    NoeudExpression *début [code enfant]
-    NoeudExpression *fin [code enfant]
+    NoeudExpression *début [code enfant construction]
+    NoeudExpression *fin [code enfant construction]
 }
 
 struct NoeudExpressionMembre : NoeudExpression {
@@ -533,7 +533,7 @@ struct NoeudExpressionMembre : NoeudExpression {
     @genre_valeur TRANSCENDANTALE
 
     IdentifiantCode * ident [copie code]
-    NoeudExpression *accédée [code enfant]
+    NoeudExpression *accédée [code enfant construction]
 
     /* Pour l'accès à des modules. */
     NoeudDéclaration *déclaration_référée
@@ -632,7 +632,7 @@ struct NoeudExpressionAppel : NoeudExpression {
     @code  NoeudCodeAppel
     @genre_valeur DROITE
 
-    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant construction]
     NoeudExpression * [] paramètres [code enfant]
     NoeudExpression * [] paramètres_résolus
     NoeudExpression const * noeud_fonction_appelée
@@ -985,7 +985,7 @@ struct NoeudSi : NoeudExpression {
     @code NoeudCodeSi
     @genre_valeur INVALIDE
 
-    NoeudExpression *condition [code enfant]
+    NoeudExpression *condition [code enfant construction]
     NoeudExpression *bloc_si_vrai [code enfant]
     NoeudExpression *bloc_si_faux [code enfant]
 }
@@ -1003,7 +1003,7 @@ struct NoeudSiStatique : NoeudExpression {
     @code  NoeudCodeSiStatique
     @genre_valeur INVALIDE
 
-    NoeudExpression *condition [code enfant]
+    NoeudExpression *condition [code enfant construction]
     NoeudBloc *bloc_si_vrai [code enfant]
     NoeudExpression *bloc_si_faux [code enfant]
 
@@ -1027,8 +1027,8 @@ struct NoeudPour : NoeudExpression {
     @genre_valeur INVALIDE
 
     IdentifiantCode * ident [copie code]
-    NoeudExpression *variable [code enfant]
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *variable [code enfant construction]
+    NoeudExpression *expression [code enfant construction]
     NoeudBloc *bloc [code enfant]
     NoeudBloc *bloc_sansarrêt [code enfant]
     NoeudBloc *bloc_sinon [code enfant]
@@ -1055,7 +1055,7 @@ struct NoeudBoucle : NoeudExpression {
     @genre_valeur INVALIDE
 
     IdentifiantCode * ident [copie code]
-    NoeudExpression *condition [code enfant]
+    NoeudExpression *condition [code enfant construction]
     NoeudBloc *bloc [code enfant]
 
     /* pour la simplification du [code] des boucles pour */
@@ -1132,7 +1132,7 @@ struct NoeudDiscr : NoeudExpression {
     @code  NoeudCodeDiscr
     @genre_valeur INVALIDE
 
-    NoeudExpression *expression_discriminée [code enfant]
+    NoeudExpression *expression_discriminée [code enfant construction]
     NoeudPaireDiscr * [] paires_discr [code enfant]
     NoeudBloc *bloc [copie code enfant]
     NoeudBloc *bloc_sinon [code enfant]
@@ -1159,7 +1159,7 @@ struct NoeudPousseContexte : NoeudExpression {
     @code  NoeudCodePousseContexte
     @genre_valeur INVALIDE
 
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
     NoeudBloc *bloc [code enfant]
 }
 
@@ -1178,8 +1178,8 @@ struct NoeudInstructionTente : NoeudExpression {
     @code  NoeudIntructionTente
     @genre_valeur DROITE
 
-    NoeudExpression *expression_appelée [code enfant]
-    NoeudExpression *expression_piégée [code enfant]
+    NoeudExpression *expression_appelée [code enfant construction]
+    NoeudExpression *expression_piégée [code enfant construction]
     NoeudBloc *bloc [code enfant]
 }
 
@@ -1190,7 +1190,7 @@ struct NoeudDirectiveExécute : NoeudExpression {
     @genre_valeur DROITE
 
     UniteCompilation * unité
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
 
     MetaProgramme *métaprogramme
 }
@@ -1225,8 +1225,8 @@ struct NoeudComme : NoeudExpression {
     @code  NoeudCodeComme
     @genre_valeur DROITE
 
-    NoeudExpression *expression [code enfant]
-    NoeudExpression *expression_type [code enfant]
+    NoeudExpression *expression [code enfant construction]
+    NoeudExpression *expression_type [code enfant construction]
     TransformationType transformation
 }
 
@@ -1236,7 +1236,7 @@ struct NoeudInstructionDiffère : NoeudExpression {
     @code  NoeudCodeDiffère
     @genre_valeur INVALIDE
 
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
 }
 
 struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
@@ -1246,8 +1246,8 @@ struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
     @genre_valeur INVALIDE
 
     UniteCompilation * unité
-    NoeudExpressionRéférence *bibliothèque_dépendante [code enfant]
-    NoeudExpressionRéférence *bibliothèque_dépendue [code enfant]
+    NoeudExpressionRéférence *bibliothèque_dépendante [code enfant construction]
+    NoeudExpressionRéférence *bibliothèque_dépendue [code enfant construction]
 }
 
 struct NoeudDirectiveAjouteInit : NoeudExpression {
@@ -1257,7 +1257,7 @@ struct NoeudDirectiveAjouteInit : NoeudExpression {
     @genre_valeur INVALIDE
 
     UniteCompilation * unité
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
 }
 
 struct NoeudDirectiveAjouteFini : NoeudExpression {
@@ -1267,7 +1267,7 @@ struct NoeudDirectiveAjouteFini : NoeudExpression {
     @genre_valeur INVALIDE
 
     UniteCompilation * unité
-    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant construction]
 }
 
 struct NoeudDirectivePréExécutable : NoeudDirectiveExécute {
