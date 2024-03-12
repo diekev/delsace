@@ -474,6 +474,19 @@ void ProteineStruct::pour_chaque_derivee_recursif(
     }
 }
 
+kuri::tableau<Membre> ProteineStruct::donne_membres_pour_construction()
+{
+    kuri::tableau<Membre> résultat;
+    pour_chaque_membre_recursif([&](const Membre &membre) {
+        if (!membre.est_requis_pour_construction) {
+            return;
+        }
+
+        résultat.ajoute(membre);
+    });
+    return résultat;
+}
+
 ProteineEnum::ProteineEnum(IdentifiantADN nom) : Proteine(nom)
 {
 }
@@ -982,6 +995,9 @@ void SyntaxeuseADN::parse_struct()
                 }
                 else if (apparie("mutable")) {
                     membre.est_mutable = true;
+                }
+                else if (apparie("construction")) {
+                    membre.est_requis_pour_construction = true;
                 }
                 else {
                     rapporte_erreur("attribut inconnu");
