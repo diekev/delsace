@@ -349,6 +349,8 @@ struct Membre {
     bool est_a_copier = false;
     /* Si vrai, ajoute "mutable" à la déclaration du membre dans le code C++. */
     bool est_mutable = false;
+    /* Si vrai, ajoute un paramètre pour le membre à la fonction de création. */
+    bool est_requis_pour_construction = false;
 
     bool valeur_defaut_est_acces = false;
     kuri::chaine_statique valeur_defaut = "";
@@ -563,6 +565,8 @@ class ProteineStruct final : public Proteine {
     void pour_chaque_enfant_recursif(std::function<void(const Membre &)> rappel);
 
     void pour_chaque_derivee_recursif(std::function<void(const ProteineStruct &)> rappel);
+
+    kuri::tableau<Membre> donne_membres_pour_construction();
 };
 
 class ProteineEnum final : public Proteine {
