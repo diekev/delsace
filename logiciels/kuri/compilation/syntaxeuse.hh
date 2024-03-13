@@ -6,6 +6,7 @@
 #include "biblinternes/structures/tableau_page.hh"
 #include "parsage/base_syntaxeuse.hh"
 #include "structures/pile.hh"
+#include "structures/pile_de_tableaux.hh"
 
 struct Annotation;
 struct Compilatrice;
@@ -55,29 +56,7 @@ struct DonnéesPrécédence {
     O(NoeudExpressionRéférenceType, références_types)
 
 class TableRéférences {
-    template <typename T>
-    struct TableauEtPile {
-        kuri::tableau<T, int> éléments{};
-        kuri::pile<int> comptes_par_portée{};
-
-        void enregistre_compte()
-        {
-            comptes_par_portée.empile(éléments.taille());
-        }
-
-        void restaure_compte()
-        {
-            éléments.redimensionne(comptes_par_portée.depile());
-        }
-
-        void efface()
-        {
-            éléments.efface();
-            comptes_par_portée.efface();
-        }
-    };
-
-#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) TableauEtPile<__type *> m_##__nom{};
+#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) kuri::pile_de_tableaux<__type *> m_##__nom{};
     ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
 #undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 

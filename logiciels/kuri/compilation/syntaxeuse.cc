@@ -32,8 +32,9 @@
 
 NoeudExpressionRéférence *TableRéférences::trouve_référence_pour(Lexème const *lexème) const
 {
-    for (int i = m_références.éléments.taille() - 1; i >= 0; i--) {
-        auto référence = m_références.éléments[i];
+    auto éléments = m_références.donne_tous_les_tableaux();
+    for (int64_t i = éléments.taille() - 1; i >= 0; i--) {
+        auto référence = éléments[i];
 
         if (!référence) {
             continue;
@@ -50,12 +51,12 @@ NoeudExpressionRéférence *TableRéférences::trouve_référence_pour(Lexème c
 
 void TableRéférences::ajoute_référence(NoeudExpressionRéférence *noeud)
 {
-    m_références.éléments.ajoute(noeud);
+    m_références.ajoute_au_tableau_courant(noeud);
 }
 
 void TableRéférences::invalide_référence(NoeudExpressionRéférence *noeud)
 {
-    POUR (m_références.éléments) {
+    POUR (m_références.donne_tous_les_tableaux()) {
         if (it == noeud) {
             // dbg() << __func__ << " : " << noeud->ident->nom;
             it = nullptr;
@@ -67,7 +68,7 @@ void TableRéférences::invalide_référence(NoeudExpressionRéférence *noeud)
 NoeudExpressionMembre *TableRéférences::trouve_référence_membre_pour(Lexème const *lexème,
                                                                      NoeudExpression *gauche)
 {
-    POUR (m_références_membres.éléments) {
+    POUR (m_références_membres.donne_tous_les_tableaux()) {
         if (it->accédée != gauche) {
             continue;
         }
@@ -85,13 +86,13 @@ NoeudExpressionMembre *TableRéférences::trouve_référence_membre_pour(Lexème
 
 void TableRéférences::ajoute_référence_membre(NoeudExpressionMembre *noeud)
 {
-    m_références_membres.éléments.ajoute(noeud);
+    m_références_membres.ajoute_au_tableau_courant(noeud);
 }
 
 NoeudExpressionLittéraleChaine *TableRéférences::trouve_littérale_chaine_pour(
     Lexème const *lexème) const
 {
-    POUR (m_littérales_chaines.éléments) {
+    POUR (m_littérales_chaines.donne_tous_les_tableaux()) {
         if (it->lexème->index_chaine != lexème->index_chaine) {
             continue;
         }
@@ -105,13 +106,13 @@ NoeudExpressionLittéraleChaine *TableRéférences::trouve_littérale_chaine_pou
 
 void TableRéférences::ajoute_littérale_chaine(NoeudExpressionLittéraleChaine *noeud)
 {
-    m_littérales_chaines.éléments.ajoute(noeud);
+    m_littérales_chaines.ajoute_au_tableau_courant(noeud);
 }
 
 NoeudExpressionPriseAdresse *TableRéférences::trouve_prise_adresse_pour(
     NoeudExpression const *gauche) const
 {
-    POUR (m_prises_adresses.éléments) {
+    POUR (m_prises_adresses.donne_tous_les_tableaux()) {
         if (it->opérande != gauche) {
             continue;
         }
@@ -125,13 +126,13 @@ NoeudExpressionPriseAdresse *TableRéférences::trouve_prise_adresse_pour(
 
 void TableRéférences::ajoute_prise_adresse(NoeudExpressionPriseAdresse *noeud)
 {
-    m_prises_adresses.éléments.ajoute(noeud);
+    m_prises_adresses.ajoute_au_tableau_courant(noeud);
 }
 
 NoeudExpressionRéférenceType *TableRéférences::trouve_référence_type_pour(
     Lexème const *lexème) const
 {
-    POUR (m_références_types.éléments) {
+    POUR (m_références_types.donne_tous_les_tableaux()) {
         if (it->lexème->genre != lexème->genre) {
             continue;
         }
@@ -145,7 +146,7 @@ NoeudExpressionRéférenceType *TableRéférences::trouve_référence_type_pour(
 
 void TableRéférences::ajoute_référence_type(NoeudExpressionRéférenceType *noeud)
 {
-    m_références_types.éléments.ajoute(noeud);
+    m_références_types.ajoute_au_tableau_courant(noeud);
 }
 
 void TableRéférences::réinitialise()
@@ -157,26 +158,26 @@ void TableRéférences::réinitialise()
 
 void TableRéférences::empile_état()
 {
-#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) m_##__nom.enregistre_compte();
+#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) m_##__nom.empile_tableau();
     ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
 #undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 }
 
 void TableRéférences::dépile_état()
 {
-#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) m_##__nom.restaure_compte();
+#define ENUMERE_NOEUDS_DEDUPLICABLE_EX(__type, __nom) m_##__nom.dépile_tableau();
     ENUMERE_NOEUDS_DEDUPLICABLE(ENUMERE_NOEUDS_DEDUPLICABLE_EX)
 #undef ENUMERE_NOEUDS_DEDUPLICABLE_EX
 }
 
 void TableRéférences::empile_état_références()
 {
-    m_références.enregistre_compte();
+    m_références.empile_tableau();
 }
 
 void TableRéférences::dépile_état_références()
 {
-    m_références.restaure_compte();
+    m_références.dépile_tableau();
 }
 
 /** \} */

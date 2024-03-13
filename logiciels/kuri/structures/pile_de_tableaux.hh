@@ -40,6 +40,11 @@ class pile_de_tableaux {
         return m_décalage_par_tableau.haut();
     }
 
+    kuri::tableau_statique<T> donne_tous_les_tableaux() const
+    {
+        return m_données;
+    }
+
     kuri::tableau_statique<T> donne_tableau_courant()
     {
         if (m_données.est_vide() || m_décalage_par_tableau.est_vide()) {
@@ -58,6 +63,12 @@ class pile_de_tableaux {
     void ajoute_au_tableau_courant(T donnée)
     {
         m_données.ajoute(donnée);
+    }
+
+    void efface()
+    {
+        m_données.efface();
+        m_décalage_par_tableau.efface();
     }
 };
 

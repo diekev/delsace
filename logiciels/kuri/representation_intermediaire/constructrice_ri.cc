@@ -738,7 +738,7 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
             dbg() << "L'index de l'argument est " << index_it;
             if (site_ && site_->est_appel()) {
                 auto appel = site_->comme_appel();
-                auto param = appel->parametres_resolus[index_it];
+                auto param = appel->paramètres_résolus[index_it];
                 dbg() << "Noeud param : " << param->genre
                       << ", type : " << chaine_type(param->type)
                       << ", substitution : " << param->substitution->genre
