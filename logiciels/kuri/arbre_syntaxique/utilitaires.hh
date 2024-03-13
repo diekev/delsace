@@ -84,10 +84,13 @@ enum class DrapeauxNoeud : uint32_t {
 
     FUT_SIMPLIFIÉ = (1u << 26),
 
-    /* Pour la déduplication des noeuds dans l'arbre syntaxique, ceci marque un noeud réutilisé. */
-    EST_RÉUTILISÉ = (1u << 27),
+    /* Si le noeud est une expression par défaut, par exemple d'un paramètre de fonction. */
+    EST_EXPRESSION_DÉFAUT = (1u << 27),
 
-    FUT_APLATIS = (1u << 28),
+    /* Pour la déduplication des noeuds dans l'arbre syntaxique, ceci marque un noeud réutilisé. */
+    EST_RÉUTILISÉ = (1u << 28),
+
+    FUT_APLATIS = (1u << 29),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

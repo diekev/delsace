@@ -156,6 +156,15 @@ struct tableau {
         this->m_capacité = nombre;
     }
 
+    void remplace_données_par(kuri::tableau_statique<T> autre)
+    {
+        this->efface();
+        this->réserve(TypeIndex(autre.taille()));
+        POUR (autre) {
+            this->ajoute(it);
+        }
+    }
+
   private:
     void agrandis(TypeIndex nombre)
     {
