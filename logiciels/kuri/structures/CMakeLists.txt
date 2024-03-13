@@ -44,6 +44,7 @@ set(SOURCES
     file.cc
     intervalle.cc
     pile.cc
+    pile_de_tableaux.cc
     rassembleuse.cc
     table_hachage.cc
     tablet.cc
@@ -64,6 +65,7 @@ set(SOURCES
     file_fixe.hh
     intervalle.hh
     pile.hh
+    pile_de_tableaux.hh
     rassembleuse.hh
     table_hachage.hh
     tablet.hh
