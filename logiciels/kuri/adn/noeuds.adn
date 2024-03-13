@@ -1227,7 +1227,7 @@ struct NoeudComme : NoeudExpression {
 
     NoeudExpression *expression [code enfant construction]
     NoeudExpression *expression_type [code enfant construction]
-    TransformationType transformation
+    TransformationType transformation [copie]
 }
 
 struct NoeudInstructionDiffère : NoeudExpression {
