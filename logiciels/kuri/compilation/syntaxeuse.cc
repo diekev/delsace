@@ -1008,11 +1008,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
 
             auto expression = analyse_expression(
                 {}, GenreLexème::PARENTHESE_OUVRANTE, GenreLexème::INCONNU);
-            auto noeud = m_tacheronne.assembleuse->crée_parenthèse(lexème, expression);
 
             consomme(GenreLexème::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
 
-            return noeud;
+            return m_tacheronne.assembleuse->crée_parenthèse(lexème, expression);
         }
         case GenreLexème::TAILLE_DE:
         {

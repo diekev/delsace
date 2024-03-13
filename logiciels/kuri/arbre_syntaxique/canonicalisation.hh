@@ -4,6 +4,7 @@
 #pragma once
 
 #include "structures/pile.hh"
+#include "structures/pile_de_tableaux.hh"
 #include "structures/tableau.hh"
 
 enum class GenreNoeud : uint8_t;
@@ -81,36 +82,48 @@ struct Simplificatrice {
 
     kuri::pile<SubstitutionBouclePourOpérée> m_substitutions_boucles_pour{};
 
+    /* Nouvelles expressions pour chaque bloc. */
+    kuri::pile_de_tableaux<NoeudExpression *> m_expressions_blocs{};
+
   public:
     Simplificatrice(EspaceDeTravail *e, AssembleuseArbre *a, Typeuse &t)
         : espace(e), assem(a), typeuse(t)
     {
+        m_expressions_blocs.empile_tableau();
     }
 
     EMPECHE_COPIE(Simplificatrice);
 
-    void simplifie(NoeudExpression *noeud);
+    NoeudExpression *simplifie(NoeudExpression *noeud);
 
   private:
-    void simplifie_boucle_pour(NoeudPour *inst);
-    void simplifie_boucle_pour_opérateur(NoeudPour *inst);
-    void simplifie_comparaison_chainée(NoeudExpressionBinaire *comp);
-    void simplifie_coroutine(NoeudDéclarationEntêteFonction *corout);
-    void simplifie_discr(NoeudDiscr *discr);
+    void ajoute_expression(NoeudExpression *expression)
+    {
+        m_expressions_blocs.ajoute_au_tableau_courant(expression);
+    }
+
+    NoeudExpression *simplifie_boucle_pour(NoeudPour *inst);
+    NoeudExpression *simplifie_boucle_pour_opérateur(NoeudPour *inst);
+    NoeudExpression *simplifie_comparaison_chainée(NoeudExpressionBinaire *comp);
+    NoeudExpression *simplifie_coroutine(NoeudDéclarationEntêteFonction *corout);
+    NoeudExpression *simplifie_discr(NoeudDiscr *discr);
     template <int N>
-    void simplifie_discr_impl(NoeudDiscr *discr);
-    void simplifie_retiens(NoeudRetiens *retiens);
-    void simplifie_retour(NoeudInstructionRetour *inst);
-    void simplifie_retour(NoeudInstructionRetourMultiple *inst);
-    void simplifie_construction_structure(NoeudExpressionConstructionStructure *construction);
-    void simplifie_construction_union(NoeudExpressionConstructionStructure *construction);
-    void simplifie_construction_structure_position_code_source(
+    NoeudExpression *simplifie_discr_impl(NoeudDiscr *discr);
+    NoeudExpression *simplifie_retiens(NoeudRetiens *retiens);
+    NoeudExpression *simplifie_retour(NoeudInstructionRetour *inst);
+    NoeudExpression *simplifie_retour(NoeudInstructionRetourMultiple *inst);
+    NoeudExpression *simplifie_construction_structure(
         NoeudExpressionConstructionStructure *construction);
-    void simplifie_construction_structure_impl(NoeudExpressionConstructionStructure *construction);
+    NoeudExpression *simplifie_construction_union(
+        NoeudExpressionConstructionStructure *construction);
+    NoeudExpression *simplifie_construction_structure_position_code_source(
+        NoeudExpressionConstructionStructure *construction);
+    NoeudExpression *simplifie_construction_structure_impl(
+        NoeudExpressionConstructionStructure *construction);
     NoeudExpressionRéférence *génère_simplification_construction_structure(
-        NoeudExpressionAppel *construction, TypeStructure *type_struct, NoeudBloc *bloc);
-    void simplifie_construction_opaque_depuis_structure(NoeudExpressionAppel *appel);
-    void simplifie_référence_membre(NoeudExpressionMembre *ref_membre);
+        NoeudExpressionAppel *construction, TypeStructure *type_struct);
+    NoeudExpression *simplifie_construction_opaque_depuis_structure(NoeudExpressionAppel *appel);
+    NoeudExpression *simplifie_référence_membre(NoeudExpressionMembre *ref_membre);
 
     NoeudExpression *simplifie_assignation_énum_drapeau(NoeudExpression *var,
                                                         NoeudExpression *expression);
@@ -125,15 +138,15 @@ struct Simplificatrice {
      * conditions à droite des assigations */
     void corrige_bloc_pour_assignation(NoeudExpression *expr, NoeudExpression *ref_temp);
 
-    void crée_retourne_union_via_rien(NoeudDéclarationEntêteFonction *entête,
-                                      NoeudBloc *bloc_d_insertion,
-                                      const Lexème *lexeme_reference);
+    NoeudExpression *crée_retourne_union_via_rien(NoeudDéclarationEntêteFonction *entête,
+                                                  NoeudBloc *bloc_d_insertion,
+                                                  const Lexème *lexeme_reference);
 
     NoeudExpressionAppel *crée_appel_fonction_init(Lexème const *lexeme,
                                                    NoeudExpression *expression_à_initialiser);
 
-    void simplifie_expression_logique(NoeudExpressionLogique *logique);
-    void simplifie_assignation_logique(NoeudExpressionAssignationLogique *logique);
+    NoeudExpression *simplifie_expression_logique(NoeudExpressionLogique *logique);
+    NoeudExpression *simplifie_assignation_logique(NoeudExpressionAssignationLogique *logique);
 };
 
 /** \} */
