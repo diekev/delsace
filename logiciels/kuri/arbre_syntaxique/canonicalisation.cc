@@ -1764,36 +1764,25 @@ NoeudExpression *Simplificatrice::simplifie_assignation_logique(
     auto droite = logique->opérande_droite;
 
     simplifie(gauche);
-    simplifie(droite);
 
     auto bloc_parent = logique->bloc_parent;
     auto const lexème = logique->lexème;
-    if (lexème->genre == GenreLexème::BARRE_BARRE_EGAL) {
-        auto inst_saufsi = assem->crée_saufsi(lexème, gauche);
-        inst_saufsi->bloc_parent = bloc_parent;
+    auto inst_si = (lexème->genre == GenreLexème::BARRE_BARRE_EGAL) ?
+                       assem->crée_saufsi(lexème, gauche) :
+                       assem->crée_si(lexème, gauche);
 
-        auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
-        inst_saufsi->bloc_si_vrai = bloc;
+    auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
+    inst_si->bloc_si_vrai = bloc;
 
-        auto assignation = assem->crée_assignation_variable(lexème, gauche, droite);
-        bloc->ajoute_expression(assignation);
+    auto assignation = assem->crée_assignation_variable(lexème, gauche, droite);
+    bloc->ajoute_expression(assignation);
 
-        logique->substitution = inst_saufsi;
-        return inst_saufsi;
-    }
-    else {
-        auto inst_si = assem->crée_si(lexème, gauche);
-        inst_si->bloc_parent = bloc_parent;
+    /* Simplifie le nouveau bloc, et non juste l'opérande droite, afin que les expressions générées
+     * par la simplification de ladite opérande s'y retrouve. */
+    simplifie(bloc);
 
-        auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
-        inst_si->bloc_si_vrai = bloc;
-
-        auto assignation = assem->crée_assignation_variable(lexème, gauche, droite);
-        bloc->ajoute_expression(assignation);
-
-        logique->substitution = inst_si;
-        return inst_si;
-    }
+    logique->substitution = inst_si;
+    return inst_si;
 }
 
 NoeudExpression *Simplificatrice::simplifie_construction_union(
