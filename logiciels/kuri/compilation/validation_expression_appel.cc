@@ -1918,6 +1918,30 @@ static RésultatValidation sélectionne_candidate(NoeudExpressionAppel const *ex
     return CodeRetourValidation::OK;
 }
 
+static void copie_paramètres_résolus(NoeudExpressionAppel *appel,
+                                     CandidateAppariement const *candidate,
+                                     AssembleuseArbre *assembleuse)
+{
+    appel->paramètres_résolus.efface();
+    appel->paramètres_résolus.réserve(static_cast<int>(candidate->exprs.taille()));
+    POUR (candidate->exprs) {
+        /* Copie les expressions par défaut des paramètres afin d'éviter d'avoir des conflits lors
+         * de la canonicalisation du code où la même expression pourrait avoir différentes
+         * substitution (p.e. pour les PositionCodeSource()).
+         *
+         * Une expression peut être nulle pour les expressions de construction de type. */
+        if (it && it->possède_drapeau(DrapeauxNoeud::EST_EXPRESSION_DÉFAUT)) {
+            /* À FAIRE : copie toutes les données de validation (p.e. paramètres résolus pour les
+             * appels). */
+            auto nouveau_it = copie_noeud(
+                assembleuse, it, it->bloc_parent, OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION);
+            nouveau_it->drapeaux &= ~DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
+            it = nouveau_it;
+        }
+        appel->paramètres_résolus.ajoute(it);
+    }
+}
+
 RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
                                          Sémanticienne &contexte,
@@ -1982,12 +2006,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
     CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel, VALIDATION_APPEL__COPIE_DONNEES);
 
-    expr->paramètres_résolus.efface();
-    expr->paramètres_résolus.réserve(static_cast<int>(candidate->exprs.taille()));
-
-    for (auto enfant : candidate->exprs) {
-        expr->paramètres_résolus.ajoute(enfant);
-    }
+    copie_paramètres_résolus(expr, candidate, contexte.donne_assembleuse());
 
     if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
         auto decl_fonction_appelée = candidate->noeud_decl->comme_entête_fonction();
