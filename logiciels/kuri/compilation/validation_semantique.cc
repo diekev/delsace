@@ -2012,6 +2012,8 @@ RésultatValidation Sémanticienne::valide_paramètres_fonction(NoeudDéclaratio
                                 param);
                 return CodeRetourValidation::Erreur;
             }
+
+            expression->drapeaux |= DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
         }
 
         noms.insère(param->ident);
