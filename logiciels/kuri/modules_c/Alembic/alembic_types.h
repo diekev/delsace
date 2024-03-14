@@ -655,8 +655,96 @@ struct ConvertisseuseExportLumiere {
     void *donnees;
 };
 
+typedef struct AbcMillimetre {
+    double valeur;
+} AbcMillimetre;
+
+typedef struct AbcCentimetre {
+    double valeur;
+} AbcCentimetre;
+
+typedef struct AbcPourcentage {
+    double valeur;
+} AbcPourcentage;
+
+typedef struct AbcTempsSeconde {
+    double valeur;
+} AbcTempsSeconde;
+
 struct ConvertisseuseExportCamera {
     void *donnees;
+
+    /** Doit retourner la longueur focale de la caméra. */
+    void (*donne_longueur_focale)(struct ConvertisseuseExportCamera *, struct AbcMillimetre *);
+
+    /** Doit retourner la taille horizontale en centimètres de la pellicule arrière de la caméra.
+     */
+    void (*donne_ouverture_horizontale)(struct ConvertisseuseExportCamera *,
+                                        struct AbcCentimetre *);
+
+    /** Doit retourner le décalage horizontal en centimètres de la pellicule arrière de la caméra.
+     */
+    void (*donne_décalage_pellicule_horizontal)(struct ConvertisseuseExportCamera *,
+                                                struct AbcCentimetre *);
+
+    /** Doit retourner la taille verticale en centimètres de la pellicule arrière de la caméra.
+     */
+    void (*donne_ouverture_verticale)(struct ConvertisseuseExportCamera *, struct AbcCentimetre *);
+
+    /** Doit retourner le décalage vertical en centimètres de la pellicule arrière de la caméra.
+     */
+    void (*donne_décalage_pellicule_vertical)(struct ConvertisseuseExportCamera *,
+                                              struct AbcCentimetre *);
+
+    //! set the amount the camera's lens compresses the image horizontally
+    //! (width / height aspect ratio)
+    double (*donne_aspect_horizontal_sur_vertical)(struct ConvertisseuseExportCamera *);
+
+    //! set over scan fractional percentage for the left part of the
+    //! screen window
+    void (*donne_pourcent_extension_image_gauche)(struct ConvertisseuseExportCamera *,
+                                                  struct AbcPourcentage *);
+
+    //! set over scan fractional percentage for the right part of the
+    //! screen window
+    void (*donne_pourcent_extension_image_droite)(struct ConvertisseuseExportCamera *,
+                                                  struct AbcPourcentage *);
+
+    //! get over scan fractional percentage for the top part of the
+    //! screen window
+    void (*donne_pourcent_extension_image_haut)(struct ConvertisseuseExportCamera *,
+                                                struct AbcPourcentage *);
+
+    //! set over scan fractional percentage for the bottom part of the
+    //! screen window
+    void (*donne_pourcent_extension_image_bas)(struct ConvertisseuseExportCamera *,
+                                               struct AbcPourcentage *);
+
+    //! set the f-stop (focal length divided by "effective" lens diameter)
+    double (*donne_fstop)(struct ConvertisseuseExportCamera *);
+
+    //! set the distance from the camera to the object being focused on
+    //! in centimeters
+    void (*donne_distance_de_la_cible)(struct ConvertisseuseExportCamera *,
+                                       struct AbcCentimetre *);
+
+    //! set the frame relative shutter open time in seconds.
+    void (*donne_ouverture_obturateur)(struct ConvertisseuseExportCamera *,
+                                       struct AbcTempsSeconde *);
+
+    //! set the frame relative shutter close time in seconds.
+    void (*donne_fermeture_obturateur)(struct ConvertisseuseExportCamera *,
+                                       struct AbcTempsSeconde *);
+
+    //! set the distance from the camera to the near clipping plane in
+    //! centimeters
+    void (*donne_distance_premier_plan)(struct ConvertisseuseExportCamera *,
+                                        struct AbcCentimetre *);
+
+    //! set the distance from the camera to the near clipping plane in
+    //! centimeters
+    void (*donne_distance_arriere_plan)(struct ConvertisseuseExportCamera *,
+                                        struct AbcCentimetre *);
 };
 
 struct ConvertisseuseExportMateriau {

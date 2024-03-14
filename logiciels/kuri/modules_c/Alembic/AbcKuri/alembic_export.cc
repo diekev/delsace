@@ -949,11 +949,76 @@ static void écris_données(AbcMaterial::OMaterial &omateriau,
     // À FAIRE: paramètre du noeud
 }
 
-static void écris_données(AbcGeom::OCamera & /*o_camera*/,
+static void écris_données(AbcGeom::OCamera &o_camera,
                           TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportCamera * /*convertisseuse*/)
+                          ConvertisseuseExportCamera *convertisseuse)
 {
-    // À FAIRE
+    AbcGeom::CameraSample échantillon;
+#if 0
+    //! Create a default sample and set the defaults so that they
+    //! calculate the provided screen window.
+    CameraSample( double iTop, double iBottom, double iLeft, double iRight );
+#endif
+
+#define DEFINIS_VALEUR_DOUBLE(nom_rappel, nom_fonction_abc)                                       \
+    do {                                                                                          \
+        if (convertisseuse->nom_rappel) {                                                         \
+            échantillon.nom_fonction_abc(convertisseuse->nom_rappel(convertisseuse));             \
+        }                                                                                         \
+    } while (0)
+
+#define DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, nom_struct)                           \
+    do {                                                                                          \
+        if (convertisseuse->nom_rappel) {                                                         \
+            nom_struct cm = {0.0};                                                                \
+            convertisseuse->nom_rappel(convertisseuse, &cm);                                      \
+            échantillon.nom_fonction_abc(cm.valeur);                                              \
+        }                                                                                         \
+    } while (0)
+
+#define DEFINIS_VALEUR_MM(nom_rappel, nom_fonction_abc)                                           \
+    DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, AbcMillimetre)
+
+#define DEFINIS_VALEUR_CM(nom_rappel, nom_fonction_abc)                                           \
+    DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, AbcCentimetre)
+
+#define DEFINIS_VALEUR_SECONDE(nom_rappel, nom_fonction_abc)                                      \
+    DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, AbcTempsSeconde)
+
+#define DEFINIS_VALEUR_POURCENT(nom_rappel, nom_fonction_abc)                                     \
+    DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, AbcPourcentage)
+
+    DEFINIS_VALEUR_MM(donne_longueur_focale, setFocalLength);
+    DEFINIS_VALEUR_CM(donne_ouverture_horizontale, setHorizontalAperture);
+    DEFINIS_VALEUR_CM(donne_ouverture_verticale, setHorizontalAperture);
+    DEFINIS_VALEUR_CM(donne_décalage_pellicule_horizontal, setHorizontalFilmOffset);
+    DEFINIS_VALEUR_CM(donne_décalage_pellicule_vertical, setHorizontalFilmOffset);
+    DEFINIS_VALEUR_DOUBLE(donne_aspect_horizontal_sur_vertical, setLensSqueezeRatio);
+    DEFINIS_VALEUR_POURCENT(donne_pourcent_extension_image_gauche, setOverScanLeft);
+    DEFINIS_VALEUR_POURCENT(donne_pourcent_extension_image_droite, setOverScanRight);
+    DEFINIS_VALEUR_POURCENT(donne_pourcent_extension_image_haut, setOverScanTop);
+    DEFINIS_VALEUR_POURCENT(donne_pourcent_extension_image_bas, setOverScanBottom);
+    DEFINIS_VALEUR_DOUBLE(donne_fstop, setFStop);
+    DEFINIS_VALEUR_CM(donne_distance_de_la_cible, setFocusDistance);
+    DEFINIS_VALEUR_SECONDE(donne_ouverture_obturateur, setShutterOpen);
+    DEFINIS_VALEUR_SECONDE(donne_fermeture_obturateur, setShutterClose);
+    DEFINIS_VALEUR_CM(donne_distance_premier_plan, setNearClippingPlane);
+    DEFINIS_VALEUR_CM(donne_distance_arriere_plan, setFarClippingPlane);
+
+#undef DEFINIS_VALEUR_POURCENT
+#undef DEFINIS_VALEUR_SECONDE
+#undef DEFINIS_VALEUR_CM
+#undef DEFINIS_VALEUR_MM
+#undef DEFINIS_VALEUR_DOUBLE
+
+#if 0
+    // À FAIRE(caméra) : opérations rièrefilm, limites géométriques enfant
+    void setChildBounds( const Abc::Box3d & iBounds )
+    { m_childBounds = iBounds; }
+
+    // add an op and return the index of the op in its op-stack
+    std::size_t addOp( FilmBackXformOp iOp );
+#endif
 }
 
 static void écris_données(AbcGeom::OCurves & /*o_curves*/,
