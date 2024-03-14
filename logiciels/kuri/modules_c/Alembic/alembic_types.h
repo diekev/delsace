@@ -449,11 +449,18 @@ typedef struct AbcOptionsExport {
     // À FAIRE : est-il possible, pour les calques, de n'exporter que les attributs ?
 } AbcOptionsExport;
 
+typedef enum eAbcIndexagePolygone {
+    ABC_INDEXAGE_POLYGONE_HORAIRE,
+    ABC_INDEXAGE_POLYGONE_ANTIHORAIRE,
+} eAbcIndexagePolygone;
+
 struct ConvertisseuseExportPolyMesh {
     void *donnees;
     uint64_t (*nombre_de_points)(struct ConvertisseuseExportPolyMesh *);
     void (*point_pour_index)(
         struct ConvertisseuseExportPolyMesh *, uint64_t, float *, float *, float *);
+
+    enum eAbcIndexagePolygone (*donne_indexage_polygone)(struct ConvertisseuseExportPolyMesh *);
 
     uint64_t (*nombre_de_polygones)(struct ConvertisseuseExportPolyMesh *);
     int (*nombre_de_coins_polygone)(struct ConvertisseuseExportPolyMesh *, uint64_t);

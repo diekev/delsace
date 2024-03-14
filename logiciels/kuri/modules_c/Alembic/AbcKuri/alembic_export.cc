@@ -639,25 +639,34 @@ static std::vector<int> donne_index_points_par_polygone(TypeConvertisseuse *conv
 
 /* Construit l'indexage de correction pour que les données des coins sont dans la bon ordre
  * pour Alembic.
- * À FAIRE : paramétrise
- * typedef enum eAbcIndexagePolygone {
- *     HORAIRE,
- *     ANTIHORAIRE,
- * } eAbcIndexagePolygone;
  */
 static std::vector<int> construit_indexage_coins_polygones(std::vector<int> const &face_counts,
-                                                           const size_t nombre_de_coins)
+                                                           const size_t nombre_de_coins,
+                                                           eAbcIndexagePolygone const indexage)
 {
     std::vector<int> indexage_coins_polygones;
     indexage_coins_polygones.resize(nombre_de_coins);
 
-    auto index_alembic = 0;
-    for (size_t i = 0; i < face_counts.size(); i++) {
-        auto nombre_de_coins_polygone = face_counts[i];
+    if (indexage == ABC_INDEXAGE_POLYGONE_HORAIRE) {
+        auto index_alembic = 0;
+        for (size_t i = 0; i < face_counts.size(); i++) {
+            auto nombre_de_coins_polygone = face_counts[i];
 
-        auto index_source = index_alembic + nombre_de_coins_polygone - 1;
-        for (size_t j = 0; j < nombre_de_coins_polygone; j++) {
-            indexage_coins_polygones[static_cast<size_t>(index_alembic++)] = index_source--;
+            auto index_source = index_alembic;
+            for (size_t j = 0; j < nombre_de_coins_polygone; j++) {
+                indexage_coins_polygones[static_cast<size_t>(index_alembic++)] = index_source++;
+            }
+        }
+    }
+    else {
+        auto index_alembic = 0;
+        for (size_t i = 0; i < face_counts.size(); i++) {
+            auto nombre_de_coins_polygone = face_counts[i];
+
+            auto index_source = index_alembic + nombre_de_coins_polygone - 1;
+            for (size_t j = 0; j < nombre_de_coins_polygone; j++) {
+                indexage_coins_polygones[static_cast<size_t>(index_alembic++)] = index_source--;
+            }
         }
     }
 
@@ -697,6 +706,15 @@ static Imath::Box3d donne_limites_géométrique(TypeConvertisseuse *convertisseu
                         Imath::V3d(double(max[0]), double(max[1]), double(max[2])));
 }
 
+static eAbcIndexagePolygone donne_indexage_polygone(ConvertisseuseExportPolyMesh *convertisseuse)
+{
+    if (!convertisseuse->donne_indexage_polygone) {
+        return ABC_INDEXAGE_POLYGONE_ANTIHORAIRE;
+    }
+
+    return convertisseuse->donne_indexage_polygone(convertisseuse);
+}
+
 static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
                           TableAttributsExportés *&table_attributs,
                           ConvertisseuseExportPolyMesh *convertisseuse)
@@ -711,7 +729,7 @@ static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
                                                                                nombre_de_coins);
 
     const std::vector<int> indexage_coins_polygones = construit_indexage_coins_polygones(
-        face_counts, nombre_de_coins);
+        face_counts, nombre_de_coins, donne_indexage_polygone(convertisseuse));
 
     const std::vector<int> face_indices = donne_index_points_par_polygone(
         convertisseuse, face_counts, nombre_de_coins);
