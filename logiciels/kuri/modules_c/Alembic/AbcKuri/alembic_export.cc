@@ -860,11 +860,65 @@ static void écris_données(AbcGeom::OCurves & /*o_curves*/,
     // À FAIRE
 }
 
-static void écris_données(AbcGeom::OFaceSet & /*o_faceset*/,
-                          TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportFaceSet * /*convertisseuse*/)
+static std::vector<int> donne_groupe_polygone(ConvertisseuseExportFaceSet *convertisseuse)
 {
-    // À FAIRE
+    if (!convertisseuse->nombre_de_polygones || !convertisseuse->donne_index_polygone) {
+        return {};
+    }
+
+    auto taille = convertisseuse->nombre_de_polygones(convertisseuse);
+    std::vector<int> résultat(taille);
+
+    if (convertisseuse->remplis_index_polygones) {
+        convertisseuse->remplis_index_polygones(convertisseuse, résultat.data());
+    }
+    else {
+        for (auto i = 0ul; i < taille; ++i) {
+            résultat[i] = convertisseuse->donne_index_polygone(convertisseuse, int(i));
+        }
+    }
+
+    return résultat;
+}
+
+static AbcGeom::FaceSetExclusivity donne_exclusivité_groupe(
+    ConvertisseuseExportFaceSet *convertisseuse)
+{
+    if (!convertisseuse->donne_exclusivite_polygones) {
+        /* Valeur défaut Alembic. */
+        return AbcGeom::FaceSetExclusivity::kFaceSetNonExclusive;
+    }
+
+    auto exclusité = convertisseuse->donne_exclusivite_polygones(convertisseuse);
+    switch (exclusité) {
+        case ABC_EXCLUSIVITE_POLYGONE_EXCLUSIVE:
+        {
+            return AbcGeom::FaceSetExclusivity::kFaceSetExclusive;
+        }
+        case ABC_EXCLUSIVITE_POLYGONE_NON_EXCLUSIVE:
+        {
+            return AbcGeom::FaceSetExclusivity::kFaceSetNonExclusive;
+        }
+    }
+    /* Valeur défaut Alembic. */
+    return AbcGeom::FaceSetExclusivity::kFaceSetNonExclusive;
+}
+
+static void écris_données(AbcGeom::OFaceSet &o_faceset,
+                          TableAttributsExportés *& /*table_attributs*/,
+                          ConvertisseuseExportFaceSet *convertisseuse)
+{
+    const std::vector<int> face_indices = donne_groupe_polygone(convertisseuse);
+    if (face_indices.empty()) {
+        return;
+    }
+
+    AbcGeom::OFaceSetSchema::Sample sample;
+    sample.setFaces(face_indices);
+
+    auto &schema = o_faceset.getSchema();
+    schema.setFaceExclusivity(donne_exclusivité_groupe(convertisseuse));
+    schema.set(sample);
 }
 
 static void écris_données(AbcGeom::OLight & /*o_light*/,

@@ -586,8 +586,27 @@ struct ConvertisseuseExportXform {
     void *donnees;
 };
 
+typedef enum eAbcExclusiviteGroupePolygone {
+    ABC_EXCLUSIVITE_POLYGONE_EXCLUSIVE,
+    ABC_EXCLUSIVITE_POLYGONE_NON_EXCLUSIVE,
+} eAbcExclusiviteGroupePolygone;
+
 struct ConvertisseuseExportFaceSet {
     void *donnees;
+
+    /** Doit retourner l'exclusivité des polygones dans ce groupe. */
+    enum eAbcExclusiviteGroupePolygone (*donne_exclusivite_polygones)(
+        struct ConvertisseuseExportFaceSet *);
+
+    /** Doit retourner le nombre de polygones dans groupe. */
+    uint64_t (*nombre_de_polygones)(struct ConvertisseuseExportFaceSet *);
+
+    /** Doit retourner l'index effectif du polygone pour l'index dans le groupe. */
+    int (*donne_index_polygone)(struct ConvertisseuseExportFaceSet *, int index);
+
+    /** Optionnel. Doit remplir tous les index des polygones d'un coup. Le tampon contient de
+     * l'espace pour nombre_de_polygones de polygones. */
+    void (*remplis_index_polygones)(struct ConvertisseuseExportFaceSet *, int *);
 };
 
 struct ConvertisseuseExportLumiere {
