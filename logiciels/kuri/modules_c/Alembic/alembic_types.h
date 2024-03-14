@@ -511,6 +511,48 @@ struct ConvertisseuseExportPolyMesh {
 
 struct ConvertisseuseExportSubD {
     void *donnees;
+
+    uint64_t (*nombre_de_points)(struct ConvertisseuseExportSubD *);
+    void (*point_pour_index)(
+        struct ConvertisseuseExportSubD *, uint64_t, float *, float *, float *);
+
+    enum eAbcIndexagePolygone (*donne_indexage_polygone)(struct ConvertisseuseExportSubD *);
+
+    uint64_t (*nombre_de_polygones)(struct ConvertisseuseExportSubD *);
+    int (*nombre_de_coins_polygone)(struct ConvertisseuseExportSubD *, uint64_t);
+
+    void (*coins_pour_polygone)(struct ConvertisseuseExportSubD *, uint64_t, int *);
+
+    /** Optionnel, doit fournir les limites géométriques du maillage. Si absent, les limites seront
+     * calculer selon les points. \a r_min et \a r_max pointent vers des float[3]. */
+    void (*donne_limites_geometriques)(struct ConvertisseuseExportSubD *,
+                                       float *r_min,
+                                       float *r_max);
+
+    /** Si ce rappel est présent, les attributs sont exportés, et ce rappel doit initialiser
+     * l'exportrice d'attributs. */
+    void (*initialise_exportrice_attribut)(struct ConvertisseuseExportSubD *,
+                                           struct AbcExportriceAttribut *);
+
+    /** Doit retourner un pointeur vers l'attribut standard pour les UVs du maillage ainsi que les
+     * métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `VEC2`, l'attribut
+     * ne sera pas exporté comme attribut standard.
+     */
+    void *(*donne_attribut_standard_uv)(struct ConvertisseuseExportSubD *,
+                                        char **r_nom,
+                                        int64_t *r_taille_nom,
+                                        enum eAbcDomaineAttribut *r_domaine,
+                                        enum eTypeDoneesAttributAbc *r_type_des_donnees);
+
+    /** Doit retourner un pointeur vers l'attribut standard pour la vélocité du maillage ainsi que
+     * les métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `VEC3`, et le
+     * domaine `POINT`, l'attribut ne sera pas exporté comme attribut standard.
+     */
+    void *(*donne_attribut_standard_velocite)(struct ConvertisseuseExportSubD *,
+                                              char **r_nom,
+                                              int64_t *r_taille_nom,
+                                              enum eAbcDomaineAttribut *r_domaine,
+                                              enum eTypeDoneesAttributAbc *r_type_des_donnees);
 };
 
 struct ConvertisseuseExportPoints {

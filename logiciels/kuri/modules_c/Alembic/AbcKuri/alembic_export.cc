@@ -416,11 +416,12 @@ struct AttributsStandardPolyMesh {
     std::vector<Imath::V3f> normaux{};
 };
 
+template <typename TypeConvertisseuse, typename TypeAttributsStandard>
 static void donne_attribut_standard_uv(AbcExportriceAttribut *exportrice,
                                        InformationsDomaines const &informations_domaines,
-                                       AttributsStandardPolyMesh &attributs_standard_poly_mesh,
+                                       TypeAttributsStandard &attributs_standard_poly_mesh,
                                        std::vector<DonnéesÉcritureAttribut> &attributs_standards,
-                                       ConvertisseuseExportPolyMesh *convertisseuse)
+                                       TypeConvertisseuse *convertisseuse)
 {
     auto opt_uv = donne_attribut_standard(
         ATTRIBUT_TYPE_VEC2_R32, convertisseuse, convertisseuse->donne_attribut_standard_uv);
@@ -706,7 +707,8 @@ static Imath::Box3d donne_limites_géométrique(TypeConvertisseuse *convertisseu
                         Imath::V3d(double(max[0]), double(max[1]), double(max[2])));
 }
 
-static eAbcIndexagePolygone donne_indexage_polygone(ConvertisseuseExportPolyMesh *convertisseuse)
+template <typename TypeConvertisseuse>
+static eAbcIndexagePolygone donne_indexage_polygone(TypeConvertisseuse *convertisseuse)
 {
     if (!convertisseuse->donne_indexage_polygone) {
         return ABC_INDEXAGE_POLYGONE_ANTIHORAIRE;
@@ -786,10 +788,111 @@ static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
     schema.set(sample);
 }
 
-static void écris_données(AbcGeom::OSubD & /*o_subd*/,
-                          TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportSubD * /*convertisseuse*/)
+struct AttributsStandardSubD {
+    DonnéesÉcritureAttribut données_uvs{};
+    std::vector<Imath::V2f> uvs{};
+    DonnéesÉcritureAttribut données_vélocité{};
+    std::vector<Imath::V3f> vélocité{};
+};
+
+static std::optional<AttributsStandardSubD> écris_attributs(
+    AbcGeom::OSubD &o_subd,
+    TableAttributsExportés *&table_attributs,
+    ConvertisseuseExportSubD *convertisseuse,
+    InformationsDomaines const &informations_domaines)
 {
+    if (!convertisseuse->initialise_exportrice_attribut) {
+        return {};
+    }
+
+    AbcExportriceAttribut exportrice;
+    convertisseuse->initialise_exportrice_attribut(convertisseuse, &exportrice);
+
+    auto &schema = o_subd.getSchema();
+
+    if (!table_attributs) {
+        table_attributs = new TableAttributsExportés;
+        table_attributs->prop = schema.getArbGeomParams();
+    }
+
+    AttributsStandardSubD résultat{};
+    std::vector<DonnéesÉcritureAttribut> attributs_standards;
+
+    /* À FAIRE(subd) : creases, etc. */
+    donne_attribut_standard_uv(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+    donne_attribut_standard_vélocité(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+
+    écris_attributs(&exportrice,
+                    convertisseuse->donnees,
+                    table_attributs,
+                    informations_domaines,
+                    attributs_standards);
+
+    return résultat;
+}
+
+static void écris_données(AbcGeom::OSubD &o_subd,
+                          TableAttributsExportés *&table_attributs,
+                          ConvertisseuseExportSubD *convertisseuse)
+{
+    std::vector<Imath::V3f> positions = donne_positions(convertisseuse);
+    if (positions.empty()) {
+        return;
+    }
+
+    size_t nombre_de_coins = 0;
+    const std::vector<int> face_counts = donne_compte_de_sommets_par_polygones(convertisseuse,
+                                                                               nombre_de_coins);
+
+    const std::vector<int> indexage_coins_polygones = construit_indexage_coins_polygones(
+        face_counts, nombre_de_coins, donne_indexage_polygone(convertisseuse));
+
+    const std::vector<int> face_indices = donne_index_points_par_polygone(
+        convertisseuse, face_counts, nombre_de_coins);
+
+    InformationsDomaines informations_domaines;
+    informations_domaines.type_objet = eTypeObjetAbc::POLY_MESH;
+    informations_domaines.supporte_domaine[OBJET] = true;
+    informations_domaines.supporte_domaine[POINT] = true;
+    informations_domaines.supporte_domaine[PRIMITIVE] = true;
+    informations_domaines.supporte_domaine[POINT_PRIMITIVE] = true;
+    informations_domaines.indexage_domaine[POINT_PRIMITIVE] = indexage_coins_polygones;
+    informations_domaines.taille_domaine[OBJET] = 1;
+    informations_domaines.taille_domaine[POINT] = int(positions.size());
+    informations_domaines.taille_domaine[PRIMITIVE] = int(face_counts.size());
+    informations_domaines.taille_domaine[POINT_PRIMITIVE] = int(nombre_de_coins);
+
+    auto opt_attr_std = écris_attributs(
+        o_subd, table_attributs, convertisseuse, informations_domaines);
+
+    /* Exporte vers Alembic */
+    auto &schema = o_subd.getSchema();
+
+    AbcGeom::OSubDSchema::Sample sample;
+    sample.setPositions(positions);
+    sample.setFaceCounts(face_counts);
+    sample.setFaceIndices(face_indices);
+
+    if (opt_attr_std.has_value()) {
+        if (!opt_attr_std->vélocité.empty()) {
+            sample.setVelocities(opt_attr_std->vélocité);
+        }
+
+        if (!opt_attr_std->uvs.empty()) {
+            AbcGeom::OV2fGeomParam::Sample uvs_sample;
+            uvs_sample.setVals(opt_attr_std->uvs);
+            uvs_sample.setScope(
+                donne_domaine_pour_alembic(opt_attr_std->données_uvs.domaine, POLY_MESH));
+
+            sample.setUVs(uvs_sample);
+        }
+    }
+
+    sample.setSelfBounds(donne_limites_géométrique(convertisseuse, positions));
+
+    schema.set(sample);
 }
 
 static void écris_données(AbcMaterial::OMaterial &omateriau,
