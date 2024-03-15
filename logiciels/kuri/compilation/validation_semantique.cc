@@ -6698,8 +6698,6 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
     auto type_de_donnees = type_expression_type->comme_type_type_de_données();
     auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
 
-    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
-    // via un membre
     if (!type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type_connu);
     }
