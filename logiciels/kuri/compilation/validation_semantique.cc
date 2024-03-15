@@ -3909,7 +3909,6 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                     });
             }
 
-            m_compilatrice.gestionnaire_code->requiers_typage(m_espace, fonction->corps);
             return Attente::sur_déclaration(fonction->corps);
         }
 
@@ -4151,7 +4150,6 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                     });
             }
 
-            m_compilatrice.gestionnaire_code->requiers_typage(m_espace, fonction->corps);
             return Attente::sur_déclaration(fonction->corps);
         }
 
