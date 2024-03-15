@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
+#    include <string>
 extern "C" {
 typedef unsigned short r16;
 #else
@@ -760,12 +761,45 @@ struct ConvertisseuseExportLumiere {
                                       struct AbcExportriceOperationSenseur *);
 };
 
+typedef struct AbcChaine {
+    char *caractères;
+    int64_t taille;
+
+#ifdef __cplusplus
+    std::string vers_std_string() const
+    {
+        if (!caractères) {
+            return "";
+        }
+        return std::string(caractères, size_t(taille));
+    }
+#endif
+} AbcChaine;
+
+typedef struct AbcExportriceGrapheMateriau {
+    void (*ajoute_noeud)(struct AbcExportriceGrapheMateriau *,
+                         struct AbcChaine *,
+                         struct AbcChaine *);
+
+    void (*ajoute_connexion)(struct AbcExportriceGrapheMateriau *exportrice,
+                             struct AbcChaine *nom_noeud_entrée,
+                             struct AbcChaine *nom_entrée,
+                             struct AbcChaine *nom_noeud_sortie,
+                             struct AbcChaine *nom_sortie);
+
+    void (*definis_noeud_sortie_graphe)(struct AbcExportriceGrapheMateriau *exportrice,
+                                        struct AbcChaine *);
+} AbcExportriceGrapheMateriau;
+
 struct ConvertisseuseExportMateriau {
     void *donnees;
 
     void (*nom_cible)(struct ConvertisseuseExportMateriau *, const char **, uint64_t *);
     void (*type_nuanceur)(struct ConvertisseuseExportMateriau *, const char **, uint64_t *);
     void (*nom_nuanceur)(struct ConvertisseuseExportMateriau *, const char **, uint64_t *);
+
+    void (*remplis_graphe)(struct ConvertisseuseExportMateriau *,
+                           struct AbcExportriceGrapheMateriau *);
 
     void (*nom_sortie_graphe)(struct ConvertisseuseExportMateriau *, const char **, uint64_t *);
 

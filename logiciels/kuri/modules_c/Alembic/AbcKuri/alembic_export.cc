@@ -895,6 +895,76 @@ static void écris_données(AbcGeom::OSubD &o_subd,
     schema.set(sample);
 }
 
+#define RETOURNE_SI_NUL(valeur)                                                                   \
+    do {                                                                                          \
+        if (valeur == nullptr) {                                                                  \
+            return;                                                                               \
+        }                                                                                         \
+    } while (0)
+
+struct AbcExportriceGrapheMateriauImpl : public AbcExportriceGrapheMateriau {
+  private:
+    AbcMaterial::OMaterialSchema &m_schema;
+    std::string m_cible = "";
+    std::string m_type_nuanceur = "";
+    std::vector<std::string> m_noms_noeuds{};
+
+    static void ajoute_noeud_impl(AbcExportriceGrapheMateriau *exportrice,
+                                  AbcChaine *nom,
+                                  AbcChaine *type)
+    {
+        RETOURNE_SI_NUL(nom);
+        RETOURNE_SI_NUL(type);
+
+        auto impl = static_cast<AbcExportriceGrapheMateriauImpl *>(exportrice);
+        impl->m_schema.addNetworkNode(
+            nom->vers_std_string(), impl->m_cible, type->vers_std_string());
+        impl->m_noms_noeuds.push_back(nom->vers_std_string());
+    }
+
+    static void ajoute_connexion_impl(AbcExportriceGrapheMateriau *exportrice,
+                                      AbcChaine *nom_noeud_entrée,
+                                      AbcChaine *nom_entrée,
+                                      AbcChaine *nom_noeud_sortie,
+                                      AbcChaine *nom_sortie)
+    {
+        RETOURNE_SI_NUL(nom_noeud_entrée);
+        RETOURNE_SI_NUL(nom_entrée);
+        RETOURNE_SI_NUL(nom_noeud_sortie);
+        RETOURNE_SI_NUL(nom_sortie);
+
+        auto impl = static_cast<AbcExportriceGrapheMateriauImpl *>(exportrice);
+        impl->m_schema.setNetworkNodeConnection(nom_noeud_entrée->vers_std_string(),
+                                                nom_entrée->vers_std_string(),
+                                                nom_noeud_sortie->vers_std_string(),
+                                                nom_sortie->vers_std_string());
+    }
+
+    static void definis_noeud_sortie_graphe_impl(AbcExportriceGrapheMateriau *exportrice,
+                                                 AbcChaine *nom_sortie)
+    {
+        RETOURNE_SI_NUL(nom_sortie);
+        auto impl = static_cast<AbcExportriceGrapheMateriauImpl *>(exportrice);
+        impl->m_schema.setNetworkTerminal(
+            impl->m_cible, impl->m_type_nuanceur, nom_sortie->vers_std_string());
+    }
+
+  public:
+    AbcExportriceGrapheMateriauImpl(AbcMaterial::OMaterialSchema &schema,
+                                    std::string const &cible,
+                                    std::string const &type_nuanceur)
+        : m_schema(schema), m_cible(cible), m_type_nuanceur(type_nuanceur)
+    {
+        ajoute_noeud = ajoute_noeud_impl;
+        ajoute_connexion = ajoute_connexion_impl;
+    }
+
+    const std::vector<std::string> &donne_noms_noeuds_créés() const
+    {
+        return m_noms_noeuds;
+    }
+};
+
 static void écris_données(AbcMaterial::OMaterial &omateriau,
                           TableAttributsExportés *& /*table_attributs*/,
                           ConvertisseuseExportMateriau *convertisseuse)
@@ -907,46 +977,19 @@ static void écris_données(AbcMaterial::OMaterial &omateriau,
 
     schema.setShader(cible, type_nuanceur, nom_nuanceur);
 
-    /* Crée les noeuds. */
-    const auto nombre_de_noeuds = convertisseuse->nombre_de_noeuds(convertisseuse);
+    // À FAIRE: paramètre du nuanceur et des noeuds.
 
-    for (size_t i = 0; i < nombre_de_noeuds; i++) {
-        const auto nom_noeud = string_depuis_rappel(convertisseuse, i, convertisseuse->nom_noeud);
-        const auto type_noeud = string_depuis_rappel(
-            convertisseuse, i, convertisseuse->type_noeud);
-        schema.addNetworkNode(nom_noeud, cible, type_noeud);
+    AbcExportriceGrapheMateriauImpl exportrice_graphe(schema, cible, type_nuanceur);
+    convertisseuse->remplis_graphe(convertisseuse, &exportrice_graphe);
+
+    auto const &noms_noeuds = exportrice_graphe.donne_noms_noeuds_créés();
+    if (noms_noeuds.empty()) {
+        return;
     }
 
-    /* Crée les connexions entre les noeuds. */
-    for (size_t i = 0; i < nombre_de_noeuds; i++) {
-        const auto nom_noeud = string_depuis_rappel(convertisseuse, i, convertisseuse->nom_noeud);
-
-        const auto nombre_entree = convertisseuse->nombre_entrees_noeud(convertisseuse, i);
-
-        for (size_t e = 0; e < nombre_entree; e++) {
-            const auto nom_entree = string_depuis_rappel(
-                convertisseuse, i, e, convertisseuse->nom_entree_noeud);
-
-            const auto nombre_de_connexion = convertisseuse->nombre_de_connexions(
-                convertisseuse, i, e);
-
-            for (size_t c = 0; c < nombre_de_connexion; c++) {
-                const auto nom_noeud_connecte = string_depuis_rappel(
-                    convertisseuse, i, e, c, convertisseuse->nom_noeud_connexion);
-                const auto nom_sortie = string_depuis_rappel(
-                    convertisseuse, i, e, c, convertisseuse->nom_connexion_entree);
-                schema.setNetworkNodeConnection(
-                    nom_noeud, nom_entree, nom_noeud_connecte, nom_sortie);
-            }
-        }
-    }
-
-    schema.setNetworkTerminal(
-        cible,
-        type_nuanceur,
-        string_depuis_rappel(convertisseuse, convertisseuse->nom_sortie_graphe));
-
-    // À FAIRE: paramètre du noeud
+    //    for (const auto &nom_noeud : noms_noeuds) {
+    //        auto param = schema.getNetworkNodeParameters(nom_noeud);
+    //    }
 }
 
 struct AbcExportriceEchantillonCameraImpl : public AbcExportriceEchantillonCamera {
