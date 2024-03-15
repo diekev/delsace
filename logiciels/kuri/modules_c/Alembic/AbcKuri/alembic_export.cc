@@ -949,76 +949,253 @@ static void écris_données(AbcMaterial::OMaterial &omateriau,
     // À FAIRE: paramètre du noeud
 }
 
+struct AbcExportriceEchantillonCameraImpl : public AbcExportriceEchantillonCamera {
+  private:
+    AbcGeom::CameraSample &m_échantillon;
+
+    static void definis_longueur_focale_impl(AbcExportriceEchantillonCamera *exportrice,
+                                             AbcMillimetre *longueur)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (longueur) {
+            impl->m_échantillon.setFocalLength(longueur->valeur);
+        }
+    }
+
+    static void definis_ouverture_impl(AbcExportriceEchantillonCamera *exportrice,
+                                       AbcCentimetre *horizontale,
+                                       AbcCentimetre *verticale)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (horizontale) {
+            impl->m_échantillon.setHorizontalAperture(horizontale->valeur);
+        }
+        if (verticale) {
+            impl->m_échantillon.setVerticalAperture(verticale->valeur);
+        }
+    }
+
+    static void definis_decalage_senseur_impl(AbcExportriceEchantillonCamera *exportrice,
+                                              AbcCentimetre *horizontal,
+                                              AbcCentimetre *vertical)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (horizontal) {
+            impl->m_échantillon.setHorizontalFilmOffset(horizontal->valeur);
+        }
+        if (vertical) {
+            impl->m_échantillon.setVerticalFilmOffset(vertical->valeur);
+        }
+    }
+
+    static void definis_aspect_horizontal_sur_vertical_impl(
+        AbcExportriceEchantillonCamera *exportrice, double aspect)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        impl->m_échantillon.setLensSqueezeRatio(aspect);
+    }
+
+    /* Définis l'extension (overscan), en pourcentage relatif, de l'image. Les valeurs sont à
+     * donner dans l'ordre : gauche, droite, haut, bas. */
+    static void definis_extension_image_impl(AbcExportriceEchantillonCamera *exportrice,
+                                             AbcPourcentage *gauche,
+                                             AbcPourcentage *droite,
+                                             AbcPourcentage *haut,
+                                             AbcPourcentage *bas)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (gauche) {
+            impl->m_échantillon.setOverScanLeft(gauche->valeur);
+        }
+        if (droite) {
+            impl->m_échantillon.setOverScanRight(droite->valeur);
+        }
+        if (haut) {
+            impl->m_échantillon.setOverScanTop(haut->valeur);
+        }
+        if (bas) {
+            impl->m_échantillon.setOverScanBottom(bas->valeur);
+        }
+    }
+
+    /* Définis l'aspect (largeur / hauteur). */
+    static void definis_fstop_impl(AbcExportriceEchantillonCamera *exportrice, double fstop)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        impl->m_échantillon.setFStop(fstop);
+    }
+
+    /* Définis la distance de la cible de la caméra, ce qui est focalisé. */
+    static void definis_distance_de_la_cible_impl(AbcExportriceEchantillonCamera *exportrice,
+                                                  AbcCentimetre *distance)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (distance) {
+            impl->m_échantillon.setFocusDistance(distance->valeur);
+        }
+    }
+
+    /* Définis le temps, relatif à l'image, de l'ouverture et de la fermeture de l'obturateur. */
+    static void definis_temps_obturation_impl(AbcExportriceEchantillonCamera *exportrice,
+                                              AbcTempsSeconde *ouverture,
+                                              AbcTempsSeconde *femeture)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (ouverture) {
+            impl->m_échantillon.setShutterOpen(ouverture->valeur);
+        }
+        if (femeture) {
+            impl->m_échantillon.setShutterClose(femeture->valeur);
+        }
+    }
+
+    /* Définis la distance de visibilté du premier et de l'arrière plan respectivement. */
+    static void definis_avant_arriere_plan_impl(AbcExportriceEchantillonCamera *exportrice,
+                                                AbcCentimetre *premier_plan,
+                                                AbcCentimetre *arriere_plan)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (premier_plan) {
+            impl->m_échantillon.setNearClippingPlane(premier_plan->valeur);
+        }
+        if (arriere_plan) {
+            impl->m_échantillon.setFarClippingPlane(arriere_plan->valeur);
+        }
+    }
+
+  public:
+    AbcExportriceEchantillonCameraImpl(AbcGeom::CameraSample &échantillon)
+        : m_échantillon(échantillon)
+    {
+        definis_longueur_focale = definis_longueur_focale_impl;
+        definis_ouverture = definis_ouverture_impl;
+        definis_decalage_senseur = definis_decalage_senseur_impl;
+        definis_aspect_horizontal_sur_vertical = definis_aspect_horizontal_sur_vertical_impl;
+        definis_extension_image = definis_extension_image_impl;
+        definis_fstop = definis_fstop_impl;
+        definis_distance_de_la_cible = definis_distance_de_la_cible_impl;
+        definis_temps_obturation = definis_temps_obturation_impl;
+        definis_avant_arriere_plan = definis_avant_arriere_plan_impl;
+    }
+};
+
+struct AbcExportriceOperationSenseurImpl : public AbcExportriceOperationSenseur {
+  private:
+    AbcGeom::CameraSample &m_échantillon;
+
+    static void ajoute_translation_impl(AbcExportriceOperationSenseur *exportrice,
+                                        double *translation,
+                                        char *indice,
+                                        int64_t taille_indice)
+    {
+        auto impl = static_cast<AbcExportriceOperationSenseurImpl *>(exportrice);
+
+        std::string hint;
+        if (indice) {
+            hint = std::string(indice, size_t(taille_indice));
+        }
+
+        auto op = AbcGeom::FilmBackXformOp(AbcGeom::kTranslateFilmBackOperation, hint);
+        op.setTranslate(Abc::V2d(translation[0], translation[1]));
+
+        impl->m_échantillon.addOp(op);
+    }
+
+    static void ajoute_taille_impl(AbcExportriceOperationSenseur *exportrice,
+                                   double *taille,
+                                   char *indice,
+                                   int64_t taille_indice)
+    {
+        auto impl = static_cast<AbcExportriceOperationSenseurImpl *>(exportrice);
+
+        std::string hint;
+        if (indice) {
+            hint = std::string(indice, size_t(taille_indice));
+        }
+
+        auto op = AbcGeom::FilmBackXformOp(AbcGeom::kScaleFilmBackOperation, hint);
+        op.setScale(Abc::V2d(taille[0], taille[1]));
+
+        impl->m_échantillon.addOp(op);
+    }
+
+    static void ajoute_matrice_impl(AbcExportriceOperationSenseur *exportrice,
+                                    double *m,
+                                    char *indice,
+                                    int64_t taille_indice)
+    {
+        auto impl = static_cast<AbcExportriceOperationSenseurImpl *>(exportrice);
+
+        std::string hint;
+        if (indice) {
+            hint = std::string(indice, size_t(taille_indice));
+        }
+
+        auto op = AbcGeom::FilmBackXformOp(AbcGeom::kMatrixFilmBackOperation, hint);
+        op.setMatrix(Abc::M33d(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]));
+
+        impl->m_échantillon.addOp(op);
+    }
+
+  public:
+    AbcExportriceOperationSenseurImpl(AbcGeom::CameraSample &échantillon)
+        : m_échantillon(échantillon)
+    {
+        ajoute_matrice = ajoute_matrice_impl;
+        ajoute_taille = ajoute_taille_impl;
+        ajoute_translation = ajoute_translation_impl;
+    }
+};
+
 static void écris_données(AbcGeom::OCamera &o_camera,
                           TableAttributsExportés *& /*table_attributs*/,
                           ConvertisseuseExportCamera *convertisseuse)
 {
-    AbcGeom::CameraSample échantillon;
-#if 0
-    //! Create a default sample and set the defaults so that they
-    //! calculate the provided screen window.
-    CameraSample( double iTop, double iBottom, double iLeft, double iRight );
-#endif
+    if (!convertisseuse->remplis_donnees_echantillon) {
+        return;
+    }
 
-#define DEFINIS_VALEUR_DOUBLE(nom_rappel, nom_fonction_abc)                                       \
-    do {                                                                                          \
-        if (convertisseuse->nom_rappel) {                                                         \
-            échantillon.nom_fonction_abc(convertisseuse->nom_rappel(convertisseuse));             \
-        }                                                                                         \
-    } while (0)
+    double fenêtre_haut = 1.0;
+    double fenêtre_bas = -1.0;
+    double fenêtre_gauche = -1.0;
+    double fenêtre_droite = 1.0;
+    if (convertisseuse->donne_taille_fenetre) {
+        convertisseuse->donne_taille_fenetre(
+            convertisseuse, &fenêtre_haut, &fenêtre_bas, &fenêtre_gauche, &fenêtre_droite);
+    }
 
-#define DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, nom_struct)                           \
-    do {                                                                                          \
-        if (convertisseuse->nom_rappel) {                                                         \
-            nom_struct cm = {0.0};                                                                \
-            convertisseuse->nom_rappel(convertisseuse, &cm);                                      \
-            échantillon.nom_fonction_abc(cm.valeur);                                              \
-        }                                                                                         \
-    } while (0)
+    auto échantillon = AbcGeom::CameraSample(
+        fenêtre_haut, fenêtre_bas, fenêtre_gauche, fenêtre_droite);
 
-#define DEFINIS_VALEUR_MM(nom_rappel, nom_fonction_abc)                                           \
-    DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, AbcMillimetre)
+    /* Données principales. */
+    AbcExportriceEchantillonCameraImpl exportrice_échantillon(échantillon);
+    convertisseuse->remplis_donnees_echantillon(convertisseuse, &exportrice_échantillon);
 
-#define DEFINIS_VALEUR_CM(nom_rappel, nom_fonction_abc)                                           \
-    DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, AbcCentimetre)
+    /* Limites de la hiérarchie fille. */
+    if (convertisseuse->donne_limites_geometriques_enfant) {
+        float min[3] = {std::numeric_limits<float>::max(),
+                        std::numeric_limits<float>::max(),
+                        std::numeric_limits<float>::max()};
 
-#define DEFINIS_VALEUR_SECONDE(nom_rappel, nom_fonction_abc)                                      \
-    DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, AbcTempsSeconde)
+        float max[3] = {-std::numeric_limits<float>::max(),
+                        -std::numeric_limits<float>::max(),
+                        -std::numeric_limits<float>::max()};
 
-#define DEFINIS_VALEUR_POURCENT(nom_rappel, nom_fonction_abc)                                     \
-    DEFINIS_VALEUR_STRUCT(nom_rappel, nom_fonction_abc, AbcPourcentage)
+        convertisseuse->donne_limites_geometriques_enfant(convertisseuse, min, max);
+        auto limites = Imath::Box3d(Imath::V3d(double(min[0]), double(min[1]), double(min[2])),
+                                    Imath::V3d(double(max[0]), double(max[1]), double(max[2])));
+        échantillon.setChildBounds(limites);
+    }
 
-    DEFINIS_VALEUR_MM(donne_longueur_focale, setFocalLength);
-    DEFINIS_VALEUR_CM(donne_ouverture_horizontale, setHorizontalAperture);
-    DEFINIS_VALEUR_CM(donne_ouverture_verticale, setHorizontalAperture);
-    DEFINIS_VALEUR_CM(donne_décalage_pellicule_horizontal, setHorizontalFilmOffset);
-    DEFINIS_VALEUR_CM(donne_décalage_pellicule_vertical, setHorizontalFilmOffset);
-    DEFINIS_VALEUR_DOUBLE(donne_aspect_horizontal_sur_vertical, setLensSqueezeRatio);
-    DEFINIS_VALEUR_POURCENT(donne_pourcent_extension_image_gauche, setOverScanLeft);
-    DEFINIS_VALEUR_POURCENT(donne_pourcent_extension_image_droite, setOverScanRight);
-    DEFINIS_VALEUR_POURCENT(donne_pourcent_extension_image_haut, setOverScanTop);
-    DEFINIS_VALEUR_POURCENT(donne_pourcent_extension_image_bas, setOverScanBottom);
-    DEFINIS_VALEUR_DOUBLE(donne_fstop, setFStop);
-    DEFINIS_VALEUR_CM(donne_distance_de_la_cible, setFocusDistance);
-    DEFINIS_VALEUR_SECONDE(donne_ouverture_obturateur, setShutterOpen);
-    DEFINIS_VALEUR_SECONDE(donne_fermeture_obturateur, setShutterClose);
-    DEFINIS_VALEUR_CM(donne_distance_premier_plan, setNearClippingPlane);
-    DEFINIS_VALEUR_CM(donne_distance_arriere_plan, setFarClippingPlane);
+    /* Opérations de transformation du senseur. */
+    if (convertisseuse->ajoute_operations_senseur) {
+        auto exportrice = AbcExportriceOperationSenseurImpl(échantillon);
+        convertisseuse->ajoute_operations_senseur(convertisseuse, &exportrice);
+    }
 
-#undef DEFINIS_VALEUR_POURCENT
-#undef DEFINIS_VALEUR_SECONDE
-#undef DEFINIS_VALEUR_CM
-#undef DEFINIS_VALEUR_MM
-#undef DEFINIS_VALEUR_DOUBLE
-
-#if 0
-    // À FAIRE(caméra) : opérations rièrefilm, limites géométriques enfant
-    void setChildBounds( const Abc::Box3d & iBounds )
-    { m_childBounds = iBounds; }
-
-    // add an op and return the index of the op in its op-stack
-    std::size_t addOp( FilmBackXformOp iOp );
-#endif
+    /* Écriture de l'échantillon. */
+    auto &schema = o_camera.getSchema();
+    schema.set(échantillon);
 }
 
 static void écris_données(AbcGeom::OCurves & /*o_curves*/,
