@@ -1147,14 +1147,9 @@ struct AbcExportriceOperationSenseurImpl : public AbcExportriceOperationSenseur 
     }
 };
 
-static void écris_données(AbcGeom::OCamera &o_camera,
-                          TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportCamera *convertisseuse)
+template <typename TypeConvertisseuse>
+static AbcGeom::CameraSample donne_échantillon_caméra(TypeConvertisseuse *convertisseuse)
 {
-    if (!convertisseuse->remplis_donnees_echantillon) {
-        return;
-    }
-
     double fenêtre_haut = 1.0;
     double fenêtre_bas = -1.0;
     double fenêtre_gauche = -1.0;
@@ -1192,6 +1187,19 @@ static void écris_données(AbcGeom::OCamera &o_camera,
         auto exportrice = AbcExportriceOperationSenseurImpl(échantillon);
         convertisseuse->ajoute_operations_senseur(convertisseuse, &exportrice);
     }
+
+    return échantillon;
+}
+
+static void écris_données(AbcGeom::OCamera &o_camera,
+                          TableAttributsExportés *& /*table_attributs*/,
+                          ConvertisseuseExportCamera *convertisseuse)
+{
+    if (!convertisseuse->remplis_donnees_echantillon) {
+        return;
+    }
+
+    auto échantillon = donne_échantillon_caméra(convertisseuse);
 
     /* Écriture de l'échantillon. */
     auto &schema = o_camera.getSchema();
@@ -1266,11 +1274,19 @@ static void écris_données(AbcGeom::OFaceSet &o_faceset,
     schema.set(sample);
 }
 
-static void écris_données(AbcGeom::OLight & /*o_light*/,
+static void écris_données(AbcGeom::OLight &o_light,
                           TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportLumiere * /*convertisseuse*/)
+                          ConvertisseuseExportLumiere *convertisseuse)
 {
-    // À FAIRE
+    if (!convertisseuse->remplis_donnees_echantillon) {
+        return;
+    }
+
+    auto échantillon = donne_échantillon_caméra(convertisseuse);
+
+    /* Écriture de l'échantillon. */
+    auto &schema = o_light.getSchema();
+    schema.setCameraSample(échantillon);
 }
 
 static void écris_données(AbcGeom::ONuPatch & /*o_nupatch*/,

@@ -651,10 +651,6 @@ struct ConvertisseuseExportFaceSet {
     void (*remplis_index_polygones)(struct ConvertisseuseExportFaceSet *, int *);
 };
 
-struct ConvertisseuseExportLumiere {
-    void *donnees;
-};
-
 typedef struct AbcMillimetre {
     double valeur;
 } AbcMillimetre;
@@ -740,6 +736,27 @@ struct ConvertisseuseExportCamera {
 
     /** Optionnel. Ajoute des opérations de transformation pour le senseur de la caméra. */
     void (*ajoute_operations_senseur)(struct ConvertisseuseExportCamera *,
+                                      struct AbcExportriceOperationSenseur *);
+};
+
+struct ConvertisseuseExportLumiere {
+    void *donnees;
+
+    /** Optionnel. Doit donner la taille de la fenêtre dans l'ordre : haut, bas, gauche, droite. */
+    void (*donne_taille_fenetre)(
+        struct ConvertisseuseExportLumiere *, double *, double *, double *, double *);
+
+    /** Requis. Exporte les données de la caméra via une AbcExportriceEchantillonCamera. */
+    void (*remplis_donnees_echantillon)(struct ConvertisseuseExportLumiere *,
+                                        struct AbcExportriceEchantillonCamera *);
+
+    /** Optionnel. Doit fournir les limites géométriques de la caméra. */
+    void (*donne_limites_geometriques_enfant)(struct ConvertisseuseExportLumiere *,
+                                              float *r_min,
+                                              float *r_max);
+
+    /** Optionnel. Ajoute des opérations de transformation pour le senseur de la caméra. */
+    void (*ajoute_operations_senseur)(struct ConvertisseuseExportLumiere *,
                                       struct AbcExportriceOperationSenseur *);
 };
 
