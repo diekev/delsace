@@ -3750,21 +3750,29 @@ struct ConstructriceMembresTypeComposé {
 };
 
 static bool le_membre_référence_le_type_par_valeur(TypeCompose const *type_composé,
-                                                   NoeudExpression *expression_membre)
+                                                   NoeudDéclarationType *type_membre)
 {
-    if (type_composé == expression_membre->type) {
+    if (type_composé == type_membre) {
         return true;
     }
 
-    auto type_membre = expression_membre->type;
-    if (type_membre->est_type_tableau_fixe() &&
-        type_membre->comme_type_tableau_fixe()->type_pointé == type_composé) {
-        return true;
+    if (type_membre->est_type_tableau_fixe()) {
+        auto type_tableau = type_membre->comme_type_tableau_fixe();
+        return le_membre_référence_le_type_par_valeur(type_composé, type_tableau->type_pointé);
     }
 
-    // À FAIRE : type opaque, tableaux fixe multi-dimensionnel
+    if (type_membre->est_type_opaque()) {
+        auto type_opaque = type_membre->comme_type_opaque();
+        return le_membre_référence_le_type_par_valeur(type_composé, type_opaque->type_opacifié);
+    }
 
     return false;
+}
+
+static bool le_membre_référence_le_type_par_valeur(TypeCompose const *type_composé,
+                                                   NoeudExpression *expression_membre)
+{
+    return le_membre_référence_le_type_par_valeur(type_composé, expression_membre->type);
 }
 
 static void rapporte_erreur_type_membre_invalide(EspaceDeTravail *espace,
