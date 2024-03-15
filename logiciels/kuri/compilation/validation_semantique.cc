@@ -1217,12 +1217,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return CodeRetourValidation::Erreur;
             }
 
-            /* À FAIRE : remplace ceci par une attente dans le gestionnaire. */
-            m_compilatrice.gestionnaire_code->requiers_initialisation_type(m_espace, type);
-            auto entête = crée_entête_pour_initialisation_type(
-                type, m_tacheronne->assembleuse, m_compilatrice.typeuse);
+            if (!type->fonction_init) {
+                return Attente::sur_initialisation_type(type);
+            }
 
-            noeud->type = entête->type;
+            noeud->type = type->fonction_init->type;
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_DE:
