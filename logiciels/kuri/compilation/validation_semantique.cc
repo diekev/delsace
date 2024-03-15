@@ -1219,15 +1219,10 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             /* À FAIRE : remplace ceci par une attente dans le gestionnaire. */
             m_compilatrice.gestionnaire_code->requiers_initialisation_type(m_espace, type);
-            crée_entête_pour_initialisation_type(
+            auto entête = crée_entête_pour_initialisation_type(
                 type, m_tacheronne->assembleuse, m_compilatrice.typeuse);
 
-            auto types_entrees = kuri::tablet<Type *, 6>(1);
-            types_entrees[0] = m_compilatrice.typeuse.type_pointeur_pour(type);
-
-            auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees,
-                                                                      TypeBase::RIEN);
-            noeud->type = type_fonction;
+            noeud->type = entête->type;
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_DE:
