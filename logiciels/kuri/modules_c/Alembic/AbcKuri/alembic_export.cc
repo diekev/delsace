@@ -416,11 +416,12 @@ struct AttributsStandardPolyMesh {
     std::vector<Imath::V3f> normaux{};
 };
 
+template <typename TypeConvertisseuse, typename TypeAttributsStandard>
 static void donne_attribut_standard_uv(AbcExportriceAttribut *exportrice,
                                        InformationsDomaines const &informations_domaines,
-                                       AttributsStandardPolyMesh &attributs_standard_poly_mesh,
+                                       TypeAttributsStandard &attributs_standard_poly_mesh,
                                        std::vector<DonnéesÉcritureAttribut> &attributs_standards,
-                                       ConvertisseuseExportPolyMesh *convertisseuse)
+                                       TypeConvertisseuse *convertisseuse)
 {
     auto opt_uv = donne_attribut_standard(
         ATTRIBUT_TYPE_VEC2_R32, convertisseuse, convertisseuse->donne_attribut_standard_uv);
@@ -639,25 +640,34 @@ static std::vector<int> donne_index_points_par_polygone(TypeConvertisseuse *conv
 
 /* Construit l'indexage de correction pour que les données des coins sont dans la bon ordre
  * pour Alembic.
- * À FAIRE : paramétrise
- * typedef enum eAbcIndexagePolygone {
- *     HORAIRE,
- *     ANTIHORAIRE,
- * } eAbcIndexagePolygone;
  */
 static std::vector<int> construit_indexage_coins_polygones(std::vector<int> const &face_counts,
-                                                           const size_t nombre_de_coins)
+                                                           const size_t nombre_de_coins,
+                                                           eAbcIndexagePolygone const indexage)
 {
     std::vector<int> indexage_coins_polygones;
     indexage_coins_polygones.resize(nombre_de_coins);
 
-    auto index_alembic = 0;
-    for (size_t i = 0; i < face_counts.size(); i++) {
-        auto nombre_de_coins_polygone = face_counts[i];
+    if (indexage == ABC_INDEXAGE_POLYGONE_HORAIRE) {
+        auto index_alembic = 0;
+        for (size_t i = 0; i < face_counts.size(); i++) {
+            auto nombre_de_coins_polygone = face_counts[i];
 
-        auto index_source = index_alembic + nombre_de_coins_polygone - 1;
-        for (size_t j = 0; j < nombre_de_coins_polygone; j++) {
-            indexage_coins_polygones[static_cast<size_t>(index_alembic++)] = index_source--;
+            auto index_source = index_alembic;
+            for (size_t j = 0; j < nombre_de_coins_polygone; j++) {
+                indexage_coins_polygones[static_cast<size_t>(index_alembic++)] = index_source++;
+            }
+        }
+    }
+    else {
+        auto index_alembic = 0;
+        for (size_t i = 0; i < face_counts.size(); i++) {
+            auto nombre_de_coins_polygone = face_counts[i];
+
+            auto index_source = index_alembic + nombre_de_coins_polygone - 1;
+            for (size_t j = 0; j < nombre_de_coins_polygone; j++) {
+                indexage_coins_polygones[static_cast<size_t>(index_alembic++)] = index_source--;
+            }
         }
     }
 
@@ -697,6 +707,16 @@ static Imath::Box3d donne_limites_géométrique(TypeConvertisseuse *convertisseu
                         Imath::V3d(double(max[0]), double(max[1]), double(max[2])));
 }
 
+template <typename TypeConvertisseuse>
+static eAbcIndexagePolygone donne_indexage_polygone(TypeConvertisseuse *convertisseuse)
+{
+    if (!convertisseuse->donne_indexage_polygone) {
+        return ABC_INDEXAGE_POLYGONE_ANTIHORAIRE;
+    }
+
+    return convertisseuse->donne_indexage_polygone(convertisseuse);
+}
+
 static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
                           TableAttributsExportés *&table_attributs,
                           ConvertisseuseExportPolyMesh *convertisseuse)
@@ -711,7 +731,7 @@ static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
                                                                                nombre_de_coins);
 
     const std::vector<int> indexage_coins_polygones = construit_indexage_coins_polygones(
-        face_counts, nombre_de_coins);
+        face_counts, nombre_de_coins, donne_indexage_polygone(convertisseuse));
 
     const std::vector<int> face_indices = donne_index_points_par_polygone(
         convertisseuse, face_counts, nombre_de_coins);
@@ -768,11 +788,182 @@ static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
     schema.set(sample);
 }
 
-static void écris_données(AbcGeom::OSubD & /*o_subd*/,
-                          TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportSubD * /*convertisseuse*/)
+struct AttributsStandardSubD {
+    DonnéesÉcritureAttribut données_uvs{};
+    std::vector<Imath::V2f> uvs{};
+    DonnéesÉcritureAttribut données_vélocité{};
+    std::vector<Imath::V3f> vélocité{};
+};
+
+static std::optional<AttributsStandardSubD> écris_attributs(
+    AbcGeom::OSubD &o_subd,
+    TableAttributsExportés *&table_attributs,
+    ConvertisseuseExportSubD *convertisseuse,
+    InformationsDomaines const &informations_domaines)
 {
+    if (!convertisseuse->initialise_exportrice_attribut) {
+        return {};
+    }
+
+    AbcExportriceAttribut exportrice;
+    convertisseuse->initialise_exportrice_attribut(convertisseuse, &exportrice);
+
+    auto &schema = o_subd.getSchema();
+
+    if (!table_attributs) {
+        table_attributs = new TableAttributsExportés;
+        table_attributs->prop = schema.getArbGeomParams();
+    }
+
+    AttributsStandardSubD résultat{};
+    std::vector<DonnéesÉcritureAttribut> attributs_standards;
+
+    /* À FAIRE(subd) : creases, etc. */
+    donne_attribut_standard_uv(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+    donne_attribut_standard_vélocité(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+
+    écris_attributs(&exportrice,
+                    convertisseuse->donnees,
+                    table_attributs,
+                    informations_domaines,
+                    attributs_standards);
+
+    return résultat;
 }
+
+static void écris_données(AbcGeom::OSubD &o_subd,
+                          TableAttributsExportés *&table_attributs,
+                          ConvertisseuseExportSubD *convertisseuse)
+{
+    std::vector<Imath::V3f> positions = donne_positions(convertisseuse);
+    if (positions.empty()) {
+        return;
+    }
+
+    size_t nombre_de_coins = 0;
+    const std::vector<int> face_counts = donne_compte_de_sommets_par_polygones(convertisseuse,
+                                                                               nombre_de_coins);
+
+    const std::vector<int> indexage_coins_polygones = construit_indexage_coins_polygones(
+        face_counts, nombre_de_coins, donne_indexage_polygone(convertisseuse));
+
+    const std::vector<int> face_indices = donne_index_points_par_polygone(
+        convertisseuse, face_counts, nombre_de_coins);
+
+    InformationsDomaines informations_domaines;
+    informations_domaines.type_objet = eTypeObjetAbc::POLY_MESH;
+    informations_domaines.supporte_domaine[OBJET] = true;
+    informations_domaines.supporte_domaine[POINT] = true;
+    informations_domaines.supporte_domaine[PRIMITIVE] = true;
+    informations_domaines.supporte_domaine[POINT_PRIMITIVE] = true;
+    informations_domaines.indexage_domaine[POINT_PRIMITIVE] = indexage_coins_polygones;
+    informations_domaines.taille_domaine[OBJET] = 1;
+    informations_domaines.taille_domaine[POINT] = int(positions.size());
+    informations_domaines.taille_domaine[PRIMITIVE] = int(face_counts.size());
+    informations_domaines.taille_domaine[POINT_PRIMITIVE] = int(nombre_de_coins);
+
+    auto opt_attr_std = écris_attributs(
+        o_subd, table_attributs, convertisseuse, informations_domaines);
+
+    /* Exporte vers Alembic */
+    auto &schema = o_subd.getSchema();
+
+    AbcGeom::OSubDSchema::Sample sample;
+    sample.setPositions(positions);
+    sample.setFaceCounts(face_counts);
+    sample.setFaceIndices(face_indices);
+
+    if (opt_attr_std.has_value()) {
+        if (!opt_attr_std->vélocité.empty()) {
+            sample.setVelocities(opt_attr_std->vélocité);
+        }
+
+        if (!opt_attr_std->uvs.empty()) {
+            AbcGeom::OV2fGeomParam::Sample uvs_sample;
+            uvs_sample.setVals(opt_attr_std->uvs);
+            uvs_sample.setScope(
+                donne_domaine_pour_alembic(opt_attr_std->données_uvs.domaine, POLY_MESH));
+
+            sample.setUVs(uvs_sample);
+        }
+    }
+
+    sample.setSelfBounds(donne_limites_géométrique(convertisseuse, positions));
+
+    schema.set(sample);
+}
+
+#define RETOURNE_SI_NUL(valeur)                                                                   \
+    do {                                                                                          \
+        if (valeur == nullptr) {                                                                  \
+            return;                                                                               \
+        }                                                                                         \
+    } while (0)
+
+struct AbcExportriceGrapheMateriauImpl : public AbcExportriceGrapheMateriau {
+  private:
+    AbcMaterial::OMaterialSchema &m_schema;
+    std::string m_cible = "";
+    std::string m_type_nuanceur = "";
+    std::vector<std::string> m_noms_noeuds{};
+
+    static void ajoute_noeud_impl(AbcExportriceGrapheMateriau *exportrice,
+                                  AbcChaine *nom,
+                                  AbcChaine *type)
+    {
+        RETOURNE_SI_NUL(nom);
+        RETOURNE_SI_NUL(type);
+
+        auto impl = static_cast<AbcExportriceGrapheMateriauImpl *>(exportrice);
+        impl->m_schema.addNetworkNode(
+            nom->vers_std_string(), impl->m_cible, type->vers_std_string());
+        impl->m_noms_noeuds.push_back(nom->vers_std_string());
+    }
+
+    static void ajoute_connexion_impl(AbcExportriceGrapheMateriau *exportrice,
+                                      AbcChaine *nom_noeud_entrée,
+                                      AbcChaine *nom_entrée,
+                                      AbcChaine *nom_noeud_sortie,
+                                      AbcChaine *nom_sortie)
+    {
+        RETOURNE_SI_NUL(nom_noeud_entrée);
+        RETOURNE_SI_NUL(nom_entrée);
+        RETOURNE_SI_NUL(nom_noeud_sortie);
+        RETOURNE_SI_NUL(nom_sortie);
+
+        auto impl = static_cast<AbcExportriceGrapheMateriauImpl *>(exportrice);
+        impl->m_schema.setNetworkNodeConnection(nom_noeud_entrée->vers_std_string(),
+                                                nom_entrée->vers_std_string(),
+                                                nom_noeud_sortie->vers_std_string(),
+                                                nom_sortie->vers_std_string());
+    }
+
+    static void definis_noeud_sortie_graphe_impl(AbcExportriceGrapheMateriau *exportrice,
+                                                 AbcChaine *nom_sortie)
+    {
+        RETOURNE_SI_NUL(nom_sortie);
+        auto impl = static_cast<AbcExportriceGrapheMateriauImpl *>(exportrice);
+        impl->m_schema.setNetworkTerminal(
+            impl->m_cible, impl->m_type_nuanceur, nom_sortie->vers_std_string());
+    }
+
+  public:
+    AbcExportriceGrapheMateriauImpl(AbcMaterial::OMaterialSchema &schema,
+                                    std::string const &cible,
+                                    std::string const &type_nuanceur)
+        : m_schema(schema), m_cible(cible), m_type_nuanceur(type_nuanceur)
+    {
+        ajoute_noeud = ajoute_noeud_impl;
+        ajoute_connexion = ajoute_connexion_impl;
+    }
+
+    const std::vector<std::string> &donne_noms_noeuds_créés() const
+    {
+        return m_noms_noeuds;
+    }
+};
 
 static void écris_données(AbcMaterial::OMaterial &omateriau,
                           TableAttributsExportés *& /*table_attributs*/,
@@ -786,53 +977,276 @@ static void écris_données(AbcMaterial::OMaterial &omateriau,
 
     schema.setShader(cible, type_nuanceur, nom_nuanceur);
 
-    /* Crée les noeuds. */
-    const auto nombre_de_noeuds = convertisseuse->nombre_de_noeuds(convertisseuse);
+    // À FAIRE: paramètre du nuanceur et des noeuds.
 
-    for (size_t i = 0; i < nombre_de_noeuds; i++) {
-        const auto nom_noeud = string_depuis_rappel(convertisseuse, i, convertisseuse->nom_noeud);
-        const auto type_noeud = string_depuis_rappel(
-            convertisseuse, i, convertisseuse->type_noeud);
-        schema.addNetworkNode(nom_noeud, cible, type_noeud);
+    AbcExportriceGrapheMateriauImpl exportrice_graphe(schema, cible, type_nuanceur);
+    convertisseuse->remplis_graphe(convertisseuse, &exportrice_graphe);
+
+    auto const &noms_noeuds = exportrice_graphe.donne_noms_noeuds_créés();
+    if (noms_noeuds.empty()) {
+        return;
     }
 
-    /* Crée les connexions entre les noeuds. */
-    for (size_t i = 0; i < nombre_de_noeuds; i++) {
-        const auto nom_noeud = string_depuis_rappel(convertisseuse, i, convertisseuse->nom_noeud);
+    //    for (const auto &nom_noeud : noms_noeuds) {
+    //        auto param = schema.getNetworkNodeParameters(nom_noeud);
+    //    }
+}
 
-        const auto nombre_entree = convertisseuse->nombre_entrees_noeud(convertisseuse, i);
+struct AbcExportriceEchantillonCameraImpl : public AbcExportriceEchantillonCamera {
+  private:
+    AbcGeom::CameraSample &m_échantillon;
 
-        for (size_t e = 0; e < nombre_entree; e++) {
-            const auto nom_entree = string_depuis_rappel(
-                convertisseuse, i, e, convertisseuse->nom_entree_noeud);
-
-            const auto nombre_de_connexion = convertisseuse->nombre_de_connexions(
-                convertisseuse, i, e);
-
-            for (size_t c = 0; c < nombre_de_connexion; c++) {
-                const auto nom_noeud_connecte = string_depuis_rappel(
-                    convertisseuse, i, e, c, convertisseuse->nom_noeud_connexion);
-                const auto nom_sortie = string_depuis_rappel(
-                    convertisseuse, i, e, c, convertisseuse->nom_connexion_entree);
-                schema.setNetworkNodeConnection(
-                    nom_noeud, nom_entree, nom_noeud_connecte, nom_sortie);
-            }
+    static void definis_longueur_focale_impl(AbcExportriceEchantillonCamera *exportrice,
+                                             AbcMillimetre *longueur)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (longueur) {
+            impl->m_échantillon.setFocalLength(longueur->valeur);
         }
     }
 
-    schema.setNetworkTerminal(
-        cible,
-        type_nuanceur,
-        string_depuis_rappel(convertisseuse, convertisseuse->nom_sortie_graphe));
+    static void definis_ouverture_impl(AbcExportriceEchantillonCamera *exportrice,
+                                       AbcCentimetre *horizontale,
+                                       AbcCentimetre *verticale)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (horizontale) {
+            impl->m_échantillon.setHorizontalAperture(horizontale->valeur);
+        }
+        if (verticale) {
+            impl->m_échantillon.setVerticalAperture(verticale->valeur);
+        }
+    }
 
-    // À FAIRE: paramètre du noeud
+    static void definis_decalage_senseur_impl(AbcExportriceEchantillonCamera *exportrice,
+                                              AbcCentimetre *horizontal,
+                                              AbcCentimetre *vertical)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (horizontal) {
+            impl->m_échantillon.setHorizontalFilmOffset(horizontal->valeur);
+        }
+        if (vertical) {
+            impl->m_échantillon.setVerticalFilmOffset(vertical->valeur);
+        }
+    }
+
+    static void definis_aspect_horizontal_sur_vertical_impl(
+        AbcExportriceEchantillonCamera *exportrice, double aspect)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        impl->m_échantillon.setLensSqueezeRatio(aspect);
+    }
+
+    /* Définis l'extension (overscan), en pourcentage relatif, de l'image. Les valeurs sont à
+     * donner dans l'ordre : gauche, droite, haut, bas. */
+    static void definis_extension_image_impl(AbcExportriceEchantillonCamera *exportrice,
+                                             AbcPourcentage *gauche,
+                                             AbcPourcentage *droite,
+                                             AbcPourcentage *haut,
+                                             AbcPourcentage *bas)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (gauche) {
+            impl->m_échantillon.setOverScanLeft(gauche->valeur);
+        }
+        if (droite) {
+            impl->m_échantillon.setOverScanRight(droite->valeur);
+        }
+        if (haut) {
+            impl->m_échantillon.setOverScanTop(haut->valeur);
+        }
+        if (bas) {
+            impl->m_échantillon.setOverScanBottom(bas->valeur);
+        }
+    }
+
+    /* Définis l'aspect (largeur / hauteur). */
+    static void definis_fstop_impl(AbcExportriceEchantillonCamera *exportrice, double fstop)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        impl->m_échantillon.setFStop(fstop);
+    }
+
+    /* Définis la distance de la cible de la caméra, ce qui est focalisé. */
+    static void definis_distance_de_la_cible_impl(AbcExportriceEchantillonCamera *exportrice,
+                                                  AbcCentimetre *distance)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (distance) {
+            impl->m_échantillon.setFocusDistance(distance->valeur);
+        }
+    }
+
+    /* Définis le temps, relatif à l'image, de l'ouverture et de la fermeture de l'obturateur. */
+    static void definis_temps_obturation_impl(AbcExportriceEchantillonCamera *exportrice,
+                                              AbcTempsSeconde *ouverture,
+                                              AbcTempsSeconde *femeture)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (ouverture) {
+            impl->m_échantillon.setShutterOpen(ouverture->valeur);
+        }
+        if (femeture) {
+            impl->m_échantillon.setShutterClose(femeture->valeur);
+        }
+    }
+
+    /* Définis la distance de visibilté du premier et de l'arrière plan respectivement. */
+    static void definis_avant_arriere_plan_impl(AbcExportriceEchantillonCamera *exportrice,
+                                                AbcCentimetre *premier_plan,
+                                                AbcCentimetre *arriere_plan)
+    {
+        auto impl = static_cast<AbcExportriceEchantillonCameraImpl *>(exportrice);
+        if (premier_plan) {
+            impl->m_échantillon.setNearClippingPlane(premier_plan->valeur);
+        }
+        if (arriere_plan) {
+            impl->m_échantillon.setFarClippingPlane(arriere_plan->valeur);
+        }
+    }
+
+  public:
+    AbcExportriceEchantillonCameraImpl(AbcGeom::CameraSample &échantillon)
+        : m_échantillon(échantillon)
+    {
+        definis_longueur_focale = definis_longueur_focale_impl;
+        definis_ouverture = definis_ouverture_impl;
+        definis_decalage_senseur = definis_decalage_senseur_impl;
+        definis_aspect_horizontal_sur_vertical = definis_aspect_horizontal_sur_vertical_impl;
+        definis_extension_image = definis_extension_image_impl;
+        definis_fstop = definis_fstop_impl;
+        definis_distance_de_la_cible = definis_distance_de_la_cible_impl;
+        definis_temps_obturation = definis_temps_obturation_impl;
+        definis_avant_arriere_plan = definis_avant_arriere_plan_impl;
+    }
+};
+
+struct AbcExportriceOperationSenseurImpl : public AbcExportriceOperationSenseur {
+  private:
+    AbcGeom::CameraSample &m_échantillon;
+
+    static void ajoute_translation_impl(AbcExportriceOperationSenseur *exportrice,
+                                        double *translation,
+                                        char *indice,
+                                        int64_t taille_indice)
+    {
+        auto impl = static_cast<AbcExportriceOperationSenseurImpl *>(exportrice);
+
+        std::string hint;
+        if (indice) {
+            hint = std::string(indice, size_t(taille_indice));
+        }
+
+        auto op = AbcGeom::FilmBackXformOp(AbcGeom::kTranslateFilmBackOperation, hint);
+        op.setTranslate(Abc::V2d(translation[0], translation[1]));
+
+        impl->m_échantillon.addOp(op);
+    }
+
+    static void ajoute_taille_impl(AbcExportriceOperationSenseur *exportrice,
+                                   double *taille,
+                                   char *indice,
+                                   int64_t taille_indice)
+    {
+        auto impl = static_cast<AbcExportriceOperationSenseurImpl *>(exportrice);
+
+        std::string hint;
+        if (indice) {
+            hint = std::string(indice, size_t(taille_indice));
+        }
+
+        auto op = AbcGeom::FilmBackXformOp(AbcGeom::kScaleFilmBackOperation, hint);
+        op.setScale(Abc::V2d(taille[0], taille[1]));
+
+        impl->m_échantillon.addOp(op);
+    }
+
+    static void ajoute_matrice_impl(AbcExportriceOperationSenseur *exportrice,
+                                    double *m,
+                                    char *indice,
+                                    int64_t taille_indice)
+    {
+        auto impl = static_cast<AbcExportriceOperationSenseurImpl *>(exportrice);
+
+        std::string hint;
+        if (indice) {
+            hint = std::string(indice, size_t(taille_indice));
+        }
+
+        auto op = AbcGeom::FilmBackXformOp(AbcGeom::kMatrixFilmBackOperation, hint);
+        op.setMatrix(Abc::M33d(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]));
+
+        impl->m_échantillon.addOp(op);
+    }
+
+  public:
+    AbcExportriceOperationSenseurImpl(AbcGeom::CameraSample &échantillon)
+        : m_échantillon(échantillon)
+    {
+        ajoute_matrice = ajoute_matrice_impl;
+        ajoute_taille = ajoute_taille_impl;
+        ajoute_translation = ajoute_translation_impl;
+    }
+};
+
+template <typename TypeConvertisseuse>
+static AbcGeom::CameraSample donne_échantillon_caméra(TypeConvertisseuse *convertisseuse)
+{
+    double fenêtre_haut = 1.0;
+    double fenêtre_bas = -1.0;
+    double fenêtre_gauche = -1.0;
+    double fenêtre_droite = 1.0;
+    if (convertisseuse->donne_taille_fenetre) {
+        convertisseuse->donne_taille_fenetre(
+            convertisseuse, &fenêtre_haut, &fenêtre_bas, &fenêtre_gauche, &fenêtre_droite);
+    }
+
+    auto échantillon = AbcGeom::CameraSample(
+        fenêtre_haut, fenêtre_bas, fenêtre_gauche, fenêtre_droite);
+
+    /* Données principales. */
+    AbcExportriceEchantillonCameraImpl exportrice_échantillon(échantillon);
+    convertisseuse->remplis_donnees_echantillon(convertisseuse, &exportrice_échantillon);
+
+    /* Limites de la hiérarchie fille. */
+    if (convertisseuse->donne_limites_geometriques_enfant) {
+        float min[3] = {std::numeric_limits<float>::max(),
+                        std::numeric_limits<float>::max(),
+                        std::numeric_limits<float>::max()};
+
+        float max[3] = {-std::numeric_limits<float>::max(),
+                        -std::numeric_limits<float>::max(),
+                        -std::numeric_limits<float>::max()};
+
+        convertisseuse->donne_limites_geometriques_enfant(convertisseuse, min, max);
+        auto limites = Imath::Box3d(Imath::V3d(double(min[0]), double(min[1]), double(min[2])),
+                                    Imath::V3d(double(max[0]), double(max[1]), double(max[2])));
+        échantillon.setChildBounds(limites);
+    }
+
+    /* Opérations de transformation du senseur. */
+    if (convertisseuse->ajoute_operations_senseur) {
+        auto exportrice = AbcExportriceOperationSenseurImpl(échantillon);
+        convertisseuse->ajoute_operations_senseur(convertisseuse, &exportrice);
+    }
+
+    return échantillon;
 }
 
-static void écris_données(AbcGeom::OCamera & /*o_camera*/,
+static void écris_données(AbcGeom::OCamera &o_camera,
                           TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportCamera * /*convertisseuse*/)
+                          ConvertisseuseExportCamera *convertisseuse)
 {
-    // À FAIRE
+    if (!convertisseuse->remplis_donnees_echantillon) {
+        return;
+    }
+
+    auto échantillon = donne_échantillon_caméra(convertisseuse);
+
+    /* Écriture de l'échantillon. */
+    auto &schema = o_camera.getSchema();
+    schema.set(échantillon);
 }
 
 static void écris_données(AbcGeom::OCurves & /*o_curves*/,
@@ -842,18 +1256,80 @@ static void écris_données(AbcGeom::OCurves & /*o_curves*/,
     // À FAIRE
 }
 
-static void écris_données(AbcGeom::OFaceSet & /*o_faceset*/,
-                          TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportFaceSet * /*convertisseuse*/)
+static std::vector<int> donne_groupe_polygone(ConvertisseuseExportFaceSet *convertisseuse)
 {
-    // À FAIRE
+    if (!convertisseuse->nombre_de_polygones || !convertisseuse->donne_index_polygone) {
+        return {};
+    }
+
+    auto taille = convertisseuse->nombre_de_polygones(convertisseuse);
+    std::vector<int> résultat(taille);
+
+    if (convertisseuse->remplis_index_polygones) {
+        convertisseuse->remplis_index_polygones(convertisseuse, résultat.data());
+    }
+    else {
+        for (auto i = 0ul; i < taille; ++i) {
+            résultat[i] = convertisseuse->donne_index_polygone(convertisseuse, int(i));
+        }
+    }
+
+    return résultat;
 }
 
-static void écris_données(AbcGeom::OLight & /*o_light*/,
-                          TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportLumiere * /*convertisseuse*/)
+static AbcGeom::FaceSetExclusivity donne_exclusivité_groupe(
+    ConvertisseuseExportFaceSet *convertisseuse)
 {
-    // À FAIRE
+    if (!convertisseuse->donne_exclusivite_polygones) {
+        /* Valeur défaut Alembic. */
+        return AbcGeom::FaceSetExclusivity::kFaceSetNonExclusive;
+    }
+
+    auto exclusité = convertisseuse->donne_exclusivite_polygones(convertisseuse);
+    switch (exclusité) {
+        case ABC_EXCLUSIVITE_POLYGONE_EXCLUSIVE:
+        {
+            return AbcGeom::FaceSetExclusivity::kFaceSetExclusive;
+        }
+        case ABC_EXCLUSIVITE_POLYGONE_NON_EXCLUSIVE:
+        {
+            return AbcGeom::FaceSetExclusivity::kFaceSetNonExclusive;
+        }
+    }
+    /* Valeur défaut Alembic. */
+    return AbcGeom::FaceSetExclusivity::kFaceSetNonExclusive;
+}
+
+static void écris_données(AbcGeom::OFaceSet &o_faceset,
+                          TableAttributsExportés *& /*table_attributs*/,
+                          ConvertisseuseExportFaceSet *convertisseuse)
+{
+    const std::vector<int> face_indices = donne_groupe_polygone(convertisseuse);
+    if (face_indices.empty()) {
+        return;
+    }
+
+    AbcGeom::OFaceSetSchema::Sample sample;
+    sample.setFaces(face_indices);
+
+    auto &schema = o_faceset.getSchema();
+    schema.setFaceExclusivity(donne_exclusivité_groupe(convertisseuse));
+    schema.set(sample);
+}
+
+static void écris_données(AbcGeom::OLight &o_light,
+                          TableAttributsExportés *& /*table_attributs*/,
+                          ConvertisseuseExportLumiere *convertisseuse)
+{
+    if (!convertisseuse->remplis_donnees_echantillon) {
+        return;
+    }
+
+    auto échantillon = donne_échantillon_caméra(convertisseuse);
+
+    /* Écriture de l'échantillon. */
+    auto &schema = o_light.getSchema();
+    schema.setCameraSample(échantillon);
 }
 
 static void écris_données(AbcGeom::ONuPatch & /*o_nupatch*/,
