@@ -89,6 +89,10 @@ struct OpérateurPour {
     Type const *type;
 };
 
+struct InitialisationType {
+    Type const *type;
+};
+
 struct DonnéesAttenteNoeudCode {
     UniteCompilation *unité = nullptr;
     NoeudExpression *noeud = nullptr;
@@ -111,6 +115,7 @@ using AttenteSurLexage = AttenteSur<FichierÀLexer>;
 using AttenteSurParsage = AttenteSur<FichierÀParser>;
 using AttenteSurNoeudCode = AttenteSur<DonnéesAttenteNoeudCode>;
 using AttenteSurOpérateurPour = AttenteSur<OpérateurPour>;
+using AttenteSurInitialisationType = AttenteSur<InitialisationType>;
 
 /** \} */
 
@@ -140,6 +145,7 @@ DÉCLARE_INFO_TYPE_ATTENTE(lexage, AttenteSurLexage);
 DÉCLARE_INFO_TYPE_ATTENTE(parsage, AttenteSurParsage);
 DÉCLARE_INFO_TYPE_ATTENTE(noeud_code, AttenteSurNoeudCode);
 DÉCLARE_INFO_TYPE_ATTENTE(opérateur_pour, AttenteSurOpérateurPour);
+DÉCLARE_INFO_TYPE_ATTENTE(initialisation_type, AttenteSurInitialisationType);
 
 #undef DÉCLARE_INFO_TYPE_ATTENTE
 
@@ -164,7 +170,8 @@ struct Attente {
                                      AttenteSurLexage,
                                      AttenteSurParsage,
                                      AttenteSurNoeudCode,
-                                     AttenteSurOpérateurPour>;
+                                     AttenteSurOpérateurPour,
+                                     AttenteSurInitialisationType>;
 
     TypeAttente attente{};
 
@@ -255,6 +262,12 @@ struct Attente {
         return AttenteSurOpérateurPour{OpérateurPour{type}};
     }
 
+    static Attente sur_initialisation_type(Type const *type)
+    {
+        assert(type);
+        return AttenteSurInitialisationType{InitialisationType{type}};
+    }
+
     /* Discrimination. */
 
     /* Retourne vrai si l'attente est valide, c'est-à-dire qu'elle contient quelque chose sur quoi
@@ -342,6 +355,12 @@ struct Attente {
     {
         assert(est<AttenteSurOpérateurPour>());
         return std::get<AttenteSurOpérateurPour>(attente).valeur.type;
+    }
+
+    Type const *initialisation_type() const
+    {
+        assert(est<AttenteSurInitialisationType>());
+        return std::get<AttenteSurInitialisationType>(attente).valeur.type;
     }
 };
 

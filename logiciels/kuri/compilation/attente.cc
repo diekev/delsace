@@ -723,3 +723,43 @@ InfoTypeAttente info_type_attente_sur_opérateur_pour = {
     NOM_RAPPEL_POUR_ERREUR(opérateur_pour)};
 
 /** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurInitialisationType
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(initialisation_type)
+{
+    auto type = attente.initialisation_type();
+    return enchaine("initialisation type de ", chaine_type(type));
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(initialisation_type)
+{
+    auto type = attente.initialisation_type();
+    return type->fonction_init != nullptr;
+}
+
+RAPPEL_POUR_ERREUR(initialisation_type)
+{
+    auto espace = unité->espace;
+    auto noeud = unité->noeud;
+    auto type = attente.opérateur_pour();
+
+    auto message = enchaine(
+        "Je ne pas continuer la compilation car une unité attend sur la déclaration "
+        "d'un opérateur de boucle « pour » pour le type « ",
+        chaine_type(type),
+        " » mais aucun opérateur de boucle « pour » ne fut déclaré pour le type.");
+
+    espace->rapporte_erreur(noeud, message);
+}
+
+InfoTypeAttente info_type_attente_sur_initialisation_type = {
+    nullptr,
+    condition_blocage_défaut,
+    NOM_RAPPEL_POUR_COMMENTAIRE(initialisation_type),
+    NOM_RAPPEL_POUR_EST_RÉSOLUE(initialisation_type),
+    émets_erreur_pour_attente_défaut};
+
+/** \} */
