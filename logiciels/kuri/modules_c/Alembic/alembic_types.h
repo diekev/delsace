@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
+#    include <string>
 extern "C" {
 typedef unsigned short r16;
 #else
@@ -449,11 +450,18 @@ typedef struct AbcOptionsExport {
     // À FAIRE : est-il possible, pour les calques, de n'exporter que les attributs ?
 } AbcOptionsExport;
 
+typedef enum eAbcIndexagePolygone {
+    ABC_INDEXAGE_POLYGONE_HORAIRE,
+    ABC_INDEXAGE_POLYGONE_ANTIHORAIRE,
+} eAbcIndexagePolygone;
+
 struct ConvertisseuseExportPolyMesh {
     void *donnees;
     uint64_t (*nombre_de_points)(struct ConvertisseuseExportPolyMesh *);
     void (*point_pour_index)(
         struct ConvertisseuseExportPolyMesh *, uint64_t, float *, float *, float *);
+
+    enum eAbcIndexagePolygone (*donne_indexage_polygone)(struct ConvertisseuseExportPolyMesh *);
 
     uint64_t (*nombre_de_polygones)(struct ConvertisseuseExportPolyMesh *);
     int (*nombre_de_coins_polygone)(struct ConvertisseuseExportPolyMesh *, uint64_t);
@@ -504,6 +512,48 @@ struct ConvertisseuseExportPolyMesh {
 
 struct ConvertisseuseExportSubD {
     void *donnees;
+
+    uint64_t (*nombre_de_points)(struct ConvertisseuseExportSubD *);
+    void (*point_pour_index)(
+        struct ConvertisseuseExportSubD *, uint64_t, float *, float *, float *);
+
+    enum eAbcIndexagePolygone (*donne_indexage_polygone)(struct ConvertisseuseExportSubD *);
+
+    uint64_t (*nombre_de_polygones)(struct ConvertisseuseExportSubD *);
+    int (*nombre_de_coins_polygone)(struct ConvertisseuseExportSubD *, uint64_t);
+
+    void (*coins_pour_polygone)(struct ConvertisseuseExportSubD *, uint64_t, int *);
+
+    /** Optionnel, doit fournir les limites géométriques du maillage. Si absent, les limites seront
+     * calculer selon les points. \a r_min et \a r_max pointent vers des float[3]. */
+    void (*donne_limites_geometriques)(struct ConvertisseuseExportSubD *,
+                                       float *r_min,
+                                       float *r_max);
+
+    /** Si ce rappel est présent, les attributs sont exportés, et ce rappel doit initialiser
+     * l'exportrice d'attributs. */
+    void (*initialise_exportrice_attribut)(struct ConvertisseuseExportSubD *,
+                                           struct AbcExportriceAttribut *);
+
+    /** Doit retourner un pointeur vers l'attribut standard pour les UVs du maillage ainsi que les
+     * métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `VEC2`, l'attribut
+     * ne sera pas exporté comme attribut standard.
+     */
+    void *(*donne_attribut_standard_uv)(struct ConvertisseuseExportSubD *,
+                                        char **r_nom,
+                                        int64_t *r_taille_nom,
+                                        enum eAbcDomaineAttribut *r_domaine,
+                                        enum eTypeDoneesAttributAbc *r_type_des_donnees);
+
+    /** Doit retourner un pointeur vers l'attribut standard pour la vélocité du maillage ainsi que
+     * les métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `VEC3`, et le
+     * domaine `POINT`, l'attribut ne sera pas exporté comme attribut standard.
+     */
+    void *(*donne_attribut_standard_velocite)(struct ConvertisseuseExportSubD *,
+                                              char **r_nom,
+                                              int64_t *r_taille_nom,
+                                              enum eAbcDomaineAttribut *r_domaine,
+                                              enum eTypeDoneesAttributAbc *r_type_des_donnees);
 };
 
 struct ConvertisseuseExportPoints {
@@ -579,17 +629,167 @@ struct ConvertisseuseExportXform {
     void *donnees;
 };
 
+typedef enum eAbcExclusiviteGroupePolygone {
+    ABC_EXCLUSIVITE_POLYGONE_EXCLUSIVE,
+    ABC_EXCLUSIVITE_POLYGONE_NON_EXCLUSIVE,
+} eAbcExclusiviteGroupePolygone;
+
 struct ConvertisseuseExportFaceSet {
     void *donnees;
+
+    /** Doit retourner l'exclusivité des polygones dans ce groupe. */
+    enum eAbcExclusiviteGroupePolygone (*donne_exclusivite_polygones)(
+        struct ConvertisseuseExportFaceSet *);
+
+    /** Doit retourner le nombre de polygones dans groupe. */
+    uint64_t (*nombre_de_polygones)(struct ConvertisseuseExportFaceSet *);
+
+    /** Doit retourner l'index effectif du polygone pour l'index dans le groupe. */
+    int (*donne_index_polygone)(struct ConvertisseuseExportFaceSet *, int index);
+
+    /** Optionnel. Doit remplir tous les index des polygones d'un coup. Le tampon contient de
+     * l'espace pour nombre_de_polygones de polygones. */
+    void (*remplis_index_polygones)(struct ConvertisseuseExportFaceSet *, int *);
+};
+
+typedef struct AbcMillimetre {
+    double valeur;
+} AbcMillimetre;
+
+typedef struct AbcCentimetre {
+    double valeur;
+} AbcCentimetre;
+
+typedef struct AbcPourcentage {
+    double valeur;
+} AbcPourcentage;
+
+typedef struct AbcTempsSeconde {
+    double valeur;
+} AbcTempsSeconde;
+
+typedef struct AbcExportriceEchantillonCamera {
+    /** Définis la longueur focale de la caméra. */
+    void (*definis_longueur_focale)(struct AbcExportriceEchantillonCamera *,
+                                    struct AbcMillimetre *);
+
+    /** Définis l'ouverture horizontale et verticale de la caméra. */
+    void (*definis_ouverture)(struct AbcExportriceEchantillonCamera *,
+                              struct AbcCentimetre *,
+                              struct AbcCentimetre *);
+
+    /** Définis le décalage du senseur horizontal et vertical de la caméra. */
+    void (*definis_decalage_senseur)(struct AbcExportriceEchantillonCamera *,
+                                     struct AbcCentimetre *,
+                                     struct AbcCentimetre *);
+
+    /** Définis l'aspect (largeur / hauteur). */
+    void (*definis_aspect_horizontal_sur_vertical)(struct AbcExportriceEchantillonCamera *,
+                                                   double);
+
+    /** Définis l'extension (overscan), en pourcentage relatif, de l'image. Les valeurs sont à
+     * donner dans l'ordre : gauche, droite, haut, bas. */
+    void (*definis_extension_image)(struct AbcExportriceEchantillonCamera *,
+                                    struct AbcPourcentage *,
+                                    struct AbcPourcentage *,
+                                    struct AbcPourcentage *,
+                                    struct AbcPourcentage *);
+
+    /** Définis l'aspect (largeur / hauteur). */
+    void (*definis_fstop)(struct AbcExportriceEchantillonCamera *, double);
+
+    /** Définis la distance de la cible de la caméra, ce qui est focalisé. */
+    void (*definis_distance_de_la_cible)(struct AbcExportriceEchantillonCamera *,
+                                         struct AbcCentimetre *);
+
+    /** Définis le temps, relatif à l'image, de l'ouverture et de la fermeture de l'obturateur. */
+    void (*definis_temps_obturation)(struct AbcExportriceEchantillonCamera *,
+                                     struct AbcTempsSeconde *,
+                                     struct AbcTempsSeconde *);
+
+    /** Définis la distance de visibilté du premier et de l'arrière plan respectivement. */
+    void (*definis_avant_arriere_plan)(struct AbcExportriceEchantillonCamera *,
+                                       struct AbcCentimetre *,
+                                       struct AbcCentimetre *);
+} AbcExportriceEchantillonCamera;
+
+typedef struct AbcExportriceOperationSenseur {
+    void (*ajoute_translation)(struct AbcExportriceOperationSenseur *, double *, char *, int64_t);
+    void (*ajoute_taille)(struct AbcExportriceOperationSenseur *, double *, char *, int64_t);
+    void (*ajoute_matrice)(struct AbcExportriceOperationSenseur *, double *, char *, int64_t);
+} AbcExportriceOperationSenseur;
+
+struct ConvertisseuseExportCamera {
+    void *donnees;
+
+    /** Optionnel. Doit donner la taille de la fenêtre dans l'ordre : haut, bas, gauche, droite. */
+    void (*donne_taille_fenetre)(
+        struct ConvertisseuseExportCamera *, double *, double *, double *, double *);
+
+    /** Requis. Exporte les données de la caméra via une AbcExportriceEchantillonCamera. */
+    void (*remplis_donnees_echantillon)(struct ConvertisseuseExportCamera *,
+                                        struct AbcExportriceEchantillonCamera *);
+
+    /** Optionnel. Doit fournir les limites géométriques de la caméra. */
+    void (*donne_limites_geometriques_enfant)(struct ConvertisseuseExportCamera *,
+                                              float *r_min,
+                                              float *r_max);
+
+    /** Optionnel. Ajoute des opérations de transformation pour le senseur de la caméra. */
+    void (*ajoute_operations_senseur)(struct ConvertisseuseExportCamera *,
+                                      struct AbcExportriceOperationSenseur *);
 };
 
 struct ConvertisseuseExportLumiere {
     void *donnees;
+
+    /** Optionnel. Doit donner la taille de la fenêtre dans l'ordre : haut, bas, gauche, droite. */
+    void (*donne_taille_fenetre)(
+        struct ConvertisseuseExportLumiere *, double *, double *, double *, double *);
+
+    /** Requis. Exporte les données de la caméra via une AbcExportriceEchantillonCamera. */
+    void (*remplis_donnees_echantillon)(struct ConvertisseuseExportLumiere *,
+                                        struct AbcExportriceEchantillonCamera *);
+
+    /** Optionnel. Doit fournir les limites géométriques de la caméra. */
+    void (*donne_limites_geometriques_enfant)(struct ConvertisseuseExportLumiere *,
+                                              float *r_min,
+                                              float *r_max);
+
+    /** Optionnel. Ajoute des opérations de transformation pour le senseur de la caméra. */
+    void (*ajoute_operations_senseur)(struct ConvertisseuseExportLumiere *,
+                                      struct AbcExportriceOperationSenseur *);
 };
 
-struct ConvertisseuseExportCamera {
-    void *donnees;
-};
+typedef struct AbcChaine {
+    char *caractères;
+    int64_t taille;
+
+#ifdef __cplusplus
+    std::string vers_std_string() const
+    {
+        if (!caractères) {
+            return "";
+        }
+        return std::string(caractères, size_t(taille));
+    }
+#endif
+} AbcChaine;
+
+typedef struct AbcExportriceGrapheMateriau {
+    void (*ajoute_noeud)(struct AbcExportriceGrapheMateriau *,
+                         struct AbcChaine *,
+                         struct AbcChaine *);
+
+    void (*ajoute_connexion)(struct AbcExportriceGrapheMateriau *exportrice,
+                             struct AbcChaine *nom_noeud_entrée,
+                             struct AbcChaine *nom_entrée,
+                             struct AbcChaine *nom_noeud_sortie,
+                             struct AbcChaine *nom_sortie);
+
+    void (*definis_noeud_sortie_graphe)(struct AbcExportriceGrapheMateriau *exportrice,
+                                        struct AbcChaine *);
+} AbcExportriceGrapheMateriau;
 
 struct ConvertisseuseExportMateriau {
     void *donnees;
@@ -597,6 +797,9 @@ struct ConvertisseuseExportMateriau {
     void (*nom_cible)(struct ConvertisseuseExportMateriau *, const char **, uint64_t *);
     void (*type_nuanceur)(struct ConvertisseuseExportMateriau *, const char **, uint64_t *);
     void (*nom_nuanceur)(struct ConvertisseuseExportMateriau *, const char **, uint64_t *);
+
+    void (*remplis_graphe)(struct ConvertisseuseExportMateriau *,
+                           struct AbcExportriceGrapheMateriau *);
 
     void (*nom_sortie_graphe)(struct ConvertisseuseExportMateriau *, const char **, uint64_t *);
 
