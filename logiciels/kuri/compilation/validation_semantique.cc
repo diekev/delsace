@@ -1217,17 +1217,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return CodeRetourValidation::Erreur;
             }
 
-            /* À FAIRE : remplace ceci par une attente dans le gestionnaire. */
-            m_compilatrice.gestionnaire_code->requiers_initialisation_type(m_espace, type);
-            crée_entête_pour_initialisation_type(
-                type, m_tacheronne->assembleuse, m_compilatrice.typeuse);
+            if (!type->fonction_init) {
+                return Attente::sur_initialisation_type(type);
+            }
 
-            auto types_entrees = kuri::tablet<Type *, 6>(1);
-            types_entrees[0] = m_compilatrice.typeuse.type_pointeur_pour(type);
-
-            auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees,
-                                                                      TypeBase::RIEN);
-            noeud->type = type_fonction;
+            noeud->type = type->fonction_init->type;
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -3756,21 +3750,29 @@ struct ConstructriceMembresTypeComposé {
 };
 
 static bool le_membre_référence_le_type_par_valeur(TypeCompose const *type_composé,
-                                                   NoeudExpression *expression_membre)
+                                                   NoeudDéclarationType *type_membre)
 {
-    if (type_composé == expression_membre->type) {
+    if (type_composé == type_membre) {
         return true;
     }
 
-    auto type_membre = expression_membre->type;
-    if (type_membre->est_type_tableau_fixe() &&
-        type_membre->comme_type_tableau_fixe()->type_pointé == type_composé) {
-        return true;
+    if (type_membre->est_type_tableau_fixe()) {
+        auto type_tableau = type_membre->comme_type_tableau_fixe();
+        return le_membre_référence_le_type_par_valeur(type_composé, type_tableau->type_pointé);
     }
 
-    // À FAIRE : type opaque, tableaux fixe multi-dimensionnel
+    if (type_membre->est_type_opaque()) {
+        auto type_opaque = type_membre->comme_type_opaque();
+        return le_membre_référence_le_type_par_valeur(type_composé, type_opaque->type_opacifié);
+    }
 
     return false;
+}
+
+static bool le_membre_référence_le_type_par_valeur(TypeCompose const *type_composé,
+                                                   NoeudExpression *expression_membre)
+{
+    return le_membre_référence_le_type_par_valeur(type_composé, expression_membre->type);
 }
 
 static void rapporte_erreur_type_membre_invalide(EspaceDeTravail *espace,
@@ -3910,7 +3912,6 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                     });
             }
 
-            m_compilatrice.gestionnaire_code->requiers_typage(m_espace, fonction->corps);
             return Attente::sur_déclaration(fonction->corps);
         }
 
@@ -4157,7 +4158,6 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                     });
             }
 
-            m_compilatrice.gestionnaire_code->requiers_typage(m_espace, fonction->corps);
             return Attente::sur_déclaration(fonction->corps);
         }
 
@@ -6704,8 +6704,6 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
     auto type_de_donnees = type_expression_type->comme_type_type_de_données();
     auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
 
-    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
-    // via un membre
     if (!type_connu->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type_connu);
     }
