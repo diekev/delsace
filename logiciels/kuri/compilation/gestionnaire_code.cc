@@ -999,6 +999,10 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
             requiers_typage(espace, decl);
         }
     }
+    else if (attente.est<AttenteSurInitialisationType>()) {
+        auto type = const_cast<Type *>(attente.initialisation_type());
+        requiers_initialisation_type(espace, type);
+    }
 }
 
 void GestionnaireCode::imprime_état_parsage() const
