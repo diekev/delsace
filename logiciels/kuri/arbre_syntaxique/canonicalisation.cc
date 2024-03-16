@@ -1663,98 +1663,125 @@ NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
     return appel;
 }
 
-static NoeudExpression *supprime_parenthèses(NoeudExpression *expression)
-{
-    while (expression->est_parenthèse()) {
-        expression = expression->comme_parenthèse()->expression;
-    }
-    return expression;
-}
-
-static void aplatis_expression_logique(NoeudExpressionLogique *logique,
-                                       kuri::tablet<NoeudExpressionLogique *, 6> &résultat)
-{
-    auto opérande_gauche = supprime_parenthèses(logique->opérande_gauche);
-    if (opérande_gauche->est_expression_logique()) {
-        aplatis_expression_logique(opérande_gauche->comme_expression_logique(), résultat);
-    }
-
-    résultat.ajoute(logique);
-
-    auto opérande_droite = supprime_parenthèses(logique->opérande_droite);
-    if (opérande_droite->est_expression_logique()) {
-        aplatis_expression_logique(opérande_droite->comme_expression_logique(), résultat);
-    }
-}
-
-static kuri::tablet<NoeudExpressionLogique *, 6> aplatis_expression_logique(
-    NoeudExpressionLogique *logique)
-{
-    kuri::tablet<NoeudExpressionLogique *, 6> résultat;
-    aplatis_expression_logique(logique, résultat);
-    return résultat;
-}
-
 NoeudExpression *Simplificatrice::simplifie_expression_logique(NoeudExpressionLogique *logique)
 {
-#if 1
-    simplifie(logique->opérande_droite);
-    simplifie(logique->opérande_gauche);
-#else
     // À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&,
     // il faudra également modifier la RI pour prendre en compte la substitution
     if (logique->possède_drapeau(PositionCodeNoeud::DROITE_CONDITION)) {
-        simplifie(logique->opérande_droite);
         simplifie(logique->opérande_gauche);
-        return;
+        simplifie(logique->opérande_droite);
+        return logique;
     }
 
-    /* À FAIRE(expression logique) : simplifie comme GCC pour les assignations
+    /* Simplifie comme GCC pour les assignations
      * a := b && c ->  x := b; si x == vrai { x = c; }; a := x;
      * a := b || c ->  x := b; si x == faux { x = c; }; a := x;
      */
 
-    dbg() << erreur::imprime_site(*espace, logique->opérande_droite);
+    auto gauche = logique->opérande_gauche;
+    auto droite = logique->opérande_droite;
 
-    auto noeuds = aplatis_expression_logique(logique);
-    dbg() << "Nombre de noeuds : " << noeuds.taille();
+    simplifie(gauche);
+    gauche = simplifie_expression_pour_expression_logique(gauche);
 
-    static Lexème lexème_temp{};
+    auto déclaration = assem->crée_déclaration_variable(
+        gauche->lexème, gauche->type, nullptr, gauche);
+    déclaration->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+    ajoute_expression(déclaration);
 
-    simplifie(noeuds[0]->opérande_gauche);
-    auto temp = assem->crée_déclaration_variable(
-        &lexème_temp, TypeBase::BOOL, nullptr, noeuds[0]->opérande_gauche);
-    temp->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+    /* Utilisation d'un lexème spécifique pour la RI, qui pour les conditions des expressions-si se
+     * base sur le lexème... */
+    static Lexème lexème_référence;
+    lexème_référence.genre = GenreLexème::CHAINE_CARACTERE;
 
-    auto bloc = assem->crée_bloc_seul(logique->lexème, logique->bloc_parent);
-    bloc->ajoute_expression(temp);
+    auto référence = assem->crée_référence_déclaration(&lexème_référence, déclaration);
 
-    auto bloc_courant = bloc;
+    auto bloc_parent = logique->bloc_parent;
+    auto const lexème = logique->lexème;
+    auto inst_si = (lexème->genre == GenreLexème::BARRE_BARRE) ?
+                       assem->crée_saufsi(lexème, référence) :
+                       assem->crée_si(lexème, référence);
+    ajoute_expression(inst_si);
 
-    POUR (noeuds) {
-        dbg() << erreur::imprime_site(*espace, it);
+    auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
+    inst_si->bloc_si_vrai = bloc;
 
-        auto test = (it->lexème->genre == GenreLexème::ESP_ESP) ?
-                        assem->crée_si(logique->lexème) :
-                        assem->crée_saufsi(logique->lexème);
-        bloc_courant->ajoute_expression(test);
+    droite = simplifie_expression_pour_expression_logique(droite);
+    auto assignation = assem->crée_assignation_variable(lexème, référence, droite);
+    bloc->ajoute_expression(assignation);
 
-        test->condition = temp->valeur;
+    /* Simplifie le nouveau bloc, et non juste l'opérande droite, afin que les expressions générées
+     * par la simplification de ladite opérande s'y retrouve. */
+    simplifie(bloc);
 
-        simplifie(it->opérande_droite);
-        auto bloc_si_vrai = assem->crée_bloc_seul(logique->lexème, bloc_courant);
-        auto assignation = assem->crée_assignation_variable(
-            logique->lexème, temp->valeur, it->opérande_droite);
-        bloc_si_vrai->ajoute_expression(assignation);
+    logique->substitution = référence;
+    return logique->substitution;
+}
 
-        test->bloc_si_vrai = bloc_si_vrai;
-        bloc_courant = bloc_si_vrai;
+NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
+    NoeudExpression *expression)
+{
+    auto type_condition = expression->type;
+    if (type_condition->est_type_opaque()) {
+        type_condition = type_condition->comme_type_opaque()->type_opacifié;
     }
 
-    bloc->ajoute_expression(temp->valeur);
-    logique->substitution = bloc;
-#endif
-    return logique;
+    switch (type_condition->genre) {
+        case GenreNoeud::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_RELATIF:
+        case GenreNoeud::ENTIER_CONSTANT:
+        {
+            /* x -> x != 0 */
+            auto zéro = assem->crée_littérale_entier(expression->lexème, type_condition, 0);
+            auto op = type_condition->table_opérateurs->opérateur_dif;
+            return assem->crée_expression_binaire(expression->lexème, op, expression, zéro);
+        }
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::BOOL:
+        {
+            return expression;
+        }
+        case GenreNoeud::FONCTION:
+        case GenreNoeud::POINTEUR:
+        {
+            /* x -> x != nul */
+            auto zéro = assem->crée_littérale_nul(expression->lexème);
+            zéro->type = type_condition;
+            auto op = type_condition->table_opérateurs->opérateur_dif;
+            return assem->crée_expression_binaire(expression->lexème, op, expression, zéro);
+        }
+        case GenreNoeud::EINI:
+        {
+            /* x -> x.pointeur != nul */
+            auto ref_pointeur = assem->crée_référence_membre(
+                expression->lexème, expression, TypeBase::PTR_RIEN, 0);
+            auto zéro = assem->crée_littérale_nul(expression->lexème);
+            zéro->type = TypeBase::PTR_RIEN;
+            auto op = zéro->type->table_opérateurs->opérateur_dif;
+            return assem->crée_expression_binaire(expression->lexème, op, ref_pointeur, zéro);
+        }
+        case GenreNoeud::CHAINE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            /* x -> x.taille != 0 */
+            auto ref_taille = assem->crée_référence_membre(
+                expression->lexème, expression, TypeBase::Z64, 1);
+            auto zéro = assem->crée_littérale_entier(expression->lexème, TypeBase::Z64, 0);
+            auto op = zéro->type->table_opérateurs->opérateur_dif;
+            return assem->crée_expression_binaire(expression->lexème, op, ref_taille, zéro);
+        }
+        default:
+        {
+            assert_rappel(false, [&]() {
+                dbg() << "Type non géré pour la génération d'une condition d'une branche : "
+                      << chaine_type(type_condition);
+            });
+            break;
+        }
+    }
+
+    return nullptr;
 }
 
 NoeudExpression *Simplificatrice::simplifie_assignation_logique(
@@ -1764,36 +1791,25 @@ NoeudExpression *Simplificatrice::simplifie_assignation_logique(
     auto droite = logique->opérande_droite;
 
     simplifie(gauche);
-    simplifie(droite);
 
     auto bloc_parent = logique->bloc_parent;
     auto const lexème = logique->lexème;
-    if (lexème->genre == GenreLexème::BARRE_BARRE_EGAL) {
-        auto inst_saufsi = assem->crée_saufsi(lexème, gauche);
-        inst_saufsi->bloc_parent = bloc_parent;
+    auto inst_si = (lexème->genre == GenreLexème::BARRE_BARRE_EGAL) ?
+                       assem->crée_saufsi(lexème, gauche) :
+                       assem->crée_si(lexème, gauche);
 
-        auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
-        inst_saufsi->bloc_si_vrai = bloc;
+    auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
+    inst_si->bloc_si_vrai = bloc;
 
-        auto assignation = assem->crée_assignation_variable(lexème, gauche, droite);
-        bloc->ajoute_expression(assignation);
+    auto assignation = assem->crée_assignation_variable(lexème, gauche, droite);
+    bloc->ajoute_expression(assignation);
 
-        logique->substitution = inst_saufsi;
-        return inst_saufsi;
-    }
-    else {
-        auto inst_si = assem->crée_si(lexème, gauche);
-        inst_si->bloc_parent = bloc_parent;
+    /* Simplifie le nouveau bloc, et non juste l'opérande droite, afin que les expressions générées
+     * par la simplification de ladite opérande s'y retrouve. */
+    simplifie(bloc);
 
-        auto bloc = assem->crée_bloc_seul(lexème, bloc_parent);
-        inst_si->bloc_si_vrai = bloc;
-
-        auto assignation = assem->crée_assignation_variable(lexème, gauche, droite);
-        bloc->ajoute_expression(assignation);
-
-        logique->substitution = inst_si;
-        return inst_si;
-    }
+    logique->substitution = inst_si;
+    return inst_si;
 }
 
 NoeudExpression *Simplificatrice::simplifie_construction_union(
