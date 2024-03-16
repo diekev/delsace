@@ -151,6 +151,7 @@ struct Simplificatrice {
 
     NoeudExpression *simplifie_expression_logique(NoeudExpressionLogique *logique);
     NoeudExpression *simplifie_assignation_logique(NoeudExpressionAssignationLogique *logique);
+    NoeudExpression *simplifie_expression_pour_expression_logique(NoeudExpression *expression);
 };
 
 /** \} */
