@@ -69,6 +69,8 @@ MéthodePython :: struct {
     nom_enveloppe: chaine
     paramètres_entrée: [..]ParamètreMéthodePython
     paramètres_sortie: [..]ParamètreMéthodePython
+    /* Vrai si le premier paramètre ("self") de la fonction Kuri est un pointeur. */
+    param_self_est_pointeur := faux
 }
 
 détruit :: fonc (méthode: &MéthodePython)
@@ -106,6 +108,9 @@ méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, syst
 
     pour entête.params {
         si index_it == 0 && ignore_premier_paramètre {
+            si it.type.id == GenreInfoType.POINTEUR {
+                résultat.param_self_est_pointeur = vrai
+            }
             continue
         }
 

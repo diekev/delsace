@@ -832,10 +832,20 @@ génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: Métho
     arg_implicite := ""
     si self {
         si self.drapeaux.TOUJOURS_COMME_POINTEUR {
-            arg_implicite = "self_kuri.notre_instance"
+            si méthode.param_self_est_pointeur {
+                arg_implicite = "self_kuri.notre_instance"
+            }
+            sinon {
+                arg_implicite = "mémoire(self_kuri.notre_instance)"
+            }
         }
         sinon {
-            arg_implicite = "*self_kuri.notre_instance"
+            si méthode.param_self_est_pointeur {
+                arg_implicite = "*self_kuri.notre_instance"
+            }
+            sinon {
+                arg_implicite = "self_kuri.notre_instance"
+            }
         }
     }
 
