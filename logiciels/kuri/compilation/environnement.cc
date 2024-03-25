@@ -17,8 +17,13 @@
 #include "utilitaires/log.hh"
 
 /* Pour Linux, nous préfixons avec "lib", sauf si nous avons un chemin. */
-static kuri::chaine_statique préfixe_lib_pour_linux(kuri::chaine_statique nom_base)
+static kuri::chaine_statique préfixe_lib_pour_linux(kuri::chaine_statique nom_base,
+                                                    bool utilise_préfixe)
 {
+    if (!utilise_préfixe) {
+        return "";
+    }
+
     for (int i = 0; i < nom_base.taille(); i++) {
         if (nom_base.pointeur()[i] == '/') {
             return "";
@@ -38,26 +43,30 @@ kuri::chemin_systeme chemin_fichier_objet_temporaire_pour(kuri::chaine_statique 
     return kuri::chemin_systeme::chemin_temporaire(nom_fichier_objet_pour(nom_base));
 }
 
-kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_base)
+kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_base, bool utilise_préfixe)
 {
-    auto préfixe = préfixe_lib_pour_linux(nom_base);
+    auto préfixe = préfixe_lib_pour_linux(nom_base, utilise_préfixe);
     return enchaine(préfixe, nom_base, ".so");
 }
 
-kuri::chemin_systeme chemin_bibliothèque_dynamique_temporaire_pour(kuri::chaine_statique nom_base)
+kuri::chemin_systeme chemin_bibliothèque_dynamique_temporaire_pour(kuri::chaine_statique nom_base,
+                                                                   bool utilise_préfixe)
 {
-    return kuri::chemin_systeme::chemin_temporaire(nom_bibliothèque_dynamique_pour(nom_base));
+    return kuri::chemin_systeme::chemin_temporaire(
+        nom_bibliothèque_dynamique_pour(nom_base, utilise_préfixe));
 }
 
-kuri::chaine nom_bibliothèque_statique_pour(kuri::chaine_statique nom_base)
+kuri::chaine nom_bibliothèque_statique_pour(kuri::chaine_statique nom_base, bool utilise_préfixe)
 {
-    auto préfixe = préfixe_lib_pour_linux(nom_base);
+    auto préfixe = préfixe_lib_pour_linux(nom_base, utilise_préfixe);
     return enchaine(préfixe, nom_base, ".a");
 }
 
-kuri::chemin_systeme chemin_bibliothèque_statique_temporaire_pour(kuri::chaine_statique nom_base)
+kuri::chemin_systeme chemin_bibliothèque_statique_temporaire_pour(kuri::chaine_statique nom_base,
+                                                                  bool utilise_préfixe)
 {
-    return kuri::chemin_systeme::chemin_temporaire(nom_bibliothèque_statique_pour(nom_base));
+    return kuri::chemin_systeme::chemin_temporaire(
+        nom_bibliothèque_statique_pour(nom_base, utilise_préfixe));
 }
 
 kuri::chaine nom_executable_pour(kuri::chaine_statique nom_base)
@@ -433,7 +442,7 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
 
     /* Objet pour la liaison statique de la bibliothèque. */
 
-    const auto fichier_objet = nom_bibliothèque_dynamique_pour("r16");
+    const auto fichier_objet = nom_bibliothèque_dynamique_pour("r16", true);
     const auto chemin_objet = chemin_de_base_pour_bibliothèque_r16(ArchitectureCible::X64) /
                               fichier_objet;
 

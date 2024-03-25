@@ -201,11 +201,13 @@ kuri::chaine nom_sortie_fichier_objet(OptionsDeCompilation const &ops)
 kuri::chaine nom_sortie_résultat_final(OptionsDeCompilation const &ops)
 {
     if (ops.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
-        return nom_bibliothèque_dynamique_pour(nom_fichier_sortie(ops));
+        return nom_bibliothèque_dynamique_pour(nom_fichier_sortie(ops),
+                                               ops.préfixe_bibliothèque_système);
     }
 
     if (ops.résultat == RésultatCompilation::BIBLIOTHÈQUE_STATIQUE) {
-        return nom_bibliothèque_statique_pour(nom_fichier_sortie(ops));
+        return nom_bibliothèque_statique_pour(nom_fichier_sortie(ops),
+                                              ops.préfixe_bibliothèque_système);
     }
 
     if (ops.résultat == RésultatCompilation::FICHIER_OBJET) {
