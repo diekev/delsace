@@ -63,4 +63,5 @@ struct OptionsDeCompilation {
     bool utilise_trace_appel = vrai
     /* Définis si nous devons compiler du code indépendent de position. */
     bool code_indépendent_de_position = faux
+    bool préfixe_bibliothèque_système = vrai
 }

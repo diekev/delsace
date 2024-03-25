@@ -26,18 +26,20 @@ kuri::chaine nom_fichier_objet_pour(kuri::chaine_statique nom_base);
 kuri::chemin_systeme chemin_fichier_objet_temporaire_pour(kuri::chaine_statique nom_base);
 
 /* Retourne le nom suffixé de l'extension native pour une bibliothèque dynamique. */
-kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_base);
+kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_base, bool utilise_préfixe);
 
 /* Retourne un chemin dans le dossier temporaire du système pour une bibliothèque dynamique du nom
  * de base donné. */
-kuri::chemin_systeme chemin_bibliothèque_dynamique_temporaire_pour(kuri::chaine_statique nom_base);
+kuri::chemin_systeme chemin_bibliothèque_dynamique_temporaire_pour(kuri::chaine_statique nom_base,
+                                                                   bool utilise_préfixe);
 
 /* Retourne le nom suffixé de l'extension native pour une bibliothèque statique. */
-kuri::chaine nom_bibliothèque_statique_pour(kuri::chaine_statique nom_base);
+kuri::chaine nom_bibliothèque_statique_pour(kuri::chaine_statique nom_base, bool utilise_préfixe);
 
 /* Retourne un chemin dans le dossier temporaire du système pour une bibliothèque statique du nom
  * de base donné. */
-kuri::chemin_systeme chemin_bibliothèque_statique_temporaire_pour(kuri::chaine_statique nom_base);
+kuri::chemin_systeme chemin_bibliothèque_statique_temporaire_pour(kuri::chaine_statique nom_base,
+                                                                  bool utilise_préfixe);
 
 /* Retourne le nom suffixé de l'extension native pour fichier exécutable. */
 kuri::chaine nom_executable_pour(kuri::chaine_statique nom_base);

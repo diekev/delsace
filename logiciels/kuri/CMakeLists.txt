@@ -113,6 +113,7 @@ if(AVEC_MODULES_C)
     add_subdirectory(modules_c/FTGL)
     add_subdirectory(modules_c/Géométrie3D)
     add_subdirectory(modules_c/Krypto)
+    add_subdirectory(modules_c/Qt)
 
     if(AVEC_ALEMBIC)
         add_subdirectory(modules_c/Alembic)
