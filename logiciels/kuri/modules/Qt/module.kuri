@@ -1,0 +1,19 @@
+importe Fondation
+
+charge "interface_qt"
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+vers_kuri :: fonc (chn: *QT_Chaine) -> chaine
+{
+    retourne construit_chaine(chn.caractères, chn.taille)
+}
+
+vers_qt :: fonc (chn: chaine) -> QT_Chaine
+{
+    retourne QT_Chaine(chn.pointeur, chn.taille)
+}
+
+/** } */

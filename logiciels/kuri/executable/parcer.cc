@@ -202,6 +202,10 @@ static dls::chaine converti_type(kuri::tableau<dls::chaine> const &morceaux,
             continue;
         }
 
+        if (morceau == "union") {
+            continue;
+        }
+
         if (morceau == "enum") {
             continue;
         }
@@ -1052,6 +1056,39 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor,
     return res;
 }
 
+static dls::chaine donne_préfixe_valeur_énum(dls::chaine const &nom_énum)
+{
+    auto résultat = nom_énum + "_";
+
+    for (auto &c : résultat) {
+        if (c >= 'a' && c <= 'z') {
+            c = c - 'a' + 'A';
+        }
+    }
+
+    return résultat;
+}
+
+static dls::chaine donne_nom_constante_énum_sans_préfixe(dls::chaine const &nom_constante,
+                                                         dls::chaine const &préfixe_énum)
+{
+    if (nom_constante.taille() < préfixe_énum.taille()) {
+        return nom_constante;
+    }
+
+    auto préfixe_potentiel = nom_constante.sous_chaine(0, préfixe_énum.taille());
+    if (préfixe_potentiel != préfixe_énum) {
+        return nom_constante;
+    }
+
+    auto résultat = nom_constante.sous_chaine(préfixe_potentiel.taille());
+    if (résultat.taille() == 0) {
+        return nom_constante;
+    }
+
+    return résultat;
+}
+
 struct Convertisseuse {
     kuri::chemin_systeme fichier_source{};
     kuri::chemin_systeme fichier_entete{};
@@ -1070,6 +1107,8 @@ struct Convertisseuse {
     kuri::ensemble<kuri::chaine> modules_importes{};
 
     dls::chaine pour_bibliotheque{};
+
+    dls::chaine m_préfixe_énum_courant{};
 
     void ajoute_typedef(dls::chaine &&nom_typedef, dls::chaine &&nom_type)
     {
@@ -1244,13 +1283,15 @@ struct Convertisseuse {
             {
                 imprime_commentaire(cursor, flux_sortie);
                 imprime_tab(flux_sortie);
-                flux_sortie << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                auto nom_énum = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
 
                 auto type = clang_getEnumDeclIntegerType(cursor);
-                flux_sortie << " :: énum " << converti_type(type, typedefs);
+                flux_sortie << nom_énum << " :: énum " << converti_type(type, typedefs);
 
                 flux_sortie << " {\n";
+                m_préfixe_énum_courant = donne_préfixe_valeur_énum(nom_énum);
                 converti_enfants(cursor, trans_unit, flux_sortie);
+                m_préfixe_énum_courant = "";
 
                 imprime_tab(flux_sortie);
                 flux_sortie << "}\n\n";
@@ -1261,7 +1302,13 @@ struct Convertisseuse {
             {
                 imprime_commentaire(cursor, flux_sortie);
                 imprime_tab(flux_sortie);
-                flux_sortie << clang_getCursorSpelling(cursor);
+
+                auto spelling = clang_getCursorSpelling(cursor);
+                auto nom_constante = converti_chaine(spelling);
+                nom_constante = donne_nom_constante_énum_sans_préfixe(nom_constante,
+                                                                      m_préfixe_énum_courant);
+
+                flux_sortie << nom_constante;
 
                 auto enfants = rassemble_enfants(cursor);
 
