@@ -45,6 +45,7 @@ static const char *nom_base_globale = "G";
 static const char *nom_base_label = "L";
 static const char *nom_base_type = "T";
 static const char *nom_base_variable = "V";
+static const char *nom_variable_tableau_fixe = "d_";
 
 /* ------------------------------------------------------------------------- */
 /** \name Utilitaires locaux.
@@ -754,7 +755,8 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 
             enchaineuse << "typedef struct " << préfixe << nom_broyé << " {\n  "
                         << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointé);
-            enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];\n";
+            enchaineuse << " " << nom_variable_tableau_fixe << "["
+                        << type->comme_type_tableau_fixe()->taille << "];\n";
             enchaineuse << "} " << préfixe << nom_broyé << ";\n\n";
             break;
         }
@@ -848,7 +850,8 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
     enchaineuse << "  union {\n";
-    enchaineuse << "    uint8_t d[" << type_composé->taille_octet << "];\n";
+    enchaineuse << "    uint8_t " << nom_variable_tableau_fixe << "[" << type_composé->taille_octet
+                << "];\n";
     enchaineuse << "    struct {\n";
 #endif
 
@@ -1167,7 +1170,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             }
 
             if (est_type_tableau_fixe(inst_accès->donne_type_accédé())) {
-                valeur_accédée = enchaine(valeur_accédée, ".d");
+                valeur_accédée = enchaine(valeur_accédée, ".", nom_variable_tableau_fixe);
             }
 
             return enchaine(valeur_accédée, "[", inst_accès->index, "]");
@@ -1334,7 +1337,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto éléments = tableau->donne_atomes_éléments();
             auto résultat = Enchaineuse();
 
-            auto virgule = "{ .d = { ";
+            auto virgule = enchaine("{ .", nom_variable_tableau_fixe, " = { ");
             auto nombre_de_tampons = 1;
 
             POUR (éléments) {
@@ -1681,7 +1684,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                     "&((", donne_nom_pour_type(inst_accès->type), ")", valeur_accédée, ")");
             }
             else if (est_type_tableau_fixe(inst_accès->donne_type_accédé())) {
-                valeur_accédée = enchaine(valeur_accédée, ".d");
+                valeur_accédée = enchaine(valeur_accédée, ".", nom_variable_tableau_fixe);
             }
 
             auto valeur = enchaine(valeur_accédée, "[", valeur_index, "]");
@@ -1709,8 +1712,14 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             auto nom_type = donne_nom_pour_type(membre.type);
-            valeur_accédée = enchaine(
-                "&(*(", nom_type, " *)", valeur_accédée, "d[", membre.decalage, "])");
+            valeur_accédée = enchaine("&(*(",
+                                      nom_type,
+                                      " *)",
+                                      valeur_accédée,
+                                      nom_variable_tableau_fixe,
+                                      "[",
+                                      membre.decalage,
+                                      "])");
 #else
             /* Cas pour les structures vides (dans leurs fonctions d'initialisation). */
             if (membre.nom == ID::chaine_vide) {
