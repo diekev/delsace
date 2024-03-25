@@ -859,7 +859,8 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
             // À FAIRE
         }
         FONCTION,
-        POINTEUR {
+        POINTEUR,
+        ADRESSE_FONCTION {
             retourne "P\0"
         }
     }
