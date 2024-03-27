@@ -142,6 +142,12 @@ void QT_fenetre_principale_definis_widget_central(QT_Fenetre_Principale *fenetre
     fenêtre_qt->setCentralWidget(qwidget);
 }
 
+QT_Rappels_Fenetre_Principale *QT_fenetre_principale_donne_rappels(QT_Fenetre_Principale *fenetre)
+{
+    auto qfenêtre = vers_qt(fenetre);
+    return qfenêtre->donne_rappels();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
