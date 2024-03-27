@@ -29,6 +29,8 @@ class QFrame;
 
 #include <iostream>
 
+#include "biblinternes/outils/definitions.h"
+
 #include "fenetre_principale.hh"
 #include "ipa_danjo.hh"
 #include "tabs.hh"
@@ -41,6 +43,8 @@ class EvenementPerso : public QEvent {
     EvenementPerso(void *données, int type) : QEvent(Type(type)), m_données(données)
     {
     }
+
+    EMPECHE_COPIE(EvenementPerso);
 
     void *donne_données()
     {
@@ -220,6 +224,8 @@ class Timer : public QTimer {
             callOnTimeout([&]() { m_rappels->sur_timeout(m_rappels); });
         }
     }
+
+    EMPECHE_COPIE(Timer);
 };
 
 QT_Timer *QT_cree_timer(QT_Rappels_Timer *rappels)

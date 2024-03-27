@@ -15,6 +15,8 @@
 #    pragma GCC diagnostic pop
 #endif
 
+#include "biblinternes/outils/definitions.h"
+
 #include "qt_ipa_c.h"
 
 class TabWidget : public QTabWidget {
@@ -24,6 +26,8 @@ class TabWidget : public QTabWidget {
 
   public:
     TabWidget(QT_Rappels_TabWidget *rappels, QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(TabWidget);
 
   public Q_SLOTS:
     void sur_changement_page(int index);

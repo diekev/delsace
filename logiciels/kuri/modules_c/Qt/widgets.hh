@@ -19,6 +19,8 @@
 #    pragma GCC diagnostic pop
 #endif
 
+#include "biblinternes/outils/definitions.h"
+
 #include "qt_ipa_c.h"
 
 /* ------------------------------------------------------------------------- */
@@ -32,6 +34,8 @@ class Widget : public QWidget {
 
   public:
     Widget(QT_Rappels_Widget *rappels, QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(Widget);
 
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;
@@ -55,6 +59,8 @@ class GLWidget : public QGLWidget {
 
   public:
     GLWidget(QT_Rappels_GLWidget *rappels, QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(GLWidget);
 
     /* Évènements communs. */
     void enterEvent(QEvent *event) override;
@@ -84,6 +90,8 @@ class CheckBox : public QCheckBox {
 
   public:
     CheckBox(QT_Rappels_CheckBox *rappel, QWidget *parent);
+
+    EMPECHE_COPIE(CheckBox);
 
   public Q_SLOTS:
     void sur_changement_etat(int state);
@@ -123,6 +131,8 @@ class TreeWidgetItem : public QTreeWidgetItem {
     {
     }
 
+    EMPECHE_COPIE(TreeWidgetItem);
+
     void *donne_données()
     {
         return m_données;
@@ -142,6 +152,8 @@ class TreeWidget : public QTreeWidget {
 
   public:
     TreeWidget(QT_Rappels_TreeWidget *rappels, QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(TreeWidget);
 
   public Q_SLOTS:
     void sur_selection_item(QTreeWidgetItem *item, int colonne);
