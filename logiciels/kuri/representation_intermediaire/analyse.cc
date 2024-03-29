@@ -1740,6 +1740,51 @@ static void supprime_op_binaires_inutiles(FonctionEtBlocs &fonction_et_blocs,
     }
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name Durée de vie.
+ * \{ */
+
+#if 0
+struct DuréeDeVie {
+    // int allocation = 0;
+    int dernière_utilisation = 0;
+};
+
+/* À CONSIDÉRER : prise adresse, référence membre, tableaux. */
+static void analyse_durée_de_vie_variables(AtomeFonction const &fonction)
+{
+    kuri::tableau<DuréeDeVie> durées_de_vie;
+    durées_de_vie.redimensionne(fonction.numérote_instructions());
+
+    POUR (fonction.instructions) {
+        visite_opérandes_instruction(it, [&](Atome const *opérande) {
+            if (!opérande->est_instruction()) {
+                return;
+            }
+
+            auto inst = opérande->comme_instruction();
+            durées_de_vie[inst->numero].dernière_utilisation = it->numero;
+        });
+    }
+
+    dbg() << "=================================================\n" << fonction.nom;
+
+    POUR (fonction.instructions) {
+        if (!it->est_alloc()) {
+            continue;
+        }
+
+        auto alloc = it->comme_alloc();
+        if (alloc->ident) {
+            dbg() << "%" << alloc->ident->nom << " -> " << "%"
+                  << durées_de_vie[alloc->numero].dernière_utilisation;
+        }
+    }
+}
+#endif
+
+/** \} */
+
 /* ********************************************************************************************
  */
 
