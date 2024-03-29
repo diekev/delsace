@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
+
 #include "qt_ipa_c.h"
 
 #include "danjo/conteneur_controles.h"
@@ -17,6 +19,8 @@ class ConteneurControles : public danjo::ConteneurControles {
 
   public:
     ConteneurControles(DNJ_Rappels_Widget *rappels, QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(ConteneurControles);
 
     void ajourne_manipulable() override;
 

@@ -46,6 +46,8 @@ add_library(${NOM_BIBLIOTHEQUE} STATIC
 )
 add_library(dls::phys ALIAS ${NOM_BIBLIOTHEQUE})
 
+set_property(TARGET ${NOM_BIBLIOTHEQUE} PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC .)
 
 target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})
