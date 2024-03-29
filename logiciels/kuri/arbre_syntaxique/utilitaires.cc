@@ -1507,12 +1507,22 @@ static void ajoute_à_ensemble_de_surcharge(NoeudDéclaration *decl, NoeudDécla
 {
     if (decl->est_entête_fonction()) {
         auto entête_existante = decl->comme_entête_fonction();
+        /* Garantis la présence de l'entête dans l'ensemble de surcharge. Ceci nous évitera d'avoir
+         * une vérification séparée quand l'ensemble de surcharge est utilisé. */
+        if (entête_existante->ensemble_de_surchages->taille() == 0) {
+            entête_existante->ensemble_de_surchages->ajoute(entête_existante);
+        }
         entête_existante->ensemble_de_surchages->ajoute(à_ajouter->comme_déclaration_symbole());
         return;
     }
 
     if (decl->est_déclaration_type()) {
         auto type_existant = decl->comme_déclaration_type();
+        /* Garantis la présence du type dans l'ensemble de surcharge. Ceci nous évitera d'avoir une
+         * vérification séparée quand l'ensemble de surcharge est utilisé. */
+        if (type_existant->ensemble_de_surchages->taille() == 0) {
+            type_existant->ensemble_de_surchages->ajoute(type_existant);
+        }
         type_existant->ensemble_de_surchages->ajoute(à_ajouter->comme_déclaration_symbole());
         return;
     }
