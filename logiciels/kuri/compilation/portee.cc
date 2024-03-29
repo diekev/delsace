@@ -140,18 +140,25 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &declar
     while (bloc_courant != nullptr) {
         auto decl = bloc_courant->declaration_pour_ident(ident);
         if (decl && decl->est_déclaration_symbole()) {
-            declarations.ajoute(decl);
+            auto déclaration_ajoutée = false;
+
             if (decl->est_entête_fonction()) {
                 auto entête = decl->comme_entête_fonction();
                 POUR (*entête->ensemble_de_surchages.verrou_lecture()) {
                     declarations.ajoute(it);
+                    déclaration_ajoutée = true;
                 }
             }
             else if (decl->est_déclaration_type()) {
                 auto type = decl->comme_déclaration_type();
                 POUR (*type->ensemble_de_surchages.verrou_lecture()) {
                     declarations.ajoute(it);
+                    déclaration_ajoutée = true;
                 }
+            }
+
+            if (!déclaration_ajoutée) {
+                declarations.ajoute(decl);
             }
         }
         bloc_courant = bloc_courant->bloc_parent;
