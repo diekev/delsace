@@ -57,7 +57,7 @@ QPushButton *crée_bouton_échelle_valeur(QWidget *parent)
         résultat->setText("H");
     }
 
-    résultat->setToolTip("Affiche une échelle de valeur pour éditeur la valeur de la propriété");
+    résultat->setToolTip("Affiche une échelle de valeur pour éditer la valeur de la propriété");
     return résultat;
 }
 

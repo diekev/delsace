@@ -63,6 +63,39 @@ compare_ascii_insensible_à_la_casse :: fonc (chn1: chaine, chn2: chaine) -> boo
     retourne vrai
 }
 
+convertis_casse_serpent_pour_interface :: fonc (chn: chaine) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    en_majuscule := vrai
+
+    pour chn {
+        si it == '_' {
+            ajoute_au_tampon(*enchaineuse, ' ')
+            en_majuscule = vrai
+            continue
+        }
+
+        si en_majuscule {
+            si 'a' <= it <= 'z' {
+                ajoute_au_tampon(*enchaineuse, it - 'a' + 'A')
+            }
+            sinon {
+                ajoute_au_tampon(*enchaineuse, it)
+            }
+
+            en_majuscule = faux
+        }
+        sinon {
+            ajoute_au_tampon(*enchaineuse, it)
+        }
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom ChaineFixe
  * \{ */
