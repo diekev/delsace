@@ -172,7 +172,6 @@ static auto extrait_données_attribut(AbcExportriceAttribut *exportrice,
     using ConvertisseuseValeur = ConvertisseuseTypeValeurExport<type>;
     using type_abc = typename ConvertisseuseValeur::type_abc;
     using type_param = typename ConvertisseuseValeur::type_param_abc;
-    using sample_type = typename type_param::Sample;
     std::vector<type_abc> résultat;
 
     if (!ConvertisseuseValeur::export_valeur_est_supporté(exportrice)) {
