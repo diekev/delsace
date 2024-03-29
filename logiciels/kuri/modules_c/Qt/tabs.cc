@@ -31,4 +31,5 @@ void TabWidget::sur_fermeture_page(int index)
     if (m_rappels->sur_fermeture_page) {
         m_rappels->sur_fermeture_page(m_rappels, index);
     }
+    removeTab(index);
 }
