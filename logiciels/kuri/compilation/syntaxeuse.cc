@@ -26,6 +26,8 @@
 #include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"
 
+#define DEDUPLIQUE_NOEUDS
+
 /* ------------------------------------------------------------------------- */
 /** \name TableRéférences
  * \{ */
@@ -3624,6 +3626,9 @@ void Syntaxeuse::dépile_table_références()
 
 NoeudExpressionRéférence *Syntaxeuse::crée_référence_déclaration(Lexème const *lexème)
 {
+#ifndef DEDUPLIQUE_NOEUDS
+    return m_tacheronne.assembleuse->crée_référence_déclaration(lexème);
+#else
     if (m_désactive_réutilisation_référence || m_pile_tables_références.est_vide()) {
         return m_tacheronne.assembleuse->crée_référence_déclaration(lexème);
     }
@@ -3637,11 +3642,15 @@ NoeudExpressionRéférence *Syntaxeuse::crée_référence_déclaration(Lexème c
     résultat = m_tacheronne.assembleuse->crée_référence_déclaration(lexème);
     table->ajoute_référence(résultat);
     return résultat;
+#endif
 }
 
 NoeudExpressionMembre *Syntaxeuse::crée_référence_membre(Lexème const *lexème,
                                                          NoeudExpression *gauche)
 {
+#ifndef DEDUPLIQUE_NOEUDS
+    return m_tacheronne.assembleuse->crée_référence_membre(lexème, gauche);
+#else
     if (!m_pile_tables_références.est_vide()) {
         auto table = m_pile_tables_références.haut();
         auto résultat = table->trouve_référence_membre_pour(lexème, gauche);
@@ -3657,10 +3666,14 @@ NoeudExpressionMembre *Syntaxeuse::crée_référence_membre(Lexème const *lexè
         table->ajoute_référence_membre(noeud);
     }
     return noeud;
+#endif
 }
 
 NoeudExpressionLittéraleChaine *Syntaxeuse::crée_littérale_chaine(Lexème const *lexème)
 {
+#ifndef DEDUPLIQUE_NOEUDS
+    return m_tacheronne.assembleuse->crée_littérale_chaine(lexème);
+#else
     if (m_pile_tables_références.est_vide()) {
         return m_tacheronne.assembleuse->crée_littérale_chaine(lexème);
     }
@@ -3674,11 +3687,15 @@ NoeudExpressionLittéraleChaine *Syntaxeuse::crée_littérale_chaine(Lexème con
     résultat = m_tacheronne.assembleuse->crée_littérale_chaine(lexème);
     table->ajoute_littérale_chaine(résultat);
     return résultat;
+#endif
 }
 
 NoeudExpressionPriseAdresse *Syntaxeuse::crée_prise_adresse(Lexème const *lexème,
                                                             NoeudExpression *opérande)
 {
+#ifndef DEDUPLIQUE_NOEUDS
+    return m_tacheronne.assembleuse->crée_prise_adresse(lexème, opérande);
+#else
     if (m_pile_tables_références.est_vide()) {
         return m_tacheronne.assembleuse->crée_prise_adresse(lexème, opérande);
     }
@@ -3692,10 +3709,14 @@ NoeudExpressionPriseAdresse *Syntaxeuse::crée_prise_adresse(Lexème const *lex�
     résultat = m_tacheronne.assembleuse->crée_prise_adresse(lexème, opérande);
     table->ajoute_prise_adresse(résultat);
     return résultat;
+#endif
 }
 
 NoeudExpressionRéférenceType *Syntaxeuse::crée_référence_type(Lexème const *lexème)
 {
+#ifndef DEDUPLIQUE_NOEUDS
+    return m_tacheronne.assembleuse->crée_référence_type(lexème);
+#else
     if (m_pile_tables_références.est_vide()) {
         return m_tacheronne.assembleuse->crée_référence_type(lexème);
     }
@@ -3709,15 +3730,18 @@ NoeudExpressionRéférenceType *Syntaxeuse::crée_référence_type(Lexème const
     résultat = m_tacheronne.assembleuse->crée_référence_type(lexème);
     table->ajoute_référence_type(résultat);
     return résultat;
+#endif
 }
 
 void Syntaxeuse::recycle_référence(NoeudExpressionRéférence *référence)
 {
     m_tacheronne.assembleuse->recycle_référence(référence);
 
+#ifdef DEDUPLIQUE_NOEUDS
     if (!m_pile_tables_références.est_vide()) {
         /* Pour éviter que les références créées pour les déclarations nous empêchent de valider
          * sémantiquement les références suivantes. */
         m_pile_tables_références.haut()->invalide_référence(référence);
     }
+#endif
 }
