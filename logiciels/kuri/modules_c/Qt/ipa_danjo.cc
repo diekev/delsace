@@ -60,7 +60,11 @@ class EnveloppeParamètre final : public danjo::BasePropriete {
     DNJ_Rappels_Enveloppe_Parametre *m_rappels = nullptr;
 
   public:
-    EnveloppeParamètre(DNJ_Rappels_Enveloppe_Parametre *rappels) : m_rappels(rappels){};
+    EnveloppeParamètre(DNJ_Rappels_Enveloppe_Parametre *rappels) : m_rappels(rappels)
+    {
+    }
+
+    EMPECHE_COPIE(EnveloppeParamètre);
 
     danjo::TypePropriete type() const override
     {
@@ -489,7 +493,7 @@ void ConteneurControles::obtiens_liste(const dls::chaine &attache,
 
     QT_Chaine chn_attache;
     chn_attache.caractères = const_cast<char *>(attache.c_str());
-    chn_attache.taille = int64_t(attache.taille());
+    chn_attache.taille = attache.taille();
 
     auto constructrice = ConstructriceListe(chaines);
 

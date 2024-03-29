@@ -441,14 +441,14 @@ struct AbcExportriceAttribut {
     void (*donne_valeur_normal3_r64)(void *attribut, int index, double *r_valeur);
 };
 
-typedef struct AbcOptionsExport {
+struct AbcOptionsExport {
     /* décide si la hiérarchie doit être préservé */
     bool exporte_hierarchie;
 
     // À FAIRE : controle des objets exportés (visible, seulement les maillages, etc.)
 
     // À FAIRE : est-il possible, pour les calques, de n'exporter que les attributs ?
-} AbcOptionsExport;
+};
 
 typedef enum eAbcIndexagePolygone {
     ABC_INDEXAGE_POLYGONE_HORAIRE,
@@ -652,23 +652,23 @@ struct ConvertisseuseExportFaceSet {
     void (*remplis_index_polygones)(struct ConvertisseuseExportFaceSet *, int *);
 };
 
-typedef struct AbcMillimetre {
+struct AbcMillimetre {
     double valeur;
-} AbcMillimetre;
+};
 
-typedef struct AbcCentimetre {
+struct AbcCentimetre {
     double valeur;
-} AbcCentimetre;
+};
 
-typedef struct AbcPourcentage {
+struct AbcPourcentage {
     double valeur;
-} AbcPourcentage;
+};
 
-typedef struct AbcTempsSeconde {
+struct AbcTempsSeconde {
     double valeur;
-} AbcTempsSeconde;
+};
 
-typedef struct AbcExportriceEchantillonCamera {
+struct AbcExportriceEchantillonCamera {
     /** Définis la longueur focale de la caméra. */
     void (*definis_longueur_focale)(struct AbcExportriceEchantillonCamera *,
                                     struct AbcMillimetre *);
@@ -711,13 +711,13 @@ typedef struct AbcExportriceEchantillonCamera {
     void (*definis_avant_arriere_plan)(struct AbcExportriceEchantillonCamera *,
                                        struct AbcCentimetre *,
                                        struct AbcCentimetre *);
-} AbcExportriceEchantillonCamera;
+};
 
-typedef struct AbcExportriceOperationSenseur {
+struct AbcExportriceOperationSenseur {
     void (*ajoute_translation)(struct AbcExportriceOperationSenseur *, double *, char *, int64_t);
     void (*ajoute_taille)(struct AbcExportriceOperationSenseur *, double *, char *, int64_t);
     void (*ajoute_matrice)(struct AbcExportriceOperationSenseur *, double *, char *, int64_t);
-} AbcExportriceOperationSenseur;
+};
 
 struct ConvertisseuseExportCamera {
     void *donnees;
@@ -761,7 +761,7 @@ struct ConvertisseuseExportLumiere {
                                       struct AbcExportriceOperationSenseur *);
 };
 
-typedef struct AbcChaine {
+struct AbcChaine {
     char *caractères;
     int64_t taille;
 
@@ -774,9 +774,9 @@ typedef struct AbcChaine {
         return std::string(caractères, size_t(taille));
     }
 #endif
-} AbcChaine;
+};
 
-typedef struct AbcExportriceGrapheMateriau {
+struct AbcExportriceGrapheMateriau {
     void (*ajoute_noeud)(struct AbcExportriceGrapheMateriau *,
                          struct AbcChaine *,
                          struct AbcChaine *);
@@ -789,7 +789,7 @@ typedef struct AbcExportriceGrapheMateriau {
 
     void (*definis_noeud_sortie_graphe)(struct AbcExportriceGrapheMateriau *exportrice,
                                         struct AbcChaine *);
-} AbcExportriceGrapheMateriau;
+};
 
 struct ConvertisseuseExportMateriau {
     void *donnees;
