@@ -29,6 +29,8 @@ class QFrame;
 
 #include <iostream>
 
+#include "biblinternes/outils/definitions.h"
+
 #include "fenetre_principale.hh"
 #include "ipa_danjo.hh"
 #include "tabs.hh"
@@ -41,6 +43,8 @@ class EvenementPerso : public QEvent {
     EvenementPerso(void *données, int type) : QEvent(Type(type)), m_données(données)
     {
     }
+
+    EMPECHE_COPIE(EvenementPerso);
 
     void *donne_données()
     {
@@ -138,6 +142,12 @@ void QT_fenetre_principale_definis_widget_central(QT_Fenetre_Principale *fenetre
     fenêtre_qt->setCentralWidget(qwidget);
 }
 
+QT_Rappels_Fenetre_Principale *QT_fenetre_principale_donne_rappels(QT_Fenetre_Principale *fenetre)
+{
+    auto qfenêtre = vers_qt(fenetre);
+    return qfenêtre->donne_rappels();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -220,6 +230,8 @@ class Timer : public QTimer {
             callOnTimeout([&]() { m_rappels->sur_timeout(m_rappels); });
         }
     }
+
+    EMPECHE_COPIE(Timer);
 };
 
 QT_Timer *QT_cree_timer(QT_Rappels_Timer *rappels)

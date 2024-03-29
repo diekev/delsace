@@ -3869,6 +3869,18 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         decl->type = m_compilatrice.typeuse.type_type_de_donnees(decl);
     }
 
+    if (!decl->est_monomorphisation) {
+        auto decl_précédente = trouve_dans_bloc(
+            decl->bloc_parent, decl, decl->bloc_parent->bloc_parent);
+
+        // la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
+        // structres (p.e. stat)
+        if (decl_précédente != nullptr && decl_précédente->genre == decl->genre) {
+            rapporte_erreur_redéfinition_symbole(decl, decl_précédente);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
@@ -3925,18 +3937,6 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     TENTE(valide_arbre_aplatis(decl));
 
     CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
-
-    if (!decl->est_monomorphisation) {
-        auto decl_precedente = trouve_dans_bloc(
-            decl->bloc_parent, decl, decl->bloc_parent->bloc_parent);
-
-        // la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
-        // structres (p.e. stat)
-        if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
-            rapporte_erreur_redéfinition_symbole(decl, decl_precedente);
-            return CodeRetourValidation::Erreur;
-        }
-    }
 
     auto type_compose = decl->comme_type_composé();
 
@@ -4168,13 +4168,13 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
     CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
 
     if (!decl->est_monomorphisation) {
-        auto decl_precedente = trouve_dans_bloc(
+        auto decl_précédente = trouve_dans_bloc(
             decl->bloc_parent, decl, decl->bloc_parent->bloc_parent);
 
         // la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
         // structres (p.e. stat)
-        if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
-            rapporte_erreur_redéfinition_symbole(decl, decl_precedente);
+        if (decl_précédente != nullptr && decl_précédente->genre == decl->genre) {
+            rapporte_erreur_redéfinition_symbole(decl, decl_précédente);
             return CodeRetourValidation::Erreur;
         }
     }
