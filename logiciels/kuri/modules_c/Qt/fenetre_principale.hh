@@ -28,6 +28,11 @@ class FenetrePrincipale : public QMainWindow {
     FenetrePrincipale(QT_Rappels_Fenetre_Principale *rappels);
     EMPECHE_COPIE(FenetrePrincipale);
 
+    QT_Rappels_Fenetre_Principale *donne_rappels()
+    {
+        return m_rappels;
+    }
+
     bool eventFilter(QObject *object, QEvent *event);
 
   private:

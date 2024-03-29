@@ -212,10 +212,6 @@ passe un type à une fonction pour instantier automatiquement une valeur tempora
     faire :
     fonction(MonType)
 
-pouvoir prendre les adresses des fonctions
-    voir mise en place de la trace d'appel dans Kuri/module.kuri
-
-
 permet de ne pas avoir un retour si la dernière instruction est celle d'une discrimination qui retourne de toute manière
     Ici x n'a que deux valeurs possibles
     discr x {

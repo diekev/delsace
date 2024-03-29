@@ -271,12 +271,12 @@ void TreeWidget::sur_selection_item(QTreeWidgetItem *item, int colonne)
     }
 }
 
-void TreeWidget::sur_changement_item_courant(QTreeWidgetItem *courant, QTreeWidgetItem *precedent)
+void TreeWidget::sur_changement_item_courant(QTreeWidgetItem *courant, QTreeWidgetItem *précédent)
 {
     if (m_rappels && m_rappels->sur_changement_item_courant) {
         m_rappels->sur_changement_item_courant(m_rappels,
                                                reinterpret_cast<QT_TreeWidgetItem *>(courant),
-                                               reinterpret_cast<QT_TreeWidgetItem *>(precedent));
+                                               reinterpret_cast<QT_TreeWidgetItem *>(précédent));
     }
 }
 
