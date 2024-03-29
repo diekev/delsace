@@ -226,6 +226,9 @@ void QT_fenetre_principale_definis_titre_fenetre(struct QT_Fenetre_Principale *f
 void QT_fenetre_principale_definis_widget_central(struct QT_Fenetre_Principale *fenetre,
                                                   union QT_Generic_Widget widget);
 
+struct QT_Rappels_Fenetre_Principale *QT_fenetre_principale_donne_rappels(
+    struct QT_Fenetre_Principale *fenetre);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
