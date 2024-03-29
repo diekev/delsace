@@ -157,7 +157,7 @@ class TreeWidget : public QTreeWidget {
 
   public Q_SLOTS:
     void sur_selection_item(QTreeWidgetItem *item, int colonne);
-    void sur_changement_item_courant(QTreeWidgetItem *courant, QTreeWidgetItem *precedent);
+    void sur_changement_item_courant(QTreeWidgetItem *courant, QTreeWidgetItem *précédent);
 };
 
 /** \} */

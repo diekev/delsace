@@ -3869,13 +3869,13 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     }
 
     if (!decl->est_monomorphisation) {
-        auto decl_precedente = trouve_dans_bloc(
+        auto decl_précédente = trouve_dans_bloc(
             decl->bloc_parent, decl, decl->bloc_parent->bloc_parent);
 
         // la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
         // structres (p.e. stat)
-        if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
-            rapporte_erreur_redéfinition_symbole(decl, decl_precedente);
+        if (decl_précédente != nullptr && decl_précédente->genre == decl->genre) {
+            rapporte_erreur_redéfinition_symbole(decl, decl_précédente);
             return CodeRetourValidation::Erreur;
         }
     }
@@ -4167,13 +4167,13 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
     CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
 
     if (!decl->est_monomorphisation) {
-        auto decl_precedente = trouve_dans_bloc(
+        auto decl_précédente = trouve_dans_bloc(
             decl->bloc_parent, decl, decl->bloc_parent->bloc_parent);
 
         // la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
         // structres (p.e. stat)
-        if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
-            rapporte_erreur_redéfinition_symbole(decl, decl_precedente);
+        if (decl_précédente != nullptr && decl_précédente->genre == decl->genre) {
+            rapporte_erreur_redéfinition_symbole(decl, decl_précédente);
             return CodeRetourValidation::Erreur;
         }
     }
