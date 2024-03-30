@@ -879,14 +879,15 @@ static bool est_comparaison_pointeur_nul(InstructionOpBinaire const *op_binaire)
         return false;
     }
 
-    /* À FAIRE : quand les instructions seront canonicalisées, supprime la version dépréciée. */
     auto const opérande_droite = op_binaire->valeur_droite;
     auto const opérande_gauche = op_binaire->valeur_gauche;
 
+    /* Les opérateurs durent être canonicalisés, donc aucune constante ne peut être à gauche. */
+    assert(!(est_constante_pointeur_nul(opérande_gauche) &&
+             opérande_droite->type->est_type_pointeur()));
+
     return (est_constante_pointeur_nul(opérande_droite) &&
-            opérande_gauche->type->est_type_pointeur()) ||
-           (est_constante_pointeur_nul(opérande_gauche) &&
-            opérande_droite->type->est_type_pointeur());
+            opérande_gauche->type->est_type_pointeur());
 }
 
 static bool est_comparaison_ordonnée_naturel_zéro(InstructionOpBinaire const *op_binaire)
@@ -895,21 +896,19 @@ static bool est_comparaison_ordonnée_naturel_zéro(InstructionOpBinaire const *
     auto const opérande_droite = op_binaire->valeur_droite;
     auto const opérande_gauche = op_binaire->valeur_gauche;
 
-    /* À FAIRE : canonicalisation. */
-
-    /* Détecte 0 <= naturel. */
-    if (genre == OpérateurBinaire::Genre::Comp_Inf_Egal_Nat ||
-        genre == OpérateurBinaire::Genre::Comp_Inf_Nat) {
-        return est_constante_entière_zéro(opérande_gauche) &&
-               opérande_droite->type->est_type_entier_naturel();
-    }
-
     /* Détecte naturel >= 0. */
     if (genre == OpérateurBinaire::Genre::Comp_Sup_Egal_Nat ||
         genre == OpérateurBinaire::Genre::Comp_Sup_Nat) {
         return est_constante_entière_zéro(opérande_droite) &&
                opérande_gauche->type->est_type_entier_naturel();
     }
+
+    /* Détecte 0 <= naturel.
+     * Les opérateurs durent être canonicalisés, donc aucune constante ne peut être à gauche. */
+    assert(!((genre == OpérateurBinaire::Genre::Comp_Inf_Egal_Nat ||
+              genre == OpérateurBinaire::Genre::Comp_Inf_Nat) &&
+             est_constante_entière_zéro(opérande_gauche) &&
+             opérande_droite->type->est_type_entier_naturel()));
 
     return false;
 }
@@ -919,12 +918,12 @@ static bool est_comparaison_adresse_fonction(InstructionOpBinaire const *op_bina
     auto gauche = op_binaire->valeur_gauche;
     auto droite = op_binaire->valeur_droite;
 
-    /* À FAIRE : canonicalisation. */
-    if ((gauche->est_fonction() && est_constante_pointeur_nul(droite)) ||
-        (droite->est_fonction() && est_constante_pointeur_nul(gauche))) {
+    if (gauche->est_fonction() && est_constante_pointeur_nul(droite)) {
         return true;
     }
 
+    /* Les opérateurs durent être canonicalisés, donc aucune constante ne peut être à gauche. */
+    assert(!(droite->est_fonction() && est_constante_pointeur_nul(gauche)));
     return false;
 }
 
