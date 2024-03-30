@@ -864,14 +864,6 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
 /** \name Diagnostique pour les opérateurs binaires.
  * \{ */
 
-static bool est_opérateur_comparaison_ordre(OpérateurBinaire::Genre genre)
-{
-    return genre == OpérateurBinaire::Genre::Comp_Inf ||
-           genre == OpérateurBinaire::Genre::Comp_Inf_Egal ||
-           genre == OpérateurBinaire::Genre::Comp_Sup ||
-           genre == OpérateurBinaire::Genre::Comp_Sup_Egal;
-}
-
 static bool est_comparaison_pointeur_nul(InstructionOpBinaire const *op_binaire)
 {
     auto const genre = op_binaire->op;
