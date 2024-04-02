@@ -1,6 +1,7 @@
 importe Chaine
 importe Fondation
 importe Math
+importe SysFichier
 
 /* ------------------------------------------------------------------------- */
 /** \nom Outils pour compiler des programmes OpenGL.
@@ -242,3 +243,166 @@ définis_uniforme :: fonc (adresse: z32, mat: Mat4r)
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \name SourcesGLSL
+ * \{ */
+
+SourcesGLSL :: struct {
+    vertex: chaine
+    fragment: chaine
+}
+
+détruit_sources :: fonc (sources: *SourcesGLSL)
+{
+    déloge(sources.vertex)
+    déloge(sources.fragment)
+}
+
+crée_sources_glsl_depuis_texte :: fonc (vertex: chaine, fragment: chaine) -> Optionnel(SourcesGLSL)
+{
+    saufsi vertex {
+        retourne
+    }
+
+    saufsi fragment {
+        retourne
+    }
+
+    retourne SourcesGLSL(vertex, fragment)
+}
+
+crée_sources_glsl_depuis_fichier :: fonc (vertex: CheminFichier, fragment: CheminFichier) -> Optionnel(SourcesGLSL)
+{
+    source_vertex := contenu_fichier_texte(vertex)
+    saufsi source_vertex {
+        retourne
+    }
+
+    source_fragment := contenu_fichier_texte(fragment)
+    saufsi source_fragment {
+        déloge(source_vertex)
+        retourne
+    }
+
+    retourne SourcesGLSL(source_vertex, source_fragment)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Programme Nuançage
+ * \{ */
+
+InformationAttribut :: struct {
+    nom: chaine
+    adresse: z32
+}
+
+ProgrammeDeNuançage :: struct {
+    programme: n32
+
+    attributs: [..]InformationAttribut
+    uniformes: [..]InformationAttribut
+}
+
+ajoute_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine)
+{
+    pour programme.attributs {
+        si it.nom == nom {
+            retourne
+        }
+    }
+
+    attribut := tableau_ajoute_élément(*programme.attributs)
+    attribut.nom = nom
+    attribut.adresse = -1
+}
+
+ajoute_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine)
+{
+    pour programme.uniformes {
+        si it.nom == nom {
+            retourne
+        }
+    }
+
+    uniforme := tableau_ajoute_élément(*programme.uniformes)
+    uniforme.nom = nom
+    uniforme.adresse = -1
+}
+
+détruit_programme :: fonc (programme: *ProgrammeDeNuançage)
+{
+    déloge(programme.attributs)
+    déloge(programme.uniformes)
+    détruit_programme(programme.programme)
+    déloge(programme)
+}
+
+crée_programme_depuis_sources :: fonc (sources: SourcesGLSL) -> *ProgrammeDeNuançage
+{
+    opt_programme := compile_un_programme(sources.vertex, sources.fragment)
+    saufsi opt_programme.possède_valeur() {
+        imprime("Impossible de compiler le programme\n")
+        retourne nul
+    }
+    programme := opt_programme.Quelque
+
+    résultat := loge(ProgrammeDeNuançage)
+    résultat.programme = programme
+
+    parse_sources_glsl(sources, résultat)
+
+    pour * résultat.attributs {
+        it.adresse = donne_adresse_attribut(programme, it.nom)
+        imprime("Attribut : % -> %\n", it.nom, it.adresse)
+    }
+
+    pour * résultat.uniformes {
+        it.adresse = donne_adresse_uniforme(programme, it.nom)
+        imprime("Uniforme : % -> %\n", it.nom, it.adresse)
+    }
+
+    retourne résultat
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \name Parsage Sources GLSL
+ * \{ */
+
+extrait_nom_attribut_ou_uniforme :: fonc (ligne: chaine) -> chaine
+{
+    dernière_espace := trouve_caractère_depuis_la_fin(ligne, ' ')
+    point_virgule := trouve_caractère_depuis_la_fin(ligne, ';')
+    retourne ligne.sous_chaine(dernière_espace + 1, point_virgule)
+}
+
+parse_attributs_et_uniformes_depuis :: fonc (source: chaine, programme: *ProgrammeDeNuançage)
+{
+    lignes := divise(source, '\n')
+    diffère déloge(lignes)
+
+    // À FAIRE : in/out
+    // À FAIRE : location
+    pour lignes {
+        si it.sous_chaine(0, 6) == "layout" {
+            attribut := extrait_nom_attribut_ou_uniforme(it)
+            programme.ajoute_attribut(attribut)
+        }
+        sinon si it.sous_chaine(0, 7) == "uniform" {
+            uniform := extrait_nom_attribut_ou_uniforme(it)
+            programme.ajoute_uniforme(uniform)
+        }
+    }
+}
+
+parse_sources_glsl :: fonc (sources: SourcesGLSL, programme: *ProgrammeDeNuançage)
+{
+    parse_attributs_et_uniformes_depuis(sources.vertex, programme);
+    parse_attributs_et_uniformes_depuis(sources.fragment, programme);
+}
+
+/** \} */
