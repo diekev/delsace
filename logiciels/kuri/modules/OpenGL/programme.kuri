@@ -51,8 +51,8 @@ compile_un_programme :: fonc (source_vertex: chaine, source_fragment: chaine) ->
 /* Détruit un programme. Il ne sera plus valide de l'utilisé après cette opération. */
 détruit_programme :: fonc (id_programme: n32) -> rien
 {
-    si glIsShader(id_programme) {
-        glDeleteShader(id_programme)
+    si glIsProgram(id_programme) {
+        glDeleteProgram(id_programme)
     }
 }
 
