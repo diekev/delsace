@@ -37,6 +37,8 @@ class Widget : public QWidget {
 
     EMPECHE_COPIE(Widget);
 
+    ~Widget() override;
+
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -61,6 +63,8 @@ class GLWidget : public QGLWidget {
     GLWidget(QT_Rappels_GLWidget *rappels, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(GLWidget);
+
+    ~GLWidget() override;
 
     /* Évènements communs. */
     void enterEvent(QEvent *event) override;
