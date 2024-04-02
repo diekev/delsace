@@ -108,6 +108,8 @@ glewExperimental : z32 #externe libGLEW
 
 glewInit :: fonc () -> z32 #externe libGLEW
 
+glewGetErrorString :: fonc (code: z32) -> ChaineC #externe libGLEW
+
 glClear :: fonc (bit : n32) -> rien #externe libGL
 glClearColor :: fonc (r : r32, g : r32, b : r32, a : r32) -> rien #externe libGL
 
