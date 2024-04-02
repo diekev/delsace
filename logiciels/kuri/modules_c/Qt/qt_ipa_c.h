@@ -395,6 +395,7 @@ void QT_widget_copie_comportement_taille(union QT_Generic_Widget widget,
 void QT_widget_definis_feuille_de_style(union QT_Generic_Widget widget, struct QT_Chaine *texte);
 void QT_widget_definis_style(union QT_Generic_Widget widget, struct QT_Style *style);
 void QT_widget_ajourne(union QT_Generic_Widget widget);
+void QT_widget_definis_trackage_souris(union QT_Generic_Widget widget, bool ouinon);
 
 #define ENUMERE_COMPORTEMENT_TAILLE(O)                                                            \
     O(QT_COMPORTEMENT_TAILLE_FIXE, QSizePolicy::Fixed)                                            \
