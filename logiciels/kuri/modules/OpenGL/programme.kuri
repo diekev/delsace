@@ -314,6 +314,41 @@ ProgrammeDeNuançage :: struct {
     uniformes: [..]InformationAttribut
 }
 
+est_valide :: fonc (programme: *ProgrammeDeNuançage) -> bool
+{
+    saufsi programme {
+        retourne faux
+    }
+
+	saufsi glIsProgram(programme.programme) {
+        retourne faux
+    }
+
+    /* 
+        À FAIRE
+		glValidateProgram(m_programme);
+		return util::check_status(m_programme, GL_VALIDATE_STATUS, "Validation log",
+		                          glGetProgramiv, glGetProgramInfoLog, os);
+	 */
+
+    retourne vrai
+}
+
+active :: fonc (programme: *ProgrammeDeNuançage)
+{
+	glUseProgram(programme.programme)
+}
+
+définis_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, valeur: $T)
+{
+    définis_uniforme(programme.donne_adresse_uniforme(nom), valeur)
+}
+
+désactive :: fonc (programme: *ProgrammeDeNuançage @inutilisée)
+{
+	glUseProgram(0)
+}
+
 ajoute_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine)
 {
     pour programme.attributs {
@@ -346,6 +381,28 @@ détruit_programme :: fonc (programme: *ProgrammeDeNuançage)
     déloge(programme.uniformes)
     détruit_programme(programme.programme)
     déloge(programme)
+}
+
+donne_adresse_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine) -> z32
+{
+    pour programme.attributs {
+        si it.nom == nom {
+            retourne it.adresse
+        }
+    }
+
+    retourne -1
+}
+
+donne_adresse_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine) -> z32
+{
+    pour programme.uniformes {
+        si it.nom == nom {
+            retourne it.adresse
+        }
+    }
+
+    retourne -1
 }
 
 crée_programme_depuis_sources :: fonc (sources: SourcesGLSL) -> *ProgrammeDeNuançage
