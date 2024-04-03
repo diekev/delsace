@@ -1,4 +1,5 @@
 importe Chaine
+importe Couleur
 importe Fondation
 importe Math
 importe SysFichier
@@ -232,6 +233,13 @@ définis_uniforme :: fonc (adresse: z32, valeur: Vec4)
 {
     si adresse != -1 {
         glUniform4f(adresse, valeur.x, valeur.y, valeur.z, valeur.w)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: CouleurRVBA)
+{
+    si adresse != -1 {
+        glUniform4f(adresse, valeur.r, valeur.v, valeur.b, valeur.a)
     }
 }
 
