@@ -356,12 +356,10 @@ crée_programme_depuis_sources :: fonc (sources: SourcesGLSL) -> *ProgrammeDeNua
 
     pour * résultat.attributs {
         it.adresse = donne_adresse_attribut(programme, it.nom)
-        imprime("Attribut : % -> %\n", it.nom, it.adresse)
     }
 
     pour * résultat.uniformes {
         it.adresse = donne_adresse_uniforme(programme, it.nom)
-        imprime("Uniforme : % -> %\n", it.nom, it.adresse)
     }
 
     retourne résultat
