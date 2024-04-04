@@ -11,6 +11,13 @@ Widget::Widget(QT_Rappels_Widget *rappels, QWidget *parent) : QWidget(parent), m
 {
 }
 
+Widget::~Widget()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
 void Widget::enterEvent(QEvent *event)
 {
     if (m_rappels && m_rappels->sur_entree) {
@@ -90,6 +97,13 @@ void Widget::resizeEvent(QResizeEvent *event)
 GLWidget::GLWidget(QT_Rappels_GLWidget *rappels, QWidget *parent)
     : QGLWidget(parent), m_rappels(rappels)
 {
+}
+
+GLWidget::~GLWidget()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
 }
 
 void GLWidget::enterEvent(QEvent *event)

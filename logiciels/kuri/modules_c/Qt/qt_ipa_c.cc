@@ -468,6 +468,12 @@ void QT_widget_ajourne(QT_Generic_Widget widget)
     qwidget->update();
 }
 
+void QT_widget_definis_trackage_souris(union QT_Generic_Widget widget, bool ouinon)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setMouseTracking(ouinon);
+}
+
 static QSizePolicy::Policy convertis_comportement_taille(QT_Comportement_Taille comportement)
 {
     switch (comportement) {
