@@ -1749,17 +1749,6 @@ static NoeudDéclarationClasse *monomorphise_au_besoin(
 
 /* ************************************************************************** */
 
-static NoeudExpressionRéférence *symbole_pour_expression(NoeudExpression *expression)
-{
-    if (expression->est_référence_membre()) {
-        return expression->comme_référence_membre()->accédée->comme_référence_déclaration();
-    }
-
-    return expression->comme_référence_déclaration();
-}
-
-/* ************************************************************************** */
-
 /* Cette fonction est utilisée pour valider les appels aux intrinsèques afin de faire en sorte que
  * les intrinsèques requérant des paramètres constants reçurent des valeurs constantes. */
 static bool appel_fonction_est_valide(EspaceDeTravail &espace,
@@ -1848,7 +1837,7 @@ static RésultatValidation crée_liste_candidates(NoeudExpressionAppel const *ex
     }
 
     if (état->liste_candidates.taille() == 0) {
-        return Attente::sur_symbole(symbole_pour_expression(expr->expression));
+        return Attente::sur_symbole(expr->expression);
     }
 
     état->état = ÉtatRésolutionAppel::État::LISTE_CANDIDATES_CRÉÉE;
