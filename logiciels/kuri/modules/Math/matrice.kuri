@@ -407,3 +407,5 @@ transforme :: fonc (mat: Matrice3x3($T), vec: Vec3) -> Vec3 #enligne
     rés.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2]
     retourne rés
 }
+
+Mat3r :: Matrice3x3(r32)
