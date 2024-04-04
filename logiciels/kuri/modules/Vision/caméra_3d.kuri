@@ -254,10 +254,15 @@ définis_cible :: fonc (empl caméra: *Caméra3D, nouvelle_cible: Vec3)
 
 définis_dimension_fenêtre :: fonc (empl caméra: *Caméra3D, nouvelle_largeur: z32, nouvelle_hauteur: z32)
 {
-    caméra.drapeaux.DIMENSIONS_MODIFIÉES = nouvelle_largeur != caméra.largeur
+    /* À FAIRE(langage) énum_drapeau |= valeur */
+    si nouvelle_largeur != caméra.largeur {
+        caméra.drapeaux.DIMENSIONS_MODIFIÉES = vrai
+    }
     caméra.largeur = nouvelle_largeur
 
-    caméra.drapeaux.DIMENSIONS_MODIFIÉES = nouvelle_hauteur != caméra.hauteur
+    si nouvelle_hauteur != caméra.hauteur {
+        caméra.drapeaux.DIMENSIONS_MODIFIÉES = vrai
+    }
     caméra.hauteur = nouvelle_hauteur
 
     si caméra.hauteur != 0 {
