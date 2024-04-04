@@ -370,7 +370,8 @@ int QT_wheel_event_donne_delta(struct QT_WheelEvent *event);
     void (*sur_deplacement_souris)(struct type_classe *, struct QT_MouseEvent *);                 \
     void (*sur_relachement_souris)(struct type_classe *, struct QT_MouseEvent *);                 \
     void (*sur_molette_souris)(struct type_classe *, struct QT_WheelEvent *);                     \
-    void (*sur_redimensionnement)(struct type_classe *, struct QT_ResizeEvent *)
+    void (*sur_redimensionnement)(struct type_classe *, struct QT_ResizeEvent *);                 \
+    void (*sur_destruction)(struct type_classe *)
 
 struct QT_Rappels_Widget {
     RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_Widget);
@@ -394,6 +395,7 @@ void QT_widget_copie_comportement_taille(union QT_Generic_Widget widget,
 void QT_widget_definis_feuille_de_style(union QT_Generic_Widget widget, struct QT_Chaine *texte);
 void QT_widget_definis_style(union QT_Generic_Widget widget, struct QT_Style *style);
 void QT_widget_ajourne(union QT_Generic_Widget widget);
+void QT_widget_definis_trackage_souris(union QT_Generic_Widget widget, bool ouinon);
 
 #define ENUMERE_COMPORTEMENT_TAILLE(O)                                                            \
     O(QT_COMPORTEMENT_TAILLE_FIXE, QSizePolicy::Fixed)                                            \
