@@ -103,10 +103,14 @@ struct DonnéesAttenteMessage {
     Message *message = nullptr;
 };
 
+struct SymboleAttendu {
+    NoeudExpression *expression = nullptr;
+};
+
 using AttenteSurType = AttenteSur<Type const *>;
 using AttenteSurMétaProgramme = AttenteSur<MetaProgramme *>;
 using AttenteSurDéclaration = AttenteSur<NoeudDéclaration *>;
-using AttenteSurSymbole = AttenteSur<NoeudExpressionRéférence *>;
+using AttenteSurSymbole = AttenteSur<SymboleAttendu>;
 using AttenteSurOpérateur = AttenteSur<NoeudExpression *>;
 using AttenteSurMessage = AttenteSur<DonnéesAttenteMessage>;
 using AttenteSurRI = AttenteSur<Atome **>;
@@ -226,10 +230,10 @@ struct Attente {
         return AttenteSurDéclaration{déclaration};
     }
 
-    static Attente sur_symbole(NoeudExpressionRéférence *ident)
+    static Attente sur_symbole(NoeudExpression *ident)
     {
         assert(ident);
-        return AttenteSurSymbole{ident};
+        return AttenteSurSymbole{SymboleAttendu{ident}};
     }
 
     static Attente sur_opérateur(NoeudExpression *operateur)
@@ -303,10 +307,10 @@ struct Attente {
         return std::get<AttenteSurDéclaration>(attente).valeur;
     }
 
-    NoeudExpressionRéférence *symbole() const
+    NoeudExpression *symbole() const
     {
         assert(est<AttenteSurSymbole>());
-        return std::get<AttenteSurSymbole>(attente).valeur;
+        return std::get<AttenteSurSymbole>(attente).valeur.expression;
     }
 
     NoeudExpression *opérateur() const
