@@ -150,6 +150,15 @@ donne_adresse_attribut :: fonc (programme: n32, nom: chaine) -> z32
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom TypeValeurUniforme
+ * Types de valeur possible pour une uniforme.
+ * \{ */
+
+TypeValeurUniforme :: bool | z32 | n32 | r32 | ([..]z32) | ([..]n32) | ([..]r32) | Vec2 | Vec3 | Vec4 | CouleurRVBA | Mat4r
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Requête et définition de valeurs uniformes.
  * \{ */
 
@@ -160,7 +169,7 @@ donne_adresse_uniforme :: fonc (programme: n32, nom: chaine) -> z32
     retourne glGetUniformLocation(programme, nom_c)
 }
 
-définis_uniforme :: fonc (programme: n32, nom: chaine, valeur: $T)
+définis_uniforme :: fonc (programme: n32, nom: chaine, valeur: $T/TypeValeurUniforme)
 {
     adresse := donne_adresse_uniforme(programme, nom)
     définis_uniforme(adresse, valeur)
@@ -339,7 +348,7 @@ active :: fonc (programme: *ProgrammeDeNuançage)
 	glUseProgram(programme.programme)
 }
 
-définis_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, valeur: $T)
+définis_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, valeur: $T/TypeValeurUniforme)
 {
     définis_uniforme(programme.donne_adresse_uniforme(nom), valeur)
 }
