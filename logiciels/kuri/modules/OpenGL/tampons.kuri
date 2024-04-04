@@ -1,0 +1,366 @@
+importe Fondation
+importe Math
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjetTamponTableau
+ * \{ */
+
+ObjetTamponTableau :: struct {
+    adresse: n32
+}
+
+crée_objet_tampon_tableau :: fonc () -> *ObjetTamponTableau
+{
+    résultat := loge(ObjetTamponTableau)
+    glGenVertexArrays(1, *résultat.adresse)
+    retourne résultat
+}
+
+détruit_objet_tampon_tableau :: fonc (objet: *ObjetTamponTableau)
+{
+    si glIsVertexArray(objet.adresse) {
+		glDeleteVertexArrays(1, *objet.adresse)
+	}
+
+    déloge(objet)
+}
+
+attache :: fonc (objet: *ObjetTamponTableau)
+{
+	glBindVertexArray(objet.adresse)
+}
+
+détache :: fonc (objet: *ObjetTamponTableau)
+{
+	glBindVertexArray(0)
+}
+
+définis_pointeur_attribut :: fonc (objet: *ObjetTamponTableau, index: n32, size: z32, stride: z32 = 0, pointeur: *rien = nul)
+{
+	glEnableVertexAttribArray(index)
+	glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, pointeur)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponObjet
+ * \{ */
+
+détruit_tampon :: fonc (id: *n32)
+{
+	si glIsBuffer(mémoire(id)) {
+		glDeleteBuffers(1, id)
+	}
+}
+
+génère_tampon :: fonc (id: *n32, data: *rien, size: z64, target: GLuint)
+{
+    détruit_tampon(id)
+
+	// À FAIRE: feels a bit hackish
+	draw_type := si data { GL_STATIC_DRAW } sinon { GL_DYNAMIC_DRAW }
+
+	glGenBuffers(1, id)
+	glBindBuffer(target, mémoire(id))
+	glBufferData(target, size comme n64, data, draw_type)
+
+	// if (util::check_bad_alloc()) {
+	// 	throw "Unable to allocate memory for buffer!";
+	// }
+}
+
+TamponObjet :: struct {
+	objet_tableau_sommet: n32
+	tampon_sommet: n32
+	tampon_index: n32
+	tampon_normal: n32
+	tampons_extra: [..]n32
+}
+
+crée_tampon_objet :: fonc () -> *TamponObjet
+{
+    résultat := loge(TamponObjet)
+	glGenVertexArrays(1, *résultat.objet_tableau_sommet)
+    retourne résultat
+}
+
+détruit_tampon_objet :: fonc (empl tampon: *TamponObjet)
+{
+    détruit_tampon(*tampon_sommet)
+    détruit_tampon(*tampon_index)
+    détruit_tampon(*tampon_normal)
+
+    pour * tampons_extra {
+        détruit_tampon(it)
+    }
+    déloge(tampons_extra)
+
+	si glIsVertexArray(objet_tableau_sommet) {
+		glDeleteVertexArrays(1, *objet_tableau_sommet)
+	}
+
+    déloge(tampon)
+}
+
+attache :: fonc (empl tampon: *TamponObjet)
+{
+	glBindVertexArray(objet_tableau_sommet)
+}
+
+détache :: fonc (tampon: *TamponObjet @inutilisée)
+{
+	glBindVertexArray(0)
+}
+
+définis_pointeur_attribut :: fonc (tampon: *TamponObjet @inutilisée, index: n32, size: z32, stride: z32 = 0, pointeur: *rien = nul)
+{
+	glEnableVertexAttribArray(index)
+	glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride comme n32, pointeur)
+}
+
+génère_tampon_sommet :: fonc (empl tampon: *TamponObjet, vertices: *rien, size: z64)
+{
+	génère_tampon(*tampon_sommet, vertices, size, GL_ARRAY_BUFFER)
+}
+
+génère_tampon_index :: fonc (empl tampon: *TamponObjet, indices: *rien, size: z64)
+{
+	génère_tampon(*tampon_index, indices, size, GL_ELEMENT_ARRAY_BUFFER)
+}
+
+génère_tampon_normal :: fonc (empl tampon: *TamponObjet, colors: *rien, size: z64)
+{
+	génère_tampon(*tampon_normal, colors, size, GL_ARRAY_BUFFER)
+}
+
+génère_tampon_extra :: fonc (empl tampon: *TamponObjet, data: *rien, size: z64)
+{
+	extra_buffer : n32
+	génère_tampon(*extra_buffer, data, size, GL_ARRAY_BUFFER)
+    tableau_ajoute(*tampons_extra, extra_buffer)
+}
+
+ajourne_tampon_sommet :: fonc (empl tampon: *TamponObjet, vertices: *rien, size: z64)
+{
+	si glIsBuffer(tampon_sommet) {
+		glBindBuffer(GL_ARRAY_BUFFER, tampon_sommet)
+		glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices)
+	}
+}
+
+ajourne_tampon_index :: fonc (empl tampon: *TamponObjet, indices: *rien, size: z64)
+{
+	si glIsBuffer(tampon_index) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tampon_index)
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, indices)
+	}
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ParamètresCréationTampon
+ * \{ */
+
+ParamètresCréationTampon :: struct {
+	/* Le nom de l'attribut. */
+	attribut : chaine
+
+	/* Le nombre de dimension d'un élément de l'attribut (généralement 2 ou 3). */
+	dimension_attribut : z32
+
+	/* Le pointeur vers le début du tableau de sommets. */
+	pointeur_sommets : *rien
+
+	/* La taille en octet des sommets. */
+	taille_octet_sommets : n64
+
+	/* Le pointeur vers le début du tableau d'index des sommets. */
+	pointeur_index : *rien
+
+	/* Le taille en octet des index des sommets. */
+	taille_octet_index : n64
+
+	/* Le nombre d'index. */
+	éléments : n64
+
+	/* Le pointeur vers le début du tableau des données extra. */
+	pointeur_données_extra : *rien
+
+	/* Le taille en octet des données extra. */
+	taille_octet_données_extra : n64
+
+	/* Le nombre d'instances à dessiner */
+	nombre_instances : n64
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ParamètresDessin
+ * \{ */
+
+ParamètresDessin :: struct {
+	type_dessin := GL_TRIANGLES
+	type_données := GL_UNSIGNED_INT
+	taille_ligne := 1.0
+	taille_point := 1.0
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ContexteRendu
+ * \{ */
+
+ContexteRendu :: struct {
+	modèle_vue : Mat4r
+	projection : Mat4r
+	modèle_vue_projection : Mat4r
+	vue : Vec3
+	normal : Mat3r
+	matrice_objet : Mat4r
+	pour_surlignage := faux
+	dessine_arrêtes := faux
+	dessine_normaux := faux
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponRendu
+ * \{ */
+
+TamponRendu :: struct {
+    programme : *ProgrammeDeNuançage
+    données_tampon: *TamponObjet
+	paramètres_dessin: ParamètresDessin
+
+    éléments: n64
+    dessin_indexé: bool
+}
+
+crée_tampon_rendu :: fonc (programme: *ProgrammeDeNuançage) -> *TamponRendu
+{
+    résultat := loge(TamponRendu)
+    résultat.programme = programme
+    retourne résultat
+}
+
+détruit_tampon_rendu :: fonc (tampon: *TamponRendu)
+{
+    si tampon.données_tampon {
+        détruit_tampon_objet(tampon.données_tampon)
+    }
+    déloge(tampon)
+}
+
+initialise_objet_tampon :: fonc (tampon: *TamponRendu)
+{
+    si tampon.données_tampon {
+        retourne
+    }
+
+    tampon.données_tampon = crée_tampon_objet()
+}
+
+remplis_tampon :: fonc (empl tampon: *TamponRendu, paramètres: &ParamètresCréationTampon)
+{
+	initialise_objet_tampon(tampon)
+
+	éléments = paramètres.éléments
+
+	attache(données_tampon)
+    diffère détache(données_tampon)
+
+	génère_tampon_sommet(données_tampon, paramètres.pointeur_sommets, paramètres.taille_octet_sommets comme z64)
+	vérifie_erreur("Erreur lors du tampon sommet");
+
+	si paramètres.pointeur_index {
+	    génère_tampon_index(données_tampon, paramètres.pointeur_index, paramètres.taille_octet_index comme z64)
+		vérifie_erreur("Erreur lors du tampon index");
+		dessin_indexé = vrai
+	}
+
+	définis_pointeur_attribut(données_tampon, programme.donne_adresse_attribut(paramètres.attribut) comme n32, paramètres.dimension_attribut)
+	vérifie_erreur("Erreur lors de la mise en place de l'attribut")
+}
+
+dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
+{
+	saufsi est_valide(programme) {
+		imprime("Programme invalide !\n")
+		retourne
+	}
+
+	si paramètres_dessin.type_dessin == GL_POINTS {
+		glPointSize(paramètres_dessin.taille_point)
+	}
+	sinon si paramètres_dessin.type_dessin == GL_LINES {
+		glLineWidth(paramètres_dessin.taille_ligne)
+	}
+
+	vérifie_erreur("Erreur lors du rendu du tampon avant utilisation programme");
+
+	active(programme)
+	diffère désactive(programme)
+
+	attache(données_tampon)
+	diffère détache(données_tampon)
+
+	// textures
+
+	définis_uniforme(programme, "matrice", ctx.matrice_objet)
+	vérifie_erreur("Erreur lors du passage de la matrice objet");
+	définis_uniforme(programme, "MVP", ctx.modèle_vue_projection)
+	vérifie_erreur("Erreur lors du passage de la matrice MVP");
+
+	// À FAIRE
+	// if (m_requiers_normal) {
+	// 	glUniformMatrix3fv(m_programme("N"), 1, GL_FALSE, &contexte.normal()[0][0]);
+	// 	vérifie_erreur("Erreur lors du passage de la matrice N");
+	// }
+
+	// if (m_peut_surligner) {
+	// 	glUniform1i(m_programme("pour_surlignage"), contexte.pour_surlignage());
+	// 	vérifie_erreur("Erreur lors du passage pour_surlignage");
+	// }
+
+	// si (m_instance) {
+	// 	si (m_dessin_indexe) {
+	// 		glDrawElementsInstanced(
+	// 					paramètres_dessin.type_dessin,
+	// 					éléments comme z32,
+	// 					paramètres_dessin.type_données,
+	// 					nul,
+	// 					nombre_instances comme z32);
+	// 	}
+	// 	sinon {
+	// 		glDrawArraysInstanced(
+	// 					paramètres_dessin.type_dessin,
+	// 					0,
+	// 					éléments comme z32,
+	// 					nombre_instances comme z32);
+	// 	}
+	// }
+	// sinon {
+		si dessin_indexé {
+			glDrawElements(paramètres_dessin.type_dessin, éléments comme z32, paramètres_dessin.type_données, nul);
+		}
+		sinon {
+			glDrawArrays(paramètres_dessin.type_dessin, 0, éléments comme z32);
+		}
+	// }
+
+	vérifie_erreur("Erreur lors du rendu du tampon après dessin indexé");
+
+	si paramètres_dessin.type_dessin == GL_POINTS {
+		glPointSize(1.0)
+	}
+	sinon si paramètres_dessin.type_dessin == GL_LINES {
+		glLineWidth(1.0)
+	}
+}
+
+/** } */
