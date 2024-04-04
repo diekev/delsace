@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe Image
 
@@ -10,6 +11,12 @@ initialise_opengl :: fonc () -> bool
     }
 
     erreur_ := glewInit()
+
+    si erreur_ != 0 {
+        chn := convertis_chaine_c(glewGetErrorString(erreur_))
+        imprime("Erreur : %\n", chn)
+    }
+
     retourne erreur_ == 0
 }
 

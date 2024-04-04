@@ -108,6 +108,8 @@ glewExperimental : z32 #externe libGLEW
 
 glewInit :: fonc () -> z32 #externe libGLEW
 
+glewGetErrorString :: fonc (code: z32) -> ChaineC #externe libGLEW
+
 glClear :: fonc (bit : n32) -> rien #externe libGL
 glClearColor :: fonc (r : r32, g : r32, b : r32, a : r32) -> rien #externe libGL
 
@@ -119,12 +121,14 @@ glViewport :: fonc (px : z32, py : z32, tx : z32, ty : z32) -> rien #externe lib
 glGenVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
 glDeleteVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
 glBindVertexArray :: fonc (id : GLenum) -> rien #externe libGL
+glIsVertexArray :: fonc (id: GLenum) -> GLboolean #externe libGL
 
 // foncs de VBO
 glGenBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
 glDeleteBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
 glBindBuffer :: fonc (target : GLenum, id : n32) -> rien #externe libGL
 glBufferData :: fonc (target : GLenum, size : n64, data : *rien, usage : n32) -> rien #externe libGL
+glIsBuffer :: fonc (target : GLenum) -> GLboolean #externe libGL
 
 // foncs Arrays
 glEnableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
@@ -132,6 +136,9 @@ glDisableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
 glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized : n32, stride : n32, pointer : *rien) -> rien #externe libGL
 glDrawArrays :: fonc (mode : n32, first : z32, count : z64) -> rien #externe libGL
 glDrawElements :: fonc (mode : GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe libGL
+
+glPointSize :: fonc (size: r32) -> rien #externe libGL
+glLineWidth :: fonc (size: r32) -> rien #externe libGL
 
 /* ------------------------------------------------------------------------- */
 /** \nom Capacités.
