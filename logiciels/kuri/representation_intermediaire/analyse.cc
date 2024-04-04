@@ -864,14 +864,6 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
 /** \name Diagnostique pour les opérateurs binaires.
  * \{ */
 
-static bool est_opérateur_comparaison_ordre(OpérateurBinaire::Genre genre)
-{
-    return genre == OpérateurBinaire::Genre::Comp_Inf ||
-           genre == OpérateurBinaire::Genre::Comp_Inf_Egal ||
-           genre == OpérateurBinaire::Genre::Comp_Sup ||
-           genre == OpérateurBinaire::Genre::Comp_Sup_Egal;
-}
-
 static bool est_comparaison_pointeur_nul(InstructionOpBinaire const *op_binaire)
 {
     auto const genre = op_binaire->op;
@@ -879,14 +871,15 @@ static bool est_comparaison_pointeur_nul(InstructionOpBinaire const *op_binaire)
         return false;
     }
 
-    /* À FAIRE : quand les instructions seront canonicalisées, supprime la version dépréciée. */
     auto const opérande_droite = op_binaire->valeur_droite;
     auto const opérande_gauche = op_binaire->valeur_gauche;
 
+    /* Les opérateurs durent être canonicalisés, donc aucune constante ne peut être à gauche. */
+    assert(!(est_constante_pointeur_nul(opérande_gauche) &&
+             opérande_droite->type->est_type_pointeur()));
+
     return (est_constante_pointeur_nul(opérande_droite) &&
-            opérande_gauche->type->est_type_pointeur()) ||
-           (est_constante_pointeur_nul(opérande_gauche) &&
-            opérande_droite->type->est_type_pointeur());
+            opérande_gauche->type->est_type_pointeur());
 }
 
 static bool est_comparaison_ordonnée_naturel_zéro(InstructionOpBinaire const *op_binaire)
@@ -895,21 +888,19 @@ static bool est_comparaison_ordonnée_naturel_zéro(InstructionOpBinaire const *
     auto const opérande_droite = op_binaire->valeur_droite;
     auto const opérande_gauche = op_binaire->valeur_gauche;
 
-    /* À FAIRE : canonicalisation. */
-
-    /* Détecte 0 <= naturel. */
-    if (genre == OpérateurBinaire::Genre::Comp_Inf_Egal_Nat ||
-        genre == OpérateurBinaire::Genre::Comp_Inf_Nat) {
-        return est_constante_entière_zéro(opérande_gauche) &&
-               opérande_droite->type->est_type_entier_naturel();
-    }
-
     /* Détecte naturel >= 0. */
     if (genre == OpérateurBinaire::Genre::Comp_Sup_Egal_Nat ||
         genre == OpérateurBinaire::Genre::Comp_Sup_Nat) {
         return est_constante_entière_zéro(opérande_droite) &&
                opérande_gauche->type->est_type_entier_naturel();
     }
+
+    /* Détecte 0 <= naturel.
+     * Les opérateurs durent être canonicalisés, donc aucune constante ne peut être à gauche. */
+    assert(!((genre == OpérateurBinaire::Genre::Comp_Inf_Egal_Nat ||
+              genre == OpérateurBinaire::Genre::Comp_Inf_Nat) &&
+             est_constante_entière_zéro(opérande_gauche) &&
+             opérande_droite->type->est_type_entier_naturel()));
 
     return false;
 }
@@ -919,12 +910,12 @@ static bool est_comparaison_adresse_fonction(InstructionOpBinaire const *op_bina
     auto gauche = op_binaire->valeur_gauche;
     auto droite = op_binaire->valeur_droite;
 
-    /* À FAIRE : canonicalisation. */
-    if ((gauche->est_fonction() && est_constante_pointeur_nul(droite)) ||
-        (droite->est_fonction() && est_constante_pointeur_nul(gauche))) {
+    if (gauche->est_fonction() && est_constante_pointeur_nul(droite)) {
         return true;
     }
 
+    /* Les opérateurs durent être canonicalisés, donc aucune constante ne peut être à gauche. */
+    assert(!(droite->est_fonction() && est_constante_pointeur_nul(gauche)));
     return false;
 }
 
@@ -1739,6 +1730,51 @@ static void supprime_op_binaires_inutiles(FonctionEtBlocs &fonction_et_blocs,
         fonction_et_blocs.marque_blocs_modifiés();
     }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Durée de vie.
+ * \{ */
+
+#if 0
+struct DuréeDeVie {
+    // int allocation = 0;
+    int dernière_utilisation = 0;
+};
+
+/* À CONSIDÉRER : prise adresse, référence membre, tableaux. */
+static void analyse_durée_de_vie_variables(AtomeFonction const &fonction)
+{
+    kuri::tableau<DuréeDeVie> durées_de_vie;
+    durées_de_vie.redimensionne(fonction.numérote_instructions());
+
+    POUR (fonction.instructions) {
+        visite_opérandes_instruction(it, [&](Atome const *opérande) {
+            if (!opérande->est_instruction()) {
+                return;
+            }
+
+            auto inst = opérande->comme_instruction();
+            durées_de_vie[inst->numero].dernière_utilisation = it->numero;
+        });
+    }
+
+    dbg() << "=================================================\n" << fonction.nom;
+
+    POUR (fonction.instructions) {
+        if (!it->est_alloc()) {
+            continue;
+        }
+
+        auto alloc = it->comme_alloc();
+        if (alloc->ident) {
+            dbg() << "%" << alloc->ident->nom << " -> " << "%"
+                  << durées_de_vie[alloc->numero].dernière_utilisation;
+        }
+    }
+}
+#endif
+
+/** \} */
 
 /* ********************************************************************************************
  */
