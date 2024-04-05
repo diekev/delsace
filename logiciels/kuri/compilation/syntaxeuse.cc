@@ -2075,6 +2075,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         auto noeud_virgule = m_tacheronne.assembleuse->crée_virgule(&lexème_virgule);
         noeud_virgule->expressions.ajoute(noeud_it);
         noeud_virgule->expressions.ajoute(noeud_index);
+        noeud_virgule->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
 
         noeud->variable = noeud_virgule;
         noeud->expression = expression;
@@ -2518,6 +2519,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         lexème_rien->chaine = "";
 
         auto decl = crée_retour_défaut_fonction(m_tacheronne.assembleuse, lexème_rien);
+        decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
 
         noeud->params_sorties.ajoute(decl);
         noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
