@@ -86,6 +86,8 @@ enum class DrapeauxNoeud : uint32_t {
 
     /* Si le noeud est une expression par défaut, par exemple d'un paramètre de fonction. */
     EST_EXPRESSION_DÉFAUT = (1u << 27),
+
+    IDENT_EST_DÉFAUT = (1u << 28),  // decl var
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

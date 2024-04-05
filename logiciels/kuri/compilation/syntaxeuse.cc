@@ -2944,6 +2944,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
                 decl_sortie->lexème, nullptr, decl_sortie);
             decl->ident = ident;
             decl->bloc_parent = decl_sortie->bloc_parent;
+            decl->drapeaux |= DrapeauxNoeud::IDENT_EST_DÉFAUT;
 
             decl_sortie = decl;
         }
