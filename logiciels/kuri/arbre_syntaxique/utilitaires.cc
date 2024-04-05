@@ -1705,6 +1705,12 @@ NoeudExpressionMembre *AssembleuseArbre::crée_référence_membre(const Lexème 
                                                                int index)
 {
     auto acces = crée_référence_membre(lexeme, accede);
+    auto type_accédé = donne_type_accédé_effectif(accede->type);
+    if (type_accédé->est_type_composé()) {
+        auto type_composé = type_accédé->comme_type_composé();
+        auto membre = type_composé->membres[index];
+        acces->ident = membre.nom;
+    }
     acces->type = type;
     acces->index_membre = index;
     return acces;
