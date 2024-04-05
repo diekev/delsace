@@ -2178,7 +2178,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             init_it->type = type_pointeur_type_pointe;
 
             auto decl_it = assembleuse->crée_déclaration_variable(
-                &lexème_sentinel, type_pointeur_type_pointe, nullptr, init_it);
+                &lexème_sentinel, type_pointeur_type_pointe, ID::it, init_it);
             auto ref_it = assembleuse->crée_référence_déclaration(&lexème_sentinel, decl_it);
 
             assembleuse->bloc_courant()->ajoute_membre(decl_it);
