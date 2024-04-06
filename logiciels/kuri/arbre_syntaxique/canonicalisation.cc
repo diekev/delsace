@@ -544,11 +544,9 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                                                    GenreNoeud::INSTRUCTION_SAUFSI);
             condition->condition = boucle->condition;
 
-            auto nouveau_bloc = assem->crée_bloc_seul(nullptr, boucle->bloc_parent);
-            nouveau_bloc->ajoute_expression(boucle->bloc);
-            nouveau_bloc->ajoute_expression(condition);
+            boucle->bloc->ajoute_expression(condition);
 
-            nouvelle_boucle->bloc = nouveau_bloc;
+            nouvelle_boucle->bloc = boucle->bloc;
             boucle->substitution = nouvelle_boucle;
             return nouvelle_boucle;
         }
@@ -578,11 +576,9 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                                                    GenreNoeud::INSTRUCTION_SAUFSI);
             condition->condition = boucle->condition;
 
-            auto nouveau_bloc = assem->crée_bloc_seul(nullptr, boucle->bloc_parent);
-            nouveau_bloc->ajoute_expression(condition);
-            nouveau_bloc->ajoute_expression(boucle->bloc);
+            boucle->bloc->expressions->ajoute_au_début(condition);
 
-            nouvelle_boucle->bloc = nouveau_bloc;
+            nouvelle_boucle->bloc = boucle->bloc;
             boucle->substitution = nouvelle_boucle;
             return nouvelle_boucle;
         }
@@ -1085,14 +1081,13 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     auto it = inst->decl_it;
     auto index_it = inst->decl_index_it;
     auto expression_iteree = inst->expression;
-    auto bloc = inst->bloc;
     auto bloc_sans_arrêt = inst->bloc_sansarrêt;
     auto bloc_sinon = inst->bloc_sinon;
 
     auto boucle = assem->crée_boucle(inst->lexème, nullptr);
     boucle->ident = it->ident;
     boucle->bloc_parent = inst->bloc_parent;
-    boucle->bloc = assem->crée_bloc_seul(inst->lexème, boucle->bloc_parent);
+    boucle->bloc = inst->bloc;
     boucle->bloc_sansarrêt = bloc_sans_arrêt;
     boucle->bloc_sinon = bloc_sinon;
 
@@ -1202,10 +1197,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto op_comp = index_it->type->table_opérateurs->opérateur_seg;
             condition->condition = assem->crée_expression_binaire(
                 inst->lexème, op_comp, ref_index, nombre_iterations);
-            boucle->bloc->ajoute_expression(condition);
-
-            /* corps */
-            boucle->bloc->ajoute_expression(bloc);
+            boucle->bloc->expressions->ajoute_au_début(condition);
 
             /* suivant */
             if (inverse_boucle) {
@@ -1310,11 +1302,9 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto assign_it = assem->crée_assignation_variable(
                 inst->lexème, ref_it, expression_assignee);
 
-            boucle->bloc->ajoute_expression(condition);
-            boucle->bloc->ajoute_expression(assign_it);
-
-            /* corps */
-            boucle->bloc->ajoute_expression(bloc);
+            /* Inverse l'ordre puisque nous les ajoutons au début. */
+            boucle->bloc->expressions->ajoute_au_début(assign_it);
+            boucle->bloc->expressions->ajoute_au_début(condition);
 
             /* incrémente */
             auto inc_it = assem->crée_incrementation(ref_index->lexème, ref_index);
