@@ -11,9 +11,12 @@ enum class GenreNoeud : uint8_t;
 
 struct AssembleuseArbre;
 struct EspaceDeTravail;
+struct IdentifiantCode;
 struct Lexème;
 struct NoeudBloc;
 struct NoeudDéclarationEntêteFonction;
+struct NoeudDéclarationType;
+struct NoeudDéclarationVariable;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
@@ -85,6 +88,9 @@ struct Simplificatrice {
     /* Nouvelles expressions pour chaque bloc. */
     kuri::pile_de_tableaux<NoeudExpression *> m_expressions_blocs{};
 
+    /* Compteur pour créer des noms de variable temporaire. */
+    int m_nombre_variables = 0;
+
   public:
     Simplificatrice(EspaceDeTravail *e, AssembleuseArbre *a, Typeuse &t)
         : espace(e), assem(a), typeuse(t)
@@ -101,6 +107,12 @@ struct Simplificatrice {
     {
         m_expressions_blocs.ajoute_au_tableau_courant(expression);
     }
+
+    NoeudDéclarationVariable *crée_déclaration_variable(Lexème const *lexème,
+                                                        NoeudDéclarationType *type,
+                                                        NoeudExpression *expression);
+
+    IdentifiantCode *donne_identifiant_pour_variable();
 
     NoeudExpression *simplifie_boucle_pour(NoeudPour *inst);
     NoeudExpression *simplifie_boucle_pour_opérateur(NoeudPour *inst);

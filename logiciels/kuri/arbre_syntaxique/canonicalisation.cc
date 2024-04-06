@@ -688,8 +688,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
 
                  */
 
-                auto decl_temp = assem->crée_déclaration_variable(
-                    si->lexème, si->type, nullptr, nullptr);
+                auto decl_temp = crée_déclaration_variable(si->lexème, si->type, nullptr);
                 decl_temp->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
                 auto ref_temp = assem->crée_référence_déclaration(si->lexème, decl_temp);
 
@@ -862,8 +861,8 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                                                                           contexte_courant);
 
             // sauvegarde_contexte := __contexte_fil_principal
-            auto sauvegarde_contexte = assem->crée_déclaration_variable(
-                pousse_contexte->lexème, contexte_courant->type, nullptr, ref_contexte_courant);
+            auto sauvegarde_contexte = crée_déclaration_variable(
+                pousse_contexte->lexème, contexte_courant->type, ref_contexte_courant);
             sauvegarde_contexte->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
             auto ref_sauvegarde_contexte = assem->crée_référence_déclaration(
                 pousse_contexte->lexème, sauvegarde_contexte);
@@ -1041,6 +1040,35 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
     }
 
     return noeud;
+}
+
+NoeudDéclarationVariable *Simplificatrice::crée_déclaration_variable(const Lexème *lexème,
+                                                                     NoeudDéclarationType *type,
+                                                                     NoeudExpression *expression)
+{
+    auto ident = donne_identifiant_pour_variable();
+    return assem->crée_déclaration_variable(lexème, type, ident, expression);
+}
+
+IdentifiantCode *Simplificatrice::donne_identifiant_pour_variable()
+{
+    if (!fonction_courante) {
+        return nullptr;
+    }
+
+    auto nom_base = kuri::chaine_statique("");
+    if (fonction_courante->ident) {
+        nom_base = fonction_courante->ident->nom;
+    }
+    else {
+        nom_base = "fonction";
+    }
+
+    auto nom = enchaine("tmp_", nom_base, "_", m_nombre_variables);
+    m_nombre_variables++;
+
+    auto table_identifiant = espace->compilatrice().table_identifiants.verrou_ecriture();
+    return table_identifiant->identifiant_pour_nouvelle_chaine(nom);
 }
 
 NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
@@ -1394,8 +1422,8 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *in
 
     /* Crée une variable temporaire pour l'expression itérée. Si l'expression est par exemple un
      * appel, il sera toujours évalué, menant potentiellement à une boucle infinie. */
-    auto temporaire = assem->crée_déclaration_variable(
-        inst->expression->lexème, inst->expression->type, nullptr, inst->expression);
+    auto temporaire = crée_déclaration_variable(
+        inst->expression->lexème, inst->expression->type, inst->expression);
     temporaire->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     auto ref_temporaire = assem->crée_référence_déclaration(temporaire->lexème, temporaire);
     bloc_substitution->ajoute_expression(temporaire);
@@ -1684,8 +1712,7 @@ NoeudExpression *Simplificatrice::simplifie_expression_logique(NoeudExpressionLo
     simplifie(gauche);
     gauche = simplifie_expression_pour_expression_logique(gauche);
 
-    auto déclaration = assem->crée_déclaration_variable(
-        gauche->lexème, gauche->type, nullptr, gauche);
+    auto déclaration = crée_déclaration_variable(gauche->lexème, gauche->type, gauche);
     déclaration->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     ajoute_expression(déclaration);
 
@@ -1821,8 +1848,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_union(
     if (construction->paramètres_résolus.est_vide()) {
         /* Initialise à zéro. */
 
-        auto decl_position = assem->crée_déclaration_variable(
-            lexème, type_union, nullptr, &non_initialisation);
+        auto decl_position = crée_déclaration_variable(lexème, type_union, &non_initialisation);
         decl_position->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
         auto ref_position = assem->crée_référence_déclaration(decl_position->lexème,
                                                               decl_position);
@@ -1907,8 +1933,8 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
     /* Création d'une temporaire et assignation des membres. */
 
     auto const type_position_code_source = typeuse.type_position_code_source;
-    auto decl_position = assem->crée_déclaration_variable(
-        lexème, type_position_code_source, nullptr, &non_initialisation);
+    auto decl_position = crée_déclaration_variable(
+        lexème, type_position_code_source, &non_initialisation);
     decl_position->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     auto ref_position = assem->crée_référence_déclaration(decl_position->lexème, decl_position);
 
@@ -1941,8 +1967,7 @@ NoeudExpressionRéférence *Simplificatrice::génère_simplification_constructio
     NoeudExpressionAppel *construction, TypeStructure *type_struct)
 {
     auto const lexème = construction->lexème;
-    auto déclaration = assem->crée_déclaration_variable(
-        lexème, type_struct, nullptr, &non_initialisation);
+    auto déclaration = crée_déclaration_variable(lexème, type_struct, &non_initialisation);
     déclaration->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     auto référence = assem->crée_référence_déclaration(déclaration->lexème, déclaration);
 
@@ -2011,7 +2036,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_opaque_depuis_structure
     comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_opaque};
     comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
-    auto decl_opaque = assem->crée_déclaration_variable(lexème, type_opaque, nullptr, comme);
+    auto decl_opaque = crée_déclaration_variable(lexème, type_opaque, comme);
     decl_opaque->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     auto ref_opaque = assem->crée_référence_déclaration(decl_opaque->lexème, decl_opaque);
     ajoute_expression(decl_opaque);
@@ -2500,8 +2525,8 @@ NoeudExpression *Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
     auto la_discriminée = discr->expression_discriminée;
     simplifie(la_discriminée);
 
-    auto decl_variable = assem->crée_déclaration_variable(
-        la_discriminée->lexème, la_discriminée->type, nullptr, la_discriminée);
+    auto decl_variable = crée_déclaration_variable(
+        la_discriminée->lexème, la_discriminée->type, la_discriminée);
     decl_variable->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
 
     ajoute_expression(decl_variable);
