@@ -142,6 +142,7 @@ struct Simplificatrice {
 
     NoeudExpression *simplifie_opérateur_binaire(NoeudExpressionBinaire *expr_bin,
                                                  bool pour_operande);
+    NoeudExpression *simplifie_arithmétique_pointeur(NoeudExpressionBinaire *expr_bin);
     NoeudSi *crée_condition_boucle(NoeudExpression *inst, GenreNoeud genre_noeud);
     NoeudExpression *crée_expression_pour_op_chainée(
         kuri::tableau<NoeudExpressionBinaire> &comparaisons, const Lexème *lexeme_op_logique);
