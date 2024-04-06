@@ -2292,6 +2292,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         auto noeud_virgule = m_tacheronne.assembleuse->crée_virgule(&lexème_virgule);
         noeud_virgule->expressions.ajoute(noeud_it);
         noeud_virgule->expressions.ajoute(noeud_index);
+        noeud_virgule->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
 
         noeud->variable = noeud_virgule;
         noeud->expression = expression;
@@ -2750,6 +2751,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         lexème_rien->chaine = "";
 
         auto decl = crée_retour_défaut_fonction(m_tacheronne.assembleuse, lexème_rien);
+        decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
 
         noeud->params_sorties.ajoute(decl);
         noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
@@ -2849,6 +2851,12 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
                 }
                 else if (ident_cliché == ID::inst_mv) {
                     drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::format) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_FORMAT_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::format_canon) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS;
                 }
                 else {
                     rapporte_erreur("Identifiant inconnu après #cliche");
@@ -3179,6 +3187,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
                 decl_sortie->lexème, nullptr, decl_sortie);
             decl->ident = ident;
             decl->bloc_parent = decl_sortie->bloc_parent;
+            decl->drapeaux |= DrapeauxNoeud::IDENT_EST_DÉFAUT;
 
             decl_sortie = decl;
         }
