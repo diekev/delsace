@@ -1198,8 +1198,8 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 std::swap(expr_debut, expr_fin);
             }
 
-            auto init_it = assem->crée_assignation_variable(ref_it->lexème, ref_it, expr_debut);
-            bloc_pre->ajoute_expression(init_it);
+            /* Initialise la variable d'itération. */
+            it->expression = expr_debut;
 
             auto op_comp = index_it->type->table_opérateurs->opérateur_seg;
             condition->condition = assem->crée_expression_binaire(
