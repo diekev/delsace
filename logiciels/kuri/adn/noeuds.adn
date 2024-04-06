@@ -1056,9 +1056,6 @@ struct NoeudBoucle : NoeudExpression {
 
     /* pour la simplification du [code] des boucles pour */
 
-    /* bloc utilisé pour définir les varibles d'itérations */
-    NoeudBloc *bloc_pré
-
     /* bloc utilisé pour définir l'incrémentation des variables d'itérations,
     * cible de l'instruction « continue » des « pour » */
     NoeudBloc *bloc_inc
