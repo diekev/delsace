@@ -2300,17 +2300,27 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
     // ptr - ptr => (ptr comme z64 - ptr comme z64) / taille_de(type_pointe)
     if (type1->est_type_pointeur() && type2->est_type_pointeur()) {
         auto type_z64 = TypeBase::Z64;
-        auto type_pointe = type2->comme_type_pointeur()->type_pointé;
         auto soustraction = assem->crée_expression_binaire(
             expr_bin->lexème,
             type_z64->table_opérateurs->opérateur_sst,
             comme_type(expr_bin->opérande_gauche, type_z64),
             comme_type(expr_bin->opérande_droite, type_z64));
-        auto taille_de = assem->crée_littérale_entier(
-            expr_bin->lexème, type_z64, std::max(type_pointe->taille_octet, 1u));
-        auto div = assem->crée_expression_binaire(
-            expr_bin->lexème, type_z64->table_opérateurs->opérateur_div, soustraction, taille_de);
-        expr_bin->substitution = div;
+
+        auto substitution = soustraction;
+
+        auto type_pointe = type2->comme_type_pointeur()->type_pointé;
+        if (type_pointe->taille_octet != 1) {
+            auto taille_de = assem->crée_littérale_entier(
+                expr_bin->lexème, type_z64, std::max(type_pointe->taille_octet, 1u));
+
+            substitution = assem->crée_expression_binaire(
+                expr_bin->lexème,
+                type_z64->table_opérateurs->opérateur_div,
+                soustraction,
+                taille_de);
+        }
+
+        expr_bin->substitution = substitution;
     }
     else {
         Type *type_entier = Type::nul();
@@ -2337,14 +2347,17 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
             expr_pointeur = expr_bin->opérande_gauche;
         }
 
-        auto type_pointe = type_pointeur->comme_type_pointeur()->type_pointé;
+        auto opérande = expr_entier;
 
-        auto taille_de = assem->crée_littérale_entier(
-            expr_entier->lexème, type_entier, std::max(type_pointe->taille_octet, 1u));
-        auto mul = assem->crée_expression_binaire(expr_entier->lexème,
-                                                  type_entier->table_opérateurs->opérateur_mul,
-                                                  expr_entier,
-                                                  taille_de);
+        auto type_pointe = type_pointeur->comme_type_pointeur()->type_pointé;
+        if (type_pointe->taille_octet != 1) {
+            auto taille_de = assem->crée_littérale_entier(
+                expr_entier->lexème, type_entier, std::max(type_pointe->taille_octet, 1u));
+            opérande = assem->crée_expression_binaire(expr_entier->lexème,
+                                                      type_entier->table_opérateurs->opérateur_mul,
+                                                      expr_entier,
+                                                      taille_de);
+        }
 
         OpérateurBinaire *op_arithm = nullptr;
 
@@ -2358,7 +2371,7 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
         }
 
         auto arithm = assem->crée_expression_binaire(
-            expr_bin->lexème, op_arithm, comme_type(expr_pointeur, type_entier), mul);
+            expr_bin->lexème, op_arithm, comme_type(expr_pointeur, type_entier), opérande);
 
         auto comme_pointeur = assem->crée_comme(expr_bin->lexème, arithm, nullptr);
         comme_pointeur->type = type_pointeur;
