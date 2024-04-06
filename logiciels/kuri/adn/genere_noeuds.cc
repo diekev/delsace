@@ -478,8 +478,6 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
             if (it->accede_nom_genre().nom() == "INSTRUCTION_BOUCLE") {
                 os << "\t\t\tif (preference == PreferenceVisiteNoeud::SUBSTITUTION) {\n";
-                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_pré, preference, "
-                      "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
                 os << "\t\t\t\tvisite_noeud(racine_typee->bloc_inc, preference, "
                       "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
                 os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sansarrêt, preference, "
