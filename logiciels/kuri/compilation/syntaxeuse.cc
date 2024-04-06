@@ -2620,6 +2620,12 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
                 else if (ident_cliché == ID::inst_mv) {
                     drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
                 }
+                else if (ident_cliché == ID::format) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_FORMAT_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::format_canon) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS;
+                }
                 else {
                     rapporte_erreur("Identifiant inconnu après #cliche");
                 }
