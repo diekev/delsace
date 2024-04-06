@@ -1102,16 +1102,14 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     auto ref_it = assem->crée_référence_déclaration(it->lexème, it);
     auto ref_index = assem->crée_référence_déclaration(it->lexème, index_it);
 
-    auto bloc_pre = assem->crée_bloc_seul(nullptr, boucle->bloc_parent);
-
-    bloc_pre->ajoute_expression(it);
-    bloc_pre->ajoute_expression(index_it);
+    /* Ajoute les déclarations de ces variables dans le bloc précédent. */
+    ajoute_expression(it);
+    ajoute_expression(index_it);
 
     auto bloc_inc = assem->crée_bloc_seul(nullptr, boucle->bloc_parent);
 
     auto condition = crée_condition_boucle(boucle, GenreNoeud::INSTRUCTION_SI);
 
-    boucle->bloc_pré = bloc_pre;
     boucle->bloc_inc = bloc_inc;
 
     auto const inverse_boucle = inst->lexème_op == GenreLexème::SUPERIEUR;
