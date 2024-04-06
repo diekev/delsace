@@ -2598,11 +2598,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             boucle->label_pour_continue = label_pour_continue;
             boucle->label_pour_reprends = label_boucle;
 
-            if (boucle->bloc_pré) {
-                génère_ri_pour_noeud(boucle->bloc_pré);
-                m_constructrice.crée_branche(noeud, label_boucle);
-            }
-
             m_constructrice.insère_label(label_boucle);
             génère_ri_pour_noeud(boucle->bloc);
 
