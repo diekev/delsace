@@ -2592,7 +2592,12 @@ NoeudExpression *Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
         }
     }
 
-    si_courant->bloc_si_faux = discr->bloc_sinon;
+    /* Évitons d'ajouter un bloc vide, pour ne pas faire du travail inutile dans les étapes
+     * suivantes. */
+    if (discr->bloc_sinon && !discr->bloc_sinon->expressions->est_vide()) {
+        si_courant->bloc_si_faux = discr->bloc_sinon;
+    }
+
     return discr->substitution;
 }
 
