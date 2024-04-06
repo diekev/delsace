@@ -2297,7 +2297,7 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
     auto type1 = expr_bin->opérande_gauche->type;
     auto type2 = expr_bin->opérande_droite->type;
 
-    // ptr - ptr => (ptr comme z64 - ptr comme z64) / taille_de(type_pointe)
+    // ptr - ptr => (ptr comme z64 - ptr comme z64) / taille_de(type_pointé)
     if (type1->est_type_pointeur() && type2->est_type_pointeur()) {
         auto type_z64 = TypeBase::Z64;
         auto soustraction = assem->crée_expression_binaire(
@@ -2308,10 +2308,10 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
 
         auto substitution = soustraction;
 
-        auto type_pointe = type2->comme_type_pointeur()->type_pointé;
-        if (type_pointe->taille_octet != 1) {
+        auto type_pointé = type2->comme_type_pointeur()->type_pointé;
+        if (type_pointé->taille_octet != 1) {
             auto taille_de = assem->crée_littérale_entier(
-                expr_bin->lexème, type_z64, std::max(type_pointe->taille_octet, 1u));
+                expr_bin->lexème, type_z64, std::max(type_pointé->taille_octet, 1u));
 
             substitution = assem->crée_expression_binaire(
                 expr_bin->lexème,
@@ -2329,17 +2329,15 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
         NoeudExpression *expr_entier = nullptr;
         NoeudExpression *expr_pointeur = nullptr;
 
-        // ent + ptr => (ptr comme type_entier + ent * taille_de(type_pointe)) comme
-        // type_ptr
+        // ent + ptr => (ptr comme type_entier + ent * taille_de(type_pointé)) comme type_ptr
         if (est_type_entier(type1)) {
             type_entier = type1;
             type_pointeur = type2;
             expr_entier = expr_bin->opérande_gauche;
             expr_pointeur = expr_bin->opérande_droite;
         }
-        // ptr - ent => (ptr comme type_entier - ent * taille_de(type_pointe)) comme
-        // type_ptr ptr + ent => (ptr comme type_entier + ent * taille_de(type_pointe))
-        // comme type_ptr
+        // ptr - ent => (ptr comme type_entier - ent * taille_de(type_pointé)) comme type_ptr
+        // ptr + ent => (ptr comme type_entier + ent * taille_de(type_pointé)) comme type_ptr
         else if (est_type_entier(type2)) {
             type_entier = type2;
             type_pointeur = type1;
@@ -2349,10 +2347,10 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
 
         auto opérande = expr_entier;
 
-        auto type_pointe = type_pointeur->comme_type_pointeur()->type_pointé;
-        if (type_pointe->taille_octet != 1) {
+        auto type_pointé = type_pointeur->comme_type_pointeur()->type_pointé;
+        if (type_pointé->taille_octet != 1) {
             auto taille_de = assem->crée_littérale_entier(
-                expr_entier->lexème, type_entier, std::max(type_pointe->taille_octet, 1u));
+                expr_entier->lexème, type_entier, std::max(type_pointé->taille_octet, 1u));
             opérande = assem->crée_expression_binaire(expr_entier->lexème,
                                                       type_entier->table_opérateurs->opérateur_mul,
                                                       expr_entier,
