@@ -74,6 +74,7 @@ struct ArgumentsCompilatrice {
     bool sans_traces_d_appel = false;
     bool émets_ri = false;
     bool émets_code_binaire = false;
+    bool importe_kuri = true;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     TypeCoulisse coulisse = TypeCoulisse::C;
