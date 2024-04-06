@@ -11,6 +11,7 @@
 #include "arbre_syntaxique/canonicalisation.hh"
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/copieuse.hh"
+#include "arbre_syntaxique/impression.hh"
 
 #include "parsage/outils_lexemes.hh"
 
@@ -3346,6 +3347,10 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
         }
     }
 
+    if (entete->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_FORMAT_FUT_REQUIS)) {
+        imprime_arbre_formatté(entete);
+    }
+
     simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
@@ -3369,6 +3374,9 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
     }
     if (entete->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS)) {
         imprime_arbre_substitue(entete, std::cerr, 0);
+    }
+    if (entete->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS)) {
+        imprime_arbre_canonique_formatté(entete);
     }
 
     return CodeRetourValidation::OK;

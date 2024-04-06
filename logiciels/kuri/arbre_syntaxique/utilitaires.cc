@@ -1708,6 +1708,12 @@ NoeudExpressionMembre *AssembleuseArbre::crée_référence_membre(const Lexème 
                                                                int index)
 {
     auto acces = crée_référence_membre(lexeme, accede);
+    auto type_accédé = donne_type_accédé_effectif(accede->type);
+    if (type_accédé->est_type_composé()) {
+        auto type_composé = type_accédé->comme_type_composé();
+        auto membre = type_composé->membres[index];
+        acces->ident = membre.nom;
+    }
     acces->type = type;
     acces->index_membre = index;
     return acces;
@@ -2170,7 +2176,6 @@ static void crée_initialisation_defaut_pour_type(Type *type,
                 type_tableau,
                 nullptr,
                 assembleuse->crée_non_initialisation(&lexème_sentinel));
-            assembleuse->bloc_courant()->ajoute_membre(valeur_résultat);
             assembleuse->bloc_courant()->ajoute_expression(valeur_résultat);
             auto ref_résultat = assembleuse->crée_référence_déclaration(&lexème_sentinel,
                                                                         valeur_résultat);
@@ -2181,10 +2186,8 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             init_it->type = type_pointeur_type_pointe;
 
             auto decl_it = assembleuse->crée_déclaration_variable(
-                &lexème_sentinel, type_pointeur_type_pointe, nullptr, init_it);
+                &lexème_sentinel, type_pointeur_type_pointe, ID::it, init_it);
             auto ref_it = assembleuse->crée_référence_déclaration(&lexème_sentinel, decl_it);
-
-            assembleuse->bloc_courant()->ajoute_membre(decl_it);
 
             auto variable = assembleuse->crée_virgule(&lexème_sentinel);
             variable->expressions.ajoute(decl_it);
