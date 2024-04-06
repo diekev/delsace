@@ -2299,7 +2299,7 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
 
     // ptr - ptr => (ptr comme z64 - ptr comme z64) / taille_de(type_pointe)
     if (type1->est_type_pointeur() && type2->est_type_pointeur()) {
-        auto const &type_z64 = TypeBase::Z64;
+        auto type_z64 = TypeBase::Z64;
         auto type_pointe = type2->comme_type_pointeur()->type_pointé;
         auto soustraction = assem->crée_expression_binaire(
             expr_bin->lexème,
