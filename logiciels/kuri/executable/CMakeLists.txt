@@ -39,6 +39,20 @@ install(FILES fichiers/point_d_entree_dynamique.c DESTINATION ${RACINE_INSTALLAT
 
 ################################################################################
 
+add_executable(kuri_format
+    kuri_format.cc
+)
+
+target_include_directories(kuri_format PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(kuri_format "${BIBLIOTHEQUES}")
+
+install(
+    TARGETS kuri_format RUNTIME DESTINATION ${RACINE_INSTALLATION}
+)
+
+################################################################################
+
 add_executable(kuri_markov
     kuri_markov.cc
 )
