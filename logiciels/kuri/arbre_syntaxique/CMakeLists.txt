@@ -27,6 +27,7 @@ set(SOURCES
     cas_genre_noeud.hh
     copieuse.cc
     expression.cc
+    impression.cc
     infos_types.cc
     noeud_code.cc
     noeud_expression.cc
@@ -37,6 +38,7 @@ set(SOURCES
     canonicalisation.hh
     copieuse.hh
     expression.hh
+    impression.hh
     infos_types.hh
     noeud_code.hh
     noeud_expression.hh

@@ -86,6 +86,8 @@ enum class DrapeauxNoeud : uint32_t {
 
     /* Si le noeud est une expression par défaut, par exemple d'un paramètre de fonction. */
     EST_EXPRESSION_DÉFAUT = (1u << 27),
+
+    IDENT_EST_DÉFAUT = (1u << 28),  // decl var
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
@@ -156,6 +158,10 @@ enum class DrapeauxNoeudFonction : uint32_t {
     CLICHÉ_RI_FINALE_FUT_REQUIS = (1 << 18),
     /* La fontion fut marquée avec #cliche inst_mv */
     CLICHÉ_CODE_BINAIRE_FUT_REQUIS = (1 << 19),
+    /* La fontion fut marquée avec #cliche format */
+    CLICHÉ_FORMAT_FUT_REQUIS = (1 << 20),
+    /* La fontion fut marquée avec #cliche format_canon */
+    CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS = (1 << 21),
 
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
