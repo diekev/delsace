@@ -96,7 +96,9 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
     espace_de_travail_defaut = demarre_un_espace_de_travail(options_espace_défaut, "Espace 1");
 
     /* Charge le module Kuri. */
-    module_kuri = importe_module(espace_de_travail_defaut, "Kuri", nullptr);
+    if (arguments.importe_kuri) {
+        module_kuri = importe_module(espace_de_travail_defaut, "Kuri", nullptr);
+    }
 
     broyeuse = memoire::loge<Broyeuse>("Broyeuse");
 
