@@ -1499,6 +1499,12 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case GenreInstruction::RETOUR:
         {
             auto inst_retour = inst->comme_retour();
+
+            if (m_fonction_courante->decl && m_fonction_courante->decl->possède_drapeau(
+                                                 DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+                return;
+            }
+
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
                 auto valeur_retour = génère_code_pour_atome(atome, os, false);
@@ -1661,6 +1667,10 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
             if (pour_entête) {
                 if (!atome_fonc->est_externe) {
                     os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
+                }
+
+                if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+                    os << " __attribute__((noreturn)) ";
                 }
             }
 

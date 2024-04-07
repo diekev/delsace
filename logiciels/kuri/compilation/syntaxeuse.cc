@@ -2662,6 +2662,9 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         else if (ident_directive == ID::exporte) {
             noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
         }
+        else if (ident_directive == ID::sansretour) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_SANSRETOUR;
+        }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
         }

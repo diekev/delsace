@@ -1854,6 +1854,15 @@ RésultatValidation Sémanticienne::valide_entête_fonction(NoeudDéclarationEnt
     TENTE(valide_définition_unique_fonction(decl));
     TENTE(valide_symbole_externe(decl, TypeSymbole::FONCTION));
 
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+        auto type_retour = decl->type->comme_type_fonction()->type_sortie;
+        if (!type_retour->est_type_rien()) {
+            m_espace->rapporte_erreur(
+                decl, "Utilisation de #sansretour sur une fonction retournant une valeur.");
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
@@ -1882,6 +1891,11 @@ RésultatValidation Sémanticienne::valide_entête_opérateur(NoeudDéclarationE
         }
     });
 #endif
+
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+        m_espace->rapporte_erreur(decl, "Utilisation de #sansretour sur un opérateur.");
+        return CodeRetourValidation::Erreur;
+    }
 
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
 
@@ -1922,6 +1936,12 @@ RésultatValidation Sémanticienne::valide_entête_opérateur_pour(
     NoeudDéclarationOpérateurPour *opérateur)
 {
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
+
+    if (opérateur->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+        m_espace->rapporte_erreur(opérateur,
+                                  "Utilisation de #sansretour sur un opérateur « pour ».");
+        return CodeRetourValidation::Erreur;
+    }
 
     {
         CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
