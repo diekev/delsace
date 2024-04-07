@@ -1653,16 +1653,17 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
         }
     }
     else {
-        if (atome_fonc->decl &&
-            atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
-            os << "TOUJOURS_HORSLIGNE ";
-        }
-
-        if (pour_entête && atome_fonc->decl && !atome_fonc->est_externe) {
-            os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
-        }
-
         if (atome_fonc->decl) {
+            if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
+                os << "TOUJOURS_HORSLIGNE ";
+            }
+
+            if (pour_entête) {
+                if (!atome_fonc->est_externe) {
+                    os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
+                }
+            }
+
             if (atome_fonc->decl->ident == ID::__point_d_entree_dynamique) {
                 os << " __attribute__((constructor)) ";
             }
