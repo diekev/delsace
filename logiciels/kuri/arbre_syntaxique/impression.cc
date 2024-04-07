@@ -69,7 +69,6 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
         case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
         case GenreNoeud::INSTRUCTION_COMPOSÉE:
-        case GenreNoeud::DÉCLARATION_STRUCTURE:
         case GenreNoeud::DÉCLARATION_UNION:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
@@ -87,6 +86,11 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
         {
             auto instruction = noeud->comme_tente();
             return instruction->bloc;
+        }
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
+        {
+            auto structure = noeud->comme_type_structure();
+            return structure->bloc;
         }
         case GenreNoeud::INSTRUCTION_DIFFÈRE:
         {
