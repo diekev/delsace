@@ -31,6 +31,7 @@ int main(int argc, char **argv)
     auto tacheronne = Tacheronne(compilatrice);
     auto module = Module(chemin_fichier.chemin_parent());
     auto donnees_fichier = Fichier();
+    donnees_fichier.chemin_ = kuri::chaine(chemin_fichier);
     donnees_fichier.module = &module;
     auto tampon = charge_contenu_fichier({chemin_fichier.pointeur(), chemin_fichier.taille()});
     donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
