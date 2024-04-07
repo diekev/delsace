@@ -728,6 +728,7 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                 case GenreInstruction::ALLOCATION:
                 case GenreInstruction::BRANCHE:
                 case GenreInstruction::LABEL:
+                case GenreInstruction::INATTEIGNABLE:
                 {
                     /* Pas de sous-atome. */
                     break;

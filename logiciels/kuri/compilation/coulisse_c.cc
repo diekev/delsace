@@ -1500,11 +1500,6 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         {
             auto inst_retour = inst->comme_retour();
 
-            if (m_fonction_courante->decl && m_fonction_courante->decl->possède_drapeau(
-                                                 DrapeauxNoeudFonction::EST_SANSRETOUR)) {
-                return;
-            }
-
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
                 auto valeur_retour = génère_code_pour_atome(atome, os, false);
@@ -1593,6 +1588,11 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                     "((", donne_nom_pour_type(inst_transtype->type), ")(", valeur, "))");
             }
             table_valeurs[inst->numero] = valeur;
+            break;
+        }
+        case GenreInstruction::INATTEIGNABLE:
+        {
+            os << "  __builtin_unreachable();\n";
             break;
         }
     }

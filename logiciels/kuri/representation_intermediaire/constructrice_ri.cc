@@ -616,7 +616,7 @@ void ConstructriceRI::insère_label(InstructionLabel *label)
          * mais la génération de code pour par exemple les conditions d'une instructions `si` sans
          * `sinon` ne met pas de branche à la fin de `si.bloc_si_vrai`. Donc ceci permet de
          * détecter également ces cas. */
-        if (!di->est_branche_ou_retourne()) {
+        if (!di->est_terminatrice()) {
             crée_branche(label->site, label);
         }
     }
@@ -1436,6 +1436,16 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
     }
 
     return nullptr;
+}
+
+InstructionInatteignable *ConstructriceRI::crée_inatteignable(const NoeudExpression *site,
+                                                              bool crée_seulement)
+{
+    auto résultat = m_inatteignable.ajoute_element(site);
+    if (!crée_seulement) {
+        insère(résultat);
+    }
+    return résultat;
 }
 
 void ConstructriceRI::insère(Instruction *inst)
@@ -2298,6 +2308,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                         params[0] = acces_taille;
                         params[1] = valeur_;
                         m_constructrice.crée_appel(noeud, fonction, std::move(params));
+                        m_constructrice.crée_inatteignable(noeud);
                     }
 
                     m_constructrice.insère_label(label2);
@@ -2312,6 +2323,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     params[0] = acces_taille;
                     params[1] = valeur_;
                     m_constructrice.crée_appel(noeud, fonction, std::move(params));
+                    m_constructrice.crée_inatteignable(noeud);
 
                     m_constructrice.insère_label(label4);
                 };
@@ -2505,7 +2517,15 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             }
 
             génère_ri_insts_différées(bloc_final);
-            m_constructrice.crée_retour(noeud, valeur_ret);
+
+            if (m_fonction_courante->decl->possède_drapeau(
+                    DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+                m_constructrice.crée_inatteignable(noeud);
+            }
+            else {
+                m_constructrice.crée_retour(noeud, valeur_ret);
+            }
+
             break;
         }
         case GenreNoeud::INSTRUCTION_SAUFSI:
@@ -2545,7 +2565,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 génère_ri_pour_noeud(inst_si->bloc_si_vrai);
 
                 auto di = m_fonction_courante->dernière_instruction();
-                if (!di->est_branche_ou_retourne()) {
+                if (!di->est_terminatrice()) {
                     m_constructrice.crée_branche(noeud, label_apres_instruction);
                 }
 
@@ -2621,12 +2641,12 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 m_constructrice.insère_label(label_pour_bloc_inc);
                 génère_ri_pour_noeud(boucle->bloc_inc);
 
-                if (di->est_branche_ou_retourne()) {
+                if (di->est_terminatrice()) {
                     m_constructrice.crée_branche(noeud, label_boucle);
                 }
             }
 
-            if (!di->est_branche_ou_retourne()) {
+            if (!di->est_terminatrice()) {
                 m_constructrice.crée_branche(noeud, label_boucle);
             }
 
@@ -2634,7 +2654,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 m_constructrice.insère_label(label_pour_sansarret);
                 génère_ri_pour_noeud(boucle->bloc_sansarrêt);
                 di = m_fonction_courante->dernière_instruction();
-                if (!di->est_branche_ou_retourne()) {
+                if (!di->est_terminatrice()) {
                     m_constructrice.crée_branche(boucle, label_apres_boucle);
                 }
             }
@@ -3192,6 +3212,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                     noeud,
                     m_constructrice.trouve_ou_insère_fonction(
                         m_compilatrice.interface_kuri->decl_panique_membre_union));
+                m_constructrice.crée_inatteignable(noeud);
                 m_constructrice.insère_label(label_si_faux);
 
                 valeur = m_constructrice.crée_référence_membre(noeud, valeur, 0);
@@ -3694,6 +3715,7 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
             m_constructrice.crée_appel(noeud,
                                        m_constructrice.trouve_ou_insère_fonction(
                                            m_compilatrice.interface_kuri->decl_panique_erreur));
+            m_constructrice.crée_inatteignable(noeud);
         }
         else {
             auto var_expr_piegee = m_constructrice.crée_allocation(
@@ -3758,6 +3780,7 @@ void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
             m_constructrice.crée_appel(noeud,
                                        m_constructrice.trouve_ou_insère_fonction(
                                            m_compilatrice.interface_kuri->decl_panique_erreur));
+            m_constructrice.crée_inatteignable(noeud);
         }
         else {
             Atome *membre_erreur = m_constructrice.crée_référence_membre(noeud, valeur_union, 0);
@@ -3878,6 +3901,7 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
         m_constructrice.crée_appel(noeud,
                                    m_constructrice.trouve_ou_insère_fonction(
                                        m_compilatrice.interface_kuri->decl_panique_membre_union));
+        m_constructrice.crée_inatteignable(noeud);
         m_constructrice.insère_label(label_si_faux);
     }
 
