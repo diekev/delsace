@@ -182,6 +182,11 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             dbg() << "Genre Noeud nom géré : " << noeud->genre;
             break;
         }
+        case GenreNoeud::COMMENTAIRE:
+        {
+            enchaineuse << noeud->lexème->chaine;
+            break;
+        }
         case GenreNoeud::INSTRUCTION_IMPORTE:
         {
             auto inst = noeud->comme_importe();

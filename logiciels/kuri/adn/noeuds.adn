@@ -40,6 +40,13 @@ struct NoeudExpression {
     NoeudExpression * substitution
 }
 
+struct NoeudCommentaire : NoeudExpression {
+    @genre COMMENTAIRE
+    @comme commentaire
+    @code  NoeudCodeCommentaire
+    @genre_valeur INVALIDE
+}
+
 struct NoeudExpressionRéférenceType : NoeudExpression {
     @genre EXPRESSION_RÉFÉRENCE_TYPE
     @comme référence_type

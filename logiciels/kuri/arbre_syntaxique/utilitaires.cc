@@ -312,6 +312,7 @@ static void aplatis_arbre(NoeudExpression *racine,
     }
 
     switch (racine->genre) {
+        case GenreNoeud::COMMENTAIRE:
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:
         case GenreNoeud::DÉCLARATION_MODULE:

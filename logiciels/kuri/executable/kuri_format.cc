@@ -36,7 +36,8 @@ int main(int argc, char **argv)
     auto tampon = charge_contenu_fichier({chemin_fichier.pointeur(), chemin_fichier.taille()});
     donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
-    auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
+    auto lexeuse = Lexeuse(
+        compilatrice.contexte_lexage(nullptr), &donnees_fichier, INCLUS_COMMENTAIRES);
     lexeuse.performe_lexage();
 
     auto unité = UniteCompilation(compilatrice.espace_de_travail_defaut);

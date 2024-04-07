@@ -1780,6 +1780,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
     }
 
     switch (noeud->genre) {
+        case GenreNoeud::COMMENTAIRE:
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:
         case GenreNoeud::DÉCLARATION_ÉNUM:

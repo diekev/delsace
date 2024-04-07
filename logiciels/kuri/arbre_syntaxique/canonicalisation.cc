@@ -44,6 +44,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
     }
 
     switch (noeud->genre) {
+        case GenreNoeud::COMMENTAIRE:
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:
         case GenreNoeud::DÉCLARATION_MODULE:

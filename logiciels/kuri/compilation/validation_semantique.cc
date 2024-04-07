@@ -348,6 +348,7 @@ CodeRetourValidation Sémanticienne::valide_expression_pour_condition(
 RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
+        case GenreNoeud::COMMENTAIRE:
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
