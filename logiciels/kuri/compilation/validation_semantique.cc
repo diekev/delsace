@@ -50,6 +50,7 @@ Sémanticienne::~Sémanticienne()
 void Sémanticienne::réinitialise()
 {
     m_tacheronne = nullptr;
+    m_assembleuse = nullptr;
     m_espace = nullptr;
     m_unité = nullptr;
     m_arbre_courant = nullptr;
@@ -58,11 +59,12 @@ void Sémanticienne::réinitialise()
 void Sémanticienne::définis_tacheronne(Tacheronne &tacheronne)
 {
     m_tacheronne = &tacheronne;
+    m_assembleuse = tacheronne.assembleuse;
 }
 
 AssembleuseArbre *Sémanticienne::donne_assembleuse()
 {
-    return m_tacheronne->assembleuse;
+    return m_assembleuse;
 }
 
 StatistiquesTypage &Sémanticienne::donne_stats_typage()
@@ -179,19 +181,18 @@ RésultatValidation Sémanticienne::valide(UniteCompilation *unité)
 
 MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiveExécute *directive)
 {
-    auto assembleuse = m_tacheronne->assembleuse;
-    assert(assembleuse->bloc_courant() == nullptr);
+    assert(m_assembleuse->bloc_courant() == nullptr);
 
     // crée une fonction pour l'exécution
-    auto decl_entete = assembleuse->crée_entête_fonction(directive->lexème);
+    auto decl_entete = m_assembleuse->crée_entête_fonction(directive->lexème);
     auto decl_corps = decl_entete->corps;
 
     decl_entete->bloc_parent = directive->bloc_parent;
     decl_corps->bloc_parent = directive->bloc_parent;
 
-    assembleuse->bloc_courant(decl_corps->bloc_parent);
-    decl_entete->bloc_constantes = assembleuse->empile_bloc(directive->lexème, decl_entete);
-    decl_entete->bloc_paramètres = assembleuse->empile_bloc(directive->lexème, decl_entete);
+    m_assembleuse->bloc_courant(decl_corps->bloc_parent);
+    decl_entete->bloc_constantes = m_assembleuse->empile_bloc(directive->lexème, decl_entete);
+    decl_entete->bloc_paramètres = m_assembleuse->empile_bloc(directive->lexème, decl_entete);
 
     decl_entete->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                        DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
@@ -212,7 +213,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
         auto tuple = type_expression->comme_type_tuple();
 
         POUR (tuple->membres) {
-            auto decl_sortie = assembleuse->crée_déclaration_variable(
+            auto decl_sortie = m_assembleuse->crée_déclaration_variable(
                 directive->lexème, nullptr, nullptr);
             decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(
                 "__ret0");
@@ -221,21 +222,21 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
             decl_entete->params_sorties.ajoute(decl_sortie);
         }
 
-        decl_entete->param_sortie = assembleuse->crée_déclaration_variable(
+        decl_entete->param_sortie = m_assembleuse->crée_déclaration_variable(
             directive->lexème, nullptr, nullptr);
         decl_entete->param_sortie->ident =
             m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
         decl_entete->param_sortie->type = type_expression;
     }
     else {
-        auto decl_sortie = assembleuse->crée_déclaration_variable(
+        auto decl_sortie = m_assembleuse->crée_déclaration_variable(
             directive->lexème, nullptr, nullptr);
         decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
         decl_sortie->type = type_expression;
         decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
         decl_entete->params_sorties.ajoute(decl_sortie);
-        decl_entete->param_sortie = assembleuse->crée_déclaration_variable(
+        decl_entete->param_sortie = m_assembleuse->crée_déclaration_variable(
             directive->lexème, nullptr, nullptr);
         decl_entete->param_sortie->type = type_expression;
     }
@@ -245,28 +246,28 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
 
-    decl_corps->bloc = assembleuse->empile_bloc(directive->lexème, decl_entete);
+    decl_corps->bloc = m_assembleuse->empile_bloc(directive->lexème, decl_entete);
 
     static Lexème lexème_retourne = {"retourne", {}, GenreLexème::RETOURNE, 0, 0, 0};
-    auto expr_ret = assembleuse->crée_retourne(&lexème_retourne, nullptr);
+    auto expr_ret = m_assembleuse->crée_retourne(&lexème_retourne, nullptr);
 
 #ifndef NDEBUG
     /* Dépile manuellement en mode débogage afin de vérifier que les assembleuses sont proprement
      * réinitialisées. */
 
     /* Bloc corps. */
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
     /* Bloc paramètres. */
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
     /* Bloc constantes. */
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
     /* Bloc parent. */
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
 #else
-    assembleuse->dépile_tout();
+    m_assembleuse->dépile_tout();
 #endif
 
-    simplifie_arbre(m_espace, assembleuse, m_compilatrice.typeuse, expression);
+    simplifie_arbre(m_espace, m_assembleuse, m_compilatrice.typeuse, expression);
 
     if (type_expression != TypeBase::RIEN) {
         expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
@@ -1469,7 +1470,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
                 var_piege->type = type_de_l_erreur;
 
-                auto decl_var_piege = m_tacheronne->assembleuse->crée_déclaration_variable(
+                auto decl_var_piege = m_assembleuse->crée_déclaration_variable(
                     var_piege->lexème, nullptr, nullptr);
                 decl_var_piege->bloc_parent = inst->bloc;
                 decl_var_piege->type = var_piege->type;
@@ -1570,7 +1571,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                     return CodeRetourValidation::Erreur;
                 }
 
-                auto decl_membre = m_tacheronne->assembleuse->crée_déclaration_variable(
+                auto decl_membre = m_assembleuse->crée_déclaration_variable(
                     decl->lexème, nullptr, nullptr);
                 decl_membre->ident = it.nom;
                 decl_membre->type = it.type;
@@ -3056,14 +3057,14 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_corps_texte(NoeudBloc *bloc_
                                                              NoeudBloc *bloc_parent,
                                                              const Lexème *lexème)
 {
-    auto fonction = m_tacheronne->assembleuse->crée_entête_fonction(lexème);
+    auto fonction = m_assembleuse->crée_entête_fonction(lexème);
     auto nouveau_corps = fonction->corps;
 
-    assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
-    m_tacheronne->assembleuse->bloc_courant(bloc_parent);
+    assert(m_assembleuse->bloc_courant() == nullptr);
+    m_assembleuse->bloc_courant(bloc_parent);
 
-    fonction->bloc_constantes = m_tacheronne->assembleuse->empile_bloc(lexème, fonction);
-    fonction->bloc_paramètres = m_tacheronne->assembleuse->empile_bloc(lexème, fonction);
+    fonction->bloc_constantes = m_assembleuse->empile_bloc(lexème, fonction);
+    fonction->bloc_paramètres = m_assembleuse->empile_bloc(lexème, fonction);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_paramètres;
@@ -3074,8 +3075,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_corps_texte(NoeudBloc *bloc_
     fonction->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                     DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
-    auto decl_sortie = m_tacheronne->assembleuse->crée_déclaration_variable(
-        lexème, nullptr, nullptr);
+    auto decl_sortie = m_assembleuse->crée_déclaration_variable(lexème, nullptr, nullptr);
     decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
     decl_sortie->type = TypeBase::CHAINE;
     decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -3094,10 +3094,10 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_corps_texte(NoeudBloc *bloc_
     metaprogramme->corps_texte = bloc_corps_texte;
     metaprogramme->fonction = fonction;
 
-    m_tacheronne->assembleuse->dépile_bloc();
-    m_tacheronne->assembleuse->dépile_bloc();
-    m_tacheronne->assembleuse->dépile_bloc();
-    assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
+    m_assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
+    assert(m_assembleuse->bloc_courant() == nullptr);
 
     return metaprogramme;
 }
@@ -3371,7 +3371,7 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
         imprime_arbre_formatté(entete);
     }
 
-    simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
+    simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
         /* Puisque la validation du #corps_texte peut être interrompue, nous devons retrouver le
@@ -3419,8 +3419,7 @@ RésultatValidation Sémanticienne::valide_opérateur(NoeudDéclarationCorpsFonc
     /* La simplification des corps des opérateurs « pour » se fera lors de la simplification de la
      * boucle « pour » utilisant ledit corps. */
     if (!entete->est_opérateur_pour()) {
-        simplifie_arbre(
-            m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
+        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, entete);
     }
 
     avertis_déclarations_inutilisées(*m_espace, *entete);
@@ -4127,7 +4126,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
+    simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
     return CodeRetourValidation::OK;
 }
 
@@ -4427,7 +4426,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
 
         TENTE(valide_symbole_externe(decl, TypeSymbole::VARIABLE_GLOBALE))
 
@@ -4702,7 +4701,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
 
         POUR (decls_et_refs) {
             TENTE(valide_symbole_externe(it.decl, TypeSymbole::VARIABLE_GLOBALE))
@@ -5376,8 +5375,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     auto tfm = transformation;
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE) {
-        auto noeud_comme = m_tacheronne->assembleuse->crée_comme(
-            expression->lexème, expression, nullptr);
+        auto noeud_comme = m_assembleuse->crée_comme(expression->lexème, expression, nullptr);
         noeud_comme->bloc_parent = expression->bloc_parent;
         noeud_comme->type = m_compilatrice.typeuse.type_reference_pour(expression->type);
         noeud_comme->transformation = TransformationType(TypeTransformation::PREND_REFERENCE);
@@ -5387,8 +5385,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
         tfm.type = TypeTransformation::CONVERTI_VERS_BASE;
     }
 
-    auto noeud_comme = m_tacheronne->assembleuse->crée_comme(
-        expression->lexème, expression, nullptr);
+    auto noeud_comme = m_assembleuse->crée_comme(expression->lexème, expression, nullptr);
     noeud_comme->bloc_parent = expression->bloc_parent;
     noeud_comme->type = const_cast<Type *>(type_cible);
     noeud_comme->transformation = tfm;
@@ -6184,17 +6181,16 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
      * l'être puisqu'elles sont directement testées avec la condition de fin de la
      * boucle.
      */
-    auto assembleuse = m_tacheronne->assembleuse;
-    assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
-    assembleuse->bloc_courant(inst->bloc_parent);
+    assert(m_assembleuse->bloc_courant() == nullptr);
+    m_assembleuse->bloc_courant(inst->bloc_parent);
 
-    inst->decl_it = crée_déclaration_pour_variable(assembleuse, variable, type_itérateur, true);
+    inst->decl_it = crée_déclaration_pour_variable(m_assembleuse, variable, type_itérateur, true);
     variables->expressions[0] = inst->decl_it;
     bloc->ajoute_membre(inst->decl_it);
 
     if (possède_index) {
         inst->decl_index_it = crée_déclaration_pour_variable(
-            assembleuse, variables->expressions[1], typage_itérande.type_index, false);
+            m_assembleuse, variables->expressions[1], typage_itérande.type_index, false);
         variables->expressions[1] = inst->decl_index_it;
         bloc->ajoute_membre(inst->decl_index_it);
     }
@@ -6204,12 +6200,12 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
          * Nous ne l'ajoutons pas aux membres du bloc pour éviter de potentiels conflits
          * avec des boucles externes, préservant ainsi le comportement des scripts
          * existants. À FAIRE : ajoute toujours ceci aux blocs ? */
-        auto ref = assembleuse->crée_référence_déclaration(inst->lexème);
+        auto ref = m_assembleuse->crée_référence_déclaration(inst->lexème);
         ref->ident = ID::index_it;
         inst->decl_index_it = crée_déclaration_pour_variable(
-            assembleuse, ref, typage_itérande.type_index, false);
+            m_assembleuse, ref, typage_itérande.type_index, false);
     }
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
 
     if (aide_génération_code != BOUCLE_POUR_OPÉRATEUR) {
         return CodeRetourValidation::OK;
@@ -6227,7 +6223,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     auto opérateur_pour = table_opérateurs->opérateur_pour;
 
     /* Copie le macro. */
-    auto copie_macro = copie_noeud(m_tacheronne->assembleuse,
+    auto copie_macro = copie_noeud(m_assembleuse,
                                    opérateur_pour,
                                    opérateur_pour->bloc_parent,
                                    OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
@@ -6565,8 +6561,7 @@ RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionI
     }
     else {
         fichier->modules_importés.insère(module);
-        auto noeud_module = m_tacheronne->assembleuse
-                                ->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(inst->lexème)
+        auto noeud_module = m_assembleuse->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(inst->lexème)
                                 ->comme_déclaration_module();
         noeud_module->module = module;
         noeud_module->ident = module->nom();
