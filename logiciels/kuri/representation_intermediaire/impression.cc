@@ -431,7 +431,7 @@ static void imprime_instruction_ex(Instruction const *inst,
         }
         case GenreInstruction::INATTEIGNABLE:
         {
-            os << "inatteignable ";
+            os << "inatteignable\n";
             break;
         }
     }
