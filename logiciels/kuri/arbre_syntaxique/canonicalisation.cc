@@ -546,12 +546,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::INSTRUCTION_TENTE:
         {
-            auto tente = noeud->comme_tente();
-            simplifie(tente->expression_appelée);
-            if (tente->bloc) {
-                simplifie(tente->bloc);
-            }
-            return tente;
+            return simplifie_tente(noeud->comme_tente());
         }
         case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
         {
@@ -1708,6 +1703,15 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
     }
 
     return nullptr;
+}
+
+NoeudExpression *Simplificatrice::simplifie_tente(NoeudInstructionTente *inst)
+{
+    simplifie(inst->expression_appelée);
+    if (inst->bloc) {
+        simplifie(inst->bloc);
+    }
+    return inst;
 }
 
 NoeudExpression *Simplificatrice::simplifie_assignation_logique(
