@@ -81,6 +81,11 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
         return true;
     }
 
+    /* L'initialisation des r16 utilise un n16. */
+    if (type_source == TypeBase::N16 && type_élément_dest == TypeBase::R16) {
+        return true;
+    }
+
     /* Nous avons différents types de données selon le type connu lors de la compilation. */
     if (type_élément_dest->est_type_type_de_données() && type_source->est_type_type_de_données()) {
         return true;
