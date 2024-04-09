@@ -1869,7 +1869,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto directive = noeud->comme_exécute();
             assert_rappel(directive->ident == ID::assert_, [&]() {
-                dbg() << "Erreur interne : un directive ne fut pas simplifié !\n"
+                dbg() << "Erreur interne : une directive ne fut pas simplifié !\n"
                       << erreur::imprime_site(*m_espace, noeud);
             });
             break;
