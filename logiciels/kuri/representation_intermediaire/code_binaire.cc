@@ -51,7 +51,11 @@ Chunk::~Chunk()
 
 NoeudExpression const *Chunk::donne_site_pour_adresse(octet_t *adresse) const
 {
-    assert(adresse >= code && adresse < (code + compte));
+    assert_rappel(adresse >= code && adresse < (code + compte), [&]() {
+        dbg() << "code " << static_cast<void *>(code) << ", " << "adresse "
+              << static_cast<void *>(adresse) << ", " << "code + compte "
+              << static_cast<void *>(code + compte);
+    });
 
     if (m_sites_source.est_vide()) {
         return nullptr;
