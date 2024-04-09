@@ -796,6 +796,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             enchaineuse << " piège ";
             if (inst->bloc) {
                 imprime_arbre(enchaineuse, état, inst->expression_piégée);
+                enchaineuse << " ";
                 état.imprime_indent_avant_bloc = false;
                 imprime_arbre(enchaineuse, état, inst->bloc);
             }
