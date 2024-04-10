@@ -1454,6 +1454,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             }
             else if (inst->type->est_type_union()) {
                 auto type_union = inst->type->comme_type_union();
+                if (type_union->est_nonsure) {
+                    rapporte_erreur("Utilisation de « tente » sur une fonction qui retourne une "
+                                    "union nonsûre. Seules les unions sûres sont supportées.",
+                                    inst);
+                    return CodeRetourValidation::Erreur;
+                }
+
                 auto possède_type_erreur = false;
 
                 POUR (type_union->membres) {
