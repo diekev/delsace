@@ -372,7 +372,7 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
 
 parse_uri_depuis_chaine :: fonc (chn: chaine) -> bool, URI
 {
-    uri := tente parse_uri_standard(chn) piège err {
+    uri := tente parse_uri_standard(chn) piège _ {
         retourne faux, URI()
     }
 

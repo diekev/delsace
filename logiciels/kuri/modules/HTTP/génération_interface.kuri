@@ -774,7 +774,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
         compilatrice_rapporte_erreur(espace, "Un pilote client fut demandé, mais le chemin de dossier n'est pas renseigné !\n")
     }
 
-    chm_courant := tente chemin_courant() piège err {
+    chm_courant := tente chemin_courant() piège _ {
         compilatrice_rapporte_erreur(espace, "Impossible de déterminer le chemin courant !\n")
     }
 
@@ -785,7 +785,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     diffère détruit_chemin(chm_dossier_pilote)
     diffère détruit_chemin(chm_fichier_pilote)
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote, pour_lecture_écriture_tronquée) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote, pour_lecture_écriture_tronquée) piège _ {
         compilatrice_rapporte_erreur(espace, "Impossible de créer le fichier pour le pilote !\n")
     }
 

@@ -442,13 +442,13 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
     diffère { déloge(requête) }
 
     /* tente de nous connecté à la base de données */
-    connexion := tente crée_connexion(table.pilote) piège err {
+    connexion := tente crée_connexion(table.pilote) piège _ {
         retourne faux
     }
     diffère { ferme_connexion(*connexion) }
 
     /* exécute la requête */
-    curseur := tente exécute(*connexion, requête) piège err {
+    curseur := tente exécute(*connexion, requête) piège _ {
         retourne faux
     }
     diffère { détruit_résultat(curseur) }
@@ -467,12 +467,12 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
     diffère { déloge(infos_membres) }
 
     /* tente de nous connecté à la base de données */
-    connexion := tente crée_connexion(pilote) piège err {
+    connexion := tente crée_connexion(pilote) piège _ {
         retourne résultat
     }
     diffère { ferme_connexion(*connexion) }
 
-    curseurs := tente exécute(*connexion, requête) piège err {
+    curseurs := tente exécute(*connexion, requête) piège _ {
         retourne résultat
     }
 
@@ -627,7 +627,7 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
     requête := chaine_depuis_enchaineuse(*enchaineuse)
     diffère déloge(requête)
 
-    résultat_exécution := tente exécute(connexion, requête) piège err {
+    résultat_exécution := tente exécute(connexion, requête) piège _ {
         retourne
     }
     diffère détruit_résultat(résultat_exécution)
@@ -655,7 +655,7 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
 
 exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([..]TypeRésultat)
 {
-    résultat := tente exécute(connexion, requête) piège err {
+    résultat := tente exécute(connexion, requête) piège _ {
         retourne
     }
     diffère détruit_résultat(résultat)
@@ -681,7 +681,7 @@ exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chai
 
 exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel(TypeRésultat)
 {
-    résultat := tente exécute(connexion, requête) piège err {
+    résultat := tente exécute(connexion, requête) piège _ {
         retourne
     }
     diffère détruit_résultat(résultat)
