@@ -1517,11 +1517,12 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             auto var_piege = inst->expression_piégée->comme_référence_déclaration();
 
-            auto decl = trouve_dans_bloc(var_piege->bloc_parent, var_piege->ident);
-
-            if (decl != nullptr) {
-                rapporte_erreur_redéfinition_symbole(var_piege, decl);
-                return CodeRetourValidation::Erreur;
+            if (var_piege->ident != ID::_) {
+                auto decl = trouve_dans_bloc(var_piege->bloc_parent, var_piege->ident);
+                if (decl != nullptr) {
+                    rapporte_erreur_redéfinition_symbole(var_piege, decl);
+                    return CodeRetourValidation::Erreur;
+                }
             }
 
             var_piege->type = type_de_l_erreur;
