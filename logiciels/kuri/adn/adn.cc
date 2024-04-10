@@ -613,6 +613,10 @@ void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
     }
     else if (m_est_ipa_compilatrice) {
         os << " #compilatrice";
+
+        if (m_nom.nom() == "compilatrice_rapporte_erreur") {
+            os << " #sansretour";
+        }
     }
 
     os << "\n\n";

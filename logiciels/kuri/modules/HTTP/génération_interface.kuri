@@ -367,14 +367,12 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
         discr classification {
             EST_INCONNU {
                 compilatrice_rapporte_erreur(fonction, "Type de paramètre non-supporté")
-                retourne faux, infos_paramètres
             }
             EST_TYPE_SERVEUSE {
                 info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
 
                 si infos_paramètres.serveuse.type != nul {
                     compilatrice_rapporte_erreur(fonction, "La fonction prend plusieurs serveuses en paramètre !")
-                    retourne faux, infos_paramètres
                 }
 
                 infos_paramètres.serveuse.type = info_struct
@@ -385,7 +383,6 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
 
                 si infos_paramètres.connexion.type != nul {
                     compilatrice_rapporte_erreur(fonction, "La fonction prend plusieurs connexions en paramètre !")
-                    retourne faux, infos_paramètres
                 }
 
                 infos_paramètres.connexion.type = info_struct
@@ -396,7 +393,6 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
 
                 si infos_paramètres.paramètres_route.type != nul {
                     compilatrice_rapporte_erreur(fonction, "La fonction prend plusieurs paramètres de routage !")
-                    retourne faux, infos_paramètres
                 }
 
                 infos_paramètres.paramètres_route.type = info_struct
@@ -417,7 +413,6 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
 
                 si infos_paramètres.formulaire.type != nul {
                     compilatrice_rapporte_erreur(fonction, "La fonction prend plus de 1 formulaire !")
-                    retourne faux, infos_paramètres
                 }
 
                 infos_paramètres.formulaire.type = info_struct
@@ -439,7 +434,6 @@ valide_chemin :: fonc (fonction: *NoeudCodeEntêteFonction, route: chaine, type_
     discr règles_ou_erreur {
         e {
             compilatrice_rapporte_erreur(fonction, "La route n'est pas valide")
-            retourne faux, règles
         }
         r {
             règles = règles_ou_erreur.r
@@ -452,17 +446,14 @@ valide_chemin :: fonc (fonction: *NoeudCodeEntêteFonction, route: chaine, type_
     si règles_ont_au_moins_un_paramètre(règles) {
         si type_paramètres == nul {
             compilatrice_rapporte_erreur(fonction, "Le chemin possède des paramètres, mais la fonction n'a pas de paramètres !")
-            retourne faux, règles
         }
 
         si !apparie_paramètres_à_la_structure(règles, type_paramètres) {
             compilatrice_rapporte_erreur(fonction, "Les paramètres de la route ne correspondent pas aux membres de la structure")
-            retourne faux, règles
         }
     }
     sinon si type_paramètres != nul {
         compilatrice_rapporte_erreur(fonction, "La fonction requiers des paramètres de routage, mais le chemin n'est pas paramétré !")
-        retourne faux, règles
     }
 
     retourne vrai, règles
@@ -480,17 +471,14 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
     /* Parse le type en sortie. */
     si type_fonction.types_sortie.taille == 0 {
         compilatrice_rapporte_erreur(fonction, "Aucune valeur de sortie pour la fonction !")
-        retourne DonnéesCréationPointDEntréePage()
     }
 
     si type_fonction.types_sortie.taille > 1 {
         compilatrice_rapporte_erreur(fonction, "La fonction possède trop de sortie !")
-        retourne DonnéesCréationPointDEntréePage()
     }
 
     si !est_type_résultat(paramètres, fonction, type_fonction.types_sortie[0]) {
         compilatrice_rapporte_erreur(fonction, "La fonction ne retourne pas une valeur du type de résultat attendu !")
-        retourne DonnéesCréationPointDEntréePage()
     }
 
     type_résultat := type_fonction.types_sortie[0] comme *InfoTypeUnion
@@ -504,7 +492,6 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
     }
     sansarrêt {
         compilatrice_rapporte_erreur(fonction, "La fonction n'est pas annotée avec un chemin !\n")
-        retourne DonnéesCréationPointDEntréePage()
     }
 
     chemin_est_valide, règles_routage := valide_chemin(fonction, chemin, infos_paramètres.paramètres_route.type)
@@ -785,12 +772,10 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
 
     si paramètres.dossier_pilote == "" {
         compilatrice_rapporte_erreur(espace, "Un pilote client fut demandé, mais le chemin de dossier n'est pas renseigné !\n")
-        retourne
     }
 
     chm_courant := tente chemin_courant() piège err {
         compilatrice_rapporte_erreur(espace, "Impossible de déterminer le chemin courant !\n")
-        retourne
     }
 
     chm_dossier_pilote := chm_courant / paramètres.dossier_pilote
@@ -802,7 +787,6 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
 
     fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote, pour_lecture_écriture_tronquée) piège err {
         compilatrice_rapporte_erreur(espace, "Impossible de créer le fichier pour le pilote !\n")
-        retourne
     }
 
     enchaineuse: Enchaineuse
