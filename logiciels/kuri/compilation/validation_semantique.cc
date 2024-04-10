@@ -1504,41 +1504,41 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return CodeRetourValidation::Erreur;
             }
 
-            if (inst->expression_piégée) {
-                if (inst->expression_piégée->genre !=
-                    GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION) {
-                    rapporte_erreur("Expression inattendu dans l'expression de piège, nous devons "
-                                    "avoir une référence à une variable",
-                                    inst->expression_piégée);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                auto var_piege = inst->expression_piégée->comme_référence_déclaration();
-
-                auto decl = trouve_dans_bloc(var_piege->bloc_parent, var_piege->ident);
-
-                if (decl != nullptr) {
-                    rapporte_erreur_redéfinition_symbole(var_piege, decl);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                var_piege->type = type_de_l_erreur;
-
-                auto decl_var_piege = m_assembleuse->crée_déclaration_variable(
-                    var_piege->lexème, nullptr, nullptr);
-                decl_var_piege->bloc_parent = inst->bloc;
-                decl_var_piege->type = var_piege->type;
-                decl_var_piege->ident = var_piege->ident;
-                decl_var_piege->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-                decl_var_piege->genre_valeur = GenreValeur::TRANSCENDANTALE;
-
-                inst->expression_piégée->comme_référence_déclaration()->déclaration_référée =
-                    decl_var_piege;
-
-                // ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
-                inst->bloc->ajoute_membre_au_debut(decl_var_piege);
+            if (!inst->expression_piégée) {
+                return CodeRetourValidation::OK;
             }
 
+            if (inst->expression_piégée->genre != GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION) {
+                rapporte_erreur("Expression inattendu dans l'expression de piège, nous devons "
+                                "avoir une référence à une variable",
+                                inst->expression_piégée);
+                return CodeRetourValidation::Erreur;
+            }
+
+            auto var_piege = inst->expression_piégée->comme_référence_déclaration();
+
+            auto decl = trouve_dans_bloc(var_piege->bloc_parent, var_piege->ident);
+
+            if (decl != nullptr) {
+                rapporte_erreur_redéfinition_symbole(var_piege, decl);
+                return CodeRetourValidation::Erreur;
+            }
+
+            var_piege->type = type_de_l_erreur;
+
+            auto decl_var_piege = m_assembleuse->crée_déclaration_variable(
+                var_piege->lexème, nullptr, nullptr);
+            decl_var_piege->bloc_parent = inst->bloc;
+            decl_var_piege->type = var_piege->type;
+            decl_var_piege->ident = var_piege->ident;
+            decl_var_piege->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+            decl_var_piege->genre_valeur = GenreValeur::TRANSCENDANTALE;
+
+            inst->expression_piégée->comme_référence_déclaration()->déclaration_référée =
+                decl_var_piege;
+
+            // ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
+            inst->bloc->ajoute_membre_au_debut(decl_var_piege);
             break;
         }
         case GenreNoeud::INSTRUCTION_EMPL:
