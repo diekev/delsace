@@ -1901,6 +1901,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         case GenreNoeud::DÉCLARATION_OPÉRATEUR_POUR:
         case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
+        case GenreNoeud::INSTRUCTION_TENTE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : un noeud ne fut pas simplifié !\n"
@@ -2866,11 +2867,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                                              place);
             break;
         }
-        case GenreNoeud::INSTRUCTION_TENTE:
-        {
-            génère_ri_pour_tente(noeud->comme_tente());
-            break;
-        }
     }
 }
 
@@ -3682,142 +3678,6 @@ Atome *CompilatriceRI::crée_transtype_entre_base_et_dérivé(
 
     return m_constructrice.crée_transtype(
         noeud, transformation.type_cible, valeur, TypeTranstypage::BITS);
-}
-
-void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
-{
-    // À FAIRE(retours multiples)
-    génère_ri_pour_expression_droite(noeud->expression_appelée, nullptr);
-    auto valeur_expression = depile_valeur();
-
-    struct DonneesGenerationCodeTente {
-        Atome *acces_erreur{};
-        Atome *acces_erreur_pour_test{};
-
-        Type const *type_piege = nullptr;
-        Type const *type_variable = nullptr;
-    };
-
-    if (noeud->expression_appelée->type->est_type_erreur()) {
-
-        DonneesGenerationCodeTente gen_tente;
-        gen_tente.type_piege = noeud->expression_appelée->type;
-        gen_tente.acces_erreur = valeur_expression;
-        gen_tente.acces_erreur_pour_test = gen_tente.acces_erreur;
-
-        auto label_si_vrai = m_constructrice.réserve_label(noeud);
-        auto label_si_faux = m_constructrice.réserve_label(noeud);
-
-        auto condition = m_constructrice.crée_op_comparaison(
-            noeud,
-            OpérateurBinaire::Genre::Comp_Inegal,
-            gen_tente.acces_erreur_pour_test,
-            m_constructrice.crée_constante_nombre_entier(noeud->expression_appelée->type, 0));
-
-        m_constructrice.crée_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
-
-        m_constructrice.insère_label(label_si_vrai);
-        if (noeud->expression_piégée == nullptr) {
-            m_constructrice.crée_appel(noeud,
-                                       m_constructrice.trouve_ou_insère_fonction(
-                                           m_compilatrice.interface_kuri->decl_panique_erreur));
-            m_constructrice.crée_inatteignable(noeud);
-        }
-        else {
-            auto var_expr_piegee = m_constructrice.crée_allocation(
-                noeud, gen_tente.type_piege, noeud->expression_piégée->ident);
-            auto decl_expr_piegee =
-                noeud->expression_piégée->comme_référence_déclaration()->déclaration_référée;
-            static_cast<NoeudDéclarationSymbole *>(decl_expr_piegee)->atome = var_expr_piegee;
-
-            m_constructrice.crée_stocke_mem(
-                noeud->expression_piégée, var_expr_piegee, valeur_expression);
-
-            génère_ri_pour_noeud(noeud->bloc);
-        }
-
-        m_constructrice.insère_label(label_si_faux);
-
-        if (noeud->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
-            empile_valeur(valeur_expression);
-        }
-        return;
-    }
-    else if (noeud->expression_appelée->type->est_type_union()) {
-        DonneesGenerationCodeTente gen_tente;
-        auto type_union = noeud->expression_appelée->type->comme_type_union();
-        auto index_membre_erreur = 0;
-
-        if (type_union->membres.taille() == 2) {
-            if (type_union->membres[0].type->est_type_erreur()) {
-                gen_tente.type_piege = type_union->membres[0].type;
-                gen_tente.type_variable = type_union->membres[1].type;
-            }
-            else {
-                gen_tente.type_piege = type_union->membres[1].type;
-                gen_tente.type_variable = type_union->membres[0].type;
-                index_membre_erreur = 1;
-            }
-        }
-        else {
-            espace()->rapporte_erreur(
-                noeud, "Utilisation de « tente » sur une union ayant plus de 2 membres !");
-        }
-
-        // test si membre actif est erreur
-        auto label_si_vrai = m_constructrice.réserve_label(noeud);
-        auto label_si_faux = m_constructrice.réserve_label(noeud);
-
-        auto valeur_union = crée_temporaire(noeud, valeur_expression);
-        auto acces_membre_actif = m_constructrice.crée_reference_membre_et_charge(
-            noeud, valeur_union, 1);
-
-        auto condition_membre_actif = m_constructrice.crée_op_comparaison(
-            noeud,
-            OpérateurBinaire::Genre::Comp_Egal,
-            acces_membre_actif,
-            m_constructrice.crée_z32(static_cast<unsigned>(index_membre_erreur + 1)));
-
-        m_constructrice.crée_branche_condition(
-            noeud, condition_membre_actif, label_si_vrai, label_si_faux);
-
-        m_constructrice.insère_label(label_si_vrai);
-        if (noeud->expression_piégée == nullptr) {
-            m_constructrice.crée_appel(noeud,
-                                       m_constructrice.trouve_ou_insère_fonction(
-                                           m_compilatrice.interface_kuri->decl_panique_erreur));
-            m_constructrice.crée_inatteignable(noeud);
-        }
-        else {
-            Atome *membre_erreur = m_constructrice.crée_référence_membre(noeud, valeur_union, 0);
-            membre_erreur = m_constructrice.crée_transtype(
-                noeud,
-                m_compilatrice.typeuse.type_pointeur_pour(const_cast<Type *>(gen_tente.type_piege),
-                                                          false),
-                membre_erreur,
-                TypeTranstypage::BITS);
-            auto decl_expr_piegee =
-                noeud->expression_piégée->comme_référence_déclaration()->déclaration_référée;
-            static_cast<NoeudDéclarationSymbole *>(decl_expr_piegee)->atome = membre_erreur;
-            génère_ri_pour_noeud(noeud->bloc);
-        }
-
-        m_constructrice.insère_label(label_si_faux);
-
-        if (gen_tente.type_variable->est_type_rien()) {
-            return;
-        }
-
-        valeur_expression = m_constructrice.crée_référence_membre(noeud, valeur_union, 0);
-        valeur_expression = m_constructrice.crée_transtype(
-            noeud,
-            m_compilatrice.typeuse.type_pointeur_pour(const_cast<Type *>(gen_tente.type_variable),
-                                                      false),
-            valeur_expression,
-            TypeTranstypage::BITS);
-    }
-
-    empile_valeur(valeur_expression);
 }
 
 void CompilatriceRI::empile_valeur(Atome *valeur)
