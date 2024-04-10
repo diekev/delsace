@@ -1103,6 +1103,7 @@ struct NoeudBloc : NoeudExpression {
     // À FAIRE: utilisation de variant
     NoeudExpression *appartiens_à_diffère [copie]
     NoeudDiscr *appartiens_à_discr [copie]
+    NoeudInstructionTente *appartiens_à_tente [copie]
     /* Si le bloc est un bloc appartenant à une fonction (bloc constantes, paramètres, etc.). */
     NoeudDéclarationEntêteFonction *appartiens_à_fonction [copie]
     NoeudDéclarationType *appartiens_à_type [copie]

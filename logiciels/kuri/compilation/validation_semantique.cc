@@ -26,6 +26,41 @@
 #include "unite_compilation.hh"
 #include "validation_expression_appel.hh"
 
+static bool est_appel_fonction_sans_retour(NoeudExpression const *expression)
+{
+    if (!expression->est_appel()) {
+        return false;
+    }
+    auto appel = expression->comme_appel();
+    if (!appel->noeud_fonction_appelée) {
+        return false;
+    }
+    if (!appel->noeud_fonction_appelée->est_entête_fonction()) {
+        return false;
+    }
+    auto fonction = appel->noeud_fonction_appelée->comme_entête_fonction();
+    return fonction->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR);
+}
+
+/* Vérifie que l'expression en fin de bloc de tente...piège est valide. */
+static bool est_expression_valide_pour_terminer_bloc_piège(NoeudExpression const *expression)
+{
+    if (!expression) {
+        return false;
+    }
+
+    if (dls::outils::est_element(expression->genre,
+                                 GenreNoeud::INSTRUCTION_RETOUR,
+                                 GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE,
+                                 GenreNoeud::INSTRUCTION_ARRÊTE,
+                                 GenreNoeud::INSTRUCTION_CONTINUE,
+                                 GenreNoeud::INSTRUCTION_REPRENDS)) {
+        return true;
+    }
+
+    return est_appel_fonction_sans_retour(expression);
+}
+
 /* ************************************************************************** */
 
 #define TENTE_IMPL(var, x)                                                                        \
@@ -940,6 +975,17 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 noeud->type = expressions->a(expressions->taille() - 1)->type;
             }
 
+            if (inst->appartiens_à_tente) {
+                auto di = derniere_instruction(inst, true);
+                if (!est_expression_valide_pour_terminer_bloc_piège(di)) {
+                    rapporte_erreur("Un bloc de piège doit obligatoirement retourner ou appeler "
+                                    "une fonction sans retour, ou si dans une boucle, la "
+                                    "continuer, l'arrêter, ou la reprendre",
+                                    inst);
+                    return CodeRetourValidation::Erreur;
+                }
+            }
+
             break;
         }
         case GenreNoeud::INSTRUCTION_POUR:
@@ -1484,21 +1530,6 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
                 // ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
                 inst->bloc->ajoute_membre_au_debut(decl_var_piege);
-
-                auto di = derniere_instruction(inst->bloc);
-
-                if (di == nullptr ||
-                    !dls::outils::est_element(di->genre,
-                                              GenreNoeud::INSTRUCTION_RETOUR,
-                                              GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE,
-                                              GenreNoeud::INSTRUCTION_ARRÊTE,
-                                              GenreNoeud::INSTRUCTION_CONTINUE,
-                                              GenreNoeud::INSTRUCTION_REPRENDS)) {
-                    rapporte_erreur("Un bloc de piège doit obligatoirement retourner, ou si dans "
-                                    "une boucle, la continuer, l'arrêter, ou la reprendre",
-                                    inst);
-                    return CodeRetourValidation::Erreur;
-                }
             }
 
             break;
@@ -3283,6 +3314,32 @@ static void échange_corps_entêtes(NoeudDéclarationEntêteFonction *ancienne_f
                  });
 }
 
+enum MéthodeRetourFonction {
+    RETOURNE_MANQUANT,
+    RETOURNE_EXPLICITE,
+    APPEL_FONCTION_SANS_RETOUR,
+};
+
+static MéthodeRetourFonction détermine_méthode_retour_fonction(NoeudDéclarationCorpsFonction *decl)
+{
+    auto bloc = decl->bloc;
+    auto inst_ret = derniere_instruction(bloc, true);
+
+    if (inst_ret == nullptr) {
+        return MéthodeRetourFonction::RETOURNE_MANQUANT;
+    }
+
+    if (inst_ret->est_retourne() || inst_ret->est_retiens()) {
+        return MéthodeRetourFonction::RETOURNE_EXPLICITE;
+    }
+
+    if (est_appel_fonction_sans_retour(inst_ret)) {
+        return MéthodeRetourFonction::APPEL_FONCTION_SANS_RETOUR;
+    }
+
+    return MéthodeRetourFonction::RETOURNE_MANQUANT;
+}
+
 RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFonction *decl)
 {
     auto entete = decl->entête;
@@ -3340,31 +3397,37 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
 
     TENTE(valide_arbre_aplatis(decl));
 
-    auto bloc = decl->bloc;
-    auto inst_ret = derniere_instruction(bloc);
-
-    /* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
-    if (inst_ret == nullptr) {
-        auto type_fonc = entete->type->comme_type_fonction();
-        auto type_sortie = type_fonc->type_sortie;
-
-        if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
-            if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
-                decl->aide_génération_code = REQUIERS_RETOUR_UNION_VIA_RIEN;
-            }
+    auto const méthode_retour = détermine_méthode_retour_fonction(decl);
+    switch (méthode_retour) {
+        case MéthodeRetourFonction::RETOURNE_EXPLICITE:
+        case MéthodeRetourFonction::APPEL_FONCTION_SANS_RETOUR:
+        {
+            break;
         }
-        else {
-            if ((!type_fonc->type_sortie->est_type_rien() && !entete->est_coroutine) ||
-                est_corps_texte) {
-                rapporte_erreur(
-                    "Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
-                return CodeRetourValidation::Erreur;
+        case MéthodeRetourFonction::RETOURNE_MANQUANT:
+        {
+            /* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
+            auto type_fonc = entete->type->comme_type_fonction();
+            auto type_sortie = type_fonc->type_sortie;
+            if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
+                if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
+                    decl->aide_génération_code = REQUIERS_RETOUR_UNION_VIA_RIEN;
+                }
             }
-        }
+            else {
+                if ((!type_fonc->type_sortie->est_type_rien() && !entete->est_coroutine) ||
+                    est_corps_texte) {
+                    rapporte_erreur(
+                        "Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
+                    return CodeRetourValidation::Erreur;
+                }
+            }
 
-        if (decl->aide_génération_code != REQUIERS_RETOUR_UNION_VIA_RIEN &&
-            entete != m_compilatrice.interface_kuri->decl_creation_contexte) {
-            decl->aide_génération_code = REQUIERS_CODE_EXTRA_RETOUR;
+            if (decl->aide_génération_code != REQUIERS_RETOUR_UNION_VIA_RIEN &&
+                entete != m_compilatrice.interface_kuri->decl_creation_contexte) {
+                decl->aide_génération_code = REQUIERS_CODE_EXTRA_RETOUR;
+            }
+            break;
         }
     }
 
@@ -3410,7 +3473,7 @@ RésultatValidation Sémanticienne::valide_opérateur(NoeudDéclarationCorpsFonc
 
     TENTE(valide_arbre_aplatis(decl));
 
-    auto inst_ret = derniere_instruction(decl->bloc);
+    auto inst_ret = derniere_instruction(decl->bloc, false);
 
     if (inst_ret == nullptr && !entete->est_opérateur_pour()) {
         rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);

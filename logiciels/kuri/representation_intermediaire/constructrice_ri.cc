@@ -2058,6 +2058,14 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             auto valeur = m_constructrice.crée_appel(expr_appel, atome_fonc, std::move(args));
 
+            if (atome_fonc->est_fonction()) {
+                auto atome_fonction = atome_fonc->comme_fonction();
+                if (atome_fonction->decl &&
+                    atome_fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+                    m_constructrice.crée_inatteignable(noeud);
+                }
+            }
+
             if (adresse_retour) {
                 m_constructrice.crée_stocke_mem(noeud, adresse_retour, valeur);
                 if (adresse_retour != place) {
@@ -2527,7 +2535,12 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             if (m_fonction_courante->decl->possède_drapeau(
                     DrapeauxNoeudFonction::EST_SANSRETOUR)) {
-                m_constructrice.crée_inatteignable(noeud);
+                if (!m_fonction_courante->instructions.est_vide() &&
+                    !m_fonction_courante->instructions.dernier_élément()->est_inatteignable()) {
+                    /* Crée une instruction inatteignable sauf s'il y a déjà une (qui fut peut-être
+                     * ajoutée par un appel). */
+                    m_constructrice.crée_inatteignable(noeud);
+                }
             }
             else {
                 m_constructrice.crée_retour(noeud, valeur_ret);

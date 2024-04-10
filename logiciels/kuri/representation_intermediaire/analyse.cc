@@ -365,8 +365,10 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
             }
 
             if (terminatrice_rencontrée && inst->site) {
-                espace.rapporte_erreur(inst->site,
-                                       "Erreur interne : plusieurs terminatrices dans un bloc.\n");
+                espace
+                    .rapporte_erreur(atome->decl,
+                                     "Erreur interne : plusieurs terminatrices dans un bloc.\n")
+                    .ajoute_site(inst->site);
                 return false;
             }
         }

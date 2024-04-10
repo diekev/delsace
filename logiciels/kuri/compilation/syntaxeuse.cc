@@ -1072,6 +1072,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
             auto noeud = m_tacheronne.assembleuse->crée_tente(
                 lexème, expression_appelée, expression_piégée);
             noeud->bloc = bloc;
+            if (bloc) {
+                bloc->appartiens_à_tente = noeud;
+            }
             return noeud;
         }
         case GenreLexème::DIRECTIVE:

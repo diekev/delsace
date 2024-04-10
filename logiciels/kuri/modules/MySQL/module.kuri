@@ -301,10 +301,8 @@ trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *In
             }
         }
         sansarrêt {
-            message := imprime_chaine("Colonne '%' introuvable dans le type !", it)
-            panique(message)
             déloge(infos_membres)
-            retourne infos_membres
+            panique("Colonne '%' introuvable dans le type !", it)
         }
     }
 
