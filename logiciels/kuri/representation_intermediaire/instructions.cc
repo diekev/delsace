@@ -481,7 +481,8 @@ bool instruction_est_racine(Instruction const *inst)
                                     GenreInstruction::BRANCHE_CONDITION,
                                     GenreInstruction::LABEL,
                                     GenreInstruction::RETOUR,
-                                    GenreInstruction::STOCKE_MEMOIRE);
+                                    GenreInstruction::STOCKE_MEMOIRE,
+                                    GenreInstruction::INATTEIGNABLE);
 }
 
 static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,
