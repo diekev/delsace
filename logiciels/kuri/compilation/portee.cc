@@ -251,6 +251,7 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b, bool accepte_appels)
         return di;
     }
 
+    /* Pour détecter les appels de fonctions sans retour. */
     if (accepte_appels && di->est_appel()) {
         return di;
     }
