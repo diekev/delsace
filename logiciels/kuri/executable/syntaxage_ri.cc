@@ -2582,9 +2582,9 @@ int main(int argc, char **argv)
     fichier.tampon_ = lng::tampon_source(texte.c_str());
     fichier.chemin_ = "";
 
-    auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
+    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, imprime_erreur};
+    auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
 
     Lexeuse lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();

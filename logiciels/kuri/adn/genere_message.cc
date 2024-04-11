@@ -17,32 +17,32 @@
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
 
-static void genere_code_cpp(FluxSortieCPP &os,
-                            kuri::tableau<Proteine *> const &proteines,
-                            bool pour_entete)
+static void génère_code_messages_cpp(FluxSortieCPP &os,
+                                     kuri::tableau<Proteine *> const &protéines,
+                                     bool pour_entête)
 {
     os << "// Fichier généré automatiquement, NE PAS ÉDITER !\n\n";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << "#pragma once\n\n";
-        inclus_systeme(os, "iosfwd");
+        inclus_système(os, "iosfwd");
         os << '\n';
         inclus(os, "utilitaires/macros.hh");
         os << '\n';
         inclus(os, "structures/chaine_statique.hh");
         os << '\n';
-        prodeclare_struct(os, "EspaceDeTravail");
-        prodeclare_struct(os, "Module");
-        prodeclare_struct(os, "NoeudCode");
+        prodéclare_struct(os, "EspaceDeTravail");
+        prodéclare_struct(os, "Module");
+        prodéclare_struct(os, "NoeudCode");
         os << '\n';
     }
     else {
         inclus(os, "message.hh");
-        inclus_systeme(os, "iostream");
+        inclus_système(os, "iostream");
         os << '\n';
     }
 
-    génère_code_cpp(os, proteines, pour_entete);
+    génère_code_cpp(os, protéines, pour_entête);
 }
 
 int main(int argc, const char **argv)
@@ -61,9 +61,9 @@ int main(int argc, const char **argv)
     fichier.tampon_ = lng::tampon_source(texte.c_str());
     fichier.chemin_ = chemin_adn_ipa;
 
-    auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
+    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, imprime_erreur};
+    auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
 
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
@@ -85,13 +85,13 @@ int main(int argc, const char **argv)
     if (nom_fichier_sortie.nom_fichier() == "message.hh") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        genere_code_cpp(flux, syntaxeuse.proteines, true);
+        génère_code_messages_cpp(flux, syntaxeuse.protéines, true);
     }
     else if (nom_fichier_sortie.nom_fichier() == "message.cc") {
         {
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
             auto flux = FluxSortieCPP(fichier_sortie);
-            genere_code_cpp(flux, syntaxeuse.proteines, false);
+            génère_code_messages_cpp(flux, syntaxeuse.protéines, false);
         }
         {
             // Génère le fichier de message pour le module Compilatrice
@@ -99,11 +99,11 @@ int main(int argc, const char **argv)
             nom_fichier_sortie.remplace_nom_fichier("../modules/Compilatrice/message.kuri");
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_sortie));
             auto flux = FluxSortieKuri(fichier_sortie);
-            génère_code_kuri(flux, syntaxeuse.proteines);
+            génère_code_kuri(flux, syntaxeuse.protéines);
         }
     }
 
-    if (!remplace_si_different(nom_fichier_tmp, argv[1])) {
+    if (!remplace_si_différent(nom_fichier_tmp, argv[1])) {
         return 1;
     }
 

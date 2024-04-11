@@ -181,7 +181,7 @@ struct GénératriceCodeC {
 
     void génère_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
-    void déclare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
+    void déclare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entête);
 
     void déclare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc, bool pour_entête);
 
@@ -1600,14 +1600,14 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
 void GénératriceCodeC::déclare_globale(Enchaineuse &os,
                                        const AtomeGlobale *valeur_globale,
-                                       bool pour_entete)
+                                       bool pour_entête)
 {
-    déclare_visibilité_globale(os, valeur_globale, pour_entete);
+    déclare_visibilité_globale(os, valeur_globale, pour_entête);
 
     auto type = valeur_globale->donne_type_alloué();
     os << donne_nom_pour_type(type) << ' ';
 
-    auto nom_globale = donne_nom_pour_globale(valeur_globale, pour_entete);
+    auto nom_globale = donne_nom_pour_globale(valeur_globale, pour_entête);
     os << nom_globale;
     table_globales.insère(valeur_globale, enchaine("&", nom_globale));
 }

@@ -2189,7 +2189,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
         {
             auto lit_chaine = noeud->comme_littérale_chaine();
-            auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(lit_chaine->valeur);
+            auto chaine = compilatrice().gérante_chaine->chaine_pour_adresse(lit_chaine->valeur);
             auto constante = crée_chaine(chaine);
 
             assert_rappel(

@@ -863,7 +863,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 littérale_chaine->drapeaux |=
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 auto fichier = compilatrice.fichier(noeud->lexème->fichier);
-                littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
+                littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fichier->chemin());
                 littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
@@ -874,7 +874,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 littérale_chaine->drapeaux |=
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 auto fichier = compilatrice.fichier(noeud->lexème->fichier);
-                littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
+                littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fichier->module->chemin());
                 littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
@@ -885,7 +885,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto littérale_chaine = assem->crée_littérale_chaine(noeud->lexème);
                 littérale_chaine->drapeaux |=
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
-                littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
+                littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fonction_courante->ident->nom);
                 littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
@@ -1237,7 +1237,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
             /* intialise les arguments de la fonction. */
             POUR (expr_appel->params) {
-                genere_code_C(it, constructrice, compilatrice, false);
+                génère_code_C(it, constructrice, compilatrice, false);
             }
 
             auto iter_enf = expr_appel->params.begin();
@@ -1973,7 +1973,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
     auto const fichier = compilatrice.fichier(lexème_site->fichier);
     auto valeur_chemin_fichier = assem->crée_littérale_chaine(lexème);
     valeur_chemin_fichier->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
-    valeur_chemin_fichier->valeur = compilatrice.gerante_chaine->ajoute_chaine(fichier->chemin());
+    valeur_chemin_fichier->valeur = compilatrice.gérante_chaine->ajoute_chaine(fichier->chemin());
     valeur_chemin_fichier->type = TypeBase::CHAINE;
 
     /* PositionCodeSource.fonction */
@@ -1984,7 +1984,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
 
     auto valeur_nom_fonction = assem->crée_littérale_chaine(lexème);
     valeur_nom_fonction->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
-    valeur_nom_fonction->valeur = compilatrice.gerante_chaine->ajoute_chaine(nom_fonction);
+    valeur_nom_fonction->valeur = compilatrice.gérante_chaine->ajoute_chaine(nom_fonction);
     valeur_nom_fonction->type = TypeBase::CHAINE;
 
     /* PositionCodeSource.ligne */
@@ -2598,10 +2598,10 @@ NoeudExpression *Simplificatrice::simplifie_coroutine(NoeudDéclarationEntêteFo
     }
 
     /* Crée code pour le bloc. */
-    genere_code_C(decl->bloc, constructrice, compilatrice, false);
+    génère_code_C(decl->bloc, constructrice, compilatrice, false);
 
     if (b->aide_génération_code == REQUIERS_CODE_EXTRA_RETOUR) {
-        genere_code_extra_pre_retour(decl->bloc, compilatrice, constructrice);
+        génère_code_extra_pre_retour(decl->bloc, compilatrice, constructrice);
     }
 
     constructrice << "}\n";
@@ -2626,7 +2626,7 @@ NoeudExpression *Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
     for (auto i = 0l; i < feuilles.taille(); ++i) {
         auto f = feuilles[i];
 
-        genere_code_C(f, constructrice, compilatrice, true);
+        génère_code_C(f, constructrice, compilatrice, true);
 
         constructrice << "__etat->" << df->noms_retours[i] << " = ";
         constructrice << f->chaine_calculee();

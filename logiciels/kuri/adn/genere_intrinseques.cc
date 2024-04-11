@@ -20,59 +20,59 @@
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
 
-static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, FluxSortieKuri &os)
+static void génère_code_kuri(const kuri::tableau<Proteine *> &protéines, FluxSortieKuri &os)
 {
     os << "// ----------------------------------------------------------------------------\n";
     os << "// Déclaration des fonctions intrinsèques de la compilatrice.\n";
     os << "\n";
 
-    POUR (proteines) {
-        it->genere_code_kuri(os);
+    POUR (protéines) {
+        it->génère_code_kuri(os);
     }
 }
 
-static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
+static void génère_code_cpp(const kuri::tableau<Proteine *> &protéines,
                             FluxSortieCPP &os,
-                            bool pour_entete)
+                            bool pour_entête)
 {
     os << "// Fichier généré automatiquement, NE PAS ÉDITER\n\n";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << "#pragma once\n\n";
 
-        inclus_systeme(os, "cstdint");
-        inclus_systeme(os, "iosfwd");
+        inclus_système(os, "cstdint");
+        inclus_système(os, "iosfwd");
 
-        prodeclare_struct(os, "IdentifiantCode");
+        prodéclare_struct(os, "IdentifiantCode");
 
         os << "\n";
 
-        genere_déclaration_identifiants_code(proteines, os, pour_entete, "intrinsèques");
+        genere_déclaration_identifiants_code(protéines, os, pour_entête, "intrinsèques");
 
-        POUR (proteines) {
+        POUR (protéines) {
             auto protéine_énum = it->comme_enum();
             if (!protéine_énum) {
                 continue;
             }
 
-            it->genere_code_cpp(os, true);
+            it->génère_code_cpp(os, true);
         }
 
         return;
     }
 
     inclus(os, "intrinseques.hh");
-    inclus_systeme(os, "iostream");
+    inclus_système(os, "iostream");
 
-    genere_déclaration_identifiants_code(proteines, os, pour_entete, "intrinsèques");
+    genere_déclaration_identifiants_code(protéines, os, pour_entête, "intrinsèques");
 
-    POUR (proteines) {
+    POUR (protéines) {
         auto protéine_énum = it->comme_enum();
         if (!protéine_énum) {
             continue;
         }
 
-        it->genere_code_cpp(os, false);
+        it->génère_code_cpp(os, false);
     }
 }
 
@@ -90,7 +90,7 @@ static bool est_type_rien(Type const *type)
     return type->comme_nominal()->accede_nom().nom() == "void";
 }
 
-static void genere_code_appel_intrinsèque_défaut(FluxSortieCPP &os, ProteineFonction *fonction)
+static void génère_code_appel_intrinsèque_défaut(FluxSortieCPP &os, ProteineFonction *fonction)
 {
     auto symbole = fonction->donne_symbole_gcc();
     auto type_sortie = fonction->type_sortie();
@@ -123,7 +123,7 @@ static void genere_code_appel_intrinsèque_défaut(FluxSortieCPP &os, ProteineFo
     }
 }
 
-static void genere_code_appel_intrinsèque_ignorée(FluxSortieCPP &os,
+static void génère_code_appel_intrinsèque_ignorée(FluxSortieCPP &os,
                                                   ProteineFonction *fonction,
                                                   kuri::chaine_statique argument_résultat)
 {
@@ -150,23 +150,23 @@ static void genere_code_appel_intrinsèque_ignorée(FluxSortieCPP &os,
     }
 }
 
-static void genere_code_appel_intrinsèque(FluxSortieCPP &os, ProteineFonction *fonction)
+static void génère_code_appel_intrinsèque(FluxSortieCPP &os, ProteineFonction *fonction)
 {
     auto symbole = fonction->donne_symbole_gcc();
 
     if (symbole == "__builtin___clear_cache" || symbole == "__builtin_prefetch") {
-        genere_code_appel_intrinsèque_ignorée(os, fonction, "{}");
+        génère_code_appel_intrinsèque_ignorée(os, fonction, "{}");
     }
     else if (symbole == "__builtin_expect" || symbole == "__builtin_expect_with_probability") {
-        genere_code_appel_intrinsèque_ignorée(
+        génère_code_appel_intrinsèque_ignorée(
             os, fonction, fonction->donne_paramètres()[0].nom.nom());
     }
     else {
-        genere_code_appel_intrinsèque_défaut(os, fonction);
+        génère_code_appel_intrinsèque_défaut(os, fonction);
     }
 }
 
-static void genere_code_machine_virtuelle(const kuri::tableau<Proteine *> &proteines,
+static void génère_code_machine_virtuelle(const kuri::tableau<Proteine *> &protéines,
                                           FluxSortieCPP &os)
 {
     os << "// Fichier généré automatiquement, NE PAS ÉDITER\n\n";
@@ -181,7 +181,7 @@ static void genere_code_machine_virtuelle(const kuri::tableau<Proteine *> &prote
 
     os << "    auto decl = ptr_fonction->decl;\n";
 
-    POUR (proteines) {
+    POUR (protéines) {
         if (!it->est_fonction()) {
             continue;
         }
@@ -189,7 +189,7 @@ static void genere_code_machine_virtuelle(const kuri::tableau<Proteine *> &prote
         auto symbole = fonction->donne_symbole_gcc();
 
         os << "    if (decl->données_externes->nom_symbole == \"" << symbole << "\") {\n";
-        genere_code_appel_intrinsèque(os, fonction);
+        génère_code_appel_intrinsèque(os, fonction);
         os << "        return;\n";
         os << "    }\n";
     }
@@ -214,9 +214,9 @@ int main(int argc, const char **argv)
     fichier.tampon_ = lng::tampon_source(texte.c_str());
     fichier.chemin_ = chemin_adn_ipa;
 
-    auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
+    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, imprime_erreur};
+    auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
 
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
@@ -238,13 +238,13 @@ int main(int argc, const char **argv)
     if (nom_fichier_sortie.nom_fichier() == "intrinseques.hh") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        genere_code_cpp(syntaxeuse.proteines, flux, true);
+        génère_code_cpp(syntaxeuse.protéines, flux, true);
     }
     else if (nom_fichier_sortie.nom_fichier() == "intrinseques.cc") {
         {
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
             auto flux = FluxSortieCPP(fichier_sortie);
-            genere_code_cpp(syntaxeuse.proteines, flux, false);
+            génère_code_cpp(syntaxeuse.protéines, flux, false);
         }
         {
             // Génère le fichier pour le module Kuri
@@ -252,16 +252,16 @@ int main(int argc, const char **argv)
             nom_fichier_sortie.remplace_nom_fichier("../modules/Kuri/intrinseques.kuri");
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_sortie));
             auto flux = FluxSortieKuri(fichier_sortie);
-            genere_code_kuri(syntaxeuse.proteines, flux);
+            génère_code_kuri(syntaxeuse.protéines, flux);
         }
     }
     else if (nom_fichier_sortie.nom_fichier() == "machine_virtuelle_intrinseques.cc") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        genere_code_machine_virtuelle(syntaxeuse.proteines, flux);
+        génère_code_machine_virtuelle(syntaxeuse.protéines, flux);
     }
 
-    if (!remplace_si_different(nom_fichier_tmp, argv[1])) {
+    if (!remplace_si_différent(nom_fichier_tmp, argv[1])) {
         return 1;
     }
 

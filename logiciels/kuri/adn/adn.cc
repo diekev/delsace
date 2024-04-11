@@ -91,9 +91,9 @@ ProteineStruct::ProteineStruct(IdentifiantADN nom) : Proteine(nom), m_nom_code(n
 {
 }
 
-void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
+void ProteineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 {
-    if (pour_entete) {
+    if (pour_entête) {
         os << "struct " << m_nom;
 
         if (m_mere) {
@@ -241,7 +241,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         os << "};\n\n";
     }
 
-    if (!pour_entete) {
+    if (!pour_entête) {
         os << "static void imprime_membres(std::ostream &os, " << m_nom << " const &valeur)\n";
         os << "{\n";
 
@@ -271,7 +271,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
     os << "std::ostream &operator<<(std::ostream &os, " << m_nom << " const &valeur)";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << ";\n\n";
     }
     else {
@@ -286,7 +286,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
     os << "bool est_valide(" << m_nom << " const &valeur)";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << ";\n\n";
     }
     else {
@@ -301,8 +301,8 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         }
 
         pour_chaque_membre_recursif([&os](Membre const &it) {
-            if (it.type->est_nominal() && it.type->comme_nominal()->est_proteine &&
-                it.type->comme_nominal()->est_proteine->comme_enum()) {
+            if (it.type->est_nominal() && it.type->comme_nominal()->est_protéine &&
+                it.type->comme_nominal()->est_protéine->comme_enum()) {
                 os << "\tif (!est_valeur_legale(valeur." << it.nom << ")) {\n";
                 os << "\t\treturn false;\n";
                 os << "\t}\n";
@@ -314,7 +314,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     }
 }
 
-void ProteineStruct::genere_code_cpp_apres_déclaration(FluxSortieCPP &os)
+void ProteineStruct::génère_code_cpp_apres_déclaration(FluxSortieCPP &os)
 {
     // Implémente les fonctions de discrimination.
     // Nous devons attendre que toutes les structures soient déclarées avant de
@@ -330,7 +330,7 @@ void ProteineStruct::genere_code_cpp_apres_déclaration(FluxSortieCPP &os)
     }
 }
 
-void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
+void ProteineStruct::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom_code << " :: struct ";
     if (m_nom_code.nom() == "AnnotationCode") {
@@ -491,9 +491,9 @@ ProteineEnum::ProteineEnum(IdentifiantADN nom) : Proteine(nom)
 {
 }
 
-void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
+void ProteineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 {
-    if (pour_entete) {
+    if (pour_entête) {
         os << "enum class " << m_nom << " : " << *m_type << " {\n";
 
         POUR (m_membres) {
@@ -503,7 +503,7 @@ void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         os << "};\n\n";
     }
 
-    if (!pour_entete) {
+    if (!pour_entête) {
         os << "static kuri::chaine_statique chaines_membres_" << m_nom << "[" << m_membres.taille()
            << "] = {\n";
 
@@ -516,7 +516,7 @@ void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
     os << "std::ostream &operator<<(std::ostream &os, " << m_nom << " valeur)";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << ";\n\n";
     }
     else {
@@ -528,7 +528,7 @@ void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
     os << "bool est_valeur_legale(" << m_nom << " valeur)";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << ";\n\n";
     }
     else {
@@ -543,7 +543,7 @@ void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     }
 }
 
-void ProteineEnum::genere_code_kuri(FluxSortieKuri &os)
+void ProteineEnum::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom << " :: énum " << *m_type << " {\n";
     POUR (m_membres) {
@@ -561,7 +561,7 @@ ProteineFonction::ProteineFonction(IdentifiantADN nom) : Proteine(nom)
 {
 }
 
-void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
+void ProteineFonction::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 {
     os << *m_type_sortie << ' ' << m_nom;
 
@@ -579,7 +579,7 @@ void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
     os << ")";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << ";\n\n";
     }
     else {
@@ -590,7 +590,7 @@ void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     }
 }
 
-void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
+void ProteineFonction::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom << " :: fonc ";
 
@@ -633,11 +633,11 @@ SyntaxeuseADN::SyntaxeuseADN(Fichier *fichier) : BaseSyntaxeuse(fichier)
 
 SyntaxeuseADN::~SyntaxeuseADN()
 {
-    POUR (proteines) {
+    POUR (protéines) {
         delete it;
     }
 
-    POUR (proteines_paires) {
+    POUR (protéines_paires) {
         delete it;
     }
 }
@@ -666,7 +666,7 @@ void SyntaxeuseADN::parse_fonction()
         rapporte_erreur("Attendu une chaine de caractère après « fonction »");
     }
 
-    auto fonction = crée_proteine<ProteineFonction>(lexème_courant()->chaine);
+    auto fonction = crée_protéine<ProteineFonction>(lexème_courant()->chaine);
     consomme();
 
     // paramètres
@@ -755,7 +755,7 @@ void SyntaxeuseADN::parse_enum()
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
-    auto proteine = crée_proteine<ProteineEnum>(lexème_courant()->chaine);
+    auto protéine = crée_protéine<ProteineEnum>(lexème_courant()->chaine);
 
     consomme();
 
@@ -773,16 +773,16 @@ void SyntaxeuseADN::parse_enum()
         else if (apparie("type")) {
             consomme();
 
-            proteine->type() = parse_type();
+            protéine->type() = parse_type();
         }
         else if (apparie("discr")) {
             consomme();
-            proteine->type_discrimine(lexème_courant()->chaine);
+            protéine->type_discrimine(lexème_courant()->chaine);
             consomme();
         }
         else if (apparie("horslignée")) {
             consomme();
-            proteine->marque_horslignee();
+            protéine->marque_horslignee();
         }
         else {
             consomme();
@@ -794,8 +794,8 @@ void SyntaxeuseADN::parse_enum()
         }
     }
 
-    if (!proteine->type()) {
-        proteine->type() = m_typeuse.crée_type_nominal("int");
+    if (!protéine->type()) {
+        protéine->type() = m_typeuse.crée_type_nominal("int");
     }
 
     while (true) {
@@ -803,14 +803,14 @@ void SyntaxeuseADN::parse_enum()
             break;
         }
 
-        if (proteine->est_horslignee()) {
+        if (protéine->est_horslignee()) {
             rapporte_erreur("Déclaration d'un membre pour une énumération horslignée");
         }
 
         auto membre = Membre{};
         membre.nom = lexème_courant()->chaine;
 
-        proteine->ajoute_membre(membre);
+        protéine->ajoute_membre(membre);
 
         consomme();
 
@@ -831,9 +831,9 @@ void SyntaxeuseADN::parse_struct()
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
-    auto proteine = crée_proteine<ProteineStruct>(lexème_courant()->chaine);
-    auto type_proteine = m_typeuse.crée_type_nominal(lexème_courant()->chaine);
-    type_proteine->est_proteine = proteine;
+    auto protéine = crée_protéine<ProteineStruct>(lexème_courant()->chaine);
+    auto type_protéine = m_typeuse.crée_type_nominal(lexème_courant()->chaine);
+    type_protéine->est_protéine = protéine;
 
     consomme();
 
@@ -846,13 +846,13 @@ void SyntaxeuseADN::parse_struct()
 
         auto nom_struct_mere = lexème_courant()->chaine;
 
-        POUR (proteines) {
+        POUR (protéines) {
             if (it->nom().nom() == kuri::chaine_statique(nom_struct_mere)) {
                 if (!it->comme_struct()) {
                     rapporte_erreur("Impossible de trouver la structure mère !");
                 }
 
-                proteine->descend_de(it->comme_struct());
+                protéine->descend_de(it->comme_struct());
                 break;
             }
         }
@@ -874,17 +874,17 @@ void SyntaxeuseADN::parse_struct()
                 rapporte_erreur("Attendu une chaine de caractère après @code");
             }
 
-            proteine->mute_nom_code(lexème_courant()->chaine);
+            protéine->mute_nom_code(lexème_courant()->chaine);
 
             auto paire = new ProteineStruct(lexème_courant()->chaine);
-            type_proteine->nom_kuri = lexème_courant()->chaine;
+            type_protéine->nom_kuri = lexème_courant()->chaine;
 
-            if (proteine->mere()) {
-                paire->descend_de(proteine->mere()->paire());
+            if (protéine->mere()) {
+                paire->descend_de(protéine->mere()->paire());
             }
 
-            proteines_paires.ajoute(paire);
-            proteine->mute_paire(paire);
+            protéines_paires.ajoute(paire);
+            protéine->mute_paire(paire);
 
             consomme();
         }
@@ -895,7 +895,7 @@ void SyntaxeuseADN::parse_struct()
                 rapporte_erreur("Attendu une chaine de caractère après @code");
             }
 
-            proteine->mute_nom_comme(lexème_courant()->chaine);
+            protéine->mute_nom_comme(lexème_courant()->chaine);
             consomme();
         }
         else if (apparie("genre")) {
@@ -905,9 +905,9 @@ void SyntaxeuseADN::parse_struct()
                 rapporte_erreur("Attendu une chaine de caractère après @genre");
             }
 
-            proteine->mute_nom_genre(lexème_courant()->chaine);
+            protéine->mute_nom_genre(lexème_courant()->chaine);
 
-            auto enum_discriminante = proteine->enum_discriminante();
+            auto enum_discriminante = protéine->enum_discriminante();
 
             if (!enum_discriminante) {
                 rapporte_erreur(
@@ -926,18 +926,18 @@ void SyntaxeuseADN::parse_struct()
 
             auto type_enum = lexème_courant()->chaine;
 
-            POUR (proteines) {
+            POUR (protéines) {
                 if (!it->comme_enum()) {
                     continue;
                 }
 
                 if (it->nom().nom() == kuri::chaine_statique(type_enum)) {
-                    if (it->comme_enum()->type_discrimine() != proteine->nom().nom()) {
+                    if (it->comme_enum()->type_discrimine() != protéine->nom().nom()) {
                         rapporte_erreur("L'énumération devant discriminer le noeud n'est pas "
                                         "déclarée comme le discriminant");
                     }
 
-                    proteine->mute_enum_discriminante(it->comme_enum());
+                    protéine->mute_enum_discriminante(it->comme_enum());
                 }
             }
 
@@ -949,7 +949,7 @@ void SyntaxeuseADN::parse_struct()
                 rapporte_erreur("Attendu une chaine de caractère après @genre_valeur");
             }
 
-            proteine->mute_genre_valeur(lexème_courant()->chaine);
+            protéine->mute_genre_valeur(lexème_courant()->chaine);
             consomme();
         }
         else {
@@ -1018,7 +1018,7 @@ void SyntaxeuseADN::parse_struct()
             consomme();
         }
 
-        proteine->ajoute_membre(membre);
+        protéine->ajoute_membre(membre);
     }
 
     consomme(GenreLexème::ACCOLADE_FERMANTE,
@@ -1034,10 +1034,10 @@ Type *SyntaxeuseADN::parse_type()
     auto type_nominal = m_typeuse.crée_type_nominal(lexème_courant()->chaine);
     Type *type = type_nominal;
 
-    POUR (proteines) {
+    POUR (protéines) {
         if (it->nom().nom() == type_nominal->nom_cpp.nom()) {
             if (it->comme_enum()) {
-                type_nominal->est_proteine = it;
+                type_nominal->est_protéine = it;
             }
 
             break;
@@ -1106,21 +1106,21 @@ bool est_type_noeud(const Type *type)
     }
 
     if (type->est_nominal()) {
-        auto proteine_ = type->comme_nominal()->est_proteine;
-        if (!proteine_) {
+        auto protéine_ = type->comme_nominal()->est_protéine;
+        if (!protéine_) {
             return false;
         }
 
         /* `comme_struct()` retourne nul si la protéine n'est pas une structure, donc
          * le test de la boucle nous sers également de test pour savoir si nous avons
          * une structure. */
-        auto proteine = proteine_->comme_struct();
-        while (proteine) {
-            if (proteine->nom().nom() == "NoeudExpression") {
+        auto protéine = protéine_->comme_struct();
+        while (protéine) {
+            if (protéine->nom().nom() == "NoeudExpression") {
                 return true;
             }
 
-            proteine = proteine->mere();
+            protéine = protéine->mere();
         }
 
         return false;
@@ -1137,14 +1137,14 @@ bool est_type_noeud(const Type *type)
 /** \name Fonctions auxillaires.
  * \{ */
 
-void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &proteines,
+void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &protéines,
                                           FluxSortieCPP &os,
                                           bool pour_entête,
                                           kuri::chaine_statique identifiant_fonction)
 {
     if (pour_entête) {
-        prodeclare_struct(os, "IdentifiantCode");
-        prodeclare_struct(os, "TableIdentifiant");
+        prodéclare_struct(os, "IdentifiantCode");
+        prodéclare_struct(os, "TableIdentifiant");
         os << "\n";
     }
     else {
@@ -1153,7 +1153,7 @@ void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &prot
     }
 
     kuri::ensemble<kuri::chaine_statique> identifiants;
-    POUR (proteines) {
+    POUR (protéines) {
         if (!it->est_fonction()) {
             continue;
         }
@@ -1254,18 +1254,18 @@ void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
 }
 
 void génère_code_cpp(FluxSortieCPP &os,
-                     const kuri::tableau<Proteine *> &proteines,
+                     const kuri::tableau<Proteine *> &protéines,
                      bool pour_entête)
 {
-    POUR (proteines) {
-        it->genere_code_cpp(os, pour_entête);
+    POUR (protéines) {
+        it->génère_code_cpp(os, pour_entête);
     }
 }
 
-void génère_code_kuri(FluxSortieKuri &os, const kuri::tableau<Proteine *> &proteines)
+void génère_code_kuri(FluxSortieKuri &os, const kuri::tableau<Proteine *> &protéines)
 {
-    POUR (proteines) {
-        it->genere_code_kuri(os);
+    POUR (protéines) {
+        it->génère_code_kuri(os);
     }
 }
 
