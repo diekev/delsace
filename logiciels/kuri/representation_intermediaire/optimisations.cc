@@ -259,6 +259,11 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_label;
                 break;
             }
+            case GenreInstruction::INATTEIGNABLE:
+            {
+                nouvelle_inst = constructrice.crée_inatteignable(inst->site, true);
+                break;
+            }
         }
 
         if (nouvelle_inst) {

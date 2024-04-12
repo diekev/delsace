@@ -29,6 +29,7 @@ struct NoeudExpressionRéférence;
 struct NoeudPour;
 struct NoeudRetiens;
 struct NoeudInstructionRetour;
+struct NoeudInstructionTente;
 struct NoeudInstructionRetourMultiple;
 struct NoeudSi;
 struct NoeudStruct;
@@ -165,6 +166,8 @@ struct Simplificatrice {
     NoeudExpression *simplifie_expression_logique(NoeudExpressionLogique *logique);
     NoeudExpression *simplifie_assignation_logique(NoeudExpressionAssignationLogique *logique);
     NoeudExpression *simplifie_expression_pour_expression_logique(NoeudExpression *expression);
+
+    NoeudExpression *simplifie_tente(NoeudInstructionTente *inst);
 };
 
 /** \} */

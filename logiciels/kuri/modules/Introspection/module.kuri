@@ -652,7 +652,7 @@ parse_chaine :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_n8 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_n8(texte) piège err {
+    v := tente extrait_n8(texte) piège _ {
         retourne faux
     }
 
@@ -662,7 +662,7 @@ parse_n8 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_n16 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_n16(texte) piège err {
+    v := tente extrait_n16(texte) piège _ {
         retourne faux
     }
 
@@ -672,7 +672,7 @@ parse_n16 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_n32 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_n32(texte) piège err {
+    v := tente extrait_n32(texte) piège _ {
         retourne faux
     }
 
@@ -682,7 +682,7 @@ parse_n32 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_n64 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_n64(texte) piège err {
+    v := tente extrait_n64(texte) piège _ {
         retourne faux
     }
 
@@ -692,7 +692,7 @@ parse_n64 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_z8 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_z8(texte) piège err {
+    v := tente extrait_z8(texte) piège _ {
         retourne faux
     }
 
@@ -702,7 +702,7 @@ parse_z8 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_z16 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_z16(texte) piège err {
+    v := tente extrait_z16(texte) piège _ {
         retourne faux
     }
 
@@ -712,7 +712,7 @@ parse_z16 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_z32 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_z32(texte) piège err {
+    v := tente extrait_z32(texte) piège _ {
         retourne faux
     }
 
@@ -722,7 +722,7 @@ parse_z32 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_z64 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_z64(texte) piège err {
+    v := tente extrait_z64(texte) piège _ {
         retourne faux
     }
 
@@ -732,7 +732,7 @@ parse_z64 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_r16 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_r16(texte) piège err {
+    v := tente extrait_r16(texte) piège _ {
         retourne faux
     }
 
@@ -742,7 +742,7 @@ parse_r16 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_r32 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_r32(texte) piège err {
+    v := tente extrait_r32(texte) piège _ {
         retourne faux
     }
 
@@ -752,7 +752,7 @@ parse_r32 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 
 parse_r64 :: fonc (texte: chaine, tampon: [..]octet) -> bool
 {
-    v := tente extrait_r64(texte) piège err {
+    v := tente extrait_r64(texte) piège _ {
         retourne faux
     }
 
