@@ -898,7 +898,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 const_cast<char *>(chaine.pointeur()));
 
             auto lit_chaine = assembleuse->crée_littérale_chaine(lexeme);
-            lit_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(chaine);
+            lit_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(chaine);
             lit_chaine->type = type;
 
             if (la_mémoire_fut_allouée) {

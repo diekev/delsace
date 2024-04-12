@@ -109,7 +109,7 @@ crée_prise_pour_écoute :: fonc (contexte_: *Contexte, adresse_ip: AdresseIPv4,
     }
 
     // imprime("crée_prise_pour_écoute\n")
-    fichier := tente ouvre_connexion_pour_écoute(adresse_ip, port, connexions_max) piège err {
+    fichier := tente ouvre_connexion_pour_écoute(adresse_ip, port, connexions_max) piège _ {
         // imprime("erreur lors de l'ouverture d'une connexion pour écoute : %\n", err)
         retourne nul
     }

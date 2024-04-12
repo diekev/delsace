@@ -114,7 +114,7 @@ est_prise_ssl :: fonc (prise: *Prise) -> bool #enligne
 
 lis_tout :: fonc (prise: *Prise) -> chaine
 {
-    contenu := tente lis_tout(*prise.fichier) piège err {
+    contenu := tente lis_tout(*prise.fichier) piège _ {
         retourne copie_chaine("")
     }
 
@@ -147,7 +147,7 @@ lis_tout :: fonc (prise: *Prise) -> chaine
  * les données dans la prise après le chiffrement. */
 écris_final :: fonc (prise: *Prise, données: chaine) -> z32
 {
-    octets_écris := tente écris(*prise.fichier, données) piège err {
+    octets_écris := tente écris(*prise.fichier, données) piège _ {
         retourne 0
     }
 
@@ -156,7 +156,7 @@ lis_tout :: fonc (prise: *Prise) -> chaine
 
 écris_final :: fonc (prise: *Prise, enchaineuse: *Enchaineuse) -> z32
 {
-    tente copie_enchaineuse_fichier(enchaineuse, *prise.fichier) piège err {
+    tente copie_enchaineuse_fichier(enchaineuse, *prise.fichier) piège _ {
         retourne 0
     }
 

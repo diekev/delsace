@@ -185,7 +185,7 @@ struct GénératriceCodeC {
 
     void génère_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
-    void déclare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
+    void déclare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entête);
 
     void déclare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc, bool pour_entête);
 
@@ -1657,6 +1657,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case GenreInstruction::RETOUR:
         {
             auto inst_retour = inst->comme_retour();
+
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
                 auto valeur_retour = génère_code_pour_atome(atome, os, false);
@@ -1747,19 +1748,24 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             table_valeurs[inst->numero] = valeur;
             break;
         }
+        case GenreInstruction::INATTEIGNABLE:
+        {
+            os << "  __builtin_unreachable();\n";
+            break;
+        }
     }
 }
 
 void GénératriceCodeC::déclare_globale(Enchaineuse &os,
                                        const AtomeGlobale *valeur_globale,
-                                       bool pour_entete)
+                                       bool pour_entête)
 {
-    déclare_visibilité_globale(os, valeur_globale, pour_entete);
+    déclare_visibilité_globale(os, valeur_globale, pour_entête);
 
     auto type = valeur_globale->donne_type_alloué();
     os << donne_nom_pour_type(type) << ' ';
 
-    auto nom_globale = donne_nom_pour_globale(valeur_globale, pour_entete);
+    auto nom_globale = donne_nom_pour_globale(valeur_globale, pour_entête);
     os << nom_globale;
     table_globales.insère(valeur_globale, enchaine("&", nom_globale));
 }
@@ -1811,26 +1817,25 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
         }
     }
     else {
-        if (atome_fonc->decl &&
-            atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSBROYAGE)) {
-            os << "extern \"C\" ";
-        }
-
-        if (atome_fonc->decl &&
-            atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
-            os << "TOUJOURS_HORSLIGNE ";
-        }
-
-        if (pour_entête && atome_fonc->decl) {
-            if (atome_fonc->est_externe) {
+        if (atome_fonc->decl) {
+            if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSBROYAGE)) {
                 os << "extern \"C\" ";
             }
-            else {
-                os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
-            }
-        }
 
-        if (atome_fonc->decl) {
+            if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
+                os << "TOUJOURS_HORSLIGNE ";
+            }
+
+            if (pour_entête) {
+                if (!atome_fonc->est_externe) {
+                    os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
+                }
+
+                if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+                    os << " __attribute__((noreturn)) ";
+                }
+            }
+
             if (atome_fonc->decl->ident == ID::__point_d_entree_dynamique) {
                 os << " __attribute__((constructor)) ";
             }
