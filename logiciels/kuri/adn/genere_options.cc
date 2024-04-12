@@ -18,7 +18,7 @@
 #include "outils_dependants_sur_lexemes.hh"
 
 static void génère_code_options_cpp(FluxSortieCPP &os,
-                                    kuri::tableau<Proteine *> const &protéines,
+                                    kuri::tableau<Protéine *> const &protéines,
                                     bool pour_entête)
 {
     os << "// Fichier généré automatiquement, NE PAS ÉDITER !\n\n";

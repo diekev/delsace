@@ -20,7 +20,7 @@
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
 
-static void génère_code_kuri(const kuri::tableau<Proteine *> &protéines, FluxSortieKuri &os)
+static void génère_code_kuri(const kuri::tableau<Protéine *> &protéines, FluxSortieKuri &os)
 {
     os << "// ----------------------------------------------------------------------------\n";
     os << "// Déclaration des fonctions intrinsèques de la compilatrice.\n";
@@ -31,7 +31,7 @@ static void génère_code_kuri(const kuri::tableau<Proteine *> &protéines, Flux
     }
 }
 
-static void génère_code_cpp(const kuri::tableau<Proteine *> &protéines,
+static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
                             FluxSortieCPP &os,
                             bool pour_entête)
 {
@@ -90,7 +90,7 @@ static bool est_type_rien(Type const *type)
     return type->comme_nominal()->accede_nom().nom() == "void";
 }
 
-static void génère_code_appel_intrinsèque_défaut(FluxSortieCPP &os, ProteineFonction *fonction)
+static void génère_code_appel_intrinsèque_défaut(FluxSortieCPP &os, ProtéineFonction *fonction)
 {
     auto symbole = fonction->donne_symbole_gcc();
     auto type_sortie = fonction->type_sortie();
@@ -124,7 +124,7 @@ static void génère_code_appel_intrinsèque_défaut(FluxSortieCPP &os, Proteine
 }
 
 static void génère_code_appel_intrinsèque_ignorée(FluxSortieCPP &os,
-                                                  ProteineFonction *fonction,
+                                                  ProtéineFonction *fonction,
                                                   kuri::chaine_statique argument_résultat)
 {
     auto type_sortie = fonction->type_sortie();
@@ -150,7 +150,7 @@ static void génère_code_appel_intrinsèque_ignorée(FluxSortieCPP &os,
     }
 }
 
-static void génère_code_appel_intrinsèque(FluxSortieCPP &os, ProteineFonction *fonction)
+static void génère_code_appel_intrinsèque(FluxSortieCPP &os, ProtéineFonction *fonction)
 {
     auto symbole = fonction->donne_symbole_gcc();
 
@@ -166,7 +166,7 @@ static void génère_code_appel_intrinsèque(FluxSortieCPP &os, ProteineFonction
     }
 }
 
-static void génère_code_machine_virtuelle(const kuri::tableau<Proteine *> &protéines,
+static void génère_code_machine_virtuelle(const kuri::tableau<Protéine *> &protéines,
                                           FluxSortieCPP &os)
 {
     os << "// Fichier généré automatiquement, NE PAS ÉDITER\n\n";
@@ -185,7 +185,7 @@ static void génère_code_machine_virtuelle(const kuri::tableau<Proteine *> &pro
         if (!it->est_fonction()) {
             continue;
         }
-        auto fonction = dynamic_cast<ProteineFonction *>(it);
+        auto fonction = dynamic_cast<ProtéineFonction *>(it);
         auto symbole = fonction->donne_symbole_gcc();
 
         os << "    if (decl->données_externes->nom_symbole == \"" << symbole << "\") {\n";

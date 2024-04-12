@@ -120,9 +120,9 @@ static const IdentifiantADN &type_nominal_membre_pour_noeud_code(Type *type)
 }
 
 struct GeneratriceCodeCPP {
-    kuri::tableau<Proteine *> protéines{};
-    kuri::tableau<ProteineStruct *> protéines_struct{};
-    kuri::table_hachage<kuri::chaine_statique, ProteineStruct *> table_desc{"Protéines"};
+    kuri::tableau<Protéine *> protéines{};
+    kuri::tableau<ProtéineStruct *> protéines_struct{};
+    kuri::table_hachage<kuri::chaine_statique, ProtéineStruct *> table_desc{"Protéines"};
 
     void genere_fichier_entete_arbre_syntaxique(FluxSortieCPP &os)
     {
@@ -292,7 +292,7 @@ struct GeneratriceCodeCPP {
                 os << "/>\\n\";\n";
             }
 
-            génère_code_pour_enfant(os, it, false, [&os](ProteineStruct &, Membre const &membre) {
+            génère_code_pour_enfant(os, it, false, [&os](ProtéineStruct &, Membre const &membre) {
                 if (membre.type->est_tableau()) {
                     const auto type_tableau = membre.type->comme_tableau();
                     if (type_tableau->est_synchrone) {
@@ -373,7 +373,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
             os << "\t\t{\n";
 
-            génère_code_pour_enfant(os, it, false, [&os](ProteineStruct &, Membre const &membre) {
+            génère_code_pour_enfant(os, it, false, [&os](ProtéineStruct &, Membre const &membre) {
                 if (membre.type->est_tableau()) {
                     const auto type_tableau = membre.type->comme_tableau();
                     if (type_tableau->est_synchrone) {
@@ -449,7 +449,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             }
 
             génère_code_pour_enfant(
-                os, it, false, [&os, &it](ProteineStruct &, Membre const &membre) {
+                os, it, false, [&os, &it](ProtéineStruct &, Membre const &membre) {
                     if (membre.type->est_tableau()) {
                         auto nom_membre = membre.nom.nom();
                         if (it->accede_nom_genre().nom() == "EXPRESSION_APPEL" &&
@@ -925,7 +925,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             os << "\t\t\tracine->noeud_code = n;\n";
 
             génère_code_pour_enfant(
-                os, it, true, [&os, it, this](ProteineStruct &, Membre const &membre) {
+                os, it, true, [&os, it, this](ProtéineStruct &, Membre const &membre) {
                     const auto nom_membre = membre.nom;
 
                     if (nom_membre.nom() == "type") {
@@ -1075,7 +1075,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                << ".ajoute_element();\n";
 
             génère_code_pour_enfant(
-                os, it, true, [&os, it, this](ProteineStruct &, Membre const &membre) {
+                os, it, true, [&os, it, this](ProtéineStruct &, Membre const &membre) {
                     const auto nom_membre = membre.nom;
 
                     if (nom_membre.nom() == "type") {
@@ -1197,9 +1197,9 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
     }
 
     void génère_code_pour_enfant(FluxSortieCPP &os,
-                                 ProteineStruct *racine,
+                                 ProtéineStruct *racine,
                                  bool inclus_code,
-                                 std::function<void(ProteineStruct &, const Membre &)> rappel)
+                                 std::function<void(ProtéineStruct &, const Membre &)> rappel)
     {
         auto possède_enfants = false;
         auto noeud_courant = racine;
@@ -1661,7 +1661,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
 
 struct GeneratriceCodeKuri {
     void genere_fichier_kuri_noeud_code(FluxSortieKuri &os,
-                                        kuri::tableau<Proteine *> const &protéines)
+                                        kuri::tableau<Protéine *> const &protéines)
     {
         // Les structures Kuri pour NoeudCode
         POUR (protéines) {
@@ -1713,7 +1713,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto table_desc = kuri::table_hachage<kuri::chaine_statique, ProteineStruct *>(
+    auto table_desc = kuri::table_hachage<kuri::chaine_statique, ProtéineStruct *>(
         "Protéines structures");
 
     POUR (syntaxeuse.protéines) {

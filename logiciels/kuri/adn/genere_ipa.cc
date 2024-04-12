@@ -20,7 +20,7 @@
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
 
-static void génère_code_kuri(const kuri::tableau<Proteine *> &protéines, FluxSortieKuri &os)
+static void génère_code_kuri(const kuri::tableau<Protéine *> &protéines, FluxSortieKuri &os)
 {
     os << "// ----------------------------------------------------------------------------\n";
     os << "// Prodéclarations de types opaques pour certains types non manipulable directement\n";
@@ -35,7 +35,7 @@ static void génère_code_kuri(const kuri::tableau<Proteine *> &protéines, Flux
     génère_code_kuri(os, protéines);
 }
 
-static void génère_code_cpp(const kuri::tableau<Proteine *> &protéines,
+static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
                             FluxSortieCPP &os,
                             bool pour_entête)
 {

@@ -83,15 +83,15 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
     return os;
 }
 
-Proteine::Proteine(IdentifiantADN nom) : m_nom(nom)
+Protéine::Protéine(IdentifiantADN nom) : m_nom(nom)
 {
 }
 
-ProteineStruct::ProteineStruct(IdentifiantADN nom) : Proteine(nom), m_nom_code(nom)
+ProtéineStruct::ProtéineStruct(IdentifiantADN nom) : Protéine(nom), m_nom_code(nom)
 {
 }
 
-void ProteineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
+void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 {
     if (pour_entête) {
         os << "struct " << m_nom;
@@ -227,7 +227,7 @@ void ProteineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 
         // Prodéclare les fonctions de discrimination.
         if (est_racine_hiérarchie()) {
-            pour_chaque_derivee_recursif([&os](const ProteineStruct &derivee) {
+            pour_chaque_derivee_recursif([&os](const ProtéineStruct &derivee) {
                 if (derivee.m_nom_comme.nom() == "") {
                     return;
                 }
@@ -314,13 +314,13 @@ void ProteineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     }
 }
 
-void ProteineStruct::génère_code_cpp_apres_déclaration(FluxSortieCPP &os)
+void ProtéineStruct::génère_code_cpp_apres_déclaration(FluxSortieCPP &os)
 {
     // Implémente les fonctions de discrimination.
     // Nous devons attendre que toutes les structures soient déclarées avant de
     // pouvoir faire ceci.
     if (est_racine_hiérarchie()) {
-        pour_chaque_derivee_recursif([&os, this](const ProteineStruct &derivee) {
+        pour_chaque_derivee_recursif([&os, this](const ProtéineStruct &derivee) {
             if (derivee.m_nom_comme.nom() == "") {
                 return;
             }
@@ -330,7 +330,7 @@ void ProteineStruct::génère_code_cpp_apres_déclaration(FluxSortieCPP &os)
     }
 }
 
-void ProteineStruct::génère_code_kuri(FluxSortieKuri &os)
+void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom_code << " :: struct ";
     if (m_nom_code.nom() == "AnnotationCode") {
@@ -404,7 +404,7 @@ void ProteineStruct::génère_code_kuri(FluxSortieKuri &os)
     os << "}\n\n";
 }
 
-void ProteineStruct::ajoute_membre(const Membre membre)
+void ProtéineStruct::ajoute_membre(const Membre membre)
 {
     if (membre.est_a_copier) {
         m_possède_membre_a_copier = true;
@@ -425,7 +425,7 @@ void ProteineStruct::ajoute_membre(const Membre membre)
     m_membres.ajoute(membre);
 }
 
-void ProteineStruct::pour_chaque_membre_recursif(std::function<void(const Membre &)> rappel)
+void ProtéineStruct::pour_chaque_membre_recursif(std::function<void(const Membre &)> rappel)
 {
     if (m_mere) {
         m_mere->pour_chaque_membre_recursif(rappel);
@@ -436,7 +436,7 @@ void ProteineStruct::pour_chaque_membre_recursif(std::function<void(const Membre
     }
 }
 
-void ProteineStruct::pour_chaque_copie_extra_recursif(std::function<void(const Membre &)> rappel)
+void ProtéineStruct::pour_chaque_copie_extra_recursif(std::function<void(const Membre &)> rappel)
 {
     if (m_mere) {
         m_mere->pour_chaque_copie_extra_recursif(rappel);
@@ -449,7 +449,7 @@ void ProteineStruct::pour_chaque_copie_extra_recursif(std::function<void(const M
     }
 }
 
-void ProteineStruct::pour_chaque_enfant_recursif(std::function<void(const Membre &)> rappel)
+void ProtéineStruct::pour_chaque_enfant_recursif(std::function<void(const Membre &)> rappel)
 {
     if (m_mere) {
         m_mere->pour_chaque_enfant_recursif(rappel);
@@ -462,8 +462,8 @@ void ProteineStruct::pour_chaque_enfant_recursif(std::function<void(const Membre
     }
 }
 
-void ProteineStruct::pour_chaque_derivee_recursif(
-    std::function<void(const ProteineStruct &)> rappel)
+void ProtéineStruct::pour_chaque_derivee_recursif(
+    std::function<void(const ProtéineStruct &)> rappel)
 {
     POUR (derivees()) {
         rappel(*it);
@@ -474,7 +474,7 @@ void ProteineStruct::pour_chaque_derivee_recursif(
     }
 }
 
-kuri::tableau<Membre> ProteineStruct::donne_membres_pour_construction()
+kuri::tableau<Membre> ProtéineStruct::donne_membres_pour_construction()
 {
     kuri::tableau<Membre> résultat;
     pour_chaque_membre_recursif([&](const Membre &membre) {
@@ -487,11 +487,11 @@ kuri::tableau<Membre> ProteineStruct::donne_membres_pour_construction()
     return résultat;
 }
 
-ProteineEnum::ProteineEnum(IdentifiantADN nom) : Proteine(nom)
+ProtéineEnum::ProtéineEnum(IdentifiantADN nom) : Protéine(nom)
 {
 }
 
-void ProteineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
+void ProtéineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 {
     if (pour_entête) {
         os << "enum class " << m_nom << " : " << *m_type << " {\n";
@@ -543,7 +543,7 @@ void ProteineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     }
 }
 
-void ProteineEnum::génère_code_kuri(FluxSortieKuri &os)
+void ProtéineEnum::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom << " :: énum " << *m_type << " {\n";
     POUR (m_membres) {
@@ -552,16 +552,16 @@ void ProteineEnum::génère_code_kuri(FluxSortieKuri &os)
     os << "}\n\n";
 }
 
-void ProteineEnum::ajoute_membre(const Membre membre)
+void ProtéineEnum::ajoute_membre(const Membre membre)
 {
     m_membres.ajoute(membre);
 }
 
-ProteineFonction::ProteineFonction(IdentifiantADN nom) : Proteine(nom)
+ProtéineFonction::ProtéineFonction(IdentifiantADN nom) : Protéine(nom)
 {
 }
 
-void ProteineFonction::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
+void ProtéineFonction::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 {
     os << *m_type_sortie << ' ' << m_nom;
 
@@ -590,7 +590,7 @@ void ProteineFonction::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     }
 }
 
-void ProteineFonction::génère_code_kuri(FluxSortieKuri &os)
+void ProtéineFonction::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom << " :: fonc ";
 
@@ -622,7 +622,7 @@ void ProteineFonction::génère_code_kuri(FluxSortieKuri &os)
     os << "\n\n";
 }
 
-void ProteineFonction::ajoute_parametre(Parametre const parametre)
+void ProtéineFonction::ajoute_parametre(Parametre const parametre)
 {
     m_parametres.ajoute(parametre);
 }
@@ -666,7 +666,7 @@ void SyntaxeuseADN::parse_fonction()
         rapporte_erreur("Attendu une chaine de caractère après « fonction »");
     }
 
-    auto fonction = crée_protéine<ProteineFonction>(lexème_courant()->chaine);
+    auto fonction = crée_protéine<ProtéineFonction>(lexème_courant()->chaine);
     consomme();
 
     // paramètres
@@ -755,7 +755,7 @@ void SyntaxeuseADN::parse_enum()
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
-    auto protéine = crée_protéine<ProteineEnum>(lexème_courant()->chaine);
+    auto protéine = crée_protéine<ProtéineEnum>(lexème_courant()->chaine);
 
     consomme();
 
@@ -831,7 +831,7 @@ void SyntaxeuseADN::parse_struct()
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
-    auto protéine = crée_protéine<ProteineStruct>(lexème_courant()->chaine);
+    auto protéine = crée_protéine<ProtéineStruct>(lexème_courant()->chaine);
     auto type_protéine = m_typeuse.crée_type_nominal(lexème_courant()->chaine);
     type_protéine->est_protéine = protéine;
 
@@ -876,7 +876,7 @@ void SyntaxeuseADN::parse_struct()
 
             protéine->mute_nom_code(lexème_courant()->chaine);
 
-            auto paire = new ProteineStruct(lexème_courant()->chaine);
+            auto paire = new ProtéineStruct(lexème_courant()->chaine);
             type_protéine->nom_kuri = lexème_courant()->chaine;
 
             if (protéine->mere()) {
@@ -1137,7 +1137,7 @@ bool est_type_noeud(const Type *type)
 /** \name Fonctions auxillaires.
  * \{ */
 
-void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &protéines,
+void genere_déclaration_identifiants_code(const kuri::tableau<Protéine *> &protéines,
                                           FluxSortieCPP &os,
                                           bool pour_entête,
                                           kuri::chaine_statique identifiant_fonction)
@@ -1194,7 +1194,7 @@ void génère_déclaration_fonctions_discrimination(FluxSortieCPP &os,
 
 void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
                                                 kuri::chaine_statique nom_classe,
-                                                ProteineStruct const &derivee,
+                                                ProtéineStruct const &derivee,
                                                 bool pour_noeud_code)
 {
     const auto &nom_comme = derivee.accede_nom_comme();
@@ -1254,7 +1254,7 @@ void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
 }
 
 void génère_code_cpp(FluxSortieCPP &os,
-                     const kuri::tableau<Proteine *> &protéines,
+                     const kuri::tableau<Protéine *> &protéines,
                      bool pour_entête)
 {
     POUR (protéines) {
@@ -1262,7 +1262,7 @@ void génère_code_cpp(FluxSortieCPP &os,
     }
 }
 
-void génère_code_kuri(FluxSortieKuri &os, const kuri::tableau<Proteine *> &protéines)
+void génère_code_kuri(FluxSortieKuri &os, const kuri::tableau<Protéine *> &protéines)
 {
     POUR (protéines) {
         it->génère_code_kuri(os);
