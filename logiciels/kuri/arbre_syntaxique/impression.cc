@@ -69,7 +69,6 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
         case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
         case GenreNoeud::INSTRUCTION_COMPOSÉE:
-        case GenreNoeud::DÉCLARATION_STRUCTURE:
         case GenreNoeud::DÉCLARATION_UNION:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
@@ -87,6 +86,11 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
         {
             auto instruction = noeud->comme_tente();
             return instruction->bloc;
+        }
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
+        {
+            auto structure = noeud->comme_type_structure();
+            return structure->bloc;
         }
         case GenreNoeud::INSTRUCTION_DIFFÈRE:
         {
@@ -176,6 +180,11 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             /* Rien à faire, mais imprime un message au cas où. */
             dbg() << "Genre Noeud nom géré : " << noeud->genre;
+            break;
+        }
+        case GenreNoeud::COMMENTAIRE:
+        {
+            enchaineuse << noeud->lexème->chaine;
             break;
         }
         case GenreNoeud::INSTRUCTION_IMPORTE:
@@ -787,6 +796,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             enchaineuse << " piège ";
             if (inst->bloc) {
                 imprime_arbre(enchaineuse, état, inst->expression_piégée);
+                enchaineuse << " ";
                 état.imprime_indent_avant_bloc = false;
                 imprime_arbre(enchaineuse, état, inst->bloc);
             }

@@ -185,7 +185,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             rappel(prise.contexte_)
 
             // il faut lire le fichier pour dire au système que nous avons pris en compte l'évènement
-            données := tente lis_tout(*prise.fichier) piège err {
+            données := tente lis_tout(*prise.fichier) piège _ {
                 retourne
             }
             /* À FAIRE : évite d'allouer de la mémoire ici */

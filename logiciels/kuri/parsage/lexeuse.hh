@@ -24,7 +24,7 @@ enum {
 using TypeRappelErreur = std::function<void(SiteSource, kuri::chaine)>;
 
 struct ContexteLexage {
-    dls::outils::Synchrone<GeranteChaine> &gerante_chaine;
+    dls::outils::Synchrone<GeranteChaine> &gérante_chaine;
     dls::outils::Synchrone<TableIdentifiant> &table_identifiants;
     TypeRappelErreur rappel_erreur;
 };

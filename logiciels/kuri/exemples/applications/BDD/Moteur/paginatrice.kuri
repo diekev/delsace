@@ -52,12 +52,10 @@ trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> [..]octet
         si index_page <= nombre_de_pages && paginatrice.utilise_stockage_disque {
             _ := tente positionne_fichier(*paginatrice.fichier, PositionDébut(index_page * TAILLE_PAGE)) piège err {
                 panique("Impossible de chercher le point dans le fichier !")
-                retourne page
             }
 
             octets_lus := tente lis(*paginatrice.fichier, page) piège err {
                 panique("Erreur lors de la lecture du fichier !")
-                retourne page
             }
 
             si octets_lus != TAILLE_PAGE {
@@ -81,12 +79,10 @@ flush_paginatrice :: fonc (paginatrice: *Paginatrice, index_page: z32) -> rien
 
     _ := tente positionne_fichier(*paginatrice.fichier, PositionDébut(index_page * TAILLE_PAGE)) piège err {
         panique("Impossible de chercher le point dans le fichier !")
-        retourne
     }
 
     octets_écris := tente écris(*paginatrice.fichier, paginatrice.pages[index_page]) piège err {
         panique("Erreur lors de l'écriture !")
-        retourne
     }
 
     si octets_écris != TAILLE_PAGE {

@@ -156,7 +156,6 @@ cliente_possède_sur_création_fenêtre :: fonc ($TypeCliente: type_de_données)
 
     si types_rappels.sur_création_fenêtre != membre_cliente.id {
         rapporte_erreur_typage_rappel(info_de(TypeCliente), membre_cliente, types_rappels.sur_création_fenêtre)
-        retourne faux
     }
 
     retourne vrai
@@ -224,10 +223,9 @@ détermine_mode_dessin_fenêtre :: fonc ($TypeCliente: type_de_données) -> Mode
     }
 
     rapporte_erreur_membre_sur_dessin(info_de(TypeCliente), membres_rappels.sur_rendu_fenêtre)
-    retourne ModeDessinFenêtre.AUCUN
 }
 
-rapporte_erreur_membre_sur_dessin :: fonc (info_cliente: *InfoTypeStructure, membre: *InfoTypeMembreStructure)
+rapporte_erreur_membre_sur_dessin :: fonc (info_cliente: *InfoTypeStructure, membre: *InfoTypeMembreStructure) #sansretour
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -243,12 +241,10 @@ rapporte_erreur_membre_sur_dessin :: fonc (info_cliente: *InfoTypeStructure, mem
     ajoute_au_tampon(*enchaineuse, "'\n")
 
     message_erreur := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(message_erreur)
-
     compilatrice_rapporte_erreur(message_erreur)
 }
 
-rapporte_erreur_typage_rappel :: fonc (info_cliente: *InfoTypeStructure, membre: *InfoTypeMembreStructure, type_attendu: *InfoTypeFonction)
+rapporte_erreur_typage_rappel :: fonc (info_cliente: *InfoTypeStructure, membre: *InfoTypeMembreStructure, type_attendu: *InfoTypeFonction) #sansretour
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -264,8 +260,6 @@ rapporte_erreur_typage_rappel :: fonc (info_cliente: *InfoTypeStructure, membre:
     ajoute_au_tampon(*enchaineuse, "'\n")
 
     message_erreur := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(message_erreur)
-
     compilatrice_rapporte_erreur(message_erreur)
 }
 

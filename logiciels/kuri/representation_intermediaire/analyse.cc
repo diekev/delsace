@@ -357,22 +357,24 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
 
         /* Nous pouvons avoir du code après un retour, par exemple le code après une discrimination
          * dont toutes les branches retournent de la fonction. */
-        auto branche_ou_retour_rencontré = false;
+        auto terminatrice_rencontrée = false;
         POUR_NOMME (inst, it->instructions) {
-            if (inst->est_branche_ou_retourne()) {
-                branche_ou_retour_rencontré = true;
+            if (inst->est_terminatrice()) {
+                terminatrice_rencontrée = true;
                 continue;
             }
 
-            if (branche_ou_retour_rencontré && inst->site) {
-                espace.rapporte_erreur(
-                    inst->site, "Erreur interne : plusieurs branches ou retour dans un bloc.\n");
+            if (terminatrice_rencontrée && inst->site) {
+                espace
+                    .rapporte_erreur(atome->decl,
+                                     "Erreur interne : plusieurs terminatrices dans un bloc.\n")
+                    .ajoute_site(inst->site);
                 return false;
             }
         }
 
         auto di = it->instructions.dernier_élément();
-        if (di->est_branche_ou_retourne()) {
+        if (di->est_terminatrice()) {
             continue;
         }
 
@@ -383,7 +385,8 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
         }
 
         espace.rapporte_erreur(
-            di->site, "Erreur interne : un bloc ne finit pas par une branche ou un retour !\n");
+            di->site,
+            "Erreur interne : un bloc ne finit pas par une instruction terminatrice !\n");
         return false;
     }
 

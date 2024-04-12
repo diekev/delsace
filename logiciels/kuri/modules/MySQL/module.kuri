@@ -301,10 +301,8 @@ trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *In
             }
         }
         sansarrêt {
-            message := imprime_chaine("Colonne '%' introuvable dans le type !", it)
-            panique(message)
             déloge(infos_membres)
-            retourne infos_membres
+            panique("Colonne '%' introuvable dans le type !", it)
         }
     }
 
@@ -444,13 +442,13 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
     diffère { déloge(requête) }
 
     /* tente de nous connecté à la base de données */
-    connexion := tente crée_connexion(table.pilote) piège err {
+    connexion := tente crée_connexion(table.pilote) piège _ {
         retourne faux
     }
     diffère { ferme_connexion(*connexion) }
 
     /* exécute la requête */
-    curseur := tente exécute(*connexion, requête) piège err {
+    curseur := tente exécute(*connexion, requête) piège _ {
         retourne faux
     }
     diffère { détruit_résultat(curseur) }
@@ -469,12 +467,12 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
     diffère { déloge(infos_membres) }
 
     /* tente de nous connecté à la base de données */
-    connexion := tente crée_connexion(pilote) piège err {
+    connexion := tente crée_connexion(pilote) piège _ {
         retourne résultat
     }
     diffère { ferme_connexion(*connexion) }
 
-    curseurs := tente exécute(*connexion, requête) piège err {
+    curseurs := tente exécute(*connexion, requête) piège _ {
         retourne résultat
     }
 
@@ -629,7 +627,7 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
     requête := chaine_depuis_enchaineuse(*enchaineuse)
     diffère déloge(requête)
 
-    résultat_exécution := tente exécute(connexion, requête) piège err {
+    résultat_exécution := tente exécute(connexion, requête) piège _ {
         retourne
     }
     diffère détruit_résultat(résultat_exécution)
@@ -657,7 +655,7 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
 
 exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([..]TypeRésultat)
 {
-    résultat := tente exécute(connexion, requête) piège err {
+    résultat := tente exécute(connexion, requête) piège _ {
         retourne
     }
     diffère détruit_résultat(résultat)
@@ -683,7 +681,7 @@ exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chai
 
 exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel(TypeRésultat)
 {
-    résultat := tente exécute(connexion, requête) piège err {
+    résultat := tente exécute(connexion, requête) piège _ {
         retourne
     }
     diffère détruit_résultat(résultat)
@@ -711,31 +709,26 @@ importe Compilatrice
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
-    résultat : DonnéesFonctionPourTableFonction
-
     si fonction.params.taille != 1 {
         compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle ne doit avoir qu'un seul paramètre")
-        retourne résultat
     }
 
     type_premier_paramètre := fonction.params[0].type
     si type_premier_paramètre != info_de(chaine) {
         compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage MySQL invalide, le paramètre doit être de type « chaine ».")
-        retourne résultat
     }
 
     si fonction.params_sorties.taille != 2 {
         compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
-        retourne résultat
     }
 
     type_première_sortie := fonction.params_sorties[0].type
 
     si type_première_sortie != info_de(bool) {
         compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage MySQL invalide, le premier paramètre de sortie doit être de type « bool ».")
-        retourne résultat
     }
 
+    résultat : DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = fonction.params_sorties[1].type
     retourne résultat
