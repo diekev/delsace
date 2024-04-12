@@ -145,23 +145,24 @@ enum class DrapeauxNoeudFonction : uint32_t {
     EST_VARIADIQUE = (1 << 11),
     EST_POLYMORPHIQUE = (1 << 12),
     EST_MONOMORPHISATION = (1 << 13),
+    EST_SANSRETOUR = (1 << 14),
 
-    FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE = (1 << 14),
+    FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE = (1 << 15),
 
     /* La fontion fut marquée avec #cliche asa */
-    CLICHÉ_ASA_FUT_REQUIS = (1 << 15),
+    CLICHÉ_ASA_FUT_REQUIS = (1 << 16),
     /* La fontion fut marquée avec #cliche asa_canon */
-    CLICHÉ_ASA_CANONIQUE_FUT_REQUIS = (1 << 16),
+    CLICHÉ_ASA_CANONIQUE_FUT_REQUIS = (1 << 17),
     /* La fontion fut marquée avec #cliche ri */
-    CLICHÉ_RI_FUT_REQUIS = (1 << 17),
+    CLICHÉ_RI_FUT_REQUIS = (1 << 18),
     /* La fontion fut marquée avec #cliche ri_finale */
-    CLICHÉ_RI_FINALE_FUT_REQUIS = (1 << 18),
+    CLICHÉ_RI_FINALE_FUT_REQUIS = (1 << 19),
     /* La fontion fut marquée avec #cliche inst_mv */
-    CLICHÉ_CODE_BINAIRE_FUT_REQUIS = (1 << 19),
+    CLICHÉ_CODE_BINAIRE_FUT_REQUIS = (1 << 20),
     /* La fontion fut marquée avec #cliche format */
-    CLICHÉ_FORMAT_FUT_REQUIS = (1 << 20),
+    CLICHÉ_FORMAT_FUT_REQUIS = (1 << 21),
     /* La fontion fut marquée avec #cliche format_canon */
-    CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS = (1 << 21),
+    CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS = (1 << 22),
 
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
