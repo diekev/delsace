@@ -117,7 +117,6 @@ rapporte_erreur :: fonc (code_erreur: CodeErreurCompilationPython, ctx: Contexte
     }
 
     message := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(message)
     compilatrice_rapporte_erreur(ctx.fonction, message)
 }
 
@@ -398,7 +397,6 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         }
         TABLEAU_FIXE {
             compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
-            retourne nul
         }
         TRANCHE {
             compilatrice_rapporte_erreur("Les types tranches ne sont pas convertibles vers Python pour le moment")

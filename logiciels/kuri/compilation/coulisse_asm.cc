@@ -1204,6 +1204,11 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
             break;
         }
+        case GenreInstruction::INATTEIGNABLE:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
     }
 }
 

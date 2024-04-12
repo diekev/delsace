@@ -4,6 +4,7 @@
 #pragma once
 
 #define CAS_POUR_NOEUDS_HORS_TYPES                                                                \
+    case GenreNoeud::COMMENTAIRE:                                                                 \
     case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:                                                    \
     case GenreNoeud::DÉCLARATION_CONSTANTE:                                                       \
     case GenreNoeud::DÉCLARATION_CORPS_FONCTION:                                                  \
