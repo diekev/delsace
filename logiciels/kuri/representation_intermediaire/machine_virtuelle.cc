@@ -1993,6 +1993,13 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 de->profondeur_appel = profondeur_appel;
                 break;
             }
+            case OP_INATTEIGNABLE:
+            {
+                rapporte_erreur_exécution("Erreur : l'exécution du métaprogramme atteint une "
+                                          "instruction inatteignable.");
+                compte_exécutées = i + 1;
+                return RésultatInterprétation::ERREUR;
+            }
             default:
             {
                 rapporte_erreur_exécution("Erreur interne : Opération inconnue dans la MV !");

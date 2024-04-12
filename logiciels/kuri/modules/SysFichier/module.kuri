@@ -108,7 +108,7 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> [..]octet
 {
     contenu : [..]octet
 
-    fichier := tente ouvre_fichier(chemin) piège err {
+    fichier := tente ouvre_fichier(chemin) piège _ {
         retourne contenu
     }
 

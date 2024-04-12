@@ -83,7 +83,7 @@ FluxSortieCPP &operator<<(FluxSortieCPP &flux, IdentifiantADN const &ident);
 
 FluxSortieKuri &operator<<(FluxSortieKuri &flux, IdentifiantADN const &ident);
 
-class Proteine;
+class Protéine;
 struct TypeNominal;
 struct TypePointeur;
 struct TypeTableau;
@@ -189,7 +189,7 @@ struct TypeNominal final : public Type {
     IdentifiantADN nom_cpp{};
     IdentifiantADN nom_kuri{};
 
-    Proteine *est_proteine = nullptr;
+    Protéine *est_protéine = nullptr;
 
     bool est_nominal() const override
     {
@@ -356,19 +356,19 @@ struct Membre {
     kuri::chaine_statique valeur_defaut = "";
 };
 
-class ProteineEnum;
-class ProteineStruct;
+class ProtéineEnum;
+class ProtéineStruct;
 
-class Proteine {
+class Protéine {
   protected:
     IdentifiantADN m_nom{};
 
   public:
-    explicit Proteine(IdentifiantADN nom);
+    explicit Protéine(IdentifiantADN nom);
 
-    virtual ~Proteine() = default;
-    virtual void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) = 0;
-    virtual void genere_code_kuri(FluxSortieKuri &os) = 0;
+    virtual ~Protéine() = default;
+    virtual void génère_code_cpp(FluxSortieCPP &os, bool pour_entête) = 0;
+    virtual void génère_code_kuri(FluxSortieKuri &os) = 0;
 
     virtual bool est_fonction() const
     {
@@ -380,71 +380,71 @@ class Proteine {
         return m_nom;
     }
 
-    virtual ProteineEnum *comme_enum()
+    virtual ProtéineEnum *comme_enum()
     {
         return nullptr;
     }
 
-    virtual ProteineStruct *comme_struct()
+    virtual ProtéineStruct *comme_struct()
     {
         return nullptr;
     }
 };
 
-class ProteineStruct final : public Proteine {
+class ProtéineStruct final : public Protéine {
     kuri::tableau<Membre> m_membres{};
 
-    ProteineStruct *m_mere = nullptr;
+    ProtéineStruct *m_mere = nullptr;
 
     IdentifiantADN m_nom_code{};
     IdentifiantADN m_nom_genre{};
     IdentifiantADN m_nom_comme{};
     IdentifiantADN m_genre_valeur{};
 
-    kuri::tableau<ProteineStruct *> m_proteines_derivees{};
+    kuri::tableau<ProtéineStruct *> m_protéines_derivees{};
 
     bool m_possède_enfant = false;
     bool m_possède_membre_a_copier = false;
     bool m_possède_tableaux = false;
 
-    ProteineStruct *m_paire = nullptr;
+    ProtéineStruct *m_paire = nullptr;
 
-    ProteineEnum *m_enum_discriminante = nullptr;
+    ProtéineEnum *m_enum_discriminante = nullptr;
 
   public:
-    explicit ProteineStruct(IdentifiantADN nom);
+    explicit ProtéineStruct(IdentifiantADN nom);
 
-    ProteineStruct(ProteineStruct const &) = default;
-    ProteineStruct &operator=(ProteineStruct const &) = default;
+    ProtéineStruct(ProtéineStruct const &) = default;
+    ProtéineStruct &operator=(ProtéineStruct const &) = default;
 
-    void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
+    void génère_code_cpp(FluxSortieCPP &os, bool pour_entête) override;
 
-    void genere_code_cpp_apres_déclaration(FluxSortieCPP &os);
+    void génère_code_cpp_apres_déclaration(FluxSortieCPP &os);
 
-    void genere_code_kuri(FluxSortieKuri &os) override;
+    void génère_code_kuri(FluxSortieKuri &os) override;
 
     void ajoute_membre(Membre const membre);
 
-    void descend_de(ProteineStruct *proteine)
+    void descend_de(ProtéineStruct *protéine)
     {
-        m_mere = proteine;
+        m_mere = protéine;
         m_possède_tableaux |= m_mere->m_possède_tableaux;
         m_possède_enfant |= m_mere->m_possède_enfant;
         m_possède_membre_a_copier |= m_mere->m_possède_membre_a_copier;
-        m_mere->m_proteines_derivees.ajoute(this);
+        m_mere->m_protéines_derivees.ajoute(this);
     }
 
-    ProteineStruct *comme_struct() override
+    ProtéineStruct *comme_struct() override
     {
         return this;
     }
 
-    ProteineStruct *mere() const
+    ProtéineStruct *mere() const
     {
         return m_mere;
     }
 
-    void mute_paire(ProteineStruct *paire)
+    void mute_paire(ProtéineStruct *paire)
     {
         m_paire = paire;
         m_paire->m_paire = this;
@@ -452,7 +452,7 @@ class ProteineStruct final : public Proteine {
         m_paire->m_nom_comme = m_nom_comme;
     }
 
-    ProteineStruct *paire() const
+    ProtéineStruct *paire() const
     {
         return m_paire;
     }
@@ -502,7 +502,7 @@ class ProteineStruct final : public Proteine {
 
     bool est_classe_de_base() const
     {
-        return !m_proteines_derivees.est_vide();
+        return !m_protéines_derivees.est_vide();
     }
 
     bool est_racine_hiérarchie() const
@@ -525,9 +525,9 @@ class ProteineStruct final : public Proteine {
         return m_possède_membre_a_copier;
     }
 
-    const kuri::tableau<ProteineStruct *> &derivees() const
+    const kuri::tableau<ProtéineStruct *> &derivees() const
     {
-        return m_proteines_derivees;
+        return m_protéines_derivees;
     }
 
     const kuri::tableau<Membre> &membres() const
@@ -540,12 +540,12 @@ class ProteineStruct final : public Proteine {
         return m_possède_tableaux;
     }
 
-    void mute_enum_discriminante(ProteineEnum *enum_discriminante)
+    void mute_enum_discriminante(ProtéineEnum *enum_discriminante)
     {
         m_enum_discriminante = enum_discriminante;
     }
 
-    ProteineEnum *enum_discriminante()
+    ProtéineEnum *enum_discriminante()
     {
         if (m_enum_discriminante) {
             return m_enum_discriminante;
@@ -564,12 +564,12 @@ class ProteineStruct final : public Proteine {
 
     void pour_chaque_enfant_recursif(std::function<void(const Membre &)> rappel);
 
-    void pour_chaque_derivee_recursif(std::function<void(const ProteineStruct &)> rappel);
+    void pour_chaque_derivee_recursif(std::function<void(const ProtéineStruct &)> rappel);
 
     kuri::tableau<Membre> donne_membres_pour_construction();
 };
 
-class ProteineEnum final : public Proteine {
+class ProtéineEnum final : public Protéine {
     kuri::tableau<Membre> m_membres{};
 
     Type *m_type = nullptr;
@@ -579,17 +579,17 @@ class ProteineEnum final : public Proteine {
     bool m_est_horslignee = false;
 
   public:
-    explicit ProteineEnum(IdentifiantADN nom);
+    explicit ProtéineEnum(IdentifiantADN nom);
 
-    EMPECHE_COPIE(ProteineEnum);
+    EMPECHE_COPIE(ProtéineEnum);
 
-    void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
+    void génère_code_cpp(FluxSortieCPP &os, bool pour_entête) override;
 
-    void genere_code_kuri(FluxSortieKuri &os) override;
+    void génère_code_kuri(FluxSortieKuri &os) override;
 
     void ajoute_membre(Membre const membre);
 
-    ProteineEnum *comme_enum() override
+    ProtéineEnum *comme_enum() override
     {
         return this;
     }
@@ -625,7 +625,7 @@ struct Parametre {
     Type *type = nullptr;
 };
 
-class ProteineFonction final : public Proteine {
+class ProtéineFonction final : public Protéine {
     kuri::tableau<Parametre> m_parametres{};
     Type *m_type_sortie = nullptr;
     bool m_est_ipa_compilatrice = false;
@@ -634,13 +634,13 @@ class ProteineFonction final : public Proteine {
     kuri::chaine_statique m_symbole_gcc = "";
 
   public:
-    explicit ProteineFonction(IdentifiantADN nom);
+    explicit ProtéineFonction(IdentifiantADN nom);
 
-    EMPECHE_COPIE(ProteineFonction);
+    EMPECHE_COPIE(ProtéineFonction);
 
-    void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
+    void génère_code_cpp(FluxSortieCPP &os, bool pour_entête) override;
 
-    void genere_code_kuri(FluxSortieKuri &os) override;
+    void génère_code_kuri(FluxSortieKuri &os) override;
 
     Type *&type_sortie()
     {
@@ -693,8 +693,8 @@ class ProteineFonction final : public Proteine {
 };
 
 struct SyntaxeuseADN : public BaseSyntaxeuse {
-    kuri::tableau<Proteine *> proteines{};
-    kuri::tableau<Proteine *> proteines_paires{};
+    kuri::tableau<Protéine *> protéines{};
+    kuri::tableau<Protéine *> protéines_paires{};
 
     Typeuse m_typeuse{};
 
@@ -703,11 +703,11 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
     ~SyntaxeuseADN() override;
 
     template <typename T>
-    T *crée_proteine(IdentifiantADN nom)
+    T *crée_protéine(IdentifiantADN nom)
     {
-        auto proteine = new T(nom);
-        proteines.ajoute(proteine);
-        return proteine;
+        auto protéine = new T(nom);
+        protéines.ajoute(protéine);
+        return protéine;
     }
 
   private:
@@ -738,7 +738,7 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
  * Le code généré inclus également toutes les déclarations et inclusions de fichiers nécessaire,
  * cette fonction ne doit pas être appelé pour générer du code dans un espace de nom.
  */
-void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &proteines,
+void genere_déclaration_identifiants_code(const kuri::tableau<Protéine *> &protéines,
                                           FluxSortieCPP &os,
                                           bool pour_entête,
                                           kuri::chaine_statique identifiant_fonction);
@@ -749,13 +749,13 @@ void génère_déclaration_fonctions_discrimination(FluxSortieCPP &os,
 
 void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
                                                 kuri::chaine_statique nom_classe,
-                                                ProteineStruct const &derivee,
+                                                ProtéineStruct const &derivee,
                                                 bool pour_noeud_code);
 
 void génère_code_cpp(FluxSortieCPP &os,
-                     const kuri::tableau<Proteine *> &proteines,
+                     const kuri::tableau<Protéine *> &protéines,
                      bool pour_entête);
 
-void génère_code_kuri(FluxSortieKuri &os, kuri::tableau<Proteine *> const &proteines);
+void génère_code_kuri(FluxSortieKuri &os, kuri::tableau<Protéine *> const &protéines);
 
 /** \} */
