@@ -20,7 +20,7 @@
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
 
-static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, FluxSortieKuri &os)
+static void génère_code_kuri(const kuri::tableau<Protéine *> &protéines, FluxSortieKuri &os)
 {
     os << "// ----------------------------------------------------------------------------\n";
     os << "// Prodéclarations de types opaques pour certains types non manipulable directement\n";
@@ -32,35 +32,35 @@ static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, FluxSor
     os << "// Interface de métaprogrammation pour controler ou communiquer avec la Compilatrice\n";
     os << "\n";
 
-    génère_code_kuri(os, proteines);
+    génère_code_kuri(os, protéines);
 }
 
-static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
+static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
                             FluxSortieCPP &os,
-                            bool pour_entete)
+                            bool pour_entête)
 {
     os << "// Fichier généré automatiquement, NE PAS ÉDITER\n\n";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << "#pragma once\n\n";
         inclus(os, "parsage/lexemes.hh");
         inclus(os, "structures/tableau.hh");
         os << "\n";
-        prodeclare_struct(os, "EspaceDeTravail");
-        prodeclare_struct(os, "Message");
-        prodeclare_struct(os, "Module");
-        prodeclare_struct(os, "OptionsDeCompilation");
-        prodeclare_struct(os, "NoeudCode");
-        prodeclare_struct(os, "NoeudCodeEntêteFonction");
-        prodeclare_struct(os, "InfoType");
+        prodéclare_struct(os, "EspaceDeTravail");
+        prodéclare_struct(os, "Message");
+        prodéclare_struct(os, "Module");
+        prodéclare_struct(os, "OptionsDeCompilation");
+        prodéclare_struct(os, "NoeudCode");
+        prodéclare_struct(os, "NoeudCodeEntêteFonction");
+        prodéclare_struct(os, "InfoType");
         os << "\n";
-        prodeclare_struct_espace(os, "chaine_statique", "kuri", "");
+        prodéclare_struct_espace(os, "chaine_statique", "kuri", "");
         os << "\n";
     }
     else {
         inclus(os, "ipa.hh");
         os << "\n";
-        inclus_systeme(os, "cassert");
+        inclus_système(os, "cassert");
         os << "\n\n";
 
         os << "// -----------------------------------------------------------------------------\n";
@@ -72,22 +72,22 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
         os << "\n";
     }
 
-    genere_déclaration_identifiants_code(proteines, os, pour_entete, "ipa");
+    genere_déclaration_identifiants_code(protéines, os, pour_entête, "ipa");
 
-    génère_code_cpp(os, proteines, pour_entete);
+    génère_code_cpp(os, protéines, pour_entête);
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << "using type_fonction_compilatrice = void(*)();\n\n";
     }
 
     os << "type_fonction_compilatrice fonction_compilatrice_pour_ident(IdentifiantCode *ident)";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << ";\n\n";
     }
     else {
         os << "\n{\n";
-        POUR (proteines) {
+        POUR (protéines) {
             if (!it->est_fonction()) {
                 continue;
             }
@@ -103,12 +103,12 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
 
     os << "bool est_fonction_compilatrice(IdentifiantCode *ident)";
 
-    if (pour_entete) {
+    if (pour_entête) {
         os << ";\n\n";
     }
     else {
         os << "\n{\n";
-        POUR (proteines) {
+        POUR (protéines) {
             if (!it->est_fonction()) {
                 continue;
             }
@@ -139,9 +139,9 @@ int main(int argc, const char **argv)
     fichier.tampon_ = lng::tampon_source(texte.c_str());
     fichier.chemin_ = chemin_adn_ipa;
 
-    auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
+    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, imprime_erreur};
+    auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
 
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
@@ -163,13 +163,13 @@ int main(int argc, const char **argv)
     if (nom_fichier_sortie.nom_fichier() == "ipa.hh") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        genere_code_cpp(syntaxeuse.proteines, flux, true);
+        génère_code_cpp(syntaxeuse.protéines, flux, true);
     }
     else if (nom_fichier_sortie.nom_fichier() == "ipa.cc") {
         {
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
             auto flux = FluxSortieCPP(fichier_sortie);
-            genere_code_cpp(syntaxeuse.proteines, flux, false);
+            génère_code_cpp(syntaxeuse.protéines, flux, false);
         }
         {
             // Génère le fichier de lexèmes pour le module Compilatrice
@@ -177,11 +177,11 @@ int main(int argc, const char **argv)
             nom_fichier_sortie.remplace_nom_fichier("../modules/Compilatrice/ipa.kuri");
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_sortie));
             auto flux = FluxSortieKuri(fichier_sortie);
-            genere_code_kuri(syntaxeuse.proteines, flux);
+            génère_code_kuri(syntaxeuse.protéines, flux);
         }
     }
 
-    if (!remplace_si_different(nom_fichier_tmp, argv[1])) {
+    if (!remplace_si_différent(nom_fichier_tmp, argv[1])) {
         return 1;
     }
 
