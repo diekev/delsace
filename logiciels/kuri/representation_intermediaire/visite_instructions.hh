@@ -85,6 +85,7 @@ void visite_opérandes_instruction(Instruction *inst, Rappel &&rappel)
         case GenreInstruction::ALLOCATION:
         case GenreInstruction::BRANCHE:
         case GenreInstruction::LABEL:
+        case GenreInstruction::INATTEIGNABLE:
         {
             /* Pas de sous-atome. */
             break;

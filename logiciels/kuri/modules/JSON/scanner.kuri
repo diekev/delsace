@@ -774,26 +774,22 @@ __fonctions_parsage_json : [..]FonctionParsage
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
-    résultat : DonnéesFonctionPourTableFonction
-
     type_premier_paramètre := fonction.params[0].type
     si type_premier_paramètre != info_de(chaine) {
         compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage JSON invalide, le paramètre doit être de type « chaine ».")
-        retourne résultat
     }
 
     si fonction.params_sorties.taille != 2 {
         compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour JSON, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
-        retourne résultat
     }
 
     type_première_sortie := fonction.params_sorties[0].type
 
     si type_première_sortie != info_de(bool) {
         compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage JSON invalide, le premier paramètre de sortie doit être de type « bool ».")
-        retourne résultat
     }
 
+    résultat : DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = fonction.params_sorties[1].type
     retourne résultat

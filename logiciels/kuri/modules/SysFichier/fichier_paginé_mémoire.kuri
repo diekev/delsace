@@ -133,7 +133,7 @@ supprime_page :: fonc (fichier: *FichierPaginéMémoire, page: *FichierPaginéM�
 
 écris_dans_fichier :: fonc (fichier: *FichierPaginéMémoire, chemin: CheminFichier)
 {
-    fichier_disque := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture_tronquée) piège err {
+    fichier_disque := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture_tronquée) piège _ {
         retourne
     }
 
