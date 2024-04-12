@@ -39,6 +39,13 @@ struct NoeudExpression {
     NoeudExpression * substitution
 }
 
+struct NoeudCommentaire : NoeudExpression {
+    @genre COMMENTAIRE
+    @comme commentaire
+    @code  NoeudCodeCommentaire
+    @genre_valeur INVALIDE
+}
+
 struct NoeudExpressionRéférenceType : NoeudExpression {
     @genre EXPRESSION_RÉFÉRENCE_TYPE
     @comme référence_type
@@ -1100,6 +1107,7 @@ struct NoeudBloc : NoeudExpression {
     // À FAIRE: utilisation de variant
     NoeudExpression *appartiens_à_diffère [copie]
     NoeudDiscr *appartiens_à_discr [copie]
+    NoeudInstructionTente *appartiens_à_tente [copie]
     /* Si le bloc est un bloc appartenant à une fonction (bloc constantes, paramètres, etc.). */
     NoeudDéclarationEntêteFonction *appartiens_à_fonction [copie]
     NoeudDéclarationType *appartiens_à_type [copie]

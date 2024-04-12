@@ -97,7 +97,6 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
 
             enchaineuse : Enchaineuse
             initialise_enchaineuse(*enchaineuse)
-            diffère { détruit_tampons(*enchaineuse); }
 
             contenu := "<p>ma réponse</p>"
 
@@ -118,6 +117,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
             }
 
             déloge(chaine_reponse)
+            détruit_tampons(*enchaineuse)
 
             _ := close(prise)
             exit(0)

@@ -1182,6 +1182,11 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             définis_valeur_instruction(inst, résultat);
             break;
         }
+        case GenreInstruction::INATTEIGNABLE:
+        {
+            m_builder.CreateUnreachable();
+            break;
+        }
     }
 }
 
