@@ -33,14 +33,14 @@ imprime_trace_appel :: fonc () #sanstrace
     }
 }
 
-imprime_panique :: fonc () -> rien #sanstrace
+imprime_panique :: fonc () -> rien #sanstrace #sansretour
 {
     imprime_trace_appel()
     imprime("\nL'exécution du programme a été arrêtée à cause d'une panique.\n")
     exit(1)
 }
 
-panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface
+panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface #sansretour
 {
     rappel := contexte().rappel_panique
     si rappel != nul {
@@ -53,27 +53,27 @@ panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface
     imprime_panique()
 }
 
-panique_dépassement_limites_tableau :: fonc (taille: z64, index: z64) -> rien #sanstrace #interface
+panique_dépassement_limites_tableau :: fonc (taille: z64, index: z64) -> rien #sanstrace #interface #sansretour
 {
     panique("dépassement des limites du tableau, la taille est de % mais l'index est de %", taille, index)
 }
 
-panique_dépassement_limites_chaine :: fonc (taille: z64, index: z64) -> rien #sanstrace #interface
+panique_dépassement_limites_chaine :: fonc (taille: z64, index: z64) -> rien #sanstrace #interface #sansretour
 {
     panique("dépassement des limites de la chaine, la taille est de % mais l'index est de %", taille, index);
 }
 
-panique_membre_union :: fonc () -> rien #sanstrace #interface
+panique_membre_union :: fonc () -> rien #sanstrace #interface #sansretour
 {
     panique("utilisation du membre non-actif d'une union")
 }
 
-panique_hors_mémoire :: fonc () -> rien #sanstrace #interface
+panique_hors_mémoire :: fonc () -> rien #sanstrace #interface #sansretour
 {
     panique("impossible d'allouer de la mémoire")
 }
 
-panique_erreur_non_gérée :: fonc () -> rien #sanstrace #interface
+panique_erreur_non_gérée :: fonc () -> rien #sanstrace #interface #sansretour
 {
     panique("une erreur n'a pas été piégée")
 }

@@ -62,4 +62,4 @@ NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode con
 
 bool bloc_est_dans_diffère(NoeudBloc const *bloc);
 
-NoeudExpression *derniere_instruction(NoeudBloc const *b);
+NoeudExpression *derniere_instruction(NoeudBloc const *b, bool accepte_appels);
