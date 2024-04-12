@@ -26,6 +26,41 @@
 #include "unite_compilation.hh"
 #include "validation_expression_appel.hh"
 
+static bool est_appel_fonction_sans_retour(NoeudExpression const *expression)
+{
+    if (!expression->est_appel()) {
+        return false;
+    }
+    auto appel = expression->comme_appel();
+    if (!appel->noeud_fonction_appelée) {
+        return false;
+    }
+    if (!appel->noeud_fonction_appelée->est_entête_fonction()) {
+        return false;
+    }
+    auto fonction = appel->noeud_fonction_appelée->comme_entête_fonction();
+    return fonction->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR);
+}
+
+/* Vérifie que l'expression en fin de bloc de tente...piège est valide. */
+static bool est_expression_valide_pour_terminer_bloc_piège(NoeudExpression const *expression)
+{
+    if (!expression) {
+        return false;
+    }
+
+    if (dls::outils::est_element(expression->genre,
+                                 GenreNoeud::INSTRUCTION_RETOUR,
+                                 GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE,
+                                 GenreNoeud::INSTRUCTION_ARRÊTE,
+                                 GenreNoeud::INSTRUCTION_CONTINUE,
+                                 GenreNoeud::INSTRUCTION_REPRENDS)) {
+        return true;
+    }
+
+    return est_appel_fonction_sans_retour(expression);
+}
+
 /* ************************************************************************** */
 
 #define TENTE_IMPL(var, x)                                                                        \
@@ -50,6 +85,7 @@ Sémanticienne::~Sémanticienne()
 void Sémanticienne::réinitialise()
 {
     m_tacheronne = nullptr;
+    m_assembleuse = nullptr;
     m_espace = nullptr;
     m_unité = nullptr;
     m_arbre_courant = nullptr;
@@ -58,11 +94,12 @@ void Sémanticienne::réinitialise()
 void Sémanticienne::définis_tacheronne(Tacheronne &tacheronne)
 {
     m_tacheronne = &tacheronne;
+    m_assembleuse = tacheronne.assembleuse;
 }
 
 AssembleuseArbre *Sémanticienne::donne_assembleuse()
 {
-    return m_tacheronne->assembleuse;
+    return m_assembleuse;
 }
 
 StatistiquesTypage &Sémanticienne::donne_stats_typage()
@@ -179,19 +216,18 @@ RésultatValidation Sémanticienne::valide(UniteCompilation *unité)
 
 MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiveExécute *directive)
 {
-    auto assembleuse = m_tacheronne->assembleuse;
-    assert(assembleuse->bloc_courant() == nullptr);
+    assert(m_assembleuse->bloc_courant() == nullptr);
 
     // crée une fonction pour l'exécution
-    auto decl_entete = assembleuse->crée_entête_fonction(directive->lexème);
+    auto decl_entete = m_assembleuse->crée_entête_fonction(directive->lexème);
     auto decl_corps = decl_entete->corps;
 
     decl_entete->bloc_parent = directive->bloc_parent;
     decl_corps->bloc_parent = directive->bloc_parent;
 
-    assembleuse->bloc_courant(decl_corps->bloc_parent);
-    decl_entete->bloc_constantes = assembleuse->empile_bloc(directive->lexème, decl_entete);
-    decl_entete->bloc_paramètres = assembleuse->empile_bloc(directive->lexème, decl_entete);
+    m_assembleuse->bloc_courant(decl_corps->bloc_parent);
+    decl_entete->bloc_constantes = m_assembleuse->empile_bloc(directive->lexème, decl_entete);
+    decl_entete->bloc_paramètres = m_assembleuse->empile_bloc(directive->lexème, decl_entete);
 
     decl_entete->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                        DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
@@ -212,7 +248,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
         auto tuple = type_expression->comme_type_tuple();
 
         POUR (tuple->membres) {
-            auto decl_sortie = assembleuse->crée_déclaration_variable(
+            auto decl_sortie = m_assembleuse->crée_déclaration_variable(
                 directive->lexème, nullptr, nullptr);
             decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(
                 "__ret0");
@@ -221,21 +257,21 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
             decl_entete->params_sorties.ajoute(decl_sortie);
         }
 
-        decl_entete->param_sortie = assembleuse->crée_déclaration_variable(
+        decl_entete->param_sortie = m_assembleuse->crée_déclaration_variable(
             directive->lexème, nullptr, nullptr);
         decl_entete->param_sortie->ident =
             m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
         decl_entete->param_sortie->type = type_expression;
     }
     else {
-        auto decl_sortie = assembleuse->crée_déclaration_variable(
+        auto decl_sortie = m_assembleuse->crée_déclaration_variable(
             directive->lexème, nullptr, nullptr);
         decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
         decl_sortie->type = type_expression;
         decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
         decl_entete->params_sorties.ajoute(decl_sortie);
-        decl_entete->param_sortie = assembleuse->crée_déclaration_variable(
+        decl_entete->param_sortie = m_assembleuse->crée_déclaration_variable(
             directive->lexème, nullptr, nullptr);
         decl_entete->param_sortie->type = type_expression;
     }
@@ -245,28 +281,28 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
 
-    decl_corps->bloc = assembleuse->empile_bloc(directive->lexème, decl_entete);
+    decl_corps->bloc = m_assembleuse->empile_bloc(directive->lexème, decl_entete);
 
     static Lexème lexème_retourne = {"retourne", {}, GenreLexème::RETOURNE, 0, 0, 0};
-    auto expr_ret = assembleuse->crée_retourne(&lexème_retourne, nullptr);
+    auto expr_ret = m_assembleuse->crée_retourne(&lexème_retourne, nullptr);
 
 #ifndef NDEBUG
     /* Dépile manuellement en mode débogage afin de vérifier que les assembleuses sont proprement
      * réinitialisées. */
 
     /* Bloc corps. */
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
     /* Bloc paramètres. */
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
     /* Bloc constantes. */
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
     /* Bloc parent. */
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
 #else
-    assembleuse->dépile_tout();
+    m_assembleuse->dépile_tout();
 #endif
 
-    simplifie_arbre(m_espace, assembleuse, m_compilatrice.typeuse, expression);
+    simplifie_arbre(m_espace, m_assembleuse, m_compilatrice.typeuse, expression);
 
     if (type_expression != TypeBase::RIEN) {
         expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
@@ -347,6 +383,7 @@ CodeRetourValidation Sémanticienne::valide_expression_pour_condition(
 RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
+        case GenreNoeud::COMMENTAIRE:
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
@@ -938,6 +975,17 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 noeud->type = expressions->a(expressions->taille() - 1)->type;
             }
 
+            if (inst->appartiens_à_tente) {
+                auto di = derniere_instruction(inst, true);
+                if (!est_expression_valide_pour_terminer_bloc_piège(di)) {
+                    rapporte_erreur("Un bloc de piège doit obligatoirement retourner ou appeler "
+                                    "une fonction sans retour, ou si dans une boucle, la "
+                                    "continuer, l'arrêter, ou la reprendre",
+                                    inst);
+                    return CodeRetourValidation::Erreur;
+                }
+            }
+
             break;
         }
         case GenreNoeud::INSTRUCTION_POUR:
@@ -1406,6 +1454,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             }
             else if (inst->type->est_type_union()) {
                 auto type_union = inst->type->comme_type_union();
+                if (type_union->est_nonsure) {
+                    rapporte_erreur("Utilisation de « tente » sur une fonction qui retourne une "
+                                    "union nonsûre. Seules les unions sûres sont supportées.",
+                                    inst);
+                    return CodeRetourValidation::Erreur;
+                }
+
                 auto possède_type_erreur = false;
 
                 POUR (type_union->membres) {
@@ -1449,56 +1504,42 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return CodeRetourValidation::Erreur;
             }
 
-            if (inst->expression_piégée) {
-                if (inst->expression_piégée->genre !=
-                    GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION) {
-                    rapporte_erreur("Expression inattendu dans l'expression de piège, nous devons "
-                                    "avoir une référence à une variable",
-                                    inst->expression_piégée);
-                    return CodeRetourValidation::Erreur;
-                }
+            if (!inst->expression_piégée) {
+                return CodeRetourValidation::OK;
+            }
 
-                auto var_piege = inst->expression_piégée->comme_référence_déclaration();
+            if (inst->expression_piégée->genre != GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION) {
+                rapporte_erreur("Expression inattendu dans l'expression de piège, nous devons "
+                                "avoir une référence à une variable",
+                                inst->expression_piégée);
+                return CodeRetourValidation::Erreur;
+            }
 
+            auto var_piege = inst->expression_piégée->comme_référence_déclaration();
+
+            if (var_piege->ident != ID::_) {
                 auto decl = trouve_dans_bloc(var_piege->bloc_parent, var_piege->ident);
-
                 if (decl != nullptr) {
                     rapporte_erreur_redéfinition_symbole(var_piege, decl);
                     return CodeRetourValidation::Erreur;
                 }
-
-                var_piege->type = type_de_l_erreur;
-
-                auto decl_var_piege = m_tacheronne->assembleuse->crée_déclaration_variable(
-                    var_piege->lexème, nullptr, nullptr);
-                decl_var_piege->bloc_parent = inst->bloc;
-                decl_var_piege->type = var_piege->type;
-                decl_var_piege->ident = var_piege->ident;
-                decl_var_piege->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-                decl_var_piege->genre_valeur = GenreValeur::TRANSCENDANTALE;
-
-                inst->expression_piégée->comme_référence_déclaration()->déclaration_référée =
-                    decl_var_piege;
-
-                // ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
-                inst->bloc->ajoute_membre_au_debut(decl_var_piege);
-
-                auto di = derniere_instruction(inst->bloc);
-
-                if (di == nullptr ||
-                    !dls::outils::est_element(di->genre,
-                                              GenreNoeud::INSTRUCTION_RETOUR,
-                                              GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE,
-                                              GenreNoeud::INSTRUCTION_ARRÊTE,
-                                              GenreNoeud::INSTRUCTION_CONTINUE,
-                                              GenreNoeud::INSTRUCTION_REPRENDS)) {
-                    rapporte_erreur("Un bloc de piège doit obligatoirement retourner, ou si dans "
-                                    "une boucle, la continuer, l'arrêter, ou la reprendre",
-                                    inst);
-                    return CodeRetourValidation::Erreur;
-                }
             }
 
+            var_piege->type = type_de_l_erreur;
+
+            auto decl_var_piege = m_assembleuse->crée_déclaration_variable(
+                var_piege->lexème, nullptr, nullptr);
+            decl_var_piege->bloc_parent = inst->bloc;
+            decl_var_piege->type = var_piege->type;
+            decl_var_piege->ident = var_piege->ident;
+            decl_var_piege->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+            decl_var_piege->genre_valeur = GenreValeur::TRANSCENDANTALE;
+
+            inst->expression_piégée->comme_référence_déclaration()->déclaration_référée =
+                decl_var_piege;
+
+            // ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
+            inst->bloc->ajoute_membre_au_debut(decl_var_piege);
             break;
         }
         case GenreNoeud::INSTRUCTION_EMPL:
@@ -1570,7 +1611,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                     return CodeRetourValidation::Erreur;
                 }
 
-                auto decl_membre = m_tacheronne->assembleuse->crée_déclaration_variable(
+                auto decl_membre = m_assembleuse->crée_déclaration_variable(
                     decl->lexème, nullptr, nullptr);
                 decl_membre->ident = it.nom;
                 decl_membre->type = it.type;
@@ -1854,6 +1895,15 @@ RésultatValidation Sémanticienne::valide_entête_fonction(NoeudDéclarationEnt
     TENTE(valide_définition_unique_fonction(decl));
     TENTE(valide_symbole_externe(decl, TypeSymbole::FONCTION));
 
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+        auto type_retour = decl->type->comme_type_fonction()->type_sortie;
+        if (!type_retour->est_type_rien()) {
+            m_espace->rapporte_erreur(
+                decl, "Utilisation de #sansretour sur une fonction retournant une valeur.");
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
@@ -1882,6 +1932,11 @@ RésultatValidation Sémanticienne::valide_entête_opérateur(NoeudDéclarationE
         }
     });
 #endif
+
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+        m_espace->rapporte_erreur(decl, "Utilisation de #sansretour sur un opérateur.");
+        return CodeRetourValidation::Erreur;
+    }
 
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
 
@@ -1922,6 +1977,12 @@ RésultatValidation Sémanticienne::valide_entête_opérateur_pour(
     NoeudDéclarationOpérateurPour *opérateur)
 {
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
+
+    if (opérateur->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+        m_espace->rapporte_erreur(opérateur,
+                                  "Utilisation de #sansretour sur un opérateur « pour ».");
+        return CodeRetourValidation::Erreur;
+    }
 
     {
         CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
@@ -3036,14 +3097,14 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_corps_texte(NoeudBloc *bloc_
                                                              NoeudBloc *bloc_parent,
                                                              const Lexème *lexème)
 {
-    auto fonction = m_tacheronne->assembleuse->crée_entête_fonction(lexème);
+    auto fonction = m_assembleuse->crée_entête_fonction(lexème);
     auto nouveau_corps = fonction->corps;
 
-    assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
-    m_tacheronne->assembleuse->bloc_courant(bloc_parent);
+    assert(m_assembleuse->bloc_courant() == nullptr);
+    m_assembleuse->bloc_courant(bloc_parent);
 
-    fonction->bloc_constantes = m_tacheronne->assembleuse->empile_bloc(lexème, fonction);
-    fonction->bloc_paramètres = m_tacheronne->assembleuse->empile_bloc(lexème, fonction);
+    fonction->bloc_constantes = m_assembleuse->empile_bloc(lexème, fonction);
+    fonction->bloc_paramètres = m_assembleuse->empile_bloc(lexème, fonction);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_paramètres;
@@ -3054,8 +3115,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_corps_texte(NoeudBloc *bloc_
     fonction->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                     DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
-    auto decl_sortie = m_tacheronne->assembleuse->crée_déclaration_variable(
-        lexème, nullptr, nullptr);
+    auto decl_sortie = m_assembleuse->crée_déclaration_variable(lexème, nullptr, nullptr);
     decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
     decl_sortie->type = TypeBase::CHAINE;
     decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -3074,10 +3134,10 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_corps_texte(NoeudBloc *bloc_
     metaprogramme->corps_texte = bloc_corps_texte;
     metaprogramme->fonction = fonction;
 
-    m_tacheronne->assembleuse->dépile_bloc();
-    m_tacheronne->assembleuse->dépile_bloc();
-    m_tacheronne->assembleuse->dépile_bloc();
-    assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
+    m_assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
+    assert(m_assembleuse->bloc_courant() == nullptr);
 
     return metaprogramme;
 }
@@ -3262,6 +3322,32 @@ static void échange_corps_entêtes(NoeudDéclarationEntêteFonction *ancienne_f
                  });
 }
 
+enum MéthodeRetourFonction {
+    RETOURNE_MANQUANT,
+    RETOURNE_EXPLICITE,
+    APPEL_FONCTION_SANS_RETOUR,
+};
+
+static MéthodeRetourFonction détermine_méthode_retour_fonction(NoeudDéclarationCorpsFonction *decl)
+{
+    auto bloc = decl->bloc;
+    auto inst_ret = derniere_instruction(bloc, true);
+
+    if (inst_ret == nullptr) {
+        return MéthodeRetourFonction::RETOURNE_MANQUANT;
+    }
+
+    if (inst_ret->est_retourne() || inst_ret->est_retiens()) {
+        return MéthodeRetourFonction::RETOURNE_EXPLICITE;
+    }
+
+    if (est_appel_fonction_sans_retour(inst_ret)) {
+        return MéthodeRetourFonction::APPEL_FONCTION_SANS_RETOUR;
+    }
+
+    return MéthodeRetourFonction::RETOURNE_MANQUANT;
+}
+
 RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFonction *decl)
 {
     auto entete = decl->entête;
@@ -3319,31 +3405,37 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
 
     TENTE(valide_arbre_aplatis(decl));
 
-    auto bloc = decl->bloc;
-    auto inst_ret = derniere_instruction(bloc);
-
-    /* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
-    if (inst_ret == nullptr) {
-        auto type_fonc = entete->type->comme_type_fonction();
-        auto type_sortie = type_fonc->type_sortie;
-
-        if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
-            if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
-                decl->aide_génération_code = REQUIERS_RETOUR_UNION_VIA_RIEN;
-            }
+    auto const méthode_retour = détermine_méthode_retour_fonction(decl);
+    switch (méthode_retour) {
+        case MéthodeRetourFonction::RETOURNE_EXPLICITE:
+        case MéthodeRetourFonction::APPEL_FONCTION_SANS_RETOUR:
+        {
+            break;
         }
-        else {
-            if ((!type_fonc->type_sortie->est_type_rien() && !entete->est_coroutine) ||
-                est_corps_texte) {
-                rapporte_erreur(
-                    "Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
-                return CodeRetourValidation::Erreur;
+        case MéthodeRetourFonction::RETOURNE_MANQUANT:
+        {
+            /* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
+            auto type_fonc = entete->type->comme_type_fonction();
+            auto type_sortie = type_fonc->type_sortie;
+            if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
+                if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
+                    decl->aide_génération_code = REQUIERS_RETOUR_UNION_VIA_RIEN;
+                }
             }
-        }
+            else {
+                if ((!type_fonc->type_sortie->est_type_rien() && !entete->est_coroutine) ||
+                    est_corps_texte) {
+                    rapporte_erreur(
+                        "Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
+                    return CodeRetourValidation::Erreur;
+                }
+            }
 
-        if (decl->aide_génération_code != REQUIERS_RETOUR_UNION_VIA_RIEN &&
-            entete != m_compilatrice.interface_kuri->decl_creation_contexte) {
-            decl->aide_génération_code = REQUIERS_CODE_EXTRA_RETOUR;
+            if (decl->aide_génération_code != REQUIERS_RETOUR_UNION_VIA_RIEN &&
+                entete != m_compilatrice.interface_kuri->decl_creation_contexte) {
+                decl->aide_génération_code = REQUIERS_CODE_EXTRA_RETOUR;
+            }
+            break;
         }
     }
 
@@ -3351,7 +3443,7 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
         imprime_arbre_formatté(entete);
     }
 
-    simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
+    simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
         /* Puisque la validation du #corps_texte peut être interrompue, nous devons retrouver le
@@ -3389,7 +3481,7 @@ RésultatValidation Sémanticienne::valide_opérateur(NoeudDéclarationCorpsFonc
 
     TENTE(valide_arbre_aplatis(decl));
 
-    auto inst_ret = derniere_instruction(decl->bloc);
+    auto inst_ret = derniere_instruction(decl->bloc, false);
 
     if (inst_ret == nullptr && !entete->est_opérateur_pour()) {
         rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
@@ -3399,8 +3491,7 @@ RésultatValidation Sémanticienne::valide_opérateur(NoeudDéclarationCorpsFonc
     /* La simplification des corps des opérateurs « pour » se fera lors de la simplification de la
      * boucle « pour » utilisant ledit corps. */
     if (!entete->est_opérateur_pour()) {
-        simplifie_arbre(
-            m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
+        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, entete);
     }
 
     avertis_déclarations_inutilisées(*m_espace, *entete);
@@ -4107,7 +4198,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
+    simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
     return CodeRetourValidation::OK;
 }
 
@@ -4407,7 +4498,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
 
         TENTE(valide_symbole_externe(decl, TypeSymbole::VARIABLE_GLOBALE))
 
@@ -4682,7 +4773,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(m_unité->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
 
         POUR (decls_et_refs) {
             TENTE(valide_symbole_externe(it.decl, TypeSymbole::VARIABLE_GLOBALE))
@@ -5356,8 +5447,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     auto tfm = transformation;
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE) {
-        auto noeud_comme = m_tacheronne->assembleuse->crée_comme(
-            expression->lexème, expression, nullptr);
+        auto noeud_comme = m_assembleuse->crée_comme(expression->lexème, expression, nullptr);
         noeud_comme->bloc_parent = expression->bloc_parent;
         noeud_comme->type = m_compilatrice.typeuse.type_reference_pour(expression->type);
         noeud_comme->transformation = TransformationType(TypeTransformation::PREND_REFERENCE);
@@ -5367,8 +5457,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
         tfm.type = TypeTransformation::CONVERTI_VERS_BASE;
     }
 
-    auto noeud_comme = m_tacheronne->assembleuse->crée_comme(
-        expression->lexème, expression, nullptr);
+    auto noeud_comme = m_assembleuse->crée_comme(expression->lexème, expression, nullptr);
     noeud_comme->bloc_parent = expression->bloc_parent;
     noeud_comme->type = const_cast<Type *>(type_cible);
     noeud_comme->transformation = tfm;
@@ -6164,17 +6253,16 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
      * l'être puisqu'elles sont directement testées avec la condition de fin de la
      * boucle.
      */
-    auto assembleuse = m_tacheronne->assembleuse;
-    assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
-    assembleuse->bloc_courant(inst->bloc_parent);
+    assert(m_assembleuse->bloc_courant() == nullptr);
+    m_assembleuse->bloc_courant(inst->bloc_parent);
 
-    inst->decl_it = crée_déclaration_pour_variable(assembleuse, variable, type_itérateur, true);
+    inst->decl_it = crée_déclaration_pour_variable(m_assembleuse, variable, type_itérateur, true);
     variables->expressions[0] = inst->decl_it;
     bloc->ajoute_membre(inst->decl_it);
 
     if (possède_index) {
         inst->decl_index_it = crée_déclaration_pour_variable(
-            assembleuse, variables->expressions[1], typage_itérande.type_index, false);
+            m_assembleuse, variables->expressions[1], typage_itérande.type_index, false);
         variables->expressions[1] = inst->decl_index_it;
         bloc->ajoute_membre(inst->decl_index_it);
     }
@@ -6184,12 +6272,12 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
          * Nous ne l'ajoutons pas aux membres du bloc pour éviter de potentiels conflits
          * avec des boucles externes, préservant ainsi le comportement des scripts
          * existants. À FAIRE : ajoute toujours ceci aux blocs ? */
-        auto ref = assembleuse->crée_référence_déclaration(inst->lexème);
+        auto ref = m_assembleuse->crée_référence_déclaration(inst->lexème);
         ref->ident = ID::index_it;
         inst->decl_index_it = crée_déclaration_pour_variable(
-            assembleuse, ref, typage_itérande.type_index, false);
+            m_assembleuse, ref, typage_itérande.type_index, false);
     }
-    assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
 
     if (aide_génération_code != BOUCLE_POUR_OPÉRATEUR) {
         return CodeRetourValidation::OK;
@@ -6207,7 +6295,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     auto opérateur_pour = table_opérateurs->opérateur_pour;
 
     /* Copie le macro. */
-    auto copie_macro = copie_noeud(m_tacheronne->assembleuse,
+    auto copie_macro = copie_noeud(m_assembleuse,
                                    opérateur_pour,
                                    opérateur_pour->bloc_parent,
                                    OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
@@ -6545,8 +6633,7 @@ RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionI
     }
     else {
         fichier->modules_importés.insère(module);
-        auto noeud_module = m_tacheronne->assembleuse
-                                ->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(inst->lexème)
+        auto noeud_module = m_assembleuse->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(inst->lexème)
                                 ->comme_déclaration_module();
         noeud_module->module = module;
         noeud_module->ident = module->nom();

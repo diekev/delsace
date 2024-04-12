@@ -156,6 +156,7 @@ struct Sémanticienne {
   private:
     Compilatrice &m_compilatrice;
     Tacheronne *m_tacheronne = nullptr;
+    AssembleuseArbre *m_assembleuse = nullptr;
 
     UniteCompilation *m_unité = nullptr;
     EspaceDeTravail *m_espace = nullptr;

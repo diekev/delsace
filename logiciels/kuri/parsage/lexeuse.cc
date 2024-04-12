@@ -286,7 +286,7 @@ static int longueur_utf8_depuis_premier_caractère[] = {
     3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
 Lexeuse::Lexeuse(ContexteLexage contexte, Fichier *données, int drapeaux)
-    : m_gérante_chaine(contexte.gerante_chaine), m_table_identifiants(contexte.table_identifiants),
+    : m_gérante_chaine(contexte.gérante_chaine), m_table_identifiants(contexte.table_identifiants),
       m_données(données), m_début_mot(données->tampon().debut()),
       m_début(données->tampon().debut()), m_fin(données->tampon().fin()), m_drapeaux(drapeaux),
       m_rappel_erreur(contexte.rappel_erreur)
@@ -952,6 +952,10 @@ Lexème Lexeuse::lèxe_commentaire_bloc()
 template <bool INCLUS_COMMENTAIRE>
 Lexème Lexeuse::lèxe_commentaire_bloc_impl()
 {
+    /* Nous pouvons avoir des nouvelles lignes, donc enregistrons la ligne du début du
+     * commentaire. */
+    const int ligne_début_commentaire = m_compte_ligne;
+
     if (INCLUS_COMMENTAIRE) {
         this->enregistre_pos_mot();
     }
@@ -1002,7 +1006,7 @@ Lexème Lexeuse::lèxe_commentaire_bloc_impl()
                     {0ul},
                     GenreLexème::COMMENTAIRE,
                     static_cast<int>(m_données->id()),
-                    m_compte_ligne,
+                    ligne_début_commentaire,
                     m_pos_mot};
     }
     return résultat;

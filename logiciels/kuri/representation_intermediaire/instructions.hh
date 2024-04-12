@@ -57,7 +57,8 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
     O(RETOUR, InstructionRetour, retour)                                                          \
     O(ACCEDE_MEMBRE, InstructionAccèdeMembre, acces_membre)                                       \
     O(ACCEDE_INDEX, InstructionAccèdeIndex, acces_index)                                          \
-    O(TRANSTYPE, InstructionTranstype, transtype)
+    O(TRANSTYPE, InstructionTranstype, transtype)                                                 \
+    O(INATTEIGNABLE, InstructionInatteignable, inatteignable)
 
 #define PREDECLARE_CLASSE_INSTRUCTION(genre_, nom_classe, ident) struct nom_classe;
 ENUMERE_GENRE_INSTRUCTION(PREDECLARE_CLASSE_INSTRUCTION)
@@ -485,9 +486,9 @@ struct Instruction : public Atome {
     ENUMERE_GENRE_INSTRUCTION(DECLARE_FONCTIONS_DISCRIMINATION_INSTRUCTION)
 #undef ENUMERE_GENRE_INSTRUCTION_EX
 
-    inline bool est_branche_ou_retourne() const
+    inline bool est_terminatrice() const
     {
-        return est_branche() || est_branche_cond() || est_retour();
+        return est_branche() || est_branche_cond() || est_retour() || est_inatteignable();
     }
 };
 
@@ -744,6 +745,16 @@ struct InstructionTranstype : public Instruction {
                          Type const *type_,
                          Atome *valeur_,
                          TypeTranstypage op_);
+};
+
+struct InstructionInatteignable : public Instruction {
+    explicit InstructionInatteignable(NoeudExpression const *site_)
+    {
+        site = site_;
+        genre = GenreInstruction::INATTEIGNABLE;
+    }
+
+    EMPECHE_COPIE(InstructionInatteignable);
 };
 
 bool est_valeur_constante(Atome const *atome);

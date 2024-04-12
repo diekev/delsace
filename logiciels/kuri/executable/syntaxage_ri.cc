@@ -165,6 +165,7 @@ struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
     void analyse_si();
     void analyse_stocke();
     void analyse_transtype(IdentifiantCode *ident, NomInstruction nom);
+    void analyse_inatteignable();
 
     void analyse_opérateur_unaire(OpérateurUnaire::Genre genre, NomInstruction nom);
     void analyse_opérateur_binaire(OpérateurBinaire::Genre genre, NomInstruction nom);
@@ -524,6 +525,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_instruction()
     ANALYSE_INSTRUCTION(si);
     ANALYSE_INSTRUCTION(branche);
     ANALYSE_INSTRUCTION(retourne);
+    ANALYSE_INSTRUCTION(inatteignable);
 
     if (ident == ID::appel) {
         /* Ne peut utiliser le macro car nous n'avons pas de nom. */
@@ -1251,6 +1253,13 @@ void BaseSyntaxeuseRI<Impl>::analyse_opérateur_binaire(OpérateurBinaire::Genre
     impl()->crée_opérateur_binaire(genre, atome_gauche, atome_droite);
 }
 
+template <typename Impl>
+void BaseSyntaxeuseRI<Impl>::analyse_inatteignable()
+{
+    consomme();
+    impl()->crée_inatteignable();
+}
+
 /* ------------------------------------------------------------------------- */
 /** \name PrésyntaxeuseRI.
  * \{ */
@@ -1803,6 +1812,14 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 #ifdef IMPRIME_RI
         imprime_numéro_instruction(true);
         std::cerr << chaine_pour_genre_op(genre) << ' ' << gauche << ", " << droite << '\n';
+#endif
+    }
+
+    void crée_inatteignable()
+    {
+#ifdef IMPRIME_RI
+        imprime_numéro_instruction(false);
+        std::cerr << "inatteignable\n";
 #endif
     }
 
@@ -2424,6 +2441,11 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         m_constructrice.crée_op_binaire(nullptr, type_résultat, genre, gauche, droite);
     }
 
+    void crée_inatteignable()
+    {
+        m_constructrice.crée_inatteignable(nullptr);
+    }
+
   private:
     NoeudBloc *donne_bloc_parent_pour_type(kuri::tableau_statique<Lexème *> lexèmes)
     {
@@ -2560,9 +2582,9 @@ int main(int argc, char **argv)
     fichier.tampon_ = lng::tampon_source(texte.c_str());
     fichier.chemin_ = "";
 
-    auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
+    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, imprime_erreur};
+    auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
 
     Lexeuse lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
