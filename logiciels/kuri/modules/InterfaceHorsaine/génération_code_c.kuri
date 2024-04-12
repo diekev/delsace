@@ -234,12 +234,10 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
 
             si info_fonction.est_coroutine {
                 compilatrice_rapporte_erreur("Les coroutines ne sont pas convertibles en C/C++.")
-                retourne nul
             }
 
             si info_fonction.types_sortie.taille > 1 {
                 compilatrice_rapporte_erreur("Les types fonctions avec plusieurs valeurs de retour ne sont pas convertibles en C/C++.")
-                retourne nul
             }
 
             nom_type_c := imprime_chaine("Fonction%", info_fonction)
@@ -277,7 +275,6 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
         }
         TABLEAU_FIXE {
             compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
-            retourne nul
         }
         TRANCHE {
             info_tranche := type comme *InfoTypeTranche
@@ -331,7 +328,6 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
         }
         ADRESSE_FONCTION {
             compilatrice_rapporte_erreur("Les types adresse_fonction ne sont pas convertibles vers Python pour le moment")
-            retourne nul
         }
     }
 

@@ -51,7 +51,11 @@ Chunk::~Chunk()
 
 NoeudExpression const *Chunk::donne_site_pour_adresse(octet_t *adresse) const
 {
-    assert(adresse >= code && adresse < (code + compte));
+    assert_rappel(adresse >= code && adresse < (code + compte), [&]() {
+        dbg() << "code " << static_cast<void *>(code) << ", " << "adresse "
+              << static_cast<void *>(adresse) << ", " << "code + compte "
+              << static_cast<void *>(code + compte);
+    });
 
     if (m_sites_source.est_vide()) {
         return nullptr;
@@ -752,6 +756,11 @@ void Chunk::émets_transtype(const NoeudExpression *site,
     émets_notifie_empilage(site, taille_dest);
 }
 
+void Chunk::émets_inatteignable(const NoeudExpression *site)
+{
+    émets_entête_op(OP_INATTEIGNABLE, site);
+}
+
 void Chunk::émets_rembourrage(uint32_t rembourrage)
 {
     émets_entête_op(OP_REMBOURRAGE, nullptr);
@@ -829,6 +838,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
         case OP_PROFILE_DÉBUTE_APPEL:
         case OP_PROFILE_TERMINE_APPEL:
+        case OP_INATTEIGNABLE:
         {
             return instruction_simple(décalage, os);
         }
@@ -1697,6 +1707,12 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             chunk.émets_operation_binaire(
                 op_binaire->site, op_binaire->op, op_binaire->type, type_gauche, type_droite);
 
+            break;
+        }
+        case GenreInstruction::INATTEIGNABLE:
+        {
+            auto inst_inatteignable = instruction->comme_inatteignable();
+            chunk.émets_inatteignable(inst_inatteignable->site);
             break;
         }
     }

@@ -125,6 +125,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void quand_termine() override;
     void analyse_une_chose() override;
 
+    bool apparie_commentaire() const;
     bool apparie_expression() const;
     bool apparie_expression_unaire() const;
     bool apparie_expression_secondaire() const;

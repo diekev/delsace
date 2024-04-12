@@ -429,6 +429,11 @@ static void imprime_instruction_ex(Instruction const *inst,
             os << " vers " << chaine_type(inst_transtype->type, options);
             break;
         }
+        case GenreInstruction::INATTEIGNABLE:
+        {
+            os << "inatteignable\n";
+            break;
+        }
     }
 }
 
