@@ -112,7 +112,7 @@ fdatasync :: fonc (fd: z32) -> z32 #externe libc
 getcwd :: fonc (ptr : ChaineC, taille : z64) -> ChaineC #externe libc
 chdir :: fonc (ptr : ChaineC) -> z32 #externe libc
 
-abort :: fonc () -> rien #externe libc
+abort :: fonc () -> rien #externe libc #sansretour
 
 rename :: fonc (orig : ChaineC, dest : ChaineC) -> z32 #externe libc
 remove :: fonc (chemin : ChaineC) -> z32 #externe libc
@@ -544,7 +544,7 @@ bind :: fonc (prise : z32, addr : *sockaddr, taille : n64) -> z32 #externe libc
 listen :: fonc (prise : z32, connexions : z32) -> z32 #externe libc
 accept :: fonc (prise : z32, addr : *sockaddr, taille : *n32) -> z32 #externe libc
 perror :: fonc (ptr : ChaineC) -> rien #externe libc
-exit :: fonc (id : z32) -> rien #externe libc
+exit :: fonc (id : z32) -> rien #externe libc #sansretour
 inet_ntoa :: fonc (addr : in_addr) -> ChaineC #externe libc
 
 // -------------------------------------

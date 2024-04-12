@@ -57,7 +57,7 @@ kuri::chaine en_majuscule(kuri::chaine_statique minuscule)
     return kuri::chaine(std_string.c_str(), static_cast<int64_t>(std_string.size()));
 }
 
-void inclus_systeme(std::ostream &os, kuri::chaine_statique fichier)
+void inclus_système(std::ostream &os, kuri::chaine_statique fichier)
 {
     os << "#include <" << fichier << ">\n";
 }
@@ -67,12 +67,12 @@ void inclus(std::ostream &os, kuri::chaine_statique fichier)
     os << "#include \"" << fichier << "\"\n";
 }
 
-void prodeclare_struct(std::ostream &os, kuri::chaine_statique nom)
+void prodéclare_struct(std::ostream &os, kuri::chaine_statique nom)
 {
     os << "struct " << nom << ";\n";
 }
 
-void prodeclare_struct_espace(std::ostream &os,
+void prodéclare_struct_espace(std::ostream &os,
                               kuri::chaine_statique nom,
                               kuri::chaine_statique espace,
                               kuri::chaine_statique param_gabarit)
@@ -112,7 +112,7 @@ static bool fichier_sont_egaux(kuri::chaine_statique nom_source, kuri::chaine_st
                       std::istreambuf_iterator<char>(f2.rdbuf()));
 }
 
-bool remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest)
+bool remplace_si_différent(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest)
 {
     if (nom_source == nom_dest) {
         return true;

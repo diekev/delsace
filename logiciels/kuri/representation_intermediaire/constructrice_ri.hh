@@ -225,6 +225,9 @@ struct ConstructriceRI {
 
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
+    InstructionInatteignable *crée_inatteignable(NoeudExpression const *site,
+                                                 bool crée_seulement = false);
+
   private:
     void insère(Instruction *inst);
 
@@ -399,7 +402,6 @@ struct CompilatriceRI {
     void génère_ri_transformee_pour_noeud(NoeudExpression const *noeud,
                                           Atome *place,
                                           TransformationType const &transformation);
-    void génère_ri_pour_tente(NoeudInstructionTente const *noeud);
     void génère_ri_pour_accès_membre(NoeudExpressionMembre const *noeud);
     void génère_ri_pour_accès_membre_union(NoeudExpressionMembre const *noeud);
     void génère_ri_pour_condition(NoeudExpression const *condition,

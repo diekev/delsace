@@ -306,7 +306,6 @@ avertis :: fonc (vérificatrice: *VérificatriceNasa, site: *NoeudCode, message:
 {
     si vérificatrice.avertissement_est_erreur {
         compilatrice_rapporte_erreur(vérificatrice.espace, site, message)
-        retourne
     }
 
     compilatrice_rapporte_avertissement(vérificatrice.espace, site, message)

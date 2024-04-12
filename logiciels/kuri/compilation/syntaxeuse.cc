@@ -671,9 +671,21 @@ void Syntaxeuse::analyse_une_chose()
 
         noeud->bloc_parent->ajoute_expression(noeud);
     }
+    else if (apparie_commentaire()) {
+        lexème = lexème_courant();
+        auto noeud = m_tacheronne.assembleuse->crée_commentaire(lexème);
+        noeud->bloc_parent->ajoute_expression(noeud);
+        consomme();
+    }
     else {
         rapporte_erreur("attendu une expression ou une instruction");
     }
+}
+
+bool Syntaxeuse::apparie_commentaire() const
+{
+    auto genre = lexème_courant()->genre;
+    return genre == GenreLexème::COMMENTAIRE;
 }
 
 bool Syntaxeuse::apparie_expression() const
@@ -1060,6 +1072,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
             auto noeud = m_tacheronne.assembleuse->crée_tente(
                 lexème, expression_appelée, expression_piégée);
             noeud->bloc = bloc;
+            if (bloc) {
+                bloc->appartiens_à_tente = noeud;
+            }
             return noeud;
         }
         case GenreLexème::DIRECTIVE:
@@ -1850,6 +1865,12 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
         else if (apparie_expression()) {
             auto noeud = analyse_expression({}, GenreLexème::INCONNU, GenreLexème::INCONNU);
             expressions.ajoute(noeud);
+        }
+        else if (apparie_commentaire()) {
+            lexème = lexème_courant();
+            auto noeud = m_tacheronne.assembleuse->crée_commentaire(lexème);
+            expressions.ajoute(noeud);
+            consomme();
         }
         else {
             rapporte_erreur("attendu une expression ou une instruction");
@@ -2662,6 +2683,9 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         else if (ident_directive == ID::exporte) {
             noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
         }
+        else if (ident_directive == ID::sansretour) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_SANSRETOUR;
+        }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
         }
@@ -3215,6 +3239,14 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDéclaration
 
     while (!fini() && !apparie(GenreLexème::ACCOLADE_FERMANTE)) {
         if (ignore_point_virgule_implicite()) {
+            continue;
+        }
+
+        if (apparie_commentaire()) {
+            auto lexème = lexème_courant();
+            auto noeud = m_tacheronne.assembleuse->crée_commentaire(lexème);
+            expressions.ajoute(noeud);
+            consomme();
             continue;
         }
 

@@ -31,11 +31,13 @@ int main(int argc, char **argv)
     auto tacheronne = Tacheronne(compilatrice);
     auto module = Module(chemin_fichier.chemin_parent());
     auto donnees_fichier = Fichier();
+    donnees_fichier.chemin_ = kuri::chaine(chemin_fichier);
     donnees_fichier.module = &module;
     auto tampon = charge_contenu_fichier({chemin_fichier.pointeur(), chemin_fichier.taille()});
     donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
-    auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
+    auto lexeuse = Lexeuse(
+        compilatrice.contexte_lexage(nullptr), &donnees_fichier, INCLUS_COMMENTAIRES);
     lexeuse.performe_lexage();
 
     auto unité = UniteCompilation(compilatrice.espace_de_travail_defaut);
