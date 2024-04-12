@@ -301,7 +301,7 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
                 return CodeRetourValidation::Erreur;
             }
             crée_variable_pour_expression_test(m_espace,
-                                               m_tacheronne->assembleuse,
+                                               m_assembleuse,
                                                expression,
                                                type_union,
                                                inst->bloc_parent,
@@ -402,7 +402,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
                 return CodeRetourValidation::Erreur;
             }
             crée_variable_pour_expression_test(m_espace,
-                                               m_tacheronne->assembleuse,
+                                               m_assembleuse,
                                                inst->expression_discriminée,
                                                type_union,
                                                inst->bloc_parent,

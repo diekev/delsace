@@ -170,7 +170,7 @@ copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> boo
     contenu_source := contenu_fichier_texte(source)
     diffère déloge(contenu_source)
 
-    fichier_destination := tente ouvre_fichier_crée_si_non_existant(destination, pour_lecture_écriture_tronquée) piège err {
+    fichier_destination := tente ouvre_fichier_crée_si_non_existant(destination, pour_lecture_écriture_tronquée) piège _ {
         retourne faux
     }
 

@@ -44,6 +44,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
     }
 
     switch (noeud->genre) {
+        case GenreNoeud::COMMENTAIRE:
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:
         case GenreNoeud::DÉCLARATION_MODULE:
@@ -126,7 +127,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 }
                 /* Certaines expressions n'ont pas de substitution (par exemple les expressions
                  * finales des blocs des expressions-si). Nous devons les préserver. */
-                else if (!it->est_pousse_contexte()) {
+                else if (!it->est_pousse_contexte() && !it->est_tente()) {
                     ajoute_expression(it);
                 }
             }
@@ -545,12 +546,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::INSTRUCTION_TENTE:
         {
-            auto tente = noeud->comme_tente();
-            simplifie(tente->expression_appelée);
-            if (tente->bloc) {
-                simplifie(tente->bloc);
-            }
-            return tente;
+            return simplifie_tente(noeud->comme_tente());
         }
         case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
         {
@@ -867,7 +863,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 littérale_chaine->drapeaux |=
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 auto fichier = compilatrice.fichier(noeud->lexème->fichier);
-                littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
+                littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fichier->chemin());
                 littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
@@ -878,7 +874,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 littérale_chaine->drapeaux |=
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 auto fichier = compilatrice.fichier(noeud->lexème->fichier);
-                littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
+                littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fichier->module->chemin());
                 littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
@@ -889,7 +885,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto littérale_chaine = assem->crée_littérale_chaine(noeud->lexème);
                 littérale_chaine->drapeaux |=
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
-                littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
+                littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fonction_courante->ident->nom);
                 littérale_chaine->type = TypeBase::CHAINE;
                 noeud->substitution = littérale_chaine;
@@ -1241,7 +1237,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
             /* intialise les arguments de la fonction. */
             POUR (expr_appel->params) {
-                genere_code_C(it, constructrice, compilatrice, false);
+                génère_code_C(it, constructrice, compilatrice, false);
             }
 
             auto iter_enf = expr_appel->params.begin();
@@ -1709,6 +1705,178 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
     return nullptr;
 }
 
+NoeudExpression *Simplificatrice::simplifie_tente(NoeudInstructionTente *inst)
+{
+    simplifie(inst->expression_appelée);
+    if (inst->bloc) {
+        simplifie(inst->bloc);
+    }
+
+    auto lexème = inst->lexème;
+    auto expression_tentée = inst->expression_appelée;
+
+    if (expression_tentée->type->est_type_erreur()) {
+        /* tmp := expression_tentée */
+        auto type_erreur = expression_tentée->type->comme_type_erreur();
+        auto déclaration_erreur = crée_déclaration_variable(
+            lexème, type_erreur, expression_tentée);
+        déclaration_erreur->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+        ajoute_expression(déclaration_erreur);
+        auto référence_erreur = assem->crée_référence_déclaration(lexème, déclaration_erreur);
+
+        /* si tmp != 0 */
+        auto zéro = assem->crée_littérale_entier(lexème, type_erreur, 0);
+        auto op = type_erreur->table_opérateurs->opérateur_dif;
+        assert(op);
+        auto comparaison = assem->crée_expression_binaire(lexème, op, référence_erreur, zéro);
+
+        auto branche = assem->crée_si(lexème, comparaison);
+        ajoute_expression(branche);
+
+        if (inst->expression_piégée == nullptr) {
+            /* piége nonatteignable -> panique */
+            auto bloc = assem->crée_bloc_seul(inst->lexème, inst->bloc_parent);
+            branche->bloc_si_vrai = bloc;
+
+            auto panique = espace->compilatrice().interface_kuri->decl_panique_erreur;
+            assert(panique);
+
+            auto appel = assem->crée_appel(inst->lexème, panique, TypeBase::RIEN);
+            bloc->ajoute_expression(appel);
+        }
+        else {
+            branche->bloc_si_vrai = inst->bloc;
+
+            /* expression_piégée = tmp */
+            auto déclaration_piège = inst->expression_piégée->comme_référence_déclaration()
+                                         ->déclaration_référée->comme_déclaration_variable();
+            déclaration_piège->expression = référence_erreur;
+            inst->bloc->expressions->ajoute_au_début(déclaration_piège);
+        }
+
+        if (inst->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
+            inst->substitution = référence_erreur;
+        }
+        return inst->substitution;
+    }
+
+    if (expression_tentée->type->est_type_union()) {
+        auto type_union = expression_tentée->type->comme_type_union();
+        auto index_membre_erreur = 0u;
+        auto index_membre_variable = 1u;
+        auto type_erreur = NoeudDéclarationType::nul();
+        auto type_variable = NoeudDéclarationType::nul();
+
+        if (type_union->membres[0].type->est_type_erreur()) {
+            type_erreur = type_union->membres[0].type;
+            type_variable = type_union->membres[1].type;
+        }
+        else {
+            type_erreur = type_union->membres[1].type;
+            type_variable = type_union->membres[0].type;
+            index_membre_erreur = 1u;
+            index_membre_variable = 0u;
+        }
+
+        /* tmp := expression_tentée */
+        auto déclaration_erreur = crée_déclaration_variable(lexème, type_union, expression_tentée);
+        déclaration_erreur->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+        ajoute_expression(déclaration_erreur);
+        auto référence_erreur = assem->crée_référence_déclaration(lexème, déclaration_erreur);
+
+        /* Variable qui détiendra la valeur non-erreur. Nous devons l'initialiser à zéro, car il se
+         * peut que la fonction retourne une erreur nulle (0 comme type_erreur). */
+        auto déclaration_variable = NoeudDéclarationVariable::nul();
+        if (!type_variable->est_type_rien()) {
+            déclaration_variable = crée_déclaration_variable(lexème, type_variable, nullptr);
+            déclaration_variable->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+            ajoute_expression(déclaration_variable);
+        }
+
+        auto accès_membre_actif = assem->crée_référence_membre(
+            lexème, référence_erreur, TypeBase::Z32, 1);
+
+        /* si membre_actif == erreur */
+        auto index = assem->crée_littérale_entier(lexème, type_erreur, index_membre_erreur + 1);
+        auto op = TypeBase::Z32->table_opérateurs->opérateur_egt;
+        assert(op);
+        auto comparaison = assem->crée_expression_binaire(lexème, op, accès_membre_actif, index);
+
+        auto branche = assem->crée_si(lexème, comparaison);
+        ajoute_expression(branche);
+        auto bloc_si_erreur = assem->crée_bloc_seul(inst->lexème, inst->bloc_parent);
+        branche->bloc_si_vrai = bloc_si_erreur;
+
+        auto extrait_erreur = assem->crée_comme(lexème, référence_erreur, nullptr);
+        extrait_erreur->type = type_erreur;
+        extrait_erreur->transformation = {TypeTransformation::EXTRAIT_UNION, type_erreur};
+        extrait_erreur->transformation.index_membre = index_membre_erreur;
+        extrait_erreur->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
+
+        auto déclaration_résultat = NoeudDéclarationVariable::nul();
+        if (inst->expression_piégée == nullptr) {
+            déclaration_résultat = crée_déclaration_variable(lexème, type_erreur, extrait_erreur);
+            déclaration_résultat->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+            bloc_si_erreur->ajoute_expression(déclaration_résultat);
+        }
+        else {
+            auto déclaration_piège = inst->expression_piégée->comme_référence_déclaration()
+                                         ->déclaration_référée->comme_déclaration_variable();
+            déclaration_résultat = déclaration_piège;
+            déclaration_piège->expression = extrait_erreur;
+            bloc_si_erreur->expressions->ajoute_au_début(déclaration_piège);
+        }
+
+        auto référence_résultat = assem->crée_référence_déclaration(lexème, déclaration_résultat);
+
+        /* Même code que pour type_erreur plus haut. */
+        auto zéro = assem->crée_littérale_entier(lexème, type_erreur, 0);
+        op = type_erreur->table_opérateurs->opérateur_dif;
+        assert(op);
+        comparaison = assem->crée_expression_binaire(lexème, op, référence_résultat, zéro);
+
+        auto branche_si_erreur = assem->crée_si(lexème, comparaison);
+        bloc_si_erreur->ajoute_expression(branche_si_erreur);
+
+        if (inst->expression_piégée == nullptr) {
+            /* piége nonatteignable -> panique */
+            auto bloc = assem->crée_bloc_seul(inst->lexème, bloc_si_erreur->bloc_parent);
+            branche_si_erreur->bloc_si_vrai = bloc;
+
+            auto panique = espace->compilatrice().interface_kuri->decl_panique_erreur;
+            assert(panique);
+
+            auto appel = assem->crée_appel(inst->lexème, panique, TypeBase::RIEN);
+            bloc->ajoute_expression(appel);
+        }
+        else {
+            branche_si_erreur->bloc_si_vrai = inst->bloc;
+        }
+
+        if (!type_variable->est_type_rien()) {
+            auto bloc_si_pas_erreur = assem->crée_bloc_seul(inst->lexème, inst->bloc_parent);
+            branche->bloc_si_faux = bloc_si_pas_erreur;
+
+            auto extrait_variable = assem->crée_comme(lexème, référence_erreur, nullptr);
+            extrait_variable->type = type_variable;
+            extrait_variable->transformation = {TypeTransformation::EXTRAIT_UNION, type_variable};
+            extrait_variable->transformation.index_membre = index_membre_variable;
+            extrait_variable->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
+
+            auto référence_variable = assem->crée_référence_déclaration(lexème,
+                                                                        déclaration_variable);
+            auto init_variable = assem->crée_assignation_variable(
+                lexème, référence_variable, extrait_variable);
+            bloc_si_pas_erreur->ajoute_expression(init_variable);
+            inst->substitution = référence_variable;
+        }
+
+        return inst->substitution;
+    }
+
+    return inst;
+}
+
 NoeudExpression *Simplificatrice::simplifie_assignation_logique(
     NoeudExpressionAssignationLogique *logique)
 {
@@ -1805,7 +1973,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
     auto const fichier = compilatrice.fichier(lexème_site->fichier);
     auto valeur_chemin_fichier = assem->crée_littérale_chaine(lexème);
     valeur_chemin_fichier->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
-    valeur_chemin_fichier->valeur = compilatrice.gerante_chaine->ajoute_chaine(fichier->chemin());
+    valeur_chemin_fichier->valeur = compilatrice.gérante_chaine->ajoute_chaine(fichier->chemin());
     valeur_chemin_fichier->type = TypeBase::CHAINE;
 
     /* PositionCodeSource.fonction */
@@ -1816,7 +1984,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
 
     auto valeur_nom_fonction = assem->crée_littérale_chaine(lexème);
     valeur_nom_fonction->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
-    valeur_nom_fonction->valeur = compilatrice.gerante_chaine->ajoute_chaine(nom_fonction);
+    valeur_nom_fonction->valeur = compilatrice.gérante_chaine->ajoute_chaine(nom_fonction);
     valeur_nom_fonction->type = TypeBase::CHAINE;
 
     /* PositionCodeSource.ligne */
@@ -2430,10 +2598,10 @@ NoeudExpression *Simplificatrice::simplifie_coroutine(NoeudDéclarationEntêteFo
     }
 
     /* Crée code pour le bloc. */
-    genere_code_C(decl->bloc, constructrice, compilatrice, false);
+    génère_code_C(decl->bloc, constructrice, compilatrice, false);
 
     if (b->aide_génération_code == REQUIERS_CODE_EXTRA_RETOUR) {
-        genere_code_extra_pre_retour(decl->bloc, compilatrice, constructrice);
+        génère_code_extra_pre_retour(decl->bloc, compilatrice, constructrice);
     }
 
     constructrice << "}\n";
@@ -2458,7 +2626,7 @@ NoeudExpression *Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
     for (auto i = 0l; i < feuilles.taille(); ++i) {
         auto f = feuilles[i];
 
-        genere_code_C(f, constructrice, compilatrice, true);
+        génère_code_C(f, constructrice, compilatrice, true);
 
         constructrice << "__etat->" << df->noms_retours[i] << " = ";
         constructrice << f->chaine_calculee();

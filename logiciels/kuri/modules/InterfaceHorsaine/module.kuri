@@ -374,12 +374,10 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 
             si info_fonction.est_coroutine {
                 compilatrice_rapporte_erreur("Les coroutines ne sont pas convertibles en C/C++.")
-                retourne nul
             }
 
             si info_fonction.types_sortie.taille > 1 {
                 compilatrice_rapporte_erreur("Les types fonctions avec plusieurs valeurs de retour ne sont pas convertibles en C/C++.")
-                retourne nul
             }
 
             résultat.drapeaux.TYPE_EST_FONCTION = vrai
@@ -388,7 +386,6 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
                 /* À FAIRE : pointeurs de tableaux. */
                 si it.id == GenreInfoType.TABLEAU {
                     compilatrice_rapporte_erreur("Les types tableaux en entrée de fonction ne sont pas convertibles en C++ pour l'instant.")
-                    retourne nul
                 }
 
                 tableau_ajoute(*résultat.types_entrée, ipa.convertis_vers_type_ipa(it))
@@ -398,7 +395,6 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
                 /* À FAIRE : pointeurs de tableaux. */
                 si it.id == GenreInfoType.TABLEAU {
                     compilatrice_rapporte_erreur("Les types tableaux en sortie de fonction ne sont pas convertibles en C++ pour l'instant.")
-                    retourne nul
                 }
 
                 tableau_ajoute(*résultat.types_sortie, ipa.convertis_vers_type_ipa(it))
@@ -414,7 +410,6 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
         }
         TABLEAU_FIXE {
             compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
-            retourne nul
         }
         TRANCHE {
             info_tranche := type comme *InfoTypeTranche

@@ -61,8 +61,8 @@ parse_adresse_ip :: fonc (chn: chaine) -> bool, AdresseIP
 {
     résultat : AdresseIP
 
-    ipv4 := tente parse_ipv4(chn) piège err_ipv4 {
-        ipv6 := tente parse_ipv6(chn) piège err_ipv6 {
+    ipv4 := tente parse_ipv4(chn) piège _ {
+        ipv6 := tente parse_ipv6(chn) piège _ {
             retourne faux, résultat
         }
 
@@ -76,7 +76,7 @@ parse_adresse_ip :: fonc (chn: chaine) -> bool, AdresseIP
 
 parse_ipv4_pour_ipv6 :: fonc (chn: chaine, addr: *AdresseIPv4) -> bool
 {
-    ipv4 := tente parse_ipv4(chn) piège err {
+    ipv4 := tente parse_ipv4(chn) piège _ {
         retourne faux
     }
 
@@ -172,7 +172,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
             continue
         }
 
-        ipv6[index_it] = tente parse_hexadécimal_n16(it) piège err {
+        ipv6[index_it] = tente parse_hexadécimal_n16(it) piège _ {
             // À FAIRE : erreur pour les dépassements de limites
             retourne ErreurParsageIP.CaractèreInvalide
         }
@@ -399,7 +399,7 @@ parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
     // il est possible d'obtenir des chaines contenant l'adresse au format décimale :
     // x * 256 ^ 3 + y * 256 ^ 2 + z * 256 + w
     si morceaux.taille == 1 {
-        valeur := tente extrait_n32(chn) piège err {
+        valeur := tente extrait_n32(chn) piège _ {
             retourne ErreurParsageIP.CaractèreInvalide
         }
 
@@ -413,7 +413,7 @@ parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
     données : [4]n8
 
     pour morceaux {
-        valeur := tente extrait_n8(it) piège err {
+        valeur := tente extrait_n8(it) piège _ {
             // À FAIRE : erreur spéciale en cas de dépassement de la taille du nombre
             retourne ErreurParsageIP.CaractèreInvalide
         }
@@ -528,7 +528,6 @@ test_raccourcissement_ipv6 :: fonc (donnée: chaine, attendue: chaine, pos := Po
         }
 
         compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur inconnue de parsage IPv4 est survenue")
-        retourne
     }
 
     chn_ipv6 := chaine_depuis_ipv6(ipv6)
@@ -567,7 +566,6 @@ test_parsage_ipv4_impl :: fonc (chn_donnée: chaine, chn_attendue: chaine, pos :
         }
 
         compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur inconnue de parsage IPv4 est survenue")
-        retourne
     }
 
     chn_ipv4 := chaine_depuis_ipv4(ipv4)
@@ -596,7 +594,6 @@ test_ipv6_depuis_ipv4 :: fonc (chn_ipv4: chaine, chn_ipv6: chaine, pos := Positi
     ipv4 := tente parse_ipv4(chn_ipv4) piège err {
         espace := compilatrice_espace_courant()
         compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur de parsage IPv4 est survenue")
-        retourne
     }
 
     ipv6 := ipv6_depuis_ipv4(ipv4)
@@ -625,7 +622,6 @@ test_ipv4_depuis_ipv6 :: fonc (chn_ipv6: chaine, chn_ipv4: chaine, pos := Positi
         }
 
         compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur de parsage IPv6 est survenue")
-        retourne
     }
 
     ipv4 := ipv4_depuis_ipv6(ipv6)

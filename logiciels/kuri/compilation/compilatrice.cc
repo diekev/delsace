@@ -273,7 +273,7 @@ int64_t Compilatrice::memoire_utilisee() const
     résultat += ordonnanceuse->memoire_utilisee();
     résultat += table_identifiants->memoire_utilisee();
 
-    résultat += gerante_chaine->memoire_utilisee();
+    résultat += gérante_chaine->memoire_utilisee();
 
     POUR ((*espaces_de_travail.verrou_lecture())) {
         résultat += it->memoire_utilisee();
@@ -410,7 +410,7 @@ ContexteLexage Compilatrice::contexte_lexage(EspaceDeTravail *espace)
         }
     };
 
-    return {gerante_chaine, table_identifiants, rappel_erreur};
+    return {gérante_chaine, table_identifiants, rappel_erreur};
 }
 
 // -----------------------------------------------------------------------------

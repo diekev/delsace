@@ -236,7 +236,7 @@ bool bloc_est_dans_diffère(NoeudBloc const *bloc)
     return false;
 }
 
-NoeudExpression *derniere_instruction(NoeudBloc const *b)
+NoeudExpression *derniere_instruction(NoeudBloc const *b, bool accepte_appels)
 {
     auto expressions = b->expressions.verrou_lecture();
     auto taille = expressions->taille();
@@ -251,6 +251,11 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b)
         return di;
     }
 
+    /* Pour détecter les appels de fonctions sans retour. */
+    if (accepte_appels && di->est_appel()) {
+        return di;
+    }
+
     if (di->est_si()) {
         auto inst = di->comme_si();
 
@@ -262,24 +267,24 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b)
             return NoeudExpression::nul();
         }
 
-        return derniere_instruction(inst->bloc_si_faux->comme_bloc());
+        return derniere_instruction(inst->bloc_si_faux->comme_bloc(), accepte_appels);
     }
 
     if (di->est_pousse_contexte()) {
         auto inst = di->comme_pousse_contexte();
-        return derniere_instruction(inst->bloc);
+        return derniere_instruction(inst->bloc, accepte_appels);
     }
 
     if (di->est_discr()) {
         auto discr = di->comme_discr();
 
         if (discr->bloc_sinon) {
-            return derniere_instruction(discr->bloc_sinon);
+            return derniere_instruction(discr->bloc_sinon, accepte_appels);
         }
 
         /* vérifie que toutes les branches retournes */
         POUR (discr->paires_discr) {
-            di = derniere_instruction(it->bloc);
+            di = derniere_instruction(it->bloc, accepte_appels);
 
             if (di == nullptr || !di->est_retourne()) {
                 break;

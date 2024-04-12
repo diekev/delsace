@@ -314,11 +314,8 @@ trouve_fonction_génération_données_aléatoires :: fonc (info: *InfoType) -> *
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
-    résultat : DonnéesFonctionPourTableFonction
-
     si fonction.params.taille != 2 {
         compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme formatteuse pour l'impression, elle doit avoir 2 paramètres : &GénératriceDonnéesAléatoire, et eini")
-        retourne résultat
     }
 
     type_premier_paramètre := fonction.params[0].type
@@ -326,16 +323,15 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
 
     si type_premier_paramètre != info_de(&GénératriceDonnéesAléatoire) {
         compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « &GénératriceDonnéesAléatoire ».")
-        retourne résultat
     }
 
     si type_deuxième_paramètre.id != GenreInfoType.POINTEUR {
         compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.")
-        retourne résultat
     }
 
     pointeur := type_deuxième_paramètre comme *InfoTypePointeur
 
+    résultat : DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = pointeur.type_pointé
     retourne résultat

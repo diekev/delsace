@@ -29,6 +29,8 @@ discrimine_union :: fonc (anonyme: UnionAnonyme, est_z32: bool)
             panique("L'union n'a ni de z32 ni de r32")
         }
     }
+
+    retourne
 }
 
 principale :: fonc () -> z32

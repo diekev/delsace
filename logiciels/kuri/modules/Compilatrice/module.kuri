@@ -49,22 +49,22 @@ compile_pour_profilage :: fonc ()
 // ----------------------------------------------------------------------------
 // Fonctions auxilliaires pour l'IPA.
 
-compilatrice_rapporte_erreur :: fonc (message: chaine, pos := PositionCodeSource())
+compilatrice_rapporte_erreur :: fonc (message: chaine, pos := PositionCodeSource()) #sansretour
 {
     compilatrice_rapporte_erreur(compilatrice_espace_courant(), message, pos)
 }
 
-compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, message: chaine, pos := PositionCodeSource())
+compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, message: chaine, pos := PositionCodeSource()) #sansretour
 {
     compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, message)
 }
 
-compilatrice_rapporte_erreur :: fonc (site: *NoeudCode, message: chaine)
+compilatrice_rapporte_erreur :: fonc (site: *NoeudCode, message: chaine) #sansretour
 {
     compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
 }
 
-compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine)
+compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine) #sansretour
 {
     compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, message)
 }
@@ -112,8 +112,6 @@ compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionC
 
     espace := compilatrice_espace_courant()
     compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message)
-
-    déloge(message) // @fuite de mémoire : la compilation s'arrêtera dès que l'erreur sera lancée
 }
 
 compilatrice_vérifie :: fonc (valeur: bool, position_code := PositionCodeSource())

@@ -319,7 +319,7 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
     si possède_entête(message, "Content-Length") {
         chn_taille_contenu := entête(message, "Content-Length").valeur
 
-        taille_contenu := tente extrait_z32(chn_taille_contenu) piège err {
+        taille_contenu := tente extrait_z32(chn_taille_contenu) piège _ {
             retourne erreur_de_parsage("Content-Length n'est pas un nombre")
         }
 
@@ -374,7 +374,7 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
             valeur := sous_chaine_jusque_index(*parseuse.parseuse_chaine, pos_nouvelle_ligne)
 
-            taille_chunk := tente parse_hexadécimal_z32(valeur) piège err {
+            taille_chunk := tente parse_hexadécimal_z32(valeur) piège _ {
                 retourne erreur_de_parsage("pas de nombre héxadécimal pour la taille du chunk")
             }
 
@@ -510,7 +510,7 @@ finalise_message :: fonc (parseuse: *ParseuseMessageClienteHTTP) -> MessageClien
 
     résoud_échappement_url_localement(message_cliente.requête)
 
-    message_cliente.uri = tente parse_uri_depuis_chemin_requête(message_cliente.requête) piège err {
+    message_cliente.uri = tente parse_uri_depuis_chemin_requête(message_cliente.requête) piège _ {
         retourne MessageClienteHTTP()
     }
 

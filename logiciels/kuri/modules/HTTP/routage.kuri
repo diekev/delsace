@@ -363,31 +363,26 @@ trouve_fonction_parsage_pour_type :: fonc (info: *InfoType)
 
 fonction_routage_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
-    résultat : DonnéesFonctionPourTableFonction
-
     si fonction.params.taille != 1 {
         compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle ne doit avoir qu'un seul paramètre")
-        retourne résultat
     }
 
     type_premier_paramètre := fonction.params[0].type
     si type_premier_paramètre != info_de(chaine) {
         compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage route HTTP invalide, le paramètre doit être de type « chaine ».")
-        retourne résultat
     }
 
     si fonction.params_sorties.taille != 2 {
         compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
-        retourne résultat
     }
 
     type_première_sortie := fonction.params_sorties[0].type
 
     si type_première_sortie != info_de(bool) {
         compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage route HTTP invalide, le premier paramètre de sortie doit être de type « bool ».")
-        retourne résultat
     }
 
+    résultat : DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = fonction.params_sorties[1].type
     retourne résultat

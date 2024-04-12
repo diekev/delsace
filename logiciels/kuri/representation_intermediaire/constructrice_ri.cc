@@ -81,6 +81,11 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
         return true;
     }
 
+    /* L'initialisation des r16 utilise un n16. */
+    if (type_source == TypeBase::N16 && type_élément_dest == TypeBase::R16) {
+        return true;
+    }
+
     /* Nous avons différents types de données selon le type connu lors de la compilation. */
     if (type_élément_dest->est_type_type_de_données() && type_source->est_type_type_de_données()) {
         return true;
@@ -616,7 +621,7 @@ void ConstructriceRI::insère_label(InstructionLabel *label)
          * mais la génération de code pour par exemple les conditions d'une instructions `si` sans
          * `sinon` ne met pas de branche à la fin de `si.bloc_si_vrai`. Donc ceci permet de
          * détecter également ces cas. */
-        if (!di->est_branche_ou_retourne()) {
+        if (!di->est_terminatrice()) {
             crée_branche(label->site, label);
         }
     }
@@ -1438,6 +1443,16 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
     return nullptr;
 }
 
+InstructionInatteignable *ConstructriceRI::crée_inatteignable(const NoeudExpression *site,
+                                                              bool crée_seulement)
+{
+    auto résultat = m_inatteignable.ajoute_element(site);
+    if (!crée_seulement) {
+        insère(résultat);
+    }
+    return résultat;
+}
+
 void ConstructriceRI::insère(Instruction *inst)
 {
     m_fonction_courante->instructions.ajoute(inst);
@@ -1770,6 +1785,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
     }
 
     switch (noeud->genre) {
+        case GenreNoeud::COMMENTAIRE:
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:
         case GenreNoeud::DÉCLARATION_ÉNUM:
@@ -1858,7 +1874,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto directive = noeud->comme_exécute();
             assert_rappel(directive->ident == ID::assert_, [&]() {
-                dbg() << "Erreur interne : un directive ne fut pas simplifié !\n"
+                dbg() << "Erreur interne : une directive ne fut pas simplifié !\n"
                       << erreur::imprime_site(*m_espace, noeud);
             });
             break;
@@ -1885,6 +1901,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         case GenreNoeud::DÉCLARATION_OPÉRATEUR_POUR:
         case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
+        case GenreNoeud::INSTRUCTION_TENTE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : un noeud ne fut pas simplifié !\n"
@@ -2041,6 +2058,14 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             auto valeur = m_constructrice.crée_appel(expr_appel, atome_fonc, std::move(args));
 
+            if (atome_fonc->est_fonction()) {
+                auto atome_fonction = atome_fonc->comme_fonction();
+                if (atome_fonction->decl &&
+                    atome_fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+                    m_constructrice.crée_inatteignable(noeud);
+                }
+            }
+
             if (adresse_retour) {
                 m_constructrice.crée_stocke_mem(noeud, adresse_retour, valeur);
                 if (adresse_retour != place) {
@@ -2164,7 +2189,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
         {
             auto lit_chaine = noeud->comme_littérale_chaine();
-            auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(lit_chaine->valeur);
+            auto chaine = compilatrice().gérante_chaine->chaine_pour_adresse(lit_chaine->valeur);
             auto constante = crée_chaine(chaine);
 
             assert_rappel(
@@ -2298,6 +2323,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                         params[0] = acces_taille;
                         params[1] = valeur_;
                         m_constructrice.crée_appel(noeud, fonction, std::move(params));
+                        m_constructrice.crée_inatteignable(noeud);
                     }
 
                     m_constructrice.insère_label(label2);
@@ -2312,6 +2338,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     params[0] = acces_taille;
                     params[1] = valeur_;
                     m_constructrice.crée_appel(noeud, fonction, std::move(params));
+                    m_constructrice.crée_inatteignable(noeud);
 
                     m_constructrice.insère_label(label4);
                 };
@@ -2505,7 +2532,20 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             }
 
             génère_ri_insts_différées(bloc_final);
-            m_constructrice.crée_retour(noeud, valeur_ret);
+
+            if (m_fonction_courante->decl->possède_drapeau(
+                    DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+                if (!m_fonction_courante->instructions.est_vide() &&
+                    !m_fonction_courante->instructions.dernier_élément()->est_inatteignable()) {
+                    /* Crée une instruction inatteignable sauf s'il y a déjà une (qui fut peut-être
+                     * ajoutée par un appel). */
+                    m_constructrice.crée_inatteignable(noeud);
+                }
+            }
+            else {
+                m_constructrice.crée_retour(noeud, valeur_ret);
+            }
+
             break;
         }
         case GenreNoeud::INSTRUCTION_SAUFSI:
@@ -2545,7 +2585,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 génère_ri_pour_noeud(inst_si->bloc_si_vrai);
 
                 auto di = m_fonction_courante->dernière_instruction();
-                if (!di->est_branche_ou_retourne()) {
+                if (!di->est_terminatrice()) {
                     m_constructrice.crée_branche(noeud, label_apres_instruction);
                 }
 
@@ -2621,12 +2661,12 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 m_constructrice.insère_label(label_pour_bloc_inc);
                 génère_ri_pour_noeud(boucle->bloc_inc);
 
-                if (di->est_branche_ou_retourne()) {
+                if (di->est_terminatrice()) {
                     m_constructrice.crée_branche(noeud, label_boucle);
                 }
             }
 
-            if (!di->est_branche_ou_retourne()) {
+            if (!di->est_terminatrice()) {
                 m_constructrice.crée_branche(noeud, label_boucle);
             }
 
@@ -2634,7 +2674,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 m_constructrice.insère_label(label_pour_sansarret);
                 génère_ri_pour_noeud(boucle->bloc_sansarrêt);
                 di = m_fonction_courante->dernière_instruction();
-                if (!di->est_branche_ou_retourne()) {
+                if (!di->est_terminatrice()) {
                     m_constructrice.crée_branche(boucle, label_apres_boucle);
                 }
             }
@@ -2838,11 +2878,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             génère_ri_pour_expression_droite(noeud->comme_expansion_variadique()->expression,
                                              place);
-            break;
-        }
-        case GenreNoeud::INSTRUCTION_TENTE:
-        {
-            génère_ri_pour_tente(noeud->comme_tente());
             break;
         }
     }
@@ -3192,6 +3227,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                     noeud,
                     m_constructrice.trouve_ou_insère_fonction(
                         m_compilatrice.interface_kuri->decl_panique_membre_union));
+                m_constructrice.crée_inatteignable(noeud);
                 m_constructrice.insère_label(label_si_faux);
 
                 valeur = m_constructrice.crée_référence_membre(noeud, valeur, 0);
@@ -3657,140 +3693,6 @@ Atome *CompilatriceRI::crée_transtype_entre_base_et_dérivé(
         noeud, transformation.type_cible, valeur, TypeTranstypage::BITS);
 }
 
-void CompilatriceRI::génère_ri_pour_tente(NoeudInstructionTente const *noeud)
-{
-    // À FAIRE(retours multiples)
-    génère_ri_pour_expression_droite(noeud->expression_appelée, nullptr);
-    auto valeur_expression = depile_valeur();
-
-    struct DonneesGenerationCodeTente {
-        Atome *acces_erreur{};
-        Atome *acces_erreur_pour_test{};
-
-        Type const *type_piege = nullptr;
-        Type const *type_variable = nullptr;
-    };
-
-    if (noeud->expression_appelée->type->est_type_erreur()) {
-
-        DonneesGenerationCodeTente gen_tente;
-        gen_tente.type_piege = noeud->expression_appelée->type;
-        gen_tente.acces_erreur = valeur_expression;
-        gen_tente.acces_erreur_pour_test = gen_tente.acces_erreur;
-
-        auto label_si_vrai = m_constructrice.réserve_label(noeud);
-        auto label_si_faux = m_constructrice.réserve_label(noeud);
-
-        auto condition = m_constructrice.crée_op_comparaison(
-            noeud,
-            OpérateurBinaire::Genre::Comp_Inegal,
-            gen_tente.acces_erreur_pour_test,
-            m_constructrice.crée_constante_nombre_entier(noeud->expression_appelée->type, 0));
-
-        m_constructrice.crée_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
-
-        m_constructrice.insère_label(label_si_vrai);
-        if (noeud->expression_piégée == nullptr) {
-            m_constructrice.crée_appel(noeud,
-                                       m_constructrice.trouve_ou_insère_fonction(
-                                           m_compilatrice.interface_kuri->decl_panique_erreur));
-        }
-        else {
-            auto var_expr_piegee = m_constructrice.crée_allocation(
-                noeud, gen_tente.type_piege, noeud->expression_piégée->ident);
-            auto decl_expr_piegee =
-                noeud->expression_piégée->comme_référence_déclaration()->déclaration_référée;
-            static_cast<NoeudDéclarationSymbole *>(decl_expr_piegee)->atome = var_expr_piegee;
-
-            m_constructrice.crée_stocke_mem(
-                noeud->expression_piégée, var_expr_piegee, valeur_expression);
-
-            génère_ri_pour_noeud(noeud->bloc);
-        }
-
-        m_constructrice.insère_label(label_si_faux);
-
-        if (noeud->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
-            empile_valeur(valeur_expression);
-        }
-        return;
-    }
-    else if (noeud->expression_appelée->type->est_type_union()) {
-        DonneesGenerationCodeTente gen_tente;
-        auto type_union = noeud->expression_appelée->type->comme_type_union();
-        auto index_membre_erreur = 0;
-
-        if (type_union->membres.taille() == 2) {
-            if (type_union->membres[0].type->est_type_erreur()) {
-                gen_tente.type_piege = type_union->membres[0].type;
-                gen_tente.type_variable = type_union->membres[1].type;
-            }
-            else {
-                gen_tente.type_piege = type_union->membres[1].type;
-                gen_tente.type_variable = type_union->membres[0].type;
-                index_membre_erreur = 1;
-            }
-        }
-        else {
-            espace()->rapporte_erreur(
-                noeud, "Utilisation de « tente » sur une union ayant plus de 2 membres !");
-        }
-
-        // test si membre actif est erreur
-        auto label_si_vrai = m_constructrice.réserve_label(noeud);
-        auto label_si_faux = m_constructrice.réserve_label(noeud);
-
-        auto valeur_union = crée_temporaire(noeud, valeur_expression);
-        auto acces_membre_actif = m_constructrice.crée_reference_membre_et_charge(
-            noeud, valeur_union, 1);
-
-        auto condition_membre_actif = m_constructrice.crée_op_comparaison(
-            noeud,
-            OpérateurBinaire::Genre::Comp_Egal,
-            acces_membre_actif,
-            m_constructrice.crée_z32(static_cast<unsigned>(index_membre_erreur + 1)));
-
-        m_constructrice.crée_branche_condition(
-            noeud, condition_membre_actif, label_si_vrai, label_si_faux);
-
-        m_constructrice.insère_label(label_si_vrai);
-        if (noeud->expression_piégée == nullptr) {
-            m_constructrice.crée_appel(noeud,
-                                       m_constructrice.trouve_ou_insère_fonction(
-                                           m_compilatrice.interface_kuri->decl_panique_erreur));
-        }
-        else {
-            Atome *membre_erreur = m_constructrice.crée_référence_membre(noeud, valeur_union, 0);
-            membre_erreur = m_constructrice.crée_transtype(
-                noeud,
-                m_compilatrice.typeuse.type_pointeur_pour(const_cast<Type *>(gen_tente.type_piege),
-                                                          false),
-                membre_erreur,
-                TypeTranstypage::BITS);
-            auto decl_expr_piegee =
-                noeud->expression_piégée->comme_référence_déclaration()->déclaration_référée;
-            static_cast<NoeudDéclarationSymbole *>(decl_expr_piegee)->atome = membre_erreur;
-            génère_ri_pour_noeud(noeud->bloc);
-        }
-
-        m_constructrice.insère_label(label_si_faux);
-
-        if (gen_tente.type_variable->est_type_rien()) {
-            return;
-        }
-
-        valeur_expression = m_constructrice.crée_référence_membre(noeud, valeur_union, 0);
-        valeur_expression = m_constructrice.crée_transtype(
-            noeud,
-            m_compilatrice.typeuse.type_pointeur_pour(const_cast<Type *>(gen_tente.type_variable),
-                                                      false),
-            valeur_expression,
-            TypeTranstypage::BITS);
-    }
-
-    empile_valeur(valeur_expression);
-}
-
 void CompilatriceRI::empile_valeur(Atome *valeur)
 {
     m_pile.ajoute(valeur);
@@ -3878,6 +3780,7 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
         m_constructrice.crée_appel(noeud,
                                    m_constructrice.trouve_ou_insère_fonction(
                                        m_compilatrice.interface_kuri->decl_panique_membre_union));
+        m_constructrice.crée_inatteignable(noeud);
         m_constructrice.insère_label(label_si_faux);
     }
 

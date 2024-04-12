@@ -302,10 +302,10 @@ static void génère_fichier_entête(const ListeLexèmes &lexèmes, std::ostream
 {
     os << "#pragma once\n";
     os << '\n';
-    inclus_systeme(os, "iosfwd");
+    inclus_système(os, "iosfwd");
     inclus(os, "biblinternes/structures/chaine.hh");
     os << '\n';
-    prodeclare_struct(os, "IdentifiantCode");
+    prodéclare_struct(os, "IdentifiantCode");
     os << '\n';
     génère_enum(lexèmes, os);
 
@@ -364,7 +364,7 @@ kuri::chaine_statique chaine_du_lexème(GenreLexème genre);
 static void génère_fichier_source(const ListeLexèmes &lexèmes, std::ostream &os)
 {
     inclus(os, "lexemes.hh");
-    inclus_systeme(os, "iostream");
+    inclus_système(os, "iostream");
     inclus(os, "structures/chaine_statique.hh");
     génère_impression_lexème(lexèmes, os);
     génère_fonction_cpp_pour_drapeau(lexèmes, "est_mot_clé", EST_MOT_CLÉ, os);
@@ -579,7 +579,7 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    if (!remplace_si_different(nom_fichier_tmp, argv[1])) {
+    if (!remplace_si_différent(nom_fichier_tmp, argv[1])) {
         return 1;
     }
 

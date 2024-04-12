@@ -91,7 +91,7 @@ struct Compilatrice {
 
     dls::outils::Synchrone<OrdonnanceuseTache> ordonnanceuse;
 
-    dls::outils::Synchrone<GeranteChaine> gerante_chaine{};
+    dls::outils::Synchrone<GeranteChaine> gérante_chaine{};
 
     dls::outils::Synchrone<Messagère> messagère{};
 
