@@ -58,6 +58,7 @@ ActionSouris :: énum {
     PRESSÉE
     RELACHÉE
     DÉPLACÉE
+    ROULEMENT
 }
 
 BoutonSouris :: énum {
@@ -76,6 +77,8 @@ CliqueSouris :: struct {
     état: ÉtatSouris
     action: ActionSouris
     bouton: BoutonSouris
+    /* Delta pour la molette. */
+    delta: z32
 }
 
 /** } */
