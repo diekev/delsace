@@ -40,7 +40,7 @@ TypeCurseurSystème :: énum {
 /** \nom CliqueSouris
  * \{ */
 
-ModificateurClavié :: énum {
+ModificateurClavier :: énum {
     COMMANDE_OS
     CONTROL
     MAJUSCULE
@@ -51,7 +51,7 @@ ModificateurClavié :: énum {
 ÉtatSouris :: struct {
     quand: z64 // le temps où l'état a été enregistré
     où: Point2D(z32) // là où la souris se trouve
-    modificateur: ModificateurClavié
+    modificateur: ModificateurClavier
 }
 
 ActionSouris :: énum {
