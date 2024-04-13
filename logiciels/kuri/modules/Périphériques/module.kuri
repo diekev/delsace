@@ -40,7 +40,7 @@ TypeCurseurSystème :: énum {
 /** \nom CliqueSouris
  * \{ */
 
-ModificateurClavier :: énum {
+ModificateurClavier :: énum_drapeau {
     COMMANDE_OS
     CONTROL
     MAJUSCULE
