@@ -86,6 +86,10 @@ static ÉtendueSourceNoeud donne_étendue_source_noeud(NoeudExpression const *no
         corrige_étendue_pour_bloc(résultat, inst->bloc_sansarrêt);
         corrige_étendue_pour_bloc(résultat, inst->bloc_sinon);
     }
+    else if (noeud->est_tantque()) {
+        auto inst = noeud->comme_tantque();
+        corrige_étendue_pour_bloc(résultat, inst->bloc);
+    }
 
     return résultat;
 }
