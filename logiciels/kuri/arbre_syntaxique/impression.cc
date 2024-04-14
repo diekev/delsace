@@ -4,6 +4,7 @@
 #include "impression.hh"
 
 #include "cas_genre_noeud.hh"
+#include "etendue_code_source.hh"
 #include "noeud_expression.hh"
 
 #include "compilation/bibliotheque.hh"
@@ -15,84 +16,6 @@
 #include "structures/enchaineuse.hh"
 
 #include "utilitaires/log.hh"
-
-struct ÉtendueSourceNoeud {
-    int ligne_début = 0;
-    int ligne_fin = 0;
-};
-
-static NoeudBloc *donne_bloc_dernière_branche(NoeudSi const *instruction)
-{
-    if (!instruction->bloc_si_faux) {
-        return instruction->bloc_si_vrai->comme_bloc();
-    }
-
-    auto bloc_si_faux = instruction->bloc_si_faux;
-    if (bloc_si_faux->est_bloc()) {
-        return bloc_si_faux->comme_bloc();
-    }
-
-    if (bloc_si_faux->est_si()) {
-        return donne_bloc_dernière_branche(bloc_si_faux->comme_si());
-    }
-
-    return nullptr;
-}
-
-static void corrige_étendue_pour_chaine_lexème(ÉtendueSourceNoeud &étendue, Lexème const *lexème)
-{
-    POUR (lexème->chaine) {
-        if (it == '\n') {
-            étendue.ligne_fin += 1;
-        }
-    }
-}
-
-static void corrige_étendue_pour_bloc(ÉtendueSourceNoeud &étendue, NoeudBloc const *bloc)
-{
-    /* Les blocs de corps de fonctions générées par des #corps_texte n'ont pas d'accolades. */
-    if (bloc && bloc->lexème_accolade_finale) {
-        étendue.ligne_fin = std::max(étendue.ligne_fin, bloc->lexème_accolade_finale->ligne);
-    }
-}
-
-static ÉtendueSourceNoeud donne_étendue_source_noeud(NoeudExpression const *noeud)
-{
-    auto lexème = noeud->lexème;
-    auto résultat = ÉtendueSourceNoeud{};
-    résultat.ligne_début = lexème->ligne;
-    résultat.ligne_fin = lexème->ligne;
-
-    if (noeud->est_commentaire() || noeud->est_littérale_chaine()) {
-        corrige_étendue_pour_chaine_lexème(résultat, lexème);
-    }
-    else if (noeud->est_bloc()) {
-        corrige_étendue_pour_bloc(résultat, noeud->comme_bloc());
-    }
-    else if (noeud->est_si()) {
-        auto inst = noeud->comme_si();
-        auto bloc = donne_bloc_dernière_branche(inst);
-        corrige_étendue_pour_bloc(résultat, bloc);
-    }
-    else if (noeud->est_diffère()) {
-        auto inst = noeud->comme_diffère();
-        if (inst->expression->est_bloc()) {
-            corrige_étendue_pour_bloc(résultat, inst->expression->comme_bloc());
-        }
-    }
-    else if (noeud->est_pour()) {
-        auto inst = noeud->comme_pour();
-        corrige_étendue_pour_bloc(résultat, inst->bloc);
-        corrige_étendue_pour_bloc(résultat, inst->bloc_sansarrêt);
-        corrige_étendue_pour_bloc(résultat, inst->bloc_sinon);
-    }
-    else if (noeud->est_tantque()) {
-        auto inst = noeud->comme_tantque();
-        corrige_étendue_pour_bloc(résultat, inst->bloc);
-    }
-
-    return résultat;
-}
 
 static kuri::chaine_statique chaine_indentations_espace(int indentations)
 {
