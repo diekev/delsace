@@ -161,6 +161,61 @@ static void imprime_données_externes(Enchaineuse &enchaineuse,
     }
 }
 
+static void imprime_bloc(Enchaineuse &enchaineuse,
+                         ÉtatImpression état,
+                         NoeudBloc const *bloc,
+                         bool const appartiens_à_module)
+{
+    if (!appartiens_à_module) {
+        if (état.imprime_indent_avant_bloc) {
+            enchaineuse << état.indent;
+        }
+
+        enchaineuse << "{\n";
+        état.indent.v += 1;
+    }
+
+    std::optional<int> dernière_ligne_lexème;
+
+    auto imprime_nouvelle_ligne_après_bloc = état.imprime_nouvelle_ligne_après_bloc;
+    état.imprime_nouvelle_ligne_après_bloc = true;
+
+    POUR (*bloc->expressions.verrou_lecture()) {
+        /* Ignore les expressions ajoutées lors de la validation sémantique (par exemple,
+         * les variables capturées par les discriminations). */
+        if (it->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE) && !état.préfére_substitution) {
+            continue;
+        }
+
+        /* Essaie de préserver les séparations dans le texte originel. */
+        if (dernière_ligne_lexème.has_value()) {
+            if (it->lexème->ligne > (dernière_ligne_lexème.value() + 1)) {
+                enchaineuse << "\n";
+            }
+        }
+
+        enchaineuse << état.indent;
+        imprime_arbre(enchaineuse, état, it);
+
+        /* N'insèrons pas de nouvelle ligne si la dernière expression eu un bloc (car ce
+         * fut déjà fait). */
+        if (!expression_eu_bloc(it)) {
+            enchaineuse << "\n";
+        }
+
+        dernière_ligne_lexème = it->lexème->ligne;
+    }
+
+    if (!appartiens_à_module) {
+        état.indent.v -= 1;
+
+        enchaineuse << état.indent << "}";
+        if (imprime_nouvelle_ligne_après_bloc) {
+            enchaineuse << "\n";
+        }
+    }
+}
+
 static void imprime_arbre(Enchaineuse &enchaineuse,
                           ÉtatImpression état,
                           NoeudExpression const *noeud)
@@ -343,51 +398,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         case GenreNoeud::INSTRUCTION_COMPOSÉE:
         {
             auto bloc = noeud->comme_bloc();
-
-            if (état.imprime_indent_avant_bloc) {
-                enchaineuse << état.indent;
-            }
-
-            enchaineuse << "{\n";
-
-            std::optional<int> dernière_ligne_lexème;
-
-            auto imprime_nouvelle_ligne_après_bloc = état.imprime_nouvelle_ligne_après_bloc;
-            état.imprime_nouvelle_ligne_après_bloc = true;
-
-            état.indent.v += 1;
-            POUR (*bloc->expressions.verrou_lecture()) {
-                /* Ignore les expressions ajoutées lors de la validation sémantique (par exemple,
-                 * les variables capturées par les discriminations). */
-                if (it->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE) &&
-                    !état.préfére_substitution) {
-                    continue;
-                }
-
-                /* Essaie de préserver les séparations dans le texte originel. */
-                if (dernière_ligne_lexème.has_value()) {
-                    if (it->lexème->ligne > (dernière_ligne_lexème.value() + 1)) {
-                        enchaineuse << "\n";
-                    }
-                }
-
-                enchaineuse << état.indent;
-                imprime_arbre(enchaineuse, état, it);
-
-                /* N'insèrons pas de nouvelle ligne si la dernière expression eu un bloc (car ce
-                 * fut déjà fait). */
-                if (!expression_eu_bloc(it)) {
-                    enchaineuse << "\n";
-                }
-
-                dernière_ligne_lexème = it->lexème->ligne;
-            }
-            état.indent.v -= 1;
-
-            enchaineuse << état.indent << "}";
-            if (imprime_nouvelle_ligne_après_bloc) {
-                enchaineuse << "\n";
-            }
+            imprime_bloc(enchaineuse, état, bloc, false);
             break;
         }
         case GenreNoeud::INSTRUCTION_BOUCLE:
@@ -1118,6 +1129,11 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             break;
         }
     }
+}
+
+void imprime_arbre_formatté_bloc_module(Enchaineuse &enchaineuse, NoeudBloc const *bloc)
+{
+    imprime_bloc(enchaineuse, ÉtatImpression{}, bloc, true);
 }
 
 void imprime_arbre_formatté(Enchaineuse &enchaineuse, NoeudExpression const *noeud)

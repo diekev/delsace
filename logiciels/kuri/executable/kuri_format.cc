@@ -48,25 +48,8 @@ int main(int argc, char **argv)
 
     assert(module.bloc);
 
-    std::optional<int> dernière_ligne_lexème;
-
     Enchaineuse enchaineuse;
-    POUR (*module.bloc->expressions.verrou_lecture()) {
-        /* Essaie de préserver les séparations dans le texte originel. */
-        if (dernière_ligne_lexème.has_value()) {
-            if (it->lexème->ligne > (dernière_ligne_lexème.value() + 1)) {
-                enchaineuse << "\n";
-            }
-        }
-
-        imprime_arbre_formatté(enchaineuse, it);
-
-        if (!expression_eu_bloc(it)) {
-            enchaineuse << "\n";
-        }
-
-        dernière_ligne_lexème = it->lexème->ligne;
-    }
+    imprime_arbre_formatté_bloc_module(enchaineuse, module.bloc);
 
     auto os = std::ofstream(vers_std_path(chemin_fichier));
     os << enchaineuse.chaine();
