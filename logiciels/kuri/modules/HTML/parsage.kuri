@@ -7,17 +7,17 @@ charge "tags_html"
 TypeFonctionModeInsertion :: fonc(*Parseuse, Lexème)(rien)
 
 Parseuse :: struct {
-    mode_insertion : TypeFonctionModeInsertion
-    mode_insertion_original : TypeFonctionModeInsertion
-    pile_insertion_template : [..]TypeFonctionModeInsertion
+    mode_insertion: TypeFonctionModeInsertion
+    mode_insertion_original: TypeFonctionModeInsertion
+    pile_insertion_template: [..]TypeFonctionModeInsertion
     lexeuse: Lexeuse
     document: *Document
 
-    élément_head : *Élément
-    élément_form : *Élément
+    élément_head: *Élément
+    élément_form: *Élément
 
-    pile_éléments_ouvert : PileÉlémentsOuverts
-    liste_éléments_actifs_formattage : ListeÉlémentsActifsFormattage
+    pile_éléments_ouvert: PileÉlémentsOuverts
+    liste_éléments_actifs_formattage: ListeÉlémentsActifsFormattage
 
     arrête_de_parser := faux
     adoption_activée := faux
@@ -99,7 +99,7 @@ gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: TypeFonctionModeInse
     mode(parseuse, lexème)
 }
 
-trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override: *Noeud = nul) -> *Noeud
+trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override : *Noeud = nul) -> *Noeud
 {
     cible : *Noeud = nul
 
@@ -217,7 +217,7 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
-    lexème_html : Lexème
+    lexème_html: Lexème
     lexème_html.nom = TAG_html
     élément := parseuse.crée_élément_pour(lexème_html)
     parseuse.document.ajoute_enfant(élément)
@@ -1043,7 +1043,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             si !possède_dans_portée_button(*parseuse.pile_éléments_ouvert, TAG_p) {
                 erreur_de_parsage(parseuse, "aucun <p> ouvert dans une portée <button>")
 
-                lexème_p : Lexème
+                lexème_p: Lexème
                 lexème_p.genre = GenreLexème.DébutTag
                 lexème_p.nom = TAG_p
                 _ := insère_élément_html(parseuse, lexème_p)
@@ -1071,7 +1071,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             retourne
         }
 
-        si lexème.nom == TAG_dd || lexème.nom == TAG_dt {
+        si lexème.nom == TAG_dd || lexème.nom == TAG_dt {
             si !possède_dans_portée(*parseuse.pile_éléments_ouvert, lexème.nom) {
                 erreur_de_parsage(parseuse, "aucun <dd> ou <dt> dans la portée")
                 retourne
@@ -1146,7 +1146,8 @@ insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_script {
         // À FAIRE : JavaScript execution context stack
 
-        _ /* script */ := parseuse.noeud_courant()
+        /* script */
+        _ := parseuse.noeud_courant()
         dépile(*parseuse.pile_éléments_ouvert)
         parseuse.mode_insertion = parseuse.mode_insertion_original
 
@@ -1204,7 +1205,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == TAG_col {
             parseuse.dépile_vers_contexte_table()
 
-            lexème_col : Lexème
+            lexème_col: Lexème
             lexème_col.nom = TAG_colgroup
             lexème_col.genre = GenreLexème.DébutTag
             _ := parseuse.insère_élément_html(lexème_col)
@@ -1224,7 +1225,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si fait_partie_de(lexème.nom, TAG_td, TAG_th, TAG_tr) {
             parseuse.dépile_vers_contexte_table()
 
-            lexème_tbody : Lexème
+            lexème_tbody: Lexème
             lexème_tbody.nom = TAG_tbody
             lexème_tbody.genre = GenreLexème.DébutTag
             _ := parseuse.insère_élément_html(lexème_tbody)
@@ -1410,7 +1411,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             erreur_de_parsage(parseuse, "<th> ou <td> dans corps table")
             parseuse.dépile_vers_contexte_table_body()
 
-            lexème_tr : Lexème
+            lexème_tr: Lexème
             lexème_tr.genre = GenreLexème.DébutTag
             lexème_tr.nom = TAG_tr
             _ := parseuse.insère_élément_html(lexème)
@@ -1692,7 +1693,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_option {
-            si parseuse.noeud_courant().texte != TAG_option  {
+            si parseuse.noeud_courant().texte != TAG_option {
                 erreur_de_parsage(parseuse, "attendu <option> sur la pile d'éléments ouverts")
                 retourne
             }
@@ -1744,7 +1745,7 @@ insère_mode_DansTemplate :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.DébutTag {
-        si fait_partie_de(lexème.nom,  TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title) {
+        si fait_partie_de(lexème.nom, TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title) {
             parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
             retourne
         }
@@ -2015,13 +2016,13 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         // À FAIRE : implémente correctement cet algorithme
         //si furthest_block == nul {
-            tantque parseuse.noeud_courant() != élément_formattage {
-                dépile(*parseuse.pile_éléments_ouvert)
-            }
+        tantque parseuse.noeud_courant() != élément_formattage {
             dépile(*parseuse.pile_éléments_ouvert)
+        }
+        dépile(*parseuse.pile_éléments_ouvert)
 
-            supprime_élément(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
-            retourne
+        supprime_élément(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
+        retourne
         //}
 
         // common_ancestor := élément_précédent(*parseuse.pile_éléments_ouvert, élément_formattage)
