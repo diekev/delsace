@@ -169,7 +169,15 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
         case GenreNoeud::INSTRUCTION_DIFFÈRE:
         {
             auto instruction = noeud->comme_diffère();
-            return instruction->expression->est_bloc();
+            auto expression = instruction->expression;
+            if (expression->est_bloc()) {
+                auto bloc = expression->comme_bloc();
+                if (bloc->expressions->taille() == 1) {
+                    return false;
+                }
+                return true;
+            }
+            return false;
         }
         default:
         {
@@ -864,8 +872,18 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             auto inst = noeud->comme_diffère();
             imprime_lexème_mot_clé(enchaineuse, inst, true);
+
+            /* Supprime les accolades pour s'il n'y a qu'une seule expression. */
+            auto expression = inst->expression;
+            if (expression->est_bloc()) {
+                auto bloc = expression->comme_bloc();
+                if (bloc->expressions->taille() == 1) {
+                    expression = (*bloc->expressions.verrou_lecture())[0];
+                }
+            }
+
             état.imprime_indent_avant_bloc = false;
-            imprime_arbre(enchaineuse, état, inst->expression);
+            imprime_arbre(enchaineuse, état, expression);
             break;
         }
         case GenreNoeud::INSTRUCTION_ARRÊTE:
