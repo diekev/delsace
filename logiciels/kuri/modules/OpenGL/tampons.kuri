@@ -195,6 +195,23 @@ ParamètresCréationTampon :: struct {
 	nombre_instances : n64
 }
 
+initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attribut: chaine, sommets: []Vec3, index: []n32)
+{
+	params.attribut = attribut
+	params.dimension_attribut = 3
+	params.pointeur_sommets = sommets.pointeur
+	params.taille_octet_sommets = tableau_taille_mémoire(sommets) comme n64
+	params.pointeur_index = index.pointeur
+	params.taille_octet_index = tableau_taille_mémoire(index) comme n64
+
+    si index.taille != 0 {
+	    params.éléments = index.taille comme n64
+    }
+    sinon {
+	    params.éléments = sommets.taille comme n64
+    }
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
