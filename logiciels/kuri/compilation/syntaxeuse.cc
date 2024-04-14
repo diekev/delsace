@@ -2395,6 +2395,14 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
             continue;
         }
 
+        if (apparie_commentaire()) {
+            lexème = lexème_courant();
+            auto noeud = m_tacheronne.assembleuse->crée_commentaire(lexème);
+            expressions.ajoute(noeud);
+            consomme();
+            continue;
+        }
+
         if (!apparie_expression()) {
             rapporte_erreur("Attendu une expression dans le bloc de l'énumération");
             continue;
