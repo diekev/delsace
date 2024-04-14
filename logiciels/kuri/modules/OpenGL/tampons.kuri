@@ -35,7 +35,7 @@ détache :: fonc (objet: *ObjetTamponTableau)
     glBindVertexArray(0)
 }
 
-définis_pointeur_attribut :: fonc (objet: *ObjetTamponTableau, index: n32, size: z32, stride: z32 = 0, pointeur: *rien = nul)
+définis_pointeur_attribut :: fonc (objet: *ObjetTamponTableau, index: n32, size: z32, stride : z32 = 0, pointeur : *rien = nul)
 {
     glEnableVertexAttribArray(index)
     glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, pointeur)
@@ -113,7 +113,7 @@ détache :: fonc (tampon: *TamponObjet @inutilisée)
     glBindVertexArray(0)
 }
 
-définis_pointeur_attribut :: fonc (tampon: *TamponObjet @inutilisée, index: n32, size: z32, stride: z32 = 0, pointeur: *rien = nul)
+définis_pointeur_attribut :: fonc (tampon: *TamponObjet @inutilisée, index: n32, size: z32, stride : z32 = 0, pointeur : *rien = nul)
 {
     glEnableVertexAttribArray(index)
     glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride comme n32, pointeur)
@@ -136,7 +136,7 @@ génère_tampon_normal :: fonc (empl tampon: *TamponObjet, colors: *rien, size: 
 
 génère_tampon_extra :: fonc (empl tampon: *TamponObjet, data: *rien, size: z64)
 {
-    extra_buffer : n32
+    extra_buffer: n32
     génère_tampon(*extra_buffer, data, size, GL_ARRAY_BUFFER)
     tableau_ajoute(*tampons_extra, extra_buffer)
 }
@@ -165,34 +165,34 @@ ajourne_tampon_index :: fonc (empl tampon: *TamponObjet, indices: *rien, size: z
 
 ParamètresCréationTampon :: struct {
     /* Le nom de l'attribut. */
-    attribut : chaine
+    attribut: chaine
 
     /* Le nombre de dimension d'un élément de l'attribut (généralement 2 ou 3). */
-    dimension_attribut : z32
+    dimension_attribut: z32
 
     /* Le pointeur vers le début du tableau de sommets. */
-    pointeur_sommets : *rien
+    pointeur_sommets: *rien
 
     /* La taille en octet des sommets. */
-    taille_octet_sommets : n64
+    taille_octet_sommets: n64
 
     /* Le pointeur vers le début du tableau d'index des sommets. */
-    pointeur_index : *rien
+    pointeur_index: *rien
 
     /* Le taille en octet des index des sommets. */
-    taille_octet_index : n64
+    taille_octet_index: n64
 
     /* Le nombre d'index. */
-    éléments : n64
+    éléments: n64
 
     /* Le pointeur vers le début du tableau des données extra. */
-    pointeur_données_extra : *rien
+    pointeur_données_extra: *rien
 
     /* Le taille en octet des données extra. */
-    taille_octet_données_extra : n64
+    taille_octet_données_extra: n64
 
     /* Le nombre d'instances à dessiner */
-    nombre_instances : n64
+    nombre_instances: n64
 }
 
 initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attribut: chaine, sommets: []Vec3, index: []n32)
@@ -240,12 +240,12 @@ ParamètresDessin :: struct {
  * \{ */
 
 ContexteRendu :: struct {
-    modèle_vue : Mat4r
-    projection : Mat4r
-    modèle_vue_projection : Mat4r
-    vue : Vec3
-    normal : Mat3r
-    matrice_objet : Mat4r
+    modèle_vue: Mat4r
+    projection: Mat4r
+    modèle_vue_projection: Mat4r
+    vue: Vec3
+    normal: Mat3r
+    matrice_objet: Mat4r
     pour_surlignage := faux
     dessine_arrêtes := faux
     dessine_normaux := faux
@@ -258,7 +258,7 @@ ContexteRendu :: struct {
  * \{ */
 
 TamponRendu :: struct {
-    programme : *ProgrammeDeNuançage
+    programme: *ProgrammeDeNuançage
     données_tampon: *TamponObjet
     paramètres_dessin: ParamètresDessin
 
@@ -303,11 +303,11 @@ remplis_tampon :: fonc (empl tampon: *TamponRendu, paramètres: &ParamètresCré
     diffère détache(données_tampon)
 
     génère_tampon_sommet(données_tampon, paramètres.pointeur_sommets, paramètres.taille_octet_sommets comme z64)
-    vérifie_erreur("Erreur lors du tampon sommet");
+    vérifie_erreur("Erreur lors du tampon sommet")
 
     si paramètres.pointeur_index {
         génère_tampon_index(données_tampon, paramètres.pointeur_index, paramètres.taille_octet_index comme z64)
-        vérifie_erreur("Erreur lors du tampon index");
+        vérifie_erreur("Erreur lors du tampon index")
         dessin_indexé = vrai
     }
 
@@ -323,10 +323,10 @@ remplis_tampon_extra :: fonc (empl tampon: *TamponRendu, paramètres: &Paramètr
     diffère détache(données_tampon)
 
     génère_tampon_extra(données_tampon, paramètres.pointeur_données_extra, paramètres.taille_octet_données_extra comme z64)
-    vérifie_erreur("Erreur lors de la génération du tampon extra");
+    vérifie_erreur("Erreur lors de la génération du tampon extra")
 
     définis_pointeur_attribut(données_tampon, programme.donne_adresse_attribut(paramètres.attribut) comme n32, paramètres.dimension_attribut)
-    vérifie_erreur("Erreur lors de la mise en place du pointeur");
+    vérifie_erreur("Erreur lors de la mise en place du pointeur")
 
     // if (parametres.attribut == "normal" || parametres.attribut == "normaux") {
     //     m_requiers_normal = true;
@@ -347,7 +347,7 @@ dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
         glLineWidth(paramètres_dessin.taille_ligne)
     }
 
-    vérifie_erreur("Erreur lors du rendu du tampon avant utilisation programme");
+    vérifie_erreur("Erreur lors du rendu du tampon avant utilisation programme")
 
     active(programme)
     diffère désactive(programme)
@@ -358,9 +358,9 @@ dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
     // textures
 
     définis_uniforme(programme, "matrice", ctx.matrice_objet)
-    vérifie_erreur("Erreur lors du passage de la matrice objet");
+    vérifie_erreur("Erreur lors du passage de la matrice objet")
     définis_uniforme(programme, "MVP", ctx.modèle_vue_projection)
-    vérifie_erreur("Erreur lors du passage de la matrice MVP");
+    vérifie_erreur("Erreur lors du passage de la matrice MVP")
 
     // À FAIRE
     // if (m_requiers_normal) {
@@ -391,15 +391,15 @@ dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
     //     }
     // }
     // sinon {
-        si dessin_indexé {
-            glDrawElements(paramètres_dessin.type_dessin, éléments comme z32, paramètres_dessin.type_données, nul);
-        }
-        sinon {
-            glDrawArrays(paramètres_dessin.type_dessin, 0, éléments comme z32);
-        }
+    si dessin_indexé {
+        glDrawElements(paramètres_dessin.type_dessin, éléments comme z32, paramètres_dessin.type_données, nul)
+    }
+    sinon {
+        glDrawArrays(paramètres_dessin.type_dessin, 0, éléments comme z32)
+    }
     // }
 
-    vérifie_erreur("Erreur lors du rendu du tampon après dessin indexé");
+    vérifie_erreur("Erreur lors du rendu du tampon après dessin indexé")
 
     si paramètres_dessin.type_dessin == GL_POINTS {
         glPointSize(1.0)
