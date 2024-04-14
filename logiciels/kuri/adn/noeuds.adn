@@ -1114,6 +1114,8 @@ struct NoeudBloc : NoeudExpression {
      * membres du bloc pour savoir s'il en reste à valider. */
     bool membres_sont_sales
     bool expressions_sont_sales
+    /* Pour le formattage. */
+    Lexème const * lexème_accolade_finale
 }
 
 struct NoeudPaireDiscr : NoeudExpression {

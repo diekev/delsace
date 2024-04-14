@@ -1881,6 +1881,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
     m_tacheronne.assembleuse->dépile_bloc();
 
     if (accolade_requise) {
+        bloc->lexème_accolade_finale = lexème_courant();
         consomme(GenreLexème::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}'");
     }
 
@@ -1993,6 +1994,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 
     copie_tablet_tableau(paires_discr, noeud_discr->paires_discr);
 
+    noeud_discr->bloc->lexème_accolade_finale = lexème_courant();
     consomme(GenreLexème::ACCOLADE_FERMANTE,
              "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 
@@ -2418,6 +2420,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
     m_tacheronne.assembleuse->dépile_bloc();
     noeud_decl->bloc = bloc;
 
+    bloc->lexème_accolade_finale = lexème_courant();
     consomme(GenreLexème::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
 
     analyse_annotations(noeud_decl->annotations);
@@ -3286,6 +3289,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDéclaration
 
     copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
+    bloc->lexème_accolade_finale = lexème_courant();
     consomme(GenreLexème::ACCOLADE_FERMANTE,
              "Attendu '}' à la fin de la déclaration de la structure");
 
