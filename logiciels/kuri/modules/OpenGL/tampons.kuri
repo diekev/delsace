@@ -195,6 +195,31 @@ ParamètresCréationTampon :: struct {
 	nombre_instances : n64
 }
 
+initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attribut: chaine, sommets: []Vec3, index: []n32)
+{
+	params.attribut = attribut
+	params.dimension_attribut = 3
+	params.pointeur_sommets = sommets.pointeur
+	params.taille_octet_sommets = tableau_taille_mémoire(sommets) comme n64
+	params.pointeur_index = index.pointeur
+	params.taille_octet_index = tableau_taille_mémoire(index) comme n64
+
+    si index.taille != 0 {
+	    params.éléments = index.taille comme n64
+    }
+    sinon {
+	    params.éléments = sommets.taille comme n64
+    }
+}
+
+initialise_paramètres_extra :: fonc (params: *ParamètresCréationTampon, attribut: chaine, données: []Vec3)
+{
+	params.attribut = attribut
+	params.dimension_attribut = 3
+	params.pointeur_données_extra = données.pointeur
+	params.taille_octet_données_extra = tableau_taille_mémoire(données) comme n64
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -250,6 +275,9 @@ crée_tampon_rendu :: fonc (programme: *ProgrammeDeNuançage) -> *TamponRendu
 
 détruit_tampon_rendu :: fonc (tampon: *TamponRendu)
 {
+	saufsi tampon {
+		retourne
+	}
     si tampon.données_tampon {
         détruit_tampon_objet(tampon.données_tampon)
     }
@@ -285,6 +313,24 @@ remplis_tampon :: fonc (empl tampon: *TamponRendu, paramètres: &ParamètresCré
 
 	définis_pointeur_attribut(données_tampon, programme.donne_adresse_attribut(paramètres.attribut) comme n32, paramètres.dimension_attribut)
 	vérifie_erreur("Erreur lors de la mise en place de l'attribut")
+}
+
+remplis_tampon_extra :: fonc (empl tampon: *TamponRendu, paramètres: &ParamètresCréationTampon)
+{
+	initialise_objet_tampon(tampon)
+
+	attache(données_tampon)
+    diffère détache(données_tampon)
+
+	génère_tampon_extra(données_tampon, paramètres.pointeur_données_extra, paramètres.taille_octet_données_extra comme z64)
+	vérifie_erreur("Erreur lors de la génération du tampon extra");
+
+	définis_pointeur_attribut(données_tampon, programme.donne_adresse_attribut(paramètres.attribut) comme n32, paramètres.dimension_attribut)
+	vérifie_erreur("Erreur lors de la mise en place du pointeur");
+
+	// if (parametres.attribut == "normal" || parametres.attribut == "normaux") {
+	// 	m_requiers_normal = true;
+	// }
 }
 
 dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
