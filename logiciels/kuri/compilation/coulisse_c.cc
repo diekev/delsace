@@ -1126,6 +1126,102 @@ int64_t GénératriceCodeC::mémoire_utilisée() const
     return résultat;
 }
 
+template <typename T>
+static void imprime_tableau_données_constantes(Enchaineuse &enchaineuse,
+                                               kuri::tableau_statique<T> données)
+{
+    auto virgule = "{{ ";
+
+    POUR (données) {
+        enchaineuse << virgule << it;
+        virgule = ", ";
+    }
+
+    if (données.taille() == 0) {
+        enchaineuse << "{{";
+    }
+
+    enchaineuse << " }}";
+}
+
+template <typename T>
+static kuri::tableau_statique<const T> donne_tableau_typé(
+    AtomeConstanteDonnéesConstantes const *constante, int taille_données)
+{
+    auto const données = constante->donne_données();
+    auto pointeur_données = reinterpret_cast<T const *>(données.begin());
+    return {pointeur_données, taille_données};
+}
+
+static kuri::chaine_statique génère_code_pour_données_constantes(
+    Enchaineuse &enchaineuse, AtomeConstanteDonnéesConstantes const *constante)
+{
+    enchaineuse.réinitialise();
+
+    auto const type_tableau = constante->type->comme_type_tableau_fixe();
+    auto const taille_tableau = type_tableau->taille;
+    auto const type_élément = type_tableau->type_pointé;
+
+    if (type_élément->est_type_entier_relatif() || type_élément->est_type_entier_constant()) {
+        if (type_élément->taille_octet == 1) {
+            auto données = donne_tableau_typé<int8_t>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+        else if (type_élément->taille_octet == 2) {
+            auto données = donne_tableau_typé<int16_t>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+        else if (type_élément->taille_octet == 4 || type_élément->est_type_entier_constant()) {
+            auto données = donne_tableau_typé<int32_t>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+        else {
+            auto données = donne_tableau_typé<int64_t>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+    }
+    else if (type_élément->est_type_entier_naturel()) {
+        if (type_élément->taille_octet == 1) {
+            auto données = donne_tableau_typé<uint8_t>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+        else if (type_élément->taille_octet == 2) {
+            auto données = donne_tableau_typé<uint16_t>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+        else if (type_élément->taille_octet == 4 || type_élément->est_type_entier_constant()) {
+            auto données = donne_tableau_typé<uint32_t>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+        else {
+            auto données = donne_tableau_typé<uint64_t>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+    }
+    else if (type_élément->est_type_réel()) {
+        if (type_élément->taille_octet == 2) {
+            /* Les r16 sont représenté comme des n16. */
+            auto données = donne_tableau_typé<uint16_t>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+        else if (type_élément->taille_octet == 4) {
+            auto données = donne_tableau_typé<float>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+        else {
+            auto données = donne_tableau_typé<double>(constante, taille_tableau);
+            imprime_tableau_données_constantes(enchaineuse, données);
+        }
+    }
+
+    assert_rappel(false, [&]() {
+        dbg() << "Type non pris en charge dans les données constantes : "
+              << chaine_type(type_élément);
+    });
+
+    return enchaineuse.chaine_statique();
+}
+
 kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *atome,
                                                                Enchaineuse &os,
                                                                bool pour_globale)
@@ -1371,27 +1467,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
             auto constante = atome->comme_données_constantes();
-            auto données = constante->donne_données();
-
-            enchaineuse_tmp.réinitialise();
-
-            auto virgule = "{ ";
-
-            POUR (données) {
-                enchaineuse_tmp << virgule;
-                enchaineuse_tmp << "0x";
-                enchaineuse_tmp << dls::num::char_depuis_hex((it & 0xf0) >> 4);
-                enchaineuse_tmp << dls::num::char_depuis_hex(it & 0x0f);
-                virgule = ", ";
-            }
-
-            if (données.taille() == 0) {
-                enchaineuse_tmp << "{";
-            }
-
-            enchaineuse_tmp << " }";
-
-            return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+            auto chn_tmp = génère_code_pour_données_constantes(enchaineuse_tmp, constante);
+            return stockage_chn.ajoute_chaine_statique(chn_tmp);
         }
         case Atome::Genre::INITIALISATION_TABLEAU:
         {
