@@ -907,12 +907,17 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             auto expression = noeud->comme_expression_binaire();
             imprime_arbre(enchaineuse, état, expression->opérande_gauche);
-            enchaineuse << " ";
+            /* Pas d'espaces pour les contraintes polymorphiques. */
+            auto const avec_espaces = !expression->opérande_gauche->possède_drapeau(
+                DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
+            if (avec_espaces) {
+                enchaineuse << " ";
+            }
             if (expression->op) {
                 enchaineuse << donne_chaine_lexème_pour_op_binaire(expression->op->genre) << " ";
             }
             else {
-                imprime_lexème_mot_clé(enchaineuse, expression, true);
+                imprime_lexème_mot_clé(enchaineuse, expression, avec_espaces);
             }
             imprime_arbre(enchaineuse, état, expression->opérande_droite);
             break;
