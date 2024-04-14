@@ -267,6 +267,9 @@ crée_tampon_rendu :: fonc (programme: *ProgrammeDeNuançage) -> *TamponRendu
 
 détruit_tampon_rendu :: fonc (tampon: *TamponRendu)
 {
+	saufsi tampon {
+		retourne
+	}
     si tampon.données_tampon {
         détruit_tampon_objet(tampon.données_tampon)
     }
