@@ -351,3 +351,16 @@ dernier_élément :: fonc (tableau: [..]$T) -> *T
     }
     retourne *tableau.pointeur[tableau.taille - 1]
 }
+
+tableau_iota :: fonc (tableau: []$T, valeur_initiale: T)
+{
+    pour & tableau {
+        it = valeur_initiale
+        valeur_initiale += (1 comme T)
+    }
+}
+
+tableau_taille_mémoire :: fonc (tableau: []$T) -> z64
+{
+    retourne tableau.taille * taille_de(T) comme z64
+}
