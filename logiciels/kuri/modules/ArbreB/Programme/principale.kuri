@@ -3,16 +3,16 @@ importe Fondation
 
 principale :: fonc () -> z32
 {
-    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée())
 
     imprime("Test cache MRU :\n")
     file := crée_file(4)
-    diffère { détruit_file(file) }
+    diffère détruit_file(file)
 
     hash := crée_hash(10)
-    diffère { détruit_hash(hash) }
+    diffère détruit_hash(hash)
 
-    pages_à_référencer := [1, 2, 3, 1, 4, 5]
+    pages_à_référencer := [ 1, 2, 3, 1, 4, 5 ]
     pour pages_à_référencer {
         file.référence_page(hash, it)
     }
@@ -24,7 +24,7 @@ principale :: fonc () -> z32
     imprime("Test arbre B :\n")
 
     arbre := construit_arbre(3, z32)
-    diffère { détruit_arbre(*arbre) }
+    diffère détruit_arbre(*arbre)
 
     valeurs_à_insérer := [
         1, 3, 7, 10, 11, 13, 14, 15, 18, 16, 19,
@@ -45,7 +45,7 @@ principale :: fonc () -> z32
     imprime("\n")
 
     imprime("Suppression de valeurs :\n")
-    valeurs_à_supprimer := [6, 13, 7, 4, 2, 16]
+    valeurs_à_supprimer := [ 6, 13, 7, 4, 2, 16 ]
     pour valeurs_à_supprimer {
         supprime_et_traverse(*arbre, it)
     }
@@ -66,7 +66,7 @@ NoeudFile :: struct {
     numéro_page: z32
 }
 
-crée_noeud :: fonc(numéro_page: z32) -> *NoeudFile
+crée_noeud :: fonc (numéro_page: z32) -> *NoeudFile
 {
     n := loge(NoeudFile)
     n.numéro_page = numéro_page
@@ -80,11 +80,11 @@ File :: struct {
     nombre_de_pages := 0
     nombre_de_pages_remplies := 0
 
-    front: *NoeudFile = nul
-    cul: *NoeudFile = nul
+    front : *NoeudFile = nul
+    cul : *NoeudFile = nul
 }
 
-crée_file :: fonc(nombre_de_pages: z32) -> *File
+crée_file :: fonc (nombre_de_pages: z32) -> *File
 {
     f := loge(File)
     f.nombre_de_pages = nombre_de_pages
@@ -95,17 +95,17 @@ crée_file :: fonc(nombre_de_pages: z32) -> *File
     retourne f
 }
 
-sont_toutes_les_pages_pleines :: fonc(file: *File) -> bool
+sont_toutes_les_pages_pleines :: fonc (file: *File) -> bool
 {
     retourne file.nombre_de_pages_remplies == file.nombre_de_pages
 }
 
-est_vide :: fonc(file: *File) -> bool
+est_vide :: fonc (file: *File) -> bool
 {
     retourne file.cul == nul
 }
 
-défile :: fonc(file: *File) -> rien
+défile :: fonc (file: *File) -> rien
 {
     si file.est_vide() {
         retourne
@@ -132,7 +132,7 @@ Hash :: struct {
     capacité := 0
 }
 
-crée_hash :: fonc(capacité: z32) -> *Hash
+crée_hash :: fonc (capacité: z32) -> *Hash
 {
     h := loge(Hash)
     h.capacité = 0
@@ -146,7 +146,7 @@ crée_hash :: fonc(capacité: z32) -> *Hash
     retourne h
 }
 
-enfile :: fonc(file: *File, hash: *Hash, numéro_page: z32) -> rien
+enfile :: fonc (file: *File, hash: *Hash, numéro_page: z32) -> rien
 {
     si sont_toutes_les_pages_pleines(file) {
         hash.noeuds[file.cul.numéro_page] = nul
@@ -170,7 +170,7 @@ enfile :: fonc(file: *File, hash: *Hash, numéro_page: z32) -> rien
     file.nombre_de_pages_remplies += 1
 }
 
-référence_page :: fonc(file: *File, hash: *Hash, numéro_page: z32) -> rien
+référence_page :: fonc (file: *File, hash: *Hash, numéro_page: z32) -> rien
 {
     page_requise := hash.noeuds[numéro_page]
 
@@ -202,12 +202,12 @@ référence_page :: fonc(file: *File, hash: *Hash, numéro_page: z32) -> rien
 /* ------------------------------------------------------------------------- */
 
 CacheMRU :: struct {
-    arbre: *ArbreB(z32) = nul
-    file: *File = nul
-    capacité: z32 = 0
+    arbre : *ArbreB(z32) = nul
+    file : *File = nul
+    capacité : z32 = 0
 }
 
-construit_cache :: fonc(capacité: z32) -> *CacheMRU
+construit_cache :: fonc (capacité: z32) -> *CacheMRU
 {
     cache := loge(CacheMRU)
     cache.arbre = loge(ArbreB)
@@ -218,7 +218,7 @@ construit_cache :: fonc(capacité: z32) -> *CacheMRU
     retourne cache
 }
 
-détruit_cache :: fonc(cache: *CacheMRU) -> rien
+détruit_cache :: fonc (cache: *CacheMRU) -> rien
 {
     détruit_file(cache.file)
     détruit_arbre(cache.arbre)
@@ -226,7 +226,7 @@ détruit_cache :: fonc(cache: *CacheMRU) -> rien
     déloge(cache)
 }
 
-référence_page :: fonc(cache: *CacheMRU, x: z32) -> rien
+référence_page :: fonc (cache: *CacheMRU, x: z32) -> rien
 {
     noeud := cache.arbre.recherche(x)
 
@@ -243,7 +243,7 @@ référence_page :: fonc(cache: *CacheMRU, x: z32) -> rien
     }
 }
 
-imprime_file :: fonc(file: *File) -> rien
+imprime_file :: fonc (file: *File) -> rien
 {
     ptr := file.front
 
@@ -253,7 +253,7 @@ imprime_file :: fonc(file: *File) -> rien
     }
 }
 
-détruit_file :: fonc(file: *File) -> rien
+détruit_file :: fonc (file: *File) -> rien
 {
     ptr := file.front
 
@@ -266,13 +266,13 @@ détruit_file :: fonc(file: *File) -> rien
     déloge(file)
 }
 
-détruit_hash :: fonc(hash: *Hash) -> rien
+détruit_hash :: fonc (hash: *Hash) -> rien
 {
     déloge(hash.noeuds)
     déloge(hash)
 }
 
-cherche_clé :: fonc(arbre: *ArbreB($C), clé: z32) -> rien
+cherche_clé :: fonc (arbre: *ArbreB($C), clé: z32) -> rien
 {
     noeud := recherche(arbre, clé)
 
@@ -284,7 +284,7 @@ cherche_clé :: fonc(arbre: *ArbreB($C), clé: z32) -> rien
     }
 }
 
-supprime_et_traverse :: fonc(arbre: *ArbreB($C), clé: z32) -> rien
+supprime_et_traverse :: fonc (arbre: *ArbreB($C), clé: z32) -> rien
 {
     arbre.supprime(clé)
     imprime("Traverse de l'arbre après la suppression de %:\n", clé)

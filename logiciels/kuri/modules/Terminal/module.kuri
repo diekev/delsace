@@ -102,8 +102,8 @@ DécisionBoucleLEIB :: énum {
 // Lis Exécute Imprime Boucle
 // Read Execute Print Loop
 LEIB :: struct {
-    rappel_chaine_prompt : fonc(*LEIB)(chaine)
-    rappel_exécute : fonc(*LEIB, chaine)(DécisionBoucleLEIB)
+    rappel_chaine_prompt: fonc(*LEIB)(chaine)
+    rappel_exécute: fonc(*LEIB, chaine)(DécisionBoucleLEIB)
 }
 
 lance :: fonc (leib: *LEIB)
@@ -165,36 +165,36 @@ IXOFF :: 0o0010000 comme n32
 IMAXBEL :: 0o0020000 comme n32
 IUTF8 :: 0o0040000 comme n32
 
-OPOST	:: 0o0000001 comme n32
-OLCUC	:: 0o0000002 comme n32
-ONLCR	:: 0o0000004 comme n32
-OCRNL	:: 0o0000010 comme n32
-ONOCR	:: 0o0000020 comme n32
-ONLRET	:: 0o0000040 comme n32
-OFILL	:: 0o0000100 comme n32
-OFDEL	:: 0o0000200 comme n32
+OPOST :: 0o0000001 comme n32
+OLCUC :: 0o0000002 comme n32
+ONLCR :: 0o0000004 comme n32
+OCRNL :: 0o0000010 comme n32
+ONOCR :: 0o0000020 comme n32
+ONLRET :: 0o0000040 comme n32
+OFILL :: 0o0000100 comme n32
+OFDEL :: 0o0000200 comme n32
 
-CS8	:: 0o0000060 comme n32
+CS8 :: 0o0000060 comme n32
 
 ISIG :: 0o0000001 comme n32
 ICANON :: 0o0000002 comme n32
 ECHO :: 0o0000010 comme n32
 IEXTEN :: 0o0100000 comme n32
 
-TCSANOW   :: 0
+TCSANOW :: 0
 TCSADRAIN :: 1
 TCSAFLUSH :: 2
 
 NCCS :: 32
 termios :: struct #externe {
-    c_iflag : n32		/* input mode flags */
-    c_oflag : n32		/* output mode flags */
-    c_cflag : n32		/* control mode flags */
-    c_lflag : n32		/* local mode flags */
-    c_line : n8			/* line discipline */
-    c_cc : [NCCS]n8		/* control characters */
-    c_ispeed : n32		/* input speed */
-    c_ospeed : n32		/* output speed */
+    c_iflag: n32 /* input mode flags */
+    c_oflag: n32 /* output mode flags */
+    c_cflag: n32 /* control mode flags */
+    c_lflag: n32 /* local mode flags */
+    c_line: n8 /* line discipline */
+    c_cc: [NCCS]n8 /* control characters */
+    c_ispeed: n32 /* input speed */
+    c_ospeed: n32 /* output speed */
 }
 
 tcgetattr :: fonc (fd: z32, t: *termios) -> rien #externe libc
@@ -205,10 +205,10 @@ iscntrl :: fonc (c: z32) -> z32 #externe libc
 // -------------------------------
 
 winsize :: struct #externe {
-    ws_row : n16
-    ws_col : n16
-    ws_xpixel : n16
-    ws_ypixel : n16
+    ws_row: n16
+    ws_col: n16
+    ws_xpixel: n16
+    ws_ypixel: n16
 }
 
 TIOCGWINSZ :: 0x5413 comme n64

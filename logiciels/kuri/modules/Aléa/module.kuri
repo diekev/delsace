@@ -12,7 +12,7 @@ charge "halton"
 // À FAIRE : ce serait bien de le définir lors de la génération du code
 #dépendance_bibliothèque libmodule_c_alea libcmath
 
-crée_gna :: fonc (ctx_kuri : *ContexteKuri, graine: n32) -> *GNA
+crée_gna :: fonc (ctx_kuri: *ContexteKuri, graine: n32) -> *GNA
 {
     retourne ALEA_cree_gna(ctx_kuri, graine)
 }
@@ -22,7 +22,7 @@ resème :: fonc (gna: *GNA, graine: n32) -> rien
     ALEA_reseme_gna(gna, graine)
 }
 
-détruit_gna :: fonc (ctx_kuri : *ContexteKuri, gna: *GNA) -> rien
+détruit_gna :: fonc (ctx_kuri: *ContexteKuri, gna: *GNA) -> rien
 {
     ALEA_detruit_gna(ctx_kuri, gna)
 }
@@ -88,7 +88,7 @@ génère_données_aléatoires :: fonc (génératrice: &GénératriceDonnéesAlé
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 
-    résultat : T
+    résultat: T
 
     info := info_de(T)
 
@@ -99,7 +99,7 @@ génère_données_aléatoires :: fonc (génératrice: &GénératriceDonnéesAlé
             continue
         }
 
-        tampon : [..]octet
+        tampon: [..]octet
         tampon.pointeur = (*résultat comme *z8 + it.décalage)
         tampon.taille = it.id.taille_en_octet comme z64
 
@@ -189,12 +189,12 @@ entropie.énum_aléatoire(TypeEnum)
 
 rotation_horaire :: fonc (n: n64, d: n64) -> n64
 {
-    retourne (n >> d) | (n << (64 - d));
+    retourne (n >> d) | (n << (64 - d))
 }
 
 rotation_antihoraire :: fonc (n: n64, d: n64) -> n64
 {
-    retourne (n << d) | (n >> (64 - d));
+    retourne (n << d) | (n >> (64 - d))
 }
 
 pcg_xsh_rr :: fonc (état: &n64) -> n32
@@ -225,7 +225,7 @@ xor_shift :: fonc (état: &n64) -> n64
 }
 
 SérieAléatoire :: struct {
-    état : n32
+    état: n32
 }
 
 graine_aléatoire :: fonc (graine: n32) -> SérieAléatoire
@@ -295,8 +295,8 @@ hammersley_1d :: fonc (n: n32) -> r64
 séquence_hammersley_2d :: fonc (n: n32, r: *r64)
 {
     pour s dans 0 ... n - 1 {
-        r[s * 2 + 0] = (s comme r64 + 0.5) / n comme r64;
-        r[s * 2 + 1] = inverse_radical(s);
+        r[s * 2 + 0] = (s comme r64 + 0.5) / n comme r64
+        r[s * 2 + 1] = inverse_radical(s)
     }
 }
 
@@ -305,7 +305,7 @@ séquence_hammersley_2d :: fonc (n: n32, r: *r64)
 importe Compilatrice
 
 // À FAIRE: #portée_fichier
-__fonctions_génération_données_aléatoires : [..]FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
+__fonctions_génération_données_aléatoires: [..]FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
 
 trouve_fonction_génération_données_aléatoires :: fonc (info: *InfoType) -> *FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
 {
@@ -331,7 +331,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
 
     pointeur := type_deuxième_paramètre comme *InfoTypePointeur
 
-    résultat : DonnéesFonctionPourTableFonction
+    résultat: DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = pointeur.type_pointé
     retourne résultat
@@ -355,7 +355,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 
 génère_initialisation_gna :: fonc ()
 {
-    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions: CréatriceTableFonction
     créatrice_table_fonctions.annotation_désirée = "FonctionGNA"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_génération_données_aléatoires"
     créatrice_table_fonctions.données_pour_fonction = fonction_est_valide

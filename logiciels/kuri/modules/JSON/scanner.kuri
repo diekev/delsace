@@ -51,16 +51,16 @@ Erreur :: struct {
 }
 
 ScannerJSON :: struct {
-    script : chaine
+    script: chaine
 
     // état du scan après une lecture
-    lexème : LexèmeJSON
+    lexème: LexèmeJSON
 
     // la structure à remplir
-    structure : eini
+    structure: eini
 
     // le sous-object courant à remplir
-    pile : Pile(T = eini)
+    pile: Pile(T = eini)
 
     // position courante du scan
     position := 0
@@ -70,17 +70,17 @@ ScannerJSON :: struct {
     position_mot := 0
 
     // pour stocker les valeurs rencontrées lors du scan
-    chaine_caractère : chaine
-    nombre_entier : z64
-    nombre_réel : r64
-    booléen : bool
+    chaine_caractère: chaine
+    nombre_entier: z64
+    nombre_réel: r64
+    booléen: bool
 
-    rappel_copie_chaine : fonc(chaine)(chaine)
+    rappel_copie_chaine: fonc(chaine)(chaine)
 
     erreurs: [..]Erreur
 }
 
-initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini, rappel_copie_chaine : fonc(chaine)(chaine))
+initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini, rappel_copie_chaine: fonc(chaine)(chaine))
 {
     scanner.script = script
     scanner.position = 0
@@ -159,7 +159,7 @@ mot_courant :: fonc (scanner: *ScannerJSON) -> chaine #enligne
     retourne construit_chaine(*scanner.script[scanner.position_mot], scanner.position - scanner.position_mot)
 }
 
-saute_espaces_blancs :: fonc (scanner : *ScannerJSON) -> rien
+saute_espaces_blancs :: fonc (scanner: *ScannerJSON) -> rien
 {
     tantque !scanner.fini() {
         c := scanner.caractère_courant()
@@ -191,7 +191,7 @@ caractère_courant :: fonc (scanner: *ScannerJSON) -> z8 #enligne
     retourne scanner.script[scanner.position]
 }
 
-lis :: fonc (scanner : *ScannerJSON) -> rien
+lis :: fonc (scanner: *ScannerJSON) -> rien
 {
     scanner.saute_espaces_blancs()
 
@@ -341,7 +341,7 @@ lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 // 0e5
 lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    données_nombre : CompositionNombreScientifique
+    données_nombre: CompositionNombreScientifique
     lexème_nombre := LexèmeJSON.NOMBRE_ENTIER
 
     scanner.enregistre_pos_mot()
@@ -722,7 +722,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
     sinon {
         info := tableau.info comme *InfoTypeTableau
         type_pointé := info.type_pointé
-        tampon_tableau : [..]octet
+        tampon_tableau: [..]octet
         index := 0
 
         tantque !scanner.fini() {
@@ -770,7 +770,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 
 importe Compilatrice
 
-__fonctions_parsage_json : [..]FonctionParsage
+__fonctions_parsage_json: [..]FonctionParsage
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
@@ -789,7 +789,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
         compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage JSON invalide, le premier paramètre de sortie doit être de type « bool ».")
     }
 
-    résultat : DonnéesFonctionPourTableFonction
+    résultat: DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = fonction.params_sorties[1].type
     retourne résultat
@@ -812,7 +812,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 
 génère_initialisation_json :: fonc ()
 {
-    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions: CréatriceTableFonction
     diffère détruit_données_créatrice_table_fonctions(créatrice_table_fonctions)
     créatrice_table_fonctions.annotation_désirée = "ParsageJSON"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_json"

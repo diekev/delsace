@@ -9,7 +9,7 @@ charge "confname"
 getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc
 getuid :: fonc () -> z32 #externe libc
 system :: fonc (command: ChaineC) -> z32 #externe libc
-sleep :: fonc (temps : z32) -> rien #externe libc
+sleep :: fonc (temps: z32) -> rien #externe libc
 usleep :: fonc (µsec: n32) -> z32 #externe libc
 nanosleep :: fonc (req: *timespec, rem: *timespec) -> z32 #externe libc
 symlink :: fonc (target: ChaineC, linkpath: ChaineC) -> z32 #externe libc
@@ -36,7 +36,7 @@ chaine_environnement :: fonc (nom: chaine) -> chaine
     retourne convertis_chaine_c(chn)
 }
 
-est_utilisateur_racine :: fonc() -> bool
+est_utilisateur_racine :: fonc () -> bool
 {
     retourne getuid() == 0
 }
@@ -44,18 +44,18 @@ est_utilisateur_racine :: fonc() -> bool
 fsblkcnt_t :: n64
 
 struct_statvfs :: struct #externe {
-    f_bsize: n64;    /* filesystem block size */
-    f_frsize: n64;   /* fragment size */
-    f_blocks: fsblkcnt_t;   /* size of fs in f_frsize units */
-    f_bfree: fsblkcnt_t;    /* # free blocks */
-    f_bavail: fsblkcnt_t;   /* # free blocks for unprivileged users */
-    f_files: fsblkcnt_t;    /* # inodes */
-    f_ffree: fsblkcnt_t;    /* # free inodes */
-    f_favail: fsblkcnt_t;   /* # free inodes for unprivileged users */
-    f_fsid: n64;     /* filesystem ID */
-    f_flag: n64;     /* mount flags */
-    f_namemax: n64;  /* maximum filename length */
-    __f_spare: [6]z32;
+    f_bsize: n64 /* filesystem block size */
+    f_frsize: n64 /* fragment size */
+    f_blocks: fsblkcnt_t /* size of fs in f_frsize units */
+    f_bfree: fsblkcnt_t /* # free blocks */
+    f_bavail: fsblkcnt_t /* # free blocks for unprivileged users */
+    f_files: fsblkcnt_t /* # inodes */
+    f_ffree: fsblkcnt_t /* # free inodes */
+    f_favail: fsblkcnt_t /* # free inodes for unprivileged users */
+    f_fsid: n64 /* filesystem ID */
+    f_flag: n64 /* mount flags */
+    f_namemax: n64 /* maximum filename length */
+    __f_spare: [6]z32
 }
 
 /*

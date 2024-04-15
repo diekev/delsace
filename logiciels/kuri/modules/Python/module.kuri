@@ -16,9 +16,9 @@ charge "interface"
 
 ModulePython :: struct {
     nom: chaine
-    méthodes : [..]MéthodePython
-    constantes_nombre_entier : [..]ConstanteNombreEntier
-    constantes_chaine : [..]ConstanteChaine
+    méthodes: [..]MéthodePython
+    constantes_nombre_entier: [..]ConstanteNombreEntier
+    constantes_chaine: [..]ConstanteChaine
 }
 
 détruit :: fonc (module: &ModulePython)
@@ -302,7 +302,7 @@ TypePython :: struct {
 
     drapeaux: DrapeauxType
 
-    fonctions : FonctionsTypePython
+    fonctions: FonctionsTypePython
 
     confidentialité: ConfidentialitéType
 

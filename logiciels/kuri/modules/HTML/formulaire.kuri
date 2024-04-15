@@ -4,7 +4,7 @@ importe Fondation
 Formulaire :: struct {
     action: chaine
     méthode: chaine
-    entrées : [..]EntréeFormulaire
+    entrées: [..]EntréeFormulaire
 }
 
 EntréeFormulaire :: struct {
@@ -16,7 +16,7 @@ EntréeFormulaire :: struct {
 
 formulaire_depuis_élément :: fonc (élément: *Élément) -> Formulaire
 {
-    formulaire : Formulaire
+    formulaire: Formulaire
     // À FAIRE : l'action par défaut est la page courante
     formulaire.action = chaine_ou_défaut(cherche_attribut(élément, "action"), "/")
     formulaire.méthode = chaine_ou_défaut(cherche_attribut(élément, "method"), "GET")
@@ -36,7 +36,7 @@ formulaire_depuis_élément :: fonc (élément: *Élément) -> Formulaire
 
 ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Élément)
 {
-    entrée : EntréeFormulaire
+    entrée: EntréeFormulaire
     entrée.nom = chaine_ou_défaut(cherche_attribut(input, "name"))
     entrée.type = chaine_ou_défaut(cherche_attribut(input, "type"))
     entrée.valeur_défaut = chaine_ou_défaut(cherche_attribut(input, "value"))
@@ -48,7 +48,7 @@ ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Élément)
 // À FAIRE : paramétrise, aléatorise
 génère_données_formulaire :: fonc (formulaire: &Formulaire) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     diffère détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
@@ -101,6 +101,6 @@ rappel_recherche_formulaire :: fonc (noeud: *Noeud, données: eini @inutilisée)
         imprime("Content-Length: %\r\n", données_envoi_formulaire.taille)
         imprime("Content-Encoding: application/x-www-form-urlencoded\r\n")
         imprime("\r\n")
-        imprime("%",données_envoi_formulaire)
+        imprime("%", données_envoi_formulaire)
     }
 }

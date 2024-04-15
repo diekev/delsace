@@ -100,9 +100,9 @@ compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionC
         retourne
     }
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "Échec du test, les valeurs sont différentes !\n")
     imprime_dans_enchaineuse(*enchaineuse, "\tLa première valeur est : %\n", a)
@@ -193,9 +193,9 @@ type_premier_paramètre :: fonc (entête: *NoeudCodeEntêteFonction) -> *InfoTyp
 
 EnsembleDeModules :: struct {
     modules: [..]*Module
-    module_racine_compilation : *Module
-    chemin_racine_compilation : CheminFichier
-    chemin_modules_kuri : CheminFichier
+    module_racine_compilation: *Module
+    chemin_racine_compilation: CheminFichier
+    chemin_modules_kuri: CheminFichier
 }
 
 initialise_ensemble_de_modules :: fonc (liste: *EnsembleDeModules)

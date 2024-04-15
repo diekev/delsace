@@ -1010,7 +1010,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                 {
                     break;
                 }
-                case OpérateurUnaire::Genre::Complement:
+                case OpérateurUnaire::Genre::Négation:
                 {
                     if (inst_un->type->est_type_réel()) {
                         valeur = m_builder.CreateFNeg(valeur);
@@ -1020,7 +1020,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                     }
                     break;
                 }
-                case OpérateurUnaire::Genre::Non_Binaire:
+                case OpérateurUnaire::Genre::Négation_Binaire:
                 {
                     valeur = m_builder.CreateNot(valeur);
                     break;

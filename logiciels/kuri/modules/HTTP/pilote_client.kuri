@@ -53,7 +53,6 @@ GestionnaireCookie :: struct {
 
 ajoute_cookie :: fonc (gestionnaire: &GestionnaireCookie, uri: URI, cookie: Cookie)
 {
-
 }
 
 est_localhost :: fonc (uri: URI) -> bool
@@ -75,7 +74,7 @@ cookies_pour_requête :: fonc (gestionnaire: &GestionnaireCookie, uri: URI) -> [
 
     envoie_cookies_sécurisé := uri.schéma == "https" || est_localhost(uri)
 
-    résultat : [..]Cookie
+    résultat: [..]Cookie
 
     pour gestionnaire.cookies {
         // il faut savoir si le domain peut recevoir le cookie
@@ -93,7 +92,7 @@ PiloteClienteHTTP :: struct {
 
 débute_requête :: fonc (pilote: &PiloteClienteHTTP, méthode: MéthodeHTTP, uri: URI) -> MessageClienteHTTP
 {
-    message : MessageClienteHTTP
+    message: MessageClienteHTTP
     message.méthode = chaine_pour_méthode(méthode)
     message.uri = uri
 
@@ -133,7 +132,7 @@ envoie_requête :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHT
     }
 
     // lis jusqu'à ce que nous n'ayons plus rien à lire
-    parseuse : ParseuseMessageServeuseHTTP
+    parseuse: ParseuseMessageServeuseHTTP
     // À FAIRE : gestion de la mémoire des messages
     // diffère réinitialise(*parseuse)
 

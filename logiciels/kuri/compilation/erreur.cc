@@ -9,6 +9,7 @@
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/numerique.hh"
 
+#include "arbre_syntaxique/etendue_code_source.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
@@ -47,10 +48,10 @@ kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const Noe
 {
     auto lexeme = expr->lexème;
     auto fichier = espace.compilatrice().fichier(lexeme->fichier);
-    auto etendue_expr = calcule_etendue_noeud(expr);
+    auto etendue_expr = donne_étendue_source_noeud(expr);
     auto ligne = fichier->tampon()[lexeme->ligne];
-    return kuri::chaine_statique(&ligne[etendue_expr.pos_min],
-                                 etendue_expr.pos_max - etendue_expr.pos_min);
+    return kuri::chaine_statique(&ligne[etendue_expr.colonne_début],
+                                 etendue_expr.colonne_fin - etendue_expr.colonne_début);
 }
 
 void lance_erreur(const kuri::chaine &quoi,
@@ -493,15 +494,15 @@ void imprime_site(Enchaineuse &enchaineuse,
     }
     enchaineuse << ':' << lexeme->ligne + 1 << '\n';
 
-    auto const etendue = calcule_etendue_noeud(site);
+    auto const etendue = donne_étendue_source_noeud(site);
     auto const pos = position_lexeme(*lexeme);
     auto const pos_mot = pos.pos;
     auto const ligne = fichier->tampon()[pos.index_ligne];
     enchaineuse << ligne;
-    lng::erreur::imprime_caractere_vide(enchaineuse, etendue.pos_min, ligne);
-    lng::erreur::imprime_tilde(enchaineuse, ligne, etendue.pos_min, pos_mot);
+    lng::erreur::imprime_caractere_vide(enchaineuse, etendue.colonne_début, ligne);
+    lng::erreur::imprime_tilde(enchaineuse, ligne, etendue.colonne_début, pos_mot);
     enchaineuse << '^';
-    lng::erreur::imprime_tilde(enchaineuse, ligne, pos_mot + 1, etendue.pos_max);
+    lng::erreur::imprime_tilde(enchaineuse, ligne, pos_mot + 1, etendue.colonne_fin);
     enchaineuse << '\n';
 }
 

@@ -104,15 +104,15 @@ espace_disque_disponible :: fonc (chemin: &CheminFichier) -> Optionnel(n64)
     retourne système_espace_disque_disponible(chemin)
 }
 
-contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> [..]octet
+contenu_fichier_binaire :: fonc (chemin: &CheminFichier) -> [..]octet
 {
-    contenu : [..]octet
+    contenu: [..]octet
 
     fichier := tente ouvre_fichier(chemin) piège _ {
         retourne contenu
     }
 
-    diffère { _ := ferme(*fichier) }
+    diffère _ := ferme(*fichier)
 
     discr lis_tout(*fichier) {
         c(c_) {
@@ -125,23 +125,23 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> [..]octet
     retourne contenu
 }
 
-contenu_fichier_binaire :: fonc(chemin: CheminFichier, résultat: &[..]octet)
+contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet)
 {
     fichier := tente ouvre_fichier(chemin) piège err {
         retourne
     }
 
-    diffère { _ := ferme(*fichier) }
+    diffère _ := ferme(*fichier)
 
     tente lis_tout(*fichier, résultat) piège err {
         retourne
     }
 }
 
-contenu_fichier_texte :: fonc(chemin : &CheminFichier) -> chaine
+contenu_fichier_texte :: fonc (chemin: &CheminFichier) -> chaine
 {
     contenu := contenu_fichier_binaire(chemin)
-    chn : chaine;
+    chn: chaine
 
     nonsûr {
         chn.pointeur = contenu.pointeur comme *z8
@@ -159,12 +159,12 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
 
 // -----------------------------------------------------------------------
 
-chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
+chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 {
     retourne système_chemin_courant()
 }
 
-chemin_courant :: fonc(chemin : CheminFichier) -> Optionnel(ErreurFichier)
+chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_chemin_courant(chemin)
 }
@@ -179,12 +179,12 @@ chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, Er
     retourne système_chemin_véritable(chemin)
 }
 
-renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> Optionnel(ErreurFichier)
+renomme :: fonc (orig: &CheminFichier, dest: &CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_renomme(orig, dest)
 }
 
-supprime :: fonc(chm : &CheminFichier) -> Optionnel(ErreurFichier)
+supprime :: fonc (chm: &CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_supprime(chm)
 }

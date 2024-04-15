@@ -2,7 +2,7 @@ importe HTML
 
 principale :: fonc () -> z32
 {
-    paramètres : ParamètresEntropisation
+    paramètres: ParamètresEntropisation
     paramètres.limite_haute_profondeur = 5
     paramètres.limite_haute_enfants = 10
     paramètres.limite_haute_éléments = 100

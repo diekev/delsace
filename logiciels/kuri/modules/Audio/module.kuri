@@ -15,7 +15,7 @@ EntêteWave :: struct {
     type_riff := "WAVE"
 }
 
-écris :: fonc(autrice: *AutriceFichierWave, entête: &EntêteWave)
+écris :: fonc (autrice: *AutriceFichierWave, entête: &EntêteWave)
 {
     autrice.écris_chaine_sans_taille(entête.id_groupe)
     autrice.écris(entête.taille_fichier)
@@ -30,18 +30,18 @@ EntêteWave :: struct {
 
 ChunkFormatWave :: struct {
     id_chunk := "fmt "
-    taille_chunk : n32
-    tag_format : n16
-    nombre_cannaux : n16
-    échantillons_secondes : n32
-    bits_par_échantillon : n16
-    alignement_bloc : n16
-    bits_moyens_par_secondes : n32
+    taille_chunk: n32
+    tag_format: n16
+    nombre_cannaux: n16
+    échantillons_secondes: n32
+    bits_par_échantillon: n16
+    alignement_bloc: n16
+    bits_moyens_par_secondes: n32
 }
 
 initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
 {
-    résultat : ChunkFormatWave
+    résultat: ChunkFormatWave
     résultat.id_chunk = "fmt "
     résultat.taille_chunk = 16
     résultat.tag_format = 1
@@ -60,7 +60,7 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
     retourne ((résultat comme r64 * durée + 0.5) comme n64) comme n32
 }
 
-écris :: fonc(autrice: *AutriceFichierWave, chunk : &ChunkFormatWave)
+écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkFormatWave)
 {
     autrice.écris_chaine_sans_taille(chunk.id_chunk)
     autrice.écris(chunk.taille_chunk)
@@ -81,10 +81,10 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
 ChunkDonnéesWave :: struct {
     id_chunk := "data"
     taille_chunk : n32 = 0
-    données : [..]z16
+    données: [..]z16
 }
 
-écris :: fonc(autrice: *AutriceFichierWave, chunk : &ChunkDonnéesWave)
+écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkDonnéesWave)
 {
     autrice.écris_chaine_sans_taille(chunk.id_chunk)
     autrice.écris(chunk.taille_chunk)
@@ -98,17 +98,17 @@ ChunkDonnéesWave :: struct {
  * \{ */
 
 GénératriceWave :: struct {
-    entête : EntêteWave
+    entête: EntêteWave
     format : ChunkFormatWave = initialise_format_chunk_wave()
-    données : ChunkDonnéesWave
+    données: ChunkDonnéesWave
 }
 
 /* Génère un son sinusoïdale pour la fréquence, l'amplitude (entre 0 et 1) et la durée données. */
-ajoute_son_sinusoïdal :: fonc(
-    génératrice : &GénératriceWave,
-    fréquence : r64,
-    facteur_amplitude : r32,
-    durée : r64) -> rien
+ajoute_son_sinusoïdal :: fonc (
+    génératrice: &GénératriceWave,
+    fréquence: r64,
+    facteur_amplitude: r32,
+    durée: r64) -> rien
 {
     format := génératrice.format
 
@@ -148,7 +148,7 @@ ajoute_son_sinusoïdal :: fonc(
     assert(génératrice.données.taille_chunk != 0)
 }
 
-sauvegarde :: fonc(génératrice : &GénératriceWave, chemin : chaine)
+sauvegarde :: fonc (génératrice: &GénératriceWave, chemin: chaine)
 {
     fichier := fichier.ouvre(chemin)
     écris(génératrice.entête, fichier)

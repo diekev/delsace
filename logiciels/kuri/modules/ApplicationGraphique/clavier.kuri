@@ -4,7 +4,7 @@ importe SDL2
 // --------------------------------------------------
 // Compatibilité avec SDL2
 
-__type_clé_depuis_sdl2 : [SDL_Scancode.nombre_éléments]CléClavier
+__type_clé_depuis_sdl2: [SDL_Scancode.nombre_éléments]CléClavier
 
 clé_clavier_depuis_sdl :: fonc (sdl_scancode: SDL_Scancode) -> CléClavier
 {

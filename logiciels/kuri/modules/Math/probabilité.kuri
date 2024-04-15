@@ -54,7 +54,7 @@ n_choisit_k :: fonc (n: n64, k: n64) -> n64
 
 // Contient un nombre entre 0 et 1
 Probabilité :: struct {
-    unité : n64
+    unité: n64
 
     // les chiffres après la virgule
     chiffres: [..]n8
@@ -82,7 +82,7 @@ crée_probabilité :: fonc (unité: n64, fraction: n64) -> Probabilité
 
 crée_probabilité :: fonc (p: chaine) -> Probabilité
 {
-    résultat : Probabilité
+    résultat: Probabilité
     point_rencontré := faux
 
     pour p {
@@ -113,11 +113,11 @@ complémente :: fonc (p: Probabilité) -> Probabilité
 
 opérateur + :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
-    résultat : Probabilité
+    résultat: Probabilité
 
     taille_commune := p1.chiffres.taille
 
-    nombres_après_taille_commune : [..]n8
+    nombres_après_taille_commune: [..]n8
 
     si p2.chiffres.taille < p1.chiffres.taille {
         taille_commune = p2.chiffres.taille
@@ -157,9 +157,9 @@ opérateur + :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
 
 opérateur - :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
-    résultat : Probabilité
+    résultat: Probabilité
 
-    nombres_après_taille_commune : [..]n8
+    nombres_après_taille_commune: [..]n8
 
     si p2.chiffres.taille < p1.chiffres.taille {
         différence := p1.chiffres.taille - p2.chiffres.taille
@@ -207,7 +207,7 @@ opérateur - :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
 
 opérateur * :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
-    résultat : Probabilité
+    résultat: Probabilité
 
     position := p2.chiffres.taille
 
@@ -245,7 +245,7 @@ divise_par_dix :: fonc (p: *Probabilité)
 
 opérateur * :: fonc (p1: Probabilité, n: n64) -> Probabilité
 {
-    résultat : Probabilité
+    résultat: Probabilité
 
     retenue : n64 = 0
 
@@ -306,7 +306,7 @@ arrondis :: fonc (p: Probabilité, n: n64) -> Probabilité
         retourne p
     }
 
-    résultat : Probabilité
+    résultat: Probabilité
     résultat.unité = p.unité
     ajoute_chiffres(*résultat, p.chiffres)
 
@@ -338,7 +338,7 @@ arrondis :: fonc (p: Probabilité, n: n64) -> Probabilité
 
 opérateur / :: fonc (p: Probabilité, n: n64) -> Probabilité
 {
-    résultat : Probabilité
+    résultat: Probabilité
 
     si p.unité == 0 || n == 0 {
         retourne résultat
@@ -351,8 +351,8 @@ opérateur / :: fonc (p: Probabilité, n: n64) -> Probabilité
 
     // -------------
 
-    q : n64
-    r : n64
+    q: n64
+    r: n64
 
     pour & résultat.chiffres {
         it_n64 := it comme n64 + r * 10

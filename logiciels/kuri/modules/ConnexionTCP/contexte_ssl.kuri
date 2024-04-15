@@ -7,17 +7,17 @@ importe OpenSSL
 ContextePriseSSL :: struct {
     empl base: Contexte
 
-    ctx_ssl : *SSL_CTX
+    ctx_ssl: *SSL_CTX
 
     /* Ces rappels correspondent aux rappels mis en place via mute_quand_* par l'application cliente.
      * Les rappels situés dans le Contexte de base sont remplacés par des fonctions définies ci-après
      * afin de gérer manuellement les logiques d'écritures/lectures/etc. nécessaires pour SSL. Ces
      * fonctions appeleront a leurs tours les rappels de l'application qui sont stockés ici.
      */
-    sur_écriture_base : fonc(*Prise)(rien)
-    sur_données_reçues_base : fonc(*Prise, [..]octet)(rien)
-    sur_ouverture_base : fonc(*Prise, bool)(rien)
-    sur_fermeture_base : fonc(*Prise)(rien)
+    sur_écriture_base: fonc(*Prise)(rien)
+    sur_données_reçues_base: fonc(*Prise, [..]octet)(rien)
+    sur_ouverture_base: fonc(*Prise, bool)(rien)
+    sur_fermeture_base: fonc(*Prise)(rien)
 }
 
 // ------------------------------------------------------
@@ -60,11 +60,11 @@ détruit_contexte_ssl :: fonc (ctx: *ContextePriseSSL)
 {
     /* If we are parent then we need to free our OpenSSL context */
     // if (context->is_parent) {
-        détruit_contexte_ssl(ctx.ctx_ssl)
+    détruit_contexte_ssl(ctx.ctx_ssl)
 
-        /* Here we need to register a temporary callback for all still-existing hostnames
+    /* Here we need to register a temporary callback for all still-existing hostnames
          * and their contexts. Only parents have an SNI tree */
-        // sni_free(context->sni, sni_hostname_destructor);
+    // sni_free(context->sni, sni_hostname_destructor);
     // }
 
     déloge_mémoire(ctx.taille_mémoire, ctx, info_de(ContextePriseSSL), PositionCodeSource())
@@ -111,8 +111,8 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: [..]octet)
     // note: if we put data here we should never really clear it (not in write either, it still should be available for SSL_write to read from!)
     données_ssl_boucle.ssl_read_input = données.pointeur
     données_ssl_boucle.ssl_read_input_length = données.taille comme z32
-    données_ssl_boucle.ssl_read_input_offset = 0;
-    données_ssl_boucle.prise_ssl = prise_ssl;
+    données_ssl_boucle.ssl_read_input_offset = 0
+    données_ssl_boucle.prise_ssl = prise_ssl
     // données_ssl_boucle.msg_more = 0;
 
     // if (us_internal_ssl_socket_is_shut_down(s)) {
@@ -136,7 +136,7 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: [..]octet)
     // bug checking: this loop needs a lot of attention and clean-ups and check-ups
     octets_lus := 0
     boucle {
-        just_read := SSL_read(prise_ssl.ssl, (données_ssl_boucle.ssl_read_output + MARGE_TAMPON_RÉCEPTION + octets_lus) comme *z8, TAILLE_TAMPON_RÉCEPTION_DONNÉES - octets_lus);
+        just_read := SSL_read(prise_ssl.ssl, (données_ssl_boucle.ssl_read_output + MARGE_TAMPON_RÉCEPTION + octets_lus) comme *z8, TAILLE_TAMPON_RÉCEPTION_DONNÉES - octets_lus)
 
         si just_read <= 0 {
             err := SSL_get_error(prise_ssl.ssl, just_read)
@@ -181,7 +181,7 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: [..]octet)
             arrête
         }
 
-        octets_lus += just_read;
+        octets_lus += just_read
 
         // at this point we might be full and need to emit the data to application and start over
         // if (octets_lus == TAILLE_TAMPON_RÉCEPTION_DONNÉES) {
@@ -226,7 +226,7 @@ sur_écriture_ssl :: fonc (prise: *Prise) -> rien
         prise_ssl.lecture_ssl_veut_écrire = faux
 
         ctx_prise_ssl = prise.contexte_ comme *ContextePriseSSL
-        données : [..]octet
+        données: [..]octet
         ctx_prise_ssl.quand_données_reçues_(prise, données)
     }
 
@@ -249,43 +249,43 @@ sur_fin_ssl :: fonc (prise: *Prise) -> rien
 // ------------------------------------------------------
 // Mutation des rappels de base.
 
-contexte_ssl_parasite_quand_ouverture :: fonc (ctx: *ContextePriseSSL, rappel: fonc (*Prise, bool)(rien)) -> type_de(rappel)
+contexte_ssl_parasite_quand_ouverture :: fonc (ctx: *ContextePriseSSL, rappel: fonc(*Prise, bool)(rien)) -> type_de(rappel)
 {
     ctx.sur_ouverture_base = rappel
     retourne sur_ouverture_ssl
 }
 
-contexte_ssl_parasite_quand_données_reçues :: fonc (ctx: *ContextePriseSSL, rappel: fonc (*Prise, [..]octet)(rien)) -> type_de(rappel)
+contexte_ssl_parasite_quand_données_reçues :: fonc (ctx: *ContextePriseSSL, rappel: fonc(*Prise, [..]octet)(rien)) -> type_de(rappel)
 {
     ctx.sur_données_reçues_base = rappel
     retourne sur_données_reçues_ssl
 }
 
-contexte_ssl_parasite_quand_écriture :: fonc (ctx: *ContextePriseSSL, rappel: fonc (*Prise)(rien)) -> type_de(rappel)
+contexte_ssl_parasite_quand_écriture :: fonc (ctx: *ContextePriseSSL, rappel: fonc(*Prise)(rien)) -> type_de(rappel)
 {
     ctx.sur_écriture_base = rappel
     retourne sur_écriture_ssl
 }
 
-contexte_ssl_parasite_quand_fermeture :: fonc (ctx: *ContextePriseSSL, rappel: fonc (*Prise)(rien)) -> type_de(rappel)
+contexte_ssl_parasite_quand_fermeture :: fonc (ctx: *ContextePriseSSL, rappel: fonc(*Prise)(rien)) -> type_de(rappel)
 {
     ctx.sur_fermeture_base = rappel
     retourne sur_fermeture_ssl
 }
 
-contexte_ssl_parasite_quand_timeout :: fonc (ctx: *ContextePriseSSL @inutilisée, rappel: fonc (*Prise)(rien)) -> type_de(rappel)
+contexte_ssl_parasite_quand_timeout :: fonc (ctx: *ContextePriseSSL @inutilisée, rappel: fonc(*Prise)(rien)) -> type_de(rappel)
 {
     retourne rappel
 }
 
-contexte_ssl_parasite_quand_fin :: fonc (ctx: *ContextePriseSSL @inutilisée, rappel: fonc (*Prise)(rien) @inutilisée) -> type_de(rappel)
+contexte_ssl_parasite_quand_fin :: fonc (ctx: *ContextePriseSSL @inutilisée, rappel: fonc(*Prise)(rien) @inutilisée) -> type_de(rappel)
 {
     /* Si SSL est utilisée, nous n'utilisons pas le rappel renseigné par l'application, car SSL ne supporte pas les prises à moitié fermées.
      * Nous fermons directement la prise. */
     retourne sur_fin_ssl
 }
 
-contexte_ssl_parasite_quand_erreur_connexion :: fonc (ctx: *ContextePriseSSL @inutilisée, rappel: fonc (*Prise)(rien)) -> type_de(rappel)
+contexte_ssl_parasite_quand_erreur_connexion :: fonc (ctx: *ContextePriseSSL @inutilisée, rappel: fonc(*Prise)(rien)) -> type_de(rappel)
 {
     retourne rappel
 }

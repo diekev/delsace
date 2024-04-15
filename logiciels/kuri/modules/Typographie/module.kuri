@@ -7,8 +7,8 @@ importe SysFichier
  * \{ */
 
 Fonte :: struct {
-    atlas : *texture_atlas_t
-    font : *texture_font_t
+    atlas: *texture_atlas_t
+    font: *texture_font_t
 }
 
 crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
@@ -40,7 +40,7 @@ donne_largeur_texte :: fonc (fonte: *Fonte, texte: chaine) -> z32
 {
     résultat := 0.0
     utilise_crénage := fonte.font.kerning != 0
-    dernier_glyphe : *texture_glyph_t
+    dernier_glyphe: *texture_glyph_t
     pour * texte {
         glyph := donne_glyphe(fonte, it)
         saufsi glyph {
@@ -77,7 +77,7 @@ MétriquesFonte :: struct {
 
 donne_métriques_fonte :: fonc (fonte: *Fonte) -> MétriquesFonte
 {
-    résultat: MétriquesFonte = ---
+    résultat : MétriquesFonte = ---
     résultat.jambage_supérieur = fonte.font.ascender
     résultat.jambage_inférieur = fonte.font.descender
     résultat.interligne = fonte.font.linegap

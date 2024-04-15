@@ -11,9 +11,9 @@ NombreRationnel :: struct {
     s: bool
 }
 
-construit_nombre_rationnel :: fonc(n: n32, d: n32, positif: bool) -> NombreRationnel
+construit_nombre_rationnel :: fonc (n: n32, d: n32, positif: bool) -> NombreRationnel
 {
-    r : NombreRationnel
+    r: NombreRationnel
     r.N = n
     r.D = d
     r.s = !positif
@@ -21,7 +21,7 @@ construit_nombre_rationnel :: fonc(n: n32, d: n32, positif: bool) -> NombreRatio
     retourne r
 }
 
-opérateur + :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur + :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
     a_n := a.N comme n64
@@ -29,11 +29,11 @@ opérateur + :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     b_n := b.N comme n64
     b_d := b.D comme n64
 
-    r_N : n64
+    r_N: n64
     r_N0 := a_n * b_d
     r_N1 := a_d * b_n
 
-    r : NombreRationnel
+    r: NombreRationnel
 
     si a.s == b.s {
         r_N = r_N0 + r_N1
@@ -79,7 +79,7 @@ opérateur + :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne r
 }
 
-opérateur - :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur - :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     tmp := b
     tmp.s = vrai
@@ -87,7 +87,7 @@ opérateur - :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne a + tmp
 }
 
-opérateur * :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur * :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
     a_n := a.N comme n64
@@ -120,7 +120,7 @@ opérateur * :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
         }
     }
 
-    r : NombreRationnel
+    r: NombreRationnel
     // restaure la précision
     r.N = r_N comme n32
     r.D = r_D comme n32
@@ -129,7 +129,7 @@ opérateur * :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne r
 }
 
-opérateur / :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur / :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     tmp := b
     tmp.N = b.D
@@ -138,7 +138,7 @@ opérateur / :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne a * tmp
 }
 
-imprime_nombre_rationnel :: fonc(a: NombreRationnel) -> rien
+imprime_nombre_rationnel :: fonc (a: NombreRationnel) -> rien
 {
     si a.s {
         imprime("- % / %\n", a.N, a.D)
@@ -149,7 +149,7 @@ imprime_nombre_rationnel :: fonc(a: NombreRationnel) -> rien
 }
 
 // https://en.wikipedia.org/wiki/Binary_GCD_algorithm
-pgdc_récursif :: fonc(u: n64, v: n64) -> n64
+pgdc_récursif :: fonc (u: n64, v: n64) -> n64
 {
     // cas simples (terminaison)
     si u == v {
@@ -165,15 +165,18 @@ pgdc_récursif :: fonc(u: n64, v: n64) -> n64
     }
 
     // cherche des facteurs de 2
-    si (~u & 1) != 0 { // u est pair
-        si (v & 1) != 0 { // v est impair
+    si (~u & 1) != 0 {
+        // u est pair
+        si (v & 1) != 0 {
+            // v est impair
             retourne pgdc_récursif(u >> 1, v)
         }
 
         retourne pgdc_récursif(u >> 1, v >> 1) << 1
     }
 
-    si (~v & 1) != 0 { // u est impair, v est pair
+    si (~v & 1) != 0 {
+        // u est impair, v est pair
         retourne pgdc_récursif(u, v >> 1)
     }
 
@@ -185,7 +188,7 @@ pgdc_récursif :: fonc(u: n64, v: n64) -> n64
     retourne pgdc_récursif((v - u) >> 1, u)
 }
 
-pgdc :: fonc(u: n64, v: n64) -> n64
+pgdc :: fonc (u: n64, v: n64) -> n64
 {
     si u == v {
         retourne u

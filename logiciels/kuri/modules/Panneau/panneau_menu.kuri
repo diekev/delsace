@@ -128,7 +128,7 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
 
     remplis_rectangle(ctx.peintre, rect, thème.couleur_arrière_plan)
 
-    rect_élément : RectanglePosDim(z32)
+    rect_élément: RectanglePosDim(z32)
     rect_élément.hauteur = hauteur_élément
 
     pour * éléments {
@@ -302,7 +302,7 @@ PanneauMenu :: struct {
     décalage_élément_x: z32
     décalage_élément_y: z32
 
-    état : État
+    état: État
 
     menu_fut_affiché: *PanneauMenu
 
@@ -484,7 +484,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
 
     métriques := donne_métriques_fonte(ctx.fonte)
 
-    rect_élément : RectanglePosDim(z32)
+    rect_élément: RectanglePosDim(z32)
     rect_élément.x = rect.x + décalage_élément_x
     rect_élément.hauteur = métriques.donne_hauteur_ligne() comme z32
 

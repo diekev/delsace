@@ -8,8 +8,8 @@ importe Fondation
  * \{ */
 
 Vec2 :: struct {
-    x := 0.0  @mutable
-    y := 0.0  @mutable
+    x := 0.0 @mutable
+    y := 0.0 @mutable
 }
 
 new_Vec2_pour_python :: fonc (vec: *Vec2, x: r32, y: r32) -> bool
@@ -38,7 +38,7 @@ opérateur * :: fonc (v1: Vec2, v2: Vec2) -> Vec2
 
 opérateur * :: fonc (v1: Vec2, v: r32) -> Vec2
 {
-    résultat : Vec2
+    résultat: Vec2
     si v != 0.0 {
         résultat = v1
         multiplie_vn_s(*résultat.x, v, 2)
@@ -178,7 +178,7 @@ rejette :: fonc (a1: Vec2, a: Vec2) -> Vec2
     retourne a - a1
 }
 
-angle_entre :: fonc (a: Vec2, b: Vec2) -> r32 #enligne
+angle_entre :: fonc (a: Vec2, b: Vec2) -> r32
 {
     a = normalise(a)
     b = normalise(b)
@@ -192,7 +192,7 @@ angle_entre :: fonc (a: Vec2, b: Vec2) -> r32 #enligne
     retourne Constantes(r32).PI - 2.0 * arc_sinus_borné(longueur(a, b2) * 0.5)
 }
 
-normalise :: fonc (v: Vec2) -> Vec2 #enligne
+normalise :: fonc (v: Vec2) -> Vec2
 {
     l := longueur(v)
     retourne v / l
@@ -206,9 +206,9 @@ normalise :: fonc (v: Vec2) -> Vec2 #enligne
 
 // À considérer: opérateurs de bases si la structure ne contient que des scalaires
 Vec3 :: struct {
-    x: r32  @mutable
-    y: r32  @mutable
-    z: r32  @mutable
+    x: r32 @mutable
+    y: r32 @mutable
+    z: r32 @mutable
 }
 
 Point3 :: #opaque Vec3
@@ -239,7 +239,7 @@ opérateur * :: fonc (v1: Vec3, v2: Vec3) -> Vec3
 
 opérateur * :: fonc (v1: Vec3, v: r32) -> Vec3
 {
-    résultat : Vec3
+    résultat: Vec3
     si v != 0.0 {
         résultat = v1
         multiplie_vn_s(*résultat.x, v, 3)
@@ -405,15 +405,15 @@ normalise_retourne_longueur :: fonc (v: Vec3) -> Vec3, r32 #enligne
 calcul_uv_capmat :: fonc (I: Vec3, N: Vec3, inversé: bool) -> Vec2
 {
     // Création rapide d'une base orthonormale
-    a := 1.0 / (1.0 + I.z);
-    b := -I.x * I.y * a;
-    b1 := Vec3(1.0 - I.x * I.x * a, b, -I.x);
-    b2 := Vec3(b, 1.0 - I.y * I.y * a, -I.y);
+    a := 1.0 / (1.0 + I.z)
+    b := -I.x * I.y * a
+    b1 := Vec3(1.0 - I.x * I.x * a, b, -I.x)
+    b2 := Vec3(b, 1.0 - I.y * I.y * a, -I.y)
 
-    uv_capmat := Vec2( x = produit_scalaire(b1, N), y = produit_scalaire(b2, N) )
+    uv_capmat := Vec2(x = produit_scalaire(b1, N), y = produit_scalaire(b2, N))
 
     si inversé {
-        uv_capmat.x = -uv_capmat.x;
+        uv_capmat.x = -uv_capmat.x
     }
 
     uv_capmat.x *= 0.496
@@ -445,10 +445,10 @@ déclinaison :: fonc (v: Vec3) -> Degrés(r32)
  * \{ */
 
 Vec4 :: struct {
-    x := 0.0  @mutable
-    y := 0.0  @mutable
-    z := 0.0  @mutable
-    w := 0.0  @mutable
+    x := 0.0 @mutable
+    y := 0.0 @mutable
+    z := 0.0 @mutable
+    w := 0.0 @mutable
 }
 
 opérateur - :: fonc (u: Vec4) -> Vec4

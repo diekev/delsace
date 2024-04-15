@@ -186,7 +186,7 @@ copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> boo
 /* Retourne la taille totale en octet des fichiers contenu dans le dossier, ou
  * une erreur si le dossier spécifié n'est pas un dossier.
  * Si récursif est vrai, les sous-dossiers sont aussi considérés. */
-détermine_taille_fichiers_dossier :: fonc (dossier: CheminFichier, récursif: bool = faux) -> Résultat(n64, ErreurFichier)
+détermine_taille_fichiers_dossier :: fonc (dossier: CheminFichier, récursif : bool = faux) -> Résultat(n64, ErreurFichier)
 {
     saufsi est_un_dossier(dossier) {
         retourne ErreurFichier.NEstPasUnDossier
@@ -274,13 +274,13 @@ lis :: fonc (fichier: *Fichier, tampon: [..]octet) -> RésultatOpérationFichier
 }
 
 RésultatLectureN64 :: union {
-    e : ErreurFichier
-    r : n64
+    e: ErreurFichier
+    r: n64
 }
 
 lis_n64 :: fonc (fichier: *Fichier) -> RésultatLectureN64
 {
-    tampon : n64
+    tampon: n64
 
     octets_lus := tente système_lis(fichier.desc, *tampon comme *z8, 8) piège err {
         retourne err
@@ -295,7 +295,7 @@ lis_n64 :: fonc (fichier: *Fichier) -> RésultatLectureN64
 
 lis_entier :: fonc (fichier: *Fichier, $T: type_de_données) -> Optionnel(T)
 {
-    valeur : T
+    valeur: T
 
     octets_lus := tente lis(fichier, valeur) piège err {
         retourne
@@ -324,7 +324,7 @@ CaractèreOuErreurFichier :: union {
 
 lis_caractère :: fonc (fichier: *Fichier) -> CaractèreOuErreurFichier
 {
-    c : z8
+    c: z8
 
     octets_lus := tente système_lis(fichier.desc, *c, 1) piège err {
         retourne err
@@ -344,7 +344,7 @@ ChaineOuErreurFichier :: union {
 
 lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-    résultat : [..]octet
+    résultat: [..]octet
 
     erreur_potentielle := lis_tout(fichier, résultat)
     si erreur_potentielle != (0 comme ErreurFichier) {
@@ -370,7 +370,7 @@ lis_tout :: fonc (fichier: *Fichier, résultat: &[..]octet) -> ErreurFichier
         si octets_lus > 0 {
             ancienne_taille := résultat.taille
             tableau_redimensionne(résultat, résultat.taille + octets_lus)
-            copie_mem_nonsur(src=*tampon[0], dst=*résultat[ancienne_taille], taille=octets_lus)
+            copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = octets_lus)
 
             si octets_lus < TAILLE_MAX {
                 arrête
@@ -389,7 +389,7 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
-    c : z8
+    c: z8
 
     boucle {
         octets_lus := tente système_lis(fichier.desc, *c, 1) piège err {

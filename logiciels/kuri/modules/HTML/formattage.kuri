@@ -61,9 +61,9 @@ est_élément_optionnel :: fonc (tag: *ChaineInternée) -> bool
 
 ContexteFormattage :: struct {
     profondeur: z32
-    supprime_espaces_blancs_texte: bool = vrai
-    insère_nouvelle_lignes_après_tags: bool = vrai
-    indente_tags: bool = vrai
+    supprime_espaces_blancs_texte : bool = vrai
+    insère_nouvelle_lignes_après_tags : bool = vrai
+    indente_tags : bool = vrai
     /* Supprime les guillemets des attributs si possible. */
     supprime_guillemets_attributs: bool
     supprime_slash_tags_auto_fermant: bool
@@ -220,7 +220,7 @@ tri_classes_css :: fonc (chn_classe: ChaineUTF16) -> ChaineUTF16
 
 cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: *ChaineInternée, attributs: [..]Attribut) -> [..]Attribut
 {
-    résultat : [..]Attribut
+    résultat: [..]Attribut
 
     pour & attributs {
         si peut_ignorer_attribut(contexte_formattage, tag, it) {
@@ -357,9 +357,9 @@ formatte_document :: fonc (document: *Document, fichier_sortie: *Fichier) -> z64
 
 formatte_document :: fonc (contexte_formattage: &ContexteFormattage, document: *Document, fichier_sortie: *Fichier) -> z64
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     formatte_noeud(contexte_formattage, document, *enchaineuse)
 
@@ -370,9 +370,9 @@ formatte_document :: fonc (contexte_formattage: &ContexteFormattage, document: *
 
 crée_chaine_formattée :: fonc (contexte_formattage: &ContexteFormattage, document: *Document) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
     formatte_noeud(contexte_formattage, document, *enchaineuse)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }

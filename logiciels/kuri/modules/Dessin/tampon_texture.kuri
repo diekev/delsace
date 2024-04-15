@@ -6,13 +6,13 @@ importe OpenGL
  * \{ */
 
 TamponTexture :: struct {
-    programme : n32
+    programme: n32
 
-    id_tampon_vertex : n32
-    id_tampon_index : n32
-    id_tableau_vertex : n32
+    id_tampon_vertex: n32
+    id_tampon_index: n32
+    id_tableau_vertex: n32
 
-    code_texture : n32
+    code_texture: n32
 }
 
 crée_tampon_texture :: fonc () -> *TamponTexture
@@ -59,7 +59,7 @@ crée_tampon_texture :: fonc () -> *TamponTexture
     loc := donne_adresse_uniforme(tampon_texture.programme, "image")
     vérifie_erreur("crée_tampon_texture glGetUniformLocation")
 
-    glUniform1i(loc, 0);
+    glUniform1i(loc, 0)
     vérifie_erreur("crée_tampon_texture glUniform1i")
 
     glUseProgram(0)
@@ -78,18 +78,18 @@ crée_tampon_texture :: fonc () -> *TamponTexture
 
     sommets := [ 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 ]
 
-    glBindBuffer(GL_ARRAY_BUFFER, tampon_texture.id_tampon_vertex);
-    glBufferData(GL_ARRAY_BUFFER, sommets.taille comme n64 * taille_de(r32), *sommets[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, tampon_texture.id_tampon_vertex)
+    glBufferData(GL_ARRAY_BUFFER, sommets.taille comme n64 * taille_de(r32), *sommets[0], GL_STATIC_DRAW)
     vérifie_erreur("crée_tampon_texture glBufferData")
 
-    index := [ 0, 1, 2, 0, 2, 3 ];
+    index := [ 0, 1, 2, 0, 2, 3 ]
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tampon_texture.id_tampon_index);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.taille comme n64 * taille_de(z32), *index[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tampon_texture.id_tampon_index)
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.taille comme n64 * taille_de(z32), *index[0], GL_STATIC_DRAW)
     vérifie_erreur("crée_tampon_texture glBufferData index")
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nul);
+    glEnableVertexAttribArray(0)
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nul)
 
     retourne tampon_texture
 }

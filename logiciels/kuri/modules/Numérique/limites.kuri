@@ -1,4 +1,3 @@
-
 valeur_min :: fonc (taille_en_octet: n32, est_signé: bool) -> z64
 {
     si !est_signé {

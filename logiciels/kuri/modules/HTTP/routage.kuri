@@ -31,7 +31,7 @@ CodeEtContenuHTPP :: struct {
 }
 
 message_depuis_erreur_http :: fonc (erreur_http: ErreurHTTP) -> MessageServeuseHTTP
-{ 
+{
     retourne crée_message_avec_contenu(erreur_http.code, contenu_html(erreur_http.message))
 }
 
@@ -243,7 +243,7 @@ divise_url :: fonc (ligne: chaine) -> [..]chaine
 {
     taille_mot : z64 = 0
     début_mot : z64 = 0
-    mots : [..]chaine
+    mots: [..]chaine
 
     premier_slash := vrai
 
@@ -314,12 +314,12 @@ ErreurOuRèglesRoutage :: union {
 parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
 {
     éléments := divise_url(route)
-    diffère { déloge(éléments) }
+    diffère déloge(éléments)
 
-    résultat : [..]RègleRoutage
+    résultat: [..]RègleRoutage
 
     pour éléments {
-        règle : RègleRoutage
+        règle: RègleRoutage
 
         si it[0] == '<' {
             si it[it.taille - 1] != '>' {
@@ -354,7 +354,7 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
 // ---------------------------------------------------------------------
 // Rassemblement des fonctions de parsage pour les paramètres de routage
 
-__fonctions_parsage_routes : [..]FonctionParsage
+__fonctions_parsage_routes: [..]FonctionParsage
 
 trouve_fonction_parsage_pour_type :: fonc (info: *InfoType)
 {
@@ -382,7 +382,7 @@ fonction_routage_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> Don
         compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage route HTTP invalide, le premier paramètre de sortie doit être de type « bool ».")
     }
 
-    résultat : DonnéesFonctionPourTableFonction
+    résultat: DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = fonction.params_sorties[1].type
     retourne résultat
@@ -405,7 +405,7 @@ génère_fonction_enveloppe_routage :: fonc (enchaineuse: *Enchaineuse, données
 
 génère_initialisation_routes :: fonc ()
 {
-    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions: CréatriceTableFonction
     diffère détruit_données_créatrice_table_fonctions(créatrice_table_fonctions)
     créatrice_table_fonctions.annotation_désirée = "ParsageRouteHTTP"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_routes"

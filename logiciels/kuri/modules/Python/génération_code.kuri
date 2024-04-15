@@ -90,7 +90,7 @@ assigne_énum_depuis_chaine := «
                 enchaineuse.imprime_dans_enchaineuse(assigne_énum_depuis_chaine, type.nom_sauf, it.nom)
             }
 
-            enchaineuse.ajoute_au_tampon("    retourne PyErr_MauvaisTypeAssignement(valeur, \"", it.type.nom , "\")\n")
+            enchaineuse.ajoute_au_tampon("    retourne PyErr_MauvaisTypeAssignement(valeur, \"", it.type.nom, "\")\n")
             enchaineuse.ajoute_au_tampon("}\n")
         }
     }
@@ -148,8 +148,8 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
     possède_membre_mutable := faux
 
     pour type.membres {
-        enchaineuse.ajoute_au_tampon("    si nom_membre == \"", it.nom ,"\" {\n")
-        enchaineuse.ajoute_au_tampon("         retourne get_", type.nom_sauf,"_", it.nom, "(self, nul)\n")
+        enchaineuse.ajoute_au_tampon("    si nom_membre == \"", it.nom, "\" {\n")
+        enchaineuse.ajoute_au_tampon("         retourne get_", type.nom_sauf, "_", it.nom, "(self, nul)\n")
         enchaineuse.ajoute_au_tampon("    }\n")
 
         si it.confidentialité == ConfidentialitéType.MUTABLE {
@@ -174,9 +174,9 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
         enchaineuse.ajoute_au_tampon("    }\n")
 
         pour type.membres {
-            enchaineuse.ajoute_au_tampon("    si nom_membre == \"", it.nom ,"\" {\n")
+            enchaineuse.ajoute_au_tampon("    si nom_membre == \"", it.nom, "\" {\n")
             si it.confidentialité == ConfidentialitéType.MUTABLE {
-                enchaineuse.ajoute_au_tampon("         retourne set_", type.nom_sauf,"_", it.nom, "(self, v, nul)\n")
+                enchaineuse.ajoute_au_tampon("         retourne set_", type.nom_sauf, "_", it.nom, "(self, v, nul)\n")
             }
             sinon {
                 enchaineuse.ajoute_au_tampon("         retourne PyErr_AttributNonMutable(self, nom_membre)\n")
@@ -190,7 +190,7 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
     /* Génère la globale. */
     nom_globale := enchaine("py_mapping_methods_pour_", type.nom_sauf)
 
-    enchaineuse.ajoute_au_tampon(nom_globale, " := PyMappingMethods (", nom_fonction_mp_length, ", ", nom_fonction_mp_subscript,", ", nom_fonction_mp_ass_subscript, ")\n")
+    enchaineuse.ajoute_au_tampon(nom_globale, " := PyMappingMethods (", nom_fonction_mp_length, ", ", nom_fonction_mp_subscript, ", ", nom_fonction_mp_ass_subscript, ")\n")
 
     retourne nom_globale
 }
@@ -772,11 +772,11 @@ génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode:
 }
 
 // Génère l'expression d'appel pour le code Kuri de la méthode. La fonction appelante doit gérer la potentielle valeur de retour (nom, assignation, etc.).
-génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython, premier_paramètre_implicite: chaine = "")
+génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython, premier_paramètre_implicite : chaine = "")
 {
     enchaineuse.ajoute_au_tampon(méthode.nom)
     virgule := "("
-    si premier_paramètre_implicite  {
+    si premier_paramètre_implicite {
         enchaineuse.ajoute_au_tampon(virgule, premier_paramètre_implicite)
         virgule = ", "
     }
@@ -797,7 +797,7 @@ génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &Mét
     enchaineuse.ajoute_au_tampon(")\n")
 }
 
-génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: MéthodePython, self: *TypePython = nul)
+génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: MéthodePython, self : *TypePython = nul)
 {
     // À FAIRE : initialisation des variables globales de kuri
 

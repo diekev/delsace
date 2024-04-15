@@ -5,7 +5,7 @@ ancien_test :: fonc ()
 {
     DonnéesPage :: struct {
         titre_page := "Accueil"
-        évènements : [3]z32
+        évènements: [3]z32
         variable := "eh ouais..."
         lien := "http://aaa"
     }
@@ -18,7 +18,7 @@ ancien_test :: fonc ()
     // Lexage du script
 
     lexeuse := construit_lexeuse(chn)
-    diffère { détruit_lexeuse(lexeuse) }
+    diffère détruit_lexeuse(lexeuse)
 
     lexeuse.performe_lexage()
 
@@ -34,7 +34,7 @@ ancien_test :: fonc ()
     // Syntaxage du script
 
     syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
-    diffère { détruit_assembleuse(syntaxeuse.assembleuse) }
+    diffère détruit_assembleuse(syntaxeuse.assembleuse)
 
     syntaxeuse.performe_syntaxage()
 
@@ -47,18 +47,18 @@ ancien_test :: fonc ()
     /* ------------------------------------------------------------------------- */
     // Génération de la page
 
-    données_page : DonnéesPage
+    données_page: DonnéesPage
     données_page.titre_page = "Accueil"
     données_page.évènements[0] = 127
     données_page.évènements[1] = 255
     données_page.évènements[2] = 511
 
-    données_génération : DonnéesGénération
+    données_génération: DonnéesGénération
     données_génération.valeur = données_page
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     erreur_ := génère_page(*données_génération, racine, *enchaineuse)
 
@@ -72,7 +72,7 @@ ancien_test :: fonc ()
         déloge(résultat)
     }
 
-/*
+    /*
     gestionnaire : GestionnaireObjet
     diffère { détruit(@gestionnaire) }
 
@@ -123,10 +123,10 @@ ancien_test :: fonc ()
 
 principale :: fonc () -> z32
 {
-    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée())
 
     rendeuse_page: RendeusePage
-    diffère { détruit_rendeuse(*rendeuse_page) }
+    diffère détruit_rendeuse(*rendeuse_page)
 
     ajoute_fichier(*rendeuse_page.catalogue, "base", "base.html")
     ajoute_fichier(*rendeuse_page.catalogue, "corps", "corps.html")
@@ -137,10 +137,10 @@ principale :: fonc () -> z32
     }
 
     Indirection :: struct {
-        indirection : DonnéesPage
+        indirection: DonnéesPage
     }
 
-    données_page : Indirection
+    données_page: Indirection
 
     chn := rends_page(*rendeuse_page, "base", données_page)
 

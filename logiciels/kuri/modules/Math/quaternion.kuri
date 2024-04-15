@@ -5,7 +5,7 @@ Quaternion :: #opaque [4]r32
 
 construit_quaternion :: fonc (w: r32, x: r32, y: r32, z: r32) -> Quaternion #enligne
 {
-    valeur := [w, x, y, z]
+    valeur := [ w, x, y, z ]
     retourne Quaternion(valeur)
 }
 
@@ -30,7 +30,7 @@ quaternion_depuis_axe_et_angle_normalisé :: fonc (axe: Vec3, angle: r32) -> Qua
     phi := 0.5 * angle
     sin := sinus(phi)
     cos := cosinus(phi)
-  	// BLI_ASSERT_UNIT_V3(axis);
+    // BLI_ASSERT_UNIT_V3(axis);
 
     vecteur := axe * sin
     retourne construit_quaternion(cos, vecteur.x, vecteur.y, vecteur.z)
@@ -75,14 +75,14 @@ opérateur * :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
     a := q comme [4]r32
     b := autre comme [4]r32
 
-  	t0 := a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3];
-  	t1 := a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2];
-  	t2 := a[0] * b[2] + a[2] * b[0] + a[3] * b[1] - a[1] * b[3];
+    t0 := a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3]
+    t1 := a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2]
+    t2 := a[0] * b[2] + a[2] * b[0] + a[3] * b[1] - a[1] * b[3]
 
-    a[3] = a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1];
-    a[0] = t0;
-    a[1] = t1;
-    a[2] = t2;
+    a[3] = a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1]
+    a[0] = t0
+    a[1] = t1
+    a[2] = t2
     retourne Quaternion(a)
 }
 
@@ -194,7 +194,7 @@ normalise :: fonc (q: Quaternion) -> Quaternion
     lon := racine_carrée(produit_scalaire(q, q))
 
     si lon != 0.0 {
-        retourne q / lon;
+        retourne q / lon
     }
 
     retourne quaternion_neutre()
@@ -217,7 +217,7 @@ interpolation_sphérique :: fonc (a: Quaternion, t: r32, b: Quaternion) -> Quate
     }
 
     theta := arccosinus(restreint(cos_theta, -un, un))
-    thetap := theta * t;
+    thetap := theta * t
     qperp := normalise(b - a * thetap)
 
     retourne a * cosinus(thetap) + qperp * sinus(thetap)
@@ -260,7 +260,7 @@ vers_matrice_rotation :: fonc (q: Quaternion) -> Matrice3x3(r32)
     qbc := q2 * q3
     qcc := q3 * q3
 
-    résultat : Matrice3x3(r32)
+    résultat: Matrice3x3(r32)
 
     résultat.m[0][0] = (1.0 - qbb - qcc) comme r32
     résultat.m[0][1] = (qdc + qab) comme r32
