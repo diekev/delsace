@@ -34,7 +34,7 @@ imprime_rune :: fonc (enchaineuse: *Enchaineuse, rune: *Rune)
         retourne
     }
 
-    séquence : [4]n8
+    séquence: [4]n8
 
     nombre_de_points := point_de_code_vers_utf8(mémoire(rune) comme n32, *séquence[0])
 
@@ -50,7 +50,7 @@ est_continuation :: fonc (c: n8) -> bool #enligne
 }
 
 // Retourne le nombre d'octets du caractère en début de la séquence encodée en Unicode
-nombre_octets_utf8 :: fonc(caractère : *z8) -> z32
+nombre_octets_utf8 :: fonc (caractère: *z8) -> z32
 {
     si caractère == nul {
         retourne 0
@@ -112,7 +112,7 @@ nombre_octets_utf8 :: fonc(caractère : *z8) -> z32
 }
 
 // Similaire à celle au dessus, avec moins de comparaisons
-nombre_octets_utf8_rapide :: fonc(caractère : *z8) -> z64
+nombre_octets_utf8_rapide :: fonc (caractère: *z8) -> z64
 {
     si caractère == nul {
         retourne 0
@@ -133,7 +133,7 @@ nombre_octets_utf8_rapide :: fonc(caractère : *z8) -> z64
     retourne result
 }
 
-décalage_pour_caractère :: fonc(chn : chaine, i : z64) -> z32
+décalage_pour_caractère :: fonc (chn: chaine, i: z64) -> z32
 {
     décalage := 0
     n := nombre_octets_utf8(*chn[i])
@@ -150,7 +150,7 @@ décalage_pour_caractère :: fonc(chn : chaine, i : z64) -> z32
 }
 
 // Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
-converti_utf8_utf32 :: fonc(caractère : *z8, n : z64) -> z32
+converti_utf8_utf32 :: fonc (caractère: *z8, n: z64) -> z32
 {
     s0 := caractère[0] comme n32
 
@@ -182,7 +182,7 @@ converti_utf8_utf32 :: fonc(caractère : *z8, n : z64) -> z32
     retourne 0
 }
 
-converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
+converti_utf8_utf32 :: fonc (caractère: *z8) -> z32
 {
     n := nombre_octets_utf8_rapide(caractère)
     retourne converti_utf8_utf32(caractère, n)
@@ -193,7 +193,7 @@ point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
     /* caractère ASCII */
     si point_de_code <= 0x7F {
         séquence[0] = (point_de_code) comme n8
-        retourne 1;
+        retourne 1
     }
 
     /* Plan universel. */
@@ -212,7 +212,7 @@ point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
         séquence[0] = ((point_de_code >> 12) | 224) comme n8
         séquence[1] = (((point_de_code >> 6) & 63) | 128) comme n8
         séquence[2] = ((point_de_code & 63) | 128) comme n8
-        retourne 3;
+        retourne 3
     }
 
     /* ceci n'est pas nécessaire si nous savons que le point de code est valide */
@@ -232,7 +232,7 @@ est_point_de_code_valide :: fonc (point_de_code: n32) -> bool
 {
     /* caractère ASCII */
     si point_de_code <= 0x7F {
-        retourne vrai;
+        retourne vrai
     }
 
     /* Plan universel. */
@@ -257,7 +257,7 @@ est_point_de_code_valide :: fonc (point_de_code: n32) -> bool
 }
 
 // Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.
-taille_unicode :: fonc(chn : chaine) -> z64
+taille_unicode :: fonc (chn: chaine) -> z64
 {
     taille : z64 = 0
     i := 0

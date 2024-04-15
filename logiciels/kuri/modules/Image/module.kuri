@@ -9,7 +9,7 @@ libtbb :: #bibliothèque "tbb"
 #dépendance_bibliothèque libmodule_c_image libtbb
 
 Image :: struct {
-    tampon : [..]CouleurRVBA
+    tampon: [..]CouleurRVBA
     largeur: z32
     hauteur: z32
 }
@@ -30,7 +30,7 @@ détruit_image :: fonc (image: *Image) -> rien
     déloge(image.tampon)
 }
 
-remplis_image :: fonc (image : *Image, couleur: CouleurRVBA) -> rien
+remplis_image :: fonc (image: *Image, couleur: CouleurRVBA) -> rien
 {
     pour & pixel dans image.tampon {
         pixel = couleur
@@ -100,7 +100,7 @@ nombre_éléments_données :: fonc (image: ImageIO) -> z64
 
 alloc_image :: fonc (hauteur: z32, largeur: z32, composants: z32) -> ImageIO
 {
-    image : ImageIO
+    image: ImageIO
     image.hauteur = hauteur
     image.largeur = largeur
     image.nombre_composants = composants
@@ -154,7 +154,7 @@ ouvre_image :: fonc (chemin: CheminFichier) -> Résultat(ImageIO, ResultatOperat
     chn_c := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(chn_c)
 
-    image : ImageIO
+    image: ImageIO
     résultat := IMG_ouvre_image(chn_c comme *z8, *image)
 
     si résultat != ResultatOperation.OK {
@@ -174,8 +174,8 @@ ouvre_image :: fonc (chemin: CheminFichier) -> Résultat(ImageIO, ResultatOperat
 
 calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y: z32) -> chaine
 {
-    tampon : [2 + 4 + (9 * 9 - 1) * 2 + 1]z8
-    taille_résultat : z64
+    tampon: [2 + 4 + (9 * 9 - 1) * 2 + 1]z8
+    taille_résultat: z64
 
     chaine_c := crée_chaine_c_temp(chemin)
 

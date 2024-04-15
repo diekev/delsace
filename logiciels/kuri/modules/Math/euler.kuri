@@ -3,33 +3,33 @@
 /* Les 24 mises en ordre possibles d'une orientation Euler. */
 OrdreEuler :: énum_drapeau {
     /* mises en ordre « usuelles » */
-    XYZ         :: 0x0101
-    XZY         :: 0x0001
-    YZX         :: 0x1101
-    YXZ         :: 0x1001
-    ZXY         :: 0x2101
-    ZYX         :: 0x2001
+    XYZ :: 0x0101
+    XZY :: 0x0001
+    YZX :: 0x1101
+    YXZ :: 0x1001
+    ZXY :: 0x2101
+    ZYX :: 0x2001
     /* premier axe répété */
-    XZX         :: 0x0011
-    XYX         :: 0x0111
-    YXY         :: 0x1011
-    YZY         :: 0x1111
-    ZYZ         :: 0x2011
-    ZXZ         :: 0x2111
+    XZX :: 0x0011
+    XYX :: 0x0111
+    YXY :: 0x1011
+    YZY :: 0x1111
+    ZYZ :: 0x2011
+    ZXZ :: 0x2111
     /* mises en ordre relatives -- rares */
-    XYZr     :: 0x2000
-    XZYr     :: 0x2100
-    YZXr     :: 0x1000
-    YXZr     :: 0x1100
-    ZXYr     :: 0x0000
-    ZYXr     :: 0x0100
+    XYZr :: 0x2000
+    XZYr :: 0x2100
+    YZXr :: 0x1000
+    YXZr :: 0x1100
+    ZXYr :: 0x0000
+    ZYXr :: 0x0100
     /* premier axe répété relatif */
-    XZXr     :: 0x2110
-    XYXr     :: 0x2010
-    YXYr     :: 0x1110
-    YZYr     :: 0x1010
-    ZYZr     :: 0x0110
-    ZXZr     :: 0x0010
+    XZXr :: 0x2110
+    XYXr :: 0x2010
+    YXYr :: 0x1110
+    YZYr :: 0x1010
+    ZYZr :: 0x0110
+    ZXZr :: 0x0010
     //            ||||
     //            VVVV
     //  Légende : ABCD
@@ -39,10 +39,10 @@ OrdreEuler :: énum_drapeau {
     //  D -> Frame Statique (1== vrai)
     //
 
-    AxeInitialX      :: 0x0000
-    AxeInitialY      :: 0x1000
-    AxeInitialZ      :: 0x2000
-    ParitéPaire      :: 0x0100
+    AxeInitialX :: 0x0000
+    AxeInitialY :: 0x1000
+    AxeInitialZ :: 0x2000
+    ParitéPaire :: 0x0100
     AxeInitialRépété :: 0x0010
-    FrameStatique    :: 0x0001
+    FrameStatique :: 0x0001
 }

@@ -15,9 +15,9 @@ Parseuse :: struct {
     possède_erreur: bool
 
     /* Rappels. */
-    sur_prodéclaration_struct_ou_class : fonc(&Parseuse, *NoeudProdéclarationObjet)(rien)
-    sur_définition_classe : fonc (&Parseuse, *NoeudDéfinitionClasse)(rien)
-    sur_prodéclaration_énum : fonc(&Parseuse, *NoeudProdéclarationÉnum)(rien)
+    sur_prodéclaration_struct_ou_class: fonc(&Parseuse, *NoeudProdéclarationObjet)(rien)
+    sur_définition_classe: fonc(&Parseuse, *NoeudDéfinitionClasse)(rien)
+    sur_prodéclaration_énum: fonc(&Parseuse, *NoeudProdéclarationÉnum)(rien)
     sur_identifiant: fonc(&Parseuse, chaine)(rien)
     sur_inclusion: fonc(&Parseuse, chaine, bool)(rien)
 }
@@ -195,7 +195,7 @@ DonnéesParsageClasse :: struct {
 
 crée_données_parsage_classe :: fonc (nom: chaine, clé_classe: CléClasse) -> DonnéesParsageClasse
 {
-    résultat : DonnéesParsageClasse
+    résultat: DonnéesParsageClasse
     résultat.nom = nom
     résultat.clé_classe = clé_classe
 
@@ -709,7 +709,7 @@ parse_typedef :: fonc (parseuse: &Parseuse)
     parseuse.avance()
 
     saufsi apparie(parseuse, ';') {
-        parseuse.rapporte_erreur("Attendu un ';'");
+        parseuse.rapporte_erreur("Attendu un ';'")
         retourne
     }
 

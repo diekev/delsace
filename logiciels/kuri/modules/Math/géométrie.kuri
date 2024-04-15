@@ -6,9 +6,9 @@ Point2D :: struct {
     y: r32
 }
 
-crée_point :: fonc(x : r64, y : r64) -> Point2D
+crée_point :: fonc (x: r64, y: r64) -> Point2D
 {
-    retourne Point2D( x = x, y = y )
+    retourne Point2D(x = x, y = y)
 }
 
 opérateur + :: fonc (p0: Point2D, p1: Point2D) -> Point2D
@@ -72,7 +72,6 @@ Triangle :: struct {
 
 est_rectangle :: fonc (triangle: Triangle) -> bool
 {
-
 }
 
 est_isocèle :: fonc (triangle: Triangle) -> bool
@@ -204,7 +203,6 @@ centre_de_masse :: fonc (triangle: Triangle) -> Point2D
 // Le point d'intersection des bissectrices du triangle.
 encentre :: fonc (triangle: Triangle) -> Point2D
 {
-
 }
 
 // La ligne passant par l'orthocentre, le médicentre, et le circoncentre
@@ -254,7 +252,7 @@ inverse :: fonc (cercle_d_inversion: Cercle, point: Point2D) -> Point2D
 
 point_d_intersection :: fonc (o1: Point2D, p1: Point2D, o2: Point2D, p2: Point2D) -> bool, Point2D
 {
-    résultat : Point2D
+    résultat: Point2D
 
     x := o2 - o1
     d1 := p1 - o1
