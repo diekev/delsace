@@ -11,7 +11,7 @@ charge "interface_compression"
 
 crée_flux_compression_pour_fichier :: fonc (fichier: *Fichier) -> FluxCompression
 {
-    flux : FluxCompression
+    flux: FluxCompression
     flux.donnees_utilisateur = fichier
     flux.lis = flux_compression_fichier_lis
     flux.ecris = flux_compression_fichier_ecris
@@ -22,7 +22,7 @@ crée_flux_compression_pour_fichier :: fonc (fichier: *Fichier) -> FluxCompressi
 
 flux_compression_fichier_ecris :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32
 {
-    taille_écrite : n32
+    taille_écrite: n32
 
     fichier := flux.donnees_utilisateur comme *Fichier
 
@@ -46,7 +46,7 @@ flux_compression_fichier_ecris :: fonc (flux: *FluxCompression, taille: n32, don
 
 flux_compression_fichier_lis :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32
 {
-    taille_lue : n32
+    taille_lue: n32
 
     fichier := flux.donnees_utilisateur comme *Fichier
 
@@ -84,7 +84,7 @@ flux_compression_fichier_possede_erreur :: fonc (flux: *FluxCompression) -> bool
 
 crée_flux_compression_pour_chaine :: fonc (chn: *chaine) -> FluxCompression
 {
-    flux : FluxCompression
+    flux: FluxCompression
     flux.donnees_utilisateur = chn
     flux.lis = flux_compression_chaine_lis
     flux.ecris = flux_compression_chaine_ecris
@@ -95,7 +95,7 @@ crée_flux_compression_pour_chaine :: fonc (chn: *chaine) -> FluxCompression
 
 flux_compression_chaine_ecris :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32
 {
-    taille_écrite : n32
+    taille_écrite: n32
 
     chn := flux.donnees_utilisateur comme *chaine
 
@@ -112,7 +112,7 @@ flux_compression_chaine_ecris :: fonc (flux: *FluxCompression, taille: n32, donn
 
 flux_compression_chaine_lis :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32
 {
-    taille_lue : n32
+    taille_lue: n32
 
     chn := flux.donnees_utilisateur comme *chaine
 

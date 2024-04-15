@@ -8,7 +8,7 @@ charge "format_url"
 table_défaut :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 table_url :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
-est_base64_url :: fonc(c : z8) -> bool
+est_base64_url :: fonc (c: z8) -> bool
 {
     retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '-') || (c == '_')
 }
@@ -28,7 +28,7 @@ est_base64_url :: fonc (chn: chaine) -> bool
     retourne vrai
 }
 
-est_base64 :: fonc(c : z8) -> bool
+est_base64 :: fonc (c: z8) -> bool
 {
     retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '+') || (c == '/')
 }
@@ -50,15 +50,15 @@ est_base64 :: fonc (chn: chaine) -> bool
 
 /* ------------------------------------------------------------------------- */
 
-encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
+encode_base64_impl :: fonc (chn: chaine, table: chaine) -> chaine
 {
     i := 0
-    char_array_3 : [3]n8
-    char_array_4 : [4]n8
+    char_array_3: [3]n8
+    char_array_4: [4]n8
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     pour c dans chn {
         char_array_3[i] = c comme n8
@@ -102,12 +102,12 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-encode_base64 :: fonc(chn: chaine) -> chaine
+encode_base64 :: fonc (chn: chaine) -> chaine
 {
     retourne encode_base64_impl(chn, table_défaut)
 }
 
-encode_base64_pour_url :: fonc(chn: chaine) -> chaine
+encode_base64_pour_url :: fonc (chn: chaine) -> chaine
 {
     retourne encode_base64_impl(chn, table_url)
 }
@@ -115,11 +115,11 @@ encode_base64_pour_url :: fonc(chn: chaine) -> chaine
 /* ------------------------------------------------------------------------- */
 
 // implémentation tirée de https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64
-décode_base64 :: fonc(chn : chaine) -> chaine
+décode_base64 :: fonc (chn: chaine) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     temp := 0
     curseur := chn.pointeur
@@ -139,7 +139,7 @@ décode_base64 :: fonc(chn : chaine) -> chaine
             sinon si caractère >= '0' && caractère <= '9' {
                 temp |= caractère + 0x04
             }
-            sinon si caractère == '+' || caractère == '-' {
+            sinon si caractère == '+' || caractère == '-' {
                 temp |= 0x3E
             }
             sinon si caractère == '/' || caractère == '_' {
@@ -150,7 +150,7 @@ décode_base64 :: fonc(chn : chaine) -> chaine
 
                 si reste == 1 {
                     ajoute_au_tampon(*enchaineuse, ((temp >> 16) & 0xff) comme z8)
-                    ajoute_au_tampon(*enchaineuse, ((temp >>  8) & 0xff) comme z8)
+                    ajoute_au_tampon(*enchaineuse, ((temp >> 8) & 0xff) comme z8)
                 }
                 sinon si reste == 2 {
                     ajoute_au_tampon(*enchaineuse, ((temp >> 10) & 0xff) comme z8)
@@ -169,16 +169,16 @@ décode_base64 :: fonc(chn : chaine) -> chaine
         }
 
         ajoute_au_tampon(*enchaineuse, ((temp >> 16) & 0xff) comme z8)
-        ajoute_au_tampon(*enchaineuse, ((temp >>  8) & 0xff) comme z8)
-        ajoute_au_tampon(*enchaineuse, ((temp      ) & 0xff) comme z8)
+        ajoute_au_tampon(*enchaineuse, ((temp >> 8) & 0xff) comme z8)
+        ajoute_au_tampon(*enchaineuse, ((temp) & 0xff) comme z8)
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 CodecBase64 :: struct {
-    encode: fonc (chaine)(chaine)
-    décode: fonc (chaine)(chaine)
+    encode: fonc(chaine)(chaine)
+    décode: fonc(chaine)(chaine)
 }
 
 crée_codec_base64 :: fonc () -> CodecBase64
@@ -203,7 +203,7 @@ crée_codec_base64_url :: fonc () -> CodecBase64
 
 encode_par_différence_en_place :: fonc (données: []$T)
 {
-    précédent : T
+    précédent: T
 
     pour & données {
         temp := précédent
@@ -215,7 +215,7 @@ encode_par_différence_en_place :: fonc (données: []$T)
 
 encode_par_différence :: fonc (données: []$T) -> [..]T
 {
-    résultat : [..]T
+    résultat: [..]T
 
     saufsi données {
         retourne résultat
@@ -223,7 +223,7 @@ encode_par_différence :: fonc (données: []$T) -> [..]T
 
     tableau_redimensionne(résultat, données.taille)
 
-    précédent : T
+    précédent: T
 
     pour données {
         résultat[index_it] = it - précédent
@@ -235,7 +235,7 @@ encode_par_différence :: fonc (données: []$T) -> [..]T
 
 décode_par_différence_en_place :: fonc (données: []$T)
 {
-    précédent : T
+    précédent: T
 
     pour & données {
         it += précédent
@@ -245,7 +245,7 @@ décode_par_différence_en_place :: fonc (données: []$T)
 
 décode_par_différence :: fonc (données: []$T) -> [..]T
 {
-    résultat : [..]T
+    résultat: [..]T
 
     saufsi données {
         retourne résultat
@@ -253,7 +253,7 @@ décode_par_différence :: fonc (données: []$T) -> [..]T
 
     tableau_redimensionne(résultat, données.taille)
 
-    précédent : T
+    précédent: T
 
     pour données {
         temp := it + précédent
@@ -305,7 +305,7 @@ encode_par_plages :: fonc (données: []$T) -> [..]T
 
 décode_par_plages :: fonc (données: []$T) -> [..]T
 {
-    résultat : [..]T
+    résultat: [..]T
 
     saufsi données {
         retourne résultat
@@ -510,7 +510,7 @@ décode_hexadécimal :: fonc (entrée: [..]octet) -> chaine
         na := nombre_depuis_hex(a comme z8) comme n8
         nb := nombre_depuis_hex(b comme z8) comme n8
 
-        c := na << 4 | nb
+        c := na << 4 | nb
 
         ajoute_au_tampon(*enchaineuse, c comme z8)
 
@@ -555,13 +555,13 @@ encode_base96 :: fonc (message: [..]octet) -> chaine
 
 FluxEncodage :: struct {
     /* Écris une chaine native, encodée en UTF-8, dans le flux. */
-    écris_chaine : fonc (&FluxEncodage, chaine, bool)(rien)
+    écris_chaine: fonc(&FluxEncodage, chaine, bool)(rien)
 
     /* Écris un point de code UTF-32 dans le flux. */
-    écris_utf32 : fonc (&FluxEncodage, n32, bool)(rien)
+    écris_utf32: fonc(&FluxEncodage, n32, bool)(rien)
 
     /* Écris un point de code UTF-8 dans le flux. */
-    écris_utf8 : fonc (&FluxEncodage, z8, bool)(rien)
+    écris_utf8: fonc(&FluxEncodage, z8, bool)(rien)
 
     enchaineuse: *Enchaineuse
 }

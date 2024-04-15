@@ -32,9 +32,9 @@ Alignement :: énum z32 {
 }
 
 Tabuleuse :: struct {
-    lignes : [..]LigneTabuleuse
-    alignements : [..]Alignement
-    nombre_colonnes : z64
+    lignes: [..]LigneTabuleuse
+    alignements: [..]Alignement
+    nombre_colonnes: z64
 
     chaines_allouées: [..]chaine
 }
@@ -45,7 +45,7 @@ crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
     retourne crée_tabuleuse(ligne)
 }
 
-crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
+crée_tabuleuse :: fonc (ligne_titre: LigneTabuleuse) -> Tabuleuse
 {
     tabuleuse: Tabuleuse
 
@@ -86,7 +86,7 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
  */
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 {
-    ligne : LigneTabuleuse
+    ligne: LigneTabuleuse
 
     pour arg dans args {
         chn := obtiens_chaine_pour_eini(tabuleuse, arg)
@@ -102,7 +102,7 @@ obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
         retourne arg.comme_chaine()
     }
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
@@ -121,7 +121,7 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...chaine) -> rien
 
 crée_ligne :: fonc (args: ...chaine) -> LigneTabuleuse
 {
-    résultat : LigneTabuleuse
+    résultat: LigneTabuleuse
 
     pour arg dans args {
         tableau_ajoute(*résultat.colonnes, arg)
@@ -142,11 +142,11 @@ définis_alignement :: fonc (tabuleuse: *Tabuleuse, idx: z64, align: Alignement)
 
 imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
-    nombre_colonnes : z64
+    nombre_colonnes: z64
 
     pour ligne dans tabuleuse.lignes {
         si ligne.colonnes.taille > nombre_colonnes {
@@ -154,9 +154,9 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
         }
     }
 
-    tailles_max_colonnes : [..]z64
+    tailles_max_colonnes: [..]z64
     tableau_redimensionne(tailles_max_colonnes, nombre_colonnes)
-    diffère { déloge(tailles_max_colonnes); }
+    diffère déloge(tailles_max_colonnes)
 
     tableau_remplis_avec(tailles_max_colonnes, 0)
 
@@ -174,7 +174,7 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
     taille_ligne : z64 = 0
 
     pour t dans tailles_max_colonnes {
-        taille_ligne += t + 2;
+        taille_ligne += t + 2
     }
 
     /* impression */

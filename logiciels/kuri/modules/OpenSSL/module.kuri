@@ -14,7 +14,7 @@ ErreurCertificat :: erreur {
     MésappariementClésPubliquePrivée
 }
 
-charge_certificats_ssl :: fonc(ctx: *SSL_CTX, chemin_fichier_certificat: chaine, chemin_fichier_clé: chaine) -> ErreurCertificat
+charge_certificats_ssl :: fonc (ctx: *SSL_CTX, chemin_fichier_certificat: chaine, chemin_fichier_clé: chaine) -> ErreurCertificat
 {
     ptr_chemin_certificat := crée_chaine_c(chemin_fichier_certificat)
     diffère détruit_chaine_c(ptr_chemin_certificat)
@@ -35,7 +35,7 @@ charge_certificats_ssl :: fonc(ctx: *SSL_CTX, chemin_fichier_certificat: chaine,
     retourne 0 comme ErreurCertificat
 }
 
-imprime_certificats_ssl :: fonc(ssl: *SSL_CTX) -> rien
+imprime_certificats_ssl :: fonc (ssl: *SSL_CTX) -> rien
 {
     cert := SSL_get_peer_certificate(ssl)
 
@@ -123,7 +123,7 @@ ErreurSSL :: erreur {
     AppelSystème
 }
 
-converti_erreur_ssl :: fonc (ssl : *ssl_st, code_erreur : z32) -> ErreurSSL
+converti_erreur_ssl :: fonc (ssl: *ssl_st, code_erreur: z32) -> ErreurSSL
 {
     erreur_ssl := SSL_get_error(ssl, code_erreur)
 
@@ -165,7 +165,7 @@ converti_erreur_ssl :: fonc (ssl : *ssl_st, code_erreur : z32) -> ErreurSSL
 // l'interface d'un fichier pour envelopper la logique de lecture et d'écriture pour une connexion SSL
 FichierSSL :: struct {
     fichier: Fichier
-    ssl : *ssl_st
+    ssl: *ssl_st
 }
 
 FichierOuErreurSSL :: union {
@@ -191,7 +191,7 @@ ouvre_fichier_ssl :: fonc (ctx_ssl: *SSL_CTX, fichier: Fichier) -> FichierOuErre
         retourne converti_erreur_ssl(m_ssl, 0)
     }
 
-    fichier_ssl : FichierSSL
+    fichier_ssl: FichierSSL
     fichier_ssl.fichier = fichier
     fichier_ssl.ssl = m_ssl
     retourne fichier_ssl
@@ -216,8 +216,8 @@ ChaineOuErreurSSL :: union {
 lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
 {
     TAILLE_MAX_DONNÉES :: 1024
-    tampon : [TAILLE_MAX_DONNÉES]z8
-    résultat : chaine
+    tampon: [TAILLE_MAX_DONNÉES]z8
+    résultat: chaine
 
     boucle {
         taille := SSL_read(fichier.ssl, *tampon[0], TAILLE_MAX_DONNÉES)
@@ -225,7 +225,7 @@ lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
         si taille > 0 {
             ancienne_taille := résultat.taille
             reloge_chaine(résultat, résultat.taille + taille)
-            copie_mem_nonsur(src=*tampon[0], dst=*résultat[ancienne_taille], taille=taille comme z64)
+            copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = taille comme z64)
         }
         sinon si taille == 0 {
             arrête
@@ -257,22 +257,22 @@ ferme :: fonc (fichier: *FichierSSL) -> rien
 efface_file_erreur_locale :: fonc (code: z32)
 {
     si code == SSL_ERROR_SSL || code == SSL_ERROR_SYSCALL {
-        ERR_clear_error();
+        ERR_clear_error()
     }
 }
 
 // ------------------------------------------------------------------------
 
 OptionsCréationContexteSSL :: struct {
-    fichier_clé : chaine
-    fichier_certificat : chaine
-    phrase_de_passe : chaine
-    fichier_paramètres_dh : chaine
-    fichier_ca : chaine
+    fichier_clé: chaine
+    fichier_certificat: chaine
+    phrase_de_passe: chaine
+    fichier_paramètres_dh: chaine
+    fichier_ca: chaine
 
     /* Cette option est importante pour diminuer la quantité de mémoire utilisée,
      * mais elle dimininue un peu la vittesse d'exécution du programme. */
-    préfère_utilisation_mémoire_basse : bool
+    préfère_utilisation_mémoire_basse: bool
 }
 
 /* Détruit un SSL_CTX créé depuis des OptionsCréationContexteSSL */
@@ -345,7 +345,7 @@ crée_contexte_ssl_depuis_options :: fonc (options: &OptionsCréationContexteSSL
 initialise_contexte_ssl_depuis_options :: fonc (contexte_ssl: *SSL_CTX, options: &OptionsCréationContexteSSL) -> bool
 {
     si options.préfère_utilisation_mémoire_basse {
-       _ := SSL_CTX_set_mode(contexte_ssl, SSL_MODE_RELEASE_BUFFERS)
+        _ := SSL_CTX_set_mode(contexte_ssl, SSL_MODE_RELEASE_BUFFERS)
     }
 
     si options.phrase_de_passe {

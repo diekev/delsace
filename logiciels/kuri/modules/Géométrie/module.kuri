@@ -107,9 +107,9 @@ donne_point_central :: fonc (rect: RectanglePosDim(r32)) -> Point2D(r32)
     retourne Point2D(r32)(rect.x + rect.largeur / 2, rect.y + rect.hauteur / 2)
 } @Python "méthode"
 
-position_interne :: fonc (rect:  RectanglePosDim($T), pos: Point2D(r32)) -> Point2D(T)
+position_interne :: fonc (rect: RectanglePosDim($T), pos: Point2D(r32)) -> Point2D(T)
 {
-    résultat: Point2D(T) = ---
+    résultat : Point2D(T) = ---
     résultat.x = ((rect.largeur comme r32) * pos.x) comme T
     résultat.y = ((rect.hauteur comme r32) * pos.y) comme T
     résultat.x += rect.x

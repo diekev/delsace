@@ -5,23 +5,23 @@ importe POSIX
 importe SysFichier
 
 Contexte :: struct {
-    boucle_prises : *Boucle
+    boucle_prises: *Boucle
 
     /* rappels */
-    quand_ouverture_ : fonc (*Prise, bool)(rien)
-    quand_données_reçues_ : fonc (*Prise, [..]octet)(rien)
-    quand_écriture_ : fonc (*Prise)(rien)
-    quand_fermeture_ : fonc (*Prise)(rien)
-    quand_timeout_ : fonc (*Prise)(rien)
-    quand_fin_ : fonc (*Prise)(rien)
-    quand_erreur_connexion_ : fonc (*Prise)(rien)
+    quand_ouverture_: fonc(*Prise, bool)(rien)
+    quand_données_reçues_: fonc(*Prise, [..]octet)(rien)
+    quand_écriture_: fonc(*Prise)(rien)
+    quand_fermeture_: fonc(*Prise)(rien)
+    quand_timeout_: fonc(*Prise)(rien)
+    quand_fin_: fonc(*Prise)(rien)
+    quand_erreur_connexion_: fonc(*Prise)(rien)
 
-    taille_mémoire : z64
-    info_utilisateur : *InfoType
+    taille_mémoire: z64
+    info_utilisateur: *InfoType
 
     /* serveuse : optionnel */
     serveuse_: *rien
-    info_serveuse : *InfoType
+    info_serveuse: *InfoType
 
     est_ssl_ := faux
 }
@@ -217,7 +217,7 @@ crée_prise_interne :: fonc (contexte_: *Contexte, fichier: Fichier, info_donné
 // -----------------------------------------------------
 // Mise en place des rappels.
 
-mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (*Prise, bool)(rien))
+mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc(*Prise, bool)(rien))
 {
     ctx.quand_ouverture_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_ouverture(ctx comme *ContextePriseSSL, rappel)
@@ -227,7 +227,7 @@ mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (*Prise, bool)(rien))
     }
 }
 
-mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (*Prise, [..]octet)(rien))
+mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc(*Prise, [..]octet)(rien))
 {
     ctx.quand_données_reçues_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_données_reçues(ctx comme *ContextePriseSSL, rappel)
@@ -237,7 +237,7 @@ mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (*Prise, [..]o
     }
 }
 
-mute_quand_écriture :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
+mute_quand_écriture :: fonc (ctx: *Contexte, rappel: fonc(*Prise)(rien))
 {
     ctx.quand_écriture_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_écriture(ctx comme *ContextePriseSSL, rappel)
@@ -247,7 +247,7 @@ mute_quand_écriture :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
     }
 }
 
-mute_quand_fermeture :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
+mute_quand_fermeture :: fonc (ctx: *Contexte, rappel: fonc(*Prise)(rien))
 {
     ctx.quand_fermeture_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_fermeture(ctx comme *ContextePriseSSL, rappel)
@@ -257,7 +257,7 @@ mute_quand_fermeture :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
     }
 }
 
-mute_quand_timeout :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
+mute_quand_timeout :: fonc (ctx: *Contexte, rappel: fonc(*Prise)(rien))
 {
     ctx.quand_timeout_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_timeout(ctx comme *ContextePriseSSL, rappel)
@@ -267,7 +267,7 @@ mute_quand_timeout :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
     }
 }
 
-mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
+mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc(*Prise)(rien))
 {
     ctx.quand_fin_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_fin(ctx comme *ContextePriseSSL, rappel)
@@ -277,7 +277,7 @@ mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
     }
 }
 
-mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
+mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc(*Prise)(rien))
 {
     ctx.quand_erreur_connexion_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_erreur_connexion(ctx comme *ContextePriseSSL, rappel)

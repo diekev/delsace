@@ -8,7 +8,7 @@ MessageHTTP :: struct {
     entêtes: [..]Entête
     contenu: chaine
 
-    cookies : [..]Cookie
+    cookies: [..]Cookie
 }
 
 détruit_message :: fonc (message: *MessageHTTP)

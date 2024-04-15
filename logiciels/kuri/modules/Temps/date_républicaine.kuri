@@ -14,32 +14,32 @@ donne_date_républicaine :: fonc (moment: Date) -> Date
     adjMoment := temps_millis_depuis_époque(moment) - temps_millis_depuis_époque(raisin)
     // imprime("adj_moment : %\n", adjMoment)
 
-    d := Constantes(z64).MILLISECONDES_PAR_JOUR;
+    d := Constantes(z64).MILLISECONDES_PAR_JOUR
     quantité_leap :: 20925216
     début_équinoxe :: 34284216
 
-    this : Date
+    this: Date
 
-    now := (adjMoment % d) comme z32;
-    this.heure = now / (60 * 60 * 1000);
+    now := (adjMoment % d) comme z32
+    this.heure = now / (60 * 60 * 1000)
     this.minute = (now - this.heure * (60 * 60 * 1000)) / (60 * 1000)
     this.seconde = (now - this.heure * (60 * 60 * 1000) - this.minute * (60 * 1000)) / 1000
 
-    days := adjMoment / d;
-    yesterdays := days-1;
-    unadjYears := days / 365;
-    leapYears := ((quantité_leap*unadjYears)+début_équinoxe)/d;
-    yesterdayLeapYears := ((quantité_leap*yesterdays / 365)+début_équinoxe)/d;
-    isLeapDay := yesterdayLeapYears != leapYears;
-    this.année = ((days-leapYears)/365) comme z32;
+    days := adjMoment / d
+    yesterdays := days - 1
+    unadjYears := days / 365
+    leapYears := ((quantité_leap * unadjYears) + début_équinoxe) / d
+    yesterdayLeapYears := ((quantité_leap * yesterdays / 365) + début_équinoxe) / d
+    isLeapDay := yesterdayLeapYears != leapYears
+    this.année = ((days - leapYears) / 365) comme z32
 
     // this.yeardays
-    yeardays := (days-leapYears)%365;
+    yeardays := (days - leapYears) % 365
     si isLeapDay {
         yeardays += 1
     }
 
-    this.année += 1// year starts as year 1
+    this.année += 1 // year starts as year 1
     this.jour = ((yeardays % 30) + 1) comme z32 // calendar starts on day 1
     this.mois = (yeardays / 30) comme z32
 
@@ -50,9 +50,9 @@ donne_date_républicaine :: fonc (moment: Date) -> Date
 
 chaine_chiffre_romain :: fonc (n: z32) -> chaine
 {
-    chn_unités := ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"]
-    chn_dizaines := ["X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"]
-    chn_centaines := ["C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"]
+    chn_unités := [ "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX" ]
+    chn_dizaines := [ "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC" ]
+    chn_centaines := [ "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM" ]
 
     unités := n % 10
     dizaines := (n / 10) % 10
@@ -63,8 +63,8 @@ chaine_chiffre_romain :: fonc (n: z32) -> chaine
 
 donne_chaine_date_républicaine :: fonc (date: Date) -> chaine
 {
-    chn_jour := ["Primidi", "Duodi", "Tridi", "Quartidi", "Quintidi", "Sextidi", "Septidi", "Octidi", "Nonidi", "Décadi"]
-    chn_mois := ["Vendémiaire", "Brumaire", "Frimaire", "Nivôse", "Pluviôse", "Ventôse", "Germinal", "Floréal", "Prairial", "Messidor", "Thermido", "Fructidor"]
+    chn_jour := [ "Primidi", "Duodi", "Tridi", "Quartidi", "Quintidi", "Sextidi", "Septidi", "Octidi", "Nonidi", "Décadi" ]
+    chn_mois := [ "Vendémiaire", "Brumaire", "Frimaire", "Nivôse", "Pluviôse", "Ventôse", "Germinal", "Floréal", "Prairial", "Messidor", "Thermido", "Fructidor" ]
 
     chaine_année := chaine_chiffre_romain(date.année)
     diffère déloge(chaine_année)

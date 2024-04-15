@@ -276,7 +276,7 @@ Panneau :: struct {
     parent: *Panneau
     enfants: [..]*Panneau
 
-    identifiant : chaine
+    identifiant: chaine
 
     /* Dimension du panneau. */
     rect: RectanglePosDim(z32)

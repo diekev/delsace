@@ -7,7 +7,7 @@ NombreRéel :: mpf_t
 
 crée_nombre_réel :: fonc (op: r64) -> NombreRéel
 {
-    résultat: NombreRéel = ---
+    résultat : NombreRéel = ---
     __gmpf_init(résultat)
     __gmpf_set_d(résultat, op)
     retourne résultat
@@ -15,7 +15,7 @@ crée_nombre_réel :: fonc (op: r64) -> NombreRéel
 
 crée_nombre_réel :: fonc (chn: chaine) -> NombreRéel
 {
-    résultat: NombreRéel = ---
+    résultat : NombreRéel = ---
     __gmpf_init(résultat)
 
     chn_c := crée_chaine_c(chn)
@@ -32,7 +32,7 @@ crée_nombre_réel :: fonc (chn: chaine) -> NombreRéel
 
 chaine_depuis_nombre_réel :: fonc (n: NombreRéel) -> chaine, mp_exp_t
 {
-    exposant : mp_exp_t
+    exposant: mp_exp_t
     chn_c := __gmpf_get_str(nul, *exposant, 10, 0, n)
     diffère détruit_chaine_c(chn_c)
     retourne convertis_chaine_c(chn_c), exposant

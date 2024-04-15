@@ -1,5 +1,3 @@
-
-
 génère_fonctions_de_parsages :: fonc ()
 {
     génère_initialisation_parsage_url()

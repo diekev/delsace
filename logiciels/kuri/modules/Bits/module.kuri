@@ -23,14 +23,14 @@ nombre_de_bits_pour_représenter :: fonc (vs: ...n64) -> n64
     retourne résultat
 }
 
-nombre_de_bits_zéro_en_fin :: fonc(i: n64) -> n32
+nombre_de_bits_zéro_en_fin :: fonc (i: n64) -> n32
 {
     si i == 0 {
         retourne 64
     }
 
     n : n32 = 63
-    y : n64
+    y: n64
 
     y = i << 32; si y != 0 { n = n - 32; i = y; }
     y = i << 16; si y != 0 { n = n - 16; i = y; }

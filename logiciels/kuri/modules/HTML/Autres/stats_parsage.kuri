@@ -27,10 +27,10 @@ StatistiquesParsage :: struct {
 
 imprime_stats :: fonc (statistiques: StatistiquesParsage)
 {
-    imprime("Durée du parsage   : %µ\n", FormatEntier(statistiques.temps, séparation=3))
-    imprime("Taille des données : %o\n", FormatEntier(statistiques.taille, séparation=3))
-    imprime("Débit              : %o/µ\n", FormatEntier(statistiques.taille / statistiques.temps, séparation=3))
-    imprime("Pages par secondes : %\n", FormatEntier((1_000_000.0 / statistiques.temps comme r32) comme z32, séparation=3))
+    imprime("Durée du parsage   : %µ\n", FormatEntier(statistiques.temps, séparation = 3))
+    imprime("Taille des données : %o\n", FormatEntier(statistiques.taille, séparation = 3))
+    imprime("Débit              : %o/µ\n", FormatEntier(statistiques.taille / statistiques.temps, séparation = 3))
+    imprime("Pages par secondes : %\n", FormatEntier((1_000_000.0 / statistiques.temps comme r32) comme z32, séparation = 3))
 }
 
 est_fichier_html :: fonc (chm: CheminFichier) -> bool
@@ -95,7 +95,7 @@ principale :: fonc () -> z32
 
     diffère imprime("Mémoire utilisée   : %o\n", mémoire_utilisée())
 
-    allocatrice_gardée : AllocatriceGardée
+    allocatrice_gardée: AllocatriceGardée
     diffère imprime_liste_mémoire(*allocatrice_gardée)
 
     // Il nous faut un logueur pour imprimer la liste de mémoire
@@ -109,7 +109,7 @@ principale :: fonc () -> z32
         diffère détruit_chaines_internées()
 
         chm := CheminFichier(args[1])
-        statistiques : StatistiquesParsage
+        statistiques: StatistiquesParsage
 
         si est_un_dossier(chm) {
             si parse_pages_dossier_et_accumule_stats(chm, statistiques) == 0 {

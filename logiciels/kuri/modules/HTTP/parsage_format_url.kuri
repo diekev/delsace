@@ -17,9 +17,9 @@ importe Introspection
 
 /* structure auxilliaire pour l'algorithme de parsage */
 InfoDonnées :: struct {
-    info : *InfoTypeMembreStructure
-    ptr_résultat : *z8
-    ptr_données : *bool
+    info: *InfoTypeMembreStructure
+    ptr_résultat: *z8
+    ptr_données: *bool
 }
 
 /* fonction auxilliaire pour l'algorithme de parsage */
@@ -76,13 +76,13 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
     // À FAIRE : nous ne pouvons pas libérer la mémoire car les chaines ne sont pas copiées
     // À FAIRE : erreur quand nous différons ici
 
-    données : DonnéesRésultat(T = T)
-    résultat : T
+    données: DonnéesRésultat(T = T)
+    résultat: T
 
     info := info_de(T)
 
-    pointeurs : [..]InfoDonnées
-    diffère { déloge(pointeurs) }
+    pointeurs: [..]InfoDonnées
+    diffère déloge(pointeurs)
 
     pour info.membres {
         id : InfoDonnées = ---
@@ -145,7 +145,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
             retourne RésultatParsageFormatURL.FonctionParsageInexistante, données, résultat
         }
 
-        tampon : [..]octet
+        tampon: [..]octet
         tampon.pointeur = id.ptr_résultat comme *octet
         tampon.taille = id.info.id.taille_en_octet comme z64
 
@@ -312,7 +312,7 @@ est_transfert_correcte :: fonc (texte: chaine) -> bool
 // ------------------------------------
 // Fonctions de parsage
 
-__fonctions_parsage_url : [..]FonctionParsage
+__fonctions_parsage_url: [..]FonctionParsage
 
 /* Trouve une FonctionParsage pour l'InfoType précisé. Voir trouve_fonction_pour_type sur
  * [..]FonctionParsage pour plus de détail.
@@ -343,7 +343,7 @@ fonction_parsage_url_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) ->
         compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage URL invalide, le premier paramètre de sortie doit être de type « bool ».")
     }
 
-    résultat : DonnéesFonctionPourTableFonction
+    résultat: DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = fonction.params_sorties[1].type
     retourne résultat
@@ -366,7 +366,7 @@ génère_fonction_enveloppe_parsage_url :: fonc (enchaineuse: *Enchaineuse, donn
 
 génère_initialisation_parsage_url :: fonc ()
 {
-    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions: CréatriceTableFonction
     créatrice_table_fonctions.annotation_désirée = "ParsageURL"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_url"
     créatrice_table_fonctions.données_pour_fonction = fonction_parsage_url_est_valide

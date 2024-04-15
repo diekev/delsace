@@ -5,14 +5,14 @@ importe Fondation
 /** \nom Fonction d'allocation.
  * \{ */
 
-allocatrice_liste_libre :: fonc(
-    mode : ModeAllocatrice,
-    nouvelle_taille : z64,
-    ancienne_taille : z64,
-    ancien_pointeur : *rien,
-    données : *BaseAllocatrice,
-    info : *InfoType,
-    pos : PositionCodeSource) -> *rien
+allocatrice_liste_libre :: fonc (
+    mode: ModeAllocatrice,
+    nouvelle_taille: z64,
+    ancienne_taille: z64,
+    ancien_pointeur: *rien,
+    données: *BaseAllocatrice,
+    info: *InfoType,
+    pos: PositionCodeSource) -> *rien
 {
     allocatrice := données comme *AllocatriceListeLibre
 
@@ -113,7 +113,7 @@ AllocatriceListeLibre :: struct {
     }
 
     /* L'allocatrice à qui nous demanderons de la mémoire. */
-    allocatrice : TypeFonctionAllocation
+    allocatrice: TypeFonctionAllocation
     données_allocatrice : *BaseAllocatrice = nul
 
     /* Une racine par bloc de taille de magnitude d'une puissance de 2. */

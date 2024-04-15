@@ -20,7 +20,7 @@ TamponDeRendu :: struct {
 
 crée_tampon_de_rendu :: fonc (rect: RectanglePosDim(z32)) -> TamponDeRendu
 {
-    résultat : TamponDeRendu
+    résultat: TamponDeRendu
     redimensionne_tampon_de_rendu(*résultat, rect)
     retourne résultat
 }
@@ -96,12 +96,12 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), coule
 /* Ceci utilise l'algorithme de Bresenham, on pourrait essayer celui de Wu :
  * https://en.wikipedia.org/wiki/Xiaolin_Wu%27s_line_algorithm
  */
-dessine_ligne_bresenham :: fonc(
+dessine_ligne_bresenham :: fonc (
     tampon_de_rendu: *TamponDeRendu,
-    x1 : z32,
-    y1 : z32,
-    x2 : z32,
-    y2 : z32,
+    x1: z32,
+    y1: z32,
+    x2: z32,
+    y2: z32,
     couleur: CouleurRVBAN8)
 {
     dx := (x2 - x1) comme r32

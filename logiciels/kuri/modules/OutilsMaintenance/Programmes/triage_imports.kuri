@@ -13,7 +13,7 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    extensions := [".kuri"]
+    extensions := [ ".kuri" ]
     chm := CheminFichier(args[1])
     exécute_rappel(chm, extensions, tri_imports_pour_fichier)
     retourne 0

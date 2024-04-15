@@ -1,12 +1,12 @@
 importe Fondation
 importe Structures
 
-ouvre_dossier :: fonc(chemin : &CheminFichier) -> Optionnel(TypePoignéeDossier)
+ouvre_dossier :: fonc (chemin: &CheminFichier) -> Optionnel(TypePoignéeDossier)
 {
     retourne système_ouvre_dossier(chemin)
 }
 
-chemin_pour_dossier :: fonc(dir: TypePoignéeEntréeDossier) -> CheminFichier
+chemin_pour_dossier :: fonc (dir: TypePoignéeEntréeDossier) -> CheminFichier
 {
     retourne système_chemin_pour_dossier(dir)
 }
@@ -103,7 +103,7 @@ dépile_dossier :: fonc (exploratrice: &ExploratriceFichier)
 
 // -----------------------------------------------------------------------
 
-pour_chaque_chemin :: fonc (chemin : CheminFichier, données: *$T, rappel: fonc(CheminFichier, *T)(rien))
+pour_chaque_chemin :: fonc (chemin: CheminFichier, données: *$T, rappel: fonc(CheminFichier, *T)(rien))
 {
     exploratrice := crée_exploratrice_fichier(chemin)
     diffère détruit(exploratrice)
@@ -131,7 +131,7 @@ opérateur pour :: fonc (exploratrice: ExploratriceFichier) -> CheminFichier
     index := 0
 
     tantque !exploratrice.exploration_finie() {
-        chemin : CheminFichier
+        chemin: CheminFichier
         discr exploratrice.chemin_suivant() {
             Quelque(chm) {
                 chemin = chm

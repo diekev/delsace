@@ -29,7 +29,7 @@ est_tag_auto_fermant :: fonc (tag: *ChaineInternée) -> bool
 Élément :: struct {
     empl base: Noeud
 
-    texte : *ChaineInternée
+    texte: *ChaineInternée
 }
 
 initialise_élément :: fonc (élément: *Élément, document: *Document, texte: *ChaineInternée) -> rien
@@ -42,8 +42,8 @@ initialise_élément :: fonc (élément: *Élément, document: *Document, texte:
 crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) -> *Élément
 {
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
-    élément := loge(Élément);
-    initialise_élément(élément, document, tag);
+    élément := loge(Élément)
+    initialise_élément(élément, document, tag)
     retourne élément
 }
 

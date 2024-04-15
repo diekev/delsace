@@ -104,38 +104,38 @@ GL_COLOR_BUFFER_BIT : GLenum : 0x00004000
 
 glDepthFunc :: fonc (x: n32) -> rien #externe libGL
 
-glewExperimental : z32 #externe libGLEW
+glewExperimental: z32 #externe libGLEW
 
 glewInit :: fonc () -> z32 #externe libGLEW
 
 glewGetErrorString :: fonc (code: z32) -> ChaineC #externe libGLEW
 
-glClear :: fonc (bit : n32) -> rien #externe libGL
-glClearColor :: fonc (r : r32, g : r32, b : r32, a : r32) -> rien #externe libGL
+glClear :: fonc (bit: n32) -> rien #externe libGL
+glClearColor :: fonc (r: r32, g: r32, b: r32, a: r32) -> rien #externe libGL
 
 glBlendFunc :: fonc (sfactor: n32, dfactor: n32) -> rien #externe libGL
 
-glViewport :: fonc (px : z32, py : z32, tx : z32, ty : z32) -> rien #externe libGL
+glViewport :: fonc (px: z32, py: z32, tx: z32, ty: z32) -> rien #externe libGL
 
 // foncs de VAO
-glGenVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
-glDeleteVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
-glBindVertexArray :: fonc (id : GLenum) -> rien #externe libGL
+glGenVertexArrays :: fonc (n: z32, ptr: *n32) -> rien #externe libGL
+glDeleteVertexArrays :: fonc (n: z32, ptr: *n32) -> rien #externe libGL
+glBindVertexArray :: fonc (id: GLenum) -> rien #externe libGL
 glIsVertexArray :: fonc (id: GLenum) -> GLboolean #externe libGL
 
 // foncs de VBO
-glGenBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
-glDeleteBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
-glBindBuffer :: fonc (target : GLenum, id : n32) -> rien #externe libGL
-glBufferData :: fonc (target : GLenum, size : n64, data : *rien, usage : n32) -> rien #externe libGL
-glIsBuffer :: fonc (target : GLenum) -> GLboolean #externe libGL
+glGenBuffers :: fonc (n: z32, ptr: *n32) -> rien #externe libGL
+glDeleteBuffers :: fonc (n: z32, ptr: *n32) -> rien #externe libGL
+glBindBuffer :: fonc (target: GLenum, id: n32) -> rien #externe libGL
+glBufferData :: fonc (target: GLenum, size: n64, data: *rien, usage: n32) -> rien #externe libGL
+glIsBuffer :: fonc (target: GLenum) -> GLboolean #externe libGL
 
 // foncs Arrays
-glEnableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
-glDisableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
-glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized : n32, stride : n32, pointer : *rien) -> rien #externe libGL
-glDrawArrays :: fonc (mode : n32, first : z32, count : z64) -> rien #externe libGL
-glDrawElements :: fonc (mode : GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe libGL
+glEnableVertexAttribArray :: fonc (id: n32) -> rien #externe libGL
+glDisableVertexAttribArray :: fonc (id: n32) -> rien #externe libGL
+glVertexAttribPointer :: fonc (index: n32, size: z32, type_: n32, normalized: n32, stride: n32, pointer: *rien) -> rien #externe libGL
+glDrawArrays :: fonc (mode: n32, first: z32, count: z64) -> rien #externe libGL
+glDrawElements :: fonc (mode: GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe libGL
 
 glPointSize :: fonc (size: r32) -> rien #externe libGL
 glLineWidth :: fonc (size: r32) -> rien #externe libGL
@@ -226,20 +226,20 @@ glTexImage2D :: fonc (
     données: *rien) -> rien #externe libGL
 
 // foncs de nuanceurs/programmes
-glShaderSource :: fonc (shader : n32, count : z64, string : **z8, length : *z32) -> rien #externe libGL
-glCreateShader :: fonc (shaderType : n32) -> n32 #externe libGL
-glCompileShader :: fonc (shader : n32) -> rien #externe libGL
-glDeleteShader :: fonc (shader : n32) -> rien #externe libGL
-glDetachShader :: fonc (program : n32, shader : n32) -> rien #externe libGL
+glShaderSource :: fonc (shader: n32, count: z64, string: **z8, length: *z32) -> rien #externe libGL
+glCreateShader :: fonc (shaderType: n32) -> n32 #externe libGL
+glCompileShader :: fonc (shader: n32) -> rien #externe libGL
+glDeleteShader :: fonc (shader: n32) -> rien #externe libGL
+glDetachShader :: fonc (program: n32, shader: n32) -> rien #externe libGL
 glCreateProgram :: fonc () -> n32 #externe libGL
-glAttachShader :: fonc (program : n32, shader : n32) -> rien #externe libGL
-glLinkProgram :: fonc (program : n32) -> rien #externe libGL
-glUseProgram :: fonc (program : n32) -> rien #externe libGL
-glDeleteProgram :: fonc (program : n32) -> rien #externe libGL
-glGetShaderiv :: fonc (shader : n32, pname : n32, params : *z32) -> rien #externe libGL
-glGetShaderInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe libGL
-glGetProgramiv :: fonc (program : n32, pname : n32, params : *z32) -> rien #externe libGL
-glGetProgramInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe libGL
+glAttachShader :: fonc (program: n32, shader: n32) -> rien #externe libGL
+glLinkProgram :: fonc (program: n32) -> rien #externe libGL
+glUseProgram :: fonc (program: n32) -> rien #externe libGL
+glDeleteProgram :: fonc (program: n32) -> rien #externe libGL
+glGetShaderiv :: fonc (shader: n32, pname: n32, params: *z32) -> rien #externe libGL
+glGetShaderInfoLog :: fonc (shader: n32, maxLength: z32, length: *z32, infoLog: *z8) -> rien #externe libGL
+glGetProgramiv :: fonc (program: n32, pname: n32, params: *z32) -> rien #externe libGL
+glGetProgramInfoLog :: fonc (shader: n32, maxLength: z32, length: *z32, infoLog: *z8) -> rien #externe libGL
 glIsShader :: fonc (shader: n32) -> bool #externe libGL
 glIsProgram :: fonc (program: GLuint) -> GLboolean #externe libGL
 

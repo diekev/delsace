@@ -5,17 +5,17 @@ importe Fondation
 
 // À FAIRE : nous devrions avoir un paramètre pour le degrée minimum
 NoeudArbreB :: struct ($C: type_de_données) {
-    clés : [..]C
+    clés: [..]C
 
     // Degré minimum pour définir la plage pour le nombre de clés
-    t : z32
+    t: z32
 
     // nombre de clé (nous pourrions utiliser la propriété « capacité » du tableau)
-    n : z32
+    n: z32
 
-    enfants : [..]*NoeudArbreB(C)
+    enfants: [..]*NoeudArbreB(C)
 
-    est_feuille : bool
+    est_feuille: bool
 }
 
 ArbreB :: struct ($C: type_de_données) {
@@ -28,7 +28,7 @@ ArbreB :: struct ($C: type_de_données) {
 }
 
 // À FAIRE : il faudrait avoir des valeurs polymorphiques sur les fonctions pour construire les noeuds ($C: type_de_données)
-construit_noeud :: fonc(t : z32, est_feuille : bool, $C: type_de_données) -> *NoeudArbreB(C)
+construit_noeud :: fonc (t: z32, est_feuille: bool, $C: type_de_données) -> *NoeudArbreB(C)
 {
     noeud := loge(NoeudArbreB(C))
     noeud.t = t
@@ -40,14 +40,14 @@ construit_noeud :: fonc(t : z32, est_feuille : bool, $C: type_de_données) -> *N
     retourne noeud
 }
 
-détruit_noeud :: fonc(noeud : *NoeudArbreB(C = $C)) -> rien
+détruit_noeud :: fonc (noeud: *NoeudArbreB(C = $C)) -> rien
 {
     déloge(noeud.clés)
     déloge(noeud.enfants)
     déloge(noeud)
 }
 
-traverse :: fonc(noeud: *NoeudArbreB(C = $C)) -> rien
+traverse :: fonc (noeud: *NoeudArbreB(C = $C)) -> rien
 {
     // il y a n clés et n + 1 enfants, traverse les n clés, et n premier enfants
     pour i dans 0 ... noeud.n - 1 {
@@ -65,7 +65,7 @@ traverse :: fonc(noeud: *NoeudArbreB(C = $C)) -> rien
 }
 
 // Recherche une clé dans le sous-arbre du noeud. Retourne nul si la clé k n'est pas trouvée.
-recherche :: fonc(noeud: *NoeudArbreB(C = $C), k: z32) -> *NoeudArbreB(C = C)
+recherche :: fonc (noeud: *NoeudArbreB(C = $C), k: z32) -> *NoeudArbreB(C = C)
 {
     i := 0
 
@@ -86,7 +86,7 @@ recherche :: fonc(noeud: *NoeudArbreB(C = $C), k: z32) -> *NoeudArbreB(C = C)
 
 // Auxilliare pour insérer une nouvelle clé dans ce noeud.
 // La présomption est que le noeud est non-plein quand cette fonction est appelée.
-insère_non_plein :: fonc(
+insère_non_plein :: fonc (
     arbre: *ArbreB(C = $C),
     noeud: *NoeudArbreB(C = C),
     k: C) -> rien
@@ -141,7 +141,7 @@ insère_non_plein :: fonc(
 
 // Auxilliaire pour diviser l'enfant y de ce noeud.
 // y doit être plein quand cet fonction est appelée.
-divise_enfant :: fonc(
+divise_enfant :: fonc (
     arbre: *ArbreB(C = $C),
     noeud: *NoeudArbreB(C = C),
     i: z32,
@@ -184,7 +184,7 @@ divise_enfant :: fonc(
 }
 
 // Auxiliaire pour trouver l'index de la première clé qui est supérieure ou égale à k
-trouve_clé :: fonc(noeud: *NoeudArbreB(C = $C), k: C) -> z32
+trouve_clé :: fonc (noeud: *NoeudArbreB(C = $C), k: C) -> z32
 {
     idx := 0
 
@@ -203,7 +203,7 @@ trouve_clé :: fonc(noeud: *NoeudArbreB(C = $C), k: C) -> z32
     retourne idx
 }
 
-supprime :: fonc(noeud: *NoeudArbreB(C = $C), k: C) -> rien
+supprime :: fonc (noeud: *NoeudArbreB(C = $C), k: C) -> rien
 {
     idx := trouve_clé(noeud, k)
 
@@ -237,16 +237,16 @@ supprime :: fonc(noeud: *NoeudArbreB(C = $C), k: C) -> rien
     }
 }
 
-supprime_depuis_feuille :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
+supprime_depuis_feuille :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
 {
     pour i dans idx + 1 ... noeud.n - 1 {
-        noeud.clés[i-1] = noeud.clés[i]
+        noeud.clés[i - 1] = noeud.clés[i]
     }
 
     noeud.n -= 1
 }
 
-supprime_depuis_branche :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
+supprime_depuis_branche :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
 {
     k := noeud.clés[idx]
 
@@ -255,7 +255,7 @@ supprime_depuis_branche :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
         noeud.clés[idx] = pred
         supprime(noeud.enfants[idx], pred)
     }
-    sinon si noeud.enfants[idx+1].n >= noeud.t {
+    sinon si noeud.enfants[idx + 1].n >= noeud.t {
         succ := clé_suivante(noeud, idx)
         noeud.clés[idx] = succ
         supprime(noeud.enfants[idx + 1], succ)
@@ -266,7 +266,7 @@ supprime_depuis_branche :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
     }
 }
 
-clé_précédente :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> z32
+clé_précédente :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> z32
 {
     courant := noeud.enfants[idx]
 
@@ -277,7 +277,7 @@ clé_précédente :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> z32
     retourne courant.clés[courant.n - 1]
 }
 
-clé_suivante :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> z32
+clé_suivante :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> z32
 {
     courant := noeud.enfants[idx + 1]
 
@@ -288,7 +288,7 @@ clé_suivante :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> z32
     retourne courant.clés[0]
 }
 
-remplis :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
+remplis :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
 {
     si idx != 0 {
         si noeud.enfants[idx - 1].n >= noeud.t {
@@ -308,11 +308,11 @@ remplis :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
         fusionne_suivant(noeud, idx)
     }
     sinon {
-        fusionne_suivant(noeud, idx-1)
+        fusionne_suivant(noeud, idx - 1)
     }
 }
 
-emprunte_du_précédent :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
+emprunte_du_précédent :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
 {
     child := noeud.enfants[idx]
     sibling := noeud.enfants[idx - 1]
@@ -343,7 +343,7 @@ emprunte_du_précédent :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
     sibling.n -= 1
 }
 
-emprunte_du_suivant :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
+emprunte_du_suivant :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
 {
     child := noeud.enfants[idx]
     sibling := noeud.enfants[idx + 1]
@@ -370,7 +370,7 @@ emprunte_du_suivant :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
     sibling.n -= 1
 }
 
-fusionne_suivant :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
+fusionne_suivant :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
 {
     child := noeud.enfants[idx]
     sibling := noeud.enfants[idx + 1]
@@ -405,16 +405,16 @@ fusionne_suivant :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
 
 /* ------------------------------------------------------------------------- */
 
-construit_arbre :: fonc(t: z32, $C: type_de_données) -> ArbreB(C)
+construit_arbre :: fonc (t: z32, $C: type_de_données) -> ArbreB(C)
 {
-    arbre : ArbreB(C)
+    arbre: ArbreB(C)
     arbre.racine = nul
     arbre.t = t
 
     retourne arbre
 }
 
-détruit_arbre :: fonc(arbre: *ArbreB(C = $C)) -> rien
+détruit_arbre :: fonc (arbre: *ArbreB(C = $C)) -> rien
 {
     imprime("détruit_arbre...\n")
     pour noeud dans arbre.noeuds {
@@ -424,7 +424,7 @@ détruit_arbre :: fonc(arbre: *ArbreB(C = $C)) -> rien
     déloge(arbre.noeuds)
 }
 
-traverse :: fonc(arbre: *ArbreB(C = $C)) -> rien
+traverse :: fonc (arbre: *ArbreB(C = $C)) -> rien
 {
     si arbre.racine == nul {
         retourne
@@ -434,7 +434,7 @@ traverse :: fonc(arbre: *ArbreB(C = $C)) -> rien
 }
 
 // Recherche une clé dans le sous-arbre du noeud. Retourne nul si la clé k n'est pas trouvée.
-recherche :: fonc(arbre: *ArbreB(C = $C), k: C) -> *NoeudArbreB(C)
+recherche :: fonc (arbre: *ArbreB(C = $C), k: C) -> *NoeudArbreB(C)
 {
     si arbre.racine == nul {
         retourne nul
@@ -443,7 +443,7 @@ recherche :: fonc(arbre: *ArbreB(C = $C), k: C) -> *NoeudArbreB(C)
     retourne recherche(arbre.racine, k)
 }
 
-insère :: fonc(arbre: *ArbreB(C = $C), k: C) -> rien
+insère :: fonc (arbre: *ArbreB(C = $C), k: C) -> rien
 {
     si arbre.racine == nul {
         arbre.racine = construit_noeud(arbre.t, vrai, C)
@@ -475,7 +475,7 @@ insère :: fonc(arbre: *ArbreB(C = $C), k: C) -> rien
     insère_non_plein(arbre, arbre.racine, k)
 }
 
-supprime :: fonc(arbre: *ArbreB(C = $C), k: C) -> rien
+supprime :: fonc (arbre: *ArbreB(C = $C), k: C) -> rien
 {
     si arbre.racine == nul {
         retourne

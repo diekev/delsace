@@ -90,7 +90,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
         }
     }
 
-    est_poste : [..]bool
+    est_poste: [..]bool
     diffère déloge(est_poste)
     tableau_redimensionne(est_poste, nombre_de_cellules)
     tableau_remplis_avec(est_poste, faux)
@@ -129,7 +129,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
             direction := (entropie.aléatoire_unilatérale() * 4.0) comme z32
 
             /* Les deltas sont pour haut, bas, gauche, droite. */
-            deltas := [-1, 1, -taille_x, taille_x]
+            deltas := [ -1, 1, -taille_x, taille_x ]
             delta := deltas[direction]
 
             boucle {
@@ -196,8 +196,8 @@ ConstructriceMéthodeEller :: struct {
     }
 
     Cellule :: struct {
-        groupe : *Groupe
-        position_mur : PositionMur
+        groupe: *Groupe
+        position_mur: PositionMur
     }
 
     Groupe :: struct {
@@ -255,7 +255,7 @@ détruit_groupes :: fonc (groupes: *ConstructriceMéthodeEller.Groupe)
 
 crée_groupe :: fonc (constructrice: *ConstructriceMéthodeEller) -> *ConstructriceMéthodeEller.Groupe
 {
-    résultat : *ConstructriceMéthodeEller.Groupe
+    résultat: *ConstructriceMéthodeEller.Groupe
 
     si constructrice.groupes_libres {
         résultat = constructrice.groupes_libres
@@ -302,7 +302,6 @@ supprime_groupes_vides :: fonc (constructrice: *ConstructriceMéthodeEller)
     groupe := constructrice.groupes
 
     tantque groupe != nul {
-
         groupe_suivant := groupe.suivant
 
         si groupe.cellules.taille == 0 {
@@ -379,7 +378,7 @@ initialise_dernière_ligne :: fonc (empl constructrice: *ConstructriceMéthodeEl
 
 avance_ligne_suivante :: fonc (empl constructrice: *ConstructriceMéthodeEller)
 {
-    pour *ligne_courante {
+    pour * ligne_courante {
         si it.position_mur.BAS == vrai {
             /* Supprime la cellule de son groupe, et ajoute-là dans son propre groupe. */
             tableau_supprime_valeur(*it.groupe.cellules, it)

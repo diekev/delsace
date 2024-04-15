@@ -12,23 +12,23 @@ TAILLE_TAMPON_ENCHAINEUSE :: 16384
 
 TamponEnchaineuse :: struct {
     données : [TAILLE_TAMPON_ENCHAINEUSE]z8 = ---
-    occupé  : z32
-    suivant : *TamponEnchaineuse
+    occupé: z32
+    suivant: *TamponEnchaineuse
 }
 
 Enchaineuse :: struct {
-    tampon : TamponEnchaineuse
-    tampon_courant : *TamponEnchaineuse
+    tampon: TamponEnchaineuse
+    tampon_courant: *TamponEnchaineuse
 }
 
-initialise_enchaineuse :: fonc (enchaineuse : *Enchaineuse) -> rien
+initialise_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
     enchaineuse.tampon_courant = *enchaineuse.tampon
     enchaineuse.tampon_courant.occupé = 0
     enchaineuse.tampon_courant.suivant = nul
 }
 
-réinitialise_enchaineuse :: fonc (enchaineuse : *Enchaineuse) -> rien
+réinitialise_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
     tampon_courant := *enchaineuse.tampon
 
@@ -102,7 +102,7 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier)
 
 copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: CheminFichier) -> Optionnel(ErreurFichier)
 {
-    raison : RaisonOuvertureFichier
+    raison: RaisonOuvertureFichier
     raison.Écriture = vrai
     raison.Création = vrai
     raison.Troncage = vrai
@@ -111,7 +111,7 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: CheminFich
         retourne err
     }
 
-    diffère { _ := ferme(*fichier) }
+    diffère _ := ferme(*fichier)
 
     retourne copie_enchaineuse_fichier(enchaineuse, *fichier)
 }
@@ -140,7 +140,7 @@ imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, arg
     tantque index_caractère < format.taille {
         c := pointeur[index_caractère]
 
-        si c == '%' && index_argument < args.taille  {
+        si c == '%' && index_argument < args.taille {
             si taille_mot_courant != 0 {
                 mot : chaine = ---
                 mot.pointeur = *pointeur[début_mot_courant]
@@ -220,7 +220,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
         delta := chn.taille - taille
 
         tantque delta > 0 {
-        	tampon = ajoute_tampon(enchaineuse)
+            tampon = ajoute_tampon(enchaineuse)
 
             src = *chn[chn.taille - delta]
             dst = *tampon.données[0]
@@ -249,7 +249,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
     }
 }
 
-ajoute_au_tampon :: fonc (enchaineuse : *Enchaineuse, chns: ...chaine) -> rien
+ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chns: ...chaine) -> rien
 {
     pour chn dans chns {
         ajoute_au_tampon(enchaineuse, chn)
@@ -266,11 +266,11 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, args: ...eini) -> rien
 // Retourne une chaine correspondant à l'enchainement de toutes les chaines
 // spécifiées. La chaine retournée a été logé et doit être délogée par
 // l'appelante.
-enchaine :: fonc(chns : ...chaine) -> chaine
+enchaine :: fonc (chns: ...chaine) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
     ajoute_au_tampon(*enchaineuse, ...chns)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
@@ -280,7 +280,7 @@ enchaine :: fonc(chns : ...chaine) -> chaine
 // Imprime le nombre décimal en utilisant un nombre entier de haute précision afin de
 // mieux cerner la valeur exacte du décimal.
 // https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
-imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f : r32) -> rien
+imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: r32) -> rien
 {
     // Mets le nombre dans notre union magique afin d'extraire les composants
     num := construit_entier_ou_décimal(f)
@@ -324,12 +324,9 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
     // nous avons une mantisse de 24 bits et la valeur implicite du bit le plus haut
     // est 1. Nous devons donc décaler 9 bits depuis le bas afin d'avoir le 24ème bit
     // dans la position du 1 dans portion entière, ajoutant le décalage de l'exposant.
-    insère_bits_du_bas(
-        *part_entière,
-        valeur_mantisse comme n32,
-        9 + valeur_exposant)
+    insère_bits_du_bas(*part_entière, valeur_mantisse comme n32, 9 + valeur_exposant)
 
-    chn_part_entière : [..]z8
+    chn_part_entière: [..]z8
     diffère déloge(chn_part_entière)
 
     // Perfome toujours au moins une itération, afin d'avoir un zéro au début.
@@ -352,7 +349,7 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 
     // Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
     // la part fractionnelle.
-    insère_bits_du_haut(*frac, valeur_mantisse comme n32, 23 - valeur_exposant);
+    insère_bits_du_haut(*frac, valeur_mantisse comme n32, 23 - valeur_exposant)
 
     // Perfome toujours au moins une itération, afin d'avoir un zéro au début.
     répète {
@@ -413,7 +410,7 @@ imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) 
     info := format.valeur.info comme *InfoTypeEntier
     pointeur := format.valeur.pointeur
 
-    valeur : n64
+    valeur: n64
 
     si info.est_signé {
         val := z64_depuis_pointeur(pointeur, info.taille_en_octet)
@@ -463,7 +460,7 @@ r32_depuis_eini :: fonc (e: eini) -> r32
     info := e.info
     pointeur := e.pointeur
 
-    f : r32
+    f: r32
 
     si info.taille_en_octet == 2 {
         x := mémoire(pointeur comme *r16)
@@ -480,7 +477,7 @@ r32_depuis_eini :: fonc (e: eini) -> r32
     retourne f
 }
 
-imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> rien
+imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) -> rien
 {
     f := r32_depuis_eini(format.valeur)
 
@@ -535,7 +532,7 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
     } tantque frac < 1.0 && frac != 0.0 && p > 0
 }
 
-imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn : bool) -> rien
+imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: bool) -> rien
 {
     fonction_de_formattage := trouve_fonction_de_formattage(valeur.info)
     si fonction_de_formattage {
@@ -664,7 +661,7 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
                 }
 
                 si index >= max_élément {
-            		ajoute_au_tampon(enchaineuse, ", ...")
+                    ajoute_au_tampon(enchaineuse, ", ...")
                     arrête
                 }
 
@@ -694,7 +691,7 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
                 }
 
                 si index >= max_élément {
-            		ajoute_au_tampon(enchaineuse, ", ...")
+                    ajoute_au_tampon(enchaineuse, ", ...")
                     arrête
                 }
 
@@ -789,21 +786,21 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
     }
 }
 
-imprime :: fonc(format: chaine, args: ...eini) -> rien
+imprime :: fonc (format: chaine, args: ...eini) -> rien
 {
     _ := tente imprime_dans_fichier(sortie_standarde(), format, ...args) piège nonatteignable
 }
 
-imprime_err :: fonc(format: chaine, args: ...eini) -> rien
+imprime_err :: fonc (format: chaine, args: ...eini) -> rien
 {
     _ := tente imprime_dans_fichier(sortie_erreur(), format, ...args) piège nonatteignable
 }
 
 imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     imprime_dans_enchaineuse(*enchaineuse, format, ...args)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
@@ -811,9 +808,9 @@ imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 
 imprime_dans_fichier :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> ErreurFichier
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     imprime_dans_enchaineuse(*enchaineuse, format, ...args)
 
@@ -835,7 +832,7 @@ imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien
 
 // --------------------------
 
-imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
+imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
 {
     discr info.id {
         ENTIER {
@@ -1042,7 +1039,7 @@ assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
 importe Compilatrice
 
 TypeFonctionFormattage :: fonc(*Enchaineuse, eini)(rien)
-__fonctions_formattages_impression : [..]FonctionInstrospection(TypeFonctionFormattage)
+__fonctions_formattages_impression: [..]FonctionInstrospection(TypeFonctionFormattage)
 
 trouve_fonction_de_formattage :: fonc (info: *InfoType) -> *FonctionInstrospection(TypeFonctionFormattage)
 {
@@ -1068,7 +1065,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
 
     pointeur := type_deuxième_paramètre comme *InfoTypePointeur
 
-    résultat : DonnéesFonctionPourTableFonction
+    résultat: DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = pointeur.type_pointé
     retourne résultat
@@ -1091,7 +1088,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 
 exécute_pré_exécutable :: fonc ()
 {
-    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions: CréatriceTableFonction
     créatrice_table_fonctions.annotation_désirée = "FormattageImpression"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
     créatrice_table_fonctions.données_pour_fonction = fonction_est_valide

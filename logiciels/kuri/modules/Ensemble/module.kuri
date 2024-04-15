@@ -18,7 +18,7 @@ ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[..]$T, donnée: T) -> *T
     }
 
     début := ensemble.pointeur
-    fin   := début + ensemble.taille
+    fin := début + ensemble.taille
 
     limite := limite_basse(début, fin, donnée)
 
@@ -57,7 +57,7 @@ ensemble_possède :: fonc (ensemble: *[..]$T, donnée: T) -> bool
     }
 
     début := ensemble.pointeur
-    fin   := début + ensemble.taille
+    fin := début + ensemble.taille
 
     limite := limite_basse(début, fin, donnée)
 
@@ -77,7 +77,7 @@ ensemble_possède_retourne_index :: fonc (ensemble: *[..]$T, donnée: T) -> z64
     }
 
     début := ensemble.pointeur
-    fin   := début + ensemble.taille
+    fin := début + ensemble.taille
 
     limite := limite_basse(début, fin, donnée)
 
@@ -107,7 +107,7 @@ RésultatRecherche :: struct {
  */
 ensemble_possède_rappel_si_possible :: fonc (ensemble: *[..]$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
 {
-    résultat : RésultatRecherche
+    résultat: RésultatRecherche
 
     si ensemble.taille == 0 {
         résultat.trouvé = faux
@@ -115,7 +115,7 @@ ensemble_possède_rappel_si_possible :: fonc (ensemble: *[..]$T, donnée: T, rap
     }
 
     début := ensemble.pointeur
-    fin   := début + ensemble.taille
+    fin := début + ensemble.taille
 
     limite := limite_basse(début, fin, donnée)
 
@@ -140,7 +140,7 @@ ensemble_possède_rappel_si_possible :: fonc (ensemble: *[..]$T, donnée: T, rap
 
 ensemble_possède_rappel_si_possible :: fonc (ensemble: *[]$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
 {
-    tableau : [..]T
+    tableau: [..]T
     tableau.pointeur = ensemble.pointeur
     tableau.taille = ensemble.taille
     retourne ensemble_possède_rappel_si_possible(*tableau, donnée, rappel)

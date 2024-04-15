@@ -4,6 +4,7 @@
 #pragma once
 
 struct Enchaineuse;
+struct NoeudBloc;
 struct NoeudExpression;
 
 /* ------------------------------------------------------------------------- */
@@ -12,6 +13,7 @@ struct NoeudExpression;
  * standardiser la manière dont le code est écrit.
  * \{ */
 
+void imprime_arbre_formatté_bloc_module(Enchaineuse &enchaineuse, NoeudBloc const *bloc);
 void imprime_arbre_formatté(Enchaineuse &enchaineuse, NoeudExpression const *noeud);
 void imprime_arbre_formatté(NoeudExpression const *noeud);
 void imprime_arbre_canonique_formatté(NoeudExpression const *noeud);

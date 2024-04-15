@@ -79,7 +79,7 @@ détruit :: fonc (empl données_test: &DonnéesPourTest)
 
 ajoute_série_de_tests :: fonc (données_test: &DonnéesPourTest, fichier: CheminFichier, args: ...chaine)
 {
-    série : SérieDeTest
+    série: SérieDeTest
     série.fichier_de_spécification = fichier
     ajoute_arguments(série, ...args)
     tableau_ajoute(*données_test.séries, série)
@@ -97,7 +97,7 @@ arguments_pour_série :: fonc (données_test: &DonnéesPourTest, série: &Série
 {
     nombre_d_arguments := données_test.arguments.taille + série.arguments.taille
 
-    résultat : [..]chaine
+    résultat: [..]chaine
 
     saufsi nombre_d_arguments {
         retourne résultat
@@ -141,7 +141,7 @@ ajoute_arguments :: fonc (série: &SérieDeTest, args: ...chaine)
 lance_les_tests_pour_une_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> bool
 {
     contenu := contenu_fichier_texte(série.fichier_de_spécification)
-    diffère { déloge(contenu) }
+    diffère déloge(contenu)
 
     saufsi contenu {
         imprime("Le fichier de spécification est vide ou introuvable !\n")
@@ -230,9 +230,9 @@ CasÀTester :: struct {
 ParseuseCasÀTester :: struct {
     cas: [..]CasÀTester
 
-    cas_courant : *CasÀTester
+    cas_courant: *CasÀTester
 
-    état : ÉtatParsage
+    état: ÉtatParsage
 }
 
 rappel_pour_chaque_ligne :: fonc (ligne: chaine, parseuse: *ParseuseCasÀTester)

@@ -32,9 +32,9 @@ importe SysFichier
  */
 
 ParamètresGénérationInterface :: struct {
-    nom_serveuse : chaine
-    type_serveuse : chaine
-    type_données_prise : chaine
+    nom_serveuse: chaine
+    type_serveuse: chaine
+    type_données_prise: chaine
 
     /* Le type définissant un formulaire. Sa présence indique que la fonction répond aux requêtes POST du chemin. */
     type_formulaire: *InfoTypeStructure
@@ -51,7 +51,7 @@ ParamètresGénérationInterface :: struct {
     dossier_pilote: chaine
 }
 
-génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInterface, fichier_racine: chaine)
+génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterface, fichier_racine: chaine)
 {
     options := OptionsDeCompilation()
     options.résultat = RésultatCompilation.RIEN
@@ -127,7 +127,7 @@ InformationParamètres :: struct {
 }
 
 DonnéesCréationPointDEntréePage :: struct {
-    méthode : chaine
+    méthode: chaine
 
     type_fonction: *InfoTypeFonction
     nom_fonction: chaine
@@ -358,7 +358,7 @@ classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, ty
 
 parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction) -> bool, InformationParamètres
 {
-    infos_paramètres : InformationParamètres
+    infos_paramètres: InformationParamètres
     type_fonction := fonction.type comme *InfoTypeFonction
 
     pour type_fonction.types_entrée {
@@ -430,7 +430,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
 valide_chemin :: fonc (fonction: *NoeudCodeEntêteFonction, route: chaine, type_paramètres: *InfoTypeStructure) -> bool, [..]RègleRoutage
 {
     règles_ou_erreur := parse_règles(route)
-    règles : [..]RègleRoutage
+    règles: [..]RègleRoutage
     discr règles_ou_erreur {
         e {
             compilatrice_rapporte_erreur(fonction, "La route n'est pas valide")
@@ -483,7 +483,7 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
 
     type_résultat := type_fonction.types_sortie[0] comme *InfoTypeUnion
 
-    chemin : chaine
+    chemin: chaine
     pour fonction.annotations {
         si it.nom == "chemin" {
             chemin = it.valeur
@@ -672,7 +672,7 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
     imprime_dans_enchaineuse(enchaineuse, "apparie_route_%_% :: fonc (chemin: chaine) -> bool, %\n", données_fonction.méthode, nom_fonction_rappel, type_paramètres_route.nom)
     imprime_dans_enchaineuse(enchaineuse, "{\n")
     imprime_dans_enchaineuse(enchaineuse, "\tparamètres : % = ---\n", type_paramètres_route.nom)
-    imprime_dans_enchaineuse(enchaineuse, "\téléments := divise_url(chemin)\n");
+    imprime_dans_enchaineuse(enchaineuse, "\téléments := divise_url(chemin)\n")
     imprime_dans_enchaineuse(enchaineuse, "\tsaufsi éléments.taille == % { retourne faux, paramètres }\n", règles.taille)
 
     pour règles {
@@ -799,7 +799,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     _ := ferme(*fichier)
 }
 
-génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *Enchaineuse, types_utilisés : *[..]*InfoTypeStructure)
+génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *Enchaineuse, types_utilisés: *[..]*InfoTypeStructure)
 {
     saufsi infos {
         retourne
@@ -851,7 +851,7 @@ génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterf
     ajoute_au_tampon(enchaineuse, "    retourne pilote\n")
     ajoute_au_tampon(enchaineuse, "}\n\n")
 
-    types_utilisés : [..]*InfoTypeStructure
+    types_utilisés: [..]*InfoTypeStructure
     diffère déloge(types_utilisés)
 
     pour paramètres.données_fonctions {
@@ -892,10 +892,10 @@ génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterf
         ajoute_au_tampon(enchaineuse, "    uri := pilote.uri_serveur\n")
 
         si type_paramètres_route {
-            ajoute_au_tampon(enchaineuse, "    uri.chemin = crée_chemin_uri_depuis_paramètres_routage(\"", it.chemin ,"\", paramètres_routage)\n")
+            ajoute_au_tampon(enchaineuse, "    uri.chemin = crée_chemin_uri_depuis_paramètres_routage(\"", it.chemin, "\", paramètres_routage)\n")
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "    uri.chemin = \"", it.chemin ,"\"\n")
+            ajoute_au_tampon(enchaineuse, "    uri.chemin = \"", it.chemin, "\"\n")
         }
 
         si type_paramètre_requête {
