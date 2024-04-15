@@ -3,7 +3,7 @@ importe POSIX
 
 depuis_timespec :: fonc (t: timespec, $T: type_de_données) -> T #enligne
 {
-    temps: T = ---
+    temps : T = ---
     temps.seconde = t.tv_sec
     temps.nanoseconde = t.tv_nsec
     retourne temps
@@ -11,7 +11,7 @@ depuis_timespec :: fonc (t: timespec, $T: type_de_données) -> T #enligne
 
 vers_timespec :: fonc (temps: $T) -> timespec #enligne
 {
-    t: timespec = ---
+    t : timespec = ---
     t.tv_sec = temps.seconde
     t.tv_nsec = temps.nanoseconde
 
@@ -28,7 +28,7 @@ vers_timespec :: fonc (temps: $T) -> timespec #enligne
 /* Retourne le temps monotonic du système. */
 système_instantané :: fonc () -> Instantané
 {
-    t : timespec
+    t: timespec
     // @erreur
     _ := clock_gettime(CLOCK_MONOTONIC_COARSE, *t)
 
@@ -39,7 +39,7 @@ système_instantané :: fonc () -> Instantané
  * que `système_instantané`. */
 système_instantané_précis :: fonc () -> Instantané
 {
-    t : timespec
+    t: timespec
     // @erreur
     _ := clock_gettime(CLOCK_MONOTONIC, *t)
 
@@ -49,7 +49,7 @@ système_instantané_précis :: fonc () -> Instantané
 /* Retourne le temps réel du système. */
 système_temps_réel :: fonc () -> TempsSystème
 {
-    t : timespec
+    t: timespec
     // @erreur
     _ := clock_gettime(CLOCK_REALTIME_COARSE, *t)
 
@@ -60,7 +60,7 @@ système_temps_réel :: fonc () -> TempsSystème
  * que `système_temps_réel`. */
 système_temps_réel_précis :: fonc () -> TempsSystème
 {
-    t : timespec
+    t: timespec
     // @erreur
     _ := clock_gettime(CLOCK_REALTIME, *t)
 
@@ -70,7 +70,7 @@ système_temps_réel_précis :: fonc () -> TempsSystème
 système_dors :: fonc (instant: Instantané) -> bool
 {
     requis := vers_timespec(instant)
-    restant : timespec
+    restant: timespec
 
     tantque nanosleep(*requis, *restant) != 0 {
         errno := lis_errno()
