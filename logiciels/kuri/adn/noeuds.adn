@@ -174,40 +174,36 @@ struct NoeudInstructionCharge : NoeudExpression {
     NoeudExpression * expression [code enfant construction]
 }
 
-struct NoeudInstructionArrête : NoeudExpression {
+struct NoeudInstructionControleBoucle : NoeudExpression {
+    @comme controle_boucle
+    @code  NoeudCodeInstructionControleBoucle
+    @genre_valeur INVALIDE
+
+    NoeudExpression *expression [code enfant construction]
+
+    /* La boucle qui est controlée par cette instruction. */
+    NoeudExpression *boucle_controlée [code]
+}
+
+struct NoeudInstructionArrête : NoeudInstructionControleBoucle {
     @genre INSTRUCTION_ARRÊTE
     @comme arrête
     @code  NoeudCodeInstructionArrête
     @genre_valeur INVALIDE
-
-    NoeudExpression *expression [code enfant construction]
-
-    /* La boucle qui est controlée par cette instruction. */
-    NoeudExpression *boucle_controlée [code]
 }
 
-struct NoeudInstructionContinue : NoeudExpression {
+struct NoeudInstructionContinue : NoeudInstructionControleBoucle {
     @genre INSTRUCTION_CONTINUE
     @comme continue
     @code  NoeudCodeInstructionContinue
     @genre_valeur INVALIDE
-
-    NoeudExpression *expression [code enfant construction]
-
-    /* La boucle qui est controlée par cette instruction. */
-    NoeudExpression *boucle_controlée [code]
 }
 
-struct NoeudInstructionReprends : NoeudExpression {
+struct NoeudInstructionReprends : NoeudInstructionControleBoucle {
     @genre INSTRUCTION_REPRENDS
     @comme reprends
     @code  NoeudCodeInstructionReprends
     @genre_valeur INVALIDE
-
-    NoeudExpression *expression [code enfant construction]
-
-    /* La boucle qui est controlée par cette instruction. */
-    NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionEmpl : NoeudExpression {

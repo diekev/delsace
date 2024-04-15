@@ -896,27 +896,21 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             break;
         }
         case GenreNoeud::INSTRUCTION_ARRÊTE:
-        {
-            auto inst = noeud->comme_arrête();
-            imprime_lexème_mot_clé(enchaineuse, "arrête", inst->expression != nullptr);
-            if (inst->expression) {
-                imprime_arbre(enchaineuse, état, inst->expression);
-            }
-            break;
-        }
         case GenreNoeud::INSTRUCTION_CONTINUE:
-        {
-            auto inst = noeud->comme_continue();
-            imprime_lexème_mot_clé(enchaineuse, "continue", inst->expression != nullptr);
-            if (inst->expression) {
-                imprime_arbre(enchaineuse, état, inst->expression);
-            }
-            break;
-        }
         case GenreNoeud::INSTRUCTION_REPRENDS:
         {
-            auto inst = noeud->comme_reprends();
-            imprime_lexème_mot_clé(enchaineuse, "reprends", inst->expression != nullptr);
+            auto inst = noeud->comme_controle_boucle();
+            kuri::chaine_statique mot_clé;
+            if (inst->est_arrête()) {
+                mot_clé = "arrête";
+            }
+            else if (inst->est_continue()) {
+                mot_clé = "continue";
+            }
+            else {
+                mot_clé = "reprends";
+            }
+            imprime_lexème_mot_clé(enchaineuse, mot_clé, inst->expression != nullptr);
             if (inst->expression) {
                 imprime_arbre(enchaineuse, état, inst->expression);
             }
