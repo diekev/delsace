@@ -332,7 +332,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
                     continue
                 }
 
-                membre : MembreType
+                membre: MembreType
                 membre.nom = it.nom
                 membre.confidentialité = confidentialité
                 membre.type = système.convertis_vers_type_python(it.id)
@@ -353,7 +353,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
                     continue
                 }
 
-                membre : MembreType
+                membre: MembreType
                 membre.nom = it.nom
                 membre.confidentialité = confidentialité
                 membre.type = système.convertis_vers_type_python(it.id)
@@ -467,7 +467,7 @@ ajoute_module_kuri :: fonc (compilatrice: &CompilatriceModulePython, module: *Mo
     ajoute_module(*compilatrice.modules_kuri_à_importer, module)
 }
 
-ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoType, drapeaux: DrapeauxType = DrapeauxType.zéro)
+ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoType, drapeaux : DrapeauxType = DrapeauxType.zéro)
 {
     compilatrice.système_type.ajoute_type(type_kuri, drapeaux)
 }
@@ -604,7 +604,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
 
 génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> Optionnel(chaine)
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
     saufsi génère_interface_python(compilatrice, *enchaineuse) {
