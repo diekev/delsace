@@ -63,7 +63,6 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
     switch (noeud->genre) {
         case GenreNoeud::INSTRUCTION_BOUCLE:
         case GenreNoeud::INSTRUCTION_TANTQUE:
-        case GenreNoeud::INSTRUCTION_RÉPÈTE:
         case GenreNoeud::INSTRUCTION_POUR:
         case GenreNoeud::INSTRUCTION_SI:
         case GenreNoeud::INSTRUCTION_SAUFSI:
@@ -106,6 +105,26 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
             }
             return false;
         }
+        case GenreNoeud::DIRECTIVE_EXÉCUTE:
+        {
+            return noeud->ident == ID::test;
+        }
+        case GenreNoeud::DÉCLARATION_VARIABLE:
+        {
+            auto déclaration = noeud->comme_déclaration_variable();
+            if (!déclaration->expression) {
+                return false;
+            }
+            return expression_eu_bloc(déclaration->expression);
+        }
+        case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
+        {
+            auto expression = noeud->comme_assignation_variable();
+            if (!expression->expression) {
+                return false;
+            }
+            return expression_eu_bloc(expression->expression);
+        }
         default:
         {
             return false;
@@ -124,6 +143,25 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
                           ÉtatImpression état,
                           NoeudExpression const *noeud);
 
+static bool le_noeud_est_sur_une_ligne(NoeudExpression const *noeud)
+{
+    auto étendue_bloc = donne_étendue_source_noeud(noeud);
+    return étendue_bloc.ligne_début == étendue_bloc.ligne_fin;
+}
+
+static ÉtendueSourceNoeud donne_étendue_source(
+    kuri::tableau_statique<NoeudExpression *> expressions)
+{
+    auto résultat = ÉtendueSourceNoeud{};
+
+    POUR (expressions) {
+        auto étendue = donne_étendue_source_noeud(it);
+        résultat.fusionne(étendue);
+    }
+
+    return résultat;
+}
+
 static void imprime_tableau_expression(Enchaineuse &enchaineuse,
                                        ÉtatImpression état,
                                        kuri::tableau_statique<NoeudExpression *> expressions,
@@ -131,11 +169,17 @@ static void imprime_tableau_expression(Enchaineuse &enchaineuse,
                                        kuri::chaine_statique parenthèse_fin)
 {
     auto virgule = parenthèse_début;
+    auto étendue = donne_étendue_source(expressions);
+
+    auto séparation = ", ";
+    if (étendue.ligne_début != étendue.ligne_fin) {
+        séparation = ",\n";
+    }
 
     POUR (expressions) {
         enchaineuse << virgule;
         imprime_arbre(enchaineuse, état, it);
-        virgule = ", ";
+        virgule = séparation;
     }
 
     if (expressions.taille() == 0) {
@@ -170,10 +214,21 @@ static void imprime_données_externes(Enchaineuse &enchaineuse,
     }
 }
 
-static bool le_noeud_est_sur_une_ligne(NoeudExpression const *noeud)
+static void imprime_paramètres_classe(Enchaineuse &enchaineuse, NoeudBloc const *bloc_constantes)
 {
-    auto étendue_bloc = donne_étendue_source_noeud(noeud);
-    return étendue_bloc.ligne_début == étendue_bloc.ligne_fin;
+    if (!bloc_constantes) {
+        return;
+    }
+
+    auto virgule = "(";
+
+    POUR (*bloc_constantes->membres.verrou_lecture()) {
+        enchaineuse << virgule;
+        imprime_arbre(enchaineuse, {}, it);
+        virgule = ", ";
+    }
+
+    enchaineuse << ") ";
 }
 
 static void imprime_bloc(Enchaineuse &enchaineuse,
@@ -190,6 +245,20 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
              * lignes. */
             chaine_nouvelle_ligne = " ";
             le_bloc_est_sur_une_ligne = true;
+
+            if (bloc->expressions->est_vide()) {
+                if (état.imprime_indent_avant_bloc) {
+                    enchaineuse << état.indent;
+                }
+
+                enchaineuse << "{}";
+
+                if (état.imprime_nouvelle_ligne_après_bloc) {
+                    enchaineuse << "\n";
+                }
+
+                return;
+            }
         }
 
         if (état.imprime_indent_avant_bloc) {
@@ -301,11 +370,15 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto structure = noeud->comme_type_structure();
             imprime_ident(enchaineuse, structure->ident);
             enchaineuse << " :: struct ";
+            imprime_paramètres_classe(enchaineuse, structure->bloc_constantes);
             if (structure->est_externe) {
                 enchaineuse << "#externe ";
             }
             if (structure->est_compacte) {
                 enchaineuse << "#compacte ";
+            }
+            if (structure->est_corps_texte) {
+                enchaineuse << "#corps_texte ";
             }
             état.imprime_indent_avant_bloc = false;
             état.imprime_nouvelle_ligne_après_bloc = false;
@@ -319,11 +392,15 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto structure = noeud->comme_type_union();
             imprime_ident(enchaineuse, structure->ident);
             enchaineuse << " :: union ";
+            imprime_paramètres_classe(enchaineuse, structure->bloc_constantes);
             if (structure->est_nonsure) {
                 enchaineuse << "nonsûr ";
             }
             if (structure->est_externe) {
                 enchaineuse << "#externe ";
+            }
+            if (structure->est_corps_texte) {
+                enchaineuse << "#corps_texte ";
             }
             état.imprime_indent_avant_bloc = false;
             état.imprime_nouvelle_ligne_après_bloc = false;
@@ -470,7 +547,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             état.imprime_indent_avant_bloc = false;
             état.imprime_nouvelle_ligne_après_bloc = false;
             imprime_arbre(enchaineuse, état, inst->bloc);
-            enchaineuse << état.indent << " tantque ";
+            enchaineuse << " tantque ";
             imprime_arbre(enchaineuse, état, inst->condition);
             break;
         }
@@ -575,12 +652,17 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         case GenreNoeud::DÉCLARATION_CONSTANTE:
         {
             auto déclaration = noeud->comme_déclaration_constante();
+
+            if (déclaration->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+                enchaineuse << "$";
+            }
+
             imprime_ident(enchaineuse, déclaration->ident);
 
             auto séparation_expression = kuri::chaine_statique(" :: ");
 
             if (déclaration->expression_type) {
-                enchaineuse << " : ";
+                enchaineuse << ((déclaration->expression != nullptr) ? " : " : ": ");
                 imprime_arbre(enchaineuse, état, déclaration->expression_type);
                 séparation_expression = " : ";
             }
@@ -845,6 +927,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto inst = noeud->comme_pousse_contexte();
             imprime_lexème_mot_clé(enchaineuse, inst, true);
             imprime_arbre(enchaineuse, état, inst->expression);
+            enchaineuse << " ";
             état.imprime_indent_avant_bloc = false;
             imprime_arbre(enchaineuse, état, inst->bloc);
             break;
@@ -862,7 +945,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
                 imprime_arbre(enchaineuse, état, inst->bloc);
             }
             else {
-                enchaineuse << " nonatteignable";
+                enchaineuse << "nonatteignable";
             }
             break;
         }
