@@ -11,7 +11,7 @@ GenreNoeud :: énum {
 }
 
 Noeud :: struct {
-    genre : GenreNoeud
+    genre: GenreNoeud
 
     parent: *Noeud
     enfants: [..]*Noeud

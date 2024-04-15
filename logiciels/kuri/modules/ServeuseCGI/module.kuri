@@ -83,13 +83,13 @@ détruit_données_cgi :: fonc (données_cgi: &DonnéesCGI)
 }
 
 ServeuseCGI :: struct ($T: type_de_données) {
-    routeuse : Routeuse(T = T)
-    intergiciel : fonc(*Requête, *T)(RésultatRequête)
+    routeuse: Routeuse(T = T)
+    intergiciel: fonc(*Requête, *T)(RésultatRequête)
 }
 
 construit_serveuse_cgi :: fonc (données: *$T, intergiciel: fonc(*Requête, *T)(RésultatRequête)) -> ServeuseCGI(T = T)
 {
-    serveuse : ServeuseCGI(T = T)
+    serveuse: ServeuseCGI(T = T)
     serveuse.routeuse.données_serveuse = données
     serveuse.intergiciel = intergiciel
 
@@ -133,7 +133,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
 
     // prépare les données de la requête
     uri_normalisé := résoud_échappement_url(données.valeur[ParamètresCGI.REQUEST_URI])
-    diffère { déloge(uri_normalisé) }
+    diffère déloge(uri_normalisé)
 
     uri := tente parse_uri_depuis_chemin_requête(uri_normalisé) piège err {
         écris_bad_request("Chemin malformé")
@@ -141,9 +141,9 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     }
 
     cookies := parse_cookie_client(données.valeur[ParamètresCGI.HTTP_COOKIE])
-    diffère { déloge(cookies) }
+    diffère déloge(cookies)
 
-    requête : Requête
+    requête: Requête
     requête.uri = uri
     requête.cookies = cookies
     requête.méthode = données.valeur[ParamètresCGI.REQUEST_METHOD]
@@ -188,7 +188,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     crée_réponse(résultat)
 }
 
-crée_réponse :: fonc (résultat : &RésultatRequête)
+crée_réponse :: fonc (résultat: &RésultatRequête)
 {
     imprime("Status: %\n", chaine_code_état_http(résultat.status))
 

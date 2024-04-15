@@ -9,10 +9,10 @@ charge "mélange"
  * \{ */
 
 CouleurRVBA :: struct {
-    r := 0.0  @mutable
-    v := 0.0  @mutable
-    b := 0.0  @mutable
-    a := 0.0  @mutable
+    r := 0.0 @mutable
+    v := 0.0 @mutable
+    b := 0.0 @mutable
+    a := 0.0 @mutable
 }
 
 init_couleur_pour_python :: fonc (couleur: *CouleurRVBA) -> bool
@@ -150,7 +150,7 @@ rvb_vers_tsv :: fonc (couleur: CouleurRVBA) -> CouleurTSV
     chroma := r - min_vb
 
     résultat : CouleurTSV = ---
-    résultat.t = abs(k + (v - b) / (6.0 * chroma + 1e-20));
+    résultat.t = abs(k + (v - b) / (6.0 * chroma + 1e-20))
     résultat.s = chroma / (r + 1e-20)
     résultat.v = r
     retourne résultat
@@ -171,9 +171,9 @@ tsv_vers_rvb :: fonc (couleur: CouleurTSV) -> CouleurRVBA
     restreint(*nv, 0.0, 1.0)
 
     résultat : CouleurRVBA = ---
-    résultat.r = ((nr - 1.0) * s + 1.0) * v;
-    résultat.v = ((nv - 1.0) * s + 1.0) * v;
-    résultat.b = ((nb - 1.0) * s + 1.0) * v;
+    résultat.r = ((nr - 1.0) * s + 1.0) * v
+    résultat.v = ((nv - 1.0) * s + 1.0) * v
+    résultat.b = ((nb - 1.0) * s + 1.0) * v
     retourne résultat
 }
 
@@ -244,7 +244,7 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
     s := couleur.s
     l := couleur.l
 
-    nr := abs(h * 6.0 - 3.0) - 1.0;
+    nr := abs(h * 6.0 - 3.0) - 1.0
     ng := 2.0 - abs(h * 6.0 - 2.0)
     nb := 2.0 - abs(h * 6.0 - 4.0)
 
@@ -306,7 +306,7 @@ spectre_rvb_vers_tsv :: fonc (spectre: Spectre) -> Spectre
 {
     couleur_rvb := spectre_vers_couleur_rvba(spectre)
     couleur_tsv := rvb_vers_tsv(couleur_rvb)
-    résultat: Spectre = ---
+    résultat : Spectre = ---
     résultat.x = couleur_tsv.t
     résultat.y = couleur_tsv.s
     résultat.z = couleur_tsv.v
@@ -317,7 +317,7 @@ spectre_tsv_vers_rvb :: fonc (spectre: Spectre) -> Spectre
 {
     couleur_tsv := spectre_vers_couleur_tsv(spectre)
     couleur_rvb := tsv_vers_rvb(couleur_tsv)
-    résultat: Spectre = ---
+    résultat : Spectre = ---
     résultat.x = couleur_rvb.r
     résultat.y = couleur_rvb.v
     résultat.z = couleur_rvb.b

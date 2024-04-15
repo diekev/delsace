@@ -12,7 +12,7 @@ Caméra2D :: struct {
     /* Zoom. */
     zoom := 1.0 @mutable
 
-    matrice : Mat4r @accessible
+    matrice: Mat4r @accessible
 }
 
 ajourne_matrice :: fonc (caméra: *Caméra2D)
