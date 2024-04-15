@@ -708,7 +708,13 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             if (noeud->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
                 enchaineuse << "$";
             }
-            imprime_ident(enchaineuse, noeud->ident);
+            if (noeud->ident) {
+                imprime_ident(enchaineuse, noeud->ident);
+            }
+            else {
+                auto référence = noeud->comme_référence_déclaration();
+                enchaineuse << nom_humainement_lisible(référence->déclaration_référée);
+            }
             break;
         }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
