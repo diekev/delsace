@@ -288,7 +288,7 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
             }
         }
 
-        if (!le_bloc_est_sur_une_ligne) {
+        if (!le_bloc_est_sur_une_ligne && !it->est_bloc()) {
             enchaineuse << état.indent;
         }
 
