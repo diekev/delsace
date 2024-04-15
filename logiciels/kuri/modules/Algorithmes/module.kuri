@@ -4,13 +4,13 @@ importe Math
 // de comparaisons, et sont résistant aux dépassement de bornes.
 
 // Retourne le nombre d'éléments se situant entre deux pointeurs.
-distance :: fonc (ptr1 : *$T, ptr2 : *T) -> z64 #enligne
+distance :: fonc (ptr1: *$T, ptr2: *T) -> z64 #enligne
 {
     retourne ptr2 - ptr1
 }
 
 // Retourne le pointeur se situant à n éléments après celui donné.
-suivant :: fonc (ptr : *$T, n : z64) -> *T #enligne
+suivant :: fonc (ptr: *$T, n: z64) -> *T #enligne
 {
     retourne ptr + n
 }
@@ -18,7 +18,7 @@ suivant :: fonc (ptr : *$T, n : z64) -> *T #enligne
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
 // ést plus petite que la valeur recherchée. Sinon retourne le pointeur de fin.
 // Ceci est utile pour stocker dans l'ordre croissant des données.
-limite_basse :: fonc (f : *$T, l : *T, v : T) -> *T
+limite_basse :: fonc (f: *$T, l: *T, v: T) -> *T
 {
     fl := f
     ll := l
@@ -44,7 +44,7 @@ limite_basse :: fonc (f : *$T, l : *T, v : T) -> *T
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
 // ést plus petite que la valeur recherchée. Sinon retourne le pointeur de fin.
 // Ceci est utile pour stocker dans l'ordre croissant des données.
-limite_basse :: fonc (f : *$T, l : *T, v : T, rappel_comp: fonc(*T, *T)(bool)) -> *T
+limite_basse :: fonc (f: *$T, l: *T, v: T, rappel_comp: fonc(*T, *T)(bool)) -> *T
 {
     fl := f
     ll := l
@@ -70,7 +70,7 @@ limite_basse :: fonc (f : *$T, l : *T, v : T, rappel_comp: fonc(*T, *T)(bool)) -
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
 // ést plus grande que la valeur recherchée. Sinon retourne le pointeur de fin.
 // Ceci est utile pour stocker dans l'ordre décroissant des données.
-limite_haute :: fonc (f : *$T, l : *T, v : T) -> *T
+limite_haute :: fonc (f: *$T, l: *T, v: T) -> *T
 {
     fl := f
     ll := l
@@ -93,7 +93,7 @@ limite_haute :: fonc (f : *$T, l : *T, v : T) -> *T
     retourne fl
 }
 
-tous_de :: fonc (tableau: [..]$T, prédicat: fonc (T)(bool)) -> bool
+tous_de :: fonc (tableau: [..]$T, prédicat: fonc(T)(bool)) -> bool
 {
     pour tableau {
         saufsi prédicat(it) {
@@ -104,7 +104,7 @@ tous_de :: fonc (tableau: [..]$T, prédicat: fonc (T)(bool)) -> bool
     retourne vrai
 }
 
-aucun_de :: fonc (tableau: [..]$T, prédicat: fonc (T)(bool)) -> bool
+aucun_de :: fonc (tableau: [..]$T, prédicat: fonc(T)(bool)) -> bool
 {
     pour tableau {
         si prédicat(it) {
@@ -115,9 +115,9 @@ aucun_de :: fonc (tableau: [..]$T, prédicat: fonc (T)(bool)) -> bool
     retourne vrai
 }
 
-copie_si :: fonc (tableau: [..]$T, prédicat: fonc (T)(bool)) -> [..]T
+copie_si :: fonc (tableau: [..]$T, prédicat: fonc(T)(bool)) -> [..]T
 {
-    résultat : [..]T
+    résultat: [..]T
     tableau_réserve(*résultat, tableau.taille)
 
     pour tableau {
@@ -131,7 +131,7 @@ copie_si :: fonc (tableau: [..]$T, prédicat: fonc (T)(bool)) -> [..]T
 
 copie :: fonc (tableau: [..]$T) -> [..]T
 {
-    résultat : [..]T
+    résultat: [..]T
     tableau_réserve(*résultat, tableau.taille)
 
     pour tableau {
@@ -141,7 +141,7 @@ copie :: fonc (tableau: [..]$T) -> [..]T
     retourne résultat
 }
 
-accumule :: fonc (tableau: [..]$T, valeur_initiale: $V, rappel: fonc (T)(V)) -> V
+accumule :: fonc (tableau: [..]$T, valeur_initiale: $V, rappel: fonc(T)(V)) -> V
 {
     résultat := valeur_initiale
 
@@ -242,7 +242,7 @@ pivote :: fonc (premier: *$T, milieu: *T, dernier: *T) -> *T
     taille_fin := distance(milieu, dernier)
 
     /* À FAIRE : évite d'allouer de la mémoire */
-    tampon : [..]T
+    tampon: [..]T
     diffère déloge(tampon)
     tableau_redimensionne(tampon, taille_début)
 

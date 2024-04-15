@@ -74,7 +74,7 @@ DonnéesSSLBoucle :: struct {
     bio_partagé_écriture: *BIO
 
     /* La prise courante. */
-    prise_ssl : *PriseSSL
+    prise_ssl: *PriseSSL
 
     /* L'index de la dernière fois que la boucle évènements fut exécuté. */
     index_dernière_itération: z32

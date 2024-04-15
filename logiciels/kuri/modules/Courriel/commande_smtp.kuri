@@ -118,7 +118,6 @@ chaine_pour_commande :: fonc (commande: *CommandeSMTP) -> Optionnel(chaine)
 
 détruit_commande :: fonc (commande: *CommandeSMTP)
 {
-
     discr commande.type {
         CommandeSMTP_EHLO {
             EHLO := commande comme *CommandeSMTP_EHLO
