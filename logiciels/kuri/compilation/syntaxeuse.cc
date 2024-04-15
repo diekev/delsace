@@ -2728,6 +2728,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
 
         if (apparie(GenreLexème::POUSSE_CONTEXTE)) {
             empile_état("dans l'analyse du bloc", lexème_courant());
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::BLOC_CORPS_EST_POUSSE_CONTEXTE;
             noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), noeud);
             auto pousse_contexte = analyse_instruction_pousse_contexte();
             noeud_corps->bloc->ajoute_expression(pousse_contexte);

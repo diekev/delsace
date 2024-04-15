@@ -489,7 +489,14 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             enchaineuse << "\n";
 
             état.imprime_nouvelle_ligne_après_bloc = false;
-            imprime_arbre(enchaineuse, état, entête->corps);
+            if (entête->possède_drapeau(DrapeauxNoeudFonction::BLOC_CORPS_EST_POUSSE_CONTEXTE)) {
+                auto const bloc_corps = entête->corps->bloc;
+                auto const expression = bloc_corps->expressions->a(0);
+                imprime_arbre(enchaineuse, état, expression);
+            }
+            else {
+                imprime_arbre(enchaineuse, état, entête->corps);
+            }
             imprime_annotations(enchaineuse, entête->annotations);
             enchaineuse << "\n";
             break;
