@@ -29,7 +29,7 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bo
     déloge(nempreinte)
 
     retourne ok
-//    retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
+    // retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
 }
 
 /* ------------------------------------------------------------------------- */
@@ -175,7 +175,7 @@ réinitialise :: fonc (hacheuse: *HACHEUSE)
 
 donne_condensat :: fonc (hacheuse: *HACHEUSE) -> Condensat
 {
-    résultat : Condensat
+    résultat: Condensat
     donne_condensat(hacheuse, *résultat)
     retourne résultat
 }
@@ -290,7 +290,7 @@ ajourne :: fonc (hacheuse: *HACHEUSE_HMAC, message: $T)
 
 donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> Condensat
 {
-    résultat : Condensat
+    résultat: Condensat
     donne_condensat(hacheuse, *résultat)
     retourne résultat
 }
@@ -435,7 +435,7 @@ convertis_clé :: fonc (a: &n32, b: &n32, c: &n32, d: &n32)
 
 test_chache :: fonc ()
 {
-    bloc : [4][4]n32
+    bloc: [4][4]n32
 
     pour i dans 0 ... 3 {
         pour j dans 0 ... 3 {
@@ -540,7 +540,7 @@ vigenère :: fonc (message: chaine, clés: ...chaine) -> chaine
 scytale :: fonc (message: chaine, taille_clé: z32) -> chaine
 {
     message = prépare_chaine(message)
-    
+
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)

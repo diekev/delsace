@@ -91,7 +91,7 @@ ajoute :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément, 
 
 ajoute_marqueur :: fonc (liste: *ListeÉlémentsActifsFormattage)
 {
-    entrée : EntréeFormattage
+    entrée: EntréeFormattage
     tableau_ajoute(*liste.entrées, entrée)
 }
 
@@ -147,7 +147,7 @@ index_élément_formattage :: fonc (liste: *ListeÉlémentsActifsFormattage, él
 {
     pour liste.entrées {
         si it.élément == élément {
-            retourne index_it;
+            retourne index_it
         }
     }
 

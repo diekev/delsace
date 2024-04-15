@@ -6,16 +6,16 @@ importe Fondation
 // https://en.wikipedia.org/wiki/Open_addressing
 
 NoeudTableHachage :: struct {
-    clé : chaine
-    valeur : chaine
-    suivant : *NoeudTableHachage
+    clé: chaine
+    valeur: chaine
+    suivant: *NoeudTableHachage
 }
 
 TableHachage :: struct {
-    alvéoles : [..]*NoeudTableHachage
+    alvéoles: [..]*NoeudTableHachage
 }
 
-crée_table_hachage :: fonc() -> *TableHachage
+crée_table_hachage :: fonc () -> *TableHachage
 {
     table := loge(TableHachage)
     table.alvéoles = loge_tableau(*NoeudTableHachage, 10000)
@@ -27,10 +27,10 @@ crée_table_hachage :: fonc() -> *TableHachage
     retourne table
 }
 
-décrée_table_hachage :: fonc(table : *TableHachage) -> rien
+décrée_table_hachage :: fonc (table: *TableHachage) -> rien
 {
     pour noeud dans table.alvéoles {
-        n := noeud;
+        n := noeud
 
         tantque n != nul {
             ns := n.suivant
@@ -43,7 +43,7 @@ décrée_table_hachage :: fonc(table : *TableHachage) -> rien
     déloge(table)
 }
 
-crée_noeud :: fonc(clé : chaine, valeur : chaine) -> *NoeudTableHachage
+crée_noeud :: fonc (clé: chaine, valeur: chaine) -> *NoeudTableHachage
 {
     n := loge(NoeudTableHachage)
     n.clé = clé
@@ -52,7 +52,7 @@ crée_noeud :: fonc(clé : chaine, valeur : chaine) -> *NoeudTableHachage
     retourne n
 }
 
-insère :: fonc(table : *TableHachage, clé : chaine, valeur : chaine) -> rien
+insère :: fonc (table: *TableHachage, clé: chaine, valeur: chaine) -> rien
 {
     empreinte := calcule_empreinte(clé) % 10000
 
@@ -73,7 +73,7 @@ insère :: fonc(table : *TableHachage, clé : chaine, valeur : chaine) -> rien
     }
 }
 
-trouve :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
+trouve :: fonc (table: *TableHachage, clé: chaine) -> *NoeudTableHachage
 {
     empreinte := calcule_empreinte(clé) % 10000
 
@@ -98,7 +98,7 @@ trouve :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
     retourne nul
 }
 
-cherche_noeud :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
+cherche_noeud :: fonc (table: *TableHachage, clé: chaine) -> *NoeudTableHachage
 {
     retourne trouve(table, clé)
 }

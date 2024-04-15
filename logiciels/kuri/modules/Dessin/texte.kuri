@@ -17,7 +17,7 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *F
     décalage_x := rect.x comme r32
 
     utilise_crénage := fonte.font.kerning != 0
-    dernier_glyphe : *texture_glyph_t
+    dernier_glyphe: *texture_glyph_t
 
     pour * texte {
         glyph := texture_font_get_glyph(fonte.font, it)

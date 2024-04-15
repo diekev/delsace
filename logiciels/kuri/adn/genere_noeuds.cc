@@ -199,17 +199,6 @@ struct GeneratriceCodeCPP {
               "substitution = false);\n\n";
 
         // Calcul de l'étendue
-        os << "struct Etendue {\n";
-        os << "\tint64_t pos_min = std::numeric_limits<int64_t>::max();\n";
-        os << "\tint64_t pos_max = std::numeric_limits<int64_t>::min();\n";
-        os << "\n";
-        os << "\tvoid fusionne(Etendue autre)\n";
-        os << "\t{\n";
-        os << "\t\tpos_min = (pos_min < autre.pos_min) ? pos_min : autre.pos_min;\n";
-        os << "\t\tpos_max = (pos_max > autre.pos_max) ? pos_max : autre.pos_max;\n";
-        os << "\t}\n";
-        os << "};\n\n";
-        os << "Etendue calcule_etendue_noeud(NoeudExpression const *racine);\n\n";
         os << "enum class DecisionVisiteNoeud : unsigned char {\n";
         os << "    CONTINUE,\n";
         os << "    IGNORE_ENFANTS,\n";
@@ -240,7 +229,6 @@ struct GeneratriceCodeCPP {
         }
 
         genere_impression_arbre_syntaxique(os);
-        genere_calcul_etendue_noeud(os);
         genere_visite_noeud(os);
         genere_copie_noeud(os);
 
@@ -346,62 +334,6 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 }
 )";
         os << implémentations_supplémentaires;
-    }
-
-    void genere_calcul_etendue_noeud(FluxSortieCPP &os)
-    {
-        os << "Etendue calcule_etendue_noeud(NoeudExpression const *racine)\n";
-        os << "{\n";
-        os << "\tif (!racine) {\n";
-        os << "\t\treturn {};\n";
-        os << "\t}\n";
-        os << "\tconst auto lexeme = racine->lexème;\n";
-        os << "\tif (!lexeme) {\n";
-        os << "\t\treturn {};\n";
-        os << "\t}\n";
-        os << "\tconst auto pos = position_lexeme(*lexeme);\n";
-        os << "\tauto etendue = Etendue{};\n";
-        os << "\tetendue.pos_min = pos.pos;\n";
-        os << "\tetendue.pos_max = pos.pos + lexeme->chaine.taille();\n";
-        os << "\tswitch (racine->genre) {\n";
-
-        POUR (protéines_struct) {
-            if (it->accede_nom_genre().est_nul()) {
-                continue;
-            }
-
-            os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
-            os << "\t\t{\n";
-
-            génère_code_pour_enfant(os, it, false, [&os](ProtéineStruct &, Membre const &membre) {
-                if (membre.type->est_tableau()) {
-                    const auto type_tableau = membre.type->comme_tableau();
-                    if (type_tableau->est_synchrone) {
-                        os << "\t\t\tPOUR ((*racine_typee->" << membre.nom
-                           << ".verrou_lecture())) {\n";
-                    }
-                    else {
-                        os << "\t\t\tPOUR (racine_typee->" << membre.nom << ") {\n";
-                    }
-                    os << "\t\t\t\tconst auto etendue_" << membre.nom
-                       << " = calcule_etendue_noeud(it);\n";
-                    os << "\t\t\t\tetendue.fusionne(etendue_" << membre.nom << ");\n";
-                    os << "\t\t\t}\n";
-                }
-                else {
-                    os << "\t\t\tconst auto etendue_" << membre.nom
-                       << " = calcule_etendue_noeud(racine_typee->" << membre.nom << ");\n";
-                    os << "\t\t\tetendue.fusionne(etendue_" << membre.nom << ");\n";
-                }
-            });
-
-            os << "\t\t\tbreak;\n";
-            os << "\t\t}\n";
-        }
-
-        os << "\t}\n";
-        os << "\treturn etendue;\n";
-        os << "}\n";
     }
 
     void genere_visite_noeud(FluxSortieCPP &os)

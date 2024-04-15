@@ -18,9 +18,9 @@ FichierOuErreur :: union {
 
 marque_prise_non_bloquante :: fonc (prise: z32)
 {
-    flags := fcntl(prise, F_GETFL, 0);
+    flags := fcntl(prise, F_GETFL, 0)
     // @erreur
-    _ := fcntl(prise, F_SETFL, flags | O_NONBLOCK);
+    _ := fcntl(prise, F_SETFL, flags | O_NONBLOCK)
 }
 
 /* Supprime le délai pour envoyer les paquets TCP, et active l'algorithme de Nagle
@@ -58,7 +58,7 @@ ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16, bloquante := faux) ->
         marque_prise_non_bloquante(prise)
     }
 
-    their_addr : sockaddr_in
+    their_addr: sockaddr_in
     their_addr.sin_family = AF_INET comme n16
     their_addr.sin_port = htons(port)
     their_addr.sin_zero[0] = 0
@@ -92,7 +92,7 @@ ouvre_connexion_serveur :: fonc (uri: &URI, bloquante := faux) -> FichierOuErreu
     retourne ouvre_connexion_serveur(uri.hôte, port_pour_uri(uri), bloquante)
 }
 
-ouvre_connexion_serveur_pour_écoute :: fonc(port: n16, connexions_max: z32) -> FichierOuErreur
+ouvre_connexion_serveur_pour_écoute :: fonc (port: n16, connexions_max: z32) -> FichierOuErreur
 {
     prise := socket(PF_INET, SOCK_STREAM, 0)
 
@@ -100,7 +100,7 @@ ouvre_connexion_serveur_pour_écoute :: fonc(port: n16, connexions_max: z32) -> 
         retourne ErreurConnexion.CréationPriseImpossible
     }
 
-    addr : sockaddr_in
+    addr: sockaddr_in
     addr.sin_family = PF_INET comme n16
     addr.sin_port = htons(port)
     addr.sin_addr.s_addr = INADDR_ANY
@@ -194,7 +194,7 @@ ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4 @inutilisée, port
 
 accepte :: fonc (prise: z32) -> z32
 {
-    adresse : sockaddr_in
+    adresse: sockaddr_in
     sin_size := taille_de(sockaddr_in)
 
     fd_prise := accept(prise, *adresse comme *sockaddr, *sin_size)

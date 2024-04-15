@@ -20,7 +20,7 @@ PeutSuivre :: énum_drapeau {
 
 construit_table_caractères :: fonc () -> [256]TypeCaractère
 {
-    résultat : [256]TypeCaractère
+    résultat: [256]TypeCaractère
 
     pour & résultat {
         it = TypeCaractère.INCONNU
@@ -60,7 +60,7 @@ construit_table_caractères :: fonc () -> [256]TypeCaractère
 
 construit_table_peut_suivre :: fonc () -> [256]PeutSuivre
 {
-    résultat : [256]PeutSuivre
+    résultat: [256]PeutSuivre
     caractères_alphabétique :: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$"
 
     pour caractères_alphabétique {
@@ -331,7 +331,7 @@ caractère_suivant :: fonc (lexeuse: *Lexeuse) -> Rune
     retourne lexeuse.flux.caractère_suivant()
 }
 
-avance :: fonc (lexeuse: *Lexeuse, n: z32 = 1)
+avance :: fonc (lexeuse: *Lexeuse, n : z32 = 1)
 {
     lexeuse.flux.avance(n)
     lexeuse.colonne += n
@@ -545,7 +545,7 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
             lexeuse.avance()
         }
 
-/*
+        /*
         chn : chaine = ---
         chn.pointeur = *c
         chn.taille = 1

@@ -23,7 +23,7 @@ donne_permutation_casse :: fonc (table: &[..]PermutationCasse, rune: Rune) -> *P
 
     // Binary search for entry containing r.
     tantque n > 0 {
-    	m := n / 2
+        m := n / 2
 
         si (f[m].min <= r <= f[m].max) {
             dist := distance(table.pointeur, *f[m])
@@ -55,44 +55,48 @@ donne_permutation_casse :: fonc (table: &[..]PermutationCasse, rune: Rune) -> *P
 applique_permutation :: fonc (f: *PermutationCasse, r: Rune) -> Rune
 {
     discr f.delta {
+        SautPaireImpaire {
+            // even <-> odd but only applies to every other
+            si (r comme n32 - f.min) % 2 != 0 {
+                retourne r
+            }
+
+            si r comme n32 % 2 == 0 {
+                retourne Rune(r comme n32 + 1)
+            }
+
+            retourne Rune(r comme n32 - 1)
+        }
+        PaireImpaire {
+            // even <-> odd
+            si r comme n32 % 2 == 0 {
+                retourne Rune(r comme n32 + 1)
+            }
+
+            retourne Rune(r comme n32 - 1)
+        }
+        SautImpairePaire {
+            // odd <-> even but only applies to every other
+            si (r comme n32 - f.min) % 2 != 0 {
+                retourne r
+            }
+
+            si r comme n32 % 2 == 1 {
+                retourne Rune(r comme n32 + 1)
+            }
+
+            retourne Rune(r comme n32 - 1)
+        }
+        ImpairePaire {
+            // odd <-> even
+            si r comme n32 % 2 == 1 {
+                retourne Rune(r comme n32 + 1)
+            }
+
+            retourne Rune(r comme n32 - 1)
+        }
         sinon {
             retourne Rune((r comme n32 comme z32 + f.delta) comme n32)
-        }
-        SautPaireImpaire {  // even <-> odd but only applies to every other
-            si (r comme n32 - f.min) % 2 != 0 {
-                retourne r
-            }
-
-            si r comme n32 % 2 == 0 {
-                retourne Rune(r comme n32 + 1)
-            }
-
-            retourne Rune(r comme n32 - 1)
-        }
-        PaireImpaire { // even <-> odd
-            si r comme n32 % 2 == 0 {
-                retourne Rune(r comme n32 + 1)
-            }
-
-            retourne Rune(r comme n32 - 1)
-        }
-        SautImpairePaire {  // odd <-> even but only applies to every other
-            si (r comme n32 - f.min) % 2 != 0 {
-                retourne r
-            }
-
-            si r comme n32 % 2 == 1 {
-                retourne Rune(r comme n32 + 1)
-            }
-
-            retourne Rune(r comme n32 - 1)
-        }
-        ImpairePaire {  // odd <-> even
-            si r comme n32 % 2 == 1 {
-                retourne Rune(r comme n32 + 1)
-            }
-
-            retourne Rune(r comme n32 - 1)
         }
     }
 }

@@ -106,23 +106,23 @@ donne_masque_uri :: fonc (uri: URI) -> MasqueURI
 
 URI :: struct {
     // la chaine originale
-    uri : chaine  // @privé
+    uri: chaine  // @privé
 
     // les différents composants de l'URI
-    schéma : chaine  // @accessible
-    autorité : chaine  // @accessible
-    chemin_complet : chaine  // @accessible
+    schéma: chaine  // @accessible
+    autorité: chaine  // @accessible
+    chemin_complet: chaine  // @accessible
 
     // les différents composants du chemin
-    chemin : chaine  // @accessible
-    requête : chaine  // @accessible
-    fragment : chaine  // @accessible
+    chemin: chaine  // @accessible
+    requête: chaine  // @accessible
+    fragment: chaine  // @accessible
 
     // les différents composants de l'autorité
-    nom_utilisateur : chaine  // @accessible
-    mot_de_passe : chaine  // @accessible
-    hôte : chaine  // @accessible
-    port : chaine  // @accessible
+    nom_utilisateur: chaine  // @accessible
+    mot_de_passe: chaine  // @accessible
+    hôte: chaine  // @accessible
+    port: chaine  // @accessible
 
     // un composant est défini si son séparateur est présent, mais il peut tout de même
     // être vide
@@ -133,8 +133,8 @@ URI :: struct {
 }
 
 RésultatURI :: union {
-    err : ErreurURI
-    uri : URI
+    err: ErreurURI
+    uri: URI
 }
 
 RésultatExtraction :: union {
@@ -328,7 +328,7 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
     chn = avance_si(chn, doit_rogner_de_l_url)
     chn = recule_si(chn, doit_rogner_de_l_url)
 
-    uri : URI
+    uri: URI
     uri.uri = chn
 
     eu_schéma := tente extrait_schéma(chn, *uri.schéma) piège err {
@@ -381,7 +381,7 @@ parse_uri_depuis_chaine :: fonc (chn: chaine) -> bool, URI
 
 parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 {
-    uri : URI
+    uri: URI
     uri.uri = chn
     uri.chemin_complet = chn
 
@@ -421,7 +421,7 @@ est_valide :: fonc (uri: URI) -> bool
 // Voir RFC3986, section 5.3
 recompose_uri :: fonc (uri: *URI) -> chaine
 {
-    résultat : chaine
+    résultat: chaine
 
     si uri.schéma_est_défini {
         append(*résultat, uri.schéma)
@@ -458,11 +458,11 @@ recompose_uri :: fonc (uri: *URI) -> chaine
 
 // Calcul une somme de controle, sur 64bit, pour un URI selon l'algorithme de Fletcher
 // https://en.wikipedia.org/wiki/Fletcher%27s_checksum
-somme_controle :: fonc(uri : &URI) -> n64
+somme_controle :: fonc (uri: &URI) -> n64
 {
     // nous ne considérons que l'autorité, le chemin et la requête
-    somme1 := 0;
-    somme2 := 0;
+    somme1 := 0
+    somme2 := 0
 
     pour c dans uri.autorité {
         somme1 = (somme1 + c comme z32) % 0xffffffff
@@ -479,10 +479,10 @@ somme_controle :: fonc(uri : &URI) -> n64
         somme2 = (somme1 + somme2) % 0xffffffff
     }
 
-    retourne (somme2 comme n64 << 32) | somme1 comme n64;
+    retourne (somme2 comme n64 << 32) | somme1 comme n64
 }
 
-port_pour_uri :: fonc(uri : &URI) -> n16
+port_pour_uri :: fonc (uri: &URI) -> n16
 {
     si uri.port.taille == 0 {
         si uri.schéma == "http" {
@@ -550,7 +550,7 @@ chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chain
         retourne ""
     }
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, chemin)

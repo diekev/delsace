@@ -145,7 +145,7 @@ opérateur >= :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
 
 depuis_millisecondes :: fonc (millisecondes: z64, $T: type_de_données) -> T
 {
-    temps: T = ---
+    temps : T = ---
     temps.seconde = millisecondes / 1_000
     temps.nanoseconde = (millisecondes % 1_000) * 1_000_000
     retourne temps
@@ -154,7 +154,8 @@ depuis_millisecondes :: fonc (millisecondes: z64, $T: type_de_données) -> T
 // ----------------------------------------------------------------------------
 
 Constantes :: struct ($T: type_de_données) {
-    SECONDES_PAR_AN : T : 31_556_952 /* SECONDES_PAR_JOUR * 365.2425 */
+    SECONDES_PAR_AN : T : 31_556_952
+    /* SECONDES_PAR_JOUR * 365.2425 */
     SECONDES_PAR_JOUR : T : 86_400
     SECONDES_PAR_HEURE : T : 3_600
     MILLISECONDES_PAR_AN : T : 31_556_952_000
@@ -163,14 +164,14 @@ Constantes :: struct ($T: type_de_données) {
 }
 
 Date :: struct {
-    année : z32
-    mois : z32
-    jour : z32
-    jour_semaine : z32
+    année: z32
+    mois: z32
+    jour: z32
+    jour_semaine: z32
 
-    heure : z32
-    minute : z32
-    seconde : z32
+    heure: z32
+    minute: z32
+    seconde: z32
 }
 
 opérateur < :: fonc (date1: Date, date2: Date) -> bool
@@ -219,7 +220,7 @@ date_depuis_millisecondes :: fonc (millisecondes: z64) -> Date
 
 weekday_from_days :: fonc (z: z64) -> n32
 {
-    retourne (si z >= -4 { (z+4) % 7 } sinon { (z+5) % 7 + 6 }) comme n32
+    retourne (si z >= -4 { (z + 4) % 7 } sinon { (z + 5) % 7 + 6 }) comme n32
 }
 
 // https://stackoverflow.com/questions/7960318/math-to-convert-seconds-since-1970-into-date-and-vice-versa
@@ -229,13 +230,19 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
     z := secondes / 86400
     z += 719468
     era := (si z >= 0 { z } sinon { z - 146096 }) / 146097
-    doe := (z - era * 146097) comme n32                     // [0, 146096]
-    yoe := (doe - doe/1460 + doe/36524 - doe/146096) / 365  // [0, 399]
+    doe := (z - era * 146097) comme n32
+    // [0, 146096]
+    yoe := (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+    // [0, 399]
     y := yoe comme z32 + era * 400
-    doy := doe - (365*yoe + yoe/4 - yoe/100)                // [0, 365]
-    mp := (5*doy + 2)/153                                   // [0, 11]
-    d := doy - (153*mp+2)/5 + 1                             // [1, 31]
-    m := mp comme z32 + si mp < 10 { 3 } sinon { -9 }                 // [1, 12]
+    doy := doe - (365 * yoe + yoe / 4 - yoe / 100)
+    // [0, 365]
+    mp := (5 * doy + 2) / 153
+    // [0, 11]
+    d := doy - (153 * mp + 2) / 5 + 1
+    // [1, 31]
+    m := mp comme z32 + si mp < 10 { 3 } sinon { -9 }
+    // [1, 12]
 
     /* Le calendrier de référence commence en mars (après un possible 29 février)
      * donc nous devons corriger l'année au besoin. */
@@ -245,7 +252,7 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
 
     seconde := secondes % 60
     minutes := (secondes / 60) % 60
-    heures  := (secondes / 3600) % 24
+    heures := (secondes / 3600) % 24
 
     années := y
 
@@ -276,12 +283,12 @@ days_from_civil :: fonc (y: z32, m: n32, d: n32) -> z32
     //          "This algorithm has not been ported to a 16 bit unsigned integer");
     // static_assert(std::numeric_limits<Int>::digits >= 20,
     //          "This algorithm has not been ported to a 16 bit signed integer");
-    y -= (m <= 2) comme z32;
-    era := si (y >= 0) { y } sinon { y - 399 } / 400;
-    yoe := (y - era * 400) comme n32      // [0, 399]
-    doy := (153* si (m > 2) { m-3 } sinon { m+9 } + 2)/5 + d-1;  // [0, 365]
-    doe := yoe * 365 + yoe/4 - yoe/100 + doy;         // [0, 146096]
-    retourne era * 146097 + (doe comme z32) - 719468;
+    y -= (m <= 2) comme z32
+    era := si (y >= 0) { y } sinon { y - 399 } / 400
+    yoe := (y - era * 400) comme n32 // [0, 399]
+    doy := (153 * si (m > 2) { m - 3 } sinon { m + 9 } + 2) / 5 + d - 1  // [0, 365]
+    doe := yoe * 365 + yoe / 4 - yoe / 100 + doy // [0, 146096]
+    retourne era * 146097 + (doe comme z32) - 719468
 }
 
 days_from_civil :: fonc (date: Date) -> z32
@@ -342,7 +349,7 @@ nombre_de_jours_dans_mois :: fonc (mois: z32, année: z32) -> z32
 */
 formatte :: fonc (date: &Date, format: chaine) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
     formatte(date, *enchaineuse, format)
@@ -408,7 +415,7 @@ formatte :: fonc (date: Date, enchaineuse: *Enchaineuse, format: chaine)
 
 parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
 {
-    résultat : Date
+    résultat: Date
 
     si chaine_date.taille != format.taille {
         retourne résultat
@@ -473,10 +480,10 @@ DateCalendaire :: struct {
 
 date_calendaire_depuis_date :: fonc (date: Date) -> DateCalendaire
 {
-    résultat : DateCalendaire
+    résultat: DateCalendaire
 
-    noms_jours := ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"]
-    noms_mois := ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+    noms_jours := [ "Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi" ]
+    noms_mois := [ "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre" ]
 
     résultat.nom_jour = noms_jours[date.jour_semaine]
     résultat.numéro_jour = date.jour + 1

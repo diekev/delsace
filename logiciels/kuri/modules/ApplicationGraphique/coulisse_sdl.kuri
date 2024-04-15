@@ -129,12 +129,12 @@ crée_fenêtre_principale :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente,
 
 crée_fenêtre_principal_impl_sdl :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> *FenêtreSDL
 {
-    args_création_fenêtre : ArgumentsCréationFenêtre
+    args_création_fenêtre: ArgumentsCréationFenêtre
     args_création_fenêtre.titre = nom
     args_création_fenêtre.rect = rect
     args_création_fenêtre.plein_écran = plein_écran
 
-    fenêtre : *FenêtreSDL
+    fenêtre: *FenêtreSDL
     discr crée_fenêtre_sdl(*args_création_fenêtre) {
         Quelque(fenêtre_sdl) {
             fenêtre = fenêtre_sdl
@@ -215,13 +215,13 @@ dessine_application :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
 
 donne_clique_souris_depuis_sdl_event :: fonc (app: *ApplicationSDL, évènement: SDL_Event, action: ActionSouris) -> CliqueSouris
 {
-    mappage_bouton := [BoutonSouris.PRIMAIRE, BoutonSouris.TERTIAIRE, BoutonSouris.CONTEXTUEL, BoutonSouris.AVANT, BoutonSouris.ARRIÈRE]
+    mappage_bouton := [ BoutonSouris.PRIMAIRE, BoutonSouris.TERTIAIRE, BoutonSouris.CONTEXTUEL, BoutonSouris.AVANT, BoutonSouris.ARRIÈRE ]
 
     état_souris: ÉtatSouris
     état_souris.où.x = évènement.button.x
     état_souris.où.y = app.fenêtre.hauteur - évènement.button.y
 
-    résultat : CliqueSouris
+    résultat: CliqueSouris
     résultat.état = état_souris
     résultat.bouton = mappage_bouton[évènement.button.button - 1]
     résultat.action = action

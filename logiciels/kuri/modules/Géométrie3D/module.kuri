@@ -24,7 +24,7 @@ CréatriceGéométrie :: struct {
      * - coordonnée y du point
      * - coordonnée z du point
      */
-    ajoute_point : fonc (*rien, r32, r32, r32)(rien)
+    ajoute_point: fonc(*rien, r32, r32, r32)(rien)
 
     /* Ajoute un polygone à la géométrie de sortie.
      * Paramètres :
@@ -32,7 +32,7 @@ CréatriceGéométrie :: struct {
      * - pointeur vers une liste d'index de points formant le polygone
      * - nombre d'index de points formant le polygone
      */
-    ajoute_polygone : fonc (*rien, *z32, z32)(rien)
+    ajoute_polygone: fonc(*rien, *z32, z32)(rien)
 
     /* Données utilisateur de l'application cliente. */
     données: *rien
@@ -46,7 +46,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     marque := donne_marque_stockage_temporaire()
-    diffère { définis_marque_stockage_temporaire(marque); }
+    diffère définis_marque_stockage_temporaire(marque)
 
     // supprime le caractère de nouvelle ligne
     ligne = recule(ligne, 1)
@@ -60,8 +60,8 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
 
         est_quad := faux
 
-        polygone : [4]z32
-        taille_polygone : z32
+        polygone: [4]z32
+        taille_polygone: z32
 
         pousse_contexte nouveau_contexte {
             mots := divise(tmp, ' ')
@@ -96,9 +96,9 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
     sinon si ligne.commence_par("v ") {
         tmp := avance(ligne, 2)
 
-        x : r32
-        y : r32
-        z : r32
+        x: r32
+        y: r32
+        z: r32
         pousse_contexte nouveau_contexte {
             mots := divise(tmp, ' ')
 
@@ -114,7 +114,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
 crée_géométrie_depuis_fichier_obj :: fonc (créatrice: *CréatriceGéométrie, chemin: CheminFichier)
 {
     contenu := contenu_fichier_texte(chemin)
-    diffère { déloge(contenu); }
+    diffère déloge(contenu)
 
     pour_chaque_ligne(contenu, créatrice, parse_ligne_obj)
 }

@@ -134,7 +134,7 @@ est_ascii_alpha :: fonc (point_de_code: n32) -> bool
 
 est_ascii_alphanumérique :: fonc (point_de_code: n32) -> bool
 {
-    retourne est_ascii_alpha(point_de_code) || est_ascii_chiffre(point_de_code)
+    retourne est_ascii_alpha(point_de_code) || est_ascii_chiffre(point_de_code)
 }
 
 /* Utilisé par/pour HTML. */

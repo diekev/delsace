@@ -35,10 +35,10 @@ compile_un_programme :: fonc (source_vertex: chaine, source_fragment: chaine) ->
     }
 
     glAttachShader(id_programme, id_nuanceur_vertex)
-    diffère { glDetachShader(id_programme, id_nuanceur_vertex) }
+    diffère glDetachShader(id_programme, id_nuanceur_vertex)
 
     glAttachShader(id_programme, id_nuanceur_fragment)
-    diffère { glDetachShader(id_programme, id_nuanceur_fragment) }
+    diffère glDetachShader(id_programme, id_nuanceur_fragment)
 
     glLinkProgram(id_programme)
 
@@ -50,7 +50,7 @@ compile_un_programme :: fonc (source_vertex: chaine, source_fragment: chaine) ->
     retourne id_programme
 }
 
-/* Détruit un programme. Il ne sera plus valide de l'utilisé après cette opération. */
+/* Détruit un programme. Il ne sera plus valide de l'utiliser après cette opération. */
 détruit_programme :: fonc (id_programme: n32) -> rien
 {
     si glIsProgram(id_programme) {
@@ -116,7 +116,7 @@ compile_source_nuanceur :: fonc (source: chaine, type: n32) -> Optionnel(n32)
     }
 
     taille_src_vertex := source.taille comme z32
-    glShaderSource(résultat, 1, *source.pointeur , *taille_src_vertex)
+    glShaderSource(résultat, 1, *source.pointeur, *taille_src_vertex)
     glCompileShader(résultat)
 
     saufsi vérifie_compilation(résultat) {
@@ -329,7 +329,7 @@ est_valide :: fonc (programme: *ProgrammeDeNuançage) -> bool
         retourne faux
     }
 
-	saufsi glIsProgram(programme.programme) {
+    saufsi glIsProgram(programme.programme) {
         retourne faux
     }
 
@@ -345,7 +345,7 @@ est_valide :: fonc (programme: *ProgrammeDeNuançage) -> bool
 
 active :: fonc (programme: *ProgrammeDeNuançage)
 {
-	glUseProgram(programme.programme)
+    glUseProgram(programme.programme)
 }
 
 définis_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, valeur: $T/TypeValeurUniforme)
@@ -355,7 +355,7 @@ définis_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, valeur
 
 désactive :: fonc (programme: *ProgrammeDeNuançage @inutilisée)
 {
-	glUseProgram(0)
+    glUseProgram(0)
 }
 
 ajoute_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine)
@@ -473,8 +473,8 @@ parse_attributs_et_uniformes_depuis :: fonc (source: chaine, programme: *Program
 
 parse_sources_glsl :: fonc (sources: SourcesGLSL, programme: *ProgrammeDeNuançage)
 {
-    parse_attributs_et_uniformes_depuis(sources.vertex, programme);
-    parse_attributs_et_uniformes_depuis(sources.fragment, programme);
+    parse_attributs_et_uniformes_depuis(sources.vertex, programme)
+    parse_attributs_et_uniformes_depuis(sources.fragment, programme)
 }
 
 /** \} */

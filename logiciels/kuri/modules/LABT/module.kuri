@@ -21,7 +21,7 @@ Noeud :: struct {
     enfants: [..]*Noeud
     attributs: [..]Attribut
 
-    type : type_de_données
+    type: type_de_données
 }
 
 détruit_noeud :: fonc (noeud: *Noeud)
@@ -81,9 +81,9 @@ Document :: struct {
     /* Le texte original du document. Nous le stockons puisque toutes les
      * chaines des noeuds/attributs référencent ce texte, ce qui nous évite de
      * faire trop de copies. */
-    texte_original : chaine
+    texte_original: chaine
 
-    catégories : [..]chaine
+    catégories: [..]chaine
 }
 
 Chapitre :: struct {
@@ -337,7 +337,7 @@ ImprimeAuFormat :: énum {
 
 imprime :: fonc (racine: *Noeud, au_format: ImprimeAuFormat) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
@@ -353,7 +353,7 @@ imprime :: fonc (racine: *Noeud, au_format: ImprimeAuFormat) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32 = 0)
+imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur : z32 = 0)
 {
     imprime_tabulation(enchaineuse, profondeur)
 
@@ -412,8 +412,8 @@ imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32
         Lien {
             noeud_lien := racine comme *Lien
 
-            texte_lien : chaine
-            url_lien : chaine
+            texte_lien: chaine
+            url_lien: chaine
 
             discr trouve_attribut(noeud_lien, "texte") {
                 Quelque(attribut) {
@@ -437,7 +437,7 @@ imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32
     }
 }
 
-imprime_texte_simple :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32 = 0)
+imprime_texte_simple :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur : z32 = 0)
 {
     discr racine.type {
         Chapitre {
@@ -509,7 +509,7 @@ imprime_texte_simple :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profond
     }
 }
 
-imprime_hiérarchie :: fonc (racine: *Noeud, profondeur: z32 = 0)
+imprime_hiérarchie :: fonc (racine: *Noeud, profondeur : z32 = 0)
 {
     imprime_tabulation(profondeur)
 

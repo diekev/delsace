@@ -8,7 +8,7 @@ réfracte :: fonc (I: Vec3, N: Vec3, index_de_réfraction: r32) -> (kr: Vec3) #r
     eta_interne := index_de_réfraction
 
     si cos_theta < 0.0 {
-        cos_theta = -cos_theta;
+        cos_theta = -cos_theta
     }
     sinon {
         Nrefr = -N
@@ -18,8 +18,8 @@ réfracte :: fonc (I: Vec3, N: Vec3, index_de_réfraction: r32) -> (kr: Vec3) #r
         eta_interne = tmp
     }
 
-    eta := eta_externe / eta_interne;
-    k := 1.0 - eta * eta * (1.0 - cos_theta * cos_theta);
+    eta := eta_externe / eta_interne
+    k := 1.0 - eta * eta * (1.0 - cos_theta * cos_theta)
 
     si k < 0.0 {
         retourne Vec3(x = 0.0, y = 0.0, z = 0.0)
@@ -47,17 +47,17 @@ crée_base_orthonormale :: fonc (n: Vec3) -> (b0: Vec3, b1: Vec3) #enligne #raci
     }
 
     a := -1.0 / (signe + n.z)
-    b := n.x * n.y * a;
+    b := n.x * n.y * a
     retourne b0 = Vec3(x = 1.0 + signe * n.x * n.x * a, y = signe * b, z = -signe * n.x),
-             b1 = Vec3(x = b, y = signe + n.y * n.y * a, z = -n.y);
+             b1 = Vec3(x = b, y = signe + n.y * n.y * a, z = -n.y)
 } @GLSL
 
 /**
  * Calcul le coefficient de fresnel avec l'index de réfraction fourni.
  */
-fresnel :: fonc (I: Vec3, N: Vec3, idr: r32) -> (coef: r32) #racine
+fresnel :: fonc (I: Vec3, N: Vec3, idr: r32) -> coef: r32 #racine
 {
-    cosi := produit_scalaire(I, N);
+    cosi := produit_scalaire(I, N)
     eta_externe := 1.0
     eta_interne := idr
 
@@ -68,20 +68,20 @@ fresnel :: fonc (I: Vec3, N: Vec3, idr: r32) -> (coef: r32) #racine
     }
 
     /* Calcul sin_i selon la loi de Snell. */
-    sint := eta_externe / eta_interne * sqrt(max(0.0, 1.0 - cosi * cosi)) comme r32;
+    sint := eta_externe / eta_interne * sqrt(max(0.0, 1.0 - cosi * cosi)) comme r32
 
     /* Réflection interne totale. */
     si sint >= 1.0 {
         retourne 1.0
     }
 
-    cost := sqrt(sqrt(max(0.0, 1.0 - sint * sint))) comme r32;
-    cosi = abs(cosi);
-    Rs := ((eta_interne * cosi) - (eta_externe * cost)) / ((eta_interne * cosi) + (eta_externe * cost));
-    Rp := ((eta_externe * cosi) - (eta_interne * cost)) / ((eta_externe * cosi) + (eta_interne * cost));
-    kr := (Rs * Rs + Rp * Rp) / 2.0;
+    cost := sqrt(sqrt(max(0.0, 1.0 - sint * sint))) comme r32
+    cosi = abs(cosi)
+    Rs := ((eta_interne * cosi) - (eta_externe * cost)) / ((eta_interne * cosi) + (eta_externe * cost))
+    Rp := ((eta_externe * cosi) - (eta_interne * cost)) / ((eta_externe * cosi) + (eta_interne * cost))
+    kr := (Rs * Rs + Rp * Rp) / 2.0
 
     /* En conséquence de la conservation d'énergie, la transmittance est donnée
      * par kt = 1 - kr. */
-    retourne coef = kr;
+    retourne coef = kr
 } @GLSL

@@ -1,7 +1,7 @@
 CodeÉtat :: énum z32 {
     // Informationnel
     SERVEUR_NE_PEUT_SE_CONNECTER :: 101
-    CONNEXION_REFUSÉE            :: 111
+    CONNEXION_REFUSÉE :: 111
 
     // Succès
     MESSAGE :: 200
@@ -53,7 +53,7 @@ CodeÉtat :: énum z32 {
 chaine_pour_code_état :: fonc (code: CodeÉtat) -> chaine
 {
     discr code {
-        SERVEUR_NE_PEUT_SE_CONNECTER {retourne "101" }
+        SERVEUR_NE_PEUT_SE_CONNECTER { retourne "101" }
         CONNEXION_REFUSÉE { retourne "111" }
         MESSAGE { retourne "200" }
         RÉPONSE_COMMANDE_HELP { retourne "214" }

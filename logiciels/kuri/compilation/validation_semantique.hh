@@ -49,6 +49,7 @@ struct NoeudExpressionTypeFonction;
 struct NoeudExpressionTypeTableauDynamique;
 struct NoeudExpressionTypeTableauFixe;
 struct NoeudExpressionTypeTranche;
+struct NoeudInstructionControleBoucle;
 struct NoeudInstructionImporte;
 struct NoeudPour;
 struct NoeudInstructionRetour;
@@ -249,8 +250,7 @@ struct Sémanticienne {
                                                     NoeudBloc *bloc_recherche);
     RésultatValidation valide_type_opaque(NoeudDéclarationTypeOpaque *decl);
 
-    template <typename TypeControleBoucle>
-    CodeRetourValidation valide_controle_boucle(TypeControleBoucle *inst);
+    CodeRetourValidation valide_controle_boucle(NoeudInstructionControleBoucle *inst);
 
     RésultatValidation valide_opérateur_binaire(NoeudExpressionBinaire *expr);
     RésultatValidation valide_opérateur_binaire_chaine(NoeudExpressionBinaire *expr);

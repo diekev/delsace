@@ -43,7 +43,7 @@ SérieHalton :: struct {
 
 init_halton :: fonc (premier: n32) -> SérieHalton
 {
-    série : SérieHalton
+    série: SérieHalton
     série.nombre_premier = premier
     série.premier_inverse = 1.0 comme r64 / (premier comme r64)
 
@@ -70,7 +70,7 @@ SérieHalton2D :: struct {
 
 init_halton :: fonc (premier1: n32, premier2: n32) -> SérieHalton2D
 {
-    série : SérieHalton2D
+    série: SérieHalton2D
     série.décalage[0] = 0.0
     série.décalage[1] = 0.0
 
@@ -103,7 +103,7 @@ SérieHalton3D :: struct {
 
 init_halton :: fonc (premier1: n32, premier2: n32, premier3: n32) -> SérieHalton3D
 {
-    série : SérieHalton3D
+    série: SérieHalton3D
     série.décalage[0] = 0.0
     série.décalage[1] = 0.0
     série.décalage[2] = 0.0

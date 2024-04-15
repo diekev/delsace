@@ -10,13 +10,13 @@ TypePrise :: énum {
 }
 
 Prise :: struct {
-    contexte_ : *Contexte
+    contexte_: *Contexte
     fichier: Fichier
-    type : TypePrise
+    type: TypePrise
 
     // pour placer dans les listes de prises spéciales (prises fermées...)
-    suivante : *Prise
-    précédente : *Prise
+    suivante: *Prise
+    précédente: *Prise
 
     // la taille de la prise avec les données utilisateurs
     taille_mémoire: z64
@@ -26,8 +26,8 @@ Prise :: struct {
     info_données_serveuse_: *InfoType
 
     /* délais */
-    délai : z32 // secondes
-    horodotage_délai : z32 // quand le délai fut mis en place
+    délai: z32 // secondes
+    horodotage_délai: z32 // quand le délai fut mis en place
 
     est_ssl_ : bool = faux
 }

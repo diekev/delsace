@@ -23,9 +23,9 @@ imprime_erreurs :: fonc (scanner: &ScannerJSON, script: chaine)
 /* Retourne une chaine JSON pour la structure passée. */
 chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     imprime_valeur_json(*enchaineuse, arg)
 
@@ -47,7 +47,7 @@ parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -
 
     résultat : T = ---
 
-    scanner : ScannerJSON
+    scanner: ScannerJSON
     diffère détruit_scanner(*scanner)
     initialise_scanner(*scanner, script, résultat, rappel_copie_chaine)
 
@@ -75,7 +75,7 @@ parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) 
     chm := CheminFichier(chemin)
     script := contenu_fichier_texte(chm)
 
-    diffère { déloge(script); }
+    diffère déloge(script)
 
     résultat : T = ---
 
@@ -83,7 +83,7 @@ parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) 
         retourne faux, résultat
     }
 
-    scanner : ScannerJSON
+    scanner: ScannerJSON
     diffère détruit_scanner(*scanner)
     initialise_scanner(*scanner, script, résultat, copie_chaine)
 

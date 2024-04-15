@@ -2,10 +2,10 @@ importe Fondation
 importe SysFichier
 
 FichierTexte :: struct {
-    nom_court : chaine
-    chemin : chaine
+    nom_court: chaine
+    chemin: chaine
 
-    données : chaine
+    données: chaine
 
     succès := faux
 

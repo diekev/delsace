@@ -65,7 +65,7 @@ taille_chaine_c :: fonc (chn: &ChaineC) -> z64
         retourne 0
     }
 
-    taille : z64
+    taille: z64
 
     tantque mémoire(ptr) != '\0' {
         taille += 1

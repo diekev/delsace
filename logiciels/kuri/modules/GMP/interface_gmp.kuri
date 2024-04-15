@@ -3,18 +3,19 @@ importe Chaine
 libgmp :: #bibliothèque "gmp"
 
 mp_exp_t :: z64
-mp_limb_t :: struct #externe
+mp_limb_t :: struct #externe 
+
 
 mpf_t :: struct #externe {
-    _mp_prec: z32			/* Max precision, in number of `mp_limb_t's.
+    _mp_prec: z32 /* Max precision, in number of `mp_limb_t's.
                    Set by mpf_init and modified by
                    mpf_set_prec.  The area pointed to by the
                    _mp_d field contains `prec' + 1 limbs.  */
-  _mp_size: z32			/* abs(_mp_size) is the number of limbs the
+    _mp_size: z32 /* abs(_mp_size) is the number of limbs the
                    last field points to.  If _mp_size is
                    negative this is a negative number.  */
-   _mp_exp: mp_exp_t		/* Exponent, in the base of `mp_limb_t'.  */
-  _mp_d: *mp_limb_t		/* Pointer to the limbs.  */
+    _mp_exp: mp_exp_t /* Exponent, in the base of `mp_limb_t'.  */
+    _mp_d: *mp_limb_t /* Pointer to the limbs.  */
 }
 // mp_bitcnt_t :: struct #externe
 
@@ -64,15 +65,15 @@ __gmpf_clear :: fonc (rop: &mpf_t) #externe libgmp
 __gmpf_set_d :: fonc (rop: &mpf_t, op: r64) #externe libgmp
 __gmpf_get_d :: fonc (op: &mpf_t) -> r64 #externe libgmp
 
-__gmpf_set_str :: fonc  (rop: &mpf_t, str: ChaineC, base: z32) -> z32 #externe libgmp
+__gmpf_set_str :: fonc (rop: &mpf_t, str: ChaineC, base: z32) -> z32 #externe libgmp
 __gmpf_get_str :: fonc (str: *z8, expptr: *mp_exp_t, base: z32, n_digits: n64, op: &mpf_t) -> ChaineC #externe libgmp
 
 // Gestion de la mémoire.
 
-TypeFonctionAllocation :: fonc (n64)(*rien)
-TypeFonctionRéallocation :: fonc (*rien, n64, n64)(*rien)
-TypeFonctionDésallocation :: fonc (*rien, n64)(rien)
+TypeFonctionAllocation :: fonc(n64)(*rien)
+TypeFonctionRéallocation :: fonc(*rien, n64, n64)(*rien)
+TypeFonctionDésallocation :: fonc(*rien, n64)(rien)
 
 __gmp_set_memory_functions :: fonc (alloc_func_ptr: TypeFonctionAllocation,
-                                     realloc_func_ptr: TypeFonctionRéallocation,
-                                     free_func_ptr: TypeFonctionDésallocation)  #externe libgmp
+                                    realloc_func_ptr: TypeFonctionRéallocation,
+                                    free_func_ptr: TypeFonctionDésallocation) #externe libgmp

@@ -11,26 +11,26 @@ TypeNoeud :: énum z32 {
 }
 
 NoeudSyntaxique :: struct {
-    type : TypeNoeud
-    données : Lexème
+    type: TypeNoeud
+    données: Lexème
 
-    parent : *NoeudSyntaxique
-    enfants : [..]*NoeudSyntaxique
-    nom : chaine
+    parent: *NoeudSyntaxique
+    enfants: [..]*NoeudSyntaxique
+    nom: chaine
 }
 
-détruit_noeud :: fonc (noeud : *NoeudSyntaxique) -> rien
+détruit_noeud :: fonc (noeud: *NoeudSyntaxique) -> rien
 {
     déloge(noeud.enfants)
     déloge(noeud)
 }
 
-ajoute_noeud :: fonc (noeud : *NoeudSyntaxique, enfant : *NoeudSyntaxique) -> rien
+ajoute_noeud :: fonc (noeud: *NoeudSyntaxique, enfant: *NoeudSyntaxique) -> rien
 {
     tableau_ajoute(*noeud.enfants, enfant)
 }
 
-lexème :: fonc (noeud : *NoeudSyntaxique) -> TypeLexème
+lexème :: fonc (noeud: *NoeudSyntaxique) -> TypeLexème
 {
     retourne noeud.données.type_lexème
 }
@@ -50,17 +50,17 @@ copie_noeud :: fonc (assembleuse: &AssembleuseArbre, racine: *NoeudSyntaxique) -
 /* ------------------------------------------------------------------------- */
 
 AssembleuseArbre :: struct {
-    noeuds : [..]*NoeudSyntaxique
-    pile : Pile(T = *NoeudSyntaxique)
+    noeuds: [..]*NoeudSyntaxique
+    pile: Pile(T = *NoeudSyntaxique)
 }
 
 construit_assembleuse :: fonc () -> AssembleuseArbre
 {
-    assembleuse : AssembleuseArbre
+    assembleuse: AssembleuseArbre
     retourne assembleuse
 }
 
-détruit_assembleuse :: fonc (assembleuse : &AssembleuseArbre) -> rien
+détruit_assembleuse :: fonc (assembleuse: &AssembleuseArbre) -> rien
 {
     pour noeud dans assembleuse.noeuds {
         détruit_noeud(noeud)
@@ -71,10 +71,7 @@ détruit_assembleuse :: fonc (assembleuse : &AssembleuseArbre) -> rien
     détruit(assembleuse.pile)
 }
 
-empile_noeud :: fonc (
-    assembleuse : &AssembleuseArbre,
-    type_noeud : TypeNoeud,
-    données : &Lexème) -> *NoeudSyntaxique
+empile_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud, données: &Lexème) -> *NoeudSyntaxique
 {
     noeud := assembleuse.crée_noeud(type_noeud, données)
 
@@ -88,9 +85,7 @@ empile_noeud :: fonc (
     retourne noeud
 }
 
-ajoute_noeud :: fonc (assembleuse : &AssembleuseArbre,
-                      type_noeud : TypeNoeud,
-                      données : &Lexème) -> rien
+ajoute_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud, données: &Lexème) -> rien
 {
     noeud := assembleuse.crée_noeud(type_noeud, données)
     assembleuse.ajoute_noeud(noeud)
@@ -102,9 +97,7 @@ ajoute_noeud :: fonc (assembleuse: &AssembleuseArbre, noeud: *NoeudSyntaxique)
     ajoute_noeud(noeud.parent, noeud)
 }
 
-crée_noeud :: fonc (assembleuse : &AssembleuseArbre,
-                    type_noeud : TypeNoeud,
-                    données : &Lexème) -> *NoeudSyntaxique
+crée_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud, données: &Lexème) -> *NoeudSyntaxique
 {
     noeud := loge(NoeudSyntaxique)
     noeud.type = type_noeud
@@ -115,18 +108,18 @@ crée_noeud :: fonc (assembleuse : &AssembleuseArbre,
     retourne noeud
 }
 
-dépile_noeud :: fonc (assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
+dépile_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud) -> rien
 {
     assembleuse.attend_type(type_noeud)
     _ := assembleuse.pile.dépile()
 }
 
-attend_type :: fonc (assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
+attend_type :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud) -> rien
 {
     assert(assembleuse.pile.tête().type == type_noeud)
 }
 
-imprime_arbre :: fonc (racine : *NoeudSyntaxique, tab : z32) -> rien
+imprime_arbre :: fonc (racine: *NoeudSyntaxique, tab: z32) -> rien
 {
     imprime_tabulation(tab)
     imprime("% (%)\n", racine.type, racine.données.chn)

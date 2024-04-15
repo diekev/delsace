@@ -27,7 +27,7 @@ Lexème :: struct {
     genre: GenreLexème
 
     // général
-    nom: *ChaineInternée = TAG_vide
+    nom : *ChaineInternée = TAG_vide
 
     // doctype
     identifiant_public_doctype: ChaineUTF32
@@ -58,7 +58,7 @@ reconnait_drapeau_auto_fermant :: fonc (lexème: *Lexème)
 
 copie_lexème :: fonc (lexème: *Lexème) -> Lexème
 {
-    nouveau_lexème : Lexème
+    nouveau_lexème: Lexème
     nouveau_lexème.genre = lexème.genre
     nouveau_lexème.nom = lexème.nom
 
@@ -190,22 +190,22 @@ Lexeuse :: struct {
     document: ChaineUTF32
     curseur := 0
 
-    lexème_courant : Lexème
+    lexème_courant: Lexème
 
-    tampon_temporaire : ChaineUTF32
+    tampon_temporaire: ChaineUTF32
 
     /* Le nom du lexème courant, en cours de lexage. */
-    nom_lexème_courant : ChaineUTF32
+    nom_lexème_courant: ChaineUTF32
 
-    nom_attribut_courant : ChaineUTF16
-    valeur_attribut_courant : ChaineUTF16
+    nom_attribut_courant: ChaineUTF16
+    valeur_attribut_courant: ChaineUTF16
 
     /* Le nom du dernier tag de début rencontré, mis en place lors de l'émission d'un lexème. */
-    nom_dernier_tag_début : *ChaineInternée
+    nom_dernier_tag_début: *ChaineInternée
 
-    code_référence_caractère : n32
+    code_référence_caractère: n32
 
-    file_lexèmes : File(T = Lexème)
+    file_lexèmes: File(T = Lexème)
 }
 
 initialise_lexeuse :: fonc (document: &ChaineUTF32) -> Lexeuse
@@ -238,7 +238,7 @@ a_fini :: fonc (lexeuse: *Lexeuse) -> bool #enligne
     retourne lexeuse.curseur >= lexeuse.document.taille()
 }
 
-crée_lexème :: fonc (lexeuse: *Lexeuse, genre : GenreLexème) #enligne
+crée_lexème :: fonc (lexeuse: *Lexeuse, genre: GenreLexème) #enligne
 {
     lexeuse.lexème_courant = Lexème(genre = genre)
 }
@@ -1407,7 +1407,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == SIGNE_NOMBRE {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
-                    lexeuse.état  = ÉtatLexage.NumericCharacterReference
+                    lexeuse.état = ÉtatLexage.NumericCharacterReference
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(lexeuse.état_retour)
@@ -1957,10 +1957,10 @@ flush_points_de_code_référence_caractère :: fonc (lexeuse: *Lexeuse) -> bool
 
 cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
 {
-    dernier_résultat : RésultatRecherche
-    dernier_caractère_apparié : n32
+    dernier_résultat: RésultatRecherche
+    dernier_caractère_apparié: n32
 
-    tampon_temporaire : ChaineFixe
+    tampon_temporaire: ChaineFixe
 
     /* Plusieurs fonctions s'appelent « commence_par », donc utilisons
      * une enveloppe pour avoir la bonne. */

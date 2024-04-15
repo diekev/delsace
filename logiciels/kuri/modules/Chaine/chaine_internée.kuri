@@ -1,4 +1,3 @@
-
 /* Une chaine internée est une chaine qui n'existe qu'en un seul exemplaire dans
  * le programme, ceci nous permet de ne faire qu'une comparaison de pointeur au
  * lieu d'une comparaison de chaine complète. */
@@ -150,7 +149,7 @@ imprime_chaine_internée :: fonc (enchaineuse: *Enchaineuse, chaine_internée: *
     }
 } @FormattageImpression
 
-table_des_chaines : Table(TypeChaineInternée, *ChaineInternée)
+table_des_chaines: Table(TypeChaineInternée, *ChaineInternée)
 
 calcule_empreinte :: fonc (type_chaine: TypeChaineInternée) -> n64
 {
@@ -203,7 +202,7 @@ crée_chaine_internée_converti_utf32 :: fonc (chn: chaine) -> *ChaineInternée
 
 trouve_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 {
-    type_chaine : TypeChaineInternée
+    type_chaine: TypeChaineInternée
     type_chaine = chn
 
     résultat := trouve(*table_des_chaines, type_chaine)

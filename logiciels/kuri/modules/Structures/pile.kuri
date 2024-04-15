@@ -2,37 +2,37 @@ importe Algorithmes
 importe Fondation
 
 Pile :: struct ($T: type_de_données) {
-    données : [..]T
+    données: [..]T
 }
 
-détruit :: fonc (pile : &Pile(T = $T)) -> rien
+détruit :: fonc (pile: &Pile(T = $T)) -> rien
 {
     déloge(pile.données)
 }
 
-empile :: fonc (pile : &Pile(T = $T), valeur : T) -> rien
+empile :: fonc (pile: &Pile(T = $T), valeur: T) -> rien
 {
     tableau_ajoute(*pile.données, valeur)
 }
 
-dépile :: fonc (pile : &Pile(T = $T)) -> T #enligne
+dépile :: fonc (pile: &Pile(T = $T)) -> T #enligne
 {
     ret := pile.tête()
     pile.données.taille -= 1
     retourne ret
 }
 
-tête :: fonc (pile : &Pile(T = $T)) -> T #enligne
+tête :: fonc (pile: &Pile(T = $T)) -> T #enligne
 {
     retourne pile.données[pile.données.taille - 1]
 }
 
-taille :: fonc (pile : &Pile(T = $T)) -> z64 #enligne
+taille :: fonc (pile: &Pile(T = $T)) -> z64 #enligne
 {
     retourne pile.données.taille
 }
 
-est_vide :: fonc (pile : &Pile(T = $T)) -> bool #enligne
+est_vide :: fonc (pile: &Pile(T = $T)) -> bool #enligne
 {
     retourne pile.données.taille == 0
 }

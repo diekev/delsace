@@ -72,7 +72,7 @@ détruit_pièce_jointe :: fonc (pièce_jointe: &PièceJointe)
 
 pièce_jointe_depuis_mémoire :: fonc (nom: chaine, nom_fichier: chaine, contenu: chaine) -> PièceJointe
 {
-    résultat : PièceJointe
+    résultat: PièceJointe
     résultat.nom = nom
     résultat.nom_fichier = nom_fichier
     résultat.type_mime = "application/octet-stream"
@@ -94,7 +94,7 @@ pièce_jointe_depuis_fichier :: fonc (chemin: CheminFichier) -> PièceJointe
     nom_fichier := chemin.nom_fichier()
     nom := nom_fichier
 
-    résultat : PièceJointe
+    résultat: PièceJointe
     résultat.nom = nom
     résultat.nom_fichier = nom_fichier
     résultat.type_mime = type_mime_pour_extension(chemin.extension())
@@ -105,8 +105,8 @@ pièce_jointe_depuis_fichier :: fonc (chemin: CheminFichier) -> PièceJointe
 // -----------------------------------------------------
 
 Correspondant :: struct {
-    nom_utilisateur : chaine
-    adresse : AdresseCourriel
+    nom_utilisateur: chaine
+    adresse: AdresseCourriel
 }
 
 imprime_correspondant :: fonc (enchaineuse: *Enchaineuse, correspondant: *Correspondant)
@@ -172,13 +172,13 @@ ajoute_destinataire_bcc :: fonc (courriel: &Courriel, destinataire: AdresseCourr
 }
 
 ConfigurationCourriel :: struct {
-    serveur : chaine
-    port_non_chiffré : n16
-    port_chiffré : n16
+    serveur: chaine
+    port_non_chiffré: n16
+    port_chiffré: n16
     utilise_ssl := faux
-    expéditeur_par_défaut : Correspondant
-    utilisateur : chaine
-    mot_de_passe : chaine
+    expéditeur_par_défaut: Correspondant
+    utilisateur: chaine
+    mot_de_passe: chaine
 }
 
 port :: fonc (configuration: &ConfigurationCourriel) -> n16
@@ -227,7 +227,7 @@ parse_réponse_serveuse :: fonc (texte: chaine) -> RéponseServeuse
     parseuse := ParseuseChaine(texte)
 
     eu_status := faux
-    résultat : RéponseServeuse
+    résultat: RéponseServeuse
     résultat.texte = texte
 
     tantque !fini(*parseuse) {
@@ -247,7 +247,7 @@ parse_réponse_serveuse :: fonc (texte: chaine) -> RéponseServeuse
 
         plusieurs_lignes := apparie(*parseuse, '-')
         espace := apparie(*parseuse, ' ')
-        si plusieurs_lignes || espace {
+        si plusieurs_lignes || espace {
             avance(*parseuse, 1)
         }
 
@@ -309,9 +309,9 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
 // https://tools.ietf.org/html/rfc5322
 crée_corps_message :: fonc (courriel: &Courriel) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     // À FAIRE: entêtes arbitraires
     // À FAIRE: Date
@@ -366,7 +366,7 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
         imprime_dans_enchaineuse(*enchaineuse, "\r\n")
     }
 
-    séparateur_pièce_jointe : chaine
+    séparateur_pièce_jointe: chaine
     diffère déloge(séparateur_pièce_jointe)
 
     si courriel.pièces_jointes {
@@ -379,7 +379,7 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
         ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "\r\n")
     }
 
-    séparateur_corps : chaine
+    séparateur_corps: chaine
     diffère déloge(séparateur_corps)
 
     si courriel.messages.taille > 1 {
@@ -535,9 +535,7 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: &Courriel) -> 
         retourne 1
     }
 
-    diffère {
-        _ := tente ferme(*fichier) piège nonatteignable
-    }
+    diffère _ := tente ferme(*fichier) piège nonatteignable
 
     état := ÉtatEnvoiCourriel()
 
@@ -567,7 +565,7 @@ aléafères_zéros :: fonc (chn: chaine) -> chaine
     ctx_kuri := initialise_contexte_kuri()
 
     gna := crée_gna(*ctx_kuri, maintenant.nanoseconde comme n32)
-    diffère { détruit_gna(*ctx_kuri, gna) }
+    diffère détruit_gna(*ctx_kuri, gna)
 
     résultat := copie_chaine(chn)
 

@@ -149,7 +149,7 @@ désérialise_chaine_sans_taille :: fonc (désérialiseuse: &Désérialiseuse, c
 
 désérialise_entier :: fonc (désérialiseuse: &Désérialiseuse, $T: type_de_données) -> T
 {
-    résultat : T
+    résultat: T
     désérialise_entier(désérialiseuse.tampon, désérialiseuse.curseur, *résultat)
     désérialiseuse.curseur += (taille_de(T) comme z64)
     retourne résultat
@@ -160,8 +160,8 @@ désérialise_entier :: fonc (désérialiseuse: &Désérialiseuse, $T: type_de_d
  * \{ */
 
 FichierBinaire :: struct {
-    contenu : [..]octet
-    curseur : z32
+    contenu: [..]octet
+    curseur: z32
 }
 
 lis_z8 :: fonc (fichier: *FichierBinaire) -> z8
@@ -219,7 +219,7 @@ lis_n64 :: fonc (fichier: *FichierBinaire) -> n64
 
 TamponOctetFixe :: struct {
     données: [512]octet
-    position : z32
+    position: z32
 }
 
 lis_n8 :: fonc (tampon: *TamponOctetFixe) -> n8
@@ -282,7 +282,7 @@ sérialise_chaine_sans_taille :: fonc (tampon: *TamponOctetDynamique, chn: chain
 
 désérialise_z32 :: fonc (tampon: *TamponOctetDynamique) -> z32
 {
-    résultat : z32
+    résultat: z32
     désérialise_entier(tampon.données, tampon.curseur, *résultat)
     tampon.curseur += taille_de(z32) comme z32
     retourne résultat
@@ -290,7 +290,7 @@ désérialise_z32 :: fonc (tampon: *TamponOctetDynamique) -> z32
 
 désérialise_chaine :: fonc (tampon: *TamponOctetDynamique) -> chaine
 {
-    résultat : chaine
+    résultat: chaine
     désérialise_chaine(tampon.données, tampon.curseur, *résultat)
     tampon.curseur += (résultat.taille + taille_de(z64) comme z64) comme z32
     retourne résultat
@@ -303,7 +303,7 @@ désérialise_chaine :: fonc (tampon: *TamponOctetDynamique) -> chaine
  * \{ */
 
 TamponFixe :: struct ($T: type_de_données, $N: z64) {
-    données : [N]T
+    données: [N]T
     curseur : z64 = 0
 }
 

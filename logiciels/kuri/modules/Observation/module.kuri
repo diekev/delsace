@@ -94,7 +94,7 @@ Observatrice :: struct {
 
     est_observante := vrai
 
-    rappel_sur_reception_message : fonc (*Observatrice, *MessageObservable)(rien)
+    rappel_sur_reception_message: fonc(*Observatrice, *MessageObservable)(rien)
 }
 
 détruit_données_observatrice :: fonc (observatrice: *Observatrice)

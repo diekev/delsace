@@ -7,34 +7,34 @@ charge "errno"
 /* ------------------------------------------------------------------------- */
 
 // Valeur des descripteurs fichiers pour les flux standards.
-STDIN_FILENO  :: 0
+STDIN_FILENO :: 0
 STDOUT_FILENO :: 1
 STDERR_FILENO :: 2
 
-sprintf :: fonc (tmp : ChaineC, fmt : ChaineC, args : ...) -> z32 #externe libc
+sprintf :: fonc (tmp: ChaineC, fmt: ChaineC, args: ...) -> z32 #externe libc
 
 /* ------------------------------------------------------------------------- */
 
-malloc :: fonc (taille : n64) -> *rien #externe libc
-realloc :: fonc (ptr : *rien, taille : n64) -> *rien #externe libc
-free :: fonc (ptr : *rien) -> rien #externe libc
+malloc :: fonc (taille: n64) -> *rien #externe libc
+realloc :: fonc (ptr: *rien, taille: n64) -> *rien #externe libc
+free :: fonc (ptr: *rien) -> rien #externe libc
 
 /* ------------------------------------------------------------------------- */
 
 // ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
 timeval :: struct #externe {
-    tv_sec : z64
-    tv_usec : z64
+    tv_sec: z64
+    tv_usec: z64
 }
 
 // ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
 // À FAIRE : déprécié
 timezone :: struct #externe {
-    tz_minuteswest : z64 // Minutes à l'ouest de GMT
-    tz_dsttime : z64 // Nonzéro si DST est en effet
+    tz_minuteswest: z64 // Minutes à l'ouest de GMT
+    tz_dsttime: z64 // Nonzéro si DST est en effet
 }
 
-gettimeofday :: fonc (val_temps : *rien, zone_temps : *rien) -> rien #externe libc
+gettimeofday :: fonc (val_temps: *rien, zone_temps: *rien) -> rien #externe libc
 
 // @Interface : z64 ici est time_t (pour linux en tout cas)
 time :: fonc (tloc: *z64) -> z64 #externe libc
@@ -42,51 +42,51 @@ time :: fonc (tloc: *z64) -> z64 #externe libc
 /* ISO C `broken-down time' structure.  */
 // @Interface : doit être synchronisée avec struct_tm.h
 tm :: struct #externe {
-    tm_sec: z32      /* Seconds.      [0-60] (1 leap second) */
-    tm_min: z32      /* Minutes.      [0-59] */
-    tm_hour: z32     /* Hours.        [0-23] */
-    tm_mday: z32     /* Day.          [1-31] */
-    tm_mon: z32      /* Month.        [0-11] */
-    tm_year: z32     /* Year - 1900. */
-    tm_wday: z32     /* Day of week.  [0-6] */
-    tm_yday: z32     /* Days in year. [0-365] */
-    tm_isdst: z32    /* DST.          [-1/0/1] */
-    tm_gmtoff : z64; /* Seconds east of UTC.  */
-    tm_zone : ChaineC;   /* Timezone abbreviation.  */
+    tm_sec: z32 /* Seconds.      [0-60] (1 leap second) */
+    tm_min: z32 /* Minutes.      [0-59] */
+    tm_hour: z32 /* Hours.        [0-23] */
+    tm_mday: z32 /* Day.          [1-31] */
+    tm_mon: z32 /* Month.        [0-11] */
+    tm_year: z32 /* Year - 1900. */
+    tm_wday: z32 /* Day of week.  [0-6] */
+    tm_yday: z32 /* Days in year. [0-365] */
+    tm_isdst: z32 /* DST.          [-1/0/1] */
+    tm_gmtoff: z64 /* Seconds east of UTC.  */
+    tm_zone: ChaineC /* Timezone abbreviation.  */
 }
 
 localtime :: fonc (tloc: *z64) -> *tm #externe libc
 
 /* Identifier for system-wide realtime clock.  */
-CLOCK_REALTIME           :: 0
+CLOCK_REALTIME :: 0
 /* Monotonic system-wide clock.  */
-CLOCK_MONOTONIC          :: 1
+CLOCK_MONOTONIC :: 1
 /* High-resolution timer from the CPU.  */
 CLOCK_PROCESS_CPUTIME_ID :: 2
 /* Thread-specific CPU-time clock.  */
-CLOCK_THREAD_CPUTIME_ID  :: 3
+CLOCK_THREAD_CPUTIME_ID :: 3
 /* Monotonic system-wide clock, not adjusted for frequency scaling.  */
-CLOCK_MONOTONIC_RAW      :: 4
+CLOCK_MONOTONIC_RAW :: 4
 /* Identifier for system-wide realtime clock, updated only on ticks.  */
-CLOCK_REALTIME_COARSE    :: 5
+CLOCK_REALTIME_COARSE :: 5
 /* Monotonic system-wide clock, updated only on ticks.  */
-CLOCK_MONOTONIC_COARSE   :: 6
+CLOCK_MONOTONIC_COARSE :: 6
 /* Monotonic system-wide clock that includes time spent in suspension.  */
-CLOCK_BOOTTIME           :: 7
+CLOCK_BOOTTIME :: 7
 /* Like CLOCK_REALTIME but also wakes suspended system.  */
-CLOCK_REALTIME_ALARM     :: 8
+CLOCK_REALTIME_ALARM :: 8
 /* Like CLOCK_BOOTTIME but also wakes suspended system.  */
-CLOCK_BOOTTIME_ALARM     :: 9
+CLOCK_BOOTTIME_ALARM :: 9
 /* Like CLOCK_REALTIME but in International Atomic Time.  */
-CLOCK_TAI                :: 11
+CLOCK_TAI :: 11
 
 clock_gettime :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc
 clock_settime :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc
-clock_getres  :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc
+clock_getres :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc
 
 timespec :: struct #externe {
-    tv_sec : z64
-    tv_nsec : z64
+    tv_sec: z64
+    tv_nsec: z64
 }
 
 timespec_depuis_ms :: fonc (ms: z64) -> timespec
@@ -99,30 +99,30 @@ timespec_depuis_ms :: fonc (ms: z64) -> timespec
 
 /* ------------------------------------------------------------------------- */
 
-open :: fonc (chemin : ChaineC, drapeaux : z32, args : ...) -> z32 #externe libc
-close :: fonc (fd : z32) -> z32 #externe libc
-read :: fonc (fd : z32, tampon : *z8, taille : n64) -> z64 #externe libc
-write :: fonc (fd : z32, tampon : *z8, taille : z64) -> z32 #externe libc
+open :: fonc (chemin: ChaineC, drapeaux: z32, args: ...) -> z32 #externe libc
+close :: fonc (fd: z32) -> z32 #externe libc
+read :: fonc (fd: z32, tampon: *z8, taille: n64) -> z64 #externe libc
+write :: fonc (fd: z32, tampon: *z8, taille: z64) -> z32 #externe libc
 unlink :: fonc (chemin: ChaineC) -> z32 #externe libc
-ftruncate :: fonc (a : z32, f : z32) -> z32 #externe libc
+ftruncate :: fonc (a: z32, f: z32) -> z32 #externe libc
 
 fsync :: fonc (fd: z32) -> z32 #externe libc
 fdatasync :: fonc (fd: z32) -> z32 #externe libc
 
-getcwd :: fonc (ptr : ChaineC, taille : z64) -> ChaineC #externe libc
-chdir :: fonc (ptr : ChaineC) -> z32 #externe libc
+getcwd :: fonc (ptr: ChaineC, taille: z64) -> ChaineC #externe libc
+chdir :: fonc (ptr: ChaineC) -> z32 #externe libc
 
 abort :: fonc () -> rien #externe libc #sansretour
 
-rename :: fonc (orig : ChaineC, dest : ChaineC) -> z32 #externe libc
-remove :: fonc (chemin : ChaineC) -> z32 #externe libc
+rename :: fonc (orig: ChaineC, dest: ChaineC) -> z32 #externe libc
+remove :: fonc (chemin: ChaineC) -> z32 #externe libc
 
-isatty :: fonc (a : z32) -> bool #externe libc
+isatty :: fonc (a: z32) -> bool #externe libc
 
-strerror :: fonc (args : z32) -> ChaineC #externe libc
+strerror :: fonc (args: z32) -> ChaineC #externe libc
 
 // bits pour déterminer le type de fichier
-__S_IFMT	:: 0o170000 comme n32
+__S_IFMT :: 0o170000 comme n32
 
 /* Types de fichier  */
 __S_IFDIR	:: 0o040000 comme n32	/* Directory.  */
@@ -148,24 +148,24 @@ lseek :: fonc (fd: z32, offset: z64, whence: z32) -> z64 #externe libc
 // fonction), nous la renommons struct_stat jusqu'à ce que nous avons un moyen de lever
 // le conflit, l'ambigüité.
 struct_stat :: struct #externe {
-    st_dev : n64         // ID of device containing file
-    st_ino : n64         // inode number
-    st_nlink : n64     // number of hard links
-    st_mode : n32       // protection
-    st_uid : n32         // user ID of owner
-    st_gid : n32         // group ID of owner
-    __pad0 : n32         // padding pour la version 64-bit
-    st_rdev : n64        // device ID (if special file)
-    st_size : z64        // total size, in bytes
-    st_blksize : z64 // blocksize for file system I/O
-    st_blocks : z64
-    st_atime : z64      // time of last access
-    st_atimensec : z64  // Nsecs of last access
-    st_mtime : z64      // time of last modification
-    st_mtimensec : z64  // Nsecs of last modification
-    st_ctime : z64      // time of last status change
-    st_ctimensec : z64  // Nsecs of last status change
-    __glibc_reserved : [3]z64
+    st_dev: n64         // ID of device containing file
+    st_ino: n64         // inode number
+    st_nlink: n64     // number of hard links
+    st_mode: n32       // protection
+    st_uid: n32         // user ID of owner
+    st_gid: n32         // group ID of owner
+    __pad0: n32         // padding pour la version 64-bit
+    st_rdev: n64        // device ID (if special file)
+    st_size: z64        // total size, in bytes
+    st_blksize: z64 // blocksize for file system I/O
+    st_blocks: z64
+    st_atime: z64      // time of last access
+    st_atimensec: z64  // Nsecs of last access
+    st_mtime: z64      // time of last modification
+    st_mtimensec: z64  // Nsecs of last modification
+    st_ctime: z64      // time of last status change
+    st_ctimensec: z64  // Nsecs of last status change
+    __glibc_reserved: [3]z64
 }
 
 // NOTE : puisque stat n'est pas dans l'interface binaire de la bibliothèque C, nous ne pouvons ni trouver son symbole dans libc
@@ -175,62 +175,62 @@ struct_stat :: struct #externe {
 __xstat :: fonc (__ver: z32, __filename: ChaineC, __stat_buf: *struct_stat) -> z32 #externe libc
 
 STAT_VER_KERNEL :: 0
-STAT_VER_LINUX  :: 1
-STAT_VER        :: STAT_VER_LINUX
+STAT_VER_LINUX :: 1
+STAT_VER :: STAT_VER_LINUX
 
-stat :: fonc (chemin : ChaineC, buf : *rien) -> z32
+stat :: fonc (chemin: ChaineC, buf: *rien) -> z32
 {
     retourne __xstat(STAT_VER, chemin, buf)
 }
 
-fstat :: fonc (fd : z32, s : *struct_stat) -> z32 #externe libc
-lstat :: fonc (a : ChaineC, s : *struct_stat) -> z32 #externe libc
+fstat :: fonc (fd: z32, s: *struct_stat) -> z32 #externe libc
+lstat :: fonc (a: ChaineC, s: *struct_stat) -> z32 #externe libc
 
 DIR :: struct #externe
 
 dirent :: struct #externe {
-    d_ino : n64
-    d_off : n64
-    d_reclen : n16
-    d_type : n8
-    d_name : [256]z8
+    d_ino: n64
+    d_off: n64
+    d_reclen: n16
+    d_type: n8
+    d_name: [256]z8
 }
 
 // duplique un énum
 DT_UNKNOWN :: 0
-DT_FIFO    :: 1
-DT_CHR     :: 2
-DT_DIR     :: 4
-DT_BLK     :: 6
-DT_REG     :: 8
-DT_LNK     :: 10
-DT_SOCK    :: 12
-DT_WHT     :: 14
+DT_FIFO :: 1
+DT_CHR :: 2
+DT_DIR :: 4
+DT_BLK :: 6
+DT_REG :: 8
+DT_LNK :: 10
+DT_SOCK :: 12
+DT_WHT :: 14
 
 // open/fnctl
-MODE_ACCÈS       ::      0o003
-LECTURE_SEULE    ::        0o0
-ÉCRITURE_SEULE   ::        0o1
-LECTURE_ÉCRITURE ::        0o2
-CREATION         ::      0o100
-EXCLUSION        ::      0o200
-NOCTTY           ::      0o400
-TRONCAGE         ::     0o1000
-APPEND           ::     0o2000
-NONBLOCK         ::     0o4000
-NDELAY           ::     0o4000
-SYNC             ::  0o4010000
-FSYNC            ::  0o4010000
-ASYNC            ::    0o20000
-LARGEFILE        ::   0o100000
-DIRECTORY	     ::   0o200000
-NOFOLLOW	     ::   0o400000
-CLOEXEC          ::  0o2000000
-DIRECT	         ::    0o40000
-NOATIME          ::  0o1000000
-PATH             :: 0o10000000
-DSYNC	         ::    0o10000
-TMPFILE          :: (0o20000000 | 0o200000)
+MODE_ACCÈS :: 0o003
+LECTURE_SEULE :: 0o0
+ÉCRITURE_SEULE :: 0o1
+LECTURE_ÉCRITURE :: 0o2
+CREATION :: 0o100
+EXCLUSION :: 0o200
+NOCTTY :: 0o400
+TRONCAGE :: 0o1000
+APPEND :: 0o2000
+NONBLOCK :: 0o4000
+NDELAY :: 0o4000
+SYNC :: 0o4010000
+FSYNC :: 0o4010000
+ASYNC :: 0o20000
+LARGEFILE :: 0o100000
+DIRECTORY :: 0o200000
+NOFOLLOW :: 0o400000
+CLOEXEC :: 0o2000000
+DIRECT :: 0o40000
+NOATIME :: 0o1000000
+PATH :: 0o10000000
+DSYNC :: 0o10000
+TMPFILE :: (0o20000000 | 0o200000)
 
 O_NONBLOCK :: 0o04000
 
@@ -242,19 +242,19 @@ F_SETFL :: 4	/* Set file status flags.  */
 
 fcntl :: fonc (fd: z32, cmd: z32, args: ...) -> z32 #externe libc
 
-opendir :: fonc (chemin : ChaineC) -> *DIR #externe libc
-closedir :: fonc (d : *DIR) -> z32 #externe libc
-readdir :: fonc (d : *DIR) -> *dirent #externe libc
+opendir :: fonc (chemin: ChaineC) -> *DIR #externe libc
+closedir :: fonc (d: *DIR) -> z32 #externe libc
+readdir :: fonc (d: *DIR) -> *dirent #externe libc
 
 // -------------------------------------------------
 
 // sys/waitflags.h
-WNOHANG   :: 1
+WNOHANG :: 1
 WUNTRACED :: 2
 
 fork :: fonc () -> z32 #externe libc
 
-waitpid :: fonc (id : z32, ptr : *z32, options : z32) -> z32 #externe libc
+waitpid :: fonc (id: z32, ptr: *z32, options: z32) -> z32 #externe libc
 
 /* ------------------------------------------------------------------------- */
 
@@ -374,61 +374,67 @@ SOCK_NONBLOCK  :: 0o00004000	/* Atomically mark descriptor(s) as non-blocking.  
 
 // netinet/in.h
 /* Address to accept any incoming messages.  */
-INADDR_ANY       :: 0x00000000 comme n32
+INADDR_ANY :: 0x00000000 comme n32
 /* Address to send to all hosts.  */
 INADDR_BROADCAST :: 0xffffffff comme n32
 /* Address indicating an error return.  */
-INADDR_NONE      :: 0xffffffff comme n32
+INADDR_NONE :: 0xffffffff comme n32
 
 hostent :: struct #externe {
-    h_name : ChaineC
-    h_aliases : *ChaineC
-    h_addrtype : z32
-    h_length : z32
-    h_addr_list : *ChaineC
+    h_name: ChaineC
+    h_aliases: *ChaineC
+    h_addrtype: z32
+    h_length: z32
+    h_addr_list: *ChaineC
 }
 
 in_addr :: struct #externe {
-    s_addr : n32
+    s_addr: n32
 }
 
 sockaddr :: struct #externe {
-    sa_family : n16
-    sa_data : [14]z8
+    sa_family: n16
+    sa_data: [14]z8
 }
 
 sockaddr_in :: struct #externe {
-    sin_family : n16
-    sin_port : n16
-    sin_addr : in_addr
-    sin_zero : [8]n8
+    sin_family: n16
+    sin_port: n16
+    sin_addr: in_addr
+    sin_zero: [8]n8
 }
 
 in6_addr :: struct #externe {
-    s6_addr:  [16]n8  /* IPv6 address */
+    s6_addr: [16]n8
+    /* IPv6 address */
 }
 
 sockaddr_in6 :: struct #externe {
-    sin6_len : n8        /* length of this structure */
-    sin6_family : n8     /* AF_INET6                 */
-    sin6_port : n16      /* Transport layer port #   */
-    sin6_flowinfo : n32  /* IPv6 flow information    */
-    sin6_addr : in6_addr /* IPv6 address             */
+    sin6_len: n8
+    /* length of this structure */
+    sin6_family: n8
+    /* AF_INET6                 */
+    sin6_port: n16
+    /* Transport layer port #   */
+    sin6_flowinfo: n32
+    /* IPv6 flow information    */
+    sin6_addr: in6_addr
+    /* IPv6 address             */
 }
 
-gethostbyname :: fonc (arg : ChaineC) -> *hostent #externe libc
+gethostbyname :: fonc (arg: ChaineC) -> *hostent #externe libc
 
-socket :: fonc (a : z32, b : z32, c : z32) -> z32 #externe libc
+socket :: fonc (a: z32, b: z32, c: z32) -> z32 #externe libc
 
 addrinfo :: struct #externe {
-    ai_flags : z32
-    ai_family : z32
-    ai_socktype : z32
-    ai_protocol : z32
-    ai_addrlen : n32
-    ai_addr : *sockaddr
-    ai_canonname : *z8
-    ai_next : *addrinfo
+    ai_flags: z32
+    ai_family: z32
+    ai_socktype: z32
+    ai_protocol: z32
+    ai_addrlen: n32
+    ai_addr: *sockaddr
+    ai_canonname: *z8
+    ai_next: *addrinfo
 }
 
 getaddrinfo :: fonc (
@@ -447,86 +453,86 @@ SOL_SOCKET :: 1
 // netinet/tcp.h
 SOL_TCP :: 6
 
-SO_DEBUG       :: 1
-SO_REUSEADDR   :: 2
-SO_TYPE        :: 3
-SO_ERROR       :: 4
-SO_DONTROUTE   :: 5
-SO_BROADCAST   :: 6
-SO_SNDBUF      :: 7
-SO_RCVBUF      :: 8
+SO_DEBUG :: 1
+SO_REUSEADDR :: 2
+SO_TYPE :: 3
+SO_ERROR :: 4
+SO_DONTROUTE :: 5
+SO_BROADCAST :: 6
+SO_SNDBUF :: 7
+SO_RCVBUF :: 8
 SO_SNDBUFFORCE :: 32
 SO_RCVBUFFORCE :: 33
-SO_KEEPALIVE   :: 9
-SO_OOBINLINE   :: 10
-SO_NO_CHECK    :: 11
-SO_PRIORITY    :: 12
-SO_LINGER      :: 13
-SO_BSDCOMPAT   :: 14
-SO_REUSEPORT   :: 15
+SO_KEEPALIVE :: 9
+SO_OOBINLINE :: 10
+SO_NO_CHECK :: 11
+SO_PRIORITY :: 12
+SO_LINGER :: 13
+SO_BSDCOMPAT :: 14
+SO_REUSEPORT :: 15
 
 /* powerpc only differs in these */
-SO_PASSCRED    :: 16
-SO_PEERCRED    :: 17
-SO_RCVLOWAT    :: 18
-SO_SNDLOWAT    :: 19
-SO_RCVTIMEO    :: 20
-SO_SNDTIMEO    :: 21
+SO_PASSCRED :: 16
+SO_PEERCRED :: 17
+SO_RCVLOWAT :: 18
+SO_SNDLOWAT :: 19
+SO_RCVTIMEO :: 20
+SO_SNDTIMEO :: 21
 
 /* Security levels - as per NRL IPv6 - don't actually do anything */
-SO_SECURITY_AUTHENTICATION       :: 22
+SO_SECURITY_AUTHENTICATION :: 22
 SO_SECURITY_ENCRYPTION_TRANSPORT :: 23
-SO_SECURITY_ENCRYPTION_NETWORK   :: 24
-SO_BINDTODEVICE                  :: 25
+SO_SECURITY_ENCRYPTION_NETWORK :: 24
+SO_BINDTODEVICE :: 25
 
 /* Socket filtering */
 SO_ATTACH_FILTER :: 26
 SO_DETACH_FILTER :: 27
-SO_GET_FILTER    :: SO_ATTACH_FILTER
-SO_PEERNAME	     :: 28
-SO_TIMESTAMP     :: 29
-SCM_TIMESTAMP    :: SO_TIMESTAMP
-SO_ACCEPTCONN    :: 30
-SO_PEERSEC       :: 31
-SO_PASSSEC       :: 34
-SO_TIMESTAMPNS   :: 35
-SCM_TIMESTAMPNS  :: SO_TIMESTAMPNS
-SO_MARK	         :: 36
-SO_TIMESTAMPING  :: 37
+SO_GET_FILTER :: SO_ATTACH_FILTER
+SO_PEERNAME :: 28
+SO_TIMESTAMP :: 29
+SCM_TIMESTAMP :: SO_TIMESTAMP
+SO_ACCEPTCONN :: 30
+SO_PEERSEC :: 31
+SO_PASSSEC :: 34
+SO_TIMESTAMPNS :: 35
+SCM_TIMESTAMPNS :: SO_TIMESTAMPNS
+SO_MARK :: 36
+SO_TIMESTAMPING :: 37
 SCM_TIMESTAMPING :: SO_TIMESTAMPING
-SO_PROTOCOL      :: 38
-SO_DOMAIN        :: 39
-SO_RXQ_OVFL      :: 40
-SO_WIFI_STATUS   :: 41
-SCM_WIFI_STATUS  :: SO_WIFI_STATUS
-SO_PEEK_OFF      :: 42
+SO_PROTOCOL :: 38
+SO_DOMAIN :: 39
+SO_RXQ_OVFL :: 40
+SO_WIFI_STATUS :: 41
+SCM_WIFI_STATUS :: SO_WIFI_STATUS
+SO_PEEK_OFF :: 42
 
 /* Instruct lower device to use last 4-bytes of skb data as FCS */
-SO_NOFCS                   :: 43
-SO_LOCK_FILTER             :: 44
-SO_SELECT_ERR_QUEUE        :: 45
-SO_BUSY_POLL               :: 46
-SO_MAX_PACING_RATE         :: 47
-SO_BPF_EXTENSIONS          :: 48
-SO_INCOMING_CPU            :: 49
-SO_ATTACH_BPF              :: 50
-SO_DETACH_BPF              :: SO_DETACH_FILTER
-SO_ATTACH_REUSEPORT_CBPF   :: 51
-SO_ATTACH_REUSEPORT_EBPF   :: 52
-SO_CNX_ADVICE              :: 53
+SO_NOFCS :: 43
+SO_LOCK_FILTER :: 44
+SO_SELECT_ERR_QUEUE :: 45
+SO_BUSY_POLL :: 46
+SO_MAX_PACING_RATE :: 47
+SO_BPF_EXTENSIONS :: 48
+SO_INCOMING_CPU :: 49
+SO_ATTACH_BPF :: 50
+SO_DETACH_BPF :: SO_DETACH_FILTER
+SO_ATTACH_REUSEPORT_CBPF :: 51
+SO_ATTACH_REUSEPORT_EBPF :: 52
+SO_CNX_ADVICE :: 53
 SCM_TIMESTAMPING_OPT_STATS :: 54
-SO_MEMINFO                 :: 55
-SO_INCOMING_NAPI_ID        :: 56
-SO_COOKIE                  :: 57
-SCM_TIMESTAMPING_PKTINFO   :: 58
-SO_PEERGROUPS              :: 59
-SO_ZEROCOPY                :: 60
+SO_MEMINFO :: 55
+SO_INCOMING_NAPI_ID :: 56
+SO_COOKIE :: 57
+SCM_TIMESTAMPING_PKTINFO :: 58
+SO_PEERGROUPS :: 59
+SO_ZEROCOPY :: 60
 
 IPPROTO_TCP :: 6
 
 linger :: struct #externe {
-    l_onoff : z32  /* Nonzero to linger on close.  */
-    l_linger : z32 /* Time to linger.  */
+    l_onoff: z32 /* Nonzero to linger on close.  */
+    l_linger: z32 /* Time to linger.  */
 }
 
 setsockopt :: fonc (sockfd: z32, level: z32, optname: z32, optval: *rien, optlen: n64) -> z32 #externe libc
@@ -536,16 +542,16 @@ htons :: fonc (hostshort: n16) -> n16 #externe libc
 ntohl :: fonc (netlong: n32) -> n32 #externe libc
 ntohs :: fonc (netshort: n16) -> n16 #externe libc
 
-connect :: fonc (prise : z32, addr : *sockaddr, taille : z64) -> z32 #externe libc
+connect :: fonc (prise: z32, addr: *sockaddr, taille: z64) -> z32 #externe libc
 
-recv :: fonc (prise : z32, tampon : *z8, taille : n64, flags : z32) -> z64 #externe libc
-send :: fonc (prise : z32, tampon : *rien, taille : n64, flags : z32) -> z64 #externe libc
-bind :: fonc (prise : z32, addr : *sockaddr, taille : n64) -> z32 #externe libc
-listen :: fonc (prise : z32, connexions : z32) -> z32 #externe libc
-accept :: fonc (prise : z32, addr : *sockaddr, taille : *n32) -> z32 #externe libc
-perror :: fonc (ptr : ChaineC) -> rien #externe libc
-exit :: fonc (id : z32) -> rien #externe libc #sansretour
-inet_ntoa :: fonc (addr : in_addr) -> ChaineC #externe libc
+recv :: fonc (prise: z32, tampon: *z8, taille: n64, flags: z32) -> z64 #externe libc
+send :: fonc (prise: z32, tampon: *rien, taille: n64, flags: z32) -> z64 #externe libc
+bind :: fonc (prise: z32, addr: *sockaddr, taille: n64) -> z32 #externe libc
+listen :: fonc (prise: z32, connexions: z32) -> z32 #externe libc
+accept :: fonc (prise: z32, addr: *sockaddr, taille: *n32) -> z32 #externe libc
+perror :: fonc (ptr: ChaineC) -> rien #externe libc
+exit :: fonc (id: z32) -> rien #externe libc #sansretour
+inet_ntoa :: fonc (addr: in_addr) -> ChaineC #externe libc
 
 // -------------------------------------
 
@@ -558,18 +564,17 @@ memmove :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe libc
 // -------------------------------------
 
 FILE :: struct #externe
-fopen :: fonc (__filename : ChaineC, __modes : ChaineC) -> *FILE #externe libc
-fclose :: fonc (__file : *FILE) -> z32 #externe libc
+fopen :: fonc (__filename: ChaineC, __modes: ChaineC) -> *FILE #externe libc
+fclose :: fonc (__file: *FILE) -> z32 #externe libc
 
 // -------------------------------------
 
 // signal.h
 
-SIG_ERR   :: -1  /* Error return.  */
-SIG_DFL   :: 0   /* Default action.  */
-SIG_IGN   :: 1   /* Ignore signal.  */
-
-SIG_HOLD  :: 2   /* Add signal to hold mask.  */
+SIG_ERR :: -1 /* Error return.  */
+SIG_DFL :: 0 /* Default action.  */
+SIG_IGN :: 1 /* Ignore signal.  */
+SIG_HOLD :: 2 /* Add signal to hold mask.  */
 
 /* We define here all the signal names listed in POSIX (1003.1-2008);
    as of 1003.1-2013, no additional signals have been added by POSIX.
@@ -622,7 +627,7 @@ SIGWINCH  :: 28  /* Window size change (4.3 BSD, Sun).  */
 
 signal :: fonc (numéro_signal: z32, rappel: fonc(z32)(rien)) -> rien #externe libc
 
-sighandler_t :: fonc (z32)(rien)
+sighandler_t :: fonc(z32)(rien)
 sigset_t :: struct #externe {
     __val: [1024 / (8 * taille_de(n64))]n64
 }
@@ -637,7 +642,7 @@ sigaction_struct :: struct {
     sa_flags: z32
 
     /* Restore handler.  */
-    sa_restorer: fonc ()(rien)
+    sa_restorer: fonc()(rien)
 }
 
 sigaction :: fonc (sig: z32, new_act: *sigaction_struct, old_act: *sigaction_struct) -> z32 #externe libc
@@ -696,7 +701,7 @@ EPOLL_EVENTS :: énum_drapeau n32 {
     EPOLLRDHUP :: 0x2000
     EPOLLEXCLUSIVE :: 1 << 28
     EPOLLWAKEUP :: 1 << 29
-    EPOLLONESHOT:: 1 << 30
+    EPOLLONESHOT :: 1 << 30
     EPOLLET :: 1 << 31
 }
 
@@ -727,7 +732,7 @@ epoll_ctl :: fonc (epfd: z32, op: EPOLL_CTL_OP, fd: z32, event: *epoll_event) ->
 epoll_wait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32) -> z32 #externe libc
 epoll_pwait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32, sigmask: *sigset_t) -> z32 #externe libc
 
-TFD_CLOEXEC:: 0o02000000
+TFD_CLOEXEC :: 0o02000000
 TFD_NONBLOCK :: 0o00004000
 
 TFD_TIMER_ABSTIME :: 1 << 0
@@ -746,7 +751,7 @@ timerfd_settime :: fonc (fd: z32, flags: z32, new_value: *itimerspec, old_value:
 
 timerfd_gettime :: fonc (fd: z32, curr_value: *itimerspec) -> z32 #externe libc
 
-qsort :: fonc (liste : *rien, taille_liste : n64, taille_element : n64, fonction_comparaison :  fonc (*rien,*rien)(z32)) -> rien #externe libc
+qsort :: fonc (liste: *rien, taille_liste: n64, taille_element: n64, fonction_comparaison: fonc(*rien, *rien)(z32)) -> rien #externe libc
 
 /* netinet/tcp.h
  * User-settable options (used with setsockopt).

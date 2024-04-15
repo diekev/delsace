@@ -761,7 +761,7 @@ Atome *ConstructriceRI::crée_op_unaire(NoeudExpression const *site_,
                                        Atome *valeur)
 {
     switch (op) {
-        case OpérateurUnaire::Genre::Complement:
+        case OpérateurUnaire::Genre::Négation:
         {
             if (valeur->est_constante_réelle()) {
                 auto const constante_réelle = valeur->comme_constante_réelle();
@@ -777,7 +777,7 @@ Atome *ConstructriceRI::crée_op_unaire(NoeudExpression const *site_,
 
             break;
         }
-        case OpérateurUnaire::Genre::Non_Binaire:
+        case OpérateurUnaire::Genre::Négation_Binaire:
         {
             if (valeur->est_constante_entière()) {
                 auto const constante_entière = valeur->comme_constante_entière();
@@ -819,7 +819,7 @@ Atome *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
     if (valeur_gauche->est_constante() && !valeur_droite->est_constante()) {
         if (op == OpérateurBinaire::Genre::Soustraction &&
             est_constante_entière_zéro(valeur_gauche)) {
-            return crée_op_unaire(site_, type, OpérateurUnaire::Genre::Complement, valeur_droite);
+            return crée_op_unaire(site_, type, OpérateurUnaire::Genre::Négation, valeur_droite);
         }
 
         if (peut_permuter_opérandes(op)) {

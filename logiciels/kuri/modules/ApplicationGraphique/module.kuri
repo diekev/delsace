@@ -24,8 +24,8 @@ importe Périphériques
  * \{ */
 
 Fenêtre :: struct {
-    hauteur : z32
-    largeur : z32
+    hauteur: z32
+    largeur: z32
 
     /* Rappels pour les coulisses. */
     sur_destruction: fonc(*Fenêtre)(rien)
@@ -60,7 +60,7 @@ Application :: struct {
     fenêtre: *Fenêtre
 }
 
-application_globale : *Application
+application_globale: *Application
 
 donne_application :: fonc () -> *Application
 {
@@ -94,7 +94,7 @@ TypesFonctionRappel :: struct {
 
 détermine_types_rappels_pour_cliente :: fonc ($TypeCliente: type_de_données) -> TypesFonctionRappel
 {
-    résultat : TypesFonctionRappel
+    résultat: TypesFonctionRappel
     résultat.sur_création_fenêtre = info_de(fonc(*TypeCliente, *Fenêtre)(rien))
     résultat.sur_redimension_fenêtre = info_de(fonc(*TypeCliente, *Fenêtre)(rien))
     résultat.sur_rendu_fenêtre_perso = info_de(fonc(*TypeCliente)(rien))
@@ -129,7 +129,7 @@ donne_membres_rappels_cliente :: fonc ($TypeCliente: type_de_données) -> Membre
     info_cliente := info_de(TypeCliente)
     info_résultat := info_de(MembresRappelsCliente)
 
-    résultat : MembresRappelsCliente
+    résultat: MembresRappelsCliente
 
     pour info_résultat.membres {
         membre_cliente := trouve_info_membre(info_cliente, it.nom)
@@ -291,7 +291,7 @@ détermine_évènements_requis :: fonc ($TypeCliente: type_de_données) -> Évè
     raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_touche_clavier, types_rappels.sur_touche_clavier)
     raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_redimension_fenêtre, types_rappels.sur_redimension_fenêtre)
 
-    résultat : ÉvènementRequis
+    résultat: ÉvènementRequis
     résultat.CLIQUE_SOURIS = membres_rappels.sur_clique_souris != nul
     résultat.MOUVEMENT_SOURIS = membres_rappels.sur_mouvement_souris != nul
     résultat.DOUBLE_CLIQUE = membres_rappels.sur_double_clique_souris != nul

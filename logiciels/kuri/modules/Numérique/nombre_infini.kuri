@@ -9,7 +9,7 @@ importe Fondation
  */
 
 NombreInfini :: struct {
-    chiffres : [..]n8
+    chiffres: [..]n8
 }
 
 factorielle :: fonc (n: NombreInfini) -> NombreInfini
@@ -30,14 +30,14 @@ factorielle :: fonc (n: NombreInfini) -> NombreInfini
 
 crée_nombre_infini :: fonc (chn: n64) -> NombreInfini
 {
-    résultat : NombreInfini
+    résultat: NombreInfini
     ajoute_chiffres_depuis_nombre(*résultat.chiffres, chn)
     retourne résultat
 }
 
 crée_nombre_infini :: fonc (chn: chaine) -> NombreInfini
 {
-    résultat : NombreInfini
+    résultat: NombreInfini
 
     pour chn {
         chiffre := (it - '0') comme n8
@@ -81,7 +81,7 @@ chaine_depuis_nombre_infini :: fonc (n: NombreInfini) -> chaine
 
 opérateur + :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
-    résultat : NombreInfini
+    résultat: NombreInfini
 
     tableau_inverse(n0.chiffres)
     tableau_inverse(n1.chiffres)
@@ -96,7 +96,7 @@ opérateur + :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
         taille = n1.nombre_de_chiffres()
     }
 
-    retenue : n8
+    retenue: n8
 
     pour taille {
         c0 := n0.chiffre_pour_index(index_it)
@@ -126,7 +126,7 @@ opérateur + :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 
 opérateur + :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
 {
-    résultat : NombreInfini
+    résultat: NombreInfini
 
     si n0.nombre_de_chiffres() == 0 {
         ajoute_chiffres_depuis_nombre(*résultat.chiffres, n1)
@@ -166,7 +166,7 @@ opérateur + :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
 
 opérateur - :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
-    résultat : NombreInfini
+    résultat: NombreInfini
 
     taille := n0.nombre_de_chiffres()
     si n1.nombre_de_chiffres() > taille {
@@ -182,7 +182,7 @@ opérateur - :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
         tableau_inverse(n1.chiffres)
     }
 
-    emprunt : n8
+    emprunt: n8
 
     pour taille {
         c0 := n0.chiffre_pour_index(index_it)
@@ -225,7 +225,7 @@ opérateur - :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
         retourne n0
     }
 
-    résultat : NombreInfini
+    résultat: NombreInfini
 
     si n0.nombre_de_chiffres() == 0 {
         retourne résultat
@@ -269,7 +269,7 @@ supprime_zéro_en_début :: fonc (n: *NombreInfini)
 
 opérateur * :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
-    résultat : NombreInfini
+    résultat: NombreInfini
 
     pour n1.chiffres {
         tmp := n0 * it
@@ -286,12 +286,12 @@ opérateur * :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 
 opérateur * :: fonc (n0: NombreInfini, n2: n64) -> NombreInfini
 {
-    résultat : NombreInfini
+    résultat: NombreInfini
     résultat.chiffres = tableau_copie(n0.chiffres)
 
     tableau_inverse(résultat.chiffres)
 
-    retenue : n64
+    retenue: n64
     index := 0
 
     répète {
@@ -320,7 +320,6 @@ opérateur * :: fonc (n0: NombreInfini, n2: n64) -> NombreInfini
 
 opérateur / :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
-
 }
 
 opérateur == :: fonc (n0: NombreInfini, n1: n64) -> bool
@@ -372,10 +371,10 @@ racine_carrée :: fonc (nombre: NombreInfini) -> NombreInfini
         index_premier_chiffre = -1
     }
 
-    racine : NombreInfini
+    racine: NombreInfini
 
     reste : n32 = 0
-    p : n32
+    p: n32
 
     position_virgule_résultat : z64 = 0
     virgule_trouvée := faux
@@ -413,8 +412,8 @@ divise :: fonc (n: NombreInfini, m: NombreInfini) -> NombreInfini
     l := m.nombre_de_chiffres()
     k := n.nombre_de_chiffres()
 
-    q : NombreInfini
-    r : NombreInfini
+    q: NombreInfini
+    r: NombreInfini
 
     si k < l {
         q = crée_nombre_infini("0")

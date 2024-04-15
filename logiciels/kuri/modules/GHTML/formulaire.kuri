@@ -22,7 +22,7 @@ parse_mot_de_passe :: fonc (chn: chaine) -> bool, MotDePasse
 
 génère_formulaire_depuis_struct :: fonc (valeur: eini, nom_formulaire: chaine, méthode: chaine, cible: chaine) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
@@ -91,7 +91,6 @@ ajoute_tag_pour_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, nom: ch
             }
         }
         sinon {
-
         }
     }
 
