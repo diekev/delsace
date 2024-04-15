@@ -75,9 +75,7 @@ imprime_watt_heure :: fonc (enchaineuse: *Enchaineuse, wh: *WattHeure)
 {
     v := mémoire(wh) comme r32
 
-    unités := [
-        "Wh", "KWh", "MWh", "GWh", "TWh", "PWh"
-    ]
+    unités := [ "Wh", "KWh", "MWh", "GWh", "TWh", "PWh" ]
 
     exposant := 0
 
@@ -196,7 +194,7 @@ convertis :: fonc (valeur: UnitéRationnelle($T, $T1, $T2), $T3: type_de_donnée
 
 test_unité_rationnnelle :: fonc ()
 {
-    ms : UnitéRationnelle(r32, Mètre(r32), Seconde(r32))
+    ms: UnitéRationnelle(r32, Mètre(r32), Seconde(r32))
     ms.valeur = 1.0
 
     kmh := convertis(ms, KiloMètre(r32), Heure(r32))
