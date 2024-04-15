@@ -34,11 +34,11 @@ donne_liste_des_entrées_du_dossier :: fonc (chemin: CheminFichier) -> Résultat
         retourne ErreurFichier.NEstPasUnDossier
     }
 
-    résultat : ListeEntréesDossier
+    résultat: ListeEntréesDossier
     résultat.chemin = copie_chemin(chemin)
 
     /* Parse les éléments du dossier. */
-    noms_parsés : [..]DonnéesNumérotageCheminFichier
+    noms_parsés: [..]DonnéesNumérotageCheminFichier
 
     /* Les éléments ne sont pas détruit directement car ils sont déplacés dans les entrées. */
     diffère déloge(noms_parsés)
@@ -49,7 +49,7 @@ donne_liste_des_entrées_du_dossier :: fonc (chemin: CheminFichier) -> Résultat
     }
 
     /* Parse les entrées du répertoire. */
-    entrées : [..]EntréeRépertoire
+    entrées: [..]EntréeRépertoire
     diffère déloge_tableau_et_ses_éléments(entrées, détruit_entrée_répertoire)
 
     pour noms_parsés {
@@ -117,7 +117,7 @@ ajoute_entrée_dossier_depuis_entrée_fichier :: fonc (entrées_dossier: *[..]En
     }
 
     premier_numéro : z32 = -1
-    dernier_numéro : z32
+    dernier_numéro: z32
     pour entrée.noms_parsés {
         si premier_numéro != -1 {
             si it.numéro != dernier_numéro + 1 {
