@@ -101,7 +101,7 @@ crée_boucle :: fonc () -> *Boucle
     }
 
     boucle_prises := loge(Boucle)
-    boucle_prises.fd = fd;
+    boucle_prises.fd = fd
 
     // imprime("boucle créée !\n")
 
@@ -136,7 +136,7 @@ lance :: fonc (boucle_prises: *Boucle)
         //us_internal_loop_pre(loop);
 
         // imprime("attente sur un évènement !\n")
-        nfds := epoll_wait(boucle_prises.fd, *boucle_prises.évènements[0], Boucle.MAX_EVENTS, -1);
+        nfds := epoll_wait(boucle_prises.fd, *boucle_prises.évènements[0], Boucle.MAX_EVENTS, -1)
 
         si (nfds == -1) {
             // imprime("[epoll_wait] erreur !\n")
@@ -145,7 +145,7 @@ lance :: fonc (boucle_prises: *Boucle)
             retourne
         }
 
-        évènements_prêts : [..]epoll_event
+        évènements_prêts: [..]epoll_event
         évènements_prêts.pointeur = *boucle_prises.évènements[0]
         évènements_prêts.taille = nfds
 
@@ -157,13 +157,13 @@ lance :: fonc (boucle_prises: *Boucle)
             }
 
             // À FAIRE: traduit vers nos types
-            évènements := it.events;
+            évènements := it.events
             erreurs := (it.events & (EPOLL_EVENTS.EPOLLERR | EPOLL_EVENTS.EPOLLHUP))
 
             // events &= us_poll_events(poll);
 
             // À FAIRE(langage) : conditions pour les énumérations
-            si évènements != EPOLL_EVENTS.zéro || erreurs != EPOLL_EVENTS.zéro {
+            si évènements != EPOLL_EVENTS.zéro || erreurs != EPOLL_EVENTS.zéro {
                 dispatch_évènement(prise, évènements, erreurs)
             }
         }

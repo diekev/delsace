@@ -134,6 +134,11 @@ struct chemin_systeme {
     static void crée_dossiers(chaine_statique chemin);
 
     /**
+     * Retourne vrai si le chemin spécifié est un fichier kuri.
+     */
+    static bool est_fichier_kuri(chaine_statique chemin);
+
+    /**
      * Retourne un tableau contenant les chemins des fichiers .kuri du dossier pointé par chemin.
      */
     static tablet<chemin_systeme, 16> fichiers_du_dossier(chaine_statique chemin);

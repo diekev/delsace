@@ -49,9 +49,9 @@ principale :: fonc () -> z32
     temps := début.temps_écoulé_microsecondes()
 
     imprime("\n")
-    imprime("Taille originale : %o\n", FormatEntier(taille_contenu, séparation=3))
-    imprime("Taille minifiée  : %o\n", FormatEntier(taille_minifiée, séparation=3))
-    imprime("Durée de travail : %µ\n", FormatEntier(temps, séparation=3))
+    imprime("Taille originale : %o\n", FormatEntier(taille_contenu, séparation = 3))
+    imprime("Taille minifiée  : %o\n", FormatEntier(taille_minifiée, séparation = 3))
+    imprime("Durée de travail : %µ\n", FormatEntier(temps, séparation = 3))
 
     retourne 0
 }

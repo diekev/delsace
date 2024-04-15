@@ -14,11 +14,11 @@ mire :: fonc (oeil: Vec3, centre: Vec3, haut: Vec3) -> Mat4r
     résultat.m[0][1] = u.x
     résultat.m[1][1] = u.y
     résultat.m[2][1] = u.z
-    résultat.m[0][2] =-f.x
-    résultat.m[1][2] =-f.y
-    résultat.m[2][2] =-f.z
-    résultat.m[3][0] =-produit_scalaire(s, oeil)
-    résultat.m[3][1] =-produit_scalaire(u, oeil)
+    résultat.m[0][2] = -f.x
+    résultat.m[1][2] = -f.y
+    résultat.m[2][2] = -f.z
+    résultat.m[3][0] = -produit_scalaire(s, oeil)
+    résultat.m[3][1] = -produit_scalaire(u, oeil)
     résultat.m[3][2] = produit_scalaire(f, oeil)
     retourne résultat
 }
@@ -79,8 +79,8 @@ direction_via_pixel_rapide :: fonc (caméra: *Caméra3D, pos_pixel: Vec2) -> Vec
 
 direction_via_pixel_rapide :: fonc (MVP_inverse: Mat4r, pos_pixel: Vec2) -> Vec3
 {
-    début : Vec3
-    fin : Vec3
+    début: Vec3
+    fin: Vec3
 
     x := bilatéral_de(pos_pixel.x)
     y := bilatéral_de(pos_pixel.y)
@@ -163,21 +163,21 @@ Caméra3D :: struct {
     vitesse_latérale := 0.0
 
     /* La cible de la caméra. */
-    cible : Vec3
+    cible: Vec3
 
     /* Propriétés calculées. */
 
-    aspect : r32
+    aspect: r32
     échelle: r32
-    monde_vers_caméra : Mat4r
-    caméra_vers_monde : Mat4r
+    monde_vers_caméra: Mat4r
+    caméra_vers_monde: Mat4r
     caméra_vers_rateau: Mat4r
-    monde_vers_rateau : Mat4r
-    projection : Mat4r
-    position : Vec3
-    direction : Vec3 @accessible
-    vecteur_droite : Vec3
-    vecteur_haut : Vec3
+    monde_vers_rateau: Mat4r
+    projection: Mat4r
+    position: Vec3
+    direction: Vec3 @accessible
+    vecteur_droite: Vec3
+    vecteur_haut: Vec3
 
     drapeaux: DrapeauAjournementCaméra
 

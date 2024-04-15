@@ -7,10 +7,10 @@ importe JSON
 charge "mysql"
 
 ConfigurationMySQL :: struct {
-    hôte : AdresseIP
-    utilisateur : chaine
-    mot_de_passe : chaine
-    base_de_données : chaine
+    hôte: AdresseIP
+    utilisateur: chaine
+    mot_de_passe: chaine
+    base_de_données: chaine
 }
 
 ErreurPiloteMySQL :: erreur {
@@ -31,7 +31,7 @@ détruit_pilote :: fonc (pilote: *PiloteMySQL, détruit_config: bool)
 }
 
 ConnexionMySQL :: struct {
-    mysql : MYSQL
+    mysql: MYSQL
 }
 
 ferme_connexion :: fonc (connexion: *ConnexionMySQL) -> rien
@@ -58,7 +58,7 @@ crée_pilote_mysql :: fonc (fichier_config: chaine) -> PiloteMySQL | ErreurPilot
         retourne ErreurPiloteMySQL.XXX
     }
 
-    pilote : PiloteMySQL
+    pilote: PiloteMySQL
     pilote.config = config
 
     retourne pilote
@@ -67,13 +67,13 @@ crée_pilote_mysql :: fonc (fichier_config: chaine) -> PiloteMySQL | ErreurPilot
 /* Retourne les noms des tables dans la base de données du pilote. */
 requiers_tables_mysql :: fonc (pilote: *PiloteMySQL) -> [..]chaine
 {
-    résultat : [..]chaine
+    résultat: [..]chaine
 
     connexion := tente crée_connexion(pilote) piège err {
         retourne résultat
     }
 
-    diffère { ferme_connexion(*connexion) }
+    diffère ferme_connexion(*connexion)
 
     curseur := exécute(*connexion, "SHOW TABLES")
 
@@ -89,7 +89,7 @@ requiers_tables_mysql :: fonc (pilote: *PiloteMySQL) -> [..]chaine
 
 crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 {
-    mysql : MYSQL
+    mysql: MYSQL
     handler := mysql_init(*mysql)
 
     utf8 := crée_chaine_c("utf8")
@@ -103,7 +103,7 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
     }
 
     marque := donne_marque_stockage_temporaire()
-    diffère { définis_marque_stockage_temporaire(marque) }
+    diffère définis_marque_stockage_temporaire(marque)
 
     chaine_ip := chaine_depuis_ip(pilote.config.hôte)
     diffère déloge(chaine_ip)
@@ -118,33 +118,33 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 
     CLIENT_MULTI_STATEMENTS : n64 : 0x00010000
     CLIENT_MULTI_RESULTS : n64 : 0x00020000
-    c := mysql_real_connect(*mysql, hôte, utilisateur, mot_de_passe, base_de_données, 0, nul, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS);
+    c := mysql_real_connect(*mysql, hôte, utilisateur, mot_de_passe, base_de_données, 0, nul, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS)
 
     si (c == nul) {
         e := mysql_error(*mysql)
         chn := convertis_chaine_c(e)
-        imprime_log("[MySQL]", "erreur lors de la connexion : %\n", chn);
+        imprime_log("[MySQL]", "erreur lors de la connexion : %\n", chn)
         retourne ErreurConnexionMySQL.MauvaiseConnexion
     }
 
-    connexion : ConnexionMySQL
+    connexion: ConnexionMySQL
     connexion.mysql = mysql
 
     retourne connexion
 }
 
 CurseurRésultat :: struct {
-    résultat : *MYSQL_RES
+    résultat: *MYSQL_RES
 
-    longueurs : *n64
-    ligne : **z8
+    longueurs: *n64
+    ligne: **z8
 
-    nombre_résultat : n64
-    nombre_colonne : n32
-    index_colonne : n32
+    nombre_résultat: n64
+    nombre_colonne: n32
+    index_colonne: n32
 }
 
-détruit_curseur :: fonc (curseur : *CurseurRésultat) -> rien
+détruit_curseur :: fonc (curseur: *CurseurRésultat) -> rien
 {
     mysql_free_result(curseur.résultat)
 }
@@ -162,11 +162,11 @@ ajoute_curseur :: fonc (résultat: &RésultatRequête, curseur: CurseurRésultat
 // dans une requête et le contenu du résultat
 ajoute_curseur_vide :: fonc (résultat: &RésultatRequête)
 {
-    curseur : CurseurRésultat
+    curseur: CurseurRésultat
     ajoute_curseur(résultat, curseur)
 }
 
-détruit_résultat :: fonc (résultat : &RésultatRequête) -> rien
+détruit_résultat :: fonc (résultat: &RésultatRequête) -> rien
 {
     pour * résultat.curseurs {
         détruit_curseur(it)
@@ -197,7 +197,7 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
         retourne ErreurCurseur.XXX
     }
 
-    résultat : RésultatRequête
+    résultat: RésultatRequête
 
     // Trouve tous les résultats de la requête.
     // Nous utilisons une boucle répète...tantque pour tenir compte de la possibilité
@@ -205,10 +205,10 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
     status := 0
     répète {
         /* vérifie si l'instruction courante retourna des données */
-  		résultat_mysql := mysql_store_result(*connexion.mysql)
+        résultat_mysql := mysql_store_result(*connexion.mysql)
 
         si résultat_mysql {
-            curseur : CurseurRésultat
+            curseur: CurseurRésultat
             curseur.résultat = résultat_mysql
             curseur.nombre_colonne = mysql_num_fields(résultat_mysql)
             curseur.nombre_résultat = mysql_num_rows(résultat_mysql)
@@ -277,20 +277,20 @@ colonne_suivante :: fonc (curseur: *CurseurRésultat) -> chaine
 
 accède_table :: fonc (pilote: *PiloteMySQL, nom: chaine) -> TableMySQL
 {
-    table : TableMySQL
+    table: TableMySQL
     table.nom = nom
     table.pilote = pilote
     retourne table
 }
 
 TableMySQL :: struct {
-    nom : chaine
-    pilote : *PiloteMySQL
+    nom: chaine
+    pilote: *PiloteMySQL
 }
 
 trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *InfoTypeStructure, colonnes: ...chaine) -> [..]*InfoTypeMembreStructure
 {
-    infos_membres : [..]*InfoTypeMembreStructure
+    infos_membres: [..]*InfoTypeMembreStructure
 
     /* vérifie que le type possède les noms des colonnes */
     pour colonnes {
@@ -313,7 +313,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 
-    résultat : [..]T
+    résultat: [..]T
     info := info_de(T)
 
     // À FAIRE : vérifie que la table possède les noms des colonnes
@@ -325,10 +325,10 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
         retourne résultat
     }
 
-    diffère { déloge(infos_membres) }
+    diffère déloge(infos_membres)
 
     /* construit la chaine de la requête */
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "SELECT ")
@@ -342,24 +342,24 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
     ajoute_au_tampon(*enchaineuse, " FROM ", table.nom, "")
 
     requête := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère { déloge(requête) }
+    diffère déloge(requête)
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(table.pilote) piège err {
         retourne résultat
     }
-    diffère { ferme_connexion(*connexion) }
+    diffère ferme_connexion(*connexion)
 
     /* exécute la requête et construit le résultat */
     curseur := exécute(*connexion, requête)
-    diffère { détruit_curseur(*curseur) }
+    diffère détruit_curseur(*curseur)
 
     si (curseur.nombre_colonne comme z64) != colonnes.taille {
         retourne résultat
     }
 
     tantque ligne_suivante(*curseur) != nul {
-        valeur : T
+        valeur: T
 
         eini_valeur : eini = valeur
 
@@ -379,7 +379,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 
             chn := colonne_suivante(*curseur)
 
-            tampon : [..]octet
+            tampon: [..]octet
             tampon.pointeur = valeur_membre.pointeur comme *z8
             tampon.taille = membre.id.taille_en_octet comme z64
 
@@ -410,9 +410,9 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
         retourne faux
     }
 
-    diffère { déloge(infos_membres) }
+    diffère déloge(infos_membres)
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "INSERT INTO ", table.nom)
@@ -439,19 +439,19 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
     ajoute_au_tampon(*enchaineuse, ")")
 
     requête := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère { déloge(requête) }
+    diffère déloge(requête)
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(table.pilote) piège _ {
         retourne faux
     }
-    diffère { ferme_connexion(*connexion) }
+    diffère ferme_connexion(*connexion)
 
     /* exécute la requête */
     curseur := tente exécute(*connexion, requête) piège _ {
         retourne faux
     }
-    diffère { détruit_résultat(curseur) }
+    diffère détruit_résultat(curseur)
 
     retourne vrai
 }
@@ -461,16 +461,16 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     info := info_de(T)
-    résultat : [..]T
+    résultat: [..]T
 
     infos_membres := trouve_info_membres_pour_colonnes("[MySQL]", info, ...colonnes)
-    diffère { déloge(infos_membres) }
+    diffère déloge(infos_membres)
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(pilote) piège _ {
         retourne résultat
     }
-    diffère { ferme_connexion(*connexion) }
+    diffère ferme_connexion(*connexion)
 
     curseurs := tente exécute(*connexion, requête) piège _ {
         retourne résultat
@@ -483,7 +483,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
     }
 
     tantque ligne_suivante(*curseur) != nul {
-        valeur : T
+        valeur: T
 
         eini_valeur : eini = valeur
 
@@ -503,7 +503,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
 
             chn := colonne_suivante(*curseur)
 
-            tampon : [..]octet
+            tampon: [..]octet
             tampon.pointeur = valeur_membre.pointeur comme *z8
             tampon.taille = membre.id.taille_en_octet comme z64
 
@@ -519,7 +519,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
     retourne résultat
 }
 
-fonctions_parsages_mysql : [..]FonctionParsage
+fonctions_parsages_mysql: [..]FonctionParsage
 
 parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel(T)
 {
@@ -536,7 +536,7 @@ parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membr
         retourne
     }
 
-    valeur : T
+    valeur: T
 
     saufsi parse_valeur(curseur, valeur, infos_membres) {
         retourne
@@ -560,10 +560,10 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
         retourne
     }
 
-    liste : [..]T
+    liste: [..]T
 
     répète {
-        valeur : T
+        valeur: T
 
         saufsi parse_valeur(curseur, valeur, infos_membres) {
             déloge(liste)
@@ -610,7 +610,7 @@ parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [
 
 sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_table: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([..]TypeRésultat)
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
@@ -728,7 +728,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
         compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage MySQL invalide, le premier paramètre de sortie doit être de type « bool ».")
     }
 
-    résultat : DonnéesFonctionPourTableFonction
+    résultat: DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = fonction.params_sorties[1].type
     retourne résultat
@@ -751,7 +751,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 
 génère_initialisation_mysql :: fonc ()
 {
-    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions: CréatriceTableFonction
     créatrice_table_fonctions.annotation_désirée = "ParsageMySQL"
     créatrice_table_fonctions.nom_table_fonctions = "fonctions_parsages_mysql"
     créatrice_table_fonctions.données_pour_fonction = fonction_est_valide

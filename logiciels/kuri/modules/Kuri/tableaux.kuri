@@ -68,7 +68,7 @@ tableau_ajoute_élément :: fonc (tableau: *[..]$T) -> *T
     retourne *tabl[index]
 }
 
-tableau_réserve :: fonc(tabl: *[..]$T, taille: z64) -> rien
+tableau_réserve :: fonc (tabl: *[..]$T, taille: z64) -> rien
 {
     si taille <= tabl.capacité {
         retourne
@@ -97,7 +97,7 @@ tableau_redimensionne :: fonc (tabl: &[..]$T, taille: z64) -> rien
     tabl.taille = taille
 }
 
-tableau_copie :: fonc(tabl: [..]$T) -> [..]T
+tableau_copie :: fonc (tabl: [..]$T) -> [..]T
 {
     tmp := loge_tableau(T, tabl.taille)
     //copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
@@ -110,7 +110,7 @@ tableau_copie :: fonc(tabl: [..]$T) -> [..]T
     retourne tmp
 }
 
-tableau_copie :: fonc(tabl: []$T) -> [..]T
+tableau_copie :: fonc (tabl: []$T) -> [..]T
 {
     tmp := loge_tableau(T, tabl.taille)
 
@@ -124,7 +124,7 @@ tableau_copie :: fonc(tabl: []$T) -> [..]T
 
 tableau_copie :: fonc (tabl: [..]$T, fonction_de_copie: fonc(T)(T)) -> [..]T
 {
-    résultat : [..]T
+    résultat: [..]T
     tableau_réserve(*résultat, tabl.taille)
 
     pour tabl {
@@ -150,7 +150,7 @@ tableau_insère_index :: fonc (tabl: *[..]$T, valeur: T, où: z64) -> rien
     mémoire(tabl) = tmp
 }
 
-tableau_supprime :: fonc(tabl: *[..]$T, index: z32) -> rien
+tableau_supprime :: fonc (tabl: *[..]$T, index: z32) -> rien
 {
     si index < 0 || index >= tabl.taille {
         retourne
@@ -186,7 +186,7 @@ tableau_supprime_si :: fonc (tableau: *[..]$T, prédicat: fonc(T)(bool))
 {
     temp := mémoire(tableau)
 
-    nouveau_tableau : [..]T
+    nouveau_tableau: [..]T
     tableau_réserve(*nouveau_tableau, tableau.taille)
 
     pour temp {
@@ -324,7 +324,7 @@ tableaux_sont_égaux :: fonc (tableau1: [..]$T, tableau2: [..]T) -> bool
 
 tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> [..]T
 {
-    résultat : [..]T
+    résultat: [..]T
 
     si début > fin {
         retourne résultat

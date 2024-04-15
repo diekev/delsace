@@ -2,7 +2,7 @@ importe Fondation
 importe Structures
 
 CheminFichier :: struct {
-    chn : chaine
+    chn: chaine
 }
 
 copie_chemin :: fonc (chm: CheminFichier) -> CheminFichier
@@ -89,7 +89,7 @@ divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
 
 divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
 {
-    résultat : Pile(chaine)
+    résultat: Pile(chaine)
     divise_et_empile_chemin(résultat, chemin)
     retourne résultat
 }
@@ -100,7 +100,7 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
     tampon: [16]chaine
     utilise_tampon := pile.taille() < 16
 
-    pile_secondaire : Pile(chaine)
+    pile_secondaire: Pile(chaine)
     si utilise_tampon {
         pile_secondaire.données.pointeur = *tampon[0]
         pile_secondaire.données.capacité = 16
@@ -210,7 +210,7 @@ chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFic
     /* Renverse la pile cible afin que l'empilement se fasse dans le « bon » ordre. */
     pile_cible.renverse()
 
-    pile_résultat : Pile(chaine)
+    pile_résultat: Pile(chaine)
     diffère détruit(pile_résultat)
 
     tantque !pile_cible.est_vide() {
@@ -311,7 +311,7 @@ chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichie
 crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> CheminFichier
 {
     // divise selon le séparateur du système
-    pile : Pile(chaine)
+    pile: Pile(chaine)
     diffère détruit(pile)
     retourne crée_chemin_absolu(pile, base, feuille)
 }

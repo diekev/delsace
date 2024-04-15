@@ -5,139 +5,139 @@ importe Fondation
 /* Les tags communs comme ChaineInternées */
 
 // Tag spéciale pour s'assurer que tous les lexèmes et éléments ont un tag valide.
-TAG_vide : *ChaineInternée
+TAG_vide: *ChaineInternée
 
-TAG_a : *ChaineInternée
-TAG_address : *ChaineInternée
-TAG_annotation_xml : *ChaineInternée
-TAG_applet : *ChaineInternée
-TAG_area : *ChaineInternée
-TAG_article : *ChaineInternée
-TAG_aside : *ChaineInternée
-TAG_b : *ChaineInternée
-TAG_base : *ChaineInternée
-TAG_basefont : *ChaineInternée
-TAG_basefront : *ChaineInternée
-TAG_bgsound : *ChaineInternée
-TAG_big : *ChaineInternée
-TAG_blink : *ChaineInternée
-TAG_blockquote : *ChaineInternée
-TAG_body : *ChaineInternée
-TAG_br : *ChaineInternée
-TAG_button : *ChaineInternée
-TAG_caption : *ChaineInternée
-TAG_center : *ChaineInternée
-TAG_code : *ChaineInternée
-TAG_col : *ChaineInternée
-TAG_colgroup : *ChaineInternée
-TAG_dd : *ChaineInternée
-TAG_desc : *ChaineInternée
-TAG_details : *ChaineInternée
-TAG_dialog : *ChaineInternée
-TAG_dir : *ChaineInternée
-TAG_div : *ChaineInternée
-TAG_dl : *ChaineInternée
-TAG_dt : *ChaineInternée
-TAG_em : *ChaineInternée
-TAG_embed : *ChaineInternée
-TAG_fieldset : *ChaineInternée
-TAG_figcaption : *ChaineInternée
-TAG_figure : *ChaineInternée
-TAG_font : *ChaineInternée
-TAG_footer : *ChaineInternée
-TAG_foreignObject : *ChaineInternée
-TAG_form : *ChaineInternée
-TAG_frame : *ChaineInternée
-TAG_frameset : *ChaineInternée
-TAG_h1 : *ChaineInternée
-TAG_h2 : *ChaineInternée
-TAG_h3 : *ChaineInternée
-TAG_h4 : *ChaineInternée
-TAG_h5 : *ChaineInternée
-TAG_h6 : *ChaineInternée
-TAG_head : *ChaineInternée
-TAG_header : *ChaineInternée
-TAG_hgroup : *ChaineInternée
-TAG_hr : *ChaineInternée
-TAG_html : *ChaineInternée
-TAG_i : *ChaineInternée
-TAG_iframe : *ChaineInternée
-TAG_image : *ChaineInternée
-TAG_img : *ChaineInternée
-TAG_input : *ChaineInternée
-TAG_keygen : *ChaineInternée
-TAG_legend : *ChaineInternée
-TAG_li : *ChaineInternée
-TAG_link : *ChaineInternée
-TAG_listing : *ChaineInternée
-TAG_main : *ChaineInternée
-TAG_marquee : *ChaineInternée
-TAG_math : *ChaineInternée
-TAG_menu : *ChaineInternée
-TAG_meta : *ChaineInternée
-TAG_mi : *ChaineInternée
-TAG_mo : *ChaineInternée
-TAG_mn : *ChaineInternée
-TAG_ms : *ChaineInternée
-TAG_mtext : *ChaineInternée
-TAG_nav : *ChaineInternée
-TAG_nobr : *ChaineInternée
-TAG_noembed : *ChaineInternée
-TAG_noframes : *ChaineInternée
-TAG_noscript : *ChaineInternée
-TAG_object : *ChaineInternée
-TAG_ol : *ChaineInternée
-TAG_optgroup : *ChaineInternée
-TAG_option : *ChaineInternée
-TAG_p : *ChaineInternée
-TAG_param : *ChaineInternée
-TAG_plaintext : *ChaineInternée
-TAG_pre : *ChaineInternée
-TAG_rb : *ChaineInternée
-TAG_rp : *ChaineInternée
-TAG_rt : *ChaineInternée
-TAG_rtc : *ChaineInternée
-TAG_ruby : *ChaineInternée
-TAG_s : *ChaineInternée
-TAG_span : *ChaineInternée
-TAG_script : *ChaineInternée
-TAG_section : *ChaineInternée
-TAG_select : *ChaineInternée
-TAG_small : *ChaineInternée
-TAG_source : *ChaineInternée
-TAG_strike : *ChaineInternée
-TAG_strong : *ChaineInternée
-TAG_style : *ChaineInternée
-TAG_summary : *ChaineInternée
-TAG_svg : *ChaineInternée
-TAG_table : *ChaineInternée
-TAG_tbody : *ChaineInternée
-TAG_td : *ChaineInternée
-TAG_template : *ChaineInternée
-TAG_textarea : *ChaineInternée
-TAG_tfoot : *ChaineInternée
-TAG_th : *ChaineInternée
-TAG_thead : *ChaineInternée
-TAG_title : *ChaineInternée
-TAG_tr : *ChaineInternée
-TAG_track : *ChaineInternée
-TAG_tt : *ChaineInternée
-TAG_u : *ChaineInternée
-TAG_ul : *ChaineInternée
-TAG_wbr : *ChaineInternée
-TAG_xmp : *ChaineInternée
+TAG_a: *ChaineInternée
+TAG_address: *ChaineInternée
+TAG_annotation_xml: *ChaineInternée
+TAG_applet: *ChaineInternée
+TAG_area: *ChaineInternée
+TAG_article: *ChaineInternée
+TAG_aside: *ChaineInternée
+TAG_b: *ChaineInternée
+TAG_base: *ChaineInternée
+TAG_basefont: *ChaineInternée
+TAG_basefront: *ChaineInternée
+TAG_bgsound: *ChaineInternée
+TAG_big: *ChaineInternée
+TAG_blink: *ChaineInternée
+TAG_blockquote: *ChaineInternée
+TAG_body: *ChaineInternée
+TAG_br: *ChaineInternée
+TAG_button: *ChaineInternée
+TAG_caption: *ChaineInternée
+TAG_center: *ChaineInternée
+TAG_code: *ChaineInternée
+TAG_col: *ChaineInternée
+TAG_colgroup: *ChaineInternée
+TAG_dd: *ChaineInternée
+TAG_desc: *ChaineInternée
+TAG_details: *ChaineInternée
+TAG_dialog: *ChaineInternée
+TAG_dir: *ChaineInternée
+TAG_div: *ChaineInternée
+TAG_dl: *ChaineInternée
+TAG_dt: *ChaineInternée
+TAG_em: *ChaineInternée
+TAG_embed: *ChaineInternée
+TAG_fieldset: *ChaineInternée
+TAG_figcaption: *ChaineInternée
+TAG_figure: *ChaineInternée
+TAG_font: *ChaineInternée
+TAG_footer: *ChaineInternée
+TAG_foreignObject: *ChaineInternée
+TAG_form: *ChaineInternée
+TAG_frame: *ChaineInternée
+TAG_frameset: *ChaineInternée
+TAG_h1: *ChaineInternée
+TAG_h2: *ChaineInternée
+TAG_h3: *ChaineInternée
+TAG_h4: *ChaineInternée
+TAG_h5: *ChaineInternée
+TAG_h6: *ChaineInternée
+TAG_head: *ChaineInternée
+TAG_header: *ChaineInternée
+TAG_hgroup: *ChaineInternée
+TAG_hr: *ChaineInternée
+TAG_html: *ChaineInternée
+TAG_i: *ChaineInternée
+TAG_iframe: *ChaineInternée
+TAG_image: *ChaineInternée
+TAG_img: *ChaineInternée
+TAG_input: *ChaineInternée
+TAG_keygen: *ChaineInternée
+TAG_legend: *ChaineInternée
+TAG_li: *ChaineInternée
+TAG_link: *ChaineInternée
+TAG_listing: *ChaineInternée
+TAG_main: *ChaineInternée
+TAG_marquee: *ChaineInternée
+TAG_math: *ChaineInternée
+TAG_menu: *ChaineInternée
+TAG_meta: *ChaineInternée
+TAG_mi: *ChaineInternée
+TAG_mo: *ChaineInternée
+TAG_mn: *ChaineInternée
+TAG_ms: *ChaineInternée
+TAG_mtext: *ChaineInternée
+TAG_nav: *ChaineInternée
+TAG_nobr: *ChaineInternée
+TAG_noembed: *ChaineInternée
+TAG_noframes: *ChaineInternée
+TAG_noscript: *ChaineInternée
+TAG_object: *ChaineInternée
+TAG_ol: *ChaineInternée
+TAG_optgroup: *ChaineInternée
+TAG_option: *ChaineInternée
+TAG_p: *ChaineInternée
+TAG_param: *ChaineInternée
+TAG_plaintext: *ChaineInternée
+TAG_pre: *ChaineInternée
+TAG_rb: *ChaineInternée
+TAG_rp: *ChaineInternée
+TAG_rt: *ChaineInternée
+TAG_rtc: *ChaineInternée
+TAG_ruby: *ChaineInternée
+TAG_s: *ChaineInternée
+TAG_span: *ChaineInternée
+TAG_script: *ChaineInternée
+TAG_section: *ChaineInternée
+TAG_select: *ChaineInternée
+TAG_small: *ChaineInternée
+TAG_source: *ChaineInternée
+TAG_strike: *ChaineInternée
+TAG_strong: *ChaineInternée
+TAG_style: *ChaineInternée
+TAG_summary: *ChaineInternée
+TAG_svg: *ChaineInternée
+TAG_table: *ChaineInternée
+TAG_tbody: *ChaineInternée
+TAG_td: *ChaineInternée
+TAG_template: *ChaineInternée
+TAG_textarea: *ChaineInternée
+TAG_tfoot: *ChaineInternée
+TAG_th: *ChaineInternée
+TAG_thead: *ChaineInternée
+TAG_title: *ChaineInternée
+TAG_tr: *ChaineInternée
+TAG_track: *ChaineInternée
+TAG_tt: *ChaineInternée
+TAG_u: *ChaineInternée
+TAG_ul: *ChaineInternée
+TAG_wbr: *ChaineInternée
+TAG_xmp: *ChaineInternée
 
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
  * métaprogrammes plus bas. */
 tags_initialisés := faux
 
 initialise_tags :: fonc ()
-#corps_texte {
+#corps_texte {
     retourne génère_fonction_pour_tags(faux)
 }
 
 imprime_tags :: fonc ()
-#corps_texte {
+#corps_texte {
     retourne génère_fonction_pour_tags(vrai)
 }
 
