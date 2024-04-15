@@ -2384,10 +2384,17 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
         comme->transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_sous_jacent};
     }
 
+    /* Utilise une temporaire au cas où nous aurions une exression complexe. */
+    auto decl_b = crée_déclaration_variable(var->lexème, type_sous_jacent, comme);
+    decl_b->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+    ajoute_expression(decl_b);
+
+    ref_b = assem->crée_référence_déclaration(var->lexème, decl_b);
+
     /* -b */
     auto zero = assem->crée_littérale_entier(lexème, type_énum->type_sous_jacent, 0);
     auto moins_b_type_sous_jacent = assem->crée_expression_binaire(
-        lexème, type_sous_jacent->table_opérateurs->opérateur_sst, zero, comme);
+        lexème, type_sous_jacent->table_opérateurs->opérateur_sst, zero, ref_b);
 
     /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
      * type.
@@ -2400,7 +2407,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
     /* b - 1 */
     auto un = assem->crée_littérale_entier(lexème, type_sous_jacent, 1);
     auto b_moins_un_type_sous_jacent = assem->crée_expression_binaire(
-        lexème, type_sous_jacent->table_opérateurs->opérateur_sst, comme, un);
+        lexème, type_sous_jacent->table_opérateurs->opérateur_sst, ref_b, un);
 
     /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
      * type.
