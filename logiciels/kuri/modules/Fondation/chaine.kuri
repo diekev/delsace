@@ -42,7 +42,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
     retourne nchn
 }
 
-construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine
+construit_chaine :: fonc (ptr: *z8, taille: z64) -> chaine
 {
     ret : chaine = ---
     ret.pointeur = ptr
@@ -56,7 +56,7 @@ chaine_depuis_tableau_octets :: fonc (données: [..]octet) -> chaine
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée
-pour_chaque_ligne :: fonc(texte : chaine, donnees : $T, rappel : fonc(chaine, T)(rien)) -> rien
+pour_chaque_ligne :: fonc (texte: chaine, donnees: $T, rappel: fonc(chaine, T)(rien)) -> rien
 {
     taille : z64 = 0
     début_chaine : z64 = 0
@@ -80,14 +80,14 @@ pour_chaque_ligne :: fonc(texte : chaine, donnees : $T, rappel : fonc(chaine, T)
     }
 }
 
-est_vide :: fonc(chn : chaine) -> bool
+est_vide :: fonc (chn: chaine) -> bool
 {
     retourne chn.taille == 0
 }
 
 divise :: fonc (ligne: chaine, séparation: z8) -> [..]chaine
 {
-    mots : [..]chaine
+    mots: [..]chaine
     divise(ligne, séparation, *mots)
     retourne mots
 }
@@ -152,7 +152,7 @@ divise :: fonc (chn: chaine, séparation: chaine, résultat: *[..]chaine, réini
 
 divise :: fonc (ligne: chaine, séparation: chaine) -> [..]chaine
 {
-    mots : [..]chaine
+    mots: [..]chaine
     divise(ligne, séparation, *mots)
     retourne mots
 }
@@ -161,11 +161,11 @@ divise_depuis_le_début :: fonc (entrée: chaine, séparateur: chaine, nombre_ma
 {
     résultat_temp := divise(entrée, séparateur)
 
-    si résultat_temp.taille <= nombre_max || nombre_max <= 0 {
+    si résultat_temp.taille <= nombre_max || nombre_max <= 0 {
         retourne résultat_temp
     }
 
-    résultat : [..]chaine
+    résultat: [..]chaine
 
     taille_chaine : z64 = 0
 
@@ -192,7 +192,7 @@ divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_ma
         retourne résultat_temp
     }
 
-    résultat : [..]chaine
+    résultat: [..]chaine
 
     nombre_de_divions := résultat_temp.taille - 1
     delta := nombre_de_divions - divisions_maximums
@@ -232,32 +232,32 @@ recule :: fonc (ligne: chaine, compte: z64) -> chaine
     retourne construit_chaine(ligne.pointeur, ligne.taille - compte)
 }
 
-est_espace_blanc :: fonc(c : z8) -> bool
+est_espace_blanc :: fonc (c: z8) -> bool
 {
     retourne c == ' ' || c == '\n' || c == '\t' || c == '\v' || c == '\r' || c == '\f'
 }
 
-est_nombre_binaire :: fonc(c : z8) -> bool
+est_nombre_binaire :: fonc (c: z8) -> bool
 {
     retourne c == '0' || c == '1'
 }
 
-est_nombre_décimal :: fonc(c : z8) -> bool
+est_nombre_décimal :: fonc (c: z8) -> bool
 {
     retourne '0' <= c <= '9'
 }
 
-est_nombre_octal :: fonc(c : z8) -> bool
+est_nombre_octal :: fonc (c: z8) -> bool
 {
     retourne '0' <= c <= '7'
 }
 
-est_nombre_hexadécimal :: fonc(c : z8) -> bool
+est_nombre_hexadécimal :: fonc (c: z8) -> bool
 {
     retourne ('0' <= c <= '9') || ('a' <= c <= 'f') || ('A' <= c <= 'F')
 }
 
-en_majuscule :: fonc(c: z8) -> z8
+en_majuscule :: fonc (c: z8) -> z8
 {
     si 'a' <= c <= 'z' {
         retourne c - 'a' + 'A'
@@ -266,7 +266,7 @@ en_majuscule :: fonc(c: z8) -> z8
     retourne c
 }
 
-en_minuscule :: fonc(c: z8) -> z8
+en_minuscule :: fonc (c: z8) -> z8
 {
     si 'A' <= c <= 'Z' {
         retourne c - 'A' + 'a'
@@ -275,7 +275,7 @@ en_minuscule :: fonc(c: z8) -> z8
     retourne c
 }
 
-en_majuscule :: fonc(chn : chaine) -> chaine
+en_majuscule :: fonc (chn: chaine) -> chaine
 {
     pour & c dans chn {
         c = en_majuscule(c)
@@ -284,7 +284,7 @@ en_majuscule :: fonc(chn : chaine) -> chaine
     retourne chn
 }
 
-en_minuscule :: fonc(chn : chaine) -> chaine
+en_minuscule :: fonc (chn: chaine) -> chaine
 {
     pour & c dans chn {
         c = en_majuscule(c)
@@ -459,7 +459,7 @@ sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enli
     retourne construit_chaine(*chn[pos_début], pos_fin - pos_début)
 }
 
-distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
+distance_levenshtein :: fonc (chn1: chaine, chn2: chaine) -> z64
 {
     m := chn1.taille
     n := chn2.taille
@@ -490,7 +490,7 @@ distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
                 coûts[j + 1] = coin
             }
             sinon {
-                t : z64
+                t: z64
 
                 si enhaut < coin {
                     t = enhaut
@@ -666,7 +666,7 @@ apparie_chaine :: fonc (chn1: chaine, chn2: chaine, n: z64) -> bool
 {
     i := n - 1
 
-    si i >= chn1.taille || i >= chn2.taille {
+    si i >= chn1.taille || i >= chn2.taille {
         retourne faux
     }
 
@@ -717,7 +717,7 @@ cherche_aiguille_par_force_brute :: fonc (botte_de_foin: chaine, aiguille: chain
 cherche_aiguille_par_boyer_moore_horspool :: fonc (botte_de_foin: chaine, aiguille: chaine) -> z64
 {
     // crée une table pour définir le nombre de caractères sûrement omissible
-    table : [256]z32
+    table: [256]z32
 
     pour & table {
         it = aiguille.taille comme z32

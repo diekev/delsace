@@ -156,7 +156,7 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
         ENTIER {
             info_entier := type comme *InfoTypeEntier
             index_nom := index_bit_taille_octet(info_entier.taille_en_octet)
-            noms_signed := ["int8_t", "int16_t", "int32_t", "int64_t"]
+            noms_signed := [ "int8_t", "int16_t", "int32_t", "int64_t" ]
 
             si info_entier.est_signé {
                 nouveau_type.nom_type_c = copie_chaine(noms_signed[index_nom])
@@ -171,7 +171,7 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
         }
         RÉEL {
             index_nom := index_bit_taille_octet(type.taille_en_octet)
-            noms_types := ["", "r16", "float", "double"]
+            noms_types := [ "", "r16", "float", "double" ]
             nouveau_type.nom_type_c = copie_chaine(noms_types[index_nom])
             nouveau_type.nom_type_cpp = copie_chaine(noms_types[index_nom])
             nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_types[index_nom])
@@ -657,7 +657,7 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
 
         ajoute_au_tampon(enchaineuse, "};\n")
         //si type_énum.est_drapeau {
-            ajoute_au_tampon(enchaineuse, "DEFINIS_OPERATEURS_DRAPEAU(", type_c.nom_type_cpp, ")\n")
+        ajoute_au_tampon(enchaineuse, "DEFINIS_OPERATEURS_DRAPEAU(", type_c.nom_type_cpp, ")\n")
         //}
         retourne
     }
@@ -1012,7 +1012,7 @@ génère_code_fonction_cpp :: fonc (enchaineuse: *Enchaineuse, système: *Systè
     }
 
     si est_pour_déclaration {
-        ajoute_au_tampon(enchaineuse, ";\n");
+        ajoute_au_tampon(enchaineuse, ";\n")
         retourne
     }
 
@@ -1207,7 +1207,7 @@ TableIPA :: struct {
 
 construit_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
 {
-    résultat : TableIPA
+    résultat: TableIPA
 
     ipa := génératrice.ipa
 
@@ -1460,7 +1460,7 @@ génère_code_support_kuri :: fonc (ipa: &IPA, système_type: *SystèmeTypeC)
      * Pour les tableaux, il est inutile d'avoir des types distincts tant que
      * leurs formes binaires correspondent à leurs formes en C; le code C
      * s'assurant de la sûreté de type. */
-types_support := «
+    types_support := «
 ChaineIPA :: struct {
     pointeur: *z8
     taille: z64
@@ -1720,7 +1720,7 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
 
 détermine_modules_utilisés :: fonc (ipa: &IPA) -> EnsembleDeModules
 {
-    résultat : EnsembleDeModules
+    résultat: EnsembleDeModules
     initialise_ensemble_de_modules(*résultat)
 
     pour ipa.types {

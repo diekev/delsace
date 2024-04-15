@@ -1388,15 +1388,15 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
                     if (directive == ID::bibliotheque) {
                         consomme();
-                        auto chaine_bib = lexème_courant()->chaine;
+                        auto lexème_nom_bibliothèque = lexème_courant();
                         consomme(GenreLexème::CHAINE_LITTERALE,
                                  "Attendu une chaine littérale après la directive");
                         auto noeud = m_tacheronne.assembleuse->crée_déclaration_bibliothèque(
                             lexème);
+                        noeud->lexème_nom_bibliothèque = lexème_nom_bibliothèque;
                         noeud->ident = gauche->ident;
-                        noeud->bibliothèque =
-                            m_compilatrice.gestionnaire_bibliothèques->crée_bibliothèque(
-                                *m_unité->espace, noeud, gauche->ident, chaine_bib);
+                        m_tacheronne.assembleuse->recycle_référence(
+                            gauche->comme_référence_déclaration());
                         return noeud;
                     }
 
@@ -1408,6 +1408,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             données_précédence, racine_expression, lexème_final);
                         m_est_déclaration_type_opaque = false;
                         noeud->bloc_parent->ajoute_membre(noeud);
+                        m_tacheronne.assembleuse->recycle_référence(
+                            gauche->comme_référence_déclaration());
                         return noeud;
                     }
 
@@ -1433,9 +1435,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             noeud->expression = analyse_expression(
                 données_précédence, racine_expression, lexème_final);
 
-            if (gauche->est_référence_déclaration()) {
-                gauche->comme_référence_déclaration()->déclaration_référée = noeud;
-            }
+            m_tacheronne.assembleuse->recycle_référence(gauche->comme_référence_déclaration());
 
             return noeud;
         }
@@ -1881,6 +1881,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
     m_tacheronne.assembleuse->dépile_bloc();
 
     if (accolade_requise) {
+        bloc->lexème_accolade_finale = lexème_courant();
         consomme(GenreLexème::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}'");
     }
 
@@ -1993,6 +1994,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 
     copie_tablet_tableau(paires_discr, noeud_discr->paires_discr);
 
+    noeud_discr->bloc->lexème_accolade_finale = lexème_courant();
     consomme(GenreLexème::ACCOLADE_FERMANTE,
              "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 
@@ -2393,6 +2395,14 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
             continue;
         }
 
+        if (apparie_commentaire()) {
+            lexème = lexème_courant();
+            auto noeud = m_tacheronne.assembleuse->crée_commentaire(lexème);
+            expressions.ajoute(noeud);
+            consomme();
+            continue;
+        }
+
         if (!apparie_expression()) {
             rapporte_erreur("Attendu une expression dans le bloc de l'énumération");
             continue;
@@ -2418,6 +2428,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
     m_tacheronne.assembleuse->dépile_bloc();
     noeud_decl->bloc = bloc;
 
+    bloc->lexème_accolade_finale = lexème_courant();
     consomme(GenreLexème::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
 
     analyse_annotations(noeud_decl->annotations);
@@ -2719,6 +2730,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
 
         if (apparie(GenreLexème::POUSSE_CONTEXTE)) {
             empile_état("dans l'analyse du bloc", lexème_courant());
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::BLOC_CORPS_EST_POUSSE_CONTEXTE;
             noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), noeud);
             auto pousse_contexte = analyse_instruction_pousse_contexte();
             noeud_corps->bloc->ajoute_expression(pousse_contexte);
@@ -3286,6 +3298,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDéclaration
 
     copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
+    bloc->lexème_accolade_finale = lexème_courant();
     consomme(GenreLexème::ACCOLADE_FERMANTE,
              "Attendu '}' à la fin de la déclaration de la structure");
 

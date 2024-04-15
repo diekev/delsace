@@ -1120,12 +1120,12 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                     VERIFIE_NON_ATTEINT;
                     break;
                 }
-                case OpérateurUnaire::Genre::Complement:
+                case OpérateurUnaire::Genre::Négation:
                 {
                     VERIFIE_NON_ATTEINT;
                     break;
                 }
-                case OpérateurUnaire::Genre::Non_Binaire:
+                case OpérateurUnaire::Genre::Négation_Binaire:
                 {
                     assembleuse.not_(OPERANDE2);
                     VERIFIE_NON_ATTEINT;

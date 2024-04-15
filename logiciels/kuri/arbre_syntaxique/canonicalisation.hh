@@ -14,6 +14,7 @@ struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Lexème;
 struct NoeudBloc;
+struct NoeudComme;
 struct NoeudDéclarationEntêteFonction;
 struct NoeudDéclarationType;
 struct NoeudDéclarationVariable;
@@ -112,6 +113,10 @@ struct Simplificatrice {
     NoeudDéclarationVariable *crée_déclaration_variable(Lexème const *lexème,
                                                         NoeudDéclarationType *type,
                                                         NoeudExpression *expression);
+
+    NoeudComme *crée_comme_type_cible(Lexème const *lexème,
+                                      NoeudExpression *expression,
+                                      NoeudDéclarationType *type);
 
     IdentifiantCode *donne_identifiant_pour_variable();
 
