@@ -1,3 +1,2 @@
 /* Génération de code C++. Ceci se base sur la génération de code C, et enveloppe
  * les différentes fonctions C dans des classes C++ au besoin. */
-

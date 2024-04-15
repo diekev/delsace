@@ -173,40 +173,36 @@ struct NoeudInstructionCharge : NoeudExpression {
     NoeudExpression * expression [code enfant construction]
 }
 
-struct NoeudInstructionArrête : NoeudExpression {
+struct NoeudInstructionControleBoucle : NoeudExpression {
+    @comme controle_boucle
+    @code  NoeudCodeInstructionControleBoucle
+    @genre_valeur INVALIDE
+
+    NoeudExpression *expression [code enfant construction]
+
+    /* La boucle qui est controlée par cette instruction. */
+    NoeudExpression *boucle_controlée [code]
+}
+
+struct NoeudInstructionArrête : NoeudInstructionControleBoucle {
     @genre INSTRUCTION_ARRÊTE
     @comme arrête
     @code  NoeudCodeInstructionArrête
     @genre_valeur INVALIDE
-
-    NoeudExpression *expression [code enfant construction]
-
-    /* La boucle qui est controlée par cette instruction. */
-    NoeudExpression *boucle_controlée [code]
 }
 
-struct NoeudInstructionContinue : NoeudExpression {
+struct NoeudInstructionContinue : NoeudInstructionControleBoucle {
     @genre INSTRUCTION_CONTINUE
     @comme continue
     @code  NoeudCodeInstructionContinue
     @genre_valeur INVALIDE
-
-    NoeudExpression *expression [code enfant construction]
-
-    /* La boucle qui est controlée par cette instruction. */
-    NoeudExpression *boucle_controlée [code]
 }
 
-struct NoeudInstructionReprends : NoeudExpression {
+struct NoeudInstructionReprends : NoeudInstructionControleBoucle {
     @genre INSTRUCTION_REPRENDS
     @comme reprends
     @code  NoeudCodeInstructionReprends
     @genre_valeur INVALIDE
-
-    NoeudExpression *expression [code enfant construction]
-
-    /* La boucle qui est controlée par cette instruction. */
-    NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionEmpl : NoeudExpression {
@@ -324,6 +320,7 @@ struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
 
     UniteCompilation * unité
     Bibliothèque *bibliothèque
+    Lexème const *lexème_nom_bibliothèque [copie]
 }
 
 struct BaseDéclarationVariable : NoeudDéclarationSymbole {
@@ -1118,6 +1115,8 @@ struct NoeudBloc : NoeudExpression {
      * membres du bloc pour savoir s'il en reste à valider. */
     bool membres_sont_sales
     bool expressions_sont_sales
+    /* Pour le formattage. */
+    Lexème const * lexème_accolade_finale [copie]
 }
 
 struct NoeudPaireDiscr : NoeudExpression {

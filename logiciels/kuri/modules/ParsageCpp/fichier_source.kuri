@@ -34,7 +34,7 @@ détruit_données_flux :: fonc (flux: &FluxSource)
 
 construit_flux :: fonc (source: chaine) -> FluxSource
 {
-    résultat : FluxSource
+    résultat: FluxSource
     résultat.source = source
     construit_tableau_runes(résultat)
     retourne résultat

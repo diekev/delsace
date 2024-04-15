@@ -339,7 +339,7 @@ possède_membre :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
 
 eini_depuis_info_membre :: fonc (structure: eini, info_membre: *InfoTypeMembreStructure) -> eini
 {
-    e : eini
+    e: eini
     e.pointeur = structure.pointeur + info_membre.décalage
     e.info = info_membre.id
 
@@ -356,7 +356,7 @@ tampon_pour_eini :: fonc (e: eini) -> [..]octet #enligne
 
 trouve_info_membre :: fonc (info: *InfoTypeStructure, nom_membre: chaine) -> *InfoTypeMembreStructure
 {
-    pour info.membres {
+    pour info.membres {
         si it.nom == nom_membre {
             retourne it
         }
@@ -399,7 +399,7 @@ donne_nombre_de_membres_effectif :: fonc (info: *InfoTypeStructure) -> z64
  */
 trouve_valeur_membre :: fonc (valeur: eini, nom_membre: chaine) -> eini
 {
-    résultat : eini
+    résultat: eini
 
     si valeur.est_chaine() {
         si nom_membre == "taille" {
@@ -426,14 +426,14 @@ ItératriceTableau :: struct {
 
     position: z64
 
-    type_pointé : *InfoType
+    type_pointé: *InfoType
 
-    décalage : z32
+    décalage: z32
 }
 
 crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
 {
-    itératrice : ItératriceTableau
+    itératrice: ItératriceTableau
 
     saufsi valeur.est_valide() {
         retourne itératrice
@@ -469,7 +469,7 @@ crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
 
 crée_itératrice_tableau_tranche :: fonc (valeur: eini) -> ItératriceTableau
 {
-    itératrice : ItératriceTableau
+    itératrice: ItératriceTableau
 
     saufsi valeur.est_valide() {
         retourne itératrice
@@ -496,7 +496,7 @@ crée_itératrice_tableau_tranche :: fonc (valeur: eini) -> ItératriceTableau
 
 valeur_suivante :: fonc (itératrice: &ItératriceTableau) -> eini
 {
-    résultat : eini
+    résultat: eini
 
     si itératrice.position >= itératrice.taille {
         retourne résultat
@@ -519,12 +519,12 @@ ItératriceMembreStructure :: struct {
 
     position: z64
 
-    ignore_membres_constants : bool
+    ignore_membres_constants: bool
 }
 
 crée_itératrice_membre :: fonc (structure: eini, ignore_membres_constants := vrai) -> ItératriceMembreStructure
 {
-    itératrice : ItératriceMembreStructure
+    itératrice: ItératriceMembreStructure
 
     si !structure.est_structure() {
         retourne itératrice
@@ -541,8 +541,8 @@ crée_itératrice_membre :: fonc (structure: eini, ignore_membres_constants := v
 
 membre_suivant :: fonc (itératrice: &ItératriceMembreStructure) -> eini, chaine
 {
-    résultat : eini
-    nom : chaine
+    résultat: eini
+    nom: chaine
 
     info := itératrice.valeur.info comme *InfoTypeStructure
 
@@ -581,8 +581,8 @@ membre_suivant :: fonc (itératrice: &ItératriceMembreStructure) -> eini, chain
  * de la compilation via son InfoType.
  */
 FonctionParsage :: struct {
-    info_type : *InfoType
-    rappel : fonc (chaine, [..]octet)(bool)
+    info_type: *InfoType
+    rappel: fonc(chaine, [..]octet)(bool)
 }
 
 /* Trouve une FonctionParsage pour un InfoType précisé et retourne un pointeur vers celle-ci,
@@ -612,7 +612,7 @@ ajoute_fonction :: fonc (fonctions: *[..]FonctionParsage, info_type: *InfoType, 
         }
     }
 
-    fonction : FonctionParsage
+    fonction: FonctionParsage
     fonction.info_type = info_type
     fonction.rappel = rappel
 
@@ -779,12 +779,12 @@ parse_bool :: fonc (texte: chaine, tampon: [..]octet) -> bool
 FonctionInstrospection :: struct ($T: type_de_données) {
     #assert info_de(T).id == GenreInfoType.FONCTION
     info: *InfoType
-    fonction : T
+    fonction: T
 }
 
 ajoute_fonction :: fonc (fonctions: *[..]FonctionInstrospection($T), info: *InfoType, fonction: T)
 {
-    f : FonctionInstrospection(T)
+    f: FonctionInstrospection(T)
     f.info = info
     f.fonction = fonction
 
@@ -806,10 +806,10 @@ trouve_fonction_pour_type :: fonc (fonctions: [..]FonctionInstrospection($T), in
  * dans des fonctions génériques insérables dans un tableau de FonctionInstrospection. */
 CréatriceTableFonction :: struct {
     /* L'annotation code qu'une fonction doit avoir pour être considérée. */
-    annotation_désirée : chaine
+    annotation_désirée: chaine
 
     /* Nom du tableau globale contenant les FonctionIntropection. */
-    nom_table_fonctions : chaine
+    nom_table_fonctions: chaine
 
     /* Doit être vrai si le tableau doit par défaut contenir les fonctions de parsage
      * par défaut des types de bases. */
@@ -819,19 +819,19 @@ CréatriceTableFonction :: struct {
      * Seules les fonctions ayant l'annotation spécifiée par `annotation_désirée` sont passées
      * ici.
      * Le fonction du rappel peut interrompre la compilation via une erreur. */
-    données_pour_fonction : fonc (*NoeudCodeEntêteFonction)(DonnéesFonctionPourTableFonction)
+    données_pour_fonction: fonc(*NoeudCodeEntêteFonction)(DonnéesFonctionPourTableFonction)
 
     /* Génére la fonction d'enveloppe de la fonction spécifique ; enveloppe qui sera ajoutée
      * au tableau globale de FonctionIntropection.
      * Le rappel doit retourner le nom de la fonction enveloppe. */
-    génère_fonction_enveloppe : fonc (*Enchaineuse, DonnéesFonctionPourTableFonction)(chaine)
+    génère_fonction_enveloppe: fonc(*Enchaineuse, DonnéesFonctionPourTableFonction)(chaine)
 
     /* Les modules devant être importés pour que le code généré puisse compiler.
      * Utiliser ajoute_module() plutôt que ceci directement afin de s'assurer qu'un
      * module n'est importé qu'une seule.
      * Seuls les modules n'étant pas découvrable via les fonctions candidates
      * devrait être manuellement ajoutées. */
-    modules_importés : [..]chaine
+    modules_importés: [..]chaine
 }
 
 détruit_données_créatrice_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
@@ -891,7 +891,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
         retourne
     }
 
-    données_fonctions : [..]DonnéesFonctionPourTableFonction
+    données_fonctions: [..]DonnéesFonctionPourTableFonction
     diffère déloge(données_fonctions)
     pour fonctions {
         données := créatrice.données_pour_fonction(it)
@@ -899,7 +899,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
         tableau_ajoute(*données_fonctions, données)
     }
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
@@ -929,7 +929,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
     }
 
     /* Création de la fonction d'initialisation. */
-    ajoute_au_tampon(*enchaineuse, "initialise_", créatrice.nom_table_fonctions ," :: fonc ()\n")
+    ajoute_au_tampon(*enchaineuse, "initialise_", créatrice.nom_table_fonctions, " :: fonc ()\n")
     ajoute_au_tampon(*enchaineuse, "{\n")
 
     si créatrice.initialise_types_de_bases {
@@ -944,11 +944,11 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
     }
 
     ajoute_au_tampon(*enchaineuse, "}\n")
-    ajoute_au_tampon(*enchaineuse, "issitialise_", créatrice.nom_table_fonctions ," :: fonc ()\n")
+    ajoute_au_tampon(*enchaineuse, "issitialise_", créatrice.nom_table_fonctions, " :: fonc ()\n")
     ajoute_au_tampon(*enchaineuse, "{\n")
     ajoute_au_tampon(*enchaineuse, "}\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_", créatrice.nom_table_fonctions ,"()\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_", créatrice.nom_table_fonctions ,"()\n")
+    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_", créatrice.nom_table_fonctions, "()\n")
+    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_", créatrice.nom_table_fonctions, "()\n")
 
     sources := chaine_depuis_enchaineuse(*enchaineuse)
     diffère déloge(sources)
@@ -1100,7 +1100,7 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) 
         arg := consomme(*args)
 
         saufsi arg.commence_par("--") {
-            membre_anonyme : *InfoTypeMembreStructure
+            membre_anonyme: *InfoTypeMembreStructure
             pour infos.membres {
                 saufsi it.possède_annotation("anonyme") {
                     continue
