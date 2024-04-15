@@ -79,7 +79,7 @@ NuanceurGL :: struct {
     loc_uv : z32 = -1
     loc_atlas : z32 = -1
     loc_projection : z32 = -1
-    adresse_image: z32 = -1
+    adresse_image : z32 = -1
 }
 
 crée_nuanceur :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
@@ -92,9 +92,9 @@ crée_nuanceur :: fonc (source_vertex: chaine, source_fragment: chaine) -> *Nuan
 crée_nuanceur_depuis_fichier :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
 {
     contenu_source_vertex := contenu_fichier_texte(source_vertex)
-    diffère { déloge(contenu_source_vertex) }
+    diffère déloge(contenu_source_vertex)
     contenu_source_fragment := contenu_fichier_texte(source_fragment)
-    diffère { déloge(contenu_source_fragment) }
+    diffère déloge(contenu_source_fragment)
 
     nuanceur := crée_nuanceur(contenu_source_vertex, contenu_source_fragment)
 
@@ -159,34 +159,34 @@ donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
  * \{ */
 
 FormatVertexXCNU :: struct {
-    position : Vec3
-    couleur : CouleurRVBA
-    normal : Vec3
+    position: Vec3
+    couleur: CouleurRVBA
+    normal: Vec3
     uv: Vec2
 }
 
 DÉCALAGE_SOMMETS :: 0
 DÉCALAGE_COULEUR :: 12
-DÉCALAGE_NORMAL  :: 28
-DÉCALAGE_UV      :: 40
+DÉCALAGE_NORMAL :: 28
+DÉCALAGE_UV :: 40
 
-projection : Mat4r
-largeur_cannevas : z32
-hauteur_cannevas : z32
+projection: Mat4r
+largeur_cannevas: z32
+hauteur_cannevas: z32
 
 MAX_SOMMETS_IMMÉDIAT :: 2400
 sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU = ---
 num_sommets_immédiat : z32 = 0
-va_immédiat : n32
-vbo_immédiat : n32
-vbo_immédiat_index : n32
+va_immédiat: n32
+vbo_immédiat: n32
+vbo_immédiat_index: n32
 
-nuanceur_global : *NuanceurGL
-nuanceur_base : *NuanceurGL
-nuanceur_texte : *NuanceurGL
-nuanceur_image : *NuanceurGL
+nuanceur_global: *NuanceurGL
+nuanceur_base: *NuanceurGL
+nuanceur_texte: *NuanceurGL
+nuanceur_image: *NuanceurGL
 
-fonte_globale : *Fonte
+fonte_globale: *Fonte
 
 /** } */
 
@@ -217,7 +217,7 @@ termine_immédiat :: fonc (mode: ModeImmédiat)
             panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé")
         }
 
-        num_sommets_immédiat = 0;
+        num_sommets_immédiat = 0
         retourne
     }
 
@@ -316,10 +316,10 @@ ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
 
 quad_immédiat :: fonc (x: r32, y: r32, largeur: r32, hauteur: r32, couleur: CouleurRVBA)
 {
-    p0 := Vec3(x = x          , y = y)
+    p0 := Vec3(x = x, y = y)
     p1 := Vec3(x = x + largeur, y = y)
     p2 := Vec3(x = x + largeur, y = y + hauteur)
-    p3 := Vec3(x = x          , y = y + hauteur)
+    p3 := Vec3(x = x, y = y + hauteur)
 
     quad_immédiat(p0, p1, p2, p3, couleur)
 }
@@ -367,14 +367,14 @@ segment_immédiat :: fonc (x0: r32, y0: r32, x1: r32, y1: r32, couleur: CouleurR
 /** \nom Cercle.
  * \{ */
 
-cercle_immédiat :: fonc (cx : r32, cy : r32, r : r32, couleur: CouleurRVBA, ajoute_centre: bool)
+cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     segs := 32
     phi := 0.0
     cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
 }
 
-quadrant_cercle_immédiat :: fonc (cx : r32, cy : r32, r : r32, quadrant : z32, couleur: CouleurRVBA, ajoute_centre: bool)
+quadrant_cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, quadrant: z32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     segs := 8
     phi := quadrant comme r32 * (Constantes(r32).PI / 2.0)
@@ -413,7 +413,7 @@ cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, co
 /** \nom Quad arrondi.
  * \{ */
 
-quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
+quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
 {
     px := pos_x + rayon
     py := pos_y + rayon
@@ -441,7 +441,7 @@ quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: 
     quadrant_cercle_immédiat(px + tx, py, rayon, 3, couleur, vrai)
 }
 
-contour_quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
+contour_quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
 {
     px := pos_x + rayon
     py := pos_y + rayon
@@ -508,7 +508,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     utilise_nuanceur(nuanceur_texte)
 
     // met en place la texture de la fonte sur le nuanceur
-    glGenTextures(1, *fonte.atlas.id )
+    glGenTextures(1, *fonte.atlas.id)
     diffère glDeleteTextures(1, *fonte.atlas.id)
 
     // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
@@ -536,10 +536,10 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
         y0 := (y + glyph.offset_y comme r32)
         x1 := x0 + glyph.width comme r32
         y1 := y0 - glyph.height comme r32
-        s0 := glyph.s0;
-        t0 := glyph.t0;
-        s1 := glyph.s1;
-        t1 := glyph.t1;
+        s0 := glyph.s0
+        t0 := glyph.t0
+        s1 := glyph.s1
+        t1 := glyph.t1
 
         p0 := Vec3(x = x0, y = y0)
         p1 := Vec3(x = x0, y = y1)
@@ -618,10 +618,10 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, x: r32, y: r32, largeur:
     glBindTexture(GL_TEXTURE_2D, code_texture)
     définis_uniforme(nuanceur_image.adresse_image, 0 comme z32)
 
-    p0 := Vec3(x = x          , y = y)
+    p0 := Vec3(x = x, y = y)
     p1 := Vec3(x = x + largeur, y = y)
     p2 := Vec3(x = x + largeur, y = y + hauteur)
-    p3 := Vec3(x = x          , y = y + hauteur)
+    p3 := Vec3(x = x, y = y + hauteur)
 
     u0 := Vec2(0.0, 0.0)
     u1 := Vec2(1.0, 0.0)
