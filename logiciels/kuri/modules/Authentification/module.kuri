@@ -13,8 +13,8 @@ importe Temps
 
 /* Structure pour paramétrer l'algorithme utiliser pour vérifier et créer une signature. */
 AlgorithmeSignature :: struct {
-    vérifie_signature : fonc(chaine, chaine, chaine)(bool)
-    crée_signature : fonc(chaine, chaine)(chaine)
+    vérifie_signature: fonc(chaine, chaine, chaine)(bool)
+    crée_signature: fonc(chaine, chaine)(chaine)
 }
 
 /* Vérifie une signature en utilisant HMAC. */
@@ -69,7 +69,7 @@ Signataire :: struct {
 
 crée_signataire :: fonc (clés_secrètes: [..]chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> Signataire
 {
-    signataire : Signataire
+    signataire: Signataire
     signataire.clés_secrètes = clés_secrètes
     signataire.sel = sel
     signataire.séparateur = séparateur
@@ -121,7 +121,7 @@ vérifie_signature :: fonc (signataire: &Signataire, valeur: chaine, signature: 
 /* Dissigne un message depuis une valeur_signée en séparant la valeur_signée en un message et une signature.
  * Retourne une ErreurSignature si le séparateur n'est pas trouvable, ou si la signature ne peut être vérifiée.
  * Retourne le message extrait sinon. */
-dissigne :: fonc (signataire: &Signataire, valeur_signée: chaine) -> ErreurSignature | chaine
+dissigne :: fonc (signataire: &Signataire, valeur_signée: chaine) -> ErreurSignature | chaine
 {
     si !valeur_signée.trouve_motif_dans_chaine(signataire.séparateur) {
         retourne ErreurSignature.SéparateurIntrouvable
@@ -164,7 +164,7 @@ SignataireHorodoté :: struct {
 
 crée_signataire_horodoté :: fonc (clés_secrètes: [..]chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> SignataireHorodoté
 {
-    signataire : SignataireHorodoté
+    signataire: SignataireHorodoté
     signataire.signataire = crée_signataire(clés_secrètes, sel, séparateur, algorithme, codec_base_64)
     retourne signataire
 }
@@ -192,7 +192,7 @@ signe :: fonc (signataire: &SignataireHorodoté, valeur: chaine) -> chaine
 /* Dissigne le message d'une valeur_signée en vérifiant que le message fut généré dans un laps de temps inférieur à âge_max, en millisecondes.
  * Retourne une ErreurSignature si la valeur_signée ne vient pas de ce SignataireHorodoté ou est périmée.
  * Retourne le message extrait sinon. */
-dissigne :: fonc (signataire: &SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> ErreurSignature | chaine
+dissigne :: fonc (signataire: &SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> ErreurSignature | chaine
 {
     valeur_ := tente signataire.signataire.dissigne(valeur_signée) piège err {
         retourne err

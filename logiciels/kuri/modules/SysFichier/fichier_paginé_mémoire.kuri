@@ -33,7 +33,7 @@ aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> [..]octet
     nombre_de_pages := nombre_de_pages_dans_liste(fichier.première_page)
     taille_octet := nombre_de_pages * TAILLE_PAGE
 
-    résultat : [..]octet
+    résultat: [..]octet
     tableau_redimensionne(résultat, taille_octet)
 
     dst := résultat.pointeur

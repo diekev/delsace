@@ -605,7 +605,7 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
 
     émets_notifie_dépilage(site, taille_type);
 
-    if (op == OpérateurUnaire::Genre::Complement) {
+    if (op == OpérateurUnaire::Genre::Négation) {
         if (type->est_type_réel()) {
             émets_entête_op(OP_COMPLEMENT_REEL, site);
         }
@@ -613,7 +613,7 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
             émets_entête_op(OP_COMPLEMENT_ENTIER, site);
         }
     }
-    else if (op == OpérateurUnaire::Genre::Non_Binaire) {
+    else if (op == OpérateurUnaire::Genre::Négation_Binaire) {
         émets_entête_op(OP_NON_BINAIRE, site);
     }
 

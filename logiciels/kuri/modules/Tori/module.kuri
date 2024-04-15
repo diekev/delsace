@@ -18,45 +18,45 @@ Objet :: struct {
 /* ------------------------------------------------------------------------- */
 
 ObjetEntier :: struct {
-    empl objet : Objet
-    valeur : z64
+    empl objet: Objet
+    valeur: z64
     id = TypeObjet.ENTIER
 }
 
 /* ------------------------------------------------------------------------- */
 
 ObjetRéel :: struct {
-    empl objet : Objet
-    valeur : r64
+    empl objet: Objet
+    valeur: r64
     id = TypeObjet.RÉEL
 }
 
 /* ------------------------------------------------------------------------- */
 
 ObjetChaine :: struct {
-    empl objet : Objet
-    valeur : chaine
+    empl objet: Objet
+    valeur: chaine
     id = TypeObjet.CHAINE
 }
 
 /* ------------------------------------------------------------------------- */
 
 ObjetListe :: struct {
-    empl objet : Objet
-    valeur : [..]*Objet
+    empl objet: Objet
+    valeur: [..]*Objet
     id = TypeObjet.LISTE
 }
 
 /* ------------------------------------------------------------------------- */
 
 ObjetDictionnaire :: struct {
-    empl objet : Objet
-    noms : [..]chaine
-    valeurs : [..]*Objet
+    empl objet: Objet
+    noms: [..]chaine
+    valeurs: [..]*Objet
     id = TypeObjet.DICTIONNAIRE
 }
 
-insère :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) -> rien
+insère :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine, objet: *Objet) -> rien
 {
     pour nom, idx dans dico.noms {
         si nom != nom_objet {
@@ -71,7 +71,7 @@ insère :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) -
     tableau_ajoute(*dico.valeurs, objet)
 }
 
-trouve_objet :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *Objet
+trouve_objet :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *Objet
 {
     pour nom, idx dans dico.noms {
         si nom != nom_objet {
@@ -84,10 +84,7 @@ trouve_objet :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *Objet
     retourne nul
 }
 
-trouve_objet :: fonc(
-    dico : *ObjetDictionnaire,
-    nom_objet : chaine,
-    type : TypeObjet) -> *Objet
+trouve_objet :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine, type: TypeObjet) -> *Objet
 {
     pour nom, idx dans dico.noms {
         si nom != nom_objet {
@@ -106,7 +103,7 @@ trouve_objet :: fonc(
     retourne nul
 }
 
-trouve_entier :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetEntier
+trouve_entier :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetEntier
 {
     objet := trouve_objet(dico, nom_objet, TypeObjet.ENTIER)
 
@@ -117,7 +114,7 @@ trouve_entier :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetEn
     retourne nul
 }
 
-trouve_réel :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetRéel
+trouve_réel :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetRéel
 {
     objet := trouve_objet(dico, nom_objet, TypeObjet.RÉEL)
 
@@ -128,7 +125,7 @@ trouve_réel :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetRé
     retourne nul
 }
 
-trouve_liste :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetListe
+trouve_liste :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetListe
 {
     objet := trouve_objet(dico, nom_objet, TypeObjet.LISTE)
 
@@ -139,7 +136,7 @@ trouve_liste :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetLis
     retourne nul
 }
 
-trouve_chaine :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetChaine
+trouve_chaine :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetChaine
 {
     objet := trouve_objet(dico, nom_objet, TypeObjet.CHAINE)
 
@@ -150,7 +147,7 @@ trouve_chaine :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetCh
     retourne nul
 }
 
-trouve_dico :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetDictionnaire
+trouve_dico :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetDictionnaire
 {
     objet := trouve_objet(dico, nom_objet, TypeObjet.DICTIONNAIRE)
 
@@ -164,7 +161,7 @@ trouve_dico :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetDict
 /* ------------------------------------------------------------------------- */
 
 GestionnaireObjet :: struct {
-    objets : [..]*Objet
+    objets: [..]*Objet
 }
 
 crée_objet_impl :: fonc (gestionnaire: *GestionnaireObjet, $T: type_de_données) -> *T
@@ -174,37 +171,37 @@ crée_objet_impl :: fonc (gestionnaire: *GestionnaireObjet, $T: type_de_données
     retourne résultat
 }
 
-crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionnaire
+crée_dictionnaire :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetDictionnaire
 {
     retourne crée_objet_impl(gestionnaire, ObjetDictionnaire)
 }
 
-crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
+crée_liste :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetListe
 {
     retourne crée_objet_impl(gestionnaire, ObjetListe)
 }
 
-crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
+crée_entier :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetEntier
 {
     retourne crée_objet_impl(gestionnaire, ObjetEntier)
 }
 
-crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
+crée_réel :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetRéel
 {
     retourne crée_objet_impl(gestionnaire, ObjetRéel)
 }
 
-crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
+crée_chaine :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetChaine
 {
     retourne crée_objet_impl(gestionnaire, ObjetChaine)
 }
 
-crée_nul :: fonc(gestionnaire : *GestionnaireObjet) -> *Objet
+crée_nul :: fonc (gestionnaire: *GestionnaireObjet) -> *Objet
 {
     retourne crée_objet_impl(gestionnaire, Objet)
 }
 
-détruit_objet :: fonc(objet : *Objet) -> rien
+détruit_objet :: fonc (objet: *Objet) -> rien
 {
     discr objet.id {
         NUL {
@@ -238,12 +235,12 @@ détruit_objet :: fonc(objet : *Objet) -> rien
     }
 }
 
-détruit :: fonc(gestionnaire : *GestionnaireObjet) -> rien
+détruit :: fonc (gestionnaire: *GestionnaireObjet) -> rien
 {
     déloge_tableau_et_ses_éléments(gestionnaire.objets)
 }
 
-imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
+imprime_json :: fonc (objet: *Objet, tab: z32) -> rien
 {
     discr objet.id {
         NUL {
@@ -293,12 +290,12 @@ imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
     }
 }
 
-test_tori :: fonc() -> rien
+test_tori :: fonc () -> rien
 {
-    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée())
 
-    gestionnaire : GestionnaireObjet
-    diffère { détruit(*gestionnaire) }
+    gestionnaire: GestionnaireObjet
+    diffère détruit(*gestionnaire)
 
     dico := crée_dictionnaire(*gestionnaire)
 

@@ -15,16 +15,8 @@
 
 #include "utilitaires/log.hh"
 
-int main(int argc, char **argv)
+static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
 {
-    if (argc < 2) {
-        dbg() << "Utilisation : " << argv[0] << " FICHIER";
-        return 1;
-    }
-
-    auto chemin_fichier = kuri::chemin_systeme(argv[1]);
-    chemin_fichier = kuri::chemin_systeme::absolu(chemin_fichier);
-
     auto arguments = ArgumentsCompilatrice{};
     arguments.importe_kuri = false;
     auto compilatrice = Compilatrice("", arguments);
@@ -40,36 +32,53 @@ int main(int argc, char **argv)
         compilatrice.contexte_lexage(nullptr), &donnees_fichier, INCLUS_COMMENTAIRES);
     lexeuse.performe_lexage();
 
+    if (compilatrice.possède_erreur()) {
+        return;
+    }
+
     auto unité = UniteCompilation(compilatrice.espace_de_travail_defaut);
     unité.fichier = &donnees_fichier;
 
     auto syntaxeuse = Syntaxeuse(tacheronne, &unité);
     syntaxeuse.analyse();
 
+    if (compilatrice.possède_erreur()) {
+        return;
+    }
+
     assert(module.bloc);
 
-    std::optional<int> dernière_ligne_lexème;
-
     Enchaineuse enchaineuse;
-    POUR (*module.bloc->expressions.verrou_lecture()) {
-        /* Essaie de préserver les séparations dans le texte originel. */
-        if (dernière_ligne_lexème.has_value()) {
-            if (it->lexème->ligne > (dernière_ligne_lexème.value() + 1)) {
-                enchaineuse << "\n";
-            }
-        }
-
-        imprime_arbre_formatté(enchaineuse, it);
-
-        if (!expression_eu_bloc(it)) {
-            enchaineuse << "\n";
-        }
-
-        dernière_ligne_lexème = it->lexème->ligne;
-    }
+    imprime_arbre_formatté_bloc_module(enchaineuse, module.bloc);
 
     auto os = std::ofstream(vers_std_path(chemin_fichier));
     os << enchaineuse.chaine();
+}
+
+int main(int argc, char **argv)
+{
+    if (argc < 2) {
+        dbg() << "Utilisation : " << argv[0] << " [FICHIER|DOSSIER]";
+        return 1;
+    }
+
+    auto chemin_fichier = kuri::chemin_systeme(argv[1]);
+    chemin_fichier = kuri::chemin_systeme::absolu(chemin_fichier);
+
+    if (kuri::chemin_systeme::est_dossier(chemin_fichier)) {
+        auto chemins = kuri::chemin_systeme::fichiers_du_dossier_recursif(chemin_fichier);
+        POUR (chemins) {
+            formatte_fichier(it);
+        }
+    }
+    else if (kuri::chemin_systeme::est_fichier_kuri(chemin_fichier)) {
+        formatte_fichier(chemin_fichier);
+    }
+    else {
+        dbg() << "Le chemin " << chemin_fichier
+              << " ne pointe ni vers un dossier ni vers un fichier Kuri.";
+        return 1;
+    }
 
     return 0;
 }

@@ -1,7 +1,7 @@
 charge "fichier_texte"
 
 CatalogueFichier :: struct {
-    fichiers : [..]FichierTexte
+    fichiers: [..]FichierTexte
 }
 
 trouve_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine) -> *FichierTexte
@@ -23,7 +23,7 @@ ajoute_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine, chemin:
         retourne
     }
 
-    nouveau_fichier : FichierTexte
+    nouveau_fichier: FichierTexte
     nouveau_fichier.nom_court = nom_court
     nouveau_fichier.chemin = chemin
 
