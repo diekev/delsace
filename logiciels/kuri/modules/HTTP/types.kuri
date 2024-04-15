@@ -1,4 +1,3 @@
-
 /* Type pour les redirections. */
 Redirection :: struct {
     chemin_redirection: chaine

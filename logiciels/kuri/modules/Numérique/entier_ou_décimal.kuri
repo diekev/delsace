@@ -1,27 +1,27 @@
 // Une simple union pour analyser les bits d'un nombre décimal sur 32-bits
 
 EntierOuDécimal :: union nonsûr {
-    i : z32
-    f : r32
+    i: z32
+    f: r32
 }
 
-construit_entier_ou_décimal :: fonc(f : r32) -> EntierOuDécimal
+construit_entier_ou_décimal :: fonc (f: r32) -> EntierOuDécimal
 {
-    retourne EntierOuDécimal( f = f )
+    retourne EntierOuDécimal(f = f)
 }
 
 // Extraction portable des composants
-est_négatif :: fonc(n : EntierOuDécimal) -> bool
+est_négatif :: fonc (n: EntierOuDécimal) -> bool
 {
     retourne (n.i >> 31) != 0
 }
 
-mantisse_crue :: fonc(n : EntierOuDécimal) -> z32
+mantisse_crue :: fonc (n: EntierOuDécimal) -> z32
 {
     retourne n.i & ((1 << 23) - 1)
 }
 
-exposant_cru :: fonc(n : EntierOuDécimal) -> z32
+exposant_cru :: fonc (n: EntierOuDécimal) -> z32
 {
     retourne (n.i >> 23) & 0xFF
 }

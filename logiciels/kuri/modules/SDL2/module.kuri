@@ -10,8 +10,7 @@ DrapeauxInit :: énum_drapeau n32 {
     SDL_INIT_HAPTIC :: 0x00001000
     SDL_INIT_GAMECONTROLLER :: 0x00002000
     SDL_INIT_EVENTS :: 0x00004000
-    SDL_INIT_EVERYTHING :: SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS |
-                SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER
+    SDL_INIT_EVERYTHING :: SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER
 }
 
 SDL_Init :: fonc (flahs: DrapeauxInit) -> z32 #externe libSDL2
@@ -60,16 +59,16 @@ SDL_WindowFlags :: énum_drapeau n32 {
     SDL_WINDOW_INPUT_GRABBED :: 0x00000100
     SDL_WINDOW_INPUT_FOCUS :: 0x00000200
     SDL_WINDOW_MOUSE_FOCUS :: 0x00000400
-    SDL_WINDOW_FULLSCREEN_DESKTOP :: ( SDL_WINDOW_FULLSCREEN | 0x00001000 )
+    SDL_WINDOW_FULLSCREEN_DESKTOP :: (SDL_WINDOW_FULLSCREEN | 0x00001000)
     SDL_WINDOW_FOREIGN :: 0x00000800
     SDL_WINDOW_ALLOW_HIGHDPI :: 0x00002000
     SDL_WINDOW_MOUSE_CAPTURE :: 0x00004000
     SDL_WINDOW_ALWAYS_ON_TOP :: 0x00008000
-    SDL_WINDOW_SKIP_TASKBAR  :: 0x00010000
-    SDL_WINDOW_UTILITY       :: 0x00020000
-    SDL_WINDOW_TOOLTIP       :: 0x00040000
-    SDL_WINDOW_POPUP_MENU    :: 0x00080000
-    SDL_WINDOW_VULKAN        :: 0x10000000
+    SDL_WINDOW_SKIP_TASKBAR :: 0x00010000
+    SDL_WINDOW_UTILITY :: 0x00020000
+    SDL_WINDOW_TOOLTIP :: 0x00040000
+    SDL_WINDOW_POPUP_MENU :: 0x00080000
+    SDL_WINDOW_VULKAN :: 0x10000000
 }
 
 SDL_GL_SetAttribute :: fonc (attr: SDL_GLattr, value: z64) -> z32 #externe libSDL2
@@ -77,12 +76,12 @@ SDL_GL_SetAttribute :: fonc (attr: SDL_GLattr, value: z64) -> z32 #externe libSD
 SDL_Window :: struct #externe
 
 SDL_CreateWindow :: fonc (
-        title : *z8,
-        x : z32,
-        y : z32,
-        w : z32,
-        h : z32,
-        flags : SDL_WindowFlags) -> *SDL_Window #externe libSDL2
+    title: *z8,
+    x: z32,
+    y: z32,
+    w: z32,
+    h: z32,
+    flags: SDL_WindowFlags) -> *SDL_Window #externe libSDL2
 
 SDL_SetWindowTitle :: fonc (window: *SDL_Window, title: *z8) -> rien #externe libSDL2
 

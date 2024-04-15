@@ -35,7 +35,7 @@ tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T)(z32))
 
     /* Appel récursif. Les éléments dont la valeur retournée pa \a Comparaison
      * est plus petite que celle du pivot sont placés à gauche, les autres à
-     * droite. */   
+     * droite. */
     tri_rapide(premier, pivot, Comparaison)
     tri_rapide(pivot + 1, dernier, Comparaison)
 }

@@ -174,7 +174,7 @@ système_convertis_raison :: fonc (raison: RaisonOuvertureFichier) -> z32
 
 système_ouvre :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, permissions: z32) -> RésultatOpérationFichier
 {
-  	ptr_chemin := crée_chaine_c(chemin.chn)
+    ptr_chemin := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(ptr_chemin)
 
     drapeaux := système_convertis_raison(raison)
@@ -208,7 +208,7 @@ système_synchronise_données :: fonc (fd: TypePoignéeFichier) -> Optionnel(Err
     retourne donne_erreur_si_résultat_invalide(résultat)
 }
 
-système_écris :: fonc (fd: TypePoignéeFichier, ptr:  *z8, taille: z64) -> RésultatOpérationFichier
+système_écris :: fonc (fd: TypePoignéeFichier, ptr: *z8, taille: z64) -> RésultatOpérationFichier
 {
     résultat := write(fd comme z32, ptr, taille)
 
@@ -224,7 +224,7 @@ RésultatLecture :: union {
     r: z64
 }
 
-système_lis :: fonc (fd: TypePoignéeFichier, ptr:  *z8, taille: z64) -> RésultatLecture
+système_lis :: fonc (fd: TypePoignéeFichier, ptr: *z8, taille: z64) -> RésultatLecture
 {
     résultat := read(fd comme z32, ptr, taille comme n64)
 
@@ -307,10 +307,10 @@ système_fin_de_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpération
 crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> Optionnel(ErreurFichier)
 {
     chn_c_cible := crée_chaine_c(cible)
-    diffère { détruit_chaine_c(chn_c_cible) }
+    diffère détruit_chaine_c(chn_c_cible)
 
     chn_c_chemin_lien := crée_chaine_c(chemin_lien)
-    diffère { détruit_chaine_c(chn_c_chemin_lien) }
+    diffère détruit_chaine_c(chn_c_chemin_lien)
 
     résultat := symlink(chn_c_cible, chn_c_chemin_lien)
     retourne donne_erreur_si_résultat_invalide(résultat)
@@ -346,7 +346,7 @@ système_découvre_type_fichier :: fonc (chemin: CheminFichier) -> Résultat(Typ
     ptr_chemin := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(ptr_chemin)
 
-    st : struct_stat
+    st: struct_stat
     ok := stat(ptr_chemin, *st)
 
     si ok == -1 {
@@ -389,9 +389,9 @@ système_séparateur_chemin_préféré :: fonc () -> z8 #enligne
 // -----------------------------------------------------------------------
 // Fichiers communs
 
-fichier_entrée_standarde := Fichier( desc = TypePoignéeFichier(STDIN_FILENO) )
-fichier_sortie_standarde := Fichier( desc = TypePoignéeFichier(STDOUT_FILENO) )
-fichier_sortie_erreur    := Fichier( desc = TypePoignéeFichier(STDERR_FILENO) )
+fichier_entrée_standarde := Fichier(desc = TypePoignéeFichier(STDIN_FILENO))
+fichier_sortie_standarde := Fichier(desc = TypePoignéeFichier(STDOUT_FILENO))
+fichier_sortie_erreur := Fichier(desc = TypePoignéeFichier(STDERR_FILENO))
 
 système_entrée_standarde :: fonc () -> *Fichier
 {
@@ -414,7 +414,7 @@ système_sortie_erreur :: fonc () -> *Fichier
 TypePoignéeDossier :: #opaque *DIR
 TypePoignéeEntréeDossier :: #opaque *dirent
 
-système_ouvre_dossier :: fonc (chemin : CheminFichier) -> Optionnel(TypePoignéeDossier)
+système_ouvre_dossier :: fonc (chemin: CheminFichier) -> Optionnel(TypePoignéeDossier)
 {
     ptr_chemin := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(ptr_chemin)
@@ -484,7 +484,7 @@ système_espace_disque_disponible :: fonc (chemin: CheminFichier) -> Résultat(n
     ptr_chemin := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(ptr_chemin)
 
-    s : struct_statvfs
+    s: struct_statvfs
     résultat := statvfs(ptr_chemin, *s)
 
     // Si le fichier ou dossier n'exite pas, il y aura aussi une erreur
@@ -496,7 +496,7 @@ système_espace_disque_disponible :: fonc (chemin: CheminFichier) -> Résultat(n
     retourne s.f_bavail * s.f_bsize
 }
 
-système_chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
+système_chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 {
     tampon : [1024]z8 = ---
     pointeur := getcwd(ChaineC(*tampon[0]), 1024)
@@ -509,7 +509,7 @@ système_chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
     retourne CheminFichier(ret)
 }
 
-système_chemin_courant :: fonc(chemin : CheminFichier) -> Optionnel(ErreurFichier)
+système_chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichier)
 {
     ptr_chemin := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(ptr_chemin)
@@ -622,7 +622,7 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
 
     diffère détruit_chemin(chemin_maison)
 
-    chemin_potentiel := chemin_maison / ".local/share/Trash";
+    chemin_potentiel := chemin_maison / ".local/share/Trash"
     si est_un_dossier(chemin_potentiel) {
         retourne chemin_potentiel
     }
@@ -630,7 +630,7 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
     détruit_chemin(chemin_potentiel)
 
     /* Tente un dernier coup avec $HOME/.trash. */
-    chemin_potentiel = chemin_maison / ".trash";
+    chemin_potentiel = chemin_maison / ".trash"
     si est_un_dossier(chemin_potentiel) {
         retourne chemin_potentiel
     }
@@ -679,7 +679,7 @@ système_chemins_système_pour_variable :: fonc (variable: chaine) -> Optionnel(
 
     morceaux := divise(chemins, ':')
 
-    résultat : [..]CheminFichier
+    résultat: [..]CheminFichier
     tableau_réserve(*résultat, morceaux.taille)
 
     pour morceaux {
@@ -809,7 +809,7 @@ système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFi
     retourne CheminFichier(convertis_chaine_c(résultat))
 }
 
-système_renomme :: fonc(orig : CheminFichier, dest : CheminFichier) -> Optionnel(ErreurFichier)
+système_renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel(ErreurFichier)
 {
     ptr_chemin_orig := crée_chaine_c(orig.chn)
     diffère détruit_chaine_c(ptr_chemin_orig)
@@ -820,7 +820,7 @@ système_renomme :: fonc(orig : CheminFichier, dest : CheminFichier) -> Optionne
     retourne donne_erreur_si_résultat_invalide(résultat)
 }
 
-système_supprime :: fonc(chm : CheminFichier) -> Optionnel(ErreurFichier)
+système_supprime :: fonc (chm: CheminFichier) -> Optionnel(ErreurFichier)
 {
     ptr_chemin := crée_chaine_c(chm.chn)
     diffère détruit_chaine_c(ptr_chemin)
@@ -830,10 +830,10 @@ système_supprime :: fonc(chm : CheminFichier) -> Optionnel(ErreurFichier)
 
 système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 {
-    résultat : CheminFichier
+    résultat: CheminFichier
 
     TAILLE_TAMPON_READLINK :: 1024
-    tampon: [TAILLE_TAMPON_READLINK]z8 = ---
+    tampon : [TAILLE_TAMPON_READLINK]z8 = ---
 
     lus := readlink(ChaineC("/proc/self/exe\0".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64)
     si lus < 0 {

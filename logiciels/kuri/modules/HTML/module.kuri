@@ -20,7 +20,7 @@ charge "parsage"
 charge "pile_éléments_ouverts"
 charge "tags_html"
 
-imprime_noeud :: fonc (noeud: *Noeud, tab : z32) -> rien
+imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien
 {
     imprime_tabulation(tab)
 
@@ -60,7 +60,7 @@ imprime_document :: fonc (document: *Document)
     }
 }
 
-rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudTexte,eini)(rien), données: eini)
+rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudTexte, eini)(rien), données: eini)
 {
     pour noeud.enfants {
         si it.genre == GenreNoeud.Texte {
@@ -89,7 +89,7 @@ extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
         }
     }
 
-    extractrice : ExtractriceTexte
+    extractrice: ExtractriceTexte
     diffère détruit_chaine(extractrice.texte)
 
     rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice)
@@ -196,13 +196,13 @@ détruit :: fonc (parsat: &ParsatHTML)
 parse_document :: fonc (document: chaine) -> ParsatHTML
 {
     parseuse := initialise_parseuse(document)
-    diffère { détruit_parseuse(*parseuse) }
+    diffère détruit_parseuse(*parseuse)
 
     début := maintenant_précis()
     parse(*parseuse)
     temps := début.temps_écoulé_microsecondes()
 
-    parsat : ParsatHTML
+    parsat: ParsatHTML
     parsat.document = parseuse.document
     parsat.temps = temps
     parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs)

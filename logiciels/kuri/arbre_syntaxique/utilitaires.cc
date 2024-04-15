@@ -650,24 +650,10 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::INSTRUCTION_ARRÊTE:
-        {
-            auto inst = racine->comme_arrête();
-            inst->position |= position;
-            aplatis_arbre(inst->expression, arbre_aplatis, position);
-            ajoute_noeud_arbre_aplatis(arbre_aplatis, inst);
-            break;
-        }
         case GenreNoeud::INSTRUCTION_CONTINUE:
-        {
-            auto inst = racine->comme_continue();
-            inst->position |= position;
-            aplatis_arbre(inst->expression, arbre_aplatis, position);
-            ajoute_noeud_arbre_aplatis(arbre_aplatis, inst);
-            break;
-        }
         case GenreNoeud::INSTRUCTION_REPRENDS:
         {
-            auto inst = racine->comme_reprends();
+            auto inst = racine->comme_controle_boucle();
             inst->position |= position;
             aplatis_arbre(inst->expression, arbre_aplatis, position);
             ajoute_noeud_arbre_aplatis(arbre_aplatis, inst);

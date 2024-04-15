@@ -288,7 +288,7 @@ est_chaine_utf8_valide :: fonc (chn: chaine) -> bool
 TexteUnicode :: struct {
     chn: chaine
     index_sauvegardé : z64 = -1
-    it_sauvegardé : Rune
+    it_sauvegardé: Rune
 }
 
 crée_texte_unicode :: fonc (chn: chaine) -> TexteUnicode
@@ -303,7 +303,7 @@ opérateur [] :: fonc (texte: TexteUnicode, index: z64) -> Rune
 {
     ptr := texte.chn.pointeur
 
-    si texte.index_sauvegardé == -1 || texte.index_sauvegardé > index {
+    si texte.index_sauvegardé == -1 || texte.index_sauvegardé > index {
         texte.index_sauvegardé = 0
         texte.it_sauvegardé = rune_depuis_pointeur(ptr)
     }
@@ -323,13 +323,13 @@ opérateur [] :: fonc (texte: TexteUnicode, index: z64) -> Rune
 }
 
 ItératriceUTF8 :: struct {
-    chn : chaine
+    chn: chaine
     position : z64 = 0
 }
 
 crée_itératrice_utf8 :: fonc (chn: chaine)
 {
-    itératrice : ItératriceUTF8
+    itératrice: ItératriceUTF8
 
     si !est_chaine_utf8_valide(chn) {
         retourne
