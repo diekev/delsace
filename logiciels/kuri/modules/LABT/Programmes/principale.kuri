@@ -4,9 +4,7 @@ importe LABT
 principale :: fonc () -> z32
 {
     mémoire_début := mémoire_utilisée()
-    diffère {
-        Fondation.imprime("mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_début)
-    }
+    diffère Fondation.imprime("mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_début)
 
     texte := "{document titre = \"Document Test\" auteur = \"Kévin Dietrich\"
         {chapitre titre=\"Introduction\"
