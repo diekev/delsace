@@ -1,22 +1,22 @@
 importe Fondation
 
 Syntaxeuse :: struct {
-    lexèmes : [..]Lexème
-    assembleuse : AssembleuseArbre
+    lexèmes: [..]Lexème
+    assembleuse: AssembleuseArbre
 
     position := 0
 
-    erreurs : [..]chaine
+    erreurs: [..]chaine
 
     est_extension := faux
     fichier_étendu := ""
 
-    inclusions : [..]*NoeudSyntaxique
+    inclusions: [..]*NoeudSyntaxique
 }
 
-construit_syntaxeuse :: fonc (lexèmes : &[..]Lexème) -> Syntaxeuse
+construit_syntaxeuse :: fonc (lexèmes: &[..]Lexème) -> Syntaxeuse
 {
-    syntaxeuse : Syntaxeuse
+    syntaxeuse: Syntaxeuse
     syntaxeuse.lexèmes = lexèmes
     syntaxeuse.assembleuse = construit_assembleuse()
 
@@ -29,46 +29,46 @@ détruit_syntaxeuse :: fonc (syntaxeuse: &Syntaxeuse)
     déloge(syntaxeuse.inclusions)
 }
 
-lexème_courant :: fonc (syntaxeuse : &Syntaxeuse) -> TypeLexème
+lexème_courant :: fonc (syntaxeuse: &Syntaxeuse) -> TypeLexème
 {
     retourne syntaxeuse.lexèmes[syntaxeuse.position].type_lexème
 }
 
-avance :: fonc (syntaxeuse : &Syntaxeuse) -> rien
+avance :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     syntaxeuse.position += 1
 }
 
-recule :: fonc (syntaxeuse : &Syntaxeuse) -> rien
+recule :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     syntaxeuse.position -= 1
 }
 
-consomme :: fonc (syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+consomme :: fonc (syntaxeuse: &Syntaxeuse, type: TypeLexème) -> bool
 {
     t := syntaxeuse.lexème_courant()
     syntaxeuse.avance()
     retourne t == type
 }
 
-apparie :: fonc (syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+apparie :: fonc (syntaxeuse: &Syntaxeuse, type: TypeLexème) -> bool
 {
     retourne syntaxeuse.lexème_courant() == type
 }
 
-données :: fonc (syntaxeuse : &Syntaxeuse) -> &Lexème
+données :: fonc (syntaxeuse: &Syntaxeuse) -> &Lexème
 {
     retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
 }
 
-position :: fonc (syntaxeuse : &Syntaxeuse) -> z32
+position :: fonc (syntaxeuse: &Syntaxeuse) -> z32
 {
     retourne syntaxeuse.position - 1
 }
 
-fini :: fonc (syntaxeuse : &Syntaxeuse) -> bool
+fini :: fonc (syntaxeuse: &Syntaxeuse) -> bool
 {
-    retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille || syntaxeuse.possède_erreurs()
+    retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille || syntaxeuse.possède_erreurs()
 }
 
 possède_erreurs :: fonc (syntaxeuse: &Syntaxeuse) -> bool
@@ -76,7 +76,7 @@ possède_erreurs :: fonc (syntaxeuse: &Syntaxeuse) -> bool
     retourne syntaxeuse.erreurs.taille != 0
 }
 
-performe_syntaxage :: fonc (syntaxeuse : &Syntaxeuse) -> rien
+performe_syntaxage :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     saufsi syntaxeuse.lexèmes {
         retourne
@@ -84,7 +84,7 @@ performe_syntaxage :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 
     syntaxeuse.position = 0
 
-    données_lexème : Lexème
+    données_lexème: Lexème
     _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, données_lexème)
 
     syntaxeuse.analyse_page()
@@ -92,7 +92,7 @@ performe_syntaxage :: fonc (syntaxeuse : &Syntaxeuse) -> rien
     syntaxeuse.assembleuse.attend_type(TypeNoeud.BLOC)
 }
 
-analyse_page :: fonc (syntaxeuse : &Syntaxeuse) -> rien
+analyse_page :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     tantque !syntaxeuse.fini() {
         si (syntaxeuse.apparie(TypeLexème.CHAINE_CARACTÈRE)) {
@@ -125,7 +125,7 @@ analyse_page :: fonc (syntaxeuse : &Syntaxeuse) -> rien
     }
 }
 
-analyse_controle :: fonc (syntaxeuse : &Syntaxeuse) -> rien
+analyse_controle :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     si (!syntaxeuse.consomme(TypeLexème.DÉBUT_CONTROLE)) {
         syntaxeuse.rapporte_erreur("Attendu '{%'")
@@ -176,7 +176,6 @@ analyse_controle :: fonc (syntaxeuse : &Syntaxeuse) -> rien
             syntaxeuse.rapporte_erreur("Attendu '%}'")
             retourne
         }
-
     }
     sinon si syntaxeuse.apparie(TypeLexème.BLOC) {
         syntaxeuse.avance()
@@ -252,7 +251,7 @@ analyse_controle :: fonc (syntaxeuse : &Syntaxeuse) -> rien
     }
 }
 
-analyse_si :: fonc (syntaxeuse : &Syntaxeuse) -> rien
+analyse_si :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     si (!syntaxeuse.consomme(TypeLexème.SI)) {
         syntaxeuse.rapporte_erreur("Attendu 'si'")
@@ -274,7 +273,7 @@ analyse_si :: fonc (syntaxeuse : &Syntaxeuse) -> rien
     syntaxeuse.analyse_page()
 }
 
-analyse_pour :: fonc (syntaxeuse : &Syntaxeuse) -> rien
+analyse_pour :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     si (!syntaxeuse.consomme(TypeLexème.POUR)) {
         syntaxeuse.rapporte_erreur("Attendu 'pour'")
@@ -342,7 +341,7 @@ apparie_expression_secondaire :: fonc (syntaxeuse: &Syntaxeuse) -> bool
     retourne faux
 }
 
-analyse_expression :: fonc (syntaxeuse: &Syntaxeuse, précédence: z32 = 0) -> *NoeudSyntaxique
+analyse_expression :: fonc (syntaxeuse: &Syntaxeuse, précédence : z32 = 0) -> *NoeudSyntaxique
 {
     expr := syntaxeuse.analyse_expression_primaire()
 

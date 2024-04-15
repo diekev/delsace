@@ -50,7 +50,7 @@ remplace_processus_par_programme :: fonc (programme: chaine, arguments: ...chain
 
     /* Nous devons convertir les arguments en ChaineC car ils seront utilisés
      * pour le paramètres `argv` de la fonction principale du programme. */
-    arguments_chn_c : [..]ChaineC
+    arguments_chn_c: [..]ChaineC
 
     /* argv[0] est le programme. */
     tableau_ajoute(*arguments_chn_c, chn_c_programme)
@@ -159,7 +159,7 @@ ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Optionnel(TypeCanal)
 // rien, ou corromprera les données.
 
 CanalLecture :: struct {
-    empl base : BaseCanal
+    empl base: BaseCanal
 }
 
 crée_canal_lecture :: fonc () -> Optionnel(CanalLecture)
@@ -169,7 +169,7 @@ crée_canal_lecture :: fonc () -> Optionnel(CanalLecture)
 
 ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalLecture)
 {
-    canal : CanalLecture
+    canal: CanalLecture
     discr crée_canal_lecture() {
         Quelque(c) {
             canal = c
@@ -202,7 +202,7 @@ ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionn
 // rien, ou corromprera les données.
 
 CanalÉcriture :: struct {
-    empl base : BaseCanal
+    empl base: BaseCanal
 }
 
 crée_canal_écriture :: fonc () -> Optionnel(CanalÉcriture)
@@ -221,7 +221,7 @@ CanalCommunication :: struct {
 
 ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalCommunication)
 {
-    canal_lecture : CanalLecture
+    canal_lecture: CanalLecture
     discr crée_canal_lecture() {
         Quelque(c) {
             canal_lecture = c
@@ -231,7 +231,7 @@ ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -
         }
     }
 
-    canal_écriture : CanalÉcriture
+    canal_écriture: CanalÉcriture
     discr crée_canal_écriture() {
         Quelque(canal) {
             canal_écriture = canal
@@ -259,7 +259,7 @@ ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -
         }
     }
 
-    canal : CanalCommunication
+    canal: CanalCommunication
     canal.lecture = canal_lecture
     canal.écriture = canal_écriture
     retourne canal
@@ -282,7 +282,7 @@ ferme_écriture :: fonc (canal: &CanalCommunication)
 
 exécute_commande_externe :: fonc (args: ...chaine) -> bool
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
     pour args {
@@ -293,7 +293,7 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
     ajoute_au_tampon(*enchaineuse, '\0')
 
     commande := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère { déloge(commande) }
+    diffère déloge(commande)
 
     si system(ChaineC(commande.pointeur)) != 0 {
         retourne faux

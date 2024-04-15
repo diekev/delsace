@@ -145,7 +145,7 @@ CléClavier :: énum {
     CLÉ_FLÈCHE_BAS
 }
 
-__caractères_clé_clavier : [CléClavier.nombre_éléments]z8
+__caractères_clé_clavier: [CléClavier.nombre_éléments]z8
 
 caractère_pour_clé_clavier :: fonc (clé_clavier: CléClavier) -> z8
 {

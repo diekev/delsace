@@ -10,41 +10,41 @@ libcglfw :: #bibliothèque "glfw"
 
 GLFWwindow :: struct #externe
 
-glfwGetVideoMode :: fonc (desktop : *rien) -> *rien #externe libcglfw
+glfwGetVideoMode :: fonc (desktop: *rien) -> *rien #externe libcglfw
 
 // cette structure doit être synchroniser avec DesktopMode de GLFW
 DonneesMoniteur :: struct {
-    largeur : z32
-    hauteur : z32
-    bits_rouge : z32
-    bits_vert : z32
-    bits_bleu : z32
-    frequence : z32
+    largeur: z32
+    hauteur: z32
+    bits_rouge: z32
+    bits_vert: z32
+    bits_bleu: z32
+    frequence: z32
 }
 
 glfwInit :: fonc () -> z32 #externe libcglfw
 glfwTerminate :: fonc () -> rien #externe libcglfw
 glfwWaitEvents :: fonc () -> rien #externe libcglfw
-glfwCreateWindow :: fonc (width : z32, height : z32, title : *z8, monitor : *rien, share : *rien) -> *GLFWwindow #externe libcglfw
-glfwDestroyWindow :: fonc (window : *GLFWwindow) ->rien #externe libcglfw
-glfwWindowHint :: fonc (hint : z32, value : z32) -> rien #externe libcglfw
-glfwMakeContextCurrent :: fonc (window : *GLFWwindow) -> rien #externe libcglfw
-glfwWindowShouldClose :: fonc (window : *GLFWwindow) -> z32 #externe libcglfw
-glfwSwapInterval :: fonc (entreval : z32) -> rien #externe libcglfw
-glfwSwapBuffers :: fonc (fenetre : *GLFWwindow) -> rien #externe libcglfw
+glfwCreateWindow :: fonc (width: z32, height: z32, title: *z8, monitor: *rien, share: *rien) -> *GLFWwindow #externe libcglfw
+glfwDestroyWindow :: fonc (window: *GLFWwindow) -> rien #externe libcglfw
+glfwWindowHint :: fonc (hint: z32, value: z32) -> rien #externe libcglfw
+glfwMakeContextCurrent :: fonc (window: *GLFWwindow) -> rien #externe libcglfw
+glfwWindowShouldClose :: fonc (window: *GLFWwindow) -> z32 #externe libcglfw
+glfwSwapInterval :: fonc (entreval: z32) -> rien #externe libcglfw
+glfwSwapBuffers :: fonc (fenetre: *GLFWwindow) -> rien #externe libcglfw
 glfwPollEvents :: fonc () -> rien #externe libcglfw
 
 glfwGetPrimaryMonitor :: fonc () -> *rien #externe libcglfw
 
-glfwGetMonitorWorkarea :: fonc (monitor : *rien, xpos : *z32, ypos : *z32, width : *z32, height : *z32) -> rien #externe libcglfw
+glfwGetMonitorWorkarea :: fonc (monitor: *rien, xpos: *z32, ypos: *z32, width: *z32, height: *z32) -> rien #externe libcglfw
 
-glfwSetKeyCallback :: fonc (fenetre : *GLFWwindow, cbfun : fonc(*GLFWwindow, type_cle, z32, z32, type_mod)(rien)) -> rien #externe libcglfw
-glfwSetCursorPosCallback :: fonc (fenetre : *GLFWwindow, cbfun : fonc(*GLFWwindow, r64, r64)(rien)) -> rien #externe libcglfw
-glfwSetMouseButtonCallback :: fonc (fenetre : *GLFWwindow, cbfun : fonc(*GLFWwindow, bouton_souris, z32, type_mod)(rien)) -> rien #externe libcglfw
-glfwSetScrollCallback :: fonc (fenetre : *GLFWwindow, cbfun : fonc(*GLFWwindow, r64, r64)(rien)) -> rien #externe libcglfw
-glfwSetWindowSizeCallback :: fonc (fenetre : *GLFWwindow, cbfun : fonc(*GLFWwindow, z32, z32)(rien)) -> rien #externe libcglfw
+glfwSetKeyCallback :: fonc (fenetre: *GLFWwindow, cbfun: fonc(*GLFWwindow, type_cle, z32, z32, type_mod)(rien)) -> rien #externe libcglfw
+glfwSetCursorPosCallback :: fonc (fenetre: *GLFWwindow, cbfun: fonc(*GLFWwindow, r64, r64)(rien)) -> rien #externe libcglfw
+glfwSetMouseButtonCallback :: fonc (fenetre: *GLFWwindow, cbfun: fonc(*GLFWwindow, bouton_souris, z32, type_mod)(rien)) -> rien #externe libcglfw
+glfwSetScrollCallback :: fonc (fenetre: *GLFWwindow, cbfun: fonc(*GLFWwindow, r64, r64)(rien)) -> rien #externe libcglfw
+glfwSetWindowSizeCallback :: fonc (fenetre: *GLFWwindow, cbfun: fonc(*GLFWwindow, z32, z32)(rien)) -> rien #externe libcglfw
 
-glfwSetWindowShouldClose :: fonc (fenetre : *GLFWwindow, v : z32) -> rien #externe libcglfw
+glfwSetWindowShouldClose :: fonc (fenetre: *GLFWwindow, v: z32) -> rien #externe libcglfw
 
 // on ne peut pas redéfinir les variables puisque nous incluons le fichier
 // À FAIRE on peut les redéfinir puisque nous n'incluons plus le fichier, et nous utilisons directement la valeur littérale

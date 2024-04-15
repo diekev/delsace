@@ -1213,11 +1213,12 @@ static kuri::chaine_statique génère_code_pour_données_constantes(
             imprime_tableau_données_constantes(enchaineuse, données);
         }
     }
-
-    assert_rappel(false, [&]() {
-        dbg() << "Type non pris en charge dans les données constantes : "
-              << chaine_type(type_élément);
-    });
+    else {
+        assert_rappel(false, [&]() {
+            dbg() << "Type non pris en charge dans les données constantes : "
+                  << chaine_type(type_élément);
+        });
+    }
 
     return enchaineuse.chaine_statique();
 }
@@ -1696,12 +1697,12 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 {
                     break;
                 }
-                case OpérateurUnaire::Genre::Complement:
+                case OpérateurUnaire::Genre::Négation:
                 {
                     os << '-';
                     break;
                 }
-                case OpérateurUnaire::Genre::Non_Binaire:
+                case OpérateurUnaire::Genre::Négation_Binaire:
                 {
                     os << '~';
                     break;

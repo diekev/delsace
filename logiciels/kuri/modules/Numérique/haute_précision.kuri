@@ -12,12 +12,12 @@ HautePrécision :: struct {
 
     // Les « chiffres » (en réalité des nombres entiers naturels sur 32-bits)
     // qui composent le nombre. Le chiffre le plus significatif est dans données[0]
-    données : [COMPTE]n32
+    données: [COMPTE]n32
 }
 
-construit_nombre_haute_précision :: fonc() -> HautePrécision
+construit_nombre_haute_précision :: fonc () -> HautePrécision
 {
-    hp : HautePrécision
+    hp: HautePrécision
 
     pour élément dans hp.données {
         élément = 0
@@ -32,10 +32,10 @@ construit_nombre_haute_précision :: fonc() -> HautePrécision
 // indique que le bit haut de valeur sera en bas du dernier élément de hp.données
 // - le bit le moins significatif. Un décalage de DÉCALAGE_MOT indique que la
 // valeur sera dans l'élément le moins significatif de hp.données, etc.
-insère_bits_du_bas :: fonc(
-    hp : *HautePrécision,
-    valeur : n32,
-    quantité_décalage : z32) -> rien
+insère_bits_du_bas :: fonc (
+    hp: *HautePrécision,
+    valeur: n32,
+    quantité_décalage: z32) -> rien
 {
     si quantité_décalage <= 0 {
         retourne
@@ -49,12 +49,12 @@ insère_bits_du_bas :: fonc(
 
     // Utilisation d'un type naturel pour que les nombres négatifs déviennent
     // large, rendant la vérification de la plage plus bas plus simple.
-    high_index := COMPTE - 1 - grand_décalage;
+    high_index := COMPTE - 1 - grand_décalage
 
     // Écris les résultats dans le tableau de données. Si l'index est trop
     // grand alors les données ont été décalées hors du nombre.
     si high_index < COMPTE {
-        hp.données[high_index] |= résultat_haut comme n32;
+        hp.données[high_index] |= résultat_haut comme n32
     }
 
     si high_index + 1 < COMPTE {
@@ -68,16 +68,16 @@ insère_bits_du_bas :: fonc(
 // de valeur sera dans le haut du prémier élément de hp.données - le bit le plus
 // significatif. Un décalage de DÉCALAGE_MOT indique que la valeur sera dans
 // l'élément le plus significatif de hp.données, etc.
-insère_bits_du_haut :: fonc(
-    hp : *HautePrécision,
-    valeur : n32,
-    quantité_décalage : z32) -> rien
+insère_bits_du_haut :: fonc (
+    hp: *HautePrécision,
+    valeur: n32,
+    quantité_décalage: z32) -> rien
 {
-    insère_bits_du_bas(hp, valeur, ((COMPTE + 1) * DÉCALAGE_MOT) comme z32 - quantité_décalage);
+    insère_bits_du_bas(hp, valeur, ((COMPTE + 1) * DÉCALAGE_MOT) comme z32 - quantité_décalage)
 }
 
 // Retourne vrai si tous les éléments de hp.données sont égaux à zéro.
-est_zéro :: fonc(hp : *HautePrécision) -> bool
+est_zéro :: fonc (hp: *HautePrécision) -> bool
 {
     pour élément dans hp.données {
         si élément != 0 {
@@ -89,7 +89,7 @@ est_zéro :: fonc(hp : *HautePrécision) -> bool
 }
 
 // Retourne le reste de la division de hp par diviseur, de 0 à diviseur - 1.
-reste_de_la_division :: fonc(hp : *HautePrécision, diviseur : n32) -> n32
+reste_de_la_division :: fonc (hp: *HautePrécision, diviseur: n32) -> n32
 {
     reste : n32 = 0
 
@@ -105,19 +105,19 @@ reste_de_la_division :: fonc(hp : *HautePrécision, diviseur : n32) -> n32
 }
 
 // Multiplie par mul et retourne le surplus, de 0 à mul - 1
-surplus_de_la_multiplication :: fonc(hp : *HautePrécision, mul : n32) -> n32
+surplus_de_la_multiplication :: fonc (hp: *HautePrécision, mul: n32) -> n32
 {
     surplus : n32 = 0
 
     pour j dans 0 ... COMPTE - 1 {
         i := COMPTE - 1 - j
 
-        résultat := mul comme n64 * hp.données[i] + surplus;
+        résultat := mul comme n64 * hp.données[i] + surplus
 
         // Put the bottom bits of the results back.
         hp.données[i] = résultat comme n32
         surplus = (résultat >> DÉCALAGE_MOT) comme n32
     }
 
-    retourne surplus;
+    retourne surplus
 }

@@ -7,7 +7,7 @@ importe SysFichier
 
 DonnéesSymbole :: struct {
     symbole: chaine
-    points_de_code : [2]n32
+    points_de_code: [2]n32
 }
 
 TableSymboles :: struct {
@@ -40,7 +40,7 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
         symbole.taille += 1
     }
 
-    données_symbole : DonnéesSymbole
+    données_symbole: DonnéesSymbole
     données_symbole.symbole = symbole
 
     tantque ligne.taille > 0 && ligne[0] != '[' {
@@ -54,7 +54,6 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
     point_de_code_rencontré := faux
 
     tantque ligne.taille > 0 && ligne[0] != ']' {
-
         si ligne[0] == ' ' {
             ligne = avance(ligne, 1)
             chn_point_de_code = ligne
@@ -86,11 +85,11 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, table: *TableSymboles)
     point_de_code := extrait_nombre_entier(chn_point_de_code)
 
     si point_de_code_rencontré {
-       données_symbole.points_de_code[1] = point_de_code comme n32
+        données_symbole.points_de_code[1] = point_de_code comme n32
     }
     sinon {
-       données_symbole.points_de_code[0] = point_de_code comme n32
-       données_symbole.points_de_code[1] = 0
+        données_symbole.points_de_code[0] = point_de_code comme n32
+        données_symbole.points_de_code[1] = 0
     }
 
     si symbole.taille > table.taille_max_symbole {
@@ -109,7 +108,7 @@ principale :: fonc () -> z32
     fichier := "entities.json"
     chemin := CheminFichier(chn = fichier)
     contenu := contenu_fichier_texte(chemin)
-    diffère { déloge(contenu) }
+    diffère déloge(contenu)
 
     données: TableSymboles
     diffère déloge(données.symboles)
@@ -119,7 +118,7 @@ principale :: fonc () -> z32
 
     imprime("nombre de symboles : %\n", données.symboles.taille)
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 

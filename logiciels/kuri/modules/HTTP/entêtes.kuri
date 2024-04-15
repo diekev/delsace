@@ -5,7 +5,6 @@ Entête :: struct {
 
 détruit_entête :: fonc (entête: &Entête)
 {
-
 }
 
 cherche_entête :: fonc (entêtes: [..]Entête, clé: chaine) -> *Entête
