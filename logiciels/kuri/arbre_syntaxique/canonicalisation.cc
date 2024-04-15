@@ -628,14 +628,8 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
 
             if (appel->aide_génération_code == CONSTRUIT_OPAQUE) {
                 simplifie(appel->paramètres_résolus[0]);
-
-                auto comme = assem->crée_comme(
-                    appel->lexème, appel->paramètres_résolus[0], nullptr);
-                comme->type = appel->type;
-                comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
-                                         appel->type};
-                comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-
+                auto comme = crée_comme_type_cible(
+                    appel->lexème, appel->paramètres_résolus[0], appel->type);
                 appel->substitution = comme;
                 m_site_pour_position_code_source = ancien_site_pour_position_code_source;
                 return comme;
@@ -950,6 +944,17 @@ NoeudDéclarationVariable *Simplificatrice::crée_déclaration_variable(const Le
 {
     auto ident = donne_identifiant_pour_variable();
     return assem->crée_déclaration_variable(lexème, type, ident, expression);
+}
+
+NoeudComme *Simplificatrice::crée_comme_type_cible(const Lexème *lexème,
+                                                   NoeudExpression *expression,
+                                                   NoeudDéclarationType *type)
+{
+    auto résultat = assem->crée_comme(lexème, expression, nullptr);
+    résultat->type = type;
+    résultat->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
+    résultat->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type};
+    return résultat;
 }
 
 IdentifiantCode *Simplificatrice::donne_identifiant_pour_variable()
@@ -2097,10 +2102,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_opaque_depuis_structure
     auto ref_struct = génère_simplification_construction_structure(appel, type_struct);
 
     /* ref_opaque := ref_struct comme TypeOpaque */
-    auto comme = assem->crée_comme(appel->lexème, ref_struct, nullptr);
-    comme->type = type_opaque;
-    comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_opaque};
-    comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
+    auto comme = crée_comme_type_cible(appel->lexème, ref_struct, type_opaque);
 
     auto decl_opaque = crée_déclaration_variable(lexème, type_opaque, comme);
     decl_opaque->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
@@ -2370,10 +2372,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
     auto ref_b = expression->substitution ? expression->substitution : expression;
 
     /* Convertis l'expression booléenne vers n8 car ils ont la même taille en octet. */
-    auto comme = assem->crée_comme(var->lexème, ref_b, nullptr);
-    comme->type = TypeBase::N8;
-    comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-    comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, TypeBase::N8};
+    auto comme = crée_comme_type_cible(var->lexème, ref_b, TypeBase::N8);
 
     /* Augmente la taille du n8 si ce n'est pas le type sous-jacent de l'énum drapeau. */
     if (type_sous_jacent != TypeBase::N8) {
@@ -2399,10 +2398,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
     /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
      * type.
      */
-    auto moins_b = assem->crée_comme(var->lexème, moins_b_type_sous_jacent, nullptr);
-    moins_b->type = type_énum;
-    moins_b->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-    moins_b->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_énum};
+    auto moins_b = crée_comme_type_cible(var->lexème, moins_b_type_sous_jacent, type_énum);
 
     /* b - 1 */
     auto un = assem->crée_littérale_entier(lexème, type_sous_jacent, 1);
@@ -2412,11 +2408,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
     /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
      * type.
      */
-    auto b_moins_un = assem->crée_comme(var->lexème, b_moins_un_type_sous_jacent, nullptr);
-    b_moins_un->type = type_énum;
-    b_moins_un->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-    b_moins_un->transformation = TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
-                                                    type_énum};
+    auto b_moins_un = crée_comme_type_cible(var->lexème, b_moins_un_type_sous_jacent, type_énum);
 
     /* -b & v1 */
     auto moins_b_et_v1 = assem->crée_expression_binaire(
