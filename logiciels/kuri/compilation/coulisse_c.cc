@@ -1540,12 +1540,12 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 {
                     break;
                 }
-                case OpérateurUnaire::Genre::Complement:
+                case OpérateurUnaire::Genre::Négation:
                 {
                     os << '-';
                     break;
                 }
-                case OpérateurUnaire::Genre::Non_Binaire:
+                case OpérateurUnaire::Genre::Négation_Binaire:
                 {
                     os << '~';
                     break;

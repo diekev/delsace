@@ -181,7 +181,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto expr_un = noeud->comme_expression_unaire();
 
-            if (expr_un->op && expr_un->op->genre == OpérateurUnaire::Genre::Complement) {
+            if (expr_un->op && expr_un->op->genre == OpérateurUnaire::Genre::Négation) {
                 if (expr_un->opérande->est_littérale_entier()) {
                     auto littérale = expr_un->opérande->comme_littérale_entier();
                     auto valeur_entière = int64_t(littérale->valeur);
