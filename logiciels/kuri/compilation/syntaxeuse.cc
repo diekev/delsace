@@ -1395,6 +1395,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             lexème);
                         noeud->lexème_nom_bibliothèque = lexème_nom_bibliothèque;
                         noeud->ident = gauche->ident;
+                        m_tacheronne.assembleuse->recycle_référence(
+                            gauche->comme_référence_déclaration());
                         return noeud;
                     }
 
@@ -1406,6 +1408,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             données_précédence, racine_expression, lexème_final);
                         m_est_déclaration_type_opaque = false;
                         noeud->bloc_parent->ajoute_membre(noeud);
+                        m_tacheronne.assembleuse->recycle_référence(
+                            gauche->comme_référence_déclaration());
                         return noeud;
                     }
 
@@ -1431,9 +1435,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             noeud->expression = analyse_expression(
                 données_précédence, racine_expression, lexème_final);
 
-            if (gauche->est_référence_déclaration()) {
-                gauche->comme_référence_déclaration()->déclaration_référée = noeud;
-            }
+            m_tacheronne.assembleuse->recycle_référence(gauche->comme_référence_déclaration());
 
             return noeud;
         }
