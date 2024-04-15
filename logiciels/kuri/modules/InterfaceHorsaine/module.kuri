@@ -101,8 +101,8 @@ MembreTypeIPA :: struct {
 
     /* Index des fonctions de lecture et d'écriture du membre dans la liste des
      * méthodes du type parent. */
-    index_fonction_écriture: z64 = -1
-    index_fonction_lecture: z64 = -1
+    index_fonction_écriture : z64 = -1
+    index_fonction_lecture : z64 = -1
 }
 
 DrapeauxTypeIPA :: énum_drapeau {
@@ -138,7 +138,7 @@ TypeIPA :: struct {
     constructrice: Optionnel(MéthodeIPA)
 
     /* Pour les pointeurs, le type pointé. */
-    type_pointé : *TypeIPA
+    type_pointé: *TypeIPA
 
     membres: [..]MembreTypeIPA
 
@@ -146,8 +146,8 @@ TypeIPA :: struct {
     type_base: *TypeIPA
 
     /* Pour les fonctions. */
-    types_entrée : [..]*TypeIPA
-    types_sortie : [..]*TypeIPA
+    types_entrée: [..]*TypeIPA
+    types_sortie: [..]*TypeIPA
 }
 
 détruit_type_ipa :: fonc (type: *TypeIPA)
@@ -308,7 +308,7 @@ initialise_génératrice_code_c :: fonc (ipa: &IPA) -> GénératriceCodeC
     retourne résultat
 }
 
-ajoute_type :: fonc (ipa: &IPA, type: *InfoType, drapeaux: DrapeauxTypeIPA = DrapeauxTypeIPA.zéro)
+ajoute_type :: fonc (ipa: &IPA, type: *InfoType, drapeaux : DrapeauxTypeIPA = DrapeauxTypeIPA.zéro)
 {
     résultat := convertis_vers_type_ipa(ipa, type)
     résultat.drapeaux |= drapeaux
