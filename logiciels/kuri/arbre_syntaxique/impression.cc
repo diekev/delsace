@@ -362,7 +362,8 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             auto déclaration = noeud->comme_déclaration_bibliothèque();
             imprime_ident(enchaineuse, déclaration->ident);
-            enchaineuse << " :: #bibliothèque \"" << déclaration->bibliothèque->nom << "\"";
+            enchaineuse << " :: #bibliothèque \"" << déclaration->lexème_nom_bibliothèque->chaine
+                        << "\"";
             break;
         }
         case GenreNoeud::DÉCLARATION_STRUCTURE:

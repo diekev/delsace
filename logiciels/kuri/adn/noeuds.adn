@@ -320,6 +320,7 @@ struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
 
     UniteCompilation * unité
     Bibliothèque *bibliothèque
+    Lexème const *lexème_nom_bibliothèque [copie]
 }
 
 struct BaseDéclarationVariable : NoeudDéclarationSymbole {

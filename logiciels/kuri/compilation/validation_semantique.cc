@@ -491,6 +491,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         }
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         {
+            auto déclaration = noeud->comme_déclaration_bibliothèque();
+            auto lexème_nom_bibliothèque = déclaration->lexème_nom_bibliothèque;
+            déclaration->bibliothèque =
+                m_compilatrice.gestionnaire_bibliothèques->crée_bibliothèque(
+                    *m_unité->espace, noeud, noeud->ident, lexème_nom_bibliothèque->chaine);
             noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             noeud->bloc_parent->ajoute_membre(noeud->comme_déclaration_bibliothèque());
             break;

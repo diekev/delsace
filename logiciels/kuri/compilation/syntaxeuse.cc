@@ -1388,15 +1388,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
                     if (directive == ID::bibliotheque) {
                         consomme();
-                        auto chaine_bib = lexème_courant()->chaine;
+                        auto lexème_nom_bibliothèque = lexème_courant();
                         consomme(GenreLexème::CHAINE_LITTERALE,
                                  "Attendu une chaine littérale après la directive");
                         auto noeud = m_tacheronne.assembleuse->crée_déclaration_bibliothèque(
                             lexème);
+                        noeud->lexème_nom_bibliothèque = lexème_nom_bibliothèque;
                         noeud->ident = gauche->ident;
-                        noeud->bibliothèque =
-                            m_compilatrice.gestionnaire_bibliothèques->crée_bibliothèque(
-                                *m_unité->espace, noeud, gauche->ident, chaine_bib);
                         return noeud;
                     }
 
