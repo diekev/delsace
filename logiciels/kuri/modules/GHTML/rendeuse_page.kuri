@@ -5,8 +5,8 @@ importe SysFichier
 charge "catalogue_fichier"
 
 RendeusePage :: struct {
-    catalogue : CatalogueFichier
-    cache_page : [..]PageGabarit
+    catalogue: CatalogueFichier
+    cache_page: [..]PageGabarit
     dossier: chaine
 }
 
@@ -22,13 +22,13 @@ détruit_rendeuse :: fonc (rendeuse_gabarit: *RendeusePage) -> rien
 }
 
 PageGabarit :: struct {
-    fichier : *FichierTexte
-    lexeuse : Lexeuse
-    syntaxeuse : Syntaxeuse
-    racine : *NoeudSyntaxique
+    fichier: *FichierTexte
+    lexeuse: Lexeuse
+    syntaxeuse: Syntaxeuse
+    racine: *NoeudSyntaxique
 }
 
-détruit_page_gabarit :: fonc (page : *PageGabarit) -> rien
+détruit_page_gabarit :: fonc (page: *PageGabarit) -> rien
 {
     détruit_lexeuse(page.lexeuse)
     détruit_assembleuse(page.syntaxeuse.assembleuse)
@@ -87,7 +87,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
                 page_étendue := recherche_page_étendue.page
                 nouvelle_racine := copie_noeud(syntaxeuse.assembleuse, page_étendue.racine)
 
-                blocs : [..]*NoeudSyntaxique
+                blocs: [..]*NoeudSyntaxique
                 rassemble_blocs(racine, *blocs)
                 remplace_blocs(nouvelle_racine, blocs)
                 déloge(blocs)
@@ -119,7 +119,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
         }
     }
 
-    page : PageGabarit
+    page: PageGabarit
     page.fichier = fichier
     page.lexeuse = lexeuse
     page.syntaxeuse = syntaxeuse
@@ -200,13 +200,13 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
         retourne copie_chaine("<p>La page est vide</p>")
     }
 
-    données_génération : DonnéesGénération
+    données_génération: DonnéesGénération
     données_génération.nom_court_page = nom_court
     données_génération.valeur = données
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     erreur_ := génère_page(*données_génération, page.racine, *enchaineuse)
 
@@ -220,7 +220,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
 
 rappel_ajoute_fichier :: fonc (chemin: CheminFichier, rendeuse_page: *RendeusePage)
 {
-    si chemin.chn == ".." || chemin.chn == "." {
+    si chemin.chn == ".." || chemin.chn == "." {
         retourne
     }
 
@@ -245,11 +245,11 @@ initialise_depuis_dossier :: fonc (rendeuse_page: *RendeusePage, chemin: CheminF
 
 ajoute_page_pour_formulaire :: fonc (rendeuse_page: *RendeusePage, nom_court: chaine, $T: type_de_données, nom_formulaire: chaine, méthode: chaine, cible: chaine)
 {
-    fichier : FichierTexte
+    fichier: FichierTexte
     fichier.nom_court = nom_court
     fichier.succès = vrai
 
-    valeur : T
+    valeur: T
     fichier.données = génère_formulaire_depuis_struct(valeur, nom_formulaire, méthode, cible)
 
     tableau_ajoute(*rendeuse_page.catalogue.fichiers, fichier)

@@ -39,8 +39,8 @@ importe SysFichier
  * donc nous pouvons lire et écrire des données dans celui-ci via son interface.
  */
 ClienteTCP :: struct {
-    fichier : Fichier
-    adresse : AdresseIPv4
+    fichier: Fichier
+    adresse: AdresseIPv4
 }
 
 /* Le protocol IP n'a pas de concept pour un port, seuls les protocols TCP et UDP le conceptualisent. */

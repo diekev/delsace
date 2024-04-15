@@ -184,11 +184,11 @@ static OpérateurUnaire::Genre genre_op_unaire_pour_lexeme(GenreLexème genre_le
         }
         case GenreLexème::MOINS_UNAIRE:
         {
-            return OpérateurUnaire::Genre::Complement;
+            return OpérateurUnaire::Genre::Négation;
         }
         case GenreLexème::TILDE:
         {
-            return OpérateurUnaire::Genre::Non_Binaire;
+            return OpérateurUnaire::Genre::Négation_Binaire;
         }
         default:
         {
