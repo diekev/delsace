@@ -105,6 +105,19 @@ unsigned nombre_chiffre_base_10_pro(T v)
     }
 }
 
+inline unsigned nombre_chiffre_base_10_pro(int8_t v)
+{
+    if (PROBABLE(v < 10)) {
+        return 1;
+    }
+
+    if (PROBABLE(v < 100)) {
+        return 2;
+    }
+
+    return 3;
+}
+
 inline unsigned nombre_chiffre_base_10_pro(uint8_t v)
 {
     if (PROBABLE(v < 10)) {

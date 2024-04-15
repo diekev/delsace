@@ -27,9 +27,9 @@ enlève_début_fin_commentaire :: fonc (commentaire: chaine) -> chaine
 }
 
 DonnéesDocument :: struct {
-    index_début : z64
-    index_fin : z64
-    est_commentaire : bool
+    index_début: z64
+    index_fin: z64
+    est_commentaire: bool
 }
 
 compile :: fonc ()
@@ -37,18 +37,18 @@ compile :: fonc ()
     désactive_compilation_espace_défaut()
 
     lexèmes := compilatrice_lèxe_fichier("doc.kuri")
-    diffère { déloge(lexèmes) }
+    diffère déloge(lexèmes)
 
-    données : [..]DonnéesDocument
-    diffère { déloge(données) }
+    données: [..]DonnéesDocument
+    diffère déloge(données)
 
-    index_début : z64
-    taille_code : z64
+    index_début: z64
+    taille_code: z64
 
     pour lexèmes {
         si it.genre == GenreLexème.COMMENTAIRE {
             si taille_code != 0 {
-                d : DonnéesDocument
+                d: DonnéesDocument
                 d.est_commentaire = faux
                 d.index_début = index_début
                 d.index_fin = index_début + taille_code
@@ -58,7 +58,7 @@ compile :: fonc ()
                 taille_code = 0
             }
 
-            d : DonnéesDocument
+            d: DonnéesDocument
             d.est_commentaire = vrai
             d.index_début = index_it
 
@@ -74,7 +74,7 @@ compile :: fonc ()
     }
 
     si taille_code != 0 {
-        d : DonnéesDocument
+        d: DonnéesDocument
         d.est_commentaire = faux
         d.index_début = index_début
         d.index_fin = index_début + taille_code
@@ -89,7 +89,7 @@ compile :: fonc ()
             imprime("<p>%</p>\n", texte)
         }
         sinon {
-            sous_lexèmes : [..]Lexème
+            sous_lexèmes: [..]Lexème
             sous_lexèmes.pointeur = *lexèmes[it.index_début]
             sous_lexèmes.taille = it.index_fin - it.index_début
 

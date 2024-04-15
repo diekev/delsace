@@ -29,54 +29,54 @@ Taille :: struct {
 
 Peintre :: struct {
     /* Définis la taille du cannevas. */
-    rappel_définis_taille_cannevas : fonc (*Peintre, Taille)(rien)
+    rappel_définis_taille_cannevas: fonc(*Peintre, Taille)(rien)
     /* Donne la taille du cannevas. */
-    rappel_donne_taille_cannevas : fonc (*Peintre)(Taille)
+    rappel_donne_taille_cannevas: fonc(*Peintre)(Taille)
 
     /* Remplis la totalité du cannevas avec la couleur donnée. */
-    rappel_remplis_arrière_plan : fonc (*Peintre, CouleurPeintre)(rien)
+    rappel_remplis_arrière_plan: fonc(*Peintre, CouleurPeintre)(rien)
 
     /* Dessine le contour du rectangle avec la couleur donnée. */
-    rappel_dessine_rectangle : fonc (*Peintre, RectanglePeintre, CouleurPeintre)(rien)
+    rappel_dessine_rectangle: fonc(*Peintre, RectanglePeintre, CouleurPeintre)(rien)
     /* Remplis le rectangle avec la couleur donnée. */
-    rappel_remplis_rectangle : fonc (*Peintre, RectanglePeintre, CouleurPeintre)(rien)
+    rappel_remplis_rectangle: fonc(*Peintre, RectanglePeintre, CouleurPeintre)(rien)
 
     /* Dessine le contour du rectangle arrondi avec la couleur donnée. */
-    rappel_dessine_rectangle_arrondi : fonc (*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
+    rappel_dessine_rectangle_arrondi: fonc(*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
     /* Remplis le rectangle arrondi avec la couleur donnée. */
-    rappel_remplis_rectangle_arrondi : fonc (*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
+    rappel_remplis_rectangle_arrondi: fonc(*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
 
     /* Dessine le contour du cercle avec la couleur donnée. */
-    rappel_dessine_cercle : fonc (*Peintre, CerclePeintre, CouleurPeintre)(rien)
+    rappel_dessine_cercle: fonc(*Peintre, CerclePeintre, CouleurPeintre)(rien)
     /* Remplis le cercle avec la couleur donnée. */
-    rappel_remplis_cercle : fonc (*Peintre, CerclePeintre, CouleurPeintre)(rien)
+    rappel_remplis_cercle: fonc(*Peintre, CerclePeintre, CouleurPeintre)(rien)
 
     /* Dessine le segment avec la couleur donnée. */
-    rappel_dessine_segment : fonc (*Peintre, LignePeintre, CouleurPeintre)(rien)
-    rappel_dessine_segments : fonc (*Peintre, [..]LignePeintre, CouleurPeintre)(rien)
+    rappel_dessine_segment: fonc(*Peintre, LignePeintre, CouleurPeintre)(rien)
+    rappel_dessine_segments: fonc(*Peintre, [..]LignePeintre, CouleurPeintre)(rien)
 
     /* Dessine le texte avec la fonte et la couleur données. */
-    rappel_dessine_texte : fonc (*Peintre, *Fonte, chaine, RectanglePeintre, CouleurPeintre)(rien)
+    rappel_dessine_texte: fonc(*Peintre, *Fonte, chaine, RectanglePeintre, CouleurPeintre)(rien)
 
     /* Dessine l'image dans le rectangle donné. */
-    rappel_dessine_image: fonc (*Peintre, ImageIO, RectanglePeintre)(rien)
-    rappel_dessine_image_grise_8bit: fonc (*Peintre, TamponImageGrise8Bit, RectanglePeintre)(rien)
-    rappel_dessine_image_rvba_8bit: fonc (*Peintre, TamponImageRVBA8Bit, RectanglePeintre)(rien)
-    rappel_dessine_image_rvba_32bit: fonc (*Peintre, TamponImageRVBA32Bit, RectanglePeintre)(rien)
+    rappel_dessine_image: fonc(*Peintre, ImageIO, RectanglePeintre)(rien)
+    rappel_dessine_image_grise_8bit: fonc(*Peintre, TamponImageGrise8Bit, RectanglePeintre)(rien)
+    rappel_dessine_image_rvba_8bit: fonc(*Peintre, TamponImageRVBA8Bit, RectanglePeintre)(rien)
+    rappel_dessine_image_rvba_32bit: fonc(*Peintre, TamponImageRVBA32Bit, RectanglePeintre)(rien)
 
     /* Retourne la fonte utilisée pour le dessin de texte. */
-    rappel_donne_fonte : fonc (*Peintre)(*Fonte)
+    rappel_donne_fonte: fonc(*Peintre)(*Fonte)
 
     /* Dessine le tampon sur l'écran.
      * À FAIRE : ceci est une mauvaise architecture ? Le peintre ne devrait pas
      * être responsable du dessiner sur l'écran. Le système serait plus flexible,
      * mais nous ne voulons pas que les détails d'implémentation des peintres se
      * retrouve exposés aux applications clientes. */
-    rappel_dessine_tampon_sur_écran : fonc (*Peintre)(rien)
+    rappel_dessine_tampon_sur_écran: fonc(*Peintre)(rien)
 
     /* Définis le ciseau pour les dessins subséquents. Le ciseau définit les
      * limites d'une zone hors de laquelle rien n'est dessiné. */
-    rappel_définis_ciseau : fonc (*Peintre, RectanglePeintre)(rien)
+    rappel_définis_ciseau: fonc(*Peintre, RectanglePeintre)(rien)
 
     ciseaux: [..]RectanglePeintre
 }
@@ -141,22 +141,22 @@ dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangl
     peintre.rappel_dessine_texte(peintre, fonte, texte, rectangle, couleur)
 }
 
-dessine_image:: fonc (peintre: *Peintre, image: ImageIO, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle: RectanglePeintre) -> rien #enligne
 {
     peintre.rappel_dessine_image(peintre, image, rectangle)
 }
 
-dessine_image:: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle: RectanglePeintre) -> rien #enligne
 {
     peintre.rappel_dessine_image_grise_8bit(peintre, image, rectangle)
 }
 
-dessine_image:: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle: RectanglePeintre) -> rien #enligne
 {
     peintre.rappel_dessine_image_rvba_8bit(peintre, TamponImageRVBA32Bit, rectangle)
 }
 
-dessine_image:: fonc (peintre: *Peintre, image: TamponImageRVBA32Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA32Bit, rectangle: RectanglePeintre) -> rien #enligne
 {
     peintre.rappel_dessine_image_rvba_32bit(peintre, image, rectangle)
 }

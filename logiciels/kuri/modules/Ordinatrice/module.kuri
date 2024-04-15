@@ -7,14 +7,14 @@ importe POSIX
 // ---------------------------------------------------
 // Boutisme.
 
-commute_boutisme :: fonc(val : *n16) -> rien #enligne
+commute_boutisme :: fonc (val: *n16) -> rien #enligne
 {
     v := mémoire(val)
     v = (v >> 8) | (v << 8)
     mémoire(val) = v
 }
 
-commute_boutisme :: fonc(val : *n32) -> rien #enligne
+commute_boutisme :: fonc (val: *n32) -> rien #enligne
 {
     v := mémoire(val)
 
@@ -26,7 +26,7 @@ commute_boutisme :: fonc(val : *n32) -> rien #enligne
     mémoire(val) = v
 }
 
-commute_boutisme :: fonc(val : *n64) -> rien #enligne
+commute_boutisme :: fonc (val: *n64) -> rien #enligne
 {
     v := mémoire(val)
 
@@ -42,32 +42,32 @@ commute_boutisme :: fonc(val : *n64) -> rien #enligne
     mémoire(val) = v
 }
 
-commute_boutisme :: fonc(val : *z16) -> rien #enligne
+commute_boutisme :: fonc (val: *z16) -> rien #enligne
 {
     commute_boutisme(val comme *n16)
 }
 
-commute_boutisme :: fonc(val : *z32) -> rien #enligne
+commute_boutisme :: fonc (val: *z32) -> rien #enligne
 {
     commute_boutisme(val comme *n32)
 }
 
-commute_boutisme :: fonc(val : *z64) -> rien #enligne
+commute_boutisme :: fonc (val: *z64) -> rien #enligne
 {
     commute_boutisme(val comme *n64)
 }
 
-commute_boutisme :: fonc(val : *r32) -> rien #enligne
+commute_boutisme :: fonc (val: *r32) -> rien #enligne
 {
     commute_boutisme(val comme *n32)
 }
 
-commute_boutisme :: fonc(val : *r64) -> rien #enligne
+commute_boutisme :: fonc (val: *r64) -> rien #enligne
 {
     commute_boutisme(val comme *n64)
 }
 
-commute_boutisme :: fonc(tabl : [..]$T) -> rien #enligne
+commute_boutisme :: fonc (tabl: [..]$T) -> rien #enligne
 {
     pour * val dans tabl {
         commute_boutisme(val)

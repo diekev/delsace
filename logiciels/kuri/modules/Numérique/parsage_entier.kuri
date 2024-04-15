@@ -292,10 +292,10 @@ extrait_r16 :: fonc (chn: chaine) -> r16 | ErreurParsageEntier
 
 parse_hexadécimal_n64 :: fonc (chn: chaine) -> n64 | ErreurParsageEntier
 {
-    résultat : n64
+    résultat: n64
 
     pour chn {
-        v : n64
+        v: n64
 
         si '0' <= it <= '9' {
             v = (it - '0') comme n64
@@ -326,7 +326,7 @@ parse_hexadécimal_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
     retourne v comme n16
 }
 
-parse_hexadécimal_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
+parse_hexadécimal_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
 {
     v := tente parse_hexadécimal_n64(chn) piège err {
         retourne err
@@ -343,9 +343,9 @@ parse_hexadécimal_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
  * \{ */
 
 CompositionNombreScientifique :: struct {
-    partie_entière : chaine
-    partie_décimale : chaine
-    exposant : chaine
+    partie_entière: chaine
+    partie_décimale: chaine
+    exposant: chaine
 }
 
 convertis_nombre_scientifique_en_réel :: fonc (composition: CompositionNombreScientifique) -> r64
@@ -382,7 +382,7 @@ convertis_nombre_scientifique_en_réel :: fonc (composition: CompositionNombreSc
 
 // Converti une chaine, par exemple "5005", en un nombre entier
 // La fonction présume que la chaine est entièrement composée de caractères numériques
-extrait_nombre_entier :: fonc(chn : chaine) -> z64
+extrait_nombre_entier :: fonc (chn: chaine) -> z64
 {
     résultat : z64 = 0
     est_négatif := chn[0] == '-'
@@ -407,7 +407,7 @@ extrait_nombre_entier :: fonc(chn : chaine) -> z64
 
 // Converti une chaine, par exemple "500.5", en un nombre réel
 // La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
-extrait_nombre_réel :: fonc(chn : chaine) -> r64
+extrait_nombre_réel :: fonc (chn: chaine) -> r64
 {
     résultat : r64 = 0.0
     mult : r64 = 1.0
@@ -430,10 +430,10 @@ extrait_nombre_réel :: fonc(chn : chaine) -> r64
 
         si point_trouvé {
             mult *= 0.1
-        	résultat += (c - '0') comme r64 * mult
+            résultat += (c - '0') comme r64 * mult
         }
         sinon {
-        	résultat = résultat * 10.0 + (c - '0') comme r64
+            résultat = résultat * 10.0 + (c - '0') comme r64
         }
     }
 

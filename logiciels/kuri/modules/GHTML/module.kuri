@@ -11,14 +11,14 @@ charge "syntaxage"
 
 DonnéesGénération :: struct {
     nom_court_page: chaine
-    valeur : eini
-    nom_variable_boucle : chaine
-    données_variable_boucle : eini
+    valeur: eini
+    nom_variable_boucle: chaine
+    données_variable_boucle: eini
 }
 
 erreur_de_génération :: fonc (données_génération: *DonnéesGénération, chns: ...chaine) -> chaine #sanstrace
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
@@ -98,10 +98,7 @@ aucune_erreur :: fonc () -> chaine
     retourne ""
 }
 
-génère_page :: fonc(
-    données: *DonnéesGénération,
-    noeud: *NoeudSyntaxique,
-    enchaineuse: *Enchaineuse) -> chaine
+génère_page :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique, enchaineuse: *Enchaineuse) -> chaine
 {
     discr noeud.type {
         BLOC {
@@ -214,7 +211,7 @@ génère_page :: fonc(
 
 trouve_valeur_pour_expression :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique) -> eini
 {
-    résultat : eini
+    résultat: eini
 
     discr noeud.type {
         VARIABLE {

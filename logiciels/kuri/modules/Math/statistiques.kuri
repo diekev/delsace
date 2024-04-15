@@ -13,7 +13,7 @@ interval_confiance_wilson :: fonc (positifs: z32, total: z32, confiance: r32) ->
 
     gauche := p + (z * z) / (2.0 * n)
     droite := z * racine_carrée(p * (1.0 - p) / n + (z * z / (4.0 * n) / n)) comme r32
-    sous   := 1.0 + (z * z) / n
+    sous := 1.0 + (z * z) / n
 
     // retourne (gauche + droite) / sous ;; pour la limite haute
     retourne (gauche - droite) / sous
@@ -52,7 +52,7 @@ p_distribution_normale :: fonc (qn: r32) -> r32
 
     w3 := -log(4.0 * w1 * (1.0 - w1))
 
-    w1 = b[0];
+    w1 = b[0]
 
     pour 1 ... b.taille - 1 {
         w1 += b[it] * puissance(w3, it comme r64) comme r32
@@ -67,7 +67,7 @@ p_distribution_normale :: fonc (qn: r32) -> r32
 
 moyenne_arithmétique :: fonc (données: [..]$T) -> T
 {
-    résultat : T
+    résultat: T
 
     si données.taille == 0 {
         retourne résultat
@@ -88,7 +88,7 @@ moyenne_arithmétique :: fonc (données: [..]$T) -> T
 
 moyenne_géométrique :: fonc (données: [..]$T) -> T
 {
-    résultat : T
+    résultat: T
 
     si données.taille == 0 {
         retourne résultat
@@ -115,7 +115,7 @@ moyenne_géométrique :: fonc (données: [..]$T) -> T
 
 moyenne_quadratique :: fonc (données: [..]$T) -> T
 {
-    résultat : T
+    résultat: T
 
     si données.taille == 0 {
         retourne résultat
@@ -139,7 +139,7 @@ moyenne_quadratique :: fonc (données: [..]$T) -> T
 
 moyenne_harmonique :: fonc (données: [..]$T) -> T
 {
-    résultat : T
+    résultat: T
 
     si données.taille == 0 {
         retourne résultat
@@ -232,7 +232,7 @@ moyenne_quasi_arithmétique :: fonc (données: [..]$T, primitive: fonc(T)(T), d�
         retourne f(données[0])
     }
 
-    résultat : T
+    résultat: T
 
     pour données {
         résultat += primitive(it)
@@ -257,7 +257,7 @@ variance :: fonc (données: [..]$T, m: T) -> T
         retourne 0
     }
 
-    résultat : T
+    résultat: T
 
     pour données {
         résultat += it * it
@@ -277,7 +277,7 @@ covariance :: fonc (données1: [..]$T, esp1: T, données2: [..]T, esp2: T) -> T,
 {
     taille := min(données1.taille, données2.taille)
 
-    résultat : T
+    résultat: T
 
     pour i dans 0 ... taille - 1 {
         résultat += (données1[i] - esp1) * (données2[i] - esp2)
@@ -289,7 +289,7 @@ covariance :: fonc (données1: [..]$T, esp1: T, données2: [..]T, esp2: T) -> T,
 
 calcule_table_occurences :: fonc (données: [..]octet) -> [256]z32
 {
-    table_occurence : [256]z32
+    table_occurence: [256]z32
 
     pour & table_occurence {
         it = 0

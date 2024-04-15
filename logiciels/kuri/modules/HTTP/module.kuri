@@ -42,15 +42,15 @@ charge "types"
 ServeuseHTTP :: struct {
     empl base: ServeuseTCP.ServeuseTCP
 
-    nom: chaine = "test"
+    nom : chaine = "test"
     routeuse: NouvelleRouteuse
 
-    intergiciel : TypeRappelRoute
+    intergiciel: TypeRappelRoute
 
-    rappel_méthode_non_autorisée : TypeRappelRoute
-    rappel_page_non_trouvée : TypeRappelRoute
+    rappel_méthode_non_autorisée: TypeRappelRoute
+    rappel_page_non_trouvée: TypeRappelRoute
 
-    quand_connexion_http : fonc(*Prise)(rien)
+    quand_connexion_http: fonc(*Prise)(rien)
 }
 
 crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> *ServeuseHTTP
@@ -139,7 +139,7 @@ quand_données_reçues :: fonc (prise: *Prise, données: [..]octet)
         retourne
     }
 
-    message : MessageClienteHTTP
+    message: MessageClienteHTTP
     réponse : MessageServeuseHTTP = ---
     diffère détruit_message(*réponse)
 
@@ -187,7 +187,7 @@ doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &Messa
     cliente_veut_garder_la_connexion := connection_message && compare_ascii_insensible_à_la_casse(connection_message.valeur, "keep-alive")
     serveuse_veut_garder_la_connexion := connection_réponse && compare_ascii_insensible_à_la_casse(connection_réponse.valeur, "keep-alive")
 
-    doit_fermer_la_connexion := cliente_veut_fermer_la_connexion || serveuse_veut_fermer_la_connexion
+    doit_fermer_la_connexion := cliente_veut_fermer_la_connexion || serveuse_veut_fermer_la_connexion
 
     si doit_fermer_la_connexion && !serveuse_veut_fermer_la_connexion {
         retourne vrai
@@ -219,7 +219,7 @@ PolitiqueDeCache :: énum {
 
 écris_réponse :: fonc (prise: *Prise, message: &MessageServeuseHTTP)
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
@@ -274,7 +274,7 @@ PolitiqueDeCache :: énum {
     _ := prise.écris(*enchaineuse)
 }
 
-chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien
+chaine_pour_aujourdhui :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
     date := hui_système()
 
@@ -315,7 +315,7 @@ chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien
 
 ok :: fonc () -> MessageServeuseHTTP
 {
-    message : MessageServeuseHTTP
+    message: MessageServeuseHTTP
     message.code_état = CodeÉtatHTTP.OK
     message.version = "HTTP/1.1"
     retourne message
@@ -323,7 +323,7 @@ ok :: fonc () -> MessageServeuseHTTP
 
 ressource_non_trouvée :: fonc () -> MessageServeuseHTTP
 {
-    message : MessageServeuseHTTP
+    message: MessageServeuseHTTP
     message.code_état = CodeÉtatHTTP.NOT_FOUND
     message.version = "HTTP/1.1"
     ajoute_entête(*message, "Connection", "close")
@@ -332,7 +332,7 @@ ressource_non_trouvée :: fonc () -> MessageServeuseHTTP
 
 méthode_non_autorisée :: fonc () -> MessageServeuseHTTP
 {
-    message : MessageServeuseHTTP
+    message: MessageServeuseHTTP
     message.code_état = CodeÉtatHTTP.METHOD_NOT_ALLOWED
     message.version = "HTTP/1.1"
     ajoute_entête(*message, "Connection", "close")
@@ -386,7 +386,7 @@ sers_fichier :: fonc (prise: *Prise @inutilisée, message: &MessageClienteHTTP, 
         retourne ressource_non_trouvée()
     }
 
-    réponse : MessageServeuseHTTP
+    réponse: MessageServeuseHTTP
     réponse.version = "HTTP/1.1"
     réponse.code_état = CodeÉtatHTTP.OK
     réponse.contenu = contenu
