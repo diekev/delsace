@@ -86,7 +86,7 @@ détruit_gestionnaire :: fonc (gestionnaire: &GestionnaireEnvoiCourriel)
 
 uri_depuis_configuration :: fonc (config: ConfigurationCourriel) -> URI
 {
-    résultat : URI
+    résultat: URI
     résultat.hôte = config.serveur
 
     // À FAIRE : utilise un URI dans la configuration, ou utilise un n16 dans URI directement pour stocker le port

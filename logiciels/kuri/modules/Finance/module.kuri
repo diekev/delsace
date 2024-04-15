@@ -58,7 +58,7 @@ cacule_mensualité :: fonc (valeur_présente: z32, taux_d_intérêt: r32, nombre
 
     numérateur := vp * i / n
 
-    dénominateur := 1.0 - puissance((1.0 + i  / n), - n * t)
+    dénominateur := 1.0 - puissance((1.0 + i / n), -n * t)
 
     retourne numérateur / dénominateur
 }
@@ -93,10 +93,10 @@ calcule_paiement_mensuel :: fonc (emprunt: r32, interêt: r32, durée: z32) -> r
 
 test_module_finance :: fonc ()
 {
-    valeur_présente: z32 = 100_000
-    taux_d_intérêt: r32 = 0.042
-    nombre_de_paiements_par_années: z32 = 12
-    nombre_d_années: z32 = 10
+    valeur_présente : z32 = 100_000
+    taux_d_intérêt : r32 = 0.042
+    nombre_de_paiements_par_années : z32 = 12
+    nombre_d_années : z32 = 10
 
     ic := calcule_intérêts_cumulés(valeur_présente, taux_d_intérêt, nombre_de_paiements_par_années, nombre_d_années)
 
@@ -117,8 +117,8 @@ test_module_finance :: fonc ()
     imprime("mensualité : %\n", m)
 
     imprime("%\n", mensualité_depuis_capital(16000.0, 0.0425, 60)) // 295.42
-    imprime("%\n", mensualité_depuis_capital(3400.0, 0.0425, 60))  // 62.78
+    imprime("%\n", mensualité_depuis_capital(3400.0, 0.0425, 60)) // 62.78
 
     imprime("%\n", capital_depuis_mensualité(295.42, 0.0425, 60)) // 16000
-    imprime("%\n", capital_depuis_mensualité(62.78, 0.0425, 60))  // 3400
+    imprime("%\n", capital_depuis_mensualité(62.78, 0.0425, 60)) // 3400
 }

@@ -26,7 +26,7 @@ ctx_kuri_pour_alembic := initialise_contexte_kuri()
 /** \nom Création et destruction d'autrices d'archives.
  * \{ */
 
-crée_autrice_archive :: fonc (ctx : *ContexteCreationArchive, ctx_ecriture: *ContexteEcritureCache) -> Optionnel(*AutriceArchive)
+crée_autrice_archive :: fonc (ctx: *ContexteCreationArchive, ctx_ecriture: *ContexteEcritureCache) -> Optionnel(*AutriceArchive)
 {
     résultat := ABC_cree_autrice_archive(*ctx_kuri_pour_alembic, ctx, ctx_ecriture)
     saufsi résultat {

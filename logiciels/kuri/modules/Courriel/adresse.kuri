@@ -90,7 +90,7 @@ ParseAdresseCourriel :: énum {
 // À FAIRE : valeur globale
 construit_table_caractères :: fonc () -> [256]DrapeauxCaractères
 {
-    table_caractères : [256]DrapeauxCaractères
+    table_caractères: [256]DrapeauxCaractères
 
     /* Selon RFC5322, section 3.2.3
      * https://datatracker.ietf.org/doc/html/rfc5322.html#section-3.2.3
@@ -140,13 +140,13 @@ construit_table_caractères :: fonc () -> [256]DrapeauxCaractères
 ParseuseAdresseCourriel :: struct {
     empl base: ParseuseChaine
 
-    table_caractères : [256]DrapeauxCaractères
+    table_caractères: [256]DrapeauxCaractères
 
     part_locale: chaine
     part_domaine: chaine
 
-    drapeaux_part_locale : DrapeauxCaractères
-    drapeaux_part_domaine : DrapeauxCaractères
+    drapeaux_part_locale: DrapeauxCaractères
+    drapeaux_part_domaine: DrapeauxCaractères
 }
 
 drapeau_pour_caractère :: fonc (parseuse: *ParseuseAdresseCourriel, c: z8) -> DrapeauxCaractères #enligne

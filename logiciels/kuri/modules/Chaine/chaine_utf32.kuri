@@ -2,7 +2,7 @@ importe Fondation
 importe Unicode
 
 ChaineUTF32 :: struct {
-    points_de_code : [..]n32
+    points_de_code: [..]n32
 }
 
 copie_chaine :: fonc (chn: &ChaineUTF32) -> ChaineUTF32
@@ -44,7 +44,7 @@ converti_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
 
 crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32
 {
-    résultat : ChaineUTF32
+    résultat: ChaineUTF32
     tableau_réserve(*résultat.points_de_code, chn.taille)
 
     ptr_source := chn.pointeur
@@ -153,7 +153,7 @@ imprime_chaine_utf32 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF32)
         retourne
     }
 
-    séquence : [4]n8
+    séquence: [4]n8
     pour chn.points_de_code {
         taille := point_de_code_vers_utf8(it, *séquence[0])
 

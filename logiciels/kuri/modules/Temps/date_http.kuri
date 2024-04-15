@@ -4,14 +4,14 @@
 importe Fondation
 importe Sérialisation
 
-__chaine_jour_pour_tm := ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+__chaine_jour_pour_tm := [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
 
 chaine_jour_pour_tm :: fonc (tm_wday: z32) -> chaine
 {
     retourne __chaine_jour_pour_tm[tm_wday]
 }
 
-__chaine_mois_pour_tm := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+__chaine_mois_pour_tm := [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ]
 
 chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
 {
@@ -19,7 +19,7 @@ chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
 }
 
 DateHTTP :: struct {
-    jour_semaine : z32
+    jour_semaine: z32
     jour: z32
     mois: z32
     année: z32
@@ -73,7 +73,7 @@ ErreurParsageDate :: erreur {
 
 parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
 {
-    date: DateHTTP = ---
+    date : DateHTTP = ---
 
     si chn.taille < 29 {
         retourne ErreurParsageDate.FormatMalformée
@@ -182,7 +182,7 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
 imprime_date_http :: fonc (enchaineuse: *Enchaineuse, date: DateHTTP)
 {
     // tampon : AAA, 00 AAA 0000 00:00:00 GMT -> 29 caractères
-    tampon : TamponFixe(T = z8, N = 29)
+    tampon: TamponFixe(T = z8, N = 29)
 
     pour chaine_jour_pour_tm(date.jour_semaine) {
         ajoute(*tampon, it)
@@ -228,7 +228,7 @@ imprime_date_http :: fonc (enchaineuse: *Enchaineuse, date: DateHTTP)
     ajoute(*tampon, 'M')
     ajoute(*tampon, 'T')
 
-    chn : chaine
+    chn: chaine
     chn.pointeur = *tampon.données[0]
     chn.taille = tampon.curseur
 
