@@ -75,7 +75,7 @@ données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnées
 
 écris_lignes_dans_fichier :: fonc (chemin: CheminFichier, lignes: []chaine)
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
@@ -203,7 +203,7 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
 {
     dernière_ligne_fut_vide := faux
 
-    nouvelles_lignes : [..]chaine
+    nouvelles_lignes: [..]chaine
 
     lignes := données_fichier.lignes
     pour lignes {
@@ -250,7 +250,7 @@ supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier)
 
 remplaces_tabulation_par_espaces :: fonc (données_fichier: &DonnéesFichier)
 {
-    nouvelles_lignes : [..]chaine
+    nouvelles_lignes: [..]chaine
 
     lignes_furent_modifiés := faux
     pour données_fichier.lignes {
@@ -295,7 +295,7 @@ exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: 
 
 exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
-    rappels := [rappel]
+    rappels := [ rappel ]
     exécute_rappels(chemin, extensions, rappels, données_utilisateurs)
 }
 
@@ -307,7 +307,7 @@ exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: 
 
 exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien))
 {
-    rappels := [rappel]
+    rappels := [ rappel ]
     exécute_rappels(chemin, extensions, rappels)
 }
 

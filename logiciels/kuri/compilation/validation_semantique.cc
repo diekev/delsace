@@ -492,6 +492,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         }
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         {
+            auto déclaration = noeud->comme_déclaration_bibliothèque();
+            auto lexème_nom_bibliothèque = déclaration->lexème_nom_bibliothèque;
+            déclaration->bibliothèque =
+                m_compilatrice.gestionnaire_bibliothèques->crée_bibliothèque(
+                    *m_unité->espace, noeud, noeud->ident, lexème_nom_bibliothèque->chaine);
             noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             noeud->bloc_parent->ajoute_membre(noeud->comme_déclaration_bibliothèque());
             break;
@@ -1073,16 +1078,10 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             break;
         }
         case GenreNoeud::INSTRUCTION_ARRÊTE:
-        {
-            return valide_controle_boucle(noeud->comme_arrête());
-        }
         case GenreNoeud::INSTRUCTION_CONTINUE:
-        {
-            return valide_controle_boucle(noeud->comme_continue());
-        }
         case GenreNoeud::INSTRUCTION_REPRENDS:
         {
-            return valide_controle_boucle(noeud->comme_reprends());
+            return valide_controle_boucle(noeud->comme_controle_boucle());
         }
         case GenreNoeud::INSTRUCTION_RÉPÈTE:
         {
@@ -5206,16 +5205,24 @@ RésultatValidation Sémanticienne::valide_assignation_multiple(NoeudAssignation
     return CodeRetourValidation::OK;
 }
 
-template <typename TypeControleBoucle>
-CodeRetourValidation Sémanticienne::valide_controle_boucle(TypeControleBoucle *inst)
+CodeRetourValidation Sémanticienne::valide_controle_boucle(NoeudInstructionControleBoucle *inst)
 {
     auto chaine_var = inst->expression == nullptr ? nullptr : inst->expression->ident;
     auto boucle = bloc_est_dans_boucle(inst->bloc_parent, chaine_var);
 
     if (!boucle) {
         if (!chaine_var) {
-            m_espace->rapporte_erreur(
-                inst, "« continue » en dehors d'une boucle", erreur::Genre::CONTROLE_INVALIDE);
+            kuri::chaine_statique message;
+            if (inst->est_arrête()) {
+                message = "« arrête » en dehors d'une boucle";
+            }
+            else if (inst->est_continue()) {
+                message = "« continue » en dehors d'une boucle";
+            }
+            else {
+                message = "« reprends » en dehors d'une boucle";
+            }
+            m_espace->rapporte_erreur(inst, message, erreur::Genre::CONTROLE_INVALIDE);
             return CodeRetourValidation::Erreur;
         }
 

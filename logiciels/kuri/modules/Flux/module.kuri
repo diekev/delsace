@@ -5,8 +5,8 @@
 importe Fondation
 
 Flux :: struct {
-    écris: fonc (&Flux, octet)(rien)
-    lis: fonc (&Flux)(octet)
+    écris: fonc(&Flux, octet)(rien)
+    lis: fonc(&Flux)(octet)
     est_valide_pour_lecture: fonc(&Flux)(bool)
     est_valide_pour_écriture: fonc(&Flux)(bool)
 
@@ -40,7 +40,7 @@ rappel_lis :: fonc (flux: &Flux) -> octet
 
 crée_flux_depuis_chaine :: fonc (chn: *chaine) -> Flux
 {
-    f : Flux
+    f: Flux
     f.est_valide_pour_lecture = rappel_est_valide_pour_lecture
     f.lis = rappel_lis
     f.données = chn
@@ -54,7 +54,7 @@ rappel_est_valide_pour_écriture :: fonc (flux: &Flux) -> bool
 
 rappel_écris :: fonc (flux: &Flux, o: octet)
 {
-    chn : chaine
+    chn: chaine
     chn.pointeur = *o comme *z8
     chn.taille = 1
     imprime("%", chn)
@@ -62,7 +62,7 @@ rappel_écris :: fonc (flux: &Flux, o: octet)
 
 crée_flux_impression :: fonc () -> Flux
 {
-    f : Flux
+    f: Flux
     f.est_valide_pour_écriture = rappel_est_valide_pour_écriture
     f.écris = rappel_écris
     retourne f

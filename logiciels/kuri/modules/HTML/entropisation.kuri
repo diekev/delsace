@@ -88,18 +88,18 @@ génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent
 }
 
 ParamètresEntropisation :: struct {
-    limite_basse_enfants : z32
-    limite_haute_enfants : z32
+    limite_basse_enfants: z32
+    limite_haute_enfants: z32
 
-    limite_basse_profondeur : z32
-    limite_haute_profondeur : z32
+    limite_basse_profondeur: z32
+    limite_haute_profondeur: z32
 
-    limite_basse_éléments : z32
-    limite_haute_éléments : z32
+    limite_basse_éléments: z32
+    limite_haute_éléments: z32
 
-    graine : n32
+    graine: n32
 
-    fichier_sortie : CheminFichier
+    fichier_sortie: CheminFichier
 }
 
 ouvre_fichier_sortie :: fonc (paramètres: &ParamètresEntropisation) -> *Fichier
@@ -143,7 +143,7 @@ crée_document_aléatoire :: fonc (paramètres: ParamètresEntropisation) -> *Do
 {
     ctx_kuri := initialise_contexte_kuri()
 
-    gna: *GNA = crée_gna(*ctx_kuri, paramètres.graine)
+    gna : *GNA = crée_gna(*ctx_kuri, paramètres.graine)
     diffère détruit_gna(*ctx_kuri, gna)
 
     document := crée_noeud_document()

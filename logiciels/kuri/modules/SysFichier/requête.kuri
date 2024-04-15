@@ -22,42 +22,42 @@ découvre_type_fichier :: fonc (chemin: CheminFichier) -> Optionnel(TypeFichier)
     }
 }
 
-fichier_existe :: fonc(chemin : CheminFichier) -> bool
+fichier_existe :: fonc (chemin: CheminFichier) -> bool
 {
     retourne découvre_type_fichier(chemin).possède_valeur()
 }
 
-est_un_dossier :: fonc(chemin: CheminFichier) -> bool
+est_un_dossier :: fonc (chemin: CheminFichier) -> bool
 {
     retourne découvre_type_fichier(chemin).a_valeur(TypeFichier.Dossier)
 }
 
-est_un_fichier_régulier :: fonc(chemin: CheminFichier) -> bool
+est_un_fichier_régulier :: fonc (chemin: CheminFichier) -> bool
 {
     retourne découvre_type_fichier(chemin).a_valeur(TypeFichier.Régulier)
 }
 
-est_une_prise :: fonc(chemin: CheminFichier) -> bool
+est_une_prise :: fonc (chemin: CheminFichier) -> bool
 {
     retourne découvre_type_fichier(chemin).a_valeur(TypeFichier.Prise)
 }
 
-est_un_lien_symbolique :: fonc(chemin: CheminFichier) -> bool
+est_un_lien_symbolique :: fonc (chemin: CheminFichier) -> bool
 {
     retourne découvre_type_fichier(chemin).a_valeur(TypeFichier.LienSymbolique)
 }
 
-est_un_fichier_périphérique :: fonc(chemin: CheminFichier) -> bool
+est_un_fichier_périphérique :: fonc (chemin: CheminFichier) -> bool
 {
     retourne découvre_type_fichier(chemin).a_valeur(TypeFichier.Périphérique)
 }
 
-est_un_fichier_caractère :: fonc(chemin: CheminFichier) -> bool
+est_un_fichier_caractère :: fonc (chemin: CheminFichier) -> bool
 {
     retourne découvre_type_fichier(chemin).a_valeur(TypeFichier.Caractère)
 }
 
-est_un_canal :: fonc(chemin: CheminFichier) -> bool
+est_un_canal :: fonc (chemin: CheminFichier) -> bool
 {
     retourne découvre_type_fichier(chemin).a_valeur(TypeFichier.Canal)
 }

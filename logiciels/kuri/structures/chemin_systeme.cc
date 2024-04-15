@@ -179,7 +179,7 @@ void chemin_systeme::crée_dossiers(chaine_statique chemin)
     std::filesystem::create_directories(std_path);
 }
 
-static bool est_fichier_kuri(const std::filesystem::path &chemin)
+static bool est_fichier_kuri_impl(const std::filesystem::path &chemin)
 {
     if (!std::filesystem::is_regular_file(chemin)) {
         return false;
@@ -192,6 +192,11 @@ static bool est_fichier_kuri(const std::filesystem::path &chemin)
     return true;
 }
 
+bool chemin_systeme::est_fichier_kuri(chaine_statique chemin)
+{
+    return est_fichier_kuri_impl(vers_std_path(chemin));
+}
+
 tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier(chaine_statique chemin)
 {
     auto const std_path = vers_std_path(chemin);
@@ -200,7 +205,7 @@ tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier(chaine_statique c
 
     for (auto const &entree : std::filesystem::directory_iterator(std_path)) {
         auto chemin_entree = entree.path();
-        if (!est_fichier_kuri(chemin_entree)) {
+        if (!est_fichier_kuri_impl(chemin_entree)) {
             continue;
         }
 
@@ -218,7 +223,7 @@ tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier_recursif(chaine_s
 
     for (auto const &entree : std::filesystem::recursive_directory_iterator(std_path)) {
         auto chemin_entree = entree.path();
-        if (!est_fichier_kuri(chemin_entree)) {
+        if (!est_fichier_kuri_impl(chemin_entree)) {
             continue;
         }
 

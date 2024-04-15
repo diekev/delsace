@@ -8,7 +8,7 @@ adresse_depuis_s_adrr :: fonc (addr: in_addr) -> AdresseIPv4 #enligne
 
 adresse_depuis_s_adrr :: fonc (addr: in6_addr) -> AdresseIPv6 #enligne
 {
-    données : [8]n16
+    données: [8]n16
 
     pour 8 {
         données[it] = (addr.s6_addr[it * 2] comme n16 << 8) | addr.s6_addr[it * 2 + 1]
@@ -30,7 +30,7 @@ trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([..]AdresseIP)
         retourne
     }
 
-    résultat : [..]AdresseIP
+    résultat: [..]AdresseIP
 
     index := 0
     boucle {
@@ -65,14 +65,14 @@ trouve_adresses :: fonc (noeud: chaine, service: chaine) -> Optionnel([..]Adress
     diffère définis_marque_stockage_temporaire(marqueur)
 
     addr: *addrinfo
-    diffère { freeaddrinfo(addr) }
+    diffère freeaddrinfo(addr)
 
-    hints : addrinfo
-    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
-    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+    hints: addrinfo
+    hints.ai_family = AF_UNSPEC    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_DGRAM /* Datagram socket */
     // À FAIRE
     // hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
-    hints.ai_protocol = 0;          /* Any protocol */
+    hints.ai_protocol = 0          /* Any protocol */
 
     ptr_noeud := crée_chaine_c_temp(noeud)
     ptr_service := crée_chaine_c_temp(service)
@@ -83,7 +83,7 @@ trouve_adresses :: fonc (noeud: chaine, service: chaine) -> Optionnel([..]Adress
         retourne
     }
 
-    résultat : [..]AdresseIP
+    résultat: [..]AdresseIP
 
     addr_courante := addr
     tantque addr_courante != nul {

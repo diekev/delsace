@@ -4,26 +4,26 @@ libcmath :: #bibliothèque "m"
 
 /* Fonctions trigonométriques. */
 
-cosinus :: fonc (a : r32) -> r32 #externe libcmath "cosf"
-cosinus :: fonc (a : r64) -> r64 #externe libcmath "cos"
-sinus :: fonc (a : r32) -> r32 #externe libcmath "sinf"
-sinus :: fonc (a : r64) -> r64 #externe libcmath "sin"
-tangeante :: fonc (a : r32) -> r32 #externe libcmath "tanf"
-tangeante :: fonc (a : r64) -> r64 #externe libcmath "tan"
-arc_cosinus :: fonc (a : r32) -> r32 #externe libcmath "acosf"
-arc_cosinus :: fonc (a : r64) -> r64 #externe libcmath "acos"
-arc_sinus :: fonc (a : r32) -> r32 #externe libcmath "asinf"
-arc_sinus :: fonc (a : r64) -> r64 #externe libcmath "asin"
-arc_tangeante :: fonc (a : r32) -> r32 #externe libcmath "atanf"
-arc_tangeante :: fonc (a : r64) -> r64 #externe libcmath "atan"
-arc_tangeante2 :: fonc (a : r32, b: r32) -> r32 #externe libcmath "atan2f"
-arc_tangeante2 :: fonc (a : r64, b: r64) -> r64 #externe libcmath "atan2"
-arc_cosinus_hyperbolique :: fonc (a : r32) -> r32 #externe libcmath "acoshf"
-arc_cosinus_hyperbolique :: fonc (a : r64) -> r64 #externe libcmath "acosh"
-arc_sinus_hyperbolique :: fonc (a : r32) -> r32 #externe libcmath "asinhf"
-arc_sinus_hyperbolique :: fonc (a : r64) -> r64 #externe libcmath "asinh"
-arc_tangeante_hyperbolique :: fonc (a : r32) -> r32 #externe libcmath "atanhf"
-arc_tangeante_hyperbolique :: fonc (a : r64) -> r64 #externe libcmath "atanh"
+cosinus :: fonc (a: r32) -> r32 #externe libcmath "cosf"
+cosinus :: fonc (a: r64) -> r64 #externe libcmath "cos"
+sinus :: fonc (a: r32) -> r32 #externe libcmath "sinf"
+sinus :: fonc (a: r64) -> r64 #externe libcmath "sin"
+tangeante :: fonc (a: r32) -> r32 #externe libcmath "tanf"
+tangeante :: fonc (a: r64) -> r64 #externe libcmath "tan"
+arc_cosinus :: fonc (a: r32) -> r32 #externe libcmath "acosf"
+arc_cosinus :: fonc (a: r64) -> r64 #externe libcmath "acos"
+arc_sinus :: fonc (a: r32) -> r32 #externe libcmath "asinf"
+arc_sinus :: fonc (a: r64) -> r64 #externe libcmath "asin"
+arc_tangeante :: fonc (a: r32) -> r32 #externe libcmath "atanf"
+arc_tangeante :: fonc (a: r64) -> r64 #externe libcmath "atan"
+arc_tangeante2 :: fonc (a: r32, b: r32) -> r32 #externe libcmath "atan2f"
+arc_tangeante2 :: fonc (a: r64, b: r64) -> r64 #externe libcmath "atan2"
+arc_cosinus_hyperbolique :: fonc (a: r32) -> r32 #externe libcmath "acoshf"
+arc_cosinus_hyperbolique :: fonc (a: r64) -> r64 #externe libcmath "acosh"
+arc_sinus_hyperbolique :: fonc (a: r32) -> r32 #externe libcmath "asinhf"
+arc_sinus_hyperbolique :: fonc (a: r64) -> r64 #externe libcmath "asinh"
+arc_tangeante_hyperbolique :: fonc (a: r32) -> r32 #externe libcmath "atanhf"
+arc_tangeante_hyperbolique :: fonc (a: r64) -> r64 #externe libcmath "atanh"
 
 /* Fonctions de calcul d'arrondis. */
 
@@ -39,7 +39,7 @@ tronque :: fonc (a: r64) -> r64 #externe libcmath "trunc"
 /* Autres fonctions. */
 
 racine_carrée :: fonc (n: r32) -> r32 #externe libcmath "sqrtf"
-racine_carrée :: fonc (n: r64) -> r64  #externe libcmath "sqrt"
+racine_carrée :: fonc (n: r64) -> r64 #externe libcmath "sqrt"
 racine_cubique :: fonc (n: r32) -> r32 #externe libcmath "cbrtf"
 racine_cubique :: fonc (n: r64) -> r64 #externe libcmath "cbrt"
 puissance :: fonc (a: r32, b: r32) -> r32 #externe libcmath "powf"
@@ -87,8 +87,8 @@ racine_selon_newton :: fonc (n: $T, N: r64) -> T
     }
 
     PRÉCISION : r64 : 0.0000001
-    limite_basse : r64
-    limite_haute : r64
+    limite_basse: r64
+    limite_haute: r64
 
     si n < 1.0 {
         limite_basse = n
@@ -125,15 +125,15 @@ racine_cubique_newton :: fonc (n: r64) -> r64
 
 // À FAIRE : certaines fonctions n'ont de sens que pour les nombres relatifs ou réels
 
-abs :: fonc(a : $T) -> T #enligne
+abs :: fonc (a: $T) -> T #enligne
 {
-    si a < 0 { retourne -a } sinon { retourne a; }
+    si a < 0 { retourne -a } sinon { retourne a }
     //retourne si a < 0 { -a } sinon { a }
 }
 
-min :: fonc(a : $T, b : T) -> T #enligne
+min :: fonc (a: $T, b: T) -> T #enligne
 {
-    si a < b { retourne a; } sinon { retourne b; }
+    si a < b { retourne a } sinon { retourne b }
     //retourne si a < b { a } sinon { b }
 }
 
@@ -150,9 +150,9 @@ min :: fonc (val: $T, vals: ...T) -> T
     retourne résultat
 }
 
-max :: fonc(a : $T, b : T) -> T #enligne
+max :: fonc (a: $T, b: T) -> T #enligne
 {
-    si a > b { retourne a; } sinon { retourne b; }
+    si a > b { retourne a } sinon { retourne b }
     //retourne si a > b { a } sinon { b }
 }
 
@@ -169,18 +169,18 @@ max :: fonc (val: $T, vals: ...T) -> T
     retourne résultat
 }
 
-restreint :: fonc(x : *$T, min : T, max : T) -> rien #enligne
+restreint :: fonc (x: *$T, min: T, max: T) -> rien #enligne
 {
     si mémoire(x) <= min {
-        mémoire(x) = min;
+        mémoire(x) = min
     }
     si mémoire(x) >= max {
-        mémoire(x) = max;
+        mémoire(x) = max
     }
 }
 
 /* Trouve le plus grand commun diviseur selon l'algorithme d'Euclide. */
-grandissime_diviseur_commun :: fonc (a : z32, b : z32) -> z32
+grandissime_diviseur_commun :: fonc (a: z32, b: z32) -> z32
 {
     tantque b != 0 {
         t := b
@@ -192,7 +192,7 @@ grandissime_diviseur_commun :: fonc (a : z32, b : z32) -> z32
 }
 
 /* Trouve le plus petit commun multiple */
-petitissime_multiple_commun :: fonc (a : z32, b : z32) -> z32
+petitissime_multiple_commun :: fonc (a: z32, b: z32) -> z32
 {
     si a == 0 || b == 0 {
         retourne 0
@@ -292,7 +292,7 @@ restreint :: fonc (min: $T, valeur: T, max: T) -> T #enligne
     retourne max
 }
 
-est_nombre_premier :: fonc (n : z32) -> bool
+est_nombre_premier :: fonc (n: z32) -> bool
 {
     si n <= 3 {
         retourne n > 1

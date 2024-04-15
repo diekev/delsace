@@ -9,7 +9,7 @@ rune32 :: n32
 // https://tc39.es/ecma262/#sec-ecmascript-language-types-string-type
 // https://infra.spec.whatwg.org/#string-is
 ChaineUTF16 :: struct {
-    unités : [..]n16
+    unités: [..]n16
 }
 
 détruit_chaine :: fonc (chn: &ChaineUTF16)
@@ -29,7 +29,7 @@ réinitialise :: fonc (chn: &ChaineUTF16) #enligne
 
 copie_chaine :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
 {
-    résultat : ChaineUTF16
+    résultat: ChaineUTF16
     résultat.unités = tableau_copie(chn.unités)
     retourne résultat
 }
@@ -174,10 +174,10 @@ compare_chaine_utf16 :: fonc (a1: ChaineUTF16, a2: ChaineUTF16) -> z32
 divise_chaine :: fonc (chn: ChaineUTF16, délimiteur: n32) -> [..]ChaineUTF16
 {
     position := 0
-    résultat : [..]ChaineUTF16
+    résultat: [..]ChaineUTF16
 
     répète {
-        token : ChaineUTF16
+        token: ChaineUTF16
         token.unités.pointeur = chn.unités.pointeur + position
         token.unités.taille = 0
 
@@ -235,7 +235,7 @@ est_valeur_scalaire :: fonc (chn: ChaineUTF16) -> bool
 // À CONSIDÉRER : utilisation d'un type spécifique pour les chaines scalaires (ChaineValeurScalaireUnicode)
 converti_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
-    résultat : ChaineUTF16
+    résultat: ChaineUTF16
 
     pour chn.unités {
         si !est_valeur_scalaire(it) {
@@ -260,7 +260,7 @@ est_préfixe_de :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
 
         a := chn1.unités[i]
 
-        si i >= chn2.taille() || a != chn2.unités[i] {
+        si i >= chn2.taille() || a != chn2.unités[i] {
             retourne faux
         }
 
@@ -322,8 +322,8 @@ EnchaineuseUTF16 :: struct {
     }
 
     tampon: Tampon
-    tampon_courant : *Tampon
-    liste_libre : *Tampon
+    tampon_courant: *Tampon
+    liste_libre: *Tampon
 }
 
 initialise_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16)
@@ -385,7 +385,7 @@ taille_chaine :: fonc (enchaineuse: &EnchaineuseUTF16) -> z64
 
 ajoute_tampon :: fonc (enchaineuse: &EnchaineuseUTF16) -> *EnchaineuseUTF16.Tampon
 {
-    tampon : *EnchaineuseUTF16.Tampon
+    tampon: *EnchaineuseUTF16.Tampon
 
     si enchaineuse.liste_libre {
         tampon = enchaineuse.liste_libre
@@ -443,7 +443,7 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16) -> ChaineUTF1
 {
     taille := enchaineuse.taille_chaine()
 
-    résultat : ChaineUTF16
+    résultat: ChaineUTF16
 
     si taille == 0 {
         retourne résultat
@@ -518,7 +518,7 @@ crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
 
 // Idée pour l'impression de chaines UTF-16
 FluxSortie :: struct {
-    ajoute : fonc (&FluxSortie, n32)(rien)
+    ajoute: fonc(&FluxSortie, n32)(rien)
 
     données: *rien
 }
@@ -529,10 +529,10 @@ crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
     {
         enchaineuse_ := flux_sortie.données comme *Enchaineuse
 
-        séquence : [4]n8
+        séquence: [4]n8
         taille := point_de_code_vers_utf8(point_de_code, *séquence[0])
 
-        chn : chaine
+        chn: chaine
         chn.pointeur = *séquence[0] comme *z8
         chn.taille = taille
 
@@ -591,7 +591,7 @@ imprime_chaine_utf16 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16)
 
 chaine_depuis_chaine_utf16 :: fonc (chn_utf16: ChaineUTF16) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
     imprime_chaine_utf16(*enchaineuse, *chn_utf16)

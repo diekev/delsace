@@ -7,7 +7,7 @@ importe Numérique
 
 entier_vers_chaine :: fonc (entier: z64) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, entier)
@@ -50,7 +50,7 @@ DonnéesMessage :: struct {
     position_version: PositionChaine
 
     /* Pour les messages serveurs. */
-    code_état : z32
+    code_état: z32
     position_code_état: PositionChaine
 
     positions_entêtes: [..]DonnéesEntête
@@ -59,7 +59,7 @@ DonnéesMessage :: struct {
     position_contenu: PositionChaine
 
     // si chunked
-    contenu : chaine
+    contenu: chaine
 }
 
 ajoute_entête :: fonc (données_message: &DonnéesMessage, nom: PositionChaine, valeur: PositionChaine)
@@ -100,10 +100,10 @@ ParseuseHTTP :: struct {
     parseuse_chaine: ParseuseChaine
 
     // pour le parsage du contenu
-    taille_contenu : z32
+    taille_contenu: z32
 
-    contenu_chunked : bool
-    contenu_fixe : bool
+    contenu_chunked: bool
+    contenu_fixe: bool
 
     pour_sous_message := faux
 }
@@ -155,7 +155,7 @@ parse_état_méthode_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         retourne RésultatParsage.MESSAGE_INCOMPLET
     }
 
-    méthodes : []chaine = ["GET", "POST", "PUT", "DELETE", "HEAD", "CONNECT", "OPTIONS", "TRACE", "PATCH"]
+    méthodes : []chaine = [ "GET", "POST", "PUT", "DELETE", "HEAD", "CONNECT", "OPTIONS", "TRACE", "PATCH" ]
 
     index := apparie_un_de(*parseuse.parseuse_chaine, ...méthodes)
 
