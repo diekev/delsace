@@ -454,7 +454,12 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             }
             else if (entête->est_opérateur) {
                 enchaineuse << "opérateur ";
-                imprime_lexème_mot_clé(enchaineuse, entête, false);
+                if (entête->lexème->genre == GenreLexème::CROCHET_OUVRANT) {
+                    enchaineuse << "[]";
+                }
+                else {
+                    imprime_lexème_mot_clé(enchaineuse, entête, false);
+                }
             }
             else {
                 imprime_ident(enchaineuse, entête->ident);
