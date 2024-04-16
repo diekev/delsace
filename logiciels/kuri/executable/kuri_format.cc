@@ -22,14 +22,13 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     auto compilatrice = Compilatrice("", arguments);
     auto tacheronne = Tacheronne(compilatrice);
     auto module = Module(chemin_fichier.chemin_parent());
-    auto donnees_fichier = Fichier();
-    donnees_fichier.chemin_ = kuri::chaine(chemin_fichier);
-    donnees_fichier.module = &module;
+    auto fichier = Fichier();
+    fichier.chemin_ = kuri::chaine(chemin_fichier);
+    fichier.module = &module;
     auto tampon = charge_contenu_fichier({chemin_fichier.pointeur(), chemin_fichier.taille()});
-    donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
+    fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
-    auto lexeuse = Lexeuse(
-        compilatrice.contexte_lexage(nullptr), &donnees_fichier, INCLUS_COMMENTAIRES);
+    auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &fichier, INCLUS_COMMENTAIRES);
     lexeuse.performe_lexage();
 
     if (compilatrice.possède_erreur()) {
@@ -37,7 +36,7 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     }
 
     auto unité = UniteCompilation(compilatrice.espace_de_travail_defaut);
-    unité.fichier = &donnees_fichier;
+    unité.fichier = &fichier;
 
     auto syntaxeuse = Syntaxeuse(tacheronne, &unité);
     syntaxeuse.analyse();
@@ -52,7 +51,7 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     imprime_arbre_formatté_bloc_module(enchaineuse, module.bloc);
 
     auto résultat = enchaineuse.chaine();
-    auto const &source = donnees_fichier.tampon().chaine();
+    auto const &source = fichier.tampon().chaine();
 
     if (source != résultat) {
         auto os = std::ofstream(vers_std_path(chemin_fichier));
