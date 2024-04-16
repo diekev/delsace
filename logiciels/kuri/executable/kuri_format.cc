@@ -20,24 +20,31 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     auto arguments = ArgumentsCompilatrice{};
     arguments.importe_kuri = false;
     auto compilatrice = Compilatrice("", arguments);
-    auto tacheronne = Tacheronne(compilatrice);
-    auto module = Module(chemin_fichier.chemin_parent());
-    auto fichier = Fichier();
-    fichier.chemin_ = kuri::chaine(chemin_fichier);
-    fichier.module = &module;
-    auto tampon = charge_contenu_fichier({chemin_fichier.pointeur(), chemin_fichier.taille()});
-    fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
-    auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &fichier, INCLUS_COMMENTAIRES);
+    /* Création du module et du fichier. */
+    auto &sys_module = compilatrice.sys_module;
+    auto module = sys_module->trouve_ou_crée_module(nullptr, chemin_fichier.chemin_parent());
+    auto résultat_fichier = sys_module->trouve_ou_crée_fichier(
+        module, chemin_fichier.nom_fichier(), chemin_fichier);
+    auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
+
+    /* Chargement fichier. */
+    auto tampon = charge_contenu_fichier({chemin_fichier.pointeur(), chemin_fichier.taille()});
+    fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+
+    /* Lexage. */
+    auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), fichier, INCLUS_COMMENTAIRES);
     lexeuse.performe_lexage();
 
     if (compilatrice.possède_erreur()) {
         return;
     }
 
+    /* Syntaxage du fichier. */
     auto unité = UniteCompilation(compilatrice.espace_de_travail_defaut);
-    unité.fichier = &fichier;
+    unité.fichier = fichier;
 
+    auto tacheronne = Tacheronne(compilatrice);
     auto syntaxeuse = Syntaxeuse(tacheronne, &unité);
     syntaxeuse.analyse();
 
@@ -45,13 +52,15 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
         return;
     }
 
-    assert(module.bloc);
+    assert(module->bloc);
 
+    /* Formattage de l'arbre. */
     Enchaineuse enchaineuse;
-    imprime_arbre_formatté_bloc_module(enchaineuse, module.bloc);
+    imprime_arbre_formatté_bloc_module(enchaineuse, module->bloc);
 
+    /* Écriture fichier. */
     auto résultat = enchaineuse.chaine();
-    auto const &source = fichier.tampon().chaine();
+    auto const &source = fichier->tampon().chaine();
 
     if (source != résultat) {
         auto os = std::ofstream(vers_std_path(chemin_fichier));
