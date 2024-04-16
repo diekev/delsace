@@ -220,7 +220,7 @@ static void imprime_paramètres_classe(Enchaineuse &enchaineuse, NoeudBloc const
         return;
     }
 
-    auto virgule = "(";
+    auto virgule = " (";
 
     POUR (*bloc_constantes->membres.verrou_lecture()) {
         enchaineuse << virgule;
@@ -229,6 +229,15 @@ static void imprime_paramètres_classe(Enchaineuse &enchaineuse, NoeudBloc const
     }
 
     enchaineuse << ") ";
+}
+
+static void imprime_directives(Enchaineuse &enchaineuse,
+                               ÉtatImpression état,
+                               kuri::tableau_statique<NoeudDirectiveFonction *> directives)
+{
+    POUR (directives) {
+        imprime_arbre(enchaineuse, état, it);
+    }
 }
 
 static void imprime_bloc(Enchaineuse &enchaineuse,
@@ -370,17 +379,13 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             auto structure = noeud->comme_type_structure();
             imprime_ident(enchaineuse, structure->ident);
-            enchaineuse << " :: struct ";
+            enchaineuse << " :: struct";
             imprime_paramètres_classe(enchaineuse, structure->bloc_constantes);
-            if (structure->est_externe) {
-                enchaineuse << "#externe ";
+            imprime_directives(enchaineuse, état, structure->directives);
+            if (!structure->bloc) {
+                break;
             }
-            if (structure->est_compacte) {
-                enchaineuse << "#compacte ";
-            }
-            if (structure->est_corps_texte) {
-                enchaineuse << "#corps_texte ";
-            }
+            enchaineuse << " ";
             état.imprime_indent_avant_bloc = false;
             état.imprime_nouvelle_ligne_après_bloc = false;
             imprime_arbre(enchaineuse, état, structure->bloc);
@@ -392,17 +397,16 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             auto structure = noeud->comme_type_union();
             imprime_ident(enchaineuse, structure->ident);
-            enchaineuse << " :: union ";
-            imprime_paramètres_classe(enchaineuse, structure->bloc_constantes);
+            enchaineuse << " :: union";
             if (structure->est_nonsure) {
-                enchaineuse << "nonsûr ";
+                enchaineuse << " nonsûr";
             }
-            if (structure->est_externe) {
-                enchaineuse << "#externe ";
+            imprime_paramètres_classe(enchaineuse, structure->bloc_constantes);
+            imprime_directives(enchaineuse, état, structure->directives);
+            if (!structure->bloc) {
+                break;
             }
-            if (structure->est_corps_texte) {
-                enchaineuse << "#corps_texte ";
-            }
+            enchaineuse << " ";
             état.imprime_indent_avant_bloc = false;
             état.imprime_nouvelle_ligne_après_bloc = false;
             imprime_arbre(enchaineuse, état, structure->bloc);
@@ -473,21 +477,9 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
                 imprime_tableau_expression(enchaineuse, état, entête->params_sorties, "", "");
             }
 
-            if (entête->possède_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE)) {
-                enchaineuse << " #enligne";
-            }
-            if (entête->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
-                enchaineuse << " #horsligne";
-            }
-            if (entête->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSTRACE)) {
-                enchaineuse << " #sanstrace";
-            }
-            if (entête->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSBROYAGE)) {
-                enchaineuse << " #sansbroyage";
-            }
+            imprime_directives(enchaineuse, état, entête->directives);
 
             if (entête->possède_drapeau(DrapeauxNoeud::EST_EXTERNE)) {
-                imprime_données_externes(enchaineuse, entête->données_externes, entête->ident);
                 break;
             }
 
@@ -504,6 +496,30 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             }
             imprime_annotations(enchaineuse, entête->annotations);
             enchaineuse << "\n";
+            break;
+        }
+        case GenreNoeud::DIRECTIVE_FONCTION:
+        {
+            auto directive = noeud->comme_directive_fonction();
+            enchaineuse << " #";
+            imprime_ident(enchaineuse, directive->ident);
+
+            if (directive->ident == ID::externe) {
+                /* Cas spécial pour #externe. Nous ne devons pas séparer les opérandes par des
+                 * virgules. */
+                enchaineuse << " " << directive->opérandes[0]->chaine;
+                if (directive->opérandes.taille() == 2) {
+                    enchaineuse << " \"" << directive->opérandes[1]->chaine << "\"";
+                }
+                break;
+            }
+
+            auto virgule = " ";
+            POUR (directive->opérandes) {
+                enchaineuse << virgule << it->chaine;
+                virgule = ",";
+            }
+
             break;
         }
         case GenreNoeud::DÉCLARATION_CORPS_FONCTION:

@@ -14,6 +14,7 @@ struct NoeudDéclarationClasse;
 struct NoeudDéclarationEntêteFonction;
 struct NoeudDéclarationSymbole;
 struct NoeudDéclarationVariable;
+struct NoeudDirectiveFonction;
 struct NoeudExpression;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
@@ -87,8 +88,10 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_déclaration_enum(Lexème const *lexème_nom);
     bool est_déclaration_type_fonction();
     NoeudExpression *analyse_déclaration_fonction(Lexème const *lexeme);
+    void analyse_directives_fonction(NoeudDéclarationEntêteFonction *noeud);
     NoeudExpression *analyse_déclaration_type_fonction(Lexème const *lexeme);
     NoeudExpression *analyse_déclaration_opérateur();
+    void analyse_directives_opérateur(NoeudDéclarationEntêteFonction *noeud);
     void analyse_expression_retour_type(NoeudDéclarationEntêteFonction *noeud,
                                         bool pour_operateur);
 
@@ -128,5 +131,6 @@ struct Syntaxeuse : BaseSyntaxeuse {
     bool ignore_point_virgule_implicite();
 
     void analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration);
-    void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole);
+    void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
+                                           NoeudDirectiveFonction *directive);
 };

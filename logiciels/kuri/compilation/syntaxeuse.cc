@@ -2563,148 +2563,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     }
 
     ignore_point_virgule_implicite();
-
-    DrapeauxNoeudFonction drapeaux_fonction = DrapeauxNoeudFonction::AUCUN;
-    while (!fini() && apparie(GenreLexème::DIRECTIVE)) {
-        consomme();
-
-        auto ident_directive = lexème_courant()->ident;
-
-        if (ident_directive == ID::enligne) {
-            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
-        }
-        else if (ident_directive == ID::horsligne) {
-            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
-        }
-        else if (ident_directive == ID::externe) {
-            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-
-            if (lexème_mot_clé->genre == GenreLexème::COROUT) {
-                rapporte_erreur("Une coroutine ne peut pas être externe");
-            }
-
-            consomme();
-            analyse_directive_symbole_externe(noeud);
-            /* recule car nous consommons à la fin de la boucle */
-            recule();
-        }
-        else if (ident_directive == ID::principale) {
-            if (noeud->ident != ID::__principale) {
-                rapporte_erreur("#principale utilisée sur une fonction n'étant pas la "
-                                "fonction __principale");
-            }
-
-            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-        }
-        else if (ident_directive == ID::sanstrace) {
-            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
-        }
-        else if (ident_directive == ID::interface) {
-            m_compilatrice.interface_kuri->mute_membre(noeud);
-        }
-        else if (ident_directive == ID::creation_contexte) {
-            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
-            drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
-            m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
-        }
-        else if (ident_directive == ID::compilatrice) {
-            drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSTRACE |
-                                  DrapeauxNoeudFonction::EST_IPA_COMPILATRICE |
-                                  DrapeauxNoeudFonction::EST_EXTERNE);
-
-            if (!est_fonction_compilatrice(noeud->ident)) {
-                rapporte_erreur("#compilatrice utilisé sur une fonction ne faisant pas partie "
-                                "de l'IPA de la Compilatrice");
-            }
-        }
-        else if (ident_directive == ID::sansbroyage) {
-            drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSBROYAGE);
-        }
-        else if (ident_directive == ID::racine) {
-            drapeaux_fonction |= (DrapeauxNoeudFonction::EST_RACINE);
-        }
-        else if (ident_directive == ID::corps_texte) {
-            noeud->corps->est_corps_texte = true;
-        }
-        else if (ident_directive == ID::cliche) {
-            consomme();
-            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
-                rapporte_erreur("Attendu un identifiant après #cliche");
-            }
-
-            while (apparie(GenreLexème::CHAINE_CARACTERE)) {
-                auto ident_cliché = lexème_courant()->ident;
-
-                if (ident_cliché == ID::asa) {
-                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS;
-                }
-                else if (ident_cliché == ID::asa_canon) {
-                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS;
-                }
-                else if (ident_cliché == ID::ri) {
-                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS;
-                }
-                else if (ident_cliché == ID::ri_finale) {
-                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS;
-                }
-                else if (ident_cliché == ID::inst_mv) {
-                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
-                }
-                else if (ident_cliché == ID::format) {
-                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_FORMAT_FUT_REQUIS;
-                }
-                else if (ident_cliché == ID::format_canon) {
-                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS;
-                }
-                else {
-                    rapporte_erreur("Identifiant inconnu après #cliche");
-                }
-                consomme();
-
-                if (!apparie(GenreLexème::VIRGULE)) {
-                    break;
-                }
-                consomme();
-            }
-
-            /* Pour le consomme plus bas qui est sensé consommer l'identifiant de la directive.
-             */
-            recule();
-        }
-        else if (ident_directive == ID::intrinsèque) {
-            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
-            drapeaux_fonction |= DrapeauxNoeudFonction::EST_INTRINSÈQUE;
-            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-
-            consomme();
-
-            if (!apparie(GenreLexème::CHAINE_LITTERALE)) {
-                rapporte_erreur("Attendu le symbole de l'intrinsèque");
-            }
-
-            noeud->données_externes =
-                m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
-            noeud->données_externes->nom_symbole = lexème_courant()->chaine;
-        }
-        else if (ident_directive == ID::interne) {
-            noeud->visibilité_symbole = VisibilitéSymbole::INTERNE;
-        }
-        else if (ident_directive == ID::exporte) {
-            noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
-        }
-        else if (ident_directive == ID::sansretour) {
-            drapeaux_fonction |= DrapeauxNoeudFonction::EST_SANSRETOUR;
-        }
-        else {
-            rapporte_erreur("Directive de fonction inconnue.");
-        }
-
-        consomme();
-    }
-
-    noeud->drapeaux_fonction |= drapeaux_fonction;
+    analyse_directives_fonction(noeud);
 
     if (noeud->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
         if (noeud->params_sorties.taille() > 1) {
@@ -2771,6 +2630,211 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     noeud->bloc_parent->ajoute_membre(noeud);
 
     return noeud;
+}
+
+void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *noeud)
+{
+    kuri::tablet<NoeudDirectiveFonction *, 6> directives;
+
+    DrapeauxNoeudFonction drapeaux_fonction = DrapeauxNoeudFonction::AUCUN;
+    while (!fini() && apparie(GenreLexème::DIRECTIVE)) {
+        consomme();
+
+        auto lexème_directive = lexème_courant();
+        auto ident_directive = lexème_directive->ident;
+
+        if (ident_directive == ID::enligne) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::horsligne) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::externe) {
+            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+
+            if (noeud->est_coroutine) {
+                rapporte_erreur("Une coroutine ne peut pas être externe");
+            }
+
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+
+            consomme();
+            analyse_directive_symbole_externe(noeud, noeud_directive);
+            /* recule car nous consommons à la fin de la boucle */
+            recule();
+        }
+        else if (ident_directive == ID::principale) {
+            if (noeud->ident != ID::__principale) {
+                rapporte_erreur("#principale utilisée sur une fonction n'étant pas la "
+                                "fonction __principale");
+            }
+
+            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sanstrace) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::interface) {
+            m_compilatrice.interface_kuri->mute_membre(noeud);
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::creation_contexte) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
+            m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::compilatrice) {
+            drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSTRACE |
+                                  DrapeauxNoeudFonction::EST_IPA_COMPILATRICE |
+                                  DrapeauxNoeudFonction::EST_EXTERNE);
+
+            if (!est_fonction_compilatrice(noeud->ident)) {
+                rapporte_erreur("#compilatrice utilisé sur une fonction ne faisant pas partie "
+                                "de l'IPA de la Compilatrice");
+            }
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sansbroyage) {
+            drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSBROYAGE);
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::racine) {
+            drapeaux_fonction |= (DrapeauxNoeudFonction::EST_RACINE);
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::corps_texte) {
+            noeud->corps->est_corps_texte = true;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::cliche) {
+            consomme();
+            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu un identifiant après #cliche");
+            }
+
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+
+            while (apparie(GenreLexème::CHAINE_CARACTERE)) {
+                auto ident_cliché = lexème_courant()->ident;
+
+                if (ident_cliché == ID::asa) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::asa_canon) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::ri) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::ri_finale) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::inst_mv) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::format) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_FORMAT_FUT_REQUIS;
+                }
+                else if (ident_cliché == ID::format_canon) {
+                    drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS;
+                }
+                else {
+                    rapporte_erreur("Identifiant inconnu après #cliche");
+                }
+
+                noeud_directive->opérandes.ajoute(lexème_courant());
+                consomme();
+
+                if (!apparie(GenreLexème::VIRGULE)) {
+                    break;
+                }
+                noeud_directive->opérandes.ajoute(lexème_courant());
+                consomme();
+            }
+
+            /* Pour le consomme plus bas qui est sensé consommer l'identifiant de la directive.
+             */
+            recule();
+        }
+        else if (ident_directive == ID::intrinsèque) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_INTRINSÈQUE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+
+            consomme();
+
+            if (!apparie(GenreLexème::CHAINE_LITTERALE)) {
+                rapporte_erreur("Attendu le symbole de l'intrinsèque");
+            }
+
+            noeud->données_externes =
+                m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
+            noeud->données_externes->nom_symbole = lexème_courant()->chaine;
+
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+            noeud_directive->opérandes.ajoute(lexème_courant());
+        }
+        else if (ident_directive == ID::interne) {
+            noeud->visibilité_symbole = VisibilitéSymbole::INTERNE;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::exporte) {
+            noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sansretour) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_SANSRETOUR;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else {
+            rapporte_erreur("Directive de fonction inconnue.");
+        }
+
+        consomme();
+    }
+
+    kuri::copie_tablet_tableau(directives, noeud->directives);
+
+    noeud->drapeaux_fonction |= drapeaux_fonction;
 }
 
 NoeudExpression *Syntaxeuse::analyse_déclaration_type_fonction(Lexème const *lexème)
@@ -2918,24 +2982,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
     consomme(GenreLexème::RETOUR_TYPE, "Attendu un retour de type");
 
     analyse_expression_retour_type(noeud, true);
-
-    while (!fini() && apparie(GenreLexème::DIRECTIVE)) {
-        consomme();
-
-        auto directive = lexème_courant()->ident;
-
-        if (directive == ID::enligne) {
-            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
-        }
-        else if (directive == ID::horsligne) {
-            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
-        }
-        else {
-            rapporte_erreur("Directive d'opérateur inconnue.");
-        }
-
-        consomme();
-    }
+    analyse_directives_opérateur(noeud);
 
     if (!noeud->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
         noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
@@ -2959,6 +3006,38 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
     dépile_état();
 
     return noeud;
+}
+
+void Syntaxeuse::analyse_directives_opérateur(NoeudDéclarationEntêteFonction *noeud)
+{
+    kuri::tablet<NoeudDirectiveFonction *, 6> directives;
+
+    while (!fini() && apparie(GenreLexème::DIRECTIVE)) {
+        consomme();
+
+        auto lexème_directive = lexème_courant();
+        auto directive = lexème_directive->ident;
+
+        if (directive == ID::enligne) {
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (directive == ID::horsligne) {
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else {
+            rapporte_erreur("Directive d'opérateur inconnue.");
+        }
+
+        consomme();
+    }
+
+    kuri::copie_tablet_tableau(directives, noeud->directives);
 }
 
 void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction *noeud,
@@ -3102,10 +3181,13 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_union(Lexème const *lexème_n
 
 void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
 {
+    kuri::tablet<NoeudDirectiveFonction *, 6> directives;
+
     while (!fini() && apparie(GenreLexème::DIRECTIVE)) {
         consomme();
 
-        auto ident_directive = lexème_courant()->ident;
+        auto lexème_directive = lexème_courant();
+        auto ident_directive = lexème_directive->ident;
 
         if (ident_directive == ID::interface) {
             renseigne_type_interface(m_compilatrice.typeuse, noeud->ident, noeud);
@@ -3113,15 +3195,27 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
                 TypeBase::EINI->comme_type_composé()->membres[1].type =
                     m_compilatrice.typeuse.type_pointeur_pour(noeud);
             }
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
         }
         else if (ident_directive == ID::externe) {
             noeud->est_externe = true;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
         }
         else if (ident_directive == ID::corps_texte) {
             noeud->est_corps_texte = true;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
         }
         else if (ident_directive == ID::compacte) {
             noeud->est_compacte = true;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
         }
         else if (ident_directive == ID::aligne) {
             consomme();
@@ -3135,6 +3229,11 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
             if (!est_puissance_de_2(noeud->alignement_desire)) {
                 rapporte_erreur("Un alignement doit être une puissance de 2");
             }
+
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            noeud_directive->opérandes.ajoute(lexème_courant());
+            directives.ajoute(noeud_directive);
         }
         else {
             rapporte_erreur("Directive de structure inconnue.");
@@ -3142,22 +3241,33 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
 
         consomme();
     }
+
+    kuri::copie_tablet_tableau(directives, noeud->directives);
 }
 
 void Syntaxeuse::analyse_directives_union(NoeudUnion *noeud)
 {
+    kuri::tablet<NoeudDirectiveFonction *, 6> directives;
+
     while (!fini() && apparie(GenreLexème::DIRECTIVE)) {
         consomme();
 
-        auto ident_directive = lexème_courant()->ident;
+        auto lexème_directive = lexème_courant();
+        auto ident_directive = lexème_directive->ident;
 
         if (ident_directive == ID::externe) {
             noeud->est_externe = true;
             /* #externe implique nonsûr */
             noeud->est_nonsure = true;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
         }
         else if (ident_directive == ID::corps_texte) {
             noeud->est_corps_texte = true;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
         }
         else {
             rapporte_erreur("Directive impossible pour une union");
@@ -3165,6 +3275,8 @@ void Syntaxeuse::analyse_directives_union(NoeudUnion *noeud)
 
         consomme();
     }
+
+    kuri::copie_tablet_tableau(directives, noeud->directives);
 }
 
 void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
@@ -3370,7 +3482,7 @@ void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariab
         }
 
         consomme();
-        analyse_directive_symbole_externe(déclaration);
+        analyse_directive_symbole_externe(déclaration, nullptr);
         déclaration->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
         return;
     }
@@ -3390,7 +3502,8 @@ void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariab
     rapporte_erreur("Directive de déclaration de variable inconnue.");
 }
 
-void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole)
+void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
+                                                   NoeudDirectiveFonction *directive)
 {
     if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
         rapporte_erreur("attendu une chaine de caractère après #externe");
@@ -3400,10 +3513,16 @@ void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *dé
         m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
     auto données_externes = déclaration_symbole->données_externes;
     données_externes->ident_bibliotheque = lexème_courant()->ident;
+    if (directive) {
+        directive->opérandes.ajoute(lexème_courant());
+    }
     consomme();
 
     if (apparie(GenreLexème::CHAINE_LITTERALE)) {
         données_externes->nom_symbole = lexème_courant()->chaine;
+        if (directive) {
+            directive->opérandes.ajoute(lexème_courant());
+        }
         consomme();
     }
     else {
