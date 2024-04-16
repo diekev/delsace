@@ -51,8 +51,13 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     Enchaineuse enchaineuse;
     imprime_arbre_formatté_bloc_module(enchaineuse, module.bloc);
 
-    auto os = std::ofstream(vers_std_path(chemin_fichier));
-    os << enchaineuse.chaine();
+    auto résultat = enchaineuse.chaine();
+    auto const &source = donnees_fichier.tampon().chaine();
+
+    if (source != résultat) {
+        auto os = std::ofstream(vers_std_path(chemin_fichier));
+        os << résultat;
+    }
 }
 
 int main(int argc, char **argv)
