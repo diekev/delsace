@@ -58,14 +58,18 @@ static void imprime_lexème_mot_clé(Enchaineuse &enchaineuse,
     }
 }
 
+static bool le_noeud_est_sur_une_ligne(NoeudExpression const *noeud)
+{
+    auto étendue_bloc = donne_étendue_source_noeud(noeud);
+    return étendue_bloc.ligne_début == étendue_bloc.ligne_fin;
+}
+
 bool expression_eu_bloc(NoeudExpression const *noeud)
 {
     switch (noeud->genre) {
         case GenreNoeud::INSTRUCTION_BOUCLE:
         case GenreNoeud::INSTRUCTION_TANTQUE:
         case GenreNoeud::INSTRUCTION_POUR:
-        case GenreNoeud::INSTRUCTION_SI:
-        case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
         case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
         case GenreNoeud::INSTRUCTION_COMPOSÉE:
@@ -76,6 +80,11 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
         {
             return true;
+        }
+        case GenreNoeud::INSTRUCTION_SI:
+        case GenreNoeud::INSTRUCTION_SAUFSI:
+        {
+            return !le_noeud_est_sur_une_ligne(noeud);
         }
         case GenreNoeud::DÉCLARATION_ENTÊTE_FONCTION:
         {
@@ -142,12 +151,6 @@ struct ÉtatImpression {
 static void imprime_arbre(Enchaineuse &enchaineuse,
                           ÉtatImpression état,
                           NoeudExpression const *noeud);
-
-static bool le_noeud_est_sur_une_ligne(NoeudExpression const *noeud)
-{
-    auto étendue_bloc = donne_étendue_source_noeud(noeud);
-    return étendue_bloc.ligne_début == étendue_bloc.ligne_fin;
-}
 
 static ÉtendueSourceNoeud donne_étendue_source(
     kuri::tableau_statique<NoeudExpression *> expressions)
@@ -228,7 +231,7 @@ static void imprime_paramètres_classe(Enchaineuse &enchaineuse, NoeudBloc const
         virgule = ", ";
     }
 
-    enchaineuse << ") ";
+    enchaineuse << ")";
 }
 
 static void imprime_directives(Enchaineuse &enchaineuse,
