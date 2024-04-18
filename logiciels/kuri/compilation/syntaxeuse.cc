@@ -585,11 +585,17 @@ void Syntaxeuse::analyse_une_chose()
     if (genre_lexème == GenreLexème::IMPORTE) {
         consomme();
 
-        if (!apparie(GenreLexème::CHAINE_LITTERALE) && !apparie(GenreLexème::CHAINE_CARACTERE)) {
-            rapporte_erreur("Attendu une chaine littérale après 'importe'");
+        auto expression = NoeudExpression::nul();
+        if (apparie(GenreLexème::CHAINE_LITTERALE)) {
+            expression = m_tacheronne.assembleuse->crée_littérale_chaine(lexème_courant());
+        }
+        else if (apparie(GenreLexème::CHAINE_CARACTERE)) {
+            expression = m_tacheronne.assembleuse->crée_référence_déclaration(lexème_courant());
+        }
+        else {
+            rapporte_erreur("Attendu une chaine littérale ou un identifiant après 'importe'");
         }
 
-        auto expression = m_tacheronne.assembleuse->crée_référence_déclaration(lexème_courant());
         auto noeud = m_tacheronne.assembleuse->crée_importe(lexème, expression);
         noeud->bloc_parent->ajoute_expression(noeud);
 
@@ -601,11 +607,17 @@ void Syntaxeuse::analyse_une_chose()
     else if (genre_lexème == GenreLexème::CHARGE) {
         consomme();
 
-        if (!apparie(GenreLexème::CHAINE_LITTERALE) && !apparie(GenreLexème::CHAINE_CARACTERE)) {
-            rapporte_erreur("Attendu une chaine littérale après 'charge'");
+        auto expression = NoeudExpression::nul();
+        if (apparie(GenreLexème::CHAINE_LITTERALE)) {
+            expression = m_tacheronne.assembleuse->crée_littérale_chaine(lexème_courant());
+        }
+        else if (apparie(GenreLexème::CHAINE_CARACTERE)) {
+            expression = m_tacheronne.assembleuse->crée_référence_déclaration(lexème_courant());
+        }
+        else {
+            rapporte_erreur("Attendu une chaine littérale ou un identifiant après 'charge'");
         }
 
-        auto expression = m_tacheronne.assembleuse->crée_référence_déclaration(lexème_courant());
         auto noeud = m_tacheronne.assembleuse->crée_charge(lexème, expression);
         noeud->bloc_parent->ajoute_expression(noeud);
         noeud->expression->ident = nullptr;
