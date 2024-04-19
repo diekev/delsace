@@ -286,7 +286,12 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
     auto imprime_nouvelle_ligne_après_bloc = état.imprime_nouvelle_ligne_après_bloc;
     état.imprime_nouvelle_ligne_après_bloc = true;
 
-    POUR (*bloc->expressions.verrou_lecture()) {
+    auto expressions = bloc->expressions.verrou_lecture();
+
+    /* Pour les commentaires en fin de ligne. */
+    auto ignore_indentation = false;
+
+    POUR_INDEX (*expressions) {
         /* Ignore les expressions ajoutées lors de la validation sémantique (par exemple,
          * les variables capturées par les discriminations). */
         if (it->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE) && !état.préfére_substitution) {
@@ -300,16 +305,35 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
             }
         }
 
-        if (!le_bloc_est_sur_une_ligne && !it->est_bloc()) {
+        if (!le_bloc_est_sur_une_ligne && !it->est_bloc() && !ignore_indentation) {
             enchaineuse << état.indent;
         }
 
+        ignore_indentation = false;
+
         imprime_arbre(enchaineuse, état, it);
+
+        /* Vérifie si l'expression suivante est un commentaire en fin de ligne. */
+        auto commentaire_sur_même_ligne = false;
+        if (index_it < expressions->taille() - 1) {
+            auto expression_suivante = (*expressions)[index_it + 1];
+            if (expression_suivante->est_commentaire()) {
+                if (expression_suivante->lexème->ligne == it->lexème->ligne) {
+                    commentaire_sur_même_ligne = true;
+                    ignore_indentation = true;
+                }
+            }
+        }
 
         /* N'insèrons pas de nouvelle ligne si la dernière expression eu un bloc (car ce
          * fut déjà fait). */
         if (!expression_eu_bloc(it)) {
-            enchaineuse << chaine_nouvelle_ligne;
+            if (commentaire_sur_même_ligne) {
+                enchaineuse << " ";
+            }
+            else {
+                enchaineuse << chaine_nouvelle_ligne;
+            }
         }
 
         dernière_ligne_lexème = donne_étendue_source_noeud(it).ligne_fin;
@@ -457,7 +481,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto entête = noeud->comme_entête_fonction();
 
             if (entête->est_opérateur_pour()) {
-                enchaineuse << "opérateur pour ";
+                enchaineuse << "opérateur pour";
             }
             else if (entête->est_opérateur) {
                 enchaineuse << "opérateur ";
