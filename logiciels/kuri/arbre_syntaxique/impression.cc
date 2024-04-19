@@ -197,7 +197,7 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
             if (expression->est_bloc()) {
                 auto bloc = expression->comme_bloc();
                 if (bloc->expressions->taille() == 1) {
-                    return false;
+                    return expression_eu_bloc(bloc->expressions->a(0));
                 }
                 return true;
             }
@@ -465,7 +465,14 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         }
         case GenreNoeud::COMMENTAIRE:
         {
-            enchaineuse << noeud->lexème->chaine;
+            /* VSCode n'insère pas proprement les fins de sections... */
+            if (noeud->lexème->chaine == "/** } */") {
+                enchaineuse << "/** \\} */";
+            }
+            else {
+                enchaineuse << noeud->lexème->chaine;
+            }
+
             break;
         }
         case GenreNoeud::INSTRUCTION_IMPORTE:
@@ -620,7 +627,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             enchaineuse << " #";
             imprime_ident(enchaineuse, directive->ident);
 
-            if (directive->ident == ID::externe) {
+            if (directive->ident == ID::externe && directive->opérandes.taille() != 0) {
                 /* Cas spécial pour #externe. Nous ne devons pas séparer les opérandes par des
                  * virgules. */
                 enchaineuse << " " << directive->opérandes[0]->chaine;
