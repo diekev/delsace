@@ -17,6 +17,95 @@
 
 #include "utilitaires/log.hh"
 
+enum class GenreNoeudFormattage : int8_t {
+    CHAINE,
+    IDENTIFIANT,
+    LIGNE,
+    ESPACE_OU_LIGNE,
+    INDENTATION,
+    GROUPE,
+    NOEUDS,
+};
+
+struct NoeudFormattage {
+    GenreNoeudFormattage genre;
+
+    NoeudFormattage(GenreNoeudFormattage genre_) : genre(genre_)
+    {
+    }
+};
+
+struct NoeudFormattageIdentifiant : public NoeudFormattage {
+    IdentifiantCode *ident = nullptr;
+};
+
+/* Pour les mots-clés et les ponctuations. */
+struct NoeudFormattageChaine : public NoeudFormattage {
+    kuri::chaine_statique chaine = "";
+};
+
+struct NoeudFormattageGroupe : public NoeudFormattage {
+    kuri::tableau<NoeudFormattage *, int> noeuds{};
+};
+
+struct NoeudFormattageNoeuds : public NoeudFormattage {
+    kuri::tableau<NoeudFormattage *, int> noeuds{};
+};
+
+struct GénératriceTexte {
+  private:
+    void génère_texte(NoeudFormattage const *noeud);
+
+  private:
+    void ajoute_texte(kuri::chaine_statique texte);
+};
+
+void GénératriceTexte::génère_texte(NoeudFormattage const *noeud)
+{
+    switch (noeud->genre) {
+        case GenreNoeudFormattage::CHAINE:
+        {
+            auto noeud_chaine = static_cast<NoeudFormattageChaine const *>(noeud);
+            ajoute_texte(noeud_chaine->chaine);
+            break;
+        }
+        case GenreNoeudFormattage::IDENTIFIANT:
+        {
+            auto noeud_chaine = static_cast<NoeudFormattageIdentifiant const *>(noeud);
+            ajoute_texte(noeud_chaine->ident->nom);
+            break;
+        }
+        case GenreNoeudFormattage::LIGNE:
+        {
+            // si besoin retour
+            break;
+        }
+        case GenreNoeudFormattage::ESPACE_OU_LIGNE:
+        {
+            // si besoin retour -> ligne
+            ajoute_texte(" ");
+            break;
+        }
+        case GenreNoeudFormattage::INDENTATION:
+        {
+            // si besoin retour
+            break;
+        }
+        case GenreNoeudFormattage::GROUPE:
+        {
+            break;
+        }
+        case GenreNoeudFormattage::NOEUDS:
+        {
+            break;
+        }
+    }
+}
+
+void GénératriceTexte::ajoute_texte(kuri::chaine_statique texte)
+{
+}
+
 static kuri::chaine_statique chaine_indentations_espace(int indentations)
 {
     static std::string chaine = std::string(1024, ' ');
