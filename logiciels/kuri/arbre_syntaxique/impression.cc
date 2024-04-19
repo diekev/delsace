@@ -167,6 +167,7 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
         case GenreNoeud::ERREUR:
         case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+        case GenreNoeud::DÉCLARATION_OPÉRATEUR_POUR:
         {
             return true;
         }
@@ -201,7 +202,7 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
                 }
                 return true;
             }
-            return false;
+            return expression_eu_bloc(expression);
         }
         case GenreNoeud::DIRECTIVE_EXÉCUTE:
         {
