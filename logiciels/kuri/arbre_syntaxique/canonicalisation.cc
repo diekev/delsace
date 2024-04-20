@@ -51,6 +51,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
         case GenreNoeud::DÉCLARATION_CONSTANTE:
+        case GenreNoeud::DIRECTIVE_FONCTION:
         {
             break;
         }
