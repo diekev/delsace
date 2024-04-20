@@ -2188,10 +2188,22 @@ NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(GenreLexème genre_
     Lexème *lexème_virgule = nullptr;
 
     while (!fini()) {
+        if (apparie_commentaire()) {
+            auto noeud = m_tacheronne.assembleuse->crée_commentaire(lexème_courant());
+            expressions.ajoute(noeud);
+            consomme();
+            continue;
+        }
+
         auto expr = analyse_expression({}, genre_lexème_racine, GenreLexème::VIRGULE);
         expressions.ajoute(expr);
 
         if (!apparie(GenreLexème::VIRGULE)) {
+            if (apparie_commentaire()) {
+                auto noeud = m_tacheronne.assembleuse->crée_commentaire(lexème_courant());
+                expressions.ajoute(noeud);
+                consomme();
+            }
             break;
         }
 
