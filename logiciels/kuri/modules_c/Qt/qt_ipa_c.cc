@@ -18,6 +18,7 @@
 #include <QLabel>
 #include <QMouseEvent>
 #include <QPushButton>
+#include <QScreen>
 #include <QScrollArea>
 #include <QSplitter>
 #include <QTimer>
@@ -254,6 +255,27 @@ void QT_timer_arrete(QT_Timer *timer)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Screen
+ * \{ */
+
+QT_Screen *QT_application_donne_ecran_principal()
+{
+    return vers_ipa(QApplication::primaryScreen());
+}
+
+QT_Taille QT_screen_donne_taille_disponible(QT_Screen *screen)
+{
+    auto qscreen = vers_qt(screen);
+    auto size = qscreen->availableSize();
+    QT_Taille résultat;
+    résultat.hauteur = size.height();
+    résultat.largeur = size.width();
+    return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Evenement
  * \{ */
 
@@ -400,6 +422,42 @@ void QT_widget_affiche_maximisee(union QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
     qwidget->showMaximized();
+}
+
+void QT_widget_affiche_minimisee(union QT_Generic_Widget widget)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->showMinimized();
+}
+
+void QT_widget_affiche_normal(union QT_Generic_Widget widget)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->showNormal();
+}
+
+void QT_widget_affiche_plein_ecran(union QT_Generic_Widget widget)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->showFullScreen();
+}
+
+void QT_widget_definis_taille_de_base(QT_Generic_Widget widget, QT_Taille taille)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setBaseSize(taille.largeur, taille.hauteur);
+}
+
+void QT_widget_definis_taille_minimum(QT_Generic_Widget widget, QT_Taille taille)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setMinimumSize(taille.largeur, taille.hauteur);
+}
+
+void QT_widget_definis_taille_fixe(QT_Generic_Widget widget, QT_Taille taille)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setFixedSize(taille.largeur, taille.hauteur);
 }
 
 void QT_widget_definis_largeur_fixe(QT_Generic_Widget widget, int largeur)
