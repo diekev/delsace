@@ -33,7 +33,8 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
     /* Lexage. */
-    auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), fichier, INCLUS_COMMENTAIRES);
+    auto lexeuse = Lexeuse(
+        compilatrice.contexte_lexage(nullptr), fichier, INCLUS_COMMENTAIRES | INCLUS_GUILLEMETS);
     lexeuse.performe_lexage();
 
     if (compilatrice.possède_erreur()) {
