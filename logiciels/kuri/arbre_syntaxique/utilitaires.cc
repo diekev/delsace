@@ -316,6 +316,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:
         case GenreNoeud::DÉCLARATION_MODULE:
+        case GenreNoeud::DIRECTIVE_FONCTION:
         {
             break;
         }
