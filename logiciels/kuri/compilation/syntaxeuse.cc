@@ -2317,24 +2317,12 @@ NoeudExpressionTypeTableauFixe *Syntaxeuse::parse_type_tableau_fixe(Lexème cons
 NoeudExpressionConstructionTableau *Syntaxeuse::parse_construction_tableau(
     Lexème const *lexème, GenreLexème racine_expression, GenreLexème lexème_final)
 {
-    auto ancien_noeud_virgule = m_noeud_expression_virgule;
-    m_noeud_expression_virgule = nullptr;
-    auto expression_entre_crochets = analyse_expression(
-        {}, GenreLexème::CROCHET_OUVRANT, GenreLexème::INCONNU);
-    m_noeud_expression_virgule = ancien_noeud_virgule;
+    auto expression_entre_crochets = analyse_expression_avec_virgule(GenreLexème::CROCHET_OUVRANT,
+                                                                     true);
 
     ignore_point_virgule_implicite();
 
     consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
-
-    /* Le reste de la pipeline suppose que l'expression est une virgule,
-     * donc créons une telle expression au cas où nous n'avons qu'un seul
-     * élément dans le tableau. */
-    if (!expression_entre_crochets->est_virgule()) {
-        auto virgule = m_tacheronne.assembleuse->crée_virgule(lexème);
-        virgule->expressions.ajoute(expression_entre_crochets);
-        expression_entre_crochets = virgule;
-    }
 
     return m_tacheronne.assembleuse->crée_construction_tableau(lexème, expression_entre_crochets);
 }
