@@ -599,6 +599,9 @@ struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
      * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
      * lexical si ajoutée lors du syntaxage. */
     NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
+
+    /* Les directives renseignées par le programme. */
+    NoeudDirectiveFonction * [] directives [copie]
 }
 
 struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
@@ -725,6 +728,9 @@ struct NoeudDéclarationClasse : NoeudDéclarationTypeComposé {
     bool est_anonyme
 
     Annotation [] annotations [code copie]
+
+    /* Les directives renseignées par le programme. */
+    NoeudDirectiveFonction * [] directives [copie]
 }
 
 struct NoeudStruct : NoeudDéclarationClasse {
@@ -1290,4 +1296,16 @@ struct NoeudDirectiveIntrospection : NoeudExpression {
     @genre_valeur DROITE
 
     IdentifiantCode * ident [copie code]
+}
+
+/* Noeuds pour les directives sur les fonctions. */
+struct NoeudDirectiveFonction : NoeudExpression {
+    @genre DIRECTIVE_FONCTION
+    @comme directive_fonction
+    @code NoeudCodeDirectiveFonction
+    @genre_valeur INVALIDE
+
+    /* Nous ne stockons que les lexèmes pour éviter d'avoir trop de noeuds
+     * différents pour chaque cas. */
+    Lexème * [] opérandes
 }
