@@ -116,7 +116,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_tantque();
 
     /* Analyse une série d'expressions séparées par des virgules. */
-    NoeudExpression *analyse_expression_avec_virgule(GenreLexème lexème_racine);
+    NoeudExpression *analyse_expression_avec_virgule(GenreLexème lexème_racine, bool force_noeud_virgule);
 
     NoeudExpression *analyse_référence_déclaration(Lexème const *lexème_référence);
 
