@@ -392,6 +392,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::DÉCLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::INSTRUCTION_DIFFÈRE:
+        case GenreNoeud::DIRECTIVE_FONCTION:
         {
             break;
         }
