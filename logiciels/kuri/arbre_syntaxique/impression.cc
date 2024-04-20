@@ -261,22 +261,64 @@ static void imprime_tableau_expression(Enchaineuse &enchaineuse,
                                        kuri::chaine_statique parenthèse_début,
                                        kuri::chaine_statique parenthèse_fin)
 {
+    if (expressions.taille() == 0) {
+        enchaineuse << parenthèse_début << parenthèse_fin;
+        return;
+    }
+
     auto virgule = parenthèse_début;
     auto étendue = donne_étendue_source(expressions);
 
     auto séparation = ", ";
+    auto séparation_est_nouvelle_ligne = false;
     if (étendue.ligne_début != étendue.ligne_fin) {
         séparation = ",\n";
+        séparation_est_nouvelle_ligne = true;
+
+        enchaineuse << parenthèse_début << "\n";
+        virgule = "";
     }
 
-    POUR (expressions) {
+    auto indent = état.indent;
+    indent.v += 1;
+
+    auto ignore_suivant = false;
+
+    POUR_INDEX (expressions) {
+        if (ignore_suivant) {
+            ignore_suivant = false;
+            continue;
+        }
+
         enchaineuse << virgule;
+        if (séparation_est_nouvelle_ligne) {
+            enchaineuse << indent;
+        }
+
         imprime_arbre(enchaineuse, état, it);
+
+        if (index_it < expressions.taille() - 1) {
+            auto expression_suivante = expressions[index_it + 1];
+            if (expression_suivante->est_commentaire() &&
+                expression_suivante->lexème->ligne == it->lexème->ligne) {
+                enchaineuse << ", ";
+                imprime_arbre(enchaineuse, état, expression_suivante);
+                ignore_suivant = true;
+                if (séparation_est_nouvelle_ligne) {
+                    virgule = "\n";
+                }
+                continue;
+            }
+        }
+
         virgule = séparation;
     }
 
     if (expressions.taille() == 0) {
         enchaineuse << virgule;
+    }
+    if (séparation_est_nouvelle_ligne) {
+        enchaineuse << "\n" << état.indent;
     }
     enchaineuse << parenthèse_fin;
 }
