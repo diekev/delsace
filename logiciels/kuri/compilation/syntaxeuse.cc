@@ -888,71 +888,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
         {
             consomme();
             lexème->genre = GenreLexème::TABLEAU;
-
-            auto expression_entre_crochets = NoeudExpression::nul();
-            if (apparie(GenreLexème::DEUX_POINTS)) {
-                consomme();
-                consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
-
-                auto expression_type = analyse_expression(
-                    {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
-                return m_tacheronne.assembleuse->crée_expression_type_tableau_dynamique(
-                    lexème, expression_type);
-            }
-
-            if (apparie(GenreLexème::CROCHET_FERMANT)) {
-                consomme();
-                auto expression_type = analyse_expression(
-                    {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
-                return m_tacheronne.assembleuse->crée_expression_type_tranche(lexème,
-                                                                              expression_type);
-            }
-
-            if (apparie_expression()) {
-                auto ancien_noeud_virgule = m_noeud_expression_virgule;
-                m_noeud_expression_virgule = nullptr;
-                expression_entre_crochets = analyse_expression(
-                    {}, GenreLexème::CROCHET_OUVRANT, GenreLexème::INCONNU);
-                m_noeud_expression_virgule = ancien_noeud_virgule;
-            }
-
-            ignore_point_virgule_implicite();
-
-            consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
-
-            if (apparie_expression()) {
-                /* Nous avons l'expression d'un type tableau fixe. */
-                auto expression_type = analyse_expression(
-                    {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
-
-                if (expression_entre_crochets->possède_drapeau(
-                        DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-                    expression_entre_crochets->drapeaux &=
-                        ~DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
-                    expression_entre_crochets->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
-
-                    expression_entre_crochets->comme_référence_déclaration()
-                        ->déclaration_référée->drapeaux &=
-                        ~DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
-                    expression_entre_crochets->comme_référence_déclaration()
-                        ->déclaration_référée->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
-                }
-
-                return m_tacheronne.assembleuse->crée_expression_type_tableau_fixe(
-                    lexème, expression_entre_crochets, expression_type);
-            }
-
-            /* Le reste de la pipeline suppose que l'expression est une virgule,
-             * donc créons une telle expression au cas où nous n'avons qu'un seul
-             * élément dans le tableau. */
-            if (!expression_entre_crochets->est_virgule()) {
-                auto virgule = m_tacheronne.assembleuse->crée_virgule(lexème);
-                virgule->expressions.ajoute(expression_entre_crochets);
-                expression_entre_crochets = virgule;
-            }
-
-            return m_tacheronne.assembleuse->crée_construction_tableau(lexème,
-                                                                       expression_entre_crochets);
+            return analyse_expression_crochet_ouvrant(lexème, racine_expression, lexème_final);
         }
         case GenreLexème::EMPL:
         {
@@ -2278,6 +2214,72 @@ NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(GenreLexème genre_
     copie_tablet_tableau(expressions, virgule->expressions);
     m_noeud_expression_virgule = nullptr;
     return virgule;
+}
+
+NoeudExpression *Syntaxeuse::analyse_expression_crochet_ouvrant(Lexème const *lexème,
+                                                                GenreLexème racine_expression,
+                                                                GenreLexème lexème_final)
+{
+    auto expression_entre_crochets = NoeudExpression::nul();
+    if (apparie(GenreLexème::DEUX_POINTS)) {
+        consomme();
+        consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
+
+        auto expression_type = analyse_expression(
+            {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
+        return m_tacheronne.assembleuse->crée_expression_type_tableau_dynamique(lexème,
+                                                                                expression_type);
+    }
+
+    if (apparie(GenreLexème::CROCHET_FERMANT)) {
+        consomme();
+        auto expression_type = analyse_expression(
+            {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
+        return m_tacheronne.assembleuse->crée_expression_type_tranche(lexème, expression_type);
+    }
+
+    if (apparie_expression()) {
+        auto ancien_noeud_virgule = m_noeud_expression_virgule;
+        m_noeud_expression_virgule = nullptr;
+        expression_entre_crochets = analyse_expression(
+            {}, GenreLexème::CROCHET_OUVRANT, GenreLexème::INCONNU);
+        m_noeud_expression_virgule = ancien_noeud_virgule;
+    }
+
+    ignore_point_virgule_implicite();
+
+    consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
+
+    if (apparie_expression()) {
+        /* Nous avons l'expression d'un type tableau fixe. */
+        auto expression_type = analyse_expression(
+            {PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, racine_expression, lexème_final);
+
+        if (expression_entre_crochets->possède_drapeau(
+                DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
+            expression_entre_crochets->drapeaux &= ~DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
+            expression_entre_crochets->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
+
+            expression_entre_crochets->comme_référence_déclaration()
+                ->déclaration_référée->drapeaux &= ~DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
+            expression_entre_crochets->comme_référence_déclaration()
+                ->déclaration_référée->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
+        }
+
+        return m_tacheronne.assembleuse->crée_expression_type_tableau_fixe(
+            lexème, expression_entre_crochets, expression_type);
+    }
+
+    /* Le reste de la pipeline suppose que l'expression est une virgule,
+     * donc créons une telle expression au cas où nous n'avons qu'un seul
+     * élément dans le tableau. */
+    if (!expression_entre_crochets->est_virgule()) {
+        auto virgule = m_tacheronne.assembleuse->crée_virgule(lexème);
+        virgule->expressions.ajoute(expression_entre_crochets);
+        expression_entre_crochets = virgule;
+    }
+
+    return m_tacheronne.assembleuse->crée_construction_tableau(lexème, expression_entre_crochets);
 }
 
 NoeudExpression *Syntaxeuse::analyse_référence_déclaration(Lexème const *lexème_référence)
