@@ -19,6 +19,7 @@
     case GenreNoeud::DIRECTIVE_CUISINE:                                                           \
     case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:                                           \
     case GenreNoeud::DIRECTIVE_EXÉCUTE:                                                           \
+    case GenreNoeud::DIRECTIVE_FONCTION:                                                          \
     case GenreNoeud::DIRECTIVE_INTROSPECTION:                                                     \
     case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:                                                    \
     case GenreNoeud::EXPANSION_VARIADIQUE:                                                        \
