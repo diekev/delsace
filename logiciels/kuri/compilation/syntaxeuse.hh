@@ -16,6 +16,8 @@ struct NoeudDéclarationSymbole;
 struct NoeudDéclarationVariable;
 struct NoeudDirectiveFonction;
 struct NoeudExpression;
+struct NoeudExpressionConstructionTableau;
+struct NoeudExpressionTypeTableauFixe;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
 struct NoeudStruct;
@@ -119,9 +121,19 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_expression_avec_virgule(GenreLexème lexème_racine,
                                                      bool force_noeud_virgule);
 
+    bool est_déclaration_type_tableau();
+
     NoeudExpression *analyse_expression_crochet_ouvrant(Lexème const *lexème,
                                                         GenreLexème racine_expression,
                                                         GenreLexème lexème_final);
+
+    NoeudExpressionTypeTableauFixe *parse_type_tableau_fixe(Lexème const *lexème,
+                                                            GenreLexème racine_expression,
+                                                            GenreLexème lexème_final);
+
+    NoeudExpressionConstructionTableau *parse_construction_tableau(Lexème const *lexème,
+                                                                   GenreLexème racine_expression,
+                                                                   GenreLexème lexème_final);
 
     NoeudExpression *analyse_référence_déclaration(Lexème const *lexème_référence);
 
