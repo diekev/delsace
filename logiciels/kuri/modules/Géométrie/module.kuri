@@ -19,7 +19,7 @@ opérateur == :: fonc (p0: Point2D(r32), p1: Point2D(r32)) -> bool
     retourne p0.x == p1.x && p0.y == p1.y
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Ligne
@@ -30,7 +30,7 @@ Ligne :: struct ($T: type_de_données) {
     p1: Point2D(T)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Triangle
@@ -42,7 +42,7 @@ Triangle :: struct ($T: type_de_données) {
     p2: Point2D(T)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom RectanglePosDim
@@ -176,7 +176,7 @@ donne_positions_coins :: fonc (rect: RectanglePosDim($T)) -> [4]Point2D(T)
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom RectanglePur
@@ -219,7 +219,7 @@ découpe_selon :: fonc (rect: &RectanglePur($T), bornes: RectanglePur(T))
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Cercle
@@ -240,4 +240,4 @@ réduis :: fonc (cercle: &Cercle($T), taille: T)
     cercle.rayon -= taille
 }
 
-/** } */
+/** \} */

@@ -153,10 +153,8 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
         retourne
     }
 
-    diffère {
-        si requête.contenu {
-            déloge(requête.contenu)
-        }
+    diffère si requête.contenu {
+        déloge(requête.contenu)
     }
 
     taille_contenu := données.valeur[ParamètresCGI.CONTENT_LENGTH]

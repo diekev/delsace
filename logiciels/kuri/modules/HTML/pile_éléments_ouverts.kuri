@@ -74,11 +74,28 @@ possède_dans_portée_select :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *Ch
 
 possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
 {
-    retourne possède_dans_portée_ex(pile, nom_tag,
-                                    TAG_applet, TAG_caption, TAG_html, TAG_table, TAG_td, TAG_th,
-                                    TAG_marquee, TAG_object, TAG_template, TAG_mi, TAG_mo, TAG_mn,
-                                    TAG_ms, TAG_mtext, TAG_annotation_xml, TAG_foreignObject,
-                                    TAG_desc, TAG_title)
+    retourne possède_dans_portée_ex(
+        pile,
+        nom_tag,
+        TAG_applet,
+        TAG_caption,
+        TAG_html,
+        TAG_table,
+        TAG_td,
+        TAG_th,
+        TAG_marquee,
+        TAG_object,
+        TAG_template,
+        TAG_mi,
+        TAG_mo,
+        TAG_mn,
+        TAG_ms,
+        TAG_mtext,
+        TAG_annotation_xml,
+        TAG_foreignObject,
+        TAG_desc,
+        TAG_title
+    )
 }
 
 possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> bool
