@@ -117,7 +117,8 @@ union QT_Generic_Widget {
 #define ENUMERE_TYPES_OBJETS(O)                                                                   \
     O(QObject, QT_Object, object)                                                                 \
     O(QTimer, QT_Timer, timer)                                                                    \
-    O(QStyle, QT_Style, style)
+    O(QStyle, QT_Style, style)                                                                    \
+    O(QScreen, QT_Screen, screen)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -276,6 +277,15 @@ void QT_timer_arrete(struct QT_Timer *timer);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Screen
+ * \{ */
+
+struct QT_Screen *QT_application_donne_ecran_principal();
+struct QT_Taille QT_screen_donne_taille_disponible(struct QT_Screen *screen);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Position
  * \{ */
 
@@ -384,6 +394,12 @@ struct QT_Widget *QT_widget_nul(void);
 void QT_widget_definis_layout(union QT_Generic_Widget widget, union QT_Generic_Layout layout);
 void QT_widget_remplace_layout(union QT_Generic_Widget widget, union QT_Generic_Layout layout);
 void QT_widget_affiche_maximisee(union QT_Generic_Widget widget);
+void QT_widget_affiche_minimisee(union QT_Generic_Widget widget);
+void QT_widget_affiche_normal(union QT_Generic_Widget widget);
+void QT_widget_affiche_plein_ecran(union QT_Generic_Widget widget);
+void QT_widget_definis_taille_de_base(union QT_Generic_Widget widget, struct QT_Taille taille);
+void QT_widget_definis_taille_minimum(union QT_Generic_Widget widget, struct QT_Taille taille);
+void QT_widget_definis_taille_fixe(union QT_Generic_Widget widget, struct QT_Taille taille);
 void QT_widget_definis_largeur_fixe(union QT_Generic_Widget widget, int largeur);
 void QT_widget_definis_hauteur_fixe(union QT_Generic_Widget widget, int hauteur);
 void QT_widget_affiche(union QT_Generic_Widget widget);
