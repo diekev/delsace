@@ -23,7 +23,8 @@ Vecteur :: struct ($T: type_de_données) #corps_texte {
     retourne copie_chaine("x: T; y: T; z: T;")
 }
 
-init_vecteur :: fonc () {
+init_vecteur :: fonc ()
+{
     v : Vecteur(T = z32) = ---
     v.x = 0
     v.y = 1

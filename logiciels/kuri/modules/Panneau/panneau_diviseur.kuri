@@ -22,7 +22,7 @@ PanneauDiviseur :: struct {
      * utilisé pour les survols de souris et l'édition. */
     rect_orig: RectanglePosDim(z32)
 
-    position_relative: r32 = 0.5
+    position_relative : r32 = 0.5
     est_survolé: bool
     souris_pressée: bool
 }
@@ -136,4 +136,4 @@ ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
     }
 }
 
-/** } */
+/** \} */

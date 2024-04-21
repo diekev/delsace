@@ -33,8 +33,8 @@ TypeInstruction :: énum z32 {
 Ligne :: struct {
     id := 0
     // Ne pas oublier le caractère nul en fin des chaines
-    nom : [32 + 1]z8
-    courriel : [255 + 1]z8
+    nom: [32 + 1]z8
+    courriel: [255 + 1]z8
 }
 
 // @XXX
@@ -58,8 +58,8 @@ désérialise_ligne :: fonc (src: *octet, ligne: *Ligne) -> rien
 }
 
 Instruction :: struct {
-    type : TypeInstruction
-    ligne_à_insérer : Ligne
+    type: TypeInstruction
+    ligne_à_insérer: Ligne
 }
 
 PrépareRésultat :: énum z32 {
@@ -75,7 +75,7 @@ prépare_instruction :: fonc (commande: chaine, inst: *Instruction) -> PrépareR
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    mots : [..]chaine
+    mots: [..]chaine
 
     pousse_contexte nouveau_contexte {
         mots = divise(commande, ' ')
@@ -171,7 +171,7 @@ imprime_ligne :: fonc (ligne: *Ligne) -> rien
 exécute_sélection :: fonc (inst: *Instruction, table: *Table) -> RésultatExécution
 {
     curseur := curseur_début_de_table(table)
-    ligne : Ligne
+    ligne: Ligne
 
     tantque !curseur.est_fin_de_table {
         slot := valeur_curseur(curseur)
@@ -213,7 +213,7 @@ principale :: fonc () -> z32
     chemin_fichier := args[1]
 
     table := ouvre_base_de_données(chemin_fichier)
-    diffère { ferme_base_de_données(table) }
+    diffère ferme_base_de_données(table)
 
     marque := donne_marque_stockage_temporaire()
 
@@ -221,12 +221,12 @@ principale :: fonc () -> z32
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     boucle {
-        définis_marque_stockage_temporaire(marque);
+        définis_marque_stockage_temporaire(marque)
         marque = donne_marque_stockage_temporaire()
 
         imprime_prompt()
 
-        entrée : chaine
+        entrée: chaine
         pousse_contexte nouveau_contexte {
             entrée = entrée_standarde().lis_ligne()
         }
@@ -252,7 +252,7 @@ principale :: fonc () -> z32
             }
         }
 
-        instruction : Instruction
+        instruction: Instruction
         discr prépare_instruction(entrée, *instruction) {
             SUCCÈS {}
             ERREUR_SYNTAXE {

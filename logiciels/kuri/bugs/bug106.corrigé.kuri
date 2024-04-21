@@ -19,7 +19,7 @@ principale :: fonc () -> z32
         }
     }
 
-    contenu : chaine
+    contenu: chaine
     diffère déloge(contenu)
 
     pour_chaque_ligne(contenu, 4, rappel_pour_chaque_ligne)

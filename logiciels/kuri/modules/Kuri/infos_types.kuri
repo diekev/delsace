@@ -3,63 +3,63 @@
 importe Compilatrice // Pour AnnotationCode
 
 GenreInfoType :: énum z32 {
-    ENTIER           :: 0
-    RÉEL             :: 1
-    BOOLÉEN          :: 2
-    CHAINE           :: 3
-    POINTEUR         :: 4
-    STRUCTURE        :: 5
-    FONCTION         :: 6
-    TABLEAU          :: 7
-    EINI             :: 8
-    RIEN             :: 9
-    ÉNUM             :: 10
-    OCTET            :: 11
-    TYPE_DE_DONNÉES  :: 12
-    UNION            :: 13
-    OPAQUE           :: 14
-    VARIADIQUE       :: 15
-    TRANCHE          :: 16
-    TABLEAU_FIXE     :: 17
+    ENTIER :: 0
+    RÉEL :: 1
+    BOOLÉEN :: 2
+    CHAINE :: 3
+    POINTEUR :: 4
+    STRUCTURE :: 5
+    FONCTION :: 6
+    TABLEAU :: 7
+    EINI :: 8
+    RIEN :: 9
+    ÉNUM :: 10
+    OCTET :: 11
+    TYPE_DE_DONNÉES :: 12
+    UNION :: 13
+    OPAQUE :: 14
+    VARIADIQUE :: 15
+    TRANCHE :: 16
+    TABLEAU_FIXE :: 17
     ADRESSE_FONCTION :: 18
 }
 
 InfoType :: struct #interface {
-    id : GenreInfoType
-    taille_en_octet : n32
-    index_dans_table_des_types : n32
+    id: GenreInfoType
+    taille_en_octet: n32
+    index_dans_table_des_types: n32
 }
 
 InfoTypeEntier :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    est_signé : bool
+    est_signé: bool
 }
 
 InfoTypePointeur :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    type_pointé : *InfoType
-    est_référence : bool
+    type_pointé: *InfoType
+    est_référence: bool
 }
 
 InfoTypeTableau :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    type_pointé : *InfoType
+    type_pointé: *InfoType
 }
 
 InfoTypeTableauFixe :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    type_pointé : *InfoType
-    nombre_éléments : n32
+    type_pointé: *InfoType
+    nombre_éléments: n32
 }
 
 InfoTypeTranche :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    type_élément : *InfoType
+    type_élément: *InfoType
 }
 
 possède_annotation :: fonc (annotations: []*AnnotationCode, nom: chaine) -> bool
@@ -84,10 +84,10 @@ InfoTypeMembreStructure :: struct #interface {
         EST_IMPLICITE
     }
 
-    nom : chaine
-    id : *InfoType
-    décalage : z64 // décalage en octets dans la structure
-    drapeaux : Drapeaux
+    nom: chaine
+    id: *InfoType
+    décalage: z64 // décalage en octets dans la structure
+    drapeaux: Drapeaux
     annotations: []*AnnotationCode
 }
 
@@ -102,12 +102,12 @@ trouve_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> *Anno
 }
 
 InfoTypeStructure :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    nom : chaine
-    membres : []*InfoTypeMembreStructure
-    structs_employées : []*InfoTypeStructure
-  	annotations: []*AnnotationCode
+    nom: chaine
+    membres: []*InfoTypeMembreStructure
+    structs_employées: []*InfoTypeStructure
+    annotations: []*AnnotationCode
 }
 
 possède_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
@@ -121,14 +121,14 @@ trouve_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> *Annotation
 }
 
 InfoTypeUnion :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    nom : chaine
-    membres : []*InfoTypeMembreStructure
-    type_le_plus_grand : *InfoType
-    décalage_index : z64
-    est_sûre : bool
-  	annotations: []*AnnotationCode
+    nom: chaine
+    membres: []*InfoTypeMembreStructure
+    type_le_plus_grand: *InfoType
+    décalage_index: z64
+    est_sûre: bool
+    annotations: []*AnnotationCode
 }
 
 possède_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> bool
@@ -142,27 +142,27 @@ trouve_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> *AnnotationCode
 }
 
 InfoTypeFonction :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    types_entrée : []*InfoType
-    types_sortie : []*InfoType
-    est_coroutine : bool
+    types_entrée: []*InfoType
+    types_sortie: []*InfoType
+    est_coroutine: bool
 }
 
 /* Retourne vrai si les d'entrée et de sortie de l'InfoTypeFonction sont les
  * mêmes que ceux données en paramtères. */
-apparie_type_fonction :: fonc (info_type: *InfoTypeFonction, types_entrée : []*InfoType, types_sortie: []*InfoType) -> bool
+apparie_type_fonction :: fonc (info_type: *InfoTypeFonction, types_entrée: []*InfoType, types_sortie: []*InfoType) -> bool
 {
     retourne tableaux_sont_égaux(info_type.types_entrée, types_entrée) && tableaux_sont_égaux(info_type.types_sortie, types_sortie)
 }
 
 InfoTypeÉnum :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    nom : chaine
-    valeurs : []z32
-    noms : []chaine
-    est_drapeau : bool
+    nom: chaine
+    valeurs: []z32
+    noms: []chaine
+    est_drapeau: bool
     type_sous_jacent: *InfoTypeEntier
 }
 
@@ -202,16 +202,16 @@ donne_eini_valeur_énum_index :: fonc (info: *InfoTypeÉnum, index: z64) -> eini
 }
 
 InfoTypeOpaque :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    nom : chaine
-    type_opacifié : *InfoType
+    nom: chaine
+    type_opacifié: *InfoType
 }
 
 InfoTypeVariadique :: struct #interface {
-    empl base : InfoType
+    empl base: InfoType
 
-    type_élément : *InfoType
+    type_élément: *InfoType
 }
 
 est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool

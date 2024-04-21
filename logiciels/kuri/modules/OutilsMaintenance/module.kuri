@@ -69,7 +69,7 @@ données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnées
     retourne données_fichier.données_utilisateurs.pointeur comme *TypeDonnéesPersonnelles
 }
 
-/** } */
+/** \} */
 
 // -------------------------------------
 
@@ -311,4 +311,4 @@ exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fo
     exécute_rappels(chemin, extensions, rappels)
 }
 
-/** } */
+/** \} */
