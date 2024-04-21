@@ -83,7 +83,7 @@ opérateur == :: fonc (condensat1: Condensat, condensat2: Condensat) -> bool
     retourne condensat1.donne_chaine() == condensat2.donne_chaine()
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom HACHEUSE
@@ -203,7 +203,7 @@ taille_condensat :: fonc (hacheuse: *HACHEUSE) -> z32
     retourne KRYPTO_HACHEUSE_taille_condensat(hacheuse)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom HACHEUSE HMAC
@@ -318,7 +318,7 @@ taille_condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> z32
     retourne KRYPTO_HACHEUSE_HMAC_taille_condensat(hacheuse)
 }
 
-/** } */
+/** \} */
 
 compare_condensat :: fonc (a: chaine, b: chaine) -> bool
 {

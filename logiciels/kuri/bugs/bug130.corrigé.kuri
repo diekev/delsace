@@ -9,7 +9,7 @@ importe SysFichier
 principale :: fonc () -> z32
 {
     chemin := CheminFichier("/")
-    données : z32
+    données: z32
 
     pour ExploratriceFichier(chemin) {
         pour_chaque_chemin(it, *données, rappel_traite_chemin)
