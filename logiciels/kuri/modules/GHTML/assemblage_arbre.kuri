@@ -75,7 +75,7 @@ empile_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud, don
 {
     noeud := assembleuse.crée_noeud(type_noeud, données)
 
-    si (!assembleuse.pile.est_vide()) {
+    si !assembleuse.pile.est_vide() {
         noeud.parent = assembleuse.pile.tête()
         ajoute_noeud(noeud.parent, noeud)
     }

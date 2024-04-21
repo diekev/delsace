@@ -3,17 +3,17 @@
 importe Fondation
 
 TEST :: struct {
-    fonction : fonc(eini)(z32)
+    fonction: fonc(eini)(z32)
 }
 
-foo :: fonc(args : eini) -> z32
+foo :: fonc (args: eini) -> z32
 {
     imprime("appel foo avec eini\n")
     imprime("%\n", args)
     retourne 123
 }
 
-foo :: fonc(args : chaine) -> z32
+foo :: fonc (args: chaine) -> z32
 {
     imprime("appel foo avec chaine\n")
     imprime("%\n", args)
@@ -22,7 +22,7 @@ foo :: fonc(args : chaine) -> z32
 
 principale :: fonc () -> z32
 {
-    t : TEST
+    t: TEST
     t.fonction = foo
 
     x := t.fonction("je ne sais pas")

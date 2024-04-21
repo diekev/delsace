@@ -12,7 +12,7 @@ Serveuse :: struct {
     prise := -1
 }
 
-construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
+construit_serveuse :: fonc (serveuse: &Serveuse, port: n16) -> chaine
 {
     serveuse.prise = socket(AF_INET, SOCK_STREAM, 0)
 
@@ -20,7 +20,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
         retourne "erreur lors de la création de la prise"
     }
 
-    mon_addresse : sockaddr_in
+    mon_addresse: sockaddr_in
     mon_addresse.sin_family = AF_INET comme n16
     mon_addresse.sin_port = htons(port)
     // trouve notre propre addresse
@@ -40,7 +40,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
         retourne "erreur lors de la liaison"
     }
 
-    err = listen(serveuse.prise, CONNEXIONS_MAX);
+    err = listen(serveuse.prise, CONNEXIONS_MAX)
 
     si err == -1 {
         retourne "erreur lors de l'écoute"
@@ -49,7 +49,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     retourne ""
 }
 
-détruit_serveuse :: fonc(serveuse: &Serveuse)
+détruit_serveuse :: fonc (serveuse: &Serveuse)
 {
     si serveuse.prise == -1 {
         retourne
@@ -58,7 +58,7 @@ détruit_serveuse :: fonc(serveuse: &Serveuse)
     _ := close(serveuse.prise)
 }
 
-charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in @inutilisée) -> chaine
+charge_donnees_requete :: fonc (prise: z32, mon_addresse: &sockaddr_in @inutilisée) -> chaine
 {
     //ip = convertis_chaine_c(inet_ntoa(mon_addresse.sin_addr))
     //imprime("serveur: Reçu connexion de ", ip, '\n')
@@ -72,13 +72,13 @@ charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in @inutili
     retourne requête
 }
 
-démarre :: fonc(serveuse : &Serveuse) -> rien
+démarre :: fonc (serveuse: &Serveuse) -> rien
 {
     si serveuse.prise == -1 {
         retourne
     }
 
-    mon_addresse : sockaddr_in // Adresse du connecté
+    mon_addresse: sockaddr_in // Adresse du connecté
     sin_size := taille_de(sockaddr_in)
 
     boucle {
@@ -90,12 +90,12 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
         }
 
         si fork() == 0 {
-            requete := charge_donnees_requete(prise, mon_addresse);
+            requete := charge_donnees_requete(prise, mon_addresse)
             imprime("requête :\n%\n", requete)
 
             //reponse = repond_requete(requete)
 
-            enchaineuse : Enchaineuse
+            enchaineuse: Enchaineuse
             initialise_enchaineuse(*enchaineuse)
 
             contenu := "<p>ma réponse</p>"
@@ -136,7 +136,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
 // commentaire
 principale :: fonc () -> z32
 {
-    serveuse : Serveuse
+    serveuse: Serveuse
     _ := construit_serveuse(serveuse, 5009)
 
     démarre(serveuse)

@@ -150,7 +150,7 @@ glIsEnabledi :: fonc (cap: GLenum, index: GLuint) -> GLboolean #externe libGL
 glEnable :: fonc (cap: GLenum) -> rien #externe libGL
 glDisable :: fonc (cap: GLenum) -> rien #externe libGL
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Attributes.
@@ -158,7 +158,7 @@ glDisable :: fonc (cap: GLenum) -> rien #externe libGL
 
 glGetAttribLocation :: fonc (programme: GLuint, nom: ChaineC) -> GLint #externe libGL
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Uniforms.
@@ -200,7 +200,7 @@ glUniformMatrix4x2fv :: fonc (location: GLint, count: GLsizei, transpose: GLbool
 glUniformMatrix3x4fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
 glUniformMatrix4x3fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
 
-/** } */
+/** \} */
 
 glGetIntegerv :: fonc (pname: GLenum, data: *GLint) -> GLvoid #externe libGL
 
@@ -254,7 +254,7 @@ GL_SCISSOR_TEST : GLenum : 0x0C11
 
 glScissor :: fonc (x: GLint, y: GLint, width: GLsizei, height: GLsizei) -> rien #externe libGL
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom GL_EXT_texture_array

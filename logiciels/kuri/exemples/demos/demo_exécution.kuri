@@ -50,12 +50,12 @@ retourne_tuple :: fonc () -> Vec3, Temps
 
 retourne_tableau_fixe :: fonc () -> [3]z32
 {
-    retourne [ 9, 8, 7 ]
+    retourne [ 9, 8, 7 ]
 }
 
 retourne_tableau_dyn :: fonc () -> [..]z32
 {
-    tabl : [..]z32
+    tabl: [..]z32
     tableau_ajoute(*tabl, 4)
     tableau_ajoute(*tabl, 5)
     tableau_ajoute(*tabl, 6)
@@ -63,8 +63,8 @@ retourne_tableau_dyn :: fonc () -> [..]z32
 }
 
 UnionNonsure :: union nonsûr {
-    e : z32
-    f : r32
+    e: z32
+    f: r32
 }
 
 retourne_union_nonsure :: fonc () -> UnionNonsure
@@ -73,8 +73,8 @@ retourne_union_nonsure :: fonc () -> UnionNonsure
 }
 
 UnionSure :: union {
-    e : z32
-    f : r32
+    e: z32
+    f: r32
 }
 
 retourne_union_sure :: fonc () -> UnionSure

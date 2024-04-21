@@ -201,12 +201,12 @@ finalise_mot_clé :: fonc (lexème: *Lexème) -> bool
 }
 
 ÉtatLexage :: struct {
-    lexèmes : [..]Lexème
-    courant : Lexème
-    curseur : z32
-    ligne : z32
-    colonne : z32
-    chn : chaine
+    lexèmes: [..]Lexème
+    courant: Lexème
+    curseur: z32
+    ligne: z32
+    colonne: z32
+    chn: chaine
 }
 
 finalise_courant :: fonc (état: *ÉtatLexage, genre: GenreLexème) -> bool
@@ -239,7 +239,7 @@ finalise_courant :: fonc (état: *ÉtatLexage, genre: GenreLexème) -> bool
 
 lèxe :: fonc (chn: chaine) -> [..]Lexème
 {
-    état : ÉtatLexage
+    état: ÉtatLexage
     état.chn = chn
 
     si chn.taille == 0 {

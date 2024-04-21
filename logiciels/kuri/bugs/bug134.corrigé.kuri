@@ -15,6 +15,6 @@ Interface :: struct {
 
 principale :: fonc () -> z32
 {
-    i : Interface
+    i: Interface
     retourne 0
 }

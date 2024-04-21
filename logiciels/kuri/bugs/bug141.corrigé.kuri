@@ -19,7 +19,7 @@ Structure :: struct {
 
 imprime_énum_drapeau :: fonc ()
 {
-    s : Structure
+    s: Structure
 
     e: ÉnumDrapeau
     e.VALEUR1 = s.x != nul

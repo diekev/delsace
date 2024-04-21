@@ -55,7 +55,7 @@ crée_base_orthonormale :: fonc (n: Vec3) -> (b0: Vec3, b1: Vec3) #enligne #raci
 /**
  * Calcul le coefficient de fresnel avec l'index de réfraction fourni.
  */
-fresnel :: fonc (I: Vec3, N: Vec3, idr: r32) -> coef: r32 #racine
+fresnel :: fonc (I: Vec3, N: Vec3, idr: r32) -> (coef: r32) #racine
 {
     cosi := produit_scalaire(I, N)
     eta_externe := 1.0

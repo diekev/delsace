@@ -66,4 +66,4 @@ sur_destruction_générique :: fonc ($TypePanneau: type_de_données) -> fonc(*Pa
     retourne rappel_sur_destruction
 }
 
-/** } */
+/** \} */

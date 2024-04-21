@@ -33,7 +33,8 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
     /* Lexage. */
-    auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), fichier, INCLUS_COMMENTAIRES);
+    auto lexeuse = Lexeuse(
+        compilatrice.contexte_lexage(nullptr), fichier, INCLUS_COMMENTAIRES | INCLUS_GUILLEMETS);
     lexeuse.performe_lexage();
 
     if (compilatrice.possède_erreur()) {
@@ -68,6 +69,24 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     }
 }
 
+static bool doit_ignorer_le_fichier(kuri::chemin_systeme const &chemin)
+{
+    auto commande = enchaine("git check-ignore ", chemin, " > /dev/null", '\0');
+    auto résultat = system(commande.pointeur());
+    return résultat == 0;
+}
+
+static kuri::chemin_systeme change_de_dossier_si_différent(
+    kuri::chemin_systeme const &chemin_actif, kuri::chemin_systeme const &nouveau_chemin)
+{
+    if (nouveau_chemin == chemin_actif) {
+        return chemin_actif;
+    }
+
+    kuri::chemin_systeme::change_chemin_courant(nouveau_chemin);
+    return nouveau_chemin;
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2) {
@@ -75,23 +94,40 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    /* Enregistre le chemin d'origine. */
+    auto dossier_origine = kuri::chemin_systeme::chemin_courant();
+
     auto chemin_fichier = kuri::chemin_systeme(argv[1]);
     chemin_fichier = kuri::chemin_systeme::absolu(chemin_fichier);
 
     if (kuri::chemin_systeme::est_dossier(chemin_fichier)) {
+        auto dossier_courant = dossier_origine;
         auto chemins = kuri::chemin_systeme::fichiers_du_dossier_recursif(chemin_fichier);
         POUR (chemins) {
+            dossier_courant = change_de_dossier_si_différent(dossier_courant, it.chemin_parent());
+
+            if (doit_ignorer_le_fichier(it)) {
+                continue;
+            }
+
             formatte_fichier(it);
         }
     }
     else if (kuri::chemin_systeme::est_fichier_kuri(chemin_fichier)) {
-        formatte_fichier(chemin_fichier);
+        auto dossier = chemin_fichier.chemin_parent();
+        kuri::chemin_systeme::change_chemin_courant(dossier);
+        if (!doit_ignorer_le_fichier(chemin_fichier)) {
+            formatte_fichier(chemin_fichier);
+        }
     }
     else {
         dbg() << "Le chemin " << chemin_fichier
               << " ne pointe ni vers un dossier ni vers un fichier Kuri.";
         return 1;
     }
+
+    /* Restore le chemin d'origine. */
+    kuri::chemin_systeme::change_chemin_courant(dossier_origine);
 
     return 0;
 }

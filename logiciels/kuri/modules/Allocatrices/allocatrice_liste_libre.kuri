@@ -74,7 +74,7 @@ allocatrice_liste_libre :: fonc (
     retourne nul
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom AllocatriceListeLibre
@@ -176,4 +176,4 @@ trouve_un_bloc :: fonc (allocatrice: *AllocatriceListeLibre, taille: z64) -> *ri
     retourne bloc_courant
 }
 
-/** } */
+/** \} */

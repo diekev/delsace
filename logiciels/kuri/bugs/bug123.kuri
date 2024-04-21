@@ -10,7 +10,7 @@ MaStructure :: struct {
 
 principale :: fonc () -> z32
 {
-    m : MaStructure
+    m: MaStructure
 
     si m.x != 1 {
         retourne 1

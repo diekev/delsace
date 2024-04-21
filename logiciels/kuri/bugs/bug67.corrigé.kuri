@@ -4,12 +4,12 @@
 
 importe Exétron
 
-boucle_parallèle :: fonc (données: *$T, rappel: fonc (*PlageExecution, T)(rien))
+boucle_parallèle :: fonc (données: *$T, rappel: fonc(*PlageExecution, T)(rien))
 {
     DonneesTacheCorps :: struct {
         empl base: DonneesTacheParallele
 
-        rappel: fonc (*PlageExecution, T)(rien)
+        rappel: fonc(*PlageExecution, T)(rien)
         données: *rien
     }
 
@@ -20,12 +20,12 @@ boucle_parallèle :: fonc (données: *$T, rappel: fonc (*PlageExecution, T)(rien
         données_locales.rappel(plage, données_utilisateur)
     }
 
-    données_tâche : DonneesTacheCorps
+    données_tâche: DonneesTacheCorps
     données_tâche.rappel = rappel
     données_tâche.fonction = fonction
     données_tâche.données = données
 
-    plage : PlageExecution
+    plage: PlageExecution
     plage.debut = 0
     plage.fin = 1024
 

@@ -20,6 +20,6 @@ donne_valeur :: fonc (poly: &Polymorphe($T)) -> T
 
 principale :: fonc () -> z32
 {
-    poly : Polymorphe(z32)
+    poly: Polymorphe(z32)
     retourne poly.donne_valeur()
 }

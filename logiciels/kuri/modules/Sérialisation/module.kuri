@@ -211,7 +211,7 @@ lis_n64 :: fonc (fichier: *FichierBinaire) -> n64
     retourne h << 56 | g << 48 | f << 40 | e << 32 | d << 24 | c << 16 | b << 8 | a
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom TamponOctetFixe
@@ -243,7 +243,7 @@ positionne :: fonc (tampon: *TamponOctetFixe, position: z32)
     tampon.position = position
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom TamponOctetDynamique
@@ -296,7 +296,7 @@ désérialise_chaine :: fonc (tampon: *TamponOctetDynamique) -> chaine
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom TamponFixe
@@ -313,4 +313,4 @@ ajoute :: fonc (tampon: *TamponFixe($T, $N), v: T) #enligne
     tampon.curseur += 1
 }
 
-/** } */
+/** \} */

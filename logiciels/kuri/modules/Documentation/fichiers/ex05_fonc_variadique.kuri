@@ -1,4 +1,4 @@
-exemple :: fonc(args : ...r32) -> r32
+exemple :: fonc (args: ...r32) -> r32
 {
     résultat : r32 = 0.0
 

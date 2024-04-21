@@ -133,7 +133,7 @@ traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud)(DécisionTr
     }
 }
 
-/** } */
+/** \} */
 
 // ces fonctions devraient plutôt être dans noeud.kuri, mais nous avons des
 // dépendances cycliques entre les modules que le langage ne sait pas encore gérer

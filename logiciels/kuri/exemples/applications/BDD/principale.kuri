@@ -17,13 +17,13 @@ lance_boucle_exécution :: fonc ()
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    cm : CoulisseMémoire
+    cm: CoulisseMémoire
     diffère détruit_coulisse(*cm)
 
     boucle {
         imprime_prompt()
 
-        entrée : chaine
+        entrée: chaine
         pousse_contexte nouveau_contexte {
             entrée = entrée_standarde().lis_ligne()
         }
@@ -31,7 +31,7 @@ lance_boucle_exécution :: fonc ()
         asa := parse(entrée)
         diffère détruit_asa(*asa)
 
-        exécutrice : Exécutrice
+        exécutrice: Exécutrice
 
         pour inst dans asa.instructions {
             résultat := exécutrice.exécute_instruction(*cm, inst)
@@ -63,11 +63,11 @@ lance_boucle_exécution :: fonc ()
 // @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
 principale :: fonc () -> z32
 {
-    allocatrice_gardée : AllocatriceGardée
+    allocatrice_gardée: AllocatriceGardée
     diffère imprime_liste_mémoire(*allocatrice_gardée)
 
     mémoire_courante := mémoire_utilisée()
-    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_courante) }
+    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_courante)
 
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = allocation_gardée

@@ -81,7 +81,7 @@ imprime_résultat :: fonc (résultat: Result(z32))
 
 principale :: fonc () -> z32
 {
-    v : Optionnel(z32)
+    v: Optionnel(z32)
     imprime_optionnel(v)
     imprime_optionnel(5)
 
@@ -97,7 +97,7 @@ principale :: fonc () -> z32
     r2 := construit_résultat(7)
     imprime_résultat(r2)
 
-    r3 : Result(z32)
+    r3: Result(z32)
     imprime_résultat(r3)
 
     retourne 0

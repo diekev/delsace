@@ -13,13 +13,10 @@ principale :: fonc () -> z32
 
     discr u {
         A(x) {
-
         }
         B(y) {
-
         }
         sinon {
-
         }
     }
 

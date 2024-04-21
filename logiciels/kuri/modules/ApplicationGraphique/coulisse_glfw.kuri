@@ -37,7 +37,8 @@ crée_fenêtre_glfw :: fonc (args: *ArgumentsCréationFenêtre) -> Optionnel(*Fe
     glfwMakeContextCurrent(fenêtre_glfw)
     glfwSwapInterval(1)
 
-    {   // À FAIRE : utilise ÉvènementsRequis
+    {
+        // À FAIRE : utilise ÉvènementsRequis
         glfwSetKeyCallback(fenêtre_glfw, rappel_clavier)
         glfwSetCursorPosCallback(fenêtre_glfw, rappel_position_souris)
         glfwSetMouseButtonCallback(fenêtre_glfw, rappel_bouton_souris)
@@ -61,7 +62,7 @@ sur_destruction_fenêtre_glfw :: fonc (fenêtre: *Fenêtre)
     déloge(fenêtre_glfw)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ApplicationGLFW
@@ -187,7 +188,7 @@ dessine_application :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Évènements
@@ -240,7 +241,7 @@ gère_évènement :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente)
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 
-/*
+    /*
 
 TEMPS_DOUBLE_CLIC_MS : z64 = 500
 
@@ -403,4 +404,4 @@ pousse_contexte __contexte_fil_principal {
     enfile(VG_file_évènements, évènement)
 }
 
-/** } */
+/** \} */

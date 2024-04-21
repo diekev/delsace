@@ -1,7 +1,7 @@
 importe Fondation
 
 ASA :: struct {
-    instructions : [..]*Instruction
+    instructions: [..]*Instruction
 }
 
 détruit_asa :: fonc (asa: *ASA) -> rien
@@ -52,13 +52,13 @@ parse :: fonc (chn: chaine) -> ASA
 {
     lexèmes := lèxe(chn)
 
-/*
+    /*
     pour l dans lexèmes {
         imprime("%\n", l)
     }
 */
 
-    diffère { déloge(lexèmes); }
+    diffère déloge(lexèmes)
 
     syntaxeuse: Syntaxeuse
     syntaxeuse.lexèmes = lexèmes
@@ -67,7 +67,7 @@ parse :: fonc (chn: chaine) -> ASA
         syntaxeuse.parse_instruction()
     }
 
-    asa : ASA
+    asa: ASA
     asa.instructions = syntaxeuse.instructions
 
     si syntaxeuse.possède_erreur {

@@ -268,7 +268,7 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
                         ic = k
                     }
                 }
-                sinon si (index_pivots[k] > 1) {
+                sinon si index_pivots[k] > 1 {
                     /* À FAIRE : erreur :
                      * "Matrice singulière donnée à la fonction inverse". */
                     retourne faux
@@ -321,7 +321,7 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
     /* Échange les colonnes pour réfléchir la permutation. */
     j := 3
     tantque j >= 0 {
-        si (index_lignes[j] == index_colonnes[j]) {
+        si index_lignes[j] == index_colonnes[j] {
             j -= 1
             continue
         }

@@ -122,7 +122,7 @@ ajoute_lexème_script :: fonc (lexeuse: &Lexeuse, type_lexème: TypeLexème) #en
 
 ajoute_lexème_potentiel :: fonc (lexeuse: &Lexeuse) #enligne
 {
-    si (lexeuse.taille_mot_courant != 0) {
+    si lexeuse.taille_mot_courant != 0 {
         lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
     }
 }
@@ -135,12 +135,12 @@ performe_lexage :: fonc (lexeuse: &Lexeuse) -> rien
     état := ÉTAT_HTML
 
     tantque !lexeuse.fini() {
-        si (lexeuse.caractère_courant() == '{') {
-            si (lexeuse.caractère_voisin(1) == '{') {
+        si lexeuse.caractère_courant() == '{' {
+            si lexeuse.caractère_voisin(1) == '{' {
                 état = ÉTAT_CONTROLE
                 lexeuse.ajoute_lexème_script(TypeLexème.DÉBUT_VARIABLE)
             }
-            sinon si (lexeuse.caractère_voisin(1) == '%') {
+            sinon si lexeuse.caractère_voisin(1) == '%' {
                 état = ÉTAT_CONTROLE
                 lexeuse.ajoute_lexème_script(TypeLexème.DÉBUT_CONTROLE)
             }
@@ -149,17 +149,17 @@ performe_lexage :: fonc (lexeuse: &Lexeuse) -> rien
                 lexeuse.avance(1)
             }
         }
-        sinon si (lexeuse.caractère_courant() == '}' && lexeuse.caractère_voisin(1) == '}') {
+        sinon si lexeuse.caractère_courant() == '}' && lexeuse.caractère_voisin(1) == '}' {
             état = ÉTAT_HTML
             lexeuse.ajoute_lexème_script(TypeLexème.FIN_VARIABLE)
         }
-        sinon si (lexeuse.caractère_courant() == '%' && lexeuse.caractère_voisin(1) == '}') {
+        sinon si lexeuse.caractère_courant() == '%' && lexeuse.caractère_voisin(1) == '}' {
             état = ÉTAT_HTML
             lexeuse.ajoute_lexème_script(TypeLexème.FIN_CONTROLE)
         }
         sinon {
-            si (état == ÉTAT_HTML) {
-                si (lexeuse.taille_mot_courant == 0) {
+            si état == ÉTAT_HTML {
+                si lexeuse.taille_mot_courant == 0 {
                     lexeuse.enregistre_position_mot()
                 }
 
@@ -173,7 +173,7 @@ performe_lexage :: fonc (lexeuse: &Lexeuse) -> rien
         }
     }
 
-    si (lexeuse.taille_mot_courant != 0) {
+    si lexeuse.taille_mot_courant != 0 {
         lexeuse.pousse_mot(TypeLexème.CHAINE_CARACTÈRE)
     }
 }
@@ -186,7 +186,7 @@ fini :: fonc (lexeuse: &Lexeuse) -> bool
 avance :: fonc (lexeuse: &Lexeuse, n: z32) -> rien
 {
     pour n {
-        si (lexeuse.caractère_courant() == '\n') {
+        si lexeuse.caractère_courant() == '\n' {
             lexeuse.compte_ligne += 1
             lexeuse.position_ligne = 0
         }
@@ -215,13 +215,13 @@ mot_courant :: fonc (lexeuse: &Lexeuse) -> chaine
 
 analyse_caractère_simple :: fonc (lexeuse: &Lexeuse) -> rien
 {
-    si (est_espace_blanc(lexeuse.caractère_courant())) {
-        si (lexeuse.taille_mot_courant != 0) {
+    si est_espace_blanc(lexeuse.caractère_courant()) {
+        si lexeuse.taille_mot_courant != 0 {
             lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
         }
     }
     sinon si lexeuse.caractère_courant() == '.' {
-        si (lexeuse.taille_mot_courant != 0) {
+        si lexeuse.taille_mot_courant != 0 {
             lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
         }
 
@@ -230,7 +230,7 @@ analyse_caractère_simple :: fonc (lexeuse: &Lexeuse) -> rien
         lexeuse.pousse_mot(TypeLexème.POINT)
     }
     sinon {
-        si (lexeuse.taille_mot_courant == 0) {
+        si lexeuse.taille_mot_courant == 0 {
             lexeuse.enregistre_position_mot()
         }
 

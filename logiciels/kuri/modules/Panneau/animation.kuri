@@ -20,7 +20,7 @@ animation_est_fini :: fonc (animation: Animation) -> bool #enligne
     retourne animation.temps == animation.cible
 }
 
-/** } */
+/** \} */
 
 /* Utilise une courbe exponentielle auto-corrigeante pour calculer la nouvelle
  * valeur de l'animation.

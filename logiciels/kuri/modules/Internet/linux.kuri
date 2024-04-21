@@ -68,11 +68,11 @@ trouve_adresses :: fonc (noeud: chaine, service: chaine) -> Optionnel([..]Adress
     diffère freeaddrinfo(addr)
 
     hints: addrinfo
-    hints.ai_family = AF_UNSPEC    /* Allow IPv4 or IPv6 */
+    hints.ai_family = AF_UNSPEC /* Allow IPv4 or IPv6 */
     hints.ai_socktype = SOCK_DGRAM /* Datagram socket */
     // À FAIRE
     // hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
-    hints.ai_protocol = 0          /* Any protocol */
+    hints.ai_protocol = 0 /* Any protocol */
 
     ptr_noeud := crée_chaine_c_temp(noeud)
     ptr_service := crée_chaine_c_temp(service)

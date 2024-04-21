@@ -34,7 +34,7 @@ TypeCurseurSystème :: énum {
     MAIN
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom CliqueSouris
@@ -81,7 +81,7 @@ CliqueSouris :: struct {
     delta: z32
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Clavier
@@ -206,7 +206,7 @@ initialise_caractères_clé_clavier :: fonc ()
     __caractères_clé_clavier[CléClavier.CLÉ_POINT_EXCLAMATION] = '!'
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Initialisation du module
@@ -219,4 +219,4 @@ initialise_tables_clavier :: fonc ()
 
 #ajoute_init initialise_tables_clavier()
 
-/** } */
+/** \} */

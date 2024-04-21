@@ -1,11 +1,9 @@
 fonction_annotée :: fonc ()
 {
-
 } @quelquechose @autre_chose
 
 fonction_annotée_avec_chaine :: fonc ()
 {
-
 } @une_chaine "la chaine en question"
 
 Vec3 :: struct {

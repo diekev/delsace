@@ -7,10 +7,10 @@ importe Support
 
 Parent :: struct {
     Enfant :: struct {
-        z : r32
+        z: r32
     }
 
-    y : r32
+    y: r32
 }
 
 principale :: fonc () -> z32

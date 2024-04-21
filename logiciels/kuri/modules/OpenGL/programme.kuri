@@ -134,7 +134,7 @@ détruit_nuanceur :: fonc (id_nuanceur: n32) -> rien
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Requête et définition d'attributs.
@@ -147,7 +147,7 @@ donne_adresse_attribut :: fonc (programme: n32, nom: chaine) -> z32
     retourne glGetAttribLocation(programme, nom_c)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom TypeValeurUniforme
@@ -156,7 +156,7 @@ donne_adresse_attribut :: fonc (programme: n32, nom: chaine) -> z32
 
 TypeValeurUniforme :: bool | z32 | n32 | r32 | ([..]z32) | ([..]n32) | ([..]r32) | Vec2 | Vec3 | Vec4 | CouleurRVBA | Mat4r
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Requête et définition de valeurs uniformes.
@@ -259,7 +259,7 @@ définis_uniforme :: fonc (adresse: z32, mat: Mat4r)
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name SourcesGLSL
@@ -439,7 +439,7 @@ crée_programme_depuis_sources :: fonc (sources: SourcesGLSL) -> *ProgrammeDeNua
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name Parsage Sources GLSL

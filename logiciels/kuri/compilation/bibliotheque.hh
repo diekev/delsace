@@ -151,7 +151,8 @@ struct Bibliothèque {
 
     bool peut_lier_statiquement() const
     {
-        return chemins[STATIQUE][PLATEFORME_64_BIT][POUR_PRODUCTION] != "" && nom != "c";
+        return chemins[STATIQUE][PLATEFORME_64_BIT][POUR_PRODUCTION] != kuri::chemin_systeme("") &&
+               nom != "c";
     }
 };
 

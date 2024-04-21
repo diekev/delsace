@@ -7,7 +7,6 @@ importe Support
 
 foo :: fonc () -> rien
 {
-
 }
 
 est_nul :: fonc (ptr: fonc()(rien)) -> bool

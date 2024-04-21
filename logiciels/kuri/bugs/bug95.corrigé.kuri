@@ -19,7 +19,7 @@ Structure :: struct {
 
 principale :: fonc () -> z32
 {
-    s : Structure
+    s: Structure
     saufsi s.valeur == 5 {
         retourne 1
     }
