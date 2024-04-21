@@ -1,23 +1,14 @@
 importe Fondation
 importe Math
 
-absolue :: fonc (a: r64) -> r64
-{
-    si a < 0.0 {
-        retourne -a
-    }
-
-    retourne a
-}
-
 /* Générateur incrémentel d'une séquence de Halton, tiré de :
  * "Instant Radiosity", Keller A.
  * https://www.cg.tuwien.ac.at/courses/RendEng/2015/RendEng-2016-01-11-InstantRadiosity.pdf */
 halton_suivant :: fonc (inverse_n_premier: r64, décalage: r64) -> r64
 {
-    e := absolue(1.0 comme r64 - décalage - 1e-10 comme r64)
+    e := abs(1.0 comme r64 - décalage - 1e-10 comme r64)
 
-    si (inverse_n_premier < e) {
+    si inverse_n_premier < e {
         décalage += inverse_n_premier
     }
     sinon {
@@ -27,7 +18,7 @@ halton_suivant :: fonc (inverse_n_premier: r64, décalage: r64) -> r64
         répète {
             dernier_h = h
             h *= inverse_n_premier
-        } tantque (h >= e)
+        } tantque h >= e
 
         décalage += ((dernier_h + h) - 1.0)
     }

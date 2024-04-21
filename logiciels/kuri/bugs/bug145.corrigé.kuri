@@ -12,7 +12,7 @@ prend_tableau :: fonc (t: StructurePoly($N) @inutilisée)
 
 principale :: fonc () -> z32
 {
-    t : StructurePoly(5)
+    t: StructurePoly(5)
     prend_tableau(t)
     retourne 0
 }

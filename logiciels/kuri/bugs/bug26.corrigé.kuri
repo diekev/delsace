@@ -8,7 +8,7 @@
 importe Support
 
 TypeBase :: struct {
-    inutilisé : z32
+    inutilisé: z32
 }
 
 TypeDérivé :: struct {

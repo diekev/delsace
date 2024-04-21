@@ -1,7 +1,7 @@
-principale :: fonc() -> z32
+principale :: fonc () -> z32
 {
     // Déclaration d'un tableau de 12 nombre entier relatif 32-bit
-    tabl : [12]z32
+    tabl: [12]z32
     début := 1
 
     // Remplis le tableau avec des puissances de 2, de 1 à 4096

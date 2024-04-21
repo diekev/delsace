@@ -1,6 +1,6 @@
 importe Fondation
 
-ajoute :: fonc(a : z32, b : z32) -> z32
+ajoute :: fonc (a: z32, b: z32) -> z32
 {
     retourne a + b
 }

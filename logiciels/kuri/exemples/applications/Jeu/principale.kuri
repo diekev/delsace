@@ -14,9 +14,7 @@ importe Périphériques
 
 principale :: fonc () -> z32
 {
-    diffère {
-        imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
-    }
+    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 
     largeur : z32 = TAILLE_TUILE * TUILES_X
     hauteur : z32 = TAILLE_TUILE * TUILES_Y
@@ -37,7 +35,7 @@ principale :: fonc () -> z32
     retourne app.exécute(*jeu)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Jeu
@@ -53,13 +51,13 @@ Entite :: struct {
 }
 
 Jeu :: struct {
-    personnage : Entite
+    personnage: Entite
 
-    hauteur : z32
-    largeur : z32
+    hauteur: z32
+    largeur: z32
 
-    sur_rendu_fenêtre: fonc (*Jeu)(rien)
-    sur_touche_clavier: fonc (*Jeu, CléClavier)(rien)
+    sur_rendu_fenêtre: fonc(*Jeu)(rien)
+    sur_touche_clavier: fonc(*Jeu, CléClavier)(rien)
 }
 
 crée_jeu :: fonc () -> Jeu
@@ -78,7 +76,7 @@ traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
 
             // vérifie collision
             si jeu.personnage.pos_x < 0 {
-               jeu.personnage.pos_x = 0
+                jeu.personnage.pos_x = 0
             }
         }
         CLÉ_FLÈCHE_DROITE {
@@ -86,7 +84,7 @@ traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
 
             // vérifie collision
             si jeu.personnage.pos_x >= jeu.largeur {
-               jeu.personnage.pos_x = jeu.largeur - TAILLE_TUILE
+                jeu.personnage.pos_x = jeu.largeur - TAILLE_TUILE
             }
         }
         CLÉ_FLÈCHE_HAUT {
@@ -94,7 +92,7 @@ traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
 
             // vérifie collision
             si jeu.personnage.pos_y >= jeu.hauteur {
-               jeu.personnage.pos_y = jeu.hauteur - TAILLE_TUILE
+                jeu.personnage.pos_y = jeu.hauteur - TAILLE_TUILE
             }
         }
         CLÉ_FLÈCHE_BAS {
@@ -102,7 +100,7 @@ traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
 
             // vérifie collision
             si jeu.personnage.pos_y < 0 {
-               jeu.personnage.pos_y = 0
+                jeu.personnage.pos_y = 0
             }
         }
         sinon {}
@@ -122,7 +120,7 @@ ajourne_dessin_fenêtre :: fonc (jeu: *Jeu)
     pos_x := jeu.personnage.pos_x comme r32
     pos_y := jeu.personnage.pos_y comme r32
 
-    couleur := CouleurRVBA(r = 1.0, v = 1.0, b = 1.0, a = 1.0 )
+    couleur := CouleurRVBA(r = 1.0, v = 1.0, b = 1.0, a = 1.0)
 
     utilise_nuanceur(nuanceur_base)
     commence_immédiat()
@@ -132,4 +130,4 @@ ajourne_dessin_fenêtre :: fonc (jeu: *Jeu)
     termine_immédiat(ModeImmédiat.TRIANGLES)
 }
 
-/** } */
+/** \} */

@@ -73,7 +73,7 @@ luminance :: fonc (c: CouleurRVBA) -> r32
     retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom CouleurRVBA sur 8-bit
@@ -115,7 +115,7 @@ interpole_linéaire :: fonc (c0: CouleurRVBAN8, poids: r32, c1: CouleurRVBAN8) -
     retourne CouleurRVBAN8(r, v, b, a)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Couleur Teinte-Saturation-Valeur
@@ -177,7 +177,7 @@ tsv_vers_rvb :: fonc (couleur: CouleurTSV) -> CouleurRVBA
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Couleur Teinte-Saturation-Luminance
@@ -202,7 +202,7 @@ rvb_vers_tsl :: fonc (couleur: CouleurRVBA) -> CouleurTSL
     s := 0.0
     l := min(1.0, (cmax + cmin) * 0.5)
 
-    si (cmax == cmin) {
+    si cmax == cmin {
         /* achromatic, t et s sont déjà à zéro */
     }
     sinon {
@@ -215,13 +215,13 @@ rvb_vers_tsl :: fonc (couleur: CouleurRVBA) -> CouleurTSL
             d / (cmax + cmin)
         }
 
-        si (cmax == r) {
+        si cmax == r {
             t = (v - b) / d
             si v < b {
                 t += 6.0
             }
         }
-        sinon si (cmax == v) {
+        sinon si cmax == v {
             t = (b - r) / d + 2.0
         }
         sinon {
@@ -261,7 +261,7 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 // -------------------------------------------------------------------------
 
@@ -380,4 +380,4 @@ linéaire_vers_srgb :: fonc (value: r32) -> z32
     retourne ((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5) comme z32
 }
 
-/** } */
+/** \} */

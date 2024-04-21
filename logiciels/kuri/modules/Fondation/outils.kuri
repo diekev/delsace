@@ -7,7 +7,7 @@ NombreEntierRelatif :: z8 | z16 | z32 | z64
 NombreEntier :: NombreEntierNaturel | NombreEntierRelatif
 NombreRéel :: r16 | r32 | r64
 
-/** } */
+/** \} */
 
 // Type pour représenter un résultat optionnel
 Optionnel :: union ($T: type_de_données) {

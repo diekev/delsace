@@ -374,7 +374,7 @@ convertis_nombre_scientifique_en_réel :: fonc (composition: CompositionNombreSc
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Simples conversions de chaines en nombres.
@@ -444,4 +444,4 @@ extrait_nombre_réel :: fonc (chn: chaine) -> r64
     retourne résultat
 }
 
-/** } */
+/** \} */

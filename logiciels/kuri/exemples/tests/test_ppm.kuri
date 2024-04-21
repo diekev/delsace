@@ -5,86 +5,86 @@ importe SysFichier
 importe Temps
 
 Image :: struct {
-    tampon : [..]octet
-    chemin : chaine;
-    hauteur : z32;
-    largeur : z32;
-    channels : z32;
+    tampon: [..]octet
+    chemin: chaine
+    hauteur: z32
+    largeur: z32
+    channels: z32
 }
 
-génére_image_damier :: fonc() -> Image
+génére_image_damier :: fonc () -> Image
 {
-    image : Image;
-    image.largeur = 1024;
-    image.hauteur = 1024;
-    image.channels = 1;
+    image: Image
+    image.largeur = 1024
+    image.hauteur = 1024
+    image.channels = 1
 
-    nombre_caracteres := image.largeur * image.hauteur;
+    nombre_caracteres := image.largeur * image.hauteur
 
     tampon := loge_tableau(octet, nombre_caracteres)
     tampon.taille = nombre_caracteres
 
-    taille_case := image.largeur / 8;
+    taille_case := image.largeur / 8
 
-    image.tampon = tampon;
+    image.tampon = tampon
 
-    idx := 0;
+    idx := 0
 
-    pour i dans 0...image.largeur - 1 {
-        pour j dans 0...image.hauteur - 1 {
+    pour i dans 0 ... image.largeur - 1 {
+        pour j dans 0 ... image.hauteur - 1 {
             si (i / taille_case + j / taille_case) % 2 == 0 {
-                tampon[idx] = 0;
+                tampon[idx] = 0
             }
             sinon {
-                tampon[idx] = 255;
+                tampon[idx] = 255
             }
 
-            idx += 1;
+            idx += 1
         }
     }
 
-    retourne image;
+    retourne image
 }
 
-génére_image_noire :: fonc() -> Image
+génére_image_noire :: fonc () -> Image
 {
-    image : Image;
-    image.largeur = 1024;
-    image.hauteur = 1024;
-    image.channels = 1;
+    image: Image
+    image.largeur = 1024
+    image.hauteur = 1024
+    image.channels = 1
 
-    nombre_caracteres := image.largeur * image.hauteur;
+    nombre_caracteres := image.largeur * image.hauteur
 
     tampon := loge_tableau(octet, nombre_caracteres)
     tampon.taille = nombre_caracteres
 
-    taille_case := image.largeur / 8;
+    taille_case := image.largeur / 8
 
-    image.tampon = tampon;
+    image.tampon = tampon
 
     pour & v dans tampon {
-        v = 0;
+        v = 0
     }
 
-    retourne image;
+    retourne image
 }
 
-écris_ppm :: fonc(image : Image, chemin : CheminFichier) -> rien
+écris_ppm :: fonc (image: Image, chemin: CheminFichier) -> rien
 {
-    entete := "P1";
-    taille_x := image.largeur;
-    taille_y := image.hauteur;
+    entete := "P1"
+    taille_x := image.largeur
+    taille_y := image.hauteur
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     imprime_dans_enchaineuse(*enchaineuse, "% % % ", entete, taille_x, taille_y)
 
-    nombre_caracteres := taille_x * taille_y;
+    nombre_caracteres := taille_x * taille_y
 
-    tampon := loge_chaine(nombre_caracteres);
-    diffère { déloge(tampon); }
+    tampon := loge_chaine(nombre_caracteres)
+    diffère déloge(tampon)
 
     pour image.tampon {
         tampon[index_it] = si it == 0 {
@@ -95,81 +95,80 @@ génére_image_noire :: fonc() -> Image
         }
     }
 
-    imprime_dans_enchaineuse(*enchaineuse, "%", tampon);
+    imprime_dans_enchaineuse(*enchaineuse, "%", tampon)
 
-    debut := maintenant_précis();
+    debut := maintenant_précis()
     tente copie_enchaineuse_fichier(*enchaineuse, chemin) piège err {
         imprime("Impossible d'écrire le fichier '%' : %\n", chemin, err)
         retourne
     }
 
-    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
+    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes())
 }
 
-écris_pnm :: fonc(image : Image, chemin : CheminFichier) -> rien
+écris_pnm :: fonc (image: Image, chemin: CheminFichier) -> rien
 {
-    entete : chaine;
+    entete: chaine
 
     discr image.channels {
-        1 { entete = "P2"; }
-        3 { entete = "P3"; }
+        1 { entete = "P2" }
+        3 { entete = "P3" }
         sinon {
             retourne
         }
     }
 
-    taille_x := image.largeur;
-    taille_y := image.hauteur;
-    tampon_image := image.tampon;
+    taille_x := image.largeur
+    taille_y := image.hauteur
+    tampon_image := image.tampon
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     imprime_dans_enchaineuse(*enchaineuse, "% % % % ", entete, taille_x, taille_y, 255)
 
-    pour i dans 0...taille_x - 1 {
-        pour j dans 0...taille_y - 1 {
-            idx_image := (i * taille_y + j) * image.channels;
+    pour i dans 0 ... taille_x - 1 {
+        pour j dans 0 ... taille_y - 1 {
+            idx_image := (i * taille_y + j) * image.channels
 
             pour k dans 0 ... image.channels - 1 {
                 ajoute_au_tampon(*enchaineuse, FormatEntier(valeur = tampon_image[idx_image + k], base = 10))
             }
 
             ajoute_au_tampon(*enchaineuse, " ")
-
         }
     }
 
-    debut := maintenant_précis();
+    debut := maintenant_précis()
     tente copie_enchaineuse_fichier(*enchaineuse, chemin) piège err {
         imprime("Impossible d'écrire le fichier '%' : %\n", chemin, err)
         retourne
     }
-    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
+    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes())
 }
 
 /* ------------------------------------------------------------------------- */
 
-détruit_image :: fonc(image : *Image) -> rien
+détruit_image :: fonc (image: *Image) -> rien
 {
-    déloge(image.tampon);
+    déloge(image.tampon)
 }
 
 /* ------------------------------------------------------------------------- */
 
 principale :: fonc () -> z32
 {
-    image := génére_image_damier();
+    image := génére_image_damier()
     //ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
- //  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
+    //  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
 
-    écris_ppm(image, CheminFichier("/tmp/test_p1.ppm"));
-    écris_pnm(image, CheminFichier("/tmp/test_p2.pgm"));
+    écris_ppm(image, CheminFichier("/tmp/test_p1.ppm"))
+    écris_pnm(image, CheminFichier("/tmp/test_p2.pgm"))
 
-    détruit_image(*image);
+    détruit_image(*image)
 
-    diffère { imprime("Mémoire utilisée : %o\n", mémoire_utilisée()); }
+    diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée())
 
-    retourne 0;
+    retourne 0
 }
