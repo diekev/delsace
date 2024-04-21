@@ -169,7 +169,7 @@ donne_étiquette_universel :: fonc (étiquette: chaine) -> chaine
     PronomWhActif // Who, what, where, when, whose, etc.
 }
 
-__table_conversion_chaine_étiquette_penn_treebank : [ÉtiquettePennTreebank.nombre_éléments]chaine
+__table_conversion_chaine_étiquette_penn_treebank: [ÉtiquettePennTreebank.nombre_éléments]chaine
 __table_conversion_chaine_étiquette_penn_treebank_initialisé := faux
 
 donne_table_conversion_chaine_étiquette_penn_treebank :: fonc () -> [ÉtiquettePennTreebank.nombre_éléments]chaine
@@ -250,7 +250,7 @@ convertis_chaine_étiquette_penn_treebank :: fonc (chn: chaine) -> ÉtiquettePen
     Ponctuation
 }
 
-__table_conversion_chaine_étiquette_universelle : [ÉtiquetteUniverselle.nombre_éléments]chaine
+__table_conversion_chaine_étiquette_universelle: [ÉtiquetteUniverselle.nombre_éléments]chaine
 __table_conversion_chaine_étiquette_universelle_initialisé := faux
 
 donne_table_conversion_chaine_étiquette_universelle :: fonc () -> [ÉtiquetteUniverselle.nombre_éléments]chaine
@@ -287,7 +287,7 @@ convertis_chaine_étiquette_universelle :: fonc (chn: chaine) -> ÉtiquetteUnive
     retourne ÉtiquetteUniverselle.Nom
 }
 
-/** } */
+/** \} */
 
 exemple_livres :: fonc ()
 {
@@ -318,7 +318,7 @@ exemple_livres :: fonc ()
     imprime("-------- Similiratité\n")
     text2.imprime_similarité("monstrous")
     imprime("-------- Contextes communs\n")
-    text2.imprime_contextes_communs(["monstrous", "very"])
+    text2.imprime_contextes_communs([ "monstrous", "very" ])
 
     opt_text3 := livres.donne_texte("text3")
     saufsi opt_text3.possède_valeur() {
@@ -376,10 +376,10 @@ donne_texte :: fonc (livres: LivresNLTK, nom: chaine) -> Optionnel(TexteNLTK)
     retourne TexteNLTK(résultat)
 }
 
-/** } */
+/** \} */
 
-module_nltk : *PyObject
-type_text_nltk : *PyObject
+module_nltk: *PyObject
+type_text_nltk: *PyObject
 
 donne_module_nltk :: fonc () -> *PyObject
 {
@@ -437,7 +437,7 @@ crée_texte_nltk :: fonc (mots: []chaine) -> TexteNLTK
 crée_texte_nltk :: fonc (mots: *PyObject) -> TexteNLTK
 {
     type_texte := donne_type_texte_nltk()
-    
+
     instance := PyObject_CallFunctionObjArgs(type_texte, mots, nul)
     saufsi instance {
         PyErr_Print()
@@ -543,7 +543,7 @@ convertis_liste_mots :: fonc (mots: []chaine) -> *PyObject
     pour mots {
         item := PyUnicode_FromChaine(it)
         si PyList_SetItem(résultat, index_it, item) == -1 {
-            imprime("Impossible d'insérer une item\n");
+            imprime("Impossible d'insérer une item\n")
             PyErr_Print()
             Py_DECREF(résultat)
             retourne
@@ -573,4 +573,4 @@ imprime_contextes_communs :: fonc (texte: TexteNLTK, mots: []chaine, nombre := 2
     }
 }
 
-/** } */
+/** \} */

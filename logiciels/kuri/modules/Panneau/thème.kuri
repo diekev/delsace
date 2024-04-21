@@ -28,4 +28,4 @@ Thème :: struct {
     couleur_table_ligne_impaire: CouleurRVBAN8
 }
 
-/** } */
+/** \} */

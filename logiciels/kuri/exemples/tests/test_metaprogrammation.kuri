@@ -16,7 +16,7 @@ lance_compilation :: fonc ()
 
 génère_fonction_principale :: fonc ()
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "principale :: fonc () -> z32\n")

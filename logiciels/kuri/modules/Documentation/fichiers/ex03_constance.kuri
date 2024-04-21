@@ -1,4 +1,4 @@
-principale :: fonc() -> z32
+principale :: fonc () -> z32
 {
     // Déclaration d'une variable constante qui ne peut être modifiée.
     x := 1

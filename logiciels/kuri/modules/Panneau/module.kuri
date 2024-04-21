@@ -34,7 +34,7 @@ ContexteAffichage :: struct {
     thème: *Thème
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ContexteInterface.
@@ -121,10 +121,8 @@ détruit_panneau_menu :: fonc (empl contexte: *ContexteInterface, panneau_menu: 
 
 gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSouris)
 {
-    diffère {
-        si clique.action == ActionSouris.RELACHÉE {
-            panneau_cliqué = nul
-        }
+    diffère si clique.action == ActionSouris.RELACHÉE {
+        panneau_cliqué = nul
     }
 
     si gère_clique_souris(panneau_cliqué, clique) {
@@ -264,7 +262,7 @@ définis_curseur_souris :: fonc (empl contexte: *ContexteInterface, type_curseur
     rappel_définis_curseur_souris(contexte, type_curseur)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Panneau
@@ -316,7 +314,7 @@ détruit_panneau :: fonc (panneau: *Panneau)
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Enveloppes pour les rappels de Panneau.
@@ -398,7 +396,7 @@ fini_survol_panneau :: fonc (panneau: *Panneau, état: ÉtatSouris)
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Panneau Interface
@@ -511,4 +509,4 @@ observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)
     }
 }
 
-/** } */
+/** \} */

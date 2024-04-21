@@ -28,7 +28,7 @@ GénératriceCodeC :: struct {
     dossier_sortie: chaine
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 
@@ -1443,6 +1443,7 @@ static void imprime_erreur()
     }
 }
 »
+
     imprime_dans_enchaineuse(*enchaineuse, fonction_initilisation, nombre_de_fonctions, génératrice.espace_de_nom, génératrice.espace_de_nom)
 
     copie_enchaineuse_fichier_ex(*enchaineuse, chemin)

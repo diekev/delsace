@@ -276,7 +276,7 @@ chaine_pour_commande :: fonc (commande: chaine) -> chaine
 envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> RéponseServeuse
 {
     message := ""
-    diffère { si message { déloge(message) } }
+    diffère si message { déloge(message) }
 
     si format {
         enchaineuse: Enchaineuse

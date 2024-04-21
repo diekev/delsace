@@ -18,18 +18,18 @@ Alignement :: énum {
 }
 
 ChaineOptionnelle :: union {
-    chn : chaine
-    aucun : z32
+    chn: chaine
+    aucun: z32
 }
 
 CouleurOptionnelle :: union {
-    couleur : Couleur
-    aucun : z32
+    couleur: Couleur
+    aucun: z32
 }
 
 AlignementOptionnel :: union {
-    alignement : Alignement
-    aucun : z32
+    alignement: Alignement
+    aucun: z32
 }
 
 Format :: struct {
@@ -45,29 +45,29 @@ Format :: struct {
 
     // À FAIRE : ces chaines sont possiblement de simples caractère UTF-8
     caractère_coin_haut_gauche : chaine = "+"
-    caractère_coin_haut_droit  : chaine = "+"
-    caractère_coin_bas_gauche  : chaine = "+"
-    caractère_coin_bas_droit   : chaine = "+"
+    caractère_coin_haut_droit : chaine = "+"
+    caractère_coin_bas_gauche : chaine = "+"
+    caractère_coin_bas_droit : chaine = "+"
     caractère_coin : chaine = "+"
 }
 
 Cellule :: struct {
-    parente : *Ligne
-    format : Format
+    parente: *Ligne
+    format: Format
 
-    données : chaine
+    données: chaine
 }
 
 Ligne :: struct {
-    parent : *Table
-    cellules : [..]Cellule
+    parent: *Table
+    cellules: [..]Cellule
 
-    format : Format
+    format: Format
 }
 
 Table :: struct {
-    lignes : [..]Ligne
-    format : Format
+    lignes: [..]Ligne
+    format: Format
 }
 
 détruit_table :: fonc (table: *Table) -> rien
@@ -80,4 +80,3 @@ principale :: fonc () -> z32
     imprime("\\033[3msur cyan\n")
     retourne 0
 }
-

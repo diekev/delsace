@@ -18,7 +18,8 @@ fonction :: fonc (y: UnionAnonyme)
     }
 }
 
-fonction2 :: fonc () {}
+fonction2 :: fonc ()
+{}
 
 principale :: fonc () -> z32
 {

@@ -16,4 +16,4 @@ vers_qt :: fonc (chn: chaine) -> QT_Chaine
     retourne QT_Chaine(chn.pointeur, chn.taille)
 }
 
-/** } */
+/** \} */

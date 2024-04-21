@@ -120,7 +120,7 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
     CLIENT_MULTI_RESULTS : n64 : 0x00020000
     c := mysql_real_connect(*mysql, hôte, utilisateur, mot_de_passe, base_de_données, 0, nul, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS)
 
-    si (c == nul) {
+    si c == nul {
         e := mysql_error(*mysql)
         chn := convertis_chaine_c(e)
         imprime_log("[MySQL]", "erreur lors de la connexion : %\n", chn)

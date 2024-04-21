@@ -69,7 +69,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauArborescence)
     rect_ligne.hauteur = hauteur_élément
     rect_ligne.y = parent.rect.hauteur - hauteur_élément
 
-    rect_bouton : RectanglePosDim(z32)
+    rect_bouton: RectanglePosDim(z32)
     rect_bouton.hauteur = hauteur_de_ligne
     rect_bouton.largeur = hauteur_de_ligne
 
@@ -197,4 +197,4 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
     retourne résultat
 }
 
-/** } */
+/** \} */

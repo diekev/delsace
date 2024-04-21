@@ -35,7 +35,7 @@ principale :: fonc () -> z32
     //passe_args(...args, ...args)
 
     // test expansion tableau fixe
-    films := ["Pulp Fiction", "Inglorious Basterds"]
+    films := [ "Pulp Fiction", "Inglorious Basterds" ]
 
     imprime_films("Films de Tarantino : ", ...films)
 

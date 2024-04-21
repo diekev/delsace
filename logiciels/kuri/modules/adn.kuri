@@ -11,22 +11,22 @@
 // 0b11 = 't'
 //
 // La chaine retourner a été logée, et doit donc être délogée par l'appelante.
-encode_adn :: fonc(valeurs : [..]octet) -> chaine
+encode_adn :: fonc (valeurs: [..]octet) -> chaine
 {
-    chn : chaine
+    chn: chaine
 
     si valeurs.taille == 0 {
         retourne chn
     }
 
-    codes := ['a', 'c', 'g', 't']
+    codes := [ 'a', 'c', 'g', 't' ]
     reloge_chaine(chn, valeurs.taille * 4)
 
     pour v, i dans valeurs {
         chn[i * 4 + 0] = codes[(v & 0b11000000) >> 6]
         chn[i * 4 + 1] = codes[(v & 0b00110000) >> 4]
         chn[i * 4 + 2] = codes[(v & 0b00001100) >> 2]
-        chn[i * 4 + 3] = codes[(v & 0b00000011)     ]
+        chn[i * 4 + 3] = codes[(v & 0b00000011)]
     }
 
     retourne chn
@@ -38,9 +38,9 @@ encode_adn :: fonc(valeurs : [..]octet) -> chaine
 // bases sont groupées en quatre pour former un octet final.
 //
 // La chaine retourner a été logée, et doit donc être délogée par l'appelante.
-décode_adn :: fonc(valeurs : [..]octet) -> chaine
+décode_adn :: fonc (valeurs: [..]octet) -> chaine
 {
-    chn : chaine
+    chn: chaine
     taille := valeurs.taille
 
     si taille == 0 {
@@ -59,7 +59,7 @@ décode_adn :: fonc(valeurs : [..]octet) -> chaine
             'c' { val |= (0b01 << décalage) }
             'g' { val |= (0b10 << décalage) }
             't' { val |= (0b11 << décalage) }
-            sinon { /* @erreur */ }
+            sinon { /* @erreur */ }
         }
 
         si idx == 3 {
@@ -73,7 +73,7 @@ décode_adn :: fonc(valeurs : [..]octet) -> chaine
 
 // Change directement la chaine passée en paramètre de sorte que chaque base est
 // remplacée par sa paire.
-appariement :: fonc(chn : [..]octet) -> rien
+appariement :: fonc (chn: [..]octet) -> rien
 {
     pour & v dans chn {
         discr v {
@@ -81,7 +81,7 @@ appariement :: fonc(chn : [..]octet) -> rien
             'c' { v = 'g' comme octet }
             'g' { v = 'c' comme octet }
             't' { v = 'a' comme octet }
-            sinon { /* @erreur */ }
+            sinon { /* @erreur */ }
         }
     }
 }

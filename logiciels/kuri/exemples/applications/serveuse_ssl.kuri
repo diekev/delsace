@@ -17,9 +17,9 @@ prépare_réponse :: fonc () -> chaine
 }
 
 // Sers la connextion -- moultfilable
-Servlet :: fonc(ssl: *ssl_st) -> rien
+Servlet :: fonc (ssl: *ssl_st) -> rien
 {
-    buf : [1024]z8
+    buf: [1024]z8
 
     si SSL_accept(ssl) == -1 {
         imprime("SSL_accept a échoué !\n")
@@ -31,7 +31,7 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
 
         si bytes > 0 {
             buf[bytes] = '\0'
-            chn : chaine
+            chn: chaine
             chn.pointeur = *buf[0]
             chn.taille = bytes
             imprime("Client msg: \"%\"\n", chn)
@@ -74,7 +74,7 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    diffère { SSL_CTX_free(ctx) }
+    diffère SSL_CTX_free(ctx)
 
     tente charge_certificats_ssl(ctx, "mycert.pem", "mycert.pem") piège err {
         imprime("erreur lors du chargements des certificats : %\n", err)
@@ -86,10 +86,10 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    diffère { _ := ferme(*serveur) }
+    diffère _ := ferme(*serveur)
 
     boucle {
-        addr : sockaddr_in // Adresse du connecté
+        addr: sockaddr_in // Adresse du connecté
         len := taille_de(sockaddr_in)
 
         client := accept(serveur.desc comme z32, *addr comme *sockaddr, *len)

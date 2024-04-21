@@ -1,168 +1,168 @@
 importe Fondation
 importe Introspection
 
-imprime_tableau :: fonc(tabl : []r32) -> rien
+imprime_tableau :: fonc (tabl: []r32) -> rien
 {
-    imprime("imprime_tableau...\n");
-    imprime("tabl.taille = %\n", tabl.taille);
-    imprime("tabl.pointeur = %\n", tabl.pointeur);
+    imprime("imprime_tableau...\n")
+    imprime("tabl.taille = %\n", tabl.taille)
+    imprime("tabl.pointeur = %\n", tabl.pointeur)
 
     pour v, index dans tabl {
-        x := v;
-        imprime("tabl[%] = %\n", index, x);
+        x := v
+        imprime("tabl[%] = %\n", index, x)
     }
 }
 
 Vecteur :: struct {
-    x : r32;
-    y : r32;
-    z : r32;
+    x: r32
+    y: r32
+    z: r32
 }
 
-test :: fonc() -> rien
+test :: fonc () -> rien
 {
-    imprime("=========================================\n");
-    imprime("                 tableau                 \n");
+    imprime("=========================================\n")
+    imprime("                 tableau                 \n")
 
-    tabl := [1.0, 2.0, 4.0, 8.0, 16.0];
+    tabl := [ 1.0, 2.0, 4.0, 8.0, 16.0 ]
 
-    imprime_tableau(tabl);
+    imprime_tableau(tabl)
 
-    imprime("=========================================\n");
-    imprime("                 tailles                 \n");
+    imprime("=========================================\n")
+    imprime("                 tailles                 \n")
 
-    imprime("taille_de(z32) = %\n", taille_de(z32));
-    imprime("taille_de([..]z32) = %\n", taille_de([..]z32));
-    imprime("taille_de([..]r32) = %\n", taille_de([..]r32));
-    imprime("taille_de(eini) = %\n", taille_de(eini));
+    imprime("taille_de(z32) = %\n", taille_de(z32))
+    imprime("taille_de([..]z32) = %\n", taille_de([..]z32))
+    imprime("taille_de([..]r32) = %\n", taille_de([..]r32))
+    imprime("taille_de(eini) = %\n", taille_de(eini))
 
-    imprime("=========================================\n");
-    imprime("                 vecteur                 \n");
+    imprime("=========================================\n")
+    imprime("                 vecteur                 \n")
 
-    vec2 : Vecteur;
-    vec1 := Vecteur(x = 1.0, y = 4.0, z = 16.0);
+    vec2: Vecteur
+    vec1 := Vecteur(x = 1.0, y = 4.0, z = 16.0)
 
-    imprime("Vecteur initiliasé : %\n", vec1);
-    imprime("Vecteur non-initiliasé : %\n", vec2);
+    imprime("Vecteur initiliasé : %\n", vec1)
+    imprime("Vecteur non-initiliasé : %\n", vec2)
 
-    nom := "x";
+    nom := "x"
 
-    ok := possède_membre(vec1, nom);
-
-    si ok {
-        imprime("Le vecteur possède le membre 'x' !\n");
-    }
-    sinon {
-        imprime("Le vecteur ne possède pas le membre 'x' !\n");
-    }
-
-    nom = "non";
-    ok = possède_membre(vec1, nom);
+    ok := possède_membre(vec1, nom)
 
     si ok {
-        imprime("Le vecteur possède le membre 'non' !\n");
+        imprime("Le vecteur possède le membre 'x' !\n")
     }
     sinon {
-        imprime("Le vecteur ne possède pas le membre 'non' !\n");
+        imprime("Le vecteur ne possède pas le membre 'x' !\n")
+    }
+
+    nom = "non"
+    ok = possède_membre(vec1, nom)
+
+    si ok {
+        imprime("Le vecteur possède le membre 'non' !\n")
+    }
+    sinon {
+        imprime("Le vecteur ne possède pas le membre 'non' !\n")
     }
 }
 
-logement_tableau :: fonc() -> rien
+logement_tableau :: fonc () -> rien
 {
-    imprime("=========================================\n");
-    imprime("            logements tableau            \n");
+    imprime("=========================================\n")
+    imprime("            logements tableau            \n")
 
-    tabl := loge_tableau(r32, 32);
+    tabl := loge_tableau(r32, 32)
 
-    imprime("Tableau logé à l'addresse : %\n", tabl.pointeur);
-    imprime("Taille tableau : %\n", tabl.taille);
+    imprime("Tableau logé à l'addresse : %\n", tabl.pointeur)
+    imprime("Taille tableau : %\n", tabl.taille)
 
-    debut := 1.0;
+    debut := 1.0
 
     pour & v dans tabl {
-        v = debut;
-        debut *= 3.0;
+        v = debut
+        debut *= 3.0
     }
 
-    imprime_tableau(tabl);
+    imprime_tableau(tabl)
 
-    déloge(tabl);
+    déloge(tabl)
 
-    imprime("Tableau délogé : %\n", tabl.pointeur);
-    imprime("Taille tableau : %\n", tabl.taille);
+    imprime("Tableau délogé : %\n", tabl.pointeur)
+    imprime("Taille tableau : %\n", tabl.taille)
 
-    imprime_tableau(tabl);
+    imprime_tableau(tabl)
 }
 
-logement_chaine :: fonc() -> rien
+logement_chaine :: fonc () -> rien
 {
-    imprime("=========================================\n");
-    imprime("            logements chaine             \n");
+    imprime("=========================================\n")
+    imprime("            logements chaine             \n")
 
-    chn1 := "Kévin";
-    chn2 := "Dietrich";
+    chn1 := "Kévin"
+    chn2 := "Dietrich"
 
-    chnr := enchaine(chn1, chn2);
+    chnr := enchaine(chn1, chn2)
 
-    imprime("Résultat : %\n", chnr);
+    imprime("Résultat : %\n", chnr)
 
-    déloge(chnr);
+    déloge(chnr)
 
-    imprime("Chaîne délogée : %\n", chnr.pointeur);
-    imprime("Taille chaîne  : %\n", chnr.taille);
+    imprime("Chaîne délogée : %\n", chnr.pointeur)
+    imprime("Taille chaîne  : %\n", chnr.taille)
 }
 
-test_fichier :: fonc() -> rien
+test_fichier :: fonc () -> rien
 {
-    imprime("=========================================\n");
-    imprime("                 fichier                 \n");
+    imprime("=========================================\n")
+    imprime("                 fichier                 \n")
 
-    chemin := "/home/kevin/test.kuri";
+    chemin := "/home/kevin/test.kuri"
 
     nonsûr {
-        res := open(chemin.pointeur, 0);
+        res := open(chemin.pointeur, 0)
 
         si res == -1 {
-            imprime("Erreur lors de l'ouverture du fichier !\n");
-            retourne;
+            imprime("Erreur lors de l'ouverture du fichier !\n")
+            retourne
         }
 
-        tpn : [1024]z8;
-        nread := read(res, *tpn[0], 1024);
+        tpn: [1024]z8
+        nread := read(res, *tpn[0], 1024)
 
-        imprime("Lu ", nread, " octets\n");
+        imprime("Lu ", nread, " octets\n")
 
-        chn : chaine;
-        chn.pointeur = *tpn[0]; // À FAIRE : prend pointeur automatiquement
-        chn.taille = nread comme z64;
+        chn: chaine
+        chn.pointeur = *tpn[0] // À FAIRE : prend pointeur automatiquement
+        chn.taille = nread comme z64
 
-        imprime(chn, "\n");
+        imprime(chn, "\n")
 
-        res = close(res);
+        res = close(res)
 
         si res == -1 {
-            imprime("Erreur lors de la fermeture du fichier !\n");
-            retourne;
+            imprime("Erreur lors de la fermeture du fichier !\n")
+            retourne
         }
     }
 }
 
 principale :: fonc () -> z32
 {
-    imprime("=========================================\n");
-    imprime("                arguments                \n");
+    imprime("=========================================\n")
+    imprime("                arguments                \n")
 
     args := arguments_ligne_commande()
-    imprime("nombre d'arguments = %\n", args.taille);
+    imprime("nombre d'arguments = %\n", args.taille)
 
     pour arg, i dans args {
-        imprime("argument %: %\n", i, arg);
+        imprime("argument %: %\n", i, arg)
     }
 
-    logement_tableau();
-    logement_chaine();
+    logement_tableau()
+    logement_chaine()
     //test_fichier();
-    test();
+    test()
 
-    retourne 0;
+    retourne 0
 }

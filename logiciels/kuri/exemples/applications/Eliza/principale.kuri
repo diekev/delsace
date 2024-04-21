@@ -37,9 +37,9 @@ mot_est_dans_la_famille :: fonc (mot: chaine) -> bool
 
 génère_réponse_pour_toujours :: fonc (mots: [..]chaine, idx: z64) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse); }
+    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "Pourquoi êtes-vous toujours ")
 
@@ -58,9 +58,9 @@ génère_réponse_pour_toujours :: fonc (mots: [..]chaine, idx: z64) -> chaine
 
 génère_réponse_pour_peur :: fonc (mots: [..]chaine, idx: z64) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse); }
+    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "Pourquoi avez-vous peur ")
 
@@ -82,7 +82,7 @@ génère_réponse_pour_message :: fonc (message: chaine) -> chaine
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    mots : [..]chaine
+    mots: [..]chaine
 
     pousse_contexte nouveau_contexte {
         mots = divise(message, ' ')
@@ -124,7 +124,7 @@ principale :: fonc () -> z32
     message_éliza := "Quelque chose vous trouble ?"
 
     boucle {
-        définis_marque_stockage_temporaire(marque);
+        définis_marque_stockage_temporaire(marque)
         marque = donne_marque_stockage_temporaire()
 
         imprime_prompt_élise(message_éliza)

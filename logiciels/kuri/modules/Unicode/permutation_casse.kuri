@@ -25,7 +25,7 @@ donne_permutation_casse :: fonc (table: &[..]PermutationCasse, rune: Rune) -> *P
     tantque n > 0 {
         m := n / 2
 
-        si (f[m].min <= r <= f[m].max) {
+        si f[m].min <= r <= f[m].max {
             dist := distance(table.pointeur, *f[m])
             retourne *table.pointeur[dist]
         }
@@ -43,7 +43,7 @@ donne_permutation_casse :: fonc (table: &[..]PermutationCasse, rune: Rune) -> *P
     // where it would have been.  Unless f points at
     // the end of the array, it points at the next entry
     // after r.
-    si (f < ef) {
+    si f < ef {
         retourne f
     }
 

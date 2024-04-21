@@ -34,12 +34,12 @@ CléConsole :: énum {
     Supprime
 }
 
-E : Éditeur
-terminal_original : termios
+E: Éditeur
+terminal_original: termios
 
 console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole)(rien)) -> chaine
 {
-    tampon : chaine
+    tampon: chaine
 
     taille_écrite := 0
 
@@ -77,7 +77,7 @@ console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole
                 retourne tampon
             }
         }
-        sinon si (!iscntrl(c comme z32 comme z8) && c <= CléConsole.Retour) {
+        sinon si !iscntrl(c comme z32 comme z8) && c <= CléConsole.Retour {
             // À FAIRE : optimise ceci
             reloge_chaine(tampon, tampon.taille + 1)
             tampon[taille_écrite] = c comme z32 comme z8
@@ -123,7 +123,7 @@ rappel_recherche :: fonc (requête: chaine, clé: CléConsole) -> rien
     pour E.lignes_rendu {
         courant += direction_recherche
 
-        si (courant == -1) {
+        si courant == -1 {
             courant = E.lignes_texte.taille - 1
         }
         sinon si courant == E.lignes_texte.taille {
@@ -221,7 +221,7 @@ console_lis_clé :: fonc () -> CléConsole
     }
 
     si c == '\x1b' {
-        seq : [3]z8
+        seq: [3]z8
 
         seq[0] = tente entrée_standarde().lis_caractère() piège nonatteignable
         seq[1] = tente entrée_standarde().lis_caractère() piège nonatteignable
@@ -240,10 +240,10 @@ console_lis_clé :: fonc () -> CléConsole
                     si seq[1] == '8' { retourne CléConsole.Fin }
                 }
             }
-            si seq[1] == 'A' { retourne CléConsole.FlècheHaut }
-            si seq[1] == 'B' { retourne CléConsole.FlècheBas }
-            si seq[1] == 'C' { retourne CléConsole.FlècheDroite }
-            si seq[1] == 'D' { retourne CléConsole.FlècheGauche }
+            si seq[1] == 'A' { retourne CléConsole.FlècheHaut }
+            si seq[1] == 'B' { retourne CléConsole.FlècheBas }
+            si seq[1] == 'C' { retourne CléConsole.FlècheDroite }
+            si seq[1] == 'D' { retourne CléConsole.FlècheGauche }
             si seq[1] == 'F' { retourne CléConsole.Fin }
             si seq[1] == 'H' { retourne CléConsole.Début }
         }
@@ -398,7 +398,7 @@ console_déplace_curseur :: fonc (c: CléConsole) -> rien
     }
 }
 
-console_dessine_lignes :: fonc (enchaineuse : *Enchaineuse) -> rien
+console_dessine_lignes :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
     pour i dans 0 ... E.lignes - 1 {
         idx_ligne := i + E.décalage_ligne
@@ -486,9 +486,9 @@ console_rafraichis_écran :: fonc () -> rien
 {
     éditeur_défile(*E)
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "\x1b[?25l\x1b[H")
 
@@ -507,12 +507,12 @@ principale :: fonc () -> z32
 {
     __contexte_fil_principal.rappel_panique = gère_panique
 
-    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 
     args := arguments_ligne_commande()
 
     active_mode_cru()
-    diffère { restaure_terminal() }
+    diffère restaure_terminal()
 
     console_initialise_éditeur(*E)
 
@@ -522,7 +522,7 @@ principale :: fonc () -> z32
         éditeur_ouvre(*E, copie_chaine(args[1]))
     }
 
-    diffère { éditeur_ferme(*E) }
+    diffère éditeur_ferme(*E)
 
     boucle {
         console_rafraichis_écran()

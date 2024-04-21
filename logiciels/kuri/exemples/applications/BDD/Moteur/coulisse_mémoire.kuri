@@ -1,6 +1,6 @@
 CoulisseMémoire :: struct {
-    noms_tables : [..]chaine
-    tables : [..]*Table
+    noms_tables: [..]chaine
+    tables: [..]*Table
 }
 
 détruit_coulisse :: fonc (cm: *CoulisseMémoire) -> rien

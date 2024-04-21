@@ -177,7 +177,7 @@ référence_page :: fonc (file: *File, hash: *Hash, numéro_page: z32) -> rien
     si page_requise == nul {
         enfile(file, hash, numéro_page)
     }
-    sinon si (page_requise != file.front) {
+    sinon si page_requise != file.front {
         // Délie la page requise de sa position dans la file
         page_requise.précédent.suivant = page_requise.suivant
 

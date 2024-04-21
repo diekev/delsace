@@ -352,17 +352,17 @@ SDL_Scancode :: énum n16 {
 }
 
 SDL_EventType :: énum n32 {
-    SDL_FIRSTEVENT     :: 0     /**< Unused (do not remove) */
+    SDL_FIRSTEVENT :: 0 /**< Unused (do not remove) */
 
     /* Application events */
-    SDL_QUIT           :: 0x100 /**< User-requested quit */
+    SDL_QUIT :: 0x100 /**< User-requested quit */
 
     /* These application events have special meaning on iOS see README-ios.md for details */
-    SDL_APP_TERMINATING        /**< The application is being terminated by the OS
+    SDL_APP_TERMINATING /**< The application is being terminated by the OS
                                      Called on iOS in applicationWillTerminate()
                                      Called on Android in onDestroy()
                                 */
-    SDL_APP_LOWMEMORY          /**< The application is low on memory free memory if possible.
+    SDL_APP_LOWMEMORY /**< The application is low on memory free memory if possible.
                                      Called on iOS in applicationDidReceiveMemoryWarning()
                                      Called on Android in onLowMemory()
                                 */
@@ -384,48 +384,48 @@ SDL_EventType :: énum n32 {
                                 */
 
     /* Window events */
-    SDL_WINDOWEVENT    :: 0x200 /**< Window state change */
-    SDL_SYSWMEVENT             /**< System specific event */
+    SDL_WINDOWEVENT :: 0x200 /**< Window state change */
+    SDL_SYSWMEVENT /**< System specific event */
 
     /* Keyboard events */
-    SDL_KEYDOWN        :: 0x300 /**< Key pressed */
-    SDL_KEYUP                  /**< Key released */
-    SDL_TEXTEDITING            /**< Keyboard text editing (composition) */
-    SDL_TEXTINPUT              /**< Keyboard text input */
-    SDL_KEYMAPCHANGED          /**< Keymap changed due to a system event such as an
+    SDL_KEYDOWN :: 0x300 /**< Key pressed */
+    SDL_KEYUP /**< Key released */
+    SDL_TEXTEDITING /**< Keyboard text editing (composition) */
+    SDL_TEXTINPUT /**< Keyboard text input */
+    SDL_KEYMAPCHANGED /**< Keymap changed due to a system event such as an
                                      input language or keyboard layout change.
                                 */
 
     /* Mouse events */
-    SDL_MOUSEMOTION    :: 0x400 /**< Mouse moved */
-    SDL_MOUSEBUTTONDOWN        /**< Mouse button pressed */
-    SDL_MOUSEBUTTONUP          /**< Mouse button released */
-    SDL_MOUSEWHEEL             /**< Mouse wheel motion */
+    SDL_MOUSEMOTION :: 0x400 /**< Mouse moved */
+    SDL_MOUSEBUTTONDOWN /**< Mouse button pressed */
+    SDL_MOUSEBUTTONUP /**< Mouse button released */
+    SDL_MOUSEWHEEL /**< Mouse wheel motion */
 
     /* Joystick events */
-    SDL_JOYAXISMOTION  :: 0x600 /**< Joystick axis motion */
-    SDL_JOYBALLMOTION          /**< Joystick trackball motion */
-    SDL_JOYHATMOTION           /**< Joystick hat position change */
-    SDL_JOYBUTTONDOWN          /**< Joystick button pressed */
-    SDL_JOYBUTTONUP            /**< Joystick button released */
-    SDL_JOYDEVICEADDED         /**< A new joystick has been inserted into the system */
-    SDL_JOYDEVICEREMOVED       /**< An opened joystick has been removed */
+    SDL_JOYAXISMOTION :: 0x600 /**< Joystick axis motion */
+    SDL_JOYBALLMOTION /**< Joystick trackball motion */
+    SDL_JOYHATMOTION /**< Joystick hat position change */
+    SDL_JOYBUTTONDOWN /**< Joystick button pressed */
+    SDL_JOYBUTTONUP /**< Joystick button released */
+    SDL_JOYDEVICEADDED /**< A new joystick has been inserted into the system */
+    SDL_JOYDEVICEREMOVED /**< An opened joystick has been removed */
 
     /* Game controller events */
-    SDL_CONTROLLERAXISMOTION  :: 0x650 /**< Game controller axis motion */
-    SDL_CONTROLLERBUTTONDOWN          /**< Game controller button pressed */
-    SDL_CONTROLLERBUTTONUP            /**< Game controller button released */
-    SDL_CONTROLLERDEVICEADDED         /**< A new Game controller has been inserted into the system */
-    SDL_CONTROLLERDEVICEREMOVED       /**< An opened Game controller has been removed */
-    SDL_CONTROLLERDEVICEREMAPPED      /**< The controller mapping was updated */
+    SDL_CONTROLLERAXISMOTION :: 0x650 /**< Game controller axis motion */
+    SDL_CONTROLLERBUTTONDOWN /**< Game controller button pressed */
+    SDL_CONTROLLERBUTTONUP /**< Game controller button released */
+    SDL_CONTROLLERDEVICEADDED /**< A new Game controller has been inserted into the system */
+    SDL_CONTROLLERDEVICEREMOVED /**< An opened Game controller has been removed */
+    SDL_CONTROLLERDEVICEREMAPPED /**< The controller mapping was updated */
 
     /* Touch events */
-    SDL_FINGERDOWN      :: 0x700
+    SDL_FINGERDOWN :: 0x700
     SDL_FINGERUP
     SDL_FINGERMOTION
 
     /* Gesture events */
-    SDL_DOLLARGESTURE   :: 0x800
+    SDL_DOLLARGESTURE :: 0x800
     SDL_DOLLARRECORD
     SDL_MULTIGESTURE
 
@@ -433,14 +433,14 @@ SDL_EventType :: énum n32 {
     SDL_CLIPBOARDUPDATE :: 0x900 /**< The clipboard changed */
 
     /* Drag and drop events */
-    SDL_DROPFILE        :: 0x1000 /**< The system requests a file open */
-    SDL_DROPTEXT                 /**< text/plain drag-and-drop event */
-    SDL_DROPBEGIN                /**< A new set of drops is beginning (NULL filename) */
-    SDL_DROPCOMPLETE             /**< Current set of drops is now complete (NULL filename) */
+    SDL_DROPFILE :: 0x1000 /**< The system requests a file open */
+    SDL_DROPTEXT /**< text/plain drag-and-drop event */
+    SDL_DROPBEGIN /**< A new set of drops is beginning (NULL filename) */
+    SDL_DROPCOMPLETE /**< Current set of drops is now complete (NULL filename) */
 
     /* Audio hotplug events */
     SDL_AUDIODEVICEADDED :: 0x1100 /**< A new audio device is available */
-    SDL_AUDIODEVICEREMOVED        /**< An audio device has been removed. */
+    SDL_AUDIODEVICEREMOVED /**< An audio device has been removed. */
 
     /* Render events */
     SDL_RENDER_TARGETS_RESET :: 0x2000 /**< The render targets have been reset and their contents need to be updated */
@@ -449,114 +449,114 @@ SDL_EventType :: énum n32 {
     /** Events ::SDL_USEREVENT through ::SDL_LASTEVENT are for your use
      *  and should be allocated with SDL_RegisterEvents()
      */
-    SDL_USEREVENT    :: 0x8000
+    SDL_USEREVENT :: 0x8000
 
     /**
      *  This last event is only for bounding internal arrays
      */
-    SDL_LASTEVENT    :: 0xFFFF
+    SDL_LASTEVENT :: 0xFFFF
 }
 
 SDL_Keysym :: struct #externe {
-    scancode : SDL_Scancode      /**< SDL physical key code - see ::SDL_Scancode for details */
-    sym : z32            /**< SDL virtual key code - see ::SDL_Keycode for details */
-    mod : n16                 /**< current key modifiers */
-    unused : n32
+    scancode: SDL_Scancode /**< SDL physical key code - see ::SDL_Scancode for details */
+    sym: z32 /**< SDL virtual key code - see ::SDL_Keycode for details */
+    mod: n16 /**< current key modifiers */
+    unused: n32
 }
 
 SDL_WindowEventID :: énum n8 {
-    SDL_WINDOWEVENT_NONE           /**< Never used */
-    SDL_WINDOWEVENT_SHOWN          /**< Window has been shown */
-    SDL_WINDOWEVENT_HIDDEN         /**< Window has been hidden */
-    SDL_WINDOWEVENT_EXPOSED        /**< Window has been exposed and should be
+    SDL_WINDOWEVENT_NONE /**< Never used */
+    SDL_WINDOWEVENT_SHOWN /**< Window has been shown */
+    SDL_WINDOWEVENT_HIDDEN /**< Window has been hidden */
+    SDL_WINDOWEVENT_EXPOSED /**< Window has been exposed and should be
                                          redrawn */
-    SDL_WINDOWEVENT_MOVED          /**< Window has been moved to data1, data2
+    SDL_WINDOWEVENT_MOVED /**< Window has been moved to data1, data2
                                      */
-    SDL_WINDOWEVENT_RESIZED        /**< Window has been resized to data1xdata2 */
-    SDL_WINDOWEVENT_SIZE_CHANGED   /**< The window size has changed, either as
+    SDL_WINDOWEVENT_RESIZED /**< Window has been resized to data1xdata2 */
+    SDL_WINDOWEVENT_SIZE_CHANGED /**< The window size has changed, either as
                                          a result of an API call or through the
                                          system or user changing the window size. */
-    SDL_WINDOWEVENT_MINIMIZED      /**< Window has been minimized */
-    SDL_WINDOWEVENT_MAXIMIZED      /**< Window has been maximized */
-    SDL_WINDOWEVENT_RESTORED       /**< Window has been restored to normal size
+    SDL_WINDOWEVENT_MINIMIZED /**< Window has been minimized */
+    SDL_WINDOWEVENT_MAXIMIZED /**< Window has been maximized */
+    SDL_WINDOWEVENT_RESTORED /**< Window has been restored to normal size
                                          and position */
-    SDL_WINDOWEVENT_ENTER          /**< Window has gained mouse focus */
-    SDL_WINDOWEVENT_LEAVE          /**< Window has lost mouse focus */
-    SDL_WINDOWEVENT_FOCUS_GAINED   /**< Window has gained keyboard focus */
-    SDL_WINDOWEVENT_FOCUS_LOST     /**< Window has lost keyboard focus */
-    SDL_WINDOWEVENT_CLOSE          /**< The window manager requests that the window be closed */
-    SDL_WINDOWEVENT_TAKE_FOCUS     /**< Window is being offered a focus (should SetWindowInputFocus() on itself or a subwindow, or ignore) */
-    SDL_WINDOWEVENT_HIT_TEST        /**< Window had a hit test that wasn't SDL_HITTEST_NORMAL. */
+    SDL_WINDOWEVENT_ENTER /**< Window has gained mouse focus */
+    SDL_WINDOWEVENT_LEAVE /**< Window has lost mouse focus */
+    SDL_WINDOWEVENT_FOCUS_GAINED /**< Window has gained keyboard focus */
+    SDL_WINDOWEVENT_FOCUS_LOST /**< Window has lost keyboard focus */
+    SDL_WINDOWEVENT_CLOSE /**< The window manager requests that the window be closed */
+    SDL_WINDOWEVENT_TAKE_FOCUS /**< Window is being offered a focus (should SetWindowInputFocus() on itself or a subwindow, or ignore) */
+    SDL_WINDOWEVENT_HIT_TEST /**< Window had a hit test that wasn't SDL_HITTEST_NORMAL. */
 }
 
 /**
  *  \brief Window state change event data (event.window.*)
  */
 SDL_WindowEvent :: struct {
-    type : SDL_EventType        /**< ::SDL_WINDOWEVENT */
-    timestamp : n32   /**< In milliseconds, populated using SDL_GetTicks() */
-    windowID : n32    /**< The associated window */
+    type: SDL_EventType /**< ::SDL_WINDOWEVENT */
+    timestamp: n32 /**< In milliseconds, populated using SDL_GetTicks() */
+    windowID: n32 /**< The associated window */
     event: SDL_WindowEventID /**< ::SDL_WindowEventID */
     padding1: n8
     padding2: n8
     padding3: n8
-    data1: z32       /**< event dependent data */
-    data2: z32       /**< event dependent data */
+    data1: z32 /**< event dependent data */
+    data2: z32 /**< event dependent data */
 }
 
 SDL_KeyboardEvent :: struct {
-    type : SDL_EventType    /**< ::SDL_KEYDOWN or ::SDL_KEYUP */
-    timestamp : n32   /**< In milliseconds, populated using SDL_GetTicks() */
-    windowID : n32    /**< The window with keyboard focus, if any */
-    state : n8        /**< ::SDL_PRESSED or ::SDL_RELEASED */
-    repeat : n8       /**< Non-zero if this is a key repeat */
-    padding2 : n8
-    padding3 : n8
-    keysym  : SDL_Keysym  /**< The key that was pressed or released */
+    type: SDL_EventType /**< ::SDL_KEYDOWN or ::SDL_KEYUP */
+    timestamp: n32 /**< In milliseconds, populated using SDL_GetTicks() */
+    windowID: n32 /**< The window with keyboard focus, if any */
+    state: n8 /**< ::SDL_PRESSED or ::SDL_RELEASED */
+    repeat: n8 /**< Non-zero if this is a key repeat */
+    padding2: n8
+    padding3: n8
+    keysym: SDL_Keysym /**< The key that was pressed or released */
 }
 
 /**
  *  \brief Mouse motion event structure (event.motion.*)
  */
 SDL_MouseMotionEvent :: struct {
-    type: SDL_EventType        /**< ::SDL_MOUSEMOTION */
-    timestamp: n32   /**< In milliseconds, populated using SDL_GetTicks() */
-    windowID: n32    /**< The window with mouse focus, if any */
-    which: n32       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
-    state: n32       /**< The current button state */
-    x: z32           /**< X coordinate, relative to window */
-    y: z32           /**< Y coordinate, relative to window */
-    xrel: z32        /**< The relative motion in the X direction */
-    yrel: z32        /**< The relative motion in the Y direction */
+    type: SDL_EventType /**< ::SDL_MOUSEMOTION */
+    timestamp: n32 /**< In milliseconds, populated using SDL_GetTicks() */
+    windowID: n32 /**< The window with mouse focus, if any */
+    which: n32 /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+    state: n32 /**< The current button state */
+    x: z32 /**< X coordinate, relative to window */
+    y: z32 /**< Y coordinate, relative to window */
+    xrel: z32 /**< The relative motion in the X direction */
+    yrel: z32 /**< The relative motion in the Y direction */
 }
 
 /**
  *  \brief Mouse button event structure (event.button.*)
  */
 SDL_MouseButtonEvent :: struct {
-    type: SDL_EventType       /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */
-    timestamp: n32   /**< In milliseconds, populated using SDL_GetTicks() */
-    windowID: n32    /**< The window with mouse focus, if any */
-    which: n32       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
-    button: n8       /**< The mouse button index */
-    state: n8       /**< ::SDL_PRESSED or ::SDL_RELEASED */
-    clicks: n8       /**< 1 for single-click, 2 for double-click, etc. */
+    type: SDL_EventType /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */
+    timestamp: n32 /**< In milliseconds, populated using SDL_GetTicks() */
+    windowID: n32 /**< The window with mouse focus, if any */
+    which: n32 /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+    button: n8 /**< The mouse button index */
+    state: n8 /**< ::SDL_PRESSED or ::SDL_RELEASED */
+    clicks: n8 /**< 1 for single-click, 2 for double-click, etc. */
     padding1: n8
-    x: z32           /**< X coordinate, relative to window */
-    y: z32           /**< Y coordinate, relative to window */
+    x: z32 /**< X coordinate, relative to window */
+    y: z32 /**< Y coordinate, relative to window */
 }
 
 /**
  *  \brief Mouse wheel event structure (event.wheel.*)
  */
 SDL_MouseWheelEvent :: struct {
-    type: SDL_EventType        /**< ::SDL_MOUSEWHEEL */
-    timestamp: n32   /**< In milliseconds, populated using SDL_GetTicks() */
-    windowID: n32    /**< The window with mouse focus, if any */
-    which: n32       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
-    x: z32           /**< The amount scrolled horizontally, positive to the right and negative to the left */
-    y: z32           /**< The amount scrolled vertically, positive away from the user and negative toward the user */
-    direction: n32   /**< Set to one of the SDL_MOUSEWHEEL_* defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back */
+    type: SDL_EventType /**< ::SDL_MOUSEWHEEL */
+    timestamp: n32 /**< In milliseconds, populated using SDL_GetTicks() */
+    windowID: n32 /**< The window with mouse focus, if any */
+    which: n32 /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+    x: z32 /**< The amount scrolled horizontally, positive to the right and negative to the left */
+    y: z32 /**< The amount scrolled vertically, positive away from the user and negative toward the user */
+    direction: n32 /**< Set to one of the SDL_MOUSEWHEEL_* defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back */
 }
 
 SDL_QuitEvent :: struct {
@@ -565,14 +565,14 @@ SDL_QuitEvent :: struct {
 }
 
 SDL_Event :: union nonsûr #externe {
-    type : SDL_EventType
+    type: SDL_EventType
 
-    key : SDL_KeyboardEvent
+    key: SDL_KeyboardEvent
     quit: SDL_QuitEvent
-    window: SDL_WindowEvent         /**< Window event data */
-    motion: SDL_MouseMotionEvent    /**< Mouse motion event data */
-    button: SDL_MouseButtonEvent    /**< Mouse button event data */
-    wheel:  SDL_MouseWheelEvent      /**< Mouse wheel event data */
+    window: SDL_WindowEvent /**< Window event data */
+    motion: SDL_MouseMotionEvent /**< Mouse motion event data */
+    button: SDL_MouseButtonEvent /**< Mouse button event data */
+    wheel: SDL_MouseWheelEvent /**< Mouse wheel event data */
 
     /* force la taille de l'union à être de 56 octets */
     padding: [56]z8
@@ -602,18 +602,18 @@ SDL_BUTTON_X2 :: 5
  * \brief Cursor types for SDL_CreateSystemCursor().
  */
 SDL_SystemCursor :: énum {
-    SDL_SYSTEM_CURSOR_ARROW     /**< Arrow */
-    SDL_SYSTEM_CURSOR_IBEAM     /**< I-beam */
-    SDL_SYSTEM_CURSOR_WAIT      /**< Wait */
+    SDL_SYSTEM_CURSOR_ARROW /**< Arrow */
+    SDL_SYSTEM_CURSOR_IBEAM /**< I-beam */
+    SDL_SYSTEM_CURSOR_WAIT /**< Wait */
     SDL_SYSTEM_CURSOR_CROSSHAIR /**< Crosshair */
     SDL_SYSTEM_CURSOR_WAITARROW /**< Small wait cursor (or Wait if not available) */
-    SDL_SYSTEM_CURSOR_SIZENWSE  /**< Double arrow pointing northwest and southeast */
-    SDL_SYSTEM_CURSOR_SIZENESW  /**< Double arrow pointing northeast and southwest */
-    SDL_SYSTEM_CURSOR_SIZEWE    /**< Double arrow pointing west and east */
-    SDL_SYSTEM_CURSOR_SIZENS    /**< Double arrow pointing north and south */
-    SDL_SYSTEM_CURSOR_SIZEALL   /**< Four pointed arrow pointing north, south, east, and west */
-    SDL_SYSTEM_CURSOR_NO        /**< Slashed circle or crossbones */
-    SDL_SYSTEM_CURSOR_HAND      /**< Hand */
+    SDL_SYSTEM_CURSOR_SIZENWSE /**< Double arrow pointing northwest and southeast */
+    SDL_SYSTEM_CURSOR_SIZENESW /**< Double arrow pointing northeast and southwest */
+    SDL_SYSTEM_CURSOR_SIZEWE /**< Double arrow pointing west and east */
+    SDL_SYSTEM_CURSOR_SIZENS /**< Double arrow pointing north and south */
+    SDL_SYSTEM_CURSOR_SIZEALL /**< Four pointed arrow pointing north, south, east, and west */
+    SDL_SYSTEM_CURSOR_NO /**< Slashed circle or crossbones */
+    SDL_SYSTEM_CURSOR_HAND /**< Hand */
     /* SDL_NUM_SYSTEM_CURSORS */
 }
 
@@ -688,4 +688,4 @@ SDL_FreeCursor :: fonc (cursor: *SDL_Cursor) -> rien #externe libSDL2
  */
 SDL_ShowCursor :: fonc (toggle: z32) -> z32 #externe libSDL2
 
-/** } */
+/** \} */

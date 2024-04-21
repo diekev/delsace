@@ -6,12 +6,12 @@
 importe Support
 
 Paginatrice :: struct {
-    pages : [100][..]octet
+    pages: [100][..]octet
 }
 
 principale :: fonc () -> z32
 {
-    paginatrice : Paginatrice
+    paginatrice: Paginatrice
 
     page := paginatrice.pages[0]
 

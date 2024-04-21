@@ -4,12 +4,12 @@
  */
 
 Struct :: struct {
-    x : z32
+    x: z32
 }
 
 principale :: fonc () -> z32
 {
-    x : ...Struct
+    x: ...Struct
     si type_de(x) != ...Struct {
         retourne 1
     }

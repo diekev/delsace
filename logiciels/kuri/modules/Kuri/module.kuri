@@ -28,13 +28,13 @@ valeur_nulle :: fonc ($T: type_de_données) -> T
 // construction.
 PositionCodeSource :: struct #interface {
     // le nom du fichier où se trouve l'objet
-    fichier : chaine
+    fichier: chaine
     // le nom de la fonction où se trouve l'objet, vide si variable globale
-    fonction : chaine
+    fonction: chaine
     // la ligne où se trouve l'objet
-    ligne : z32
+    ligne: z32
     // la colonne où se trouve l'objet
-    colonne : z32
+    colonne: z32
 }
 
 // --------------------------
@@ -59,16 +59,16 @@ BaseAllocatrice :: struct #interface {
     allocatrice_secours : *BaseAllocatrice = nul
 }
 
-TypeFonctionAllocation :: fonc (ModeAllocatrice, z64, z64, *rien, *BaseAllocatrice, *InfoType, PositionCodeSource)(*rien)
+TypeFonctionAllocation :: fonc(ModeAllocatrice, z64, z64, *rien, *BaseAllocatrice, *InfoType, PositionCodeSource)(*rien)
 
-allocatrice_défaut :: fonc(
-    mode : ModeAllocatrice,
-    nouvelle_taille : z64,
-    ancienne_taille : z64,
-    ancien_pointeur : *rien,
-    données : *BaseAllocatrice,
-    info : *InfoType @inutilisée,
-    pos : PositionCodeSource @inutilisée) -> *rien
+allocatrice_défaut :: fonc (
+    mode: ModeAllocatrice,
+    nouvelle_taille: z64,
+    ancienne_taille: z64,
+    ancien_pointeur: *rien,
+    données: *BaseAllocatrice,
+    info: *InfoType @inutilisée,
+    pos: PositionCodeSource @inutilisée) -> *rien
 {
     discr mode {
         ALLOUE {
@@ -106,7 +106,7 @@ allocatrice_défaut :: fonc(
 
 /* Fonctions de bases pour loger des valeurs en mémoire. */
 
-loge_mémoire :: fonc (taille: z64, info: *InfoType, pos : PositionCodeSource) -> *rien
+loge_mémoire :: fonc (taille: z64, info: *InfoType, pos: PositionCodeSource) -> *rien
 {
     ptr := contexte().allocatrice(
         ModeAllocatrice.ALLOUE,
@@ -115,7 +115,8 @@ loge_mémoire :: fonc (taille: z64, info: *InfoType, pos : PositionCodeSource) -
         nul,
         contexte().données_allocatrice,
         info,
-        pos)
+        pos
+    )
 
     saufsi ptr {
         panique_hors_mémoire()
@@ -133,7 +134,8 @@ reloge_mémoire :: fonc (ancienne_taille: z64, nouvelle_taille: z64, ancien_poin
         ancien_pointeur,
         contexte().données_allocatrice,
         info,
-        pos)
+        pos
+    )
 
     saufsi nouveau_pointeur {
         panique_hors_mémoire()
@@ -142,7 +144,7 @@ reloge_mémoire :: fonc (ancienne_taille: z64, nouvelle_taille: z64, ancien_poin
     retourne nouveau_pointeur
 }
 
-déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos : PositionCodeSource)
+déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos: PositionCodeSource)
 {
     _ := contexte().allocatrice(
         ModeAllocatrice.DÉSALLOUE,
@@ -151,7 +153,8 @@ déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos : P
         pointeur,
         contexte().données_allocatrice,
         info,
-        pos)
+        pos
+    )
 }
 
 loge :: fonc ($T: type_de_données, pos := PositionCodeSource()) -> *T
@@ -173,7 +176,8 @@ reloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
         info.taille_en_octet comme z64,
         ancien_pointeur,
         info,
-        pos)
+        pos
+    )
 
     pointeur = nouveau_pointeur
 }
@@ -190,7 +194,7 @@ loge_chaine :: fonc (taille: z64, pos := PositionCodeSource()) -> chaine
 {
     ptr := loge_mémoire(taille, info_de(chaine), pos)
 
-    chn: chaine = ---
+    chn : chaine = ---
     chn.pointeur = ptr
     chn.taille = taille
 
@@ -236,18 +240,18 @@ ModeLogage :: énum z32 {
 // Le StockageTemporaire est un stockage mis en place par le compilateur, qui réserve
 // une certaine taille dans l'exécutable où mettre des données temporaire.
 StockageTemporaire :: struct #interface {
-    données : *octet
-    taille : z32
-    occupé : z32
-    occupation_maximale : z32
+    données: *octet
+    taille: z32
+    occupé: z32
+    occupation_maximale: z32
 }
 
 // ----------------------------
 
 InfoFonctionTraceAppel :: struct #interface {
-    nom : chaine
-    fichier : chaine
-    adresse : adresse_fonction
+    nom: chaine
+    fichier: chaine
+    adresse: adresse_fonction
     // peut-être que nous pourrions avoir ceci dans le future, en fonction des besoins
     // position: PositionCodeSource
     // desc_type: *InfoTypeFonction
@@ -261,10 +265,10 @@ InfoAppelTraceAppel :: struct #interface {
 }
 
 TraceAppel :: struct #interface {
-    précédente : *TraceAppel
-    info_fonction : *InfoFonctionTraceAppel
-    info_appel : *InfoAppelTraceAppel
-    profondeur : z32
+    précédente: *TraceAppel
+    info_fonction: *InfoFonctionTraceAppel
+    info_appel: *InfoAppelTraceAppel
+    profondeur: z32
 }
 
 nombre_de_trace :: fonc (racine: *TraceAppel) -> z64
@@ -286,7 +290,7 @@ copie_trace_appel :: fonc (racine: *TraceAppel, tableau: [..]TraceAppel)
     index := 0
 
     tantque trace != nul {
-        copie : TraceAppel
+        copie: TraceAppel
         copie.info_appel = trace.info_appel
         copie.info_fonction = trace.info_fonction
         tableau.pointeur[index] = copie
@@ -302,7 +306,7 @@ enregistre_liste_trace_appels :: fonc (racine: *TraceAppel) -> [..]TraceAppel
     /* À FAIRE: remplace l'appel à malloc par allocatrice_défaut, ou loge_mémoire. */
     t := malloc(taille_de(TraceAppel) * n comme n64)
 
-    tableau_traces : [..]TraceAppel
+    tableau_traces: [..]TraceAppel
     tableau_traces.pointeur = t
     tableau_traces.taille = n
     copie_trace_appel(racine, tableau_traces)
@@ -315,8 +319,8 @@ imprime_trace :: fonc (tableau: [..]TraceAppel, enchaineuse: *Enchaineuse)
         trace := it
         info_fonction := trace.info_fonction
         info_appel := trace.info_appel
-        imprime_dans_enchaineuse(enchaineuse, "%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse);
-        imprime_dans_enchaineuse(enchaineuse, "%\n", info_appel.texte);
+        imprime_dans_enchaineuse(enchaineuse, "%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse)
+        imprime_dans_enchaineuse(enchaineuse, "%\n", info_appel.texte)
     }
 }
 
@@ -348,7 +352,7 @@ détruit_liste_trace_appels :: fonc (tableau_traces: [..]TraceAppel)
  * \{ */
 
 FormatEntier :: struct {
-    valeur : eini
+    valeur: eini
     ajoute_zéros_début := faux
     nombre_zéros := 0
     base := 10
@@ -382,7 +386,7 @@ donne_format_réel_contexte :: fonc (valeur: eini) -> FormatRéel
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 // Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 ContexteProgramme :: struct {
@@ -392,52 +396,54 @@ ContexteProgramme :: struct {
     logueur := __logueur_défaut
     données_logueur : *rien = nul
 
-    stockage_temporaire : *StockageTemporaire
+    stockage_temporaire: *StockageTemporaire
 
-    trace_appel : *TraceAppel
+    trace_appel: *TraceAppel
 
     rappel_panique := __rappel_panique_défaut
-    données_rappel_panique : *rien
+    données_rappel_panique: *rien
 
     /* Formats pour les nombres entiers et réels. */
     format_entier: FormatEntier
     format_réel: FormatRéel
 }
 
-__logueur_défaut :: fonc (message: chaine  @inutilisée,
-                          ident: chaine  @inutilisée,
-                          mode: ModeLogage  @inutilisée,
-                          données: *rien  @inutilisée) -> rien
+__logueur_défaut :: fonc (
+    message: chaine @inutilisée,
+    ident: chaine @inutilisée,
+    mode: ModeLogage @inutilisée,
+    données: *rien @inutilisée) -> rien
 {
 }
 
-__rappel_panique_défaut :: fonc () -> rien {}
+__rappel_panique_défaut :: fonc () -> rien
+{}
 
 // ----------------------------
 
 // Fonctions de convénience pour accéder aux données sur les allocations
 // de l'allocatrice courante du contexte
-mémoire_utilisée :: fonc() -> z64 #enligne
+mémoire_utilisée :: fonc () -> z64 #enligne
 {
     retourne contexte().données_allocatrice.mémoire_utilisée
 }
 
-pic_de_mémoire :: fonc() -> z64 #enligne
+pic_de_mémoire :: fonc () -> z64 #enligne
 {
     retourne contexte().données_allocatrice.pic_de_mémoire
 }
 
-nombre_allocations :: fonc() -> z64 #enligne
+nombre_allocations :: fonc () -> z64 #enligne
 {
     retourne contexte().données_allocatrice.nombre_allocations
 }
 
-nombre_réallocations :: fonc() -> z64 #enligne
+nombre_réallocations :: fonc () -> z64 #enligne
 {
     retourne contexte().données_allocatrice.nombre_réallocations
 }
 
-nombre_désallocations :: fonc() -> z64 #enligne
+nombre_désallocations :: fonc () -> z64 #enligne
 {
     retourne contexte().données_allocatrice.nombre_désallocations
 }
@@ -480,14 +486,14 @@ alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, nouvelle_taille: 
     retourne ptr
 }
 
-__stockage_temporaire :: fonc(
-    mode : ModeAllocatrice,
-    nouvelle_taille : z64,
-    ancienne_taille : z64,
-    ancien_pointeur : *rien,
-    données : *BaseAllocatrice @inutilisée,
-    info : *InfoType @inutilisée,
-    pos : PositionCodeSource @inutilisée) -> *rien
+__stockage_temporaire :: fonc (
+    mode: ModeAllocatrice,
+    nouvelle_taille: z64,
+    ancienne_taille: z64,
+    ancien_pointeur: *rien,
+    données: *BaseAllocatrice @inutilisée,
+    info: *InfoType @inutilisée,
+    pos: PositionCodeSource @inutilisée) -> *rien
 {
     alloc := contexte().stockage_temporaire
 
@@ -548,12 +554,12 @@ __stockage_temporaire :: fonc(
 // fonction de convénience pour loge un tampon dans le stockage temporaire
 // principalement utilisé pour loger des chaines avec une terminaison nulle
 // afin de pouvoir les passer aux fonctions de C
-logement_temp :: fonc(taille: z64) -> *octet
+logement_temp :: fonc (taille: z64) -> *octet
 {
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    ptr : *octet
+    ptr: *octet
 
     pousse_contexte nouveau_contexte {
         tmp := loge_tableau(octet, taille)
@@ -566,7 +572,7 @@ logement_temp :: fonc(taille: z64) -> *octet
 // -----------------------------
 
 // Fonctions de bases pour les opérateurs de comparaisons de chaines
-opérateur == :: fonc(chn1: chaine, chn2: chaine) -> bool
+opérateur == :: fonc (chn1: chaine, chn2: chaine) -> bool
 {
     si chn1.taille != chn2.taille {
         retourne faux
@@ -575,7 +581,7 @@ opérateur == :: fonc(chn1: chaine, chn2: chaine) -> bool
     taille := chn1.taille
     début : z64 = 0
 
-    pour i dans début...(taille - 1) {
+    pour i dans début ... (taille - 1) {
         si chn1[i] != chn2[i] {
             retourne faux
         }
@@ -584,7 +590,7 @@ opérateur == :: fonc(chn1: chaine, chn2: chaine) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc(chn1: chaine, chn2: chaine) -> bool
+opérateur != :: fonc (chn1: chaine, chn2: chaine) -> bool
 {
     retourne !(chn1 == chn2)
 }
@@ -618,22 +624,22 @@ compare_chaine :: fonc (chn1: chaine, chn2: chaine) -> z32
     retourne 0
 }
 
-opérateur < :: fonc(chn1: chaine, chn2: chaine) -> bool
+opérateur < :: fonc (chn1: chaine, chn2: chaine) -> bool
 {
     retourne compare_chaine(chn1, chn2) < 0
 }
 
-opérateur <= :: fonc(chn1: chaine, chn2: chaine) -> bool
+opérateur <= :: fonc (chn1: chaine, chn2: chaine) -> bool
 {
     retourne compare_chaine(chn1, chn2) <= 0
 }
 
-opérateur > :: fonc(chn1: chaine, chn2: chaine) -> bool
+opérateur > :: fonc (chn1: chaine, chn2: chaine) -> bool
 {
     retourne compare_chaine(chn1, chn2) > 0
 }
 
-opérateur >= :: fonc(chn1: chaine, chn2: chaine) -> bool
+opérateur >= :: fonc (chn1: chaine, chn2: chaine) -> bool
 {
     retourne compare_chaine(chn1, chn2) >= 0
 }
@@ -670,7 +676,7 @@ strlen :: fonc (str: *z8) -> n64 #externe libc
 
 arguments_ligne_commande :: fonc () -> [..]chaine
 {
-    tabl_args : [..]chaine
+    tabl_args: [..]chaine
 
     si __arguments_ligne_commande.taille == 0 {
         retourne tabl_args
@@ -683,7 +689,7 @@ arguments_ligne_commande :: fonc () -> [..]chaine
         tabl_args = loge_tableau(chaine, __arguments_ligne_commande.taille)
 
         pour __arguments_ligne_commande {
-            chn : chaine
+            chn: chaine
             chn.pointeur = it
             chn.taille = strlen(it) comme z64
             tableau_ajoute(*tabl_args, chn)
@@ -716,7 +722,7 @@ crée_contexte :: fonc () -> rien #création_contexte
 __contexte_fil_principal : ContexteProgramme = ---
 __arguments_ligne_commande : []*z8 = ---
 __tampon_stockage_tamporaire : [16384]z8 = ---
-__table_des_types : []*InfoType
+__table_des_types: []*InfoType
 
 contexte :: fonc () -> ContexteProgramme #horsligne
 {
@@ -751,7 +757,7 @@ __init_globales_kuri :: fonc () #sanstrace #interface
 // Ceci sera remplacé par la fonction principale ou par les métaprogrammes
 __principale :: fonc () -> z32 #principale
 
-__initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *TraceAppel, base_allocatrice : *BaseAllocatrice, stockage_temporaire: *StockageTemporaire) #sanstrace
+__initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *TraceAppel, base_allocatrice: *BaseAllocatrice, stockage_temporaire: *StockageTemporaire) #sanstrace
 {
     ctx.trace_appel = trace_appel
 
@@ -772,7 +778,7 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
     info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)
 
-    base_allocatrice : BaseAllocatrice
+    base_allocatrice: BaseAllocatrice
     stockage_temporaire : StockageTemporaire = ---
 
     __initialise_contexte_extra(ctx, *trace_appel, *base_allocatrice, *stockage_temporaire)
@@ -824,9 +830,9 @@ __point_de_sortie_dynamique :: fonc () #sanstrace #sansbroyage
 
 // Contexte pour les fonctions/modules C.
 ContexteKuri :: struct {
-    loge_memoire : fonc (*ContexteKuri,n64)(*rien)
-    reloge_memoire : fonc (*ContexteKuri,*rien,n64,n64)(*rien)
-    deloge_memoire : fonc (*ContexteKuri,*rien,n64)(rien)
+    loge_memoire: fonc(*ContexteKuri, n64)(*rien)
+    reloge_memoire: fonc(*ContexteKuri, *rien, n64, n64)(*rien)
+    deloge_memoire: fonc(*ContexteKuri, *rien, n64)(rien)
 }
 
 loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, taille: n64) -> *rien

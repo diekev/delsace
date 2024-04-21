@@ -131,4 +131,4 @@ converti_vers_chaine :: fonc (chn: &ChaineFixe) -> chaine
     retourne résultat
 }
 
-/** } */
+/** \} */

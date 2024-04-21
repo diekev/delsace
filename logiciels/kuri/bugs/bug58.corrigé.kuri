@@ -6,7 +6,7 @@
 importe Support
 
 Poly :: struct ($T: type_de_données) {
-    x : T
+    x: T
 }
 
 principale :: fonc () -> z32

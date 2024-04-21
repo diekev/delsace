@@ -4,9 +4,9 @@
 
 Struct :: struct {
     SousStruct :: struct {
-        x : z32
+        x: z32
     }
-    x : z32
+    x: z32
 }
 
 foo :: fonc (ss: Struct.SousStruct)

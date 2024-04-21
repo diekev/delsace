@@ -8,13 +8,13 @@ GenreInstruction :: énum z32 {
 }
 
 Instruction :: struct {
-    genre : GenreInstruction
+    genre: GenreInstruction
 }
 
 InstructionInsère :: struct {
-    empl base : Instruction
+    empl base: Instruction
 
-    table : Lexème
+    table: Lexème
     valeurs: [..]*Expression
 
     genre = GenreInstruction.INSÈRE
@@ -25,8 +25,8 @@ GenreExpression :: énum z32 {
 }
 
 Expression :: struct {
-    genre : GenreExpression
-    littérale : Lexème
+    genre: GenreExpression
+    littérale: Lexème
 }
 
 DéfinitionColonne :: struct {
@@ -35,19 +35,19 @@ DéfinitionColonne :: struct {
 }
 
 InstructionCréationTable :: struct {
-    empl base : Instruction
+    empl base: Instruction
 
     nom: Lexème
-    colonnes : [..]*DéfinitionColonne
+    colonnes: [..]*DéfinitionColonne
 
     genre = GenreInstruction.CRÉE
 }
 
 InstructionSélection :: struct {
-    empl base : Instruction
+    empl base: Instruction
 
-    items : [..]*Expression
-    depuis : Lexème
+    items: [..]*Expression
+    depuis: Lexème
 
     genre = GenreInstruction.SÉLECTIONNE
 }

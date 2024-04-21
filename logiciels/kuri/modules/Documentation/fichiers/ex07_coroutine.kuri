@@ -1,6 +1,6 @@
 importe Fondation
 
-ma_plage :: corout(début : z32, fin : z32, pas : z32) -> z32
+ma_plage :: fonc (début: z32, fin: z32, pas: z32) -> z32
 {
     taille := (fin - début) / pas
     val := début

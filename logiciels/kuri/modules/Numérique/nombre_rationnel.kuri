@@ -181,7 +181,7 @@ pgdc_récursif :: fonc (u: n64, v: n64) -> n64
     }
 
     // réduis l'argument le plus grand
-    si (u > v) {
+    si u > v {
         retourne pgdc_récursif((u - v) >> 1, v)
     }
 
@@ -207,13 +207,13 @@ pgdc :: fonc (u: n64, v: n64) -> n64
 
     //Let shift := lg K, where K is the greatest power of 2
     // dividing both u and v.
-    tantque (((u | v) & 1) == 0) {
+    tantque ((u | v) & 1) == 0 {
         shift = shift + 1
         u = u >> 1
         v = v >> 1
     }
 
-    tantque ((u & 1) == 0) {
+    tantque (u & 1) == 0 {
         u = u >> 1
     }
 
@@ -221,7 +221,7 @@ pgdc :: fonc (u: n64, v: n64) -> n64
     répète {
         // remove all factors of 2 in v -- they are not common */
         //   note: v is not zero, so while will terminate */
-        tantque ((v & 1) == 0) {
+        tantque (v & 1) == 0 {
             v = v >> 1
         }
 
@@ -236,7 +236,7 @@ pgdc :: fonc (u: n64, v: n64) -> n64
         }
 
         v = v - u // Here v >= u.
-    } tantque (v != 0)
+    } tantque v != 0
 
     // restore common factors of 2 */
     retourne u << shift

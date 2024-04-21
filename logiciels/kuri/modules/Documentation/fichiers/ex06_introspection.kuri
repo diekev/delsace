@@ -1,6 +1,6 @@
 importe Fondation
 
-imprime_type_args :: fonc(args : ...eini) -> rien
+imprime_type_args :: fonc (args: ...eini) -> rien
 {
     pour arg dans args {
         discr arg.info.id {
@@ -29,7 +29,7 @@ imprime_type_args :: fonc(args : ...eini) -> rien
     }
 }
 
-principale :: fonc() -> z32
+principale :: fonc () -> z32
 {
     // Passe différents types, bien que la fonction espère des types 'eini'.
     // Le dernier argument est un pointeur vers la fonction 'exemple'.

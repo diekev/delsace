@@ -26,7 +26,7 @@ opérateur != :: fonc (rune: Rune, c: z8) -> bool
     retourne !(rune == c)
 }
 
-/** } */
+/** \} */
 
 imprime_rune :: fonc (enchaineuse: *Enchaineuse, rune: *Rune)
 {
@@ -150,7 +150,7 @@ décalage_pour_caractère :: fonc (chn: chaine, i: z64) -> z32
     décalage := 0
     n := nombre_octets_utf8(*chn[i])
 
-    tantque (n == 0 && i < chn.taille) {
+    tantque n == 0 && i < chn.taille {
         ++décalage
         ++i
         n = nombre_octets_utf8(*chn[i])
@@ -166,27 +166,27 @@ converti_utf8_utf32 :: fonc (caractère: *z8, n: z64) -> z32
 {
     s0 := caractère[0] comme n32
 
-    si (n == 1) {
+    si n == 1 {
         retourne s0 comme z32 & 0b01111111
     }
 
     s1 := caractère[1] comme n32
 
-    si (n == 2) {
+    si n == 2 {
         v := (s0 & 0b00011111) << 6 | (s1 & 0b00111111)
         retourne v comme z32
     }
 
     s2 := caractère[2] comme n32
 
-    si (n == 3) {
+    si n == 3 {
         v := (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111)
         retourne v comme z32
     }
 
     s3 := caractère[3] comme n32
 
-    si (n == 4) {
+    si n == 4 {
         v := (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111)
         retourne v comme z32
     }
@@ -291,29 +291,29 @@ taille_unicode :: fonc (chn: chaine) -> z64
 
 RunesClés :: énum n32 {
     // espaces
-    ESPACE_INSÉCABLE             :: 0x00A0
-    ESPACE_D_OGAM                :: 0x1680
-    SÉPARATEUR_VOYELLES_MONGOL   :: 0x180E
-    DEMI_CADRATIN                :: 0x2000
-    CADRATIN                     :: 0x2001
-    ESPACE_DEMI_CADRATIN         :: 0x2002
-    ESPACE_CADRATIN              :: 0x2003
-    TIERS_DE_CADRATIN            :: 0x2004
-    QUART_DE_CADRATIN            :: 0x2005
-    SIXIÈME_DE_CADRATIN          :: 0x2006
-    ESPACE_TABULAIRE             :: 0x2007
-    ESPACE_PONCTUATION           :: 0x2008
-    ESPACE_FINE                  :: 0x2009
-    ESPACE_ULTRAFINE             :: 0x200A
-    ESPACE_SANS_CHASSE           :: 0x200B
-    ESPACE_INSÉCABLE_ÉTROITE     :: 0x202F
-    ESPACE_MOYENNE_MATHÉMATIQUE  :: 0x205F
-    ESPACE_IDÉOGRAPHIQUE         :: 0x3000
+    ESPACE_INSÉCABLE :: 0x00A0
+    ESPACE_D_OGAM :: 0x1680
+    SÉPARATEUR_VOYELLES_MONGOL :: 0x180E
+    DEMI_CADRATIN :: 0x2000
+    CADRATIN :: 0x2001
+    ESPACE_DEMI_CADRATIN :: 0x2002
+    ESPACE_CADRATIN :: 0x2003
+    TIERS_DE_CADRATIN :: 0x2004
+    QUART_DE_CADRATIN :: 0x2005
+    SIXIÈME_DE_CADRATIN :: 0x2006
+    ESPACE_TABULAIRE :: 0x2007
+    ESPACE_PONCTUATION :: 0x2008
+    ESPACE_FINE :: 0x2009
+    ESPACE_ULTRAFINE :: 0x200A
+    ESPACE_SANS_CHASSE :: 0x200B
+    ESPACE_INSÉCABLE_ÉTROITE :: 0x202F
+    ESPACE_MOYENNE_MATHÉMATIQUE :: 0x205F
+    ESPACE_IDÉOGRAPHIQUE :: 0x3000
     ESPACE_INSÉCABLE_SANS_CHASSE :: 0xFEFF
 
     // guillemets
-    GUILLEMET_OUVRANT :: 0x00AB  // «
-    GUILLEMET_FERMANT :: 0x00BB  // »
+    GUILLEMET_OUVRANT :: 0x00AB // «
+    GUILLEMET_FERMANT :: 0x00BB // »
 }
 
 est_espace_blanche_unicode :: fonc (point_de_code: n32) -> bool
@@ -360,24 +360,25 @@ PaireAccentAscii :: struct {
 initialise_table_accents_ascii :: fonc ()
 {
     paires_unicode_ascii : [NOMBRE_PAIRES_ACCENT_ASCII][2]chaine = [
-        ["À", "A"],
-        ["Â", "A"],
-        ["à", "a"],
-        ["â", "a"],
-        ["Ç", "C"],
-        ["ç", "c"],
-        ["É", "E"],
-        ["Ê", "E"],
-        ["È", "E"],
-        ["é", "e"],
-        ["ê", "e"],
-        ["è", "e"],
-        ["Î", "I"],
-        ["î", "i"],
-        ["Ô", "O"],
-        ["ô", "o"],
-        ["Û", "U"],
-        ["û", "u"]]
+        [ "À", "A" ],
+        [ "Â", "A" ],
+        [ "à", "a" ],
+        [ "â", "a" ],
+        [ "Ç", "C" ],
+        [ "ç", "c" ],
+        [ "É", "E" ],
+        [ "Ê", "E" ],
+        [ "È", "E" ],
+        [ "é", "e" ],
+        [ "ê", "e" ],
+        [ "è", "e" ],
+        [ "Î", "I" ],
+        [ "î", "i" ],
+        [ "Ô", "O" ],
+        [ "ô", "o" ],
+        [ "Û", "U" ],
+        [ "û", "u" ]
+    ]
 
     pour paires_unicode_ascii {
         n := nombre_octets_utf8(it[0].pointeur)
@@ -439,4 +440,4 @@ remplace_caractères_accentués :: fonc (chn: *chaine)
     chn.taille = ptr_dest - chn.pointeur
 }
 
-/** } */
+/** \} */

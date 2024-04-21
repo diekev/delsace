@@ -15,6 +15,6 @@ imprime_valeur_chaine :: fonc (e: eini)
 
 principale :: fonc () -> z32
 {
-    imprime_valeur_chaine(VALEUR_CHAINE)    
+    imprime_valeur_chaine(VALEUR_CHAINE)
     retourne 0
 }

@@ -99,8 +99,8 @@ insère_non_plein :: fonc (
         // a) trouver la position de la nouvelle à être insérée
         // b) avancer d'une position les clés plus grandes
 
-        tantque (i >= 0) {
-            si (noeud.clés[i] <= k) {
+        tantque i >= 0 {
+            si noeud.clés[i] <= k {
                 arrête
             }
 
@@ -116,8 +116,8 @@ insère_non_plein :: fonc (
     }
 
     // Trouve l'enfant qui aura la nouvelle clé
-    tantque (i >= 0) {
-        si (noeud.clés[i] <= k) {
+    tantque i >= 0 {
+        si noeud.clés[i] <= k {
             arrête
         }
 
@@ -131,7 +131,7 @@ insère_non_plein :: fonc (
         // Après la division, la clé du milieu de enfant[i] monte et
         // enfant[i] est divisé. Trouve celui qui aura qui aura la
         // nouvelle clé.
-        si (noeud.clés[i + 1] < k) {
+        si noeud.clés[i + 1] < k {
             i += 1
         }
     }
@@ -304,7 +304,7 @@ remplis :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
         }
     }
 
-    si (idx != noeud.n) {
+    si idx != noeud.n {
         fusionne_suivant(noeud, idx)
     }
     sinon {

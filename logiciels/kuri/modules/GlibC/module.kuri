@@ -125,20 +125,20 @@ strerror :: fonc (args: z32) -> ChaineC #externe libc
 __S_IFMT :: 0o170000 comme n32
 
 /* Types de fichier  */
-__S_IFDIR	:: 0o040000 comme n32	/* Directory.  */
-__S_IFCHR	:: 0o020000 comme n32	/* Character device.  */
-__S_IFBLK	:: 0o060000 comme n32	/* Block device.  */
-__S_IFREG	:: 0o100000 comme n32	/* Regular file.  */
-__S_IFIFO	:: 0o010000 comme n32	/* FIFO.  */
-__S_IFLNK	:: 0o120000 comme n32	/* Symbolic link.  */
-__S_IFSOCK	:: 0o140000 comme n32	/* Socket.  */
+__S_IFDIR :: 0o040000 comme n32 /* Directory.  */
+__S_IFCHR :: 0o020000 comme n32 /* Character device.  */
+__S_IFBLK :: 0o060000 comme n32 /* Block device.  */
+__S_IFREG :: 0o100000 comme n32 /* Regular file.  */
+__S_IFIFO :: 0o010000 comme n32 /* FIFO.  */
+__S_IFLNK :: 0o120000 comme n32 /* Symbolic link.  */
+__S_IFSOCK :: 0o140000 comme n32 /* Socket.  */
 
-SEEK_SET  :: 0	/* Seek from beginning of file.  */
-SEEK_CUR  :: 1	/* Seek from current position.  */
-SEEK_END  :: 2	/* Seek from end of file.  */
+SEEK_SET :: 0 /* Seek from beginning of file.  */
+SEEK_CUR :: 1 /* Seek from current position.  */
+SEEK_END :: 2 /* Seek from end of file.  */
 /* Seulement pour GNU */
-SEEK_DATA :: 3  /* Seek to next data. */
-SEEK_HOLE :: 4  /* Seek to next hole. */
+SEEK_DATA :: 3 /* Seek to next data. */
+SEEK_HOLE :: 4 /* Seek to next hole. */
 
 lseek :: fonc (fd: z32, offset: z64, whence: z32) -> z64 #externe libc
 
@@ -148,23 +148,23 @@ lseek :: fonc (fd: z32, offset: z64, whence: z32) -> z64 #externe libc
 // fonction), nous la renommons struct_stat jusqu'à ce que nous avons un moyen de lever
 // le conflit, l'ambigüité.
 struct_stat :: struct #externe {
-    st_dev: n64         // ID of device containing file
-    st_ino: n64         // inode number
-    st_nlink: n64     // number of hard links
-    st_mode: n32       // protection
-    st_uid: n32         // user ID of owner
-    st_gid: n32         // group ID of owner
-    __pad0: n32         // padding pour la version 64-bit
-    st_rdev: n64        // device ID (if special file)
-    st_size: z64        // total size, in bytes
+    st_dev: n64 // ID of device containing file
+    st_ino: n64 // inode number
+    st_nlink: n64 // number of hard links
+    st_mode: n32 // protection
+    st_uid: n32 // user ID of owner
+    st_gid: n32 // group ID of owner
+    __pad0: n32 // padding pour la version 64-bit
+    st_rdev: n64 // device ID (if special file)
+    st_size: z64 // total size, in bytes
     st_blksize: z64 // blocksize for file system I/O
     st_blocks: z64
-    st_atime: z64      // time of last access
-    st_atimensec: z64  // Nsecs of last access
-    st_mtime: z64      // time of last modification
-    st_mtimensec: z64  // Nsecs of last modification
-    st_ctime: z64      // time of last status change
-    st_ctimensec: z64  // Nsecs of last status change
+    st_atime: z64 // time of last access
+    st_atimensec: z64 // Nsecs of last access
+    st_mtime: z64 // time of last modification
+    st_mtimensec: z64 // Nsecs of last modification
+    st_ctime: z64 // time of last status change
+    st_ctimensec: z64 // Nsecs of last status change
     __glibc_reserved: [3]z64
 }
 
@@ -234,11 +234,11 @@ TMPFILE :: (0o20000000 | 0o200000)
 
 O_NONBLOCK :: 0o04000
 
-F_DUPFD :: 0	/* Duplicate file descriptor.  */
-F_GETFD :: 1	/* Get file descriptor flags.  */
-F_SETFD :: 2	/* Set file descriptor flags.  */
-F_GETFL :: 3	/* Get file status flags.  */
-F_SETFL :: 4	/* Set file status flags.  */
+F_DUPFD :: 0 /* Duplicate file descriptor.  */
+F_GETFD :: 1 /* Get file descriptor flags.  */
+F_SETFD :: 2 /* Set file descriptor flags.  */
+F_GETFL :: 3 /* Get file status flags.  */
+F_SETFL :: 4 /* Set file status flags.  */
 
 fcntl :: fonc (fd: z32, cmd: z32, args: ...) -> z32 #externe libc
 
@@ -360,17 +360,17 @@ AF_XDP :: PF_XDP
 AF_MAX :: PF_MAX
 
 // sys/socket_types.h
-SOCK_STREAM    :: 1  /* Sequenced, reliable, connection-based byte streams.  */
-SOCK_DGRAM     :: 2  /* Connectionless, unreliable datagrams of fixed maximum length.  */
-SOCK_RAW       :: 3  /* Raw protocol interface.  */
-SOCK_RDM       :: 4  /* Reliably-delivered messages.  */
-SOCK_SEQPACKET :: 5  /* Sequenced, reliable, connection-based, datagrams of fixed maximum length.  */
-SOCK_DCCP      :: 6  /* Datagram Congestion Control Protocol.  */
-SOCK_PACKET    :: 10 /* Linux specific way of getting packets at the dev level.  For writing rarp and other similar things on the user level. */
+SOCK_STREAM :: 1 /* Sequenced, reliable, connection-based byte streams.  */
+SOCK_DGRAM :: 2 /* Connectionless, unreliable datagrams of fixed maximum length.  */
+SOCK_RAW :: 3 /* Raw protocol interface.  */
+SOCK_RDM :: 4 /* Reliably-delivered messages.  */
+SOCK_SEQPACKET :: 5 /* Sequenced, reliable, connection-based, datagrams of fixed maximum length.  */
+SOCK_DCCP :: 6 /* Datagram Congestion Control Protocol.  */
+SOCK_PACKET :: 10 /* Linux specific way of getting packets at the dev level.  For writing rarp and other similar things on the user level. */
 
 /* Flags to be ORed into the type parameter of socket and socketpair and used for the flags parameter of paccept.  */
-SOCK_CLOEXEC   :: 0o02000000	/* Atomically set close-on-exec flag for the new descriptor(s).  */
-SOCK_NONBLOCK  :: 0o00004000	/* Atomically mark descriptor(s) as non-blocking.  */
+SOCK_CLOEXEC :: 0o02000000 /* Atomically set close-on-exec flag for the new descriptor(s).  */
+SOCK_NONBLOCK :: 0o00004000 /* Atomically mark descriptor(s) as non-blocking.  */
 
 // netinet/in.h
 /* Address to accept any incoming messages.  */
@@ -588,42 +588,42 @@ SIG_HOLD :: 2 /* Add signal to hold mask.  */
    a process exists without sending it a signal.  */
 
 /* ISO C99 signals.  */
-SIGINT    :: 2   /* Interactive attention signal.  */
-SIGILL    :: 4   /* Illegal instruction.  */
-SIGABRT   :: 6   /* Abnormal termination.  */
-SIGFPE    :: 8   /* Erroneous arithmetic operation.  */
-SIGSEGV   :: 11  /* Invalid access to storage.  */
-SIGTERM   :: 15  /* Termination request.  */
+SIGINT :: 2 /* Interactive attention signal.  */
+SIGILL :: 4 /* Illegal instruction.  */
+SIGABRT :: 6 /* Abnormal termination.  */
+SIGFPE :: 8 /* Erroneous arithmetic operation.  */
+SIGSEGV :: 11 /* Invalid access to storage.  */
+SIGTERM :: 15 /* Termination request.  */
 
 /* Historical signals specified by POSIX. */
-SIGHUP    :: 1   /* Hangup.  */
-SIGQUIT   :: 3   /* Quit.  */
-SIGTRAP   :: 5   /* Trace/breakpoint trap.  */
-SIGKILL   :: 9   /* Killed.  */
-SIGBUS    :: 10  /* Bus error.  */
-SIGSYS    :: 12  /* Bad system call.  */
-SIGPIPE   :: 13  /* Broken pipe.  */
-SIGALRM   :: 14  /* Alarm clock.  */
+SIGHUP :: 1 /* Hangup.  */
+SIGQUIT :: 3 /* Quit.  */
+SIGTRAP :: 5 /* Trace/breakpoint trap.  */
+SIGKILL :: 9 /* Killed.  */
+SIGBUS :: 10 /* Bus error.  */
+SIGSYS :: 12 /* Bad system call.  */
+SIGPIPE :: 13 /* Broken pipe.  */
+SIGALRM :: 14 /* Alarm clock.  */
 
 /* New(er) POSIX signals (1003.1-2008, 1003.1-2013).  */
-SIGURG    :: 16  /* Urgent data is available at a socket.  */
-SIGSTOP   :: 17  /* Stop, unblockable.  */
-SIGTSTP   :: 18  /* Keyboard stop.  */
-SIGCONT   :: 19  /* Continue.  */
-SIGCHLD   :: 20  /* Child terminated or stopped.  */
-SIGTTIN   :: 21  /* Background read from control terminal.  */
-SIGTTOU   :: 22  /* Background write to control terminal.  */
-SIGPOLL   :: 23  /* Pollable event occurred (System V).  */
-SIGXCPU   :: 24  /* CPU time limit exceeded.  */
-SIGXFSZ   :: 25  /* File size limit exceeded.  */
-SIGVTALRM :: 26  /* Virtual timer expired.  */
-SIGPROF   :: 27  /* Profiling timer expired.  */
-SIGUSR1   :: 30  /* User-defined signal 1.  */
-SIGUSR2   :: 31  /* User-defined signal 2.  */
+SIGURG :: 16 /* Urgent data is available at a socket.  */
+SIGSTOP :: 17 /* Stop, unblockable.  */
+SIGTSTP :: 18 /* Keyboard stop.  */
+SIGCONT :: 19 /* Continue.  */
+SIGCHLD :: 20 /* Child terminated or stopped.  */
+SIGTTIN :: 21 /* Background read from control terminal.  */
+SIGTTOU :: 22 /* Background write to control terminal.  */
+SIGPOLL :: 23 /* Pollable event occurred (System V).  */
+SIGXCPU :: 24 /* CPU time limit exceeded.  */
+SIGXFSZ :: 25 /* File size limit exceeded.  */
+SIGVTALRM :: 26 /* Virtual timer expired.  */
+SIGPROF :: 27 /* Profiling timer expired.  */
+SIGUSR1 :: 30 /* User-defined signal 1.  */
+SIGUSR2 :: 31 /* User-defined signal 2.  */
 
 /* Nonstandard signals found in all modern POSIX systems
    (including both BSD and Linux).  */
-SIGWINCH  :: 28  /* Window size change (4.3 BSD, Sun).  */
+SIGWINCH :: 28 /* Window size change (4.3 BSD, Sun).  */
 
 signal :: fonc (numéro_signal: z32, rappel: fonc(z32)(rien)) -> rien #externe libc
 
@@ -720,8 +720,8 @@ epoll_data :: union nonsûr #externe {
 }
 
 epoll_event :: struct #externe #compacte {
-    events: EPOLL_EVENTS  /* Epoll events */
-    data: epoll_data      /* User data variable */
+    events: EPOLL_EVENTS /* Epoll events */
+    data: epoll_data /* User data variable */
 }
 
 epoll_create :: fonc (size: z32) -> z32 #externe libc
@@ -756,36 +756,36 @@ qsort :: fonc (liste: *rien, taille_liste: n64, taille_element: n64, fonction_co
 /* netinet/tcp.h
  * User-settable options (used with setsockopt).
  */
-TCP_NODELAY :: 1  /* Don't delay send to coalesce packets  */
-TCP_MAXSEG :: 2  /* Set maximum segment size  */
-TCP_CORK :: 3  /* Control sending of partial frames  */
-TCP_KEEPIDLE :: 4  /* Start keeplives after this period */
-TCP_KEEPINTVL :: 5  /* Interval between keepalives */
-TCP_KEEPCNT :: 6  /* Number of keepalives before death */
-TCP_SYNCNT :: 7  /* Number of SYN retransmits */
-TCP_LINGER2 :: 8  /* Life time of orphaned FIN-WAIT-2 state */
-TCP_DEFER_ACCEPT ::  9  /* Wake up listener only when data arrive */
-TCP_WINDOW_CLAMP ::  10 /* Bound advertised window */
+TCP_NODELAY :: 1 /* Don't delay send to coalesce packets  */
+TCP_MAXSEG :: 2 /* Set maximum segment size  */
+TCP_CORK :: 3 /* Control sending of partial frames  */
+TCP_KEEPIDLE :: 4 /* Start keeplives after this period */
+TCP_KEEPINTVL :: 5 /* Interval between keepalives */
+TCP_KEEPCNT :: 6 /* Number of keepalives before death */
+TCP_SYNCNT :: 7 /* Number of SYN retransmits */
+TCP_LINGER2 :: 8 /* Life time of orphaned FIN-WAIT-2 state */
+TCP_DEFER_ACCEPT :: 9 /* Wake up listener only when data arrive */
+TCP_WINDOW_CLAMP :: 10 /* Bound advertised window */
 TCP_INFO :: 11 /* Information about this connection. */
 TCP_QUICKACK :: 12 /* Bock/reenable quick ACKs.  */
 TCP_CONGESTION :: 13 /* Congestion control algorithm.  */
 TCP_MD5SIG :: 14 /* TCP MD5 Signature (RFC2385) */
-TCP_COOKIE_TRANSACTIONS ::  15 /* TCP Cookie Transactions */
+TCP_COOKIE_TRANSACTIONS :: 15 /* TCP Cookie Transactions */
 TCP_THIN_LINEAR_TIMEOUTS :: 16 /* Use linear timeouts for thin streams*/
 TCP_THIN_DUPACK :: 17 /* Fast retrans. after 1 dupack */
-TCP_USER_TIMEOUT ::  18 /* How long for loss retry before timeout */
+TCP_USER_TIMEOUT :: 18 /* How long for loss retry before timeout */
 TCP_REPAIR :: 19 /* TCP sock is under repair right now */
-TCP_REPAIR_QUEUE ::  20 /* Set TCP queue to repair */
+TCP_REPAIR_QUEUE :: 20 /* Set TCP queue to repair */
 TCP_QUEUE_SEQ :: 21 /* Set sequence number of repaired queue. */
-TCP_REPAIR_OPTIONS ::  22 /* Repair TCP connection options */
+TCP_REPAIR_OPTIONS :: 22 /* Repair TCP connection options */
 TCP_FASTOPEN :: 23 /* Enable FastOpen on listeners */
 TCP_TIMESTAMP :: 24 /* TCP time stamp */
-TCP_NOTSENT_LOWAT ::  25 /* Limit number of unsent bytes in write queue.  */
+TCP_NOTSENT_LOWAT :: 25 /* Limit number of unsent bytes in write queue.  */
 TCP_CC_INFO :: 26 /* Get Congestion Control (optional) info.  */
 TCP_SAVE_SYN :: 27 /* Record SYN headers for new connections.  */
 TCP_SAVED_SYN :: 28 /* Get SYN headers recorded for connection.  */
-TCP_REPAIR_WINDOW ::  29 /* Get/set window parameters.  */
-TCP_FASTOPEN_CONNECT ::  30 /* Attempt FastOpen with connect.  */
+TCP_REPAIR_WINDOW :: 29 /* Get/set window parameters.  */
+TCP_FASTOPEN_CONNECT :: 30 /* Attempt FastOpen with connect.  */
 TCP_ULP :: 31 /* Attach a ULP to a TCP connection.  */
 TCP_MD5SIG_EXT :: 32 /* TCP MD5 Signature with extensions.  */
 
@@ -799,12 +799,12 @@ getpid :: fonc () -> z32 #externe libc
 // <sys/file.h>
 
 /* Operations for the `flock' call.  */
-LOCK_SH :: 1  /* Shared lock.  */
-LOCK_EX :: 2  /* Exclusive lock.  */
-LOCK_UN :: 8  /* Unlock.  */
+LOCK_SH :: 1 /* Shared lock.  */
+LOCK_EX :: 2 /* Exclusive lock.  */
+LOCK_UN :: 8 /* Unlock.  */
 
 /* Can be OR'd in to one of the above.  */
-LOCK_NB :: 4  /* Don't block when locking.  */
+LOCK_NB :: 4 /* Don't block when locking.  */
 
 /* Apply or remove an advisory lock, according to OPERATION,
  * on the file FD refers to.  */
