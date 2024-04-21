@@ -7,6 +7,8 @@
 #include "etendue_code_source.hh"
 #include "noeud_expression.hh"
 
+#include "biblinternes/langage/unicode.hh"
+
 #include "compilation/bibliotheque.hh"
 #include "compilation/operateurs.hh"
 #include "compilation/typage.hh"
@@ -16,6 +18,18 @@
 #include "structures/enchaineuse.hh"
 
 #include "utilitaires/log.hh"
+
+/*
+formattage :
+    - indentation avant les sous-blocs (Vision, Dessin)
+    - piège nonatteignable est ajouté (Berechtof)
+    - commentaire entre si et sinon
+    - commentaire entre les expressions des discrs
+    - commentaire après { ou } (Delsace)
+    - parenthèses expression retour
+    - #si après sinon (Bits)
+    - virgule après retour contenant un commentaire en fin de ligne (Courriel)
+*/
 
 enum class GenreNoeudFormattage : int8_t {
     CHAINE,
@@ -116,6 +130,14 @@ static std::ostream &operator<<(std::ostream &os, Indentation const indent)
 {
     os << chaine_indentations_espace(indent.v);
     return os;
+}
+
+static NoeudExpression const *donne_expression_sans_parenthèse(NoeudExpression const *expression)
+{
+    while (expression->est_parenthèse()) {
+        expression = expression->comme_parenthèse()->expression;
+    }
+    return expression;
 }
 
 static void imprime_ident(Enchaineuse &enchaineuse, IdentifiantCode const *ident)
@@ -224,10 +246,62 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
             }
             return expression_eu_bloc(expression->expression);
         }
+        case GenreNoeud::OPÉRATEUR_BINAIRE:
+        {
+            auto expression = noeud->comme_expression_binaire();
+            auto type_op = expression->lexème->genre;
+            if (est_assignation_composée(type_op)) {
+                return expression_eu_bloc(expression->opérande_droite);
+            }
+            return false;
+        }
         default:
         {
             return false;
         }
+    }
+}
+
+static bool doit_ajouter_guillemets(kuri::chaine_statique chn)
+{
+    if (chn.taille() == 0) {
+        return true;
+    }
+
+    if (chn.pointeur()[0] == '"') {
+        return false;
+    }
+
+    // À FAIRE : dernier caractère...
+    auto nombre_octet = lng::nombre_octets(chn.pointeur());
+    if (nombre_octet == 0) {
+        return true;
+    }
+
+    auto rune = lng::converti_utf32(chn.pointeur(), nombre_octet);
+    return rune != GUILLEMET_OUVRANT;
+}
+
+static bool doit_ajouter_apostrophes(kuri::chaine_statique chn)
+{
+    if (chn.taille() == 0) {
+        return true;
+    }
+
+    if (chn.pointeur()[0] != '\'') {
+        return true;
+    }
+
+    return false;
+}
+
+static void imprime_lexème_chaine_littérale(Enchaineuse &enchaineuse, Lexème const *lexème)
+{
+    if (doit_ajouter_guillemets(lexème->chaine)) {
+        enchaineuse << "\"" << lexème->chaine << "\"";
+    }
+    else {
+        enchaineuse << lexème->chaine;
     }
 }
 
@@ -328,8 +402,16 @@ static void imprime_annotations(Enchaineuse &enchaineuse,
 {
     POUR (annotations) {
         enchaineuse << " @" << it.nom;
-        if (it.valeur.taille() != 0) {
-            enchaineuse << " \"" << it.valeur << "\"";
+        if (it.valeur.taille() == 0) {
+            continue;
+        }
+
+        enchaineuse << " ";
+        if (doit_ajouter_guillemets(it.valeur)) {
+            enchaineuse << "\"" << it.valeur << "\"";
+        }
+        else {
+            enchaineuse << it.valeur;
         }
     }
 }
@@ -371,6 +453,10 @@ static void imprime_directives(Enchaineuse &enchaineuse,
                                kuri::tableau_statique<NoeudDirectiveFonction *> directives)
 {
     POUR (directives) {
+        /* #corps_texte doit être imprimé différemment. */
+        if (it->ident == ID::corps_texte) {
+            continue;
+        }
         imprime_arbre(enchaineuse, état, it);
     }
 }
@@ -407,6 +493,10 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
 
         if (état.imprime_indent_avant_bloc) {
             enchaineuse << état.indent;
+        }
+
+        if (bloc->est_nonsur) {
+            enchaineuse << "nonsûr ";
         }
 
         enchaineuse << "{" << chaine_nouvelle_ligne;
@@ -528,17 +618,17 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         case GenreNoeud::INSTRUCTION_CHARGE:
         {
             auto inst = noeud->comme_charge();
-            const auto lexèeme = inst->expression->lexème;
+            const auto lexème = inst->expression->lexème;
             imprime_lexème_mot_clé(enchaineuse, inst, true);
-            enchaineuse << "\"" << lexèeme->chaine << "\"";
+            imprime_lexème_chaine_littérale(enchaineuse, lexème);
             break;
         }
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         {
             auto déclaration = noeud->comme_déclaration_bibliothèque();
             imprime_ident(enchaineuse, déclaration->ident);
-            enchaineuse << " :: #bibliothèque \"" << déclaration->lexème_nom_bibliothèque->chaine
-                        << "\"";
+            enchaineuse << " :: #bibliothèque ";
+            imprime_lexème_chaine_littérale(enchaineuse, déclaration->lexème_nom_bibliothèque);
             break;
         }
         case GenreNoeud::DÉCLARATION_STRUCTURE:
@@ -552,6 +642,9 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
                 break;
             }
             enchaineuse << " ";
+            if (structure->est_corps_texte) {
+                enchaineuse << "#corps_texte ";
+            }
             état.imprime_indent_avant_bloc = false;
             état.imprime_nouvelle_ligne_après_bloc = false;
             imprime_arbre(enchaineuse, état, structure->bloc);
@@ -573,6 +666,9 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
                 break;
             }
             enchaineuse << " ";
+            if (structure->est_corps_texte) {
+                enchaineuse << "#corps_texte ";
+            }
             état.imprime_indent_avant_bloc = false;
             état.imprime_nouvelle_ligne_après_bloc = false;
             imprime_arbre(enchaineuse, état, structure->bloc);
@@ -675,7 +771,8 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
                  * virgules. */
                 enchaineuse << " " << directive->opérandes[0]->chaine;
                 if (directive->opérandes.taille() == 2) {
-                    enchaineuse << " \"" << directive->opérandes[1]->chaine << "\"";
+                    enchaineuse << " ";
+                    imprime_lexème_chaine_littérale(enchaineuse, directive->opérandes[1]);
                 }
                 break;
             }
@@ -729,7 +826,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             auto inst = noeud->comme_tantque();
             imprime_lexème_mot_clé(enchaineuse, inst, true);
-            imprime_arbre(enchaineuse, état, inst->condition);
+            imprime_arbre(enchaineuse, état, donne_expression_sans_parenthèse(inst->condition));
             enchaineuse << " ";
             état.imprime_indent_avant_bloc = false;
             imprime_arbre(enchaineuse, état, inst->bloc);
@@ -743,7 +840,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             état.imprime_nouvelle_ligne_après_bloc = false;
             imprime_arbre(enchaineuse, état, inst->bloc);
             enchaineuse << " tantque ";
-            imprime_arbre(enchaineuse, état, inst->condition);
+            imprime_arbre(enchaineuse, état, donne_expression_sans_parenthèse(inst->condition));
             break;
         }
         case GenreNoeud::INSTRUCTION_POUR:
@@ -1018,7 +1115,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             else {
                 imprime_lexème_mot_clé(enchaineuse, "si", true);
             }
-            imprime_arbre(enchaineuse, état, inst->condition);
+            imprime_arbre(enchaineuse, état, donne_expression_sans_parenthèse(inst->condition));
             état.imprime_indent_avant_bloc = false;
             auto est_sur_même_ligne = le_noeud_est_sur_une_ligne(inst);
             état.imprime_nouvelle_ligne_après_bloc = !est_sur_même_ligne;
@@ -1042,7 +1139,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto inst = noeud->comme_si_statique();
             enchaineuse << "#";
             imprime_lexème_mot_clé(enchaineuse, inst, true);
-            imprime_arbre(enchaineuse, état, inst->condition);
+            imprime_arbre(enchaineuse, état, donne_expression_sans_parenthèse(inst->condition));
             état.imprime_indent_avant_bloc = false;
             enchaineuse << " ";
             imprime_arbre(enchaineuse, état, inst->bloc_si_vrai);
@@ -1208,13 +1305,17 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         }
         case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
         {
-            // À FAIRE : préservation des guillemets
-            enchaineuse << "\"" << noeud->lexème->chaine << "\"";
+            imprime_lexème_chaine_littérale(enchaineuse, noeud->lexème);
             break;
         }
         case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
         {
-            enchaineuse << "'" << noeud->lexème->chaine << "'";
+            if (doit_ajouter_apostrophes(noeud->lexème->chaine)) {
+                enchaineuse << "\"" << noeud->lexème->chaine << "\"";
+            }
+            else {
+                enchaineuse << noeud->lexème->chaine;
+            }
             break;
         }
         case GenreNoeud::EXPRESSION_VIRGULE:

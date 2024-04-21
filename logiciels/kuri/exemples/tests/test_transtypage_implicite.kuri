@@ -2,7 +2,6 @@ importe Fondation
 
 passe_eini :: fonc (arg: eini) -> rien
 {
-
 }
 
 test_discr :: fonc (a: z32) -> bool

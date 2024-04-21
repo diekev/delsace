@@ -6,7 +6,7 @@ importe Tori // pour imprime_json
 
 test_json_tori :: fonc () -> rien
 {
-    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée())
 
     chn := "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28, \"taille\": 1.73 }"
 
@@ -16,7 +16,7 @@ test_json_tori :: fonc () -> rien
     // Lexage du script
 
     lexeuse := construit_lexeuse(chn)
-    diffère { détruit_lexeuse(lexeuse); }
+    diffère détruit_lexeuse(lexeuse)
 
     lexeuse.performe_lexage()
 
@@ -31,9 +31,9 @@ test_json_tori :: fonc () -> rien
     // -----------------------------------
     // Syntaxage du script, création de l'objet
 
-    syntaxeuse : SyntaxeuseJSON
+    syntaxeuse: SyntaxeuseJSON
     syntaxeuse.lexèmes = lexeuse.lexèmes
-    diffère { détruit(syntaxeuse); }
+    diffère détruit(syntaxeuse)
 
     syntaxeuse.lance_analyse()
 
@@ -67,9 +67,9 @@ InformationInscription :: struct {
 }
 
 Repas :: struct {
-    nom : chaine
-    ingrédients : [..]Ingrédient
-    ingrédient_principal : Ingrédient
+    nom: chaine
+    ingrédients: [..]Ingrédient
+    ingrédient_principal: Ingrédient
 }
 
 Ingrédient :: struct {

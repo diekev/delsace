@@ -62,7 +62,7 @@ donne_hauteur_cannevas :: fonc () -> z32
     retourne hauteur_cannevas
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Nuanceur.
@@ -152,7 +152,7 @@ donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Données globales.
@@ -188,7 +188,7 @@ nuanceur_image: *NuanceurGL
 
 fonte_globale: *Fonte
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Dessin.
@@ -308,7 +308,7 @@ ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
     num_sommets_immédiat += 1
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Quad.
@@ -346,7 +346,7 @@ quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, uv0: Vec2, uv1: 
     ajoute_sommets(p3, uv3, couleur)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Segment/Ligne.
@@ -361,7 +361,7 @@ segment_immédiat :: fonc (x0: r32, y0: r32, x1: r32, y1: r32, couleur: CouleurR
     ajoute_sommets(p1, couleur)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Cercle.
@@ -407,7 +407,7 @@ cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, co
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Quad arrondi.
@@ -467,7 +467,7 @@ contour_quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, ha
     quadrant_cercle_immédiat(px + tx, py, rayon, 3, couleur, faux)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Texte.
@@ -561,7 +561,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     termine_immédiat(ModeImmédiat.TRIANGLES)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Image
@@ -633,4 +633,4 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, x: r32, y: r32, largeur:
     termine_immédiat(ModeImmédiat.TRIANGLES)
 }
 
-/** } */
+/** \} */

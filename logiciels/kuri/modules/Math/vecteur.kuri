@@ -754,4 +754,4 @@ position_sphérique :: fonc (u: r32, v: r32, r := 1.0) -> Vec3 #enligne
     retourne Vec3(cosinus(u) * sinus(v) * r, cosinus(v) * r, sinus(u) * sinus(v) * r)
 }
 
-/** } */
+/** \} */

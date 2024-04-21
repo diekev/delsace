@@ -5,7 +5,7 @@
 
 importe Fondation
 
-valeur_globale : z32
+valeur_globale: z32
 
 Structure :: struct {
     itérations: z32
@@ -26,7 +26,7 @@ lance_boucle :: fonc (max_itérations: z32, nombre_itérations: z32)
     s := Structure(max_itérations)
     compteur := 0
 
-    diffère { valeur_globale = compteur }
+    diffère valeur_globale = compteur
 
     pour s {
         imprime("compteur : %, it : %\n", compteur, it)

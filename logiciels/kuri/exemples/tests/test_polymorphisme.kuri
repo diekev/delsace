@@ -60,11 +60,11 @@ argument_tableau_fixe :: fonc (a: [8]$T)
 }
 
 Polymorphe :: struct ($T: type_de_données) {
-    x : T
+    x: T
 }
 
 Polymorphe2 :: struct ($T: type_de_données) {
-    x : T
+    x: T
 }
 
 initialise_polymorphe :: fonc (poly: *Polymorphe(T = $T))
@@ -97,7 +97,7 @@ principale :: fonc () -> z32
     y := ajoute(12.5, 87.9)
     imprime("y = %\n", y)
 
-    tabl : [..]z32
+    tabl: [..]z32
     tableau_ajoute(*tabl, 123)
     tableau_ajoute(*tabl, 124)
     imprime("%\n", tabl)
@@ -112,7 +112,7 @@ principale :: fonc () -> z32
     tableau_fixe := [ 0, 1, 2, 3, 4, 5, 6, 7 ]
     argument_tableau_fixe(tableau_fixe)
 
-    poly : Polymorphe(T = z32)
+    poly: Polymorphe(T = z32)
     initialise_polymorphe(*poly)
     initialise_polymorphe(*poly, 6)
 
@@ -147,8 +147,8 @@ imprime_tranche_polymorphique :: fonc (tranche: []$T)
 
 test_tranche_polymorphique :: fonc ()
 {
-    tableau_fixe := [0, 1, 2, 3, 4, 5]
-    tableau_dynamique : [..]z32
+    tableau_fixe := [ 0, 1, 2, 3, 4, 5 ]
+    tableau_dynamique: [..]z32
     diffère déloge(tableau_dynamique)
 
     pour tableau_fixe {
@@ -159,7 +159,7 @@ test_tranche_polymorphique :: fonc ()
     imprime_tranche_polymorphique(tableau_dynamique)
 }
 
-imprime_tableau_fixe_polymorphique :: fonc (tabl: [$N]$T)
+imprime_tableau_fixe_polymorphique :: fonc (tabl: [N]$T)
 {
     pour tabl {
         imprime("%\n", it)
@@ -168,9 +168,9 @@ imprime_tableau_fixe_polymorphique :: fonc (tabl: [$N]$T)
 
 test_imprime_tableau_fixe_polymorphique :: fonc ()
 {
-    tabl_réel := [0.0, 1.0, 2.0]
+    tabl_réel := [ 0.0, 1.0, 2.0 ]
     imprime_tableau_fixe_polymorphique(tabl_réel)
-    tabl_entier := [16, 32, 64, 128]
+    tabl_entier := [ 16, 32, 64, 128 ]
     imprime_tableau_fixe_polymorphique(tabl_entier)
 }
 
@@ -213,4 +213,4 @@ test_contraintes :: fonc ()
     contrainte_structure_polymorphique(c)
 }
 
-/** } */
+/** \} */
