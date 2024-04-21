@@ -202,7 +202,7 @@ rvb_vers_tsl :: fonc (couleur: CouleurRVBA) -> CouleurTSL
     s := 0.0
     l := min(1.0, (cmax + cmin) * 0.5)
 
-    si (cmax == cmin) {
+    si cmax == cmin {
         /* achromatic, t et s sont déjà à zéro */
     }
     sinon {
@@ -215,13 +215,13 @@ rvb_vers_tsl :: fonc (couleur: CouleurRVBA) -> CouleurTSL
             d / (cmax + cmin)
         }
 
-        si (cmax == r) {
+        si cmax == r {
             t = (v - b) / d
             si v < b {
                 t += 6.0
             }
         }
-        sinon si (cmax == v) {
+        sinon si cmax == v {
             t = (b - r) / d + 2.0
         }
         sinon {

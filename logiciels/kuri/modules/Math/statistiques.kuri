@@ -45,18 +45,18 @@ p_distribution_normale :: fonc (qn: r32) -> r32
         0.0000000000006936233982
      ]
 
-    si (qn < 0.0 || 1.0 < qn) {
+    si qn < 0.0 || 1.0 < qn {
         // @erreur
         retourne 0.0
     }
 
-    si (qn == 0.5) {
+    si qn == 0.5 {
         retourne 0.0
     }
 
     w1 := qn
 
-    si (qn > 0.5) {
+    si qn > 0.5 {
         w1 = 1.0 - w1
     }
 
@@ -68,7 +68,7 @@ p_distribution_normale :: fonc (qn: r32) -> r32
         w1 += b[it] * puissance(w3, it comme r64) comme r32
     }
 
-    si (qn > 0.5) {
+    si qn > 0.5 {
         retourne sqrt(w1 * w3) comme r32
     }
 

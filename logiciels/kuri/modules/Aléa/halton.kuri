@@ -17,7 +17,7 @@ halton_suivant :: fonc (inverse_n_premier: r64, décalage: r64) -> r64
 {
     e := absolue(1.0 comme r64 - décalage - 1e-10 comme r64)
 
-    si (inverse_n_premier < e) {
+    si inverse_n_premier < e {
         décalage += inverse_n_premier
     }
     sinon {
@@ -27,7 +27,7 @@ halton_suivant :: fonc (inverse_n_premier: r64, décalage: r64) -> r64
         répète {
             dernier_h = h
             h *= inverse_n_premier
-        } tantque (h >= e)
+        } tantque h >= e
 
         décalage += ((dernier_h + h) - 1.0)
     }

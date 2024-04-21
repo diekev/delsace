@@ -150,7 +150,7 @@ décalage_pour_caractère :: fonc (chn: chaine, i: z64) -> z32
     décalage := 0
     n := nombre_octets_utf8(*chn[i])
 
-    tantque (n == 0 && i < chn.taille) {
+    tantque n == 0 && i < chn.taille {
         ++décalage
         ++i
         n = nombre_octets_utf8(*chn[i])
@@ -166,27 +166,27 @@ converti_utf8_utf32 :: fonc (caractère: *z8, n: z64) -> z32
 {
     s0 := caractère[0] comme n32
 
-    si (n == 1) {
+    si n == 1 {
         retourne s0 comme z32 & 0b01111111
     }
 
     s1 := caractère[1] comme n32
 
-    si (n == 2) {
+    si n == 2 {
         v := (s0 & 0b00011111) << 6 | (s1 & 0b00111111)
         retourne v comme z32
     }
 
     s2 := caractère[2] comme n32
 
-    si (n == 3) {
+    si n == 3 {
         v := (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111)
         retourne v comme z32
     }
 
     s3 := caractère[3] comme n32
 
-    si (n == 4) {
+    si n == 4 {
         v := (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111)
         retourne v comme z32
     }

@@ -284,9 +284,9 @@ days_from_civil :: fonc (y: z32, m: n32, d: n32) -> z32
     // static_assert(std::numeric_limits<Int>::digits >= 20,
     //          "This algorithm has not been ported to a 16 bit signed integer");
     y -= (m <= 2) comme z32
-    era := si (y >= 0) { y } sinon { y - 399 } / 400
+    era := si y >= 0 { y } sinon { y - 399 } / 400
     yoe := (y - era * 400) comme n32 // [0, 399]
-    doy := (153 * si (m > 2) { m - 3 } sinon { m + 9 } + 2) / 5 + d - 1 // [0, 365]
+    doy := (153 * si m > 2 { m - 3 } sinon { m + 9 } + 2) / 5 + d - 1 // [0, 365]
     doe := yoe * 365 + yoe / 4 - yoe / 100 + doy // [0, 146096]
     retourne era * 146097 + (doe comme z32) - 719468
 }
