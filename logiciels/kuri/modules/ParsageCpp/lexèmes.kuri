@@ -555,4 +555,4 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
     }
 }
 
-/** } */
+/** \} */

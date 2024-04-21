@@ -5,7 +5,7 @@
 
 importe Fondation
 
-tableau_fixe :: [0, 1, 2, 3, 4]
+tableau_fixe :: [ 0, 1, 2, 3, 4 ]
 
 passe_tableau_fixe :: fonc (args: ...z32)
 {

@@ -102,34 +102,34 @@ donne_masque_uri :: fonc (uri: URI) -> MasqueURI
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 URI :: struct {
     // la chaine originale
-    uri: chaine  // @privé
+    uri: chaine // @privé
 
     // les différents composants de l'URI
-    schéma: chaine  // @accessible
-    autorité: chaine  // @accessible
-    chemin_complet: chaine  // @accessible
+    schéma: chaine // @accessible
+    autorité: chaine // @accessible
+    chemin_complet: chaine // @accessible
 
     // les différents composants du chemin
-    chemin: chaine  // @accessible
-    requête: chaine  // @accessible
-    fragment: chaine  // @accessible
+    chemin: chaine // @accessible
+    requête: chaine // @accessible
+    fragment: chaine // @accessible
 
     // les différents composants de l'autorité
-    nom_utilisateur: chaine  // @accessible
-    mot_de_passe: chaine  // @accessible
-    hôte: chaine  // @accessible
-    port: chaine  // @accessible
+    nom_utilisateur: chaine // @accessible
+    mot_de_passe: chaine // @accessible
+    hôte: chaine // @accessible
+    port: chaine // @accessible
 
     // un composant est défini si son séparateur est présent, mais il peut tout de même
     // être vide
-    schéma_est_défini := faux  // @privé
-    autorité_est_définie := faux  // @privé
-    requête_est_définie := faux  // @privé
-    fragment_est_défini := faux  // @privé
+    schéma_est_défini := faux // @privé
+    autorité_est_définie := faux // @privé
+    requête_est_définie := faux // @privé
+    fragment_est_défini := faux // @privé
 }
 
 RésultatURI :: union {
@@ -748,7 +748,7 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
     retourne relatif
 }
 
-/** } */
+/** \} */
 
 /*
 // https://url.spec.whatwg.org/

@@ -55,7 +55,7 @@ est_valeur_scalaire :: fonc (point_de_code: n32) -> bool
 
 est_noncaractère :: fonc (point_de_code: n32) -> bool
 {
-    si (0xFDD0 <= point_de_code <= 0xFDEF) {
+    si 0xFDD0 <= point_de_code <= 0xFDEF {
         retourne vrai
     }
 

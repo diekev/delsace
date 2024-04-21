@@ -266,6 +266,17 @@ chemin_systeme operator/(chemin_systeme const &chemin, chaine_statique chn)
     return concatene_chemins(chemin, chn);
 }
 
+bool operator==(chemin_systeme const &chemin_a, chemin_systeme const &chemin_b)
+{
+    return kuri::chaine_statique(chemin_a.pointeur(), chemin_a.taille()) ==
+           kuri::chaine_statique(chemin_b.pointeur(), chemin_b.taille());
+}
+
+bool operator!=(chemin_systeme const &chemin_a, chemin_systeme const &chemin_b)
+{
+    return !(chemin_a == chemin_b);
+}
+
 bool operator<(chemin_systeme const &chemin_a, chemin_systeme const &chemin_b)
 {
     return kuri::chaine_statique(chemin_a.pointeur(), chemin_a.taille()) <

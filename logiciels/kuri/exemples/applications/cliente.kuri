@@ -5,9 +5,9 @@ importe Internet
 importe OpenSSL
 importe SysFichier
 
-lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine
+lance_requête :: fonc (uri: &URI, requête: chaine) -> chaine
 {
-    réponse : chaine
+    réponse: chaine
 
     port : n16 = port_pour_uri(uri)
 
@@ -20,7 +20,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine
             retourne réponse
         }
 
-        diffère { SSL_CTX_free(ctx_ssl) }
+        diffère SSL_CTX_free(ctx_ssl)
 
         fichier_ssl := tente ouvre_fichier_ssl(ctx_ssl, fichier) piège err {
             imprime("erreur lors de l'ouverture du fichier : %\n", err)
@@ -65,10 +65,10 @@ principale :: fonc () -> z32
 
     //imprime(uri, '\n', '\n')
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "GET ")
     ajoute_au_tampon(*enchaineuse, uri.chemin)

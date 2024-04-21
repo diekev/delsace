@@ -3,8 +3,7 @@ importe Chaine
 libgmp :: #bibliothèque "gmp"
 
 mp_exp_t :: z64
-mp_limb_t :: struct #externe 
-
+mp_limb_t :: struct #externe
 
 mpf_t :: struct #externe {
     _mp_prec: z32 /* Max precision, in number of `mp_limb_t's.
@@ -74,6 +73,7 @@ TypeFonctionAllocation :: fonc(n64)(*rien)
 TypeFonctionRéallocation :: fonc(*rien, n64, n64)(*rien)
 TypeFonctionDésallocation :: fonc(*rien, n64)(rien)
 
-__gmp_set_memory_functions :: fonc (alloc_func_ptr: TypeFonctionAllocation,
-                                    realloc_func_ptr: TypeFonctionRéallocation,
-                                    free_func_ptr: TypeFonctionDésallocation) #externe libgmp
+__gmp_set_memory_functions :: fonc (
+    alloc_func_ptr: TypeFonctionAllocation,
+    realloc_func_ptr: TypeFonctionRéallocation,
+    free_func_ptr: TypeFonctionDésallocation) #externe libgmp
