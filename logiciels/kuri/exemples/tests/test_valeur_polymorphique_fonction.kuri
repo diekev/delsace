@@ -8,10 +8,10 @@ imprime_N :: fonc (tampon: *TamponFixe($T, $N) @inutilisée)
 
 test_tampons :: fonc ()
 {
-    tampon8 : TamponFixe(T = z32, N = 8)
+    tampon8: TamponFixe(T = z32, N = 8)
     imprime_N(*tampon8)
 
-    tampon16 : TamponFixe(T = z32, N = 16)
+    tampon16: TamponFixe(T = z32, N = 16)
     imprime_N(*tampon16)
 }
 

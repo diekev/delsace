@@ -7,7 +7,7 @@
 
 principale :: fonc () -> z32
 {
-    tabl : [..]z32
+    tabl: [..]z32
 
     tableau_ajoute(*tabl, 0)
     tableau_ajoute(*tabl, 1)
@@ -46,7 +46,7 @@ principale :: fonc () -> z32
             }
 
             i += 1
-        // crash ou panique selon ce qui est déréférencé
+            // crash ou panique selon ce qui est déréférencé
         } tantque tabl.taille < 4 && tabl[4] == 6
 
         i = 0
@@ -56,7 +56,7 @@ principale :: fonc () -> z32
             }
 
             i += 1
-        // crash ou panique selon ce qui est déréférencé
+            // crash ou panique selon ce qui est déréférencé
         } tantque tabl.taille == 4 || tabl[4] == 6
     }
 

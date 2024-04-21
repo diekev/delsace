@@ -17,11 +17,11 @@ passe_tableau_fixe :: fonc (args: ...z32)
 
 principale :: fonc () -> z32
 {
-    tableau_fixe :: [0, 1, 2, 3, 4]
+    tableau_fixe :: [ 0, 1, 2, 3, 4 ]
     passe_tableau_fixe(...tableau_fixe)
 
     S :: struct {
-        T :: [0, 1, 2, 3, 4]
+        T :: [ 0, 1, 2, 3, 4 ]
     }
     passe_tableau_fixe(...S.T)
 

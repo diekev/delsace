@@ -3143,6 +3143,11 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_type_fonction(Lexème const *l
 
     while (!fini() && !apparie(GenreLexème::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexème::INCONNU, GenreLexème::VIRGULE);
+        if (!param) {
+            /* Une erreur est survenue. */
+            break;
+        }
+
         params.ajoute(param);
 
         if (param->est_déclaration_variable()) {
@@ -3689,6 +3694,10 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDéclaration
         }
 
         auto noeud = analyse_expression({}, GenreLexème::INCONNU, GenreLexème::INCONNU);
+        if (!noeud) {
+            /* Une erreur est survenue. */
+            break;
+        }
 
         if (!expression_est_valide_pour_bloc_structure(noeud)) {
             rapporte_erreur_avec_site(noeud, "Expression invalide pour le bloc de la structure");

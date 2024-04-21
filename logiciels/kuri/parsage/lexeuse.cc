@@ -416,7 +416,7 @@ void Lexeuse::consomme_espaces_blanches()
                 if (!est_espace_blanche(c)) {
                     return;
                 }
-                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+                if ((m_drapeaux & INCLUS_ESPACES_BLANCHES) != 0) {
                     this->enregistre_pos_mot();
                     this->ajoute_caractère();
                     this->ajoute_lexème(GenreLexème::CARACTÈRE_BLANC);
@@ -439,7 +439,7 @@ void Lexeuse::consomme_espaces_blanches()
                     // idée de micro-optimisation provenant de D, saute 4 espaces à la fois
                     // https://github.com/dlang/dmd/pull/11095
                     // 0x20 == ' '
-                    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) == 0) {
+                    if ((m_drapeaux & INCLUS_ESPACES_BLANCHES) == 0) {
                         while (m_début <= m_fin - 4 &&
                                *reinterpret_cast<uint32_t const *>(m_début) == 0x20202020) {
                             m_début += 4;
@@ -462,7 +462,7 @@ void Lexeuse::consomme_espaces_blanches()
                     return;
                 }
 
-                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+                if ((m_drapeaux & INCLUS_ESPACES_BLANCHES) != 0) {
                     this->enregistre_pos_mot();
                     this->ajoute_caractère(nombre_octet);
                     this->ajoute_lexème(GenreLexème::CARACTÈRE_BLANC);
@@ -659,7 +659,7 @@ Lexème Lexeuse::lèxe_chaine_littérale()
     assert(caractère_courant() == '"');
 
     /* Saute le premier guillemet si nécessaire. */
-    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+    if ((m_drapeaux & INCLUS_GUILLEMETS) != 0) {
         this->enregistre_pos_mot();
         this->ajoute_caractère();
         this->avance_fixe<1>();
@@ -683,7 +683,7 @@ Lexème Lexeuse::lèxe_chaine_littérale()
     }
 
     /* Saute le dernier guillemet si nécessaire. */
-    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+    if ((m_drapeaux & INCLUS_GUILLEMETS) != 0) {
         this->ajoute_caractère();
     }
 
@@ -703,7 +703,7 @@ Lexème Lexeuse::lèxe_chaine_littérale_guillemet()
 {
     auto nombre_octet = lng::nombre_octets(m_début);
     /* Saute le premier guillemet si nécessaire. */
-    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+    if ((m_drapeaux & INCLUS_GUILLEMETS) != 0) {
         this->enregistre_pos_mot();
         this->ajoute_caractère(nombre_octet);
         this->avance_sans_nouvelle_ligne(nombre_octet);
@@ -745,7 +745,7 @@ Lexème Lexeuse::lèxe_chaine_littérale_guillemet()
     }
 
     /* Saute le dernier guillemet si nécessaire. */
-    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+    if ((m_drapeaux & INCLUS_GUILLEMETS) != 0) {
         this->ajoute_caractère(nombre_octet);
     }
 
@@ -766,7 +766,7 @@ Lexème Lexeuse::lèxe_caractère_littérale()
     assert(caractère_courant() == '\'');
 
     /* Saute la première apostrophe si nécessaire. */
-    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+    if ((m_drapeaux & INCLUS_GUILLEMETS) != 0) {
         this->enregistre_pos_mot();
         this->ajoute_caractère();
         this->avance_fixe<1>();
@@ -783,7 +783,7 @@ Lexème Lexeuse::lèxe_caractère_littérale()
     }
 
     /* Saute la dernière apostrophe si nécessaire. */
-    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+    if ((m_drapeaux & INCLUS_GUILLEMETS) != 0) {
         this->ajoute_caractère();
     }
 

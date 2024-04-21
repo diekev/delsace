@@ -27,7 +27,7 @@ principale :: fonc () -> z32
         /* « diffère » est exécuté alors qu'il ne devrait l'être. */
         continue
     }
-    
+
     si x == 1 {
         // imprime("ÉCHEC !\n")
         retourne 1

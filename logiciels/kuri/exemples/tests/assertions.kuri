@@ -64,10 +64,10 @@ test_expressions_mémoire :: fonc () -> bool
     }
 
     S :: struct {
-        x : z32
+        x: z32
     }
 
-    s : S
+    s: S
 
     mémoire(*s.x) = 5
 
@@ -106,7 +106,7 @@ test_taille_chaine_littérale :: fonc () -> z64
 
 #assert test_taille_chaine_littérale() == 10
 
-test_indexage_chaine :: fonc (index : z64) -> z64
+test_indexage_chaine :: fonc (index: z64) -> z64
 {
     chn := "0123456789"
     retourne chn[index]
@@ -166,7 +166,7 @@ nombre_itérations_chaine_littérale :: fonc () -> z64
 
 test_indexage_pointeur :: fonc () -> z32
 {
-    a : z32
+    a: z32
     ptr := *a
     ptr[0] = 7
     retourne ptr[0]
@@ -176,7 +176,7 @@ test_indexage_pointeur :: fonc () -> z32
 
 test_indexage_tableau_fixe :: fonc () -> z32
 {
-    x : [3]z32
+    x: [3]z32
     x[0] = 1
     x[x[0]] = 5
     x[x[0] + x[0]] = 27 + x[1]
@@ -196,7 +196,7 @@ test_indexage_tableau_dynamique :: fonc () -> z32
 
 test_copie_mem :: fonc () -> z32
 {
-    a : z32
+    a: z32
     b := 27
 
     copie_mem_nonsur(src = *b, dst = *a, taille = 4)
@@ -297,12 +297,12 @@ test_retour_logique_et :: fonc (a: bool, b: bool) -> bool
 #assert test_retour_logique_ou(vrai, vrai) == vrai
 #assert test_retour_logique_ou(vrai, faux) == vrai
 #assert test_retour_logique_ou(faux, vrai) == vrai
-#assert test_retour_logique_ou(faux, faux) == faux
+#assert test_retour_logique_ou(faux, faux) == faux
 
 #assert test_retour_logique_et(vrai, vrai) == vrai
 #assert test_retour_logique_et(vrai, faux) == faux
 #assert test_retour_logique_et(faux, vrai) == faux
-#assert test_retour_logique_et(faux, faux) == faux
+#assert test_retour_logique_et(faux, faux) == faux
 
 test_assignation_logique_ou :: fonc (a: bool, b: bool) -> bool
 {
@@ -319,12 +319,12 @@ test_assignation_logique_et :: fonc (a: bool, b: bool) -> bool
 #assert test_assignation_logique_ou(vrai, vrai) == vrai
 #assert test_assignation_logique_ou(vrai, faux) == vrai
 #assert test_assignation_logique_ou(faux, vrai) == vrai
-#assert test_assignation_logique_ou(faux, faux) == faux
+#assert test_assignation_logique_ou(faux, faux) == faux
 
 #assert test_assignation_logique_et(vrai, vrai) == vrai
 #assert test_assignation_logique_et(vrai, faux) == faux
 #assert test_assignation_logique_et(faux, vrai) == faux
-#assert test_assignation_logique_et(faux, faux) == faux
+#assert test_assignation_logique_et(faux, faux) == faux
 
 test_réassignation_logique_ou :: fonc (a: bool, b: bool) -> bool
 {
@@ -343,12 +343,12 @@ test_réassignation_logique_et :: fonc (a: bool, b: bool) -> bool
 #assert test_réassignation_logique_ou(vrai, vrai) == vrai
 #assert test_réassignation_logique_ou(vrai, faux) == vrai
 #assert test_réassignation_logique_ou(faux, vrai) == vrai
-#assert test_réassignation_logique_ou(faux, faux) == faux
+#assert test_réassignation_logique_ou(faux, faux) == faux
 
 #assert test_réassignation_logique_et(vrai, vrai) == vrai
 #assert test_réassignation_logique_et(vrai, faux) == faux
 #assert test_réassignation_logique_et(faux, vrai) == faux
-#assert test_réassignation_logique_et(faux, faux) == faux
+#assert test_réassignation_logique_et(faux, faux) == faux
 
 test_argument_logique :: fonc (b: bool) -> bool
 {
@@ -486,7 +486,7 @@ test_structure :: fonc ()
 {
     // initialisation via fonction implicite
     {
-        v : Vecteur
+        v: Vecteur
     }
 
     // initialisation manuelle
@@ -519,13 +519,13 @@ test_fonction_init :: fonc () -> z32
 
 EOuR :: union nonsûr {
     e : z32 = 127
-    f : r32
+    f: r32
 }
 
 test_union_nonsûr :: fonc () -> bool
 {
     // allocation et modification
-    e : EOuR
+    e: EOuR
 
     si e.e != 127 {
         retourne faux
@@ -577,13 +577,13 @@ test_union_nonsûr :: fonc () -> bool
 
 EOuRS :: union {
     e : z32 = 127
-    f : r32
+    f: r32
 }
 
 test_union_sûr :: fonc () -> bool
 {
     // allocation et modification
-    e : EOuRS
+    e: EOuRS
 
     // À FAIRE(langage) : définit un test pour vérifier qu'une union n'a pas d'initialisation
     // si e != 127 comme z32 {
@@ -640,7 +640,7 @@ test_union_sûr :: fonc () -> bool
 test_union_sûr_anonyme :: fonc () -> bool
 {
     // allocation et modification
-    e : z32 | r32
+    e: z32 | r32
 
     // À FAIRE(langage) : définit un test pour vérifier qu'une union n'a pas d'initialisation
     // si e != 0 comme z32 {
@@ -854,7 +854,7 @@ taille_tableau_octet :: fonc (tableau: [..]octet) -> z64
 #assert taille_tableau_octet(4) == 4
 #assert taille_tableau_octet(6.0 comme r64) == 8
 #assert taille_tableau_octet("kuri") == 4
-#assert taille_tableau_octet([0, 1, 2, 3]) == 16
+#assert taille_tableau_octet([ 0, 1, 2, 3 ]) == 16
 
 // À FAIRE : contenu du tableau, conversion depuis d'autres types (tableaux dynamiques)
 
@@ -863,7 +863,7 @@ taille_tableau_octet :: fonc (tableau: [..]octet) -> z64
 
 test_construction_tableau_fixe :: fonc (index: z64) -> z32
 {
-    t := [0, 1, 2]
+    t := [ 0, 1, 2 ]
     retourne t[index]
 }
 
@@ -878,7 +878,7 @@ passe_tableau_fixe :: fonc (t: [3]z32, index: z64) -> z32
 
 test_passe_tableau_fixe :: fonc (index: z64) -> z32
 {
-    t := [0, 1, 2]
+    t := [ 0, 1, 2 ]
     retourne passe_tableau_fixe(t, index)
 }
 
@@ -893,7 +893,7 @@ passe_tranche :: fonc (t: []z32, index: z64) -> z32
 
 test_conversion_tranche :: fonc (index: z64) -> z32
 {
-    t := [0, 1, 2]
+    t := [ 0, 1, 2 ]
     retourne passe_tranche(t, index)
 }
 
@@ -903,7 +903,7 @@ test_conversion_tranche :: fonc (index: z64) -> z32
 
 test_modification_tableau_boucle :: fonc () -> bool
 {
-    t := [0, 1, 2]
+    t := [ 0, 1, 2 ]
 
     pour & t {
         it += 1
@@ -1027,7 +1027,7 @@ test_entier_vers_pointeur_impl :: fonc (valeur: $T, nom: chaine)
 
 test_entier_vers_pointeur :: fonc ()
 {
-    a : z8  = 0x8
+    a : z8 = 0x8
     test_entier_vers_pointeur_impl(a, "a")
     b : z16 = 0x16
     test_entier_vers_pointeur_impl(b, "b")
@@ -1036,7 +1036,7 @@ test_entier_vers_pointeur :: fonc ()
     d : z64 = 0x64
     test_entier_vers_pointeur_impl(d, "d")
 
-    e : n8  = 0x18
+    e : n8 = 0x18
     test_entier_vers_pointeur_impl(e, "e")
     f : n16 = 0x116
     test_entier_vers_pointeur_impl(f, "f")

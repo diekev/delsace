@@ -41,7 +41,7 @@ définis_pointeur_attribut :: fonc (objet: *ObjetTamponTableau, index: n32, size
     glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, pointeur)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom TamponObjet
@@ -157,7 +157,7 @@ ajourne_tampon_index :: fonc (empl tampon: *TamponObjet, indices: *rien, size: z
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ParamètresCréationTampon
@@ -220,7 +220,7 @@ initialise_paramètres_extra :: fonc (params: *ParamètresCréationTampon, attri
     params.taille_octet_données_extra = tableau_taille_mémoire(données) comme n64
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ParamètresDessin
@@ -233,7 +233,7 @@ ParamètresDessin :: struct {
     taille_point := 1.0
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ContexteRendu
@@ -251,7 +251,7 @@ ContexteRendu :: struct {
     dessine_normaux := faux
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom TamponRendu
@@ -409,4 +409,4 @@ dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
     }
 }
 
-/** } */
+/** \} */
