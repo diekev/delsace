@@ -28,7 +28,7 @@ vole_données_ :: fonc (v: &[..]$T) -> [..]T
 
 principale :: fonc () -> z32
 {
-    tabl : []z32 = [0, 1, 2, 3, 4]
+    tabl : []z32 = [ 0, 1, 2, 3, 4 ]
 
     tabl_dyn : [..]z32 = tableau_copie(tabl)
     tabl_dyn_2 := vole_données_(tabl_dyn)

@@ -17,17 +17,14 @@ Union :: union {
 
 principale :: fonc () -> z32
 {
-    u : Union
+    u: Union
 
     discr u {
         Structure1(x) {
-
         }
         Structure2(y) {
-
         }
         sinon {
-
         }
     }
 

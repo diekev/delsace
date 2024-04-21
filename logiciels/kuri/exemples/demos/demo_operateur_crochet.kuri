@@ -2,40 +2,40 @@ importe Fondation
 
 TEST :: struct {
     m := "Membre de la structure"
-    tabl : [2]z32
-    mat4x4 : [4][4]z32
+    tabl: [2]z32
+    mat4x4: [4][4]z32
 }
 
 TEST2 :: struct {
-    tests : [2]TEST
+    tests: [2]TEST
 }
 
-hex_depuis_char :: fonc(hex : z8) -> z8
+hex_depuis_char :: fonc (hex: z8) -> z8
 {
     retourne "0123456789ABCDEF"[hex]
 }
 
 principale :: fonc () -> z32
 {
-    y : [2]z32
+    y: [2]z32
     y[0] = 12389
 
-    t : TEST
+    t: TEST
     t.tabl[0] = 127
 
-    z := [0, 1]
+    z := [ 0, 1 ]
     imprime("z = %\n", z)
 
     pour i dans 0 ... 15 {
         imprime("Hex : % = %\n", i, hex_depuis_char(i comme z8))
     }
 
-    t2 : TEST2
+    t2: TEST2
 
     x := *t2.tests[0].tabl[0]
     y0 := t2.tests[1].mat4x4[0][1]
 
-    w : [3]z32
+    w: [3]z32
     w[y0] = mémoire(x)
 
     retourne 0

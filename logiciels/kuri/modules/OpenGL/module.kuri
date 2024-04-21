@@ -153,4 +153,4 @@ donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA32Bit) -> Pa
     retourne résultat
 }
 
-/** } */
+/** \} */
