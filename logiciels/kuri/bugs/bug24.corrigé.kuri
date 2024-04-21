@@ -6,9 +6,7 @@ importe Support
 
 principale :: fonc () -> z32
 {
-    diffère {
-        retourne 1
-    }
+    diffère retourne 1
 
     retourne 0
 }

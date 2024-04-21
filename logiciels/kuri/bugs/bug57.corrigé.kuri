@@ -8,7 +8,7 @@ importe Support
 
 test_arithmétique_pointeur :: fonc () -> bool
 {
-    x : [3]z32
+    x: [3]z32
     y := *x[0]
 
     mémoire(y) = 1
@@ -22,7 +22,7 @@ test_arithmétique_pointeur :: fonc () -> bool
 principale :: fonc () -> z32
 {
     succès := #exécute test_arithmétique_pointeur()
-    saufsi (succès) {
+    saufsi succès {
         retourne 1
     }
     retourne 0

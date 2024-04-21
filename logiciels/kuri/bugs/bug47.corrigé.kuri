@@ -4,7 +4,7 @@
 
 importe Fondation
 
-fonction :: fonc (a : z32, b : type_de(a))
+fonction :: fonc (a: z32, b: type_de(a))
 {
     imprime("a : %, b : %\n", a, b)
 }

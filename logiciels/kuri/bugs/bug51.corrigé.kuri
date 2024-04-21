@@ -9,7 +9,7 @@ STRUCT :: struct {
     x := 0
 }
 
-test_construit_poly :: fonc (t : $T @inutilisée) -> T
+test_construit_poly :: fonc (t: $T @inutilisée) -> T
 {
     retourne T()
 }

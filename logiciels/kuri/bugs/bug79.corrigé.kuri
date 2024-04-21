@@ -14,7 +14,7 @@ Structure :: struct {
 
 principale :: fonc () -> z32
 {
-    s : Structure
+    s: Structure
     s.u.A = 5
     retourne 0
 }

@@ -4,7 +4,7 @@ importe TableHachage
 principale :: fonc () -> z32
 {
     table := crée_table_hachage()
-    diffère { décrée_table_hachage(table); }
+    diffère décrée_table_hachage(table)
 
     insère(table, "Accept", "text/html")
     insère(table, "Accept-Charset", "utf-8, iso-8859-1;q=0.5")
