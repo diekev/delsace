@@ -10,7 +10,7 @@ principale :: fonc () -> z32
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    mots : [..]chaine
+    mots: [..]chaine
 
     pousse_contexte nouveau_contexte {
         mots = divise("Je suis une chaine !", ' ')

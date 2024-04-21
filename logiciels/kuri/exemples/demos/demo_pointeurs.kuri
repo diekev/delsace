@@ -17,7 +17,6 @@ arithmétique_de_pointeur :: fonc ()
     // la soustraction d'un nombre à un pointeur doit être X éléments avant celui-ci
     // pointeur - entier
     {
-
         imprime("\ndécrémente b :\n")
         b -= 1
         imprime("b := %\n", b)

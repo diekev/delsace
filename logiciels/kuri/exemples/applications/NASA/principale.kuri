@@ -12,7 +12,7 @@ test_compilation :: fonc ()
     compilatrice_commence_interception(espace)
     ajoute_fichier_à_la_compilation(espace, "nasa.kuri")
 
-    vérificatrice : VérificatriceNasa
+    vérificatrice: VérificatriceNasa
     diffère détruit_données_vérificatrice(*vérificatrice)
     initialise_vérificatrice(*vérificatrice, espace)
 

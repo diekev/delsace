@@ -25,7 +25,7 @@ KeyCode :: n8
 _XGC :: struct #externe
 GC :: *_XGC
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Extensions.
@@ -35,15 +35,15 @@ GC :: *_XGC
  * Extensions need a way to hang private data on some structures.
  */
 _XExtData :: struct #externe {
-    number: z32        /* number returned by XRegisterExtension */
-    next: *_XExtData    /* next item on list of data for structure */
-    free_private: fonc (*_XExtData)(z32)    /* called to free private storage */
-    private_data: XPointer    /* data private to this extension. */
+    number: z32 /* number returned by XRegisterExtension */
+    next: *_XExtData /* next item on list of data for structure */
+    free_private: fonc(*_XExtData)(z32) /* called to free private storage */
+    private_data: XPointer /* data private to this extension. */
 }
 
 XExtData :: _XExtData
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Screen
@@ -63,22 +63,22 @@ Screen :: struct #externe {
     height: z32
     mwidth: z32 /* width and height of  in millimeters */
     mheight: z32
-    ndepths: z32        /* number of depths possible */
+    ndepths: z32 /* number of depths possible */
     depths: *Depth /* list of allowable depths on the screen */
-    root_depth: z32        /* bits per pixel */
-    root_visual: *Visual    /* root visual */
-    default_gc: GC        /* GC for the root root visual */
-    cmap: Colormap        /* default color map */
+    root_depth: z32 /* bits per pixel */
+    root_visual: *Visual /* root visual */
+    default_gc: GC /* GC for the root root visual */
+    cmap: Colormap /* default color map */
     white_pixel: n64
-    black_pixel: n64    /* White and Black pixel values */
+    black_pixel: n64 /* White and Black pixel values */
     max_maps: z32 /* max and min color maps */
     min_maps: z32
-    backing_store: z32    /* Never, WhenMapped, Always */
+    backing_store: z32 /* Never, WhenMapped, Always */
     save_unders: z32
-    root_input_mask: z64    /* initial root input mask */
+    root_input_mask: z64 /* initial root input mask */
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Visual
@@ -86,17 +86,17 @@ Screen :: struct #externe {
  * \{ */
 
 Visual :: struct #externe {
-    ext_data: XExtData    /* hook for extension to hang data */
-    visualid: VisualID    /* visual id of this visual */
-    class: z32        /* class of screen (monochrome, etc.) */
-    red_mask: n64    /* mask values */
+    ext_data: XExtData /* hook for extension to hang data */
+    visualid: VisualID /* visual id of this visual */
+    class: z32 /* class of screen (monochrome, etc.) */
+    red_mask: n64 /* mask values */
     green_mask: n64
     blue_mask: n64
-    bits_per_rgb: z32    /* log base 2 of distinct color values */
-    map_entries: z32    /* color map entries */
+    bits_per_rgb: z32 /* log base 2 of distinct color values */
+    map_entries: z32 /* color map entries */
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Depth
@@ -104,23 +104,23 @@ Visual :: struct #externe {
  * \{ */
 
 Depth :: struct #externe {
-    depth: z32        /* this depth (Z) of the depth */
-    nvisuals: z32        /* number of Visual types at this depth */
-    visuals: *Visual    /* list of visuals possible at this depth */
+    depth: z32 /* this depth (Z) of the depth */
+    nvisuals: z32 /* number of Visual types at this depth */
+    visuals: *Visual /* list of visuals possible at this depth */
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom XEvent À FAIRE
  * \{ */
 
 _XEvent :: union nonsûr #externe {
-    type : z32
+    type: z32
     tampon: [192]octet
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom IPA
@@ -164,7 +164,7 @@ XFillRectangle :: fonc (
     largeur: z32,
     hauteur: z32) -> z32 #externe libx11
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Macros définis par Xlib.h
@@ -195,15 +195,13 @@ DefaultScreen :: fonc (display: *Display) -> z32 #enligne
     retourne XDefaultScreen(display)
 }
 
-/** } */
+/** \} */
 
 // ----------------------------------------------------------------------------
 
 principale :: fonc () -> z32
 {
-    diffère {
-        imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
-    }
+    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 
     _ExposureMask := 1 << 15
     _KeyPressMask := 1 << 0
@@ -211,9 +209,9 @@ principale :: fonc () -> z32
     _KeyPress := 2
     _Expose := 12
 
-    msg := "Hello, World!";
+    msg := "Hello, World!"
 
-    d := XOpenDisplay(nul);
+    d := XOpenDisplay(nul)
 
     si d == nul {
         imprime("Impossible d'ouvrir un display !\n")
@@ -225,22 +223,30 @@ principale :: fonc () -> z32
     largeur : n32 = 480
     largeur_bordure : n32 = 1
 
-    s := DefaultScreen(d);
-    w := XCreateSimpleWindow(d, RootWindow(d, s), 10, 10, hauteur, largeur, largeur_bordure,
-                           BlackPixel(d, s), WhitePixel(d, s));
+    s := DefaultScreen(d)
+    w := XCreateSimpleWindow(
+        d,
+        RootWindow(d, s),
+        10,
+        10,
+        hauteur,
+        largeur,
+        largeur_bordure,
+        BlackPixel(d, s),
+        WhitePixel(d, s))
 
-    _ := XSelectInput(d, w, _ExposureMask | _KeyPressMask);
-    _ := XMapWindow(d, w);
+    _ := XSelectInput(d, w, _ExposureMask | _KeyPressMask)
+    _ := XMapWindow(d, w)
 
     gc_défaut := DefaultGC(d, s)
 
     boucle {
-        e : _XEvent
+        e: _XEvent
         _ := XNextEvent(d, *e)
 
         si e.type == _Expose {
-            _ := XFillRectangle(d, w, gc_défaut, 20, 20, 10, 10);
-            _ := XDrawString(d, w, gc_défaut, 10, 50, msg.pointeur, msg.taille comme z32);
+            _ := XFillRectangle(d, w, gc_défaut, 20, 20, 10, 10)
+            _ := XDrawString(d, w, gc_défaut, 10, 50, msg.pointeur, msg.taille comme z32)
         }
 
         si e.type == _KeyPress {

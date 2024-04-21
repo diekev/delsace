@@ -29,7 +29,7 @@ test_codec :: fonc () -> rien
 
 principale :: fonc () -> z32
 {
-    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée())
 
     args := arguments_ligne_commande()
 

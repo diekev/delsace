@@ -18,7 +18,7 @@ principale :: fonc () -> z32
 {
     a := 0
     passe_référence_à_pointeur(a)
-    saufsi (a == 123456) {
+    saufsi a == 123456 {
         retourne 1
     }
     retourne 0
