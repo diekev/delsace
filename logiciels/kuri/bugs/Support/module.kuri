@@ -1,7 +1,7 @@
 importe Compilatrice
 importe Fondation
 
-variable_globale : z32
+variable_globale: z32
 
 attend_compilation_terminée :: fonc (espace: *EspaceDeTravail)
 {
@@ -27,7 +27,7 @@ attend_compilation_terminée :: fonc (espace: *EspaceDeTravail)
 
 compile_fichier_erroné :: fonc (chemin: chaine) -> bool
 {
-    options : OptionsDeCompilation
+    options: OptionsDeCompilation
     options.continue_si_erreur = vrai
 
     espace := démarre_un_espace_de_travail("bug", *options)
@@ -44,7 +44,7 @@ compile_fichier_erroné :: fonc (chemin: chaine) -> bool
 
 compile_script_erroné :: fonc (script: chaine) -> bool
 {
-    options : OptionsDeCompilation
+    options: OptionsDeCompilation
     options.continue_si_erreur = vrai
 
     espace := démarre_un_espace_de_travail("bug", *options)

@@ -289,7 +289,7 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_par
     }
 }
 
-/** } */
+/** \} */
 
 parse_spécification_accès :: fonc (parseuse: &Parseuse) -> Optionnel(SpécificationAccès)
 {
@@ -417,7 +417,7 @@ parse_classe_ou_decltype :: fonc (parseuse: &Parseuse) -> chaine
     retourne nom_parent
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Spécification des membres des classes.
@@ -585,7 +585,7 @@ parse_bloc :: fonc (parseuse: &Parseuse)
     parseuse.avance()
 }
 
-/** } */
+/** \} */
 
 parse_enum :: fonc (parseuse: &Parseuse)
 {
@@ -716,6 +716,6 @@ parse_typedef :: fonc (parseuse: &Parseuse)
     parseuse.avance()
 }
 
-/** } */
+/** \} */
 
-/** } */
+/** \} */

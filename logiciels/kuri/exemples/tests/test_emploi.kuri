@@ -43,7 +43,7 @@ test_modification_paramètre_empl :: fonc ()
         z = 6
     }
 
-    v : Vecteur
+    v: Vecteur
     assert(v.x == 0 && v.y == 0 && v.z == 0)
 
     modifie_vecteur(*v)
@@ -53,7 +53,7 @@ test_modification_paramètre_empl :: fonc ()
     assert(v.x == 1 && v.y == 2 && v.z == 3)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Modification d'un paramètre via empl avec indirection.
@@ -85,7 +85,7 @@ test_modification_paramètre_empl_indirection :: fonc ()
         z = 6
     }
 
-    p : Point
+    p: Point
     assert(p.x == 0 && p.y == 0 && p.z == 0)
 
     modifie_point(*p)
@@ -95,7 +95,7 @@ test_modification_paramètre_empl_indirection :: fonc ()
     assert(p.x == 1 && p.y == 2 && p.z == 3)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Modification d'une structure locale via empl.
@@ -109,7 +109,7 @@ test_modification_locale_via_empl :: fonc ()
         z := 0
     }
 
-    empl v : Vecteur
+    empl v: Vecteur
     assert(v.x == 0 && v.y == 0 && v.z == 0)
 
     x = 5
@@ -118,7 +118,7 @@ test_modification_locale_via_empl :: fonc ()
     assert(v.x == 5 && v.y == 6 && v.z == 7)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Initialisation de membre d'une structure de base dans dérivée.
@@ -134,7 +134,7 @@ test_initialisation_membre_employé :: fonc ()
         empl base: Base
     }
 
-    d : Dérivée
+    d: Dérivée
     assert(d.x == 1)
 }
 
@@ -149,11 +149,11 @@ test_initialisation_spéciale_membre_employé :: fonc ()
         x = 2
     }
 
-    d : Dérivée
+    d: Dérivée
     assert(d.x == 2)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Initialisation spéciale de membre employé.
@@ -178,7 +178,7 @@ test_initialisation_spéciale_membre_avec_indirection :: fonc ()
     assert(b3.x == 456)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Initialisation via exécute.
@@ -202,7 +202,7 @@ test_initialisation_via_exécute :: fonc ()
     assert(b.x == 456)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Initialisation via exécute avec indirection.
@@ -230,7 +230,7 @@ test_initialisation_via_exécute_indirection :: fonc ()
     assert(b.x == 456)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Transtypage vers type base.
@@ -292,7 +292,7 @@ test_transtypage_vers_bases_multiple :: fonc ()
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Transtypage vers type base un peu plus complexe.
@@ -317,7 +317,7 @@ test_transtypage_vers_bases_multiple_avec_indirection :: fonc ()
     }
 
     Struct :: struct {
-        un_entier : z32
+        un_entier: z32
         empl base3: Base3
     }
 
@@ -362,7 +362,7 @@ test_transtypage_vers_bases_multiple_avec_indirection :: fonc ()
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Transtypage référence vers type base.
@@ -435,7 +435,7 @@ test_transtypage_référence_vers_bases_multiple :: fonc ()
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Transtypage référence vers type base un peu plus complexe.
@@ -460,7 +460,7 @@ test_transtypage_référence_vers_bases_multiple_avec_indirection :: fonc ()
     }
 
     Struct :: struct {
-        un_entier : z32
+        un_entier: z32
         empl base3: Base3
     }
 
@@ -516,4 +516,4 @@ test_transtypage_référence_vers_bases_multiple_avec_indirection :: fonc ()
     }
 }
 
-/** } */
+/** \} */

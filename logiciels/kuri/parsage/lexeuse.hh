@@ -17,8 +17,11 @@ struct GeranteChaine;
 struct TableIdentifiant;
 
 enum {
-    INCLUS_CARACTERES_BLANC = (1 << 0),
+    INCLUS_ESPACES_BLANCHES = (1 << 0),
     INCLUS_COMMENTAIRES = (1 << 1),
+    INCLUS_GUILLEMETS = (1 << 2),
+
+    INCLUS_CARACTERES_BLANC = (INCLUS_ESPACES_BLANCHES | INCLUS_GUILLEMETS),
 };
 
 using TypeRappelErreur = std::function<void(SiteSource, kuri::chaine)>;

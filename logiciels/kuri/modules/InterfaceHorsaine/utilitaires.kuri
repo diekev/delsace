@@ -19,4 +19,4 @@ copie_enchaineuse_fichier_ex :: fonc (enchaineuse: *Enchaineuse, chemin: CheminF
     }
 }
 
-/** } */
+/** \} */

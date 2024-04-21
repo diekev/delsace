@@ -9,7 +9,7 @@ Curseur :: union {
     CurseurSDL: *SDL_Cursor
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom PiloteApplication.
@@ -32,7 +32,7 @@ PiloteApplication :: struct {
     rappel_ferme_application: fonc(*PiloteApplication)(rien)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Envellopes pour les rappels de PiloteApplication.
@@ -92,4 +92,4 @@ requiers_fermeture_application :: fonc (pilote: *PiloteApplication)
     pilote.rappel_ferme_application(pilote)
 }
 
-/** } */
+/** \} */

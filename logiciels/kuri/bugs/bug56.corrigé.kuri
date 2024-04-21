@@ -13,7 +13,7 @@ Structure :: struct {
 
 principale :: fonc () -> z32
 {
-    s : Structure
+    s: Structure
     imprime("taille_de(Structure) : %\n", taille_de(type_de(s)))
     retourne 0
 }
