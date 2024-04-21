@@ -270,7 +270,7 @@ anime_élément_pour_dépression :: fonc (empl panneau: *PanneauBarreDeMenu)
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Panneau Menu
@@ -579,4 +579,4 @@ définis_index_élément_survolé :: fonc (empl panneau: *PanneauMenu, index_él
     }
 }
 
-/** } */
+/** \} */
