@@ -29,7 +29,7 @@ chaine_environnement :: fonc (nom: chaine) -> chaine
 
     chn := getenv(chn_c_nom)
 
-    saufsi (chn comme *z8) {
+    saufsi chn comme *z8 {
         retourne ""
     }
 

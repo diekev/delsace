@@ -460,4 +460,4 @@ ajoute_chiffres_depuis_nombre :: fonc (chiffres: *[..]n8, n: n64)
     }
 }
 
-/** } */
+/** \} */

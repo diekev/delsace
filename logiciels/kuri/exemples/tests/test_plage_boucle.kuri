@@ -4,7 +4,7 @@ test_plage_typée :: fonc () -> rien
 {
     imprime("boucle de caractères :\n")
 
-    pour i dans 'a'...'z' {
+    pour i dans 'a' ... 'z' {
         imprime("% ", i)
     }
 
@@ -31,16 +31,16 @@ test_plage_typée :: fonc () -> rien
 
     imprime("boucle de nombres réels r64 :\n")
 
-    pour i dans 0.5...25.5 {
+    pour i dans 0.5 ... 25.5 {
         imprime("% ", i)
     }
     imprime("\n")
 
     debut := 0.5 comme r32
-    fin   := 9.5 comme r32
+    fin := 9.5 comme r32
 
     imprime("boucle de nombres réels r32 [%, %]:\n", debut, fin)
-    pour i dans debut...fin {
+    pour i dans debut ... fin {
         imprime("% ", i)
     }
     imprime("\n")
@@ -51,36 +51,36 @@ test_plage_typée :: fonc () -> rien
 test_génération_séquence :: fonc () -> rien
 {
     debut := 10
-    fin   := 0
+    fin := 0
 
-    imprime(format="Plage de % à %\n", args=debut, fin)
+    imprime(format = "Plage de % à %\n", args = debut, fin)
 
-    pour x dans debut...fin {
+    pour x dans debut ... fin {
         imprime("% ", x)
     }
 
     imprime("\n")
 
     debut = 0
-    fin   = 10
+    fin = 10
 
-    imprime(format="Plage de % à %\n", args=fin, args=debut)
+    imprime(format = "Plage de % à %\n", args = fin, args = debut)
 
-    pour x dans debut...fin {
+    pour x dans debut ... fin {
         imprime("% ", fin - x)
     }
 
     imprime("\n")
 
     debut = 0
-    fin   = 10
+    fin = 10
 
     plage := (fin - debut)
     demi_plage := plage / 2
 
-    imprime(args=-demi_plage, demi_plage, format="Plage de % à %\n")
+    imprime(args = -demi_plage, demi_plage, format = "Plage de % à %\n")
 
-    pour x dans debut...fin {
+    pour x dans debut ... fin {
         imprime("% ", x - demi_plage)
     }
 

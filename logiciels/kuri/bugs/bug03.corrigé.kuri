@@ -8,7 +8,7 @@ MaStructure :: struct {
 }
 
 MonAutreStructure :: struct {
-    x : [5]MaStructure
+    x: [5]MaStructure
 }
 
 principale :: fonc () -> z32

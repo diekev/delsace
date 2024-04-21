@@ -64,10 +64,10 @@ est_nombre_valide :: fonc (grille: *[9][9]z32, i: z32, j: z32, chiffre: z32) -> 
 résous :: fonc (grille: *[9][9]z32) -> bool
 {
     tmp := mémoire(grille)
-    diffère { mémoire(grille) = tmp }
+    diffère mémoire(grille) = tmp
 
-    i : z32
-    j : z32
+    i: z32
+    j: z32
 
     saufsi cellules_vides_existent(grille, *i, *j) {
         retourne vrai
@@ -90,17 +90,17 @@ résous :: fonc (grille: *[9][9]z32) -> bool
 
 principale :: fonc () -> z32
 {
-    grille_sudoku := [
-        [5,3,0,0,7,0,0,0,0],
-        [6,0,0,1,9,5,0,0,0],
-        [0,9,8,0,0,0,0,6,0],
-        [8,0,0,0,6,0,0,0,3],
-        [4,0,0,8,0,3,0,0,1],
-        [7,0,0,0,2,0,0,0,6],
-        [0,6,0,0,0,0,2,8,0],
-        [0,0,0,4,1,9,0,0,5],
-        [0,0,0,0,8,0,0,7,9]
-    ]
+    grille_sudoku := [ 
+        [ 5, 3, 0, 0, 7, 0, 0, 0, 0 ],
+        [ 6, 0, 0, 1, 9, 5, 0, 0, 0 ],
+        [ 0, 9, 8, 0, 0, 0, 0, 6, 0 ],
+        [ 8, 0, 0, 0, 6, 0, 0, 0, 3 ],
+        [ 4, 0, 0, 8, 0, 3, 0, 0, 1 ],
+        [ 7, 0, 0, 0, 2, 0, 0, 0, 6 ],
+        [ 0, 6, 0, 0, 0, 0, 2, 8, 0 ],
+        [ 0, 0, 0, 4, 1, 9, 0, 0, 5 ],
+        [ 0, 0, 0, 0, 8, 0, 0, 7, 9 ]
+     ]
 
     dessine_grille(grille_sudoku)
 

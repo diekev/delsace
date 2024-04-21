@@ -194,4 +194,4 @@ ajoute_onglet :: fonc (empl panneau: *PanneauDossier, nom: chaine, panneau_ongle
     }
 }
 
-/** } */
+/** \} */

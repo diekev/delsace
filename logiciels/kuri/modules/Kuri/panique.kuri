@@ -18,8 +18,8 @@ imprime_trace_appel :: fonc () #sanstrace
         info_fonction := trace.info_fonction
         info_appel := trace.info_appel
 
-        imprime("%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse);
-        imprime("%", info_appel.texte);
+        imprime("%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse)
+        imprime("%", info_appel.texte)
 
         i := 0
         tantque i < info_appel.colonne {
@@ -27,7 +27,7 @@ imprime_trace_appel :: fonc () #sanstrace
             i += nombre_octets_utf8(*info_appel.texte[i])
         }
 
-        imprime("\x1b[1;31m^\x1b[0m\n\n");
+        imprime("\x1b[1;31m^\x1b[0m\n\n")
 
         trace = trace.précédente
     }
@@ -60,7 +60,7 @@ panique_dépassement_limites_tableau :: fonc (taille: z64, index: z64) -> rien #
 
 panique_dépassement_limites_chaine :: fonc (taille: z64, index: z64) -> rien #sanstrace #interface #sansretour
 {
-    panique("dépassement des limites de la chaine, la taille est de % mais l'index est de %", taille, index);
+    panique("dépassement des limites de la chaine, la taille est de % mais l'index est de %", taille, index)
 }
 
 panique_membre_union :: fonc () -> rien #sanstrace #interface #sansretour

@@ -1,5 +1,5 @@
 Curseur :: struct {
-    table : *Table
+    table: *Table
     index_ligne := 0
     est_fin_de_table := faux
 }

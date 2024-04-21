@@ -1,9 +1,9 @@
 importe Fondation
 
 Vec3 :: struct ($T: type_de_données) {
-    x : T
-    y : T
-    z : T
+    x: T
+    y: T
+    z: T
 }
 
 Tablet :: struct ($N: z32, $T: type_de_données) {
@@ -34,7 +34,7 @@ principale :: fonc () -> z32
     w := Vec3(T = r32)(x = 1.0, y = 2.0, z = 3.0)
     imprime("%\n", w)
 
-    x : Tablet(N = 5, T = z32)
+    x: Tablet(N = 5, T = z32)
 
     pour & x.valeurs {
         it = index_it comme z32
@@ -44,7 +44,7 @@ principale :: fonc () -> z32
         imprime("x[%] = %\n", index_it, it)
     }
 
-    y : Tablet(N = 10, T = z32)
+    y: Tablet(N = 10, T = z32)
 
     pour & y.valeurs {
         it = index_it comme z32
@@ -54,7 +54,7 @@ principale :: fonc () -> z32
         imprime("y[%] = %\n", index_it, it)
     }
 
-    o : Option(T0 = z32, T1 = r32)
+    o: Option(T0 = z32, T1 = r32)
     o = 6
 
     imprime("%\n", o)

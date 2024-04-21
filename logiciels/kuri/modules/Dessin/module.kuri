@@ -36,7 +36,7 @@ détruit_tampon_de_rendu :: fonc (tampon: *TamponDeRendu)
     déloge(tampon.données)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Ligne(z32)
@@ -137,7 +137,7 @@ dessine_ligne_bresenham :: fonc (
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Triangle
@@ -150,7 +150,7 @@ dessine_triangle :: fonc (tampon_de_rendu: *TamponDeRendu, triangle: Triangle(z3
     dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p2, triangle.p0), couleur)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom RectanglePosDim(z32).
@@ -158,10 +158,10 @@ dessine_triangle :: fonc (tampon_de_rendu: *TamponDeRendu, triangle: Triangle(z3
 
 dessine_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
 {
-    p0 := Point2D(z32)(rect.x,                rect.y)
+    p0 := Point2D(z32)(rect.x, rect.y)
     p1 := Point2D(z32)(rect.x + rect.largeur, rect.y)
     p2 := Point2D(z32)(rect.x + rect.largeur, rect.y + rect.hauteur)
-    p3 := Point2D(z32)(rect.x,                rect.y + rect.hauteur)
+    p3 := Point2D(z32)(rect.x, rect.y + rect.hauteur)
 
     dessine_ligne(tampon_de_rendu, Ligne(z32)(p0, p1), couleur)
     dessine_ligne(tampon_de_rendu, Ligne(z32)(p1, p2), couleur)
@@ -185,7 +185,7 @@ remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDi
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Cercle
@@ -306,7 +306,7 @@ remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), co
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Images
@@ -392,4 +392,4 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageRVBA8B
     }
 }
 
-/** } */
+/** \} */

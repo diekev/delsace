@@ -105,7 +105,7 @@ donne_données_extraction_sous_chaine :: fonc (flux: &FluxSource) -> DonnéesSou
     retourne DonnéesSousChaineLexée(flux.décalage_courant comme z32)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Fichier Source
@@ -148,4 +148,4 @@ donne_flux_source :: fonc (fichier: *FichierSource) -> FluxSource
     retourne construit_flux(fichier.contenu)
 }
 
-/** } */
+/** \} */

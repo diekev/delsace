@@ -5,7 +5,6 @@
 
 stat :: fonc ()
 {
-
 }
 
 stat :: struct {
@@ -14,6 +13,6 @@ stat :: struct {
 
 principale :: fonc () -> z32
 {
-    s : stat
+    s: stat
     retourne 0
 }

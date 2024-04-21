@@ -10,7 +10,7 @@ Tablet :: struct {
 
 crée_tablet :: fonc () -> Tablet
 {
-    résultat : Tablet
+    résultat: Tablet
     pour & résultat.données {
         it = (index_it * 3) comme z32
     }

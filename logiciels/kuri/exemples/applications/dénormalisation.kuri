@@ -3,7 +3,7 @@ importe Fondation
 taille_symbole :: fonc (symbole: *chaine) -> z32
 {
     s := mémoire(symbole)
-    diffère { mémoire(symbole) = s }
+    diffère mémoire(symbole) = s
 
     si s[0] == '0' {
         s = avance(s, 1)
@@ -21,7 +21,7 @@ taille_symbole :: fonc (symbole: *chaine) -> z32
     retourne taille
 }
 
-dénormalise_fonction :: fonc(symbole: chaine) -> rien
+dénormalise_fonction :: fonc (symbole: chaine) -> rien
 {
     symbole = avance(symbole, 3)
 

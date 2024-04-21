@@ -7,7 +7,7 @@ ajoute :: fonc (a: r32, b: r32) -> r32
 
 principale :: fonc () -> z32
 {
-    a := [[0, 1], [2, 3], [4, 5]]
+    a := [ [ 0, 1 ], [ 2, 3 ], [ 4, 5 ] ]
 
     pour a {
         imprime("%\n", it)

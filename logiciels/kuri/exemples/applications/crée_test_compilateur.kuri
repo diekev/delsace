@@ -10,7 +10,7 @@ importe SysFichier
 // les tests sont inspirés de
 // https://github.com/sal55/langs/blob/master/compilertest.txt
 
-crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
+crée_test :: fonc (nombre_de_ligne: z32, chemin_fichier: chaine) -> rien
 {
     chaines := [
         "principale :: fonc () -> z32\n",
@@ -34,8 +34,8 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
     taille += chaines[6].taille * (nombre_de_ligne - 1)
 
     // génère le code du test
-    enchaineuse : Enchaineuse
-    diffère { détruit_tampons(*enchaineuse); }
+    enchaineuse: Enchaineuse
+    diffère détruit_tampons(*enchaineuse)
 
     pour i dans 0 ... 5 {
         ajoute_au_tampon(*enchaineuse, chaines[i])

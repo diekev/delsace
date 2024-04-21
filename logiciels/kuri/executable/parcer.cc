@@ -1184,7 +1184,7 @@ struct Convertisseuse {
                     auto nom_fichier_c = kuri::chemin_systeme(clang_getCString(nom_fichier));
                     clang_disposeString(nom_fichier);
 
-                    if (nom_fichier_c.chemin_parent() != dossier_source) {
+                    if (nom_fichier_c.chemin_parent() != kuri::chaine_statique(dossier_source)) {
                         continue;
                     }
 

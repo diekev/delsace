@@ -81,12 +81,13 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
             enchaineuse.ajoute_au_tampon("    }\n")
 
             si it.type.drapeaux.TYPE_EST_ÉNUM {
-assigne_énum_depuis_chaine := «
+                assigne_énum_depuis_chaine := «
     si PyUnicode_Check(valeur) {
         valeur_chaine := PyUnicode_AsChaine(valeur)
         retourne Py_AssigneChaineÉnum((instance comme *%PourPython).notre_instance.%, valeur_chaine)
     }
 »
+
                 enchaineuse.imprime_dans_enchaineuse(assigne_énum_depuis_chaine, type.nom_sauf, it.nom)
             }
 
@@ -330,7 +331,7 @@ génère_fonction_richcompare :: fonc (enchaineuse: *Enchaineuse, type: *TypePyt
 
     nom_fonction_richcompare := enchaine("richcompare_", type.nom_sauf)
 
-compare_énum_avec_chaine := «
+    compare_énum_avec_chaine := «
     si PyUnicode_Check(other) {
         valeur_chaine := PyUnicode_AsChaine(other)
         valeur_énum := Py%_As%(self).notre_instance
@@ -338,7 +339,7 @@ compare_énum_avec_chaine := «
     }
 »
 
-compare_énum_avec_énum := «
+    compare_énum_avec_énum := «
     si Py%_Check(other) {
         valeur1 := Py%_As%(self).notre_instance
         valeur2 := Py%_As%(other).notre_instance

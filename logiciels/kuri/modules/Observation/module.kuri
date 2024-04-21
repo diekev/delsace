@@ -12,7 +12,7 @@ MessageObservable :: struct {
     données: *rien
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Observable, diffuseuse de messages.
@@ -83,7 +83,7 @@ envoie_message :: fonc (observable: *Observable, message: MessageObservable)
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Observatrice, réceptrice de messages.
@@ -135,4 +135,4 @@ supprime_observable :: fonc (observatrice: *Observatrice, observable: *Observabl
     }
 }
 
-/** } */
+/** \} */

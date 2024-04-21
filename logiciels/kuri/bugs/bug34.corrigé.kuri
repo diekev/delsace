@@ -15,7 +15,7 @@ principale :: fonc () -> z32
     ptr(5)
     ")
 
-    saufsi (erreur_survenue) {
+    saufsi erreur_survenue {
         retourne 1
     }
     retourne 0

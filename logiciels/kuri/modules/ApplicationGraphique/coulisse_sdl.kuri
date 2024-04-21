@@ -70,7 +70,7 @@ donne_fenêtre_pour_id :: fonc (app: *ApplicationSDL, id: n32 @inutilisée) -> *
     retourne app.fenêtre
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ApplicationSDL
@@ -207,7 +207,7 @@ dessine_application :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Évènements
@@ -294,7 +294,7 @@ gère_évènement :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Implémentation du pilote pour SDL.
@@ -392,4 +392,4 @@ convertis_type_curseur :: fonc (type_curseur: TypeCurseurSystème) -> SDL_System
     retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW
 }
 
-/** } */
+/** \} */

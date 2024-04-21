@@ -48,7 +48,7 @@ densite_couleur_neg :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutil
 
 dessus_conjoint :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-    si (a > b || b == 0.0) {
+    si a > b || b == 0.0 {
         retourne A
     }
 
@@ -67,7 +67,7 @@ différence :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -
 
 dessus_disjoint :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-    si (a + b < 1.0) {
+    si a + b < 1.0 {
         retourne A + B
     }
 
@@ -76,7 +76,7 @@ dessus_disjoint :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 
 divise :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-    si (A < 0.0 || B <= 0.0) {
+    si A < 0.0 || B <= 0.0 {
         retourne 0.0
     }
 
@@ -135,7 +135,7 @@ moins :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 
 multiplie :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-    si (A < 0.0 && B < 0.0) {
+    si A < 0.0 && B < 0.0 {
         retourne A
     }
 
@@ -163,7 +163,7 @@ plus :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
         retourne A + B - A * B
     }
 
-    si (A > B) {
+    si A > B {
         retourne A
     }
 
@@ -174,7 +174,7 @@ lumiere_douce :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée)
 {
     AB := A * B
 
-    si (AB < 1.0) {
+    si AB < 1.0 {
         retourne B * (2.0 * A + (B * (1.0 - AB)))
     }
 
@@ -198,7 +198,7 @@ ou_exclusif :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 
 lumiere_dure :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-    si (A < 0.5) {
+    si A < 0.5 {
         retourne multiplie(A, a, B, b)
     }
 
@@ -207,7 +207,7 @@ lumiere_dure :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 
 superpose :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-    si (B < 0.5) {
+    si B < 0.5 {
         retourne multiplie(A, a, B, b)
     }
 

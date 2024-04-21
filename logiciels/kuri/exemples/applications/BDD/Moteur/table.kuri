@@ -27,35 +27,35 @@ TypeColonne :: énum z32 {
 }
 
 Colonne :: struct {
-    nom : chaine
+    nom: chaine
 
-    genre : TypeColonne
+    genre: TypeColonne
 
     // décalage en octet dans la ligne
-    décalage : z32
+    décalage: z32
 
     // taille en octet
-    taille : z32
+    taille: z32
 }
 
 CelluleMémoire :: union {
-    entier : z32
-    chn : chaine
+    entier: z32
+    chn: chaine
 }
 
-comme_entier :: fonc (m : CelluleMémoire) -> z32
+comme_entier :: fonc (m: CelluleMémoire) -> z32
 {
     retourne m.entier
 }
 
-comme_chaine :: fonc (m : CelluleMémoire) -> chaine
+comme_chaine :: fonc (m: CelluleMémoire) -> chaine
 {
     retourne m.chn
 }
 
 Table :: struct {
     // description de la table, figée lors de la création de celle-ci
-    desc_colonnes : [..]Colonne
+    desc_colonnes: [..]Colonne
     taille_octet_ligne : z32 = 0
     lignes_par_page : z32 = 0
     nombre_lignes_maximum : z32 = 0
@@ -77,19 +77,19 @@ détruit_table :: fonc (table: *Table) -> rien
 imprime_table :: fonc (table: *Table) -> rien
 {
     curseur := curseur_début_de_table(table)
-    diffère { déloge(curseur); }
+    diffère déloge(curseur)
 
-    ligne_titre : LigneTabuleuse
+    ligne_titre: LigneTabuleuse
 
     pour colonne dans table.desc_colonnes {
         tableau_ajoute(*ligne_titre.colonnes, colonne.nom)
     }
 
     tabuleuse := crée_tabuleuse(ligne_titre)
-    diffère { détruit_tabuleuse(*tabuleuse); }
+    diffère détruit_tabuleuse(*tabuleuse)
 
     tantque !curseur.est_fin_de_table {
-        ligne_tabuleuse : LigneTabuleuse
+        ligne_tabuleuse: LigneTabuleuse
 
         ligne := valeur_curseur(curseur)
 
@@ -131,7 +131,7 @@ ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
     retourne table
 }
 
-ouvre_base_de_données_mémoire :: fonc (colonnes : [..]Colonne) -> *Table
+ouvre_base_de_données_mémoire :: fonc (colonnes: [..]Colonne) -> *Table
 {
     table := loge(Table)
     table.desc_colonnes = colonnes

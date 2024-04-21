@@ -30,7 +30,7 @@ limite_basse :: fonc (f: *$T, l: *T, v: T) -> *T
 
         m := suivant(fl, distance(fl, ll) / 2)
 
-        si (m[0] < v) {
+        si m[0] < v {
             fl = suivant(m, 1)
         }
         sinon {
@@ -56,7 +56,7 @@ limite_basse :: fonc (f: *$T, l: *T, v: T, rappel_comp: fonc(*T, *T)(bool)) -> *
 
         m := suivant(fl, distance(fl, ll) / 2)
 
-        si (rappel_comp(m, *v)) {
+        si rappel_comp(m, *v) {
             fl = suivant(m, 1)
         }
         sinon {
@@ -82,7 +82,7 @@ limite_haute :: fonc (f: *$T, l: *T, v: T) -> *T
 
         m := suivant(fl, distance(fl, ll) / 2)
 
-        si (m[0] > v) {
+        si m[0] > v {
             fl = suivant(m, 1)
         }
         sinon {
@@ -211,7 +211,7 @@ permute :: fonc (a: &$T, b: &T) #enligne
     b = tmp
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Inversion d'une séquence.
@@ -226,7 +226,7 @@ inverse :: fonc (premier: *$T, dernier: *T)
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Pivote
@@ -253,7 +253,7 @@ pivote :: fonc (premier: *$T, milieu: *T, dernier: *T) -> *T
     retourne suivant(premier, taille_fin)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Partition.
@@ -266,7 +266,7 @@ pivote :: fonc (premier: *$T, milieu: *T, dernier: *T) -> *T
 partitionne :: fonc (premier: *$T, dernier: *T, prédicat: fonc(T)(bool)) -> *T
 {
     boucle {
-        tantque ((premier != dernier) && prédicat(mémoire(premier))) {
+        tantque (premier != dernier) && prédicat(mémoire(premier)) {
             premier = suivant(premier, 1)
         }
 
@@ -276,11 +276,11 @@ partitionne :: fonc (premier: *$T, dernier: *T, prédicat: fonc(T)(bool)) -> *T
 
         dernier = suivant(dernier, -1)
 
-        tantque ((premier != dernier) && !prédicat(mémoire(dernier))) {
+        tantque (premier != dernier) && !prédicat(mémoire(dernier)) {
             dernier = suivant(dernier, -1)
         }
 
-        si (premier == dernier) {
+        si premier == dernier {
             arrête
         }
 
@@ -291,7 +291,7 @@ partitionne :: fonc (premier: *$T, dernier: *T, prédicat: fonc(T)(bool)) -> *T
     retourne premier
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Partition stable.
@@ -320,7 +320,7 @@ partition_stable :: fonc (premier: *$T, dernier: *T, p: fonc(T)(bool)) -> *T
                     partitionne_stable(milieu, dernier, p))
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Copie
@@ -348,4 +348,4 @@ copie_si :: fonc (début_src: *$T, fin_src: *T, début_dst: *T, p: fonc(T)(bool)
     retourne début_dst
 }
 
-/** } */
+/** \} */

@@ -29,7 +29,7 @@ importe Fondation
  */
 démo_courtcircuit_énum_drapeau :: fonc ()
 {
-    e : ÉnumDrapeau
+    e: ÉnumDrapeau
     imprime("e : %\n", e)
 
     /*
@@ -80,20 +80,20 @@ démo_courtcircuit_énum_drapeau :: fonc ()
     }
 
     variable_booléenne := vrai
-    si (variable_booléenne || e.VALEUR1 || e.VALEUR3) {
+    si variable_booléenne || e.VALEUR1 || e.VALEUR3 {
         imprime("variable_booléenne (vrai) || e.VALEUR1 || e.VALEUR3\n")
     }
 
-    si (variable_booléenne && (e.VALEUR1 || e.VALEUR3)) {
+    si variable_booléenne && (e.VALEUR1 || e.VALEUR3) {
         imprime("variable_booléenne (vrai) && (e.VALEUR1 || e.VALEUR3)\n")
     }
 
     variable_booléenne = faux
-    si (variable_booléenne || e.VALEUR1 || e.VALEUR3) {
+    si variable_booléenne || e.VALEUR1 || e.VALEUR3 {
         imprime("variable_booléenne (faux) || e.VALEUR1 || e.VALEUR3\n")
     }
 
-    si (variable_booléenne && (e.VALEUR1 || e.VALEUR3)) {
+    si variable_booléenne && (e.VALEUR1 || e.VALEUR3) {
         imprime("variable_booléenne (faux) && (e.VALEUR1 || e.VALEUR3)\n")
     }
 }

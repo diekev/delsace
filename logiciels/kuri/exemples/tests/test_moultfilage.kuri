@@ -12,18 +12,18 @@ importe PThread
 
 // Structure stockant les informations des threads clients et du magasin.
 store_t :: struct {
-   stock := 20
+    stock := 20
 
-   thread_store : pthread_t
-   thread_clients : [5]pthread_t
+    thread_store: pthread_t
+    thread_clients: [5]pthread_t
 
-   mutex : pthread_mutex_t
-   cond_clients : pthread_cond_t
-   cond_store : pthread_cond_t
+    mutex: pthread_mutex_t
+    cond_clients: pthread_cond_t
+    cond_store: pthread_cond_t
 }
 
 // Fonction pour le thread du magasin.
-fn_store :: fonc(p_data : *rien) -> *rien
+fn_store :: fonc (p_data: *rien) -> *rien
 {
     store := p_data comme *store_t
 
@@ -42,12 +42,12 @@ fn_store :: fonc(p_data : *rien) -> *rien
 }
 
 donnée_client_t :: struct {
-    store : *store_t
-    index : z32
+    store: *store_t
+    index: z32
 }
 
 // Fonction pour les threads des clients.
-fn_clients :: fonc(p_data : *rien) -> *rien
+fn_clients :: fonc (p_data: *rien) -> *rien
 {
     donnée_client := p_data comme *donnée_client_t
     store := donnée_client.store
@@ -78,12 +78,12 @@ fn_clients :: fonc(p_data : *rien) -> *rien
 }
 
 Tâche :: struct {
-    id_tâche : pthread_t
+    id_tâche: pthread_t
 
-    rappel : fonc(*rien)(*rien)
-    données_rappel : *rien
+    rappel: fonc(*rien)(*rien)
+    données_rappel: *rien
 
-    id : z32
+    id: z32
 }
 
 lance_tâche :: fonc (tâche_: *rien) -> *rien
@@ -111,23 +111,23 @@ crée_tâche :: fonc (rappel: fonc(*rien)(*rien), données_rappel: *rien) -> *T�
 
     si ret != 0 {
         imprime("erreur : %\n", convertis_chaine_c(strerror(ret)))
-        déloge(t)âche
+        déloge(tâche)
     }
 
     retourne tâche
 }
 
 SystèmeTâche :: struct {
-    tâches : [..]Tâche
+    tâches: [..]Tâche
 }
 
 principale :: fonc () -> z32
 {
-    imprime("Il y a sur le système % threads\n", nombre_threads_disponible());
+    imprime("Il y a sur le système % threads\n", nombre_threads_disponible())
 
     //retourne 0
 
-    store := store_t( stock = 20 )
+    store := store_t(stock = 20)
     ret : z32 = 0
 
     imprime("Creation du thread du magasin !\n")
@@ -137,7 +137,7 @@ principale :: fonc () -> z32
         imprime("Creation des threads clients !\n")
 
         pour fil_client, idx dans store.thread_clients {
-            donnée_client : donnée_client_t
+            donnée_client: donnée_client_t
             donnée_client.store = *store
             donnée_client.index = idx comme z32
             ret = pthread_create(*fil_client, nul, fn_clients, *donnée_client)
@@ -159,4 +159,3 @@ principale :: fonc () -> z32
 
     retourne 0
 }
-

@@ -6,7 +6,7 @@ NoeudSyntaxique :: struct {
     lexème: *Lexème
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Noeud pour référencer un symbole.
@@ -16,7 +16,7 @@ NoeudRéférenceSymbole :: struct {
     empl base: NoeudSyntaxique
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Noeud représentation un instruction de prodéclaration de type.
@@ -29,7 +29,7 @@ NoeudProdéclarationObjet :: struct {
     est_struct: bool
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom NoeudProdéclarationÉnum
@@ -42,7 +42,7 @@ NoeudProdéclarationÉnum :: struct {
     expression_type: *NoeudSyntaxique
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom NoeudDéfinitionClasse
@@ -62,7 +62,7 @@ NoeudDéfinitionClasse :: struct {
     bases: [..]SpécificationBase
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Créatrice de Noeuds
@@ -80,4 +80,4 @@ crée_noeud :: fonc (créatrice: &CréatriceNoeuds, lexème: *Lexème, $TypeNoeu
     retourne noeud
 }
 
-/** } */
+/** \} */

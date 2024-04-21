@@ -29,31 +29,31 @@ TempsFlouCinétique :: #opaque Temps
 TempsObturateur :: #opaque Temps
 
 // définis TempsObturateur {
-    construit :: fonc (t: r32) -> TempsObturateur
-    {
-        si t < 0.0 || t > 1.0 {
-            retourne
-        }
-
-        retourne TempsObturateur(t)
+construit :: fonc (t: r32) -> TempsObturateur
+{
+    si t < 0.0 || t > 1.0 {
+        retourne
     }
+
+    retourne TempsObturateur(t)
+}
 // }
 
-Jour  :: #opaque z32
-Mois  :: #opaque z32
+Jour :: #opaque z32
+Mois :: #opaque z32
 Année :: #opaque z32
 
 // Comment initialiser un type opaque ?
 
 //définis Jour {
-    construit :: fonc (j: z32) -> Jour
-    {
-        si j < 1 || j > 31 {
-            retourne Jour(1)
-        }
-
-        retourne Jour(j)
+construit :: fonc (j: z32) -> Jour
+{
+    si j < 1 || j > 31 {
+        retourne Jour(1)
     }
+
+    retourne Jour(j)
+}
 //}
 
 Distance :: #opaque z32

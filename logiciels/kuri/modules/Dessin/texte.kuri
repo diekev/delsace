@@ -83,4 +83,4 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *F
     }
 }
 
-/** } */
+/** \} */

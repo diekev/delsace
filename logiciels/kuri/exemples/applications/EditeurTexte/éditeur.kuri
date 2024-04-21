@@ -3,28 +3,28 @@ importe SysFichier
 importe Temps
 
 Éditeur :: struct {
-    lignes : z32
-    colonnes : z32
+    lignes: z32
+    colonnes: z32
 
     // pour le défilement vertical
-    décalage_ligne : z32
+    décalage_ligne: z32
 
     // pour le défilement horizontal
-    décalage_colonne : z32
+    décalage_colonne: z32
 
-    rx : z32
-    cx : z32
-    cy : z32
+    rx: z32
+    cx: z32
+    cy: z32
 
     lignes_texte: [..]chaine
     lignes_rendu: [..]chaine
 
     chemin_fichier: chaine
 
-    message : chaine
-    temps_message : Instantané
+    message: chaine
+    temps_message: Instantané
 
-    modifié : z32
+    modifié: z32
 }
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
@@ -44,7 +44,7 @@ importe Temps
     }
 
     contenu := contenu_fichier_texte(chm)
-    diffère { déloge(contenu); }
+    diffère déloge(contenu)
 
     éditeur.chemin_fichier = chemin
     éditeur_ajourne_message_status(éditeur, "Le fichier est ouvert !")
@@ -55,7 +55,7 @@ importe Temps
     pour c, idx dans contenu {
         si c == '\r' || c == '\n' {
             si taille_ligne != 0 {
-                ligne : chaine
+                ligne: chaine
                 ligne.pointeur = *contenu[début_ligne]
                 ligne.taille = taille_ligne
 
@@ -78,7 +78,7 @@ importe Temps
     }
 
     si taille_ligne != 0 {
-        ligne : chaine
+        ligne: chaine
         ligne.pointeur = *contenu[début_ligne]
         ligne.taille = taille_ligne
 
@@ -107,7 +107,7 @@ importe Temps
         // la mémoire à l'index 'où', une chaine nulle ne serait pas
         // libérer et nous n'aurons pas nous soucier de la validiter
         // du pointeur de la chaine
-        chaine_nulle : chaine
+        chaine_nulle: chaine
         tableau_insère_index(*éditeur.lignes_rendu, chaine_nulle, où)
         éditeur_ajourne_ligne(éditeur, ligne, où)
     }
@@ -134,9 +134,9 @@ importe Temps
 
 éditeur_chaine_depuis_ligne :: fonc (éditeur: *Éditeur) -> chaine
 {
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     pour ligne dans éditeur.lignes_texte {
         ajoute_au_tampon(*enchaineuse, ligne, "\n")
@@ -145,7 +145,7 @@ importe Temps
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-éditeur_sauvegarde_fichier :: fonc (éditeur: *Éditeur, rappel_prompt : fonc()(chaine)) -> rien
+éditeur_sauvegarde_fichier :: fonc (éditeur: *Éditeur, rappel_prompt: fonc()(chaine)) -> rien
 {
     si éditeur.chemin_fichier == "" {
         éditeur.chemin_fichier = rappel_prompt()
@@ -157,7 +157,7 @@ importe Temps
     }
 
     texte := éditeur_chaine_depuis_ligne(éditeur)
-    diffère { déloge(texte) }
+    diffère déloge(texte)
 
     fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(éditeur.chemin_fichier), pour_écriture) piège err {
         éditeur_ajourne_message_status(éditeur, "impossible d'ouvrir le fichier pour la sauvegarde")
@@ -372,9 +372,9 @@ TAILLE_TABULATION :: 4
 {
     déloge(éditeur.message)
 
-    enchaineuse : Enchaineuse
+    enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
     pour arg dans args {
         ajoute_au_tampon(*enchaineuse, arg)

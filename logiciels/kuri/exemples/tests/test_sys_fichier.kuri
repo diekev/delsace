@@ -3,7 +3,7 @@ importe SysFichier
 
 /* ------------------------------------------------------------------------- */
 
-test_chemin_courant :: fonc() -> rien
+test_chemin_courant :: fonc () -> rien
 {
     chemin := chemin_courant()
 
@@ -19,7 +19,7 @@ test_chemin_courant :: fonc() -> rien
     déloge(chemin.chn)
 }
 
-test_itération_dossier :: fonc() -> rien
+test_itération_dossier :: fonc () -> rien
 {
     chemin := CheminFichier("/tmp/")
 
@@ -46,11 +46,11 @@ principale :: fonc () -> z32
     chm_sortie := CheminFichier("/tmp/SORITE_test_parcer.cc")
 
     fd := tente ouvre_fichier_crée_si_non_existant(chm_sortie, pour_écriture) piège nonatteignable
-    diffère { _ := ferme(*fd) }
+    diffère _ := ferme(*fd)
 
     _ := écris(*fd, contenu)
 
-    imprime(contenu, '\n');
+    imprime(contenu, '\n')
 
     déloge(contenu)
 

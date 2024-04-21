@@ -4,7 +4,7 @@ importe SysFichier
 
 principale :: fonc () -> z32
 {
-    test : DonnéesPourTest
+    test: DonnéesPourTest
     test.programme = CheminFichier("../a.out")
 
     test.ajoute_série_de_tests(CheminFichier("specs_bdd"))

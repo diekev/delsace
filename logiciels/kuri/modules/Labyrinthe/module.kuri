@@ -34,7 +34,7 @@ détruit_données_labyrinthe :: fonc (labyrinthe: *Labyrinthe)
     init_de(Labyrinthe)(labyrinthe)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Méthode de création d'un labyrinthe.
@@ -57,7 +57,7 @@ initialise_murs :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire, m
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Création d'un pseudo-labyrinthe.
@@ -145,7 +145,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
     }
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Création d'un labyrinthe selon la méthode d'Eller.
@@ -503,4 +503,4 @@ copie_ligne_vers_labyrinthe :: fonc (empl constructrice: *ConstructriceMéthodeE
     }
 }
 
-/** } */
+/** \} */

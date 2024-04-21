@@ -1,45 +1,45 @@
 Vecteur3D :: struct {
-    x : n32;
-    y : n32;
-    z : n32;
+    x: n32
+    y: n32
+    z: n32
 }
 
-racine_carré :: fonc(x : n32) -> n32
+racine_carré :: fonc (x: n32) -> n32
 {
-    num := x;
-    res : n32 = 0;
+    num := x
+    res : n32 = 0
 
     // Le second bit est mis en place
     // n8  : 1 << 6
     // n16 : 1 << 14
     // n32 : 1 << 30
     // n64 : 1 << 62
-    bit : n32 = 1 << 30;
+    bit : n32 = 1 << 30
 
     boucle {
         si bit <= num {
-            arrête;
+            arrête
         }
 
-        bit = bit >> 2;
+        bit = bit >> 2
     }
 
     boucle {
         si bit == 0 {
-            arrête;
+            arrête
         }
 
         si num >= (res + bit) {
-            num = num - (res + bit);
-            res = res + (bit << 1);
+            num = num - (res + bit)
+            res = res + (bit << 1)
         }
 
-        res = res >> 1;
-        bit = bit >> 2;
+        res = res >> 1
+        bit = bit >> 2
     }
 
-    retourne res;
-/*
+    retourne res
+    /*
     si (x == 0) || (x == 1) {
         retourne x;
     }
@@ -60,60 +60,60 @@ racine_carré :: fonc(x : n32) -> n32
 */
 }
 
-carré :: fonc(x : n32) -> n32
+carré :: fonc (x: n32) -> n32
 {
-    retourne x * x;
+    retourne x * x
 }
 
-longueur_vecteur :: fonc(v : Vecteur3D) -> n32
+longueur_vecteur :: fonc (v: Vecteur3D) -> n32
 {
-    retourne 0;
+    retourne 0
 }
 
-longueur :: fonc(x : n32, y : n32, z : n32) -> n32
+longueur :: fonc (x: n32, y: n32, z: n32) -> n32
 {
-    retourne racine_carré(carré(x) + carré(y) + carré(z));
+    retourne racine_carré(carré(x) + carré(y) + carré(z))
 }
 
-principale :: fonc() -> z32
+principale :: fonc () -> z32
 {
-    retourne 0 // longueur(compte, compte, compte);
+    retourne 0, // longueur(compte, compte, compte);
 }
 
-foo :: fonc(compte : [2][2]n32) -> n32
+foo :: fonc (compte: [2][2]n32) -> n32
 {
-    a := compte[0][0];
-    b := *compte;
-    retourne 1;
+    a := compte[0][0]
+    b := *compte
+    retourne 1
 }
 
-principale1 :: fonc()
+principale1 :: fonc ()
 {
-    t0 := 5 + 2;
-    t1 := 5 - 2;
-    t2 := 5 * 2;
-    t3 := 5 / 2;
-    t4 := 5 % 2;
-    t5 := 5 >> 2;
-    t6 := 5 << 2;
-    t7 := 5 & 2;
-    t8 := 5 | 2;
-    t9 := 5 ^ t0;
+    t0 := 5 + 2
+    t1 := 5 - 2
+    t2 := 5 * 2
+    t3 := 5 / 2
+    t4 := 5 % 2
+    t5 := 5 >> 2
+    t6 := 5 << 2
+    t7 := 5 & 2
+    t8 := 5 | 2
+    t9 := 5 ^ t0
 }
 
-principale2 :: fonc()
+principale2 :: fonc ()
 {
-    t0 := 5.0 == 2.0;
-    t1 := 5.0 != 2.0;
-    t2 := 5.0 <= 2.0;
-    t3 := 5.0 >= 2.0;
-    t4 := 5.0 < 2.0;
-    t5 := 5.0 > 2.0;
+    t0 := 5.0 == 2.0
+    t1 := 5.0 != 2.0
+    t2 := 5.0 <= 2.0
+    t3 := 5.0 >= 2.0
+    t4 := 5.0 < 2.0
+    t5 := 5.0 > 2.0
 }
 
-principale3 :: fonc()
+principale3 :: fonc ()
 {
-    t4 := (5.0 == 5.0) && (6.0 == 6.0);
-    t5 := vrai != vrai;
-    t6 := faux == faux;
+    t4 := (5.0 == 5.0) && (6.0 == 6.0)
+    t5 := vrai != vrai
+    t6 := faux == faux
 }
