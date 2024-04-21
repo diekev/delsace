@@ -197,7 +197,7 @@ restaure_ciseau :: fonc (peintre: *Peintre) -> rien #enligne
     peintre.rappel_définis_ciseau(peintre, rectangle)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Peintre pour le module Dessin. À FAIRE
@@ -472,7 +472,7 @@ définis_ciseau_dessin :: fonc (peintre: *Peintre @inutilisée, rectangle: Recta
     // À FAIRE
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Peintre IGUMI.
@@ -607,8 +607,8 @@ dessine_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peint
     commence_immédiat()
     diffère termine_immédiat(ModeImmédiat.LIGNES)
 
-    p0 := Point2D(r32)(rectangle.x,                     rectangle.y)
-    p1 := Point2D(r32)(rectangle.x,                     rectangle.y + rectangle.hauteur)
+    p0 := Point2D(r32)(rectangle.x, rectangle.y)
+    p1 := Point2D(r32)(rectangle.x, rectangle.y + rectangle.hauteur)
     p2 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y + rectangle.hauteur)
     p3 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y)
 
@@ -777,4 +777,4 @@ définis_ciseau_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle: Rectan
     glScissor(rect.x, rect.y, rect.largeur, rect.hauteur)
 }
 
-/** } */
+/** \} */

@@ -42,7 +42,7 @@ ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise, évènements: EPOLL
     ev.events = évènements | EPOLL_EVENTS.EPOLLET
     ev.data.ptr = prise
 
-    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.ADD, prise.fichier.desc comme z32, *ev) == -1) {
+    si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.ADD, prise.fichier.desc comme z32, *ev) == -1 {
         // imprime("[epoll_ctl] impossible de créer un control pour la prise !\n")
         retourne faux
     }
@@ -59,7 +59,7 @@ change_évènement :: fonc (prise: *Prise, boucle_prises: *Boucle, évènement: 
     ev.events = évènement | EPOLL_EVENTS.EPOLLET
     ev.data.ptr = prise
 
-    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.MOD, prise.fichier.desc comme z32, *ev) == -1) {
+    si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.MOD, prise.fichier.desc comme z32, *ev) == -1 {
         // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
         retourne
     }
@@ -71,7 +71,7 @@ enlève_prise :: fonc (boucle_prises: *Boucle, prise: *Prise)
 
     // imprime("enlève_prise.\n")
     ev: epoll_event
-    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.DEL, prise.fichier.desc comme z32, *ev) == -1) {
+    si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.DEL, prise.fichier.desc comme z32, *ev) == -1 {
         // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
         retourne
     }
@@ -138,7 +138,7 @@ lance :: fonc (boucle_prises: *Boucle)
         // imprime("attente sur un évènement !\n")
         nfds := epoll_wait(boucle_prises.fd, *boucle_prises.évènements[0], Boucle.MAX_EVENTS, -1)
 
-        si (nfds == -1) {
+        si nfds == -1 {
             // imprime("[epoll_wait] erreur !\n")
             // perror("epoll_wait");
             // exit(EXIT_FAILURE);

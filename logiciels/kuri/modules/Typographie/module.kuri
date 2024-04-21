@@ -94,7 +94,7 @@ donne_hauteur_caractère :: fonc (empl métriques: MétriquesFonte) -> r32
     retourne jambage_supérieur - jambage_inférieur
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Glyphe
@@ -120,4 +120,4 @@ donne_crénage_avec :: fonc (glyphe: *texture_glyph_t, glyphe_précédent: *text
     retourne texture_glyph_get_kerning_glyph(glyphe, glyphe_précédent)
 }
 
-/** } */
+/** \} */

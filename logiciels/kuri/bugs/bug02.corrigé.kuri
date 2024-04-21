@@ -11,7 +11,6 @@
  */
 
 Vide :: struct {
-
 }
 
 principale :: fonc () -> z32

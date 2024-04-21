@@ -13,6 +13,7 @@ principale :: fonc () -> z32
         retourne 0
     }
     ")
+
     si erreur_survenue {
         retourne 1
     }

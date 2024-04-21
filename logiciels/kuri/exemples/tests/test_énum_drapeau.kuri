@@ -75,7 +75,7 @@ test_expressions_booléennes :: fonc ()
 test_expressions_booléennes_variables :: fonc ()
 {
     b := faux
-    d : Drapeau
+    d: Drapeau
 
     d.FA = b
     si d.FA {
@@ -95,7 +95,7 @@ test_expressions_booléennes_variables :: fonc ()
 
 test_expressions_booléennes_tableau :: fonc ()
 {
-    a := [Drapeau.FA]
+    a := [ Drapeau.FA ]
 
     si a[0].FA {
         imprime("OK: a[0].FA !\n")
@@ -143,7 +143,7 @@ test_expressions_booléennes_tableau :: fonc ()
 test_raccourcis_assignation_énumération_drapeau :: fonc ()
 {
     {
-        a : Drapeau
+        a: Drapeau
         a.FA = vrai
 
         saufsi a.FA {
@@ -158,7 +158,7 @@ test_raccourcis_assignation_énumération_drapeau :: fonc ()
         }
     }
     {
-        a : [1]Drapeau
+        a: [1]Drapeau
         a[0].FA = vrai
 
         saufsi a[0].FA {
@@ -178,7 +178,7 @@ test_raccourcis_assignation_énumération_drapeau :: fonc ()
 
 tests_activations_drapeaux :: fonc ()
 {
-    drapeau : Drapeau
+    drapeau: Drapeau
 
     imprime("drapeau = %\n", drapeau)
 
@@ -198,7 +198,7 @@ tests_activations_drapeaux :: fonc ()
 
 test_conjonction_énum_simple :: fonc ()
 {
-    normal : Normal
+    normal: Normal
 
     imprime("normal = %\n", normal)
 
