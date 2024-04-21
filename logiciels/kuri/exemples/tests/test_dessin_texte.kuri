@@ -7,14 +7,14 @@ Fragment :: struct {
 
 fragmente_texte :: fonc (texte: chaine) -> [..]Fragment
 {
-    fragments : [..]Fragment
+    fragments: [..]Fragment
 
     début_mot := 0
     dernier_fut_espace := faux
 
     pour c, i dans texte {
         si c == ' ' {
-            fragment : Fragment
+            fragment: Fragment
             fragment.début = début_mot
             fragment.taille = i comme z32 - début_mot
 
@@ -24,7 +24,7 @@ fragmente_texte :: fonc (texte: chaine) -> [..]Fragment
             dernier_fut_espace = vrai
         }
         sinon si dernier_fut_espace {
-            fragment : Fragment
+            fragment: Fragment
             fragment.début = début_mot
             fragment.taille = i comme z32 - début_mot
 
@@ -35,7 +35,7 @@ fragmente_texte :: fonc (texte: chaine) -> [..]Fragment
         }
     }
 
-    fragment : Fragment
+    fragment: Fragment
     fragment.début = début_mot
     fragment.taille = texte.taille comme z32 - début_mot
 
@@ -45,14 +45,14 @@ fragmente_texte :: fonc (texte: chaine) -> [..]Fragment
 }
 
 Ligne :: struct {
-    fragments : [..]Fragment
+    fragments: [..]Fragment
 
-    taille : z32
+    taille: z32
 }
 
 Document :: struct {
-    lignes : [..]Ligne
-    texte : chaine
+    lignes: [..]Ligne
+    texte: chaine
 
     taille_ligne : z32 = 80
 }
@@ -68,13 +68,13 @@ détruit_document :: fonc (document: *Document) -> rien
 
 crée_document_depuis_texte :: fonc (texte: chaine) -> Document
 {
-    document : Document
+    document: Document
     document.texte = texte
 
     fragments := fragmente_texte(texte)
-    diffère { déloge(fragments); }
+    diffère déloge(fragments)
 
-    ligne_courante : Ligne
+    ligne_courante: Ligne
 
     pour fragment dans fragments {
         si ligne_courante.taille + fragment.taille > document.taille_ligne {
@@ -97,12 +97,12 @@ crée_document_depuis_texte :: fonc (texte: chaine) -> Document
 // @note : considération des espaces en fin de ligne, ou suppression des espaces avec ajout dans l'impression quand nécessaire
 principale :: fonc () -> z32
 {
-    diffère { imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+    diffère imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 
     texte := "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
     document := crée_document_depuis_texte(texte)
-    diffère { détruit_document(*document) }
+    diffère détruit_document(*document)
 
     imprime("Texte avec alignement gauche :\n\n")
 

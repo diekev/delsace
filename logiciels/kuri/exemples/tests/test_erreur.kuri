@@ -10,8 +10,8 @@ ErreurSystème :: erreur {
 }
 
 RésultatRecherche :: union {
-    err : ErreurSystème
-    fd : z32
+    err: ErreurSystème
+    fd: z32
 }
 
 appel_fonction_avec_erreur_union :: fonc () -> RésultatRecherche
@@ -54,7 +54,7 @@ principale :: fonc () -> z32
     imprime("Fragment       : %\n", uri.fragment)
 
     uri_recomposé := recompose_uri(*uri)
-    diffère { déloge(uri_recomposé); }
+    diffère déloge(uri_recomposé)
 
     imprime("uri_recomposé : %\n", uri_recomposé)
 

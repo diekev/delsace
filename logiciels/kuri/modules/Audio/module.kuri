@@ -22,7 +22,7 @@ EntêteWave :: struct {
     autrice.écris_chaine_sans_taille(entête.type_riff)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ChunkFormatWave
@@ -72,7 +72,7 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
     autrice.écris(chunk.bits_par_échantillon)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ChunkDonnéesWave
@@ -91,7 +91,7 @@ ChunkDonnéesWave :: struct {
     autrice.écris(chunk.données)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom GénératriceWave
@@ -156,7 +156,7 @@ sauvegarde :: fonc (génératrice: &GénératriceWave, chemin: chaine)
     écris(génératrice.données, fichier)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Autrice fichier Wave.
@@ -220,4 +220,4 @@ détruit_données_autrice :: fonc (autrice: *AutriceFichierWave)
     sérialise(*autrice.sérialiseuse, chn)
 }
 
-/** } */
+/** \} */
