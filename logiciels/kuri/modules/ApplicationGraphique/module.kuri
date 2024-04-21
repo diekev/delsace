@@ -50,7 +50,7 @@ redimensionne_fenêtre :: fonc (fenêtre: *Fenêtre, largeur: z32, hauteur: z32)
     fenêtre.largeur = largeur
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Application
@@ -72,7 +72,7 @@ redimensionne_app :: fonc (app: *Application, largeur: z32, hauteur: z32)
     redimensionne_fenêtre(app.fenêtre, largeur, hauteur)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Typage des rappels pour les clientes.
@@ -107,7 +107,7 @@ détermine_types_rappels_pour_cliente :: fonc ($TypeCliente: type_de_données) -
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Membres des rappels clientes.
@@ -189,7 +189,7 @@ raporte_erreur_si_membre_invalide :: fonc (info_cliente: *InfoTypeStructure, mem
     rapporte_erreur_typage_rappel(info_cliente, membre, type_attendu)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Dessin de fenêtre.
@@ -263,7 +263,7 @@ rapporte_erreur_typage_rappel :: fonc (info_cliente: *InfoTypeStructure, membre:
     compilatrice_rapporte_erreur(message_erreur)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Évènements
@@ -301,4 +301,4 @@ détermine_évènements_requis :: fonc ($TypeCliente: type_de_données) -> Évè
     retourne résultat
 }
 
-/** } */
+/** \} */

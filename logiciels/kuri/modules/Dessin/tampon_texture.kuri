@@ -137,4 +137,4 @@ génère_texture :: fonc (tampon_texture: *TamponTexture, données: TamponDeRend
     définis_texture_2d(tampon_texture.code_texture, *params)
 }
 
-/** } */
+/** \} */

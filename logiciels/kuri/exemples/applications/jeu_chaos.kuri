@@ -4,122 +4,121 @@
 importe Géométrie
 
 MondeVersEcran :: struct {
-    A := 0.0;
-    B := 0.0;
-    C := 0.0;
-    D := 0.0;
+    A := 0.0
+    B := 0.0
+    C := 0.0
+    D := 0.0
 }
 
-monde_vers_ecran :: fonc(monde: RectanglePur(r32), ecran: RectanglePur(r32)) -> MondeVersEcran
+monde_vers_ecran :: fonc (monde: RectanglePur(r32), ecran: RectanglePur(r32)) -> MondeVersEcran
 {
-    mve : MondeVersEcran;
+    mve: MondeVersEcran
 
-    mve.A = (ecran.droite - ecan.gauche) / (monde.droite - monde.gauche);
-    mve.B = (ecran.haut - ecran.bas) / (monde.haut - monde.bas);
-    mve.C = ecran.gauche - mve.A * monde.gauche;
-    mve.D = ecran.bas - mve.B * monde.bas;
+    mve.A = (ecran.droite - ecan.gauche) / (monde.droite - monde.gauche)
+    mve.B = (ecran.haut - ecran.bas) / (monde.haut - monde.bas)
+    mve.C = ecran.gauche - mve.A * monde.gauche
+    mve.D = ecran.bas - mve.B * monde.bas
 
-    retourne mve;
+    retourne mve
 }
 
-mappage :: fonc(mve : &MondeVersEcran, x : r64, y : r64) -> Point2D(r32)
+mappage :: fonc (mve: &MondeVersEcran, x: r64, y: r64) -> Point2D(r32)
 {
-    pos_ecran : Point2D(r32);
+    pos_ecran: Point2D(r32)
 
-    pos_ecran.x = mve.A * x + mve.C;
-    pos_ecran.y = mve.B * y + mve.D;
+    pos_ecran.x = mve.A * x + mve.C
+    pos_ecran.y = mve.B * y + mve.D
 
-    retourne pos_ecran;
+    retourne pos_ecran
 }
 
-mappage :: fonc(mve : &MondeVersEcran, p : &Point2D(r32)) -> Point2D(r32)
+mappage :: fonc (mve: &MondeVersEcran, p: &Point2D(r32)) -> Point2D(r32)
 {
-    retourne mappage(mve, p.x, p.y);
+    retourne mappage(mve, p.x, p.y)
 }
 
 /* ------------------------------------------------------------------------- */
 
-dessine_point_rayon :: fonc(
-    cannevas : [..]z8,
-    hauteur : z32,
-    largeur : z32,
-    p : &Point2D(r32),
-    rayon_point : z32) -> rien
+dessine_point_rayon :: fonc (
+    cannevas: [..]z8,
+    hauteur: z32,
+    largeur: z32,
+    p: &Point2D(r32),
+    rayon_point: z32) -> rien
 {
-
 }
 
 points_vers_ecran :: fonc (
-    hauteur : z32,
-    largeur : z32,
-    monde : RectanglePur(r32),
-    ecran : RectanglePur(r32),
-    points : [..]Point2D(r32)) -> [..]Point2D(r32)
+    hauteur: z32,
+    largeur: z32,
+    monde: RectanglePur(r32),
+    ecran: RectanglePur(r32),
+    points: [..]Point2D(r32)) -> [..]Point2D(r32)
 {
     retourne points
 }
 
-dessine_bmp :: fonc(
-    chemin : chaine,
-    hauteur : z32,
-    largeur : z32,
-    monde : RectanglePur(r32),
-    ecran : RectanglePur(r32),
-    points : [..]Point2D(r32),
-    rayon_point : z32) -> rien
+dessine_bmp :: fonc (
+    chemin: chaine,
+    hauteur: z32,
+    largeur: z32,
+    monde: RectanglePur(r32),
+    ecran: RectanglePur(r32),
+    points: [..]Point2D(r32),
+    rayon_point: z32) -> rien
 {
     cannevas := loge_tableau(z8, hauteur * largeur * 4)
-    diffère { déloge(cannevas); }
+    diffère déloge(cannevas)
 
     pour & v dans cannevas {
-        v = 255;
+        v = 255
     }
 
-    points_ecran := points_vers_ecran(hauteur, largeur, monde, ecran, points);
-    diffère { déloge(points_ecran); }
+    points_ecran := points_vers_ecran(hauteur, largeur, monde, ecran, points)
+    diffère déloge(points_ecran)
 
     si rayon_point == 0 {
         pour p dans points_ecran {
-            idx := index_point(p.x, p.y);
-            cannevas[idx    ] = 0;
-            cannevas[idx + 1] = 0;
-            cannevas[idx + 2] = 0;
-            cannevas[idx + 3] = 255;
+            idx := index_point(p.x, p.y)
+            cannevas[idx] = 0
+            cannevas[idx + 1] = 0
+            cannevas[idx + 2] = 0
+            cannevas[idx + 3] = 255
         }
     }
     sinon {
         pour p dans points_ecran {
-            dessine_point_rayon(cannevas, hauteur, largeur, p, rayon_point);
+            dessine_point_rayon(cannevas, hauteur, largeur, p, rayon_point)
         }
     }
 
-    écris_cannevas(chemin, cannevas);
+    écris_cannevas(chemin, cannevas)
 }
 
 /* ------------------------------------------------------------------------- */
 
 principale :: fonc () -> z32
 {
-    monde := RectanglePur(r32)( gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0 );
+    monde := RectanglePur(r32)(gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0)
     hauteur := 800
     largeur := 800
 
     points := [
-        Point2D(r32)(x =   0.0, y =  0.0),
-        Point2D(r32)(x =  10.0, y =  10.0),
-        Point2D(r32)(x =  20.0, y =  20.0),
-        Point2D(r32)(x =  30.0, y =  30.0),
-        Point2D(r32)(x =  40.0, y =  40.0),
-        Point2D(r32)(x =  50.0, y =  50.0),
-        Point2D(r32)(x =  60.0, y =  60.0),
-        Point2D(r32)(x =  70.0, y =  70.0),
-        Point2D(r32)(x =  80.0, y =  80.0),
-        Point2D(r32)(x =  90.0, y =  90.0),
+        Point2D(r32)(x = 0.0, y = 0.0),
+        Point2D(r32)(x = 10.0, y = 10.0),
+        Point2D(r32)(x = 20.0, y = 20.0),
+        Point2D(r32)(x = 30.0, y = 30.0),
+        Point2D(r32)(x = 40.0, y = 40.0),
+        Point2D(r32)(x = 50.0, y = 50.0),
+        Point2D(r32)(x = 60.0, y = 60.0),
+        Point2D(r32)(x = 70.0, y = 70.0),
+        Point2D(r32)(x = 80.0, y = 80.0),
+        Point2D(r32)(x = 90.0, y = 90.0),
         Point2D(r32)(x = 799.0, y = 799.0)
-    ];
+    ]
 
-    espace_écran := RectanglePur(r32)( gauche = 0.0, bas = 0.0, haut = 799.0, droite = 799.0 );
-    dessine_bmp("chaos.bmp", hauteur, largeur, monde, espace_écran, points, 5);
+    espace_écran := RectanglePur(r32)(gauche = 0.0, bas = 0.0, haut = 799.0, droite = 799.0)
+    dessine_bmp("chaos.bmp", hauteur, largeur, monde, espace_écran, points, 5)
 
-    retourne 0;
+    retourne 0
 }

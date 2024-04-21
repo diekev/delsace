@@ -6,14 +6,12 @@
 
 principale :: fonc () -> z32
 {
-    u : r32 | *z32
+    u: r32 | *z32
 
     discr u {
         r32 {
-
         }
         *z32 {
-
         }
         sinon {}
     }

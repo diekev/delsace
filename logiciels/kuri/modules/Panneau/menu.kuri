@@ -17,7 +17,7 @@ ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, texte: chaine) -> *Menu
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Menu
@@ -72,4 +72,4 @@ gère_clique_souris :: fonc (élément: Menu.Élément)
     }
 }
 
-/** } */
+/** \} */

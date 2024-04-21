@@ -24,7 +24,7 @@ crée_bouton :: fonc (texte: chaine, sur_clique: fonc(*Bouton)(rien)) -> *Bouton
     retourne résultat
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Panneau Bouton
@@ -124,4 +124,4 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
     retourne résultat
 }
 
-/** } */
+/** \} */
