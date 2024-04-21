@@ -7,7 +7,7 @@ importe Support
 TypeFonction :: fonc(z32)(rien)
 
 Struct :: struct {
-    pointeur : TypeFonction
+    pointeur: TypeFonction
 }
 
 principale :: fonc () -> z32

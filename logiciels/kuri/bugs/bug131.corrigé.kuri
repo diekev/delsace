@@ -3,7 +3,7 @@
  * NOTE : corrigé par 492ff8e2053bd4734af08b6f3e88589aefd700b8
  */
 
-importe Fondation 
+importe Fondation
 
 UnionTest :: union nonsûr {
     e: z32
@@ -22,7 +22,7 @@ modifie_réel :: fonc (u: *UnionTest)
 
 principale :: fonc () -> z32
 {
-    u : UnionTest
+    u: UnionTest
     modifie_entier(*u)
     assert(u.e == 127)
     modifie_réel(*u)
