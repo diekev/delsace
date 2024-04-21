@@ -34,7 +34,7 @@ produit_scalaire :: fonc (v0: Vecteur3, v1: Vecteur3) -> z32 #enligne
 
 débouclement_tableau_fixe :: fonc ()
 {
-    tableau_fixe : [3]z32
+    tableau_fixe: [3]z32
 
     pour tableau_dynamique {
         it = 4
@@ -43,7 +43,7 @@ débouclement_tableau_fixe :: fonc ()
 
 débouclement_tableau_dynamique_depuis_fixe :: fonc ()
 {
-    tableau_fixe : [3]z32
+    tableau_fixe: [3]z32
     tableau_dynamique : [..]z32 = tableau_fixe
 
     pour tableau_dynamique {
@@ -53,7 +53,7 @@ débouclement_tableau_dynamique_depuis_fixe :: fonc ()
 
 enlignage_fonction_initialisation :: fonc ()
 {
-    v : Vecteur3
+    v: Vecteur3
 }
 
 /* optimisations assez correctes, la propagation des valeurs des membres ne
@@ -89,7 +89,7 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-/*
+    /*
     tableau_fixe : [3]z32
 
     pour tableau_fixe {
@@ -116,7 +116,6 @@ déduplique_condition :: fonc ()
 
     si a == 5 {
         si a == 5 {
-
         }
     }
 }
@@ -134,7 +133,7 @@ test_discr :: fonc () -> z32
 
             retourne 1
         }
-        sinon  {
+        sinon {
             retourne 0
         }
     }
@@ -144,17 +143,15 @@ test_discr :: fonc () -> z32
 
 test_conditions :: fonc () -> z32
 {
-// bloc_condition_vide_si()
+    // bloc_condition_vide_si()
     si a == a {
         retourne 1
     }
 
     bloc_condition_vide_si_sinon
     si a == 5 {
-
     }
     sinon {
-
     }
 
     bloc_condition_vide_sinon
@@ -162,7 +159,6 @@ test_conditions :: fonc () -> z32
         b = 5
     }
     sinon {
-
     }
 
     retourne 1
@@ -180,7 +176,7 @@ test_indirection_pointeur :: fonc () -> z32
 
 tests :: fonc ()
 {
-/*
+    /*
     // a := 5 + 7;
     // a = 9
     // b := 6 * a;

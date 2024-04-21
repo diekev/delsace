@@ -1,51 +1,51 @@
 importe Fondation
 
-boucle_avec_plage :: fonc() -> rien
+boucle_avec_plage :: fonc () -> rien
 {
-    imprime("boucle_avec_plage()\n");
+    imprime("boucle_avec_plage()\n")
 
-    pour i dans 0...10 {
-        imprime("%\n", i);
+    pour i dans 0 ... 10 {
+        imprime("%\n", i)
     }
 
-    imprime("\n");
+    imprime("\n")
 }
 
-boucle_avec_args_varidics :: fonc(args : ...z32) -> rien
+boucle_avec_args_varidics :: fonc (args: ...z32) -> rien
 {
-    imprime("boucle_avec_args_varidics()\n");
+    imprime("boucle_avec_args_varidics()\n")
 
     pour arg dans args {
-        imprime("%\n", arg);
+        imprime("%\n", arg)
     }
 
-    imprime("\n");
+    imprime("\n")
 }
 
-boucle_avec_tableau :: fonc(tableau : [10]z32) -> rien
+boucle_avec_tableau :: fonc (tableau: [10]z32) -> rien
 {
-    imprime("boucle_avec_tableau()\n");
+    imprime("boucle_avec_tableau()\n")
 
     pour v dans tableau {
-        imprime("%\n", v);
+        imprime("%\n", v)
     }
 
-    imprime("\n");
+    imprime("\n")
 }
 
 principale :: fonc () -> z32
 {
-    boucle_avec_plage();
+    boucle_avec_plage()
 
-    boucle_avec_args_varidics(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20);
+    boucle_avec_args_varidics(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20)
 
-    tableau := [0, 3, 6, 9, 12, 15, 18, 21, 24, 27];
+    tableau := [ 0, 3, 6, 9, 12, 15, 18, 21, 24, 27 ]
 
-    boucle_avec_tableau(tableau);
+    boucle_avec_tableau(tableau)
 
-    tabl : [10]z32
+    tabl: [10]z32
 
-    pour < 0 ... 9 {
+    pour 0 ... 9 {
         tabl[index_it] = it
     }
 
