@@ -3600,3 +3600,10 @@ void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *dé
         données_externes->nom_symbole = déclaration_symbole->ident->nom;
     }
 }
+
+void Syntaxeuse::imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message)
+{
+    Enchaineuse enchaineuse;
+    imprime_ligne_avec_message(enchaineuse, SiteSource::cree(m_fichier, lexème), message);
+    dbg() << enchaineuse.chaine();
+}

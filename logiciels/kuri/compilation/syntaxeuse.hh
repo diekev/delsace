@@ -150,4 +150,6 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration);
     void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
                                            NoeudDirectiveFonction *directive);
+
+    void imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message);
 };
