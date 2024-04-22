@@ -578,6 +578,26 @@ int QT_widget_donne_hauteur_pour_largeur_comportement_taille(QT_Generic_Widget w
     return policy.hasHeightForWidth();
 }
 
+static Qt::CursorShape convertis_forme_curseur(QT_CursorShape cursor)
+{
+    switch (cursor) {
+        ENUMERE_CURSOR_SHAPE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::ArrowCursor;
+}
+
+void QT_widget_definis_curseur(QT_Generic_Widget widget, QT_CursorShape cursor)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setCursor(convertis_forme_curseur(cursor));
+}
+
+void QT_widget_restore_curseur(QT_Generic_Widget widget)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->unsetCursor();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
