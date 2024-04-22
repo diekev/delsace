@@ -1005,7 +1005,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexème lexème_fina
     if (lexème->genre == GenreLexème::FOIS_UNAIRE) {
         auto opérande = analyse_expression(
             {précédence, associativité}, GenreLexème::INCONNU, lexème_final);
-
         return crée_prise_adresse(lexème, opérande);
     }
 
