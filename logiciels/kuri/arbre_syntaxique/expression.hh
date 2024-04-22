@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "prodeclaration.hh"
+
 #include <cstdint>
 #include <iosfwd>
 #include <variant>
@@ -10,12 +12,6 @@
 #include "utilitaires/macros.hh"
 
 struct Compilatrice;
-struct NoeudBloc;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudExpression;
-struct NoeudExpressionLittéraleChaine;
-struct NoeudExpressionConstructionTableau;
-struct NoeudDéclarationType;
 
 using Type = NoeudDéclarationType;
 
