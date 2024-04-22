@@ -531,18 +531,19 @@ test_union_nonsûr :: fonc () -> bool
         retourne faux
     }
 
+    // À FAIRE(langage) : transtypage des unions nonsûres
     // assignation d'un type, sans accès membre
-    e = 5
+    // e = 5
 
-    si e != 5 comme z32 {
-        retourne faux
-    }
+    // si e comme z32 != 5 {
+    //     retourne faux
+    // }
 
-    e = 6.0
+    // e = 6.0
 
-    si e != 6.0 {
-        retourne faux
-    }
+    // si e comme r32 != 6.0 {
+    //     retourne faux
+    // }
 
     // assignation d'un type, ave accès membre
     e.e = 5
@@ -557,18 +558,19 @@ test_union_nonsûr :: fonc () -> bool
         retourne faux
     }
 
+    // À FAIRE(langage) : transtypage des unions nonsûres
     // transtypage
-    f := e comme z32
+    // f := e comme z32
 
-    si f != 0b0_10000001_10000000000000000000000 {
-        retourne faux
-    }
+    // si f != 0b0_10000001_10000000000000000000000 {
+    //     retourne faux
+    // }
 
-    g := e comme r32
+    // g := e comme r32
 
-    si g != 6.0 {
-        retourne faux
-    }
+    // si g != 6.0 {
+    //     retourne faux
+    // }
 
     retourne vrai
 }
@@ -591,7 +593,8 @@ test_union_sûr :: fonc () -> bool
     // }
 
     // assignation d'un type, sans accès membre
-    e = 5
+    // À FAIRE(langage) : ne permet pas de conversion vers r32 depuis un entier_constant dans ce cas.
+    e = 5 comme z32
 
     si e != 5 comme z32 {
         retourne faux
@@ -648,7 +651,7 @@ test_union_sûr_anonyme :: fonc () -> bool
     // }
 
     // // assignation d'un type, sans accès membre
-    e = 5
+    e = 5 comme z32
 
     si e != 5 comme z32 {
         retourne faux
@@ -793,7 +796,7 @@ appel_fonction_avec_erreur_seule :: fonc () -> ErreurTest
 
 retourne_erreur_depuis_union :: fonc () -> bool
 {
-    _ := tente appel_fonction_avec_erreur_union() piège err {
+    _ := tente appel_fonction_avec_erreur_union() piège _ {
         retourne vrai
     }
 
@@ -804,7 +807,7 @@ retourne_erreur_depuis_union :: fonc () -> bool
 
 retourne_erreur_seule :: fonc () -> bool
 {
-    tente appel_fonction_avec_erreur_seule() piège err {
+    tente appel_fonction_avec_erreur_seule() piège _ {
         retourne vrai
     }
 

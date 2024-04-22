@@ -6,6 +6,8 @@
 #include <iosfwd>
 #include <optional>
 
+#include "prodeclaration.hh"
+
 #include "compilation/transformation_type.hh"
 
 #include "structures/chaine_statique.hh"
@@ -21,17 +23,6 @@ struct Compilatrice;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Lexème;
-struct NoeudBloc;
-struct NoeudDéclaration;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDéclarationSymbole;
-struct NoeudDéclarationType;
-struct NoeudDéclarationTypeComposé;
-struct NoeudDéclarationTypePointeur;
-struct NoeudDéclarationVariable;
-struct NoeudExpression;
-struct NoeudExpressionRéférence;
-struct NoeudExpressionPriseAdresse;
 struct Symbole;
 struct UniteCompilation;
 using Type = NoeudDéclarationType;
