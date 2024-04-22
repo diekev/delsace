@@ -607,7 +607,9 @@ void QT_widget_restore_curseur(QT_Generic_Widget widget)
 QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new GLWidget(rappels, qparent));
+    auto résultat = vers_ipa(new GLWidget(rappels, qparent));
+    rappels->widget = résultat;
+    return résultat;
 }
 
 /** \} */

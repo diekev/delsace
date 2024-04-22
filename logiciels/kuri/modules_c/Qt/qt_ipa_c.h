@@ -488,6 +488,9 @@ struct QT_Rappels_GLWidget {
     void (*sur_peinture_gl)(struct QT_Rappels_GLWidget *);
     /** Les dimensions sont passées dans l'ordre : largeur, hauteur. */
     void (*sur_redimensionnement_gl)(struct QT_Rappels_GLWidget *, struct QT_Taille);
+
+    /** Le widget pour lequel les rappels sont mis en place. */
+    struct QT_GLWidget *widget;
 };
 
 struct QT_GLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
