@@ -2476,6 +2476,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
             auto decl_variable = m_tacheronne.assembleuse->crée_déclaration_constante(
                 noeud->lexème, nullptr, nullptr);
             expressions.ajoute(decl_variable);
+            m_tacheronne.assembleuse->recycle_référence(noeud->comme_référence_déclaration());
         }
         else if (noeud->est_déclaration_constante()) {
             expressions.ajoute(noeud);
