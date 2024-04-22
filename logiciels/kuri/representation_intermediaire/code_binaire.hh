@@ -6,6 +6,8 @@
 #include <ffi.h>  // pour ffi_type qui est un typedef
 #include <iosfwd>
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "compilation/operateurs.hh"
 
 #include "structures/tableau.hh"
@@ -25,9 +27,6 @@ struct Instruction;
 struct InstructionAllocation;
 struct InstructionAppel;
 struct MetaProgramme;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudExpression;
-struct NoeudDéclarationType;
 struct ProgrammeRepreInter;
 using Type = NoeudDéclarationType;
 

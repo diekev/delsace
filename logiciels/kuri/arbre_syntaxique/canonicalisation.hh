@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "structures/pile.hh"
 #include "structures/pile_de_tableaux.hh"
 #include "structures/tableau.hh"
@@ -13,27 +15,6 @@ struct AssembleuseArbre;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Lexème;
-struct NoeudBloc;
-struct NoeudComme;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDéclarationType;
-struct NoeudDéclarationVariable;
-struct NoeudDiscr;
-struct NoeudExpression;
-struct NoeudExpressionAppel;
-struct NoeudExpressionAssignationLogique;
-struct NoeudExpressionBinaire;
-struct NoeudExpressionConstructionStructure;
-struct NoeudExpressionLogique;
-struct NoeudExpressionMembre;
-struct NoeudExpressionRéférence;
-struct NoeudPour;
-struct NoeudRetiens;
-struct NoeudInstructionRetour;
-struct NoeudInstructionTente;
-struct NoeudInstructionRetourMultiple;
-struct NoeudSi;
-struct NoeudStruct;
 struct Typeuse;
 
 using TypeStructure = NoeudStruct;

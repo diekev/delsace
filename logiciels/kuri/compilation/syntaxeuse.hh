@@ -3,25 +3,13 @@
 
 #pragma once
 
+#include "arbre_syntaxique/prodeclaration.hh"
 #include "biblinternes/structures/tableau_page.hh"
 #include "parsage/base_syntaxeuse.hh"
 #include "structures/pile.hh"
 
 struct Annotation;
 struct Compilatrice;
-struct NoeudBloc;
-struct NoeudDéclarationClasse;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDéclarationSymbole;
-struct NoeudDéclarationVariable;
-struct NoeudDirectiveFonction;
-struct NoeudExpression;
-struct NoeudExpressionConstructionTableau;
-struct NoeudExpressionTypeTableauFixe;
-struct NoeudExpressionVirgule;
-struct NoeudPour;
-struct NoeudStruct;
-struct NoeudUnion;
 struct Tacheronne;
 struct UniteCompilation;
 
@@ -150,4 +138,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration);
     void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
                                            NoeudDirectiveFonction *directive);
+
+    void recycle_référence(NoeudExpressionRéférence *référence);
+    void imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message);
 };

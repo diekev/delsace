@@ -285,6 +285,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
 
     static Lexème lexème_retourne = {"retourne", {}, GenreLexème::RETOURNE, 0, 0, 0};
     auto expr_ret = m_assembleuse->crée_retourne(&lexème_retourne, nullptr);
+    expr_ret->type = type_expression;
 
 #ifndef NDEBUG
     /* Dépile manuellement en mode débogage afin de vérifier que les assembleuses sont proprement
@@ -302,8 +303,6 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     m_assembleuse->dépile_tout();
 #endif
 
-    simplifie_arbre(m_espace, m_assembleuse, m_compilatrice.typeuse, expression);
-
     if (type_expression != TypeBase::RIEN) {
         expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
         expr_ret->expression = expression;
@@ -319,6 +318,8 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     }
 
     decl_corps->bloc->ajoute_expression(expr_ret);
+
+    simplifie_arbre(m_espace, m_assembleuse, m_compilatrice.typeuse, decl_entete);
 
     decl_entete->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
