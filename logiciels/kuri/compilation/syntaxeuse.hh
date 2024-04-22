@@ -228,6 +228,5 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpressionRéférenceType *crée_référence_type(Lexème const *lexème);
 
     void recycle_référence(NoeudExpressionRéférence *référence);
-
     void imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message);
 };
