@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "representation_intermediaire/code_binaire.hh"
 
 #include "structures/chaine.hh"
@@ -13,11 +15,6 @@ struct DonnéesExécution;
 struct Enchaineuse;
 struct IdentifiantCode;
 struct Fichier;
-struct NoeudBloc;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDirectiveExécute;
-struct NoeudDéclarationType;
-struct NoeudDéclarationClasse;
 struct Programme;
 struct Statistiques;
 struct UniteCompilation;

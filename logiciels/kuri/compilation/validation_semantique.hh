@@ -5,6 +5,7 @@
 
 #include <variant>
 
+#include "arbre_syntaxique/prodeclaration.hh"
 #include "arbre_syntaxique/utilitaires.hh"
 
 #include "statistiques/statistiques.hh"
@@ -19,44 +20,6 @@ struct Compilatrice;
 struct EspaceDeTravail;
 struct Lexème;
 struct MetaProgramme;
-struct NoeudAssignation;
-struct NoeudAssignationMultiple;
-struct NoeudBloc;
-struct NoeudComme;
-struct NoeudDéclarationConstante;
-struct NoeudDéclarationCorpsFonction;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDéclarationOpérateurPour;
-struct NoeudDéclarationSymbole;
-struct NoeudDéclarationType;
-struct NoeudDéclarationTypeComposé;
-struct NoeudDéclarationTypeOpaque;
-struct NoeudDéclarationTypeTableauFixe;
-struct NoeudDéclarationVariable;
-struct NoeudDéclarationVariableMultiple;
-struct NoeudDirectiveCuisine;
-struct NoeudDirectiveDépendanceBibliothèque;
-struct NoeudDirectiveExécute;
-struct NoeudDiscr;
-struct NoeudEnum;
-struct NoeudExpressionAssignationLogique;
-struct NoeudExpressionBinaire;
-struct NoeudExpressionConstructionTableauTypé;
-struct NoeudExpressionLittéraleBool;
-struct NoeudExpressionLogique;
-struct NoeudExpressionMembre;
-struct NoeudExpressionTypeFonction;
-struct NoeudExpressionTypeTableauDynamique;
-struct NoeudExpressionTypeTableauFixe;
-struct NoeudExpressionTypeTranche;
-struct NoeudInstructionControleBoucle;
-struct NoeudInstructionImporte;
-struct NoeudPour;
-struct NoeudInstructionRetour;
-struct NoeudInstructionRetourMultiple;
-struct NoeudSi;
-struct NoeudStruct;
-struct NoeudUnion;
 struct Tacheronne;
 struct TransformationType;
 struct UniteCompilation;

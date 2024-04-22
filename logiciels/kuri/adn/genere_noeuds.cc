@@ -18,6 +18,8 @@
 #include "structures/ensemble.hh"
 #include "structures/table_hachage.hh"
 
+#include "utilitaires/algorithmes.hh"
+
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
 
@@ -119,10 +121,61 @@ static const IdentifiantADN &type_nominal_membre_pour_noeud_code(Type *type)
     return protéine->accede_nom_code();
 }
 
+static ProtéineStruct const *donne_protéine_ou_mère_la_plus_ancienne(
+    ProtéineStruct const *protéine)
+{
+    auto résultat = protéine;
+    while (résultat->mere()) {
+        résultat = résultat->mere();
+    }
+    return résultat;
+}
+
+static bool est_protéine_noeud_expression(Protéine const *protéine)
+{
+    auto protéine_struct = protéine->comme_struct();
+    if (!protéine_struct) {
+        return false;
+    }
+
+    protéine_struct = donne_protéine_ou_mère_la_plus_ancienne(protéine_struct);
+    return protéine_struct->nom().nom() == "NoeudExpression";
+}
+
 struct GeneratriceCodeCPP {
     kuri::tableau<Protéine *> protéines{};
     kuri::tableau<ProtéineStruct *> protéines_struct{};
     kuri::table_hachage<kuri::chaine_statique, ProtéineStruct *> table_desc{"Protéines"};
+
+    kuri::ensemble<kuri::chaine_statique> donne_ensemble_noms_noeuds_expression()
+    {
+        kuri::ensemble<kuri::chaine_statique> résultat;
+
+        POUR (protéines) {
+            if (!est_protéine_noeud_expression(it)) {
+                continue;
+            }
+            résultat.insère(it->nom().nom());
+        }
+
+        return résultat;
+    }
+
+    void génère_fichier_prodéclaration(FluxSortieCPP &os)
+    {
+        os << "#pragma once\n";
+
+        auto ensemble_noms = donne_ensemble_noms_noeuds_expression();
+        kuri::tableau<kuri::chaine_statique> noms;
+        ensemble_noms.pour_chaque_element([&](auto &nom) { noms.ajoute(nom); });
+
+        kuri::tri_rapide(kuri::tableau_statique<kuri::chaine_statique>(noms),
+                         [](auto &a, auto &b) { return a < b; });
+
+        POUR (noms) {
+            os << "struct " << it << ";\n";
+        }
+    }
 
     void genere_fichier_entete_arbre_syntaxique(FluxSortieCPP &os)
     {
@@ -137,18 +190,24 @@ struct GeneratriceCodeCPP {
         os << "#include \"compilation/transformation_type.hh\"\n";
         os << "#include \"parsage/lexemes.hh\"\n";
         os << "#include \"expression.hh\"\n";
+        os << "#include \"prodeclaration.hh\"\n";
         os << "#include \"utilitaires.hh\"\n";
         os << "class Broyeuse;\n";
-        os << "struct Enchaineuse;\n";
 
         // Prodéclarations des structures
         kuri::ensemble<kuri::chaine> noms_struct;
+        noms_struct.insère("Enchaineuse");
+
+        auto ensemble_noms = donne_ensemble_noms_noeuds_expression();
 
         POUR (protéines) {
-            if (it->comme_struct()) {
-                auto protéine = it->comme_struct();
+            auto protéine = it->comme_struct();
+            if (!protéine) {
+                continue;
+            }
 
-                protéine->pour_chaque_membre_recursif([&noms_struct](Membre const &membre) {
+            protéine->pour_chaque_membre_recursif(
+                [&noms_struct, &ensemble_noms](Membre const &membre) {
                     if (!membre.type->est_pointeur()) {
                         return;
                     }
@@ -162,10 +221,14 @@ struct GeneratriceCodeCPP {
                     const auto type_nominal = type_pointe->comme_nominal();
                     const auto nom_type = type_nominal->nom_cpp.nom();
 
-                    noms_struct.insère(nom_type);
+                    if (!ensemble_noms.possède(nom_type)) {
+                        noms_struct.insère(nom_type);
+                    }
                 });
 
-                noms_struct.insère(it->nom().nom());
+            auto nom_protéine = it->nom().nom();
+            if (!ensemble_noms.possède(nom_protéine)) {
+                noms_struct.insère(nom_protéine);
             }
         }
 
@@ -1722,6 +1785,11 @@ int main(int argc, char **argv)
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_entete_allocatrice(flux);
+    }
+    else if (nom_fichier_sortie.nom_fichier() == "prodeclaration.hh") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
+        auto flux = FluxSortieCPP(fichier_sortie);
+        generatrice.génère_fichier_prodéclaration(flux);
     }
     else {
         std::cerr << "Chemin de fichier " << argv[1] << " inconnu !\n";

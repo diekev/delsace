@@ -5,6 +5,8 @@
 
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "transformation_type.hh"
 
 #include "structures/tableau.hh"
@@ -17,16 +19,8 @@
 
 enum class GenreLexème : uint32_t;
 struct EspaceDeTravail;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDéclarationOpérateurPour;
-struct NoeudExpressionBinaire;
 struct Statistiques;
 struct Typeuse;
-
-struct NoeudDéclarationType;
-struct NoeudEnum;
-struct NoeudDéclarationTypeFonction;
-struct NoeudDéclarationTypePointeur;
 
 using Type = NoeudDéclarationType;
 using TypeEnum = NoeudEnum;
