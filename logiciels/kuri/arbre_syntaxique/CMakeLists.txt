@@ -42,6 +42,7 @@ set(SOURCES
     expression.hh
     impression.hh
     infos_types.hh
+    prodeclaration.hh
     noeud_code.hh
     noeud_expression.hh
     utilitaires.hh
@@ -61,6 +62,15 @@ add_custom_command(
 )
 endmacro()
 
+macro(genere_entete __nom__)
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${__nom__}.hh
+        COMMAND genere_noeuds "${CMAKE_CURRENT_SOURCE_DIR}/${__nom__}.hh" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/noeuds.adn
+        DEPENDS genere_noeuds ../adn/noeuds.adn
+    )
+endmacro()
+
+genere_entete(prodeclaration)
 genere_source(noeud_expression)
 genere_source(noeud_code)
 genere_source(allocatrice)
