@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include <cassert>
 #include <variant>
 
@@ -12,11 +14,7 @@ struct EspaceDeTravail;
 struct Fichier;
 struct Message;
 struct MetaProgramme;
-struct NoeudDéclaration;
-struct NoeudExpression;
-struct NoeudExpressionRéférence;
 struct UniteCompilation;
-struct NoeudDéclarationType;
 
 using Type = NoeudDéclarationType;
 
