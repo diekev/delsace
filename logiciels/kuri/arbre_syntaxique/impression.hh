@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include "prodeclaration.hh"
+
 struct Enchaineuse;
-struct NoeudBloc;
-struct NoeudExpression;
 
 /* ------------------------------------------------------------------------- */
 /** \name Impression formattée.

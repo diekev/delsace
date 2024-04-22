@@ -159,7 +159,7 @@ test_tranche_polymorphique :: fonc ()
     imprime_tranche_polymorphique(tableau_dynamique)
 }
 
-imprime_tableau_fixe_polymorphique :: fonc (tabl: [N]$T)
+imprime_tableau_fixe_polymorphique :: fonc (tabl: [$N]$T)
 {
     pour tabl {
         imprime("%\n", it)

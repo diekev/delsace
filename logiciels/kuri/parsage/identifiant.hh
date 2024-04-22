@@ -42,9 +42,11 @@ struct TableIdentifiant {
 };
 
 namespace ID {
-#define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;
+#define DEFINIS_IDENTIFIANT_COMMUN_SIMPLE(x) extern IdentifiantCode *x;
+#define DEFINIS_IDENTIFIANT_COMMUN(x, y) extern IdentifiantCode *x;
 #include "identifiant.def"
-#undef ENUMERE_IDENTIFIANT_COMMUN_SIMPLE
+#undef DEFINIS_IDENTIFIANT_COMMUN
+#undef DEFINIS_IDENTIFIANT_COMMUN_SIMPLE
 }  // namespace ID
 
 void initialise_identifiants(TableIdentifiant &table);

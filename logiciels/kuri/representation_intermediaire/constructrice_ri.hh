@@ -5,6 +5,8 @@
 
 #include "instructions.hh"
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "structures/tablet.hh"
 #include "structures/trie.hh"
 
@@ -13,18 +15,8 @@ struct Annotation;
 struct Compilatrice;
 struct ConstructriceRI;
 struct DonneesAssignations;
-struct NoeudBloc;
-struct NoeudDéclarationVariable;
-struct NoeudDéclarationVariableMultiple;
-struct NoeudExpression;
-struct NoeudExpressionConstructionTableau;
-struct NoeudExpressionLogique;
-struct NoeudExpressionMembre;
-struct NoeudInstructionTente;
 
-struct NoeudEnum;
 using TypeEnum = NoeudEnum;
-struct NoeudDéclarationTypeTableauFixe;
 using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
 
 enum class GenreInfoType : int32_t;

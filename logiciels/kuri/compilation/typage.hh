@@ -8,6 +8,8 @@
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "parsage/lexemes.hh"
 
 #include "structures/chaine.hh"
@@ -27,31 +29,8 @@ struct RegistreDesOpérateurs;
 struct OpérateurBinaire;
 struct OpérateurUnaire;
 struct MembreTypeComposé;
-struct NoeudBloc;
-struct NoeudDéclarationVariable;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDéclarationTypeTranche;
-struct NoeudDéclarationTypeOpaque;
-struct NoeudDéclarationOpérateurPour;
-struct NoeudDépendance;
-struct NoeudEnum;
-struct NoeudExpression;
-struct NoeudStruct;
 struct Statistiques;
 struct Typeuse;
-
-struct NoeudDéclarationType;
-struct NoeudDéclarationTypeComposé;
-struct NoeudDéclarationTypeFonction;
-struct NoeudDéclarationTypePointeur;
-struct NoeudDéclarationTypePolymorphique;
-struct NoeudDéclarationTypeRéférence;
-struct NoeudDéclarationTypeTableauDynamique;
-struct NoeudDéclarationTypeTableauFixe;
-struct NoeudDéclarationTypeTuple;
-struct NoeudDéclarationTypeTypeDeDonnées;
-struct NoeudDéclarationTypeVariadique;
-struct NoeudUnion;
 
 using Type = NoeudDéclarationType;
 using TypeStructure = NoeudStruct;

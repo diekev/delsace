@@ -75,14 +75,18 @@ IdentifiantCode *TableIdentifiant::ajoute_identifiant(kuri::chaine_statique nom)
 /* ************************************************************************** */
 
 namespace ID {
-#define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) IdentifiantCode *x;
+#define DEFINIS_IDENTIFIANT_COMMUN_SIMPLE(x) IdentifiantCode *x;
+#define DEFINIS_IDENTIFIANT_COMMUN(x, y) IdentifiantCode *x;
 #include "identifiant.def"
-#undef ENUMERE_IDENTIFIANT_COMMUN_SIMPLE
+#undef DEFINIS_IDENTIFIANT_COMMUN
+#undef DEFINIS_IDENTIFIANT_COMMUN_SIMPLE
 }  // namespace ID
 
 void initialise_identifiants(TableIdentifiant &table)
 {
-#define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) ID::x = table.identifiant_pour_chaine(y);
+#define DEFINIS_IDENTIFIANT_COMMUN_SIMPLE(x) ID::x = table.identifiant_pour_chaine(#x);
+#define DEFINIS_IDENTIFIANT_COMMUN(x, y) ID::x = table.identifiant_pour_chaine(y);
 #include "identifiant.def"
-#undef ENUMERE_IDENTIFIANT_COMMUN_SIMPLE
+#undef DEFINIS_IDENTIFIANT_COMMUN
+#undef DEFINIS_IDENTIFIANT_COMMUN_SIMPLE
 }
