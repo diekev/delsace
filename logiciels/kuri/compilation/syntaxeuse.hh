@@ -93,6 +93,8 @@ class TableRéférences {
 
     void empile_état_références();
     void dépile_état_références();
+
+    void imprime_références() const;
 };
 
 /** \} */
@@ -226,4 +228,6 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpressionRéférenceType *crée_référence_type(Lexème const *lexème);
 
     void recycle_référence(NoeudExpressionRéférence *référence);
+
+    void imprime_ligne_source(Lexème const *lexème, kuri::chaine_statique message);
 };

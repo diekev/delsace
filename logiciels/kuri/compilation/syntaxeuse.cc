@@ -53,6 +53,7 @@ NoeudExpressionRéférence *TableRéférences::trouve_référence_pour(Lexème c
 
 void TableRéférences::ajoute_référence(NoeudExpressionRéférence *noeud)
 {
+    assert(!noeud->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ));
     m_références.ajoute_au_tableau_courant(noeud);
 }
 
@@ -180,6 +181,17 @@ void TableRéférences::empile_état_références()
 void TableRéférences::dépile_état_références()
 {
     m_références.dépile_tableau();
+}
+
+/* Pour le débogage. */
+void TableRéférences::imprime_références() const
+{
+    dbg() << "Référence de " << this;
+    POUR (m_références.donne_tous_les_tableaux()) {
+        if (it) {
+            dbg() << "-------------- " << it << " : " << it->ident->nom;
+        }
+    }
 }
 
 /** \} */
@@ -2670,6 +2682,11 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
         }
     }
 
+    empile_table_références();
+    SUR_SORTIE_PORTEE {
+        dépile_table_références();
+    };
+
     auto lexème_bloc = lexème_courant();
     consomme(GenreLexème::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
@@ -3979,6 +3996,12 @@ NoeudExpressionRéférenceType *Syntaxeuse::crée_référence_type(Lexème const
 
 void Syntaxeuse::recycle_référence(NoeudExpressionRéférence *référence)
 {
+    if (référence->possède_drapeau(DrapeauxNoeud::EST_RÉUTILISÉ)) {
+        // imprime_ligne_source(référence->lexème, "Référence à recycler");
+        // imprime_ligne_source(lexème_courant(), "Lieu du recyclage");
+        return;
+    }
+
     m_tacheronne.assembleuse->recycle_référence(référence);
 
 #ifdef DEDUPLIQUE_NOEUDS
@@ -3988,4 +4011,11 @@ void Syntaxeuse::recycle_référence(NoeudExpressionRéférence *référence)
         m_pile_tables_références.haut()->invalide_référence(référence);
     }
 #endif
+}
+
+void Syntaxeuse::imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message)
+{
+    Enchaineuse enchaineuse;
+    imprime_ligne_avec_message(enchaineuse, SiteSource::cree(m_fichier, lexème), message);
+    dbg() << enchaineuse.chaine();
 }
