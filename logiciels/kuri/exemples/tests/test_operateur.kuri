@@ -77,7 +77,7 @@ longueur :: fonc (x: n32, y: n32, z: n32) -> n32
 
 principale :: fonc () -> z32
 {
-    retourne 0, // longueur(compte, compte, compte);
+    retourne 0 // longueur(compte, compte, compte);
 }
 
 foo :: fonc (compte: [2][2]n32) -> n32
