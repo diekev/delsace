@@ -6,6 +6,8 @@
 #include <iosfwd>
 #include <optional>
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
 
@@ -15,9 +17,6 @@ struct ArbreAplatis;
 struct EspaceDeTravail;
 struct Fichier;
 struct MetaProgramme;
-struct NoeudDéclarationCorpsFonction;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudExpression;
 struct Programme;
 
 #define ENUMERE_RAISON_D_ETRE(O)                                                                  \

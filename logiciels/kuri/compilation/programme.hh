@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "structures/ensemble.hh"
 #include "structures/tableau.hh"
 
@@ -19,12 +21,7 @@ struct Coulisse;
 struct EspaceDeTravail;
 struct Fichier;
 struct MetaProgramme;
-struct NoeudDéclaration;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDéclarationVariable;
-struct NoeudExpression;
 struct Statistiques;
-struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
 
 namespace kuri {

@@ -3,26 +3,13 @@
 
 #pragma once
 
+#include "arbre_syntaxique/prodeclaration.hh"
 #include "biblinternes/structures/tableau_page.hh"
 #include "parsage/base_syntaxeuse.hh"
 #include "structures/pile.hh"
 
 struct Annotation;
 struct Compilatrice;
-struct NoeudBloc;
-struct NoeudDéclarationClasse;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDéclarationSymbole;
-struct NoeudDéclarationVariable;
-struct NoeudDirectiveFonction;
-struct NoeudExpression;
-struct NoeudExpressionConstructionTableau;
-struct NoeudExpressionRéférence;
-struct NoeudExpressionTypeTableauFixe;
-struct NoeudExpressionVirgule;
-struct NoeudPour;
-struct NoeudStruct;
-struct NoeudUnion;
 struct Tacheronne;
 struct UniteCompilation;
 
