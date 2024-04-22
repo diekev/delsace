@@ -6,6 +6,8 @@
 #include "biblinternes/outils/badge.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "structures/ensemblon.hh"
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
@@ -13,13 +15,8 @@
 struct AtomeFonction;
 struct EspaceDeTravail;
 struct GrapheDépendance;
-struct NoeudDéclarationEntêteFonction;
-struct NoeudDéclarationSymbole;
-struct NoeudDéclarationVariable;
 struct NoeudDépendance;
-struct NoeudExpression;
 struct Statistiques;
-struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
 
 namespace kuri {
