@@ -793,7 +793,7 @@ appel_fonction_avec_erreur_seule :: fonc () -> ErreurTest
 
 retourne_erreur_depuis_union :: fonc () -> bool
 {
-    _ := tente appel_fonction_avec_erreur_union() piège err {
+    _ := tente appel_fonction_avec_erreur_union() piège _ {
         retourne vrai
     }
 
@@ -804,7 +804,7 @@ retourne_erreur_depuis_union :: fonc () -> bool
 
 retourne_erreur_seule :: fonc () -> bool
 {
-    tente appel_fonction_avec_erreur_seule() piège err {
+    tente appel_fonction_avec_erreur_seule() piège _ {
         retourne vrai
     }
 
