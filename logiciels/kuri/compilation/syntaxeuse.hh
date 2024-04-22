@@ -17,6 +17,7 @@ struct NoeudDéclarationVariable;
 struct NoeudDirectiveFonction;
 struct NoeudExpression;
 struct NoeudExpressionConstructionTableau;
+struct NoeudExpressionRéférence;
 struct NoeudExpressionTypeTableauFixe;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
@@ -151,5 +152,6 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
                                            NoeudDirectiveFonction *directive);
 
+    void recycle_référence(NoeudExpressionRéférence *référence);
     void imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message);
 };

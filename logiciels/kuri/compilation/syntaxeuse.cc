@@ -1343,8 +1343,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             lexème);
                         noeud->lexème_nom_bibliothèque = lexème_nom_bibliothèque;
                         noeud->ident = gauche->ident;
-                        m_tacheronne.assembleuse->recycle_référence(
-                            gauche->comme_référence_déclaration());
+                        recycle_référence(gauche->comme_référence_déclaration());
                         return noeud;
                     }
 
@@ -1356,8 +1355,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             données_précédence, racine_expression, lexème_final);
                         m_est_déclaration_type_opaque = false;
                         noeud->bloc_parent->ajoute_membre(noeud);
-                        m_tacheronne.assembleuse->recycle_référence(
-                            gauche->comme_référence_déclaration());
+                        recycle_référence(gauche->comme_référence_déclaration());
                         return noeud;
                     }
 
@@ -1383,7 +1381,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             noeud->expression = analyse_expression(
                 données_précédence, racine_expression, lexème_final);
 
-            m_tacheronne.assembleuse->recycle_référence(gauche->comme_référence_déclaration());
+            recycle_référence(gauche->comme_référence_déclaration());
 
             return noeud;
         }
@@ -1429,7 +1427,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 // nous avons la déclaration d'un type (a: z32)
                 auto decl = m_tacheronne.assembleuse->crée_déclaration_variable(
                     gauche->comme_référence_déclaration());
-                m_tacheronne.assembleuse->recycle_référence(gauche->comme_référence_déclaration());
+                recycle_référence(gauche->comme_référence_déclaration());
                 decl->expression_type = analyse_expression(
                     données_précédence, racine_expression, lexème_final);
                 if (!bloc_constantes_polymorphiques.est_vide()) {
@@ -1509,7 +1507,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             /* Vérifie que nous avons une référence car nous ne nous arrêtons pas en cas d'erreur
              * de syntaxe. */
             if (gauche->est_référence_déclaration()) {
-                m_tacheronne.assembleuse->recycle_référence(gauche->comme_référence_déclaration());
+                recycle_référence(gauche->comme_référence_déclaration());
             }
             noeud->expression = expression;
             analyse_annotations(noeud->annotations);
@@ -2476,7 +2474,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
             auto decl_variable = m_tacheronne.assembleuse->crée_déclaration_constante(
                 noeud->lexème, nullptr, nullptr);
             expressions.ajoute(decl_variable);
-            m_tacheronne.assembleuse->recycle_référence(noeud->comme_référence_déclaration());
+            recycle_référence(noeud->comme_référence_déclaration());
         }
         else if (noeud->est_déclaration_constante()) {
             expressions.ajoute(noeud);
@@ -3465,7 +3463,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDéclaration
 
             auto decl_membre = m_tacheronne.assembleuse->crée_déclaration_variable(
                 noeud->comme_référence_déclaration());
-            m_tacheronne.assembleuse->recycle_référence(noeud->comme_référence_déclaration());
+            recycle_référence(noeud->comme_référence_déclaration());
             noeud = decl_membre;
 
             static const Lexème lexème_rien = {"rien", {}, GenreLexème::RIEN, 0, 0, 0};
@@ -3600,6 +3598,11 @@ void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *dé
     else {
         données_externes->nom_symbole = déclaration_symbole->ident->nom;
     }
+}
+
+void Syntaxeuse::recycle_référence(NoeudExpressionRéférence *référence)
+{
+    m_tacheronne.assembleuse->recycle_référence(référence);
 }
 
 void Syntaxeuse::imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message)
