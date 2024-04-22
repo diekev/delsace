@@ -7,6 +7,8 @@
 
 #include <optional>
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "parsage/lexemes.hh"
 
 #include "structures/chaine.hh"
@@ -15,16 +17,6 @@
 
 struct Attente;
 struct EspaceDeTravail;
-struct NoeudDéclarationConstante;
-struct NoeudExpressionBinaire;
-struct NoeudExpressionConstructionStructure;
-struct NoeudExpressionExpansionVariadique;
-struct NoeudExpressionRéférence;
-struct NoeudExpressionTypeFonction;
-struct NoeudExpressionTypeTableauDynamique;
-struct NoeudExpressionTypeTableauFixe;
-struct NoeudExpressionTypeTranche;
-struct NoeudStruct;
 struct Typeuse;
 
 /* État de la résolution d'une contrainte. Une contrainte est le type ou la valeur d'une valeur

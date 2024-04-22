@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "structures/chaine_statique.hh"
 #include "structures/tableau.hh"
 #include "structures/tablet.hh"
@@ -21,10 +23,6 @@ struct Sémanticienne;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct ItemMonomorphisation;
-struct NoeudDéclaration;
-struct NoeudExpression;
-struct NoeudExpressionAppel;
-struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
 
 struct IdentifiantEtExpression {

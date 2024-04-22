@@ -4,12 +4,11 @@
 #pragma once
 
 #include "noeud_expression.hh"
+#include "prodeclaration.hh"
 
 #include "structures/table_hachage.hh"
 
 struct AssembleuseArbre;
-struct NoeudExpression;
-struct NoeudBloc;
 
 enum class OptionsCopieNoeud : uint32_t {
     AUCUNE = 0u,
