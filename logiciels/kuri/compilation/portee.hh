@@ -3,16 +3,14 @@
 
 #pragma once
 
+#include "arbre_syntaxique/prodeclaration.hh"
+
 #include "structures/ensemblon.hh"
 #include "structures/tablet.hh"
 
 struct Fichier;
 struct IdentifiantCode;
 struct Module;
-struct NoeudExpression;
-struct NoeudBloc;
-struct NoeudDéclaration;
-struct NoeudDéclarationEntêteFonction;
 
 struct ContexteRechecheSymbole {
     NoeudBloc const *bloc_racine = nullptr;

@@ -389,6 +389,11 @@ class Protéine {
     {
         return nullptr;
     }
+
+    virtual ProtéineStruct const *comme_struct() const
+    {
+        return nullptr;
+    }
 };
 
 class ProtéineStruct final : public Protéine {
@@ -435,6 +440,11 @@ class ProtéineStruct final : public Protéine {
     }
 
     ProtéineStruct *comme_struct() override
+    {
+        return this;
+    }
+
+    ProtéineStruct const *comme_struct() const override
     {
         return this;
     }
