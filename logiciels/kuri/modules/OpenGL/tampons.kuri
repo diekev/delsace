@@ -273,6 +273,8 @@ TamponRendu :: struct {
 
     éléments: n64
     dessin_indexé: bool
+
+    atlas: *AtlasTexture
 }
 
 crée_tampon_rendu :: fonc (programme: *ProgrammeDeNuançage) -> *TamponRendu
@@ -290,6 +292,9 @@ détruit_tampon_rendu :: fonc (tampon: *TamponRendu)
     si tampon.données_tampon {
         détruit_tampon_objet(tampon.données_tampon)
     }
+    si tampon.atlas {
+        déloge_atlas_texture(tampon.atlas)
+    }
     déloge(tampon)
 }
 
@@ -300,6 +305,13 @@ initialise_objet_tampon :: fonc (tampon: *TamponRendu)
     }
 
     tampon.données_tampon = crée_tampon_objet()
+}
+
+ajoute_atlas :: fonc (tampon: *TamponRendu) -> *AtlasTexture
+{
+    résultat := loge_atlas_texture(0)
+    tampon.atlas = résultat
+    retourne résultat
 }
 
 remplis_tampon :: fonc (empl tampon: *TamponRendu, paramètres: &ParamètresCréationTampon)
@@ -363,6 +375,13 @@ dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
 
     attache(données_tampon)
     diffère détache(données_tampon)
+
+    si atlas {
+        attache(atlas)
+    }
+    diffère si atlas {
+        détache(atlas)
+    }
 
     // textures
 
