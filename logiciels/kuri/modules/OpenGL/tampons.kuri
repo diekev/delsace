@@ -1,3 +1,4 @@
+importe Couleur
 importe Fondation
 importe Math
 
@@ -216,6 +217,14 @@ initialise_paramètres_extra :: fonc (params: *ParamètresCréationTampon, attri
 {
     params.attribut = attribut
     params.dimension_attribut = 3
+    params.pointeur_données_extra = données.pointeur
+    params.taille_octet_données_extra = tableau_taille_mémoire(données) comme n64
+}
+
+initialise_paramètres_extra :: fonc (params: *ParamètresCréationTampon, attribut: chaine, données: []CouleurRVBA)
+{
+    params.attribut = attribut
+    params.dimension_attribut = 4
     params.pointeur_données_extra = données.pointeur
     params.taille_octet_données_extra = tableau_taille_mémoire(données) comme n64
 }
