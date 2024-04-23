@@ -557,6 +557,7 @@ void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Wi
 struct QT_Rappels_TabWidget {
     void (*sur_changement_page)(struct QT_Rappels_TabWidget *, int index);
     void (*sur_fermeture_page)(struct QT_Rappels_TabWidget *, int index);
+    void (*sur_destruction)(struct QT_Rappels_TabWidget *);
 };
 
 struct QT_TabWidget *QT_cree_tab_widget(struct QT_Rappels_TabWidget *rappels,
@@ -938,6 +939,7 @@ struct DNJ_Rappels_Widget {
     struct DNJ_Pilote_Clique *(*donne_pilote_clique)(struct DNJ_Rappels_Widget *);
     void (*sur_creation_interface)(struct DNJ_Rappels_Widget *,
                                    struct DNJ_ConstructriceInterfaceParametres *);
+    void (*sur_destruction)(struct DNJ_Rappels_Widget *);
 };
 
 /** \} */
