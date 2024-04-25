@@ -236,6 +236,12 @@ int64_t Bibliothèque::mémoire_utilisée() const
     return memoire;
 }
 
+void Bibliothèque::ajoute_dépendance(Bibliothèque *dépendance)
+{
+    dépendances.ajoute(dépendance);
+    dépendance->prépendances.ajoute(this);
+}
+
 static int plateforme_pour_options(OptionsDeCompilation const &options)
 {
     if (options.architecture == ArchitectureCible::X86) {

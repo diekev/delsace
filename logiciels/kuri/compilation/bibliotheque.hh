@@ -136,6 +136,7 @@ struct Bibliothèque {
     kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
 
     kuri::tableau_compresse<Bibliothèque *, int> dépendances{};
+    kuri::tableau_compresse<Bibliothèque *, int> prépendances{};
     tableau_page<Symbole> symboles{};
 
     Symbole *crée_symbole(kuri::chaine_statique nom_symbole, TypeSymbole type);
@@ -143,6 +144,8 @@ struct Bibliothèque {
     bool charge(EspaceDeTravail *espace);
 
     int64_t mémoire_utilisée() const;
+
+    void ajoute_dépendance(Bibliothèque *dépendance);
 
     kuri::chaine_statique chemin_de_base(OptionsDeCompilation const &options) const;
     kuri::chaine_statique chemin_statique(OptionsDeCompilation const &options) const;
