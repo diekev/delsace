@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE math)
+set(NOM_BIBLIOTHEQUE bib_math)
 
 set(BIBLIOTHEQUES
     PUBLIC dls::outils

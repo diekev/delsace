@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE memoire)
+set(NOM_BIBLIOTHEQUE bib_memoire)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../

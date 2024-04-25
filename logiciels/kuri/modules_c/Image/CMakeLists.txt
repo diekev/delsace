@@ -58,6 +58,7 @@ add_library(bib_algorithmes_image STATIC "${SOURCES_ALGORITHMES}")
 target_include_directories(bib_algorithmes_image PUBLIC "${INCLUSIONS}")
 target_link_libraries(bib_algorithmes_image "${BIBLIOTHEQUES}")
 set_property(TARGET bib_algorithmes_image PROPERTY POSITION_INDEPENDENT_CODE ON)
+add_library(dls::algorithmes_image ALIAS bib_algorithmes_image)
 
 set(SOURCES
     image.cc
@@ -66,7 +67,7 @@ set(SOURCES
     oiio.h
 )
 
-list(APPEND BIBLIOTHEQUES bib_algorithmes_image)
+list(APPEND BIBLIOTHEQUES dls::algorithmes_image)
 
 compile_module_c(${NOM_PROJET} image image.h Image "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
 set_property(TARGET ${NOM_PROJET}_statique PROPERTY CXX_STANDARD 14)
