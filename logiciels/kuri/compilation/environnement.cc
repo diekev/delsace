@@ -315,7 +315,7 @@ kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
 
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
-                                   kuri::tableau_statique<Bibliothèque *> bibliotheques)
+                                   BibliothèquesUtilisées const &bibliotheques)
 {
     auto compilateur = donne_compilateur_cpp();
     auto options_compilateur = options_pour_liaison(compilateur, options);
@@ -336,7 +336,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
 
     auto chemins_utilises = std::set<kuri::chemin_systeme>();
 
-    POUR (bibliotheques) {
+    POUR (bibliotheques.donne_tableau()) {
         if (it->nom == "r16") {
             continue;
         }
@@ -364,7 +364,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
      * (et une version où la liaison de chaque bibliothèque est spécifiée)
      * -Wl,-Bshared -llib1 -Wl,-Bshared -lib2 -Wl,-Bstatic -lc -Wl,-Bstatic -llib3
      */
-    POUR (bibliotheques) {
+    POUR (bibliotheques.donne_tableau()) {
         if (it->nom == "r16") {
             continue;
         }

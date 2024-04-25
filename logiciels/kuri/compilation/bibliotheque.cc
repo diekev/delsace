@@ -306,6 +306,40 @@ kuri::chaine_statique Bibliothèque::nom_pour_liaison(const OptionsDeCompilation
     return noms[type_informations(chemins_dynamiques, options)];
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name BibliothèquesUtilisées
+ * Représentation des bibliothèques utilisées par un programme.
+ * \{ */
+
+BibliothèquesUtilisées::BibliothèquesUtilisées() = default;
+
+BibliothèquesUtilisées::BibliothèquesUtilisées(kuri::ensemble<Bibliothèque *> const &ensemble)
+    : m_ensemble(ensemble)
+{
+    m_ensemble.pour_chaque_element([&](Bibliothèque *b) { m_bibliothèques.ajoute(b); });
+}
+
+kuri::tableau_statique<Bibliothèque *> BibliothèquesUtilisées::donne_tableau() const
+{
+    return m_bibliothèques;
+}
+
+int64_t BibliothèquesUtilisées::mémoire_utilisée() const
+{
+    auto résultat = int64_t(0);
+    résultat += m_bibliothèques.taille_mémoire();
+    résultat += m_ensemble.taille_mémoire();
+    return résultat;
+}
+
+void BibliothèquesUtilisées::efface()
+{
+    m_bibliothèques.efface();
+    m_ensemble.efface();
+}
+
+/** \} */
+
 static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
 {
     kuri::tablet<kuri::chemin_systeme, 16> résultat;

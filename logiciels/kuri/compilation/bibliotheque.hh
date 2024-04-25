@@ -10,6 +10,7 @@
 
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
+#include "structures/ensemble.hh"
 #include "structures/tableau_compresse.hh"
 
 struct Bibliothèque;
@@ -158,6 +159,30 @@ struct Bibliothèque {
                nom != "c";
     }
 };
+
+/* ------------------------------------------------------------------------- */
+/** \name BibliothèquesUtilisées
+ * Représentation des bibliothèques utilisées par un programme.
+ * \{ */
+
+struct BibliothèquesUtilisées {
+  private:
+    kuri::tableau<Bibliothèque *> m_bibliothèques{};
+    kuri::ensemble<Bibliothèque *> m_ensemble{};
+
+  public:
+    BibliothèquesUtilisées();
+
+    BibliothèquesUtilisées(kuri::ensemble<Bibliothèque *> const &ensemble);
+
+    kuri::tableau_statique<Bibliothèque *> donne_tableau() const;
+
+    int64_t mémoire_utilisée() const;
+
+    void efface();
+};
+
+/** \} */
 
 struct GestionnaireBibliothèques {
     Compilatrice &compilatrice;
