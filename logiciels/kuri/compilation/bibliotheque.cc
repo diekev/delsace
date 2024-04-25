@@ -316,7 +316,7 @@ BibliothèquesUtilisées::BibliothèquesUtilisées() = default;
 BibliothèquesUtilisées::BibliothèquesUtilisées(kuri::ensemble<Bibliothèque *> const &ensemble)
     : m_ensemble(ensemble)
 {
-    m_ensemble.pour_chaque_element([&](Bibliothèque *b) { m_bibliothèques.ajoute(b); });
+    m_bibliothèques = m_ensemble.donne_tableau();
 }
 
 kuri::tableau_statique<Bibliothèque *> BibliothèquesUtilisées::donne_tableau() const
