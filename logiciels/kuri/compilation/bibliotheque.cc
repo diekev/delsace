@@ -708,7 +708,6 @@ static std::optional<ResultatRechercheBibliothèque> recherche_bibliothèque(
     bool chemin_trouve[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE];
 
     POUR (dossiers) {
-
         résultat.chemin_de_base = "";
         for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
             for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
