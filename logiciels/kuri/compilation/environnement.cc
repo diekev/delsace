@@ -358,16 +358,23 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
         chemins_utilises.insert(chemin_parent);
     }
 
-    /* À FAIRE(bibliothèques) : permet la liaison statique.
-     * Les deux formes de commandes suivant résultent en des erreurs de liaison :
-     * -Wl,-Bshared -llib1 -lib2 -Wl,-Bstatic -lc -llib3
-     * (et une version où la liaison de chaque bibliothèque est spécifiée)
-     * -Wl,-Bshared -llib1 -Wl,-Bshared -lib2 -Wl,-Bstatic -lc -Wl,-Bstatic -llib3
-     */
     POUR (bibliotheques.donne_tableau()) {
         if (it->nom == "r16") {
             continue;
         }
+
+        /* À FAIRE(bibliothèques) : permet la liaison statique.
+         * Pour les bibliothèques dépendants de celles de biblinternes, il faudra pouvoir
+         * déterminer les dépendances vers celles-ci.
+         */
+#if 0
+        if (bibliotheques.peut_lier_statiquement(it)) {
+            enchaineuse << " -Wl,-Bstatic";
+        }
+        else {
+            enchaineuse << " -Wl,-Bdynamic";
+        }
+#endif
 
         enchaineuse << " -l" << it->nom_pour_liaison(options);
     }

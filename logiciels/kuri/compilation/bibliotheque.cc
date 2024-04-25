@@ -338,6 +338,35 @@ void BibliothèquesUtilisées::efface()
     m_ensemble.efface();
 }
 
+bool BibliothèquesUtilisées::peut_lier_statiquement(Bibliothèque const *bibliothèque) const
+{
+    /* Cette vérification est pour la racine. La vérification plus bas sur les prépendances n'est
+     * pas vraiment redondante car nous devons exclure les prépendances qui ne sont pas incluses
+     * dans le programme. */
+    if (!m_ensemble.possède(const_cast<Bibliothèque *>(bibliothèque))) {
+        return false;
+    }
+
+    if (!bibliothèque->peut_lier_statiquement()) {
+        return false;
+    }
+
+    /* Une bibliothèque ne peut être liée statiquement que si ses prépendances peuvent également
+     * l'être. */
+    POUR (bibliothèque->prépendances.plage()) {
+        /* Ignore les prépendances ne faisant pas partie du programme. */
+        if (!m_ensemble.possède(const_cast<Bibliothèque *>(it))) {
+            continue;
+        }
+
+        if (!peut_lier_statiquement(it)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 /** \} */
 
 static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)

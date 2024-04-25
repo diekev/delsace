@@ -162,7 +162,9 @@ struct Bibliothèque {
 
 /* ------------------------------------------------------------------------- */
 /** \name BibliothèquesUtilisées
- * Représentation des bibliothèques utilisées par un programme.
+ * Représentation des bibliothèques utilisées par un programme. Outre le
+ * stockage des bibliothèques utilisées, cette structure sers également à
+ * déterminer si une bibliothèque peut être liée statiquement.
  * \{ */
 
 struct BibliothèquesUtilisées {
@@ -180,6 +182,8 @@ struct BibliothèquesUtilisées {
     int64_t mémoire_utilisée() const;
 
     void efface();
+
+    bool peut_lier_statiquement(Bibliothèque const *bibliothèque) const;
 };
 
 /** \} */
