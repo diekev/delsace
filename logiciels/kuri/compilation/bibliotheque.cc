@@ -74,33 +74,33 @@ bool Symbole::charge(EspaceDeTravail *espace,
                      RaisonRechercheSymbole raison)
 {
     switch (raison) {
-        case RaisonRechercheSymbole::EXECUTION_METAPROGRAMME:
+        case RaisonRechercheSymbole::EXÉCUTION_MÉTAPROGRAMME:
         {
             /* Si nous avons une adresse pour l'exécution, il est inutile d'essayer de charger le
              * symbole. NOTE : puisque adresse_exécution est une union, nous pouvons tester
              * n'importe quel membre. */
-            if (adresse_exécution.fonction || etat_recherche == EtatRechercheSymbole::TROUVE) {
+            if (adresse_exécution.fonction || état_recherche == ÉtatRechercheSymbole::TROUVÉ) {
                 return true;
             }
             break;
         }
         case RaisonRechercheSymbole::LIAISON_PROGRAMME_FINAL:
         {
-            if (etat_recherche == EtatRechercheSymbole::TROUVE) {
+            if (état_recherche == ÉtatRechercheSymbole::TROUVÉ) {
                 return true;
             }
             break;
         }
     }
 
-    if (bibliotheque->etat_recherche != EtatRechercheBibliothèque::TROUVEE) {
-        if (!bibliotheque->charge(espace)) {
+    if (bibliothèque->état_recherche != ÉtatRechercheBibliothèque::TROUVÉE) {
+        if (!bibliothèque->charge(espace)) {
             return false;
         }
     }
 
     try {
-        auto ptr_symbole = bibliotheque->bib(dls::chaine(nom.pointeur(), nom.taille()));
+        auto ptr_symbole = bibliothèque->bib(dls::chaine(nom.pointeur(), nom.taille()));
         if (type == TypeSymbole::FONCTION) {
             this->adresse_liaison.fonction = reinterpret_cast<Symbole::type_adresse_fonction>(
                 ptr_symbole.ptr());
@@ -108,16 +108,16 @@ bool Symbole::charge(EspaceDeTravail *espace,
         else {
             this->adresse_liaison.objet = ptr_symbole.ptr();
         }
-        etat_recherche = EtatRechercheSymbole::TROUVE;
+        état_recherche = ÉtatRechercheSymbole::TROUVÉ;
     }
     catch (...) {
         espace->rapporte_erreur(site, "Impossible de trouver un symbole !")
             .ajoute_message("La bibliothèque « ",
-                            bibliotheque->ident->nom,
+                            bibliothèque->ident->nom,
                             " » ne possède pas le symbole « ",
                             nom,
                             " » !\n");
-        etat_recherche = EtatRechercheSymbole::INTROUVE;
+        état_recherche = ÉtatRechercheSymbole::INTROUVÉ;
         return false;
     }
 
@@ -172,13 +172,13 @@ Symbole *Bibliothèque::crée_symbole(kuri::chaine_statique nom_symbole, TypeSym
 
     auto symbole = symboles.ajoute_element(type);
     symbole->nom = nom_symbole;
-    symbole->bibliotheque = this;
+    symbole->bibliothèque = this;
     return symbole;
 }
 
 bool Bibliothèque::charge(EspaceDeTravail *espace)
 {
-    if (etat_recherche == EtatRechercheBibliothèque::TROUVEE) {
+    if (état_recherche == ÉtatRechercheBibliothèque::TROUVÉE) {
         return true;
     }
 
@@ -196,43 +196,43 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
     try {
         this->bib = dls::systeme_fichier::shared_library(
             dls::chaine(chemin_dynamique.pointeur(), chemin_dynamique.taille()).c_str());
-        etat_recherche = EtatRechercheBibliothèque::TROUVEE;
+        état_recherche = ÉtatRechercheBibliothèque::TROUVÉE;
     }
     catch (std::filesystem::filesystem_error const &e) {
         espace
             ->rapporte_erreur(site,
                               enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"))
             .ajoute_message("Message d'erreur : ", e.what());
-        etat_recherche = EtatRechercheBibliothèque::INTROUVEE;
+        état_recherche = ÉtatRechercheBibliothèque::INTROUVÉE;
         return false;
     }
     catch (...) {
         espace->rapporte_erreur(
             site, enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"));
-        etat_recherche = EtatRechercheBibliothèque::INTROUVEE;
+        état_recherche = ÉtatRechercheBibliothèque::INTROUVÉE;
         return false;
     }
 
     return true;
 }
 
-int64_t Bibliothèque::memoire_utilisee() const
+int64_t Bibliothèque::mémoire_utilisée() const
 {
     auto memoire = symboles.memoire_utilisee();
     POUR_TABLEAU_PAGE (symboles) {
         memoire += it.nom.taille();
     }
     for (int i = 0; i < NUM_TYPES_PLATEFORME; i++) {
-        for (int j = 0; j < NUM_TYPES_BIBLIOTHEQUE; j++) {
-            for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; k++) {
+        for (int j = 0; j < NUM_TYPES_BIBLIOTHÈQUE; j++) {
+            for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; k++) {
                 memoire += chemins[i][j][k].taille();
             }
         }
     }
-    for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; k++) {
+    for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; k++) {
         memoire += noms[k].taille();
     }
-    memoire += dependances.taille_mémoire();
+    memoire += dépendances.taille_mémoire();
     return memoire;
 }
 
@@ -249,12 +249,12 @@ static int type_informations(kuri::chemin_systeme const *chemins,
                              const OptionsDeCompilation &options)
 {
     if (options.compilation_pour == CompilationPour::DÉBOGAGE) {
-        if (options.utilise_asan && chemins[POUR_DEBOGAGE_ASAN]) {
-            return POUR_DEBOGAGE_ASAN;
+        if (options.utilise_asan && chemins[POUR_DÉBOGAGE_ASAN]) {
+            return POUR_DÉBOGAGE_ASAN;
         }
 
-        if (chemins[POUR_DEBOGAGE]) {
-            return POUR_DEBOGAGE;
+        if (chemins[POUR_DÉBOGAGE]) {
+            return POUR_DÉBOGAGE;
         }
     }
 
@@ -334,7 +334,7 @@ GestionnaireBibliothèques::GestionnaireBibliothèques(Compilatrice &compilatric
     initialise_chemins_systeme();
 }
 
-bool GestionnaireBibliothèques::initialise_bibliotheques_pour_execution(Compilatrice &compilatrice)
+bool GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(Compilatrice &compilatrice)
 {
     auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
     auto gestionnaire = compilatrice.gestionnaire_bibliothèques.verrou_ecriture();
@@ -381,7 +381,7 @@ bool GestionnaireBibliothèques::initialise_bibliotheques_pour_execution(Compila
 
 Bibliothèque *GestionnaireBibliothèques::trouve_bibliothèque(IdentifiantCode *ident)
 {
-    POUR_TABLEAU_PAGE (bibliotheques) {
+    POUR_TABLEAU_PAGE (bibliothèques) {
         if (it.ident == ident) {
             return &it;
         }
@@ -411,21 +411,21 @@ Bibliothèque *GestionnaireBibliothèques::crée_bibliothèque(EspaceDeTravail &
 
     if (bibliotheque) {
         if (nom != "" &&
-            bibliotheque->etat_recherche == EtatRechercheBibliothèque::NON_RECHERCHEE) {
+            bibliotheque->état_recherche == ÉtatRechercheBibliothèque::NON_RECHERCHÉE) {
             bibliotheque->site = site;
             bibliotheque->ident = ident;
             bibliotheque->nom = nom;
-            resoud_chemins_bibliothèque(espace, site, bibliotheque);
+            résoud_chemins_bibliothèque(espace, site, bibliotheque);
         }
 
         return bibliotheque;
     }
 
-    bibliotheque = bibliotheques.ajoute_element();
+    bibliotheque = bibliothèques.ajoute_element();
 
     if (nom != "") {
         bibliotheque->nom = nom;
-        resoud_chemins_bibliothèque(espace, site, bibliotheque);
+        résoud_chemins_bibliothèque(espace, site, bibliotheque);
     }
 
     bibliotheque->site = site;
@@ -654,31 +654,31 @@ static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
 
 struct ResultatRechercheBibliothèque {
     kuri::chaine_statique chemin_de_base = "";
-    kuri::chemin_systeme chemins[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
+    kuri::chemin_systeme chemins[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE];
 };
 
 static std::optional<ResultatRechercheBibliothèque> recherche_bibliothèque(
     EspaceDeTravail &espace,
     NoeudExpression *site,
     kuri::tablet<kuri::chaine_statique, 4> const &dossiers,
-    kuri::chaine const noms[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE])
+    kuri::chaine const noms[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE])
 {
     auto résultat = ResultatRechercheBibliothèque();
 
-    bool chemin_trouve[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
+    bool chemin_trouve[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE];
 
     POUR (dossiers) {
 
         résultat.chemin_de_base = "";
-        for (int i = 0; i < NUM_TYPES_BIBLIOTHEQUE; i++) {
-            for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; j++) {
+        for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
+            for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
                 chemin_trouve[i][j] = false;
                 résultat.chemins[i][j] = "";
             }
         }
 
-        for (int i = 0; i < NUM_TYPES_BIBLIOTHEQUE; i++) {
-            for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; j++) {
+        for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
+            for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
                 if (chemin_trouve[i][j]) {
                     continue;
                 }
@@ -759,8 +759,8 @@ static void copie_chemins(ResultatRechercheBibliothèque const &résultat,
                           Bibliothèque *bibliotheque,
                           int plateforme)
 {
-    for (int i = 0; i < NUM_TYPES_BIBLIOTHEQUE; i++) {
-        for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; j++) {
+    for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
+        for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
             bibliotheque->chemins[plateforme][i][j] = résultat.chemins[i][j];
         }
     }
@@ -789,7 +789,7 @@ static void rapporte_erreur_bibliotheque_introuvable(
     }
 }
 
-void GestionnaireBibliothèques::resoud_chemins_bibliothèque(EspaceDeTravail &espace,
+void GestionnaireBibliothèques::résoud_chemins_bibliothèque(EspaceDeTravail &espace,
                                                             NoeudExpression *site,
                                                             Bibliothèque *bibliotheque)
 {
@@ -803,14 +803,14 @@ void GestionnaireBibliothèques::resoud_chemins_bibliothèque(EspaceDeTravail &e
     // /chemin/de/base/libnom.a
     // pour un fichier dynamique :
     // /chemin/de/base/libnom.so
-    kuri::chaine noms[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
+    kuri::chaine noms[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE];
 
     bibliotheque->noms[POUR_PRODUCTION] = bibliotheque->nom;
     bibliotheque->noms[POUR_PROFILAGE] = enchaine(bibliotheque->nom, "_profile");
-    bibliotheque->noms[POUR_DEBOGAGE] = enchaine(bibliotheque->nom, "_debogage");
-    bibliotheque->noms[POUR_DEBOGAGE_ASAN] = enchaine(bibliotheque->nom, "_asan");
+    bibliotheque->noms[POUR_DÉBOGAGE] = enchaine(bibliotheque->nom, "_debogage");
+    bibliotheque->noms[POUR_DÉBOGAGE_ASAN] = enchaine(bibliotheque->nom, "_asan");
 
-    for (int i = 0; i < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; i++) {
+    for (int i = 0; i < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; i++) {
         noms[STATIQUE][i] = nom_bibliothèque_statique_pour(bibliotheque->noms[i], true);
         noms[DYNAMIQUE][i] = nom_bibliothèque_dynamique_pour(bibliotheque->noms[i], true);
     }
@@ -837,16 +837,16 @@ void GestionnaireBibliothèques::resoud_chemins_bibliothèque(EspaceDeTravail &e
     }
 }
 
-int64_t GestionnaireBibliothèques::memoire_utilisee() const
+int64_t GestionnaireBibliothèques::mémoire_utilisée() const
 {
-    auto memoire = bibliotheques.memoire_utilisee();
-    POUR_TABLEAU_PAGE (bibliotheques) {
-        memoire += it.memoire_utilisee();
+    auto memoire = bibliothèques.memoire_utilisee();
+    POUR_TABLEAU_PAGE (bibliothèques) {
+        memoire += it.mémoire_utilisée();
     }
     return memoire;
 }
 
 void GestionnaireBibliothèques::rassemble_statistiques(Statistiques &stats) const
 {
-    stats.ajoute_mémoire_utilisée("Bibliothèques", memoire_utilisee());
+    stats.ajoute_mémoire_utilisée("Bibliothèques", mémoire_utilisée());
 }

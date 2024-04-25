@@ -27,15 +27,15 @@ enum class TypeSymbole : uint8_t {
     FONCTION,
 };
 
-enum class EtatRechercheSymbole : unsigned char {
-    NON_RECHERCHE,
-    TROUVE,
-    INTROUVE,
+enum class ÉtatRechercheSymbole : unsigned char {
+    NON_RECHERCHÉ,
+    TROUVÉ,
+    INTROUVÉ,
 };
 
 enum class RaisonRechercheSymbole : unsigned char {
     /* Le symbole doit être chargé pour être utilisée dans la machine virtuelle. */
-    EXECUTION_METAPROGRAMME,
+    EXÉCUTION_MÉTAPROGRAMME,
     /* Le symbole doit être chargé pour la liaison du programme final. */
     LIAISON_PROGRAMME_FINAL,
 };
@@ -44,9 +44,9 @@ struct Symbole {
     using type_adresse_fonction = void (*)();
     using type_adresse_objet = void *;
 
-    Bibliothèque *bibliotheque = nullptr;
+    Bibliothèque *bibliothèque = nullptr;
     kuri::chaine nom = "";
-    EtatRechercheSymbole etat_recherche = EtatRechercheSymbole::NON_RECHERCHE;
+    ÉtatRechercheSymbole état_recherche = ÉtatRechercheSymbole::NON_RECHERCHÉ;
 
   private:
     TypeSymbole type{};
@@ -86,10 +86,10 @@ struct Symbole {
     type_adresse_objet donne_adresse_objet_pour_exécution();
 };
 
-enum class EtatRechercheBibliothèque : unsigned char {
-    NON_RECHERCHEE,
-    TROUVEE,
-    INTROUVEE,
+enum class ÉtatRechercheBibliothèque : unsigned char {
+    NON_RECHERCHÉE,
+    TROUVÉE,
+    INTROUVÉE,
 };
 
 enum {
@@ -105,16 +105,16 @@ enum {
     /* Bibliothèque dynamique (*.so sur Linux). */
     DYNAMIQUE,
 
-    NUM_TYPES_BIBLIOTHEQUE,
+    NUM_TYPES_BIBLIOTHÈQUE,
 };
 
 enum {
     POUR_PRODUCTION,
     POUR_PROFILAGE,
-    POUR_DEBOGAGE,
-    POUR_DEBOGAGE_ASAN,
+    POUR_DÉBOGAGE,
+    POUR_DÉBOGAGE_ASAN,
 
-    NUM_TYPES_INFORMATION_BIBLIOTHEQUE,
+    NUM_TYPES_INFORMATION_BIBLIOTHÈQUE,
 };
 
 struct Bibliothèque {
@@ -127,22 +127,22 @@ struct Bibliothèque {
     NoeudExpression *site = nullptr;
     dls::systeme_fichier::shared_library bib{};
 
-    EtatRechercheBibliothèque etat_recherche = EtatRechercheBibliothèque::NON_RECHERCHEE;
+    ÉtatRechercheBibliothèque état_recherche = ÉtatRechercheBibliothèque::NON_RECHERCHÉE;
 
     kuri::chemin_systeme chemins_de_base[NUM_TYPES_PLATEFORME] = {};
-    kuri::chemin_systeme chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHEQUE]
-                                [NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
+    kuri::chemin_systeme chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHÈQUE]
+                                [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
 
-    kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
+    kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
 
-    kuri::tableau_compresse<Bibliothèque *, int> dependances{};
+    kuri::tableau_compresse<Bibliothèque *, int> dépendances{};
     tableau_page<Symbole> symboles{};
 
     Symbole *crée_symbole(kuri::chaine_statique nom_symbole, TypeSymbole type);
 
     bool charge(EspaceDeTravail *espace);
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     kuri::chaine_statique chemin_de_base(OptionsDeCompilation const &options) const;
     kuri::chaine_statique chemin_statique(OptionsDeCompilation const &options) const;
@@ -158,7 +158,7 @@ struct Bibliothèque {
 
 struct GestionnaireBibliothèques {
     Compilatrice &compilatrice;
-    tableau_page<Bibliothèque> bibliotheques{};
+    tableau_page<Bibliothèque> bibliothèques{};
 
     GestionnaireBibliothèques(Compilatrice &compilatrice_);
 
@@ -166,7 +166,7 @@ struct GestionnaireBibliothèques {
      * Charge les bibliothèques requises pour l'exécution des métaprogrammes.
      * Retourne vrai si les bibliothèques ont pû être chargés.
      */
-    static bool initialise_bibliotheques_pour_execution(Compilatrice &compilatrice);
+    static bool initialise_bibliothèques_pour_exécution(Compilatrice &compilatrice);
 
     Bibliothèque *trouve_bibliothèque(IdentifiantCode *ident);
 
@@ -179,12 +179,12 @@ struct GestionnaireBibliothèques {
                                     IdentifiantCode *ident,
                                     kuri::chaine_statique nom);
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     void rassemble_statistiques(Statistiques &stats) const;
 
   private:
-    void resoud_chemins_bibliothèque(EspaceDeTravail &espace,
+    void résoud_chemins_bibliothèque(EspaceDeTravail &espace,
                                      NoeudExpression *site,
                                      Bibliothèque *bibliotheque);
 };

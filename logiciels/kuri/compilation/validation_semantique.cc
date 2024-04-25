@@ -6574,7 +6574,7 @@ RésultatValidation Sémanticienne::valide_dépendance_bibliothèque(
         *m_espace, ident_bibliothèque_dépendante);
     auto bib_dependue = gestionnaire_bibliotheques->trouve_ou_crée_bibliothèque(
         *m_espace, ident_bibliothèque_dépendue);
-    bib_dependante->dependances.ajoute(bib_dependue);
+    bib_dependante->dépendances.ajoute(bib_dependue);
     /* Ce n'est pas une déclaration mais #GestionnaireCode.typage_termine le requiers. */
     noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;

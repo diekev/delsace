@@ -577,7 +577,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     }
 
     /* Initialise les bibliothèques après avoir généré les objets r16. */
-    if (!GestionnaireBibliothèques::initialise_bibliotheques_pour_execution(compilatrice)) {
+    if (!GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(compilatrice)) {
         return false;
     }
 
