@@ -1,0 +1,4 @@
+libdls_math :: #bibliothèque "bib_math"
+libdls_outils :: #bibliothèque "bib_outils"
+libdls_structures :: #bibliothèque "bib_structures"
+libdls_mémoire :: #bibliothèque "bib_memoire"

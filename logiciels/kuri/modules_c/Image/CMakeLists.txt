@@ -59,6 +59,7 @@ target_include_directories(bib_algorithmes_image PUBLIC "${INCLUSIONS}")
 target_link_libraries(bib_algorithmes_image "${BIBLIOTHEQUES}")
 set_property(TARGET bib_algorithmes_image PROPERTY POSITION_INDEPENDENT_CODE ON)
 add_library(dls::algorithmes_image ALIAS bib_algorithmes_image)
+installe_dans_module_kuri(bib_algorithmes_image Image)
 
 set(SOURCES
     image.cc
