@@ -366,16 +366,16 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
 
 int64_t Bibliothèque::mémoire_utilisée() const
 {
-    auto memoire = symboles.memoire_utilisee();
+    auto résultat = symboles.memoire_utilisee();
     POUR_TABLEAU_PAGE (symboles) {
-        memoire += it.nom.taille();
+        résultat += it.nom.taille();
     }
-    memoire += chemins.mémoire_utilisée();
+    résultat += chemins.mémoire_utilisée();
     for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; k++) {
-        memoire += noms[k].taille();
+        résultat += noms[k].taille();
     }
-    memoire += dépendances.taille_mémoire();
-    return memoire;
+    résultat += dépendances.taille_mémoire();
+    return résultat;
 }
 
 void Bibliothèque::ajoute_dépendance(Bibliothèque *dépendance)
