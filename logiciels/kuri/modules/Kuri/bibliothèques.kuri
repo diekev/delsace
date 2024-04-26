@@ -2,3 +2,10 @@ libdls_math :: #bibliothèque "bib_math"
 libdls_outils :: #bibliothèque "bib_outils"
 libdls_structures :: #bibliothèque "bib_structures"
 libdls_mémoire :: #bibliothèque "bib_memoire"
+libdls_phys :: #bibliothèque "bib_phys"
+
+#dépendance_bibliothèque libdls_outils libdls_structures
+
+#dépendance_bibliothèque libdls_phys libdls_math
+#dépendance_bibliothèque libdls_phys libdls_outils
+#dépendance_bibliothèque libdls_phys libdls_structures
