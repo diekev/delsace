@@ -401,7 +401,6 @@ kuri::chaine_statique Bibliothèque::chemin_dynamique(const OptionsDeCompilation
 
 kuri::chaine_statique Bibliothèque::nom_pour_liaison(const OptionsDeCompilation &options) const
 {
-    // À FAIRE : statique vs dynamique
     auto index = IndexBibliothèque::crée_pour_options(options, DYNAMIQUE);
     index = chemins.rafine_index(index);
     return noms[index.type_compilation];
