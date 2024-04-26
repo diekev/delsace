@@ -152,7 +152,8 @@ bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon);
     O(QVBoxLayout, QT_VBoxLayout, vbox)                                                           \
     O(QHBoxLayout, QT_HBoxLayout, hbox)                                                           \
     O(QBoxLayout, QT_BoxLayout, box)                                                              \
-    O(QFormLayout, QT_FormLayout, form)
+    O(QFormLayout, QT_FormLayout, form)                                                           \
+    O(QGridLayout, QT_GridLayout, grid)
 
 #define PRODECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_LAYOUTS(PRODECLARE_TYPES_LAYOUTS)
@@ -505,6 +506,7 @@ struct QT_GLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
 struct QT_HBoxLayout *QT_cree_hbox_layout(union QT_Generic_Widget parent);
 struct QT_VBoxLayout *QT_cree_vbox_layout(union QT_Generic_Widget parent);
 struct QT_FormLayout *QT_cree_form_layout(union QT_Generic_Widget parent);
+struct QT_GridLayout *QT_cree_grid_layout(union QT_Generic_Widget parent);
 void QT_layout_definis_marge(union QT_Generic_Layout layout, int taille);
 void QT_layout_ajoute_widget(union QT_Generic_Layout layout, union QT_Generic_Widget widget);
 

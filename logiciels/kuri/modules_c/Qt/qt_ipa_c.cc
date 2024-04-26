@@ -636,6 +636,12 @@ QT_FormLayout *QT_cree_form_layout(union QT_Generic_Widget parent)
     return vers_ipa(new QFormLayout(qparent));
 }
 
+QT_GridLayout *QT_cree_grid_layout(QT_Generic_Widget parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QGridLayout(qparent));
+}
+
 void QT_layout_definis_marge(QT_Generic_Layout layout, int taille)
 {
     auto qlayout = vers_qt(layout);
