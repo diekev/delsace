@@ -321,7 +321,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     auto options_compilateur = options_pour_liaison(compilateur, options);
 
     Enchaineuse enchaineuse;
-    enchaineuse << donne_compilateur_cpp() << " ";
+    enchaineuse << compilateur << " ";
 
     POUR (options_compilateur) {
         enchaineuse << it << " ";
