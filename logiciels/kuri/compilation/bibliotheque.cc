@@ -308,8 +308,11 @@ kuri::chaine_statique Bibliothèque::nom_pour_liaison(const OptionsDeCompilation
 
 bool Bibliothèque::peut_lier_statiquement() const
 {
-    return chemins[PLATEFORME_64_BIT][STATIQUE][POUR_PRODUCTION] != kuri::chemin_systeme("") &&
-            nom != "c";
+    /* libc et libm sont la même bibliothèque, et ne peuvent pas être liées statiquement. */
+    if (nom == "c" || nom == "m") {
+        return false;
+    }
+    return chemins[PLATEFORME_64_BIT][STATIQUE][POUR_PRODUCTION] != kuri::chemin_systeme("");
 }
 
 /* ------------------------------------------------------------------------- */
