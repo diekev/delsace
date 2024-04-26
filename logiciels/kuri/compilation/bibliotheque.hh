@@ -127,6 +127,50 @@ enum {
 };
 
 /* ------------------------------------------------------------------------- */
+/** \name IndexBibliothèque
+ * Index pour trouver un chemin dans #CheminsBibliothèque.
+ * \{ */
+
+struct IndexBibliothèque {
+    int plateforme{};
+    int type_liaison{};
+    int type_compilation{};
+
+    static IndexBibliothèque crée_pour_exécution();
+
+    static IndexBibliothèque crée_pour_options(OptionsDeCompilation const &options,
+                                               int type_liaison);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name CheminsBibliothèque
+ * \{ */
+
+struct CheminsBibliothèque {
+  private:
+    kuri::chemin_systeme m_chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHÈQUE]
+                                  [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
+
+  public:
+    kuri::chaine_statique donne_chemin(IndexBibliothèque const index) const;
+
+    void définis_chemins(
+        int plateforme,
+        const kuri::chemin_systeme nouveaux_chemins[NUM_TYPES_BIBLIOTHÈQUE]
+                                                   [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE]);
+
+    /* Crée un index valide. L'index donné est considérer comme une requête. Si cette requête n'est
+     * pas possible, retourne un index vers une requête valide. Sinon, retourne l'index donné. */
+    IndexBibliothèque rafine_index(IndexBibliothèque const index) const;
+
+    int64_t mémoire_utilisée() const;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Bibliothèque
  * Représente une bibliothèque logiciel qui sera potentiellement liée au
  * résultat d'exécution, ou ouverte pour l'exécution des métaprogrammes.
@@ -145,8 +189,7 @@ struct Bibliothèque {
     ÉtatRechercheBibliothèque état_recherche = ÉtatRechercheBibliothèque::NON_RECHERCHÉE;
 
     kuri::chemin_systeme chemins_de_base[NUM_TYPES_PLATEFORME] = {};
-    kuri::chemin_systeme chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHÈQUE]
-                                [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
+    CheminsBibliothèque chemins{};
 
     kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
 

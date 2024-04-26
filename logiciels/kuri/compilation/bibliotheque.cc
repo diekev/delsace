@@ -82,32 +82,21 @@ static int plateforme_pour_options(OptionsDeCompilation const &options)
     return PLATEFORME_64_BIT;
 }
 
-static int type_informations(kuri::chemin_systeme const *chemins,
-                             const OptionsDeCompilation &options)
+static int type_informations(const OptionsDeCompilation &options)
 {
     if (options.compilation_pour == CompilationPour::DÉBOGAGE) {
-        if (options.utilise_asan && chemins[POUR_DÉBOGAGE_ASAN]) {
+        if (options.utilise_asan) {
             return POUR_DÉBOGAGE_ASAN;
         }
 
-        if (chemins[POUR_DÉBOGAGE]) {
-            return POUR_DÉBOGAGE;
-        }
+        return POUR_DÉBOGAGE;
     }
 
     if (options.compilation_pour == CompilationPour::PROFILAGE) {
-        if (chemins[POUR_PROFILAGE]) {
-            return POUR_PROFILAGE;
-        }
+        return POUR_PROFILAGE;
     }
 
     return POUR_PRODUCTION;
-}
-
-static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chemin_systeme const *chemins,
-                                                             const OptionsDeCompilation &options)
-{
-    return chemins[type_informations(chemins, options)];
 }
 
 static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
@@ -240,6 +229,85 @@ Symbole::type_adresse_objet Symbole::donne_adresse_objet_pour_exécution()
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name IndexBibliothèque
+ * \{ */
+
+IndexBibliothèque IndexBibliothèque::crée_pour_exécution()
+{
+    IndexBibliothèque résultat;
+    résultat.plateforme = PLATEFORME_64_BIT;
+    résultat.type_liaison = DYNAMIQUE;
+    résultat.type_compilation = POUR_PRODUCTION;
+    return résultat;
+}
+
+IndexBibliothèque IndexBibliothèque::crée_pour_options(OptionsDeCompilation const &options,
+                                                       int type_liaison)
+{
+    IndexBibliothèque résultat;
+    résultat.plateforme = plateforme_pour_options(options);
+    résultat.type_liaison = type_liaison;
+    résultat.type_compilation = type_informations(options);
+    return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name CheminsBibliothèque
+ * \{ */
+
+kuri::chaine_statique CheminsBibliothèque::donne_chemin(IndexBibliothèque const index) const
+{
+    auto const &chemins = m_chemins[index.plateforme][index.type_liaison];
+
+    /* Utilise le chemins pour production par défaut. */
+    if (!chemins[index.type_compilation]) {
+        return chemins[POUR_PRODUCTION];
+    }
+
+    return chemins[index.type_compilation];
+}
+
+IndexBibliothèque CheminsBibliothèque::rafine_index(IndexBibliothèque const index) const
+{
+    auto résultat = index;
+    auto const &chemins = m_chemins[index.plateforme][index.type_liaison];
+    /* Utilise le chemins pour production par défaut. */
+    if (!chemins[index.type_compilation]) {
+        résultat.type_compilation = POUR_PRODUCTION;
+    }
+    return résultat;
+}
+
+void CheminsBibliothèque::définis_chemins(
+    int plateforme,
+    const kuri::chemin_systeme nouveaux_chemins[NUM_TYPES_BIBLIOTHÈQUE]
+                                               [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE])
+{
+    for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
+        for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
+            m_chemins[plateforme][i][j] = nouveaux_chemins[i][j];
+        }
+    }
+}
+
+int64_t CheminsBibliothèque::mémoire_utilisée() const
+{
+    auto résultat = int64_t(0);
+    for (int i = 0; i < NUM_TYPES_PLATEFORME; i++) {
+        for (int j = 0; j < NUM_TYPES_BIBLIOTHÈQUE; j++) {
+            for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; k++) {
+                résultat += m_chemins[i][j][k].taille();
+            }
+        }
+    }
+    return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Bibliothèque
  * \{ */
 
@@ -263,8 +331,7 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
         return true;
     }
 
-    kuri::chaine_statique chemin_dynamique =
-        chemins[PLATEFORME_64_BIT][DYNAMIQUE][POUR_PRODUCTION];
+    auto chemin_dynamique = chemins.donne_chemin(IndexBibliothèque::crée_pour_exécution());
 
     if (chemin_dynamique == "") {
         espace
@@ -303,13 +370,7 @@ int64_t Bibliothèque::mémoire_utilisée() const
     POUR_TABLEAU_PAGE (symboles) {
         memoire += it.nom.taille();
     }
-    for (int i = 0; i < NUM_TYPES_PLATEFORME; i++) {
-        for (int j = 0; j < NUM_TYPES_BIBLIOTHÈQUE; j++) {
-            for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; k++) {
-                memoire += chemins[i][j][k].taille();
-            }
-        }
-    }
+    memoire += chemins.mémoire_utilisée();
     for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; k++) {
         memoire += noms[k].taille();
     }
@@ -330,24 +391,20 @@ kuri::chaine_statique Bibliothèque::chemin_de_base(const OptionsDeCompilation &
 
 kuri::chaine_statique Bibliothèque::chemin_statique(const OptionsDeCompilation &options) const
 {
-    auto const plateforme = plateforme_pour_options(options);
-    auto chemins_statiques = chemins[plateforme][STATIQUE];
-    return selectionne_chemin_pour_options(chemins_statiques, options);
+    return chemins.donne_chemin(IndexBibliothèque::crée_pour_options(options, STATIQUE));
 }
 
 kuri::chaine_statique Bibliothèque::chemin_dynamique(const OptionsDeCompilation &options) const
 {
-    auto const plateforme = plateforme_pour_options(options);
-    auto chemins_dynamiques = chemins[plateforme][DYNAMIQUE];
-    return selectionne_chemin_pour_options(chemins_dynamiques, options);
+    return chemins.donne_chemin(IndexBibliothèque::crée_pour_options(options, DYNAMIQUE));
 }
 
 kuri::chaine_statique Bibliothèque::nom_pour_liaison(const OptionsDeCompilation &options) const
 {
     // À FAIRE : statique vs dynamique
-    auto const plateforme = plateforme_pour_options(options);
-    auto chemins_dynamiques = chemins[plateforme][DYNAMIQUE];
-    return noms[type_informations(chemins_dynamiques, options)];
+    auto index = IndexBibliothèque::crée_pour_options(options, DYNAMIQUE);
+    index = chemins.rafine_index(index);
+    return noms[index.type_compilation];
 }
 
 bool Bibliothèque::peut_lier_statiquement() const
@@ -356,7 +413,8 @@ bool Bibliothèque::peut_lier_statiquement() const
     if (nom == "c" || nom == "m") {
         return false;
     }
-    return chemins[PLATEFORME_64_BIT][STATIQUE][POUR_PRODUCTION] != kuri::chemin_systeme("");
+    return chemins.donne_chemin(IndexBibliothèque{PLATEFORME_64_BIT, STATIQUE, POUR_PRODUCTION}) !=
+           kuri::chaine_statique("");
 }
 
 /** \} */
@@ -901,12 +959,7 @@ static void copie_chemins(ResultatRechercheBibliothèque const &résultat,
                           Bibliothèque *bibliotheque,
                           int plateforme)
 {
-    for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
-        for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
-            bibliotheque->chemins[plateforme][i][j] = résultat.chemins[i][j];
-        }
-    }
-
+    bibliotheque->chemins.définis_chemins(plateforme, résultat.chemins);
     bibliotheque->chemins_de_base[plateforme] = résultat.chemin_de_base;
 }
 
