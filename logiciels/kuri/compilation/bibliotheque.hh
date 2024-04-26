@@ -180,6 +180,12 @@ struct BibliothèquesUtilisées {
     void efface();
 
     bool peut_lier_statiquement(Bibliothèque const *bibliothèque) const;
+
+  private:
+    /* Trie les bibliothèques afin que les dépendances se retrouvent après les prépendances,
+     * garantissant la bonne liaison des programmes. Notons que ceci n'est réellement requis que
+     * pour les liaisons de programmes impliquant des bibliothèques statiques. */
+    void trie_bibliothèques();
 };
 
 /** \} */

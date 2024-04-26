@@ -366,8 +366,6 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
         /* À FAIRE(bibliothèques) : permet la liaison statique.
          * Pour les bibliothèques dépendants de celles de biblinternes, il faudra pouvoir
          * déterminer les dépendances vers celles-ci.
-         * Il faudra également trier topologiquement les bibliothèques pour les dépendances
-         * soient après les prépendances.
          */
 #if 0
         if (bibliotheques.peut_lier_statiquement(it)) {

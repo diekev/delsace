@@ -18,6 +18,8 @@
 #include "statistiques/statistiques.hh"
 
 #include "structures/chemin_systeme.hh"
+#include "structures/file.hh"
+#include "structures/rassembleuse.hh"
 
 #include "compilatrice.hh"
 #include "environnement.hh"
@@ -326,6 +328,7 @@ BibliothèquesUtilisées::BibliothèquesUtilisées(kuri::ensemble<Bibliothèque 
     : m_ensemble(ensemble)
 {
     m_bibliothèques = m_ensemble.donne_tableau();
+    trie_bibliothèques();
 }
 
 kuri::tableau_statique<Bibliothèque *> BibliothèquesUtilisées::donne_tableau() const
@@ -374,6 +377,48 @@ bool BibliothèquesUtilisées::peut_lier_statiquement(Bibliothèque const *bibli
     }
 
     return true;
+}
+
+void BibliothèquesUtilisées::trie_bibliothèques()
+{
+    kuri::file<Bibliothèque *> bibliothèques_à_traiter;
+    kuri::rassembleuse<Bibliothèque *> bibliothèques_triées;
+
+    POUR (m_bibliothèques) {
+        bibliothèques_à_traiter.enfile(it);
+    }
+
+    auto toutes_les_prépendances_furent_ajoutées = [&](Bibliothèque *bibliothèque) {
+        if (bibliothèque->prépendances.taille() == 0) {
+            return true;
+        }
+
+        POUR (bibliothèque->prépendances.plage()) {
+            if (!m_ensemble.possède(it)) {
+                continue;
+            }
+
+            if (!bibliothèques_triées.possède(it)) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    while (!bibliothèques_à_traiter.est_vide()) {
+        auto bibliothèque = bibliothèques_à_traiter.defile();
+
+        if (toutes_les_prépendances_furent_ajoutées(bibliothèque)) {
+            bibliothèques_triées.insère(bibliothèque);
+            continue;
+        }
+
+        /* Recommence plus tard. */
+        bibliothèques_à_traiter.enfile(bibliothèque);
+    }
+
+    m_bibliothèques = bibliothèques_triées.donne_copie_éléments();
 }
 
 /** \} */
