@@ -69,7 +69,80 @@ static uint16_t depuis_r64(double f)
     return DLS_depuis_r64(f);
 }
 
-/* ************************************************************************** */
+/* ------------------------------------------------------------------------- */
+/** \name Utilitaires.
+ * \{ */
+
+static int plateforme_pour_options(OptionsDeCompilation const &options)
+{
+    if (options.architecture == ArchitectureCible::X86) {
+        return PLATEFORME_32_BIT;
+    }
+
+    return PLATEFORME_64_BIT;
+}
+
+static int type_informations(kuri::chemin_systeme const *chemins,
+                             const OptionsDeCompilation &options)
+{
+    if (options.compilation_pour == CompilationPour::DÉBOGAGE) {
+        if (options.utilise_asan && chemins[POUR_DÉBOGAGE_ASAN]) {
+            return POUR_DÉBOGAGE_ASAN;
+        }
+
+        if (chemins[POUR_DÉBOGAGE]) {
+            return POUR_DÉBOGAGE;
+        }
+    }
+
+    if (options.compilation_pour == CompilationPour::PROFILAGE) {
+        if (chemins[POUR_PROFILAGE]) {
+            return POUR_PROFILAGE;
+        }
+    }
+
+    return POUR_PRODUCTION;
+}
+
+static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chemin_systeme const *chemins,
+                                                             const OptionsDeCompilation &options)
+{
+    return chemins[type_informations(chemins, options)];
+}
+
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
+{
+    kuri::tablet<kuri::chemin_systeme, 16> résultat;
+
+    /* Pour les tables r16. */
+    résultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
+
+    if (architecture == ArchitectureCible::X64) {
+        résultat.ajoute("/lib/x86_64-linux-gnu/");
+        résultat.ajoute("/usr/lib/x86_64-linux-gnu/");
+    }
+    else {
+        résultat.ajoute("/lib/i386-linux-gnu/");
+        résultat.ajoute("/usr/lib/i386-linux-gnu/");
+    }
+
+    return résultat;
+}
+
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_x86_64{};
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_i386{};
+
+static void initialise_chemins_systeme()
+{
+    chemins_syteme_x86_64 = chemins_systeme_pour(ArchitectureCible::X64);
+    chemins_syteme_i386 = chemins_systeme_pour(ArchitectureCible::X86);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Symbole
+ * \{ */
 
 bool Symbole::charge(EspaceDeTravail *espace,
                      NoeudExpression const *site,
@@ -164,6 +237,12 @@ Symbole::type_adresse_objet Symbole::donne_adresse_objet_pour_exécution()
     return adresse_liaison.objet;
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Bibliothèque
+ * \{ */
+
 Symbole *Bibliothèque::crée_symbole(kuri::chaine_statique nom_symbole, TypeSymbole type)
 {
     POUR_TABLEAU_PAGE (symboles) {
@@ -244,43 +323,6 @@ void Bibliothèque::ajoute_dépendance(Bibliothèque *dépendance)
     dépendance->prépendances.ajoute(this);
 }
 
-static int plateforme_pour_options(OptionsDeCompilation const &options)
-{
-    if (options.architecture == ArchitectureCible::X86) {
-        return PLATEFORME_32_BIT;
-    }
-
-    return PLATEFORME_64_BIT;
-}
-
-static int type_informations(kuri::chemin_systeme const *chemins,
-                             const OptionsDeCompilation &options)
-{
-    if (options.compilation_pour == CompilationPour::DÉBOGAGE) {
-        if (options.utilise_asan && chemins[POUR_DÉBOGAGE_ASAN]) {
-            return POUR_DÉBOGAGE_ASAN;
-        }
-
-        if (chemins[POUR_DÉBOGAGE]) {
-            return POUR_DÉBOGAGE;
-        }
-    }
-
-    if (options.compilation_pour == CompilationPour::PROFILAGE) {
-        if (chemins[POUR_PROFILAGE]) {
-            return POUR_PROFILAGE;
-        }
-    }
-
-    return POUR_PRODUCTION;
-}
-
-static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chemin_systeme const *chemins,
-                                                             const OptionsDeCompilation &options)
-{
-    return chemins[type_informations(chemins, options)];
-}
-
 kuri::chaine_statique Bibliothèque::chemin_de_base(const OptionsDeCompilation &options) const
 {
     return chemins_de_base[plateforme_pour_options(options)];
@@ -316,6 +358,8 @@ bool Bibliothèque::peut_lier_statiquement() const
     }
     return chemins[PLATEFORME_64_BIT][STATIQUE][POUR_PRODUCTION] != kuri::chemin_systeme("");
 }
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name BibliothèquesUtilisées
@@ -423,33 +467,9 @@ void BibliothèquesUtilisées::trie_bibliothèques()
 
 /** \} */
 
-static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
-{
-    kuri::tablet<kuri::chemin_systeme, 16> résultat;
-
-    /* Pour les tables r16. */
-    résultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
-
-    if (architecture == ArchitectureCible::X64) {
-        résultat.ajoute("/lib/x86_64-linux-gnu/");
-        résultat.ajoute("/usr/lib/x86_64-linux-gnu/");
-    }
-    else {
-        résultat.ajoute("/lib/i386-linux-gnu/");
-        résultat.ajoute("/usr/lib/i386-linux-gnu/");
-    }
-
-    return résultat;
-}
-
-static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_x86_64{};
-static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_i386{};
-
-static void initialise_chemins_systeme()
-{
-    chemins_syteme_x86_64 = chemins_systeme_pour(ArchitectureCible::X64);
-    chemins_syteme_i386 = chemins_systeme_pour(ArchitectureCible::X86);
-}
+/* ------------------------------------------------------------------------- */
+/** \name GestionnaireBibliothèques
+ * \{ */
 
 GestionnaireBibliothèques::GestionnaireBibliothèques(Compilatrice &compilatrice_)
     : compilatrice(compilatrice_)
@@ -972,3 +992,5 @@ void GestionnaireBibliothèques::rassemble_statistiques(Statistiques &stats) con
 {
     stats.ajoute_mémoire_utilisée("Bibliothèques", mémoire_utilisée());
 }
+
+/** \} */

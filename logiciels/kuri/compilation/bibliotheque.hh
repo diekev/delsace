@@ -41,6 +41,12 @@ enum class RaisonRechercheSymbole : unsigned char {
     LIAISON_PROGRAMME_FINAL,
 };
 
+/* ------------------------------------------------------------------------- */
+/** \name Symbole
+ * Représente une adresse dans une #Bibliothèque. Soit l'adresse d'une fonction
+ * ou l'adresse d'une globale.
+ * \{ */
+
 struct Symbole {
     using type_adresse_fonction = void (*)();
     using type_adresse_objet = void *;
@@ -87,6 +93,8 @@ struct Symbole {
     type_adresse_objet donne_adresse_objet_pour_exécution();
 };
 
+/** \} */
+
 enum class ÉtatRechercheBibliothèque : unsigned char {
     NON_RECHERCHÉE,
     TROUVÉE,
@@ -117,6 +125,12 @@ enum {
 
     NUM_TYPES_INFORMATION_BIBLIOTHÈQUE,
 };
+
+/* ------------------------------------------------------------------------- */
+/** \name Bibliothèque
+ * Représente une bibliothèque logiciel qui sera potentiellement liée au
+ * résultat d'exécution, ou ouverte pour l'exécution des métaprogrammes.
+ * \{ */
 
 struct Bibliothèque {
     /* l'identifiant qui sera utilisé après les directives #externe, défini via ident ::
@@ -156,6 +170,8 @@ struct Bibliothèque {
     bool peut_lier_statiquement() const;
 };
 
+/** \} */
+
 /* ------------------------------------------------------------------------- */
 /** \name BibliothèquesUtilisées
  * Représentation des bibliothèques utilisées par un programme. Outre le
@@ -190,6 +206,10 @@ struct BibliothèquesUtilisées {
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name GestionnaireBibliothèques
+ * \{ */
+
 struct GestionnaireBibliothèques {
     Compilatrice &compilatrice;
     tableau_page<Bibliothèque> bibliothèques{};
@@ -222,6 +242,8 @@ struct GestionnaireBibliothèques {
                                      NoeudExpression *site,
                                      Bibliothèque *bibliotheque);
 };
+
+/** \} */
 
 void *notre_malloc(size_t n);
 
