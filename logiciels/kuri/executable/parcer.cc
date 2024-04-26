@@ -1109,6 +1109,7 @@ struct Convertisseuse {
 
     dls::chaine pour_bibliotheque{};
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
+    kuri::tableau<kuri::chaine> dépendances_qt{};
 
     dls::chaine m_préfixe_énum_courant{};
 
@@ -1147,6 +1148,25 @@ struct Convertisseuse {
                             << "\n";
             }
             if (!dépendances_biblinternes.est_vide()) {
+                flux_sortie << "\n";
+            }
+            for (auto &dép : dépendances_qt) {
+                flux_sortie << "libQt5" << dép << " :: #bibliothèque \"Qt5" << dép << "\"\n";
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " libQt5"
+                            << dép << "\n";
+            }
+            if (!dépendances_qt.est_vide()) {
+                flux_sortie << "libQt5" << "Core" << " :: #bibliothèque \"Qt5" << "Core" << "\"\n";
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " libQt5"
+                            << "Core" << "\n";
+                flux_sortie << "\n";
+                flux_sortie << "libQt5" << "Gui" << " :: #bibliothèque \"Qt5" << "Gui" << "\"\n";
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " libQt5"
+                            << "Gui" << "\n";
+                flux_sortie << "\n";
+                flux_sortie << "libqt_entetes" << " :: #bibliothèque \"qt_entetes\"\n";
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque
+                            << " libqt_entetes" << "\n";
                 flux_sortie << "\n";
             }
         }
@@ -2173,6 +2193,8 @@ struct Configuration {
     dls::chaine nom_bibliotheque{};
     /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
+    /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
+    kuri::tableau<kuri::chaine> dépendances_qt{};
 };
 
 static auto analyse_configuration(const char *chemin)
@@ -2359,9 +2381,13 @@ static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, ch
             //            lib" << chn
             //                      << "\n";
         }
-        //        else {
-        //            std::cerr << argv[i] << '\n';
-        //        }
+        else if (commence_par(chn, "Qt5::")) {
+            // chn = chn.sous_chaine(5);
+            // config.dépendances_qt.ajoute(chn);
+        }
+        else {
+            std::cerr << argv[i] << '\n';
+        }
     }
 #endif
 
@@ -2454,6 +2480,7 @@ int main(int argc, char **argv)
     convertisseuse.fichier_entete = fichier_entete;
     convertisseuse.pour_bibliotheque = config.nom_bibliotheque;
     convertisseuse.dépendances_biblinternes = config.dépendances_biblinternes;
+    convertisseuse.dépendances_qt = config.dépendances_qt;
     convertisseuse.ajoute_typedef("size_t", "ulong");
     convertisseuse.ajoute_typedef("std::size_t", "ulong");
     convertisseuse.ajoute_typedef("uint8_t", "uchar");
