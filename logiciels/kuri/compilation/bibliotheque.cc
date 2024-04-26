@@ -306,6 +306,12 @@ kuri::chaine_statique Bibliothèque::nom_pour_liaison(const OptionsDeCompilation
     return noms[type_informations(chemins_dynamiques, options)];
 }
 
+bool Bibliothèque::peut_lier_statiquement() const
+{
+    return chemins[PLATEFORME_64_BIT][STATIQUE][POUR_PRODUCTION] != kuri::chemin_systeme("") &&
+            nom != "c";
+}
+
 /* ------------------------------------------------------------------------- */
 /** \name BibliothèquesUtilisées
  * Représentation des bibliothèques utilisées par un programme.

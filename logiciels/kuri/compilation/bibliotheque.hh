@@ -153,11 +153,7 @@ struct Bibliothèque {
     kuri::chaine_statique chemin_dynamique(OptionsDeCompilation const &options) const;
     kuri::chaine_statique nom_pour_liaison(OptionsDeCompilation const &options) const;
 
-    bool peut_lier_statiquement() const
-    {
-        return chemins[PLATEFORME_64_BIT][STATIQUE][POUR_PRODUCTION] != kuri::chemin_systeme("") &&
-               nom != "c";
-    }
+    bool peut_lier_statiquement() const;
 };
 
 /* ------------------------------------------------------------------------- */
