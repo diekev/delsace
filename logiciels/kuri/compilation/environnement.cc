@@ -316,13 +316,13 @@ kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
 
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
-                                   kuri::tableau_statique<Bibliothèque *> bibliotheques)
+                                   BibliothèquesUtilisées const &bibliotheques)
 {
     auto compilateur = donne_compilateur_cpp();
     auto options_compilateur = options_pour_liaison(compilateur, options);
 
     Enchaineuse enchaineuse;
-    enchaineuse << donne_compilateur_cpp() << " ";
+    enchaineuse << compilateur << " ";
 
     POUR (options_compilateur) {
         enchaineuse << it << " ";
@@ -337,7 +337,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
 
     auto chemins_utilises = std::set<kuri::chemin_systeme>();
 
-    POUR (bibliotheques) {
+    POUR (bibliotheques.donne_tableau()) {
         if (it->nom == "r16") {
             continue;
         }
@@ -359,16 +359,23 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
         chemins_utilises.insert(chemin_parent);
     }
 
-    /* À FAIRE(bibliothèques) : permet la liaison statique.
-     * Les deux formes de commandes suivant résultent en des erreurs de liaison :
-     * -Wl,-Bshared -llib1 -lib2 -Wl,-Bstatic -lc -llib3
-     * (et une version où la liaison de chaque bibliothèque est spécifiée)
-     * -Wl,-Bshared -llib1 -Wl,-Bshared -lib2 -Wl,-Bstatic -lc -Wl,-Bstatic -llib3
-     */
-    POUR (bibliotheques) {
+    POUR (bibliotheques.donne_tableau()) {
         if (it->nom == "r16") {
             continue;
         }
+
+        /* À FAIRE(bibliothèques) : permet la liaison statique.
+         * Pour les bibliothèques dépendants de celles de biblinternes, il faudra pouvoir
+         * déterminer les dépendances vers celles-ci.
+         */
+#if 0
+        if (bibliotheques.peut_lier_statiquement(it)) {
+            enchaineuse << " -Wl,-Bstatic";
+        }
+        else {
+            enchaineuse << " -Wl,-Bdynamic";
+        }
+#endif
 
         enchaineuse << " -l" << it->nom_pour_liaison(options);
     }

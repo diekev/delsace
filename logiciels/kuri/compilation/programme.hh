@@ -16,6 +16,7 @@ struct AtomeGlobale;
 struct AtomeFonction;
 struct AtomeConstanteDonnéesConstantes;
 struct Bibliothèque;
+struct BibliothèquesUtilisées;
 struct CompilatriceRI;
 struct Coulisse;
 struct EspaceDeTravail;
@@ -377,7 +378,7 @@ struct ProgrammeRepreInter {
 
     std::optional<DonnéesConstantes const *> donne_données_constantes() const;
 
-    kuri::tableau<Bibliothèque *> donne_bibliothèques_utilisées() const;
+    BibliothèquesUtilisées donne_bibliothèques_utilisées() const;
 
     int64_t mémoire_utilisée() const;
 };
