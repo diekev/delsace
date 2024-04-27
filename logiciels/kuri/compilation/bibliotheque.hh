@@ -10,6 +10,7 @@
 
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
+#include "structures/ensemble.hh"
 #include "structures/tableau_compresse.hh"
 
 struct Bibliothèque;
@@ -27,26 +28,32 @@ enum class TypeSymbole : uint8_t {
     FONCTION,
 };
 
-enum class EtatRechercheSymbole : unsigned char {
-    NON_RECHERCHE,
-    TROUVE,
-    INTROUVE,
+enum class ÉtatRechercheSymbole : unsigned char {
+    NON_RECHERCHÉ,
+    TROUVÉ,
+    INTROUVÉ,
 };
 
 enum class RaisonRechercheSymbole : unsigned char {
     /* Le symbole doit être chargé pour être utilisée dans la machine virtuelle. */
-    EXECUTION_METAPROGRAMME,
+    EXÉCUTION_MÉTAPROGRAMME,
     /* Le symbole doit être chargé pour la liaison du programme final. */
     LIAISON_PROGRAMME_FINAL,
 };
+
+/* ------------------------------------------------------------------------- */
+/** \name Symbole
+ * Représente une adresse dans une #Bibliothèque. Soit l'adresse d'une fonction
+ * ou l'adresse d'une globale.
+ * \{ */
 
 struct Symbole {
     using type_adresse_fonction = void (*)();
     using type_adresse_objet = void *;
 
-    Bibliothèque *bibliotheque = nullptr;
+    Bibliothèque *bibliothèque = nullptr;
     kuri::chaine nom = "";
-    EtatRechercheSymbole etat_recherche = EtatRechercheSymbole::NON_RECHERCHE;
+    ÉtatRechercheSymbole état_recherche = ÉtatRechercheSymbole::NON_RECHERCHÉ;
 
   private:
     TypeSymbole type{};
@@ -86,10 +93,12 @@ struct Symbole {
     type_adresse_objet donne_adresse_objet_pour_exécution();
 };
 
-enum class EtatRechercheBibliothèque : unsigned char {
-    NON_RECHERCHEE,
-    TROUVEE,
-    INTROUVEE,
+/** \} */
+
+enum class ÉtatRechercheBibliothèque : unsigned char {
+    NON_RECHERCHÉE,
+    TROUVÉE,
+    INTROUVÉE,
 };
 
 enum {
@@ -105,17 +114,67 @@ enum {
     /* Bibliothèque dynamique (*.so sur Linux). */
     DYNAMIQUE,
 
-    NUM_TYPES_BIBLIOTHEQUE,
+    NUM_TYPES_BIBLIOTHÈQUE,
 };
 
 enum {
     POUR_PRODUCTION,
     POUR_PROFILAGE,
-    POUR_DEBOGAGE,
-    POUR_DEBOGAGE_ASAN,
+    POUR_DÉBOGAGE,
+    POUR_DÉBOGAGE_ASAN,
 
-    NUM_TYPES_INFORMATION_BIBLIOTHEQUE,
+    NUM_TYPES_INFORMATION_BIBLIOTHÈQUE,
 };
+
+/* ------------------------------------------------------------------------- */
+/** \name IndexBibliothèque
+ * Index pour trouver un chemin dans #CheminsBibliothèque.
+ * \{ */
+
+struct IndexBibliothèque {
+    int plateforme{};
+    int type_liaison{};
+    int type_compilation{};
+
+    static IndexBibliothèque crée_pour_exécution();
+
+    static IndexBibliothèque crée_pour_options(OptionsDeCompilation const &options,
+                                               int type_liaison);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name CheminsBibliothèque
+ * \{ */
+
+struct CheminsBibliothèque {
+  private:
+    kuri::chemin_systeme m_chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHÈQUE]
+                                  [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
+
+  public:
+    kuri::chaine_statique donne_chemin(IndexBibliothèque const index) const;
+
+    void définis_chemins(
+        int plateforme,
+        const kuri::chemin_systeme nouveaux_chemins[NUM_TYPES_BIBLIOTHÈQUE]
+                                                   [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE]);
+
+    /* Crée un index valide. L'index donné est considérer comme une requête. Si cette requête n'est
+     * pas possible, retourne un index vers une requête valide. Sinon, retourne l'index donné. */
+    IndexBibliothèque rafine_index(IndexBibliothèque const index) const;
+
+    int64_t mémoire_utilisée() const;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Bibliothèque
+ * Représente une bibliothèque logiciel qui sera potentiellement liée au
+ * résultat d'exécution, ou ouverte pour l'exécution des métaprogrammes.
+ * \{ */
 
 struct Bibliothèque {
     /* l'identifiant qui sera utilisé après les directives #externe, défini via ident ::
@@ -127,38 +186,76 @@ struct Bibliothèque {
     NoeudExpression *site = nullptr;
     dls::systeme_fichier::shared_library bib{};
 
-    EtatRechercheBibliothèque etat_recherche = EtatRechercheBibliothèque::NON_RECHERCHEE;
+    ÉtatRechercheBibliothèque état_recherche = ÉtatRechercheBibliothèque::NON_RECHERCHÉE;
 
     kuri::chemin_systeme chemins_de_base[NUM_TYPES_PLATEFORME] = {};
-    kuri::chemin_systeme chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHEQUE]
-                                [NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
+    CheminsBibliothèque chemins{};
 
-    kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
+    kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
 
-    kuri::tableau_compresse<Bibliothèque *, int> dependances{};
+    kuri::tableau_compresse<Bibliothèque *, int> dépendances{};
+    kuri::tableau_compresse<Bibliothèque *, int> prépendances{};
     tableau_page<Symbole> symboles{};
 
     Symbole *crée_symbole(kuri::chaine_statique nom_symbole, TypeSymbole type);
 
     bool charge(EspaceDeTravail *espace);
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
+
+    void ajoute_dépendance(Bibliothèque *dépendance);
 
     kuri::chaine_statique chemin_de_base(OptionsDeCompilation const &options) const;
     kuri::chaine_statique chemin_statique(OptionsDeCompilation const &options) const;
     kuri::chaine_statique chemin_dynamique(OptionsDeCompilation const &options) const;
     kuri::chaine_statique nom_pour_liaison(OptionsDeCompilation const &options) const;
 
-    bool peut_lier_statiquement() const
-    {
-        return chemins[STATIQUE][PLATEFORME_64_BIT][POUR_PRODUCTION] != kuri::chemin_systeme("") &&
-               nom != "c";
-    }
+    bool peut_lier_statiquement() const;
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name BibliothèquesUtilisées
+ * Représentation des bibliothèques utilisées par un programme. Outre le
+ * stockage des bibliothèques utilisées, cette structure sers également à
+ * déterminer si une bibliothèque peut être liée statiquement.
+ * \{ */
+
+struct BibliothèquesUtilisées {
+  private:
+    kuri::tableau<Bibliothèque *> m_bibliothèques{};
+    kuri::ensemble<Bibliothèque *> m_ensemble{};
+
+  public:
+    BibliothèquesUtilisées();
+
+    BibliothèquesUtilisées(kuri::ensemble<Bibliothèque *> const &ensemble);
+
+    kuri::tableau_statique<Bibliothèque *> donne_tableau() const;
+
+    int64_t mémoire_utilisée() const;
+
+    void efface();
+
+    bool peut_lier_statiquement(Bibliothèque const *bibliothèque) const;
+
+  private:
+    /* Trie les bibliothèques afin que les dépendances se retrouvent après les prépendances,
+     * garantissant la bonne liaison des programmes. Notons que ceci n'est réellement requis que
+     * pour les liaisons de programmes impliquant des bibliothèques statiques. */
+    void trie_bibliothèques();
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name GestionnaireBibliothèques
+ * \{ */
 
 struct GestionnaireBibliothèques {
     Compilatrice &compilatrice;
-    tableau_page<Bibliothèque> bibliotheques{};
+    tableau_page<Bibliothèque> bibliothèques{};
 
     GestionnaireBibliothèques(Compilatrice &compilatrice_);
 
@@ -166,7 +263,7 @@ struct GestionnaireBibliothèques {
      * Charge les bibliothèques requises pour l'exécution des métaprogrammes.
      * Retourne vrai si les bibliothèques ont pû être chargés.
      */
-    static bool initialise_bibliotheques_pour_execution(Compilatrice &compilatrice);
+    static bool initialise_bibliothèques_pour_exécution(Compilatrice &compilatrice);
 
     Bibliothèque *trouve_bibliothèque(IdentifiantCode *ident);
 
@@ -179,15 +276,17 @@ struct GestionnaireBibliothèques {
                                     IdentifiantCode *ident,
                                     kuri::chaine_statique nom);
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     void rassemble_statistiques(Statistiques &stats) const;
 
   private:
-    void resoud_chemins_bibliothèque(EspaceDeTravail &espace,
+    void résoud_chemins_bibliothèque(EspaceDeTravail &espace,
                                      NoeudExpression *site,
                                      Bibliothèque *bibliotheque);
 };
+
+/** \} */
 
 void *notre_malloc(size_t n);
 
