@@ -166,8 +166,7 @@ struct GeneratriceCodeCPP {
         os << "#pragma once\n";
 
         auto ensemble_noms = donne_ensemble_noms_noeuds_expression();
-        kuri::tableau<kuri::chaine_statique> noms;
-        ensemble_noms.pour_chaque_element([&](auto &nom) { noms.ajoute(nom); });
+        auto noms = ensemble_noms.donne_tableau();
 
         kuri::tri_rapide(kuri::tableau_statique<kuri::chaine_statique>(noms),
                          [](auto &a, auto &b) { return a < b; });
