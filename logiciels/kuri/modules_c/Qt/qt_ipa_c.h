@@ -66,6 +66,17 @@ struct QT_Taille {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Pixmap
+ * \{ */
+
+struct QT_Pixmap;
+
+struct QT_Pixmap *QT_cree_pixmap(struct QT_Chaine chemin);
+void QT_detruit_pixmap(struct QT_Pixmap *pixmap);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Rappel_Generique
  * \{ */
 
@@ -624,6 +635,10 @@ void QT_checkbox_definis_coche(struct QT_CheckBox *checkbox, int coche);
 struct QT_Label *QT_cree_label(struct QT_Chaine *texte, union QT_Generic_Widget parent);
 
 void QT_label_definis_texte(struct QT_Label *label, struct QT_Chaine texte);
+
+void QT_label_definis_pixmap(struct QT_Label *label,
+                             struct QT_Pixmap *pixmap,
+                             struct QT_Taille taille);
 
 /** \} */
 

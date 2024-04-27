@@ -73,6 +73,16 @@ inline QLayout *vers_qt(QT_Generic_Layout layout)
     return reinterpret_cast<QLayout *>(layout.layout);
 }
 
+inline QPixmap *vers_qt(QT_Pixmap *pixmap)
+{
+    return reinterpret_cast<QPixmap *>(pixmap);
+}
+
+inline QT_Pixmap *vers_ipa(QPixmap *pixmap)
+{
+    return reinterpret_cast<QT_Pixmap *>(pixmap);
+}
+
 #define TRANSTYPAGE_WIDGETS(nom_qt, nom_classe, nom_union)                                        \
     inline nom_classe *vers_ipa(nom_qt *widget)                                                   \
     {                                                                                             \
@@ -91,6 +101,25 @@ ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
 #undef TRANSTYPAGE_WIDGETS
 
 extern "C" {
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Pixmap
+ * \{ */
+
+struct QT_Pixmap;
+
+QT_Pixmap *QT_cree_pixmap(QT_Chaine chemin)
+{
+    return vers_ipa(new QPixmap(QString(chemin.vers_std_string().c_str())));
+}
+
+void QT_detruit_pixmap(QT_Pixmap *pixmap)
+{
+    auto qpixmap = vers_qt(pixmap);
+    delete (qpixmap);
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name QT_Generic_Object
@@ -933,9 +962,12 @@ void QT_label_definis_texte(QT_Label *label, QT_Chaine texte)
     qlabel->setText(texte.vers_std_string().c_str());
 }
 
-// À FAIRE
-// auto pixmap = QPixmap("/home/kevin/icons8-brush-100.png");
-// setPixmap(pixmap.scaled(16, 16));
+void QT_label_definis_pixmap(QT_Label *label, QT_Pixmap *pixmap, QT_Taille taille)
+{
+    auto qlabel = vers_qt(label);
+    auto qpixmap = vers_qt(pixmap);
+    qlabel->setPixmap(qpixmap->scaled(16, 16));
+}
 
 /** \} */
 
