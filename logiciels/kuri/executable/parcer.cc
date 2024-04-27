@@ -35,6 +35,7 @@
 
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
+#include "structures/enchaineuse.hh"
 #include "structures/ensemble.hh"
 #include "structures/pile.hh"
 #include "structures/tableau.hh"
@@ -1107,6 +1108,8 @@ struct Convertisseuse {
     kuri::ensemble<kuri::chaine> modules_importes{};
 
     dls::chaine pour_bibliotheque{};
+    kuri::tableau<kuri::chaine> dépendances_biblinternes{};
+    kuri::tableau<kuri::chaine> dépendances_qt{};
 
     dls::chaine m_préfixe_énum_courant{};
 
@@ -1139,6 +1142,33 @@ struct Convertisseuse {
         if (pour_bibliotheque != "") {
             flux_sortie << "lib" << pour_bibliotheque << " :: #bibliothèque \""
                         << pour_bibliotheque << "\"\n\n";
+
+            for (auto &dép : dépendances_biblinternes) {
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " " << dép
+                            << "\n";
+            }
+            if (!dépendances_biblinternes.est_vide()) {
+                flux_sortie << "\n";
+            }
+            for (auto &dép : dépendances_qt) {
+                flux_sortie << "libQt5" << dép << " :: #bibliothèque \"Qt5" << dép << "\"\n";
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " libQt5"
+                            << dép << "\n";
+            }
+            if (!dépendances_qt.est_vide()) {
+                flux_sortie << "libQt5" << "Core" << " :: #bibliothèque \"Qt5" << "Core" << "\"\n";
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " libQt5"
+                            << "Core" << "\n";
+                flux_sortie << "\n";
+                flux_sortie << "libQt5" << "Gui" << " :: #bibliothèque \"Qt5" << "Gui" << "\"\n";
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " libQt5"
+                            << "Gui" << "\n";
+                flux_sortie << "\n";
+                flux_sortie << "libqt_entetes" << " :: #bibliothèque \"qt_entetes\"\n";
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque
+                            << " libqt_entetes" << "\n";
+                flux_sortie << "\n";
+            }
         }
 
         dossier_source = fichier_entete.chemin_parent();
@@ -2161,6 +2191,10 @@ struct Configuration {
     kuri::tableau<dls::chaine> args{};
     kuri::tableau<dls::chaine> inclusions{};
     dls::chaine nom_bibliotheque{};
+    /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
+    kuri::tableau<kuri::chaine> dépendances_biblinternes{};
+    /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
+    kuri::tableau<kuri::chaine> dépendances_qt{};
 };
 
 static auto analyse_configuration(const char *chemin)
@@ -2277,11 +2311,22 @@ static std::optional<Configuration> crée_config_depuis_json(int argc, char **ar
     return valide_configuration(config);
 }
 
+static bool commence_par(kuri::chaine_statique chn1, kuri::chaine_statique chn2)
+{
+    if (chn1.taille() < chn2.taille()) {
+        return false;
+    }
+
+    auto sous_chaine = chn1.sous_chaine(0, chn2.taille());
+    return sous_chaine == chn2;
+}
+
 static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, char **argv)
 {
-    if (argc != 6) {
-        std::cerr << "Utilisation " << argv[0]
-                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
+    if (argc < 7) {
+        std::cerr
+            << "Utilisation " << argv[0]
+            << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri -l BIBLIOTHEQUES\n";
         return {};
     }
 
@@ -2302,8 +2347,49 @@ static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, ch
         return {};
     }
 
+    if (std::string(argv[6]) != "-l") {
+        std::cerr << "Utilisation " << argv[0]
+                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
+        std::cerr << "Attendu '-l' après le nom du fichier !\n";
+        return {};
+    }
+
     config.nom_bibliotheque = argv[3];
     config.fichier_sortie = argv[5];
+
+    /* À FAIRE : termine ceci. */
+#if 0
+    for (int i = 7; i < argc; i++) {
+        auto chn = kuri::chaine(argv[i]);
+        if (commence_par(chn, "dls::")) {
+            chn = chn.sous_chaine(5);
+
+            if (chn == "algorithmes_image") {
+                continue;
+            }
+
+            if (chn == "memoire") {
+                chn = "mémoire";
+            }
+
+            config.dépendances_biblinternes.ajoute(enchaine("libdls_", chn));
+
+            //    std::cerr << "biblinterne : " << chn << '\n';
+
+            // std::cerr << "lib" << chn << " :: #bibliothèque \"bib_" << chn << "\"\n";
+            //            std::cerr << "#dépendance_bibliothèque " << config.nom_bibliotheque << "
+            //            lib" << chn
+            //                      << "\n";
+        }
+        else if (commence_par(chn, "Qt5::")) {
+            // chn = chn.sous_chaine(5);
+            // config.dépendances_qt.ajoute(chn);
+        }
+        else {
+            std::cerr << argv[i] << '\n';
+        }
+    }
+#endif
 
     return valide_configuration(config);
 }
@@ -2393,6 +2479,8 @@ int main(int argc, char **argv)
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
     convertisseuse.pour_bibliotheque = config.nom_bibliotheque;
+    convertisseuse.dépendances_biblinternes = config.dépendances_biblinternes;
+    convertisseuse.dépendances_qt = config.dépendances_qt;
     convertisseuse.ajoute_typedef("size_t", "ulong");
     convertisseuse.ajoute_typedef("std::size_t", "ulong");
     convertisseuse.ajoute_typedef("uint8_t", "uchar");
