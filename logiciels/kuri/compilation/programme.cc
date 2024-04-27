@@ -1223,8 +1223,8 @@ void ConstructriceProgrammeFormeRI::tri_fonctions_et_globales()
                                  ProgrammeRepreInter::FONCTIONS_INTERNES);
 
     tri_stable(partition_fonctions.vrai, [](auto &fonction1, auto &fonction2) {
-        auto bib1 = fonction1->decl->données_externes->symbole->bibliotheque;
-        auto bib2 = fonction2->decl->données_externes->symbole->bibliotheque;
+        auto bib1 = fonction1->decl->données_externes->symbole->bibliothèque;
+        auto bib2 = fonction2->decl->données_externes->symbole->bibliothèque;
         return bib1->nom < bib2->nom;
     });
 
@@ -1552,32 +1552,28 @@ std::optional<const DonnéesConstantes *> ProgrammeRepreInter::donne_données_co
     return &m_données_constantes;
 }
 
-static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliothèque *> &bibliothèques,
-                                              kuri::ensemble<Bibliothèque *> &utilisées,
+static void rassemble_bibliothèques_utilisées(kuri::ensemble<Bibliothèque *> &utilisées,
                                               Bibliothèque *bibliothèque)
 {
     if (utilisées.possède(bibliothèque)) {
         return;
     }
 
-    bibliothèques.ajoute(bibliothèque);
     utilisées.insère(bibliothèque);
 
-    POUR (bibliothèque->dependances.plage()) {
-        rassemble_bibliothèques_utilisées(bibliothèques, utilisées, it);
+    POUR (bibliothèque->dépendances.plage()) {
+        rassemble_bibliothèques_utilisées(utilisées, it);
     }
 }
 
-kuri::tableau<Bibliothèque *> ProgrammeRepreInter::donne_bibliothèques_utilisées() const
+BibliothèquesUtilisées ProgrammeRepreInter::donne_bibliothèques_utilisées() const
 {
-    kuri::tableau<Bibliothèque *> résultat;
     kuri::ensemble<Bibliothèque *> bibliothèques_utilisées;
     POUR (fonctions) {
         if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
             it->decl->données_externes && it->decl->données_externes->symbole) {
-            rassemble_bibliothèques_utilisées(résultat,
-                                              bibliothèques_utilisées,
-                                              it->decl->données_externes->symbole->bibliotheque);
+            rassemble_bibliothèques_utilisées(bibliothèques_utilisées,
+                                              it->decl->données_externes->symbole->bibliothèque);
         }
     }
     POUR (globales) {
@@ -1587,10 +1583,10 @@ kuri::tableau<Bibliothèque *> ProgrammeRepreInter::donne_bibliothèques_utilis�
         if (!it->decl->données_externes) {
             continue;
         }
-        rassemble_bibliothèques_utilisées(
-            résultat, bibliothèques_utilisées, it->decl->données_externes->symbole->bibliotheque);
+        rassemble_bibliothèques_utilisées(bibliothèques_utilisées,
+                                          it->decl->données_externes->symbole->bibliothèque);
     }
-    return résultat;
+    return BibliothèquesUtilisées(bibliothèques_utilisées);
 }
 
 int64_t ProgrammeRepreInter::mémoire_utilisée() const

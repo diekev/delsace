@@ -32,7 +32,7 @@ enable_testing()
 
 # Macro pour compiler un fichier d'entête C en un fichier .kuri pour pouvoir appeler les fonctions
 # y définis dans les programmes Kuri.
-macro(compile_interface_c __nom_projet__ __nom_bibliotheque__ __fichier_entete__ __nom_module__ __nom_fichier_genere__)
+macro(compile_interface_c __nom_projet__ __nom_bibliotheque__ __fichier_entete__ __nom_module__ __nom_fichier_genere__ __bibliotheques__)
     # Attend que Parcer est compilé.
     add_dependencies(${__nom_projet__} parcer)
 
@@ -45,7 +45,7 @@ macro(compile_interface_c __nom_projet__ __nom_bibliotheque__ __fichier_entete__
 
     add_custom_command(
         OUTPUT ${FICHIER_DESTINATION}
-        COMMAND parcer "${FICHIER_ENTETE}" -b "${__nom_bibliotheque__}" -o "${FICHIER_DESTINATION}"
+        COMMAND parcer "${FICHIER_ENTETE}" -b "${__nom_bibliotheque__}" -o "${FICHIER_DESTINATION}" -l ${__bibliotheques__}
         DEPENDS parcer "${FICHIER_ENTETE}"
         COMMENT "Génération de l'interface Kuri pour ${FICHIER_ENTETE}"
     )
@@ -91,7 +91,7 @@ macro(compile_module_c __nom__ __nom_interface__ __entete_interface__ __dossier_
 
     # Compile l'interface, nous devons dépendre sur une cible de compilation,
     # prenons arbitrairement la cible statique
-    compile_interface_c(${NOM_STATIQUE} ${__nom__} ${__entete_interface__} ${__dossier__} interface_${__nom_interface__})
+    compile_interface_c(${NOM_STATIQUE} ${__nom__} ${__entete_interface__} ${__dossier__} interface_${__nom_interface__} "${__bibliotheques__}")
 endmacro()
 
 add_subdirectory(adn)

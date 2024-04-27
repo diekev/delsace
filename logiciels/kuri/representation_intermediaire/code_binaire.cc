@@ -1340,7 +1340,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
             }
 
             if (!decl->données_externes->symbole->charge(
-                    espace, decl, RaisonRechercheSymbole::EXECUTION_METAPROGRAMME)) {
+                    espace, decl, RaisonRechercheSymbole::EXÉCUTION_MÉTAPROGRAMME)) {
                 return false;
             }
 
@@ -2189,7 +2189,7 @@ bool CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale *globale) const
     else if (globale->decl && globale->decl->données_externes) {
         auto decl = globale->decl;
         if (!decl->données_externes->symbole->charge(
-                espace, decl, RaisonRechercheSymbole::EXECUTION_METAPROGRAMME)) {
+                espace, decl, RaisonRechercheSymbole::EXÉCUTION_MÉTAPROGRAMME)) {
             return false;
         }
 

@@ -1,0 +1,81 @@
+/* ------------------------------------------------------------------------- */
+/** \nom AtlasTexture
+ * \{ */
+
+AtlasTexture :: struct {
+	bindcode: n32
+	format_interne: n32
+	bordure: z32
+	nombre: n32
+	format: n32
+	type: n32
+}
+
+loge_atlas_texture :: fonc (nombre: n32) -> *AtlasTexture
+{
+    résultat := loge(AtlasTexture)
+    initialise_atlas_texture(résultat, nombre)
+    retourne résultat
+}
+
+initialise_atlas_texture :: fonc (atlas: *AtlasTexture, nombre: n32)
+{
+    atlas.nombre = nombre
+    glGenTextures(1, *atlas.bindcode)
+}
+
+déloge_atlas_texture :: fonc (atlas: *AtlasTexture)
+{
+    détruit_données_atlas(atlas, faux)
+    déloge(atlas)
+}
+
+détruit_données_atlas :: fonc (empl atlas: *AtlasTexture, renouvel: bool)
+{
+	si glIsTexture(bindcode) {
+		glDeleteTextures(1, *bindcode)
+	}
+
+	si renouvel {
+		glGenTextures(1, *bindcode)
+	}
+}
+
+attache :: fonc (empl atlas: *AtlasTexture)
+{
+	glActiveTexture(GL_TEXTURE0 + nombre)
+	glBindTexture(GL_TEXTURE_2D_ARRAY, bindcode)
+}
+
+détache :: fonc (empl atlas: *AtlasTexture)
+{
+	glActiveTexture(GL_TEXTURE0 + nombre)
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0)
+}
+
+définis_typage :: fonc (atlas: *AtlasTexture, type: n32, format: n32, format_interne: n32)
+{
+	atlas.type = type
+	atlas.format = format
+	atlas.format_interne = format_interne
+}
+
+définis_filtre_min_mag :: fonc (atlas: *AtlasTexture @inutilisée, min: GLenum, mag: GLenum)
+{
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, min)
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, mag)
+}
+
+remplis :: fonc (empl atlas: *AtlasTexture, données: *rien, taille: [3]z32)
+{
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format_interne, taille[0], taille[1], taille[2],
+				 bordure, format, type, données);
+}
+
+définis_enveloppage :: fonc (atlas: *AtlasTexture @inutilisée, enveloppe: GLenum)
+{
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, enveloppe)
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, enveloppe)
+}
+
+/** \} */

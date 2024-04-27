@@ -356,6 +356,14 @@ elseif(WIN32)
     include(platform_win32)
 endif()
 
+# ------------------------------------------------------------------------------
+
+macro(installe_dans_module_kuri __nom_archive__ __nom_dossier__)
+    install(TARGETS ${__nom_archive__} DESTINATION kuri/modules/${__nom_dossier__}/lib/x86_64-linux-gnu/)
+endmacro(installe_dans_module_kuri)
+
+# ------------------------------------------------------------------------------
+
 add_subdirectory(biblexternes)
 add_subdirectory(biblinternes)
 add_subdirectory(logiciels)

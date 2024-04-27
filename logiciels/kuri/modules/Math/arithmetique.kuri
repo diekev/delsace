@@ -2,6 +2,7 @@ importe Bits
 
 // libcmath :: #bibliothèque "m"
 libcmath :: #bibliothèque "ucrt"
+// #dépendance_bibliothèque libcmath libc
 
 /* Fonctions trigonométriques. */
 
