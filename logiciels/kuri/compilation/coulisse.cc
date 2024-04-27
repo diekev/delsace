@@ -171,7 +171,7 @@ bool Coulisse::crée_exécutable(ArgsLiaisonObjets const &args)
 void Coulisse::rassemble_statistiques(Statistiques &stats)
 {
     auto mémoire_sous_classe = mémoire_utilisée();
-    mémoire_sous_classe += m_bibliothèques.taille_mémoire();
+    mémoire_sous_classe += m_bibliothèques.mémoire_utilisée();
     stats.ajoute_mémoire_utilisée("Coulisse", mémoire_sous_classe);
 }
 

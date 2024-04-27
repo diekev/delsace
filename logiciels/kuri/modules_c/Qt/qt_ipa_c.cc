@@ -73,6 +73,16 @@ inline QLayout *vers_qt(QT_Generic_Layout layout)
     return reinterpret_cast<QLayout *>(layout.layout);
 }
 
+inline QPixmap *vers_qt(QT_Pixmap *pixmap)
+{
+    return reinterpret_cast<QPixmap *>(pixmap);
+}
+
+inline QT_Pixmap *vers_ipa(QPixmap *pixmap)
+{
+    return reinterpret_cast<QT_Pixmap *>(pixmap);
+}
+
 #define TRANSTYPAGE_WIDGETS(nom_qt, nom_classe, nom_union)                                        \
     inline nom_classe *vers_ipa(nom_qt *widget)                                                   \
     {                                                                                             \
@@ -91,6 +101,25 @@ ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
 #undef TRANSTYPAGE_WIDGETS
 
 extern "C" {
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Pixmap
+ * \{ */
+
+struct QT_Pixmap;
+
+QT_Pixmap *QT_cree_pixmap(QT_Chaine chemin)
+{
+    return vers_ipa(new QPixmap(QString(chemin.vers_std_string().c_str())));
+}
+
+void QT_detruit_pixmap(QT_Pixmap *pixmap)
+{
+    auto qpixmap = vers_qt(pixmap);
+    delete (qpixmap);
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name QT_Generic_Object
@@ -578,6 +607,26 @@ int QT_widget_donne_hauteur_pour_largeur_comportement_taille(QT_Generic_Widget w
     return policy.hasHeightForWidth();
 }
 
+static Qt::CursorShape convertis_forme_curseur(QT_CursorShape cursor)
+{
+    switch (cursor) {
+        ENUMERE_CURSOR_SHAPE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::ArrowCursor;
+}
+
+void QT_widget_definis_curseur(QT_Generic_Widget widget, QT_CursorShape cursor)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setCursor(convertis_forme_curseur(cursor));
+}
+
+void QT_widget_restore_curseur(QT_Generic_Widget widget)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->unsetCursor();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -587,7 +636,9 @@ int QT_widget_donne_hauteur_pour_largeur_comportement_taille(QT_Generic_Widget w
 QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new GLWidget(rappels, qparent));
+    auto résultat = vers_ipa(new GLWidget(rappels, qparent));
+    rappels->widget = résultat;
+    return résultat;
 }
 
 /** \} */
@@ -612,6 +663,12 @@ QT_FormLayout *QT_cree_form_layout(union QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new QFormLayout(qparent));
+}
+
+QT_GridLayout *QT_cree_grid_layout(QT_Generic_Widget parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QGridLayout(qparent));
 }
 
 void QT_layout_definis_marge(QT_Generic_Layout layout, int taille)
@@ -905,9 +962,12 @@ void QT_label_definis_texte(QT_Label *label, QT_Chaine texte)
     qlabel->setText(texte.vers_std_string().c_str());
 }
 
-// À FAIRE
-// auto pixmap = QPixmap("/home/kevin/icons8-brush-100.png");
-// setPixmap(pixmap.scaled(16, 16));
+void QT_label_definis_pixmap(QT_Label *label, QT_Pixmap *pixmap, QT_Taille taille)
+{
+    auto qlabel = vers_qt(label);
+    auto qpixmap = vers_qt(pixmap);
+    qlabel->setPixmap(qpixmap->scaled(16, 16));
+}
 
 /** \} */
 
@@ -1014,6 +1074,12 @@ void QT_treewidgetitem_ajoute_enfant(QT_TreeWidgetItem *widget, QT_TreeWidgetIte
     auto qwidget = vers_qt(widget);
     auto qenfant = vers_qt(enfant);
     qwidget->addChild(qenfant);
+}
+
+void QT_treewidgetitem_definis_selectionne(QT_TreeWidgetItem *widget, bool ouinon)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setSelected(ouinon);
 }
 
 /** \} */
