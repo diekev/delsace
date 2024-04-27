@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE memoire)
+set(NOM_BIBLIOTHEQUE bib_memoire)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
@@ -41,6 +41,7 @@ set(SOURCES
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
 add_library(dls::memoire ALIAS ${NOM_BIBLIOTHEQUE})
 set_property(TARGET ${NOM_BIBLIOTHEQUE} PROPERTY POSITION_INDEPENDENT_CODE ON)
+installe_dans_module_kuri(${NOM_BIBLIOTHEQUE} Kuri)
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
 

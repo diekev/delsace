@@ -228,3 +228,4 @@ add_library(danjo STATIC ${SOURCES})
 target_include_directories(danjo PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(danjo ${BIBLIOTHEQUES})
+installe_dans_module_kuri(danjo Qt)
