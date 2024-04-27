@@ -619,6 +619,7 @@ enum QT_Etat_CheckBox {
 };
 
 struct QT_Rappels_CheckBox {
+    void (*sur_destruction)(struct QT_Rappels_CheckBox *);
     void (*sur_changement_etat)(struct QT_Rappels_CheckBox *, enum QT_Etat_CheckBox);
 };
 
@@ -735,6 +736,7 @@ enum QT_Comportement_Menu_Contextuel {
 enum QT_Mode_DragDrop { ENUMERE_MODE_DRAG_DROP(ENUMERE_DECLARATION_ENUM_IPA) };
 
 struct QT_Rappels_TreeWidget {
+    void (*sur_destruction)(struct QT_Rappels_TreeWidget *);
     void (*sur_selection_item)(struct QT_Rappels_TreeWidget *, struct QT_TreeWidgetItem *, int);
     /** Les QT_TreeWidgetIem sont donnés dans l'ordre : courant, précédent. */
     void (*sur_changement_item_courant)(struct QT_Rappels_TreeWidget *,
