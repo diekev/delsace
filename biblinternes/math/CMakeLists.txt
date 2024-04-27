@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_BIBLIOTHEQUE math)
+set(NOM_BIBLIOTHEQUE bib_math)
 
 set(BIBLIOTHEQUES
     PUBLIC dls::outils
@@ -77,6 +77,7 @@ set_property(TARGET ${NOM_BIBLIOTHEQUE} PROPERTY POSITION_INDEPENDENT_CODE ON)
 add_library(dls::math ALIAS ${NOM_BIBLIOTHEQUE})
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC .)
 target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})
+installe_dans_module_kuri(${NOM_BIBLIOTHEQUE} Kuri)
 
 ################################################################################
 

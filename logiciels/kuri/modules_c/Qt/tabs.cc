@@ -19,6 +19,13 @@ TabWidget::TabWidget(QT_Rappels_TabWidget *rappels, QWidget *parent)
     }
 }
 
+TabWidget::~TabWidget()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
 void TabWidget::sur_changement_page(int index)
 {
     if (m_rappels->sur_changement_page) {

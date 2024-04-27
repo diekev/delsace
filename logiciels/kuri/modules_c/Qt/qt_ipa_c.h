@@ -66,6 +66,17 @@ struct QT_Taille {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Pixmap
+ * \{ */
+
+struct QT_Pixmap;
+
+struct QT_Pixmap *QT_cree_pixmap(struct QT_Chaine chemin);
+void QT_detruit_pixmap(struct QT_Pixmap *pixmap);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Rappel_Generique
  * \{ */
 
@@ -152,7 +163,8 @@ bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon);
     O(QVBoxLayout, QT_VBoxLayout, vbox)                                                           \
     O(QHBoxLayout, QT_HBoxLayout, hbox)                                                           \
     O(QBoxLayout, QT_BoxLayout, box)                                                              \
-    O(QFormLayout, QT_FormLayout, form)
+    O(QFormLayout, QT_FormLayout, form)                                                           \
+    O(QGridLayout, QT_GridLayout, grid)
 
 #define PRODECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_LAYOUTS(PRODECLARE_TYPES_LAYOUTS)
@@ -370,6 +382,41 @@ int QT_wheel_event_donne_delta(struct QT_WheelEvent *event);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_CursorShape
+ * \{ */
+
+/* À FAIRE : implémente tous les cas. */
+#define ENUMERE_CURSOR_SHAPE(O)                                                                   \
+    O(QT_CURSORSHAPE_ARROW, Qt::ArrowCursor)                                                      \
+    O(QT_CURSORSHAPE_UP_ARROW, Qt::UpArrowCursor)                                                 \
+    O(QT_CURSORSHAPE_CROSS, Qt::CrossCursor)                                                      \
+    O(QT_CURSORSHAPE_WAIT, Qt::WaitCursor)                                                        \
+    O(QT_CURSORSHAPE_IBEAM, Qt::IBeamCursor)                                                      \
+    O(QT_CURSORSHAPE_SIZE_VERTICAL, Qt::SizeVerCursor)                                            \
+    O(QT_CURSORSHAPE_SIZE_HORIZONTAL, Qt::SizeHorCursor)                                          \
+    O(QT_CURSORSHAPE_SIZE_BDIALOG, Qt::SizeBDiagCursor)                                           \
+    O(QT_CURSORSHAPE_SIZE_FDIALOG, Qt::SizeFDiagCursor)                                           \
+    O(QT_CURSORSHAPE_SIZE_ALL, Qt::SizeAllCursor)                                                 \
+    O(QT_CURSORSHAPE_BLANK, Qt::BlankCursor)                                                      \
+    O(QT_CURSORSHAPE_SPLIT_VERTICAL, Qt::SplitVCursor)                                            \
+    O(QT_CURSORSHAPE_SPLIT_HORIZONTAL, Qt::SplitHCursor)                                          \
+    O(QT_CURSORSHAPE_POINTING_HAND, Qt::PointingHandCursor)                                       \
+    O(QT_CURSORSHAPE_FORBIDDEN, Qt::ForbiddenCursor)                                              \
+    O(QT_CURSORSHAPE_WHATS_THIS, Qt::WhatsThisCursor)                                             \
+    O(QT_CURSORSHAPE_BUSY, Qt::BusyCursor)                                                        \
+    O(QT_CURSORSHAPE_OPEN_HAND, Qt::OpenHandCursor)                                               \
+    O(QT_CURSORSHAPE_CLOSED_HAND, Qt::ClosedHandCursor)                                           \
+    O(QT_CURSORSHAPE_DRAG_COPY, Qt::DragCopyCursor)                                               \
+    O(QT_CURSORSHAPE_DRAG_MOVE, Qt::DragMoveCursor)                                               \
+    O(QT_CURSORSHAPE_DRAG_LINK, Qt::DragLinkCursor)                                               \
+    O(QT_CURSORSHAPE_BITMAP, Qt::BitmapCursor)                                                    \
+    O(QT_CURSORSHAPE_CUSTOM, Qt::CustomCursor)
+
+enum QT_CursorShape { ENUMERE_CURSOR_SHAPE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Widget
  * \{ */
 
@@ -436,6 +483,10 @@ void QT_widget_definis_hauteur_pour_largeur_comportement_taille(union QT_Generic
 
 int QT_widget_donne_hauteur_pour_largeur_comportement_taille(union QT_Generic_Widget widget);
 
+void QT_widget_definis_curseur(union QT_Generic_Widget widget, enum QT_CursorShape cursor);
+
+void QT_widget_restore_curseur(union QT_Generic_Widget widget);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -449,6 +500,9 @@ struct QT_Rappels_GLWidget {
     void (*sur_peinture_gl)(struct QT_Rappels_GLWidget *);
     /** Les dimensions sont passées dans l'ordre : largeur, hauteur. */
     void (*sur_redimensionnement_gl)(struct QT_Rappels_GLWidget *, struct QT_Taille);
+
+    /** Le widget pour lequel les rappels sont mis en place. */
+    struct QT_GLWidget *widget;
 };
 
 struct QT_GLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
@@ -463,6 +517,7 @@ struct QT_GLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
 struct QT_HBoxLayout *QT_cree_hbox_layout(union QT_Generic_Widget parent);
 struct QT_VBoxLayout *QT_cree_vbox_layout(union QT_Generic_Widget parent);
 struct QT_FormLayout *QT_cree_form_layout(union QT_Generic_Widget parent);
+struct QT_GridLayout *QT_cree_grid_layout(union QT_Generic_Widget parent);
 void QT_layout_definis_marge(union QT_Generic_Layout layout, int taille);
 void QT_layout_ajoute_widget(union QT_Generic_Layout layout, union QT_Generic_Widget widget);
 
@@ -515,6 +570,7 @@ void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Wi
 struct QT_Rappels_TabWidget {
     void (*sur_changement_page)(struct QT_Rappels_TabWidget *, int index);
     void (*sur_fermeture_page)(struct QT_Rappels_TabWidget *, int index);
+    void (*sur_destruction)(struct QT_Rappels_TabWidget *);
 };
 
 struct QT_TabWidget *QT_cree_tab_widget(struct QT_Rappels_TabWidget *rappels,
@@ -563,6 +619,7 @@ enum QT_Etat_CheckBox {
 };
 
 struct QT_Rappels_CheckBox {
+    void (*sur_destruction)(struct QT_Rappels_CheckBox *);
     void (*sur_changement_etat)(struct QT_Rappels_CheckBox *, enum QT_Etat_CheckBox);
 };
 
@@ -579,6 +636,10 @@ void QT_checkbox_definis_coche(struct QT_CheckBox *checkbox, int coche);
 struct QT_Label *QT_cree_label(struct QT_Chaine *texte, union QT_Generic_Widget parent);
 
 void QT_label_definis_texte(struct QT_Label *label, struct QT_Chaine texte);
+
+void QT_label_definis_pixmap(struct QT_Label *label,
+                             struct QT_Pixmap *pixmap,
+                             struct QT_Taille taille);
 
 /** \} */
 
@@ -629,6 +690,7 @@ void QT_treewidgetitem_definis_texte(struct QT_TreeWidgetItem *widget,
                                      struct QT_Chaine *texte);
 void QT_treewidgetitem_ajoute_enfant(struct QT_TreeWidgetItem *widget,
                                      struct QT_TreeWidgetItem *enfant);
+void QT_treewidgetitem_definis_selectionne(struct QT_TreeWidgetItem *widget, bool ouinon);
 
 /** \} */
 
@@ -675,6 +737,7 @@ enum QT_Comportement_Menu_Contextuel {
 enum QT_Mode_DragDrop { ENUMERE_MODE_DRAG_DROP(ENUMERE_DECLARATION_ENUM_IPA) };
 
 struct QT_Rappels_TreeWidget {
+    void (*sur_destruction)(struct QT_Rappels_TreeWidget *);
     void (*sur_selection_item)(struct QT_Rappels_TreeWidget *, struct QT_TreeWidgetItem *, int);
     /** Les QT_TreeWidgetIem sont donnés dans l'ordre : courant, précédent. */
     void (*sur_changement_item_courant)(struct QT_Rappels_TreeWidget *,
@@ -896,6 +959,7 @@ struct DNJ_Rappels_Widget {
     struct DNJ_Pilote_Clique *(*donne_pilote_clique)(struct DNJ_Rappels_Widget *);
     void (*sur_creation_interface)(struct DNJ_Rappels_Widget *,
                                    struct DNJ_ConstructriceInterfaceParametres *);
+    void (*sur_destruction)(struct DNJ_Rappels_Widget *);
 };
 
 /** \} */

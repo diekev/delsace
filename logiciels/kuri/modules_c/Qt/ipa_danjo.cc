@@ -456,6 +456,13 @@ ConteneurControles::ConteneurControles(DNJ_Rappels_Widget *rappels, QWidget *par
 {
 }
 
+ConteneurControles::~ConteneurControles()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
 void ConteneurControles::ajourne_manipulable()
 {
     if (m_rappels && m_rappels->sur_changement_parametre) {

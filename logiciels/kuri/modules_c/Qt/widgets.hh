@@ -97,6 +97,8 @@ class CheckBox : public QCheckBox {
 
     EMPECHE_COPIE(CheckBox);
 
+    ~CheckBox() override;
+
   public Q_SLOTS:
     void sur_changement_etat(int state);
 };
@@ -158,6 +160,8 @@ class TreeWidget : public QTreeWidget {
     TreeWidget(QT_Rappels_TreeWidget *rappels, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(TreeWidget);
+
+    ~TreeWidget() override;
 
   public Q_SLOTS:
     void sur_selection_item(QTreeWidgetItem *item, int colonne);

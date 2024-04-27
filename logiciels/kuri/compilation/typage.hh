@@ -4,8 +4,6 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
 #include "arbre_syntaxique/prodeclaration.hh"
@@ -20,17 +18,13 @@
 #include "operateurs.hh"
 
 struct AllocatriceNoeud;
-struct AtomeGlobale;
 struct Compilatrice;
 struct GrapheDépendance;
 struct IdentifiantCode;
 struct InfoType;
 struct RegistreDesOpérateurs;
-struct OpérateurBinaire;
-struct OpérateurUnaire;
 struct MembreTypeComposé;
 struct Statistiques;
-struct Typeuse;
 
 using Type = NoeudDéclarationType;
 using TypeStructure = NoeudStruct;
