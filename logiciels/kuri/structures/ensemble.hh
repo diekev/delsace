@@ -113,6 +113,16 @@ class ensemble {
         }
     }
 
+    kuri::tableau<T> donne_tableau() const
+    {
+        kuri::tableau<T> résultat;
+        pour_chaque_element([&](auto &e) -> DécisionItération {
+            résultat.ajoute(e);
+            return DécisionItération::Continue;
+        });
+        return résultat;
+    }
+
   private:
     void alloue(int64_t taille)
     {
