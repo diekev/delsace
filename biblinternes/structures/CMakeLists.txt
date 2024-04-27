@@ -96,5 +96,6 @@ add_library(dls::structures ALIAS ${NOM_CIBLE})
 target_include_directories(${NOM_CIBLE} PUBLIC .)
 target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
 set_property(TARGET ${NOM_CIBLE} PROPERTY POSITION_INDEPENDENT_CODE ON)
+installe_dans_module_kuri(${NOM_CIBLE} Kuri)
 
 add_executable(test_structs main.cc)

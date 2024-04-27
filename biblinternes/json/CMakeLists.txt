@@ -27,8 +27,8 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	langage
-	memoire
-	bib_structures
+        dls::memoire
+        dls::structures
 	bib_tori
 )
 
