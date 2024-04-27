@@ -1076,6 +1076,12 @@ void QT_treewidgetitem_ajoute_enfant(QT_TreeWidgetItem *widget, QT_TreeWidgetIte
     qwidget->addChild(qenfant);
 }
 
+void QT_treewidgetitem_definis_selectionne(QT_TreeWidgetItem *widget, bool ouinon)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setSelected(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

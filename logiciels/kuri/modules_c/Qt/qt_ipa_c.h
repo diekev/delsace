@@ -690,6 +690,7 @@ void QT_treewidgetitem_definis_texte(struct QT_TreeWidgetItem *widget,
                                      struct QT_Chaine *texte);
 void QT_treewidgetitem_ajoute_enfant(struct QT_TreeWidgetItem *widget,
                                      struct QT_TreeWidgetItem *enfant);
+void QT_treewidgetitem_definis_selectionne(struct QT_TreeWidgetItem *widget, bool ouinon);
 
 /** \} */
 
