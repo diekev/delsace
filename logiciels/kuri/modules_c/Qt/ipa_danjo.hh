@@ -22,6 +22,8 @@ class ConteneurControles : public danjo::ConteneurControles {
 
     EMPECHE_COPIE(ConteneurControles);
 
+    ~ConteneurControles() override;
+
     void ajourne_manipulable() override;
 
     void debute_changement_controle() override;

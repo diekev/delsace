@@ -1,6 +1,7 @@
 importe Bits
 
 libcmath :: #bibliothèque "m"
+#dépendance_bibliothèque libcmath libc
 
 /* Fonctions trigonométriques. */
 

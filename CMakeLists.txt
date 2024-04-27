@@ -357,6 +357,12 @@ set(BIBLIOTHEQUE_DL $<$<CXX_COMPILER_ID:GNU>:dl>)
 
 # ------------------------------------------------------------------------------
 
+macro(installe_dans_module_kuri __nom_archive__ __nom_dossier__)
+    install(TARGETS ${__nom_archive__} DESTINATION kuri/modules/${__nom_dossier__}/lib/x86_64-linux-gnu/)
+endmacro(installe_dans_module_kuri)
+
+# ------------------------------------------------------------------------------
+
 include(platform_unix)
 
 add_subdirectory(biblexternes)
