@@ -29,6 +29,8 @@ class TabWidget : public QTabWidget {
 
     EMPECHE_COPIE(TabWidget);
 
+    ~TabWidget() override;
+
   public Q_SLOTS:
     void sur_changement_page(int index);
     void sur_fermeture_page(int index);

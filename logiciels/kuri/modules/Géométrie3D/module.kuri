@@ -10,6 +10,9 @@ libgmp :: #bibliothèque "gmp"
 libmpfr :: #bibliothèque "mpfr"
 libtbb :: #bibliothèque "tbb"
 
+#dépendance_bibliothèque libmpfr libc
+#dépendance_bibliothèque libmpfr libgmp
+
 #dépendance_bibliothèque libmodule_c_geometrie_3d libtbb
 #dépendance_bibliothèque libmodule_c_geometrie_3d libgmp
 #dépendance_bibliothèque libmodule_c_geometrie_3d libmpfr

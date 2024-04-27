@@ -28,7 +28,6 @@ logiciels/kuri/modules/Compilatrice/lexèmes.kuri
 logiciels/kuri/modules/Compilatrice/ipa.kuri
 logiciels/kuri/modules/Compilatrice/message.kuri
 logiciels/kuri/modules/Compilatrice/options.kuri
-logiciels/kuri/modules/Kuri/intrinseques.kuri
 logiciels/kuri/parsage/empreinte_parfaite.hh
 logiciels/kuri/parsage/lexemes.cc
 logiciels/kuri/parsage/lexemes.hh

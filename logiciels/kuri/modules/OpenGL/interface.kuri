@@ -54,7 +54,6 @@ GL_SRC_ALPHA : GLenum : 0x0302
 GL_ONE_MINUS_SRC_ALPHA : GLenum : 0x0303
 GL_TEXTURE0 : GLenum : 0x84C0
 GL_TEXTURE_1D : GLenum : 0x0DE0
-GL_TEXTURE_2D : GLenum : 0x0DE1
 GL_UNSIGNED_BYTE : GLenum : 0x1401
 GL_UNSIGNED_INT : GLenum : 0x1405
 GL_FLOAT : GLenum : 0x1406
@@ -72,6 +71,7 @@ GL_TEXTURE_MIN_FILTER : GLenum : 0x2800
 GL_TEXTURE_MAG_FILTER : GLenum : 0x2801
 GL_TEXTURE_WRAP_S : GLenum : 0x2802
 GL_TEXTURE_WRAP_T : GLenum : 0x2803
+GL_TEXTURE_WRAP_R : GLenum : 0x8072
 GL_CLAMP : GLenum : 0x2900
 GL_REPEAT : GLenum : 0x2901
 GL_CLAMP_TO_EDGE : GLenum : 0x812F
@@ -225,6 +225,18 @@ glTexImage2D :: fonc (
     type: GLenum,
     données: *rien) -> rien #externe libGL
 
+glTexImage3D :: fonc (
+    cible: GLenum,
+    level: GLint,
+    format_interne: GLenum,
+    largeur: GLsizei,
+    hauteur: GLsizei,
+    profondeur: GLsizei,
+    bordure: GLint,
+    format: GLenum,
+    type: GLenum,
+    données: *rien) -> rien #externe libGL
+
 // foncs de nuanceurs/programmes
 glShaderSource :: fonc (shader: n32, count: z64, string: **z8, length: *z32) -> rien #externe libGL
 glCreateShader :: fonc (shaderType: n32) -> n32 #externe libGL
@@ -268,5 +280,36 @@ GL_TEXTURE_2D_ARRAY_EXT : GLuint : 0x8C1A
 GL_PROXY_TEXTURE_2D_ARRAY_EXT : GLuint : 0x8C1B
 GL_TEXTURE_BINDING_1D_ARRAY_EXT : GLuint : 0x8C1C
 GL_TEXTURE_BINDING_2D_ARRAY_EXT : GLuint : 0x8C1D
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom GL_EXT_sparse_texture
+ * \{ */
+
+GL_TEXTURE_2D : GLenum : 0x0DE1
+GL_TEXTURE_3D : GLenum : 0x806F
+GL_TEXTURE_CUBE_MAP : GLenum : 0x8513
+GL_TEXTURE_2D_ARRAY : GLuint : 0x8C1A
+GL_TEXTURE_CUBE_MAP_ARRAY_OES : GLuint : 0x9009
+GL_VIRTUAL_PAGE_SIZE_X_EXT : GLuint : 0x9195
+GL_VIRTUAL_PAGE_SIZE_Y_EXT : GLuint : 0x9196
+GL_VIRTUAL_PAGE_SIZE_Z_EXT : GLuint : 0x9197
+GL_MAX_SPARSE_TEXTURE_SIZE_EXT : GLuint : 0x9198
+GL_MAX_SPARSE_3D_TEXTURE_SIZE_EXT : GLuint : 0x9199
+GL_MAX_SPARSE_ARRAY_TEXTURE_LAYERS_EXT : GLuint : 0x919A
+GL_TEXTURE_SPARSE_EXT : GLuint : 0x91A6
+GL_VIRTUAL_PAGE_SIZE_INDEX_EXT : GLuint : 0x91A7
+GL_NUM_VIRTUAL_PAGE_SIZES_EXT : GLuint : 0x91A8
+GL_SPARSE_TEXTURE_FULL_ARRAY_CUBE_MIPMAPS_EXT : GLuint : 0x91A9
+GL_NUM_SPARSE_LEVELS_EXT : GLuint : 0x91AA
+
+// typedef void (GLAPIENTRY * PFNGLTEXPAGECOMMITMENTEXTPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
+// typedef void (GLAPIENTRY * PFNGLTEXTUREPAGECOMMITMENTEXTPROC) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
+
+// #define glTexPageCommitmentEXT GLEW_GET_FUN(__glewTexPageCommitmentEXT)
+// #define glTexturePageCommitmentEXT GLEW_GET_FUN(__glewTexturePageCommitmentEXT)
+
+// #define GLEW_EXT_sparse_texture GLEW_GET_VAR(__GLEW_EXT_sparse_texture)
 
 /** \} */

@@ -2,6 +2,29 @@ importe Fondation
 
 charge "interface_qt"
 
+libdanjo :: #bibliothèque "danjo"
+
+#dépendance_bibliothèque libdanjo libdls_outils
+#dépendance_bibliothèque libdanjo libdls_phys
+#dépendance_bibliothèque libdanjo libQt5Widgets
+#dépendance_bibliothèque libdanjo libQt5OpenGL
+#dépendance_bibliothèque libdanjo libQt5Core
+#dépendance_bibliothèque libdanjo libQt5Gui
+
+libQt5Widgets :: #bibliothèque "Qt5Widgets"
+libQt5OpenGL :: #bibliothèque "Qt5OpenGL"
+libQt5Core :: #bibliothèque "Qt5Core"
+libQt5Gui :: #bibliothèque "Qt5Gui"
+
+libqt_entetes :: #bibliothèque "qt_entetes"
+
+#dépendance_bibliothèque libqt libqt_entetes
+#dépendance_bibliothèque libqt libdanjo
+#dépendance_bibliothèque libqt libQt5Widgets
+#dépendance_bibliothèque libqt libQt5OpenGL
+#dépendance_bibliothèque libqt libQt5Core
+#dépendance_bibliothèque libqt libQt5Gui
+
 /* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
  * \{ */

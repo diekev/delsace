@@ -221,6 +221,13 @@ CheckBox::CheckBox(QT_Rappels_CheckBox *rappels, QWidget *parent)
     }
 }
 
+CheckBox::~CheckBox()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
 static QT_Etat_CheckBox convertis_état_checkbox(int state)
 {
     if (state == Qt::CheckState::Unchecked) {
@@ -274,6 +281,13 @@ TreeWidget::TreeWidget(QT_Rappels_TreeWidget *rappels, QWidget *parent)
                 &QTreeWidget::currentItemChanged,
                 this,
                 &TreeWidget::sur_changement_item_courant);
+    }
+}
+
+TreeWidget::~TreeWidget()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
     }
 }
 

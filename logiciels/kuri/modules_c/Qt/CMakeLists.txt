@@ -49,6 +49,7 @@ endif()
 add_library(qt_entetes "${moc_headers}")
 target_include_directories(qt_entetes PUBLIC "${INCLUSIONS}")
 target_link_libraries(qt_entetes PUBLIC ${BIBLIOTHEQUES} ${BIBLIOTHEQUES_QT_WIDGETS} ${BIBLIOTHEQUES_QT_OPENGL})
+installe_dans_module_kuri(qt_entetes Qt)
 
 desactive_drapeaux_compilation(qt_entetes)
 
