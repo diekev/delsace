@@ -141,7 +141,8 @@ struct QT_Rappel_Generique {
     O(TreeWidgetItem, QT_TreeWidgetItem, tree_widget_item)                                        \
     O(ConteneurControles, DNJ_Conteneur_Controles, conteneur_controles)                           \
     O(QPushButton, QT_PushButton, button)                                                         \
-    O(QDialog, QT_Dialog, dialogue)
+    O(QDialog, QT_Dialog, dialogue)                                                               \
+    O(QGraphicsView, QT_GraphicsView, graphics_view)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -165,7 +166,8 @@ union QT_Generic_Widget {
     O(QObject, QT_Object, object)                                                                 \
     O(QTimer, QT_Timer, timer)                                                                    \
     O(QStyle, QT_Style, style)                                                                    \
-    O(QScreen, QT_Screen, screen)
+    O(QScreen, QT_Screen, screen)                                                                 \
+    O(QGraphicsScene, QT_GraphicsScene, graphics_scene)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -236,6 +238,30 @@ union QT_Generic_Event {
 #define DECLARE_TYPES_EVENTS(nom_qt, nom_classe, nom_union) struct nom_classe *nom_union;
     ENUMERE_TYPES_EVENTS(DECLARE_TYPES_EVENTS)
 #undef DECLARE_TYPES_EVENTS
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Generic_GraphicsItem
+ * \{ */
+
+#define ENUMERE_TYPES_GRAPHICS_ITEM(O)                                                            \
+    O(QGraphicsItem, QT_GraphicsItem, item)                                                       \
+    O(QGraphicsLineItem, QT_GraphicsLineItem, line_item)                                          \
+    O(QGraphicsRectItem, QT_GraphicsRectItem, rect_item)                                          \
+    O(QGraphicsTextItem, QT_GraphicsTextItem, text_item)
+
+#define PRODECLARE_TYPES_GRAPHICS_ITEM(nom_qt, nom_classe, nom_union) struct nom_classe;
+ENUMERE_TYPES_GRAPHICS_ITEM(PRODECLARE_TYPES_GRAPHICS_ITEM)
+#undef PRODECLARE_TYPES_GRAPHICS_ITEM
+
+/** Type générique pour passer des layouts de type dérivé aux fonctions devant prendre un QLayout.
+ */
+union QT_Generic_GraphicsItem {
+#define DECLARE_TYPES_GRAPHICS_ITEM(nom_qt, nom_classe, nom_union) struct nom_classe *nom_union;
+    ENUMERE_TYPES_GRAPHICS_ITEM(DECLARE_TYPES_GRAPHICS_ITEM)
+#undef DECLARE_TYPES_GRAPHICS_ITEM
 };
 
 /** \} */
@@ -349,6 +375,75 @@ struct QT_Taille QT_screen_donne_taille_disponible(struct QT_Screen *screen);
 struct QT_Position {
     int x;
     int y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Point
+ * \{ */
+
+struct QT_Point {
+    int x;
+    int y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_PointF
+ * \{ */
+
+struct QT_PointF {
+    double x;
+    double y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_RectF
+ * \{ */
+
+struct QT_RectF {
+    double x;
+    double y;
+    double largeur;
+    double hauteur;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Color
+ * \{ */
+
+struct QT_Color {
+    double r;
+    double g;
+    double b;
+    double a;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Pen
+ * \{ */
+
+struct QT_Pen {
+    struct QT_Color color;
+    double width;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Brush
+ * \{ */
+
+struct QT_Brush {
+    struct QT_Color color;
 };
 
 /** \} */
@@ -823,6 +918,75 @@ enum QT_Frame_Shape { ENEMERE_FORME_FRAME(ENUMERE_DECLARATION_ENUM_IPA) };
 struct QT_Frame *QT_cree_frame(union QT_Generic_Widget parent);
 void QT_frame_definis_forme(struct QT_Frame *frame, enum QT_Frame_Shape forme);
 void QT_frame_definis_ombrage(struct QT_Frame *frame, enum QT_Frame_Shadow ombrage);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsRectItem
+ * \{ */
+
+struct QT_GraphicsRectItem *QT_cree_graphics_rect_item(union QT_Generic_GraphicsItem parent);
+void QT_graphics_rect_item_definis_pinceau(struct QT_GraphicsRectItem *item,
+                                           struct QT_Pen pinceau);
+void QT_graphics_rect_item_definis_brosse(struct QT_GraphicsRectItem *item, struct QT_Brush brush);
+void QT_graphics_rect_item_definis_rect(struct QT_GraphicsRectItem *item, struct QT_RectF rect);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsTextItem
+ * \{ */
+
+struct QT_GraphicsTextItem *QT_cree_graphics_text_item(struct QT_Chaine texte,
+                                                       union QT_Generic_GraphicsItem parent);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsLineItem
+ * \{ */
+
+struct QT_GraphicsLineItem *QT_cree_graphics_line_item(union QT_Generic_GraphicsItem parent);
+void QT_graphics_rect_line_definis_pinceau(struct QT_GraphicsLineItem *item,
+                                           struct QT_Pen pinceau);
+void QT_line_graphics_item_definis_ligne(
+    struct QT_GraphicsLineItem *line, double x1, double y1, double x2, double y2);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsScene
+ * \{ */
+
+struct QT_GraphicsScene *QT_cree_graphics_scene(union QT_Generic_Object parent);
+void QT_graphics_scene_detruit(struct QT_GraphicsScene *scene);
+struct QT_GraphicsView *QT_graphics_scene_cree_graphics_view(struct QT_GraphicsScene *scene,
+                                                             union QT_Generic_Widget parent);
+void QT_graphics_scene_efface(struct QT_GraphicsScene *scene);
+struct QT_RectF QT_graphics_scene_donne_rect_scene(struct QT_GraphicsScene *scene);
+void QT_graphics_scene_definis_rect_scene(struct QT_GraphicsScene *scene, struct QT_RectF rect);
+void QT_graphics_scene_ajoute_item(struct QT_GraphicsScene *scene,
+                                   union QT_Generic_GraphicsItem item);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsView
+ * \{ */
+
+struct QT_GraphicsView *QT_cree_graphics_view(union QT_Generic_Widget parent);
+void QT_graphics_view_definis_scene(struct QT_GraphicsView *graphics_view,
+                                    struct QT_GraphicsScene *scene);
+void QT_graphics_view_reinit_transforme(struct QT_GraphicsView *graphics_view);
+void QT_graphics_view_definis_echelle_taille(struct QT_GraphicsView *graphics_view,
+                                             float x,
+                                             float y);
+struct QT_PointF QT_graphics_view_mappe_vers_scene(struct QT_GraphicsView *graphics_view,
+                                                   struct QT_Point point);
+struct QT_Point QT_graphics_view_mappe_depuis_scene(struct QT_GraphicsView *graphics_view,
+                                                    struct QT_PointF point);
+struct QT_Point QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
+                                                   struct QT_Point point);
 
 /** \} */
 

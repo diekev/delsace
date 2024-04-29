@@ -14,6 +14,8 @@
 #include <QCoreApplication>
 #include <QDialog>
 #include <QFormLayout>
+#include <QGraphicsRectItem>
+#include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -74,6 +76,11 @@ inline QLayout *vers_qt(QT_Generic_Layout layout)
     return reinterpret_cast<QLayout *>(layout.layout);
 }
 
+inline QGraphicsItem *vers_qt(QT_Generic_GraphicsItem item)
+{
+    return reinterpret_cast<QGraphicsItem *>(item.item);
+}
+
 inline QPixmap *vers_qt(QT_Pixmap *pixmap)
 {
     return reinterpret_cast<QPixmap *>(pixmap);
@@ -82,6 +89,31 @@ inline QPixmap *vers_qt(QT_Pixmap *pixmap)
 inline QT_Pixmap *vers_ipa(QPixmap *pixmap)
 {
     return reinterpret_cast<QT_Pixmap *>(pixmap);
+}
+
+inline QColor vers_qt(QT_Color color)
+{
+    auto résultat = QColor();
+    résultat.setRedF(color.r);
+    résultat.setGreenF(color.g);
+    résultat.setBlueF(color.b);
+    résultat.setAlphaF(color.a);
+    return résultat;
+}
+
+inline QBrush vers_qt(QT_Brush brush)
+{
+    auto résultat = QBrush();
+    résultat.setColor(vers_qt(brush.color));
+    return résultat;
+}
+
+inline QPen vers_qt(QT_Pen pen)
+{
+    auto résultat = QPen();
+    résultat.setColor(vers_qt(pen.color));
+    résultat.setWidthF(pen.width);
+    return résultat;
 }
 
 #define TRANSTYPAGE_WIDGETS(nom_qt, nom_classe, nom_union)                                        \
@@ -98,6 +130,7 @@ ENUMERE_TYPES_OBJETS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_WIDGETS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_LAYOUTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
+ENUMERE_TYPES_GRAPHICS_ITEM(TRANSTYPAGE_WIDGETS)
 
 #undef TRANSTYPAGE_WIDGETS
 
@@ -1313,6 +1346,184 @@ void QT_frame_definis_ombrage(struct QT_Frame *frame, enum QT_Frame_Shadow ombra
 {
     auto qframe = vers_qt(frame);
     qframe->setFrameShadow(convertis_ombrage_frame(ombrage));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsRectItem
+ * \{ */
+
+QT_GraphicsRectItem *QT_cree_graphics_rect_item(QT_Generic_GraphicsItem parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QGraphicsRectItem(qparent));
+}
+
+void QT_graphics_rect_item_definis_pinceau(QT_GraphicsRectItem *item, QT_Pen pinceau)
+{
+    auto qitem = vers_qt(item);
+    auto qpen = vers_qt(pinceau);
+    qitem->setPen(qpen);
+}
+
+void QT_graphics_rect_item_definis_brosse(QT_GraphicsRectItem *item, QT_Brush brush)
+{
+    auto qitem = vers_qt(item);
+    auto qbrush = vers_qt(brush);
+    qitem->setBrush(qbrush);
+}
+
+void QT_graphics_rect_item_definis_rect(QT_GraphicsRectItem *item, QT_RectF rect)
+{
+    auto qitem = vers_qt(item);
+    auto qrect = QRectF(rect.x, rect.y, rect.largeur, rect.hauteur);
+    qitem->setRect(qrect);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsTextItem
+ * \{ */
+
+QT_GraphicsTextItem *QT_cree_graphics_text_item(QT_Chaine texte, QT_Generic_GraphicsItem parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QGraphicsTextItem(texte.vers_std_string().c_str(), qparent));
+}
+
+// À FAIRE setFont(RectF)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsLineItem
+ * \{ */
+
+QT_GraphicsLineItem *QT_cree_graphics_line_item(QT_Generic_GraphicsItem parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QGraphicsLineItem(qparent));
+}
+
+void QT_graphics_rect_line_definis_pinceau(QT_GraphicsLineItem *item, QT_Pen pinceau)
+{
+    auto qitem = vers_qt(item);
+    auto qpen = vers_qt(pinceau);
+    qitem->setPen(qpen);
+}
+
+void QT_line_graphics_item_definis_ligne(
+    QT_GraphicsLineItem *line, double x1, double y1, double x2, double y2)
+{
+    auto qline = vers_qt(line);
+    qline->setLine(x1, y1, x2, y2);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsScene
+ * \{ */
+
+QT_GraphicsScene *QT_cree_graphics_scene(QT_Generic_Object parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QGraphicsScene(qparent));
+}
+
+void QT_graphics_scene_detruit(QT_GraphicsScene *scene)
+{
+    auto qscene = vers_qt(scene);
+    delete qscene;
+}
+
+QT_GraphicsView *QT_graphics_scene_cree_graphics_view(QT_GraphicsScene *scene,
+                                                      QT_Generic_Widget parent)
+{
+    auto qparent = vers_qt(parent);
+    auto qscene = vers_qt(scene);
+    return vers_ipa(new QGraphicsView(qscene, qparent));
+}
+
+void QT_graphics_scene_efface(QT_GraphicsScene *scene)
+{
+    auto qscene = vers_qt(scene);
+    qscene->clear();
+}
+
+QT_RectF QT_graphics_scene_donne_rect_scene(QT_GraphicsScene *scene)
+{
+    auto qscene = vers_qt(scene);
+    auto rect = qscene->sceneRect();
+    return QT_RectF{rect.x(), rect.y(), rect.width(), rect.height()};
+}
+
+void QT_graphics_scene_definis_rect_scene(QT_GraphicsScene *scene, QT_RectF rect)
+{
+    auto qscene = vers_qt(scene);
+    auto qrect = QRectF(rect.x, rect.y, rect.largeur, rect.hauteur);
+    qscene->setSceneRect(qrect);
+}
+
+void QT_graphics_scene_ajoute_item(QT_GraphicsScene *scene, QT_Generic_GraphicsItem item)
+{
+    auto qscene = vers_qt(scene);
+    auto qitem = vers_qt(item);
+    qscene->addItem(qitem);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsView
+ * \{ */
+
+QT_GraphicsView *QT_cree_graphics_view(QT_Generic_Widget parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QGraphicsView(qparent));
+}
+
+void QT_graphics_view_definis_scene(QT_GraphicsView *graphics_view, QT_GraphicsScene *scene)
+{
+    auto qgraphics_view = vers_qt(graphics_view);
+    auto qscene = vers_qt(scene);
+    qgraphics_view->setScene(qscene);
+}
+
+void QT_graphics_view_reinit_transforme(QT_GraphicsView *graphics_view)
+{
+    auto qgraphics_view = vers_qt(graphics_view);
+    qgraphics_view->resetTransform();
+}
+
+void QT_graphics_view_definis_echelle_taille(QT_GraphicsView *graphics_view, float x, float y)
+{
+    auto qgraphics_view = vers_qt(graphics_view);
+    qgraphics_view->scale(x, y);
+}
+
+QT_PointF QT_graphics_view_mappe_vers_scene(QT_GraphicsView *graphics_view, QT_Point point)
+{
+    auto qgraphics_view = vers_qt(graphics_view);
+    auto résultat = qgraphics_view->mapToScene(QPoint(point.x, point.y));
+    return QT_PointF{résultat.x(), résultat.y()};
+}
+
+QT_Point QT_graphics_view_mappe_depuis_scene(QT_GraphicsView *graphics_view, QT_PointF point)
+{
+    auto qgraphics_view = vers_qt(graphics_view);
+    auto résultat = qgraphics_view->mapFromScene(QPointF(point.x, point.y));
+    return QT_Point{résultat.x(), résultat.y()};
+}
+
+QT_Point QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view, QT_Point point)
+{
+    auto qgraphics_view = vers_qt(graphics_view);
+    auto résultat = qgraphics_view->mapToGlobal(QPoint(point.x, point.y));
+    return QT_Point{résultat.x(), résultat.y()};
 }
 
 /** \} */
