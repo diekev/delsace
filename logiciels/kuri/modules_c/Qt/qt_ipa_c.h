@@ -235,7 +235,7 @@ struct QT_Fenetre_Principale *QT_cree_fenetre_principale(
 void QT_detruit_fenetre_principale(struct QT_Fenetre_Principale *fenetre);
 
 void QT_fenetre_principale_definis_titre_fenetre(struct QT_Fenetre_Principale *fenetre,
-                                                 const char *nom);
+                                                 struct QT_Chaine nom);
 void QT_fenetre_principale_definis_widget_central(struct QT_Fenetre_Principale *fenetre,
                                                   union QT_Generic_Widget widget);
 
@@ -254,8 +254,8 @@ struct QT_Application *QT_cree_application(int *argc, char **argv);
 void QT_detruit_application(struct QT_Application *app);
 int QT_application_exec(struct QT_Application *app);
 
-void QT_core_application_definis_nom_organisation(const char *nom);
-void QT_core_application_definis_nom_application(const char *nom);
+void QT_core_application_definis_nom_organisation(struct QT_Chaine nom);
+void QT_core_application_definis_nom_application(struct QT_Chaine nom);
 
 struct QT_Application *QT_donne_application(void);
 

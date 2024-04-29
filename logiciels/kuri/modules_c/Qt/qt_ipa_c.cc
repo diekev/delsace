@@ -158,10 +158,11 @@ void QT_detruit_fenetre_principale(struct QT_Fenetre_Principale *fenetre)
     delete fenêtre_qt;
 }
 
-void QT_fenetre_principale_definis_titre_fenetre(QT_Fenetre_Principale *fenetre, const char *nom)
+void QT_fenetre_principale_definis_titre_fenetre(QT_Fenetre_Principale *fenetre,
+                                                 struct QT_Chaine nom)
 {
     auto fenêtre_qt = vers_qt(fenetre);
-    fenêtre_qt->setWindowTitle(nom);
+    fenêtre_qt->setWindowTitle(nom.vers_std_string().c_str());
 }
 
 void QT_fenetre_principale_definis_widget_central(QT_Fenetre_Principale *fenetre,
@@ -202,14 +203,14 @@ int QT_application_exec(QT_Application *app)
     return app_qt->exec();
 }
 
-void QT_core_application_definis_nom_organisation(const char *nom)
+void QT_core_application_definis_nom_organisation(struct QT_Chaine nom)
 {
-    QCoreApplication::setOrganizationName(nom);
+    QCoreApplication::setOrganizationName(nom.vers_std_string().c_str());
 }
 
-void QT_core_application_definis_nom_application(const char *nom)
+void QT_core_application_definis_nom_application(struct QT_Chaine nom)
 {
-    QCoreApplication::setApplicationName(nom);
+    QCoreApplication::setApplicationName(nom.vers_std_string().c_str());
 }
 
 QT_Application *QT_donne_application()
