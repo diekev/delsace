@@ -701,6 +701,19 @@ void QT_layout_ajoute_widget(QT_Generic_Layout layout, QT_Generic_Widget widget)
     qlayout->addWidget(qwidget);
 }
 
+void QT_layout_ajoute_layout(QT_Generic_Layout layout, QT_Generic_Layout sous_layout)
+{
+    auto qlayout = vers_qt(layout);
+    auto qsous_layout = vers_qt(sous_layout);
+
+    if (auto hbox = dynamic_cast<QHBoxLayout *>(qlayout)) {
+        hbox->addLayout(qsous_layout);
+    }
+    else if (auto vbox = dynamic_cast<QVBoxLayout *>(qlayout)) {
+        vbox->addLayout(qsous_layout);
+    }
+}
+
 void QT_form_layout_ajoute_ligne_chaine(QT_FormLayout *layout,
                                         QT_Chaine label,
                                         QT_Generic_Widget widget)
