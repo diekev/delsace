@@ -100,6 +100,14 @@ ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
 
 #undef TRANSTYPAGE_WIDGETS
 
+static Qt::CursorShape convertis_forme_curseur(QT_CursorShape cursor)
+{
+    switch (cursor) {
+        ENUMERE_CURSOR_SHAPE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::ArrowCursor;
+}
+
 extern "C" {
 
 /* ------------------------------------------------------------------------- */
@@ -232,6 +240,22 @@ void QT_application_poste_evenement_et_donnees(union QT_Generic_Object receveur,
     auto qreceveur = vers_qt(receveur);
     auto event = new EvenementPerso(donnees, type_evenement);
     QCoreApplication::postEvent(qreceveur, event);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Application
+ * \{ */
+
+void QT_gui_application_definis_curseur(QT_CursorShape cursor)
+{
+    QGuiApplication::setOverrideCursor(convertis_forme_curseur(cursor));
+}
+
+void QT_gui_application_restaure_curseur()
+{
+    QGuiApplication::restoreOverrideCursor();
 }
 
 /** \} */
@@ -606,14 +630,6 @@ int QT_widget_donne_hauteur_pour_largeur_comportement_taille(QT_Generic_Widget w
     auto qwidget = vers_qt(widget);
     auto policy = qwidget->sizePolicy();
     return policy.hasHeightForWidth();
-}
-
-static Qt::CursorShape convertis_forme_curseur(QT_CursorShape cursor)
-{
-    switch (cursor) {
-        ENUMERE_CURSOR_SHAPE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
-    }
-    return Qt::ArrowCursor;
 }
 
 void QT_widget_definis_curseur(QT_Generic_Widget widget, QT_CursorShape cursor)

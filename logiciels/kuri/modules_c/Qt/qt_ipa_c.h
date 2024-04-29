@@ -77,6 +77,41 @@ void QT_detruit_pixmap(struct QT_Pixmap *pixmap);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_CursorShape
+ * \{ */
+
+/* À FAIRE : implémente tous les cas. */
+#define ENUMERE_CURSOR_SHAPE(O)                                                                   \
+    O(QT_CURSORSHAPE_ARROW, Qt::ArrowCursor)                                                      \
+    O(QT_CURSORSHAPE_UP_ARROW, Qt::UpArrowCursor)                                                 \
+    O(QT_CURSORSHAPE_CROSS, Qt::CrossCursor)                                                      \
+    O(QT_CURSORSHAPE_WAIT, Qt::WaitCursor)                                                        \
+    O(QT_CURSORSHAPE_IBEAM, Qt::IBeamCursor)                                                      \
+    O(QT_CURSORSHAPE_SIZE_VERTICAL, Qt::SizeVerCursor)                                            \
+    O(QT_CURSORSHAPE_SIZE_HORIZONTAL, Qt::SizeHorCursor)                                          \
+    O(QT_CURSORSHAPE_SIZE_BDIALOG, Qt::SizeBDiagCursor)                                           \
+    O(QT_CURSORSHAPE_SIZE_FDIALOG, Qt::SizeFDiagCursor)                                           \
+    O(QT_CURSORSHAPE_SIZE_ALL, Qt::SizeAllCursor)                                                 \
+    O(QT_CURSORSHAPE_BLANK, Qt::BlankCursor)                                                      \
+    O(QT_CURSORSHAPE_SPLIT_VERTICAL, Qt::SplitVCursor)                                            \
+    O(QT_CURSORSHAPE_SPLIT_HORIZONTAL, Qt::SplitHCursor)                                          \
+    O(QT_CURSORSHAPE_POINTING_HAND, Qt::PointingHandCursor)                                       \
+    O(QT_CURSORSHAPE_FORBIDDEN, Qt::ForbiddenCursor)                                              \
+    O(QT_CURSORSHAPE_WHATS_THIS, Qt::WhatsThisCursor)                                             \
+    O(QT_CURSORSHAPE_BUSY, Qt::BusyCursor)                                                        \
+    O(QT_CURSORSHAPE_OPEN_HAND, Qt::OpenHandCursor)                                               \
+    O(QT_CURSORSHAPE_CLOSED_HAND, Qt::ClosedHandCursor)                                           \
+    O(QT_CURSORSHAPE_DRAG_COPY, Qt::DragCopyCursor)                                               \
+    O(QT_CURSORSHAPE_DRAG_MOVE, Qt::DragMoveCursor)                                               \
+    O(QT_CURSORSHAPE_DRAG_LINK, Qt::DragLinkCursor)                                               \
+    O(QT_CURSORSHAPE_BITMAP, Qt::BitmapCursor)                                                    \
+    O(QT_CURSORSHAPE_CUSTOM, Qt::CustomCursor)
+
+enum QT_CursorShape { ENUMERE_CURSOR_SHAPE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Rappel_Generique
  * \{ */
 
@@ -267,6 +302,15 @@ void QT_application_poste_evenement_et_donnees(union QT_Generic_Object receveur,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_GuiApplication
+ * \{ */
+
+void QT_gui_application_definis_curseur(enum QT_CursorShape cursor);
+void QT_gui_application_restaure_curseur();
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Style
  * \{ */
 
@@ -378,41 +422,6 @@ enum QT_MouseButton QT_mouse_event_donne_bouton(struct QT_MouseEvent *event);
 
 void QT_wheel_event_donne_position(struct QT_WheelEvent *event, struct QT_Position *r_position);
 int QT_wheel_event_donne_delta(struct QT_WheelEvent *event);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_CursorShape
- * \{ */
-
-/* À FAIRE : implémente tous les cas. */
-#define ENUMERE_CURSOR_SHAPE(O)                                                                   \
-    O(QT_CURSORSHAPE_ARROW, Qt::ArrowCursor)                                                      \
-    O(QT_CURSORSHAPE_UP_ARROW, Qt::UpArrowCursor)                                                 \
-    O(QT_CURSORSHAPE_CROSS, Qt::CrossCursor)                                                      \
-    O(QT_CURSORSHAPE_WAIT, Qt::WaitCursor)                                                        \
-    O(QT_CURSORSHAPE_IBEAM, Qt::IBeamCursor)                                                      \
-    O(QT_CURSORSHAPE_SIZE_VERTICAL, Qt::SizeVerCursor)                                            \
-    O(QT_CURSORSHAPE_SIZE_HORIZONTAL, Qt::SizeHorCursor)                                          \
-    O(QT_CURSORSHAPE_SIZE_BDIALOG, Qt::SizeBDiagCursor)                                           \
-    O(QT_CURSORSHAPE_SIZE_FDIALOG, Qt::SizeFDiagCursor)                                           \
-    O(QT_CURSORSHAPE_SIZE_ALL, Qt::SizeAllCursor)                                                 \
-    O(QT_CURSORSHAPE_BLANK, Qt::BlankCursor)                                                      \
-    O(QT_CURSORSHAPE_SPLIT_VERTICAL, Qt::SplitVCursor)                                            \
-    O(QT_CURSORSHAPE_SPLIT_HORIZONTAL, Qt::SplitHCursor)                                          \
-    O(QT_CURSORSHAPE_POINTING_HAND, Qt::PointingHandCursor)                                       \
-    O(QT_CURSORSHAPE_FORBIDDEN, Qt::ForbiddenCursor)                                              \
-    O(QT_CURSORSHAPE_WHATS_THIS, Qt::WhatsThisCursor)                                             \
-    O(QT_CURSORSHAPE_BUSY, Qt::BusyCursor)                                                        \
-    O(QT_CURSORSHAPE_OPEN_HAND, Qt::OpenHandCursor)                                               \
-    O(QT_CURSORSHAPE_CLOSED_HAND, Qt::ClosedHandCursor)                                           \
-    O(QT_CURSORSHAPE_DRAG_COPY, Qt::DragCopyCursor)                                               \
-    O(QT_CURSORSHAPE_DRAG_MOVE, Qt::DragMoveCursor)                                               \
-    O(QT_CURSORSHAPE_DRAG_LINK, Qt::DragLinkCursor)                                               \
-    O(QT_CURSORSHAPE_BITMAP, Qt::BitmapCursor)                                                    \
-    O(QT_CURSORSHAPE_CUSTOM, Qt::CustomCursor)
-
-enum QT_CursorShape { ENUMERE_CURSOR_SHAPE(ENUMERE_DECLARATION_ENUM_IPA) };
 
 /** \} */
 
