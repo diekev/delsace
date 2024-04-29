@@ -16,6 +16,7 @@
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QScreen>
@@ -997,6 +998,24 @@ void QT_label_definis_pixmap(QT_Label *label, QT_Pixmap *pixmap, QT_Taille taill
     auto qlabel = vers_qt(label);
     auto qpixmap = vers_qt(pixmap);
     qlabel->setPixmap(qpixmap->scaled(16, 16));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QLineEdit
+ * \{ */
+
+QT_LineEdit *QT_cree_line_edit(QT_Generic_Widget parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QLineEdit(qparent));
+}
+
+void QT_line_edit_definis_texte(struct QT_LineEdit *line_edit, struct QT_Chaine texte)
+{
+    auto qline = vers_qt(line_edit);
+    qline->setText(texte.vers_std_string().c_str());
 }
 
 /** \} */

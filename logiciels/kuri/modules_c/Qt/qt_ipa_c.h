@@ -136,6 +136,7 @@ struct QT_Rappel_Generique {
     O(QScrollArea, QT_ScrollArea, scroll_area)                                                    \
     O(QCheckBox, QT_CheckBox, check_box)                                                          \
     O(QLabel, QT_Label, label)                                                                    \
+    O(QLineEdit, QT_LineEdit, line_edit)                                                          \
     O(QTreeWidget, QT_TreeWidget, tree_widget)                                                    \
     O(TreeWidgetItem, QT_TreeWidgetItem, tree_widget_item)                                        \
     O(ConteneurControles, DNJ_Conteneur_Controles, conteneur_controles)                           \
@@ -650,6 +651,15 @@ void QT_label_definis_texte(struct QT_Label *label, struct QT_Chaine texte);
 void QT_label_definis_pixmap(struct QT_Label *label,
                              struct QT_Pixmap *pixmap,
                              struct QT_Taille taille);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QLineEdit
+ * \{ */
+
+struct QT_LineEdit *QT_cree_line_edit(union QT_Generic_Widget parent);
+void QT_line_edit_definis_texte(struct QT_LineEdit *line_edit, struct QT_Chaine texte);
 
 /** \} */
 
