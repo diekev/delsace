@@ -24,6 +24,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QSplitter>
+#include <QStatusBar>
 #include <QTimer>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
@@ -219,6 +220,12 @@ QT_Rappels_Fenetre_Principale *QT_fenetre_principale_donne_rappels(QT_Fenetre_Pr
 {
     auto qfenêtre = vers_qt(fenetre);
     return qfenêtre->donne_rappels();
+}
+
+QT_StatusBar *QT_fenetre_principale_donne_barre_etat(QT_Fenetre_Principale *fenetre)
+{
+    auto qfenêtre = vers_qt(fenetre);
+    return vers_ipa(qfenêtre->statusBar());
 }
 
 /** \} */
@@ -690,6 +697,19 @@ QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget pa
     auto résultat = vers_ipa(new GLWidget(rappels, qparent));
     rappels->widget = résultat;
     return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_StatusBar
+ * \{ */
+
+void QT_status_bar_ajoute_widget(QT_StatusBar *status_bar, QT_Generic_Widget widget)
+{
+    auto qstatus_bar = vers_qt(status_bar);
+    auto qwidget = vers_qt(widget);
+    qstatus_bar->addWidget(qwidget);
 }
 
 /** \} */
