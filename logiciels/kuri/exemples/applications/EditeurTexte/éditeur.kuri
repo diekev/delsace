@@ -25,6 +25,7 @@ importe Temps
     temps_message: Instantané
 
     modifié: z32
+    tampon_rendu_est_surannée: bool
 }
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
@@ -58,11 +59,13 @@ importe Temps
     éditeur_ajourne_message_status(éditeur, "Le fichier est ouvert !")
 
     éditeur.modifié = 0
+    éditeur.tampon_rendu_est_surannée = vrai
 }
 
 marque_modifié :: fonc (éditeur: *Éditeur)
 {
     éditeur.modifié += 1
+    éditeur.tampon_rendu_est_surannée = vrai
 }
 
 éditeur_ajoute_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, où: z64) -> rien
@@ -75,18 +78,9 @@ marque_modifié :: fonc (éditeur: *Éditeur)
 
     si où == éditeur.lignes_texte.taille {
         tableau_ajoute(*éditeur.lignes_texte, ligne)
-        éditeur_ajourne_ligne(éditeur, ligne, où)
     }
     sinon {
         tableau_insère_index(*éditeur.lignes_texte, ligne, où)
-
-        // chaine_nulle est utilisé car éditeur_ajourne_ligne libère
-        // la mémoire à l'index 'où', une chaine nulle ne serait pas
-        // libérer et nous n'aurons pas nous soucier de la validiter
-        // du pointeur de la chaine
-        chaine_nulle: chaine
-        tableau_insère_index(*éditeur.lignes_rendu, chaine_nulle, où)
-        éditeur_ajourne_ligne(éditeur, ligne, où)
     }
 
     éditeur.marque_modifié()
@@ -102,7 +96,6 @@ marque_modifié :: fonc (éditeur: *Éditeur)
         ligne = avance(ligne, éditeur.cx)
         éditeur_ajoute_ligne(éditeur, ligne, éditeur.cy + 1)
         reloge_chaine(éditeur.lignes_texte[éditeur.cy], éditeur.cx)
-        éditeur_ajourne_ligne(éditeur, éditeur.lignes_texte[éditeur.cy], éditeur.cy)
         éditeur.cx = 0
     }
 
@@ -158,7 +151,24 @@ marque_modifié :: fonc (éditeur: *Éditeur)
 
 TAILLE_TABULATION :: 4
 
-éditeur_ajourne_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index: z64) -> rien
+/* À FAIRE : optimise ceci */
+ajourne_tampon_rendu :: fonc (éditeur: *Éditeur)
+{
+    saufsi éditeur.tampon_rendu_est_surannée {
+        retourne
+    }
+
+    éditeur.tampon_rendu_est_surannée = faux
+
+    déloge_tableau_et_ses_éléments(éditeur.lignes_rendu)
+
+    pour éditeur.lignes_texte {
+        ligne_rendu := donne_ligne_rendu(it)
+        tableau_ajoute(*éditeur.lignes_rendu, ligne_rendu)
+    }
+}
+
+donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
 {
     tabs := 0
     pour c dans ligne {
@@ -186,13 +196,7 @@ TAILLE_TABULATION :: 4
         }
     }
 
-    si index >= éditeur.lignes_rendu.taille {
-        tableau_ajoute(*éditeur.lignes_rendu, nligne)
-    }
-    sinon {
-        déloge(éditeur.lignes_rendu[index])
-        éditeur.lignes_rendu[index] = nligne
-    }
+    retourne nligne
 }
 
 éditeur_insère_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index_ligne: z64, index_caractère: z64, caractère: z8) -> rien
@@ -213,7 +217,6 @@ TAILLE_TABULATION :: 4
     déloge(ligne)
     éditeur.lignes_texte[index_ligne] = tmp
 
-    éditeur_ajourne_ligne(éditeur, tmp, index_ligne)
     éditeur.marque_modifié()
 }
 
@@ -237,7 +240,6 @@ TAILLE_TABULATION :: 4
     déloge(ligne)
     éditeur.lignes_texte[index_ligne] = tmp
 
-    éditeur_ajourne_ligne(éditeur, tmp, index_ligne)
     éditeur.marque_modifié()
 }
 
@@ -282,11 +284,7 @@ TAILLE_TABULATION :: 4
     }
 
     déloge(éditeur.lignes_texte[index_ligne])
-    déloge(éditeur.lignes_rendu[index_ligne])
-
     tableau_supprime_index(*éditeur.lignes_texte, index_ligne)
-    tableau_supprime_index(*éditeur.lignes_rendu, index_ligne)
-
     éditeur.marque_modifié()
 }
 
@@ -309,7 +307,6 @@ TAILLE_TABULATION :: 4
     éditeur.lignes_texte[index_ligne] = ligne
 
     éditeur_ajourne_message_status(éditeur, ligne)
-    éditeur_ajourne_ligne(éditeur, ligne, index_ligne)
     éditeur.marque_modifié()
 }
 
