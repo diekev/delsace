@@ -1,4 +1,5 @@
 importe Fondation
+importe Périphériques
 
 charge "interface_qt"
 
@@ -40,3 +41,66 @@ vers_qt :: fonc (chn: chaine) -> QT_Chaine
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Conversion Périphériques
+ * \{ */
+
+donne_modificateur_clavier_depuis_qt :: fonc () -> ModificateurClavier
+{
+    modificateurs := QT_application_donne_modificateurs_clavier()
+
+    résultat: ModificateurClavier
+
+    si (modificateurs & QT_Keyboard_Modifier.MAJ) != QT_Keyboard_Modifier.AUCUN {
+        résultat.MAJUSCULE = vrai
+    }
+
+    si (modificateurs & QT_Keyboard_Modifier.CTRL) != QT_Keyboard_Modifier.AUCUN {
+        résultat.CONTROL = vrai
+    }
+
+    si (modificateurs & QT_Keyboard_Modifier.ALT) != QT_Keyboard_Modifier.AUCUN {
+        résultat.ALT = vrai
+    }
+
+    retourne résultat
+}
+
+donne_bouton_souris :: fonc (évènement: *QT_MouseEvent) -> BoutonSouris
+{
+    bouton := QT_mouse_event_donne_bouton(évènement)
+    discr bouton {
+        GAUCHE {
+            retourne BoutonSouris.GAUCHE
+        }
+        DROIT {
+            retourne BoutonSouris.DROIT
+        }
+        MILLIEU {
+            retourne BoutonSouris.MOLETTE
+        }
+        ARRIERE {
+            retourne BoutonSouris.ARRIÈRE
+        }
+        sinon {}
+    }
+
+    retourne BoutonSouris.GAUCHE
+}
+
+donne_clique_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, action: ActionSouris) -> CliqueSouris
+{
+    position: QT_Position
+    QT_mouse_event_donne_position(évènement, *position)
+
+    résultat: CliqueSouris
+    résultat.état.où.x = position.x
+    résultat.état.où.y = position.y
+    résultat.état.modificateur = donne_modificateur_clavier_depuis_qt()
+    résultat.bouton = donne_bouton_souris(évènement)
+    résultat.action = action
+    retourne résultat
+}
+
+/** } */
