@@ -46,44 +46,16 @@ importe Temps
     contenu := contenu_fichier_texte(chm)
     diffère déloge(contenu)
 
+    /* À FAIRE : \r */
+    lignes := divise(contenu, '\n')
+    diffère déloge(lignes)
+
+    pour lignes {
+        éditeur_ajoute_ligne(éditeur, it, index_it)
+    }
+
     éditeur.chemin_fichier = chemin
     éditeur_ajourne_message_status(éditeur, "Le fichier est ouvert !")
-
-    début_ligne : z64 = 0
-    taille_ligne := 0
-
-    pour c, idx dans contenu {
-        si c == '\r' || c == '\n' {
-            si taille_ligne != 0 {
-                ligne: chaine
-                ligne.pointeur = *contenu[début_ligne]
-                ligne.taille = taille_ligne
-
-                éditeur_ajoute_ligne(éditeur, ligne, éditeur.lignes_texte.taille)
-
-                taille_ligne = 0
-                début_ligne = idx
-            }
-            sinon {
-                éditeur_ajoute_ligne(éditeur, "", éditeur.lignes_texte.taille)
-            }
-        }
-        sinon {
-            si taille_ligne == 0 {
-                début_ligne = idx
-            }
-
-            taille_ligne += 1
-        }
-    }
-
-    si taille_ligne != 0 {
-        ligne: chaine
-        ligne.pointeur = *contenu[début_ligne]
-        ligne.taille = taille_ligne
-
-        éditeur_ajoute_ligne(éditeur, ligne, éditeur.lignes_texte.taille)
-    }
 
     éditeur.modifié = 0
 }
