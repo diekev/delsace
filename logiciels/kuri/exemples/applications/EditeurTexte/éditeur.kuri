@@ -181,15 +181,6 @@ importe Temps
 
 TAILLE_TABULATION :: 4
 
-éditeur_ajourne_lignes :: fonc (éditeur: *Éditeur) -> rien
-{
-    déloge_tableau_ligne(*éditeur.lignes_rendu)
-
-    pour ligne, idx dans éditeur.lignes_texte {
-        éditeur_ajourne_ligne(éditeur, ligne, idx)
-    }
-}
-
 éditeur_ajourne_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index: z64) -> rien
 {
     tabs := 0
