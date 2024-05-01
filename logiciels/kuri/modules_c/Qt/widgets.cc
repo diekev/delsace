@@ -68,6 +68,16 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void Widget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (m_rappels && m_rappels->sur_double_clique_souris) {
+        m_rappels->sur_double_clique_souris(m_rappels, reinterpret_cast<QT_MouseEvent *>(event));
+    }
+    else {
+        Widget::mouseDoubleClickEvent(event);
+    }
+}
+
 void Widget::wheelEvent(QWheelEvent *event)
 {
     if (m_rappels && m_rappels->sur_molette_souris) {
@@ -153,6 +163,16 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
     else {
         QGLWidget::mouseReleaseEvent(event);
+    }
+}
+
+void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (m_rappels && m_rappels->sur_double_clique_souris) {
+        m_rappels->sur_double_clique_souris(m_rappels, reinterpret_cast<QT_MouseEvent *>(event));
+    }
+    else {
+        QGLWidget::mouseDoubleClickEvent(event);
     }
 }
 

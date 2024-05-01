@@ -534,6 +534,7 @@ int QT_wheel_event_donne_delta(struct QT_WheelEvent *event);
     void (*sur_pression_souris)(struct type_classe *, struct QT_MouseEvent *);                    \
     void (*sur_deplacement_souris)(struct type_classe *, struct QT_MouseEvent *);                 \
     void (*sur_relachement_souris)(struct type_classe *, struct QT_MouseEvent *);                 \
+    void (*sur_double_clique_souris)(struct type_classe *, struct QT_MouseEvent *);               \
     void (*sur_molette_souris)(struct type_classe *, struct QT_WheelEvent *);                     \
     void (*sur_redimensionnement)(struct type_classe *, struct QT_ResizeEvent *);                 \
     void (*sur_destruction)(struct type_classe *)
