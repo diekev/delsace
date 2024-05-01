@@ -29,8 +29,8 @@ importe Temps
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
 {
-    déloge_tableau_ligne(*éditeur.lignes_texte)
-    déloge_tableau_ligne(*éditeur.lignes_rendu)
+    déloge_tableau_et_ses_éléments(éditeur.lignes_texte)
+    déloge_tableau_et_ses_éléments(éditeur.lignes_rendu)
     déloge(éditeur.message)
     déloge(éditeur.chemin_fichier)
 }
@@ -381,13 +381,4 @@ TAILLE_TABULATION :: 4
     }
 
     retourne ligne.taille comme z32
-}
-
-déloge_tableau_ligne :: fonc (tabl: *[..]chaine) -> rien
-{
-    pour ligne dans mémoire(tabl) {
-        déloge(ligne)
-    }
-
-    déloge(mémoire(tabl))
 }
