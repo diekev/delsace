@@ -60,6 +60,11 @@ importe Temps
     éditeur.modifié = 0
 }
 
+marque_modifié :: fonc (éditeur: *Éditeur)
+{
+    éditeur.modifié += 1
+}
+
 éditeur_ajoute_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, où: z64) -> rien
 {
     si où < 0 || où > éditeur.lignes_texte.taille {
@@ -84,7 +89,7 @@ importe Temps
         éditeur_ajourne_ligne(éditeur, ligne, où)
     }
 
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_ajoute_nouvelle_ligne :: fonc (éditeur: *Éditeur) -> rien
@@ -209,7 +214,7 @@ TAILLE_TABULATION :: 4
     éditeur.lignes_texte[index_ligne] = tmp
 
     éditeur_ajourne_ligne(éditeur, tmp, index_ligne)
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_supprime_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index_ligne: z64, index_caractère: z64) -> rien
@@ -233,7 +238,7 @@ TAILLE_TABULATION :: 4
     éditeur.lignes_texte[index_ligne] = tmp
 
     éditeur_ajourne_ligne(éditeur, tmp, index_ligne)
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_supprime_caractère :: fonc (éditeur: *Éditeur) -> rien
@@ -282,7 +287,7 @@ TAILLE_TABULATION :: 4
     tableau_supprime_index(*éditeur.lignes_texte, index_ligne)
     tableau_supprime_index(*éditeur.lignes_rendu, index_ligne)
 
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_adjoint_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64, texte: chaine) -> rien
@@ -305,7 +310,7 @@ TAILLE_TABULATION :: 4
 
     éditeur_ajourne_message_status(éditeur, ligne)
     éditeur_ajourne_ligne(éditeur, ligne, index_ligne)
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_défile :: fonc (éditeur: *Éditeur) -> rien
