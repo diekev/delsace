@@ -10,7 +10,7 @@
             m_rappels->nom_rappel(m_rappels, reinterpret_cast<type_ipa *>(event));                \
         }                                                                                         \
         else {                                                                                    \
-            classe::nom_qt(event);                                                                \
+            Q##classe::nom_qt(event);                                                             \
         }                                                                                         \
     }
 
