@@ -336,6 +336,10 @@ void QT_application_poste_evenement_et_donnees(union QT_Generic_Object receveur,
                                                int type_evenement,
                                                void *donnees);
 
+/** Définis un rappel à exécuter lorsque l'application sera fermée. */
+void QT_application_sur_fin_boucle_evenement(struct QT_Application *app,
+                                             struct QT_Rappel_Generique *rappel);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

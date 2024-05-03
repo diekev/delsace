@@ -290,6 +290,16 @@ void QT_application_poste_evenement_et_donnees(union QT_Generic_Object receveur,
     QCoreApplication::postEvent(qreceveur, event);
 }
 
+void QT_application_sur_fin_boucle_evenement(QT_Application *app, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    auto qapp = reinterpret_cast<QApplication *>(app);
+    QObject::connect(qapp, &QCoreApplication::aboutToQuit, [=]() { rappel->sur_rappel(rappel); });
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
