@@ -40,3 +40,20 @@ class ConteneurControles : public danjo::ConteneurControles {
 };
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name PiloteClique
+ * \{ */
+
+class PiloteClique final : public RepondantCommande {
+    DNJ_Rappels_Pilote_Clique *m_rappels = nullptr;
+
+  public:
+    PiloteClique(DNJ_Rappels_Pilote_Clique *rappels);
+    EMPECHE_COPIE(PiloteClique);
+    ~PiloteClique() override;
+    bool evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee) override;
+    void repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee) override;
+};
+
+/** \} */

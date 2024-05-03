@@ -511,7 +511,7 @@ RepondantCommande *ConteneurControles::donne_repondant_commande()
 {
     if (m_rappels && m_rappels->donne_pilote_clique) {
         auto pilote = m_rappels->donne_pilote_clique;
-        return reinterpret_cast<RepondantCommande *>(pilote);
+        return reinterpret_cast<PiloteClique *>(pilote);
     }
 
     return nullptr;
@@ -546,6 +546,47 @@ QLayout *ConteneurControles::crée_interface()
 
     disp->addStretch();
     return disp;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name PiloteClique
+ * \{ */
+
+static QT_Chaine vers_ipa(dls::chaine const &chaine)
+{
+    QT_Chaine résultat;
+    résultat.caractères = const_cast<char *>(chaine.c_str());
+    résultat.taille = chaine.taille();
+    return résultat;
+}
+
+PiloteClique::PiloteClique(DNJ_Rappels_Pilote_Clique *rappels) : m_rappels(rappels)
+{
+}
+
+PiloteClique::~PiloteClique()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
+bool PiloteClique::evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee)
+{
+    if (m_rappels && m_rappels->sur_évaluation_prédicat) {
+        return m_rappels->sur_évaluation_prédicat(
+            m_rappels, vers_ipa(identifiant), vers_ipa(metadonnee));
+    }
+    return false;
+}
+
+void PiloteClique::repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee)
+{
+    if (m_rappels && m_rappels->sur_clique) {
+        m_rappels->sur_clique(m_rappels, vers_ipa(identifiant), vers_ipa(metadonnee));
+    }
 }
 
 /** \} */

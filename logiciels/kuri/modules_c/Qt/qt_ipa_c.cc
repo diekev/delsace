@@ -1569,6 +1569,24 @@ QT_Point QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view, QT_P
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name DNJ_Pilote_Clique
+ * \{ */
+
+DNJ_Pilote_Clique *DNJ_cree_pilote_clique(DNJ_Rappels_Pilote_Clique *rappels)
+{
+    auto résultat = new PiloteClique(rappels);
+    return reinterpret_cast<DNJ_Pilote_Clique *>(résultat);
+}
+
+void DNJ_detruit_pilote_clique(DNJ_Pilote_Clique *pilote)
+{
+    auto qpilote = reinterpret_cast<PiloteClique *>(pilote);
+    delete qpilote;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name DNJ_Conteneur_Controles
  * \{ */
 

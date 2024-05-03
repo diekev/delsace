@@ -1145,10 +1145,27 @@ struct DNJ_Constructrice_Liste {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name DNJ_Rappels_Pilote_Clique
+ * \{ */
+
+struct DNJ_Rappels_Pilote_Clique {
+    void (*sur_destruction)(struct DNJ_Rappels_Pilote_Clique *);
+    bool (*sur_évaluation_prédicat)(struct DNJ_Rappels_Pilote_Clique *,
+                                    struct QT_Chaine,
+                                    struct QT_Chaine);
+    void (*sur_clique)(struct DNJ_Rappels_Pilote_Clique *, struct QT_Chaine, struct QT_Chaine);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name DNJ_Pilote_Clique
  * \{ */
 
 struct DNJ_Pilote_Clique;
+
+struct DNJ_Pilote_Clique *DNJ_cree_pilote_clique(struct DNJ_Rappels_Pilote_Clique *rappels);
+void DNJ_detruit_pilote_clique(struct DNJ_Pilote_Clique *pilote);
 
 /** \} */
 
