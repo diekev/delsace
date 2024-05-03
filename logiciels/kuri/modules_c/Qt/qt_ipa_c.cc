@@ -1686,6 +1686,16 @@ QT_Layout *DNJ_conteneur_cree_interface(DNJ_Conteneur_Controles *conteneur)
 /** \name DNJ_Gestionnaire_Interface
  * \{ */
 
+static danjo::DonneesInterface convertis_contexte(struct DNJ_Contexte_Interface *context)
+{
+    auto résultat = danjo::DonneesInterface();
+    résultat.repondant_bouton = reinterpret_cast<PiloteClique *>(context->pilote_clique);
+    résultat.conteneur = vers_qt(context->conteneur);
+    résultat.parent_menu = vers_qt(context->parent_menu);
+    résultat.parent_barre_outils = vers_qt(context->parent_barre_outils);
+    return résultat;
+}
+
 DNJ_Gestionnaire_Interface *DNJ_cree_gestionnaire_interface()
 {
     auto résultat = new danjo::GestionnaireInterface();
@@ -1706,12 +1716,7 @@ QT_Menu *DNJ_gestionaire_compile_menu_fichier(DNJ_Gestionnaire_Interface *gestio
         return nullptr;
     }
 
-    auto données = danjo::DonneesInterface();
-    données.repondant_bouton = reinterpret_cast<PiloteClique *>(context->pilote_clique);
-    données.conteneur = vers_qt(context->conteneur);
-    données.parent_menu = vers_qt(context->parent_menu);
-    données.parent_barre_outils = vers_qt(context->parent_barre_outils);
-
+    auto données = convertis_contexte(context);
     auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
     auto résultat = dnj_gestionnaire->compile_menu_fichier(données, chemin.vers_std_string());
     return vers_ipa(résultat);
