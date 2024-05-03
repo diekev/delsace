@@ -170,7 +170,8 @@ union QT_Generic_Widget {
     O(QTimer, QT_Timer, timer)                                                                    \
     O(QStyle, QT_Style, style)                                                                    \
     O(QScreen, QT_Screen, screen)                                                                 \
-    O(QGraphicsScene, QT_GraphicsScene, graphics_scene)
+    O(QGraphicsScene, QT_GraphicsScene, graphics_scene)                                           \
+    O(QSettings, QT_Settings, settings)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -379,6 +380,34 @@ void QT_timer_arrete(struct QT_Timer *timer);
 
 struct QT_Screen *QT_application_donne_ecran_principal();
 struct QT_Taille QT_screen_donne_taille_disponible(struct QT_Screen *screen);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Exportrice_Liste_Chaine
+ * \{ */
+
+struct QT_Exportrice_Liste_Chaine {
+    void (*ajoute)(struct QT_Exportrice_Liste_Chaine *, struct QT_Chaine);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Settings
+ * \{ */
+
+struct QT_Settings *QT_donne_parametres();
+void QT_detruit_parametres(struct QT_Settings *settings);
+
+void QT_settings_lis_liste_chaine(struct QT_Settings *settings,
+                                  struct QT_Chaine nom_paramètre,
+                                  struct QT_Exportrice_Liste_Chaine *exportrice);
+
+void QT_settings_ecris_liste_chaine(struct QT_Settings *settings,
+                                    struct QT_Chaine nom_paramètre,
+                                    struct QT_Chaine *liste,
+                                    int64_t taille_liste);
 
 /** \} */
 

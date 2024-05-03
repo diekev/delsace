@@ -24,6 +24,7 @@
 #include <QPushButton>
 #include <QScreen>
 #include <QScrollArea>
+#include <QSettings>
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTimer>
@@ -383,6 +384,70 @@ QT_Taille QT_screen_donne_taille_disponible(QT_Screen *screen)
     résultat.hauteur = size.height();
     résultat.largeur = size.width();
     return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Settings
+ * \{ */
+
+QT_Settings *QT_donne_parametres()
+{
+    return vers_ipa(new QSettings());
+}
+
+void QT_detruit_parametres(QT_Settings *settings)
+{
+    auto qsettings = vers_qt(settings);
+    delete qsettings;
+}
+
+void QT_settings_lis_liste_chaine(QT_Settings *settings,
+                                  QT_Chaine nom_paramètre,
+                                  QT_Exportrice_Liste_Chaine *exportrice)
+{
+    if (!exportrice || !exportrice->ajoute) {
+        return;
+    }
+
+    auto qsettings = vers_qt(settings);
+    auto clé = nom_paramètre.vers_std_string();
+
+    if (!qsettings->contains(clé.c_str())) {
+        return;
+    }
+
+    auto const &liste = qsettings->value(clé.c_str()).toStringList();
+
+    for (auto const &élément : liste) {
+        auto std_élément = élément.toStdString();
+
+        QT_Chaine chaine_élément;
+        chaine_élément.caractères = const_cast<char *>(std_élément.c_str());
+        chaine_élément.taille = int64_t(std_élément.size());
+
+        exportrice->ajoute(exportrice, chaine_élément);
+    }
+}
+
+void QT_settings_ecris_liste_chaine(QT_Settings *settings,
+                                    QT_Chaine nom_paramètre,
+                                    QT_Chaine *liste,
+                                    int64_t taille_liste)
+{
+    if (!liste || taille_liste == 0) {
+        return;
+    }
+
+    QStringList q_string_liste;
+    for (auto i = 0; i < taille_liste; i++) {
+        q_string_liste.append(liste[i].vers_std_string().c_str());
+    }
+
+    auto qsettings = vers_qt(settings);
+    auto clé = nom_paramètre.vers_std_string();
+    qsettings->setValue(clé.c_str(), q_string_liste);
 }
 
 /** \} */
