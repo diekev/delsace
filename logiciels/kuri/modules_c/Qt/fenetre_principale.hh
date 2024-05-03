@@ -19,7 +19,7 @@
 
 #include "qt_ipa_c.h"
 
-class FenetrePrincipale : public QMainWindow {
+class FenetrePrincipale final : public QMainWindow {
     Q_OBJECT
 
     QT_Rappels_Fenetre_Principale *m_rappels = nullptr;
@@ -33,9 +33,9 @@ class FenetrePrincipale : public QMainWindow {
         return m_rappels;
     }
 
-    bool eventFilter(QObject *object, QEvent *event);
+    bool eventFilter(QObject *object, QEvent *event) override;
 
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
 
   private:
     void construit_barre_de_menu();
