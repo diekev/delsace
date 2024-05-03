@@ -143,7 +143,9 @@ struct QT_Rappel_Generique {
     O(QPushButton, QT_PushButton, button)                                                         \
     O(QDialog, QT_Dialog, dialogue)                                                               \
     O(QGraphicsView, QT_GraphicsView, graphics_view)                                              \
-    O(QStatusBar, QT_StatusBar, status_bar)
+    O(QStatusBar, QT_StatusBar, status_bar)                                                       \
+    O(QMenu, QT_Menu, menu)                                                                       \
+    O(QMenuBar, QT_MenuBar, menu_bar)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -304,6 +306,8 @@ void QT_fenetre_principale_definis_widget_central(struct QT_Fenetre_Principale *
 
 struct QT_Rappels_Fenetre_Principale *QT_fenetre_principale_donne_rappels(
     struct QT_Fenetre_Principale *fenetre);
+
+struct QT_MenuBar *QT_fenetre_principale_donne_barre_menu(struct QT_Fenetre_Principale *fenetre);
 
 struct QT_StatusBar *QT_fenetre_principale_donne_barre_etat(struct QT_Fenetre_Principale *fenetre);
 
@@ -624,6 +628,14 @@ struct QT_GLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
  * \{ */
 
 void QT_status_bar_ajoute_widget(struct QT_StatusBar *status_bar, union QT_Generic_Widget widget);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MenuBar
+ * \{ */
+
+void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, struct QT_Menu *menu);
 
 /** \} */
 

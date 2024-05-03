@@ -19,6 +19,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenuBar>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QScreen>
@@ -220,6 +221,12 @@ QT_Rappels_Fenetre_Principale *QT_fenetre_principale_donne_rappels(QT_Fenetre_Pr
 {
     auto qfenêtre = vers_qt(fenetre);
     return qfenêtre->donne_rappels();
+}
+
+QT_MenuBar *QT_fenetre_principale_donne_barre_menu(QT_Fenetre_Principale *fenetre)
+{
+    auto qfenêtre = vers_qt(fenetre);
+    return vers_ipa(qfenêtre->menuBar());
 }
 
 QT_StatusBar *QT_fenetre_principale_donne_barre_etat(QT_Fenetre_Principale *fenetre)
@@ -710,6 +717,19 @@ void QT_status_bar_ajoute_widget(QT_StatusBar *status_bar, QT_Generic_Widget wid
     auto qstatus_bar = vers_qt(status_bar);
     auto qwidget = vers_qt(widget);
     qstatus_bar->addWidget(qwidget);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MenuBar
+ * \{ */
+
+void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, QT_Menu *menu)
+{
+    auto qmenu_bar = vers_qt(menu_bar);
+    auto qmenu = vers_qt(menu);
+    qmenu_bar->addMenu(qmenu);
 }
 
 /** \} */
