@@ -1199,6 +1199,34 @@ struct QT_Layout *DNJ_conteneur_cree_interface(struct DNJ_Conteneur_Controles *c
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Contexte_Interface
+ * \{ */
+
+struct DNJ_Contexte_Interface {
+    struct DNJ_Pilote_Clique *pilote_clique;
+    struct DNJ_Conteneur_Controles *conteneur;
+    union QT_Generic_Widget parent_barre_outils;
+    union QT_Generic_Widget parent_menu;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Gestionnaire_Interface
+ * \{ */
+
+struct DNJ_Gestionnaire_Interface;
+
+struct DNJ_Gestionnaire_Interface *DNJ_cree_gestionnaire_interface();
+void DNJ_detruit_gestionnaire_interface(struct DNJ_Gestionnaire_Interface *gestionnaire);
+struct QT_Menu *DNJ_gestionaire_compile_menu_fichier(
+    struct DNJ_Gestionnaire_Interface *gestionnaire,
+    struct DNJ_Contexte_Interface *context,
+    struct QT_Chaine chemin);
+
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif
