@@ -293,6 +293,9 @@ struct QT_Rappels_Fenetre_Principale {
     void (*sur_creation_barre_menu)(struct QT_Rappels_Fenetre_Principale *,
                                     struct QT_Creatrice_Barre_Menu *);
     void (*sur_clique_action_menu)(struct QT_Rappels_Fenetre_Principale *, struct QT_Chaine *);
+    /** Appelé quand la fenêtre principale est fermée, et permet de controler si la fermeture est
+     * avortée. Si faux est retourné, la fenêtre n'est pas fermée. */
+    bool (*sur_fermeture)(struct QT_Rappels_Fenetre_Principale *);
 };
 
 struct QT_Fenetre_Principale *QT_cree_fenetre_principale(

@@ -35,6 +35,8 @@ class FenetrePrincipale : public QMainWindow {
 
     bool eventFilter(QObject *object, QEvent *event);
 
+    void closeEvent(QCloseEvent *event);
+
   private:
     void construit_barre_de_menu();
 
