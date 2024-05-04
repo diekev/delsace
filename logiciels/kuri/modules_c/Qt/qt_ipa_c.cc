@@ -33,8 +33,6 @@
 #    pragma GCC diagnostic pop
 #endif
 
-class QFrame;
-
 #include <iostream>
 
 #include "biblinternes/outils/definitions.h"
