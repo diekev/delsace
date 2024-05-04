@@ -676,6 +676,14 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, struct QT_Menu *menu);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Menu
+ * \{ */
+
+void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Layout
  * \{ */
 

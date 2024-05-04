@@ -810,6 +810,22 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, QT_Menu *menu)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Menu
+ * \{ */
+
+void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    auto qmenu = vers_qt(menu);
+    QObject::connect(qmenu, &QMenu::aboutToShow, [=]() { rappel->sur_rappel(rappel); });
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Layout
  * \{ */
 
