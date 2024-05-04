@@ -1386,6 +1386,42 @@ struct QT_ToolBar *DNJ_gestionaire_compile_barre_a_outils_fichier(
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_FournisseuseIcone
+ * \{ */
+
+enum DNJ_Etat_Icone {
+    DNJ_ETAT_ICONE_ACTIF,
+    DNJ_ETAT_ICONE_INACTIF,
+};
+
+struct DNJ_Rappels_Fournisseuse_Icone {
+    void (*sur_destruction)(struct DNJ_Rappels_Fournisseuse_Icone *);
+
+    bool (*donne_icone_pour_bouton_animation)(struct DNJ_Rappels_Fournisseuse_Icone *,
+                                              enum DNJ_Etat_Icone,
+                                              struct QT_Chaine *);
+
+    bool (*donne_icone_pour_echelle_valeur)(struct DNJ_Rappels_Fournisseuse_Icone *,
+                                            enum DNJ_Etat_Icone,
+                                            struct QT_Chaine *);
+
+    bool (*donne_icone_pour_identifiant)(struct DNJ_Rappels_Fournisseuse_Icone *,
+                                         struct QT_Chaine,
+                                         enum DNJ_Etat_Icone,
+                                         struct QT_Chaine *);
+};
+
+struct DNJ_FournisseuseIcone;
+
+struct DNJ_FournisseuseIcone *DNJ_cree_fournisseuse_icone(
+    struct DNJ_Rappels_Fournisseuse_Icone *rappels);
+void DNJ_detruit_fournisseuse_icone(struct DNJ_FournisseuseIcone *fournisseuse);
+
+void DNJ_definis_fournisseuse_icone(struct DNJ_FournisseuseIcone *fournisseuse);
+
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

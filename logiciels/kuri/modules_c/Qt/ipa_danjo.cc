@@ -590,3 +590,85 @@ void PiloteClique::repond_clique(dls::chaine const &identifiant, dls::chaine con
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name FournisseuseIcône
+ * \{ */
+
+static DNJ_Etat_Icone vers_ipa(danjo::ÉtatIcône état)
+{
+    if (état == danjo::ÉtatIcône::INACTIF) {
+        return DNJ_ETAT_ICONE_INACTIF;
+    }
+
+    return DNJ_ETAT_ICONE_ACTIF;
+}
+
+FournisseuseIcône::FournisseuseIcône(DNJ_Rappels_Fournisseuse_Icone *rappels) : m_rappels(rappels)
+{
+}
+
+FournisseuseIcône::~FournisseuseIcône()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
+std::optional<QIcon> FournisseuseIcône::icone_pour_bouton_animation(danjo::ÉtatIcône état)
+{
+    if (!m_rappels || !m_rappels->donne_icone_pour_bouton_animation) {
+        return {};
+    }
+
+    auto chn_résultat = QT_Chaine{};
+    auto résultat = m_rappels->donne_icone_pour_bouton_animation(
+        m_rappels, vers_ipa(état), &chn_résultat);
+    if (!résultat) {
+        return {};
+    }
+
+    auto qchn_résultat = chn_résultat.vers_std_string();
+    return QIcon(qchn_résultat.c_str());
+}
+
+std::optional<QIcon> FournisseuseIcône::icone_pour_echelle_valeur(danjo::ÉtatIcône état)
+{
+    if (!m_rappels || !m_rappels->donne_icone_pour_echelle_valeur) {
+        return {};
+    }
+
+    auto chn_résultat = QT_Chaine{};
+    auto résultat = m_rappels->donne_icone_pour_echelle_valeur(
+        m_rappels, vers_ipa(état), &chn_résultat);
+    if (!résultat) {
+        return {};
+    }
+
+    auto qchn_résultat = chn_résultat.vers_std_string();
+    return QIcon(qchn_résultat.c_str());
+}
+
+std::optional<QIcon> FournisseuseIcône::icone_pour_identifiant(std::string const &identifiant,
+                                                               danjo::ÉtatIcône état)
+{
+    if (!m_rappels || !m_rappels->donne_icone_pour_identifiant) {
+        return {};
+    }
+
+    auto ident = QT_Chaine{};
+    ident.caractères = const_cast<char *>(identifiant.c_str());
+    ident.taille = int64_t(identifiant.size());
+
+    auto chn_résultat = QT_Chaine{};
+    auto résultat = m_rappels->donne_icone_pour_identifiant(
+        m_rappels, ident, vers_ipa(état), &chn_résultat);
+    if (!résultat) {
+        return {};
+    }
+
+    auto qchn_résultat = chn_résultat.vers_std_string();
+    return QIcon(qchn_résultat.c_str());
+}
+
+/** \} */

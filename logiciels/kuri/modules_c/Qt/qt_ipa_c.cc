@@ -1888,4 +1888,31 @@ QT_ToolBar *DNJ_gestionaire_compile_barre_a_outils_fichier(
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_FournisseuseIcone
+ * \{ */
+
+DNJ_FournisseuseIcone *DNJ_cree_fournisseuse_icone(DNJ_Rappels_Fournisseuse_Icone *rappels)
+{
+    auto résultat = new FournisseuseIcône(rappels);
+    return reinterpret_cast<DNJ_FournisseuseIcone *>(résultat);
+}
+
+void DNJ_detruit_fournisseuse_icone(DNJ_FournisseuseIcone *fournisseuse)
+{
+    auto qfournisseuse = reinterpret_cast<FournisseuseIcône *>(fournisseuse);
+    delete qfournisseuse;
+}
+
+void DNJ_definis_fournisseuse_icone(DNJ_FournisseuseIcone *fournisseuse)
+{
+    auto qfournisseuse = reinterpret_cast<FournisseuseIcône *>(fournisseuse);
+
+    if (qfournisseuse) {
+        danjo::définis_fournisseuse_icone(*qfournisseuse);
+    }
+}
+
+/** \} */
 }
