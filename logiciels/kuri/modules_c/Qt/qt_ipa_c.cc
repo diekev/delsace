@@ -514,12 +514,17 @@ void *QT_event_perso_donne_donnees(struct QT_Evenement *event)
 /** \name QT_Keyboard_Modifier
  * \{ */
 
-QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void)
+static QT_Keyboard_Modifier modificateurs_vers_ipa(Qt::KeyboardModifiers drapeaux)
 {
-    auto drapeaux = QApplication::keyboardModifiers();
     int résultat = QT_KEYBOARD_MODIFIER_AUCUN;
     ENUMERE_MODIFICATEURS_CLAVIER(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA);
     return QT_Keyboard_Modifier(résultat);
+}
+
+QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void)
+{
+    auto drapeaux = QApplication::keyboardModifiers();
+    return modificateurs_vers_ipa(drapeaux);
 }
 
 /** \} */
@@ -568,6 +573,84 @@ int QT_wheel_event_donne_delta(QT_WheelEvent *event)
 {
     auto qevent = vers_qt(event);
     return qevent->delta();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_KeyEvent
+ * \{ */
+
+static QT_Key qt_key_vers_ipa(Qt::Key key)
+{
+    switch (key) {
+        ENUMERE_CLE_CLAVIER(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+    }
+    return QT_KEY_unknown;
+}
+
+QT_Key QT_key_event_donne_cle(QT_KeyEvent *event)
+{
+    auto qevent = vers_qt(event);
+    return qt_key_vers_ipa(Qt::Key(qevent->key()));
+}
+
+QT_Keyboard_Modifier QT_key_event_donne_modificateurs_clavier(QT_KeyEvent *event)
+{
+    auto qevent = vers_qt(event);
+    return modificateurs_vers_ipa(qevent->modifiers());
+}
+
+int QT_key_event_donne_compte(QT_KeyEvent *event)
+{
+    auto qevent = vers_qt(event);
+    return qevent->count();
+}
+
+bool QT_key_event_est_auto_repete(QT_KeyEvent *event)
+{
+    auto qevent = vers_qt(event);
+    return qevent->isAutoRepeat();
+}
+
+uint32_t QT_key_event_donne_cle_virtuelle_native(QT_KeyEvent *event)
+{
+    auto qevent = vers_qt(event);
+    return qevent->nativeVirtualKey();
+}
+
+uint32_t QT_key_event_donne_code_scan_natif(QT_KeyEvent *event)
+{
+    auto qevent = vers_qt(event);
+    return qevent->nativeScanCode();
+}
+
+uint32_t QT_key_event_donne_modificateurs_natifs(QT_KeyEvent *event)
+{
+    auto qevent = vers_qt(event);
+    return qevent->nativeModifiers();
+}
+
+QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
+{
+    static char tampon[128];
+
+    auto qevent = vers_qt(event);
+    auto text = qevent->text().toStdString();
+
+    QT_Chaine résultat;
+
+    if (text.size() < 128) {
+        memcpy(tampon, text.c_str(), text.size());
+        résultat.caractères = tampon;
+        résultat.taille = int64_t(text.size());
+    }
+    else {
+        résultat.caractères = nullptr;
+        résultat.taille = 0;
+    }
+
+    return résultat;
 }
 
 /** \} */
