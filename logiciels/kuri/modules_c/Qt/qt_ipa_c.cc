@@ -208,6 +208,7 @@ static Qt::ToolBarArea convertis_toolbararea(QT_ToolBarArea area)
 QT_Fenetre_Principale *QT_cree_fenetre_principale(QT_Rappels_Fenetre_Principale *rappels)
 {
     auto résultat = new FenetrePrincipale(rappels);
+    rappels->fenetre = vers_ipa(résultat);
     return vers_ipa(résultat);
 }
 

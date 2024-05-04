@@ -324,6 +324,9 @@ struct QT_Rappels_Fenetre_Principale {
     /** Appelé quand la fenêtre principale est fermée, et permet de controler si la fermeture est
      * avortée. Si faux est retourné, la fenêtre n'est pas fermée. */
     bool (*sur_fermeture)(struct QT_Rappels_Fenetre_Principale *);
+
+    /* La fenetre créée avec ces rappels. */
+    struct QT_Fenetre_Principale *fenetre;
 };
 
 struct QT_Fenetre_Principale *QT_cree_fenetre_principale(
