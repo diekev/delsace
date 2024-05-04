@@ -884,6 +884,61 @@ void QT_dialog_definis_modal(struct QT_Dialog *dialog, bool ouinon);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Keyboard_Modifier
+ * \{ */
+
+#define ENUMERE_BOUTON_STANDARD(O)                                                                \
+    O(QT_STANDARDBUTTON_AUCUN, QMessageBox::NoButton, 0x00000000)                                 \
+    O(QT_STANDARDBUTTON_OK, QMessageBox::Ok, 0x00000400)                                          \
+    O(QT_STANDARDBUTTON_SAVE, QMessageBox::Save, 0x00000800)                                      \
+    O(QT_STANDARDBUTTON_SAVE_ALL, QMessageBox::SaveAll, 0x00001000)                               \
+    O(QT_STANDARDBUTTON_OPEN, QMessageBox::Open, 0x00002000)                                      \
+    O(QT_STANDARDBUTTON_YES, QMessageBox::Yes, 0x00004000)                                        \
+    O(QT_STANDARDBUTTON_YES_TO_ALL, QMessageBox::YesToAll, 0x00008000)                            \
+    O(QT_STANDARDBUTTON_NO, QMessageBox::No, 0x00010000)                                          \
+    O(QT_STANDARDBUTTON_NO_TO_ALL, QMessageBox::NoToAll, 0x00020000)                              \
+    O(QT_STANDARDBUTTON_ABORT, QMessageBox::Abort, 0x00040000)                                    \
+    O(QT_STANDARDBUTTON_RETRY, QMessageBox::Retry, 0x00080000)                                    \
+    O(QT_STANDARDBUTTON_IGNORE, QMessageBox::Ignore, 0x00100000)                                  \
+    O(QT_STANDARDBUTTON_CLOSE, QMessageBox::Close, 0x00200000)                                    \
+    O(QT_STANDARDBUTTON_CANCEL, QMessageBox::Cancel, 0x00400000)                                  \
+    O(QT_STANDARDBUTTON_DISCARD, QMessageBox::Discard, 0x00800000)                                \
+    O(QT_STANDARDBUTTON_HELP, QMessageBox::Help, 0x01000000)                                      \
+    O(QT_STANDARDBUTTON_APPLY, QMessageBox::Apply, 0x02000000)                                    \
+    O(QT_STANDARDBUTTON_RESET, QMessageBox::Reset, 0x04000000)                                    \
+    O(QT_STANDARDBUTTON_RESTORE_DEFAULTS, QMessageBox::RestoreDefaults, 0x08000000)
+
+enum QT_StandardButton { ENUMERE_BOUTON_STANDARD(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MessageBox
+ * \{ */
+
+enum QT_StandardButton QT_message_box_affiche_avertissement(union QT_Generic_Widget parent,
+                                                            struct QT_Chaine titre,
+                                                            struct QT_Chaine message,
+                                                            enum QT_StandardButton boutons);
+
+enum QT_StandardButton QT_message_box_affiche_erreur(union QT_Generic_Widget parent,
+                                                     struct QT_Chaine titre,
+                                                     struct QT_Chaine message,
+                                                     enum QT_StandardButton boutons);
+
+enum QT_StandardButton QT_message_box_affiche_question(union QT_Generic_Widget parent,
+                                                       struct QT_Chaine titre,
+                                                       struct QT_Chaine message,
+                                                       enum QT_StandardButton boutons);
+
+enum QT_StandardButton QT_message_box_affiche_information(union QT_Generic_Widget parent,
+                                                          struct QT_Chaine titre,
+                                                          struct QT_Chaine message,
+                                                          enum QT_StandardButton boutons);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_TreeWidgetItem
  * \{ */
 

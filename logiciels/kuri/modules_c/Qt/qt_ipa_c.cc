@@ -20,6 +20,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QScreen>
@@ -1264,6 +1265,82 @@ int QT_dialog_exec(QT_Dialog *dialog)
 void QT_dialog_definis_modal(QT_Dialog *dialog, bool ouinon)
 {
     vers_qt(dialog)->setModal(ouinon);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MessageBox
+ * \{ */
+
+static QMessageBox::StandardButton vers_qt(QT_StandardButton drapeaux)
+{
+    int résultat = QMessageBox::StandardButton::Ok;
+    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
+    return QMessageBox::StandardButton(résultat);
+}
+
+static QT_StandardButton vers_ipa(QMessageBox::StandardButton drapeaux)
+{
+    int résultat = QMessageBox::StandardButton::Ok;
+    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
+    return QT_StandardButton(résultat);
+}
+
+QT_StandardButton QT_message_box_affiche_avertissement(QT_Generic_Widget parent,
+                                                       QT_Chaine titre,
+                                                       QT_Chaine message,
+                                                       QT_StandardButton boutons)
+{
+    auto qparent = vers_qt(parent);
+    auto qtitre = titre.vers_std_string();
+    auto qmessage = message.vers_std_string();
+    auto qboutons = vers_qt(boutons);
+
+    auto résultat = QMessageBox::warning(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
+    return vers_ipa(résultat);
+}
+
+QT_StandardButton QT_message_box_affiche_erreur(QT_Generic_Widget parent,
+                                                QT_Chaine titre,
+                                                QT_Chaine message,
+                                                QT_StandardButton boutons)
+{
+    auto qparent = vers_qt(parent);
+    auto qtitre = titre.vers_std_string();
+    auto qmessage = message.vers_std_string();
+    auto qboutons = vers_qt(boutons);
+
+    auto résultat = QMessageBox::critical(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
+    return vers_ipa(résultat);
+}
+
+QT_StandardButton QT_message_box_affiche_question(QT_Generic_Widget parent,
+                                                  QT_Chaine titre,
+                                                  QT_Chaine message,
+                                                  QT_StandardButton boutons)
+{
+    auto qparent = vers_qt(parent);
+    auto qtitre = titre.vers_std_string();
+    auto qmessage = message.vers_std_string();
+    auto qboutons = vers_qt(boutons);
+
+    auto résultat = QMessageBox::question(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
+    return vers_ipa(QMessageBox::StandardButton(résultat));
+}
+
+QT_StandardButton QT_message_box_affiche_information(QT_Generic_Widget parent,
+                                                     QT_Chaine titre,
+                                                     QT_Chaine message,
+                                                     QT_StandardButton boutons)
+{
+    auto qparent = vers_qt(parent);
+    auto qtitre = titre.vers_std_string();
+    auto qmessage = message.vers_std_string();
+    auto qboutons = vers_qt(boutons);
+
+    auto résultat = QMessageBox::information(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
+    return vers_ipa(résultat);
 }
 
 /** \} */
