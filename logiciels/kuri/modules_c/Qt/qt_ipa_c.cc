@@ -1738,5 +1738,39 @@ QT_Menu *DNJ_gestionaire_compile_menu_fichier(DNJ_Gestionnaire_Interface *gestio
     return vers_ipa(résultat);
 }
 
+QT_Menu *DNJ_gestionnaire_donne_menu(DNJ_Gestionnaire_Interface *gestionnaire, QT_Chaine nom_menu)
+{
+    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    auto résultat = dnj_gestionnaire->pointeur_menu(nom_menu.vers_std_string());
+    return vers_ipa(résultat);
+}
+
+void DNJ_gestionnaire_recree_menu(DNJ_Gestionnaire_Interface *gestionnaire,
+                                  QT_Chaine nom_menu,
+                                  DNJ_Donnees_Action *actions,
+                                  int64_t nombre_actions)
+{
+    if (!actions || nombre_actions == 0) {
+        return;
+    }
+
+    auto données_actions = dls::tableau<danjo::DonneesAction>();
+
+    for (int i = 0; i < nombre_actions; i++) {
+        auto action = actions[i];
+
+        auto donnée = danjo::DonneesAction{};
+        donnée.attache = action.attache.vers_std_string();
+        donnée.metadonnee = action.metadonnee.vers_std_string();
+        donnée.nom = action.nom.vers_std_string();
+        donnée.repondant_bouton = reinterpret_cast<PiloteClique *>(action.pilote_clique);
+
+        données_actions.ajoute(donnée);
+    }
+
+    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    dnj_gestionnaire->recree_menu(nom_menu.vers_std_string(), données_actions);
+}
+
 /** \} */
 }

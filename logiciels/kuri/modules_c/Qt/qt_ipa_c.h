@@ -1257,6 +1257,19 @@ struct DNJ_Contexte_Interface {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name DNJ_Donnees_Action
+ * \{ */
+
+struct DNJ_Donnees_Action {
+    struct DNJ_Pilote_Clique *pilote_clique;
+    struct QT_Chaine attache;
+    struct QT_Chaine nom;
+    struct QT_Chaine metadonnee;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name DNJ_Gestionnaire_Interface
  * \{ */
 
@@ -1268,6 +1281,14 @@ struct QT_Menu *DNJ_gestionaire_compile_menu_fichier(
     struct DNJ_Gestionnaire_Interface *gestionnaire,
     struct DNJ_Contexte_Interface *context,
     struct QT_Chaine chemin);
+
+struct QT_Menu *DNJ_gestionnaire_donne_menu(struct DNJ_Gestionnaire_Interface *gestionnaire,
+                                            struct QT_Chaine nom_menu);
+
+void DNJ_gestionnaire_recree_menu(struct DNJ_Gestionnaire_Interface *gestionnaire,
+                                  struct QT_Chaine nom_menu,
+                                  struct DNJ_Donnees_Action *actions,
+                                  int64_t nombre_actions);
 
 /** \} */
 
