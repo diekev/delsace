@@ -18,6 +18,18 @@ typedef unsigned char bool;
 
 #define ENUMERE_DECLARATION_ENUM_IPA(nom_ipa, nom_qt) nom_ipa,
 
+#define ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA(nom_ipa, nom_qt, valeur) nom_ipa = valeur,
+
+#define ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT(nom_ipa, nom_qt, variable)                   \
+    if ((drapeaux & nom_ipa)) {                                                                   \
+        résultat |= nom_qt;                                                                       \
+    }
+
+#define ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA(nom_ipa, nom_qt, variable)                   \
+    if ((drapeaux & nom_qt)) {                                                                    \
+        résultat |= nom_ipa;                                                                      \
+    }
+
 #define ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT(nom_ipa, nom_qt)                                     \
     case nom_ipa:                                                                                 \
     {                                                                                             \
