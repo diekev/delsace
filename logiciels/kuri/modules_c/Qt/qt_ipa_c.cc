@@ -1795,5 +1795,19 @@ void DNJ_gestionnaire_recree_menu(DNJ_Gestionnaire_Interface *gestionnaire,
     dnj_gestionnaire->recree_menu(nom_menu.vers_std_string(), données_actions);
 }
 
+QT_ToolBar *DNJ_gestionaire_compile_barre_a_outils_fichier(
+    DNJ_Gestionnaire_Interface *gestionnaire, DNJ_Contexte_Interface *context, QT_Chaine chemin)
+{
+    if (!context) {
+        return nullptr;
+    }
+
+    auto données = convertis_contexte(context);
+    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    auto résultat = dnj_gestionnaire->compile_barre_outils_fichier(données,
+                                                                   chemin.vers_std_string());
+    return vers_ipa(résultat);
+}
+
 /** \} */
 }

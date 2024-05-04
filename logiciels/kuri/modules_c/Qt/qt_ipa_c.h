@@ -1309,6 +1309,11 @@ void DNJ_gestionnaire_recree_menu(struct DNJ_Gestionnaire_Interface *gestionnair
                                   struct DNJ_Donnees_Action *actions,
                                   int64_t nombre_actions);
 
+struct QT_ToolBar *DNJ_gestionaire_compile_barre_a_outils_fichier(
+    struct DNJ_Gestionnaire_Interface *gestionnaire,
+    struct DNJ_Contexte_Interface *context,
+    struct QT_Chaine chemin);
+
 /** \} */
 
 #ifdef __cplusplus
