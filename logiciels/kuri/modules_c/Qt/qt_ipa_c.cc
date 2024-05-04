@@ -516,19 +516,10 @@ void *QT_event_perso_donne_donnees(struct QT_Evenement *event)
 
 QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void)
 {
-    auto modifiers = QApplication::keyboardModifiers();
-
+    auto drapeaux = QApplication::keyboardModifiers();
     int résultat = QT_KEYBOARD_MODIFIER_AUCUN;
-
-#define AJOUTE_DRAPEAUX(nom_ipa, nom_qt)                                                          \
-    if ((modifiers & nom_qt) != 0) {                                                              \
-        résultat |= nom_ipa;                                                                      \
-    }
-
-    ENUMERE_MODIFICATEURS_CLAVIER(AJOUTE_DRAPEAUX);
-
+    ENUMERE_MODIFICATEURS_CLAVIER(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA);
     return QT_Keyboard_Modifier(résultat);
-#undef AJOUTE_DRAPEAUX
 }
 
 /** \} */

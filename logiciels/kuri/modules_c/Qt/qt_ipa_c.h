@@ -558,23 +558,15 @@ enum QT_MouseButton { ENUMERE_BOUTON_SOURIS(ENUMERE_DECLARATION_ENUM_IPA) };
  * \{ */
 
 #define ENUMERE_MODIFICATEURS_CLAVIER(O)                                                          \
-    O(QT_KEYBOARD_MODIFIER_AUCUN, Qt::NoModifier)                                                 \
-    O(QT_KEYBOARD_MODIFIER_MAJ, Qt::ShiftModifier)                                                \
-    O(QT_KEYBOARD_MODIFIER_CTRL, Qt::ControlModifier)                                             \
-    O(QT_KEYBOARD_MODIFIER_ALT, Qt::AltModifier)                                                  \
-    O(QT_KEYBOARD_MODIFIER_META, Qt::MetaModifier)                                                \
-    O(QT_KEYBOARD_MODIFIER_KEYPAD, Qt::KeypadModifier)                                            \
-    O(QT_KEYBOARD_MODIFIER_GROUP_SWITCH, Qt::GroupSwitchModifier)
+    O(QT_KEYBOARD_MODIFIER_AUCUN, Qt::NoModifier, 0)                                              \
+    O(QT_KEYBOARD_MODIFIER_MAJ, Qt::ShiftModifier, 1)                                             \
+    O(QT_KEYBOARD_MODIFIER_CTRL, Qt::ControlModifier, 2)                                          \
+    O(QT_KEYBOARD_MODIFIER_ALT, Qt::AltModifier, 4)                                               \
+    O(QT_KEYBOARD_MODIFIER_META, Qt::MetaModifier, 8)                                             \
+    O(QT_KEYBOARD_MODIFIER_KEYPAD, Qt::KeypadModifier, 16)                                        \
+    O(QT_KEYBOARD_MODIFIER_GROUP_SWITCH, Qt::GroupSwitchModifier, 32)
 
-enum QT_Keyboard_Modifier {
-    QT_KEYBOARD_MODIFIER_AUCUN = 0,
-    QT_KEYBOARD_MODIFIER_MAJ = 1,
-    QT_KEYBOARD_MODIFIER_CTRL = 2,
-    QT_KEYBOARD_MODIFIER_ALT = 4,
-    QT_KEYBOARD_MODIFIER_META = 8,
-    QT_KEYBOARD_MODIFIER_KEYPAD = 16,
-    QT_KEYBOARD_MODIFIER_GROUP_SWITCH = 32,
-};
+enum QT_Keyboard_Modifier { ENUMERE_MODIFICATEURS_CLAVIER(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
 
 enum QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void);
 
