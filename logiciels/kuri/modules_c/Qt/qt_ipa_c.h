@@ -145,7 +145,8 @@ struct QT_Rappel_Generique {
     O(QGraphicsView, QT_GraphicsView, graphics_view)                                              \
     O(QStatusBar, QT_StatusBar, status_bar)                                                       \
     O(QMenu, QT_Menu, menu)                                                                       \
-    O(QMenuBar, QT_MenuBar, menu_bar)
+    O(QMenuBar, QT_MenuBar, menu_bar)                                                             \
+    O(QToolBar, QT_ToolBar, tool_bar)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -286,6 +287,20 @@ struct QT_Creatrice_Barre_Menu {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ToolBarArea
+ * \{ */
+
+#define ENUMERE_TOOLBARAREA(O)                                                                    \
+    O(QT_TOOLBARAREA_GAUCHE, Qt::LeftToolBarArea)                                                 \
+    O(QT_TOOLBARAREA_DROITE, Qt::RightToolBarArea)                                                \
+    O(QT_TOOLBARAREA_HAUT, Qt::TopToolBarArea)                                                    \
+    O(QT_TOOLBARAREA_BAS, Qt::BottomToolBarArea)
+
+enum QT_ToolBarArea { ENUMERE_TOOLBARAREA(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Fenetre_Principale
  * \{ */
 
@@ -314,6 +329,10 @@ struct QT_Rappels_Fenetre_Principale *QT_fenetre_principale_donne_rappels(
 struct QT_MenuBar *QT_fenetre_principale_donne_barre_menu(struct QT_Fenetre_Principale *fenetre);
 
 struct QT_StatusBar *QT_fenetre_principale_donne_barre_etat(struct QT_Fenetre_Principale *fenetre);
+
+void QT_fenetre_principale_ajoute_barre_a_outils(struct QT_Fenetre_Principale *fenetre,
+                                                 struct QT_ToolBar *tool_bar,
+                                                 enum QT_ToolBarArea area);
 
 /** \} */
 

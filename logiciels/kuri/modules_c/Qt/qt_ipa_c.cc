@@ -188,6 +188,20 @@ bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ToolBarArea
+ * \{ */
+
+static Qt::ToolBarArea convertis_toolbararea(QT_ToolBarArea area)
+{
+    switch (area) {
+        ENUMERE_TOOLBARAREA(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::TopToolBarArea;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Fenetre_Principale
  * \{ */
 
@@ -234,6 +248,15 @@ QT_StatusBar *QT_fenetre_principale_donne_barre_etat(QT_Fenetre_Principale *fene
 {
     auto qfenêtre = vers_qt(fenetre);
     return vers_ipa(qfenêtre->statusBar());
+}
+
+void QT_fenetre_principale_ajoute_barre_a_outils(QT_Fenetre_Principale *fenetre,
+                                                 QT_ToolBar *tool_bar,
+                                                 QT_ToolBarArea area)
+{
+    auto qfenêtre = vers_qt(fenetre);
+    auto qtool_bar = vers_qt(tool_bar);
+    qfenêtre->addToolBar(convertis_toolbararea(area), qtool_bar);
 }
 
 /** \} */
