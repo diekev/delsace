@@ -1372,6 +1372,21 @@ void QT_dialog_definis_modal(struct QT_Dialog *dialog, bool ouinon);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_FileDialog
+ * \{ */
+
+struct QT_Chaine QT_file_dialog_donne_chemin_pour_lecture(union QT_Generic_Widget parent,
+                                                          struct QT_Chaine titre,
+                                                          struct QT_Chaine dossier,
+                                                          struct QT_Chaine filtre);
+struct QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(union QT_Generic_Widget parent,
+                                                           struct QT_Chaine titre,
+                                                           struct QT_Chaine dossier,
+                                                           struct QT_Chaine filtre);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Keyboard_Modifier
  * \{ */
 
