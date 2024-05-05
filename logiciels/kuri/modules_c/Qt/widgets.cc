@@ -3,6 +3,36 @@
 
 #include "widgets.hh"
 
+#define IMPLEMENTE_METHODE_EVENEMENT(classe, type_qt, nom_qt, type_ipa, nom_rappel)               \
+    void classe::nom_qt(type_qt *event)                                                           \
+    {                                                                                             \
+        if (m_rappels && m_rappels->nom_rappel) {                                                 \
+            m_rappels->nom_rappel(m_rappels, reinterpret_cast<type_ipa *>(event));                \
+        }                                                                                         \
+        else {                                                                                    \
+            Q##classe::nom_qt(event);                                                             \
+        }                                                                                         \
+    }
+
+#define IMPLEMENTE_METHODES_EVENEMENTS(classe)                                                    \
+    IMPLEMENTE_METHODE_EVENEMENT(classe, QEvent, enterEvent, QT_Evenement, sur_entree)            \
+    IMPLEMENTE_METHODE_EVENEMENT(classe, QEvent, leaveEvent, QT_Evenement, sur_sortie)            \
+    IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
+        classe, QMouseEvent, mousePressEvent, QT_MouseEvent, sur_pression_souris)                 \
+    IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
+        classe, QMouseEvent, mouseMoveEvent, QT_MouseEvent, sur_deplacement_souris)               \
+    IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
+        classe, QMouseEvent, mouseReleaseEvent, QT_MouseEvent, sur_relachement_souris)            \
+    IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
+        classe, QMouseEvent, mouseDoubleClickEvent, QT_MouseEvent, sur_double_clique_souris)      \
+    IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
+        classe, QWheelEvent, wheelEvent, QT_WheelEvent, sur_molette_souris)                       \
+    IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
+        classe, QResizeEvent, resizeEvent, QT_ResizeEvent, sur_redimensionnement)                 \
+    IMPLEMENTE_METHODE_EVENEMENT(classe, QKeyEvent, keyPressEvent, QT_KeyEvent, sur_pression_cle) \
+    IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
+        classe, QKeyEvent, keyReleaseEvent, QT_KeyEvent, sur_relachement_cle)
+
 /* ------------------------------------------------------------------------- */
 /** \name Widget
  * \{ */
@@ -18,75 +48,7 @@ Widget::~Widget()
     }
 }
 
-void Widget::enterEvent(QEvent *event)
-{
-    if (m_rappels && m_rappels->sur_entree) {
-        m_rappels->sur_entree(m_rappels, reinterpret_cast<QT_Evenement *>(event));
-    }
-    else {
-        QWidget::enterEvent(event);
-    }
-}
-
-void Widget::leaveEvent(QEvent *event)
-{
-    if (m_rappels && m_rappels->sur_sortie) {
-        m_rappels->sur_sortie(m_rappels, reinterpret_cast<QT_Evenement *>(event));
-    }
-    else {
-        QWidget::leaveEvent(event);
-    }
-}
-
-void Widget::mousePressEvent(QMouseEvent *event)
-{
-    if (m_rappels && m_rappels->sur_pression_souris) {
-        m_rappels->sur_pression_souris(m_rappels, reinterpret_cast<QT_MouseEvent *>(event));
-    }
-    else {
-        QWidget::mousePressEvent(event);
-    }
-}
-
-void Widget::mouseMoveEvent(QMouseEvent *event)
-{
-    if (m_rappels && m_rappels->sur_deplacement_souris) {
-        m_rappels->sur_deplacement_souris(m_rappels, reinterpret_cast<QT_MouseEvent *>(event));
-    }
-    else {
-        QWidget::mouseMoveEvent(event);
-    }
-}
-
-void Widget::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (m_rappels && m_rappels->sur_relachement_souris) {
-        m_rappels->sur_relachement_souris(m_rappels, reinterpret_cast<QT_MouseEvent *>(event));
-    }
-    else {
-        QWidget::mouseReleaseEvent(event);
-    }
-}
-
-void Widget::wheelEvent(QWheelEvent *event)
-{
-    if (m_rappels && m_rappels->sur_molette_souris) {
-        m_rappels->sur_molette_souris(m_rappels, reinterpret_cast<QT_WheelEvent *>(event));
-    }
-    else {
-        QWidget::wheelEvent(event);
-    }
-}
-
-void Widget::resizeEvent(QResizeEvent *event)
-{
-    if (m_rappels && m_rappels->sur_redimensionnement) {
-        m_rappels->sur_redimensionnement(m_rappels, reinterpret_cast<QT_ResizeEvent *>(event));
-    }
-    else {
-        QWidget::resizeEvent(event);
-    }
-}
+IMPLEMENTE_METHODES_EVENEMENTS(Widget)
 
 /** \} */
 
@@ -106,75 +68,7 @@ GLWidget::~GLWidget()
     }
 }
 
-void GLWidget::enterEvent(QEvent *event)
-{
-    if (m_rappels && m_rappels->sur_entree) {
-        m_rappels->sur_entree(m_rappels, reinterpret_cast<QT_Evenement *>(event));
-    }
-    else {
-        QGLWidget::enterEvent(event);
-    }
-}
-
-void GLWidget::leaveEvent(QEvent *event)
-{
-    if (m_rappels && m_rappels->sur_sortie) {
-        m_rappels->sur_sortie(m_rappels, reinterpret_cast<QT_Evenement *>(event));
-    }
-    else {
-        QGLWidget::leaveEvent(event);
-    }
-}
-
-void GLWidget::mousePressEvent(QMouseEvent *event)
-{
-    if (m_rappels && m_rappels->sur_pression_souris) {
-        m_rappels->sur_pression_souris(m_rappels, reinterpret_cast<QT_MouseEvent *>(event));
-    }
-    else {
-        QGLWidget::mousePressEvent(event);
-    }
-}
-
-void GLWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    if (m_rappels && m_rappels->sur_deplacement_souris) {
-        m_rappels->sur_deplacement_souris(m_rappels, reinterpret_cast<QT_MouseEvent *>(event));
-    }
-    else {
-        QGLWidget::mouseMoveEvent(event);
-    }
-}
-
-void GLWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (m_rappels && m_rappels->sur_relachement_souris) {
-        m_rappels->sur_relachement_souris(m_rappels, reinterpret_cast<QT_MouseEvent *>(event));
-    }
-    else {
-        QGLWidget::mouseReleaseEvent(event);
-    }
-}
-
-void GLWidget::wheelEvent(QWheelEvent *event)
-{
-    if (m_rappels && m_rappels->sur_molette_souris) {
-        m_rappels->sur_molette_souris(m_rappels, reinterpret_cast<QT_WheelEvent *>(event));
-    }
-    else {
-        QGLWidget::wheelEvent(event);
-    }
-}
-
-void GLWidget::resizeEvent(QResizeEvent *event)
-{
-    if (m_rappels && m_rappels->sur_redimensionnement) {
-        m_rappels->sur_redimensionnement(m_rappels, reinterpret_cast<QT_ResizeEvent *>(event));
-    }
-    else {
-        QGLWidget::resizeEvent(event);
-    }
-}
+IMPLEMENTE_METHODES_EVENEMENTS(GLWidget)
 
 void GLWidget::initializeGL()
 {
@@ -265,6 +159,7 @@ void ComboBox::sur_changement_index(int /*state*/)
 }
 
 /** \} */
+
 /* ------------------------------------------------------------------------- */
 /** \name TreeWidget
  * \{ */

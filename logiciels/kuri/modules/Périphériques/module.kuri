@@ -59,6 +59,7 @@ ActionSouris :: énum {
     RELACHÉE
     DÉPLACÉE
     ROULEMENT
+    DOUBLE_CLIQUE
 }
 
 BoutonSouris :: énum {
@@ -143,6 +144,8 @@ CléClavier :: énum {
     CLÉ_FLÈCHE_DROITE
     CLÉ_FLÈCHE_HAUT
     CLÉ_FLÈCHE_BAS
+
+    CLÉ_SUPPRIMER
 }
 
 __caractères_clé_clavier: [CléClavier.nombre_éléments]z8
