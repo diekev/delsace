@@ -1,4 +1,5 @@
 importe Fondation
+importe Périphériques
 
 charge "interface_qt"
 
@@ -34,9 +35,559 @@ vers_kuri :: fonc (chn: *QT_Chaine) -> chaine
     retourne construit_chaine(chn.caractères, chn.taille)
 }
 
+vers_kuri :: fonc (chn: QT_Chaine) -> chaine #enligne
+{
+    retourne construit_chaine(chn.caractères, chn.taille)
+}
+
 vers_qt :: fonc (chn: chaine) -> QT_Chaine
 {
     retourne QT_Chaine(chn.pointeur, chn.taille)
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Conversion Périphériques
+ * \{ */
+
+donne_modificateur_clavier_depuis_qt :: fonc () -> ModificateurClavier
+{
+    modificateurs := QT_application_donne_modificateurs_clavier()
+
+    résultat: ModificateurClavier
+
+    si (modificateurs & QT_Keyboard_Modifier.MAJ) != QT_Keyboard_Modifier.AUCUN {
+        résultat.MAJUSCULE = vrai
+    }
+
+    si (modificateurs & QT_Keyboard_Modifier.CTRL) != QT_Keyboard_Modifier.AUCUN {
+        résultat.CONTROL = vrai
+    }
+
+    si (modificateurs & QT_Keyboard_Modifier.ALT) != QT_Keyboard_Modifier.AUCUN {
+        résultat.ALT = vrai
+    }
+
+    retourne résultat
+}
+
+donne_bouton_souris :: fonc (évènement: *QT_MouseEvent) -> BoutonSouris
+{
+    bouton := QT_mouse_event_donne_bouton(évènement)
+    discr bouton {
+        GAUCHE {
+            retourne BoutonSouris.GAUCHE
+        }
+        DROIT {
+            retourne BoutonSouris.DROIT
+        }
+        MILLIEU {
+            retourne BoutonSouris.MOLETTE
+        }
+        ARRIERE {
+            retourne BoutonSouris.ARRIÈRE
+        }
+        sinon {}
+    }
+
+    retourne BoutonSouris.GAUCHE
+}
+
+donne_clique_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, action: ActionSouris) -> CliqueSouris
+{
+    position: QT_Position
+    QT_mouse_event_donne_position(évènement, *position)
+
+    résultat: CliqueSouris
+    résultat.état.où.x = position.x
+    résultat.état.où.y = position.y
+    résultat.état.modificateur = donne_modificateur_clavier_depuis_qt()
+    résultat.bouton = donne_bouton_souris(évènement)
+    résultat.action = action
+    retourne résultat
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Clavier
+ * \{ */
+
+table_conversion_clé : [QT_Key.nombre_éléments]CléClavier = ---
+
+initialise_table_conversion_clé :: fonc ()
+{
+    table_conversion_clé[QT_Key.Escape] = CléClavier.CLÉ_ÉCHAPPE
+    table_conversion_clé[QT_Key.Tab] = CléClavier.CLÉ_TAB
+    table_conversion_clé[QT_Key.Backtab] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Backspace] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Return] = CléClavier.CLÉ_RETOUR
+    table_conversion_clé[QT_Key.Enter] = CléClavier.CLÉ_ENTRÉE
+    table_conversion_clé[QT_Key.Insert] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Delete] = CléClavier.CLÉ_SUPPRIMER
+    table_conversion_clé[QT_Key.Pause] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Print] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.SysReq] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Clear] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Home] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.End] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Left] = CléClavier.CLÉ_FLÈCHE_GAUCHE
+    table_conversion_clé[QT_Key.Up] = CléClavier.CLÉ_FLÈCHE_HAUT
+    table_conversion_clé[QT_Key.Right] = CléClavier.CLÉ_FLÈCHE_DROITE
+    table_conversion_clé[QT_Key.Down] = CléClavier.CLÉ_FLÈCHE_BAS
+    table_conversion_clé[QT_Key.PageUp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.PageDown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Shift] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Control] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Meta] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Alt] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.CapsLock] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.NumLock] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ScrollLock] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F1] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F2] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F3] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F4] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F5] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F6] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F7] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F8] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F9] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F10] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F11] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F12] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F13] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F14] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F15] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F16] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F17] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F18] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F19] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F20] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F21] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F22] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F23] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F24] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F25] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F26] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F27] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F28] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F29] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F30] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F31] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F32] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F33] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F34] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.F35] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Super_L] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Super_R] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Menu] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hyper_L] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hyper_R] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Help] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Direction_L] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Direction_R] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Space] = CléClavier.CLÉ_ESPACE
+    table_conversion_clé[QT_Key.Exclam] = CléClavier.CLÉ_POINT_EXCLAMATION
+    table_conversion_clé[QT_Key.QuoteDbl] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.NumberSign] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dollar] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Percent] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ampersand] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Apostrophe] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ParenLeft] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ParenRight] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Asterisk] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Plus] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Comma] = CléClavier.CLÉ_VIRGULE
+    table_conversion_clé[QT_Key.Minus] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Period] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Slash] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.NOMBRE_0] = CléClavier.CLÉ_0
+    table_conversion_clé[QT_Key.NOMBRE_1] = CléClavier.CLÉ_1
+    table_conversion_clé[QT_Key.NOMBRE_2] = CléClavier.CLÉ_2
+    table_conversion_clé[QT_Key.NOMBRE_3] = CléClavier.CLÉ_3
+    table_conversion_clé[QT_Key.NOMBRE_4] = CléClavier.CLÉ_4
+    table_conversion_clé[QT_Key.NOMBRE_5] = CléClavier.CLÉ_5
+    table_conversion_clé[QT_Key.NOMBRE_6] = CléClavier.CLÉ_6
+    table_conversion_clé[QT_Key.NOMBRE_7] = CléClavier.CLÉ_7
+    table_conversion_clé[QT_Key.NOMBRE_8] = CléClavier.CLÉ_8
+    table_conversion_clé[QT_Key.NOMBRE_9] = CléClavier.CLÉ_9
+    table_conversion_clé[QT_Key.Colon] = CléClavier.CLÉ_DOUBLE_POINT
+    table_conversion_clé[QT_Key.Semicolon] = CléClavier.CLÉ_POINT_VIRGULE
+    table_conversion_clé[QT_Key.Less] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Equal] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Greater] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Question] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.At] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.A] = CléClavier.CLÉ_A
+    table_conversion_clé[QT_Key.B] = CléClavier.CLÉ_B
+    table_conversion_clé[QT_Key.C] = CléClavier.CLÉ_C
+    table_conversion_clé[QT_Key.D] = CléClavier.CLÉ_D
+    table_conversion_clé[QT_Key.E] = CléClavier.CLÉ_E
+    table_conversion_clé[QT_Key.F] = CléClavier.CLÉ_F
+    table_conversion_clé[QT_Key.G] = CléClavier.CLÉ_G
+    table_conversion_clé[QT_Key.H] = CléClavier.CLÉ_H
+    table_conversion_clé[QT_Key.I] = CléClavier.CLÉ_I
+    table_conversion_clé[QT_Key.J] = CléClavier.CLÉ_J
+    table_conversion_clé[QT_Key.K] = CléClavier.CLÉ_K
+    table_conversion_clé[QT_Key.L] = CléClavier.CLÉ_L
+    table_conversion_clé[QT_Key.M] = CléClavier.CLÉ_M
+    table_conversion_clé[QT_Key.N] = CléClavier.CLÉ_N
+    table_conversion_clé[QT_Key.O] = CléClavier.CLÉ_O
+    table_conversion_clé[QT_Key.P] = CléClavier.CLÉ_P
+    table_conversion_clé[QT_Key.Q] = CléClavier.CLÉ_Q
+    table_conversion_clé[QT_Key.R] = CléClavier.CLÉ_R
+    table_conversion_clé[QT_Key.S] = CléClavier.CLÉ_S
+    table_conversion_clé[QT_Key.T] = CléClavier.CLÉ_T
+    table_conversion_clé[QT_Key.U] = CléClavier.CLÉ_U
+    table_conversion_clé[QT_Key.V] = CléClavier.CLÉ_V
+    table_conversion_clé[QT_Key.W] = CléClavier.CLÉ_W
+    table_conversion_clé[QT_Key.X] = CléClavier.CLÉ_X
+    table_conversion_clé[QT_Key.Y] = CléClavier.CLÉ_Y
+    table_conversion_clé[QT_Key.Z] = CléClavier.CLÉ_Z
+    table_conversion_clé[QT_Key.BracketLeft] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Backslash] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.BracketRight] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AsciiCircum] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Underscore] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.QuoteLeft] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.BraceLeft] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Bar] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.BraceRight] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AsciiTilde] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.nobreakspace] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.exclamdown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.cent] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.sterling] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.currency] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.yen] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.brokenbar] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.section] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.diaeresis] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.copyright] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ordfeminine] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.guillemotleft] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.notsign] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.hyphen] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.registered] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.macron] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.degree] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.plusminus] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.twosuperior] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.threesuperior] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.acute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.mu] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.paragraph] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.periodcentered] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.cedilla] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.onesuperior] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.masculine] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.guillemotright] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.onequarter] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.onehalf] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.threequarters] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.questiondown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Agrave] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Aacute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Acircumflex] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Atilde] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Adiaeresis] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Aring] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AE] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ccedilla] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Egrave] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Eacute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ecircumflex] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ediaeresis] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Igrave] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Iacute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Icircumflex] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Idiaeresis] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ETH] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ntilde] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ograve] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Oacute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ocircumflex] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Otilde] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Odiaeresis] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.multiply] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ooblique] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ugrave] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Uacute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Ucircumflex] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Udiaeresis] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Yacute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.THORN] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ssharp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.division] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ydiaeresis] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AltGr] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Multi_key] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Codeinput] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.SingleCandidate] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MultipleCandidate] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.PreviousCandidate] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Mode_switch] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Kanji] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Muhenkan] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Henkan] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Romaji] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hiragana] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Katakana] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hiragana_Katakana] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Zenkaku] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hankaku] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Zenkaku_Hankaku] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Touroku] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Massyo] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Kana_Lock] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Kana_Shift] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Eisu_Shift] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Eisu_toggle] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_Start] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_End] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_Hanja] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_Jamo] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_Romaja] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_Jeonja] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_Banja] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_PreHanja] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_PostHanja] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangul_Special] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Grave] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Acute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Circumflex] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Tilde] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Macron] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Breve] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Abovedot] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Diaeresis] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Abovering] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Doubleacute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Caron] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Cedilla] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Ogonek] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Iota] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Voiced_Sound] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Semivoiced_Sound] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Belowdot] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Hook] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Horn] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Stroke] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Abovecomma] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Abovereversedcomma] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Doublegrave] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Belowring] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Belowmacron] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Belowcircumflex] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Belowtilde] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Belowbreve] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Belowdiaeresis] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Invertedbreve] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Belowcomma] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Currency] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_a] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_A] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_e] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_E] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_i] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_I] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_o] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_O] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_u] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_U] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Small_Schwa] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Capital_Schwa] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Greek] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Lowline] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Aboveverticalline] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Belowverticalline] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Dead_Longsolidusoverlay] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Back] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Forward] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Stop] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Refresh] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.VolumeDown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.VolumeMute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.VolumeUp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.BassBoost] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.BassUp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.BassDown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.TrebleUp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.TrebleDown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MediaPlay] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MediaStop] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MediaPrevious] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MediaNext] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MediaRecord] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MediaPause] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MediaTogglePlayPause] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.HomePage] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Favorites] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Search] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Standby] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.OpenUrl] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchMail] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchMedia] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch0] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch1] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch2] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch3] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch4] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch5] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch6] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch7] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch8] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Launch9] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchA] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchB] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchC] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchD] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchE] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchF] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MonBrightnessUp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MonBrightnessDown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.KeyboardLightOnOff] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.KeyboardBrightnessUp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.KeyboardBrightnessDown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.PowerOff] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.WakeUp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Eject] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ScreenSaver] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.WWW] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Memo] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LightBulb] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Shop] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.History] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AddFavorite] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.HotLinks] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.BrightnessAdjust] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Finance] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Community] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AudioRewind] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.BackForward] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ApplicationLeft] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ApplicationRight] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Book] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.CD] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Calculator] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ToDoList] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ClearGrab] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Close] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Copy] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Cut] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Display] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.DOS] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Documents] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Excel] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Explorer] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Game] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Go] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.iTouch] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LogOff] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Market] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Meeting] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MenuKB] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MenuPB] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MySites] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.News] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.OfficeHome] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Option] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Paste] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Phone] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Calendar] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Reply] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Reload] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.RotateWindows] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.RotationPB] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.RotationKB] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Save] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Send] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Spell] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.SplitScreen] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Support] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.TaskPane] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Terminal] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Tools] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Travel] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Video] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Word] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Xfer] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ZoomIn] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ZoomOut] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Away] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Messenger] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.WebCam] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MailForward] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Pictures] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Music] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Battery] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Bluetooth] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.WLAN] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.UWB] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AudioForward] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AudioRepeat] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AudioRandomPlay] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Subtitle] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.AudioCycleTrack] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Time] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hibernate] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.View] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.TopMenu] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.PowerDown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Suspend] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ContrastAdjust] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchG] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LaunchH] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.TouchpadToggle] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.TouchpadOn] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.TouchpadOff] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MicMute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Red] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Green] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Yellow] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Blue] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ChannelUp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ChannelDown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Guide] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Info] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Settings] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MicVolumeUp] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MicVolumeDown] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.New] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Open] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Find] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Undo] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Redo] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.MediaLast] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Select] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Yes] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.No] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Cancel] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Printer] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Execute] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Sleep] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Play] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Zoom] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Exit] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Context1] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Context2] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Context3] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Context4] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Call] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Hangup] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Flip] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.ToggleCallHangup] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.VoiceDial] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.LastNumberRedial] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Camera] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.CameraFocus] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.unknown] = CléClavier.CLÉ_INCONNUE
+}
+
+#ajoute_init initialise_table_conversion_clé()
 
 /** \} */
