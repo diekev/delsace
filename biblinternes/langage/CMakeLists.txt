@@ -51,6 +51,7 @@ set(SOURCES
 )
 
 add_library(${NOM_PROJET} STATIC "${SOURCES}")
+set_property(TARGET ${NOM_PROJET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
