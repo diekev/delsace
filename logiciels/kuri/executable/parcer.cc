@@ -2282,7 +2282,8 @@ void imprime_ligne(std::string tampon, uint32_t ligne, uint32_t colonne, uint32_
         position_fin_ligne += 1;
     }
 
-    std::cerr << std::string(&tampon[position_ligne], position_fin_ligne - position_ligne);
+    std::cerr << ligne << ":" << colonne << " |"
+              << std::string(&tampon[position_ligne], position_fin_ligne - position_ligne);
 }
 
 static std::optional<Configuration> valide_configuration(Configuration config)
@@ -2467,6 +2468,8 @@ int main(int argc, char **argv)
             uint32_t ligne = 0;
             uint32_t colonne = 0;
             uint32_t decalage = 0;
+            auto filename = clang_getFileName(file);
+            std::cerr << filename << ":\n";
             clang_getExpansionLocation(loc, &file, &ligne, &colonne, &decalage);
             imprime_ligne(std::string(tampon, taille), ligne, colonne, decalage);
             clang_disposeDiagnostic(diag);
