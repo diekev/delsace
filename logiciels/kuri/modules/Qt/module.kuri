@@ -125,7 +125,7 @@ initialise_table_conversion_clé :: fonc ()
     table_conversion_clé[QT_Key.Return] = CléClavier.CLÉ_RETOUR
     table_conversion_clé[QT_Key.Enter] = CléClavier.CLÉ_ENTRÉE
     table_conversion_clé[QT_Key.Insert] = CléClavier.CLÉ_INCONNUE
-    table_conversion_clé[QT_Key.Delete] = CléClavier.CLÉ_INCONNUE
+    table_conversion_clé[QT_Key.Delete] = CléClavier.CLÉ_SUPPRIMER
     table_conversion_clé[QT_Key.Pause] = CléClavier.CLÉ_INCONNUE
     table_conversion_clé[QT_Key.Print] = CléClavier.CLÉ_INCONNUE
     table_conversion_clé[QT_Key.SysReq] = CléClavier.CLÉ_INCONNUE
