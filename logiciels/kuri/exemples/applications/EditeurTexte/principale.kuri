@@ -484,6 +484,7 @@ console_dessine_barre_message :: fonc (enchaineuse: *Enchaineuse) -> rien
 
 console_rafraichis_écran :: fonc () -> rien
 {
+    ajourne_tampon_rendu(*E)
     éditeur_défile(*E)
 
     enchaineuse: Enchaineuse

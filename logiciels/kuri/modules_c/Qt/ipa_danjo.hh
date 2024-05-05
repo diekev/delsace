@@ -9,6 +9,7 @@
 
 #include "danjo/conteneur_controles.h"
 #include "danjo/danjo.h"
+#include "danjo/fournisseuse_icones.hh"
 
 /* ------------------------------------------------------------------------- */
 /** \name ConteneurControles
@@ -37,6 +38,43 @@ class ConteneurControles : public danjo::ConteneurControles {
     RepondantCommande *donne_repondant_commande();
 
     QLayout *crée_interface();
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name PiloteClique
+ * \{ */
+
+class PiloteClique final : public RepondantCommande {
+    DNJ_Rappels_Pilote_Clique *m_rappels = nullptr;
+
+  public:
+    PiloteClique(DNJ_Rappels_Pilote_Clique *rappels);
+    EMPECHE_COPIE(PiloteClique);
+    ~PiloteClique() override;
+    bool evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee) override;
+    void repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee) override;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name FournisseuseIcône
+ * \{ */
+
+class FournisseuseIcône final : public danjo::FournisseuseIcône {
+    DNJ_Rappels_Fournisseuse_Icone *m_rappels = nullptr;
+
+  public:
+    FournisseuseIcône(DNJ_Rappels_Fournisseuse_Icone *rappels);
+    EMPECHE_COPIE(FournisseuseIcône);
+    ~FournisseuseIcône() override;
+
+    std::optional<QIcon> icone_pour_bouton_animation(danjo::ÉtatIcône état) override;
+    std::optional<QIcon> icone_pour_echelle_valeur(danjo::ÉtatIcône état) override;
+    std::optional<QIcon> icone_pour_identifiant(std::string const &identifiant,
+                                                danjo::ÉtatIcône état) override;
 };
 
 /** \} */

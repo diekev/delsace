@@ -435,6 +435,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             if (!corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_déclaration(corps);
             }
+            if (fini_execution->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
+                /* À FAIRE : annule la tâche de RI proprement. */
+                auto atome = fini_execution->atome->comme_fonction();
+                atome->instructions.efface();
+                fini_execution->drapeaux &= ~DrapeauxNoeud::RI_FUT_GENEREE;
+                corps->drapeaux &= ~DrapeauxNoeud::RI_FUT_GENEREE;
+            }
             auto ajoute_fini = noeud->comme_ajoute_fini();
             corps->bloc->expressions->ajoute_au_début(ajoute_fini->expression);
             ajoute_fini->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -450,6 +457,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto corps = init_execution->corps;
             if (!corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_déclaration(corps);
+            }
+            if (init_execution->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
+                /* À FAIRE : annule la tâche de RI proprement. */
+                auto atome = init_execution->atome->comme_fonction();
+                atome->instructions.efface();
+                init_execution->drapeaux &= ~DrapeauxNoeud::RI_FUT_GENEREE;
+                corps->drapeaux &= ~DrapeauxNoeud::RI_FUT_GENEREE;
             }
             auto ajoute_init = noeud->comme_ajoute_init();
             corps->bloc->expressions->ajoute_au_début(ajoute_init->expression);
