@@ -25,12 +25,13 @@ importe Temps
     temps_message: Instantané
 
     modifié: z32
+    tampon_rendu_est_surannée: bool
 }
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
 {
-    déloge_tableau_ligne(*éditeur.lignes_texte)
-    déloge_tableau_ligne(*éditeur.lignes_rendu)
+    déloge_tableau_et_ses_éléments(éditeur.lignes_texte)
+    déloge_tableau_et_ses_éléments(éditeur.lignes_rendu)
     déloge(éditeur.message)
     déloge(éditeur.chemin_fichier)
 }
@@ -46,46 +47,25 @@ importe Temps
     contenu := contenu_fichier_texte(chm)
     diffère déloge(contenu)
 
+    /* À FAIRE : \r */
+    lignes := divise(contenu, '\n')
+    diffère déloge(lignes)
+
+    pour lignes {
+        éditeur_ajoute_ligne(éditeur, it, index_it)
+    }
+
     éditeur.chemin_fichier = chemin
     éditeur_ajourne_message_status(éditeur, "Le fichier est ouvert !")
 
-    début_ligne : z64 = 0
-    taille_ligne := 0
-
-    pour c, idx dans contenu {
-        si c == '\r' || c == '\n' {
-            si taille_ligne != 0 {
-                ligne: chaine
-                ligne.pointeur = *contenu[début_ligne]
-                ligne.taille = taille_ligne
-
-                éditeur_ajoute_ligne(éditeur, ligne, éditeur.lignes_texte.taille)
-
-                taille_ligne = 0
-                début_ligne = idx
-            }
-            sinon {
-                éditeur_ajoute_ligne(éditeur, "", éditeur.lignes_texte.taille)
-            }
-        }
-        sinon {
-            si taille_ligne == 0 {
-                début_ligne = idx
-            }
-
-            taille_ligne += 1
-        }
-    }
-
-    si taille_ligne != 0 {
-        ligne: chaine
-        ligne.pointeur = *contenu[début_ligne]
-        ligne.taille = taille_ligne
-
-        éditeur_ajoute_ligne(éditeur, ligne, éditeur.lignes_texte.taille)
-    }
-
     éditeur.modifié = 0
+    éditeur.tampon_rendu_est_surannée = vrai
+}
+
+marque_modifié :: fonc (éditeur: *Éditeur)
+{
+    éditeur.modifié += 1
+    éditeur.tampon_rendu_est_surannée = vrai
 }
 
 éditeur_ajoute_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, où: z64) -> rien
@@ -98,21 +78,12 @@ importe Temps
 
     si où == éditeur.lignes_texte.taille {
         tableau_ajoute(*éditeur.lignes_texte, ligne)
-        éditeur_ajourne_ligne(éditeur, ligne, où)
     }
     sinon {
         tableau_insère_index(*éditeur.lignes_texte, ligne, où)
-
-        // chaine_nulle est utilisé car éditeur_ajourne_ligne libère
-        // la mémoire à l'index 'où', une chaine nulle ne serait pas
-        // libérer et nous n'aurons pas nous soucier de la validiter
-        // du pointeur de la chaine
-        chaine_nulle: chaine
-        tableau_insère_index(*éditeur.lignes_rendu, chaine_nulle, où)
-        éditeur_ajourne_ligne(éditeur, ligne, où)
     }
 
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_ajoute_nouvelle_ligne :: fonc (éditeur: *Éditeur) -> rien
@@ -125,7 +96,6 @@ importe Temps
         ligne = avance(ligne, éditeur.cx)
         éditeur_ajoute_ligne(éditeur, ligne, éditeur.cy + 1)
         reloge_chaine(éditeur.lignes_texte[éditeur.cy], éditeur.cx)
-        éditeur_ajourne_ligne(éditeur, éditeur.lignes_texte[éditeur.cy], éditeur.cy)
         éditeur.cx = 0
     }
 
@@ -181,16 +151,24 @@ importe Temps
 
 TAILLE_TABULATION :: 4
 
-éditeur_ajourne_lignes :: fonc (éditeur: *Éditeur) -> rien
+/* À FAIRE : optimise ceci */
+ajourne_tampon_rendu :: fonc (éditeur: *Éditeur)
 {
-    déloge_tableau_ligne(*éditeur.lignes_rendu)
+    saufsi éditeur.tampon_rendu_est_surannée {
+        retourne
+    }
 
-    pour ligne, idx dans éditeur.lignes_texte {
-        éditeur_ajourne_ligne(éditeur, ligne, idx)
+    éditeur.tampon_rendu_est_surannée = faux
+
+    déloge_tableau_et_ses_éléments(éditeur.lignes_rendu)
+
+    pour éditeur.lignes_texte {
+        ligne_rendu := donne_ligne_rendu(it)
+        tableau_ajoute(*éditeur.lignes_rendu, ligne_rendu)
     }
 }
 
-éditeur_ajourne_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index: z64) -> rien
+donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
 {
     tabs := 0
     pour c dans ligne {
@@ -218,13 +196,7 @@ TAILLE_TABULATION :: 4
         }
     }
 
-    si index >= éditeur.lignes_rendu.taille {
-        tableau_ajoute(*éditeur.lignes_rendu, nligne)
-    }
-    sinon {
-        déloge(éditeur.lignes_rendu[index])
-        éditeur.lignes_rendu[index] = nligne
-    }
+    retourne nligne
 }
 
 éditeur_insère_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index_ligne: z64, index_caractère: z64, caractère: z8) -> rien
@@ -245,8 +217,7 @@ TAILLE_TABULATION :: 4
     déloge(ligne)
     éditeur.lignes_texte[index_ligne] = tmp
 
-    éditeur_ajourne_ligne(éditeur, tmp, index_ligne)
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_supprime_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index_ligne: z64, index_caractère: z64) -> rien
@@ -269,8 +240,7 @@ TAILLE_TABULATION :: 4
     déloge(ligne)
     éditeur.lignes_texte[index_ligne] = tmp
 
-    éditeur_ajourne_ligne(éditeur, tmp, index_ligne)
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_supprime_caractère :: fonc (éditeur: *Éditeur) -> rien
@@ -314,12 +284,8 @@ TAILLE_TABULATION :: 4
     }
 
     déloge(éditeur.lignes_texte[index_ligne])
-    déloge(éditeur.lignes_rendu[index_ligne])
-
     tableau_supprime_index(*éditeur.lignes_texte, index_ligne)
-    tableau_supprime_index(*éditeur.lignes_rendu, index_ligne)
-
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_adjoint_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64, texte: chaine) -> rien
@@ -341,8 +307,7 @@ TAILLE_TABULATION :: 4
     éditeur.lignes_texte[index_ligne] = ligne
 
     éditeur_ajourne_message_status(éditeur, ligne)
-    éditeur_ajourne_ligne(éditeur, ligne, index_ligne)
-    éditeur.modifié += 1
+    éditeur.marque_modifié()
 }
 
 éditeur_défile :: fonc (éditeur: *Éditeur) -> rien
@@ -376,9 +341,7 @@ TAILLE_TABULATION :: 4
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    pour arg dans args {
-        ajoute_au_tampon(*enchaineuse, arg)
-    }
+    ajoute_au_tampon(*enchaineuse, ...args)
 
     éditeur.message = chaine_depuis_enchaineuse(*enchaineuse)
     éditeur.temps_message = maintenant()
@@ -420,13 +383,4 @@ TAILLE_TABULATION :: 4
     }
 
     retourne ligne.taille comme z32
-}
-
-déloge_tableau_ligne :: fonc (tabl: *[..]chaine) -> rien
-{
-    pour ligne dans mémoire(tabl) {
-        déloge(ligne)
-    }
-
-    déloge(mémoire(tabl))
 }

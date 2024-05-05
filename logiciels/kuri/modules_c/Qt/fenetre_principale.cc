@@ -10,6 +10,7 @@
 #    pragma GCC diagnostic ignored "-Weffc++"
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
+#include <QCloseEvent>
 #include <QCoreApplication>
 #include <QMenuBar>
 #include <QStack>
@@ -110,6 +111,15 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
     }
 
     return QWidget::eventFilter(object, event);
+}
+
+void FenetrePrincipale::closeEvent(QCloseEvent *event)
+{
+    if (!m_rappels->sur_fermeture || m_rappels->sur_fermeture(m_rappels)) {
+        event->accept();
+        return;
+    }
+    event->ignore();
 }
 
 void FenetrePrincipale::construit_barre_de_menu()
