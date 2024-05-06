@@ -497,6 +497,18 @@ void QT_settings_ecris_liste_chaine(QT_Settings *settings,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Color
+ * \{ */
+
+QT_Color QT_color_depuis_tsl(double t, double s, double l, double a)
+{
+    auto résultat = QColor::fromHslF(t, s, l, a);
+    return vers_ipa(résultat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Evenement
  * \{ */
 

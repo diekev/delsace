@@ -503,6 +503,8 @@ struct QT_Color {
     double a;
 };
 
+struct QT_Color QT_color_depuis_tsl(double t, double s, double l, double a);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
