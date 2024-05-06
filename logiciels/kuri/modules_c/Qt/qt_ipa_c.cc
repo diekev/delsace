@@ -104,6 +104,26 @@ inline QColor vers_qt(QT_Color color)
     return résultat;
 }
 
+inline QT_Color vers_ipa(QColor color)
+{
+    auto résultat = QT_Color();
+    résultat.r = color.redF();
+    résultat.g = color.greenF();
+    résultat.b = color.blueF();
+    résultat.a = color.alphaF();
+    return résultat;
+}
+
+inline QPointF vers_qt(QT_PointF point)
+{
+    return QPointF(point.x, point.y);
+}
+
+inline QT_RectF vers_ipa(QRectF rect)
+{
+    return QT_RectF{rect.x(), rect.y(), rect.width(), rect.height()};
+}
+
 inline QBrush vers_qt(QT_Brush brush)
 {
     auto résultat = QBrush();
