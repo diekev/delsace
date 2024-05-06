@@ -1607,9 +1607,9 @@ struct QT_GraphicsTextItem *QT_cree_graphics_text_item(struct QT_Chaine texte,
  * \{ */
 
 struct QT_GraphicsLineItem *QT_cree_graphics_line_item(union QT_Generic_GraphicsItem parent);
-void QT_graphics_rect_line_definis_pinceau(struct QT_GraphicsLineItem *item,
+void QT_graphics_line_item_definis_pinceau(struct QT_GraphicsLineItem *item,
                                            struct QT_Pen pinceau);
-void QT_line_graphics_item_definis_ligne(
+void QT_graphics_line_item_definis_ligne(
     struct QT_GraphicsLineItem *line, double x1, double y1, double x2, double y2);
 
 /** \} */

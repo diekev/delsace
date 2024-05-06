@@ -1782,14 +1782,14 @@ QT_GraphicsLineItem *QT_cree_graphics_line_item(QT_Generic_GraphicsItem parent)
     return vers_ipa(new QGraphicsLineItem(qparent));
 }
 
-void QT_graphics_rect_line_definis_pinceau(QT_GraphicsLineItem *item, QT_Pen pinceau)
+void QT_graphics_line_item_definis_pinceau(QT_GraphicsLineItem *item, QT_Pen pinceau)
 {
     auto qitem = vers_qt(item);
     auto qpen = vers_qt(pinceau);
     qitem->setPen(qpen);
 }
 
-void QT_line_graphics_item_definis_ligne(
+void QT_graphics_line_item_definis_ligne(
     QT_GraphicsLineItem *line, double x1, double y1, double x2, double y2)
 {
     auto qline = vers_qt(line);
