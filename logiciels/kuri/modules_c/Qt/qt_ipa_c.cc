@@ -124,6 +124,13 @@ inline QT_RectF vers_ipa(QRectF rect)
     return QT_RectF{rect.x(), rect.y(), rect.width(), rect.height()};
 }
 
+inline QFont vers_qt(QT_Font font)
+{
+    auto résultat = QFont();
+    résultat.setPointSize(font.taille_point);
+    return résultat;
+}
+
 inline QBrush vers_qt(QT_Brush brush)
 {
     auto résultat = QBrush();
