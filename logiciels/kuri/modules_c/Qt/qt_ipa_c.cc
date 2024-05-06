@@ -43,6 +43,8 @@
 #include "tabs.hh"
 #include "widgets.hh"
 
+#define VERS_QT(x) auto q##x = vers_qt(x)
+
 class EvenementPerso : public QEvent {
     void *m_données = nullptr;
 
@@ -1765,6 +1767,26 @@ void QT_frame_definis_ombrage(struct QT_Frame *frame, enum QT_Frame_Shadow ombra
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsItem
+ * \{ */
+
+void QT_graphics_item_definis_position(QT_Generic_GraphicsItem item, QT_PointF pos)
+{
+    VERS_QT(item);
+    VERS_QT(pos);
+    qitem->setPos(qpos);
+}
+
+QT_RectF QT_graphics_item_donne_rect(QT_Generic_GraphicsItem item)
+{
+    VERS_QT(item);
+    auto rect = qitem->boundingRect();
+    return vers_ipa(rect);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_GraphicsRectItem
  * \{ */
 
@@ -1807,7 +1829,19 @@ QT_GraphicsTextItem *QT_cree_graphics_text_item(QT_Chaine texte, QT_Generic_Grap
     return vers_ipa(new QGraphicsTextItem(texte.vers_std_string().c_str(), qparent));
 }
 
-// À FAIRE setFont(RectF)
+void QT_graphics_text_item_definis_police(QT_GraphicsTextItem *text_item, QT_Font font)
+{
+    VERS_QT(text_item);
+    VERS_QT(font);
+    qtext_item->setFont(qfont);
+}
+
+void QT_graphics_text_item_definis_couleur_defaut(QT_GraphicsTextItem *text_item, QT_Color color)
+{
+    VERS_QT(text_item);
+    VERS_QT(color);
+    qtext_item->setDefaultTextColor(qcolor);
+}
 
 /** \} */
 

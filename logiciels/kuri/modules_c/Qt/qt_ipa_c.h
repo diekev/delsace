@@ -1594,6 +1594,15 @@ void QT_frame_definis_ombrage(struct QT_Frame *frame, enum QT_Frame_Shadow ombra
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsItem
+ * \{ */
+
+void QT_graphics_item_definis_position(union QT_Generic_GraphicsItem item, struct QT_PointF pos);
+struct QT_RectF QT_graphics_item_donne_rect(union QT_Generic_GraphicsItem item);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_GraphicsRectItem
  * \{ */
 
@@ -1611,6 +1620,10 @@ void QT_graphics_rect_item_definis_rect(struct QT_GraphicsRectItem *item, struct
 
 struct QT_GraphicsTextItem *QT_cree_graphics_text_item(struct QT_Chaine texte,
                                                        union QT_Generic_GraphicsItem parent);
+void QT_graphics_text_item_definis_police(struct QT_GraphicsTextItem *text_item,
+                                          struct QT_Font font);
+void QT_graphics_text_item_definis_couleur_defaut(struct QT_GraphicsTextItem *text_item,
+                                                  struct QT_Color color);
 
 /** \} */
 
