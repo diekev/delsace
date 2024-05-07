@@ -135,9 +135,7 @@ inline QFont vers_qt(QT_Font font)
 
 inline QBrush vers_qt(QT_Brush brush)
 {
-    auto résultat = QBrush();
-    résultat.setColor(vers_qt(brush.color));
-    return résultat;
+    return QBrush(vers_qt(brush.color));
 }
 
 inline QPen vers_qt(QT_Pen pen)
