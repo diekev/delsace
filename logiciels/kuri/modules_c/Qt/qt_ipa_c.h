@@ -1624,6 +1624,9 @@ void QT_graphics_text_item_definis_police(struct QT_GraphicsTextItem *text_item,
                                           struct QT_Font font);
 void QT_graphics_text_item_definis_couleur_defaut(struct QT_GraphicsTextItem *text_item,
                                                   struct QT_Color color);
+struct QT_RectF QT_graphics_text_item_donne_rect(struct QT_GraphicsTextItem *item);
+void QT_graphics_text_item_definis_position(struct QT_GraphicsTextItem *item,
+                                            struct QT_PointF *pos);
 
 /** \} */
 

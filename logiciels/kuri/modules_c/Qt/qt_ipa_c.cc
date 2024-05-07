@@ -1841,6 +1841,20 @@ void QT_graphics_text_item_definis_couleur_defaut(QT_GraphicsTextItem *text_item
     qtext_item->setDefaultTextColor(qcolor);
 }
 
+struct QT_RectF QT_graphics_text_item_donne_rect(struct QT_GraphicsTextItem *item)
+{
+    VERS_QT(item);
+    auto rect = qitem->boundingRect();
+    return vers_ipa(rect);
+}
+
+void QT_graphics_text_item_definis_position(struct QT_GraphicsTextItem *item, QT_PointF *pos)
+{
+    VERS_QT(item);
+    auto qpos = vers_qt(*pos);
+    qitem->setPos(qpos);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
