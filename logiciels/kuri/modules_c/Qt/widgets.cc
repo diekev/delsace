@@ -204,3 +204,62 @@ void TreeWidget::sur_changement_item_courant(QTreeWidgetItem *courant, QTreeWidg
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name GraphicsView
+ * \{ */
+
+GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
+{
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+}
+
+GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent) : QGraphicsView(scene, parent)
+{
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+}
+
+GraphicsView::~GraphicsView()
+{
+}
+
+void GraphicsView::keyPressEvent(QKeyEvent *event)
+{
+    static_cast<Widget *>(parent())->keyPressEvent(event);
+}
+
+void GraphicsView::wheelEvent(QWheelEvent *event)
+{
+    static_cast<Widget *>(parent())->wheelEvent(event);
+}
+
+void GraphicsView::mouseMoveEvent(QMouseEvent *event)
+{
+    static_cast<Widget *>(parent())->mouseMoveEvent(event);
+}
+
+void GraphicsView::mousePressEvent(QMouseEvent *event)
+{
+    static_cast<Widget *>(parent())->mousePressEvent(event);
+}
+
+void GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    static_cast<Widget *>(parent())->mouseDoubleClickEvent(event);
+}
+
+void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
+{
+    static_cast<Widget *>(parent())->mouseReleaseEvent(event);
+}
+
+bool GraphicsView::focusNextPrevChild(bool /*next*/)
+{
+    /* Pour pouvoir utiliser la touche tab, il faut désactiver la focalisation
+     * sur les éléments enfants du conteneur de contrôles. */
+    return false;
+}
+
+/** \} */

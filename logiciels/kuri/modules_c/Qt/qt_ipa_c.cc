@@ -1904,7 +1904,7 @@ QT_GraphicsView *QT_graphics_scene_cree_graphics_view(QT_GraphicsScene *scene,
 {
     auto qparent = vers_qt(parent);
     auto qscene = vers_qt(scene);
-    return vers_ipa(new QGraphicsView(qscene, qparent));
+    return vers_ipa(new GraphicsView(qscene, qparent));
 }
 
 void QT_graphics_scene_efface(QT_GraphicsScene *scene)
@@ -1943,7 +1943,7 @@ void QT_graphics_scene_ajoute_item(QT_GraphicsScene *scene, QT_Generic_GraphicsI
 QT_GraphicsView *QT_cree_graphics_view(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new QGraphicsView(qparent));
+    return vers_ipa(new GraphicsView(qparent));
 }
 
 void QT_graphics_view_definis_scene(QT_GraphicsView *graphics_view, QT_GraphicsScene *scene)

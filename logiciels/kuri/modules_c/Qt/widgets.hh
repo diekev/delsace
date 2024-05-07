@@ -13,6 +13,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGLWidget>
+#include <QGraphicsView>
 #include <QTreeWidget>
 #include <QWidget>
 #if defined(__GNUC__)
@@ -172,6 +173,27 @@ class TreeWidget : public QTreeWidget {
   public Q_SLOTS:
     void sur_selection_item(QTreeWidgetItem *item, int colonne);
     void sur_changement_item_courant(QTreeWidgetItem *courant, QTreeWidgetItem *précédent);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name GraphicsView
+ * \{ */
+
+class GraphicsView final : public QGraphicsView {
+  public:
+    GraphicsView(QWidget *parent);
+    GraphicsView(QGraphicsScene *scene, QWidget *parent);
+    ~GraphicsView() override;
+
+    void keyPressEvent(QKeyEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    bool focusNextPrevChild(bool next) override;
 };
 
 /** \} */
