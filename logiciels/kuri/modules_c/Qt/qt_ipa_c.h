@@ -1669,12 +1669,15 @@ void QT_graphics_view_reinit_transforme(struct QT_GraphicsView *graphics_view);
 void QT_graphics_view_definis_echelle_taille(struct QT_GraphicsView *graphics_view,
                                              float x,
                                              float y);
-struct QT_PointF QT_graphics_view_mappe_vers_scene(struct QT_GraphicsView *graphics_view,
-                                                   struct QT_Point point);
-struct QT_Point QT_graphics_view_mappe_depuis_scene(struct QT_GraphicsView *graphics_view,
-                                                    struct QT_PointF point);
-struct QT_Point QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
-                                                   struct QT_Point point);
+void QT_graphics_view_mappe_vers_scene(struct QT_GraphicsView *graphics_view,
+                                       struct QT_Point point,
+                                       struct QT_PointF *r_point);
+void QT_graphics_view_mappe_depuis_scene(struct QT_GraphicsView *graphics_view,
+                                         struct QT_PointF point,
+                                         struct QT_Point *r_point);
+void QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
+                                        struct QT_Point point,
+                                        struct QT_Point *r_point);
 
 /** \} */
 

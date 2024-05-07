@@ -1965,25 +1965,37 @@ void QT_graphics_view_definis_echelle_taille(QT_GraphicsView *graphics_view, flo
     qgraphics_view->scale(x, y);
 }
 
-QT_PointF QT_graphics_view_mappe_vers_scene(QT_GraphicsView *graphics_view, QT_Point point)
+void QT_graphics_view_mappe_vers_scene(QT_GraphicsView *graphics_view,
+                                       QT_Point point,
+                                       QT_PointF *r_point)
 {
     auto qgraphics_view = vers_qt(graphics_view);
     auto résultat = qgraphics_view->mapToScene(QPoint(point.x, point.y));
-    return QT_PointF{résultat.x(), résultat.y()};
+    if (r_point) {
+        *r_point = QT_PointF{résultat.x(), résultat.y()};
+    }
 }
 
-QT_Point QT_graphics_view_mappe_depuis_scene(QT_GraphicsView *graphics_view, QT_PointF point)
+void QT_graphics_view_mappe_depuis_scene(QT_GraphicsView *graphics_view,
+                                         QT_PointF point,
+                                         QT_Point *r_point)
 {
     auto qgraphics_view = vers_qt(graphics_view);
     auto résultat = qgraphics_view->mapFromScene(QPointF(point.x, point.y));
-    return QT_Point{résultat.x(), résultat.y()};
+    if (r_point) {
+        *r_point = QT_Point{résultat.x(), résultat.y()};
+    }
 }
 
-QT_Point QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view, QT_Point point)
+void QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view,
+                                        QT_Point point,
+                                        QT_Point *r_point)
 {
     auto qgraphics_view = vers_qt(graphics_view);
     auto résultat = qgraphics_view->mapToGlobal(QPoint(point.x, point.y));
-    return QT_Point{résultat.x(), résultat.y()};
+    if (r_point) {
+        *r_point = QT_Point{résultat.x(), résultat.y()};
+    }
 }
 
 /** \} */
