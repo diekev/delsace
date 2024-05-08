@@ -1373,6 +1373,14 @@ void QT_label_definis_pixmap(struct QT_Label *label,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ToolTip
+ * \{ */
+
+void QT_tooltip_montre_texte(struct QT_Point point, struct QT_Chaine texte);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QLineEdit
  * \{ */
 

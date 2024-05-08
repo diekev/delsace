@@ -30,6 +30,7 @@
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTimer>
+#include <QToolTip>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
 #endif
@@ -1371,6 +1372,17 @@ void QT_label_definis_pixmap(QT_Label *label, QT_Pixmap *pixmap, QT_Taille taill
     auto qlabel = vers_qt(label);
     auto qpixmap = vers_qt(pixmap);
     qlabel->setPixmap(qpixmap->scaled(16, 16));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ToolTip
+ * \{ */
+
+void QT_tooltip_montre_texte(QT_Point point, QT_Chaine texte)
+{
+    QToolTip::showText(QPoint(point.x, point.y), texte.vers_std_string().c_str());
 }
 
 /** \} */
