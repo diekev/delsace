@@ -516,6 +516,18 @@ QT_Color QT_color_depuis_tsl(double t, double s, double l, double a)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Cursor
+ * \{ */
+
+QT_Point QT_cursor_pos()
+{
+    auto résultat = QCursor::pos();
+    return QT_Point{résultat.x(), résultat.y()};
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Evenement
  * \{ */
 
