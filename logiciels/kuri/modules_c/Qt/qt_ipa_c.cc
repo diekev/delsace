@@ -918,7 +918,9 @@ QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget pa
 {
     auto qparent = vers_qt(parent);
     auto résultat = vers_ipa(new GLWidget(rappels, qparent));
-    rappels->widget = résultat;
+    if (rappels->widget) {
+        rappels->widget = résultat;
+    }
     return résultat;
 }
 
