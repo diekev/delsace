@@ -1172,6 +1172,14 @@ void QT_widget_definis_curseur(union QT_Generic_Widget widget, enum QT_CursorSha
 
 void QT_widget_restore_curseur(union QT_Generic_Widget widget);
 
+void QT_widget_transforme_point_vers_global(union QT_Generic_Widget widget,
+                                            struct QT_Point point,
+                                            struct QT_Point *r_point);
+
+void QT_widget_transforme_point_vers_local(union QT_Generic_Widget widget,
+                                           struct QT_Point point,
+                                           struct QT_Point *r_point);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

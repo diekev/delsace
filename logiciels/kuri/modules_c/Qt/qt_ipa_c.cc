@@ -908,6 +908,32 @@ void QT_widget_restore_curseur(QT_Generic_Widget widget)
     qwidget->unsetCursor();
 }
 
+void QT_widget_transforme_point_vers_global(QT_Generic_Widget widget,
+                                            QT_Point point,
+                                            QT_Point *r_point)
+{
+    if (!r_point) {
+        return;
+    }
+
+    VERS_QT(widget);
+    auto résultat = qwidget->mapToGlobal(QPoint(point.x, point.y));
+    *r_point = QT_Point{résultat.x(), résultat.y()};
+}
+
+void QT_widget_transforme_point_vers_local(QT_Generic_Widget widget,
+                                           QT_Point point,
+                                           QT_Point *r_point)
+{
+    if (!r_point) {
+        return;
+    }
+
+    VERS_QT(widget);
+    auto résultat = qwidget->mapFromGlobal(QPoint(point.x, point.y));
+    *r_point = QT_Point{résultat.x(), résultat.y()};
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
