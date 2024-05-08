@@ -1004,6 +1004,12 @@ void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rap
     QObject::connect(qmenu, &QMenu::aboutToShow, [=]() { rappel->sur_rappel(rappel); });
 }
 
+void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos)
+{
+    VERS_QT(menu);
+    qmenu->popup(QPoint(pos.x, pos.y));
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

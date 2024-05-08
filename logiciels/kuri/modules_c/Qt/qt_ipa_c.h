@@ -1233,6 +1233,7 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, struct QT_Menu *menu);
  * \{ */
 
 void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
+void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 
 /** \} */
 
