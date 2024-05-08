@@ -60,6 +60,13 @@ bool Widget::event(QEvent *event)
     return QWidget::event(event);
 }
 
+bool Widget::focusNextPrevChild(bool /*next*/)
+{
+    /* Pour pouvoir utiliser la touche tab, il faut désactiver la focalisation
+     * sur les éléments enfants du conteneur de contrôles. */
+    return false;
+}
+
 IMPLEMENTE_METHODES_EVENEMENTS(Widget)
 
 /** \} */

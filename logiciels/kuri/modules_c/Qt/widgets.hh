@@ -51,6 +51,7 @@ class Widget : public QWidget {
     void resizeEvent(QResizeEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
+    bool focusNextPrevChild(bool next) override;
 };
 
 /** \} */
