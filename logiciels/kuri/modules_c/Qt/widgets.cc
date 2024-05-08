@@ -48,6 +48,18 @@ Widget::~Widget()
     }
 }
 
+bool Widget::event(QEvent *event)
+{
+    if (m_rappels && m_rappels->sur_evenement) {
+        QT_Generic_Event generic_event;
+        generic_event.event = reinterpret_cast<QT_Evenement *>(event);
+        if (m_rappels->sur_evenement(m_rappels, generic_event)) {
+            return true;
+        }
+    }
+    return QWidget::event(event);
+}
+
 IMPLEMENTE_METHODES_EVENEMENTS(Widget)
 
 /** \} */
@@ -66,6 +78,18 @@ GLWidget::~GLWidget()
     if (m_rappels && m_rappels->sur_destruction) {
         m_rappels->sur_destruction(m_rappels);
     }
+}
+
+bool GLWidget::event(QEvent *event)
+{
+    if (m_rappels && m_rappels->sur_evenement) {
+        QT_Generic_Event generic_event;
+        generic_event.event = reinterpret_cast<QT_Evenement *>(event);
+        if (m_rappels->sur_evenement(m_rappels, generic_event)) {
+            return true;
+        }
+    }
+    return QGLWidget::event(event);
 }
 
 IMPLEMENTE_METHODES_EVENEMENTS(GLWidget)

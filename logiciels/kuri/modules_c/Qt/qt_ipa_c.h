@@ -1101,6 +1101,7 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
  * \{ */
 
 #define RAPPELS_EVENEMENTS_COMMUNS(type_classe)                                                   \
+    bool (*sur_evenement)(struct type_classe *, union QT_Generic_Event);                          \
     void (*sur_entree)(struct type_classe *, struct QT_Evenement *);                              \
     void (*sur_sortie)(struct type_classe *, struct QT_Evenement *);                              \
     void (*sur_pression_souris)(struct type_classe *, struct QT_MouseEvent *);                    \

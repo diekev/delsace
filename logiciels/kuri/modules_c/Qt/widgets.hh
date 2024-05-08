@@ -40,6 +40,7 @@ class Widget : public QWidget {
 
     ~Widget() override;
 
+    bool event(QEvent *event) override;
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -71,6 +72,7 @@ class GLWidget : public QGLWidget {
     ~GLWidget() override;
 
     /* Évènements communs. */
+    bool event(QEvent *event) override;
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
