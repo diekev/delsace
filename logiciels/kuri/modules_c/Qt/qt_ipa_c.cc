@@ -1158,6 +1158,28 @@ void QT_combobox_connecte_sur_changement_index(QT_ComboBox *combo, QT_Rappel_Gen
         qcombo, &ComboBox::index_courant_modifie, [=]() { rappel->sur_rappel(rappel); });
 }
 
+QT_Chaine QT_combobox_donne_valeur_courante_chaine(QT_ComboBox *combo)
+{
+    VERS_QT(combo);
+    auto chaine = qcombo->currentData().toString().toStdString();
+
+    static char tampon[FILENAME_MAX];
+
+    QT_Chaine résultat;
+
+    if (chaine.size() < FILENAME_MAX) {
+        memcpy(tampon, chaine.c_str(), chaine.size());
+        résultat.caractères = tampon;
+        résultat.taille = int64_t(chaine.size());
+    }
+    else {
+        résultat.caractères = nullptr;
+        résultat.taille = 0;
+    }
+
+    return résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

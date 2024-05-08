@@ -1272,6 +1272,7 @@ void QT_combobox_definis_index_courant(struct QT_ComboBox *combo, int index);
 int QT_combobox_donne_index_courant(struct QT_ComboBox *combo);
 void QT_combobox_connecte_sur_changement_index(struct QT_ComboBox *combo,
                                                struct QT_Rappel_Generique *rappel);
+struct QT_Chaine QT_combobox_donne_valeur_courante_chaine(struct QT_ComboBox *combo);
 
 /** \} */
 
