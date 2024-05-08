@@ -2061,11 +2061,11 @@ void QT_graphics_view_mappe_vers_scene(QT_GraphicsView *graphics_view,
 }
 
 void QT_graphics_view_mappe_depuis_scene(QT_GraphicsView *graphics_view,
-                                         QT_PointF point,
+                                         QT_PointF *point,
                                          QT_Point *r_point)
 {
     auto qgraphics_view = vers_qt(graphics_view);
-    auto résultat = qgraphics_view->mapFromScene(QPointF(point.x, point.y));
+    auto résultat = qgraphics_view->mapFromScene(QPointF(point->x, point->y));
     if (r_point) {
         *r_point = QT_Point{résultat.x(), résultat.y()};
     }

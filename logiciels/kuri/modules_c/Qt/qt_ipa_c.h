@@ -1702,7 +1702,7 @@ void QT_graphics_view_mappe_vers_scene(struct QT_GraphicsView *graphics_view,
                                        struct QT_Point point,
                                        struct QT_PointF *r_point);
 void QT_graphics_view_mappe_depuis_scene(struct QT_GraphicsView *graphics_view,
-                                         struct QT_PointF point,
+                                         struct QT_PointF *point,
                                          struct QT_Point *r_point);
 void QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
                                         struct QT_Point point,
