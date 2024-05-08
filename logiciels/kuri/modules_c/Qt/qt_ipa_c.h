@@ -1933,6 +1933,9 @@ struct QT_Menu *DNJ_gestionaire_compile_menu_fichier(
     struct DNJ_Gestionnaire_Interface *gestionnaire,
     struct DNJ_Contexte_Interface *context,
     struct QT_Chaine chemin);
+struct QT_Menu *DNJ_gestionaire_compile_menu_texte(struct DNJ_Gestionnaire_Interface *gestionnaire,
+                                                   struct DNJ_Contexte_Interface *context,
+                                                   struct QT_Chaine texte);
 
 struct QT_Menu *DNJ_gestionnaire_donne_menu(struct DNJ_Gestionnaire_Interface *gestionnaire,
                                             struct QT_Chaine nom_menu);

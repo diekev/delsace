@@ -2163,6 +2163,20 @@ QT_Menu *DNJ_gestionaire_compile_menu_fichier(DNJ_Gestionnaire_Interface *gestio
     return vers_ipa(résultat);
 }
 
+QT_Menu *DNJ_gestionaire_compile_menu_texte(DNJ_Gestionnaire_Interface *gestionnaire,
+                                            DNJ_Contexte_Interface *context,
+                                            QT_Chaine texte)
+{
+    if (!context) {
+        return nullptr;
+    }
+
+    auto données = convertis_contexte(context);
+    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    auto résultat = dnj_gestionnaire->compile_menu_texte(données, texte.vers_std_string());
+    return vers_ipa(résultat);
+}
+
 QT_Menu *DNJ_gestionnaire_donne_menu(DNJ_Gestionnaire_Interface *gestionnaire, QT_Chaine nom_menu)
 {
     auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
