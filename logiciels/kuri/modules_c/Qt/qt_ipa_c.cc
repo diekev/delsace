@@ -702,7 +702,11 @@ QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
 QT_Widget *QT_cree_widget(QT_Rappels_Widget *rappels, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new Widget(rappels, qparent));
+    auto résultat = vers_ipa(new Widget(rappels, qparent));
+    if (rappels) {
+        rappels->widget = résultat;
+    }
+    return résultat;
 }
 
 QT_Widget *QT_widget_nul()

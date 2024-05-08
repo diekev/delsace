@@ -1115,6 +1115,8 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
 
 struct QT_Rappels_Widget {
     RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_Widget);
+    /** Le widget pour lequel les rappels sont mis en place. */
+    struct QT_Widget *widget;
 };
 
 struct QT_Widget *QT_cree_widget(struct QT_Rappels_Widget *rappels,
