@@ -85,6 +85,34 @@ CliqueSouris :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom RaccourcisClavier
+ * \{ */
+
+RaccourcisClavier :: struct {
+    clé: CléClavier
+    modificateur: ModificateurClavier
+}
+
+ctrl :: fonc (clé: CléClavier) -> RaccourcisClavier
+{
+    résultat: RaccourcisClavier
+    résultat.modificateur = ModificateurClavier.CONTROL
+    résultat.clé = clé
+    retourne résultat
+}
+
+ctrl_maj :: fonc (clé: CléClavier) -> RaccourcisClavier
+{
+    résultat: RaccourcisClavier
+    résultat.modificateur.CONTROL = vrai
+    résultat.modificateur.MAJUSCULE = vrai
+    résultat.clé = clé
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Clavier
  * \{ */
 
