@@ -202,17 +202,17 @@ struct Programme {
         return m_types_utilisés.possède(type);
     }
 
-    kuri::tableau<NoeudDéclarationEntêteFonction *> const &fonctions() const
+    kuri::tableau_statique<NoeudDéclarationEntêteFonction *> fonctions() const
     {
         return m_fonctions;
     }
 
-    kuri::tableau<NoeudDéclarationVariable *> const &globales() const
+    kuri::tableau_statique<NoeudDéclarationVariable *> globales() const
     {
         return m_globales;
     }
 
-    kuri::tableau<Type *> const &types() const
+    kuri::tableau_statique<Type *> types() const
     {
         return m_types;
     }
