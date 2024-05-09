@@ -503,6 +503,8 @@ struct QT_Color {
     double a;
 };
 
+struct QT_Color QT_color_depuis_tsl(double t, double s, double l, double a);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -523,6 +525,24 @@ struct QT_Pen {
 struct QT_Brush {
     struct QT_Color color;
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Font
+ * \{ */
+
+struct QT_Font {
+    int taille_point;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Cursor
+ * \{ */
+
+struct QT_Point QT_cursor_pos();
 
 /** \} */
 
@@ -1089,6 +1109,7 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
  * \{ */
 
 #define RAPPELS_EVENEMENTS_COMMUNS(type_classe)                                                   \
+    bool (*sur_evenement)(struct type_classe *, union QT_Generic_Event);                          \
     void (*sur_entree)(struct type_classe *, struct QT_Evenement *);                              \
     void (*sur_sortie)(struct type_classe *, struct QT_Evenement *);                              \
     void (*sur_pression_souris)(struct type_classe *, struct QT_MouseEvent *);                    \
@@ -1103,6 +1124,8 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
 
 struct QT_Rappels_Widget {
     RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_Widget);
+    /** Le widget pour lequel les rappels sont mis en place. */
+    struct QT_Widget *widget;
 };
 
 struct QT_Widget *QT_cree_widget(struct QT_Rappels_Widget *rappels,
@@ -1158,6 +1181,14 @@ void QT_widget_definis_curseur(union QT_Generic_Widget widget, enum QT_CursorSha
 
 void QT_widget_restore_curseur(union QT_Generic_Widget widget);
 
+void QT_widget_transforme_point_vers_global(union QT_Generic_Widget widget,
+                                            struct QT_Point point,
+                                            struct QT_Point *r_point);
+
+void QT_widget_transforme_point_vers_local(union QT_Generic_Widget widget,
+                                           struct QT_Point point,
+                                           struct QT_Point *r_point);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1202,6 +1233,7 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, struct QT_Menu *menu);
  * \{ */
 
 void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
+void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 
 /** \} */
 
@@ -1240,6 +1272,7 @@ void QT_combobox_definis_index_courant(struct QT_ComboBox *combo, int index);
 int QT_combobox_donne_index_courant(struct QT_ComboBox *combo);
 void QT_combobox_connecte_sur_changement_index(struct QT_ComboBox *combo,
                                                struct QT_Rappel_Generique *rappel);
+struct QT_Chaine QT_combobox_donne_valeur_courante_chaine(struct QT_ComboBox *combo);
 
 /** \} */
 
@@ -1336,6 +1369,14 @@ void QT_label_definis_texte(struct QT_Label *label, struct QT_Chaine texte);
 void QT_label_definis_pixmap(struct QT_Label *label,
                              struct QT_Pixmap *pixmap,
                              struct QT_Taille taille);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ToolTip
+ * \{ */
+
+void QT_tooltip_montre_texte(struct QT_Point point, struct QT_Chaine texte);
 
 /** \} */
 
@@ -1582,6 +1623,15 @@ void QT_frame_definis_ombrage(struct QT_Frame *frame, enum QT_Frame_Shadow ombra
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsItem
+ * \{ */
+
+void QT_graphics_item_definis_position(union QT_Generic_GraphicsItem item, struct QT_PointF pos);
+struct QT_RectF QT_graphics_item_donne_rect(union QT_Generic_GraphicsItem item);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_GraphicsRectItem
  * \{ */
 
@@ -1599,6 +1649,13 @@ void QT_graphics_rect_item_definis_rect(struct QT_GraphicsRectItem *item, struct
 
 struct QT_GraphicsTextItem *QT_cree_graphics_text_item(struct QT_Chaine texte,
                                                        union QT_Generic_GraphicsItem parent);
+void QT_graphics_text_item_definis_police(struct QT_GraphicsTextItem *text_item,
+                                          struct QT_Font font);
+void QT_graphics_text_item_definis_couleur_defaut(struct QT_GraphicsTextItem *text_item,
+                                                  struct QT_Color color);
+struct QT_RectF QT_graphics_text_item_donne_rect(struct QT_GraphicsTextItem *item);
+void QT_graphics_text_item_definis_position(struct QT_GraphicsTextItem *item,
+                                            struct QT_PointF *pos);
 
 /** \} */
 
@@ -1607,9 +1664,9 @@ struct QT_GraphicsTextItem *QT_cree_graphics_text_item(struct QT_Chaine texte,
  * \{ */
 
 struct QT_GraphicsLineItem *QT_cree_graphics_line_item(union QT_Generic_GraphicsItem parent);
-void QT_graphics_rect_line_definis_pinceau(struct QT_GraphicsLineItem *item,
+void QT_graphics_line_item_definis_pinceau(struct QT_GraphicsLineItem *item,
                                            struct QT_Pen pinceau);
-void QT_line_graphics_item_definis_ligne(
+void QT_graphics_line_item_definis_ligne(
     struct QT_GraphicsLineItem *line, double x1, double y1, double x2, double y2);
 
 /** \} */
@@ -1641,12 +1698,15 @@ void QT_graphics_view_reinit_transforme(struct QT_GraphicsView *graphics_view);
 void QT_graphics_view_definis_echelle_taille(struct QT_GraphicsView *graphics_view,
                                              float x,
                                              float y);
-struct QT_PointF QT_graphics_view_mappe_vers_scene(struct QT_GraphicsView *graphics_view,
-                                                   struct QT_Point point);
-struct QT_Point QT_graphics_view_mappe_depuis_scene(struct QT_GraphicsView *graphics_view,
-                                                    struct QT_PointF point);
-struct QT_Point QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
-                                                   struct QT_Point point);
+void QT_graphics_view_mappe_vers_scene(struct QT_GraphicsView *graphics_view,
+                                       struct QT_Point point,
+                                       struct QT_PointF *r_point);
+void QT_graphics_view_mappe_depuis_scene(struct QT_GraphicsView *graphics_view,
+                                         struct QT_PointF *point,
+                                         struct QT_Point *r_point);
+void QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
+                                        struct QT_Point point,
+                                        struct QT_Point *r_point);
 
 /** \} */
 
@@ -1873,6 +1933,9 @@ struct QT_Menu *DNJ_gestionaire_compile_menu_fichier(
     struct DNJ_Gestionnaire_Interface *gestionnaire,
     struct DNJ_Contexte_Interface *context,
     struct QT_Chaine chemin);
+struct QT_Menu *DNJ_gestionaire_compile_menu_texte(struct DNJ_Gestionnaire_Interface *gestionnaire,
+                                                   struct DNJ_Contexte_Interface *context,
+                                                   struct QT_Chaine texte);
 
 struct QT_Menu *DNJ_gestionnaire_donne_menu(struct DNJ_Gestionnaire_Interface *gestionnaire,
                                             struct QT_Chaine nom_menu);
