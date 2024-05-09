@@ -30,6 +30,7 @@
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTimer>
+#include <QToolTip>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
 #endif
@@ -42,6 +43,8 @@
 #include "ipa_danjo.hh"
 #include "tabs.hh"
 #include "widgets.hh"
+
+#define VERS_QT(x) auto q##x = vers_qt(x)
 
 class EvenementPerso : public QEvent {
     void *m_données = nullptr;
@@ -104,11 +107,36 @@ inline QColor vers_qt(QT_Color color)
     return résultat;
 }
 
+inline QT_Color vers_ipa(QColor color)
+{
+    auto résultat = QT_Color();
+    résultat.r = color.redF();
+    résultat.g = color.greenF();
+    résultat.b = color.blueF();
+    résultat.a = color.alphaF();
+    return résultat;
+}
+
+inline QPointF vers_qt(QT_PointF point)
+{
+    return QPointF(point.x, point.y);
+}
+
+inline QT_RectF vers_ipa(QRectF rect)
+{
+    return QT_RectF{rect.x(), rect.y(), rect.width(), rect.height()};
+}
+
+inline QFont vers_qt(QT_Font font)
+{
+    auto résultat = QFont();
+    résultat.setPointSize(font.taille_point);
+    return résultat;
+}
+
 inline QBrush vers_qt(QT_Brush brush)
 {
-    auto résultat = QBrush();
-    résultat.setColor(vers_qt(brush.color));
-    return résultat;
+    return QBrush(vers_qt(brush.color));
 }
 
 inline QPen vers_qt(QT_Pen pen)
@@ -477,6 +505,30 @@ void QT_settings_ecris_liste_chaine(QT_Settings *settings,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Color
+ * \{ */
+
+QT_Color QT_color_depuis_tsl(double t, double s, double l, double a)
+{
+    auto résultat = QColor::fromHslF(t, s, l, a);
+    return vers_ipa(résultat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Cursor
+ * \{ */
+
+QT_Point QT_cursor_pos()
+{
+    auto résultat = QCursor::pos();
+    return QT_Point{résultat.x(), résultat.y()};
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Evenement
  * \{ */
 
@@ -663,7 +715,11 @@ QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
 QT_Widget *QT_cree_widget(QT_Rappels_Widget *rappels, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new Widget(rappels, qparent));
+    auto résultat = vers_ipa(new Widget(rappels, qparent));
+    if (rappels) {
+        rappels->widget = résultat;
+    }
+    return résultat;
 }
 
 QT_Widget *QT_widget_nul()
@@ -865,6 +921,32 @@ void QT_widget_restore_curseur(QT_Generic_Widget widget)
     qwidget->unsetCursor();
 }
 
+void QT_widget_transforme_point_vers_global(QT_Generic_Widget widget,
+                                            QT_Point point,
+                                            QT_Point *r_point)
+{
+    if (!r_point) {
+        return;
+    }
+
+    VERS_QT(widget);
+    auto résultat = qwidget->mapToGlobal(QPoint(point.x, point.y));
+    *r_point = QT_Point{résultat.x(), résultat.y()};
+}
+
+void QT_widget_transforme_point_vers_local(QT_Generic_Widget widget,
+                                           QT_Point point,
+                                           QT_Point *r_point)
+{
+    if (!r_point) {
+        return;
+    }
+
+    VERS_QT(widget);
+    auto résultat = qwidget->mapFromGlobal(QPoint(point.x, point.y));
+    *r_point = QT_Point{résultat.x(), résultat.y()};
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -875,7 +957,9 @@ QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget pa
 {
     auto qparent = vers_qt(parent);
     auto résultat = vers_ipa(new GLWidget(rappels, qparent));
-    rappels->widget = résultat;
+    if (rappels->widget) {
+        rappels->widget = résultat;
+    }
     return résultat;
 }
 
@@ -919,6 +1003,12 @@ void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rap
 
     auto qmenu = vers_qt(menu);
     QObject::connect(qmenu, &QMenu::aboutToShow, [=]() { rappel->sur_rappel(rappel); });
+}
+
+void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos)
+{
+    VERS_QT(menu);
+    qmenu->popup(QPoint(pos.x, pos.y));
 }
 
 /** \} */
@@ -1067,6 +1157,28 @@ void QT_combobox_connecte_sur_changement_index(QT_ComboBox *combo, QT_Rappel_Gen
     auto qcombo = vers_qt(combo);
     QObject::connect(
         qcombo, &ComboBox::index_courant_modifie, [=]() { rappel->sur_rappel(rappel); });
+}
+
+QT_Chaine QT_combobox_donne_valeur_courante_chaine(QT_ComboBox *combo)
+{
+    VERS_QT(combo);
+    auto chaine = qcombo->currentData().toString().toStdString();
+
+    static char tampon[FILENAME_MAX];
+
+    QT_Chaine résultat;
+
+    if (chaine.size() < FILENAME_MAX) {
+        memcpy(tampon, chaine.c_str(), chaine.size());
+        résultat.caractères = tampon;
+        résultat.taille = int64_t(chaine.size());
+    }
+    else {
+        résultat.caractères = nullptr;
+        résultat.taille = 0;
+    }
+
+    return résultat;
 }
 
 /** \} */
@@ -1260,6 +1372,17 @@ void QT_label_definis_pixmap(QT_Label *label, QT_Pixmap *pixmap, QT_Taille taill
     auto qlabel = vers_qt(label);
     auto qpixmap = vers_qt(pixmap);
     qlabel->setPixmap(qpixmap->scaled(16, 16));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ToolTip
+ * \{ */
+
+void QT_tooltip_montre_texte(QT_Point point, QT_Chaine texte)
+{
+    QToolTip::showText(QPoint(point.x, point.y), texte.vers_std_string().c_str());
 }
 
 /** \} */
@@ -1726,6 +1849,26 @@ void QT_frame_definis_ombrage(struct QT_Frame *frame, enum QT_Frame_Shadow ombra
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsItem
+ * \{ */
+
+void QT_graphics_item_definis_position(QT_Generic_GraphicsItem item, QT_PointF pos)
+{
+    VERS_QT(item);
+    VERS_QT(pos);
+    qitem->setPos(qpos);
+}
+
+QT_RectF QT_graphics_item_donne_rect(QT_Generic_GraphicsItem item)
+{
+    VERS_QT(item);
+    auto rect = qitem->boundingRect();
+    return vers_ipa(rect);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_GraphicsRectItem
  * \{ */
 
@@ -1768,7 +1911,33 @@ QT_GraphicsTextItem *QT_cree_graphics_text_item(QT_Chaine texte, QT_Generic_Grap
     return vers_ipa(new QGraphicsTextItem(texte.vers_std_string().c_str(), qparent));
 }
 
-// À FAIRE setFont(RectF)
+void QT_graphics_text_item_definis_police(QT_GraphicsTextItem *text_item, QT_Font font)
+{
+    VERS_QT(text_item);
+    VERS_QT(font);
+    qtext_item->setFont(qfont);
+}
+
+void QT_graphics_text_item_definis_couleur_defaut(QT_GraphicsTextItem *text_item, QT_Color color)
+{
+    VERS_QT(text_item);
+    VERS_QT(color);
+    qtext_item->setDefaultTextColor(qcolor);
+}
+
+struct QT_RectF QT_graphics_text_item_donne_rect(struct QT_GraphicsTextItem *item)
+{
+    VERS_QT(item);
+    auto rect = qitem->boundingRect();
+    return vers_ipa(rect);
+}
+
+void QT_graphics_text_item_definis_position(struct QT_GraphicsTextItem *item, QT_PointF *pos)
+{
+    VERS_QT(item);
+    auto qpos = vers_qt(*pos);
+    qitem->setPos(qpos);
+}
 
 /** \} */
 
@@ -1782,14 +1951,14 @@ QT_GraphicsLineItem *QT_cree_graphics_line_item(QT_Generic_GraphicsItem parent)
     return vers_ipa(new QGraphicsLineItem(qparent));
 }
 
-void QT_graphics_rect_line_definis_pinceau(QT_GraphicsLineItem *item, QT_Pen pinceau)
+void QT_graphics_line_item_definis_pinceau(QT_GraphicsLineItem *item, QT_Pen pinceau)
 {
     auto qitem = vers_qt(item);
     auto qpen = vers_qt(pinceau);
     qitem->setPen(qpen);
 }
 
-void QT_line_graphics_item_definis_ligne(
+void QT_graphics_line_item_definis_ligne(
     QT_GraphicsLineItem *line, double x1, double y1, double x2, double y2)
 {
     auto qline = vers_qt(line);
@@ -1819,7 +1988,7 @@ QT_GraphicsView *QT_graphics_scene_cree_graphics_view(QT_GraphicsScene *scene,
 {
     auto qparent = vers_qt(parent);
     auto qscene = vers_qt(scene);
-    return vers_ipa(new QGraphicsView(qscene, qparent));
+    return vers_ipa(new GraphicsView(qscene, qparent));
 }
 
 void QT_graphics_scene_efface(QT_GraphicsScene *scene)
@@ -1858,7 +2027,7 @@ void QT_graphics_scene_ajoute_item(QT_GraphicsScene *scene, QT_Generic_GraphicsI
 QT_GraphicsView *QT_cree_graphics_view(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new QGraphicsView(qparent));
+    return vers_ipa(new GraphicsView(qparent));
 }
 
 void QT_graphics_view_definis_scene(QT_GraphicsView *graphics_view, QT_GraphicsScene *scene)
@@ -1880,25 +2049,37 @@ void QT_graphics_view_definis_echelle_taille(QT_GraphicsView *graphics_view, flo
     qgraphics_view->scale(x, y);
 }
 
-QT_PointF QT_graphics_view_mappe_vers_scene(QT_GraphicsView *graphics_view, QT_Point point)
+void QT_graphics_view_mappe_vers_scene(QT_GraphicsView *graphics_view,
+                                       QT_Point point,
+                                       QT_PointF *r_point)
 {
     auto qgraphics_view = vers_qt(graphics_view);
     auto résultat = qgraphics_view->mapToScene(QPoint(point.x, point.y));
-    return QT_PointF{résultat.x(), résultat.y()};
+    if (r_point) {
+        *r_point = QT_PointF{résultat.x(), résultat.y()};
+    }
 }
 
-QT_Point QT_graphics_view_mappe_depuis_scene(QT_GraphicsView *graphics_view, QT_PointF point)
+void QT_graphics_view_mappe_depuis_scene(QT_GraphicsView *graphics_view,
+                                         QT_PointF *point,
+                                         QT_Point *r_point)
 {
     auto qgraphics_view = vers_qt(graphics_view);
-    auto résultat = qgraphics_view->mapFromScene(QPointF(point.x, point.y));
-    return QT_Point{résultat.x(), résultat.y()};
+    auto résultat = qgraphics_view->mapFromScene(QPointF(point->x, point->y));
+    if (r_point) {
+        *r_point = QT_Point{résultat.x(), résultat.y()};
+    }
 }
 
-QT_Point QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view, QT_Point point)
+void QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view,
+                                        QT_Point point,
+                                        QT_Point *r_point)
 {
     auto qgraphics_view = vers_qt(graphics_view);
     auto résultat = qgraphics_view->mapToGlobal(QPoint(point.x, point.y));
-    return QT_Point{résultat.x(), résultat.y()};
+    if (r_point) {
+        *r_point = QT_Point{résultat.x(), résultat.y()};
+    }
 }
 
 /** \} */
@@ -1979,6 +2160,20 @@ QT_Menu *DNJ_gestionaire_compile_menu_fichier(DNJ_Gestionnaire_Interface *gestio
     auto données = convertis_contexte(context);
     auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
     auto résultat = dnj_gestionnaire->compile_menu_fichier(données, chemin.vers_std_string());
+    return vers_ipa(résultat);
+}
+
+QT_Menu *DNJ_gestionaire_compile_menu_texte(DNJ_Gestionnaire_Interface *gestionnaire,
+                                            DNJ_Contexte_Interface *context,
+                                            QT_Chaine texte)
+{
+    if (!context) {
+        return nullptr;
+    }
+
+    auto données = convertis_contexte(context);
+    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    auto résultat = dnj_gestionnaire->compile_menu_texte(données, texte.vers_std_string());
     return vers_ipa(résultat);
 }
 
