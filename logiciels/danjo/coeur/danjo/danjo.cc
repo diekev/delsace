@@ -280,7 +280,7 @@ QMenu *GestionnaireInterface::pointeur_menu(const dls::chaine &nom)
     auto iter = m_menus.trouve(nom);
 
     if (iter == m_menus.fin()) {
-        std::cerr << "Le menu '" << nom << "' est introuvable !\n";
+        // std::cerr << "Le menu '" << nom << "' est introuvable !\n";
         return nullptr;
     }
 
