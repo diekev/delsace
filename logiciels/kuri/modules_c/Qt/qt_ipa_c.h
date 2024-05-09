@@ -1238,6 +1238,26 @@ void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Alignment
+ * \{ */
+
+#define ENEMERE_ALIGNEMENT_TEXTE(O)                                                               \
+    O(QT_ALIGNMENT_LEFT, Qt::AlignLeft)                                                           \
+    O(QT_ALIGNMENT_RIGHT, Qt::AlignRight)                                                         \
+    O(QT_ALIGNMENT_CENTER_HORIZONTAL, Qt::AlignHCenter)                                           \
+    O(QT_ALIGNMENT_JUSTIFY, Qt::AlignJustify)                                                     \
+    O(QT_ALIGNMENT_ABSOLUTE, Qt::AlignAbsolute)                                                   \
+    O(QT_ALIGNMENT_TOP, Qt::AlignTop)                                                             \
+    O(QT_ALIGNMENT_BOTTOM, Qt::AlignBottom)                                                       \
+    O(QT_ALIGNMENT_CENTER_VERTICAL, Qt::AlignVCenter)                                             \
+    O(QT_ALIGNMENT_BASELINE, Qt::AlignBaseline)                                                   \
+    O(QT_ALIGNMENT_CENTER, Qt::AlignCenter)
+
+enum QT_Alignment { ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Layout
  * \{ */
 

@@ -1014,6 +1014,21 @@ void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Alignment
+ * \{ */
+
+static Qt::AlignmentFlag convertis_alignement(QT_Alignment alignment)
+{
+    switch (alignment) {
+        ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+
+    return Qt::AlignLeft;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Layout
  * \{ */
 
