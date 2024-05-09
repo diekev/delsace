@@ -1384,7 +1384,11 @@ void QT_checkbox_definis_coche(QT_CheckBox *checkbox, int coche)
 QT_Label *QT_cree_label(QT_Chaine *texte, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    auto résultat = new QLabel(texte->vers_std_string().c_str(), qparent);
+    QString qtexte;
+    if (texte) {
+        qtexte = texte->vers_std_string().c_str();
+    }
+    auto résultat = new QLabel(qtexte, qparent);
     return vers_ipa(résultat);
 }
 
