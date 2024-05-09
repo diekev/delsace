@@ -281,14 +281,14 @@ void Programme::change_de_phase(PhaseCompilation phase)
 
 int64_t Programme::mémoire_utilisée() const
 {
-    auto memoire = int64_t(0);
-    memoire += m_fonctions.taille_mémoire();
-    memoire += m_types.taille_mémoire();
-    memoire += m_globales.taille_mémoire();
-    memoire += taille_de(Coulisse);
-    memoire += m_fichiers.taille_mémoire();
-    memoire += m_dépendances_manquantes.taille_mémoire();
-    return memoire;
+    auto résultat = int64_t(0);
+    résultat += m_fonctions.taille_mémoire();
+    résultat += m_types.taille_mémoire();
+    résultat += m_globales.taille_mémoire();
+    résultat += taille_de(Coulisse);
+    résultat += m_fichiers.taille_mémoire();
+    résultat += m_dépendances_manquantes.taille_mémoire();
+    return résultat;
 }
 
 void Programme::rassemble_statistiques(Statistiques &stats)
