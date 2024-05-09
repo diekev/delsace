@@ -44,6 +44,12 @@ struct tableau {
         copie_données(autre.m_éléments, autre.m_taille);
     }
 
+    tableau &operator=(tableau_statique<T> autre)
+    {
+        copie_données(autre.begin(), autre.taille());
+        return *this;
+    }
+
     tableau &operator=(tableau const &autre)
     {
         copie_données(autre.m_éléments, autre.m_taille);
