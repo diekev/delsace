@@ -62,11 +62,9 @@ Programme::~Programme()
 
 void Programme::ajoute_fonction(NoeudDéclarationEntêteFonction *fonction)
 {
-    if (possède(fonction)) {
+    if (!m_fonctions.insère(fonction)) {
         return;
     }
-    m_fonctions.ajoute(fonction);
-    m_fonctions_utilisées.insère(fonction);
     ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexème->fichier));
     m_éléments_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
     m_éléments_sont_sales[FONCTIONS][POUR_RI] = true;
@@ -97,11 +95,9 @@ void Programme::ajoute_fonction(NoeudDéclarationEntêteFonction *fonction)
 
 void Programme::ajoute_globale(NoeudDéclarationVariable *globale)
 {
-    if (possède(globale)) {
+    if (!m_globales.insère(globale)) {
         return;
     }
-    m_globales.ajoute(globale);
-    m_globales_utilisées.insère(globale);
     ajoute_fichier(m_espace->compilatrice().fichier(globale->lexème->fichier));
     m_éléments_sont_sales[GLOBALES][POUR_TYPAGE] = true;
     m_éléments_sont_sales[GLOBALES][POUR_RI] = true;
@@ -112,11 +108,9 @@ void Programme::ajoute_globale(NoeudDéclarationVariable *globale)
 
 void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud)
 {
-    if (possède(type)) {
+    if (!m_types.insère(type)) {
         return;
     }
-    m_types.ajoute(type);
-    m_types_utilisés.insère(type);
     m_éléments_sont_sales[TYPES][POUR_TYPAGE] = true;
     m_éléments_sont_sales[TYPES][POUR_RI] = true;
 
@@ -148,7 +142,7 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
 bool Programme::typages_terminés(DiagnostiqueÉtatCompilation &diagnostique) const
 {
     if (m_éléments_sont_sales[FONCTIONS][POUR_TYPAGE]) {
-        POUR (m_fonctions) {
+        POUR (m_fonctions.donne_éléments()) {
             if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.déclaration_à_valider = it;
                 return false;
@@ -164,7 +158,7 @@ bool Programme::typages_terminés(DiagnostiqueÉtatCompilation &diagnostique) co
     }
 
     if (m_éléments_sont_sales[GLOBALES][POUR_TYPAGE]) {
-        POUR (m_globales) {
+        POUR (m_globales.donne_éléments()) {
             if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.déclaration_à_valider = it;
                 return false;
@@ -174,7 +168,7 @@ bool Programme::typages_terminés(DiagnostiqueÉtatCompilation &diagnostique) co
     }
 
     if (m_éléments_sont_sales[TYPES][POUR_TYPAGE]) {
-        POUR (m_types) {
+        POUR (m_types.donne_éléments()) {
             if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.type_à_valider = it;
                 return false;
@@ -196,7 +190,7 @@ bool Programme::ri_générées(DiagnostiqueÉtatCompilation &diagnostique) const
     using dls::outils::est_element;
 
     if (m_éléments_sont_sales[FONCTIONS][POUR_RI]) {
-        POUR (m_fonctions) {
+        POUR (m_fonctions.donne_éléments()) {
             if (!it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE) &&
                 !est_element(it->ident,
                              ID::init_execution_kuri,
@@ -214,7 +208,7 @@ bool Programme::ri_générées(DiagnostiqueÉtatCompilation &diagnostique) const
     }
 
     if (m_éléments_sont_sales[GLOBALES][POUR_RI]) {
-        POUR (m_globales) {
+        POUR (m_globales.donne_éléments()) {
             if (!it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
                 diagnostique.ri_déclaration_à_générer = it;
                 return false;
@@ -224,7 +218,7 @@ bool Programme::ri_générées(DiagnostiqueÉtatCompilation &diagnostique) const
     }
 
     if (m_éléments_sont_sales[TYPES][POUR_RI]) {
-        POUR (m_types) {
+        POUR (m_types.donne_éléments()) {
             if (!requiers_fonction_initialisation(it)) {
                 continue;
             }
@@ -291,12 +285,8 @@ int64_t Programme::mémoire_utilisée() const
     memoire += m_fonctions.taille_mémoire();
     memoire += m_types.taille_mémoire();
     memoire += m_globales.taille_mémoire();
-    memoire += m_fonctions_utilisées.taille_mémoire();
-    memoire += m_types_utilisés.taille_mémoire();
-    memoire += m_globales_utilisées.taille_mémoire();
     memoire += taille_de(Coulisse);
     memoire += m_fichiers.taille_mémoire();
-    memoire += m_fichiers_utilisés.taille_mémoire();
     memoire += m_dépendances_manquantes.taille_mémoire();
     return memoire;
 }
@@ -311,7 +301,7 @@ void Programme::rassemble_statistiques(Statistiques &stats)
 kuri::ensemble<Module *> Programme::modules_utilisés() const
 {
     kuri::ensemble<Module *> modules;
-    POUR (m_fichiers) {
+    POUR (m_fichiers.donne_éléments()) {
         modules.insère(it->module);
     }
     return modules;
@@ -323,17 +313,17 @@ void Programme::ajourne_pour_nouvelles_options_espace()
     Coulisse::détruit(m_coulisse);
     m_coulisse = Coulisse::crée_pour_options(espace()->options);
 
-    auto index = 0;
-    POUR (m_fonctions) {
+    auto anciennes_fonctions = m_fonctions.donne_copie_éléments();
+    m_fonctions.réinitialise();
+
+    POUR (anciennes_fonctions) {
         /* Supprime le point d'entrée. */
         if (it == espace()->fonction_point_d_entree &&
             espace()->options.résultat != RésultatCompilation::EXÉCUTABLE) {
-            std::swap(m_fonctions[index], m_fonctions[m_fonctions.taille() - 1]);
-            m_fonctions.redimensionne(m_fonctions.taille() - 1);
-            break;
+            continue;
         }
 
-        index += 1;
+        ajoute_fonction(it);
     }
 }
 
@@ -378,7 +368,7 @@ void Programme::verifie_état_compilation_fichier(DiagnostiqueÉtatCompilation &
         return;
     }
 
-    POUR (m_fichiers) {
+    POUR (m_fichiers.donne_éléments()) {
         if (!it->fut_chargé) {
             diagnostique.tous_les_fichiers_sont_chargés = false;
         }
@@ -397,13 +387,7 @@ void Programme::verifie_état_compilation_fichier(DiagnostiqueÉtatCompilation &
 
 void Programme::ajoute_fichier(Fichier *fichier)
 {
-    if (m_fichiers_utilisés.possède(fichier)) {
-        return;
-    }
-
-    m_fichiers.ajoute(fichier);
-    m_fichiers_utilisés.insère(fichier);
-    m_fichiers_sont_sales = true;
+    m_fichiers_sont_sales |= m_fichiers.insère(fichier);
 }
 
 void Programme::ajoute_racine(NoeudDéclarationEntêteFonction *racine)

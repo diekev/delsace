@@ -6,6 +6,7 @@
 #include "arbre_syntaxique/prodeclaration.hh"
 
 #include "structures/ensemble.hh"
+#include "structures/rassembleuse.hh"
 #include "structures/tableau.hh"
 
 #include <optional>
@@ -114,21 +115,17 @@ enum RaisonAjoutType {
  * par les fonctions qui le composent. */
 struct Programme {
   protected:
-    kuri::tableau<NoeudDéclarationEntêteFonction *> m_fonctions{};
-    kuri::ensemble<NoeudDéclarationEntêteFonction *> m_fonctions_utilisées{};
+    kuri::rassembleuse<NoeudDéclarationEntêteFonction *> m_fonctions{};
 
     /* Fonctions dont les dépendances sont potentiellement manquantes. */
     kuri::ensemble<NoeudDéclaration *> m_dépendances_manquantes{};
 
-    kuri::tableau<NoeudDéclarationVariable *> m_globales{};
-    kuri::ensemble<NoeudDéclarationVariable *> m_globales_utilisées{};
+    kuri::rassembleuse<NoeudDéclarationVariable *> m_globales{};
 
-    kuri::tableau<Type *> m_types{};
-    kuri::ensemble<Type *> m_types_utilisés{};
+    kuri::rassembleuse<Type *> m_types{};
 
     /* Tous les fichiers utilisés dans le programme. */
-    kuri::tableau<Fichier *> m_fichiers{};
-    kuri::ensemble<Fichier *> m_fichiers_utilisés{};
+    kuri::rassembleuse<Fichier *> m_fichiers{};
     mutable bool m_fichiers_sont_sales = true;
 
     EspaceDeTravail *m_espace = nullptr;
@@ -189,32 +186,32 @@ struct Programme {
 
     bool possède(NoeudDéclarationEntêteFonction *fonction) const
     {
-        return m_fonctions_utilisées.possède(fonction);
+        return m_fonctions.possède(fonction);
     }
 
     bool possède(NoeudDéclarationVariable *globale) const
     {
-        return m_globales_utilisées.possède(globale);
+        return m_globales.possède(globale);
     }
 
     bool possède(Type *type) const
     {
-        return m_types_utilisés.possède(type);
+        return m_types.possède(type);
     }
 
     kuri::tableau_statique<NoeudDéclarationEntêteFonction *> fonctions() const
     {
-        return m_fonctions;
+        return m_fonctions.donne_éléments();
     }
 
     kuri::tableau_statique<NoeudDéclarationVariable *> globales() const
     {
-        return m_globales;
+        return m_globales.donne_éléments();
     }
 
     kuri::tableau_statique<Type *> types() const
     {
-        return m_types;
+        return m_types.donne_éléments();
     }
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
