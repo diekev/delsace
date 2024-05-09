@@ -146,6 +146,15 @@ void GrapheDépendance::ajoute_dépendances(NoeudDépendance &noeud, DonnéesDé
         return kuri::DécisionItération::Continue;
     });
 
+    //    if (donnees.init_types_utilisés.taille()) {
+    //        dbg() << __func__ << " " << donnees.init_types_utilisés.taille();
+    //    }
+    kuri::pour_chaque_élément(donnees.init_types_utilisés, [&](auto &type) {
+        auto noeud_type = crée_noeud_type(type);
+        connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_INIT_TYPE);
+        return kuri::DécisionItération::Continue;
+    });
+
     kuri::pour_chaque_élément(donnees.fonctions_utilisées, [&](auto &fonction_utilisee) {
         auto noeud_type = crée_noeud_fonction(
             const_cast<NoeudDéclarationEntêteFonction *>(fonction_utilisee));

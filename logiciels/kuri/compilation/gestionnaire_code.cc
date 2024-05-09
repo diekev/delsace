@@ -225,6 +225,11 @@ static bool ajoute_dépendances_au_programme(GrapheDépendance &graphe,
         return kuri::DécisionItération::Continue;
     });
 
+    kuri::pour_chaque_élément(dépendances.init_types_utilisés, [&](auto &type) {
+        programme.ajoute_init_type(type);
+        return kuri::DécisionItération::Continue;
+    });
+
     auto dépendances_manquantes = programme.dépendances_manquantes();
     programme.dépendances_manquantes().efface();
 
@@ -273,6 +278,11 @@ struct RassembleuseDependances {
         }
 
         dépendances.types_utilisés.insère(type);
+    }
+
+    void ajoute_init_type(Type *type)
+    {
+        dépendances.init_types_utilisés.insère(type);
     }
 
     void ajoute_fonction(NoeudDéclarationEntêteFonction *fonction)
@@ -536,6 +546,11 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                               [&]() { dbg() << "Type nul pour " << declaration->ident->nom; });
                 ajoute_type(declaration->type);
                 rassemble_dépendances(declaration->expression);
+
+                if (!declaration->expression &&
+                    !declaration->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
+                    ajoute_init_type(declaration->type);
+                }
             }
             else if (noeud->est_déclaration_variable_multiple()) {
                 auto declaration = noeud->comme_déclaration_variable_multiple();
@@ -548,6 +563,11 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                     auto type_expression = it.expression ? it.expression->type : Type::nul();
                     rassemble_dépendances_transformations(it.transformations, type_expression);
                 }
+            }
+            else if (noeud->est_init_de()) {
+                auto expression = noeud->comme_init_de();
+                ajoute_init_type(
+                    expression->expression->type->comme_type_type_de_données()->type_connu);
             }
 
             return DecisionVisiteNoeud::CONTINUE;
@@ -616,8 +636,6 @@ static void garantie_typage_des_dépendances(GestionnaireCode &gestionnaire,
             gestionnaire.requiers_typage(espace, type);
         }
 
-        gestionnaire.requiers_initialisation_type(espace, type);
-
         if (type->est_type_fonction()) {
             auto type_fonction = type->comme_type_fonction();
             auto type_retour = type_fonction->type_sortie;
@@ -644,6 +662,11 @@ static void garantie_typage_des_dépendances(GestionnaireCode &gestionnaire,
             }
         }
 
+        return kuri::DécisionItération::Continue;
+    });
+
+    kuri::pour_chaque_élément(dépendances.init_types_utilisés, [&](auto &type) {
+        gestionnaire.requiers_initialisation_type(espace, type);
         return kuri::DécisionItération::Continue;
     });
 }
@@ -989,9 +1012,6 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
         if (type_requiers_typage(type)) {
             requiers_typage(espace, type);
         }
-        /* Ceci est pour gérer les requêtes de fonctions d'initialisation avant la génération de
-         * RI. */
-        requiers_initialisation_type(espace, type);
     }
     else if (attente.est<AttenteSurDéclaration>()) {
         NoeudDéclaration *decl = attente.déclaration();
@@ -1584,7 +1604,8 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
     }
 
     POUR (programmes_en_cours) {
-        if (it->possède(unité->type)) {
+        if (it->possède_init_types(unité->type)) {
+            // if (it->possède(unité->type)) {
             it->ajoute_fonction(fonction);
         }
     }
@@ -1742,6 +1763,8 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
         }
 
         tente_de_garantir_fonction_point_d_entrée(espace);
+
+        it->imprime_diagnostique(std::cerr);
 
         if (it->pour_métaprogramme()) {
             auto etat = it->ajourne_état_compilation();

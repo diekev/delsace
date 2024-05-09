@@ -139,6 +139,12 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     }
 }
 
+void Programme::ajoute_init_type(Type *type)
+{
+    m_éléments_sont_sales[TYPES][POUR_RI] |= m_init_types.insère(type);
+    m_éléments_sont_sales[TYPES][POUR_RI] |= type->fonction_init == nullptr;
+}
+
 bool Programme::typages_terminés(DiagnostiqueÉtatCompilation &diagnostique) const
 {
     if (m_éléments_sont_sales[FONCTIONS][POUR_TYPAGE]) {
@@ -219,7 +225,7 @@ bool Programme::ri_générées(DiagnostiqueÉtatCompilation &diagnostique) const
 
     if (m_éléments_sont_sales[TYPES][POUR_RI]) {
         POUR (m_types.donne_éléments()) {
-            if (!requiers_fonction_initialisation(it)) {
+            if (!possède_init_types(it)) {
                 continue;
             }
 
@@ -1295,6 +1301,31 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
     });
 
     m_résultat.fonctions.redimensionne(part.vrai.taille());
+
+    POUR (m_programme.fonctions()) {
+        if (it->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+            dbg() << nom_humainement_lisible(it);
+        }
+    }
+
+    //    POUR (m_programme.init_types()) {
+    //        dbg() << chaine_type(it);
+    //    }
+
+    POUR (part.faux) {
+        auto decl = it->decl;
+        if (!decl) {
+            continue;
+        }
+
+        if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+            dbg() << it->nom;
+            auto type = decl->type_initialisé();
+            if (m_programme.possède_init_types(type)) {
+                dbg() << "Initialisation type requise pour " << chaine_type(type);
+            }
+        }
+    }
 
 #if 0
     pour_chaque_element(m_espace.compilatrice().sys_module->modules, [&](Module const &module) {

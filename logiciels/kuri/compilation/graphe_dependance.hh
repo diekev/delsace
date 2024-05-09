@@ -37,6 +37,7 @@ enum class TypeNoeudDependance {
 #define ENUMERE_TYPES_RELATION                                                                    \
     ENUMERE_TYPE_RELATION_EX(INVALIDE)                                                            \
     ENUMERE_TYPE_RELATION_EX(UTILISE_TYPE)                                                        \
+    ENUMERE_TYPE_RELATION_EX(UTILISE_INIT_TYPE)                                                   \
     ENUMERE_TYPE_RELATION_EX(UTILISE_FONCTION)                                                    \
     ENUMERE_TYPE_RELATION_EX(UTILISE_GLOBALE)
 
@@ -126,6 +127,7 @@ struct DonnéesDépendance {
     kuri::ensemblon<NoeudDéclarationEntêteFonction *, 16> fonctions_utilisées{};
     kuri::ensemblon<NoeudDéclarationVariable *, 16> globales_utilisées{};
     kuri::ensemblon<Type *, 16> types_utilisés{};
+    kuri::ensemblon<Type *, 16> init_types_utilisés{};
 
     void fusionne(DonnéesDépendance const &autre);
 
@@ -134,6 +136,7 @@ struct DonnéesDépendance {
         fonctions_utilisées.efface();
         globales_utilisées.efface();
         types_utilisés.efface();
+        init_types_utilisés.efface();
     }
 
     int64_t mémoire_utilisée() const
@@ -142,6 +145,7 @@ struct DonnéesDépendance {
         résultat += fonctions_utilisées.mémoire_utilisée();
         résultat += types_utilisés.mémoire_utilisée();
         résultat += globales_utilisées.mémoire_utilisée();
+        résultat += init_types_utilisés.mémoire_utilisée();
         return résultat;
     }
 };

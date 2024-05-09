@@ -124,6 +124,8 @@ struct Programme {
 
     kuri::rassembleuse<Type *> m_types{};
 
+    kuri::rassembleuse<Type *> m_init_types{};
+
     /* Tous les fichiers utilisés dans le programme. */
     kuri::rassembleuse<Fichier *> m_fichiers{};
     mutable bool m_fichiers_sont_sales = true;
@@ -184,6 +186,8 @@ struct Programme {
 
     void ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud);
 
+    void ajoute_init_type(Type *type);
+
     bool possède(NoeudDéclarationEntêteFonction *fonction) const
     {
         return m_fonctions.possède(fonction);
@@ -199,6 +203,11 @@ struct Programme {
         return m_types.possède(type);
     }
 
+    bool possède_init_types(Type *type) const
+    {
+        return m_init_types.possède(type);
+    }
+
     kuri::tableau_statique<NoeudDéclarationEntêteFonction *> fonctions() const
     {
         return m_fonctions.donne_éléments();
@@ -212,6 +221,11 @@ struct Programme {
     kuri::tableau_statique<Type *> types() const
     {
         return m_types.donne_éléments();
+    }
+
+    kuri::tableau_statique<Type *> init_types() const
+    {
+        return m_init_types.donne_éléments();
     }
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par

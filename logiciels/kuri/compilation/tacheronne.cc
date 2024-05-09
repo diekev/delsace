@@ -560,6 +560,10 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         auto noeud_dep = entete_possible->noeud_dépendance;
 
         POUR (noeud_dep->relations().plage()) {
+            if (it.type != TypeRelation::UTILISE_INIT_TYPE) {
+                continue;
+            }
+
             if (!it.noeud_fin->est_type()) {
                 continue;
             }
@@ -573,6 +577,10 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
             types_utilises, DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE, attentes_possibles);
 
         if (!attentes_possibles.est_vide()) {
+            POUR (attentes_possibles) {
+                it = Attente::sur_initialisation_type(it.type());
+            }
+            dbg() << attentes_possibles.taille() << " attentes sur init_de";
             compilatrice.gestionnaire_code->mets_en_attente(unite, attentes_possibles);
             return false;
         }
