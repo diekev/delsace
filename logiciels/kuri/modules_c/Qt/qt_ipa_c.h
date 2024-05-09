@@ -1277,6 +1277,11 @@ void QT_form_layout_ajoute_ligne(struct QT_FormLayout *layout,
                                  union QT_Generic_Widget widget);
 void QT_form_layout_ajoute_disposition(struct QT_FormLayout *form, union QT_Generic_Layout layout);
 
+void QT_grid_layout_ajoute_widget(struct QT_GridLayout *layout,
+                                  union QT_Generic_Widget widget,
+                                  int ligne,
+                                  int colonne,
+                                  enum QT_Alignment alignement);
 /** \} */
 
 /* ------------------------------------------------------------------------- */

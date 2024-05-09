@@ -1124,6 +1124,18 @@ void QT_form_layout_ajoute_disposition(QT_FormLayout *form, QT_Generic_Layout la
     qform->addRow(qlayout);
 }
 
+void QT_grid_layout_ajoute_widget(QT_GridLayout *layout,
+                                  QT_Generic_Widget widget,
+                                  int ligne,
+                                  int colonne,
+                                  QT_Alignment alignement)
+{
+    VERS_QT(layout);
+    VERS_QT(widget);
+
+    qlayout->addWidget(qwidget, ligne, colonne, convertis_alignement(alignement));
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
