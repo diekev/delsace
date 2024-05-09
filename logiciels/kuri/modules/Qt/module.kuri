@@ -48,6 +48,27 @@ vers_qt :: fonc (chn: chaine) -> QT_Chaine
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom QColor
+ * \{ */
+
+QT_white :: fonc () -> QT_Color #enligne
+{
+    retourne QT_Color(1.0, 1.0, 1.0, 1.0)
+}
+
+QT_gray :: fonc () -> QT_Color #enligne
+{
+    retourne QT_Color(0.5, 0.5, 0.5, 1.0)
+}
+
+QT_yellow :: fonc () -> QT_Color #enligne
+{
+    retourne QT_Color(1.0, 1.0, 0.0, 1.0)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Conversion Périphériques
  * \{ */
 
