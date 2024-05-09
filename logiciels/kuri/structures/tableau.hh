@@ -41,27 +41,12 @@ struct tableau {
 
     tableau(tableau const &autre)
     {
-        memoire::reloge_tableau(
-            "kuri::tableau", this->m_éléments, this->m_capacité, autre.m_taille);
-        this->m_taille = autre.m_taille;
-        this->m_capacité = autre.m_taille;
-
-        for (auto i = 0; i < autre.m_taille; ++i) {
-            this->m_éléments[i] = autre.m_éléments[i];
-        }
+        copie_données(autre.m_éléments, autre.m_taille);
     }
 
     tableau &operator=(tableau const &autre)
     {
-        memoire::reloge_tableau(
-            "kuri::tableau", this->m_éléments, this->m_capacité, autre.m_taille);
-        this->m_taille = autre.m_taille;
-        this->m_capacité = autre.m_taille;
-
-        for (auto i = 0; i < autre.m_taille; ++i) {
-            this->m_éléments[i] = autre.m_éléments[i];
-        }
-
+        copie_données(autre.m_éléments, autre.m_taille);
         return *this;
     }
 
@@ -188,6 +173,17 @@ struct tableau {
 
         memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, nombre);
         this->m_capacité = nombre;
+    }
+
+    void copie_données(T *données, TypeIndex taille)
+    {
+        memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, taille);
+        this->m_taille = taille;
+        this->m_capacité = taille;
+
+        for (auto i = 0; i < taille; ++i) {
+            this->m_éléments[i] = données[i];
+        }
     }
 
   public:
