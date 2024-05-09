@@ -115,31 +115,31 @@ enum RaisonAjoutType {
 struct Programme {
   protected:
     kuri::tableau<NoeudDéclarationEntêteFonction *> m_fonctions{};
-    kuri::ensemble<NoeudDéclarationEntêteFonction *> m_fonctions_utilisees{};
+    kuri::ensemble<NoeudDéclarationEntêteFonction *> m_fonctions_utilisées{};
 
     /* Fonctions dont les dépendances sont potentiellement manquantes. */
     kuri::ensemble<NoeudDéclaration *> m_dépendances_manquantes{};
 
     kuri::tableau<NoeudDéclarationVariable *> m_globales{};
-    kuri::ensemble<NoeudDéclarationVariable *> m_globales_utilisees{};
+    kuri::ensemble<NoeudDéclarationVariable *> m_globales_utilisées{};
 
     kuri::tableau<Type *> m_types{};
-    kuri::ensemble<Type *> m_types_utilises{};
+    kuri::ensemble<Type *> m_types_utilisés{};
 
     /* Tous les fichiers utilisés dans le programme. */
     kuri::tableau<Fichier *> m_fichiers{};
-    kuri::ensemble<Fichier *> m_fichiers_utilises{};
+    kuri::ensemble<Fichier *> m_fichiers_utilisés{};
     mutable bool m_fichiers_sont_sales = true;
 
     EspaceDeTravail *m_espace = nullptr;
 
     /* Non-nul si le programme est celui d'un métaprogramme. */
-    MetaProgramme *m_pour_metaprogramme = nullptr;
+    MetaProgramme *m_pour_métaprogramme = nullptr;
 
     // la coulisse à utiliser pour générer le code du programme
     Coulisse *m_coulisse = nullptr;
 
-    ÉtatCompilation m_etat_compilation{};
+    ÉtatCompilation m_état_compilation{};
 
     /* Pour le débogage, stockage du dernier diagnostique de compilation afin de ne pas retourner
      * toujours le même et éviter ainsi de polluer les impressions de débogages. */
@@ -160,12 +160,12 @@ struct Programme {
         NOMBRE_RAISONS,
     };
 
-    mutable bool elements_sont_sales[NOMBRE_ELEMENTS][NOMBRE_RAISONS];
+    mutable bool m_éléments_sont_sales[NOMBRE_ELEMENTS][NOMBRE_RAISONS];
 
   public:
     /* Création. */
 
-    static Programme *cree(EspaceDeTravail *espace);
+    static Programme *crée(EspaceDeTravail *espace);
 
     static Programme *crée_pour_espace(EspaceDeTravail *espace);
 
@@ -189,17 +189,17 @@ struct Programme {
 
     bool possède(NoeudDéclarationEntêteFonction *fonction) const
     {
-        return m_fonctions_utilisees.possède(fonction);
+        return m_fonctions_utilisées.possède(fonction);
     }
 
     bool possède(NoeudDéclarationVariable *globale) const
     {
-        return m_globales_utilisees.possède(globale);
+        return m_globales_utilisées.possède(globale);
     }
 
     bool possède(Type *type) const
     {
-        return m_types_utilises.possède(type);
+        return m_types_utilisés.possède(type);
     }
 
     kuri::tableau<NoeudDéclarationEntêteFonction *> const &fonctions() const
@@ -219,17 +219,17 @@ struct Programme {
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs types validés. */
-    bool typages_termines(DiagnostiqueÉtatCompilation &diagnostique) const;
+    bool typages_terminés(DiagnostiqueÉtatCompilation &diagnostique) const;
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs RI générées. */
-    bool ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const;
+    bool ri_générées(DiagnostiqueÉtatCompilation &diagnostique) const;
 
-    bool ri_generees() const;
+    bool ri_générées() const;
 
     MetaProgramme *pour_métaprogramme() const
     {
-        return m_pour_metaprogramme;
+        return m_pour_métaprogramme;
     }
 
     void ajoute_racine(NoeudDéclarationEntêteFonction *racine);
@@ -246,15 +246,15 @@ struct Programme {
 
     DiagnostiqueÉtatCompilation diagnostique_compilation() const;
 
-    ÉtatCompilation ajourne_etat_compilation();
+    ÉtatCompilation ajourne_état_compilation();
 
     void change_de_phase(PhaseCompilation phase);
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     void rassemble_statistiques(Statistiques &stats);
 
-    kuri::ensemble<Module *> modules_utilises() const;
+    kuri::ensemble<Module *> modules_utilisés() const;
 
     void ajourne_pour_nouvelles_options_espace();
 
@@ -270,7 +270,7 @@ struct Programme {
     kuri::chemin_systeme donne_chemin_pour_fichier_ri() const;
 
   private:
-    void verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &diagnostique) const;
+    void verifie_état_compilation_fichier(DiagnostiqueÉtatCompilation &diagnostique) const;
 
     void ajoute_fichier(Fichier *fichier);
 };

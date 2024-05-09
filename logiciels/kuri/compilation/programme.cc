@@ -32,7 +32,7 @@
 /** \name Programme.
  * \{ */
 
-Programme *Programme::cree(EspaceDeTravail *espace)
+Programme *Programme::crée(EspaceDeTravail *espace)
 {
     Programme *résultat = memoire::loge<Programme>("Programme");
     résultat->m_espace = espace;
@@ -41,7 +41,7 @@ Programme *Programme::cree(EspaceDeTravail *espace)
 
 Programme *Programme::crée_pour_espace(EspaceDeTravail *espace)
 {
-    auto résultat = Programme::cree(espace);
+    auto résultat = Programme::crée(espace);
     résultat->m_coulisse = Coulisse::crée_pour_options(espace->options);
     return résultat;
 }
@@ -49,8 +49,8 @@ Programme *Programme::crée_pour_espace(EspaceDeTravail *espace)
 Programme *Programme::crée_pour_metaprogramme(EspaceDeTravail *espace,
                                               MetaProgramme *metaprogramme)
 {
-    Programme *résultat = Programme::cree(espace);
-    résultat->m_pour_metaprogramme = metaprogramme;
+    Programme *résultat = Programme::crée(espace);
+    résultat->m_pour_métaprogramme = metaprogramme;
     résultat->m_coulisse = Coulisse::crée_pour_metaprogramme();
     return résultat;
 }
@@ -66,10 +66,10 @@ void Programme::ajoute_fonction(NoeudDéclarationEntêteFonction *fonction)
         return;
     }
     m_fonctions.ajoute(fonction);
-    m_fonctions_utilisees.insère(fonction);
+    m_fonctions_utilisées.insère(fonction);
     ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexème->fichier));
-    elements_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
-    elements_sont_sales[FONCTIONS][POUR_RI] = true;
+    m_éléments_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
+    m_éléments_sont_sales[FONCTIONS][POUR_RI] = true;
     if (fonction->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insère(fonction);
     }
@@ -101,10 +101,10 @@ void Programme::ajoute_globale(NoeudDéclarationVariable *globale)
         return;
     }
     m_globales.ajoute(globale);
-    m_globales_utilisees.insère(globale);
+    m_globales_utilisées.insère(globale);
     ajoute_fichier(m_espace->compilatrice().fichier(globale->lexème->fichier));
-    elements_sont_sales[GLOBALES][POUR_TYPAGE] = true;
-    elements_sont_sales[GLOBALES][POUR_RI] = true;
+    m_éléments_sont_sales[GLOBALES][POUR_TYPAGE] = true;
+    m_éléments_sont_sales[GLOBALES][POUR_RI] = true;
     if (globale->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insère(globale);
     }
@@ -116,9 +116,9 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
         return;
     }
     m_types.ajoute(type);
-    m_types_utilises.insère(type);
-    elements_sont_sales[TYPES][POUR_TYPAGE] = true;
-    elements_sont_sales[TYPES][POUR_RI] = true;
+    m_types_utilisés.insère(type);
+    m_éléments_sont_sales[TYPES][POUR_TYPAGE] = true;
+    m_éléments_sont_sales[TYPES][POUR_RI] = true;
 
     if (type->fonction_init) {
         ajoute_fonction(type->fonction_init);
@@ -128,7 +128,7 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     static_cast<void>(raison);
     static_cast<void>(noeud);
 #else
-    if (!m_pour_metaprogramme) {
+    if (!m_pour_métaprogramme) {
         if (raison == RaisonAjoutType::DÉPENDANCE_DIRECTE) {
             dbg() << "Dépendence   directe de " << nom_humainement_lisible(noeud) << " : "
                   << chaine_type(type);
@@ -145,9 +145,9 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     }
 }
 
-bool Programme::typages_termines(DiagnostiqueÉtatCompilation &diagnostique) const
+bool Programme::typages_terminés(DiagnostiqueÉtatCompilation &diagnostique) const
 {
-    if (elements_sont_sales[FONCTIONS][POUR_TYPAGE]) {
+    if (m_éléments_sont_sales[FONCTIONS][POUR_TYPAGE]) {
         POUR (m_fonctions) {
             if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.déclaration_à_valider = it;
@@ -160,42 +160,42 @@ bool Programme::typages_termines(DiagnostiqueÉtatCompilation &diagnostique) con
                 return false;
             }
         }
-        elements_sont_sales[FONCTIONS][POUR_TYPAGE] = false;
+        m_éléments_sont_sales[FONCTIONS][POUR_TYPAGE] = false;
     }
 
-    if (elements_sont_sales[GLOBALES][POUR_TYPAGE]) {
+    if (m_éléments_sont_sales[GLOBALES][POUR_TYPAGE]) {
         POUR (m_globales) {
             if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.déclaration_à_valider = it;
                 return false;
             }
         }
-        elements_sont_sales[GLOBALES][POUR_TYPAGE] = false;
+        m_éléments_sont_sales[GLOBALES][POUR_TYPAGE] = false;
     }
 
-    if (elements_sont_sales[TYPES][POUR_TYPAGE]) {
+    if (m_éléments_sont_sales[TYPES][POUR_TYPAGE]) {
         POUR (m_types) {
             if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.type_à_valider = it;
                 return false;
             }
         }
-        elements_sont_sales[TYPES][POUR_TYPAGE] = false;
+        m_éléments_sont_sales[TYPES][POUR_TYPAGE] = false;
     }
 
     diagnostique.toutes_les_déclarations_à_typer_le_sont = true;
     return true;
 }
 
-bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
+bool Programme::ri_générées(DiagnostiqueÉtatCompilation &diagnostique) const
 {
-    if (!typages_termines(diagnostique)) {
+    if (!typages_terminés(diagnostique)) {
         return false;
     }
 
     using dls::outils::est_element;
 
-    if (elements_sont_sales[FONCTIONS][POUR_RI]) {
+    if (m_éléments_sont_sales[FONCTIONS][POUR_RI]) {
         POUR (m_fonctions) {
             if (!it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE) &&
                 !est_element(it->ident,
@@ -210,20 +210,20 @@ bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
                 return false;
             }
         }
-        elements_sont_sales[FONCTIONS][POUR_RI] = false;
+        m_éléments_sont_sales[FONCTIONS][POUR_RI] = false;
     }
 
-    if (elements_sont_sales[GLOBALES][POUR_RI]) {
+    if (m_éléments_sont_sales[GLOBALES][POUR_RI]) {
         POUR (m_globales) {
             if (!it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
                 diagnostique.ri_déclaration_à_générer = it;
                 return false;
             }
         }
-        elements_sont_sales[GLOBALES][POUR_RI] = false;
+        m_éléments_sont_sales[GLOBALES][POUR_RI] = false;
     }
 
-    if (elements_sont_sales[TYPES][POUR_RI]) {
+    if (m_éléments_sont_sales[TYPES][POUR_RI]) {
         POUR (m_types) {
             if (!requiers_fonction_initialisation(it)) {
                 continue;
@@ -240,14 +240,14 @@ bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
                 return false;
             }
         }
-        elements_sont_sales[TYPES][POUR_RI] = false;
+        m_éléments_sont_sales[TYPES][POUR_RI] = false;
     }
 
     diagnostique.toutes_les_ri_sont_generees = true;
     return true;
 }
 
-bool Programme::ri_generees() const
+bool Programme::ri_générées() const
 {
     auto diagnostic = diagnostique_compilation();
     return diagnostic.toutes_les_ri_sont_generees;
@@ -256,47 +256,47 @@ bool Programme::ri_generees() const
 DiagnostiqueÉtatCompilation Programme::diagnostique_compilation() const
 {
     DiagnostiqueÉtatCompilation diagnostique{};
-    verifie_etat_compilation_fichier(diagnostique);
-    ri_generees(diagnostique);
+    verifie_état_compilation_fichier(diagnostique);
+    ri_générées(diagnostique);
     return diagnostique;
 }
 
-ÉtatCompilation Programme::ajourne_etat_compilation()
+ÉtatCompilation Programme::ajourne_état_compilation()
 {
     auto diagnostic = diagnostique_compilation();
 
     // À FAIRE(gestion) : ceci n'est que pour les métaprogrammes
-    m_etat_compilation.essaie_d_aller_à(PhaseCompilation::PARSAGE_EN_COURS);
-    m_etat_compilation.essaie_d_aller_à(PhaseCompilation::PARSAGE_TERMINÉ);
+    m_état_compilation.essaie_d_aller_à(PhaseCompilation::PARSAGE_EN_COURS);
+    m_état_compilation.essaie_d_aller_à(PhaseCompilation::PARSAGE_TERMINÉ);
 
     if (diagnostic.toutes_les_déclarations_à_typer_le_sont) {
-        m_etat_compilation.essaie_d_aller_à(PhaseCompilation::TYPAGE_TERMINÉ);
+        m_état_compilation.essaie_d_aller_à(PhaseCompilation::TYPAGE_TERMINÉ);
     }
 
     if (diagnostic.toutes_les_ri_sont_generees) {
-        m_etat_compilation.essaie_d_aller_à(PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE);
+        m_état_compilation.essaie_d_aller_à(PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE);
     }
 
-    return m_etat_compilation;
+    return m_état_compilation;
 }
 
 void Programme::change_de_phase(PhaseCompilation phase)
 {
-    m_etat_compilation.essaie_d_aller_à(phase);
+    m_état_compilation.essaie_d_aller_à(phase);
 }
 
-int64_t Programme::memoire_utilisee() const
+int64_t Programme::mémoire_utilisée() const
 {
     auto memoire = int64_t(0);
     memoire += fonctions().taille_mémoire();
     memoire += types().taille_mémoire();
     memoire += globales().taille_mémoire();
-    memoire += m_fonctions_utilisees.taille_mémoire();
-    memoire += m_types_utilises.taille_mémoire();
-    memoire += m_globales_utilisees.taille_mémoire();
+    memoire += m_fonctions_utilisées.taille_mémoire();
+    memoire += m_types_utilisés.taille_mémoire();
+    memoire += m_globales_utilisées.taille_mémoire();
     memoire += taille_de(Coulisse);
     memoire += m_fichiers.taille_mémoire();
-    memoire += m_fichiers_utilises.taille_mémoire();
+    memoire += m_fichiers_utilisés.taille_mémoire();
     memoire += m_dépendances_manquantes.taille_mémoire();
     return memoire;
 }
@@ -308,7 +308,7 @@ void Programme::rassemble_statistiques(Statistiques &stats)
     }
 }
 
-kuri::ensemble<Module *> Programme::modules_utilises() const
+kuri::ensemble<Module *> Programme::modules_utilisés() const
 {
     kuri::ensemble<Module *> modules;
     POUR (m_fichiers) {
@@ -368,7 +368,7 @@ kuri::chemin_systeme Programme::donne_chemin_pour_fichier_ri() const
     return kuri::chemin_systeme::chemin_temporaire(nom_fichier);
 }
 
-void Programme::verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &diagnostique) const
+void Programme::verifie_état_compilation_fichier(DiagnostiqueÉtatCompilation &diagnostique) const
 {
     diagnostique.tous_les_fichiers_sont_chargés = true;
     diagnostique.tous_les_fichiers_sont_lexés = true;
@@ -397,12 +397,12 @@ void Programme::verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &d
 
 void Programme::ajoute_fichier(Fichier *fichier)
 {
-    if (m_fichiers_utilises.possède(fichier)) {
+    if (m_fichiers_utilisés.possède(fichier)) {
         return;
     }
 
     m_fichiers.ajoute(fichier);
-    m_fichiers_utilises.insère(fichier);
+    m_fichiers_utilisés.insère(fichier);
     m_fichiers_sont_sales = true;
 }
 
