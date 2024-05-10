@@ -173,6 +173,36 @@ static Qt::CursorShape convertis_forme_curseur(QT_CursorShape cursor)
     return Qt::ArrowCursor;
 }
 
+static Qt::Orientation convertis_orientation(QT_Orientation orientation)
+{
+    switch (orientation) {
+        case QT_ORIENTATION_HORIZONTALE:
+        {
+            return Qt::Horizontal;
+        }
+        case QT_ORIENTATION_VERTICALE:
+        {
+            return Qt::Vertical;
+        }
+    }
+    return Qt::Horizontal;
+}
+
+static QT_Orientation convertis_orientation(Qt::Orientation orientation)
+{
+    switch (orientation) {
+        case Qt::Horizontal:
+        {
+            return QT_ORIENTATION_HORIZONTALE;
+        }
+        case Qt::Vertical:
+        {
+            return QT_ORIENTATION_VERTICALE;
+        }
+    }
+    return QT_ORIENTATION_HORIZONTALE;
+}
+
 extern "C" {
 
 /* ------------------------------------------------------------------------- */
@@ -1219,21 +1249,10 @@ QT_Splitter *QT_cree_splitter()
     return vers_ipa(new QSplitter());
 }
 
-void QT_splitter_definis_orientation(QT_Splitter *splitter, QT_Orientation_Splitter orientation)
+void QT_splitter_definis_orientation(QT_Splitter *splitter, QT_Orientation orientation)
 {
     auto qsplitter = vers_qt(splitter);
-    switch (orientation) {
-        case QT_ORIENTATION_SPLITTER_HORIZONTALE:
-        {
-            qsplitter->setOrientation(Qt::Horizontal);
-            break;
-        }
-        case QT_ORIENTATION_SPLITTER_VERTICALE:
-        {
-            qsplitter->setOrientation(Qt::Vertical);
-            break;
-        }
-    }
+    qsplitter->setOrientation(convertis_orientation(orientation));
 }
 
 void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Widget widget)

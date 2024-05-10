@@ -1305,14 +1305,14 @@ struct QT_Chaine QT_combobox_donne_valeur_courante_chaine(struct QT_ComboBox *co
 /** \name QT_Splitter
  * \{ */
 
-enum QT_Orientation_Splitter {
-    QT_ORIENTATION_SPLITTER_HORIZONTALE,
-    QT_ORIENTATION_SPLITTER_VERTICALE,
+enum QT_Orientation {
+    QT_ORIENTATION_HORIZONTALE,
+    QT_ORIENTATION_VERTICALE,
 };
 
 struct QT_Splitter *QT_cree_splitter();
 void QT_splitter_definis_orientation(struct QT_Splitter *splitter,
-                                     enum QT_Orientation_Splitter orientation);
+                                     enum QT_Orientation orientation);
 void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Widget widget);
 
 /** \} */
