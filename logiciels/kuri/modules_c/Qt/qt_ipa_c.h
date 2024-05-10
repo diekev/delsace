@@ -1268,7 +1268,13 @@ struct QT_FormLayout *QT_cree_form_layout(union QT_Generic_Widget parent);
 struct QT_GridLayout *QT_cree_grid_layout(union QT_Generic_Widget parent);
 void QT_layout_definis_marge(union QT_Generic_Layout layout, int taille);
 void QT_layout_ajoute_widget(union QT_Generic_Layout layout, union QT_Generic_Widget widget);
+bool QT_layout_aligne_widget(union QT_Generic_Layout layout,
+                             union QT_Generic_Widget widget,
+                             enum QT_Alignment alignement);
 void QT_layout_ajoute_layout(union QT_Generic_Layout layout, union QT_Generic_Layout sous_layout);
+bool QT_layout_aligne_layout(union QT_Generic_Layout layout,
+                             union QT_Generic_Layout sous_layout,
+                             enum QT_Alignment alignement);
 
 void QT_form_layout_ajoute_ligne_chaine(struct QT_FormLayout *layout,
                                         struct QT_Chaine label,

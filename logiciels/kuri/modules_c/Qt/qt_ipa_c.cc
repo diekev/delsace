@@ -1116,6 +1116,15 @@ void QT_layout_ajoute_widget(QT_Generic_Layout layout, QT_Generic_Widget widget)
     qlayout->addWidget(qwidget);
 }
 
+bool QT_layout_aligne_widget(QT_Generic_Layout layout,
+                             QT_Generic_Widget widget,
+                             QT_Alignment alignement)
+{
+    auto qlayout = vers_qt(layout);
+    auto qwidget = vers_qt(widget);
+    return qlayout->setAlignment(qwidget, convertis_alignement(alignement));
+}
+
 void QT_layout_ajoute_layout(QT_Generic_Layout layout, QT_Generic_Layout sous_layout)
 {
     auto qlayout = vers_qt(layout);
@@ -1127,6 +1136,15 @@ void QT_layout_ajoute_layout(QT_Generic_Layout layout, QT_Generic_Layout sous_la
     else if (auto vbox = dynamic_cast<QVBoxLayout *>(qlayout)) {
         vbox->addLayout(qsous_layout);
     }
+}
+
+bool QT_layout_aligne_layout(QT_Generic_Layout layout,
+                             QT_Generic_Layout sous_layout,
+                             QT_Alignment alignement)
+{
+    auto qlayout = vers_qt(layout);
+    auto qsous_layout = vers_qt(sous_layout);
+    return qlayout->setAlignment(qsous_layout, convertis_alignement(alignement));
 }
 
 void QT_form_layout_ajoute_ligne_chaine(QT_FormLayout *layout,
