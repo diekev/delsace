@@ -158,7 +158,8 @@ struct QT_Rappel_Generique {
     O(QStatusBar, QT_StatusBar, status_bar)                                                       \
     O(QMenu, QT_Menu, menu)                                                                       \
     O(QMenuBar, QT_MenuBar, menu_bar)                                                             \
-    O(QToolBar, QT_ToolBar, tool_bar)
+    O(QToolBar, QT_ToolBar, tool_bar)                                                             \
+    O(QTableView, QT_TableView, table_view)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -1876,6 +1877,106 @@ struct DNJ_Rappels_Pilote_Clique {
                                     struct QT_Chaine);
     void (*sur_clique)(struct DNJ_Rappels_Pilote_Clique *, struct QT_Chaine, struct QT_Chaine);
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Variant
+ * \{ */
+
+#define ENUMERE_TYPE_STANDARD(O)                                                                  \
+    O(z8, int8_t)                                                                                 \
+    O(z16, int16_t)                                                                               \
+    O(z32, int32_t)                                                                               \
+    O(z64, int64_t)                                                                               \
+    O(n8, uint8_t)                                                                                \
+    O(n16, uint16_t)                                                                              \
+    O(n32, uint32_t)                                                                              \
+    O(n64, uint64_t)                                                                              \
+    O(r32, float)                                                                                 \
+    O(r64, double)                                                                                \
+    O(bool, bool)
+
+struct QT_Variant {
+    void (*definis_chaine)(struct QT_Variant *, struct QT_Chaine);
+
+#define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
+    void (*definis_##type_kuri)(struct QT_Variant *, type_cpp);
+    ENUMERE_TYPE_STANDARD(ENUMERE_RAPPEL_TYPE_STANDARD)
+#undef ENUMERE_RAPPEL_TYPE_STANDARD
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Item_Data_Role
+ * \{ */
+
+#define ENUMERE_ITEM_DATA_ROLE(O)                                                                 \
+    O(QT_ITEM_DATA_ROLE_Display, Qt::DisplayRole)                                                 \
+    O(QT_ITEM_DATA_ROLE_Decoration, Qt::DecorationRole)                                           \
+    O(QT_ITEM_DATA_ROLE_Edit, Qt::EditRole)                                                       \
+    O(QT_ITEM_DATA_ROLE_ToolTip, Qt::ToolTipRole)                                                 \
+    O(QT_ITEM_DATA_ROLE_StatusTip, Qt::StatusTipRole)                                             \
+    O(QT_ITEM_DATA_ROLE_WhatsThis, Qt::WhatsThisRole)                                             \
+    O(QT_ITEM_DATA_ROLE_Font, Qt::FontRole)                                                       \
+    O(QT_ITEM_DATA_ROLE_TextAlignment, Qt::TextAlignmentRole)                                     \
+    O(QT_ITEM_DATA_ROLE_Background, Qt::BackgroundRole)                                           \
+    O(QT_ITEM_DATA_ROLE_Foreground, Qt::ForegroundRole)                                           \
+    O(QT_ITEM_DATA_ROLE_CheckState, Qt::CheckStateRole)                                           \
+    O(QT_ITEM_DATA_ROLE_AccessibleText, Qt::AccessibleTextRole)                                   \
+    O(QT_ITEM_DATA_ROLE_AccessibleDescription, Qt::AccessibleDescriptionRole)                     \
+    O(QT_ITEM_DATA_ROLE_SizeHint, Qt::SizeHintRole)                                               \
+    O(QT_ITEM_DATA_ROLE_InitialSortOrder, Qt::InitialSortOrderRole)                               \
+    O(QT_ITEM_DATA_ROLE_DisplayProperty, Qt::DisplayPropertyRole)                                 \
+    O(QT_ITEM_DATA_ROLE_DecorationProperty, Qt::DecorationPropertyRole)                           \
+    O(QT_ITEM_DATA_ROLE_ToolTipProperty, Qt::ToolTipPropertyRole)                                 \
+    O(QT_ITEM_DATA_ROLE_StatusTipProperty, Qt::StatusTipPropertyRole)                             \
+    O(QT_ITEM_DATA_ROLE_WhatsThisProperty, Qt::WhatsThisPropertyRole)                             \
+    O(QT_ITEM_DATA_ROLE_UserRole, Qt::UserRole)
+
+enum QT_Item_Data_Role { ENUMERE_ITEM_DATA_ROLE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ModelIndex
+ * \{ */
+
+struct QT_ModelIndex {
+    bool est_valide;
+    int colonne;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TableModel
+ * \{ */
+
+struct QT_Rappels_TableModel {
+    int (*donne_nombre_lignes)(struct QT_Rappels_TableModel *, struct QT_ModelIndex *);
+    int (*donne_nombre_colonnes)(struct QT_Rappels_TableModel *, struct QT_ModelIndex *);
+    void (*donne_donnee_entete)(struct QT_Rappels_TableModel *,
+                                int,
+                                enum QT_Orientation,
+                                enum QT_Item_Data_Role,
+                                struct QT_Variant *);
+    void (*donne_donnee_cellule)(struct QT_Rappels_TableModel *,
+                                 struct QT_ModelIndex *,
+                                 enum QT_Item_Data_Role,
+                                 struct QT_Variant *);
+    void (*sur_destruction)(struct QT_Rappels_TableModel *);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TableView
+ * \{ */
+
+struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
+void QT_table_view_definis_model(struct QT_TableView *view, struct QT_Rappels_TableModel *rappels);
 
 /** \} */
 

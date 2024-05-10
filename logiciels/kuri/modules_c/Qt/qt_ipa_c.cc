@@ -29,6 +29,7 @@
 #include <QSettings>
 #include <QSplitter>
 #include <QStatusBar>
+#include <QTableView>
 #include <QTimer>
 #include <QToolTip>
 #if defined(__GNUC__)
@@ -202,6 +203,22 @@ static QT_Orientation convertis_orientation(Qt::Orientation orientation)
     }
     return QT_ORIENTATION_HORIZONTALE;
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ModelIndex
+ * \{ */
+
+static QT_ModelIndex vers_ipa(const QModelIndex &model)
+{
+    auto résultat = QT_ModelIndex{};
+    résultat.est_valide = model.isValid();
+    if (résultat.est_valide) {
+        résultat.colonne = model.column();
+    }
+    return résultat;
+}
+
+/** \} */
 
 extern "C" {
 
@@ -2130,6 +2147,152 @@ void QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view,
     if (r_point) {
         *r_point = QT_Point{résultat.x(), résultat.y()};
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Variant
+ * \{ */
+
+class EnveloppeVariant : public QT_Variant {
+    QVariant m_variant{};
+
+    static void sur_définis_chaine(QT_Variant *variant, QT_Chaine chaine)
+    {
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);
+        enveloppe->m_variant = QString(chaine.vers_std_string().c_str());
+    }
+
+#define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
+    static void sur_définis_##type_kuri(struct QT_Variant *variant, type_cpp valeur)              \
+    {                                                                                             \
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);                                \
+        enveloppe->m_variant.setValue(valeur);                                                    \
+    }
+
+    ENUMERE_TYPE_STANDARD(ENUMERE_RAPPEL_TYPE_STANDARD)
+#undef ENUMERE_RAPPEL_TYPE_STANDARD
+
+  public:
+    EnveloppeVariant()
+    {
+        definis_chaine = sur_définis_chaine;
+#define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
+    definis_##type_kuri = sur_définis_##type_kuri;
+        ENUMERE_TYPE_STANDARD(ENUMERE_RAPPEL_TYPE_STANDARD)
+#undef ENUMERE_RAPPEL_TYPE_STANDARD
+    }
+
+    QVariant donne_variant() const
+    {
+        return m_variant;
+    }
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Item_Data_Role
+ * \{ */
+
+static QT_Item_Data_Role convertis_role(Qt::ItemDataRole role)
+{
+    switch (role) {
+        ENUMERE_ITEM_DATA_ROLE(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+    }
+
+    return QT_ITEM_DATA_ROLE_Display;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TableModel
+ * \{ */
+
+class ModèleTable final : public QAbstractTableModel {
+    QT_Rappels_TableModel *m_rappels = nullptr;
+
+  public:
+    ModèleTable(QT_Rappels_TableModel *rappels) : m_rappels(rappels)
+    {
+    }
+
+    EMPECHE_COPIE(ModèleTable);
+
+    ~ModèleTable() override
+    {
+        if (m_rappels && m_rappels->sur_destruction) {
+            m_rappels->sur_destruction(m_rappels);
+        }
+    }
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override
+    {
+        if (m_rappels && m_rappels->donne_nombre_lignes) {
+            auto model = vers_ipa(parent);
+            return m_rappels->donne_nombre_lignes(m_rappels, &model);
+        }
+        return 0;
+    }
+
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override
+    {
+        if (m_rappels && m_rappels->donne_nombre_colonnes) {
+            auto model = vers_ipa(parent);
+            return m_rappels->donne_nombre_colonnes(m_rappels, &model);
+        }
+        return 0;
+    }
+
+    QVariant headerData(int section,
+                        Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const override
+    {
+        if (!m_rappels || !m_rappels->donne_donnee_entete) {
+            return {};
+        }
+
+        auto enveloppe_variant = EnveloppeVariant();
+        m_rappels->donne_donnee_entete(m_rappels,
+                                       section,
+                                       convertis_orientation(orientation),
+                                       convertis_role(Qt::ItemDataRole(role)),
+                                       &enveloppe_variant);
+        return enveloppe_variant.donne_variant();
+    }
+
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
+    {
+        if (!m_rappels || !m_rappels->donne_donnee_cellule) {
+            return {};
+        }
+
+        auto enveloppe_variant = EnveloppeVariant();
+        auto model = vers_ipa(index);
+        m_rappels->donne_donnee_cellule(
+            m_rappels, &model, convertis_role(Qt::ItemDataRole(role)), &enveloppe_variant);
+        return enveloppe_variant.donne_variant();
+    }
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TableView
+ * \{ */
+
+QT_TableView *QT_cree_table_view(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QTableView(qparent));
+}
+
+void QT_table_view_definis_model(QT_TableView *view, QT_Rappels_TableModel *rappels)
+{
+    VERS_QT(view);
+    qview->setModel(new ModèleTable(rappels));
 }
 
 /** \} */
