@@ -2314,9 +2314,16 @@ QT_TableView *QT_cree_table_view(QT_Generic_Widget parent)
     return vers_ipa(new QTableView(qparent));
 }
 
-void QT_table_view_definis_model(QT_TableView *view, QT_Rappels_TableModel *rappels)
+void QT_table_view_definis_model(QT_TableView *view,
+                                 QT_Rappels_TableModel *rappels,
+                                 bool detruit_model_existant)
 {
     VERS_QT(view);
+    if (detruit_model_existant) {
+        auto model = qview->model();
+        delete model;
+    }
+
     qview->setModel(new ModèleTable(rappels));
 }
 

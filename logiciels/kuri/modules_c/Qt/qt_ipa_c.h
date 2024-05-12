@@ -1984,7 +1984,9 @@ struct QT_Rappels_TableModel {
  * \{ */
 
 struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
-void QT_table_view_definis_model(struct QT_TableView *view, struct QT_Rappels_TableModel *rappels);
+void QT_table_view_definis_model(struct QT_TableView *view,
+                                 struct QT_Rappels_TableModel *rappels,
+                                 bool detruit_model_existant);
 
 /** \} */
 
