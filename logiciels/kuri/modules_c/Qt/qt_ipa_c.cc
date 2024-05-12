@@ -553,6 +553,39 @@ void QT_settings_ecris_liste_chaine(QT_Settings *settings,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Action
+ * \{ */
+
+QT_Action *QT_cree_action(QT_Chaine texte, QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QAction(texte.vers_std_string().c_str(), qparent));
+}
+
+void QT_action_definis_donnee_z32(QT_Action *action, int donnee)
+{
+    VERS_QT(action);
+    qaction->setData(QVariant(donnee));
+}
+
+int QT_action_donne_donnee_z32(QT_Action *action)
+{
+    VERS_QT(action);
+    return qaction->data().toInt();
+}
+
+void QT_action_sur_declenchage(QT_Action *action, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+    VERS_QT(action);
+    QObject::connect(qaction, &QAction::triggered, [=]() { rappel->sur_rappel(rappel); });
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Color
  * \{ */
 
@@ -1063,6 +1096,13 @@ void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos)
 {
     VERS_QT(menu);
     qmenu->popup(QPoint(pos.x, pos.y));
+}
+
+void QT_menu_ajoute_action(QT_Menu *menu, QT_Action *action)
+{
+    VERS_QT(menu);
+    VERS_QT(action);
+    qmenu->addAction(qaction);
 }
 
 /** \} */

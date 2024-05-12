@@ -185,7 +185,8 @@ union QT_Generic_Widget {
     O(QStyle, QT_Style, style)                                                                    \
     O(QScreen, QT_Screen, screen)                                                                 \
     O(QGraphicsScene, QT_GraphicsScene, graphics_scene)                                           \
-    O(QSettings, QT_Settings, settings)
+    O(QSettings, QT_Settings, settings)                                                           \
+    O(QAction, QT_Action, action)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -444,6 +445,17 @@ void QT_settings_ecris_liste_chaine(struct QT_Settings *settings,
                                     struct QT_Chaine nom_paramètre,
                                     struct QT_Chaine *liste,
                                     int64_t taille_liste);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Action
+ * \{ */
+
+struct QT_Action *QT_cree_action(struct QT_Chaine texte, union QT_Generic_Object parent);
+void QT_action_definis_donnee_z32(struct QT_Action *action, int donnee);
+int QT_action_donne_donnee_z32(struct QT_Action *action);
+void QT_action_sur_declenchage(struct QT_Action *action, struct QT_Rappel_Generique *rappel);
 
 /** \} */
 
@@ -1236,6 +1248,7 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, struct QT_Menu *menu);
 
 void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
 void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
+void QT_menu_ajoute_action(struct QT_Menu *menu, struct QT_Action *action);
 
 /** \} */
 
