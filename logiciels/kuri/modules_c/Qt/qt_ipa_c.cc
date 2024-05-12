@@ -255,7 +255,7 @@ void QT_object_definis_propriete_chaine(QT_Generic_Object object,
                          QString(valeur->vers_std_string().c_str()));
 }
 
-bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon)
+bool QT_object_bloque_signaux(QT_Generic_Object object, bool ouinon)
 {
     auto qobject = vers_qt(object);
     return qobject->blockSignals(ouinon);
@@ -288,14 +288,13 @@ QT_Fenetre_Principale *QT_cree_fenetre_principale(QT_Rappels_Fenetre_Principale 
     return vers_ipa(résultat);
 }
 
-void QT_detruit_fenetre_principale(struct QT_Fenetre_Principale *fenetre)
+void QT_detruit_fenetre_principale(QT_Fenetre_Principale *fenetre)
 {
     auto fenêtre_qt = vers_qt(fenetre);
     delete fenêtre_qt;
 }
 
-void QT_fenetre_principale_definis_titre_fenetre(QT_Fenetre_Principale *fenetre,
-                                                 struct QT_Chaine nom)
+void QT_fenetre_principale_definis_titre_fenetre(QT_Fenetre_Principale *fenetre, QT_Chaine nom)
 {
     auto fenêtre_qt = vers_qt(fenetre);
     fenêtre_qt->setWindowTitle(nom.vers_std_string().c_str());
@@ -348,7 +347,7 @@ QT_Application *QT_cree_application(int *argc, char **argv)
     return reinterpret_cast<QT_Application *>(résultat);
 }
 
-void QT_detruit_application(struct QT_Application *app)
+void QT_detruit_application(QT_Application *app)
 {
     auto app_qt = reinterpret_cast<QApplication *>(app);
     delete app_qt;
@@ -360,12 +359,12 @@ int QT_application_exec(QT_Application *app)
     return app_qt->exec();
 }
 
-void QT_core_application_definis_nom_organisation(struct QT_Chaine nom)
+void QT_core_application_definis_nom_organisation(QT_Chaine nom)
 {
     QCoreApplication::setOrganizationName(nom.vers_std_string().c_str());
 }
 
-void QT_core_application_definis_nom_application(struct QT_Chaine nom)
+void QT_core_application_definis_nom_application(QT_Chaine nom)
 {
     QCoreApplication::setApplicationName(nom.vers_std_string().c_str());
 }
@@ -375,14 +374,14 @@ QT_Application *QT_donne_application()
     return reinterpret_cast<QT_Application *>(qApp);
 }
 
-void QT_application_poste_evenement(union QT_Generic_Object receveur, int type_evenement)
+void QT_application_poste_evenement(QT_Generic_Object receveur, int type_evenement)
 {
     auto qreceveur = vers_qt(receveur);
     auto event = new QEvent(QEvent::Type(type_evenement));
     QCoreApplication::postEvent(qreceveur, event);
 }
 
-void QT_application_poste_evenement_et_donnees(union QT_Generic_Object receveur,
+void QT_application_poste_evenement_et_donnees(QT_Generic_Object receveur,
                                                int type_evenement,
                                                void *donnees)
 {
@@ -636,7 +635,7 @@ int QT_enregistre_evenement_personnel()
     return QEvent::registerEventType();
 }
 
-void *QT_event_perso_donne_donnees(struct QT_Evenement *event)
+void *QT_event_perso_donne_donnees(QT_Evenement *event)
 {
     auto qevent = reinterpret_cast<EvenementPerso *>(event);
     return qevent->donne_données();
@@ -830,25 +829,25 @@ void QT_widget_remplace_layout(QT_Generic_Widget widget, QT_Generic_Layout layou
     }
 }
 
-void QT_widget_affiche_maximisee(union QT_Generic_Widget widget)
+void QT_widget_affiche_maximisee(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
     qwidget->showMaximized();
 }
 
-void QT_widget_affiche_minimisee(union QT_Generic_Widget widget)
+void QT_widget_affiche_minimisee(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
     qwidget->showMinimized();
 }
 
-void QT_widget_affiche_normal(union QT_Generic_Widget widget)
+void QT_widget_affiche_normal(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
     qwidget->showNormal();
 }
 
-void QT_widget_affiche_plein_ecran(union QT_Generic_Widget widget)
+void QT_widget_affiche_plein_ecran(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
     qwidget->showFullScreen();
@@ -896,13 +895,13 @@ void QT_widget_cache(QT_Generic_Widget widget)
     qwidget->hide();
 }
 
-void QT_widget_definis_visible(union QT_Generic_Widget widget, bool ouinon)
+void QT_widget_definis_visible(QT_Generic_Widget widget, bool ouinon)
 {
     auto qwidget = vers_qt(widget);
     qwidget->setVisible(ouinon);
 }
 
-void QT_widget_definis_actif(union QT_Generic_Widget widget, bool ouinon)
+void QT_widget_definis_actif(QT_Generic_Widget widget, bool ouinon)
 {
     auto qwidget = vers_qt(widget);
     qwidget->setEnabled(ouinon);
@@ -944,7 +943,7 @@ void QT_widget_ajourne(QT_Generic_Widget widget)
     qwidget->update();
 }
 
-void QT_widget_definis_trackage_souris(union QT_Generic_Widget widget, bool ouinon)
+void QT_widget_definis_trackage_souris(QT_Generic_Widget widget, bool ouinon)
 {
     auto qwidget = vers_qt(widget);
     qwidget->setMouseTracking(ouinon);
@@ -1069,7 +1068,7 @@ void QT_status_bar_ajoute_widget(QT_StatusBar *status_bar, QT_Generic_Widget wid
 /** \name QT_MenuBar
  * \{ */
 
-void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, QT_Menu *menu)
+void QT_menu_bar_ajoute_menu(QT_MenuBar *menu_bar, QT_Menu *menu)
 {
     auto qmenu_bar = vers_qt(menu_bar);
     auto qmenu = vers_qt(menu);
@@ -1092,7 +1091,7 @@ void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rap
     QObject::connect(qmenu, &QMenu::aboutToShow, [=]() { rappel->sur_rappel(rappel); });
 }
 
-void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos)
+void QT_menu_popup(QT_Menu *menu, QT_Point pos)
 {
     VERS_QT(menu);
     qmenu->popup(QPoint(pos.x, pos.y));
@@ -1126,19 +1125,19 @@ static Qt::AlignmentFlag convertis_alignement(QT_Alignment alignment)
 /** \name QT_Layout
  * \{ */
 
-QT_HBoxLayout *QT_cree_hbox_layout(union QT_Generic_Widget parent)
+QT_HBoxLayout *QT_cree_hbox_layout(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new QHBoxLayout(qparent));
 }
 
-QT_VBoxLayout *QT_cree_vbox_layout(union QT_Generic_Widget parent)
+QT_VBoxLayout *QT_cree_vbox_layout(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new QVBoxLayout(qparent));
 }
 
-QT_FormLayout *QT_cree_form_layout(union QT_Generic_Widget parent)
+QT_FormLayout *QT_cree_form_layout(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new QFormLayout(qparent));
@@ -1261,7 +1260,7 @@ QT_ComboBox *QT_cree_combobox(QT_Generic_Widget parent)
     return vers_ipa(résultat);
 }
 
-void QT_combobox_reinitialise(struct QT_ComboBox *combo)
+void QT_combobox_reinitialise(QT_ComboBox *combo)
 {
     auto qcombo = vers_qt(combo);
     qcombo->clear();
@@ -1337,7 +1336,7 @@ void QT_splitter_definis_orientation(QT_Splitter *splitter, QT_Orientation orien
     qsplitter->setOrientation(convertis_orientation(orientation));
 }
 
-void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Widget widget)
+void QT_splitter_ajoute_widget(QT_Splitter *splitter, QT_Generic_Widget widget)
 {
     auto qsplitter = vers_qt(splitter);
     auto qwidget = vers_qt(widget);
@@ -1350,8 +1349,7 @@ void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Wi
 /** \name QT_TabWidget
  * \{ */
 
-struct QT_TabWidget *QT_cree_tab_widget(struct QT_Rappels_TabWidget *rappels,
-                                        union QT_Generic_Widget parent)
+QT_TabWidget *QT_cree_tab_widget(QT_Rappels_TabWidget *rappels, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new TabWidget(rappels, qparent));
@@ -1366,41 +1364,39 @@ QT_Rappels_TabWidget *QT_tab_widget_donne_rappels(QT_TabWidget *tab)
     return nullptr;
 }
 
-void QT_tab_widget_definis_tabs_fermable(struct QT_TabWidget *tab_widget, int fermable)
+void QT_tab_widget_definis_tabs_fermable(QT_TabWidget *tab_widget, int fermable)
 {
     auto qtab_widget = vers_qt(tab_widget);
     qtab_widget->setTabsClosable(bool(fermable));
 }
 
-void QT_tab_widget_widget_de_coin(struct QT_TabWidget *tab_widget, union QT_Generic_Widget widget)
+void QT_tab_widget_widget_de_coin(QT_TabWidget *tab_widget, QT_Generic_Widget widget)
 {
     auto qtab_widget = vers_qt(tab_widget);
     auto qwidget = vers_qt(widget);
     qtab_widget->setCornerWidget(qwidget);
 }
 
-void QT_tab_widget_ajoute_tab(struct QT_TabWidget *tab_widget,
-                              union QT_Generic_Widget widget,
-                              struct QT_Chaine *nom)
+void QT_tab_widget_ajoute_tab(QT_TabWidget *tab_widget, QT_Generic_Widget widget, QT_Chaine *nom)
 {
     auto qtab_widget = vers_qt(tab_widget);
     auto qwidget = vers_qt(widget);
     qtab_widget->addTab(qwidget, nom->vers_std_string().c_str());
 }
 
-void QT_tab_widget_supprime_tab(struct QT_TabWidget *tab_widget, int index)
+void QT_tab_widget_supprime_tab(QT_TabWidget *tab_widget, int index)
 {
     auto qtab_widget = vers_qt(tab_widget);
     qtab_widget->removeTab(index);
 }
 
-void QT_tab_widget_definis_index_courant(struct QT_TabWidget *tab_widget, int index)
+void QT_tab_widget_definis_index_courant(QT_TabWidget *tab_widget, int index)
 {
     auto qtab_widget = vers_qt(tab_widget);
     qtab_widget->setCurrentIndex(index);
 }
 
-int QT_tab_widget_donne_compte_tabs(struct QT_TabWidget *tab_widget)
+int QT_tab_widget_donne_compte_tabs(QT_TabWidget *tab_widget)
 {
     auto qtab_widget = vers_qt(tab_widget);
     return qtab_widget->count();
@@ -1538,7 +1534,7 @@ QT_LineEdit *QT_cree_line_edit(QT_Generic_Widget parent)
     return vers_ipa(new QLineEdit(qparent));
 }
 
-void QT_line_edit_definis_texte(struct QT_LineEdit *line_edit, struct QT_Chaine texte)
+void QT_line_edit_definis_texte(QT_LineEdit *line_edit, QT_Chaine texte)
 {
     auto qline = vers_qt(line_edit);
     qline->setText(texte.vers_std_string().c_str());
@@ -1969,19 +1965,19 @@ static QFrame::Shape convertis_forme_frame(QT_Frame_Shape forme)
     return QFrame::NoFrame;
 }
 
-struct QT_Frame *QT_cree_frame(union QT_Generic_Widget parent)
+QT_Frame *QT_cree_frame(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new QFrame(qparent));
 }
 
-void QT_frame_definis_forme(struct QT_Frame *frame, enum QT_Frame_Shape forme)
+void QT_frame_definis_forme(QT_Frame *frame, enum QT_Frame_Shape forme)
 {
     auto qframe = vers_qt(frame);
     qframe->setFrameShape(convertis_forme_frame(forme));
 }
 
-void QT_frame_definis_ombrage(struct QT_Frame *frame, enum QT_Frame_Shadow ombrage)
+void QT_frame_definis_ombrage(QT_Frame *frame, enum QT_Frame_Shadow ombrage)
 {
     auto qframe = vers_qt(frame);
     qframe->setFrameShadow(convertis_ombrage_frame(ombrage));
@@ -2066,14 +2062,14 @@ void QT_graphics_text_item_definis_couleur_defaut(QT_GraphicsTextItem *text_item
     qtext_item->setDefaultTextColor(qcolor);
 }
 
-struct QT_RectF QT_graphics_text_item_donne_rect(struct QT_GraphicsTextItem *item)
+QT_RectF QT_graphics_text_item_donne_rect(QT_GraphicsTextItem *item)
 {
     VERS_QT(item);
     auto rect = qitem->boundingRect();
     return vers_ipa(rect);
 }
 
-void QT_graphics_text_item_definis_position(struct QT_GraphicsTextItem *item, QT_PointF *pos)
+void QT_graphics_text_item_definis_position(QT_GraphicsTextItem *item, QT_PointF *pos)
 {
     VERS_QT(item);
     auto qpos = vers_qt(*pos);
@@ -2239,7 +2235,7 @@ class EnveloppeVariant : public QT_Variant {
     }
 
 #define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
-    static void sur_définis_##type_kuri(struct QT_Variant *variant, type_cpp valeur)              \
+    static void sur_définis_##type_kuri(QT_Variant *variant, type_cpp valeur)                     \
     {                                                                                             \
         auto enveloppe = static_cast<EnveloppeVariant *>(variant);                                \
         enveloppe->m_variant.setValue(valeur);                                                    \
@@ -2421,7 +2417,7 @@ QT_Layout *DNJ_conteneur_cree_interface(DNJ_Conteneur_Controles *conteneur)
 /** \name DNJ_Gestionnaire_Interface
  * \{ */
 
-static danjo::DonneesInterface convertis_contexte(struct DNJ_Contexte_Interface *context)
+static danjo::DonneesInterface convertis_contexte(DNJ_Contexte_Interface *context)
 {
     auto résultat = danjo::DonneesInterface();
     résultat.repondant_bouton = reinterpret_cast<PiloteClique *>(context->pilote_clique);
@@ -2444,8 +2440,8 @@ void DNJ_detruit_gestionnaire_interface(DNJ_Gestionnaire_Interface *gestionnaire
 }
 
 QT_Menu *DNJ_gestionaire_compile_menu_fichier(DNJ_Gestionnaire_Interface *gestionnaire,
-                                              struct DNJ_Contexte_Interface *context,
-                                              struct QT_Chaine chemin)
+                                              DNJ_Contexte_Interface *context,
+                                              QT_Chaine chemin)
 {
     if (!context) {
         return nullptr;
