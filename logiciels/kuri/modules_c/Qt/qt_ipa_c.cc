@@ -148,6 +148,19 @@ inline QPen vers_qt(QT_Pen pen)
     return résultat;
 }
 
+inline QString vers_qt(QT_Chaine const *chaine)
+{
+    if (!chaine) {
+        return "";
+    }
+    return chaine->vers_std_string().c_str();
+}
+
+inline QString vers_qt(QT_Chaine const chaine)
+{
+    return chaine.vers_std_string().c_str();
+}
+
 #define TRANSTYPAGE_WIDGETS(nom_qt, nom_classe, nom_union)                                        \
     inline nom_classe *vers_ipa(nom_qt *widget)                                                   \
     {                                                                                             \
@@ -229,7 +242,7 @@ extern "C" {
 
 QT_Pixmap *QT_cree_pixmap(QT_Chaine chemin)
 {
-    return vers_ipa(new QPixmap(QString(chemin.vers_std_string().c_str())));
+    return vers_ipa(new QPixmap(vers_qt(chemin)));
 }
 
 void QT_detruit_pixmap(QT_Pixmap *pixmap)
@@ -249,8 +262,7 @@ void QT_object_definis_propriete_chaine(QT_Generic_Object object,
                                         QT_Chaine *valeur)
 {
     auto qobject = vers_qt(object);
-    qobject->setProperty(nom->vers_std_string().c_str(),
-                         QString(valeur->vers_std_string().c_str()));
+    qobject->setProperty(nom->vers_std_string().c_str(), vers_qt(valeur));
 }
 
 bool QT_object_bloque_signaux(QT_Generic_Object object, bool ouinon)
@@ -295,7 +307,7 @@ void QT_detruit_fenetre_principale(QT_Fenetre_Principale *fenetre)
 void QT_fenetre_principale_definis_titre_fenetre(QT_Fenetre_Principale *fenetre, QT_Chaine nom)
 {
     auto fenêtre_qt = vers_qt(fenetre);
-    fenêtre_qt->setWindowTitle(nom.vers_std_string().c_str());
+    fenêtre_qt->setWindowTitle(vers_qt(nom));
 }
 
 void QT_fenetre_principale_definis_widget_central(QT_Fenetre_Principale *fenetre,
@@ -359,12 +371,12 @@ int QT_application_exec(QT_Application *app)
 
 void QT_core_application_definis_nom_organisation(QT_Chaine nom)
 {
-    QCoreApplication::setOrganizationName(nom.vers_std_string().c_str());
+    QCoreApplication::setOrganizationName(vers_qt(nom));
 }
 
 void QT_core_application_definis_nom_application(QT_Chaine nom)
 {
-    QCoreApplication::setApplicationName(nom.vers_std_string().c_str());
+    QCoreApplication::setApplicationName(vers_qt(nom));
 }
 
 QT_Application *QT_donne_application()
@@ -539,7 +551,7 @@ void QT_settings_ecris_liste_chaine(QT_Settings *settings,
 
     QStringList q_string_liste;
     for (auto i = 0; i < taille_liste; i++) {
-        q_string_liste.append(liste[i].vers_std_string().c_str());
+        q_string_liste.append(vers_qt(liste[i]));
     }
 
     auto qsettings = vers_qt(settings);
@@ -556,7 +568,7 @@ void QT_settings_ecris_liste_chaine(QT_Settings *settings,
 QT_Action *QT_cree_action(QT_Chaine texte, QT_Generic_Object parent)
 {
     VERS_QT(parent);
-    return vers_ipa(new QAction(texte.vers_std_string().c_str(), qparent));
+    return vers_ipa(new QAction(vers_qt(texte), qparent));
 }
 
 void QT_action_definis_donnee_z32(QT_Action *action, int donnee)
@@ -925,7 +937,7 @@ void QT_widget_copie_comportement_taille(QT_Generic_Widget widget, QT_Generic_Wi
 void QT_widget_definis_feuille_de_style(QT_Generic_Widget widget, QT_Chaine *texte)
 {
     auto qwidget = vers_qt(widget);
-    qwidget->setStyleSheet(texte->vers_std_string().c_str());
+    qwidget->setStyleSheet(vers_qt(texte));
 }
 
 void QT_widget_definis_style(QT_Generic_Widget widget, QT_Style *style)
@@ -1200,14 +1212,14 @@ void QT_form_layout_ajoute_ligne_chaine(QT_FormLayout *layout,
 
     if (qwidget) {
         if (label.taille != 0) {
-            qlayout->addRow(label.vers_std_string().c_str(), qwidget);
+            qlayout->addRow(vers_qt(label), qwidget);
         }
         else {
             qlayout->addRow(qwidget);
         }
     }
     else {
-        auto qlabel = new QLabel(label.vers_std_string().c_str());
+        auto qlabel = new QLabel(vers_qt(label));
         qlayout->addRow(qlabel);
     }
 }
@@ -1267,7 +1279,7 @@ void QT_combobox_reinitialise(QT_ComboBox *combo)
 void QT_combobox_ajoute_item(QT_ComboBox *combo, QT_Chaine texte, QT_Chaine valeur)
 {
     auto qcombo = vers_qt(combo);
-    qcombo->addItem(texte.vers_std_string().c_str(), QString(valeur.vers_std_string().c_str()));
+    qcombo->addItem(vers_qt(texte), vers_qt(valeur));
 }
 
 void QT_combobox_definis_index_courant(QT_ComboBox *combo, int index)
@@ -1379,7 +1391,7 @@ void QT_tab_widget_ajoute_tab(QT_TabWidget *tab_widget, QT_Generic_Widget widget
 {
     auto qtab_widget = vers_qt(tab_widget);
     auto qwidget = vers_qt(widget);
-    qtab_widget->addTab(qwidget, nom->vers_std_string().c_str());
+    qtab_widget->addTab(qwidget, vers_qt(nom));
 }
 
 void QT_tab_widget_supprime_tab(QT_TabWidget *tab_widget, int index)
@@ -1488,10 +1500,7 @@ void QT_checkbox_definis_coche(QT_CheckBox *checkbox, int coche)
 QT_Label *QT_cree_label(QT_Chaine *texte, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    QString qtexte;
-    if (texte) {
-        qtexte = texte->vers_std_string().c_str();
-    }
+    VERS_QT(texte);
     auto résultat = new QLabel(qtexte, qparent);
     return vers_ipa(résultat);
 }
@@ -1499,7 +1508,7 @@ QT_Label *QT_cree_label(QT_Chaine *texte, QT_Generic_Widget parent)
 void QT_label_definis_texte(QT_Label *label, QT_Chaine texte)
 {
     auto qlabel = vers_qt(label);
-    qlabel->setText(texte.vers_std_string().c_str());
+    qlabel->setText(vers_qt(texte));
 }
 
 void QT_label_definis_pixmap(QT_Label *label, QT_Pixmap *pixmap, QT_Taille taille)
@@ -1517,7 +1526,7 @@ void QT_label_definis_pixmap(QT_Label *label, QT_Pixmap *pixmap, QT_Taille taill
 
 void QT_tooltip_montre_texte(QT_Point point, QT_Chaine texte)
 {
-    QToolTip::showText(QPoint(point.x, point.y), texte.vers_std_string().c_str());
+    QToolTip::showText(QPoint(point.x, point.y), vers_qt(texte));
 }
 
 /** \} */
@@ -1535,7 +1544,7 @@ QT_LineEdit *QT_cree_line_edit(QT_Generic_Widget parent)
 void QT_line_edit_definis_texte(QT_LineEdit *line_edit, QT_Chaine texte)
 {
     auto qline = vers_qt(line_edit);
-    qline->setText(texte.vers_std_string().c_str());
+    qline->setText(vers_qt(texte));
 }
 
 /** \} */
@@ -1547,7 +1556,7 @@ void QT_line_edit_definis_texte(QT_LineEdit *line_edit, QT_Chaine texte)
 QT_PushButton *QT_cree_push_button(QT_Chaine texte, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    auto résultat = new QPushButton(texte.vers_std_string().c_str(), qparent);
+    auto résultat = new QPushButton(vers_qt(texte), qparent);
     return vers_ipa(résultat);
 }
 
@@ -1781,7 +1790,7 @@ void QT_treewidgetitem_definis_indicateur_enfant(QT_TreeWidgetItem *widget,
 void QT_treewidgetitem_definis_texte(QT_TreeWidgetItem *widget, int colonne, QT_Chaine *texte)
 {
     auto qwidget = vers_qt(widget);
-    qwidget->setText(colonne, texte->vers_std_string().c_str());
+    qwidget->setText(colonne, vers_qt(texte));
 }
 
 void QT_treewidgetitem_ajoute_enfant(QT_TreeWidgetItem *widget, QT_TreeWidgetItem *enfant)
@@ -2043,7 +2052,7 @@ void QT_graphics_rect_item_definis_rect(QT_GraphicsRectItem *item, QT_RectF rect
 QT_GraphicsTextItem *QT_cree_graphics_text_item(QT_Chaine texte, QT_Generic_GraphicsItem parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new QGraphicsTextItem(texte.vers_std_string().c_str(), qparent));
+    return vers_ipa(new QGraphicsTextItem(vers_qt(texte), qparent));
 }
 
 void QT_graphics_text_item_definis_police(QT_GraphicsTextItem *text_item, QT_Font font)
@@ -2229,7 +2238,7 @@ class EnveloppeVariant : public QT_Variant {
     static void sur_définis_chaine(QT_Variant *variant, QT_Chaine chaine)
     {
         auto enveloppe = static_cast<EnveloppeVariant *>(variant);
-        enveloppe->m_variant = QString(chaine.vers_std_string().c_str());
+        enveloppe->m_variant = vers_qt(chaine);
     }
 
 #define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
