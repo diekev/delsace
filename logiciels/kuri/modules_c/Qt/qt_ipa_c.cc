@@ -214,6 +214,7 @@ static QT_ModelIndex vers_ipa(const QModelIndex &model)
     résultat.est_valide = model.isValid();
     if (résultat.est_valide) {
         résultat.colonne = model.column();
+        résultat.ligne = model.row();
     }
     return résultat;
 }

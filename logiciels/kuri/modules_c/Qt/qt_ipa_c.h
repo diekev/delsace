@@ -1952,6 +1952,7 @@ enum QT_Item_Data_Role { ENUMERE_ITEM_DATA_ROLE(ENUMERE_DECLARATION_ENUM_IPA) };
 
 struct QT_ModelIndex {
     bool est_valide;
+    int ligne;
     int colonne;
 };
 
