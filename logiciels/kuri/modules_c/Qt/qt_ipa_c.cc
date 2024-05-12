@@ -227,8 +227,6 @@ extern "C" {
 /** \name QT_Pixmap
  * \{ */
 
-struct QT_Pixmap;
-
 QT_Pixmap *QT_cree_pixmap(QT_Chaine chemin)
 {
     return vers_ipa(new QPixmap(QString(chemin.vers_std_string().c_str())));
