@@ -1317,6 +1317,15 @@ struct QT_TabWidget *QT_cree_tab_widget(struct QT_Rappels_TabWidget *rappels,
     return vers_ipa(new TabWidget(rappels, qparent));
 }
 
+QT_Rappels_TabWidget *QT_tab_widget_donne_rappels(QT_TabWidget *tab)
+{
+    VERS_QT(tab);
+    if (auto widget = dynamic_cast<TabWidget *>(qtab)) {
+        return widget->donne_rappels();
+    }
+    return nullptr;
+}
+
 void QT_tab_widget_definis_tabs_fermable(struct QT_TabWidget *tab_widget, int fermable)
 {
     auto qtab_widget = vers_qt(tab_widget);

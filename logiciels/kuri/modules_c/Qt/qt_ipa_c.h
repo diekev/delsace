@@ -1337,7 +1337,7 @@ struct QT_Rappels_TabWidget {
 
 struct QT_TabWidget *QT_cree_tab_widget(struct QT_Rappels_TabWidget *rappels,
                                         union QT_Generic_Widget parent);
-
+struct QT_Rappels_TabWidget *QT_tab_widget_donne_rappels(struct QT_TabWidget *tab);
 void QT_tab_widget_definis_tabs_fermable(struct QT_TabWidget *tab_widget, int fermable);
 void QT_tab_widget_widget_de_coin(struct QT_TabWidget *tab_widget, union QT_Generic_Widget widget);
 void QT_tab_widget_ajoute_tab(struct QT_TabWidget *tab_widget,
