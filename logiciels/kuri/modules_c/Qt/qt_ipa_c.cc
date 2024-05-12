@@ -862,6 +862,12 @@ void QT_widget_cache(QT_Generic_Widget widget)
     qwidget->hide();
 }
 
+void QT_widget_definis_visible(union QT_Generic_Widget widget, bool ouinon)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setVisible(ouinon);
+}
+
 void QT_widget_definis_actif(union QT_Generic_Widget widget, bool ouinon)
 {
     auto qwidget = vers_qt(widget);
