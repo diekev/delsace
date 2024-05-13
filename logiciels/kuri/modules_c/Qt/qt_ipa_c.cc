@@ -118,6 +118,11 @@ inline QT_Color vers_ipa(QColor color)
     return résultat;
 }
 
+inline QT_Point vers_ipa(QPoint point)
+{
+    return QT_Point{point.x(), point.y()};
+}
+
 inline QPointF vers_qt(QT_PointF point)
 {
     return QPointF(point.x, point.y);
@@ -126,6 +131,16 @@ inline QPointF vers_qt(QT_PointF point)
 inline QT_RectF vers_ipa(QRectF rect)
 {
     return QT_RectF{rect.x(), rect.y(), rect.width(), rect.height()};
+}
+
+inline QT_Rect vers_ipa(QRect rect)
+{
+    return QT_Rect{rect.x(), rect.y(), rect.width(), rect.height()};
+}
+
+inline QRect vers_qt(QT_Rect rect)
+{
+    return QRect(rect.x, rect.y, rect.largeur, rect.hauteur);
 }
 
 inline QFont vers_qt(QT_Font font)
@@ -595,6 +610,36 @@ void QT_action_sur_declenchage(QT_Action *action, QT_Rappel_Generique *rappel)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Rect
+ * \{ */
+
+QT_Point QT_rect_donne_bas_gauche(QT_Rect rect)
+{
+    VERS_QT(rect);
+    return vers_ipa(qrect.bottomLeft());
+}
+
+QT_Point QT_rect_donne_bas_droit(QT_Rect rect)
+{
+    VERS_QT(rect);
+    return vers_ipa(qrect.bottomRight());
+}
+
+QT_Point QT_rect_donne_haut_gauche(QT_Rect rect)
+{
+    VERS_QT(rect);
+    return vers_ipa(qrect.topLeft());
+}
+
+QT_Point QT_rect_donne_haut_droit(QT_Rect rect)
+{
+    VERS_QT(rect);
+    return vers_ipa(qrect.topRight());
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Color
  * \{ */
 
@@ -1041,6 +1086,12 @@ void QT_widget_transforme_point_vers_local(QT_Generic_Widget widget,
     VERS_QT(widget);
     auto résultat = qwidget->mapFromGlobal(QPoint(point.x, point.y));
     *r_point = QT_Point{résultat.x(), résultat.y()};
+}
+
+QT_Rect QT_widget_donne_geometrie(QT_Generic_Widget widget)
+{
+    VERS_QT(widget);
+    return vers_ipa(qwidget->geometry());
 }
 
 /** \} */

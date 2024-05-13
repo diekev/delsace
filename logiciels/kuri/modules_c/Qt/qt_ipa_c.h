@@ -493,6 +493,24 @@ struct QT_PointF {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Rect
+ * \{ */
+
+struct QT_Rect {
+    int x;
+    int y;
+    int largeur;
+    int hauteur;
+};
+
+struct QT_Point QT_rect_donne_bas_gauche(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_bas_droit(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_haut_gauche(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_haut_droit(struct QT_Rect rect);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_RectF
  * \{ */
 
@@ -1202,6 +1220,8 @@ void QT_widget_transforme_point_vers_global(union QT_Generic_Widget widget,
 void QT_widget_transforme_point_vers_local(union QT_Generic_Widget widget,
                                            struct QT_Point point,
                                            struct QT_Point *r_point);
+
+struct QT_Rect QT_widget_donne_geometrie(union QT_Generic_Widget widget);
 
 /** \} */
 
