@@ -1091,6 +1091,12 @@ void QT_menu_bar_ajoute_menu(QT_MenuBar *menu_bar, QT_Menu *menu)
 /** \name QT_Menu
  * \{ */
 
+QT_Menu *QT_cree_menu(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QMenu(qparent));
+}
+
 void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rappel)
 {
     if (!rappel || !rappel->sur_rappel) {
