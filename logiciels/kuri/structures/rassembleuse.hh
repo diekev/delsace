@@ -33,14 +33,20 @@ struct rassembleuse {
         éléments.efface();
     }
 
-    void insère(T const élément)
+    bool insère(T const élément)
     {
         if (éléments_vus.possède(élément)) {
-            return;
+            return false;
         }
 
         éléments_vus.insère(élément);
         éléments.ajoute(élément);
+        return true;
+    }
+
+    int64_t taille_mémoire() const
+    {
+        return éléments.taille_mémoire() + éléments_vus.taille_mémoire();
     }
 
     tableau_statique<T> donne_éléments() const

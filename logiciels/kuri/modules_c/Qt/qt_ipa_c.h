@@ -158,7 +158,11 @@ struct QT_Rappel_Generique {
     O(QStatusBar, QT_StatusBar, status_bar)                                                       \
     O(QMenu, QT_Menu, menu)                                                                       \
     O(QMenuBar, QT_MenuBar, menu_bar)                                                             \
-    O(QToolBar, QT_ToolBar, tool_bar)
+    O(QToolBar, QT_ToolBar, tool_bar)                                                             \
+    O(QTableView, QT_TableView, table_view)                                                       \
+    O(QSpinBox, QT_SpinBox, spin_box)                                                             \
+    O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
+    O(QSlider, QT_Slider, slider)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -184,7 +188,8 @@ union QT_Generic_Widget {
     O(QStyle, QT_Style, style)                                                                    \
     O(QScreen, QT_Screen, screen)                                                                 \
     O(QGraphicsScene, QT_GraphicsScene, graphics_scene)                                           \
-    O(QSettings, QT_Settings, settings)
+    O(QSettings, QT_Settings, settings)                                                           \
+    O(QAction, QT_Action, action)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -204,6 +209,9 @@ union QT_Generic_Object {
 void QT_object_definis_propriete_chaine(union QT_Generic_Object object,
                                         struct QT_Chaine *nom,
                                         struct QT_Chaine *valeur);
+void QT_object_definis_propriete_bool(union QT_Generic_Object object,
+                                      struct QT_Chaine nom,
+                                      bool valeur);
 
 bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon);
 
@@ -447,6 +455,17 @@ void QT_settings_ecris_liste_chaine(struct QT_Settings *settings,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Action
+ * \{ */
+
+struct QT_Action *QT_cree_action(struct QT_Chaine texte, union QT_Generic_Object parent);
+void QT_action_definis_donnee_z32(struct QT_Action *action, int donnee);
+int QT_action_donne_donnee_z32(struct QT_Action *action);
+void QT_action_sur_declenchage(struct QT_Action *action, struct QT_Rappel_Generique *rappel);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Position
  * \{ */
 
@@ -476,6 +495,24 @@ struct QT_PointF {
     double x;
     double y;
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Rect
+ * \{ */
+
+struct QT_Rect {
+    int x;
+    int y;
+    int largeur;
+    int hauteur;
+};
+
+struct QT_Point QT_rect_donne_bas_gauche(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_bas_droit(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_haut_gauche(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_haut_droit(struct QT_Rect rect);
 
 /** \} */
 
@@ -1145,6 +1182,7 @@ void QT_widget_definis_largeur_fixe(union QT_Generic_Widget widget, int largeur)
 void QT_widget_definis_hauteur_fixe(union QT_Generic_Widget widget, int hauteur);
 void QT_widget_affiche(union QT_Generic_Widget widget);
 void QT_widget_cache(union QT_Generic_Widget widget);
+void QT_widget_definis_visible(union QT_Generic_Widget widget, bool ouinon);
 void QT_widget_definis_actif(union QT_Generic_Widget widget, bool ouinon);
 union QT_Generic_Widget QT_widget_donne_widget_parent(union QT_Generic_Widget widget);
 void QT_widget_copie_comportement_taille(union QT_Generic_Widget widget,
@@ -1189,6 +1227,10 @@ void QT_widget_transforme_point_vers_local(union QT_Generic_Widget widget,
                                            struct QT_Point point,
                                            struct QT_Point *r_point);
 
+struct QT_Rect QT_widget_donne_geometrie(union QT_Generic_Widget widget);
+
+void QT_widget_definis_infobulle(union QT_Generic_Widget widget, struct QT_Chaine texte);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1232,8 +1274,46 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, struct QT_Menu *menu);
 /** \name QT_Menu
  * \{ */
 
+struct QT_Menu *QT_cree_menu(union QT_Generic_Widget parent);
 void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
 void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
+void QT_menu_ajoute_action(struct QT_Menu *menu, struct QT_Action *action);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Alignment
+ * \{ */
+
+#define ENEMERE_ALIGNEMENT_TEXTE(O)                                                               \
+    O(QT_ALIGNMENT_LEFT, Qt::AlignLeft)                                                           \
+    O(QT_ALIGNMENT_RIGHT, Qt::AlignRight)                                                         \
+    O(QT_ALIGNMENT_CENTER_HORIZONTAL, Qt::AlignHCenter)                                           \
+    O(QT_ALIGNMENT_JUSTIFY, Qt::AlignJustify)                                                     \
+    O(QT_ALIGNMENT_ABSOLUTE, Qt::AlignAbsolute)                                                   \
+    O(QT_ALIGNMENT_TOP, Qt::AlignTop)                                                             \
+    O(QT_ALIGNMENT_BOTTOM, Qt::AlignBottom)                                                       \
+    O(QT_ALIGNMENT_CENTER_VERTICAL, Qt::AlignVCenter)                                             \
+    O(QT_ALIGNMENT_BASELINE, Qt::AlignBaseline)                                                   \
+    O(QT_ALIGNMENT_CENTER, Qt::AlignCenter)
+
+enum QT_Alignment { ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Layout_Size_Constraint
+ * \{ */
+
+#define ENUMERE_LAYOUT_SIZE_CONSTRAINT(O)                                                         \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_DEFAUT, QLayout::SetDefaultConstraint)                            \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_AUCUNE_CONTRAINTE, QLayout::SetNoConstraint)                      \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_TAILLE_MINIMUM, QLayout::SetMinimumSize)                          \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_TAILLE_FIXE, QLayout::SetFixedSize)                               \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_TAILLE_MAXIMUM, QLayout::SetMaximumSize)                          \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_TAILLE_MIN_ET_MAX, QLayout::SetMinAndMaxSize)
+
+enum QT_Layout_Size_Constraint { ENUMERE_LAYOUT_SIZE_CONSTRAINT(ENUMERE_DECLARATION_ENUM_IPA) };
 
 /** \} */
 
@@ -1247,7 +1327,17 @@ struct QT_FormLayout *QT_cree_form_layout(union QT_Generic_Widget parent);
 struct QT_GridLayout *QT_cree_grid_layout(union QT_Generic_Widget parent);
 void QT_layout_definis_marge(union QT_Generic_Layout layout, int taille);
 void QT_layout_ajoute_widget(union QT_Generic_Layout layout, union QT_Generic_Widget widget);
+bool QT_layout_aligne_widget(union QT_Generic_Layout layout,
+                             union QT_Generic_Widget widget,
+                             enum QT_Alignment alignement);
 void QT_layout_ajoute_layout(union QT_Generic_Layout layout, union QT_Generic_Layout sous_layout);
+bool QT_layout_aligne_layout(union QT_Generic_Layout layout,
+                             union QT_Generic_Layout sous_layout,
+                             enum QT_Alignment alignement);
+void QT_layout_definis_contrainte_taille(union QT_Generic_Layout layout,
+                                         enum QT_Layout_Size_Constraint contrainte);
+void QT_vbox_layout_ajoute_etirement(struct QT_VBoxLayout *layout, int etirement);
+void QT_hbox_layout_ajoute_etirement(struct QT_HBoxLayout *layout, int etirement);
 
 void QT_form_layout_ajoute_ligne_chaine(struct QT_FormLayout *layout,
                                         struct QT_Chaine label,
@@ -1257,6 +1347,11 @@ void QT_form_layout_ajoute_ligne(struct QT_FormLayout *layout,
                                  union QT_Generic_Widget widget);
 void QT_form_layout_ajoute_disposition(struct QT_FormLayout *form, union QT_Generic_Layout layout);
 
+void QT_grid_layout_ajoute_widget(struct QT_GridLayout *layout,
+                                  union QT_Generic_Widget widget,
+                                  int ligne,
+                                  int colonne,
+                                  enum QT_Alignment alignement);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1280,14 +1375,14 @@ struct QT_Chaine QT_combobox_donne_valeur_courante_chaine(struct QT_ComboBox *co
 /** \name QT_Splitter
  * \{ */
 
-enum QT_Orientation_Splitter {
-    QT_ORIENTATION_SPLITTER_HORIZONTALE,
-    QT_ORIENTATION_SPLITTER_VERTICALE,
+enum QT_Orientation {
+    QT_ORIENTATION_HORIZONTALE,
+    QT_ORIENTATION_VERTICALE,
 };
 
 struct QT_Splitter *QT_cree_splitter();
 void QT_splitter_definis_orientation(struct QT_Splitter *splitter,
-                                     enum QT_Orientation_Splitter orientation);
+                                     enum QT_Orientation orientation);
 void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Widget widget);
 
 /** \} */
@@ -1304,7 +1399,7 @@ struct QT_Rappels_TabWidget {
 
 struct QT_TabWidget *QT_cree_tab_widget(struct QT_Rappels_TabWidget *rappels,
                                         union QT_Generic_Widget parent);
-
+struct QT_Rappels_TabWidget *QT_tab_widget_donne_rappels(struct QT_TabWidget *tab);
 void QT_tab_widget_definis_tabs_fermable(struct QT_TabWidget *tab_widget, int fermable);
 void QT_tab_widget_widget_de_coin(struct QT_TabWidget *tab_widget, union QT_Generic_Widget widget);
 void QT_tab_widget_ajoute_tab(struct QT_TabWidget *tab_widget,
@@ -1855,6 +1950,189 @@ struct DNJ_Rappels_Pilote_Clique {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Variant
+ * \{ */
+
+#define ENUMERE_TYPE_STANDARD(O)                                                                  \
+    O(z8, int8_t)                                                                                 \
+    O(z16, int16_t)                                                                               \
+    O(z32, int32_t)                                                                               \
+    O(z64, int64_t)                                                                               \
+    O(n8, uint8_t)                                                                                \
+    O(n16, uint16_t)                                                                              \
+    O(n32, uint32_t)                                                                              \
+    O(n64, uint64_t)                                                                              \
+    O(r32, float)                                                                                 \
+    O(r64, double)                                                                                \
+    O(bool, bool)
+
+struct QT_Variant {
+    void (*definis_chaine)(struct QT_Variant *, struct QT_Chaine);
+
+#define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
+    void (*definis_##type_kuri)(struct QT_Variant *, type_cpp);
+    ENUMERE_TYPE_STANDARD(ENUMERE_RAPPEL_TYPE_STANDARD)
+#undef ENUMERE_RAPPEL_TYPE_STANDARD
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Item_Data_Role
+ * \{ */
+
+#define ENUMERE_ITEM_DATA_ROLE(O)                                                                 \
+    O(QT_ITEM_DATA_ROLE_Display, Qt::DisplayRole)                                                 \
+    O(QT_ITEM_DATA_ROLE_Decoration, Qt::DecorationRole)                                           \
+    O(QT_ITEM_DATA_ROLE_Edit, Qt::EditRole)                                                       \
+    O(QT_ITEM_DATA_ROLE_ToolTip, Qt::ToolTipRole)                                                 \
+    O(QT_ITEM_DATA_ROLE_StatusTip, Qt::StatusTipRole)                                             \
+    O(QT_ITEM_DATA_ROLE_WhatsThis, Qt::WhatsThisRole)                                             \
+    O(QT_ITEM_DATA_ROLE_Font, Qt::FontRole)                                                       \
+    O(QT_ITEM_DATA_ROLE_TextAlignment, Qt::TextAlignmentRole)                                     \
+    O(QT_ITEM_DATA_ROLE_Background, Qt::BackgroundRole)                                           \
+    O(QT_ITEM_DATA_ROLE_Foreground, Qt::ForegroundRole)                                           \
+    O(QT_ITEM_DATA_ROLE_CheckState, Qt::CheckStateRole)                                           \
+    O(QT_ITEM_DATA_ROLE_AccessibleText, Qt::AccessibleTextRole)                                   \
+    O(QT_ITEM_DATA_ROLE_AccessibleDescription, Qt::AccessibleDescriptionRole)                     \
+    O(QT_ITEM_DATA_ROLE_SizeHint, Qt::SizeHintRole)                                               \
+    O(QT_ITEM_DATA_ROLE_InitialSortOrder, Qt::InitialSortOrderRole)                               \
+    O(QT_ITEM_DATA_ROLE_DisplayProperty, Qt::DisplayPropertyRole)                                 \
+    O(QT_ITEM_DATA_ROLE_DecorationProperty, Qt::DecorationPropertyRole)                           \
+    O(QT_ITEM_DATA_ROLE_ToolTipProperty, Qt::ToolTipPropertyRole)                                 \
+    O(QT_ITEM_DATA_ROLE_StatusTipProperty, Qt::StatusTipPropertyRole)                             \
+    O(QT_ITEM_DATA_ROLE_WhatsThisProperty, Qt::WhatsThisPropertyRole)                             \
+    O(QT_ITEM_DATA_ROLE_UserRole, Qt::UserRole)
+
+enum QT_Item_Data_Role { ENUMERE_ITEM_DATA_ROLE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ModelIndex
+ * \{ */
+
+struct QT_ModelIndex {
+    bool est_valide;
+    int ligne;
+    int colonne;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TableModel
+ * \{ */
+
+struct QT_Rappels_TableModel {
+    int (*donne_nombre_lignes)(struct QT_Rappels_TableModel *, struct QT_ModelIndex *);
+    int (*donne_nombre_colonnes)(struct QT_Rappels_TableModel *, struct QT_ModelIndex *);
+    void (*donne_donnee_entete)(struct QT_Rappels_TableModel *,
+                                int,
+                                enum QT_Orientation,
+                                enum QT_Item_Data_Role,
+                                struct QT_Variant *);
+    void (*donne_donnee_cellule)(struct QT_Rappels_TableModel *,
+                                 struct QT_ModelIndex *,
+                                 enum QT_Item_Data_Role,
+                                 struct QT_Variant *);
+    void (*sur_destruction)(struct QT_Rappels_TableModel *);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TableView
+ * \{ */
+
+struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
+void QT_table_view_definis_model(struct QT_TableView *view,
+                                 struct QT_Rappels_TableModel *rappels,
+                                 bool detruit_model_existant);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Slider_Tick_Position
+ * \{ */
+
+#define ENUMERE_SLIDER_TICK_POSITION(O)                                                           \
+    O(QT_SLIDER_TICK_POSITION_AUCUN_TICKS, QSlider::NoTicks)                                      \
+    O(QT_SLIDER_TICK_POSITION_EN_HAUT, QSlider::TicksAbove)                                       \
+    O(QT_SLIDER_TICK_POSITION_EN_BAS, QSlider::TicksBelow)                                        \
+    O(QT_SLIDER_TICK_POSITION_DES_DEUX_COTES, QSlider::TicksBothSides)
+
+enum QT_Slider_Tick_Position { ENUMERE_SLIDER_TICK_POSITION(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Slider
+ * \{ */
+
+struct QT_Slider *QT_cree_slider(union QT_Generic_Widget parent);
+void QT_slider_sur_changement_valeur(struct QT_Slider *slider, struct QT_Rappel_Generique *rappel);
+void QT_slider_definis_valeur(struct QT_Slider *slider, int valeur);
+int QT_slider_donne_valeur(struct QT_Slider *slider);
+void QT_slider_definis_orientation(struct QT_Slider *slider, enum QT_Orientation orientation);
+void QT_slider_definis_position_tick(struct QT_Slider *slider,
+                                     enum QT_Slider_Tick_Position position);
+void QT_slider_definis_interval_tick(struct QT_Slider *slider, int valeur);
+void QT_slider_definis_plage(struct QT_Slider *slider, int minimum, int maximum);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SpinBoxButtonSymbols
+ * \{ */
+
+#define ENUMERE_SPINBOX_BUTTON_SYMBOLS(O)                                                         \
+    O(QT_SPINBOX_BUTTON_SYMBOLS_FLECHES_HAUT_BAS, QAbstractSpinBox::UpDownArrows)                 \
+    O(QT_SPINBOX_BUTTON_SYMBOLS_PLUS_MOINS, QAbstractSpinBox::PlusMinus)                          \
+    O(QT_SPINBOX_BUTTON_SYMBOLS_AUCUN_BOUTONS, QAbstractSpinBox::NoButtons)
+
+enum QT_SpinBox_Button_Symbols { ENUMERE_SPINBOX_BUTTON_SYMBOLS(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SpinBox
+ * \{ */
+
+struct QT_SpinBox *QT_cree_spinbox(union QT_Generic_Widget parent);
+void QT_spinbox_sur_changement_valeur(struct QT_SpinBox *spinbox,
+                                      struct QT_Rappel_Generique *rappel);
+void QT_spinbox_definis_alignement(struct QT_SpinBox *spinbox, enum QT_Alignment alignement);
+void QT_spinbox_definis_plage(struct QT_SpinBox *spinbox, int minimum, int maximum);
+void QT_spinbox_definis_valeur(struct QT_SpinBox *spinbox, int valeur);
+int QT_spinbox_donne_valeur(struct QT_SpinBox *spinbox);
+void QT_spinbox_definis_lecture_seule(struct QT_SpinBox *spinbox, bool ouinon);
+void QT_spinbox_definis_symboles_boutons(struct QT_SpinBox *spinbox,
+                                         enum QT_SpinBox_Button_Symbols symbols);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DoubleSpinBox
+ * \{ */
+
+struct QT_DoubleSpinBox *QT_cree_doublespinbox(union QT_Generic_Widget parent);
+void QT_doublespinbox_sur_changement_valeur(struct QT_DoubleSpinBox *doublespinbox,
+                                            struct QT_Rappel_Generique *rappel);
+void QT_doublespinbox_definis_alignement(struct QT_DoubleSpinBox *doublespinbox,
+                                         enum QT_Alignment alignement);
+void QT_doublespinbox_definis_plage(struct QT_DoubleSpinBox *doublespinbox,
+                                    double minimum,
+                                    double maximum);
+void QT_doublespinbox_definis_valeur(struct QT_DoubleSpinBox *doublespinbox, double valeur);
+double QT_doublespinbox_donne_valeur(struct QT_DoubleSpinBox *doublespinbox);
+void QT_doublespinbox_definis_lecture_seule(struct QT_DoubleSpinBox *doublespinbox, bool ouinon);
+void QT_doublespinbox_definis_symboles_boutons(struct QT_DoubleSpinBox *doublespinbox,
+                                               enum QT_SpinBox_Button_Symbols symbols);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name DNJ_Pilote_Clique
  * \{ */
 
@@ -1946,6 +2224,11 @@ void DNJ_gestionnaire_recree_menu(struct DNJ_Gestionnaire_Interface *gestionnair
                                   int64_t nombre_actions);
 
 struct QT_ToolBar *DNJ_gestionaire_compile_barre_a_outils_fichier(
+    struct DNJ_Gestionnaire_Interface *gestionnaire,
+    struct DNJ_Contexte_Interface *context,
+    struct QT_Chaine chemin);
+
+struct QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(
     struct DNJ_Gestionnaire_Interface *gestionnaire,
     struct DNJ_Contexte_Interface *context,
     struct QT_Chaine chemin);
