@@ -27,8 +27,10 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
+#include <QSpinBox>
 #include <QSplitter>
 #include <QStatusBar>
+#include <QTableView>
 #include <QTimer>
 #include <QToolTip>
 #if defined(__GNUC__)
@@ -38,6 +40,8 @@
 #include <iostream>
 
 #include "biblinternes/outils/definitions.h"
+
+#include "danjo/manipulable.h"
 
 #include "fenetre_principale.hh"
 #include "ipa_danjo.hh"
@@ -117,6 +121,11 @@ inline QT_Color vers_ipa(QColor color)
     return résultat;
 }
 
+inline QT_Point vers_ipa(QPoint point)
+{
+    return QT_Point{point.x(), point.y()};
+}
+
 inline QPointF vers_qt(QT_PointF point)
 {
     return QPointF(point.x, point.y);
@@ -125,6 +134,16 @@ inline QPointF vers_qt(QT_PointF point)
 inline QT_RectF vers_ipa(QRectF rect)
 {
     return QT_RectF{rect.x(), rect.y(), rect.width(), rect.height()};
+}
+
+inline QT_Rect vers_ipa(QRect rect)
+{
+    return QT_Rect{rect.x(), rect.y(), rect.width(), rect.height()};
+}
+
+inline QRect vers_qt(QT_Rect rect)
+{
+    return QRect(rect.x, rect.y, rect.largeur, rect.hauteur);
 }
 
 inline QFont vers_qt(QT_Font font)
@@ -145,6 +164,19 @@ inline QPen vers_qt(QT_Pen pen)
     résultat.setColor(vers_qt(pen.color));
     résultat.setWidthF(pen.width);
     return résultat;
+}
+
+inline QString vers_qt(QT_Chaine const *chaine)
+{
+    if (!chaine) {
+        return "";
+    }
+    return chaine->vers_std_string().c_str();
+}
+
+inline QString vers_qt(QT_Chaine const chaine)
+{
+    return chaine.vers_std_string().c_str();
 }
 
 #define TRANSTYPAGE_WIDGETS(nom_qt, nom_classe, nom_union)                                        \
@@ -173,17 +205,62 @@ static Qt::CursorShape convertis_forme_curseur(QT_CursorShape cursor)
     return Qt::ArrowCursor;
 }
 
+static Qt::Orientation convertis_orientation(QT_Orientation orientation)
+{
+    switch (orientation) {
+        case QT_ORIENTATION_HORIZONTALE:
+        {
+            return Qt::Horizontal;
+        }
+        case QT_ORIENTATION_VERTICALE:
+        {
+            return Qt::Vertical;
+        }
+    }
+    return Qt::Horizontal;
+}
+
+static QT_Orientation convertis_orientation(Qt::Orientation orientation)
+{
+    switch (orientation) {
+        case Qt::Horizontal:
+        {
+            return QT_ORIENTATION_HORIZONTALE;
+        }
+        case Qt::Vertical:
+        {
+            return QT_ORIENTATION_VERTICALE;
+        }
+    }
+    return QT_ORIENTATION_HORIZONTALE;
+}
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ModelIndex
+ * \{ */
+
+static QT_ModelIndex vers_ipa(const QModelIndex &model)
+{
+    auto résultat = QT_ModelIndex{};
+    résultat.est_valide = model.isValid();
+    if (résultat.est_valide) {
+        résultat.colonne = model.column();
+        résultat.ligne = model.row();
+    }
+    return résultat;
+}
+
+/** \} */
+
 extern "C" {
 
 /* ------------------------------------------------------------------------- */
 /** \name QT_Pixmap
  * \{ */
 
-struct QT_Pixmap;
-
 QT_Pixmap *QT_cree_pixmap(QT_Chaine chemin)
 {
-    return vers_ipa(new QPixmap(QString(chemin.vers_std_string().c_str())));
+    return vers_ipa(new QPixmap(vers_qt(chemin)));
 }
 
 void QT_detruit_pixmap(QT_Pixmap *pixmap)
@@ -203,11 +280,16 @@ void QT_object_definis_propriete_chaine(QT_Generic_Object object,
                                         QT_Chaine *valeur)
 {
     auto qobject = vers_qt(object);
-    qobject->setProperty(nom->vers_std_string().c_str(),
-                         QString(valeur->vers_std_string().c_str()));
+    qobject->setProperty(nom->vers_std_string().c_str(), vers_qt(valeur));
 }
 
-bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon)
+void QT_object_definis_propriete_bool(QT_Generic_Object object, QT_Chaine nom, bool valeur)
+{
+    auto qobject = vers_qt(object);
+    qobject->setProperty(nom.vers_std_string().c_str(), valeur);
+}
+
+bool QT_object_bloque_signaux(QT_Generic_Object object, bool ouinon)
 {
     auto qobject = vers_qt(object);
     return qobject->blockSignals(ouinon);
@@ -240,17 +322,16 @@ QT_Fenetre_Principale *QT_cree_fenetre_principale(QT_Rappels_Fenetre_Principale 
     return vers_ipa(résultat);
 }
 
-void QT_detruit_fenetre_principale(struct QT_Fenetre_Principale *fenetre)
+void QT_detruit_fenetre_principale(QT_Fenetre_Principale *fenetre)
 {
     auto fenêtre_qt = vers_qt(fenetre);
     delete fenêtre_qt;
 }
 
-void QT_fenetre_principale_definis_titre_fenetre(QT_Fenetre_Principale *fenetre,
-                                                 struct QT_Chaine nom)
+void QT_fenetre_principale_definis_titre_fenetre(QT_Fenetre_Principale *fenetre, QT_Chaine nom)
 {
     auto fenêtre_qt = vers_qt(fenetre);
-    fenêtre_qt->setWindowTitle(nom.vers_std_string().c_str());
+    fenêtre_qt->setWindowTitle(vers_qt(nom));
 }
 
 void QT_fenetre_principale_definis_widget_central(QT_Fenetre_Principale *fenetre,
@@ -300,7 +381,7 @@ QT_Application *QT_cree_application(int *argc, char **argv)
     return reinterpret_cast<QT_Application *>(résultat);
 }
 
-void QT_detruit_application(struct QT_Application *app)
+void QT_detruit_application(QT_Application *app)
 {
     auto app_qt = reinterpret_cast<QApplication *>(app);
     delete app_qt;
@@ -312,14 +393,14 @@ int QT_application_exec(QT_Application *app)
     return app_qt->exec();
 }
 
-void QT_core_application_definis_nom_organisation(struct QT_Chaine nom)
+void QT_core_application_definis_nom_organisation(QT_Chaine nom)
 {
-    QCoreApplication::setOrganizationName(nom.vers_std_string().c_str());
+    QCoreApplication::setOrganizationName(vers_qt(nom));
 }
 
-void QT_core_application_definis_nom_application(struct QT_Chaine nom)
+void QT_core_application_definis_nom_application(QT_Chaine nom)
 {
-    QCoreApplication::setApplicationName(nom.vers_std_string().c_str());
+    QCoreApplication::setApplicationName(vers_qt(nom));
 }
 
 QT_Application *QT_donne_application()
@@ -327,14 +408,14 @@ QT_Application *QT_donne_application()
     return reinterpret_cast<QT_Application *>(qApp);
 }
 
-void QT_application_poste_evenement(union QT_Generic_Object receveur, int type_evenement)
+void QT_application_poste_evenement(QT_Generic_Object receveur, int type_evenement)
 {
     auto qreceveur = vers_qt(receveur);
     auto event = new QEvent(QEvent::Type(type_evenement));
     QCoreApplication::postEvent(qreceveur, event);
 }
 
-void QT_application_poste_evenement_et_donnees(union QT_Generic_Object receveur,
+void QT_application_poste_evenement_et_donnees(QT_Generic_Object receveur,
                                                int type_evenement,
                                                void *donnees)
 {
@@ -494,12 +575,75 @@ void QT_settings_ecris_liste_chaine(QT_Settings *settings,
 
     QStringList q_string_liste;
     for (auto i = 0; i < taille_liste; i++) {
-        q_string_liste.append(liste[i].vers_std_string().c_str());
+        q_string_liste.append(vers_qt(liste[i]));
     }
 
     auto qsettings = vers_qt(settings);
     auto clé = nom_paramètre.vers_std_string();
     qsettings->setValue(clé.c_str(), q_string_liste);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Action
+ * \{ */
+
+QT_Action *QT_cree_action(QT_Chaine texte, QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QAction(vers_qt(texte), qparent));
+}
+
+void QT_action_definis_donnee_z32(QT_Action *action, int donnee)
+{
+    VERS_QT(action);
+    qaction->setData(QVariant(donnee));
+}
+
+int QT_action_donne_donnee_z32(QT_Action *action)
+{
+    VERS_QT(action);
+    return qaction->data().toInt();
+}
+
+void QT_action_sur_declenchage(QT_Action *action, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+    VERS_QT(action);
+    QObject::connect(qaction, &QAction::triggered, [=]() { rappel->sur_rappel(rappel); });
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Rect
+ * \{ */
+
+QT_Point QT_rect_donne_bas_gauche(QT_Rect rect)
+{
+    VERS_QT(rect);
+    return vers_ipa(qrect.bottomLeft());
+}
+
+QT_Point QT_rect_donne_bas_droit(QT_Rect rect)
+{
+    VERS_QT(rect);
+    return vers_ipa(qrect.bottomRight());
+}
+
+QT_Point QT_rect_donne_haut_gauche(QT_Rect rect)
+{
+    VERS_QT(rect);
+    return vers_ipa(qrect.topLeft());
+}
+
+QT_Point QT_rect_donne_haut_droit(QT_Rect rect)
+{
+    VERS_QT(rect);
+    return vers_ipa(qrect.topRight());
 }
 
 /** \} */
@@ -555,7 +699,7 @@ int QT_enregistre_evenement_personnel()
     return QEvent::registerEventType();
 }
 
-void *QT_event_perso_donne_donnees(struct QT_Evenement *event)
+void *QT_event_perso_donne_donnees(QT_Evenement *event)
 {
     auto qevent = reinterpret_cast<EvenementPerso *>(event);
     return qevent->donne_données();
@@ -749,25 +893,25 @@ void QT_widget_remplace_layout(QT_Generic_Widget widget, QT_Generic_Layout layou
     }
 }
 
-void QT_widget_affiche_maximisee(union QT_Generic_Widget widget)
+void QT_widget_affiche_maximisee(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
     qwidget->showMaximized();
 }
 
-void QT_widget_affiche_minimisee(union QT_Generic_Widget widget)
+void QT_widget_affiche_minimisee(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
     qwidget->showMinimized();
 }
 
-void QT_widget_affiche_normal(union QT_Generic_Widget widget)
+void QT_widget_affiche_normal(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
     qwidget->showNormal();
 }
 
-void QT_widget_affiche_plein_ecran(union QT_Generic_Widget widget)
+void QT_widget_affiche_plein_ecran(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
     qwidget->showFullScreen();
@@ -815,7 +959,13 @@ void QT_widget_cache(QT_Generic_Widget widget)
     qwidget->hide();
 }
 
-void QT_widget_definis_actif(union QT_Generic_Widget widget, bool ouinon)
+void QT_widget_definis_visible(QT_Generic_Widget widget, bool ouinon)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setVisible(ouinon);
+}
+
+void QT_widget_definis_actif(QT_Generic_Widget widget, bool ouinon)
 {
     auto qwidget = vers_qt(widget);
     qwidget->setEnabled(ouinon);
@@ -841,7 +991,7 @@ void QT_widget_copie_comportement_taille(QT_Generic_Widget widget, QT_Generic_Wi
 void QT_widget_definis_feuille_de_style(QT_Generic_Widget widget, QT_Chaine *texte)
 {
     auto qwidget = vers_qt(widget);
-    qwidget->setStyleSheet(texte->vers_std_string().c_str());
+    qwidget->setStyleSheet(vers_qt(texte));
 }
 
 void QT_widget_definis_style(QT_Generic_Widget widget, QT_Style *style)
@@ -857,7 +1007,7 @@ void QT_widget_ajourne(QT_Generic_Widget widget)
     qwidget->update();
 }
 
-void QT_widget_definis_trackage_souris(union QT_Generic_Widget widget, bool ouinon)
+void QT_widget_definis_trackage_souris(QT_Generic_Widget widget, bool ouinon)
 {
     auto qwidget = vers_qt(widget);
     qwidget->setMouseTracking(ouinon);
@@ -947,6 +1097,19 @@ void QT_widget_transforme_point_vers_local(QT_Generic_Widget widget,
     *r_point = QT_Point{résultat.x(), résultat.y()};
 }
 
+QT_Rect QT_widget_donne_geometrie(QT_Generic_Widget widget)
+{
+    VERS_QT(widget);
+    return vers_ipa(qwidget->geometry());
+}
+
+void QT_widget_definis_infobulle(QT_Generic_Widget widget, QT_Chaine texte)
+{
+    VERS_QT(widget);
+    VERS_QT(texte);
+    qwidget->setToolTip(qtexte);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -982,7 +1145,7 @@ void QT_status_bar_ajoute_widget(QT_StatusBar *status_bar, QT_Generic_Widget wid
 /** \name QT_MenuBar
  * \{ */
 
-void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, QT_Menu *menu)
+void QT_menu_bar_ajoute_menu(QT_MenuBar *menu_bar, QT_Menu *menu)
 {
     auto qmenu_bar = vers_qt(menu_bar);
     auto qmenu = vers_qt(menu);
@@ -995,6 +1158,12 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, QT_Menu *menu)
 /** \name QT_Menu
  * \{ */
 
+QT_Menu *QT_cree_menu(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QMenu(qparent));
+}
+
 void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rappel)
 {
     if (!rappel || !rappel->sur_rappel) {
@@ -1005,10 +1174,46 @@ void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rap
     QObject::connect(qmenu, &QMenu::aboutToShow, [=]() { rappel->sur_rappel(rappel); });
 }
 
-void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos)
+void QT_menu_popup(QT_Menu *menu, QT_Point pos)
 {
     VERS_QT(menu);
     qmenu->popup(QPoint(pos.x, pos.y));
+}
+
+void QT_menu_ajoute_action(QT_Menu *menu, QT_Action *action)
+{
+    VERS_QT(menu);
+    VERS_QT(action);
+    qmenu->addAction(qaction);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Alignment
+ * \{ */
+
+static Qt::AlignmentFlag convertis_alignement(QT_Alignment alignment)
+{
+    switch (alignment) {
+        ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+
+    return Qt::AlignLeft;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Layout_Size_Constraint
+ * \{ */
+
+static QLayout::SizeConstraint convertis_contrainte_taille(QT_Layout_Size_Constraint contrainte)
+{
+    switch (contrainte) {
+        ENUMERE_LAYOUT_SIZE_CONSTRAINT(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QLayout::SetDefaultConstraint;
 }
 
 /** \} */
@@ -1017,19 +1222,19 @@ void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos)
 /** \name QT_Layout
  * \{ */
 
-QT_HBoxLayout *QT_cree_hbox_layout(union QT_Generic_Widget parent)
+QT_HBoxLayout *QT_cree_hbox_layout(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new QHBoxLayout(qparent));
 }
 
-QT_VBoxLayout *QT_cree_vbox_layout(union QT_Generic_Widget parent)
+QT_VBoxLayout *QT_cree_vbox_layout(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new QVBoxLayout(qparent));
 }
 
-QT_FormLayout *QT_cree_form_layout(union QT_Generic_Widget parent)
+QT_FormLayout *QT_cree_form_layout(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new QFormLayout(qparent));
@@ -1054,6 +1259,15 @@ void QT_layout_ajoute_widget(QT_Generic_Layout layout, QT_Generic_Widget widget)
     qlayout->addWidget(qwidget);
 }
 
+bool QT_layout_aligne_widget(QT_Generic_Layout layout,
+                             QT_Generic_Widget widget,
+                             QT_Alignment alignement)
+{
+    auto qlayout = vers_qt(layout);
+    auto qwidget = vers_qt(widget);
+    return qlayout->setAlignment(qwidget, convertis_alignement(alignement));
+}
+
 void QT_layout_ajoute_layout(QT_Generic_Layout layout, QT_Generic_Layout sous_layout)
 {
     auto qlayout = vers_qt(layout);
@@ -1067,6 +1281,34 @@ void QT_layout_ajoute_layout(QT_Generic_Layout layout, QT_Generic_Layout sous_la
     }
 }
 
+bool QT_layout_aligne_layout(QT_Generic_Layout layout,
+                             QT_Generic_Layout sous_layout,
+                             QT_Alignment alignement)
+{
+    auto qlayout = vers_qt(layout);
+    auto qsous_layout = vers_qt(sous_layout);
+    return qlayout->setAlignment(qsous_layout, convertis_alignement(alignement));
+}
+
+void QT_layout_definis_contrainte_taille(QT_Generic_Layout layout,
+                                         QT_Layout_Size_Constraint contrainte)
+{
+    VERS_QT(layout);
+    qlayout->setSizeConstraint(convertis_contrainte_taille(contrainte));
+}
+
+void QT_vbox_layout_ajoute_etirement(QT_VBoxLayout *layout, int etirement)
+{
+    VERS_QT(layout);
+    qlayout->addStretch(etirement);
+}
+
+void QT_hbox_layout_ajoute_etirement(QT_HBoxLayout *layout, int etirement)
+{
+    VERS_QT(layout);
+    qlayout->addStretch(etirement);
+}
+
 void QT_form_layout_ajoute_ligne_chaine(QT_FormLayout *layout,
                                         QT_Chaine label,
                                         QT_Generic_Widget widget)
@@ -1076,14 +1318,14 @@ void QT_form_layout_ajoute_ligne_chaine(QT_FormLayout *layout,
 
     if (qwidget) {
         if (label.taille != 0) {
-            qlayout->addRow(label.vers_std_string().c_str(), qwidget);
+            qlayout->addRow(vers_qt(label), qwidget);
         }
         else {
             qlayout->addRow(qwidget);
         }
     }
     else {
-        auto qlabel = new QLabel(label.vers_std_string().c_str());
+        auto qlabel = new QLabel(vers_qt(label));
         qlayout->addRow(qlabel);
     }
 }
@@ -1109,6 +1351,18 @@ void QT_form_layout_ajoute_disposition(QT_FormLayout *form, QT_Generic_Layout la
     qform->addRow(qlayout);
 }
 
+void QT_grid_layout_ajoute_widget(QT_GridLayout *layout,
+                                  QT_Generic_Widget widget,
+                                  int ligne,
+                                  int colonne,
+                                  QT_Alignment alignement)
+{
+    VERS_QT(layout);
+    VERS_QT(widget);
+
+    qlayout->addWidget(qwidget, ligne, colonne, convertis_alignement(alignement));
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1122,7 +1376,7 @@ QT_ComboBox *QT_cree_combobox(QT_Generic_Widget parent)
     return vers_ipa(résultat);
 }
 
-void QT_combobox_reinitialise(struct QT_ComboBox *combo)
+void QT_combobox_reinitialise(QT_ComboBox *combo)
 {
     auto qcombo = vers_qt(combo);
     qcombo->clear();
@@ -1131,7 +1385,7 @@ void QT_combobox_reinitialise(struct QT_ComboBox *combo)
 void QT_combobox_ajoute_item(QT_ComboBox *combo, QT_Chaine texte, QT_Chaine valeur)
 {
     auto qcombo = vers_qt(combo);
-    qcombo->addItem(texte.vers_std_string().c_str(), QString(valeur.vers_std_string().c_str()));
+    qcombo->addItem(vers_qt(texte), vers_qt(valeur));
 }
 
 void QT_combobox_definis_index_courant(QT_ComboBox *combo, int index)
@@ -1192,24 +1446,13 @@ QT_Splitter *QT_cree_splitter()
     return vers_ipa(new QSplitter());
 }
 
-void QT_splitter_definis_orientation(QT_Splitter *splitter, QT_Orientation_Splitter orientation)
+void QT_splitter_definis_orientation(QT_Splitter *splitter, QT_Orientation orientation)
 {
     auto qsplitter = vers_qt(splitter);
-    switch (orientation) {
-        case QT_ORIENTATION_SPLITTER_HORIZONTALE:
-        {
-            qsplitter->setOrientation(Qt::Horizontal);
-            break;
-        }
-        case QT_ORIENTATION_SPLITTER_VERTICALE:
-        {
-            qsplitter->setOrientation(Qt::Vertical);
-            break;
-        }
-    }
+    qsplitter->setOrientation(convertis_orientation(orientation));
 }
 
-void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Widget widget)
+void QT_splitter_ajoute_widget(QT_Splitter *splitter, QT_Generic_Widget widget)
 {
     auto qsplitter = vers_qt(splitter);
     auto qwidget = vers_qt(widget);
@@ -1222,48 +1465,54 @@ void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Wi
 /** \name QT_TabWidget
  * \{ */
 
-struct QT_TabWidget *QT_cree_tab_widget(struct QT_Rappels_TabWidget *rappels,
-                                        union QT_Generic_Widget parent)
+QT_TabWidget *QT_cree_tab_widget(QT_Rappels_TabWidget *rappels, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new TabWidget(rappels, qparent));
 }
 
-void QT_tab_widget_definis_tabs_fermable(struct QT_TabWidget *tab_widget, int fermable)
+QT_Rappels_TabWidget *QT_tab_widget_donne_rappels(QT_TabWidget *tab)
+{
+    VERS_QT(tab);
+    if (auto widget = dynamic_cast<TabWidget *>(qtab)) {
+        return widget->donne_rappels();
+    }
+    return nullptr;
+}
+
+void QT_tab_widget_definis_tabs_fermable(QT_TabWidget *tab_widget, int fermable)
 {
     auto qtab_widget = vers_qt(tab_widget);
     qtab_widget->setTabsClosable(bool(fermable));
 }
 
-void QT_tab_widget_widget_de_coin(struct QT_TabWidget *tab_widget, union QT_Generic_Widget widget)
+void QT_tab_widget_widget_de_coin(QT_TabWidget *tab_widget, QT_Generic_Widget widget)
 {
     auto qtab_widget = vers_qt(tab_widget);
     auto qwidget = vers_qt(widget);
     qtab_widget->setCornerWidget(qwidget);
 }
 
-void QT_tab_widget_ajoute_tab(struct QT_TabWidget *tab_widget,
-                              union QT_Generic_Widget widget,
-                              struct QT_Chaine *nom)
+void QT_tab_widget_ajoute_tab(QT_TabWidget *tab_widget, QT_Generic_Widget widget, QT_Chaine *nom)
 {
     auto qtab_widget = vers_qt(tab_widget);
     auto qwidget = vers_qt(widget);
-    qtab_widget->addTab(qwidget, nom->vers_std_string().c_str());
+    qtab_widget->addTab(qwidget, vers_qt(nom));
 }
 
-void QT_tab_widget_supprime_tab(struct QT_TabWidget *tab_widget, int index)
+void QT_tab_widget_supprime_tab(QT_TabWidget *tab_widget, int index)
 {
     auto qtab_widget = vers_qt(tab_widget);
     qtab_widget->removeTab(index);
 }
 
-void QT_tab_widget_definis_index_courant(struct QT_TabWidget *tab_widget, int index)
+void QT_tab_widget_definis_index_courant(QT_TabWidget *tab_widget, int index)
 {
     auto qtab_widget = vers_qt(tab_widget);
     qtab_widget->setCurrentIndex(index);
 }
 
-int QT_tab_widget_donne_compte_tabs(struct QT_TabWidget *tab_widget)
+int QT_tab_widget_donne_compte_tabs(QT_TabWidget *tab_widget)
 {
     auto qtab_widget = vers_qt(tab_widget);
     return qtab_widget->count();
@@ -1357,14 +1606,15 @@ void QT_checkbox_definis_coche(QT_CheckBox *checkbox, int coche)
 QT_Label *QT_cree_label(QT_Chaine *texte, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    auto résultat = new QLabel(texte->vers_std_string().c_str(), qparent);
+    VERS_QT(texte);
+    auto résultat = new QLabel(qtexte, qparent);
     return vers_ipa(résultat);
 }
 
 void QT_label_definis_texte(QT_Label *label, QT_Chaine texte)
 {
     auto qlabel = vers_qt(label);
-    qlabel->setText(texte.vers_std_string().c_str());
+    qlabel->setText(vers_qt(texte));
 }
 
 void QT_label_definis_pixmap(QT_Label *label, QT_Pixmap *pixmap, QT_Taille taille)
@@ -1382,7 +1632,7 @@ void QT_label_definis_pixmap(QT_Label *label, QT_Pixmap *pixmap, QT_Taille taill
 
 void QT_tooltip_montre_texte(QT_Point point, QT_Chaine texte)
 {
-    QToolTip::showText(QPoint(point.x, point.y), texte.vers_std_string().c_str());
+    QToolTip::showText(QPoint(point.x, point.y), vers_qt(texte));
 }
 
 /** \} */
@@ -1397,10 +1647,10 @@ QT_LineEdit *QT_cree_line_edit(QT_Generic_Widget parent)
     return vers_ipa(new QLineEdit(qparent));
 }
 
-void QT_line_edit_definis_texte(struct QT_LineEdit *line_edit, struct QT_Chaine texte)
+void QT_line_edit_definis_texte(QT_LineEdit *line_edit, QT_Chaine texte)
 {
     auto qline = vers_qt(line_edit);
-    qline->setText(texte.vers_std_string().c_str());
+    qline->setText(vers_qt(texte));
 }
 
 /** \} */
@@ -1412,7 +1662,7 @@ void QT_line_edit_definis_texte(struct QT_LineEdit *line_edit, struct QT_Chaine 
 QT_PushButton *QT_cree_push_button(QT_Chaine texte, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    auto résultat = new QPushButton(texte.vers_std_string().c_str(), qparent);
+    auto résultat = new QPushButton(vers_qt(texte), qparent);
     return vers_ipa(résultat);
 }
 
@@ -1646,7 +1896,7 @@ void QT_treewidgetitem_definis_indicateur_enfant(QT_TreeWidgetItem *widget,
 void QT_treewidgetitem_definis_texte(QT_TreeWidgetItem *widget, int colonne, QT_Chaine *texte)
 {
     auto qwidget = vers_qt(widget);
-    qwidget->setText(colonne, texte->vers_std_string().c_str());
+    qwidget->setText(colonne, vers_qt(texte));
 }
 
 void QT_treewidgetitem_ajoute_enfant(QT_TreeWidgetItem *widget, QT_TreeWidgetItem *enfant)
@@ -1828,19 +2078,19 @@ static QFrame::Shape convertis_forme_frame(QT_Frame_Shape forme)
     return QFrame::NoFrame;
 }
 
-struct QT_Frame *QT_cree_frame(union QT_Generic_Widget parent)
+QT_Frame *QT_cree_frame(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     return vers_ipa(new QFrame(qparent));
 }
 
-void QT_frame_definis_forme(struct QT_Frame *frame, enum QT_Frame_Shape forme)
+void QT_frame_definis_forme(QT_Frame *frame, enum QT_Frame_Shape forme)
 {
     auto qframe = vers_qt(frame);
     qframe->setFrameShape(convertis_forme_frame(forme));
 }
 
-void QT_frame_definis_ombrage(struct QT_Frame *frame, enum QT_Frame_Shadow ombrage)
+void QT_frame_definis_ombrage(QT_Frame *frame, enum QT_Frame_Shadow ombrage)
 {
     auto qframe = vers_qt(frame);
     qframe->setFrameShadow(convertis_ombrage_frame(ombrage));
@@ -1908,7 +2158,7 @@ void QT_graphics_rect_item_definis_rect(QT_GraphicsRectItem *item, QT_RectF rect
 QT_GraphicsTextItem *QT_cree_graphics_text_item(QT_Chaine texte, QT_Generic_GraphicsItem parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new QGraphicsTextItem(texte.vers_std_string().c_str(), qparent));
+    return vers_ipa(new QGraphicsTextItem(vers_qt(texte), qparent));
 }
 
 void QT_graphics_text_item_definis_police(QT_GraphicsTextItem *text_item, QT_Font font)
@@ -1925,14 +2175,14 @@ void QT_graphics_text_item_definis_couleur_defaut(QT_GraphicsTextItem *text_item
     qtext_item->setDefaultTextColor(qcolor);
 }
 
-struct QT_RectF QT_graphics_text_item_donne_rect(struct QT_GraphicsTextItem *item)
+QT_RectF QT_graphics_text_item_donne_rect(QT_GraphicsTextItem *item)
 {
     VERS_QT(item);
     auto rect = qitem->boundingRect();
     return vers_ipa(rect);
 }
 
-void QT_graphics_text_item_definis_position(struct QT_GraphicsTextItem *item, QT_PointF *pos)
+void QT_graphics_text_item_definis_position(QT_GraphicsTextItem *item, QT_PointF *pos)
 {
     VERS_QT(item);
     auto qpos = vers_qt(*pos);
@@ -2085,6 +2335,373 @@ void QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Variant
+ * \{ */
+
+class EnveloppeVariant : public QT_Variant {
+    QVariant m_variant{};
+
+    static void sur_définis_chaine(QT_Variant *variant, QT_Chaine chaine)
+    {
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);
+        enveloppe->m_variant = vers_qt(chaine);
+    }
+
+#define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
+    static void sur_définis_##type_kuri(QT_Variant *variant, type_cpp valeur)                     \
+    {                                                                                             \
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);                                \
+        enveloppe->m_variant.setValue(valeur);                                                    \
+    }
+
+    ENUMERE_TYPE_STANDARD(ENUMERE_RAPPEL_TYPE_STANDARD)
+#undef ENUMERE_RAPPEL_TYPE_STANDARD
+
+  public:
+    EnveloppeVariant()
+    {
+        definis_chaine = sur_définis_chaine;
+#define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
+    definis_##type_kuri = sur_définis_##type_kuri;
+        ENUMERE_TYPE_STANDARD(ENUMERE_RAPPEL_TYPE_STANDARD)
+#undef ENUMERE_RAPPEL_TYPE_STANDARD
+    }
+
+    QVariant donne_variant() const
+    {
+        return m_variant;
+    }
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Item_Data_Role
+ * \{ */
+
+static QT_Item_Data_Role convertis_role(Qt::ItemDataRole role)
+{
+    switch (role) {
+        ENUMERE_ITEM_DATA_ROLE(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+    }
+
+    return QT_ITEM_DATA_ROLE_Display;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TableModel
+ * \{ */
+
+class ModèleTable final : public QAbstractTableModel {
+    QT_Rappels_TableModel *m_rappels = nullptr;
+
+  public:
+    ModèleTable(QT_Rappels_TableModel *rappels) : m_rappels(rappels)
+    {
+    }
+
+    EMPECHE_COPIE(ModèleTable);
+
+    ~ModèleTable() override
+    {
+        if (m_rappels && m_rappels->sur_destruction) {
+            m_rappels->sur_destruction(m_rappels);
+        }
+    }
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override
+    {
+        if (m_rappels && m_rappels->donne_nombre_lignes) {
+            auto model = vers_ipa(parent);
+            return m_rappels->donne_nombre_lignes(m_rappels, &model);
+        }
+        return 0;
+    }
+
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override
+    {
+        if (m_rappels && m_rappels->donne_nombre_colonnes) {
+            auto model = vers_ipa(parent);
+            return m_rappels->donne_nombre_colonnes(m_rappels, &model);
+        }
+        return 0;
+    }
+
+    QVariant headerData(int section,
+                        Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const override
+    {
+        if (!m_rappels || !m_rappels->donne_donnee_entete) {
+            return {};
+        }
+
+        auto enveloppe_variant = EnveloppeVariant();
+        m_rappels->donne_donnee_entete(m_rappels,
+                                       section,
+                                       convertis_orientation(orientation),
+                                       convertis_role(Qt::ItemDataRole(role)),
+                                       &enveloppe_variant);
+        return enveloppe_variant.donne_variant();
+    }
+
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
+    {
+        if (!m_rappels || !m_rappels->donne_donnee_cellule) {
+            return {};
+        }
+
+        auto enveloppe_variant = EnveloppeVariant();
+        auto model = vers_ipa(index);
+        m_rappels->donne_donnee_cellule(
+            m_rappels, &model, convertis_role(Qt::ItemDataRole(role)), &enveloppe_variant);
+        return enveloppe_variant.donne_variant();
+    }
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TableView
+ * \{ */
+
+QT_TableView *QT_cree_table_view(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QTableView(qparent));
+}
+
+void QT_table_view_definis_model(QT_TableView *view,
+                                 QT_Rappels_TableModel *rappels,
+                                 bool detruit_model_existant)
+{
+    VERS_QT(view);
+    if (detruit_model_existant) {
+        auto model = qview->model();
+        delete model;
+    }
+
+    qview->setModel(new ModèleTable(rappels));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Slider_Tick_Position
+ * \{ */
+
+static QSlider::TickPosition convertis_position_ticks(QT_Slider_Tick_Position position)
+{
+    switch (position) {
+        ENUMERE_SLIDER_TICK_POSITION(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QSlider::NoTicks;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Slider
+ * \{ */
+
+QT_Slider *QT_cree_slider(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QSlider(qparent));
+}
+
+void QT_slider_sur_changement_valeur(QT_Slider *slider, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(slider);
+    QObject::connect(qslider, &QSlider::valueChanged, [=](int) { rappel->sur_rappel(rappel); });
+}
+
+void QT_slider_definis_valeur(QT_Slider *slider, int valeur)
+{
+    VERS_QT(slider);
+    qslider->setValue(valeur);
+}
+
+int QT_slider_donne_valeur(QT_Slider *slider)
+{
+    VERS_QT(slider);
+    return qslider->value();
+}
+
+void QT_slider_definis_orientation(QT_Slider *slider, QT_Orientation orientation)
+{
+    VERS_QT(slider);
+    qslider->setOrientation(convertis_orientation(orientation));
+}
+
+void QT_slider_definis_position_tick(QT_Slider *slider, QT_Slider_Tick_Position position)
+{
+    VERS_QT(slider);
+    qslider->setTickPosition(convertis_position_ticks(position));
+}
+
+void QT_slider_definis_interval_tick(QT_Slider *slider, int valeur)
+{
+    VERS_QT(slider);
+    qslider->setTickInterval(valeur);
+}
+
+void QT_slider_definis_plage(QT_Slider *slider, int minimum, int maximum)
+{
+    VERS_QT(slider);
+    qslider->setMinimum(minimum);
+    qslider->setMaximum(maximum);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SpinBoxButtonSymbols
+ * \{ */
+
+static QAbstractSpinBox::ButtonSymbols convertis_spinbox_button_symbols(
+    QT_SpinBox_Button_Symbols symbols)
+{
+    switch (symbols) {
+        ENUMERE_SPINBOX_BUTTON_SYMBOLS(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QAbstractSpinBox::UpDownArrows;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SpinBox
+ * \{ */
+
+QT_SpinBox *QT_cree_spinbox(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QSpinBox(qparent));
+}
+
+void QT_spinbox_sur_changement_valeur(QT_SpinBox *spinbox, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(spinbox);
+    QObject::connect(qspinbox, qOverload<int>(&QSpinBox::valueChanged), [=](int) {
+        rappel->sur_rappel(rappel);
+    });
+}
+
+void QT_spinbox_definis_alignement(QT_SpinBox *spinbox, QT_Alignment alignement)
+{
+    VERS_QT(spinbox);
+    qspinbox->setAlignment(convertis_alignement(alignement));
+}
+
+void QT_spinbox_definis_plage(QT_SpinBox *spinbox, int minimum, int maximum)
+{
+    VERS_QT(spinbox);
+    qspinbox->setMinimum(minimum);
+    qspinbox->setMaximum(maximum);
+}
+
+void QT_spinbox_definis_valeur(QT_SpinBox *spinbox, int valeur)
+{
+    VERS_QT(spinbox);
+    qspinbox->setValue(valeur);
+}
+
+int QT_spinbox_donne_valeur(QT_SpinBox *spinbox)
+{
+    VERS_QT(spinbox);
+    return qspinbox->value();
+}
+
+void QT_spinbox_definis_lecture_seule(QT_SpinBox *spinbox, bool ouinon)
+{
+    VERS_QT(spinbox);
+    qspinbox->setReadOnly(ouinon);
+}
+
+void QT_spinbox_definis_symboles_boutons(QT_SpinBox *spinbox, QT_SpinBox_Button_Symbols symbols)
+{
+    VERS_QT(spinbox);
+    qspinbox->setButtonSymbols(convertis_spinbox_button_symbols(symbols));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DoubleSpinBox
+ * \{ */
+
+QT_DoubleSpinBox *QT_cree_doublespinbox(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QDoubleSpinBox(qparent));
+}
+
+void QT_doublespinbox_sur_changement_valeur(QT_DoubleSpinBox *doublespinbox,
+                                            QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(doublespinbox);
+    QObject::connect(qdoublespinbox, qOverload<double>(&QDoubleSpinBox::valueChanged), [=](int) {
+        rappel->sur_rappel(rappel);
+    });
+}
+
+void QT_doublespinbox_definis_alignement(QT_DoubleSpinBox *doublespinbox, QT_Alignment alignement)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setAlignment(convertis_alignement(alignement));
+}
+
+void QT_doublespinbox_definis_plage(QT_DoubleSpinBox *doublespinbox,
+                                    double minimum,
+                                    double maximum)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setMinimum(minimum);
+    qdoublespinbox->setMaximum(maximum);
+}
+
+void QT_doublespinbox_definis_valeur(QT_DoubleSpinBox *doublespinbox, double valeur)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setValue(valeur);
+}
+
+double QT_doublespinbox_donne_valeur(QT_DoubleSpinBox *doublespinbox)
+{
+    VERS_QT(doublespinbox);
+    return qdoublespinbox->value();
+}
+
+void QT_doublespinbox_definis_lecture_seule(QT_DoubleSpinBox *doublespinbox, bool ouinon)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setReadOnly(ouinon);
+}
+
+void QT_doublespinbox_definis_symboles_boutons(QT_DoubleSpinBox *doublespinbox,
+                                               QT_SpinBox_Button_Symbols symbols)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setButtonSymbols(convertis_spinbox_button_symbols(symbols));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name DNJ_Pilote_Clique
  * \{ */
 
@@ -2127,7 +2744,7 @@ QT_Layout *DNJ_conteneur_cree_interface(DNJ_Conteneur_Controles *conteneur)
 /** \name DNJ_Gestionnaire_Interface
  * \{ */
 
-static danjo::DonneesInterface convertis_contexte(struct DNJ_Contexte_Interface *context)
+static danjo::DonneesInterface convertis_contexte(DNJ_Contexte_Interface *context)
 {
     auto résultat = danjo::DonneesInterface();
     résultat.repondant_bouton = reinterpret_cast<PiloteClique *>(context->pilote_clique);
@@ -2150,8 +2767,8 @@ void DNJ_detruit_gestionnaire_interface(DNJ_Gestionnaire_Interface *gestionnaire
 }
 
 QT_Menu *DNJ_gestionaire_compile_menu_fichier(DNJ_Gestionnaire_Interface *gestionnaire,
-                                              struct DNJ_Contexte_Interface *context,
-                                              struct QT_Chaine chemin)
+                                              DNJ_Contexte_Interface *context,
+                                              QT_Chaine chemin)
 {
     if (!context) {
         return nullptr;
@@ -2222,6 +2839,22 @@ QT_ToolBar *DNJ_gestionaire_compile_barre_a_outils_fichier(
     auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
     auto résultat = dnj_gestionnaire->compile_barre_outils_fichier(données,
                                                                    chemin.vers_std_string());
+    return vers_ipa(résultat);
+}
+
+QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(DNJ_Gestionnaire_Interface *gestionnaire,
+                                                         DNJ_Contexte_Interface *context,
+                                                         QT_Chaine chemin)
+{
+    if (!context) {
+        return nullptr;
+    }
+
+    auto manipulable = danjo::Manipulable{};
+    auto données = convertis_contexte(context);
+    données.manipulable = &manipulable;
+    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    auto résultat = dnj_gestionnaire->compile_entreface_fichier(données, chemin.vers_std_string());
     return vers_ipa(résultat);
 }
 
