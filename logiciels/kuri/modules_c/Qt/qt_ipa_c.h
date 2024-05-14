@@ -2120,6 +2120,11 @@ struct QT_ToolBar *DNJ_gestionaire_compile_barre_a_outils_fichier(
     struct DNJ_Contexte_Interface *context,
     struct QT_Chaine chemin);
 
+struct QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(
+    struct DNJ_Gestionnaire_Interface *gestionnaire,
+    struct DNJ_Contexte_Interface *context,
+    struct QT_Chaine chemin);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

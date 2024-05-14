@@ -40,6 +40,8 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include "danjo/manipulable.h"
+
 #include "fenetre_principale.hh"
 #include "ipa_danjo.hh"
 #include "tabs.hh"
@@ -2576,6 +2578,22 @@ QT_ToolBar *DNJ_gestionaire_compile_barre_a_outils_fichier(
     auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
     auto résultat = dnj_gestionnaire->compile_barre_outils_fichier(données,
                                                                    chemin.vers_std_string());
+    return vers_ipa(résultat);
+}
+
+QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(DNJ_Gestionnaire_Interface *gestionnaire,
+                                                         DNJ_Contexte_Interface *context,
+                                                         QT_Chaine chemin)
+{
+    if (!context) {
+        return nullptr;
+    }
+
+    auto manipulable = danjo::Manipulable{};
+    auto données = convertis_contexte(context);
+    données.manipulable = &manipulable;
+    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    auto résultat = dnj_gestionnaire->compile_entreface_fichier(données, chemin.vers_std_string());
     return vers_ipa(résultat);
 }
 
