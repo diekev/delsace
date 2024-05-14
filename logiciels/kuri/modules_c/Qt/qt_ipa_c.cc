@@ -1296,6 +1296,18 @@ void QT_layout_definis_contrainte_taille(QT_Generic_Layout layout,
     qlayout->setSizeConstraint(convertis_contrainte_taille(contrainte));
 }
 
+void QT_vbox_layout_ajoute_etirement(QT_VBoxLayout *layout, int etirement)
+{
+    VERS_QT(layout);
+    qlayout->addStretch(etirement);
+}
+
+void QT_hbox_layout_ajoute_etirement(QT_HBoxLayout *layout, int etirement)
+{
+    VERS_QT(layout);
+    qlayout->addStretch(etirement);
+}
+
 void QT_form_layout_ajoute_ligne_chaine(QT_FormLayout *layout,
                                         QT_Chaine label,
                                         QT_Generic_Widget widget)
