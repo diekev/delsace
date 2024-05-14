@@ -31,6 +31,12 @@ class TabWidget : public QTabWidget {
 
     ~TabWidget() override;
 
+  public:
+    QT_Rappels_TabWidget *donne_rappels()
+    {
+        return m_rappels;
+    }
+
   public Q_SLOTS:
     void sur_changement_page(int index);
     void sur_fermeture_page(int index);
