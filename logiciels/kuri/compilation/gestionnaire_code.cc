@@ -1744,7 +1744,7 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
         tente_de_garantir_fonction_point_d_entrée(espace);
 
         if (it->pour_métaprogramme()) {
-            auto etat = it->ajourne_etat_compilation();
+            auto etat = it->ajourne_état_compilation();
 
             if (etat.phase_courante() == PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE) {
                 it->change_de_phase(PhaseCompilation::AVANT_GÉNÉRATION_OBJET);
@@ -1753,7 +1753,7 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
         }
         else {
             if (espace->phase_courante() == PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE &&
-                it->ri_generees()) {
+                it->ri_générées()) {
                 finalise_programme_avant_génération_code_machine(espace, it);
             }
         }
@@ -1841,7 +1841,7 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
         return;
     }
 
-    auto modules = programme->modules_utilises();
+    auto modules = programme->modules_utilisés();
     auto executions_requises = false;
     auto executions_en_cours = false;
     modules.pour_chaque_element([&](Module *module) {
