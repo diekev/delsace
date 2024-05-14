@@ -69,6 +69,52 @@ QT_yellow :: fonc () -> QT_Color #enligne
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom QT_Variant
+ * \{ */
+
+définis_valeur :: fonc (variant: *QT_Variant, valeur: $T)
+{
+    #si T == z8 {
+        variant.definis_z8(variant, valeur)
+    }
+    sinon si T == z16 {
+        variant.definis_z16(variant, valeur)
+    }
+    sinon si T == z32 {
+        variant.definis_z32(variant, valeur)
+    }
+    sinon si T == z64 {
+        variant.definis_z64(variant, valeur)
+    }
+    sinon si T == n8 {
+        variant.definis_n8(variant, valeur)
+    }
+    sinon si T == n16 {
+        variant.definis_n16(variant, valeur)
+    }
+    sinon si T == n32 {
+        variant.definis_n32(variant, valeur)
+    }
+    sinon si T == n64 {
+        variant.definis_n64(variant, valeur)
+    }
+    sinon si T == r32 {
+        variant.definis_r32(variant, valeur)
+    }
+    sinon si T == r64 {
+        variant.definis_r64(variant, valeur)
+    }
+    sinon si T == bool {
+        variant.definis_bool(variant, valeur)
+    }
+    sinon si T == chaine {
+        variant.definis_chaine(variant, vers_qt(valeur))
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Conversion Périphériques
  * \{ */
 
