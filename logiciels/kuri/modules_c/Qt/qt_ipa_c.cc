@@ -27,6 +27,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
+#include <QSpinBox>
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTableView>
@@ -2482,6 +2483,220 @@ void QT_table_view_definis_model(QT_TableView *view,
     }
 
     qview->setModel(new ModèleTable(rappels));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Slider_Tick_Position
+ * \{ */
+
+static QSlider::TickPosition convertis_position_ticks(QT_Slider_Tick_Position position)
+{
+    switch (position) {
+        ENUMERE_SLIDER_TICK_POSITION(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QSlider::NoTicks;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Slider
+ * \{ */
+
+QT_Slider *QT_cree_slider(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QSlider(qparent));
+}
+
+void QT_slider_sur_changement_valeur(QT_Slider *slider, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(slider);
+    QObject::connect(qslider, &QSlider::valueChanged, [=](int) { rappel->sur_rappel(rappel); });
+}
+
+void QT_slider_definis_valeur(QT_Slider *slider, int valeur)
+{
+    VERS_QT(slider);
+    qslider->setValue(valeur);
+}
+
+int QT_slider_donne_valeur(QT_Slider *slider)
+{
+    VERS_QT(slider);
+    return qslider->value();
+}
+
+void QT_slider_definis_orientation(QT_Slider *slider, QT_Orientation orientation)
+{
+    VERS_QT(slider);
+    qslider->setOrientation(convertis_orientation(orientation));
+}
+
+void QT_slider_definis_position_tick(QT_Slider *slider, QT_Slider_Tick_Position position)
+{
+    VERS_QT(slider);
+    qslider->setTickPosition(convertis_position_ticks(position));
+}
+
+void QT_slider_definis_interval_tick(QT_Slider *slider, int valeur)
+{
+    VERS_QT(slider);
+    qslider->setTickInterval(valeur);
+}
+
+void QT_slider_definis_plage(QT_Slider *slider, int minimum, int maximum)
+{
+    VERS_QT(slider);
+    qslider->setMinimum(minimum);
+    qslider->setMaximum(maximum);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SpinBoxButtonSymbols
+ * \{ */
+
+static QAbstractSpinBox::ButtonSymbols convertis_spinbox_button_symbols(
+    QT_SpinBox_Button_Symbols symbols)
+{
+    switch (symbols) {
+        ENUMERE_SPINBOX_BUTTON_SYMBOLS(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QAbstractSpinBox::UpDownArrows;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SpinBox
+ * \{ */
+
+QT_SpinBox *QT_cree_spinbox(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QSpinBox(qparent));
+}
+
+void QT_spinbox_sur_changement_valeur(QT_SpinBox *spinbox, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(spinbox);
+    QObject::connect(qspinbox, qOverload<int>(&QSpinBox::valueChanged), [=](int) {
+        rappel->sur_rappel(rappel);
+    });
+}
+
+void QT_spinbox_definis_alignement(QT_SpinBox *spinbox, QT_Alignment alignement)
+{
+    VERS_QT(spinbox);
+    qspinbox->setAlignment(convertis_alignement(alignement));
+}
+
+void QT_spinbox_definis_plage(QT_SpinBox *spinbox, int minimum, int maximum)
+{
+    VERS_QT(spinbox);
+    qspinbox->setMinimum(minimum);
+    qspinbox->setMaximum(maximum);
+}
+
+void QT_spinbox_definis_valeur(QT_SpinBox *spinbox, int valeur)
+{
+    VERS_QT(spinbox);
+    qspinbox->setValue(valeur);
+}
+
+int QT_spinbox_donne_valeur(QT_SpinBox *spinbox)
+{
+    VERS_QT(spinbox);
+    return qspinbox->value();
+}
+
+void QT_spinbox_definis_lecture_seule(QT_SpinBox *spinbox, bool ouinon)
+{
+    VERS_QT(spinbox);
+    qspinbox->setReadOnly(ouinon);
+}
+
+void QT_spinbox_definis_symboles_boutons(QT_SpinBox *spinbox, QT_SpinBox_Button_Symbols symbols)
+{
+    VERS_QT(spinbox);
+    qspinbox->setButtonSymbols(convertis_spinbox_button_symbols(symbols));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DoubleSpinBox
+ * \{ */
+
+QT_DoubleSpinBox *QT_cree_doublespinbox(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QDoubleSpinBox(qparent));
+}
+
+void QT_doublespinbox_sur_changement_valeur(QT_DoubleSpinBox *doublespinbox,
+                                            QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(doublespinbox);
+    QObject::connect(qdoublespinbox, qOverload<double>(&QDoubleSpinBox::valueChanged), [=](int) {
+        rappel->sur_rappel(rappel);
+    });
+}
+
+void QT_doublespinbox_definis_alignement(QT_DoubleSpinBox *doublespinbox, QT_Alignment alignement)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setAlignment(convertis_alignement(alignement));
+}
+
+void QT_doublespinbox_definis_plage(QT_DoubleSpinBox *doublespinbox,
+                                    double minimum,
+                                    double maximum)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setMinimum(minimum);
+    qdoublespinbox->setMaximum(maximum);
+}
+
+void QT_doublespinbox_definis_valeur(QT_DoubleSpinBox *doublespinbox, double valeur)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setValue(valeur);
+}
+
+double QT_doublespinbox_donne_valeur(QT_DoubleSpinBox *doublespinbox)
+{
+    VERS_QT(doublespinbox);
+    return qdoublespinbox->value();
+}
+
+void QT_doublespinbox_definis_lecture_seule(QT_DoubleSpinBox *doublespinbox, bool ouinon)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setReadOnly(ouinon);
+}
+
+void QT_doublespinbox_definis_symboles_boutons(QT_DoubleSpinBox *doublespinbox,
+                                               QT_SpinBox_Button_Symbols symbols)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setButtonSymbols(convertis_spinbox_button_symbols(symbols));
 }
 
 /** \} */

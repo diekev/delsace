@@ -159,7 +159,10 @@ struct QT_Rappel_Generique {
     O(QMenu, QT_Menu, menu)                                                                       \
     O(QMenuBar, QT_MenuBar, menu_bar)                                                             \
     O(QToolBar, QT_ToolBar, tool_bar)                                                             \
-    O(QTableView, QT_TableView, table_view)
+    O(QTableView, QT_TableView, table_view)                                                       \
+    O(QSpinBox, QT_SpinBox, spin_box)                                                             \
+    O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
+    O(QSlider, QT_Slider, slider)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -2046,6 +2049,86 @@ struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
 void QT_table_view_definis_model(struct QT_TableView *view,
                                  struct QT_Rappels_TableModel *rappels,
                                  bool detruit_model_existant);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Slider_Tick_Position
+ * \{ */
+
+#define ENUMERE_SLIDER_TICK_POSITION(O)                                                           \
+    O(QT_SLIDER_TICK_POSITION_AUCUN_TICKS, QSlider::NoTicks)                                      \
+    O(QT_SLIDER_TICK_POSITION_EN_HAUT, QSlider::TicksAbove)                                       \
+    O(QT_SLIDER_TICK_POSITION_EN_BAS, QSlider::TicksBelow)                                        \
+    O(QT_SLIDER_TICK_POSITION_DES_DEUX_COTES, QSlider::TicksBothSides)
+
+enum QT_Slider_Tick_Position { ENUMERE_SLIDER_TICK_POSITION(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Slider
+ * \{ */
+
+struct QT_Slider *QT_cree_slider(union QT_Generic_Widget parent);
+void QT_slider_sur_changement_valeur(struct QT_Slider *slider, struct QT_Rappel_Generique *rappel);
+void QT_slider_definis_valeur(struct QT_Slider *slider, int valeur);
+int QT_slider_donne_valeur(struct QT_Slider *slider);
+void QT_slider_definis_orientation(struct QT_Slider *slider, enum QT_Orientation orientation);
+void QT_slider_definis_position_tick(struct QT_Slider *slider,
+                                     enum QT_Slider_Tick_Position position);
+void QT_slider_definis_interval_tick(struct QT_Slider *slider, int valeur);
+void QT_slider_definis_plage(struct QT_Slider *slider, int minimum, int maximum);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SpinBoxButtonSymbols
+ * \{ */
+
+#define ENUMERE_SPINBOX_BUTTON_SYMBOLS(O)                                                         \
+    O(QT_SPINBOX_BUTTON_SYMBOLS_FLECHES_HAUT_BAS, QAbstractSpinBox::UpDownArrows)                 \
+    O(QT_SPINBOX_BUTTON_SYMBOLS_PLUS_MOINS, QAbstractSpinBox::PlusMinus)                          \
+    O(QT_SPINBOX_BUTTON_SYMBOLS_AUCUN_BOUTONS, QAbstractSpinBox::NoButtons)
+
+enum QT_SpinBox_Button_Symbols { ENUMERE_SPINBOX_BUTTON_SYMBOLS(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SpinBox
+ * \{ */
+
+struct QT_SpinBox *QT_cree_spinbox(union QT_Generic_Widget parent);
+void QT_spinbox_sur_changement_valeur(struct QT_SpinBox *spinbox,
+                                      struct QT_Rappel_Generique *rappel);
+void QT_spinbox_definis_alignement(struct QT_SpinBox *spinbox, enum QT_Alignment alignement);
+void QT_spinbox_definis_plage(struct QT_SpinBox *spinbox, int minimum, int maximum);
+void QT_spinbox_definis_valeur(struct QT_SpinBox *spinbox, int valeur);
+int QT_spinbox_donne_valeur(struct QT_SpinBox *spinbox);
+void QT_spinbox_definis_lecture_seule(struct QT_SpinBox *spinbox, bool ouinon);
+void QT_spinbox_definis_symboles_boutons(struct QT_SpinBox *spinbox,
+                                         enum QT_SpinBox_Button_Symbols symbols);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DoubleSpinBox
+ * \{ */
+
+struct QT_DoubleSpinBox *QT_cree_doublespinbox(union QT_Generic_Widget parent);
+void QT_doublespinbox_sur_changement_valeur(struct QT_DoubleSpinBox *doublespinbox,
+                                            struct QT_Rappel_Generique *rappel);
+void QT_doublespinbox_definis_alignement(struct QT_DoubleSpinBox *doublespinbox,
+                                         enum QT_Alignment alignement);
+void QT_doublespinbox_definis_plage(struct QT_DoubleSpinBox *doublespinbox,
+                                    double minimum,
+                                    double maximum);
+void QT_doublespinbox_definis_valeur(struct QT_DoubleSpinBox *doublespinbox, double valeur);
+double QT_doublespinbox_donne_valeur(struct QT_DoubleSpinBox *doublespinbox);
+void QT_doublespinbox_definis_lecture_seule(struct QT_DoubleSpinBox *doublespinbox, bool ouinon);
+void QT_doublespinbox_definis_symboles_boutons(struct QT_DoubleSpinBox *doublespinbox,
+                                               enum QT_SpinBox_Button_Symbols symbols);
 
 /** \} */
 
