@@ -206,6 +206,9 @@ union QT_Generic_Object {
 void QT_object_definis_propriete_chaine(union QT_Generic_Object object,
                                         struct QT_Chaine *nom,
                                         struct QT_Chaine *valeur);
+void QT_object_definis_propriete_bool(union QT_Generic_Object object,
+                                      struct QT_Chaine nom,
+                                      bool valeur);
 
 bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon);
 

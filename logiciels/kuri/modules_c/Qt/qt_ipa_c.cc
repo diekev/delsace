@@ -282,6 +282,12 @@ void QT_object_definis_propriete_chaine(QT_Generic_Object object,
     qobject->setProperty(nom->vers_std_string().c_str(), vers_qt(valeur));
 }
 
+void QT_object_definis_propriete_bool(QT_Generic_Object object, QT_Chaine nom, bool valeur)
+{
+    auto qobject = vers_qt(object);
+    qobject->setProperty(nom.vers_std_string().c_str(), valeur);
+}
+
 bool QT_object_bloque_signaux(QT_Generic_Object object, bool ouinon)
 {
     auto qobject = vers_qt(object);
