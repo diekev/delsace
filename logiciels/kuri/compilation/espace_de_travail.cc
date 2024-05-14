@@ -43,7 +43,7 @@ EspaceDeTravail::~EspaceDeTravail()
 int64_t EspaceDeTravail::memoire_utilisee() const
 {
     auto memoire = int64_t(0);
-    memoire += programme->memoire_utilisee();
+    memoire += programme->mémoire_utilisée();
     return memoire;
 }
 
