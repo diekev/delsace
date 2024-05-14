@@ -1299,6 +1299,22 @@ enum QT_Alignment { ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_DECLARATION_ENUM_IPA) };
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Layout_Size_Constraint
+ * \{ */
+
+#define ENUMERE_LAYOUT_SIZE_CONSTRAINT(O)                                                         \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_DEFAUT, QLayout::SetDefaultConstraint)                            \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_AUCUNE_CONTRAINTE, QLayout::SetNoConstraint)                      \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_TAILLE_MINIMUM, QLayout::SetMinimumSize)                          \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_TAILLE_FIXE, QLayout::SetFixedSize)                               \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_TAILLE_MAXIMUM, QLayout::SetMaximumSize)                          \
+    O(QT_LAYOUT_SIZE_CONSTRAINT_TAILLE_MIN_ET_MAX, QLayout::SetMinAndMaxSize)
+
+enum QT_Layout_Size_Constraint { ENUMERE_LAYOUT_SIZE_CONSTRAINT(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Layout
  * \{ */
 
@@ -1315,6 +1331,8 @@ void QT_layout_ajoute_layout(union QT_Generic_Layout layout, union QT_Generic_La
 bool QT_layout_aligne_layout(union QT_Generic_Layout layout,
                              union QT_Generic_Layout sous_layout,
                              enum QT_Alignment alignement);
+void QT_layout_definis_contrainte_taille(union QT_Generic_Layout layout,
+                                         enum QT_Layout_Size_Constraint contrainte);
 
 void QT_form_layout_ajoute_ligne_chaine(struct QT_FormLayout *layout,
                                         struct QT_Chaine label,

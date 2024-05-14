@@ -1204,6 +1204,20 @@ static Qt::AlignmentFlag convertis_alignement(QT_Alignment alignment)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Layout_Size_Constraint
+ * \{ */
+
+static QLayout::SizeConstraint convertis_contrainte_taille(QT_Layout_Size_Constraint contrainte)
+{
+    switch (contrainte) {
+        ENUMERE_LAYOUT_SIZE_CONSTRAINT(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QLayout::SetDefaultConstraint;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Layout
  * \{ */
 
@@ -1273,6 +1287,13 @@ bool QT_layout_aligne_layout(QT_Generic_Layout layout,
     auto qlayout = vers_qt(layout);
     auto qsous_layout = vers_qt(sous_layout);
     return qlayout->setAlignment(qsous_layout, convertis_alignement(alignement));
+}
+
+void QT_layout_definis_contrainte_taille(QT_Generic_Layout layout,
+                                         QT_Layout_Size_Constraint contrainte)
+{
+    VERS_QT(layout);
+    qlayout->setSizeConstraint(convertis_contrainte_taille(contrainte));
 }
 
 void QT_form_layout_ajoute_ligne_chaine(QT_FormLayout *layout,
