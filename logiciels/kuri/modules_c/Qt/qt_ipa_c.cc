@@ -1102,6 +1102,13 @@ QT_Rect QT_widget_donne_geometrie(QT_Generic_Widget widget)
     return vers_ipa(qwidget->geometry());
 }
 
+void QT_widget_definis_infobulle(QT_Generic_Widget widget, QT_Chaine texte)
+{
+    VERS_QT(widget);
+    VERS_QT(texte);
+    qwidget->setToolTip(qtexte);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
