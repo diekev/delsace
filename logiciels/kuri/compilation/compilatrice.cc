@@ -285,7 +285,7 @@ int64_t Compilatrice::memoire_utilisee() const
 
     auto metaprogrammes_ = métaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
-        résultat += it.programme->memoire_utilisee();
+        résultat += it.programme->mémoire_utilisée();
         résultat += it.données_constantes.taille_mémoire();
         résultat += it.données_globales.taille_mémoire();
         résultat += it.cibles_appels.taille_mémoire();
