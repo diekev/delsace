@@ -456,7 +456,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
     }
 }
 
-static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
+static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
                                     AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
@@ -1936,7 +1936,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto taille_arguments = LIS_4_OCTETS();
                 auto pointeur_arguments = pointeur_pile - taille_arguments;
                 auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
-                imprime_valeurs_entrees(
+                imprime_valeurs_entrées(
                     pointeur_arguments, ptr_fonction, profondeur_appel, logueuse);
                 break;
             }
