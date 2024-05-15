@@ -4,13 +4,13 @@
 #pragma once
 
 #include "biblinternes/outils/badge.hh"
-#include "biblinternes/structures/tableau_page.hh"
 
 #include "arbre_syntaxique/prodeclaration.hh"
 
 #include "structures/ensemblon.hh"
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
+#include "structures/tableau_page.hh"
 
 struct AtomeFonction;
 struct EspaceDeTravail;
@@ -159,7 +159,7 @@ struct GrapheDépendance {
     int index_visite = 0;
 
   public:
-    tableau_page<NoeudDépendance> noeuds{};
+    kuri::tableau_page<NoeudDépendance> noeuds{};
 
     // CRÉE (:FONCTION { nom = $nom })
     NoeudDépendance *crée_noeud_fonction(NoeudDéclarationEntêteFonction *noeud_syntaxique);

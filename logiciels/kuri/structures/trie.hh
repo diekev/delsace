@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau_page.hh"
-
 #include <variant>
 
 #include "table_hachage.hh"
+#include "tableau_page.hh"
 #include "tablet.hh"
 
 namespace kuri {
@@ -76,14 +75,14 @@ struct trie {
         kuri::tableau_statique<TypeIdentifiant> identifiants)
     {
         if (!racine) {
-            racine = noeuds.ajoute_element();
+            racine = noeuds.ajoute_élément();
         }
 
         auto noeud_courant = racine;
         POUR (identifiants) {
             auto enfant = noeud_courant->trouve_noeud_pour_identifiant(it);
             if (!enfant) {
-                enfant = noeuds.ajoute_element();
+                enfant = noeuds.ajoute_élément();
                 enfant->identifiant = it;
                 noeud_courant->ajoute_enfant(enfant);
             }
@@ -100,7 +99,7 @@ struct trie {
     int64_t mémoire_utilisée() const
     {
         auto résultat = int64_t(0);
-        résultat += noeuds.memoire_utilisee();
+        résultat += noeuds.mémoire_utilisée();
         POUR_TABLEAU_PAGE (noeuds) {
             résultat += it.enfants.table.taille_mémoire();
         }

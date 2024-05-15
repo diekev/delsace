@@ -4,7 +4,6 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/structures/tableau_page.hh"
 
 #include "arbre_syntaxique/prodeclaration.hh"
 
@@ -13,6 +12,7 @@
 #include "structures/chaine.hh"
 #include "structures/ensemblon.hh"
 #include "structures/table_hachage.hh"
+#include "structures/tableau_page.hh"
 #include "structures/tablet.hh"
 
 #include "operateurs.hh"
@@ -175,7 +175,7 @@ struct Trie {
     };
 
     Noeud *racine = nullptr;
-    tableau_page<Noeud> noeuds{};
+    kuri::tableau_page<Noeud> noeuds{};
 
     using TypeResultat = std::variant<Noeud *, TypeFonction *>;
 
