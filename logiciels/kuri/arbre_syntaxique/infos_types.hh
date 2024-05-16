@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau_page.hh"
-
 #include "structures/chaine_statique.hh"
 #include "structures/tableau.hh"
+#include "structures/tableau_page.hh"
 #include "structures/tablet.hh"
 #include "structures/tranche.hh"
 
@@ -140,7 +139,7 @@ struct InfoTypeVariadique : public InfoType {
     O(InfoTypeStructure *, structs_employées)
 
 struct AllocatriceInfosType {
-#define ENUMERE_TYPES_INFO_TYPE_EX(type__, nom__) tableau_page<type__> nom__{};
+#define ENUMERE_TYPES_INFO_TYPE_EX(type__, nom__) kuri::tableau_page<type__> nom__{};
     ENUMERE_TYPES_INFO_TYPE(ENUMERE_TYPES_INFO_TYPE_EX)
 #undef ENUMERE_TYPES_INFO_TYPE_EX
 
