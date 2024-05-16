@@ -7,6 +7,7 @@
 #include <iostream>
 #include <set>
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/numerique.hh"
 
 #include "structures/chemin_systeme.hh"
@@ -912,7 +913,8 @@ void ConvertisseuseTypeC::génère_déclaration_structure_cpp(
     }
 
     enchaineuse << "struct " << nom_type << " {\n";
-    enchaineuse << "  uint8_t d[" << type_composé->taille_octet << "];\n";
+    enchaineuse << "  uint8_t " << nom_variable_tableau_fixe << "[" << type_composé->taille_octet
+                << "];\n";
 
     /* Constructeurs. */
     génère_constructeur_cpp(nom_type, enchaineuse, type_composé);
@@ -977,8 +979,9 @@ void ConvertisseuseTypeC::génère_constructeur_cpp(kuri::chaine_statique nom_ty
 
         auto const type_membre = génératrice_code.donne_nom_pour_type(it.type);
         auto nom_membre = broyeuse.broye_nom_simple(it.nom);
-        enchaineuse << "    " << "*(" << type_membre << "*)(&d[" << it.decalage
-                    << "]) = " << nom_membre << "_" << index_it << ";\n";
+        enchaineuse << "    "
+                    << "*(" << type_membre << "*)(&" << nom_variable_tableau_fixe << "["
+                    << it.decalage << "]) = " << nom_membre << "_" << index_it << ";\n";
     }
     enchaineuse << "  }\n";
 }
@@ -1520,7 +1523,7 @@ static bool est_type_structure_info_type(Typeuse const &typeuse, Type const *typ
         return false;
     }
 
-    auto const type_élément = type->comme_type_pointeur()->type_pointe;
+    auto const type_élément = type->comme_type_pointeur()->type_pointé;
     return dls::outils::est_element(type_élément,
                                     typeuse.type_info_type_,
                                     typeuse.type_info_type_enum,
@@ -2052,7 +2055,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
             continue;
         }
         if (inst->est_appel()) {
-            auto type_fonction_appelé = inst->comme_appel()->appele->type->comme_type_fonction();
+            auto type_fonction_appelé = inst->comme_appel()->appelé->type->comme_type_fonction();
             if (!type_fonction_appelé->type_sortie->est_type_rien()) {
                 auto nom_ret = donne_nom_pour_instruction(inst);
                 os << "  " << donne_nom_pour_type(inst->type) << ' ' << nom_ret << ";\n";
