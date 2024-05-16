@@ -346,7 +346,7 @@ TableOpérateurs *RegistreDesOpérateurs::donne_ou_crée_table_opérateurs(Type 
         return type->table_opérateurs;
     }
 
-    auto résultat = m_tables_opérateurs.ajoute_element();
+    auto résultat = m_tables_opérateurs.ajoute_élément();
     type->table_opérateurs = résultat;
     return résultat;
 }
@@ -375,7 +375,7 @@ OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(
 
     auto table = donne_ou_crée_table_opérateurs(type1);
 
-    auto op = opérateurs_binaires[index_op_binaire(id)].ajoute_element();
+    auto op = opérateurs_binaires[index_op_binaire(id)].ajoute_élément();
     op->type1 = type1;
     op->type2 = type2;
     op->type_résultat = type_résultat;
@@ -390,7 +390,7 @@ OpérateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexème id,
                                                               Type *type,
                                                               Type *type_résultat)
 {
-    auto op = opérateurs_unaires[index_op_unaire(id)].ajoute_element();
+    auto op = opérateurs_unaires[index_op_unaire(id)].ajoute_élément();
     op->type_opérande = type;
     op->type_résultat = type_résultat;
     op->est_basique = true;
@@ -405,7 +405,7 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexème id,
                                          NoeudDéclarationEntêteFonction *decl)
 {
     auto table = donne_ou_crée_table_opérateurs(type1);
-    auto op = opérateurs_binaires[index_op_binaire(id)].ajoute_element();
+    auto op = opérateurs_binaires[index_op_binaire(id)].ajoute_élément();
     op->type1 = type1;
     op->type2 = type2;
     op->type_résultat = type_résultat;
@@ -420,7 +420,7 @@ void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexème id,
                                                 Type *type_résultat,
                                                 NoeudDéclarationEntêteFonction *decl)
 {
-    auto op = opérateurs_unaires[index_op_unaire(id)].ajoute_element();
+    auto op = opérateurs_unaires[index_op_unaire(id)].ajoute_élément();
     op->type_opérande = type;
     op->type_résultat = type_résultat;
     op->est_basique = false;
@@ -497,7 +497,7 @@ void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
     auto memoire_unaires = opérateurs_unaires.taille_mémoire();
 
     POUR (opérateurs_unaires) {
-        memoire_unaires += it.memoire_utilisee();
+        memoire_unaires += it.mémoire_utilisée();
         nombre_unaires += it.taille();
     }
 
@@ -505,12 +505,12 @@ void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
     auto memoire_binaires = opérateurs_binaires.taille_mémoire();
 
     POUR (opérateurs_binaires) {
-        memoire_binaires += it.memoire_utilisee();
+        memoire_binaires += it.mémoire_utilisée();
         nombre_binaires += it.taille();
     }
 
-    auto nombre_tables = m_tables_opérateurs.nombre_elements;
-    auto mémoire_tables = m_tables_opérateurs.memoire_utilisee();
+    auto nombre_tables = m_tables_opérateurs.taille();
+    auto mémoire_tables = m_tables_opérateurs.mémoire_utilisée();
 
     POUR_TABLEAU_PAGE (m_tables_opérateurs) {
         mémoire_tables += it.mémoire_utilisée();

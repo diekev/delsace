@@ -5,13 +5,12 @@
 
 #include "code_binaire.hh"
 
-#include "biblinternes/structures/tableau_page.hh"
-
 #include "structures/pile.hh"
 
 #include "structures/chaine.hh"
 #include "structures/intervalle.hh"
 #include "structures/table_hachage.hh"
+#include "structures/tableau_page.hh"
 
 struct AtomeFonction;
 struct Compilatrice;
@@ -144,7 +143,7 @@ struct MachineVirtuelle {
   private:
     Compilatrice &compilatrice;
 
-    tableau_page<DonnéesExécution> données_exécution{};
+    kuri::tableau_page<DonnéesExécution> données_exécution{};
     /* Ramasse-miettes pour les données d'exécutions des métaprogrammes exécutés. */
     kuri::tableau<DonnéesExécution *> m_données_exécution_libres{};
 

@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau_page.hh"
-
 #include "structures/chaine.hh"
 #include "structures/enchaineuse.hh"
 #include "structures/table_hachage.hh"
+#include "structures/tableau_page.hh"
 
 struct IdentifiantCode {
     kuri::chaine_statique nom{};
@@ -22,7 +21,7 @@ struct IdentifiantCode {
 struct TableIdentifiant {
   private:
     kuri::table_hachage<kuri::chaine_statique, IdentifiantCode *> table{"IdentifiantCode"};
-    tableau_page<IdentifiantCode, 1024> identifiants{};
+    kuri::tableau_page<IdentifiantCode, 1024> identifiants{};
 
     Enchaineuse enchaineuse{};
 

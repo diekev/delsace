@@ -51,7 +51,7 @@ int64_t TableIdentifiant::taille() const
 int64_t TableIdentifiant::memoire_utilisee() const
 {
     auto memoire = int64_t(0);
-    memoire += identifiants.memoire_utilisee();
+    memoire += identifiants.mémoire_utilisée();
     memoire += table.taille_mémoire();
     memoire += enchaineuse.mémoire_utilisée();
 
@@ -64,7 +64,7 @@ int64_t TableIdentifiant::memoire_utilisee() const
 
 IdentifiantCode *TableIdentifiant::ajoute_identifiant(kuri::chaine_statique nom)
 {
-    auto ident = identifiants.ajoute_element();
+    auto ident = identifiants.ajoute_élément();
     ident->nom = nom;
 
     table.insère(nom, ident);

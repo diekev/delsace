@@ -59,7 +59,7 @@ Module *SystèmeModule::trouve_ou_crée_module(IdentifiantCode *nom, kuri::chain
 
 Module *SystèmeModule::crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
 {
-    auto dm = modules.ajoute_element(chemin);
+    auto dm = modules.ajoute_élément(chemin);
     dm->nom_ = nom;
     return dm;
 }
@@ -92,7 +92,7 @@ FichierNeuf SystèmeModule::crée_fichier(Module *module,
                                         kuri::chaine_statique nom,
                                         kuri::chaine_statique chemin)
 {
-    auto df = fichiers.ajoute_element();
+    auto df = fichiers.ajoute_élément();
     df->nom_ = nom;
     df->chemin_ = chemin;
     df->id_ = fichiers.taille() - 1;
@@ -137,8 +137,8 @@ void SystèmeModule::rassemble_stats(Statistiques &stats) const
 int64_t SystèmeModule::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
-    résultat += modules.memoire_utilisee();
-    résultat += fichiers.memoire_utilisee();
+    résultat += modules.mémoire_utilisée();
+    résultat += fichiers.mémoire_utilisée();
 
     POUR_TABLEAU_PAGE (fichiers) {
         résultat += it.nom().taille();

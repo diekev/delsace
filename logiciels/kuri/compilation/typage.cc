@@ -463,12 +463,12 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDépendance> &g,
     TypeBase::EINI = crée_type_eini();
     TypeBase::CHAINE = crée_type_chaine();
 
-    type_type_de_donnees_ = alloc->m_noeuds_type_type_de_données.ajoute_element();
+    type_type_de_donnees_ = alloc->m_noeuds_type_type_de_données.ajoute_élément();
     initialise_type_type_de_données(type_type_de_donnees_, nullptr);
 
     // nous devons créer le pointeur nul avant les autres types, car nous en avons besoin pour
     // définir les opérateurs pour les pointeurs
-    auto ptr_nul = alloc->m_noeuds_type_pointeur.ajoute_element();
+    auto ptr_nul = alloc->m_noeuds_type_pointeur.ajoute_élément();
     initialise_type_pointeur(ptr_nul, nullptr);
 
     TypeBase::PTR_NUL = ptr_nul;
@@ -653,7 +653,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
         return type->type_pointeur;
     }
 
-    auto résultat = alloc->m_noeuds_type_pointeur.ajoute_element();
+    auto résultat = alloc->m_noeuds_type_pointeur.ajoute_élément();
     initialise_type_pointeur(résultat, type);
 
     if (insere_dans_graphe) {
@@ -690,7 +690,7 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
         }
     }
 
-    auto résultat = alloc->m_noeuds_type_référence.ajoute_element();
+    auto résultat = alloc->m_noeuds_type_référence.ajoute_élément();
     initialise_type_référence(résultat, type);
 
     auto graphe = graphe_.verrou_ecriture();
@@ -718,7 +718,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
         {nullptr, type_pointeur_pour(type_pointe, false, insere_dans_graphe), ID::pointeur, 0});
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 0});
 
-    auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_element();
+    auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     initialise_type_tableau_fixe(type, type_pointe, taille, std::move(membres));
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
@@ -744,7 +744,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(NoeudExpression const *expression_ta
         }
     }
 
-    auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_element();
+    auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
     type->expression_taille = const_cast<NoeudExpression *>(expression_taille);
     type->type_pointé = type_élément;
@@ -769,7 +769,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
     membres.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
 
-    auto type = alloc->m_noeuds_type_tableau_dynamique.ajoute_element();
+    auto type = alloc->m_noeuds_type_tableau_dynamique.ajoute_élément();
     initialise_type_tableau_dynamique(type, type_pointe, std::move(membres));
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
@@ -799,7 +799,7 @@ NoeudDéclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
     membres.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur, 0});
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
 
-    auto type = alloc->m_noeuds_type_tranche.ajoute_element();
+    auto type = alloc->m_noeuds_type_tranche.ajoute_élément();
     initialise_type_tranche(type, type_élément, std::move(membres));
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
@@ -827,7 +827,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
     membres.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
 
-    auto type = alloc->m_noeuds_type_variadique.ajoute_element();
+    auto type = alloc->m_noeuds_type_variadique.ajoute_élément();
     initialise_type_variadique(type, type_pointe, std::move(membres));
 
     if (type_pointe != nullptr) {
@@ -881,7 +881,7 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
     }
 
     /* Créons un nouveau type. */
-    auto type = alloc->m_noeuds_type_fonction.ajoute_element();
+    auto type = alloc->m_noeuds_type_fonction.ajoute_élément();
     initialise_type_fonction(type, entrees, type_sortie);
 
     /* Insère le type dans le Trie. */
@@ -922,7 +922,7 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
         return table_types_de_donnees.valeur_ou(type_connu, nullptr);
     }
 
-    auto résultat = alloc->m_noeuds_type_type_de_données.ajoute_element();
+    auto résultat = alloc->m_noeuds_type_type_de_données.ajoute_élément();
     initialise_type_type_de_données(résultat, type_connu);
     table_types_de_donnees.insère(type_connu, résultat);
     return résultat;
@@ -930,7 +930,7 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
 
 TypeStructure *Typeuse::réserve_type_structure()
 {
-    return alloc->m_noeuds_type_structure.ajoute_element();
+    return alloc->m_noeuds_type_structure.ajoute_élément();
 }
 
 TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
@@ -962,7 +962,7 @@ TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
         }
     }
 
-    auto type = alloc->m_noeuds_type_union.ajoute_element();
+    auto type = alloc->m_noeuds_type_union.ajoute_élément();
     type->ident = ID::anonyme;
     type->lexème = lexeme;
     type->bloc_parent = bloc_parent;
@@ -1003,7 +1003,7 @@ TypePolymorphique *Typeuse::crée_polymorphique(IdentifiantCode *ident)
         }
     }
 
-    auto résultat = alloc->m_noeuds_type_polymorphique.ajoute_element();
+    auto résultat = alloc->m_noeuds_type_polymorphique.ajoute_élément();
     initialise_type_polymorphique(résultat, ident);
     return résultat;
 }
@@ -1023,7 +1023,7 @@ TypeOpaque *Typeuse::monomorphe_opaque(NoeudDéclarationTypeOpaque const *decl,
         }
     }
 
-    auto type = alloc->m_noeuds_type_opaque.ajoute_element();
+    auto type = alloc->m_noeuds_type_opaque.ajoute_élément();
     initialise_type_opaque(type, type_monomorphique);
     type->ident = decl->ident;
     type->polymorphe_de_base = decl;
@@ -1055,7 +1055,7 @@ TypeTuple *Typeuse::crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membr
         }
     }
 
-    auto type = alloc->m_noeuds_type_tuple.ajoute_element();
+    auto type = alloc->m_noeuds_type_tuple.ajoute_élément();
     type->membres.réserve(static_cast<int>(membres.taille()));
 
     POUR (membres) {
@@ -1077,7 +1077,7 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 {
     auto mémoire = int64_t(0);
 
-    mémoire += trie.noeuds.memoire_utilisee();
+    mémoire += trie.noeuds.mémoire_utilisée();
 
     POUR_TABLEAU_PAGE (trie.noeuds) {
         mémoire += it.enfants.table.taille_mémoire();
@@ -2513,7 +2513,7 @@ Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type 
                                                         Type *type_sortie)
 {
     if (racine == nullptr) {
-        racine = noeuds.ajoute_element();
+        racine = noeuds.ajoute_élément();
     }
 
     auto enfant_courant = racine;
@@ -2542,7 +2542,7 @@ Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type 
 
 Trie::Noeud *Trie::ajoute_enfant(Noeud *parent, const Type *type, bool est_sortie)
 {
-    auto enfant = noeuds.ajoute_element();
+    auto enfant = noeuds.ajoute_élément();
     enfant->type = type;
     if (est_sortie) {
         parent->enfants_sortie.ajoute(enfant);
