@@ -8,10 +8,10 @@
 #include <set>
 
 #include "biblinternes/outils/numerique.hh"
-#include "biblinternes/structures/tableau_page.hh"
 
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
+#include "structures/tableau_page.hh"
 
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
@@ -230,7 +230,7 @@ struct TypeC {
 
 struct ConvertisseuseTypeC {
   private:
-    mutable tableau_page<TypeC> types_c{};
+    mutable kuri::tableau_page<TypeC> types_c{};
     Enchaineuse enchaineuse_tmp{};
     Enchaineuse stockage_chn{};
     Broyeuse &broyeuse;
@@ -289,7 +289,7 @@ struct ConvertisseuseTypeC {
 int64_t ConvertisseuseTypeC::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
-    résultat += types_c.memoire_utilisee();
+    résultat += types_c.mémoire_utilisée();
     résultat += enchaineuse_tmp.mémoire_utilisée();
     résultat += stockage_chn.mémoire_utilisée();
     résultat += table_types_c.taille_mémoire();
@@ -303,7 +303,7 @@ TypeC &ConvertisseuseTypeC::type_c_pour(Type const *type)
         return *type_c;
     }
 
-    type_c = types_c.ajoute_element();
+    type_c = types_c.ajoute_élément();
     type_c->type_kuri = type;
     type_c->nom = génératrice_code.donne_nom_pour_type(type);
     table_types_c.insère(type, type_c);
@@ -846,7 +846,8 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
         /* Cas pour les structures vides. */
         if (it.nom == ID::chaine_vide) {
-            enchaineuse << "membre_invisible" << ";\n";
+            enchaineuse << "membre_invisible"
+                        << ";\n";
         }
         else if (!it.nom) {
             /* Les membres des tuples n'ont pas de nom. */

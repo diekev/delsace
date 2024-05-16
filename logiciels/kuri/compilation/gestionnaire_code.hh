@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau_page.hh"
-
 #include "statistiques/statistiques.hh"
 
 #include "structures/file.hh"
 #include "structures/tableau.hh"
+#include "structures/tableau_page.hh"
 
 #include "arbre_syntaxique/allocatrice.hh"
 #include "graphe_dependance.hh"
@@ -120,7 +119,7 @@ struct ÉtatChargementFichiers {
  */
 class GestionnaireCode {
     /* Toutes les unités de compilation créées pour tous les espaces. */
-    tableau_page<UniteCompilation> unités{};
+    kuri::tableau_page<UniteCompilation> unités{};
 
     /* Les unités qui attendent sur quelque chose. */
     kuri::tableau<UniteCompilation *> unités_en_attente{};

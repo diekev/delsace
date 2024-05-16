@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "parsage/identifiant.hh"
@@ -12,6 +11,7 @@
 #include "structures/chemin_systeme.hh"
 #include "structures/ensemble.hh"
 #include "structures/tableau_compresse.hh"
+#include "structures/tableau_page.hh"
 
 struct Bibliothèque;
 struct Compilatrice;
@@ -195,7 +195,7 @@ struct Bibliothèque {
 
     kuri::tableau_compresse<Bibliothèque *, int> dépendances{};
     kuri::tableau_compresse<Bibliothèque *, int> prépendances{};
-    tableau_page<Symbole> symboles{};
+    kuri::tableau_page<Symbole> symboles{};
 
     Symbole *crée_symbole(kuri::chaine_statique nom_symbole, TypeSymbole type);
 
@@ -255,7 +255,7 @@ struct BibliothèquesUtilisées {
 
 struct GestionnaireBibliothèques {
     Compilatrice &compilatrice;
-    tableau_page<Bibliothèque> bibliothèques{};
+    kuri::tableau_page<Bibliothèque> bibliothèques{};
 
     GestionnaireBibliothèques(Compilatrice &compilatrice_);
 

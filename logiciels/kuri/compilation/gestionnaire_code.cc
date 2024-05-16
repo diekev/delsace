@@ -769,7 +769,7 @@ UniteCompilation *GestionnaireCode::crée_unité(EspaceDeTravail *espace,
                                                RaisonDÊtre raison,
                                                bool met_en_attente)
 {
-    auto unité = unités.ajoute_element(espace);
+    auto unité = unités.ajoute_élément(espace);
     unité->mute_raison_d_être(raison);
     if (met_en_attente) {
         ajoute_unité_à_liste_attente(unité);
@@ -1097,7 +1097,7 @@ void GestionnaireCode::flush_noeuds_à_typer()
 void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
 {
     auto mémoire = int64_t(0);
-    mémoire += unités.memoire_utilisee();
+    mémoire += unités.mémoire_utilisée();
     mémoire += unités_en_attente.taille_mémoire();
     mémoire += métaprogrammes_en_attente_de_crée_contexte.taille_mémoire();
     mémoire += programmes_en_cours.taille_mémoire();
