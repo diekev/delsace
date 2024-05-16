@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau_page.hh"
-
 #include "arbre_syntaxique/prodeclaration.hh"
 
 #include "transformation_type.hh"
 
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
+#include "structures/tableau_page.hh"
 #include "structures/tablet.hh"
 
 #include "utilitaires/macros.hh"
@@ -178,11 +177,11 @@ struct TableOpérateurs {
 
 struct RegistreDesOpérateurs {
   private:
-    tableau_page<TableOpérateurs> m_tables_opérateurs{};
+    kuri::tableau_page<TableOpérateurs> m_tables_opérateurs{};
 
   public:
-    using type_conteneur_binaire = tableau_page<OpérateurBinaire>;
-    using type_conteneur_unaire = tableau_page<OpérateurUnaire>;
+    using type_conteneur_binaire = kuri::tableau_page<OpérateurBinaire>;
+    using type_conteneur_unaire = kuri::tableau_page<OpérateurUnaire>;
 
     kuri::tableau<type_conteneur_binaire> opérateurs_binaires{};
     kuri::tableau<type_conteneur_unaire> opérateurs_unaires{};

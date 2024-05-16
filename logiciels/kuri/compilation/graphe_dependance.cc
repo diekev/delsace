@@ -73,7 +73,7 @@ NoeudDépendance *GrapheDépendance::crée_noeud_fonction(
     NoeudDéclarationEntêteFonction *noeud_syntaxique)
 {
     if (noeud_syntaxique->noeud_dépendance == nullptr) {
-        auto noeud = noeuds.ajoute_element(noeud_syntaxique);
+        auto noeud = noeuds.ajoute_élément(noeud_syntaxique);
         noeud_syntaxique->noeud_dépendance = noeud;
     }
 
@@ -83,7 +83,7 @@ NoeudDépendance *GrapheDépendance::crée_noeud_fonction(
 NoeudDépendance *GrapheDépendance::crée_noeud_globale(NoeudDéclarationVariable *noeud_syntaxique)
 {
     if (noeud_syntaxique->noeud_dépendance == nullptr) {
-        auto noeud = noeuds.ajoute_element(noeud_syntaxique);
+        auto noeud = noeuds.ajoute_élément(noeud_syntaxique);
         noeud_syntaxique->noeud_dépendance = noeud;
     }
 
@@ -93,7 +93,7 @@ NoeudDépendance *GrapheDépendance::crée_noeud_globale(NoeudDéclarationVariab
 NoeudDépendance *GrapheDépendance::crée_noeud_type(Type *type)
 {
     if (type->noeud_dépendance == nullptr) {
-        auto noeud = noeuds.ajoute_element(type);
+        auto noeud = noeuds.ajoute_élément(type);
         type->noeud_dépendance = noeud;
     }
 
@@ -128,7 +128,7 @@ void GrapheDépendance::connecte_noeuds(NoeudDépendance &noeud1,
 void GrapheDépendance::rassemble_statistiques(Statistiques &stats) const
 {
     auto memoire = int64_t(0);
-    memoire += noeuds.memoire_utilisee();
+    memoire += noeuds.mémoire_utilisée();
 
     POUR_TABLEAU_PAGE (noeuds) {
         memoire += it.relations().taille_mémoire();
