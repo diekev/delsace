@@ -4,7 +4,6 @@
 #pragma once
 
 #include "arbre_syntaxique/prodeclaration.hh"
-#include "biblinternes/structures/tableau_page.hh"
 #include "parsage/base_syntaxeuse.hh"
 #include "structures/pile.hh"
 
