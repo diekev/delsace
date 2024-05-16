@@ -14,7 +14,7 @@ void Messagère::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const ku
         return;
     }
 
-    auto message = messages_fichiers.ajoute_element();
+    auto message = messages_fichiers.ajoute_élément();
     message->genre = GenreMessage::FICHIER_OUVERT;
     message->espace = espace;
     message->chemin = chemin;
@@ -28,7 +28,7 @@ void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, const ku
         return;
     }
 
-    auto message = messages_fichiers.ajoute_element();
+    auto message = messages_fichiers.ajoute_élément();
     message->genre = GenreMessage::FICHIER_FERMÉ;
     message->espace = espace;
     message->chemin = chemin;
@@ -42,7 +42,7 @@ void Messagère::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *m
         return;
     }
 
-    auto message = messages_modules.ajoute_element();
+    auto message = messages_modules.ajoute_élément();
     message->genre = GenreMessage::MODULE_OUVERT;
     message->espace = espace;
     message->chemin = module->chemin();
@@ -57,7 +57,7 @@ void Messagère::ajoute_message_module_fermé(EspaceDeTravail *espace, Module *m
         return;
     }
 
-    auto message = messages_modules.ajoute_element();
+    auto message = messages_modules.ajoute_élément();
     message->genre = GenreMessage::MODULE_FERMÉ;
     message->espace = espace;
     message->chemin = module->chemin();
@@ -72,7 +72,7 @@ Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudEx
         return nullptr;
     }
 
-    auto message = messages_typage_code.ajoute_element();
+    auto message = messages_typage_code.ajoute_élément();
     message->genre = GenreMessage::TYPAGE_CODE_TERMINÉ;
     message->espace = espace;
 
@@ -93,7 +93,7 @@ Message *Messagère::ajoute_message_phase_compilation(EspaceDeTravail *espace)
         return nullptr;
     }
 
-    auto message = messages_phase_compilation.ajoute_element();
+    auto message = messages_phase_compilation.ajoute_élément();
     message->genre = GenreMessage::PHASE_COMPILATION;
     message->espace = espace;
     message->phase = espace->phase_courante();
@@ -106,10 +106,10 @@ Message *Messagère::ajoute_message_phase_compilation(EspaceDeTravail *espace)
 int64_t Messagère::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
-    résultat += messages_fichiers.memoire_utilisee();
-    résultat += messages_modules.memoire_utilisee();
-    résultat += messages_typage_code.memoire_utilisee();
-    résultat += messages_phase_compilation.memoire_utilisee();
+    résultat += messages_fichiers.mémoire_utilisée();
+    résultat += messages_modules.mémoire_utilisée();
+    résultat += messages_typage_code.mémoire_utilisée();
+    résultat += messages_phase_compilation.mémoire_utilisée();
     résultat += pic_de_message * taille_de(void *);
     return résultat;
 }

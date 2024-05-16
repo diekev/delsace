@@ -379,7 +379,7 @@ Symbole *Bibliothèque::crée_symbole(kuri::chaine_statique nom_symbole, TypeSym
         }
     }
 
-    auto symbole = symboles.ajoute_element(type);
+    auto symbole = symboles.ajoute_élément(type);
     symbole->nom = nom_symbole;
     symbole->bibliothèque = this;
     return symbole;
@@ -426,7 +426,7 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
 
 int64_t Bibliothèque::mémoire_utilisée() const
 {
-    auto résultat = symboles.memoire_utilisee();
+    auto résultat = symboles.mémoire_utilisée();
     POUR_TABLEAU_PAGE (symboles) {
         résultat += it.nom.taille();
     }
@@ -693,7 +693,7 @@ Bibliothèque *GestionnaireBibliothèques::crée_bibliothèque(EspaceDeTravail &
         return bibliotheque;
     }
 
-    bibliotheque = bibliothèques.ajoute_element();
+    bibliotheque = bibliothèques.ajoute_élément();
 
     if (nom != "") {
         bibliotheque->nom = nom;
@@ -1109,7 +1109,7 @@ void GestionnaireBibliothèques::résoud_chemins_bibliothèque(EspaceDeTravail &
 
 int64_t GestionnaireBibliothèques::mémoire_utilisée() const
 {
-    auto memoire = bibliothèques.memoire_utilisee();
+    auto memoire = bibliothèques.mémoire_utilisée();
     POUR_TABLEAU_PAGE (bibliothèques) {
         memoire += it.mémoire_utilisée();
     }

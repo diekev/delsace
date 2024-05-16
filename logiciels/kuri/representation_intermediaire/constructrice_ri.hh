@@ -7,6 +7,7 @@
 
 #include "arbre_syntaxique/prodeclaration.hh"
 
+#include "structures/tableau_page.hh"
 #include "structures/tablet.hh"
 #include "structures/trie.hh"
 
@@ -29,8 +30,8 @@ enum class GenreInfoType : int32_t;
 
 struct RegistreSymboliqueRI {
   private:
-    tableau_page<AtomeFonction> fonctions{};
-    tableau_page<AtomeGlobale> globales{};
+    kuri::tableau_page<AtomeFonction> fonctions{};
+    kuri::tableau_page<AtomeGlobale> globales{};
 
     std::mutex mutex_atomes_fonctions{};
     std::mutex mutex_atomes_globales{};
@@ -80,7 +81,7 @@ struct RegistreSymboliqueRI {
 
 struct ConstructriceRI {
   private:
-#define ENUMERE_GENRE_ATOME_EX(genre, classe, ident) tableau_page<classe> m_##ident{};
+#define ENUMERE_GENRE_ATOME_EX(genre, classe, ident) kuri::tableau_page<classe> m_##ident{};
     ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
     ENUMERE_GENRE_INSTRUCTION(ENUMERE_GENRE_ATOME_EX)
 #undef ENUMERE_GENRE_ATOME_EX
