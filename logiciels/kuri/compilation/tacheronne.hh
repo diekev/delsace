@@ -126,7 +126,7 @@ struct Tacheronne {
     AllocatriceNoeud allocatrice_noeud{};
     AssembleuseArbre *assembleuse = nullptr;
 
-    tableau_page<Lexème> lexemes_extra{};
+    kuri::tableau_page<Lexème> lexemes_extra{};
 
     Broyeuse broyeuse{};
 
