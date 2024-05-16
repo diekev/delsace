@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau_page.hh"
-
 #include "parsage/base_syntaxeuse.hh"
 #include "parsage/lexemes.hh"
 
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
+#include "structures/tableau_page.hh"
 
 #include "outils_independants_des_lexemes.hh"
 
@@ -242,9 +241,9 @@ bool est_type_noeud(Type const *type);
 
 struct Typeuse {
   private:
-    tableau_page<TypePointeur> types_pointeurs{};
-    tableau_page<TypeTableau> types_tableaux{};
-    tableau_page<TypeNominal> types_nominaux{};
+    kuri::tableau_page<TypePointeur> types_pointeurs{};
+    kuri::tableau_page<TypeTableau> types_tableaux{};
+    kuri::tableau_page<TypeNominal> types_nominaux{};
 
     Type *m_type_rien = nullptr;
 
@@ -294,7 +293,7 @@ struct Typeuse {
             }
         }
 
-        auto résultat = types_pointeurs.ajoute_element();
+        auto résultat = types_pointeurs.ajoute_élément();
         résultat->type_pointe = type_pointe;
         return résultat;
     }
@@ -308,7 +307,7 @@ struct Typeuse {
             }
         }
 
-        auto résultat = types_tableaux.ajoute_element();
+        auto résultat = types_tableaux.ajoute_élément();
         résultat->type_pointe = type_pointe;
         résultat->est_compresse = compresse;
         résultat->est_synchrone = synchrone;
@@ -328,7 +327,7 @@ struct Typeuse {
             }
         }
 
-        auto résultat = types_nominaux.ajoute_element();
+        auto résultat = types_nominaux.ajoute_élément();
         résultat->nom_cpp = nom_cpp;
         résultat->nom_kuri = nom_kuri;
         résultat->identifiant = nom_cpp;
