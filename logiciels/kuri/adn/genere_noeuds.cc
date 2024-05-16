@@ -628,7 +628,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     os << "\t\t\t}\n";
                 }
                 else {
-                    os << "copie->" << nom_enfant << " = " << "orig->" << nom_enfant << ";\n";
+                    os << "copie->" << nom_enfant << " = "
+                       << "orig->" << nom_enfant << ";\n";
                 }
             });
 
@@ -667,7 +668,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "#pragma once\n";
         os << "#include \"noeud_expression.hh\"\n";
         os << "#include <iostream>\n";
-        os << "#include \"biblinternes/structures/tableau_page.hh\"\n";
+        os << "#include \"structures/tableau_page.hh\"\n";
         os << "#include \"structures/chaine_statique.hh\"\n";
         os << "#include \"structures/tableau.hh\"\n";
         os << "#include \"infos_types.hh\"\n";
@@ -836,7 +837,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
-            os << "\ttableau_page<" << nom_code << "> noeuds_code_" << it->accede_nom_comme()
+            os << "\tkuri::tableau_page<" << nom_code << "> noeuds_code_" << it->accede_nom_comme()
                << "{};\n";
         }
         os << "\n";
@@ -854,8 +855,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
-            os << "\ttableau_page<" << it->nom() << "> noeuds_expr_" << it->accede_nom_comme()
-               << "{};\n";
+            os << "\tkuri::tableau_page<" << it->nom() << "> noeuds_expr_"
+               << it->accede_nom_comme() << "{};\n";
         }
         os << "\n";
 
@@ -912,7 +913,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             }
 
             os << "\t\t\tauto n = noeuds_code_" << it->accede_nom_comme()
-               << ".ajoute_element();\n";
+               << ".ajoute_élément();\n";
             // Renseigne directement le noeud code afin d'éviter les boucles infinies résultant en
             // des surempilages d'appels quand nous convertissons notamment les entêtes et les
             // corps de fonctions qui se référencent mutuellement.
@@ -1066,7 +1067,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             }
 
             os << "\t\t\tauto n = noeuds_expr_" << it->accede_nom_comme()
-               << ".ajoute_element();\n";
+               << ".ajoute_élément();\n";
 
             génère_code_pour_enfant(
                 os, it, true, [&os, it, this](ProtéineStruct &, Membre const &membre) {
@@ -1174,8 +1175,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
-            os << "\tmem += noeuds_code_" << it->accede_nom_comme() << ".memoire_utilisee();\n";
-            os << "\tmem += noeuds_expr_" << it->accede_nom_comme() << ".memoire_utilisee();\n";
+            os << "\tmem += noeuds_code_" << it->accede_nom_comme() << ".mémoire_utilisée();\n";
+            os << "\tmem += noeuds_expr_" << it->accede_nom_comme() << ".mémoire_utilisée();\n";
         }
 
         os << "\tmem += allocatrice_infos_types.memoire_utilisee();\n";
@@ -1456,10 +1457,11 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             }
 
             os << "\tstats_arbre.fusionne_entrée({" << '"' << it->nom() << '"' << ", "
-               << "m_noeuds_" << it->accede_nom_comme() << ".taille(), " << "m_noeuds_"
-               << it->accede_nom_comme() << ".memoire_utilisee()});\n";
+               << "m_noeuds_" << it->accede_nom_comme() << ".taille(), "
+               << "m_noeuds_" << it->accede_nom_comme() << ".mémoire_utilisée()});\n";
             os << "\tstats_gaspillage.fusionne_entrée({" << '"' << it->nom() << '"' << ", "
-               << "1, " << "m_noeuds_" << it->accede_nom_comme() << ".gaspillage_mémoire()});\n";
+               << "1, "
+               << "m_noeuds_" << it->accede_nom_comme() << ".gaspillage_mémoire()});\n";
         }
 
         // stats pour les tableaux
@@ -1503,7 +1505,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             const auto nom_comme = it->accede_nom_comme();
 
             os << "auto memoire_" << nom_comme << " = int64_t(0);\n";
-            os << "pour_chaque_element(m_noeuds_" << nom_comme << ", [&](";
+            os << "pour_chaque_élément(m_noeuds_" << nom_comme << ", [&](";
             os << it->nom() << " const &noeud) {\n";
             it->pour_chaque_membre_recursif([&](const Membre &membre) {
                 if (membre.type->est_tableau()) {
@@ -1514,7 +1516,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
                     os << membre.type->accesseur() << "taille());\n";
                     os << "memoire_" << nom_comme << " += noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille_mémoire();\n";
-                    os << "mémoire_gaspillée" << " += noeud." << nom_membre;
+                    os << "mémoire_gaspillée"
+                       << " += noeud." << nom_membre;
                     os << membre.type->accesseur() << "gaspillage_mémoire();\n";
                 }
                 else if (membre.nom.nom() == "monomorphisations") {
@@ -1531,7 +1534,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             });
             os << "});\n";
 
-            os << "\tstats_arbre.fusionne_entrée({" << '"' << it->nom() << '"' << ", " << "0, "
+            os << "\tstats_arbre.fusionne_entrée({" << '"' << it->nom() << '"' << ", "
+               << "0, "
                << "memoire_" << nom_comme << "});\n";
         }
 
@@ -1548,7 +1552,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
     void genere_fichier_entete_allocatrice(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
-        os << "#include \"biblinternes/structures/tableau_page.hh\"\n";
+        os << "#include \"structures/tableau_page.hh\"\n";
         os << "#include \"compilation/monomorphisations.hh\"\n";
         os << "#include \"noeud_expression.hh\"\n";
         os << "struct Statistiques;\n";
@@ -1561,14 +1565,14 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
                 continue;
             }
 
-            os << "\ttableau_page<" << it->nom() << "> m_noeuds_" << it->accede_nom_comme()
+            os << "\tkuri::tableau_page<" << it->nom() << "> m_noeuds_" << it->accede_nom_comme()
                << "{};\n";
         }
 
-        os << "\ttableau_page<DonnéesSymboleExterne> m_données_symbole_externe{};\n";
-        os << "\ttableau_page<Monomorphisations> m_monomorphisations_fonctions{};\n";
-        os << "\ttableau_page<Monomorphisations> m_monomorphisations_structs{};\n";
-        os << "\ttableau_page<Monomorphisations> m_monomorphisations_unions{};\n";
+        os << "\tkuri::tableau_page<DonnéesSymboleExterne> m_données_symbole_externe{};\n";
+        os << "\tkuri::tableau_page<Monomorphisations> m_monomorphisations_fonctions{};\n";
+        os << "\tkuri::tableau_page<Monomorphisations> m_monomorphisations_structs{};\n";
+        os << "\tkuri::tableau_page<Monomorphisations> m_monomorphisations_unions{};\n";
 
         // XXX - réusinage types
         os << "\tfriend struct Typeuse;\n";
@@ -1595,12 +1599,12 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION" ||
                 nom_genre.nom() == "DÉCLARATION_OPÉRATEUR_POUR") {
                 if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION") {
-                    os << "\t\t\t\tauto entete = m_noeuds_entête_fonction.ajoute_element();\n";
+                    os << "\t\t\t\tauto entete = m_noeuds_entête_fonction.ajoute_élément();\n";
                 }
                 else {
-                    os << "\t\t\t\tauto entete = m_noeuds_opérateur_pour.ajoute_element();\n";
+                    os << "\t\t\t\tauto entete = m_noeuds_opérateur_pour.ajoute_élément();\n";
                 }
-                os << "\t\t\t\tauto corps  = m_noeuds_corps_fonction.ajoute_element();\n";
+                os << "\t\t\t\tauto corps  = m_noeuds_corps_fonction.ajoute_élément();\n";
                 os << "\t\t\t\tentete->corps = corps;\n";
                 os << "\t\t\t\tcorps->entête = entete;\n";
                 os << "\t\t\t\treturn entete;\n";
@@ -1610,7 +1614,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             }
             else {
                 os << "\t\t\t\treturn m_noeuds_" << it->accede_nom_comme()
-                   << ".ajoute_element();\n";
+                   << ".ajoute_élément();\n";
             }
 
             os << "\t\t\t}\n";
@@ -1623,22 +1627,22 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
         const char *crée_monomorphisations = R"(
     DonnéesSymboleExterne *crée_données_symbole_externe()
     {
-        return m_données_symbole_externe.ajoute_element();
+        return m_données_symbole_externe.ajoute_élément();
     }
 
     Monomorphisations *crée_monomorphisations_fonction()
     {
-        return m_monomorphisations_fonctions.ajoute_element();
+        return m_monomorphisations_fonctions.ajoute_élément();
     }
 
     Monomorphisations *crée_monomorphisations_struct()
     {
-        return m_monomorphisations_structs.ajoute_element();
+        return m_monomorphisations_structs.ajoute_élément();
     }
 
     Monomorphisations *crée_monomorphisations_union()
     {
-        return m_monomorphisations_unions.ajoute_element();
+        return m_monomorphisations_unions.ajoute_élément();
     }
 )";
 
