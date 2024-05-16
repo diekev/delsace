@@ -4,7 +4,6 @@
 #pragma once
 
 #include "biblinternes/langage/tampon_source.hh"
-#include "biblinternes/structures/tableau_page.hh"
 
 #include <mutex>
 #include <variant>
@@ -14,6 +13,7 @@
 #include "structures/ensemblon.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
+#include "structures/tableau_page.hh"
 #include "structures/tablet.hh"
 
 #include "utilitaires/macros.hh"
@@ -191,8 +191,8 @@ struct Module {
 };
 
 struct SystèmeModule {
-    tableau_page<Module> modules{};
-    tableau_page<Fichier> fichiers{};
+    kuri::tableau_page<Module> modules{};
+    kuri::tableau_page<Fichier> fichiers{};
 
     kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{
         "Fichiers système modules"};

@@ -200,7 +200,7 @@ RegistreSymboliqueRI::~RegistreSymboliqueRI()
 AtomeFonction *RegistreSymboliqueRI::crée_fonction(kuri::chaine_statique nom_fonction)
 {
     std::unique_lock lock(mutex_atomes_fonctions);
-    return fonctions.ajoute_element(nullptr, nom_fonction);
+    return fonctions.ajoute_élément(nullptr, nom_fonction);
 }
 
 AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
@@ -239,7 +239,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
         }
     }
 
-    auto atome_fonc = fonctions.ajoute_element(
+    auto atome_fonc = fonctions.ajoute_élément(
         decl, decl->donne_nom_broyé(*broyeuse), std::move(params), atome_param_sortie);
     atome_fonc->type = decl->type;
     atome_fonc->est_externe = decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
@@ -257,7 +257,7 @@ AtomeGlobale *RegistreSymboliqueRI::crée_globale(IdentifiantCode &ident,
                                                  bool est_externe,
                                                  bool est_constante)
 {
-    return globales.ajoute_element(&ident,
+    return globales.ajoute_élément(&ident,
                                    m_typeuse.type_pointeur_pour(const_cast<Type *>(type), false),
                                    initialisateur,
                                    est_externe,
@@ -296,7 +296,7 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
     auto mémoire_instructions = int64_t(0);
     auto gaspillage_instructions = int64_t(0);
     auto mémoire_code_binaire = int64_t(0);
-    pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
+    pour_chaque_élément(fonctions, [&](AtomeFonction const &it) {
         mémoire_paramètres += it.params_entrée.taille_mémoire();
         gaspillage_paramètres += it.params_entrée.gaspillage_mémoire();
         mémoire_instructions += it.instructions.taille_mémoire();
@@ -310,8 +310,8 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
 
     stats_ri.fusionne_entrée({"paramètres_fonctions", fonctions.taille(), mémoire_paramètres});
     stats_ri.fusionne_entrée({"instructions_fonctions", fonctions.taille(), mémoire_instructions});
-    stats_ri.fusionne_entrée({"fonctions", fonctions.taille(), fonctions.memoire_utilisee()});
-    stats_ri.fusionne_entrée({"globales", globales.taille(), globales.memoire_utilisee()});
+    stats_ri.fusionne_entrée({"fonctions", fonctions.taille(), fonctions.mémoire_utilisée()});
+    stats_ri.fusionne_entrée({"globales", globales.taille(), globales.mémoire_utilisée()});
 
     m_constructrice->rassemble_statistiques(stats);
 
@@ -371,7 +371,7 @@ InstructionAllocation *ConstructriceRI::crée_allocation(NoeudExpression const *
 {
     /* le résultat d'une instruction d'allocation est l'adresse de la variable. */
     auto type_pointeur = m_typeuse.type_pointeur_pour(const_cast<Type *>(type), false);
-    auto inst = m_alloc.ajoute_element(site_, type_pointeur, ident);
+    auto inst = m_alloc.ajoute_élément(site_, type_pointeur, ident);
 
     /* Nous utilisons pour l'instant crée_allocation pour les paramètres des
      * fonctions, et la fonction_courante est nulle lors de cette opération.
@@ -397,7 +397,7 @@ AtomeConstanteEntière *ConstructriceRI::crée_constante_nombre_entier(Type cons
         }
     }
 #endif
-    return m_constante_entière.ajoute_element(type, valeur);
+    return m_constante_entière.ajoute_élément(type, valeur);
 }
 
 AtomeConstanteType *ConstructriceRI::crée_constante_type(Type const *pointeur_type)
@@ -409,7 +409,7 @@ AtomeConstanteType *ConstructriceRI::crée_constante_type(Type const *pointeur_t
         }
     }
 #endif
-    return m_constante_type.ajoute_element(m_typeuse.type_type_de_donnees_, pointeur_type);
+    return m_constante_type.ajoute_élément(m_typeuse.type_type_de_donnees_, pointeur_type);
 }
 
 AtomeConstanteTailleDe *ConstructriceRI::crée_constante_taille_de(Type const *pointeur_type)
@@ -421,12 +421,12 @@ AtomeConstanteTailleDe *ConstructriceRI::crée_constante_taille_de(Type const *p
         }
     }
 #endif
-    return m_taille_de.ajoute_element(TypeBase::N32, pointeur_type);
+    return m_taille_de.ajoute_élément(TypeBase::N32, pointeur_type);
 }
 
 AtomeIndexTableType *ConstructriceRI::crée_index_table_type(const Type *pointeur_type)
 {
-    return m_index_table_type.ajoute_element(TypeBase::N32, pointeur_type);
+    return m_index_table_type.ajoute_élément(TypeBase::N32, pointeur_type);
 }
 
 AtomeConstante *ConstructriceRI::crée_z32(uint64_t valeur)
@@ -441,7 +441,7 @@ AtomeConstante *ConstructriceRI::crée_z64(uint64_t valeur)
 
 AtomeConstanteRéelle *ConstructriceRI::crée_constante_nombre_réel(Type const *type, double valeur)
 {
-    return m_constante_réelle.ajoute_element(type, valeur);
+    return m_constante_réelle.ajoute_élément(type, valeur);
 }
 
 AtomeConstanteStructure *ConstructriceRI::crée_constante_structure(
@@ -455,36 +455,36 @@ AtomeConstanteStructure *ConstructriceRI::crée_constante_structure(
               << ".\nLe nombre de valeurs est " << valeurs.taille() << ".";
     });
 #endif
-    return m_constante_structure.ajoute_element(type, std::move(valeurs));
+    return m_constante_structure.ajoute_élément(type, std::move(valeurs));
 }
 
 AtomeConstanteTableauFixe *ConstructriceRI::crée_constante_tableau_fixe(
     Type const *type, kuri::tableau<AtomeConstante *> &&valeurs)
 {
-    return m_constante_tableau.ajoute_element(type, std::move(valeurs));
+    return m_constante_tableau.ajoute_élément(type, std::move(valeurs));
 }
 
 AtomeConstanteDonnéesConstantes *ConstructriceRI::crée_constante_tableau_données_constantes(
     Type const *type, kuri::tableau<char> &&données_constantes)
 {
-    return m_données_constantes.ajoute_element(type, std::move(données_constantes));
+    return m_données_constantes.ajoute_élément(type, std::move(données_constantes));
 }
 
 AtomeConstanteDonnéesConstantes *ConstructriceRI::crée_constante_tableau_données_constantes(
     Type const *type, char *pointeur, int64_t taille)
 {
-    return m_données_constantes.ajoute_element(type, pointeur, taille);
+    return m_données_constantes.ajoute_élément(type, pointeur, taille);
 }
 
 AtomeInitialisationTableau *ConstructriceRI::crée_initialisation_tableau(
     const Type *type, const AtomeConstante *valeur)
 {
-    return m_initialisation_tableau.ajoute_element(type, valeur);
+    return m_initialisation_tableau.ajoute_élément(type, valeur);
 }
 
 AtomeNonInitialisation *ConstructriceRI::crée_non_initialisation()
 {
-    return m_non_initialisation.ajoute_element();
+    return m_non_initialisation.ajoute_élément();
 }
 
 AtomeConstante *ConstructriceRI::crée_tranche_globale(IdentifiantCode &ident,
@@ -543,13 +543,13 @@ AtomeConstanteBooléenne *ConstructriceRI::crée_constante_booléenne(bool valeu
         }
     }
 #endif
-    return m_constante_booléenne.ajoute_element(TypeBase::BOOL, valeur);
+    return m_constante_booléenne.ajoute_élément(TypeBase::BOOL, valeur);
 }
 
 AtomeConstanteCaractère *ConstructriceRI::crée_constante_caractère(Type const *type,
                                                                    uint64_t valeur)
 {
-    return m_constante_caractère.ajoute_element(type, valeur);
+    return m_constante_caractère.ajoute_élément(type, valeur);
 }
 
 AtomeConstanteNulle *ConstructriceRI::crée_constante_nulle(Type const *type)
@@ -561,14 +561,14 @@ AtomeConstanteNulle *ConstructriceRI::crée_constante_nulle(Type const *type)
         }
     }
 #endif
-    return m_constante_nulle.ajoute_element(type);
+    return m_constante_nulle.ajoute_élément(type);
 }
 
 InstructionBranche *ConstructriceRI::crée_branche(NoeudExpression const *site_,
                                                   InstructionLabel *label,
                                                   bool crée_seulement)
 {
-    auto inst = m_branche.ajoute_element(site_, label);
+    auto inst = m_branche.ajoute_élément(site_, label);
 
     label->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
 
@@ -585,7 +585,7 @@ InstructionBrancheCondition *ConstructriceRI::crée_branche_condition(
     InstructionLabel *label_si_vrai,
     InstructionLabel *label_si_faux)
 {
-    auto inst = m_branche_cond.ajoute_element(site_, valeur, label_si_vrai, label_si_faux);
+    auto inst = m_branche_cond.ajoute_élément(site_, valeur, label_si_vrai, label_si_faux);
 
     label_si_vrai->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
     label_si_faux->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
@@ -596,14 +596,14 @@ InstructionBrancheCondition *ConstructriceRI::crée_branche_condition(
 
 InstructionLabel *ConstructriceRI::crée_label(NoeudExpression const *site_)
 {
-    auto inst = m_label.ajoute_element(site_, m_nombre_labels++);
+    auto inst = m_label.ajoute_élément(site_, m_nombre_labels++);
     insère_label(inst);
     return inst;
 }
 
 InstructionLabel *ConstructriceRI::réserve_label(NoeudExpression const *site_)
 {
-    return m_label.ajoute_element(site_, m_nombre_labels++);
+    return m_label.ajoute_élément(site_, m_nombre_labels++);
 }
 
 /* Pour dédupliquer les chargements de mémoire, afin de réduire la mémoire utilisée. */
@@ -645,7 +645,7 @@ void ConstructriceRI::insère_label_si_utilisé(InstructionLabel *label)
 
 InstructionRetour *ConstructriceRI::crée_retour(NoeudExpression const *site_, Atome *valeur)
 {
-    auto inst = m_retour.ajoute_element(site_, valeur);
+    auto inst = m_retour.ajoute_élément(site_, valeur);
     insère(inst);
     return inst;
 }
@@ -663,12 +663,12 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
     assert_rappel(type_dest_et_type_source_sont_compatibles(ou->type, valeur->type), [&]() {
         auto type_élément_dest = type_déréférencé_pour(ou->type);
         dbg() << "\tType élément destination : " << chaine_type(type_élément_dest) << " ("
-              << type_élément_dest << ") " << ", type source : " << chaine_type(valeur->type)
-              << " (" << valeur->type << ")\n"
+              << type_élément_dest << ") "
+              << ", type source : " << chaine_type(valeur->type) << " (" << valeur->type << ")\n"
               << imprime_site(site_);
     });
 
-    auto inst = m_stocke_mem.ajoute_element(site_, ou, valeur);
+    auto inst = m_stocke_mem.ajoute_élément(site_, ou, valeur);
 
     if (!crée_seulement) {
         insère(inst);
@@ -705,7 +705,7 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *s
     }
 #endif
 
-    auto inst = m_charge.ajoute_element(site_, type, ou);
+    auto inst = m_charge.ajoute_élément(site_, type, ou);
 
     if (!crée_seulement) {
         insère(inst);
@@ -717,7 +717,7 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *s
 
 InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_, Atome *appelé)
 {
-    auto inst = m_appel.ajoute_element(site_, appelé);
+    auto inst = m_appel.ajoute_élément(site_, appelé);
     insère(inst);
     return inst;
 }
@@ -759,7 +759,7 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
     }
 #endif
 
-    auto inst = m_appel.ajoute_element(site_, appelé, std::move(args));
+    auto inst = m_appel.ajoute_élément(site_, appelé, std::move(args));
     insère(inst);
     return inst;
 }
@@ -806,7 +806,7 @@ Atome *ConstructriceRI::crée_op_unaire(NoeudExpression const *site_,
         }
     }
 
-    auto inst = m_op_unaire.ajoute_element(site_, type, op, valeur);
+    auto inst = m_op_unaire.ajoute_élément(site_, type, op, valeur);
     insère(inst);
     return inst;
 }
@@ -850,7 +850,7 @@ Atome *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
         return remplacement;
     }
 
-    auto inst = m_op_binaire.ajoute_element(site_, type, op, valeur_gauche, valeur_droite);
+    auto inst = m_op_binaire.ajoute_élément(site_, type, op, valeur_gauche, valeur_droite);
     insère(inst);
     return inst;
 }
@@ -889,7 +889,7 @@ InstructionAccèdeIndex *ConstructriceRI::crée_accès_index(NoeudExpression con
 
     auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_élément), false);
 
-    auto inst = m_acces_index.ajoute_element(site_, type, accédé, index);
+    auto inst = m_acces_index.ajoute_élément(site_, type, accédé, index);
     insère(inst);
     return inst;
 }
@@ -898,7 +898,7 @@ InstructionAccèdeMembre *ConstructriceRI::crée_référence_membre(
     NoeudExpression const *site_, Type const *type, Atome *accédé, int index, bool crée_seulement)
 {
 
-    auto inst = m_acces_membre.ajoute_element(site_, type, accédé, index);
+    auto inst = m_acces_membre.ajoute_élément(site_, type, accédé, index);
     if (!crée_seulement) {
         insère(inst);
     }
@@ -1319,7 +1319,7 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
 
     // dbg() << __func__ << ", type : " << chaine_type(type) << ", valeur " <<
     // chaine_type(valeur->type);
-    auto inst = m_transtype.ajoute_element(site_, type, valeur, op);
+    auto inst = m_transtype.ajoute_élément(site_, type, valeur, op);
     insère(inst);
     return inst;
 }
@@ -1327,7 +1327,7 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
 TranstypeConstant *ConstructriceRI::crée_transtype_constant(Type const *type,
                                                             AtomeConstante *valeur)
 {
-    return m_transtype_constant.ajoute_element(type, valeur);
+    return m_transtype_constant.ajoute_élément(type, valeur);
 }
 
 AccèdeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante *accédé,
@@ -1344,7 +1344,7 @@ AccèdeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstant
     auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_pointeur->type_pointé),
                                              false);
 
-    return m_accès_index_constant.ajoute_element(type, accédé, index);
+    return m_accès_index_constant.ajoute_élément(type, accédé, index);
 }
 
 AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type const *type)
@@ -1455,7 +1455,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
 InstructionInatteignable *ConstructriceRI::crée_inatteignable(const NoeudExpression *site,
                                                               bool crée_seulement)
 {
-    auto résultat = m_inatteignable.ajoute_element(site);
+    auto résultat = m_inatteignable.ajoute_élément(site);
     if (!crée_seulement) {
         insère(résultat);
     }
@@ -1507,7 +1507,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     auto &stats_gaspillage = stats.stats_gaspillage;
 #define ENUMERE_GENRE_ATOME_EX(genre, classe, ident)                                              \
     if (m_##ident.taille() != 0) {                                                                \
-        stats_ri.fusionne_entrée({ #ident, m_##ident.taille(), m_##ident.memoire_utilisee() });   \
+        stats_ri.fusionne_entrée({ #ident, m_##ident.taille(), m_##ident.mémoire_utilisée() });   \
         stats_gaspillage.fusionne_entrée({ #ident, 1, m_##ident.gaspillage_mémoire() });          \
     }
 
@@ -1518,7 +1518,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     auto mémoire_args_appel = 0;
     auto gaspillage_args_appel = 0;
 
-    pour_chaque_element(m_appel, [&](InstructionAppel const &it) {
+    pour_chaque_élément(m_appel, [&](InstructionAppel const &it) {
         mémoire_args_appel += it.args.taille_mémoire();
         gaspillage_args_appel += it.args.gaspillage_mémoire();
     });

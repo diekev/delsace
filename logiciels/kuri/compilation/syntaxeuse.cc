@@ -2854,7 +2854,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         analyse_expression_retour_type(noeud, false);
     }
     else {
-        Lexème *lexème_rien = m_tacheronne.lexemes_extra.ajoute_element();
+        Lexème *lexème_rien = m_tacheronne.lexemes_extra.ajoute_élément();
         *lexème_rien = *lexème;
         lexème_rien->genre = GenreLexème::RIEN;
         lexème_rien->chaine = "";
