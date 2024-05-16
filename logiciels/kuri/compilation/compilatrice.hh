@@ -116,7 +116,7 @@ struct Compilatrice {
 
     dls::outils::Synchrone<SystèmeModule> sys_module{};
 
-    tableau_page_synchrone<MetaProgramme> métaprogrammes{};
+    kuri::tableau_page_synchrone<MetaProgramme> métaprogrammes{};
 
     dls::outils::Synchrone<GrapheDépendance> graphe_dépendance{};
 

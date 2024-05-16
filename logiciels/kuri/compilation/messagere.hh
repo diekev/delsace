@@ -6,6 +6,7 @@
 #include "arbre_syntaxique/noeud_code.hh"
 
 #include "structures/file.hh"
+#include "structures/tableau_page.hh"
 
 #include "message.hh"
 
@@ -15,10 +16,10 @@ struct Module;
 
 struct Messagère {
   private:
-    tableau_page<MessageFichier> messages_fichiers{};
-    tableau_page<MessageModule> messages_modules{};
-    tableau_page<MessageTypageCodeTerminé> messages_typage_code{};
-    tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
+    kuri::tableau_page<MessageFichier> messages_fichiers{};
+    kuri::tableau_page<MessageModule> messages_modules{};
+    kuri::tableau_page<MessageTypageCodeTerminé> messages_typage_code{};
+    kuri::tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
 
     int64_t pic_de_message = 0;
 

@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau_page.hh"
-
 #include "statistiques/statistiques.hh"
 
 #include "structures/file.hh"
 #include "structures/tableau.hh"
+#include "structures/tableau_page.hh"
 #include "structures/tableaux_partage_synchrones.hh"
 
 #include "arbre_syntaxique/allocatrice.hh"
@@ -113,7 +112,7 @@ class GestionnaireCode {
     std::mutex m_mutex{};
 
     /* Toutes les unités de compilation créées pour tous les espaces. */
-    tableau_page<UniteCompilation> unités{};
+    kuri::tableau_page<UniteCompilation> unités{};
 
     /* Les unités qui attendent sur quelque chose. */
     kuri::tableaux_partage_synchrones<UniteCompilation *> unités_en_attente{};

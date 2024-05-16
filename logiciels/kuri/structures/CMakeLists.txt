@@ -50,6 +50,7 @@ set(SOURCES
     tablet.cc
     tableau.cc
     tableau_compresse.cc
+    tableau_page.cc
     tableau_statique.cc
     tranche.cc
     trie.cc
@@ -71,6 +72,7 @@ set(SOURCES
     tablet.hh
     tableau.hh
     tableau_compresse.hh
+    tableau_page.hh
     tableau_statique.hh
     tableaux_partage_synchrones.hh
     tranche.hh

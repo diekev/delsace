@@ -294,7 +294,7 @@ int64_t Compilatrice::memoire_utilisee() const
         résultat += it.cibles_appels.taille_mémoire();
     }
 
-    résultat += metaprogrammes_->memoire_utilisee();
+    résultat += metaprogrammes_->mémoire_utilisée();
 
     résultat += chaines_ajoutées_à_la_compilation->mémoire_utilisée();
 
@@ -645,7 +645,7 @@ Fichier *Compilatrice::fichier(kuri::chaine_statique chemin) const
 
 MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
 {
-    auto résultat = métaprogrammes->ajoute_element();
+    auto résultat = métaprogrammes->ajoute_élément();
     résultat->programme = Programme::crée_pour_metaprogramme(espace, résultat);
     return résultat;
 }

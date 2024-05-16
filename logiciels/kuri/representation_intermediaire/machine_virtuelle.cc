@@ -457,7 +457,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
     }
 }
 
-static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
+static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
                                     AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
@@ -1937,7 +1937,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto taille_arguments = LIS_4_OCTETS();
                 auto pointeur_arguments = pointeur_pile - taille_arguments;
                 auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
-                imprime_valeurs_entrees(
+                imprime_valeurs_entrées(
                     pointeur_arguments, ptr_fonction, profondeur_appel, logueuse);
                 break;
             }
@@ -2292,7 +2292,7 @@ DonnéesExécution *MachineVirtuelle::loge_données_exécution()
         return résultat;
     }
 
-    auto données = données_exécution.ajoute_element();
+    auto données = données_exécution.ajoute_élément();
     données->pile = memoire::loge_tableau<octet_t>("MachineVirtuelle::pile", TAILLE_PILE);
     données->pointeur_pile = données->pile;
     return données;
@@ -2313,7 +2313,7 @@ void MachineVirtuelle::déloge_données_exécution(DonnéesExécution *&données
 
 void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
 {
-    stats.ajoute_mémoire_utilisée("Machine Virtuelle", données_exécution.memoire_utilisee());
+    stats.ajoute_mémoire_utilisée("Machine Virtuelle", données_exécution.mémoire_utilisée());
     stats.nombre_métaprogrammes_exécutés += nombre_de_métaprogrammes_exécutés;
     stats.temps_métaprogrammes += temps_exécution_métaprogammes;
     stats.instructions_exécutées += instructions_exécutées;
