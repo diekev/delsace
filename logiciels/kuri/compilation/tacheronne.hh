@@ -90,8 +90,7 @@ struct OrdonnanceuseTache {
     OrdonnanceuseTache() = default;
     OrdonnanceuseTache(Compilatrice *compilatrice);
 
-    OrdonnanceuseTache(OrdonnanceuseTache const &) = delete;
-    OrdonnanceuseTache &operator=(OrdonnanceuseTache const &) = delete;
+    EMPECHE_COPIE(OrdonnanceuseTache);
 
     void crée_tâche_pour_unité(UniteCompilation *unite);
 
