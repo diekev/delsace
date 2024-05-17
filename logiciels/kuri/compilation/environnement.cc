@@ -220,7 +220,6 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
     résultat.ajoute("-Werror=unused-parameter");
 
     résultat.ajoute("-Wno-error=unused-but-set-variable");
-    résultat.ajoute("-Wno-error=unused-label");
     /* Peut arriver pour char*. */
     résultat.ajoute("-Wno-error=pointer-sign");
     /* Peut arriver dans les fonctions d'initialisation. */
