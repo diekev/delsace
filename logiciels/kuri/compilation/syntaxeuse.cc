@@ -1657,6 +1657,11 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
                 expression = analyse_expression({}, GenreLexème::DIFFÈRE, GenreLexème::INCONNU);
             }
 
+            if (expression == nullptr) {
+                /* Nous avons eu une erreur. */
+                return nullptr;
+            }
+
             auto inst = m_tacheronne.assembleuse->crée_diffère(lexème, expression);
             if (expression->est_bloc()) {
                 expression->comme_bloc()->appartiens_à_diffère = inst;
