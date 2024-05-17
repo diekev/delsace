@@ -272,7 +272,7 @@ int64_t Compilatrice::memoire_utilisee() const
 {
     auto résultat = taille_de(Compilatrice);
 
-    résultat += ordonnanceuse->memoire_utilisee();
+    résultat += ordonnanceuse->mémoire_utilisée();
     résultat += table_identifiants->memoire_utilisee();
 
     résultat += gérante_chaine->memoire_utilisee();

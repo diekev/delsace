@@ -494,7 +494,7 @@ RAPPEL_POUR_EST_RÉSOLUE(symbole)
     auto p = espace->phase_courante();
     // À FAIRE : granularise ceci pour ne pas tenter de recompiler quelque chose
     // si le symbole ne fut pas encore défini (par exemple en utilisant un ensemble de symboles
-    // définis depuis le dernier ajournement, dans GestionnaireCode::crée_taches).
+    // définis depuis le dernier ajournement, dans GestionnaireCode::crée_tâches).
     return p < PhaseCompilation::PARSAGE_TERMINÉ;
 }
 

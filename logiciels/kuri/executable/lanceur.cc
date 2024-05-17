@@ -26,7 +26,7 @@
  */
 static void lance_tacheronne(Tacheronne *tacheronne)
 {
-    tacheronne->gere_tache();
+    tacheronne->gère_tâche();
 }
 
 #if 0
