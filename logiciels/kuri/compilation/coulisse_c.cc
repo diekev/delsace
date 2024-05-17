@@ -883,7 +883,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
 /* ************************************************************************** */
 
-static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
+static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine_statique racine_kuri)
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 
