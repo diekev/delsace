@@ -1311,7 +1311,30 @@ llvm::Function *GénératriceCodeLLVM::donne_ou_crée_déclaration_fonction(
     // auto liaison = donne_liaison_fonction(fonction);
     auto liaison = llvm::GlobalValue::ExternalLinkage;
 
-    return llvm::Function::Create(type_llvm, liaison, nom, m_module);
+    auto résultat = llvm::Function::Create(type_llvm, liaison, nom, m_module);
+
+    auto decl = fonction->decl;
+    if (decl) {
+        if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+            résultat->addParamAttr(0, llvm::Attribute::AttrKind::NonNull);
+        }
+
+        if (decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
+            résultat->addFnAttr(llvm::Attribute::AttrKind::NoInline);
+        }
+        else if (decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE)) {
+            résultat->addFnAttr(llvm::Attribute::AttrKind::AlwaysInline);
+        }
+
+        if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+            résultat->addFnAttr(llvm::Attribute::AttrKind::NoReturn);
+        }
+    }
+    else if (fonction->enligne) {
+        résultat->addFnAttr(llvm::Attribute::AttrKind::AlwaysInline);
+    }
+
+    return résultat;
 }
 
 llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale(
