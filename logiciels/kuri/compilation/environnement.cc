@@ -312,6 +312,27 @@ kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
         options, donne_compilateur_c(), fichier_entrée, fichier_sortie);
 }
 
+static TypeLiaison donne_type_liaison_pour_bibliothèque(
+    OptionsDeCompilation const &options,
+    BibliothèquesUtilisées const &bibliothèques,
+    Bibliothèque const &bibliohthèque)
+{
+    if (options.type_liaison == TypeLiaison::STATIQUE &&
+        bibliothèques.peut_lier_statiquement(&bibliohthèque)) {
+        return TypeLiaison::STATIQUE;
+    }
+
+    return TypeLiaison::DYNAMIQUE;
+}
+
+static kuri::chaine_statique donne_commande_pour_type_liaison(TypeLiaison const type_liaison)
+{
+    if (type_liaison == TypeLiaison::STATIQUE) {
+        return "-Wl,-Bstatic";
+    }
+    return "-Wl,-Bdynamic";
+}
+
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
                                    BibliothèquesUtilisées const &bibliotheques)
@@ -362,19 +383,8 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
             continue;
         }
 
-        /* À FAIRE(bibliothèques) : permet la liaison statique.
-         * Pour les bibliothèques dépendants de celles de biblinternes, il faudra pouvoir
-         * déterminer les dépendances vers celles-ci.
-         */
-#if 0
-        if (bibliotheques.peut_lier_statiquement(it)) {
-            enchaineuse << " -Wl,-Bstatic";
-        }
-        else {
-            enchaineuse << " -Wl,-Bdynamic";
-        }
-#endif
-
+        auto const liaison = donne_type_liaison_pour_bibliothèque(options, bibliotheques, *it);
+        enchaineuse << " " << donne_commande_pour_type_liaison(liaison);
         enchaineuse << " -l" << it->nom_pour_liaison(options);
     }
 
