@@ -1112,17 +1112,29 @@ struct Convertisseuse {
                             << dép << "\n";
             }
             if (!dépendances_qt.est_vide()) {
-                flux_sortie << "libQt5" << "Core" << " :: #bibliothèque \"Qt5" << "Core" << "\"\n";
+                flux_sortie << "libQt5"
+                            << "Core"
+                            << " :: #bibliothèque \"Qt5"
+                            << "Core"
+                            << "\"\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque << " libQt5"
-                            << "Core" << "\n";
+                            << "Core"
+                            << "\n";
                 flux_sortie << "\n";
-                flux_sortie << "libQt5" << "Gui" << " :: #bibliothèque \"Qt5" << "Gui" << "\"\n";
+                flux_sortie << "libQt5"
+                            << "Gui"
+                            << " :: #bibliothèque \"Qt5"
+                            << "Gui"
+                            << "\"\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque << " libQt5"
-                            << "Gui" << "\n";
+                            << "Gui"
+                            << "\n";
                 flux_sortie << "\n";
-                flux_sortie << "libqt_entetes" << " :: #bibliothèque \"qt_entetes\"\n";
+                flux_sortie << "libqt_entetes"
+                            << " :: #bibliothèque \"qt_entetes\"\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque
-                            << " libqt_entetes" << "\n";
+                            << " libqt_entetes"
+                            << "\n";
                 flux_sortie << "\n";
             }
         }
