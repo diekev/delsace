@@ -32,7 +32,7 @@ static void lance_tacheronne(Tacheronne *tacheronne)
 #if 0
 static void valide_blocs_modules(EspaceDeTravail const &espace)
 {
-	POUR_TABLEAU_PAGE (espace.graphe_dependance->noeuds) {
+    POUR_TABLEAU_PAGE (espace.graphe_dépendance->noeuds) {
 		if (it.type != TypeNoeudDependance::FONCTION) {
 			continue;
 		}

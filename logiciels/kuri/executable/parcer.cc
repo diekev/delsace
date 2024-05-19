@@ -1107,7 +1107,7 @@ struct Convertisseuse {
 
     kuri::ensemble<kuri::chaine> modules_importes{};
 
-    dls::chaine pour_bibliotheque{};
+    dls::chaine pour_bibliothèque{};
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
     kuri::tableau<kuri::chaine> dépendances_qt{};
 
@@ -1139,12 +1139,12 @@ struct Convertisseuse {
 
     void convertis(CXTranslationUnit trans_unit, std::ostream &flux_sortie)
     {
-        if (pour_bibliotheque != "") {
-            flux_sortie << "lib" << pour_bibliotheque << " :: #bibliothèque \""
-                        << pour_bibliotheque << "\"\n\n";
+        if (pour_bibliothèque != "") {
+            flux_sortie << "lib" << pour_bibliothèque << " :: #bibliothèque \""
+                        << pour_bibliothèque << "\"\n\n";
 
             for (auto &dép : dépendances_biblinternes) {
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " " << dép
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque << " " << dép
                             << "\n";
             }
             if (!dépendances_biblinternes.est_vide()) {
@@ -1152,20 +1152,20 @@ struct Convertisseuse {
             }
             for (auto &dép : dépendances_qt) {
                 flux_sortie << "libQt5" << dép << " :: #bibliothèque \"Qt5" << dép << "\"\n";
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " libQt5"
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque << " libQt5"
                             << dép << "\n";
             }
             if (!dépendances_qt.est_vide()) {
                 flux_sortie << "libQt5" << "Core" << " :: #bibliothèque \"Qt5" << "Core" << "\"\n";
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " libQt5"
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque << " libQt5"
                             << "Core" << "\n";
                 flux_sortie << "\n";
                 flux_sortie << "libQt5" << "Gui" << " :: #bibliothèque \"Qt5" << "Gui" << "\"\n";
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque << " libQt5"
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque << " libQt5"
                             << "Gui" << "\n";
                 flux_sortie << "\n";
                 flux_sortie << "libqt_entetes" << " :: #bibliothèque \"qt_entetes\"\n";
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliotheque
+                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque
                             << " libqt_entetes" << "\n";
                 flux_sortie << "\n";
             }
@@ -2167,8 +2167,8 @@ struct Convertisseuse {
         if (est_declaration) {
             /* Nous avons une déclaration */
             flux_sortie << " #externe";
-            if (pour_bibliotheque != "") {
-                flux_sortie << " lib" << pour_bibliotheque;
+            if (pour_bibliothèque != "") {
+                flux_sortie << " lib" << pour_bibliothèque;
             }
             flux_sortie << '\n';
             flux_sortie << '\n';
@@ -2190,7 +2190,7 @@ struct Configuration {
     dls::chaine fichier_sortie{};
     kuri::tableau<dls::chaine> args{};
     kuri::tableau<dls::chaine> inclusions{};
-    dls::chaine nom_bibliotheque{};
+    dls::chaine nom_bibliothèque{};
     /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
     /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
@@ -2355,7 +2355,7 @@ static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, ch
         return {};
     }
 
-    config.nom_bibliotheque = argv[3];
+    config.nom_bibliothèque = argv[3];
     config.fichier_sortie = argv[5];
 
     /* À FAIRE : termine ceci. */
@@ -2378,7 +2378,7 @@ static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, ch
             //    std::cerr << "biblinterne : " << chn << '\n';
 
             // std::cerr << "lib" << chn << " :: #bibliothèque \"bib_" << chn << "\"\n";
-            //            std::cerr << "#dépendance_bibliothèque " << config.nom_bibliotheque << "
+            //            std::cerr << "#dépendance_bibliothèque " << config.nom_bibliothèque << "
             //            lib" << chn
             //                      << "\n";
         }
@@ -2481,7 +2481,7 @@ int main(int argc, char **argv)
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
-    convertisseuse.pour_bibliotheque = config.nom_bibliotheque;
+    convertisseuse.pour_bibliothèque = config.nom_bibliothèque;
     convertisseuse.dépendances_biblinternes = config.dépendances_biblinternes;
     convertisseuse.dépendances_qt = config.dépendances_qt;
     convertisseuse.ajoute_typedef("size_t", "ulong");

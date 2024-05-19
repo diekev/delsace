@@ -975,9 +975,9 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
     }
 
     if (declaration->est_exécute()) {
-        auto execute = declaration->comme_exécute();
+        auto exécute = declaration->comme_exécute();
         if (arbre_aplatis->noeuds.taille() == 0) {
-            aplatis_arbre(execute, arbre_aplatis->noeuds, {});
+            aplatis_arbre(exécute, arbre_aplatis->noeuds, {});
         }
         return;
     }

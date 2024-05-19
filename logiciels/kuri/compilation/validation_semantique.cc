@@ -184,8 +184,8 @@ RésultatValidation Sémanticienne::valide(UniteCompilation *unité)
     }
 
     if (racine_validation()->est_exécute()) {
-        auto execute = racine_validation()->comme_exécute();
-        return valide_arbre_aplatis(execute);
+        auto exécute = racine_validation()->comme_exécute();
+        return valide_arbre_aplatis(exécute);
     }
 
     if (racine_validation()->est_importe() || racine_validation()->est_charge()) {
@@ -1838,8 +1838,8 @@ static bool fonctions_ont_mêmes_définitions(NoeudDéclarationEntêteFonction c
     if (fonction1.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) &&
         fonction2.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) && fonction1.données_externes &&
         fonction2.données_externes &&
-        fonction1.données_externes->ident_bibliotheque ==
-            fonction2.données_externes->ident_bibliotheque &&
+        fonction1.données_externes->ident_bibliothèque ==
+            fonction2.données_externes->ident_bibliothèque &&
         fonction1.données_externes->nom_symbole == fonction2.données_externes->nom_symbole) {
         return true;
     }
@@ -2280,25 +2280,25 @@ RésultatValidation Sémanticienne::valide_symbole_externe(NoeudDéclarationSymb
                                                          TypeSymbole type_symbole)
 {
     // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
-    if (!decl->données_externes || !decl->données_externes->ident_bibliotheque) {
+    if (!decl->données_externes || !decl->données_externes->ident_bibliothèque) {
         return CodeRetourValidation::OK;
     }
 
     auto données_externes = decl->données_externes;
 
-    auto bibliotheque = m_compilatrice.gestionnaire_bibliothèques->trouve_bibliothèque(
-        données_externes->ident_bibliotheque);
+    auto bibliothèque = m_compilatrice.gestionnaire_bibliothèques->trouve_bibliothèque(
+        données_externes->ident_bibliothèque);
 
-    if (!bibliotheque) {
+    if (!bibliothèque) {
         m_espace
             ->rapporte_erreur(decl, "Impossible de définir la bibliothèque où trouver le symbole")
             .ajoute_message("« ",
-                            données_externes->ident_bibliotheque->nom,
+                            données_externes->ident_bibliothèque->nom,
                             " » ne réfère à aucune bibliothèque !");
         return CodeRetourValidation::Erreur;
     }
 
-    données_externes->symbole = bibliotheque->crée_symbole(données_externes->nom_symbole,
+    données_externes->symbole = bibliothèque->crée_symbole(données_externes->nom_symbole,
                                                            type_symbole);
     return CodeRetourValidation::OK;
 }
@@ -6522,7 +6522,7 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
 RésultatValidation Sémanticienne::valide_dépendance_bibliothèque(
     NoeudDirectiveDépendanceBibliothèque *noeud)
 {
-    auto &gestionnaire_bibliotheques = m_compilatrice.gestionnaire_bibliothèques;
+    auto &gestionnaire_bibliothèques = m_compilatrice.gestionnaire_bibliothèques;
 
     auto ident_bibliothèque_dépendante = noeud->bibliothèque_dépendante->ident;
     auto ident_bibliothèque_dépendue = noeud->bibliothèque_dépendue->ident;
@@ -6584,9 +6584,9 @@ RésultatValidation Sémanticienne::valide_dépendance_bibliothèque(
         }
     }
 
-    auto bib_dependante = gestionnaire_bibliotheques->trouve_ou_crée_bibliothèque(
+    auto bib_dependante = gestionnaire_bibliothèques->trouve_ou_crée_bibliothèque(
         *m_espace, ident_bibliothèque_dépendante);
-    auto bib_dependue = gestionnaire_bibliotheques->trouve_ou_crée_bibliothèque(
+    auto bib_dependue = gestionnaire_bibliothèques->trouve_ou_crée_bibliothèque(
         *m_espace, ident_bibliothèque_dépendue);
     bib_dependante->ajoute_dépendance(bib_dependue);
     /* Ce n'est pas une déclaration mais #GestionnaireCode.typage_termine le requiers. */

@@ -310,7 +310,7 @@ struct DonneesAssignations {
  * - le symbole lui-même */
 struct DonnéesSymboleExterne {
     kuri::chaine_statique nom_symbole = "";
-    IdentifiantCode *ident_bibliotheque = nullptr;
+    IdentifiantCode *ident_bibliothèque = nullptr;
     Symbole *symbole = nullptr;
 };
 

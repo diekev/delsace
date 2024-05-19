@@ -654,7 +654,7 @@ void Tacheronne::exécute_métaprogrammes()
                     espace->rapporte_erreur(it->directive, "Échec de l'assertion");
                 }
             }
-            else if (it->directive && it->directive->ident == ID::execute) {
+            else if (it->directive && it->directive->ident == ID::exécute) {
                 auto type = it->directive->type;
                 auto pointeur = it->données_exécution->pointeur_pile;
 
@@ -710,7 +710,7 @@ void Tacheronne::exécute_métaprogrammes()
         /* Maintenant que nous avons le résultat des opérations, nous pouvons indiquer que le
          * métaprogramme fut exécuté. Nous ne pouvons le faire plus tôt car un autre fil
          * d'exécution pourrait tenté d'accéder au résultat avant sa création. */
-        it->fut_execute = true;
+        it->fut_exécuté = true;
         it->vidange_logs_sur_disque();
 
         mv->déloge_données_exécution(it->données_exécution);

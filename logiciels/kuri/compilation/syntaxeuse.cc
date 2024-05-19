@@ -565,7 +565,7 @@ void Syntaxeuse::quand_commence()
         type_structure->est_corps_texte = false;
     }
 
-    métaprogramme->fut_execute = true;
+    métaprogramme->fut_exécuté = true;
 }
 
 void Syntaxeuse::quand_termine()
@@ -1034,14 +1034,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
 
             consomme();
 
-            if (directive == ID::execute || directive == ID::assert_ || directive == ID::test) {
+            if (directive == ID::exécute || directive == ID::assert_ || directive == ID::test) {
                 auto expression = NoeudExpression::nul();
                 if (directive == ID::test) {
                     m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::TEST;
                     expression = analyse_bloc();
                 }
                 else {
-                    if (directive == ID::execute) {
+                    if (directive == ID::exécute) {
                         m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::EXÉCUTE;
                     }
                     else if (directive == ID::assert_) {
@@ -1074,7 +1074,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
                 noeud->ident = directive;
                 return noeud;
             }
-            else if (directive == ID::dependance_bibliotheque) {
+            else if (directive == ID::dépendance_bibliothèque) {
 
                 auto lexème_bibliothèque_dépendante = lexème_courant();
                 consomme(
@@ -1334,7 +1334,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
                     auto directive = lexème_courant()->ident;
 
-                    if (directive == ID::bibliotheque) {
+                    if (directive == ID::bibliothèque) {
                         consomme();
                         auto lexème_nom_bibliothèque = lexème_courant();
                         consomme(GenreLexème::CHAINE_LITTERALE,
@@ -1364,7 +1364,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         break;
                     }
 
-                    if (directive == ID::execute) {
+                    if (directive == ID::exécute) {
                         recule();
                         break;
                     }
@@ -3587,7 +3587,7 @@ void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *dé
     déclaration_symbole->données_externes =
         m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
     auto données_externes = déclaration_symbole->données_externes;
-    données_externes->ident_bibliotheque = lexème_courant()->ident;
+    données_externes->ident_bibliothèque = lexème_courant()->ident;
     if (directive) {
         directive->opérandes.ajoute(lexème_courant());
     }
