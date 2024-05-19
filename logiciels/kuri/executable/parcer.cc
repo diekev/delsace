@@ -80,51 +80,7 @@ static auto morcelle_type(dls::chaine const &str)
                 taille_mot = 0;
             }
         }
-        else if (str[i] == '*') {
-            if (taille_mot != 0) {
-                ret.ajoute({ptr, taille_mot});
-                taille_mot = 0;
-            }
-
-            ptr = &str[i];
-            ret.ajoute({ptr, 1});
-
-            taille_mot = 0;
-        }
-        else if (str[i] == '&') {
-            if (taille_mot != 0) {
-                ret.ajoute({ptr, taille_mot});
-                taille_mot = 0;
-            }
-
-            ptr = &str[i];
-            ret.ajoute({ptr, 1});
-
-            taille_mot = 0;
-        }
-        else if (str[i] == '(') {
-            if (taille_mot != 0) {
-                ret.ajoute({ptr, taille_mot});
-                taille_mot = 0;
-            }
-
-            ptr = &str[i];
-            ret.ajoute({ptr, 1});
-
-            taille_mot = 0;
-        }
-        else if (str[i] == ')') {
-            if (taille_mot != 0) {
-                ret.ajoute({ptr, taille_mot});
-                taille_mot = 0;
-            }
-
-            ptr = &str[i];
-            ret.ajoute({ptr, 1});
-
-            taille_mot = 0;
-        }
-        else if (str[i] == ',') {
+        else if (dls::outils::est_element(str[i], '*', '&', '(', ')', ',')) {
             if (taille_mot != 0) {
                 ret.ajoute({ptr, taille_mot});
                 taille_mot = 0;
