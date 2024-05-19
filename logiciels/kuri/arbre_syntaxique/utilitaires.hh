@@ -250,7 +250,7 @@ enum {
  * - les déréférencements (via mémoire(...))
  * - les opérateurs []
  * - les transtypages
- * - les prises d'addresses (via *...)
+ * - les prises d'adresses (via *...)
  *
  * Une valeur transcendantale est une valeur droite qui peut aussi être
  * une valeur gauche (l'intersection des deux ensembles).

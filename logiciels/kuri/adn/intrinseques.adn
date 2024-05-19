@@ -45,8 +45,8 @@ fonction intrinsèque_réinitialise_tampon_instruction(void *début, void *fin) 
 }
 
 /* Cette fonction est utilisée pour limiter les latences dues à des manquements
- * de tampon. Ceci précharge la mémoire se situant à l'addresse donnée, et peut
- * être utilisée si nous avons connaissance de l'addresse d'un bloc de mémoire
+ * de tampon. Ceci précharge la mémoire se situant à l'adresse donnée, et peut
+ * être utilisée si nous avons connaissance de l'adresse d'un bloc de mémoire
  * qui sera prochainement accédé. Si l'appel est fait suffisamment tôt, la
  * mémoire sera présent lors du prochain accès.
  *
@@ -58,7 +58,7 @@ fonction intrinsèque_réinitialise_tampon_instruction(void *début, void *fin) 
  *
  * À FAIRE : valeurs défaut.
  */
-fonction intrinsèque_précharge(void *addresse, RaisonPréchargement raison, TemporalitéPréchargement temporalité) -> void
+fonction intrinsèque_précharge(void *adresse, RaisonPréchargement raison, TemporalitéPréchargement temporalité) -> void
 @intrinsèque
 @gcc __builtin_prefetch
 
