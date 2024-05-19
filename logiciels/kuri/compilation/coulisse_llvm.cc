@@ -1612,6 +1612,10 @@ static kuri::chemin_systeme chemin_fichier_objet_llvm(int index)
 }
 
 #ifndef NDEBUG
+#    define DEBOGUE_IR
+#endif
+
+#ifdef DEBOGUE_IR
 /* Chemin du fichier de code binaire LLVM généré par la coulisse. */
 static kuri::chemin_systeme chemin_fichier_bc_llvm()
 {
@@ -1693,7 +1697,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         generatrice.génère_code();
     }
 
-#ifndef NDEBUG
+#ifdef DEBOGUE_IR
     POUR (m_modules) {
         auto opt_erreur_validation = valide_llvm_ir(*it->module);
         if (opt_erreur_validation.has_value()) {
