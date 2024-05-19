@@ -6891,6 +6891,13 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
         if (résoud_type_final(type_entree, types_entrees[i]) == CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
+
+        if (types_entrees[i]->est_type_rien()) {
+            m_espace->rapporte_erreur(
+                expr->types_entrée[i],
+                "Utilisation de « rien » comme type entrée du type de fonction");
+            return CodeRetourValidation::Erreur;
+        }
     }
 
     Type *type_sortie = nullptr;
