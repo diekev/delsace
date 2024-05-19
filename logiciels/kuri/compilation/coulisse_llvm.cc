@@ -376,6 +376,9 @@ struct GénératriceCodeLLVM {
 
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
 
+    void génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
+                                              kuri::chaine_statique nom_globale);
+
     llvm::AllocaInst *crée_allocation(InstructionAllocation const *alloc);
 
     llvm::Value *génère_valeur_données_constantes(
@@ -1390,6 +1393,9 @@ void GénératriceCodeLLVM::génère_code()
         }
     }
 
+    AtomeFonction *point_d_entrée_dynamique = nullptr;
+    AtomeFonction *point_de_sortie_dynamique = nullptr;
+
     POUR (données_module.fonctions) {
         m_nombre_fonctions_compilées++;
         // dbg() << "[" << m_nombre_fonctions_compilées << " / " <<
@@ -1397,7 +1403,19 @@ void GénératriceCodeLLVM::génère_code()
         //       << "] :\n"
         //       << imprime_fonction(it);
         génère_code_pour_fonction(it);
+
+        if (it->decl) {
+            if (it->decl->ident == ID::__point_d_entree_dynamique) {
+                point_d_entrée_dynamique = it;
+            }
+            else if (it->decl->ident == ID::__point_de_sortie_dynamique) {
+                point_de_sortie_dynamique = it;
+            }
+        }
     }
+
+    génère_code_pour_constructeur_global(point_d_entrée_dynamique, "llvm.global_ctors");
+    génère_code_pour_constructeur_global(point_de_sortie_dynamique, "llvm.global_dtors");
 }
 
 void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome_fonc)
@@ -1479,6 +1497,53 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
     }
 
     m_fonction_courante = nullptr;
+}
+
+void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
+                                                               kuri::chaine_statique nom_globale)
+{
+    if (!atome_fonc) {
+        return;
+    }
+
+    auto espace_adressage = m_module->getDataLayout().getProgramAddressSpace();
+    auto type_void = llvm::Type::getVoidTy(m_contexte_llvm);
+    auto type_i8 = llvm::Type::getInt8Ty(m_contexte_llvm);
+    auto type_void_ptr = type_i8->getPointerTo(espace_adressage);
+    auto type_int32 = llvm::Type::getInt32Ty(m_contexte_llvm);
+
+    /* Le type de la fonction de constrution est void()*. */
+    llvm::FunctionType *CtorFTy = llvm::FunctionType::get(type_void, false);
+    llvm::Type *CtorPFTy = llvm::PointerType::get(CtorFTy, espace_adressage);
+
+    /* Le type d'une entrée dans la liste, { i32, void ()*, i8* }. */
+    llvm::StructType *CtorStructTy = llvm::StructType::get(type_int32, CtorPFTy, type_void_ptr);
+
+    /* Construiction des tableaux de constructeurs/desctructeurs. */
+    std::vector<llvm::Constant *> tableau_constructeurs;
+    tableau_constructeurs.reserve(1);
+
+    auto tableau_membre = std::vector<llvm::Constant *>();
+    tableau_membre.push_back(llvm::ConstantInt::get(type_int32, 0));
+    tableau_membre.push_back(donne_ou_crée_déclaration_fonction(atome_fonc));
+    /* Données associées. Nous n'en avons aucune. */
+    tableau_membre.push_back(llvm::ConstantPointerNull::get(type_void_ptr));
+
+    auto constructeur = llvm::ConstantStruct::get(CtorStructTy, tableau_membre);
+
+    tableau_constructeurs.push_back(constructeur);
+
+    auto type_tableau = llvm::ArrayType::get(CtorStructTy, tableau_constructeurs.size());
+    auto init_constructeurs = llvm::ConstantArray::get(type_tableau, tableau_constructeurs);
+
+    auto nom_globale_llvm = vers_string_ref(nom_globale);
+    auto liaison = llvm::GlobalValue::AppendingLinkage;
+    auto résultat = new llvm::GlobalVariable(
+        *m_module, type_tableau, false, liaison, init_constructeurs, nom_globale_llvm);
+
+    /* Le lieur LTO n'a pas l'air d'apprécier que nous renseignons un alignement
+     * sur des variables liées avec "appending". Donc n'en renseignons aucun. */
+    résultat->setAlignment(llvm::MaybeAlign());
 }
 
 llvm::AllocaInst *GénératriceCodeLLVM::crée_allocation(const InstructionAllocation *alloc)
