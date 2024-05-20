@@ -220,6 +220,7 @@ struct ConstructriceRI {
 
     InstructionInatteignable *crée_inatteignable(NoeudExpression const *site,
                                                  bool crée_seulement = false);
+    InstructionSélection *crée_sélection(NoeudExpression const *site, bool crée_seulement);
 
   private:
     void insère(Instruction *inst);

@@ -146,7 +146,7 @@ struct DonnéesDépendance {
     }
 };
 
-void imprime_dépendances(const DonnéesDépendance &dependances,
+void imprime_dépendances(const DonnéesDépendance &dépendances,
                          EspaceDeTravail *espace,
                          const char *message,
                          std::ostream &flux);
@@ -226,7 +226,7 @@ struct GrapheDépendance {
     }
 };
 
-void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dependance);
+void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dépendance);
 
 /* Impression des dépendances directes. */
 [[nodiscard]] kuri::chaine imprime_dépendances(NoeudDéclarationSymbole const *symbole);
