@@ -1453,6 +1453,16 @@ InstructionInatteignable *ConstructriceRI::crée_inatteignable(const NoeudExpres
     return résultat;
 }
 
+InstructionSélection *ConstructriceRI::crée_sélection(NoeudExpression const *site,
+                                                      bool crée_seulement)
+{
+    auto résultat = m_sélection.ajoute_élément(site);
+    if (!crée_seulement) {
+        insère(résultat);
+    }
+    return résultat;
+}
+
 void ConstructriceRI::insère(Instruction *inst)
 {
     m_fonction_courante->instructions.ajoute(inst);
@@ -2879,6 +2889,25 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             génère_ri_pour_expression_droite(noeud->comme_expansion_variadique()->expression,
                                              place);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_SÉLECTION:
+        {
+            auto sélection = noeud->comme_sélection();
+            génère_ri_pour_expression_droite(sélection->condition, nullptr);
+            auto valeur_condition = depile_valeur();
+            génère_ri_pour_expression_droite(sélection->si_vrai, nullptr);
+            auto valeur_si_vrai = depile_valeur();
+            génère_ri_pour_expression_droite(sélection->si_faux, nullptr);
+            auto valeur_si_faux = depile_valeur();
+
+            auto inst = m_constructrice.crée_sélection(noeud, false);
+            inst->type = sélection->si_vrai->type;
+            inst->condition = valeur_condition;
+            inst->si_vrai = valeur_si_vrai;
+            inst->si_faux = valeur_si_faux;
+
+            empile_valeur(inst);
             break;
         }
     }

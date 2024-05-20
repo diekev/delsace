@@ -168,7 +168,7 @@ class GestionnaireCode {
 
     bool m_validation_doit_attendre_sur_lexage = true;
 
-    /* Utilisé afin de récupérer la mémoire dans crée_taches. */
+    /* Utilisé afin de récupérer la mémoire dans crée_tâches. */
     kuri::tableau<UniteCompilation *> m_nouvelles_unités{};
 
   public:
