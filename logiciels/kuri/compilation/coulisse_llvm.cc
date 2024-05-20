@@ -374,6 +374,8 @@ struct GénératriceCodeLLVM {
 
     void génère_code_pour_instruction(Instruction const *inst);
 
+    void génère_code_pour_appel(InstructionAppel const *inst_appel);
+
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
 
     void génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
@@ -904,39 +906,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         }
         case GenreInstruction::APPEL:
         {
-            auto inst_appel = inst->comme_appel();
-            auto arguments = std::vector<llvm::Value *>();
-
-            POUR (inst_appel->args) {
-                arguments.push_back(génère_code_pour_atome(it, false));
-            }
-
-            auto valeur_fonction = génère_code_pour_atome(inst_appel->appelé, false);
-            assert_rappel(!adresse_est_nulle(valeur_fonction), [&]() {
-                dbg() << erreur::imprime_site(m_espace, inst_appel->site) << '\n'
-                      << imprime_atome(inst_appel->appelé);
-            });
-
-            auto type_fonction =
-                convertis_type_llvm(inst_appel->appelé->type)->getPointerElementType();
-
-            auto callee = llvm::FunctionCallee(llvm::cast<llvm::FunctionType>(type_fonction),
-                                               valeur_fonction);
-
-            auto call_inst = m_builder.CreateCall(callee, arguments);
-
-            llvm::Value *résultat = call_inst;
-
-            if (!inst_appel->type->est_type_rien()) {
-                /* Crée une temporaire sinon la valeur sera du type fonction... */
-                auto type_retour = convertis_type_llvm(inst_appel->type);
-                auto alloca = m_builder.CreateAlloca(type_retour, 0u);
-                m_builder.CreateAlignedStore(
-                    résultat, alloca, llvm::MaybeAlign(inst_appel->type->alignement));
-                résultat = m_builder.CreateLoad(type_retour, alloca);
-            }
-
-            définis_valeur_instruction(inst, résultat);
+            génère_code_pour_appel(inst->comme_appel());
             break;
         }
         case GenreInstruction::BRANCHE:
@@ -1191,6 +1161,40 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             break;
         }
     }
+}
+
+void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *inst_appel)
+{
+    auto arguments = std::vector<llvm::Value *>();
+    POUR (inst_appel->args) {
+        arguments.push_back(génère_code_pour_atome(it, false));
+    }
+
+    auto valeur_fonction = génère_code_pour_atome(inst_appel->appelé, false);
+    assert_rappel(!adresse_est_nulle(valeur_fonction), [&]() {
+        dbg() << erreur::imprime_site(m_espace, inst_appel->site) << '\n'
+              << imprime_atome(inst_appel->appelé);
+    });
+
+    auto type_fonction = convertis_type_llvm(inst_appel->appelé->type)->getPointerElementType();
+
+    auto callee = llvm::FunctionCallee(llvm::cast<llvm::FunctionType>(type_fonction),
+                                       valeur_fonction);
+
+    auto call_inst = m_builder.CreateCall(callee, arguments);
+
+    llvm::Value *résultat = call_inst;
+
+    if (!inst_appel->type->est_type_rien()) {
+        /* Crée une temporaire sinon la valeur sera du type fonction... */
+        auto type_retour = convertis_type_llvm(inst_appel->type);
+        auto alloca = m_builder.CreateAlloca(type_retour, 0u);
+        m_builder.CreateAlignedStore(
+            résultat, alloca, llvm::MaybeAlign(inst_appel->type->alignement));
+        résultat = m_builder.CreateLoad(type_retour, alloca);
+    }
+
+    définis_valeur_instruction(inst_appel, résultat);
 }
 
 template <typename T>
