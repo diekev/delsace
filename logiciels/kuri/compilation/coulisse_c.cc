@@ -1887,7 +1887,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_instruction(const Instruction *instruction)
 {
-    /* Puisqu'il n'y a pas de blocs dans le code généré, plusieurs variablees avec le même
+    /* Puisqu'il n'y a pas de blocs dans le code généré, plusieurs variables avec le même
      * nom mais des types différents peuvent exister dans le bloc de la fonction. Nous
      * devons rendre les noms uniques pour éviter des collisions. Nous faisons ceci en
      * ajoutant le numéro de l'instruction au nom de la variable. */
