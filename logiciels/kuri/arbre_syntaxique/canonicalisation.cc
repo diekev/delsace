@@ -2624,7 +2624,8 @@ NoeudExpression *Simplificatrice::simplifie_instruction_si(NoeudSi *inst_si)
      *     x := decl
      */
 
-    auto decl_temp = crée_déclaration_variable(inst_si->lexème, inst_si->type, nullptr);
+    auto decl_temp = crée_déclaration_variable(
+        inst_si->lexème, inst_si->type, &non_initialisation);
     decl_temp->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     auto ref_temp = assem->crée_référence_déclaration(inst_si->lexème, decl_temp);
 
