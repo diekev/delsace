@@ -124,7 +124,7 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
     compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
 
     auto tacheronne = Tacheronne(compilatrice);
-    tacheronne.gere_tache();
+    tacheronne.gère_tâche();
 
     kuri::chemin_systeme::change_chemin_courant(chemin_courant);
     return compilatrice.code_erreur();

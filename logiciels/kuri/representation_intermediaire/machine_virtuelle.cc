@@ -2001,6 +2001,23 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 compte_exécutées = i + 1;
                 return RésultatInterprétation::ERREUR;
             }
+            case OP_SÉLECTION:
+            {
+                auto taille_arguments = LIS_4_OCTETS();
+                auto valeur_condition = dépile<bool>();
+                auto pointeur_si_vrai = pointeur_pile - taille_arguments;
+                auto pointeur_si_faux = pointeur_pile - taille_arguments * 2;
+
+                if (valeur_condition) {
+                    /* Copie le vrai sur le faux. */
+                    memcpy(
+                        pointeur_si_faux, pointeur_si_vrai, static_cast<size_t>(taille_arguments));
+                }
+
+                /* Nous ne supprimons qu'un seul argument. */
+                décrémente_pointeur_de_pile(taille_arguments);
+                break;
+            }
             default:
             {
                 rapporte_erreur_exécution("Erreur interne : Opération inconnue dans la MV !");
