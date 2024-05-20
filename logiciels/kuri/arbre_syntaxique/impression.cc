@@ -1492,6 +1492,18 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             imprime_arbre(enchaineuse, état, expression->expression);
             break;
         }
+        case GenreNoeud::EXPRESSION_SÉLECTION:
+        {
+            auto sélection = noeud->comme_sélection();
+            enchaineuse << "#sélection (";
+            imprime_arbre(enchaineuse, état, sélection->condition);
+            enchaineuse << ", ";
+            imprime_arbre(enchaineuse, état, sélection->si_vrai);
+            enchaineuse << ", ";
+            imprime_arbre(enchaineuse, état, sélection->si_faux);
+            enchaineuse << ")";
+            break;
+        }
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
         {
             auto directive = noeud->comme_ajoute_fini();

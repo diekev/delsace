@@ -930,6 +930,15 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(expr);
             break;
         }
+        case GenreNoeud::EXPRESSION_SÉLECTION:
+        {
+            auto sélection = racine->comme_sélection();
+            arbre_aplatis.ajoute(sélection->condition);
+            arbre_aplatis.ajoute(sélection->si_vrai);
+            arbre_aplatis.ajoute(sélection->si_faux);
+            arbre_aplatis.ajoute(sélection);
+            break;
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false, [&]() {

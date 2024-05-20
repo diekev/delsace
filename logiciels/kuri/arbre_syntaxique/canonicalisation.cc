@@ -900,6 +900,14 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             noeud->substitution = assem->crée_référence_type(noeud->lexème, noeud->type);
             return noeud->substitution;
         }
+        case GenreNoeud::EXPRESSION_SÉLECTION:
+        {
+            auto sélection = noeud->comme_sélection();
+            simplifie(sélection->condition);
+            simplifie(sélection->si_vrai);
+            simplifie(sélection->si_faux);
+            return sélection;
+        }
         case GenreNoeud::DIRECTIVE_EXÉCUTE:
         {
             auto exécute = noeud->comme_exécute();
