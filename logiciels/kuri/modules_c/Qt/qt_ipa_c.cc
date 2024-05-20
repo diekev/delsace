@@ -1475,7 +1475,7 @@ QT_TabWidget *QT_cree_tab_widget(QT_Rappels_TabWidget *rappels, QT_Generic_Widge
 
 QT_Rappels_TabWidget *QT_tab_widget_donne_rappels(QT_TabWidget *tab)
 {
-    VERS_QT(tab);
+    auto qtab = reinterpret_cast<QTabWidget *>(tab);
     if (auto widget = dynamic_cast<TabWidget *>(qtab)) {
         return widget->donne_rappels();
     }
@@ -2298,7 +2298,7 @@ void QT_graphics_view_reinit_transforme(QT_GraphicsView *graphics_view)
 void QT_graphics_view_definis_echelle_taille(QT_GraphicsView *graphics_view, float x, float y)
 {
     auto qgraphics_view = vers_qt(graphics_view);
-    qgraphics_view->scale(x, y);
+    qgraphics_view->scale(double(x), double(y));
 }
 
 void QT_graphics_view_mappe_vers_scene(QT_GraphicsView *graphics_view,
