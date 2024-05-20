@@ -938,6 +938,15 @@ static void aplatis_arbre(NoeudExpression *racine,
             ajoute_noeud_arbre_aplatis(arbre_aplatis, expr);
             break;
         }
+        case GenreNoeud::EXPRESSION_SÉLECTION:
+        {
+            auto sélection = racine->comme_sélection();
+            arbre_aplatis.ajoute(sélection->condition);
+            arbre_aplatis.ajoute(sélection->si_vrai);
+            arbre_aplatis.ajoute(sélection->si_faux);
+            arbre_aplatis.ajoute(sélection);
+            break;
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false, [&]() {
@@ -983,9 +992,9 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
     }
 
     if (declaration->est_exécute()) {
-        auto execute = declaration->comme_exécute();
+        auto exécute = declaration->comme_exécute();
         if (arbre_aplatis->noeuds.taille() == 0) {
-            aplatis_arbre(execute, arbre_aplatis->noeuds, {});
+            aplatis_arbre(exécute, arbre_aplatis->noeuds, {});
         }
         return;
     }
