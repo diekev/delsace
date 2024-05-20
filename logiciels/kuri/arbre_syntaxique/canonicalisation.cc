@@ -572,45 +572,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
-            auto si = noeud->comme_si();
-            simplifie(si->condition);
-            simplifie(si->bloc_si_vrai);
-            simplifie(si->bloc_si_faux);
-
-            if (si->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
-                /*
-
-                  x := si y { z } sinon { w }
-
-                  {
-                    decl := XXX;
-                    si y { decl = z; } sinon { decl = w; }
-                    decl; // nous avons une référence simple car la RI empilera sa valeur qui
-                  pourra être dépilée et utilisée pour l'assignation
-                  }
-
-                 */
-
-                auto decl_temp = crée_déclaration_variable(si->lexème, si->type, nullptr);
-                decl_temp->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
-                auto ref_temp = assem->crée_référence_déclaration(si->lexème, decl_temp);
-
-                auto nouveau_si = assem->crée_si(si->lexème, si->genre);
-                nouveau_si->condition = si->condition;
-                nouveau_si->bloc_si_vrai = si->bloc_si_vrai;
-                nouveau_si->bloc_si_faux = si->bloc_si_faux;
-
-                corrige_bloc_pour_assignation(nouveau_si->bloc_si_vrai, ref_temp);
-                corrige_bloc_pour_assignation(nouveau_si->bloc_si_faux, ref_temp);
-
-                ajoute_expression(decl_temp);
-                ajoute_expression(nouveau_si);
-
-                si->substitution = ref_temp;
-                return ref_temp;
-            }
-
-            return si;
+            return simplifie_instruction_si(noeud->comme_si());
         }
         case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:
         {
@@ -2567,6 +2529,46 @@ NoeudExpression *Simplificatrice::simplifie_coroutine(NoeudDéclarationEntêteFo
     noeud->drapeaux |= RI_FUT_GENEREE;
 #endif
     return corout;
+}
+
+NoeudExpression *Simplificatrice::simplifie_instruction_si(NoeudSi *inst_si)
+{
+    simplifie(inst_si->condition);
+    simplifie(inst_si->bloc_si_vrai);
+    simplifie(inst_si->bloc_si_faux);
+
+    if (!inst_si->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
+        return inst_si;
+    }
+
+    /*
+      x := si y { z } sinon { w }
+
+      {
+        decl := XXX;
+        si y { decl = z; } sinon { decl = w; }
+        decl; // nous avons une référence simple car la RI empilera sa valeur qui
+      pourra être dépilée et utilisée pour l'assignation
+      }
+     */
+
+    auto decl_temp = crée_déclaration_variable(inst_si->lexème, inst_si->type, nullptr);
+    decl_temp->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+    auto ref_temp = assem->crée_référence_déclaration(inst_si->lexème, decl_temp);
+
+    auto nouveau_si = assem->crée_si(inst_si->lexème, inst_si->genre);
+    nouveau_si->condition = inst_si->condition;
+    nouveau_si->bloc_si_vrai = inst_si->bloc_si_vrai;
+    nouveau_si->bloc_si_faux = inst_si->bloc_si_faux;
+
+    corrige_bloc_pour_assignation(nouveau_si->bloc_si_vrai, ref_temp);
+    corrige_bloc_pour_assignation(nouveau_si->bloc_si_faux, ref_temp);
+
+    ajoute_expression(decl_temp);
+    ajoute_expression(nouveau_si);
+
+    inst_si->substitution = ref_temp;
+    return ref_temp;
 }
 
 NoeudExpression *Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
