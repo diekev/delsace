@@ -1673,6 +1673,18 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << "  __builtin_unreachable();\n";
             break;
         }
+        case GenreInstruction::SÉLECTION:
+        {
+            auto sélection = inst->comme_sélection();
+            auto const condition = génère_code_pour_atome(sélection->condition, os, false);
+            auto const si_vrai = génère_code_pour_atome(sélection->si_vrai, os, false);
+            auto const si_faux = génère_code_pour_atome(sélection->si_faux, os, false);
+            auto const nom = donne_nom_pour_instruction(inst);
+            os << "  const " << donne_nom_pour_type(sélection->type) << " " << nom << " = ";
+            os << "(" << condition << " ? " << si_vrai << " : " << si_faux << ");\n";
+            table_valeurs[inst->numero] = nom;
+            break;
+        }
     }
 }
 

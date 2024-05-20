@@ -58,7 +58,8 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
     O(ACCEDE_MEMBRE, InstructionAccèdeMembre, acces_membre)                                       \
     O(ACCEDE_INDEX, InstructionAccèdeIndex, acces_index)                                          \
     O(TRANSTYPE, InstructionTranstype, transtype)                                                 \
-    O(INATTEIGNABLE, InstructionInatteignable, inatteignable)
+    O(INATTEIGNABLE, InstructionInatteignable, inatteignable)                                     \
+    O(SÉLECTION, InstructionSélection, sélection)
 
 #define PREDECLARE_CLASSE_INSTRUCTION(genre_, nom_classe, ident) struct nom_classe;
 ENUMERE_GENRE_INSTRUCTION(PREDECLARE_CLASSE_INSTRUCTION)
@@ -755,6 +756,20 @@ struct InstructionInatteignable : public Instruction {
     }
 
     EMPECHE_COPIE(InstructionInatteignable);
+};
+
+struct InstructionSélection : public Instruction {
+    explicit InstructionSélection(NoeudExpression const *site_)
+    {
+        site = site_;
+        genre = GenreInstruction::SÉLECTION;
+    }
+
+    EMPECHE_COPIE(InstructionSélection);
+
+    Atome *condition = nullptr;
+    Atome *si_vrai = nullptr;
+    Atome *si_faux = nullptr;
 };
 
 bool est_valeur_constante(Atome const *atome);

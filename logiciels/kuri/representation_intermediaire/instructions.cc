@@ -731,6 +731,14 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                     visite_atome(retour->valeur, rappel);
                     break;
                 }
+                case GenreInstruction::SÉLECTION:
+                {
+                    auto const sélection = inst->comme_sélection();
+                    visite_atome(sélection->condition, rappel);
+                    visite_atome(sélection->si_vrai, rappel);
+                    visite_atome(sélection->si_faux, rappel);
+                    break;
+                }
                 case GenreInstruction::ALLOCATION:
                 case GenreInstruction::BRANCHE:
                 case GenreInstruction::LABEL:

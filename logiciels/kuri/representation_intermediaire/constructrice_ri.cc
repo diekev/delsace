@@ -1453,6 +1453,16 @@ InstructionInatteignable *ConstructriceRI::crée_inatteignable(const NoeudExpres
     return résultat;
 }
 
+InstructionSélection *ConstructriceRI::crée_sélection(NoeudExpression const *site,
+                                                      bool crée_seulement)
+{
+    auto résultat = m_sélection.ajoute_élément(site);
+    if (!crée_seulement) {
+        insère(résultat);
+    }
+    return résultat;
+}
+
 void ConstructriceRI::insère(Instruction *inst)
 {
     m_fonction_courante->instructions.ajoute(inst);

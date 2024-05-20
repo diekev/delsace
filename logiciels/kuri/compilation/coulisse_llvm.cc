@@ -1164,6 +1164,16 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             m_builder.CreateUnreachable();
             break;
         }
+        case GenreInstruction::SÉLECTION:
+        {
+            auto sélection = inst->comme_sélection();
+            auto const condition = génère_code_pour_atome(sélection->condition, false);
+            auto const si_vrai = génère_code_pour_atome(sélection->si_vrai, false);
+            auto const si_faux = génère_code_pour_atome(sélection->si_faux, false);
+            auto const résultat = m_builder.CreateSelect(condition, si_vrai, si_faux);
+            définis_valeur_instruction(inst, résultat);
+            break;
+        }
     }
 }
 
