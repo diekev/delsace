@@ -607,30 +607,30 @@ Bibliothèque *GestionnaireBibliothèques::crée_bibliothèque(EspaceDeTravail &
                                                            IdentifiantCode *ident,
                                                            kuri::chaine_statique nom)
 {
-    auto bibliotheque = trouve_bibliothèque(ident);
+    auto bibliothèque = trouve_bibliothèque(ident);
 
-    if (bibliotheque) {
+    if (bibliothèque) {
         if (nom != "" &&
-            bibliotheque->état_recherche == ÉtatRechercheBibliothèque::NON_RECHERCHÉE) {
-            bibliotheque->site = site;
-            bibliotheque->ident = ident;
-            bibliotheque->nom = nom;
-            résoud_chemins_bibliothèque(espace, site, bibliotheque);
+            bibliothèque->état_recherche == ÉtatRechercheBibliothèque::NON_RECHERCHÉE) {
+            bibliothèque->site = site;
+            bibliothèque->ident = ident;
+            bibliothèque->nom = nom;
+            résoud_chemins_bibliothèque(espace, site, bibliothèque);
         }
 
-        return bibliotheque;
+        return bibliothèque;
     }
 
-    bibliotheque = bibliothèques.ajoute_élément();
+    bibliothèque = bibliothèques.ajoute_élément();
 
     if (nom != "") {
-        bibliotheque->nom = nom;
-        résoud_chemins_bibliothèque(espace, site, bibliotheque);
+        bibliothèque->nom = nom;
+        résoud_chemins_bibliothèque(espace, site, bibliothèque);
     }
 
-    bibliotheque->site = site;
-    bibliotheque->ident = ident;
-    return bibliotheque;
+    bibliothèque->site = site;
+    bibliothèque->ident = ident;
+    return bibliothèque;
 }
 
 static bool est_fichier_elf(unsigned char tampon[4])
@@ -955,24 +955,24 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_plateforme(
 }
 
 static void copie_chemins(ResultatRechercheBibliothèque const &résultat,
-                          Bibliothèque *bibliotheque,
+                          Bibliothèque *bibliothèque,
                           int plateforme)
 {
-    bibliotheque->chemins.définis_chemins(plateforme, résultat.chemins);
-    bibliotheque->chemins_de_base[plateforme] = résultat.chemin_de_base;
+    bibliothèque->chemins.définis_chemins(plateforme, résultat.chemins);
+    bibliothèque->chemins_de_base[plateforme] = résultat.chemin_de_base;
 }
 
-static void rapporte_erreur_bibliotheque_introuvable(
+static void rapporte_erreur_bibliothèque_introuvable(
     EspaceDeTravail &espace,
     const NoeudExpression *site,
-    const Bibliothèque *bibliotheque,
+    const Bibliothèque *bibliothèque,
     int plateforme,
     const kuri::chaine noms[2][4],
     const kuri::tablet<kuri::chaine_statique, 4> &dossiers)
 {
     auto e = espace.rapporte_erreur(site,
                                     "Impossible de résoudre le chemin vers une bibliothèque");
-    e.ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n\n");
+    e.ajoute_message("La bibliothèque en question est « ", bibliothèque->nom, " »\n\n");
     e.ajoute_message("La plateforme cible de l'espace est : ",
                      (plateforme == PLATEFORME_32_BIT) ? "32-bit" : "64-bit",
                      "\n");
@@ -985,7 +985,7 @@ static void rapporte_erreur_bibliotheque_introuvable(
 
 void GestionnaireBibliothèques::résoud_chemins_bibliothèque(EspaceDeTravail &espace,
                                                             NoeudExpression *site,
-                                                            Bibliothèque *bibliotheque)
+                                                            Bibliothèque *bibliothèque)
 {
     auto const plateforme_requise = plateforme_pour_options(espace.options);
     // regarde soit dans le module courant, soit dans le chemin système
@@ -999,14 +999,14 @@ void GestionnaireBibliothèques::résoud_chemins_bibliothèque(EspaceDeTravail &
     // /chemin/de/base/libnom.so
     kuri::chaine noms[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE];
 
-    bibliotheque->noms[POUR_PRODUCTION] = bibliotheque->nom;
-    bibliotheque->noms[POUR_PROFILAGE] = enchaine(bibliotheque->nom, "_profile");
-    bibliotheque->noms[POUR_DÉBOGAGE] = enchaine(bibliotheque->nom, "_debogage");
-    bibliotheque->noms[POUR_DÉBOGAGE_ASAN] = enchaine(bibliotheque->nom, "_asan");
+    bibliothèque->noms[POUR_PRODUCTION] = bibliothèque->nom;
+    bibliothèque->noms[POUR_PROFILAGE] = enchaine(bibliothèque->nom, "_profile");
+    bibliothèque->noms[POUR_DÉBOGAGE] = enchaine(bibliothèque->nom, "_debogage");
+    bibliothèque->noms[POUR_DÉBOGAGE_ASAN] = enchaine(bibliothèque->nom, "_asan");
 
     for (int i = 0; i < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; i++) {
-        noms[STATIQUE][i] = nom_bibliothèque_statique_pour(bibliotheque->noms[i], true);
-        noms[DYNAMIQUE][i] = nom_bibliothèque_dynamique_pour(bibliotheque->noms[i], true);
+        noms[STATIQUE][i] = nom_bibliothèque_statique_pour(bibliothèque->noms[i], true);
+        noms[DYNAMIQUE][i] = nom_bibliothèque_dynamique_pour(bibliothèque->noms[i], true);
     }
 
     const int plateformes[2] = {
@@ -1019,13 +1019,13 @@ void GestionnaireBibliothèques::résoud_chemins_bibliothèque(EspaceDeTravail &
         auto résultat = recherche_bibliothèque(espace, site, dossiers, noms);
 
         if (résultat.has_value()) {
-            copie_chemins(résultat.value(), bibliotheque, it);
+            copie_chemins(résultat.value(), bibliothèque, it);
             continue;
         }
 
         if (plateforme_requise == it) {
-            rapporte_erreur_bibliotheque_introuvable(
-                espace, site, bibliotheque, plateforme_requise, noms, dossiers);
+            rapporte_erreur_bibliothèque_introuvable(
+                espace, site, bibliothèque, plateforme_requise, noms, dossiers);
             return;
         }
     }

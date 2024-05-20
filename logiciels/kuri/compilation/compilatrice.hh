@@ -112,7 +112,8 @@ struct Compilatrice {
     kuri::tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
     EspaceDeTravail *espace_de_travail_defaut = nullptr;
 
-    kuri::chaine racine_kuri{};
+    kuri::chemin_systeme racine_kuri{};
+    kuri::chemin_systeme racine_modules_kuri{};
 
     dls::outils::Synchrone<SystèmeModule> sys_module{};
 

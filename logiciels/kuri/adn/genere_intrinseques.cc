@@ -27,6 +27,12 @@ static void génère_code_kuri(const kuri::tableau<Protéine *> &protéines, Flu
     os << "\n";
 
     POUR (protéines) {
+        if (auto protéine_énum = it->comme_enum()) {
+            if (protéine_énum->nom().nom() == "GenreIntrinsèque") {
+                continue;
+            }
+        }
+
         it->génère_code_kuri(os);
     }
 }
@@ -42,6 +48,9 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
 
         inclus_système(os, "cstdint");
         inclus_système(os, "iosfwd");
+        inclus_système(os, "optional");
+
+        inclus(os, "structures/chaine_statique.hh");
 
         prodéclare_struct(os, "IdentifiantCode");
 
@@ -57,6 +66,12 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
 
             it->génère_code_cpp(os, true);
         }
+
+        os << "\n";
+
+        os << "std::optional<GenreIntrinsèque> "
+              "donne_genre_intrinsèque_pour_nom_gcc(kuri::chaine_statique "
+              "nom_gcc);\n";
 
         return;
     }
@@ -74,6 +89,32 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
 
         it->génère_code_cpp(os, false);
     }
+
+    os << "\n";
+
+    os << "std::optional<GenreIntrinsèque> "
+          "donne_genre_intrinsèque_pour_nom_gcc(kuri::chaine_statique "
+          "nom_gcc)\n";
+    os << "{\n";
+
+    POUR (protéines) {
+        auto protéine_fonction = it->comme_fonction();
+        if (!protéine_fonction) {
+            continue;
+        }
+
+        if (!protéine_fonction->est_marquée_intrinsèque()) {
+            continue;
+        }
+
+        os << "    if (nom_gcc == \"" << protéine_fonction->donne_symbole_gcc() << "\") {\n";
+        os << "        return GenreIntrinsèque::" << protéine_fonction->donne_genre_intrinsèque()
+           << ";\n";
+        os << "    }\n";
+    }
+
+    os << "    return {};\n";
+    os << "}\n";
 }
 
 static bool est_type_rien(Type const *type)

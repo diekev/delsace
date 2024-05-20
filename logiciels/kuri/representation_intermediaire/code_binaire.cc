@@ -761,6 +761,12 @@ void Chunk::émets_inatteignable(const NoeudExpression *site)
     émets_entête_op(OP_INATTEIGNABLE, site);
 }
 
+void Chunk::émets_sélection(const NoeudExpression *site, const Type *type)
+{
+    émets_entête_op(OP_SÉLECTION, site);
+    émets(type->taille_octet);
+}
+
 void Chunk::émets_rembourrage(uint32_t rembourrage)
 {
     émets_entête_op(OP_REMBOURRAGE, nullptr);
@@ -981,6 +987,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_REMBOURRAGE:
         case OP_NOTIFIE_DÉPILAGE_VALEUR:
         case OP_NOTIFIE_EMPILAGE_VALEUR:
+        case OP_SÉLECTION:
         {
             return instruction_1d<int>(chunk, décalage, os);
         }
@@ -1713,6 +1720,15 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         {
             auto inst_inatteignable = instruction->comme_inatteignable();
             chunk.émets_inatteignable(inst_inatteignable->site);
+            break;
+        }
+        case GenreInstruction::SÉLECTION:
+        {
+            auto sélection = instruction->comme_sélection();
+            génère_code_pour_atome(sélection->si_faux, chunk);
+            génère_code_pour_atome(sélection->si_vrai, chunk);
+            génère_code_pour_atome(sélection->condition, chunk);
+            chunk.émets_sélection(sélection->site, sélection->type);
             break;
         }
     }

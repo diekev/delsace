@@ -82,6 +82,14 @@ void visite_opérandes_instruction(Instruction *inst, Rappel &&rappel)
             }
             break;
         }
+        case GenreInstruction::SÉLECTION:
+        {
+            auto sélection = inst->comme_sélection();
+            rappel(sélection->condition);
+            rappel(sélection->si_vrai);
+            rappel(sélection->si_faux);
+            break;
+        }
         case GenreInstruction::ALLOCATION:
         case GenreInstruction::BRANCHE:
         case GenreInstruction::LABEL:

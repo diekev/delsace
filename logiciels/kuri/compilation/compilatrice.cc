@@ -81,6 +81,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
       racine_kuri(chemin_racine_kuri), typeuse(graphe_dépendance, this->opérateurs),
       registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
 {
+    racine_modules_kuri = racine_kuri / "modules";
+
     initialise_identifiants_intrinsèques(*table_identifiants.verrou_ecriture());
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 
@@ -133,7 +135,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 
     if (!kuri::chemin_systeme::existe(chemin)) {
         /* essaie dans la racine kuri */
-        chemin = kuri::chemin_systeme(racine_kuri) / "modules" / chemin;
+        chemin = racine_modules_kuri / chemin;
 
         if (!kuri::chemin_systeme::existe(chemin)) {
             espace
@@ -270,7 +272,7 @@ int64_t Compilatrice::memoire_utilisee() const
 {
     auto résultat = taille_de(Compilatrice);
 
-    résultat += ordonnanceuse->memoire_utilisee();
+    résultat += ordonnanceuse->mémoire_utilisée();
     résultat += table_identifiants->memoire_utilisee();
 
     résultat += gérante_chaine->memoire_utilisee();

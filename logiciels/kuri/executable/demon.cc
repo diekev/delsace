@@ -22,7 +22,7 @@ static kuri::chaine imprime_commande_systeme(Ts &&...ts)
     return enchaineuse.chaine();
 }
 
-static bool execute_commande_systeme(kuri::chaine_statique commande)
+static bool exécute_commande_systeme(kuri::chaine_statique commande)
 {
     return system(commande.pointeur()) == 0;
 }
@@ -44,7 +44,7 @@ static void lance_application(DonneesCommandeKuri *donnees)
                                   donnees->nom_fichier_fichier_utilises,
                                   '\0');
 
-    if (!execute_commande_systeme(commande_kuri)) {
+    if (!exécute_commande_systeme(commande_kuri)) {
         compilation_terminee = true;
         std::cerr << "Erreur lors de la compilation !\n";
         return;
@@ -54,7 +54,7 @@ static void lance_application(DonneesCommandeKuri *donnees)
 
     commande_kuri = enchaine("./a.out", '\0');
 
-    if (!execute_commande_systeme(commande_kuri)) {
+    if (!exécute_commande_systeme(commande_kuri)) {
         std::cerr << "Erreur lors du lancement de l'exécutable (peut avoir été interrompu) !\n";
         return;
     }
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 
         const auto succes = lis_tout(fd);
 
-        execute_commande_systeme("pkill a.out");
+        exécute_commande_systeme("pkill a.out");
         exetron->join();
         delete exetron;
 

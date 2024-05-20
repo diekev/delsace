@@ -1817,6 +1817,10 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
         return;
     }
 
+    /* Nous pouvons avoir des blocs inatteignables lorsqu'une fonction possède une instruction de
+     * retour après des branches qui retournent toutes. À FAIRE : émets un avertissement. */
+    fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
+
     if (!détecte_blocs_invalides(espace, fonction_et_blocs)) {
         return;
     }

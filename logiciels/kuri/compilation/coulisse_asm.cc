@@ -1209,6 +1209,11 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             VERIFIE_NON_ATTEINT;
             break;
         }
+        case GenreInstruction::SÉLECTION:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
     }
 }
 

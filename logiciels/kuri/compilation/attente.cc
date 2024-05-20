@@ -398,7 +398,7 @@ RAPPEL_POUR_COMMENTAIRE(métaprogramme)
         résultat << " " << metaprogramme_attendu;
     }
 
-    résultat << " (fut exécuté : " << metaprogramme_attendu->fut_execute << ")\n";
+    résultat << " (fut exécuté : " << metaprogramme_attendu->fut_exécuté << ")\n";
 
     return résultat.chaine();
 }
@@ -406,7 +406,7 @@ RAPPEL_POUR_COMMENTAIRE(métaprogramme)
 RAPPEL_POUR_EST_RÉSOLUE(métaprogramme)
 {
     auto metaprogramme_attendu = attente.métaprogramme();
-    return metaprogramme_attendu->fut_execute;
+    return metaprogramme_attendu->fut_exécuté;
 }
 
 /* À FAIRE(condition blocage) : vérifie que le métaprogramme est en cours d'exécution ? */
@@ -494,7 +494,7 @@ RAPPEL_POUR_EST_RÉSOLUE(symbole)
     auto p = espace->phase_courante();
     // À FAIRE : granularise ceci pour ne pas tenter de recompiler quelque chose
     // si le symbole ne fut pas encore défini (par exemple en utilisant un ensemble de symboles
-    // définis depuis le dernier ajournement, dans GestionnaireCode::crée_taches).
+    // définis depuis le dernier ajournement, dans GestionnaireCode::crée_tâches).
     return p < PhaseCompilation::PARSAGE_TERMINÉ;
 }
 

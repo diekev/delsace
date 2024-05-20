@@ -31,7 +31,7 @@ struct UniteCompilation;
  */
 struct EspaceDeTravail {
   private:
-    std::atomic<int> nombre_de_taches[size_t(GenreTâche::NOMBRE_ELEMENTS)] = {};
+    std::atomic<int> nombre_de_tâches[size_t(GenreTâche::NOMBRE_ELEMENTS)] = {};
 
     PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
     /* Identifiant de la phase de compilation. À chaque fois que nous régressons la phase de
@@ -131,5 +131,5 @@ struct EspaceDeTravail {
         return m_compilatrice;
     }
 
-    void imprime_compte_taches(std::ostream &os) const;
+    void imprime_compte_tâches(std::ostream &os) const;
 };
