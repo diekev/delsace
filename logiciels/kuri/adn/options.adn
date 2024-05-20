@@ -41,6 +41,15 @@
     PROFILAGE
 }
 
+énum TypeLiaison {
+    DYNAMIQUE
+    /* Préfère les versions statiques des bibliothèques si existantes et que
+     * la liaison statique est possible pour les bibliothèques. Une
+     * bibliothèque n'est liable statiquement que si leurs prépendances sont
+     * également liables statiquement. */
+    STATIQUE
+}
+
 struct OptionsDeCompilation {
     @code OptionsDeCompilation
 
@@ -51,6 +60,7 @@ struct OptionsDeCompilation {
     ArchitectureCible architecture = .X64
     NiveauOptimisation niveau_optimisation = .AUCUN
     CompilationPour compilation_pour = .PRODUCTION
+    TypeLiaison type_liaison = .DYNAMIQUE
 
     bool émets_métriques = vrai
     bool continue_si_erreur = faux

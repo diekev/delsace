@@ -425,7 +425,7 @@ static void imprime_données_externes(Enchaineuse &enchaineuse,
     }
 
     enchaineuse << " #externe ";
-    imprime_ident(enchaineuse, données->ident_bibliotheque);
+    imprime_ident(enchaineuse, données->ident_bibliothèque);
     if (données->nom_symbole.taille() != 0 && données->nom_symbole != ident_symbole->nom) {
         enchaineuse << " \"" << données->nom_symbole << "\"";
     }
@@ -1490,6 +1490,18 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto expression = noeud->comme_expansion_variadique();
             enchaineuse << "...";
             imprime_arbre(enchaineuse, état, expression->expression);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_SÉLECTION:
+        {
+            auto sélection = noeud->comme_sélection();
+            enchaineuse << "#sélection (";
+            imprime_arbre(enchaineuse, état, sélection->condition);
+            enchaineuse << ", ";
+            imprime_arbre(enchaineuse, état, sélection->si_vrai);
+            enchaineuse << ", ";
+            imprime_arbre(enchaineuse, état, sélection->si_faux);
+            enchaineuse << ")";
             break;
         }
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:

@@ -52,6 +52,7 @@
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:                                                 \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION:                                           \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:                                                   \
+    case GenreNoeud::EXPRESSION_SÉLECTION:                                                        \
     case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:                                         \
     case GenreNoeud::EXPRESSION_TAILLE_DE:                                                        \
     case GenreNoeud::EXPRESSION_TYPE_DE:                                                          \

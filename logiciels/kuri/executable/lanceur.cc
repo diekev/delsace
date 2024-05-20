@@ -38,13 +38,13 @@ __declspec(noinline) size_t available_stack_size()
 static void lance_tacheronne(Tacheronne *tacheronne)
 {
     // std::cerr << "Available stack " << available_stack_size() << '\n';
-    tacheronne->gere_tache();
+    tacheronne->gère_tâche();
 }
 
 #if 0
 static void valide_blocs_modules(EspaceDeTravail const &espace)
 {
-	POUR_TABLEAU_PAGE (espace.graphe_dependance->noeuds) {
+    POUR_TABLEAU_PAGE (espace.graphe_dépendance->noeuds) {
 		if (it.type != TypeNoeudDependance::FONCTION) {
 			continue;
 		}

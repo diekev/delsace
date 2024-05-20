@@ -883,7 +883,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
 /* ************************************************************************** */
 
-static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
+static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine_statique racine_kuri)
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 
@@ -1127,8 +1127,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         {
             auto atome_fonc = atome->comme_fonction();
 
-            if (atome_fonc->decl &&
-                atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
+            if (atome_fonc->est_intrinsèque()) {
                 return atome_fonc->decl->données_externes->nom_symbole;
             }
 
@@ -1674,6 +1673,18 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << "  __builtin_unreachable();\n";
             break;
         }
+        case GenreInstruction::SÉLECTION:
+        {
+            auto sélection = inst->comme_sélection();
+            auto const condition = génère_code_pour_atome(sélection->condition, os, false);
+            auto const si_vrai = génère_code_pour_atome(sélection->si_vrai, os, false);
+            auto const si_faux = génère_code_pour_atome(sélection->si_faux, os, false);
+            auto const nom = donne_nom_pour_instruction(inst);
+            os << "  const " << donne_nom_pour_type(sélection->type) << " " << nom << " = ";
+            os << "(" << condition << " ? " << si_vrai << " : " << si_faux << ");\n";
+            table_valeurs[inst->numero] = nom;
+            break;
+        }
     }
 }
 
@@ -1720,8 +1731,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
                                         const AtomeFonction *atome_fonc,
                                         bool pour_entête)
 {
-    if (atome_fonc->decl &&
-        atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
+    if (atome_fonc->est_intrinsèque()) {
         return;
     }
 
@@ -1808,6 +1818,10 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
     }
 
     os << ")";
+
+    if (pour_entête) {
+        os << ";\n\n";
+    }
 }
 
 void GénératriceCodeC::génère_code_entête(CoulisseC::FichierC const &fichier, Enchaineuse &os)
@@ -1832,7 +1846,6 @@ void GénératriceCodeC::génère_code_entête(CoulisseC::FichierC const &fichie
     POUR (fichier.fonctions) {
         it->numérote_instructions();
         déclare_fonction(os, it, true);
-        os << ";\n\n";
     }
 
     /* Définissons ensuite les fonctions devant être enlignées. */
@@ -1887,7 +1900,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_instruction(const Instruction *instruction)
 {
-    /* Puisqu'il n'y a pas de blocs dans le code généré, plusieurs variablees avec le même
+    /* Puisqu'il n'y a pas de blocs dans le code généré, plusieurs variables avec le même
      * nom mais des types différents peuvent exister dans le bloc de la fonction. Nous
      * devons rendre les noms uniques pour éviter des collisions. Nous faisons ceci en
      * ajoutant le numéro de l'instruction au nom de la variable. */

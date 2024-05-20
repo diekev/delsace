@@ -54,18 +54,18 @@ struct OrdonnanceuseTache {
   private:
     Compilatrice *m_compilatrice = nullptr;
 
-    kuri::file<Tâche> taches[NOMBRE_FILES];
+    kuri::file<Tâche> tâches[NOMBRE_FILES];
 
     int nombre_de_tacheronnes = 0;
-    bool compilation_terminee = false;
+    bool compilation_terminée = false;
 
     // Tiens trace du nombre maximal de tâches par file, afin de générer des statistiques.
     struct PiqueTailleFile {
-        int64_t taches[OrdonnanceuseTache::NOMBRE_FILES];
+        int64_t tâches[OrdonnanceuseTache::NOMBRE_FILES];
 
         PiqueTailleFile()
         {
-            POUR (taches) {
+            POUR (tâches) {
                 it = 0;
             }
         }
@@ -75,7 +75,7 @@ struct OrdonnanceuseTache {
 #if 0
             std::cerr << "Pique taille files :\n";
 #    define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDEX)                                \
-        std::cerr << "-- " << CHAINE << " : " << taches[INDEX] << '\n';
+        std::cerr << "-- " << CHAINE << " : " << tâches[INDEX] << '\n';
 
             ENUMERE_TACHES_POSSIBLES(IMPRIME_NOMBRE_DE_TACHES)
 
@@ -90,30 +90,29 @@ struct OrdonnanceuseTache {
     OrdonnanceuseTache() = default;
     OrdonnanceuseTache(Compilatrice *compilatrice);
 
-    OrdonnanceuseTache(OrdonnanceuseTache const &) = delete;
-    OrdonnanceuseTache &operator=(OrdonnanceuseTache const &) = delete;
+    EMPECHE_COPIE(OrdonnanceuseTache);
 
     void crée_tâche_pour_unité(UniteCompilation *unite);
 
-    Tâche tache_suivante(Tâche &tache_terminee, DrapeauxTacheronne drapeaux);
+    Tâche tâche_suivante(Tâche &tache_terminee, DrapeauxTacheronne drapeaux);
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     int enregistre_tacheronne(Badge<Tacheronne> badge);
 
-    void supprime_toutes_les_taches();
-    void supprime_toutes_les_taches_pour_espace(EspaceDeTravail const *espace,
+    void supprime_toutes_les_tâches();
+    void supprime_toutes_les_tâches_pour_espace(EspaceDeTravail const *espace,
                                                 UniteCompilation::État état);
 
     void marque_compilation_terminee()
     {
-        compilation_terminee = true;
+        compilation_terminée = true;
     }
 
     void imprime_donnees_files(std::ostream &os);
 
   private:
-    int64_t nombre_de_taches_en_attente() const;
+    int64_t nombre_de_tâches_en_attente() const;
 };
 
 struct Tacheronne {
@@ -126,7 +125,7 @@ struct Tacheronne {
     AllocatriceNoeud allocatrice_noeud{};
     AssembleuseArbre *assembleuse = nullptr;
 
-    kuri::tableau_page<Lexème> lexemes_extra{};
+    kuri::tableau_page<Lexème> lexèmes_extra{};
 
     Broyeuse broyeuse{};
 
@@ -145,7 +144,7 @@ struct Tacheronne {
 
     int id = 0;
     int nombre_dodos = 0;
-    double temps_passe_a_dormir = 0.0;
+    double temps_passe_à_dormir = 0.0;
 
     Tacheronne(Compilatrice &comp);
 
@@ -153,17 +152,17 @@ struct Tacheronne {
 
     EMPECHE_COPIE(Tacheronne);
 
-    void gere_tache();
+    void gère_tâche();
 
     void rassemble_statistiques(Statistiques &stats);
 
   private:
-    void gere_unite_pour_typage(UniteCompilation *unite);
-    bool gere_unite_pour_ri(UniteCompilation *unite);
-    void gere_unite_pour_optimisation(UniteCompilation *unite);
-    void gere_unite_pour_execution(UniteCompilation *unite);
+    void gère_unité_pour_typage(UniteCompilation *unite);
+    bool gère_unité_pour_ri(UniteCompilation *unite);
+    void gère_unité_pour_optimisation(UniteCompilation *unite);
+    void gère_unité_pour_exécution(UniteCompilation *unite);
 
-    void execute_metaprogrammes();
+    void exécute_métaprogrammes();
 
     /* Pour convertir le résultat des métaprogrammes en noeuds syntaxiques. */
     NoeudExpression *noeud_syntaxique_depuis_résultat(
