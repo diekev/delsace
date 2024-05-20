@@ -434,6 +434,17 @@ static void imprime_instruction_ex(Instruction const *inst,
             os << "inatteignable\n";
             break;
         }
+        case GenreInstruction::SÉLECTION:
+        {
+            auto const sélection = inst->comme_sélection();
+            os << "sélection ";
+            imprime_atome_ex(sélection->condition, os, options, true);
+            os << ", ";
+            imprime_atome_ex(sélection->si_vrai, os, options, true);
+            os << ", ";
+            imprime_atome_ex(sélection->si_faux, os, options, true);
+            break;
+        }
     }
 }
 
