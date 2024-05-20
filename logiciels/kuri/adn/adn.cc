@@ -725,7 +725,26 @@ void SyntaxeuseADN::parse_fonction()
             }
 
             consomme();
-            fonction->marque_intrinsèque();
+
+            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu le genre de l'intrinsèque après @intrinsèque");
+                break;
+            }
+
+            auto genre = lexème_courant()->chaine;
+            fonction->marque_intrinsèque(genre);
+
+            auto énum_discriminate = donne_énum_pour_nom("GenreIntrinsèque");
+            if (!énum_discriminate) {
+                rapporte_erreur(
+                    "Impossible de trouver l'énumération de discrimination des intinsèques.");
+                break;
+            }
+
+            auto membre = Membre();
+            membre.nom = lexème_courant()->chaine;
+            énum_discriminate->ajoute_membre(membre);
+            consomme();
         }
         else if (apparie("compilatrice")) {
             if (fonction->est_marquée_intrinsèque()) {

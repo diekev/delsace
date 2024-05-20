@@ -1,5 +1,13 @@
 /* ADN pour les fonctions intrinsèques. */
 
+énum GenreIntrinsèque {
+    // définis le type sous-jacent de l'énumération
+    @type uint8_t
+    // les membre de l'énumération sont enlignés dans le type discriminé
+    // c'est une erreur que de déclarer des membres ici
+    @horslignée
+}
+
 /* ------------------------------------------------------------------------- */
 /** \name Controle du processeur.
 * \{ */
@@ -15,7 +23,7 @@
  * tampon, ou un appel à la fonction __clear_cache de GCC est performé.
  */
 fonction intrinsèque_réinitialise_tampon_instruction(void *début, void *fin) -> void
-@intrinsèque
+@intrinsèque RÉINITIALISE_TAMPON_INSTRUCTION
 @gcc __builtin___clear_cache
 
 
@@ -59,7 +67,7 @@ fonction intrinsèque_réinitialise_tampon_instruction(void *début, void *fin) 
  * À FAIRE : valeurs défaut.
  */
 fonction intrinsèque_précharge(void *adresse, RaisonPréchargement raison, TemporalitéPréchargement temporalité) -> void
-@intrinsèque
+@intrinsèque PRÉCHARGE
 @gcc __builtin_prefetch
 
 
@@ -76,7 +84,7 @@ fonction intrinsèque_précharge(void *adresse, RaisonPréchargement raison, Tem
  * À FAIRE : controle la probabilité avec l'option de compilation GCC builtin-expect-probability
  */
 fonction intrinsèque_prédit(int64_t expression, int64_t c) -> int64_t
-@intrinsèque
+@intrinsèque PRÉDIT
 @gcc __builtin_expect
 
 
@@ -91,7 +99,7 @@ fonction intrinsèque_prédit(int64_t expression, int64_t c) -> int64_t
  * une constante.
  */
 fonction intrinsèque_prédit_avec_probabilité(int64_t expression, int64_t c, double probabilité) -> int64_t
-@intrinsèque
+@intrinsèque PRÉDIT_AVEC_PROBABILITÉ
 @gcc __builtin_expect_with_probability
 
 /** \} */
@@ -110,7 +118,7 @@ fonction intrinsèque_prédit_avec_probabilité(int64_t expression, int64_t c, d
  * programmes ne devrait pas présumer ou dépendre d'un comportement particulier.
  */
 fonction intrinsèque_piège() -> void
-@intrinsèque
+@intrinsèque PIÈGE
 @gcc __builtin_trap
 
 
@@ -120,7 +128,7 @@ fonction intrinsèque_piège() -> void
  * du code.
  */
 fonction intrinsèque_nonatteignable() -> void
-@intrinsèque
+@intrinsèque NONATTEIGNABLE
 @gcc __builtin_unreachable
 
 /** \} */
@@ -133,11 +141,11 @@ fonction intrinsèque_nonatteignable() -> void
  * si x est égal à zéro.
  */
 fonction intrinsèque_trouve_premier_actif(int32_t x) -> int32_t
-@intrinsèque
+@intrinsèque TROUVE_PREMIER_ACTIF_32
 @gcc __builtin_ffs
 
 fonction intrinsèque_trouve_premier_actif(int64_t x) -> int32_t
-@intrinsèque
+@intrinsèque TROUVE_PREMIER_ACTIF_64
 @gcc __builtin_ffsl
 
 
@@ -145,11 +153,11 @@ fonction intrinsèque_trouve_premier_actif(int64_t x) -> int32_t
  * position du bit le plus significatif. Si x est 0, la résultat est indéfini.
  */
 fonction intrinsèque_compte_zéros_en_tête(uint32_t x) -> int32_t
-@intrinsèque
+@intrinsèque COMPTE_ZÉROS_EN_TÊTE_32
 @gcc __builtin_clz
 
 fonction intrinsèque_compte_zéros_en_tête(uint64_t x) -> int32_t
-@intrinsèque
+@intrinsèque COMPTE_ZÉROS_EN_TÊTE_64
 @gcc __builtin_clzl
 
 
@@ -157,11 +165,11 @@ fonction intrinsèque_compte_zéros_en_tête(uint64_t x) -> int32_t
  * position du bit le moins significatif. Si x est 0, la résultat est indéfini.
  */
 fonction intrinsèque_compte_zéros_en_fin(uint32_t x) -> int32_t
-@intrinsèque
+@intrinsèque COMPTE_ZÉROS_EN_FIN_32
 @gcc __builtin_ctz
 
 fonction intrinsèque_compte_zéros_en_fin(uint64_t x) -> int32_t
-@intrinsèque
+@intrinsèque COMPTE_ZÉROS_EN_FIN_64
 @gcc __builtin_ctzl
 
 
@@ -170,31 +178,31 @@ fonction intrinsèque_compte_zéros_en_fin(uint64_t x) -> int32_t
  * Il n'y a aucun cas spécial pour 0 ou d'autres valeurs.
  */
 fonction intrinsèque_compte_redondance_bit_signe(int32_t x) -> int32_t
-@intrinsèque
+@intrinsèque COMPTE_REDONDANCE_BIT_SIGNE_32
 @gcc __builtin_clrsb
 
 fonction intrinsèque_compte_redondance_bit_signe(int64_t x) -> int32_t
-@intrinsèque
+@intrinsèque COMPTE_REDONDANCE_BIT_SIGNE_64
 @gcc __builtin_clrsbl
 
 
 /* Retourne le nombre de bits actifs de x. */
 fonction intrinsèque_compte_bits_actifs(uint32_t x) -> int32_t
-@intrinsèque
+@intrinsèque COMPTE_BITS_ACTIFS_32
 @gcc __builtin_popcount
 
 fonction intrinsèque_compte_bits_actifs(uint64_t x) -> int32_t
-@intrinsèque
+@intrinsèque COMPTE_BITS_ACTIFS_64
 @gcc __builtin_popcountl
 
 
 /* Retourne la parité (paire ou impaire) du nombre de bits actifs de x. */
 fonction intrinsèque_parité_bits(uint32_t x) -> int32_t
-@intrinsèque
+@intrinsèque PARITÉ_BITS_32
 @gcc __builtin_parity
 
 fonction intrinsèque_parité_bits(uint64_t x) -> int32_t
-@intrinsèque
+@intrinsèque PARITÉ_BITS_64
 @gcc __builtin_parityl
 
 /** \} */
@@ -206,15 +214,15 @@ fonction intrinsèque_parité_bits(uint64_t x) -> int32_t
 /* Retourne x avec l'ordre de ses octets inversé; par exemple, 0xaabb devient
  * 0xbbaa. Un octet ici est égal à 8-bit. */
 fonction intrinsèque_commute_octets(uint16_t x) -> uint16_t
-@intrinsèque
+@intrinsèque COMMUTE_OCTETS_16
 @gcc __builtin_bswap16
 
 fonction intrinsèque_commute_octets(uint32_t x) -> uint32_t
-@intrinsèque
+@intrinsèque COMMUTE_OCTETS_32
 @gcc __builtin_bswap32
 
 fonction intrinsèque_commute_octets(uint64_t x) -> uint64_t
-@intrinsèque
+@intrinsèque COMMUTE_OCTETS_64
 @gcc __builtin_bswap64
 
 /** \} */
