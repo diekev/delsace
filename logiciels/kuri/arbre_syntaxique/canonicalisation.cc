@@ -2616,15 +2616,12 @@ NoeudExpression *Simplificatrice::simplifie_instruction_si(NoeudSi *inst_si)
         return sélection;
     }
 
-    /*
-      x := si y { z } sinon { w }
-
-      {
-        decl := XXX;
-        si y { decl = z; } sinon { decl = w; }
-        decl; // nous avons une référence simple car la RI empilera sa valeur qui
-      pourra être dépilée et utilisée pour l'assignation
-      }
+    /* Transforme :
+     *     x := si y { z } sinon { w }
+     * en :
+     *     decl := ---
+     *     si y { decl = z } sinon { decl = w }
+     *     x := decl
      */
 
     auto decl_temp = crée_déclaration_variable(inst_si->lexème, inst_si->type, nullptr);
