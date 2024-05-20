@@ -221,7 +221,6 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
     résultat.ajoute("-Werror=unused-parameter");
 
     résultat.ajoute("-Wno-error=unused-but-set-variable");
-    résultat.ajoute("-Wno-error=unused-label");
     /* Peut arriver pour char*. */
     résultat.ajoute("-Wno-error=pointer-sign");
     /* Peut arriver dans les fonctions d'initialisation. */
@@ -314,9 +313,30 @@ kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
         options, donne_compilateur_c(), fichier_entrée, fichier_sortie);
 }
 
+static TypeLiaison donne_type_liaison_pour_bibliothèque(
+    OptionsDeCompilation const &options,
+    BibliothèquesUtilisées const &bibliothèques,
+    Bibliothèque const &bibliohthèque)
+{
+    if (options.type_liaison == TypeLiaison::STATIQUE &&
+        bibliothèques.peut_lier_statiquement(&bibliohthèque)) {
+        return TypeLiaison::STATIQUE;
+    }
+
+    return TypeLiaison::DYNAMIQUE;
+}
+
+static kuri::chaine_statique donne_commande_pour_type_liaison(TypeLiaison const type_liaison)
+{
+    if (type_liaison == TypeLiaison::STATIQUE) {
+        return "-Wl,-Bstatic";
+    }
+    return "-Wl,-Bdynamic";
+}
+
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
-                                   BibliothèquesUtilisées const &bibliotheques)
+                                   BibliothèquesUtilisées const &bibliothèques)
 {
     auto compilateur = donne_compilateur_cpp();
     auto options_compilateur = options_pour_liaison(compilateur, options);
@@ -335,9 +355,9 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     /* Ajoute le fichier objet pour les r16. */
     enchaineuse << chemin_fichier_objet_r16(options.architecture) << " ";
 
-    auto chemins_utilises = std::set<kuri::chemin_systeme>();
+    auto chemins_utilisés = std::set<kuri::chemin_systeme>();
 
-    POUR (bibliotheques.donne_tableau()) {
+    POUR (bibliothèques.donne_tableau()) {
         if (it->nom == "r16") {
             continue;
         }
@@ -347,7 +367,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
             continue;
         }
 
-        if (chemins_utilises.find(chemin_parent) != chemins_utilises.end()) {
+        if (chemins_utilisés.find(chemin_parent) != chemins_utilisés.end()) {
             continue;
         }
 
@@ -356,27 +376,16 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
         }
 
         enchaineuse << " -L" << chemin_parent;
-        chemins_utilises.insert(chemin_parent);
+        chemins_utilisés.insert(chemin_parent);
     }
 
-    POUR (bibliotheques.donne_tableau()) {
+    POUR (bibliothèques.donne_tableau()) {
         if (it->nom == "r16") {
             continue;
         }
 
-        /* À FAIRE(bibliothèques) : permet la liaison statique.
-         * Pour les bibliothèques dépendants de celles de biblinternes, il faudra pouvoir
-         * déterminer les dépendances vers celles-ci.
-         */
-#if 0
-        if (bibliotheques.peut_lier_statiquement(it)) {
-            enchaineuse << " -Wl,-Bstatic";
-        }
-        else {
-            enchaineuse << " -Wl,-Bdynamic";
-        }
-#endif
-
+        auto const liaison = donne_type_liaison_pour_bibliothèque(options, bibliothèques, *it);
+        enchaineuse << " " << donne_commande_pour_type_liaison(liaison);
         enchaineuse << " -l" << it->nom_pour_liaison(options);
     }
 
@@ -395,16 +404,16 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer un fichier objet. */
 static kuri::chaine commande_pour_fichier_objet_r16(OptionsDeCompilation const &options,
-                                                    kuri::chaine_statique nom_entree,
+                                                    kuri::chaine_statique nom_entrée,
                                                     kuri::chaine_statique nom_sortie)
 {
     return commande_pour_fichier_objet_impl(
-        options, donne_compilateur_cpp(), nom_entree, nom_sortie);
+        options, donne_compilateur_cpp(), nom_entrée, nom_sortie);
 }
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
  * dynamique. */
-static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique nom_entree,
+static kuri::chaine commande_pour_bibliothèque_dynamique(kuri::chaine_statique nom_entrée,
                                                          kuri::chaine_statique nom_sortie,
                                                          ArchitectureCible architecture_cible)
 {
@@ -417,7 +426,7 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
         enchaineuse << " -m32 ";
     }
 
-    enchaineuse << nom_entree;
+    enchaineuse << nom_entrée;
     enchaineuse << " -o ";
     enchaineuse << nom_sortie;
 
@@ -427,7 +436,7 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
     return enchaineuse.chaine();
 }
 
-static bool execute_commande(kuri::chaine const &commande)
+static bool exécute_commande(kuri::chaine const &commande)
 {
     info() << "Compilation des tables de conversion R16...";
 
@@ -462,10 +471,10 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
     /* assure l'existence des dossiers parents */
     kuri::chemin_systeme::crée_dossiers(chemin_objet.chemin_parent());
 
-    const auto commande = commande_pour_bibliotheque_dynamique(
+    const auto commande = commande_pour_bibliothèque_dynamique(
         chemin_fichier, chemin_objet, ArchitectureCible::X64);
 
-    if (!execute_commande(commande)) {
+    if (!exécute_commande(commande)) {
         return false;
     }
 
@@ -495,7 +504,7 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
 
     const auto commande = commande_pour_fichier_objet_r16(options, chemin_fichier, chemin_objet);
 
-    if (!execute_commande(commande)) {
+    if (!exécute_commande(commande)) {
         return false;
     }
 
