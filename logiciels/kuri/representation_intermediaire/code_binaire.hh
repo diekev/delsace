@@ -131,7 +131,8 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_NOTIFIE_DÉPILAGE_VALEUR)                                         \
     ENUMERE_CODE_OPERATION_EX(OP_PROFILE_DÉBUTE_APPEL)                                            \
     ENUMERE_CODE_OPERATION_EX(OP_PROFILE_TERMINE_APPEL)                                           \
-    ENUMERE_CODE_OPERATION_EX(OP_INATTEIGNABLE)
+    ENUMERE_CODE_OPERATION_EX(OP_INATTEIGNABLE)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_SÉLECTION)
 
 enum : octet_t {
 #define ENUMERE_CODE_OPERATION_EX(code) code,
@@ -378,6 +379,8 @@ struct Chunk {
                          uint32_t taille_dest);
 
     void émets_inatteignable(NoeudExpression const *site);
+
+    void émets_sélection(const NoeudExpression *site, const Type *type);
 
     void émets_rembourrage(uint32_t rembourrage);
     void rétrécis_capacité_sur_taille();

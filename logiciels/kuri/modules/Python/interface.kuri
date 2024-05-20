@@ -223,7 +223,7 @@ PyMethodDef :: struct {
 
 PyModuleDef_Base :: struct {
   ob_base: PyObject
-  m_init: fonc (rien)(*PyObject)
+  m_init: fonc ()(*PyObject)
   m_index: z64
   m_copy: *PyObject
 }
