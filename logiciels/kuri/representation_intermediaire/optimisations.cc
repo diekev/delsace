@@ -264,6 +264,17 @@ struct CopieuseInstruction {
                 nouvelle_inst = constructrice.crée_inatteignable(inst->site, true);
                 break;
             }
+            case GenreInstruction::SÉLECTION:
+            {
+                auto const sélection = inst->comme_sélection();
+                auto nouvelle_sélection = constructrice.crée_sélection(inst->site, true);
+                nouvelle_sélection->type = sélection->type;
+                nouvelle_sélection->condition = sélection->condition;
+                nouvelle_sélection->si_vrai = sélection->si_vrai;
+                nouvelle_sélection->si_faux = sélection->si_faux;
+                nouvelle_inst = nouvelle_sélection;
+                break;
+            }
         }
 
         if (nouvelle_inst) {

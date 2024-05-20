@@ -19,7 +19,7 @@
 #include "statistiques/statistiques.hh"
 #include "utilitaires/log.hh"
 
-#define NOMBRE_DE_TACHES(x) nombre_de_taches[size_t(GenreTâche::x)]
+#define NOMBRE_DE_TACHES(x) nombre_de_tâches[size_t(GenreTâche::x)]
 
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 {
     programme = Programme::crée_pour_espace(this);
 
-    POUR (nombre_de_taches) {
+    POUR (nombre_de_tâches) {
         it = 0;
     }
 }
@@ -55,7 +55,7 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 void EspaceDeTravail::tache_ajoutee(GenreTâche genre_tache,
                                     dls::outils::Synchrone<Messagère> &messagère)
 {
-    nombre_de_taches[size_t(genre_tache)] += 1;
+    nombre_de_tâches[size_t(genre_tache)] += 1;
     regresse_phase_pour_tache_ajoutee(genre_tache, messagère);
 }
 
@@ -63,8 +63,8 @@ void EspaceDeTravail::tache_terminee(GenreTâche genre_tache,
                                      dls::outils::Synchrone<Messagère> &messagère,
                                      bool peut_envoyer_changement_de_phase)
 {
-    nombre_de_taches[size_t(genre_tache)] -= 1;
-    assert(nombre_de_taches[size_t(genre_tache)] >= 0);
+    nombre_de_tâches[size_t(genre_tache)] -= 1;
+    assert(nombre_de_tâches[size_t(genre_tache)] >= 0);
     progresse_phase_pour_tache_terminee(genre_tache, messagère, peut_envoyer_changement_de_phase);
 }
 
@@ -90,13 +90,13 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
         }
         case GenreTâche::TYPAGE:
         {
-            if (nombre_de_taches[size_t(genre_tache)] == 0 &&
+            if (nombre_de_tâches[size_t(genre_tache)] == 0 &&
                 phase == PhaseCompilation::PARSAGE_TERMINÉ && peut_envoyer_changement_de_phase) {
                 nouvelle_phase = PhaseCompilation::TYPAGE_TERMINÉ;
 
                 /* Il est possible que les dernières tâches de typages soient pour des choses qui
                  * n'ont pas de RI, donc avançons jusqu'à GÉNÉRATION_CODE_TERMINÉE. */
-                if (nombre_de_taches[size_t(GenreTâche::GENERATION_RI)] == 0) {
+                if (nombre_de_tâches[size_t(GenreTâche::GENERATION_RI)] == 0) {
                     /* Notifie pour le changement de phase précédent. */
                     change_de_phase(messagère, nouvelle_phase);
                     nouvelle_phase = PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE;
@@ -107,8 +107,8 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
         case GenreTâche::GENERATION_RI:
         case GenreTâche::OPTIMISATION:
         {
-            if (nombre_de_taches[size_t(GenreTâche::GENERATION_RI)] == 0 &&
-                nombre_de_taches[size_t(GenreTâche::OPTIMISATION)] == 0 &&
+            if (nombre_de_tâches[size_t(GenreTâche::GENERATION_RI)] == 0 &&
+                nombre_de_tâches[size_t(GenreTâche::OPTIMISATION)] == 0 &&
                 phase == PhaseCompilation::TYPAGE_TERMINÉ) {
                 nouvelle_phase = PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE;
             }
@@ -215,15 +215,15 @@ bool EspaceDeTravail::parsage_termine() const
            NOMBRE_DE_TACHES(PARSAGE) == 0;
 }
 
-void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
+void EspaceDeTravail::imprime_compte_tâches(std::ostream &os) const
 {
-    os << "nombre_taches_chargement : " << NOMBRE_DE_TACHES(CHARGEMENT) << '\n';
-    os << "nombre_taches_lexage : " << NOMBRE_DE_TACHES(LEXAGE) << '\n';
-    os << "nombre_taches_parsage : " << NOMBRE_DE_TACHES(PARSAGE) << '\n';
-    os << "nombre_taches_typage : " << NOMBRE_DE_TACHES(TYPAGE) << '\n';
-    os << "nombre_taches_ri : " << NOMBRE_DE_TACHES(GENERATION_RI) << '\n';
-    os << "nombre_taches_execution : " << NOMBRE_DE_TACHES(EXECUTION) << '\n';
-    os << "nombre_taches_optimisation : " << NOMBRE_DE_TACHES(OPTIMISATION) << '\n';
+    os << "nombre_tâches_chargement : " << NOMBRE_DE_TACHES(CHARGEMENT) << '\n';
+    os << "nombre_tâches_lexage : " << NOMBRE_DE_TACHES(LEXAGE) << '\n';
+    os << "nombre_tâches_parsage : " << NOMBRE_DE_TACHES(PARSAGE) << '\n';
+    os << "nombre_tâches_typage : " << NOMBRE_DE_TACHES(TYPAGE) << '\n';
+    os << "nombre_tâches_ri : " << NOMBRE_DE_TACHES(GENERATION_RI) << '\n';
+    os << "nombre_tâches_execution : " << NOMBRE_DE_TACHES(EXECUTION) << '\n';
+    os << "nombre_tâches_optimisation : " << NOMBRE_DE_TACHES(OPTIMISATION) << '\n';
 }
 
 Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &messagère,

@@ -146,10 +146,12 @@ inline QRect vers_qt(QT_Rect rect)
     return QRect(rect.x, rect.y, rect.largeur, rect.hauteur);
 }
 
-inline QFont vers_qt(QT_Font font)
+inline QFont vers_qt(QT_Font *font)
 {
     auto résultat = QFont();
-    résultat.setPointSize(font.taille_point);
+    if (font) {
+        résultat.setPointSize(font->taille_point);
+    }
     return résultat;
 }
 
@@ -652,10 +654,10 @@ QT_Point QT_rect_donne_haut_droit(QT_Rect rect)
 /** \name QT_Color
  * \{ */
 
-QT_Color QT_color_depuis_tsl(double t, double s, double l, double a)
+void QT_color_depuis_tsl(double t, double s, double l, double a, struct QT_Color *r_color)
 {
     auto résultat = QColor::fromHslF(t, s, l, a);
-    return vers_ipa(résultat);
+    *r_color = vers_ipa(résultat);
 }
 
 /** \} */
@@ -1072,7 +1074,7 @@ void QT_widget_restore_curseur(QT_Generic_Widget widget)
 }
 
 void QT_widget_transforme_point_vers_global(QT_Generic_Widget widget,
-                                            QT_Point point,
+                                            QT_Point *point,
                                             QT_Point *r_point)
 {
     if (!r_point) {
@@ -1080,12 +1082,12 @@ void QT_widget_transforme_point_vers_global(QT_Generic_Widget widget,
     }
 
     VERS_QT(widget);
-    auto résultat = qwidget->mapToGlobal(QPoint(point.x, point.y));
+    auto résultat = qwidget->mapToGlobal(QPoint(point->x, point->y));
     *r_point = QT_Point{résultat.x(), résultat.y()};
 }
 
 void QT_widget_transforme_point_vers_local(QT_Generic_Widget widget,
-                                           QT_Point point,
+                                           QT_Point *point,
                                            QT_Point *r_point)
 {
     if (!r_point) {
@@ -1093,7 +1095,7 @@ void QT_widget_transforme_point_vers_local(QT_Generic_Widget widget,
     }
 
     VERS_QT(widget);
-    auto résultat = qwidget->mapFromGlobal(QPoint(point.x, point.y));
+    auto résultat = qwidget->mapFromGlobal(QPoint(point->x, point->y));
     *r_point = QT_Point{résultat.x(), résultat.y()};
 }
 
@@ -1473,7 +1475,7 @@ QT_TabWidget *QT_cree_tab_widget(QT_Rappels_TabWidget *rappels, QT_Generic_Widge
 
 QT_Rappels_TabWidget *QT_tab_widget_donne_rappels(QT_TabWidget *tab)
 {
-    VERS_QT(tab);
+    auto qtab = reinterpret_cast<QTabWidget *>(tab);
     if (auto widget = dynamic_cast<TabWidget *>(qtab)) {
         return widget->donne_rappels();
     }
@@ -2128,24 +2130,24 @@ QT_GraphicsRectItem *QT_cree_graphics_rect_item(QT_Generic_GraphicsItem parent)
     return vers_ipa(new QGraphicsRectItem(qparent));
 }
 
-void QT_graphics_rect_item_definis_pinceau(QT_GraphicsRectItem *item, QT_Pen pinceau)
+void QT_graphics_rect_item_definis_pinceau(QT_GraphicsRectItem *item, QT_Pen *pinceau)
 {
     auto qitem = vers_qt(item);
-    auto qpen = vers_qt(pinceau);
+    auto qpen = vers_qt(*pinceau);
     qitem->setPen(qpen);
 }
 
-void QT_graphics_rect_item_definis_brosse(QT_GraphicsRectItem *item, QT_Brush brush)
+void QT_graphics_rect_item_definis_brosse(QT_GraphicsRectItem *item, QT_Brush *brush)
 {
     auto qitem = vers_qt(item);
-    auto qbrush = vers_qt(brush);
+    auto qbrush = vers_qt(*brush);
     qitem->setBrush(qbrush);
 }
 
-void QT_graphics_rect_item_definis_rect(QT_GraphicsRectItem *item, QT_RectF rect)
+void QT_graphics_rect_item_definis_rect(QT_GraphicsRectItem *item, QT_RectF *rect)
 {
     auto qitem = vers_qt(item);
-    auto qrect = QRectF(rect.x, rect.y, rect.largeur, rect.hauteur);
+    auto qrect = QRectF(rect->x, rect->y, rect->largeur, rect->hauteur);
     qitem->setRect(qrect);
 }
 
@@ -2161,25 +2163,25 @@ QT_GraphicsTextItem *QT_cree_graphics_text_item(QT_Chaine texte, QT_Generic_Grap
     return vers_ipa(new QGraphicsTextItem(vers_qt(texte), qparent));
 }
 
-void QT_graphics_text_item_definis_police(QT_GraphicsTextItem *text_item, QT_Font font)
+void QT_graphics_text_item_definis_police(QT_GraphicsTextItem *text_item, QT_Font *font)
 {
     VERS_QT(text_item);
     VERS_QT(font);
     qtext_item->setFont(qfont);
 }
 
-void QT_graphics_text_item_definis_couleur_defaut(QT_GraphicsTextItem *text_item, QT_Color color)
+void QT_graphics_text_item_definis_couleur_defaut(QT_GraphicsTextItem *text_item, QT_Color *color)
 {
     VERS_QT(text_item);
-    VERS_QT(color);
+    auto qcolor = vers_qt(*color);
     qtext_item->setDefaultTextColor(qcolor);
 }
 
-QT_RectF QT_graphics_text_item_donne_rect(QT_GraphicsTextItem *item)
+void QT_graphics_text_item_donne_rect(QT_GraphicsTextItem *item, QT_RectF *r_rect)
 {
     VERS_QT(item);
     auto rect = qitem->boundingRect();
-    return vers_ipa(rect);
+    *r_rect = vers_ipa(rect);
 }
 
 void QT_graphics_text_item_definis_position(QT_GraphicsTextItem *item, QT_PointF *pos)
@@ -2201,10 +2203,10 @@ QT_GraphicsLineItem *QT_cree_graphics_line_item(QT_Generic_GraphicsItem parent)
     return vers_ipa(new QGraphicsLineItem(qparent));
 }
 
-void QT_graphics_line_item_definis_pinceau(QT_GraphicsLineItem *item, QT_Pen pinceau)
+void QT_graphics_line_item_definis_pinceau(QT_GraphicsLineItem *item, QT_Pen *pinceau)
 {
     auto qitem = vers_qt(item);
-    auto qpen = vers_qt(pinceau);
+    auto qpen = vers_qt(*pinceau);
     qitem->setPen(qpen);
 }
 
@@ -2247,11 +2249,11 @@ void QT_graphics_scene_efface(QT_GraphicsScene *scene)
     qscene->clear();
 }
 
-QT_RectF QT_graphics_scene_donne_rect_scene(QT_GraphicsScene *scene)
+void QT_graphics_scene_donne_rect_scene(QT_GraphicsScene *scene, QT_RectF *r_rect)
 {
     auto qscene = vers_qt(scene);
     auto rect = qscene->sceneRect();
-    return QT_RectF{rect.x(), rect.y(), rect.width(), rect.height()};
+    *r_rect = QT_RectF{rect.x(), rect.y(), rect.width(), rect.height()};
 }
 
 void QT_graphics_scene_definis_rect_scene(QT_GraphicsScene *scene, QT_RectF rect)
@@ -2296,15 +2298,15 @@ void QT_graphics_view_reinit_transforme(QT_GraphicsView *graphics_view)
 void QT_graphics_view_definis_echelle_taille(QT_GraphicsView *graphics_view, float x, float y)
 {
     auto qgraphics_view = vers_qt(graphics_view);
-    qgraphics_view->scale(x, y);
+    qgraphics_view->scale(double(x), double(y));
 }
 
 void QT_graphics_view_mappe_vers_scene(QT_GraphicsView *graphics_view,
-                                       QT_Point point,
+                                       QT_Point *point,
                                        QT_PointF *r_point)
 {
     auto qgraphics_view = vers_qt(graphics_view);
-    auto résultat = qgraphics_view->mapToScene(QPoint(point.x, point.y));
+    auto résultat = qgraphics_view->mapToScene(QPoint(point->x, point->y));
     if (r_point) {
         *r_point = QT_PointF{résultat.x(), résultat.y()};
     }

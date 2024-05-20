@@ -386,7 +386,7 @@ st_mysql_client_plugin :: struct #externe {
     license: *z8
     mysql_api: *rien
     init: fonc(*z8, n64, z32, *__va_list_tag)(z32)
-    deinit: fonc(rien)(z32)
+    deinit: fonc()(z32)
     options: fonc(*z8, *rien)(z32)
 }
 
@@ -877,7 +877,7 @@ auth_plugin_t :: struct #externe {
     license: *z8
     mysql_api: *rien
     init: fonc(*z8, n64, z32, *__va_list_tag)(z32)
-    deinit: fonc(rien)(z32)
+    deinit: fonc()(z32)
     options: fonc(*z8, *rien)(z32)
     authenticate_user: fonc(*MYSQL_PLUGIN_VIO, *MYSQL)(z32)
     authenticate_user_nonblocking: fonc(*MYSQL_PLUGIN_VIO, *MYSQL, *z32)(net_async_status)

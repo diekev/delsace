@@ -540,7 +540,7 @@ struct QT_Color {
     double a;
 };
 
-struct QT_Color QT_color_depuis_tsl(double t, double s, double l, double a);
+void QT_color_depuis_tsl(double t, double s, double l, double a, struct QT_Color *r_color);
 
 /** \} */
 
@@ -1220,11 +1220,11 @@ void QT_widget_definis_curseur(union QT_Generic_Widget widget, enum QT_CursorSha
 void QT_widget_restore_curseur(union QT_Generic_Widget widget);
 
 void QT_widget_transforme_point_vers_global(union QT_Generic_Widget widget,
-                                            struct QT_Point point,
+                                            struct QT_Point *point,
                                             struct QT_Point *r_point);
 
 void QT_widget_transforme_point_vers_local(union QT_Generic_Widget widget,
-                                           struct QT_Point point,
+                                           struct QT_Point *point,
                                            struct QT_Point *r_point);
 
 struct QT_Rect QT_widget_donne_geometrie(union QT_Generic_Widget widget);
@@ -1732,9 +1732,10 @@ struct QT_RectF QT_graphics_item_donne_rect(union QT_Generic_GraphicsItem item);
 
 struct QT_GraphicsRectItem *QT_cree_graphics_rect_item(union QT_Generic_GraphicsItem parent);
 void QT_graphics_rect_item_definis_pinceau(struct QT_GraphicsRectItem *item,
-                                           struct QT_Pen pinceau);
-void QT_graphics_rect_item_definis_brosse(struct QT_GraphicsRectItem *item, struct QT_Brush brush);
-void QT_graphics_rect_item_definis_rect(struct QT_GraphicsRectItem *item, struct QT_RectF rect);
+                                           struct QT_Pen *pinceau);
+void QT_graphics_rect_item_definis_brosse(struct QT_GraphicsRectItem *item,
+                                          struct QT_Brush *brush);
+void QT_graphics_rect_item_definis_rect(struct QT_GraphicsRectItem *item, struct QT_RectF *rect);
 
 /** \} */
 
@@ -1745,10 +1746,10 @@ void QT_graphics_rect_item_definis_rect(struct QT_GraphicsRectItem *item, struct
 struct QT_GraphicsTextItem *QT_cree_graphics_text_item(struct QT_Chaine texte,
                                                        union QT_Generic_GraphicsItem parent);
 void QT_graphics_text_item_definis_police(struct QT_GraphicsTextItem *text_item,
-                                          struct QT_Font font);
+                                          struct QT_Font *font);
 void QT_graphics_text_item_definis_couleur_defaut(struct QT_GraphicsTextItem *text_item,
-                                                  struct QT_Color color);
-struct QT_RectF QT_graphics_text_item_donne_rect(struct QT_GraphicsTextItem *item);
+                                                  struct QT_Color *color);
+void QT_graphics_text_item_donne_rect(struct QT_GraphicsTextItem *item, struct QT_RectF *r_rect);
 void QT_graphics_text_item_definis_position(struct QT_GraphicsTextItem *item,
                                             struct QT_PointF *pos);
 
@@ -1760,7 +1761,7 @@ void QT_graphics_text_item_definis_position(struct QT_GraphicsTextItem *item,
 
 struct QT_GraphicsLineItem *QT_cree_graphics_line_item(union QT_Generic_GraphicsItem parent);
 void QT_graphics_line_item_definis_pinceau(struct QT_GraphicsLineItem *item,
-                                           struct QT_Pen pinceau);
+                                           struct QT_Pen *pinceau);
 void QT_graphics_line_item_definis_ligne(
     struct QT_GraphicsLineItem *line, double x1, double y1, double x2, double y2);
 
@@ -1775,7 +1776,7 @@ void QT_graphics_scene_detruit(struct QT_GraphicsScene *scene);
 struct QT_GraphicsView *QT_graphics_scene_cree_graphics_view(struct QT_GraphicsScene *scene,
                                                              union QT_Generic_Widget parent);
 void QT_graphics_scene_efface(struct QT_GraphicsScene *scene);
-struct QT_RectF QT_graphics_scene_donne_rect_scene(struct QT_GraphicsScene *scene);
+void QT_graphics_scene_donne_rect_scene(struct QT_GraphicsScene *scene, struct QT_RectF *r_rect);
 void QT_graphics_scene_definis_rect_scene(struct QT_GraphicsScene *scene, struct QT_RectF rect);
 void QT_graphics_scene_ajoute_item(struct QT_GraphicsScene *scene,
                                    union QT_Generic_GraphicsItem item);
@@ -1794,7 +1795,7 @@ void QT_graphics_view_definis_echelle_taille(struct QT_GraphicsView *graphics_vi
                                              float x,
                                              float y);
 void QT_graphics_view_mappe_vers_scene(struct QT_GraphicsView *graphics_view,
-                                       struct QT_Point point,
+                                       struct QT_Point *point,
                                        struct QT_PointF *r_point);
 void QT_graphics_view_mappe_depuis_scene(struct QT_GraphicsView *graphics_view,
                                          struct QT_PointF *point,
