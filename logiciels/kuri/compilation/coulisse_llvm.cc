@@ -48,6 +48,7 @@
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
+#include "intrinseques.hh"
 #include "programme.hh"
 #include "utilitaires/log.hh"
 
@@ -375,6 +376,9 @@ struct GénératriceCodeLLVM {
     void génère_code_pour_instruction(Instruction const *inst);
 
     void génère_code_pour_appel(InstructionAppel const *inst_appel);
+
+    void génère_code_pour_appel_intrinsèque(InstructionAppel const *inst_appel,
+                                            DonnéesSymboleExterne const *données_externe);
 
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
 
@@ -1163,8 +1167,28 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
     }
 }
 
+static DonnéesSymboleExterne *est_appel_intrinsèque(InstructionAppel const *appel)
+{
+    auto appelée = appel->appelé;
+    if (!appelée->est_fonction()) {
+        return nullptr;
+    }
+
+    auto fonction = appelée->comme_fonction();
+    if (!fonction->est_intrinsèque()) {
+        return nullptr;
+    }
+
+    return fonction->decl->données_externes;
+}
+
 void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *inst_appel)
 {
+    if (auto données_externe = est_appel_intrinsèque(inst_appel)) {
+        génère_code_pour_appel_intrinsèque(inst_appel, données_externe);
+        return;
+    }
+
     auto arguments = std::vector<llvm::Value *>();
     POUR (inst_appel->args) {
         arguments.push_back(génère_code_pour_atome(it, false));
@@ -1195,6 +1219,155 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
     }
 
     définis_valeur_instruction(inst_appel, résultat);
+}
+
+void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
+    InstructionAppel const *inst_appel, DonnéesSymboleExterne const *données_externe)
+{
+    auto opt_genre_intrinsèque = donne_genre_intrinsèque_pour_nom_gcc(
+        données_externe->nom_symbole);
+    assert(opt_genre_intrinsèque.has_value());
+    auto genre_intrinsèque = opt_genre_intrinsèque.value();
+
+    llvm::Value *valeur_retour = nullptr;
+
+    switch (genre_intrinsèque) {
+        case GenreIntrinsèque::RÉINITIALISE_TAMPON_INSTRUCTION:
+        {
+            auto arg1 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg2 = génère_code_pour_atome(inst_appel->args[1], false);
+            m_builder.CreateBinaryIntrinsic(llvm::Intrinsic::clear_cache, arg1, arg2);
+            break;
+        }
+        case GenreIntrinsèque::PRÉCHARGE:
+        {
+            llvm::SmallVector<llvm::Type *, 4> types;
+            llvm::SmallVector<llvm::Value *, 4> args;
+
+            POUR (inst_appel->args) {
+                auto arg = génère_code_pour_atome(it, false);
+                types.push_back(arg->getType());
+                args.push_back(arg);
+            }
+
+            /* LLVM a un dernier argument pour le type de cache : instruction (0) ou données (1).
+             * Par défaut nous suivons la signature de GCC, et utilisons le cache de données. */
+            auto type_i32 = llvm::Type::getInt32Ty(m_contexte_llvm);
+            auto type_cache = llvm::ConstantInt::get(type_i32, 1);
+
+            types.push_back(type_i32);
+            args.push_back(type_cache);
+
+            m_builder.CreateIntrinsic(llvm::Intrinsic::prefetch, types, args);
+            break;
+        }
+        case GenreIntrinsèque::PRÉDIT:
+        {
+            auto arg1 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg2 = génère_code_pour_atome(inst_appel->args[1], false);
+            valeur_retour = m_builder.CreateBinaryIntrinsic(llvm::Intrinsic::expect, arg1, arg2);
+            break;
+        }
+        case GenreIntrinsèque::PRÉDIT_AVEC_PROBABILITÉ:
+        {
+            llvm::SmallVector<llvm::Type *, 3> types;
+            llvm::SmallVector<llvm::Value *, 3> args;
+
+            POUR (inst_appel->args) {
+                auto arg = génère_code_pour_atome(it, false);
+                types.push_back(arg->getType());
+                args.push_back(arg);
+            }
+
+            valeur_retour = m_builder.CreateIntrinsic(
+                llvm::Intrinsic::expect_with_probability, types, args);
+            break;
+        }
+        case GenreIntrinsèque::PIÈGE:
+        case GenreIntrinsèque::NONATTEIGNABLE:
+        {
+            /* LLVM n'a pas d'intrinsèque pour nonatteignable, utilisons "trap". */
+            m_builder.CreateIntrinsic(llvm::Intrinsic::trap, {}, {});
+            break;
+        }
+        case GenreIntrinsèque::TROUVE_PREMIER_ACTIF_32:
+        case GenreIntrinsèque::TROUVE_PREMIER_ACTIF_64:
+        {
+            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto zero_est_poison = llvm::ConstantInt::get(llvm::Type::getInt1Ty(m_contexte_llvm),
+                                                          0);
+            valeur_retour = m_builder.CreateBinaryIntrinsic(
+                llvm::Intrinsic::cttz, arg, zero_est_poison);
+            valeur_retour = m_builder.CreateAdd(
+                valeur_retour, llvm::ConstantInt::get(valeur_retour->getType(), 1));
+
+            auto arg_est_zéro = m_builder.CreateICmpEQ(arg,
+                                                       llvm::ConstantInt::get(arg->getType(), 0));
+            valeur_retour = m_builder.CreateSelect(arg_est_zéro, arg, valeur_retour);
+            break;
+        }
+        case GenreIntrinsèque::COMPTE_ZÉROS_EN_TÊTE_32:
+        case GenreIntrinsèque::COMPTE_ZÉROS_EN_TÊTE_64:
+        {
+            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto zero_est_poison = llvm::ConstantInt::get(llvm::Type::getInt1Ty(m_contexte_llvm),
+                                                          1);
+            valeur_retour = m_builder.CreateBinaryIntrinsic(
+                llvm::Intrinsic::ctlz, arg, zero_est_poison);
+            break;
+        }
+        case GenreIntrinsèque::COMPTE_ZÉROS_EN_FIN_32:
+        case GenreIntrinsèque::COMPTE_ZÉROS_EN_FIN_64:
+        {
+            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto zero_est_poison = llvm::ConstantInt::get(llvm::Type::getInt1Ty(m_contexte_llvm),
+                                                          1);
+            valeur_retour = m_builder.CreateBinaryIntrinsic(
+                llvm::Intrinsic::cttz, arg, zero_est_poison);
+            break;
+        }
+        case GenreIntrinsèque::COMPTE_REDONDANCE_BIT_SIGNE_32:
+        case GenreIntrinsèque::COMPTE_REDONDANCE_BIT_SIGNE_64:
+        {
+            /* Inverse les bits puis compte le nombre de zéro en tête. */
+            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            arg = m_builder.CreateNot(arg);
+            auto zero_est_poison = llvm::ConstantInt::get(llvm::Type::getInt1Ty(m_contexte_llvm),
+                                                          1);
+            valeur_retour = m_builder.CreateBinaryIntrinsic(
+                llvm::Intrinsic::ctlz, arg, zero_est_poison);
+            break;
+        }
+        case GenreIntrinsèque::COMPTE_BITS_ACTIFS_32:
+        case GenreIntrinsèque::COMPTE_BITS_ACTIFS_64:
+        {
+            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            valeur_retour = m_builder.CreateUnaryIntrinsic(llvm::Intrinsic::ctpop, arg);
+            break;
+        }
+        case GenreIntrinsèque::PARITÉ_BITS_32:
+        case GenreIntrinsèque::PARITÉ_BITS_64:
+        {
+            /* La parité est le nombre de bits actif modulo 2. */
+            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            valeur_retour = m_builder.CreateUnaryIntrinsic(llvm::Intrinsic::ctpop, arg);
+            valeur_retour = m_builder.CreateURem(
+                valeur_retour, llvm::ConstantInt::get(valeur_retour->getType(), 2));
+            break;
+        }
+        case GenreIntrinsèque::COMMUTE_OCTETS_16:
+        case GenreIntrinsèque::COMMUTE_OCTETS_32:
+        case GenreIntrinsèque::COMMUTE_OCTETS_64:
+        {
+            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            valeur_retour = m_builder.CreateUnaryIntrinsic(llvm::Intrinsic::bswap, arg);
+            break;
+        }
+    }
+
+    if (valeur_retour) {
+        définis_valeur_instruction(inst_appel, valeur_retour);
+    }
 }
 
 template <typename T>
