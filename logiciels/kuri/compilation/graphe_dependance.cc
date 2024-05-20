@@ -170,20 +170,20 @@ void GrapheDépendance::ajoute_dépendances(NoeudDépendance &noeud, DonnéesDé
     });
 }
 
-void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dependance)
+void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dépendance)
 {
 #if 0
 	auto nombre_fonctions = 0;
 	auto nombre_utilisees = 0;
 
-	POUR_TABLEAU_PAGE(graphe_dependance.noeuds) {
+	POUR_TABLEAU_PAGE(graphe_dépendance.noeuds) {
 		it.fut_visite = false;
 		nombre_fonctions += (it.est_fonction());
 	}
 
-	auto noeud_dependance = graphe_dependance.cherche_noeud_fonction("principale");
+	auto noeud_dépendance = graphe_dépendance.cherche_noeud_fonction("principale");
 
-	graphe_dependance.traverse(noeud_dependance, [&](NoeudDependance *noeud)
+	graphe_dépendance.traverse(noeud_dépendance, [&](NoeudDependance *noeud)
 	{
 		if (!noeud->est_fonction()) {
 			return;
@@ -192,7 +192,7 @@ void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dependance)
 		nombre_utilisees += 1;
 	});
 
-	POUR_TABLEAU_PAGE(graphe_dependance.noeuds) {
+	POUR_TABLEAU_PAGE(graphe_dépendance.noeuds) {
 		if (!it.est_fonction()) {
 			continue;
 		}
@@ -367,9 +367,9 @@ NoeudDépendance *GrapheDépendance::garantie_noeud_dépendance(EspaceDeTravail 
     }
 
     if (noeud->est_exécute()) {
-        auto execute = noeud->comme_exécute();
-        assert(execute->métaprogramme);
-        auto metaprogramme = execute->métaprogramme;
+        auto exécute = noeud->comme_exécute();
+        assert(exécute->métaprogramme);
+        auto metaprogramme = exécute->métaprogramme;
         assert(metaprogramme->fonction);
         return crée_noeud_fonction(metaprogramme->fonction);
     }
@@ -382,7 +382,7 @@ NoeudDépendance *GrapheDépendance::garantie_noeud_dépendance(EspaceDeTravail 
     return nullptr;
 }
 
-void imprime_dépendances(const DonnéesDépendance &dependances,
+void imprime_dépendances(const DonnéesDépendance &dépendances,
                          EspaceDeTravail *espace,
                          const char *message,
                          std::ostream &flux)
@@ -390,21 +390,21 @@ void imprime_dépendances(const DonnéesDépendance &dependances,
     flux << "Dépendances pour : " << message << '\n';
 
     flux << "fonctions :\n";
-    kuri::pour_chaque_élément(dependances.fonctions_utilisées, [&](auto &fonction) {
+    kuri::pour_chaque_élément(dépendances.fonctions_utilisées, [&](auto &fonction) {
         flux << erreur::imprime_site(*espace, fonction);
         return kuri::DécisionItération::Continue;
     });
 
     flux << "globales :\n";
     /* Requiers le typage de toutes les déclarations utilisées. */
-    kuri::pour_chaque_élément(dependances.globales_utilisées, [&](auto &globale) {
+    kuri::pour_chaque_élément(dépendances.globales_utilisées, [&](auto &globale) {
         flux << erreur::imprime_site(*espace, globale);
         return kuri::DécisionItération::Continue;
     });
 
     flux << "types :\n";
     /* Requiers le typage de tous les types utilisés. */
-    kuri::pour_chaque_élément(dependances.types_utilisés, [&](auto &type) {
+    kuri::pour_chaque_élément(dépendances.types_utilisés, [&](auto &type) {
         flux << chaine_type(type) << '\n';
         return kuri::DécisionItération::Continue;
     });

@@ -715,8 +715,8 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
      * relations dans le graphe. */
     if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
         DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
-        NoeudDépendance *noeud_dependance = graphe.garantie_noeud_dépendance(espace, noeud);
-        graphe.ajoute_dépendances(*noeud_dependance, dépendances.dépendances);
+        NoeudDépendance *noeud_dépendance = graphe.garantie_noeud_dépendance(espace, noeud);
+        graphe.ajoute_dépendances(*noeud_dépendance, dépendances.dépendances);
         TERMINE_STAT(AJOUTE_DÉPENDANCES);
     }
 
@@ -1511,7 +1511,7 @@ void GestionnaireCode::message_reçu(Message const *message)
 void GestionnaireCode::execution_terminée(UniteCompilation *unité)
 {
     assert(unité->metaprogramme);
-    assert(unité->metaprogramme->fut_execute);
+    assert(unité->metaprogramme->fut_exécuté);
     auto espace = unité->espace;
     TACHE_TERMINEE(EXECUTION, true);
     enleve_programme(unité->metaprogramme->programme);
@@ -1673,7 +1673,7 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
             {
                 it->rapporte_erreur();
                 unités_en_attente.efface();
-                ordonnanceuse.supprime_toutes_les_taches();
+                ordonnanceuse.supprime_toutes_les_tâches();
                 return;
             }
             case UniteCompilation::ÉtatAttentes::ATTENTES_NON_RÉSOLUES:
@@ -1705,13 +1705,13 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
     }
 
     pour_chaque_élément(espaces_errones, [&](EspaceDeTravail *espace) {
-        ordonnanceuse.supprime_toutes_les_taches_pour_espace(
+        ordonnanceuse.supprime_toutes_les_tâches_pour_espace(
             espace, UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
         return kuri::DécisionItération::Continue;
     });
 
     if (m_compilatrice->possède_erreur()) {
-        ordonnanceuse.supprime_toutes_les_taches();
+        ordonnanceuse.supprime_toutes_les_tâches();
     }
 
     unités_en_attente.permute(m_nouvelles_unités);
@@ -1868,25 +1868,25 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
     auto executions_requises = false;
     auto executions_en_cours = false;
     modules.pour_chaque_element([&](Module *module) {
-        auto execute = module->directive_pré_exécutable;
-        if (!execute) {
+        auto exécute = module->directive_pré_exécutable;
+        if (!exécute) {
             return;
         }
 
         if (!module->exécution_directive_requise) {
             /* L'espace du programme est celui qui a créé le métaprogramme lors de la validation de
              * code, mais nous devons avoir le métaprogramme (qui hérite de l'espace du programme)
-             * dans l'espace demandant son exécution afin que le compte de taches d'exécution dans
+             * dans l'espace demandant son exécution afin que le compte de tâches d'exécution dans
              * l'espace soit cohérent. */
-            execute->métaprogramme->programme->change_d_espace(espace);
-            requiers_compilation_métaprogramme(espace, execute->métaprogramme);
+            exécute->métaprogramme->programme->change_d_espace(espace);
+            requiers_compilation_métaprogramme(espace, exécute->métaprogramme);
             module->exécution_directive_requise = true;
             executions_requises = true;
         }
 
         /* Nous devons attendre la fin de l'exécution de ces métaprogrammes avant de pouvoir généré
          * le code machine. */
-        executions_en_cours |= !execute->métaprogramme->fut_execute;
+        executions_en_cours |= !exécute->métaprogramme->fut_exécuté;
     });
 
     if (executions_requises || executions_en_cours) {

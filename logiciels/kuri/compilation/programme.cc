@@ -1211,6 +1211,13 @@ void ConstructriceProgrammeFormeRI::tri_fonctions_et_globales()
                                  ProgrammeRepreInter::FONCTIONS_INTERNES);
 
     tri_stable(partition_fonctions.vrai, [](auto &fonction1, auto &fonction2) {
+        /* Les fonctions intrinsèques n'ont pas de bibliothèque. */
+        if (fonction1->est_intrinsèque()) {
+            return true;
+        }
+        if (fonction2->est_intrinsèque()) {
+            return false;
+        }
         auto bib1 = fonction1->decl->données_externes->symbole->bibliothèque;
         auto bib2 = fonction2->decl->données_externes->symbole->bibliothèque;
         return bib1->nom < bib2->nom;
