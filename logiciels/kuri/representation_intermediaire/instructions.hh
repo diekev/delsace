@@ -439,6 +439,8 @@ struct AtomeFonction : public AtomeConstante {
 
     int32_t numérote_instructions() const;
 
+    bool est_intrinsèque() const;
+
     EMPECHE_COPIE(AtomeFonction);
 };
 

@@ -108,6 +108,11 @@ int32_t AtomeFonction::numérote_instructions() const
     return résultat;
 }
 
+bool AtomeFonction::est_intrinsèque() const
+{
+    return decl && decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE);
+}
+
 InstructionAppel::InstructionAppel(NoeudExpression const *site_, Atome *appele_)
     : InstructionAppel(site_)
 {

@@ -1127,8 +1127,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         {
             auto atome_fonc = atome->comme_fonction();
 
-            if (atome_fonc->decl &&
-                atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
+            if (atome_fonc->est_intrinsèque()) {
                 return atome_fonc->decl->données_externes->nom_symbole;
             }
 
@@ -1720,8 +1719,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
                                         const AtomeFonction *atome_fonc,
                                         bool pour_entête)
 {
-    if (atome_fonc->decl &&
-        atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
+    if (atome_fonc->est_intrinsèque()) {
         return;
     }
 
