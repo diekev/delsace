@@ -2531,6 +2531,76 @@ NoeudExpression *Simplificatrice::simplifie_coroutine(NoeudDéclarationEntêteFo
     return corout;
 }
 
+static NoeudExpression *est_bloc_avec_une_seule_expression_simple(NoeudExpression const *noeud)
+{
+    if (!noeud->est_bloc()) {
+        return nullptr;
+    }
+
+    auto bloc = noeud->comme_bloc();
+    if (bloc->expressions->taille() != 1) {
+        return nullptr;
+    }
+
+    auto expression = bloc->expressions->a(0);
+    expression = expression->substitution ? expression->substitution : expression;
+
+    /* À FAIRE : considère plus de cas, mais il faudra détecter les dérérérencement de pointeur et
+     * les divisions par zéro. */
+    switch (expression->genre) {
+        case GenreNoeud::EXPRESSION_LITTÉRALE_BOOLÉEN:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_ENTIER:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_RÉEL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NUL:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
+        {
+            break;
+        }
+        default:
+        {
+            return nullptr;
+        }
+    }
+
+    return expression;
+}
+
+static NoeudExpressionSélection *peut_être_compilée_avec_sélection(NoeudSi *inst_si,
+                                                                   AssembleuseArbre *assem)
+{
+    auto si_vrai = est_bloc_avec_une_seule_expression_simple(inst_si->bloc_si_vrai);
+    if (!si_vrai) {
+        return nullptr;
+    }
+    auto si_faux = est_bloc_avec_une_seule_expression_simple(inst_si->bloc_si_faux);
+    if (!si_faux) {
+        return nullptr;
+    }
+
+    auto condition = inst_si->condition;
+    if (condition->est_parenthèse()) {
+        condition = condition->comme_parenthèse()->expression;
+    }
+
+    if (condition->est_expression_logique()) {
+        /* Nous ignorons les expressions logiques car elles doivent être compilées différements
+         * lorsque dans une condition de « si ». */
+        return nullptr;
+    }
+
+    condition = condition->substitution ? condition->substitution : condition;
+    if (!condition->type->est_type_bool()) {
+        /* À FAIRE : canonicalisation des tests de types non booléens. */
+        return nullptr;
+    }
+
+    auto résultat = assem->crée_sélection(inst_si->lexème, inst_si->condition, si_vrai, si_faux);
+    résultat->type = si_vrai->type;
+    return résultat;
+}
+
 NoeudExpression *Simplificatrice::simplifie_instruction_si(NoeudSi *inst_si)
 {
     simplifie(inst_si->condition);
@@ -2539,6 +2609,11 @@ NoeudExpression *Simplificatrice::simplifie_instruction_si(NoeudSi *inst_si)
 
     if (!inst_si->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
         return inst_si;
+    }
+
+    if (auto sélection = peut_être_compilée_avec_sélection(inst_si, assem)) {
+        inst_si->substitution = sélection;
+        return sélection;
     }
 
     /*
