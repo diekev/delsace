@@ -75,7 +75,7 @@ kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
  */
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
-                                   BibliothèquesUtilisées const &bibliotheques);
+                                   BibliothèquesUtilisées const &bibliothèques);
 
 bool precompile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri);
 

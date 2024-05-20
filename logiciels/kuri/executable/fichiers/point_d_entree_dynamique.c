@@ -81,18 +81,6 @@ n16 DLS_depuis_r64(r64 v)
     return DLS_depuis_r32((float)(v));
 }
 
-void __point_d_entree_dynamique();
-void __point_de_sortie_dynamique();
 #ifdef __cplusplus
 }
 #endif
-
-static __attribute__((constructor)) void initialise_kuri()
-{
-    __point_d_entree_dynamique();
-}
-
-static __attribute__((constructor)) void issitialise_kuri()
-{
-    __point_de_sortie_dynamique();
-}

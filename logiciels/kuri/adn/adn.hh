@@ -357,6 +357,7 @@ struct Membre {
 
 class ProtéineEnum;
 class ProtéineStruct;
+class ProtéineFonction;
 
 class Protéine {
   protected:
@@ -390,6 +391,11 @@ class Protéine {
     }
 
     virtual ProtéineStruct const *comme_struct() const
+    {
+        return nullptr;
+    }
+
+    virtual ProtéineFonction const *comme_fonction() const
     {
         return nullptr;
     }
@@ -639,6 +645,7 @@ class ProtéineFonction final : public Protéine {
     Type *m_type_sortie = nullptr;
     bool m_est_ipa_compilatrice = false;
     bool m_est_intrinsèque = false;
+    kuri::chaine_statique m_genre_intrinsèque = "";
     /* Pour les intrinsèques, le symbole GCC correspondant. */
     kuri::chaine_statique m_symbole_gcc = "";
 
@@ -661,6 +668,11 @@ class ProtéineFonction final : public Protéine {
     bool est_fonction() const override
     {
         return true;
+    }
+
+    ProtéineFonction const *comme_fonction() const override
+    {
+        return this;
     }
 
     const kuri::tableau<Parametre> &donne_paramètres() const
@@ -686,9 +698,15 @@ class ProtéineFonction final : public Protéine {
     {
         return m_est_intrinsèque;
     }
-    void marque_intrinsèque()
+    void marque_intrinsèque(kuri::chaine_statique genre_intrinsèque)
     {
+        m_genre_intrinsèque = genre_intrinsèque;
         m_est_intrinsèque = true;
+    }
+
+    kuri::chaine_statique donne_genre_intrinsèque() const
+    {
+        return m_genre_intrinsèque;
     }
 
     bool est_marquée_ipa_compilarice() const
@@ -729,6 +747,8 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
     void parse_struct();
 
     Type *parse_type();
+
+    ProtéineEnum *donne_énum_pour_nom(kuri::chaine_statique nom) const;
 
     void gère_erreur_rapportée(const kuri::chaine &message_erreur) override;
 };
