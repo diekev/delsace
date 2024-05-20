@@ -18,6 +18,7 @@ set(LLVM_VERSION 12)
 if(LLVM_ROOT_DIR)
     if(DEFINED LLVM_VERSION)
         find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION} HINTS ${LLVM_ROOT_DIR}/bin NO_CMAKE_PATH)
+        find_program(LLVM_ASSEMBLEUR llvm-as-${LLVM_VERSION})
     endif()
     if(NOT LLVM_CONFIG)
         find_program(LLVM_CONFIG llvm-config HINTS ${LLVM_ROOT_DIR}/bin NO_CMAKE_PATH)
@@ -26,6 +27,7 @@ else()
     if(DEFINED LLVM_VERSION)
         message(running llvm-config-${LLVM_VERSION})
         find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION})
+        find_program(LLVM_ASSEMBLEUR llvm-as-${LLVM_VERSION})
     endif()
     if(NOT LLVM_CONFIG)
         find_program(LLVM_CONFIG llvm-config)
@@ -130,7 +132,7 @@ endif()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(LLVM DEFAULT_MSG
-    LLVM_LIBRARY  LLVM_INCLUDE_DIR CLANG_INCLUDE_DIR CLANG_LIBRARIES)
+    LLVM_LIBRARY  LLVM_INCLUDE_DIR CLANG_INCLUDE_DIR CLANG_LIBRARIES LLVM_ASSEMBLEUR)
 
 mark_as_advanced(
     LLVM_LIBRARY

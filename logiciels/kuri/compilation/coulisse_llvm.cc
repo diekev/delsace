@@ -1630,7 +1630,7 @@ static kuri::chemin_systeme chemin_fichier_ll_llvm()
 
 static kuri::chaine_statique donne_assembleur_llvm()
 {
-    return "llvm-as-12";
+    return LLVM_ASSEMBLEUR;
 }
 
 static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module)
