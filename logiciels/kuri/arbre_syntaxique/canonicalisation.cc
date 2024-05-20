@@ -572,45 +572,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
-            auto si = noeud->comme_si();
-            simplifie(si->condition);
-            simplifie(si->bloc_si_vrai);
-            simplifie(si->bloc_si_faux);
-
-            if (si->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
-                /*
-
-                  x := si y { z } sinon { w }
-
-                  {
-                    decl := XXX;
-                    si y { decl = z; } sinon { decl = w; }
-                    decl; // nous avons une référence simple car la RI empilera sa valeur qui
-                  pourra être dépilée et utilisée pour l'assignation
-                  }
-
-                 */
-
-                auto decl_temp = crée_déclaration_variable(si->lexème, si->type, nullptr);
-                decl_temp->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
-                auto ref_temp = assem->crée_référence_déclaration(si->lexème, decl_temp);
-
-                auto nouveau_si = assem->crée_si(si->lexème, si->genre);
-                nouveau_si->condition = si->condition;
-                nouveau_si->bloc_si_vrai = si->bloc_si_vrai;
-                nouveau_si->bloc_si_faux = si->bloc_si_faux;
-
-                corrige_bloc_pour_assignation(nouveau_si->bloc_si_vrai, ref_temp);
-                corrige_bloc_pour_assignation(nouveau_si->bloc_si_faux, ref_temp);
-
-                ajoute_expression(decl_temp);
-                ajoute_expression(nouveau_si);
-
-                si->substitution = ref_temp;
-                return ref_temp;
-            }
-
-            return si;
+            return simplifie_instruction_si(noeud->comme_si());
         }
         case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:
         {
@@ -900,6 +862,14 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             noeud->substitution = assem->crée_référence_type(noeud->lexème, noeud->type);
             return noeud->substitution;
+        }
+        case GenreNoeud::EXPRESSION_SÉLECTION:
+        {
+            auto sélection = noeud->comme_sélection();
+            simplifie(sélection->condition);
+            simplifie(sélection->si_vrai);
+            simplifie(sélection->si_faux);
+            return sélection;
         }
         case GenreNoeud::DIRECTIVE_EXÉCUTE:
         {
@@ -2354,11 +2324,10 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
         return crée_disjonction_drapeau(
             nouvelle_ref, type_énum, static_cast<unsigned>(valeur_énum));
     }
-    /* Transforme en une expression « ternaire » sans branche (similaire à a = b ? c : d en
+    /* Transforme en une expression « ternaire » sans branche (similaire à a = b ? v1 : v2 en
      * C/C++) :
      * v1 = (a | DRAPEAU)
      * v2 = (a & ~DRAPEAU)
-     * (-(b comme T) & v1) | (((b comme T) - 1) & v2)
      */
 
     auto v1 = crée_conjonction_drapeau(
@@ -2366,62 +2335,12 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
     auto v2 = crée_disjonction_drapeau(
         nouvelle_ref, type_énum, static_cast<unsigned>(valeur_énum));
 
-    /* Crée une expression pour convertir l'expression en une valeur du type sous-jacent de
-     * l'énumération. */
-    auto type_sous_jacent = type_énum->type_sous_jacent;
-
     simplifie(expression);
     auto ref_b = expression->substitution ? expression->substitution : expression;
 
-    /* Convertis l'expression booléenne vers n8 car ils ont la même taille en octet. */
-    auto comme = crée_comme_type_cible(var->lexème, ref_b, TypeBase::N8);
-
-    /* Augmente la taille du n8 si ce n'est pas le type sous-jacent de l'énum drapeau. */
-    if (type_sous_jacent != TypeBase::N8) {
-        auto ancien_comme = comme;
-        comme = assem->crée_comme(var->lexème, ancien_comme, nullptr);
-        comme->type = type_sous_jacent;
-        comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-        comme->transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_sous_jacent};
-    }
-
-    /* Utilise une temporaire au cas où nous aurions une exression complexe. */
-    auto decl_b = crée_déclaration_variable(var->lexème, type_sous_jacent, comme);
-    decl_b->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
-    ajoute_expression(decl_b);
-
-    ref_b = assem->crée_référence_déclaration(var->lexème, decl_b);
-
-    /* -b */
-    auto zero = assem->crée_littérale_entier(lexème, type_énum->type_sous_jacent, 0);
-    auto moins_b_type_sous_jacent = assem->crée_expression_binaire(
-        lexème, type_sous_jacent->table_opérateurs->opérateur_sst, zero, ref_b);
-
-    /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
-     * type.
-     */
-    auto moins_b = crée_comme_type_cible(var->lexème, moins_b_type_sous_jacent, type_énum);
-
-    /* b - 1 */
-    auto un = assem->crée_littérale_entier(lexème, type_sous_jacent, 1);
-    auto b_moins_un_type_sous_jacent = assem->crée_expression_binaire(
-        lexème, type_sous_jacent->table_opérateurs->opérateur_sst, ref_b, un);
-
-    /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
-     * type.
-     */
-    auto b_moins_un = crée_comme_type_cible(var->lexème, b_moins_un_type_sous_jacent, type_énum);
-
-    /* -b & v1 */
-    auto moins_b_et_v1 = assem->crée_expression_binaire(
-        lexème, type_énum->table_opérateurs->opérateur_etb, moins_b, v1);
-    /* (b - 1) & v2 */
-    auto b_moins_un_et_v2 = assem->crée_expression_binaire(
-        lexème, type_énum->table_opérateurs->opérateur_etb, b_moins_un, v2);
-
-    /* (-(b comme T) & v1) | (((b comme T) - 1) & v2) */
-    return assem->crée_expression_binaire(
-        lexème, type_énum->table_opérateurs->opérateur_oub, moins_b_et_v1, b_moins_un_et_v2);
+    auto sélection = assem->crée_sélection(var->lexème, ref_b, v1, v2);
+    sélection->type = type_énum;
+    return sélection;
 }
 
 NoeudExpression *Simplificatrice::simplifie_opérateur_binaire(NoeudExpressionBinaire *expr_bin,
@@ -2611,6 +2530,119 @@ NoeudExpression *Simplificatrice::simplifie_coroutine(NoeudDéclarationEntêteFo
     noeud->drapeaux |= RI_FUT_GENEREE;
 #endif
     return corout;
+}
+
+static NoeudExpression *est_bloc_avec_une_seule_expression_simple(NoeudExpression const *noeud)
+{
+    if (!noeud->est_bloc()) {
+        return nullptr;
+    }
+
+    auto bloc = noeud->comme_bloc();
+    if (bloc->expressions->taille() != 1) {
+        return nullptr;
+    }
+
+    auto expression = bloc->expressions->a(0);
+    expression = expression->substitution ? expression->substitution : expression;
+
+    /* À FAIRE : considère plus de cas, mais il faudra détecter les dérérérencement de pointeur et
+     * les divisions par zéro. */
+    switch (expression->genre) {
+        case GenreNoeud::EXPRESSION_LITTÉRALE_BOOLÉEN:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_ENTIER:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NOMBRE_RÉEL:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
+        case GenreNoeud::EXPRESSION_LITTÉRALE_NUL:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
+        {
+            break;
+        }
+        default:
+        {
+            return nullptr;
+        }
+    }
+
+    return expression;
+}
+
+static NoeudExpressionSélection *peut_être_compilée_avec_sélection(NoeudSi *inst_si,
+                                                                   AssembleuseArbre *assem)
+{
+    auto si_vrai = est_bloc_avec_une_seule_expression_simple(inst_si->bloc_si_vrai);
+    if (!si_vrai) {
+        return nullptr;
+    }
+    auto si_faux = est_bloc_avec_une_seule_expression_simple(inst_si->bloc_si_faux);
+    if (!si_faux) {
+        return nullptr;
+    }
+
+    auto condition = inst_si->condition;
+    if (condition->est_parenthèse()) {
+        condition = condition->comme_parenthèse()->expression;
+    }
+
+    if (condition->est_expression_logique()) {
+        /* Nous ignorons les expressions logiques car elles doivent être compilées différements
+         * lorsque dans une condition de « si ». */
+        return nullptr;
+    }
+
+    condition = condition->substitution ? condition->substitution : condition;
+    if (!condition->type->est_type_bool()) {
+        /* À FAIRE : canonicalisation des tests de types non booléens. */
+        return nullptr;
+    }
+
+    auto résultat = assem->crée_sélection(inst_si->lexème, inst_si->condition, si_vrai, si_faux);
+    résultat->type = si_vrai->type;
+    return résultat;
+}
+
+NoeudExpression *Simplificatrice::simplifie_instruction_si(NoeudSi *inst_si)
+{
+    simplifie(inst_si->condition);
+    simplifie(inst_si->bloc_si_vrai);
+    simplifie(inst_si->bloc_si_faux);
+
+    if (!inst_si->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
+        return inst_si;
+    }
+
+    if (auto sélection = peut_être_compilée_avec_sélection(inst_si, assem)) {
+        inst_si->substitution = sélection;
+        return sélection;
+    }
+
+    /* Transforme :
+     *     x := si y { z } sinon { w }
+     * en :
+     *     decl := ---
+     *     si y { decl = z } sinon { decl = w }
+     *     x := decl
+     */
+
+    auto decl_temp = crée_déclaration_variable(
+        inst_si->lexème, inst_si->type, &non_initialisation);
+    decl_temp->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+    auto ref_temp = assem->crée_référence_déclaration(inst_si->lexème, decl_temp);
+
+    auto nouveau_si = assem->crée_si(inst_si->lexème, inst_si->genre);
+    nouveau_si->condition = inst_si->condition;
+    nouveau_si->bloc_si_vrai = inst_si->bloc_si_vrai;
+    nouveau_si->bloc_si_faux = inst_si->bloc_si_faux;
+
+    corrige_bloc_pour_assignation(nouveau_si->bloc_si_vrai, ref_temp);
+    corrige_bloc_pour_assignation(nouveau_si->bloc_si_faux, ref_temp);
+
+    ajoute_expression(decl_temp);
+    ajoute_expression(nouveau_si);
+
+    inst_si->substitution = ref_temp;
+    return ref_temp;
 }
 
 NoeudExpression *Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)

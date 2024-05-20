@@ -1240,6 +1240,17 @@ struct NoeudComme : NoeudExpression {
     TransformationType transformation [copie]
 }
 
+struct NoeudExpressionSélection : NoeudExpression {
+    @genre EXPRESSION_SÉLECTION
+    @comme sélection
+    @code  NoeudCodeExpressionSélection
+    @genre_valeur DROITE
+
+    NoeudExpression *condition [code enfant construction]
+    NoeudExpression *si_vrai [code enfant construction]
+    NoeudExpression *si_faux [code enfant construction]
+}
+
 struct NoeudInstructionDiffère : NoeudExpression {
     @genre INSTRUCTION_DIFFÈRE
     @comme diffère

@@ -725,7 +725,26 @@ void SyntaxeuseADN::parse_fonction()
             }
 
             consomme();
-            fonction->marque_intrinsèque();
+
+            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu le genre de l'intrinsèque après @intrinsèque");
+                break;
+            }
+
+            auto genre = lexème_courant()->chaine;
+            fonction->marque_intrinsèque(genre);
+
+            auto énum_discriminate = donne_énum_pour_nom("GenreIntrinsèque");
+            if (!énum_discriminate) {
+                rapporte_erreur(
+                    "Impossible de trouver l'énumération de discrimination des intinsèques.");
+                break;
+            }
+
+            auto membre = Membre();
+            membre.nom = lexème_courant()->chaine;
+            énum_discriminate->ajoute_membre(membre);
+            consomme();
         }
         else if (apparie("compilatrice")) {
             if (fonction->est_marquée_intrinsèque()) {
@@ -926,21 +945,20 @@ void SyntaxeuseADN::parse_struct()
 
             auto type_enum = lexème_courant()->chaine;
 
-            POUR (protéines) {
-                if (!it->comme_enum()) {
-                    continue;
-                }
-
-                if (it->nom().nom() == kuri::chaine_statique(type_enum)) {
-                    if (it->comme_enum()->type_discrimine() != protéine->nom().nom()) {
-                        rapporte_erreur("L'énumération devant discriminer le noeud n'est pas "
-                                        "déclarée comme le discriminant");
-                    }
-
-                    protéine->mute_enum_discriminante(it->comme_enum());
-                }
+            auto énum_discriminate = donne_énum_pour_nom(type_enum);
+            if (!énum_discriminate) {
+                rapporte_erreur("Impossible de trouver l'énumération de discrimination. "
+                                "Assurez-vous qu'elle fut déclarée avant la structure.");
+                break;
             }
 
+            if (énum_discriminate->type_discrimine() != protéine->nom().nom()) {
+                rapporte_erreur("L'énumération devant discriminer le noeud n'est pas "
+                                "déclarée comme le discriminant");
+                break;
+            }
+
+            protéine->mute_enum_discriminante(énum_discriminate);
             consomme();
         }
         else if (apparie("genre_valeur")) {
@@ -1092,6 +1110,20 @@ Type *SyntaxeuseADN::parse_type()
     // À FAIRE : ceci n'est pas vraiment l'endroit pour stocker cette information
     type->est_const = est_const;
     return type;
+}
+
+ProtéineEnum *SyntaxeuseADN::donne_énum_pour_nom(kuri::chaine_statique nom) const
+{
+    POUR (protéines) {
+        if (!it->comme_enum()) {
+            continue;
+        }
+
+        if (it->nom().nom() == nom) {
+            return it->comme_enum();
+        }
+    }
+    return nullptr;
 }
 
 void SyntaxeuseADN::gère_erreur_rapportée(const kuri::chaine &message_erreur)
