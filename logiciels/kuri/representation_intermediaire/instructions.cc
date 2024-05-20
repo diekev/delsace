@@ -108,6 +108,11 @@ int32_t AtomeFonction::numérote_instructions() const
     return résultat;
 }
 
+bool AtomeFonction::est_intrinsèque() const
+{
+    return decl && decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE);
+}
+
 InstructionAppel::InstructionAppel(NoeudExpression const *site_, Atome *appele_)
     : InstructionAppel(site_)
 {
@@ -724,6 +729,14 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                 {
                     auto retour = inst->comme_retour();
                     visite_atome(retour->valeur, rappel);
+                    break;
+                }
+                case GenreInstruction::SÉLECTION:
+                {
+                    auto const sélection = inst->comme_sélection();
+                    visite_atome(sélection->condition, rappel);
+                    visite_atome(sélection->si_vrai, rappel);
+                    visite_atome(sélection->si_faux, rappel);
                     break;
                 }
                 case GenreInstruction::ALLOCATION:
