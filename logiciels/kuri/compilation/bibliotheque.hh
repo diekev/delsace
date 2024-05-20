@@ -283,7 +283,7 @@ struct GestionnaireBibliothèques {
   private:
     void résoud_chemins_bibliothèque(EspaceDeTravail &espace,
                                      NoeudExpression *site,
-                                     Bibliothèque *bibliotheque);
+                                     Bibliothèque *bibliothèque);
 };
 
 /** \} */
