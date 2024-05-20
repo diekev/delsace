@@ -1806,6 +1806,10 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
     }
 
     os << ")";
+
+    if (pour_entête) {
+        os << ";\n\n";
+    }
 }
 
 void GénératriceCodeC::génère_code_entête(CoulisseC::FichierC const &fichier, Enchaineuse &os)
@@ -1830,7 +1834,6 @@ void GénératriceCodeC::génère_code_entête(CoulisseC::FichierC const &fichie
     POUR (fichier.fonctions) {
         it->numérote_instructions();
         déclare_fonction(os, it, true);
-        os << ";\n\n";
     }
 
     /* Définissons ensuite les fonctions devant être enlignées. */
