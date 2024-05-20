@@ -105,6 +105,7 @@ struct Simplificatrice {
     NoeudExpression *simplifie_boucle_pour_opérateur(NoeudPour *inst);
     NoeudExpression *simplifie_comparaison_chainée(NoeudExpressionBinaire *comp);
     NoeudExpression *simplifie_coroutine(NoeudDéclarationEntêteFonction *corout);
+    NoeudExpression *simplifie_instruction_si(NoeudSi *inst_si);
     NoeudExpression *simplifie_discr(NoeudDiscr *discr);
     template <int N>
     NoeudExpression *simplifie_discr_impl(NoeudDiscr *discr);
