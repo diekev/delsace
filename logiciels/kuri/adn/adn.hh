@@ -357,6 +357,7 @@ struct Membre {
 
 class ProtéineEnum;
 class ProtéineStruct;
+class ProtéineFonction;
 
 class Protéine {
   protected:
@@ -390,6 +391,11 @@ class Protéine {
     }
 
     virtual ProtéineStruct const *comme_struct() const
+    {
+        return nullptr;
+    }
+
+    virtual ProtéineFonction const *comme_fonction() const
     {
         return nullptr;
     }
@@ -661,6 +667,11 @@ class ProtéineFonction final : public Protéine {
     bool est_fonction() const override
     {
         return true;
+    }
+
+    ProtéineFonction const *comme_fonction() const override
+    {
+        return this;
     }
 
     const kuri::tableau<Parametre> &donne_paramètres() const
