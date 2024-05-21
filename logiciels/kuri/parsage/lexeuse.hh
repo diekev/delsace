@@ -117,7 +117,7 @@ struct Lexeuse {
 
     void consomme_espaces_blanches();
 
-    void rapporte_erreur(kuri::chaine const &quoi);
+    void rapporte_erreur(kuri::chaine_statique quoi);
     void rapporte_erreur_caractère_unicode();
 
     Lexème crée_lexème_opérateur(int nombre_de_caractère, GenreLexème genre_lexème);

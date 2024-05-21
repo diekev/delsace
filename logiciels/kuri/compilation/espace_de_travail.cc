@@ -267,9 +267,9 @@ void EspaceDeTravail::rapporte_avertissement(const NoeudExpression *site,
         this, site_source_pour(site), erreur::Genre::AVERTISSEMENT, message);
 }
 
-void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier,
+void EspaceDeTravail::rapporte_avertissement(kuri::chaine_statique chemin_fichier,
                                              int ligne,
-                                             kuri::chaine const &message) const
+                                             kuri::chaine_statique message) const
 {
     const Fichier *f = m_compilatrice.fichier(chemin_fichier);
     dbg() << genere_entete_erreur(
@@ -289,9 +289,9 @@ Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,
     return ::rapporte_erreur(this, site_source_pour(site), message, genre);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &chemin_fichier,
+Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine_statique chemin_fichier,
                                         int ligne,
-                                        kuri::chaine const &message,
+                                        kuri::chaine_statique message,
                                         erreur::Genre genre) const
 {
     possède_erreur = true;
@@ -300,7 +300,7 @@ Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &chemin_fichier,
 }
 
 Erreur EspaceDeTravail::rapporte_erreur(SiteSource site,
-                                        kuri::chaine const &message,
+                                        kuri::chaine_statique message,
                                         erreur::Genre genre) const
 {
     possède_erreur = true;

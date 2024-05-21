@@ -532,7 +532,7 @@ Erreur::~Erreur() noexcept(false)
     }
 }
 
-Erreur &Erreur::ajoute_message(const kuri::chaine &m)
+Erreur &Erreur::ajoute_message(kuri::chaine_statique m)
 {
     enchaineuse << m;
     return *this;
@@ -546,7 +546,7 @@ Erreur &Erreur::ajoute_site(const NoeudExpression *site)
     return *this;
 }
 
-Erreur &Erreur::ajoute_conseil(const kuri::chaine &c)
+Erreur &Erreur::ajoute_conseil(kuri::chaine_statique c)
 {
     enchaineuse << "\033[4mConseil\033[00m : " << c;
     return *this;
@@ -647,7 +647,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        SiteSource site,
-                       kuri::chaine const &message,
+                       kuri::chaine_statique message,
                        erreur::Genre genre)
 {
     auto erreur = Erreur(espace);

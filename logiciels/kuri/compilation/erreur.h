@@ -149,7 +149,7 @@ struct Erreur {
 
     ~Erreur() noexcept(false);
 
-    Erreur &ajoute_message(kuri::chaine const &m);
+    Erreur &ajoute_message(kuri::chaine_statique m);
 
     template <typename... Ts>
     Erreur &ajoute_message(Ts... ts)
@@ -160,7 +160,7 @@ struct Erreur {
 
     Erreur &ajoute_site(NoeudExpression const *site);
 
-    Erreur &ajoute_conseil(kuri::chaine const &c);
+    Erreur &ajoute_conseil(kuri::chaine_statique c);
 
     template <typename Fonction>
     Erreur &ajoute_donnees(Fonction rappel)
@@ -186,7 +186,7 @@ struct Erreur {
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        SiteSource site,
-                       const kuri::chaine &message,
+                       kuri::chaine_statique message,
                        erreur::Genre genre = erreur::Genre::NORMAL);
 
 kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,

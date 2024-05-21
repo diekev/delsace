@@ -392,7 +392,7 @@ bool Compilatrice::possède_erreur(const EspaceDeTravail *espace) const
 /* ************************************************************************** */
 
 EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation const &options,
-                                                            const kuri::chaine &nom)
+                                                            kuri::chaine_statique nom)
 {
     auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
     espaces_de_travail->ajoute(espace);

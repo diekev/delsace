@@ -268,7 +268,7 @@ struct Compilatrice {
     /* ********************************************************************** */
 
     EspaceDeTravail *demarre_un_espace_de_travail(OptionsDeCompilation const &options,
-                                                  kuri::chaine const &nom);
+                                                  kuri::chaine_statique nom);
 
     /* ********************************************************************** */
 
