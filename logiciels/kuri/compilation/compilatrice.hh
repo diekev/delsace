@@ -27,6 +27,7 @@
 
 class Broyeuse;
 struct ContexteLexage;
+struct ConvertisseuseNoeudCode;
 struct EspaceDeTravail;
 struct NoeudCodeEntêteFonction;
 struct OptionsDeCompilation;

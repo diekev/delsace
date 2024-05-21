@@ -3,6 +3,8 @@
 
 #include "transformation_type.hh"
 
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "parsage/outils_lexemes.hh"
 
 #include "espace_de_travail.hh"

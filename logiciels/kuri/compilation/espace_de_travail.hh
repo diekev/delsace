@@ -15,6 +15,7 @@ struct MetaProgramme;
 struct NoeudDéclarationEntêteFonction;
 struct Programme;
 struct SiteSource;
+struct Statistiques;
 struct UniteCompilation;
 
 /* IPA :

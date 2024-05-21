@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "arbre_syntaxique/noeud_code.hh"
-
 #include "structures/file.hh"
 #include "structures/tableau_page.hh"
 
@@ -13,6 +11,7 @@
 struct Compilatrice;
 struct EspaceDeTravail;
 struct Module;
+struct NoeudExpression;
 
 struct Messagère {
   private:

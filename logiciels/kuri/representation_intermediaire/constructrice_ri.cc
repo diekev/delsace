@@ -3,12 +3,8 @@
 
 #include "constructrice_ri.hh"
 
-#include <iostream>
-
-#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
-#include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/infos_types.hh"
@@ -18,8 +14,6 @@
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/portee.hh"
-
-#include "parsage/outils_lexemes.hh"
 
 #include "statistiques/statistiques.hh"
 

@@ -6,8 +6,7 @@
 #include <iostream>
 #include <stdarg.h>
 
-#include "biblinternes/flux/outils.h"
-#include "biblinternes/outils/sauvegardeuse_etat.hh"
+#include "arbre_syntaxique/noeud_code.hh"
 
 #include "statistiques/statistiques.hh"
 

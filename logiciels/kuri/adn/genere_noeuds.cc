@@ -667,7 +667,6 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
     {
         os << "#pragma once\n";
         os << "#include \"noeud_expression.hh\"\n";
-        os << "#include <iostream>\n";
         os << "#include \"structures/tableau_page.hh\"\n";
         os << "#include \"structures/chaine_statique.hh\"\n";
         os << "#include \"structures/tableau.hh\"\n";
@@ -879,6 +878,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
     void genere_fichier_source_noeud_code(FluxSortieCPP &os)
     {
         os << "#include \"noeud_code.hh\"\n";
+        inclus_système(os, "iostream");
         os << "#include \"compilation/compilatrice.hh\"\n";
         os << "#include \"compilation/espace_de_travail.hh\"\n";
         os << "#include \"parsage/identifiant.hh\"\n";
