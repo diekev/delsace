@@ -146,11 +146,8 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
     }
 
     if (!kuri::chemin_systeme::est_dossier(chemin)) {
-        erreur::lance_erreur("Le nom du module ne pointe pas vers un dossier",
-                             *espace,
-                             site,
-                             erreur::Genre::MODULE_INCONNU);
-
+        espace->rapporte_erreur(
+            site, "Le nom du module ne pointe pas vers un dossier", erreur::Genre::MODULE_INCONNU);
         return nullptr;
     }
 

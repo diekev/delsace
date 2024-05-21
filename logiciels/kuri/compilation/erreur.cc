@@ -54,14 +54,6 @@ kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const Noe
                                  etendue_expr.colonne_fin - etendue_expr.colonne_début);
 }
 
-void lance_erreur(const kuri::chaine &quoi,
-                  EspaceDeTravail const &espace,
-                  const NoeudExpression *site,
-                  Genre type)
-{
-    espace.rapporte_erreur(site, quoi, type);
-}
-
 void redefinition_fonction(EspaceDeTravail const &espace,
                            const NoeudExpression *site_redefinition,
                            const NoeudExpression *site_original)

@@ -69,11 +69,6 @@ void imprime_site(Enchaineuse &enchaineuse,
 kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace,
                                         const NoeudExpression *expr);
 
-void lance_erreur(const kuri::chaine &quoi,
-                  EspaceDeTravail const &espace,
-                  const NoeudExpression *site,
-                  Genre type = Genre::NORMAL);
-
 void redefinition_fonction(EspaceDeTravail const &espace,
                            const NoeudExpression *site_redefinition,
                            const NoeudExpression *site_original);
