@@ -307,7 +307,7 @@ Erreur EspaceDeTravail::rapporte_erreur(SiteSource site,
     return ::rapporte_erreur(this, site, message, genre);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message,
+Erreur EspaceDeTravail::rapporte_erreur_sans_site(kuri::chaine_statique message,
                                                   erreur::Genre genre) const
 {
     possède_erreur = true;

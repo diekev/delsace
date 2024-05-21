@@ -119,7 +119,7 @@ struct EspaceDeTravail {
     Erreur rapporte_erreur(SiteSource site,
                            kuri::chaine_statique message,
                            erreur::Genre genre = erreur::Genre::NORMAL) const;
-    Erreur rapporte_erreur_sans_site(const kuri::chaine &message,
+    Erreur rapporte_erreur_sans_site(kuri::chaine_statique message,
                                      erreur::Genre genre = erreur::Genre::NORMAL) const;
 
     Compilatrice &compilatrice()

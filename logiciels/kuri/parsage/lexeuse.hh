@@ -98,7 +98,7 @@ struct Lexeuse {
 
     dls::vue_chaine_compacte mot_courant() const;
 
-    void rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int max);
+    void rapporte_erreur(kuri::chaine_statique quoi, int centre, int min, int max);
 
     TOUJOURS_ENLIGNE void ajoute_caractère(int n = 1)
     {

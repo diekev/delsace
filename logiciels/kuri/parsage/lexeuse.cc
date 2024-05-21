@@ -874,7 +874,7 @@ void Lexeuse::rapporte_erreur_caractère_unicode()
     rapporte_erreur("Le codec unicode ne peut décoder le caractère");
 }
 
-void Lexeuse::rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int max)
+void Lexeuse::rapporte_erreur(kuri::chaine_statique quoi, int centre, int min, int max)
 {
     if (m_possède_erreur) {
         return;
