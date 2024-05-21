@@ -38,8 +38,8 @@ struct Messagère {
     {
     }
 
-    void ajoute_message_fichier_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
-    void ajoute_message_fichier_fermé(EspaceDeTravail *espace, kuri::chaine const &chemin);
+    void ajoute_message_fichier_ouvert(EspaceDeTravail *espace, kuri::chaine_statique chemin);
+    void ajoute_message_fichier_fermé(EspaceDeTravail *espace, kuri::chaine_statique chemin);
     void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
     void ajoute_message_module_fermé(EspaceDeTravail *espace, Module *module);
     Message *ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud);
