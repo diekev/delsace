@@ -489,7 +489,7 @@ struct CompilatriceRI {
                                   TypeTableauDynamique const *type_tableau_fixe,
                                   Atome *place);
 
-    AtomeConstante *crée_chaine(kuri::chaine_statique chaine);
+    AtomeConstante *crée_constante_pour_chaine(kuri::chaine_statique chaine);
     AtomeGlobale *crée_globale_pour_chaine(kuri::chaine_statique chaine);
 
     void empile_valeur(Atome *valeur);
