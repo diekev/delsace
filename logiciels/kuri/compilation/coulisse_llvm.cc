@@ -136,6 +136,67 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_globale(DonnéesModule cons
 #endif
 }
 
+/* Retourne vrai si la valeur globale doit être considérer comme locale pour l'exécutable ou la
+ * bibliothèque.
+ * Logique partiellement reprise de Clang :
+ * https://clang.llvm.org/doxygen/CodeGenModule_8cpp_source.html */
+static bool doit_être_considérée_dso_local(llvm::GlobalValue *valeur)
+{
+    if (valeur->hasLocalLinkage()) {
+        return true;
+    }
+
+    if (!valeur->hasDefaultVisibility() && !valeur->hasExternalWeakLinkage()) {
+        return true;
+    }
+
+    /* DLLImport marque explicitement la globale comme étant externe. */
+    if (valeur->hasDLLImportStorageClass()) {
+        return false;
+    }
+
+    /* Une définition ne peut être preemptée d'un exécutable. */
+    if (!valeur->isDeclarationForLinker()) {
+        return true;
+    }
+
+    return false;
+}
+
+static void définis_dllimport_dllexport(llvm::GlobalValue *valeur, VisibilitéSymbole visibilité)
+{
+    if (visibilité == VisibilitéSymbole::EXPORTÉ) {
+        valeur->setDLLStorageClass(llvm::GlobalValue::DLLExportStorageClass);
+    }
+}
+
+static void définis_visibilité(llvm::GlobalValue *valeur, VisibilitéSymbole visibilité)
+{
+    if (valeur->hasLocalLinkage()) {
+        valeur->setVisibility(llvm::GlobalValue::DefaultVisibility);
+        return;
+    }
+
+    if (visibilité == VisibilitéSymbole::INTERNE) {
+        valeur->setVisibility(llvm::GlobalValue::HiddenVisibility);
+    }
+}
+
+static void définis_les_propriétés_globales(llvm::GlobalValue *valeur,
+                                            AtomeFonction const *fonction)
+{
+    définis_dllimport_dllexport(valeur, donne_visibilité_fonction(fonction));
+    définis_visibilité(valeur, donne_visibilité_fonction(fonction));
+    valeur->setDSOLocal(doit_être_considérée_dso_local(valeur));
+}
+
+static void définis_les_propriétés_globales(llvm::GlobalValue *valeur, AtomeGlobale const *globale)
+{
+    définis_dllimport_dllexport(valeur, globale->donne_visibilité_symbole());
+    définis_visibilité(valeur, globale->donne_visibilité_symbole());
+    valeur->setDSOLocal(doit_être_considérée_dso_local(valeur));
+}
+
 /** \} */
 
 /* ************************************************************************** */
@@ -1595,6 +1656,8 @@ llvm::Function *GénératriceCodeLLVM::donne_ou_crée_déclaration_fonction(
 
     auto résultat = llvm::Function::Create(type_llvm, liaison, nom, m_module);
 
+    définis_les_propriétés_globales(résultat, fonction);
+
     auto decl = fonction->decl;
     if (decl) {
         if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
@@ -1633,6 +1696,8 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
     auto liaison = donne_liaison_globale(données_module, globale);
     auto résultat = new llvm::GlobalVariable(
         *m_module, type_llvm, globale->est_constante, liaison, nullptr, nom_globale);
+
+    définis_les_propriétés_globales(résultat, globale);
 
     résultat->setAlignment(llvm::Align(type->alignement));
     table_globales.insère(globale, résultat);
