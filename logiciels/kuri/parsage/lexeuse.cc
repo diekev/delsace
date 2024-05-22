@@ -864,7 +864,7 @@ dls::vue_chaine_compacte Lexeuse::mot_courant() const
     return dls::vue_chaine_compacte(m_début_mot, m_taille_mot_courant);
 }
 
-void Lexeuse::rapporte_erreur(kuri::chaine const &quoi)
+void Lexeuse::rapporte_erreur(kuri::chaine_statique quoi)
 {
     rapporte_erreur(quoi, m_position_ligne, m_position_ligne, m_position_ligne + 1);
 }
@@ -874,7 +874,7 @@ void Lexeuse::rapporte_erreur_caractère_unicode()
     rapporte_erreur("Le codec unicode ne peut décoder le caractère");
 }
 
-void Lexeuse::rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int max)
+void Lexeuse::rapporte_erreur(kuri::chaine_statique quoi, int centre, int min, int max)
 {
     if (m_possède_erreur) {
         return;
