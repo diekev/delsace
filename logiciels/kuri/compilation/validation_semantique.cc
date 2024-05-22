@@ -5292,14 +5292,14 @@ CodeRetourValidation Sémanticienne::résoud_type_final(NoeudExpression *express
 
 void Sémanticienne::rapporte_erreur(const char *message, const NoeudExpression *noeud)
 {
-    erreur::lance_erreur(message, *m_espace, noeud);
+    m_espace->rapporte_erreur(noeud, message);
 }
 
 void Sémanticienne::rapporte_erreur(const char *message,
                                     const NoeudExpression *noeud,
                                     erreur::Genre genre)
 {
-    erreur::lance_erreur(message, *m_espace, noeud, genre);
+    m_espace->rapporte_erreur(noeud, message, genre);
 }
 
 void Sémanticienne::rapporte_erreur_redéfinition_symbole(NoeudExpression *decl,

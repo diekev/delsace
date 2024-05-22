@@ -27,6 +27,7 @@
 class Broyeuse;
 class GestionnaireCode;
 struct ContexteLexage;
+struct ConvertisseuseNoeudCode;
 struct EspaceDeTravail;
 struct NoeudCodeEntêteFonction;
 struct OptionsDeCompilation;
@@ -146,8 +147,7 @@ struct Compilatrice {
     using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
     dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
-    using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
-    dls::outils::Synchrone<TableChaine> table_chaines{"Table des chaines"};
+    dls::outils::Synchrone<RegistreChainesRI> registre_chaines_ri{};
 
     Module *module_kuri = nullptr;
     Module *module_racine_compilation = nullptr;
@@ -267,7 +267,7 @@ struct Compilatrice {
     /* ********************************************************************** */
 
     EspaceDeTravail *demarre_un_espace_de_travail(OptionsDeCompilation const &options,
-                                                  kuri::chaine const &nom);
+                                                  kuri::chaine_statique nom);
 
     /* ********************************************************************** */
 

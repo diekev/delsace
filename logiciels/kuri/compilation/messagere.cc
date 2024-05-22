@@ -8,7 +8,8 @@
 #include "espace_de_travail.hh"
 #include "unite_compilation.hh"
 
-void Messagère::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kuri::chaine &chemin)
+void Messagère::ajoute_message_fichier_ouvert(EspaceDeTravail *espace,
+                                              kuri::chaine_statique chemin)
 {
     if (!interception_commencée) {
         return;
@@ -22,7 +23,7 @@ void Messagère::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const ku
     envoie_message(message);
 }
 
-void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, const kuri::chaine &chemin)
+void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, kuri::chaine_statique chemin)
 {
     if (!interception_commencée) {
         return;

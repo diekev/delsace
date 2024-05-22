@@ -6,8 +6,7 @@
 #include <iostream>
 #include <stdarg.h>
 
-#include "biblinternes/flux/outils.h"
-#include "biblinternes/outils/sauvegardeuse_etat.hh"
+#include "arbre_syntaxique/noeud_code.hh"
 
 #include "statistiques/statistiques.hh"
 
@@ -150,11 +149,8 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
     }
 
     if (!kuri::chemin_systeme::est_dossier(chemin)) {
-        erreur::lance_erreur("Le nom du module ne pointe pas vers un dossier",
-                             *espace,
-                             site,
-                             erreur::Genre::MODULE_INCONNU);
-
+        espace->rapporte_erreur(
+            site, "Le nom du module ne pointe pas vers un dossier", erreur::Genre::MODULE_INCONNU);
         return nullptr;
     }
 
@@ -318,7 +314,7 @@ int64_t Compilatrice::memoire_utilisee() const
 
     résultat += broyeuse->mémoire_utilisée();
     résultat += constructeurs_globaux->taille_mémoire();
-    résultat += table_chaines->taille_mémoire();
+    résultat += registre_chaines_ri->mémoire_utilisée();
 
     résultat += m_sémanticiennes.taille_mémoire() +
                 taille_de(Sémanticienne) * m_sémanticiennes.taille();
@@ -396,7 +392,7 @@ bool Compilatrice::possède_erreur(const EspaceDeTravail *espace) const
 /* ************************************************************************** */
 
 EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation const &options,
-                                                            const kuri::chaine &nom)
+                                                            kuri::chaine_statique nom)
 {
     auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
     espaces_de_travail->ajoute(espace);
