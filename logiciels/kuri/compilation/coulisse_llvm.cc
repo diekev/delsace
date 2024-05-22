@@ -1535,20 +1535,12 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
 }
 
 template <typename T>
-static std::vector<T> donne_tableau_typé(const AtomeConstanteDonnéesConstantes *constante,
-                                         int taille_données)
+static llvm::ArrayRef<T> donne_tableau_typé(const AtomeConstanteDonnéesConstantes *constante,
+                                            int taille_données)
 {
     auto const données = constante->donne_données();
     auto pointeur_données = reinterpret_cast<T const *>(données.begin());
-
-    std::vector<T> résultat;
-    résultat.resize(size_t(taille_données));
-
-    for (int i = 0; i < taille_données; i++) {
-        résultat[size_t(i)] = *pointeur_données++;
-    }
-
-    return résultat;
+    return {pointeur_données, size_t(taille_données)};
 }
 
 llvm::Value *GénératriceCodeLLVM::génère_valeur_données_constantes(
