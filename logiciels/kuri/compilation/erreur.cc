@@ -54,14 +54,6 @@ kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const Noe
                                  etendue_expr.colonne_fin - etendue_expr.colonne_début);
 }
 
-void lance_erreur(const kuri::chaine &quoi,
-                  EspaceDeTravail const &espace,
-                  const NoeudExpression *site,
-                  Genre type)
-{
-    espace.rapporte_erreur(site, quoi, type);
-}
-
 void redefinition_fonction(EspaceDeTravail const &espace,
                            const NoeudExpression *site_redefinition,
                            const NoeudExpression *site_original)
@@ -532,7 +524,7 @@ Erreur::~Erreur() noexcept(false)
     }
 }
 
-Erreur &Erreur::ajoute_message(const kuri::chaine &m)
+Erreur &Erreur::ajoute_message(kuri::chaine_statique m)
 {
     enchaineuse << m;
     return *this;
@@ -546,7 +538,7 @@ Erreur &Erreur::ajoute_site(const NoeudExpression *site)
     return *this;
 }
 
-Erreur &Erreur::ajoute_conseil(const kuri::chaine &c)
+Erreur &Erreur::ajoute_conseil(kuri::chaine_statique c)
 {
     enchaineuse << "\033[4mConseil\033[00m : " << c;
     return *this;
@@ -647,7 +639,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        SiteSource site,
-                       kuri::chaine const &message,
+                       kuri::chaine_statique message,
                        erreur::Genre genre)
 {
     auto erreur = Erreur(espace);
