@@ -3,12 +3,8 @@
 
 #include "constructrice_ri.hh"
 
-#include <iostream>
-
-#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
-#include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/infos_types.hh"
@@ -18,8 +14,6 @@
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/portee.hh"
-
-#include "parsage/outils_lexemes.hh"
 
 #include "statistiques/statistiques.hh"
 
@@ -2201,7 +2195,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto lit_chaine = noeud->comme_littérale_chaine();
             auto chaine = compilatrice().gérante_chaine->chaine_pour_adresse(lit_chaine->valeur);
-            auto constante = crée_chaine(chaine);
 
             assert_rappel(
                 (noeud->lexème->chaine.taille() != 0 && chaine.taille() != 0) ||
@@ -2220,11 +2213,14 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 });
 
             if (m_fonction_courante == nullptr) {
+                auto constante = crée_constante_pour_chaine(chaine);
                 empile_valeur(constante);
                 return;
             }
 
-            crée_temporaire_ou_mets_dans_place(noeud, constante, place);
+            auto globale = crée_globale_pour_chaine(chaine);
+            auto valeur = m_constructrice.crée_charge_mem(noeud, globale);
+            crée_temporaire_ou_mets_dans_place(noeud, valeur, place);
             break;
         }
         case GenreNoeud::EXPRESSION_LITTÉRALE_BOOLÉEN:
@@ -4042,8 +4038,8 @@ AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
         }
 
         kuri::tableau<AtomeConstante *> valeurs(2);
-        valeurs[0] = crée_chaine(it.nom);
-        valeurs[1] = crée_chaine(it.valeur);
+        valeurs[0] = crée_constante_pour_chaine(it.nom);
+        valeurs[1] = crée_constante_pour_chaine(it.valeur);
 
         auto ident = m_compilatrice.donne_identifiant_pour_globale("annotations");
 
@@ -4196,7 +4192,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                     continue;
                 }
 
-                auto chaine_nom = crée_chaine(it.nom->nom);
+                auto chaine_nom = crée_constante_pour_chaine(it.nom->nom);
                 noms_enum.ajoute(chaine_nom);
             }
 
@@ -4211,7 +4207,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             /* { membres basiques, nom, valeurs, membres, est_drapeau } */
             auto valeurs = kuri::tableau<AtomeConstante *>(6);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::ÉNUM, type);
-            valeurs[1] = crée_chaine(donne_nom_hiérarchique(const_cast<TypeEnum *>(type_enum)));
+            valeurs[1] = crée_constante_pour_chaine(donne_nom_hiérarchique(const_cast<TypeEnum *>(type_enum)));
             valeurs[2] = tableau_valeurs;
             valeurs[3] = tableau_noms;
             valeurs[4] = m_constructrice.crée_constante_booléenne(
@@ -4272,7 +4268,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             auto valeurs = kuri::tableau<AtomeConstante *>(7);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::UNION, type);
-            valeurs[1] = crée_chaine(donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
+            valeurs[1] = crée_constante_pour_chaine(donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
             valeurs[2] = tableau_membre;
             valeurs[3] = info_type_plus_grand;
             valeurs[4] = m_constructrice.crée_z64(type_union->décalage_index);
@@ -4332,7 +4328,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             /* { membres basiques, nom, membres } */
             auto valeurs = kuri::tableau<AtomeConstante *>(5);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::STRUCTURE, type);
-            valeurs[1] = crée_chaine(
+            valeurs[1] = crée_constante_pour_chaine(
                 donne_nom_hiérarchique(const_cast<TypeStructure *>(type_struct)));
             valeurs[2] = tableau_membre;
             valeurs[3] = tableau_structs_employées;
@@ -4435,7 +4431,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             /* { membres basiques, nom, type_opacifié } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::OPAQUE, type_opaque);
-            valeurs[1] = crée_chaine(
+            valeurs[1] = crée_constante_pour_chaine(
                 donne_nom_hiérarchique(const_cast<TypeOpaque *>(type_opaque)));
             valeurs[2] = crée_info_type_avec_transtype(type_opacifie, site);
 
@@ -4567,7 +4563,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeC
 
     /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
     auto valeurs = kuri::tableau<AtomeConstante *>(5);
-    valeurs[0] = crée_chaine(membre.nom->nom);
+    valeurs[0] = crée_constante_pour_chaine(membre.nom->nom);
     valeurs[1] = crée_info_type_avec_transtype(membre.type, site);
     valeurs[2] = m_constructrice.crée_z64(static_cast<uint64_t>(membre.decalage));
     valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(membre.drapeaux));
@@ -4799,13 +4795,12 @@ Atome *CompilatriceRI::convertis_vers_tranche(NoeudExpression const *noeud,
     return alloc_tranche;
 }
 
-AtomeConstante *CompilatriceRI::crée_chaine(kuri::chaine_statique chaine)
+AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statique chaine)
 {
-    auto table_chaines = m_compilatrice.table_chaines.verrou_ecriture();
-    auto trouve = false;
-    auto valeur = table_chaines->trouve(chaine, trouve);
+    auto table_chaines = m_compilatrice.registre_chaines_ri.verrou_ecriture();
+    auto valeur = table_chaines->donne_constante_pour_chaine(chaine);
 
-    if (trouve) {
+    if (valeur) {
         return valeur;
     }
 
@@ -4836,9 +4831,26 @@ AtomeConstante *CompilatriceRI::crée_chaine(kuri::chaine_statique chaine)
                                                                     std::move(membres));
     }
 
-    table_chaines->insère(chaine, constante_chaine);
+    table_chaines->insère_constante_pour_chaine(chaine, constante_chaine);
 
     return constante_chaine;
+}
+
+AtomeGlobale *CompilatriceRI::crée_globale_pour_chaine(kuri::chaine_statique chaine)
+{
+    auto constante = crée_constante_pour_chaine(chaine);
+
+    auto table_chaines = m_compilatrice.registre_chaines_ri.verrou_ecriture();
+    auto valeur = table_chaines->donne_globale_pour_chaine(constante);
+
+    if (valeur) {
+        return valeur;
+    }
+
+    auto ident = m_compilatrice.donne_identifiant_pour_globale("constante_chaine");
+    auto résultat = m_constructrice.crée_globale(*ident, TypeBase::CHAINE, constante, false, true);
+    table_chaines->insère_globale_pour_chaine(constante, résultat);
+    return résultat;
 }
 
 void CompilatriceRI::génère_ri_pour_initialisation_globales(
@@ -5405,8 +5417,8 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     auto type_info_fonction_trace_appel = m_compilatrice.typeuse.type_info_fonction_trace_appel;
     auto decl = pour_fonction->decl;
     auto fichier = m_compilatrice.fichier(decl->lexème->fichier);
-    auto nom_fonction = decl->ident ? crée_chaine(decl->ident->nom) : crée_chaine("???");
-    auto nom_fichier = crée_chaine(fichier->nom());
+    auto nom_fonction = decl->ident ? crée_constante_pour_chaine(decl->ident->nom) : crée_constante_pour_chaine("???");
+    auto nom_fichier = crée_constante_pour_chaine(fichier->nom());
 
     kuri::tableau<AtomeConstante *> valeurs(3);
     valeurs[0] = nom_fonction;
@@ -5444,12 +5456,12 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
 
         valeurs[0] = m_constructrice.crée_z32(uint64_t(lexeme->ligne));
         valeurs[1] = m_constructrice.crée_z32(uint64_t(lexeme->colonne));
-        valeurs[2] = crée_chaine(kuri::chaine_statique(texte_ligne.begin(), texte_ligne.taille()));
+        valeurs[2] = crée_constante_pour_chaine(kuri::chaine_statique(texte_ligne.begin(), texte_ligne.taille()));
     }
     else {
         valeurs[0] = m_constructrice.crée_z32(0);
         valeurs[1] = m_constructrice.crée_z32(0);
-        valeurs[2] = crée_chaine("???");
+        valeurs[2] = crée_constante_pour_chaine("???");
     }
 
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_appel_trace_appel,
@@ -5622,6 +5634,41 @@ int64_t RegistreAnnotations::mémoire_utilisée() const
         résultat += tableau.taille_mémoire();
     });
 
+    return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name RegistreChainesRI
+ * \{ */
+
+AtomeConstante *RegistreChainesRI::donne_constante_pour_chaine(kuri::chaine_statique chaine)
+{
+    return table_constantes.valeur_ou(chaine, nullptr);
+}
+
+void RegistreChainesRI::insère_constante_pour_chaine(kuri::chaine_statique chaine,
+                                                     AtomeConstante *constante)
+{
+    table_constantes.insère(chaine, constante);
+}
+
+AtomeGlobale *RegistreChainesRI::donne_globale_pour_chaine(AtomeConstante *chaine)
+{
+    return table_globales.valeur_ou(chaine, nullptr);
+}
+
+void RegistreChainesRI::insère_globale_pour_chaine(AtomeConstante *chaine, AtomeGlobale *globale)
+{
+    table_globales.insère(chaine, globale);
+}
+
+int64_t RegistreChainesRI::mémoire_utilisée() const
+{
+    int64_t résultat(0);
+    résultat += table_constantes.taille_mémoire();
+    résultat += table_globales.taille_mémoire();
     return résultat;
 }
 
