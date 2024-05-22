@@ -179,7 +179,24 @@ donne_valeur_énum_pour_nom :: fonc (info: *InfoTypeÉnum, nom: chaine) -> z32, 
 
 donne_nom_énum_pour_valeur :: fonc (valeur: eini) -> chaine
 {
-    retourne donne_nom_énum_pour_valeur(valeur.info comme *InfoTypeÉnum, mémoire(valeur.pointeur comme *z32))
+    infos := valeur.info comme *InfoTypeÉnum
+    type_sous_jacent := infos.type_sous_jacent
+
+    valeur_énum: z32
+    si type_sous_jacent.taille_en_octet == 1 {
+        valeur_énum = (mémoire(valeur.pointeur comme *z8)) comme z32
+    }
+    sinon si type_sous_jacent.taille_en_octet == 2 {
+        valeur_énum = (mémoire(valeur.pointeur comme *z16)) comme z32
+    }
+    sinon si type_sous_jacent.taille_en_octet == 4 {
+        valeur_énum = mémoire(valeur.pointeur comme *z32)
+    }
+    sinon si type_sous_jacent.taille_en_octet == 8 {
+        valeur_énum = (mémoire(valeur.pointeur comme *z64)) comme z32
+    }
+
+    retourne donne_nom_énum_pour_valeur(infos, valeur_énum)
 }
 
 donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: z32) -> chaine

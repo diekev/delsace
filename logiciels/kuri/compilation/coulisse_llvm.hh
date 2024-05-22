@@ -23,18 +23,43 @@ class Module;
 class TargetMachine;
 }  // namespace llvm
 
+/* ------------------------------------------------------------------------- */
+/** \name DonnéesModule
+ * \{ */
+
 struct DonnéesModule {
     llvm::LLVMContext *contexte_llvm = nullptr;
     llvm::Module *module = nullptr;
 
     kuri::chemin_systeme chemin_fichier_objet{};
 
-    const DonnéesConstantes *données_constantes = nullptr;
-    kuri::tableau_statique<AtomeGlobale *> globales{};
-    kuri::tableau_statique<AtomeFonction *> fonctions{};
+  private:
+    const DonnéesConstantes *m_données_constantes = nullptr;
+    kuri::tableau_statique<AtomeGlobale *> m_globales{};
+    kuri::tableau_statique<AtomeFonction *> m_fonctions{};
 
+    kuri::ensemble<AtomeFonction const *> m_ensemble_fonctions{};
+    kuri::ensemble<AtomeGlobale const *> m_ensemble_globales{};
+
+  public:
     kuri::chaine erreur_fichier_objet{};
+
+    void définis_données_constantes(const DonnéesConstantes *données_constantes);
+    const DonnéesConstantes *donne_données_constantes() const;
+
+    void définis_fonctions(kuri::tableau_statique<AtomeFonction *> fonctions);
+    kuri::tableau_statique<AtomeFonction *> donne_fonctions() const;
+    bool fait_partie_du_module(AtomeFonction const *fonction) const;
+
+    void définis_globales(kuri::tableau_statique<AtomeGlobale *> globales);
+    kuri::tableau_statique<AtomeGlobale *> donne_globales() const;
+    bool fait_partie_du_module(AtomeGlobale const *globale) const;
+
+  private:
+    void ajourne_globales();
 };
+
+/** \} */
 
 struct CoulisseLLVM final : public Coulisse {
   private:

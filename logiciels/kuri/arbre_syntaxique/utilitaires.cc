@@ -941,9 +941,8 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
-            assert_rappel(false, [&]() {
-                std::cerr << "Genre de noeud non-géré : " << racine->genre << '\n';
-            });
+            assert_rappel(false,
+                          [&]() { dbg() << "Genre de noeud non-géré : " << racine->genre; });
             break;
         }
     }

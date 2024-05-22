@@ -435,7 +435,7 @@ static kuri::chaine commande_pour_bibliothèque_dynamique(kuri::chaine_statique 
     return enchaineuse.chaine();
 }
 
-static bool exécute_commande(kuri::chaine const &commande)
+static bool exécute_commande(kuri::chaine_statique commande)
 {
     info() << "Compilation des tables de conversion R16...";
 

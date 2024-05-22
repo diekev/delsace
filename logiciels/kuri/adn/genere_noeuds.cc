@@ -179,18 +179,18 @@ struct GeneratriceCodeCPP {
     void genere_fichier_entete_arbre_syntaxique(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
-        os << "#include \"biblinternes/outils/assert.hh\"\n";
-        os << "#include \"biblinternes/moultfilage/synchrone.hh\"\n";
-        os << "#include \"structures/chaine.hh\"\n";
-        os << "#include \"structures/chaine_statique.hh\"\n";
-        os << "#include \"structures/tableau.hh\"\n";
-        os << "#include \"structures/tableau_compresse.hh\"\n";
-        os << "#include \"structures/table_hachage.hh\"\n";
-        os << "#include \"compilation/transformation_type.hh\"\n";
-        os << "#include \"parsage/lexemes.hh\"\n";
-        os << "#include \"expression.hh\"\n";
-        os << "#include \"prodeclaration.hh\"\n";
-        os << "#include \"utilitaires.hh\"\n";
+        inclus(os, "biblinternes/outils/assert.hh");
+        inclus(os, "biblinternes/moultfilage/synchrone.hh");
+        inclus(os, "structures/chaine.hh");
+        inclus(os, "structures/chaine_statique.hh");
+        inclus(os, "structures/tableau.hh");
+        inclus(os, "structures/tableau_compresse.hh");
+        inclus(os, "structures/table_hachage.hh");
+        inclus(os, "compilation/transformation_type.hh");
+        inclus(os, "parsage/lexemes.hh");
+        inclus(os, "expression.hh");
+        inclus(os, "prodeclaration.hh");
+        inclus(os, "utilitaires.hh");
         os << "class Broyeuse;\n";
 
         // Prodéclarations des structures
@@ -276,14 +276,14 @@ struct GeneratriceCodeCPP {
 
     void genere_fichier_source_arbre_syntaxique(FluxSortieCPP &os)
     {
-        os << "#include \"noeud_expression.hh\"\n";
-        os << "#include \"utilitaires/log.hh\"\n";
-        os << "#include \"structures/chaine_statique.hh\"\n";
-        os << "#include \"structures/enchaineuse.hh\"\n";
-        os << "#include \"parsage/identifiant.hh\"\n";
-        os << "#include \"parsage/outils_lexemes.hh\"\n";
-        os << "#include \"assembleuse.hh\"\n";
-        os << "#include \"copieuse.hh\"\n";
+        inclus(os, "noeud_expression.hh");
+        inclus(os, "utilitaires/log.hh");
+        inclus(os, "structures/chaine_statique.hh");
+        inclus(os, "structures/enchaineuse.hh");
+        inclus(os, "parsage/identifiant.hh");
+        inclus(os, "parsage/outils_lexemes.hh");
+        inclus(os, "assembleuse.hh");
+        inclus(os, "copieuse.hh");
         os << "#include <iostream>\n";
 
         POUR (protéines) {
@@ -666,12 +666,11 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
     void genere_fichier_entete_noeud_code(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
-        os << "#include \"noeud_expression.hh\"\n";
-        os << "#include <iostream>\n";
-        os << "#include \"structures/tableau_page.hh\"\n";
-        os << "#include \"structures/chaine_statique.hh\"\n";
-        os << "#include \"structures/tableau.hh\"\n";
-        os << "#include \"infos_types.hh\"\n";
+        inclus(os, "noeud_expression.hh");
+        inclus(os, "structures/tableau_page.hh");
+        inclus(os, "structures/chaine_statique.hh");
+        inclus(os, "structures/tableau.hh");
+        inclus(os, "infos_types.hh");
         os << "struct EspaceDeTravail;\n";
         os << "struct InfoType;\n";
         os << "struct Statistiques;\n";
@@ -878,11 +877,12 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
     void genere_fichier_source_noeud_code(FluxSortieCPP &os)
     {
-        os << "#include \"noeud_code.hh\"\n";
-        os << "#include \"compilation/compilatrice.hh\"\n";
-        os << "#include \"compilation/espace_de_travail.hh\"\n";
-        os << "#include \"parsage/identifiant.hh\"\n";
-        os << "#include \"parsage/gerante_chaine.hh\"\n";
+        inclus(os, "noeud_code.hh");
+        inclus_système(os, "iostream");
+        inclus(os, "compilation/compilatrice.hh");
+        inclus(os, "compilation/espace_de_travail.hh");
+        inclus(os, "parsage/identifiant.hh");
+        inclus(os, "parsage/gerante_chaine.hh");
         os << "NoeudCode *ConvertisseuseNoeudCode::convertis_noeud_syntaxique(EspaceDeTravail "
               "*espace, NoeudExpression *racine)\n";
         os << "{\n";
@@ -1238,7 +1238,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
     void genere_fichier_source_assembleuse(FluxSortieCPP &os)
     {
-        os << "#include \"assembleuse.hh\"\n";
+        inclus(os, "assembleuse.hh");
 
         const char *empile_bloc = R"(
 NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclarationEntêteFonction *appartiens_à_fonction)
@@ -1306,8 +1306,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
     void genere_fichier_entete_assembleuse(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
-        os << "#include \"allocatrice.hh\"\n";
-        os << "#include \"structures/pile.hh\"\n";
+        inclus(os, "allocatrice.hh");
+        inclus(os, "structures/pile.hh");
         os << "struct NoeudDéclarationTypeComposé;\n";
         os << "using TypeCompose = NoeudDéclarationTypeComposé;\n";
         os << "struct AssembleuseArbre {\n";
@@ -1430,8 +1430,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
 
     void genere_fichier_source_allocatrice(FluxSortieCPP &os)
     {
-        os << "#include \"allocatrice.hh\"\n";
-        os << "#include \"statistiques/statistiques.hh\"\n";
+        inclus(os, "allocatrice.hh");
+        inclus(os, "statistiques/statistiques.hh");
         os << "int64_t AllocatriceNoeud::nombre_noeuds() const\n";
         os << "{\n";
         os << "\tauto nombre = int64_t(0);\n";
@@ -1552,9 +1552,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
     void genere_fichier_entete_allocatrice(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
-        os << "#include \"structures/tableau_page.hh\"\n";
-        os << "#include \"compilation/monomorphisations.hh\"\n";
-        os << "#include \"noeud_expression.hh\"\n";
+        inclus(os, "structures/tableau_page.hh");
+        inclus(os, "compilation/monomorphisations.hh");
+        inclus(os, "noeud_expression.hh");
         os << "struct Statistiques;\n";
         os << "struct AllocatriceNoeud {\n";
         os << "private:\n";
