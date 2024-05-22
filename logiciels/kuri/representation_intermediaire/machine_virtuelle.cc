@@ -8,6 +8,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 
+#include "arbre_syntaxique/noeud_code.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/compilatrice.hh"

@@ -15,6 +15,7 @@ struct MetaProgramme;
 struct NoeudDéclarationEntêteFonction;
 struct Programme;
 struct SiteSource;
+struct Statistiques;
 struct UniteCompilation;
 
 /* IPA :
@@ -104,21 +105,21 @@ struct EspaceDeTravail {
     SiteSource site_source_pour(NoeudExpression const *noeud) const;
 
     void rapporte_avertissement(const NoeudExpression *site, kuri::chaine_statique message) const;
-    void rapporte_avertissement(kuri::chaine const &fichier,
+    void rapporte_avertissement(kuri::chaine_statique fichier,
                                 int ligne,
-                                kuri::chaine const &message) const;
+                                kuri::chaine_statique message) const;
 
     Erreur rapporte_erreur(NoeudExpression const *site,
                            kuri::chaine_statique message,
                            erreur::Genre genre = erreur::Genre::NORMAL) const;
-    Erreur rapporte_erreur(kuri::chaine const &chemin_fichier,
+    Erreur rapporte_erreur(kuri::chaine_statique chemin_fichier,
                            int ligne,
-                           kuri::chaine const &message,
+                           kuri::chaine_statique message,
                            erreur::Genre genre = erreur::Genre::NORMAL) const;
     Erreur rapporte_erreur(SiteSource site,
-                           kuri::chaine const &message,
+                           kuri::chaine_statique message,
                            erreur::Genre genre = erreur::Genre::NORMAL) const;
-    Erreur rapporte_erreur_sans_site(const kuri::chaine &message,
+    Erreur rapporte_erreur_sans_site(kuri::chaine_statique message,
                                      erreur::Genre genre = erreur::Genre::NORMAL) const;
 
     Compilatrice &compilatrice()

@@ -110,6 +110,17 @@ définis_valeur :: fonc (variant: *QT_Variant, valeur: $T)
     sinon si T == chaine {
         variant.definis_chaine(variant, vers_qt(valeur))
     }
+    sinon {
+        infos := info_de(T)
+
+        si infos.id == GenreInfoType.ÉNUM {
+            valeur_eini : eini = ---
+            valeur_eini.info = infos
+            valeur_eini.pointeur = *valeur
+            nom := donne_nom_énum_pour_valeur(valeur_eini)
+            variant.definis_chaine(variant, vers_qt(nom))
+        }
+    }
 }
 
 /** } */
