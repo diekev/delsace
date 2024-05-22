@@ -615,6 +615,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDéclarationEntêteFonct
     auto type_fonc = decl->type->comme_type_fonction();
     nom_broyé_type(type_fonc->type_sortie);
 
+    stockage_temp.réinitialise();
     stockage_temp << "_K";
     stockage_temp << (decl->est_coroutine ? "C" : "F");
     ::broye_nom_fonction(stockage_temp, decl, false, true);
