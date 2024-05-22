@@ -147,8 +147,7 @@ struct Compilatrice {
     using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
     dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
-    using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
-    dls::outils::Synchrone<TableChaine> table_chaines{"Table des chaines"};
+    dls::outils::Synchrone<RegistreChainesRI> registre_chaines_ri{};
 
     Module *module_kuri = nullptr;
     Module *module_racine_compilation = nullptr;

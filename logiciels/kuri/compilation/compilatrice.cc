@@ -311,7 +311,7 @@ int64_t Compilatrice::memoire_utilisee() const
 
     résultat += broyeuse->mémoire_utilisée();
     résultat += constructeurs_globaux->taille_mémoire();
-    résultat += table_chaines->taille_mémoire();
+    résultat += registre_chaines_ri->mémoire_utilisée();
 
     résultat += m_sémanticiennes.taille_mémoire() +
                 taille_de(Sémanticienne) * m_sémanticiennes.taille();

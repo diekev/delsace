@@ -264,6 +264,33 @@ struct RegistreAnnotations {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name RegistreChainesRI
+ * Structure contenant les AtomeConstantes et AtomeGlobales de toutes les
+ * chaines constantes. Si une chaine constante est utilisée dans
+ * l'initialisation d'une globale, seule un AtomeConstante est créé. Mais si
+ * elle apparait (également) dans une fonction, une globale sera créée, et le
+ * code généré chargera cette dernière au lieu d'avoir un AtomeConstante
+ * enligné.
+ * \{ */
+
+class RegistreChainesRI {
+    kuri::table_hachage<kuri::chaine_statique, AtomeConstante *> table_constantes{
+        "Table des chaines"};
+    kuri::table_hachage<AtomeConstante *, AtomeGlobale *> table_globales{"Table des chaines"};
+
+  public:
+    AtomeConstante *donne_constante_pour_chaine(kuri::chaine_statique chaine);
+    void insère_constante_pour_chaine(kuri::chaine_statique chaine, AtomeConstante *constante);
+
+    AtomeGlobale *donne_globale_pour_chaine(AtomeConstante *chaine);
+    void insère_globale_pour_chaine(AtomeConstante *chaine, AtomeGlobale *globale);
+
+    int64_t mémoire_utilisée() const;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name CompilatriceRI
  * La compilatrice RI convertis en RI les noeuds syntaxiques des fonctions et
  * des globales.
@@ -463,6 +490,7 @@ struct CompilatriceRI {
                                   Atome *place);
 
     AtomeConstante *crée_chaine(kuri::chaine_statique chaine);
+    AtomeGlobale *crée_globale_pour_chaine(kuri::chaine_statique chaine);
 
     void empile_valeur(Atome *valeur);
     Atome *depile_valeur();
