@@ -117,10 +117,15 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             }
         }
 
-        if (type_vers->est_type_énum() &&
-            static_cast<TypeEnum const *>(type_vers)->type_sous_jacent == type_de) {
-            // on pourrait se passer de la conversion, ou normaliser le type
-            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+        if (type_vers->est_type_énum()) {
+            if (!type_vers->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_type(type_vers);
+            }
+
+            if (static_cast<TypeEnum const *>(type_vers)->type_sous_jacent == type_de) {
+                // on pourrait se passer de la conversion, ou normaliser le type
+                return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+            }
         }
 
         if (type_de->est_type_opaque() &&
