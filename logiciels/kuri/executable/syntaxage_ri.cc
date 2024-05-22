@@ -131,7 +131,7 @@ struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
   protected:
     void analyse_une_chose() override;
 
-    void gère_erreur_rapportée(const kuri::chaine &message_erreur) override;
+    void gère_erreur_rapportée(kuri::chaine_statique message_erreur) override;
 
     void analyse_fonction();
     void analyse_globale();
@@ -216,7 +216,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_une_chose()
 }
 
 template <typename Impl>
-void BaseSyntaxeuseRI<Impl>::gère_erreur_rapportée(const kuri::chaine &message_erreur)
+void BaseSyntaxeuseRI<Impl>::gère_erreur_rapportée(kuri::chaine_statique message_erreur)
 {
     dbg() << message_erreur;
 }
@@ -2565,7 +2565,8 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 int main(int argc, char **argv)
 {
     if (argc < 2) {
-        dbg() << "Utilisation " << argv[0] << " " << "FICHIER_RI";
+        dbg() << "Utilisation " << argv[0] << " "
+              << "FICHIER_RI";
         return 1;
     }
 

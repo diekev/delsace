@@ -62,6 +62,8 @@ inline bool adresse_est_nulle(void *adresse)
     return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
 }
 
+#undef COMPILE_EN_PLUSIEURS_MODULE
+
 /* ------------------------------------------------------------------------- */
 /** \name Utilitaires locaux.
  * \{ */
@@ -86,26 +88,113 @@ static VisibilitéSymbole donne_visibilité_fonction(AtomeFonction const *foncti
     return fonction->decl->visibilité_symbole;
 }
 
-static llvm::GlobalValue::LinkageTypes convertis_visibilité_symbole(
-    VisibilitéSymbole const visibilité)
+static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(DonnéesModule const &module,
+                                                              AtomeFonction const *fonction)
 {
-    switch (visibilité) {
-        case VisibilitéSymbole::EXPORTÉ:
-        {
-            return llvm::GlobalValue::ExternalLinkage;
-        }
-        case VisibilitéSymbole::INTERNE:
-        {
-            return llvm::GlobalValue::InternalLinkage;
-        }
+    if (fonction->est_externe) {
+        return llvm::GlobalValue::ExternalLinkage;
     }
+
+    /* Ces fonctions sont appelées depuis les fichiers de point d'entrées C. */
+    if (dls::outils::est_element(fonction->decl->ident,
+                                 ID::__point_d_entree_dynamique,
+                                 ID::__point_d_entree_systeme,
+                                 ID::__point_de_sortie_dynamique)) {
+        return llvm::GlobalValue::ExternalLinkage;
+    }
+
+#ifndef COMPILE_EN_PLUSIEURS_MODULE
+    static_cast<void>(module);
     return llvm::GlobalValue::InternalLinkage;
+#else
+    /* La fonction ne fait pas partie du module. Nous avons une définition ailleurs. */
+    if (!module.fait_partie_du_module(fonction)) {
+        return llvm::GlobalValue::AvailableExternallyLinkage;
+    }
+
+    return llvm::GlobalValue::InternalLinkage;
+#endif
 }
 
-static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(AtomeFonction const *fonction)
+static llvm::GlobalValue::LinkageTypes donne_liaison_globale(DonnéesModule const &module,
+                                                             AtomeGlobale const *globale)
 {
-    auto visibilité = donne_visibilité_fonction(fonction);
-    return convertis_visibilité_symbole(visibilité);
+    if (globale->est_externe) {
+        return llvm::GlobalValue::ExternalLinkage;
+    }
+
+#ifndef COMPILE_EN_PLUSIEURS_MODULE
+    static_cast<void>(module);
+    return llvm::GlobalValue::InternalLinkage;
+#else
+    /* La globale ne fait pas partie du module. Nous avons une définition ailleurs. */
+    if (!module.fait_partie_du_module(globale)) {
+        return llvm::GlobalValue::AvailableExternallyLinkage;
+    }
+
+    return llvm::GlobalValue::InternalLinkage;
+#endif
+}
+
+/* Retourne vrai si la valeur globale doit être considérer comme locale pour l'exécutable ou la
+ * bibliothèque.
+ * Logique partiellement reprise de Clang :
+ * https://clang.llvm.org/doxygen/CodeGenModule_8cpp_source.html */
+static bool doit_être_considérée_dso_local(llvm::GlobalValue *valeur)
+{
+    if (valeur->hasLocalLinkage()) {
+        return true;
+    }
+
+    if (!valeur->hasDefaultVisibility() && !valeur->hasExternalWeakLinkage()) {
+        return true;
+    }
+
+    /* DLLImport marque explicitement la globale comme étant externe. */
+    if (valeur->hasDLLImportStorageClass()) {
+        return false;
+    }
+
+    /* Une définition ne peut être preemptée d'un exécutable. */
+    if (!valeur->isDeclarationForLinker()) {
+        return true;
+    }
+
+    return false;
+}
+
+static void définis_dllimport_dllexport(llvm::GlobalValue *valeur, VisibilitéSymbole visibilité)
+{
+    if (visibilité == VisibilitéSymbole::EXPORTÉ) {
+        valeur->setDLLStorageClass(llvm::GlobalValue::DLLExportStorageClass);
+    }
+}
+
+static void définis_visibilité(llvm::GlobalValue *valeur, VisibilitéSymbole visibilité)
+{
+    if (valeur->hasLocalLinkage()) {
+        valeur->setVisibility(llvm::GlobalValue::DefaultVisibility);
+        return;
+    }
+
+    if (visibilité == VisibilitéSymbole::INTERNE) {
+        valeur->setVisibility(llvm::GlobalValue::HiddenVisibility);
+    }
+}
+
+static void définis_les_propriétés_globales(llvm::GlobalValue *valeur,
+                                            AtomeFonction const *fonction)
+{
+    définis_dllimport_dllexport(valeur, donne_visibilité_fonction(fonction));
+    définis_visibilité(valeur, donne_visibilité_fonction(fonction));
+    valeur->setDSOLocal(doit_être_considérée_dso_local(valeur));
+}
+
+static void définis_les_propriétés_globales(llvm::GlobalValue *valeur, AtomeGlobale const *globale)
+{
+    définis_dllimport_dllexport(valeur, globale->donne_visibilité_symbole());
+    définis_visibilité(valeur, globale->donne_visibilité_symbole());
+    valeur->setDSOLocal(doit_être_considérée_dso_local(valeur));
 }
 
 /** \} */
@@ -329,6 +418,71 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
 
     return static_cast<CastOps>(0);
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name DonnéesModule
+ * \{ */
+
+void DonnéesModule::définis_données_constantes(const DonnéesConstantes *données_constantes)
+{
+    m_données_constantes = données_constantes;
+    ajourne_globales();
+}
+
+const DonnéesConstantes *DonnéesModule::donne_données_constantes() const
+{
+    return m_données_constantes;
+}
+
+void DonnéesModule::définis_fonctions(kuri::tableau_statique<AtomeFonction *> fonctions)
+{
+    m_fonctions = fonctions;
+    m_ensemble_fonctions.efface();
+    POUR (m_fonctions) {
+        m_ensemble_fonctions.insère(it);
+    }
+}
+
+kuri::tableau_statique<AtomeFonction *> DonnéesModule::donne_fonctions() const
+{
+    return m_fonctions;
+}
+
+bool DonnéesModule::fait_partie_du_module(AtomeFonction const *fonction) const
+{
+    return m_ensemble_fonctions.possède(fonction);
+}
+
+void DonnéesModule::définis_globales(kuri::tableau_statique<AtomeGlobale *> globales)
+{
+    m_globales = globales;
+    ajourne_globales();
+}
+
+kuri::tableau_statique<AtomeGlobale *> DonnéesModule::donne_globales() const
+{
+    return m_globales;
+}
+
+bool DonnéesModule::fait_partie_du_module(AtomeGlobale const *globale) const
+{
+    return m_ensemble_globales.possède(globale);
+}
+
+void DonnéesModule::ajourne_globales()
+{
+    m_ensemble_globales.efface();
+    POUR (m_globales) {
+        m_ensemble_globales.insère(it);
+    }
+    if (m_données_constantes) {
+        POUR (m_données_constantes->tableaux_constants) {
+            m_ensemble_globales.insère(it.globale);
+        }
+    }
+}
+
+/** \} */
 
 /* ************************************************************************** */
 
@@ -1381,20 +1535,12 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
 }
 
 template <typename T>
-static std::vector<T> donne_tableau_typé(const AtomeConstanteDonnéesConstantes *constante,
-                                         int taille_données)
+static llvm::ArrayRef<T> donne_tableau_typé(const AtomeConstanteDonnéesConstantes *constante,
+                                            int taille_données)
 {
     auto const données = constante->donne_données();
     auto pointeur_données = reinterpret_cast<T const *>(données.begin());
-
-    std::vector<T> résultat;
-    résultat.resize(size_t(taille_données));
-
-    for (int i = 0; i < taille_données; i++) {
-        résultat[size_t(i)] = *pointeur_données++;
-    }
-
-    return résultat;
+    return {pointeur_données, size_t(taille_données)};
 }
 
 llvm::Value *GénératriceCodeLLVM::génère_valeur_données_constantes(
@@ -1498,10 +1644,11 @@ llvm::Function *GénératriceCodeLLVM::donne_ou_crée_déclaration_fonction(
 
     auto type_fonction = fonction->type->comme_type_fonction();
     auto type_llvm = convertis_type_fonction(type_fonction);
-    // auto liaison = donne_liaison_fonction(fonction);
-    auto liaison = llvm::GlobalValue::ExternalLinkage;
+    auto liaison = donne_liaison_fonction(données_module, fonction);
 
     auto résultat = llvm::Function::Create(type_llvm, liaison, nom, m_module);
+
+    définis_les_propriétés_globales(résultat, fonction);
 
     auto decl = fonction->decl;
     if (decl) {
@@ -1538,10 +1685,11 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
     auto type = globale->donne_type_alloué();
     auto type_llvm = convertis_type_llvm(type);
     auto nom_globale = vers_string_ref(globale->ident);
-    auto liaison = globale->est_externe ? llvm::GlobalValue::ExternalLinkage :
-                                          llvm::GlobalValue::InternalLinkage;
+    auto liaison = donne_liaison_globale(données_module, globale);
     auto résultat = new llvm::GlobalVariable(
         *m_module, type_llvm, globale->est_constante, liaison, nullptr, nom_globale);
+
+    définis_les_propriétés_globales(résultat, globale);
 
     résultat->setAlignment(llvm::Align(type->alignement));
     table_globales.insère(globale, résultat);
@@ -1550,8 +1698,8 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
 
 void GénératriceCodeLLVM::génère_code()
 {
-    if (données_module.données_constantes) {
-        auto données_constantes = données_module.données_constantes;
+    if (données_module.donne_données_constantes()) {
+        auto données_constantes = données_module.donne_données_constantes();
 
         POUR (données_constantes->tableaux_constants) {
             auto valeur_globale = it.globale;
@@ -1563,7 +1711,7 @@ void GénératriceCodeLLVM::génère_code()
         }
     }
 
-    POUR (données_module.globales) {
+    POUR (données_module.donne_globales()) {
         // Logueuse::réinitialise_indentation();
         // dbg() << "Génère code pour globale (" << it << ") " << it->ident << ' '
         //       << chaine_type(it->type);
@@ -1583,7 +1731,7 @@ void GénératriceCodeLLVM::génère_code()
     AtomeFonction *point_d_entrée_dynamique = nullptr;
     AtomeFonction *point_de_sortie_dynamique = nullptr;
 
-    POUR (données_module.fonctions) {
+    POUR (données_module.donne_fonctions()) {
         m_nombre_fonctions_compilées++;
         // dbg() << "[" << m_nombre_fonctions_compilées << " / " <<
         // données_module.globales.taille()
@@ -1804,15 +1952,15 @@ static kuri::chemin_systeme chemin_fichier_objet_llvm(int index)
 
 #ifdef DEBOGUE_IR
 /* Chemin du fichier de code binaire LLVM généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_bc_llvm()
+static kuri::chemin_systeme chemin_fichier_bc_llvm(int64_t index)
 {
-    return kuri::chemin_systeme::chemin_temporaire("kuri.bc");
+    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", index, ".bc"));
 }
 
 /* Chemin du fichier de code LLVM généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_ll_llvm()
+static kuri::chemin_systeme chemin_fichier_ll_llvm(int64_t index)
 {
-    return kuri::chemin_systeme::chemin_temporaire("kuri.ll");
+    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", index, ".ll"));
 }
 
 static kuri::chaine_statique donne_assembleur_llvm()
@@ -1820,10 +1968,10 @@ static kuri::chaine_statique donne_assembleur_llvm()
     return LLVM_ASSEMBLEUR;
 }
 
-static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module)
+static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module, int64_t index)
 {
-    auto const fichier_ll = chemin_fichier_ll_llvm();
-    auto const fichier_bc = chemin_fichier_bc_llvm();
+    auto const fichier_ll = chemin_fichier_ll_llvm(index);
+    auto const fichier_bc = chemin_fichier_bc_llvm(index);
 
     std::error_code ec;
     llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
@@ -1885,8 +2033,8 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
     }
 
 #ifdef DEBOGUE_IR
-    POUR (m_modules) {
-        auto opt_erreur_validation = valide_llvm_ir(*it->module);
+    POUR_INDEX (m_modules) {
+        auto opt_erreur_validation = valide_llvm_ir(*it->module, index_it);
         if (opt_erreur_validation.has_value()) {
             auto erreur_validation = opt_erreur_validation.value();
             auto message_erreur = enchaine("Erreur lors de la validation du code LLVM.\n",
@@ -1999,14 +2147,16 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
 
     auto opt_données_constantes = repr_inter.donne_données_constantes();
     if (opt_données_constantes.has_value()) {
-        module->données_constantes = opt_données_constantes.value();
+        module->définis_données_constantes(opt_données_constantes.value());
     }
-    module->globales = repr_inter.donne_globales();
-    module->fonctions = repr_inter.donne_fonctions();
+    module->définis_globales(repr_inter.donne_globales());
+
+#ifndef COMPILE_EN_PLUSIEURS_MODULE
+    module->définis_fonctions(repr_inter.donne_fonctions());
 
     /* À FAIRE : pour la compilation en plusieurs fichiers il faudra proprement
      * gérer les liaisons des globales, ainsi que leur donner des noms uniques. */
-#if 0
+#else
     /* Crée des modules pour les fonctions. */
     constexpr int nombre_instructions_par_module = 10000;
     int nombre_instructions = 0;
@@ -2020,6 +2170,8 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
             continue;
         }
 
+        // dbg() << "Nombre instructions : " << nombre_instructions;
+
         auto pointeur_fonction = fonctions.begin() + index_première_fonction;
         auto taille = i - index_première_fonction + 1;
 
@@ -2027,7 +2179,7 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
                                                                             taille);
 
         module = crée_un_module("Fonction", triplet_cible);
-        module->fonctions = fonctions_du_modules;
+        module->définis_fonctions(fonctions_du_modules);
 
         nombre_instructions = 0;
         index_première_fonction = i + 1;

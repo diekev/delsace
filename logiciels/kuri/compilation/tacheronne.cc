@@ -9,6 +9,7 @@
 
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/cas_genre_noeud.hh"
+#include "arbre_syntaxique/noeud_code.hh"
 
 #include "compilatrice.hh"
 #include "coulisse.hh"

@@ -30,7 +30,7 @@ struct TableIdentifiant {
 
     IdentifiantCode *identifiant_pour_chaine(kuri::chaine_statique nom);
 
-    IdentifiantCode *identifiant_pour_nouvelle_chaine(kuri::chaine const &nom);
+    IdentifiantCode *identifiant_pour_nouvelle_chaine(kuri::chaine_statique nom);
 
     int64_t taille() const;
 

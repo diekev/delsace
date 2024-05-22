@@ -20,7 +20,7 @@ IdentifiantCode *TableIdentifiant::identifiant_pour_chaine(kuri::chaine_statique
     return ajoute_identifiant(nom);
 }
 
-IdentifiantCode *TableIdentifiant::identifiant_pour_nouvelle_chaine(kuri::chaine const &nom)
+IdentifiantCode *TableIdentifiant::identifiant_pour_nouvelle_chaine(kuri::chaine_statique nom)
 {
     auto trouve = false;
     auto iter = table.trouve(nom, trouve);
