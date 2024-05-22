@@ -11,6 +11,13 @@
 #include "typage.hh"
 #include "validation_semantique.hh"
 
+#define REQUIERS_TYPE_VALIDE(variable)                                                            \
+    do {                                                                                          \
+        if (!variable->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {                 \
+            return Attente::sur_type(variable);                                                   \
+        }                                                                                         \
+    } while (0)
+
 const char *chaine_transformation(TypeTransformation type)
 {
     switch (type) {
@@ -118,9 +125,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
 
         if (type_vers->est_type_énum()) {
-            if (!type_vers->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_type(type_vers);
-            }
+            REQUIERS_TYPE_VALIDE(type_vers);
 
             if (static_cast<TypeEnum const *>(type_vers)->type_sous_jacent == type_de) {
                 // on pourrait se passer de la conversion, ou normaliser le type
@@ -236,9 +241,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     if (type_vers->est_type_union()) {
         auto type_union = type_vers->comme_type_union();
 
-        if (!type_vers->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            return Attente::sur_type(type_vers);
-        }
+        REQUIERS_TYPE_VALIDE(type_vers);
 
         auto résultat = trouve_index_membre_unique_type_compatible(type_union, type_de);
 
@@ -254,18 +257,14 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
     if (type_vers->est_type_eini()) {
         /* Il nous faut attendre sur le type pour pouvoir générer l'InfoType. */
-        if (!type_de->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            return Attente::sur_type(type_de);
-        }
+        REQUIERS_TYPE_VALIDE(type_de);
         return TransformationType(TypeTransformation::CONSTRUIT_EINI);
     }
 
     if (type_de->est_type_union()) {
         auto type_union = type_de->comme_type_union();
 
-        if (!type_union->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            return Attente::sur_type(type_union);
-        }
+        REQUIERS_TYPE_VALIDE(type_union);
 
         POUR_INDEX (type_union->donne_membres_pour_code_machine()) {
             if (it.type != type_vers || type_union->est_nonsure) {
@@ -322,13 +321,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         if (type_de->est_type_référence()) {
             auto type_élément_de = type_de->comme_type_référence()->type_pointé;
 
-            if (!type_élément_de->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_type(type_élément_de);
-            }
-
-            if (!type_élément_vers->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_type(type_élément_vers);
-            }
+            REQUIERS_TYPE_VALIDE(type_élément_de);
+            REQUIERS_TYPE_VALIDE(type_élément_vers);
 
             auto décalage_type_base = est_type_de_base(type_élément_de, type_élément_vers);
             if (décalage_type_base) {
@@ -340,13 +334,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TransformationType(TypeTransformation::PREND_REFERENCE);
         }
 
-        if (!type_de->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            return Attente::sur_type(type_de);
-        }
-
-        if (!type_élément_vers->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            return Attente::sur_type(type_élément_vers);
-        }
+        REQUIERS_TYPE_VALIDE(type_de);
+        REQUIERS_TYPE_VALIDE(type_élément_vers);
 
         auto décalage_type_base = est_type_de_base(type_de, type_élément_vers);
         if (décalage_type_base) {
@@ -435,13 +424,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             auto ts_de = type_pointe_de->comme_type_structure();
             auto ts_vers = type_pointe_vers->comme_type_structure();
 
-            if (!ts_de->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_type(ts_de);
-            }
-
-            if (!ts_vers->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_type(ts_vers);
-            }
+            REQUIERS_TYPE_VALIDE(ts_de);
+            REQUIERS_TYPE_VALIDE(ts_vers);
 
             auto décalage_type_base = est_type_de_base(ts_de, ts_vers);
             if (décalage_type_base) {
