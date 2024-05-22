@@ -1793,14 +1793,14 @@ QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(QT_Generic_Widget parent,
 
 static QMessageBox::StandardButton vers_qt(QT_StandardButton drapeaux)
 {
-    int résultat = QMessageBox::StandardButton::Ok;
+    int résultat = QMessageBox::StandardButton::NoButton;
     ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
     return QMessageBox::StandardButton(résultat);
 }
 
 static QT_StandardButton vers_ipa(QMessageBox::StandardButton drapeaux)
 {
-    int résultat = QMessageBox::StandardButton::Ok;
+    int résultat = QMessageBox::StandardButton::NoButton;
     ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
     return QT_StandardButton(résultat);
 }
