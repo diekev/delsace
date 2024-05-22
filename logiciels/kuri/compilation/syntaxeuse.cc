@@ -3759,7 +3759,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDéclaration
 
 /** \} */
 
-void Syntaxeuse::gère_erreur_rapportée(const kuri::chaine &message_erreur)
+void Syntaxeuse::gère_erreur_rapportée(kuri::chaine_statique message_erreur)
 {
     m_unité->espace->rapporte_erreur(
         SiteSource::cree(m_fichier, lexème_courant()), message_erreur, erreur::Genre::SYNTAXAGE);

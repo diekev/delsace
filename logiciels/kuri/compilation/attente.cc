@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2021 Kévin Dietrich. */
 
+#include "arbre_syntaxique/noeud_code.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
