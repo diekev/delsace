@@ -218,14 +218,34 @@ bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Generic_BoxLayout
+ * \{ */
+
+#define ENUMERE_TYPES_BOX_LAYOUTS(O)                                                              \
+    O(QVBoxLayout, QT_VBoxLayout, vbox)                                                           \
+    O(QHBoxLayout, QT_HBoxLayout, hbox)                                                           \
+    O(QBoxLayout, QT_BoxLayout, box)
+
+#define PRODECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe;
+ENUMERE_TYPES_BOX_LAYOUTS(PRODECLARE_TYPES_LAYOUTS)
+#undef PRODECLARE_TYPES_LAYOUTS
+
+/** Type générique pour passer des layouts de type dérivé aux fonctions devant prendre un QLayout.
+ */
+union QT_Generic_BoxLayout {
+#define DECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe *nom_union;
+    ENUMERE_TYPES_BOX_LAYOUTS(DECLARE_TYPES_LAYOUTS)
+#undef DECLARE_TYPES_LAYOUTS
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Generic_Layout
  * \{ */
 
 #define ENUMERE_TYPES_LAYOUTS(O)                                                                  \
     O(QLayout, QT_Layout, layout)                                                                 \
-    O(QVBoxLayout, QT_VBoxLayout, vbox)                                                           \
-    O(QHBoxLayout, QT_HBoxLayout, hbox)                                                           \
-    O(QBoxLayout, QT_BoxLayout, box)                                                              \
     O(QFormLayout, QT_FormLayout, form)                                                           \
     O(QGridLayout, QT_GridLayout, grid)
 
@@ -238,6 +258,7 @@ ENUMERE_TYPES_LAYOUTS(PRODECLARE_TYPES_LAYOUTS)
 union QT_Generic_Layout {
 #define DECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe *nom_union;
     ENUMERE_TYPES_LAYOUTS(DECLARE_TYPES_LAYOUTS)
+    ENUMERE_TYPES_BOX_LAYOUTS(DECLARE_TYPES_LAYOUTS)
 #undef DECLARE_TYPES_LAYOUTS
 };
 
@@ -1330,15 +1351,15 @@ void QT_layout_ajoute_widget(union QT_Generic_Layout layout, union QT_Generic_Wi
 bool QT_layout_aligne_widget(union QT_Generic_Layout layout,
                              union QT_Generic_Widget widget,
                              enum QT_Alignment alignement);
-void QT_layout_ajoute_layout(union QT_Generic_Layout layout, union QT_Generic_Layout sous_layout);
 bool QT_layout_aligne_layout(union QT_Generic_Layout layout,
                              union QT_Generic_Layout sous_layout,
                              enum QT_Alignment alignement);
 void QT_layout_definis_contrainte_taille(union QT_Generic_Layout layout,
                                          enum QT_Layout_Size_Constraint contrainte);
-void QT_vbox_layout_ajoute_etirement(struct QT_VBoxLayout *layout, int etirement);
-void QT_hbox_layout_ajoute_etirement(struct QT_HBoxLayout *layout, int etirement);
-void QT_vbox_layout_ajoute_espacage(struct QT_VBoxLayout *layout, int espacage);
+void QT_box_layout_ajoute_layout(union QT_Generic_BoxLayout layout,
+                                 union QT_Generic_Layout sous_layout);
+void QT_box_layout_ajoute_etirement(union QT_Generic_BoxLayout layout, int etirement);
+void QT_box_layout_ajoute_espacage(union QT_Generic_BoxLayout layout, int espacage);
 
 void QT_form_layout_ajoute_ligne_chaine(struct QT_FormLayout *layout,
                                         struct QT_Chaine label,

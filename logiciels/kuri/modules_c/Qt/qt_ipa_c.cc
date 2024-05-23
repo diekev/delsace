@@ -87,6 +87,11 @@ inline QLayout *vers_qt(QT_Generic_Layout layout)
     return reinterpret_cast<QLayout *>(layout.layout);
 }
 
+inline QBoxLayout *vers_qt(QT_Generic_BoxLayout layout)
+{
+    return reinterpret_cast<QBoxLayout *>(layout.box);
+}
+
 inline QGraphicsItem *vers_qt(QT_Generic_GraphicsItem item)
 {
     return reinterpret_cast<QGraphicsItem *>(item.item);
@@ -187,6 +192,7 @@ ENUMERE_TYPES_WIDGETS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_LAYOUTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_GRAPHICS_ITEM(TRANSTYPAGE_WIDGETS)
+ENUMERE_TYPES_BOX_LAYOUTS(TRANSTYPAGE_WIDGETS)
 
 #undef TRANSTYPAGE_WIDGETS
 
@@ -1276,19 +1282,6 @@ bool QT_layout_aligne_widget(QT_Generic_Layout layout,
     return qlayout->setAlignment(qwidget, convertis_alignement(alignement));
 }
 
-void QT_layout_ajoute_layout(QT_Generic_Layout layout, QT_Generic_Layout sous_layout)
-{
-    auto qlayout = vers_qt(layout);
-    auto qsous_layout = vers_qt(sous_layout);
-
-    if (auto hbox = dynamic_cast<QHBoxLayout *>(qlayout)) {
-        hbox->addLayout(qsous_layout);
-    }
-    else if (auto vbox = dynamic_cast<QVBoxLayout *>(qlayout)) {
-        vbox->addLayout(qsous_layout);
-    }
-}
-
 bool QT_layout_aligne_layout(QT_Generic_Layout layout,
                              QT_Generic_Layout sous_layout,
                              QT_Alignment alignement)
@@ -1305,19 +1298,20 @@ void QT_layout_definis_contrainte_taille(QT_Generic_Layout layout,
     qlayout->setSizeConstraint(convertis_contrainte_taille(contrainte));
 }
 
-void QT_vbox_layout_ajoute_etirement(QT_VBoxLayout *layout, int etirement)
+void QT_box_layout_ajoute_layout(QT_Generic_BoxLayout layout, QT_Generic_Layout sous_layout)
+{
+    VERS_QT(layout);
+    auto qsous_layout = vers_qt(sous_layout);
+    qlayout->addLayout(qsous_layout);
+}
+
+void QT_box_layout_ajoute_etirement(QT_Generic_BoxLayout layout, int etirement)
 {
     VERS_QT(layout);
     qlayout->addStretch(etirement);
 }
 
-void QT_hbox_layout_ajoute_etirement(QT_HBoxLayout *layout, int etirement)
-{
-    VERS_QT(layout);
-    qlayout->addStretch(etirement);
-}
-
-void QT_vbox_layout_ajoute_espacage(QT_VBoxLayout *layout, int espacage)
+void QT_box_layout_ajoute_espacage(QT_Generic_BoxLayout layout, int espacage)
 {
     VERS_QT(layout);
     qlayout->addSpacing(espacage);
