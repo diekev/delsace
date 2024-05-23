@@ -1514,6 +1514,13 @@ void QT_tab_widget_ajoute_tab(QT_TabWidget *tab_widget, QT_Generic_Widget widget
     qtab_widget->addTab(qwidget, vers_qt(nom));
 }
 
+void QT_tab_widget_definis_infobulle_tab(QT_TabWidget *tab_widget, int index, QT_Chaine infobulle)
+{
+    VERS_QT(tab_widget);
+    VERS_QT(infobulle);
+    qtab_widget->setTabToolTip(index, qinfobulle);
+}
+
 void QT_tab_widget_supprime_tab(QT_TabWidget *tab_widget, int index)
 {
     auto qtab_widget = vers_qt(tab_widget);

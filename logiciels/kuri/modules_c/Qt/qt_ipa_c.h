@@ -1406,6 +1406,9 @@ void QT_tab_widget_widget_de_coin(struct QT_TabWidget *tab_widget, union QT_Gene
 void QT_tab_widget_ajoute_tab(struct QT_TabWidget *tab_widget,
                               union QT_Generic_Widget widget,
                               struct QT_Chaine *nom);
+void QT_tab_widget_definis_infobulle_tab(struct QT_TabWidget *tab_widget,
+                                         int index,
+                                         struct QT_Chaine infobulle);
 void QT_tab_widget_supprime_tab(struct QT_TabWidget *tab_widget, int index);
 void QT_tab_widget_definis_index_courant(struct QT_TabWidget *tab_widget, int index);
 int QT_tab_widget_donne_compte_tabs(struct QT_TabWidget *tab_widget);
