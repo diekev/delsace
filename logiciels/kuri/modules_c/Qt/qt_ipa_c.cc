@@ -27,6 +27,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
+#include <QSortFilterProxyModel>
 #include <QSpinBox>
 #include <QSplitter>
 #include <QStatusBar>
@@ -200,6 +201,7 @@ ENUMERE_TYPES_GRAPHICS_ITEM(TRANSTYPAGE_WIDGETS)
     }
 
 TRANSTYPAGE_OBJET_SIMPLE(QPixmap, QT_Pixmap)
+TRANSTYPAGE_OBJET_SIMPLE(QSortFilterProxyModel, QT_SortFilterProxyModel)
 
 #undef TRANSTYPAGE_WIDGETS
 
@@ -2469,6 +2471,43 @@ class ModèleTable final : public QAbstractTableModel {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_SortFilterProxyModel
+ * \{ */
+
+struct QT_SortFilterProxyModel;
+
+QT_SortFilterProxyModel *QT_cree_sort_filter_proxy_model(QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto résultat = new QSortFilterProxyModel(qparent);
+    return vers_ipa(résultat);
+}
+
+void QT_sort_filter_proxy_model_definis_model_source(QT_SortFilterProxyModel *sfpm,
+                                                     QT_Rappels_TableModel *rappels)
+{
+    auto modèle_table = new ModèleTable(rappels);
+    VERS_QT(sfpm);
+    qsfpm->setSourceModel(modèle_table);
+}
+
+void QT_sort_filter_proxy_model_definis_regex_filtre(QT_SortFilterProxyModel *sfpm,
+                                                     QT_Chaine *regex)
+{
+    VERS_QT(sfpm);
+    VERS_QT(regex);
+    qsfpm->setFilterRegExp(qregex);
+}
+
+void QT_sort_filter_proxy_model_definis_colonne_filtre(QT_SortFilterProxyModel *sfpm, int colonne)
+{
+    VERS_QT(sfpm);
+    qsfpm->setFilterKeyColumn(colonne);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_TableView
  * \{ */
 
@@ -2478,17 +2517,33 @@ QT_TableView *QT_cree_table_view(QT_Generic_Widget parent)
     return vers_ipa(new QTableView(qparent));
 }
 
+static void qt_table_view_definis_model_impl(QTableView *view,
+                                             QAbstractItemModel *model,
+                                             bool détruit_existant)
+{
+    if (détruit_existant) {
+        auto model = view->model();
+        delete model;
+    }
+
+    view->setModel(model);
+}
+
 void QT_table_view_definis_model(QT_TableView *view,
                                  QT_Rappels_TableModel *rappels,
                                  bool detruit_model_existant)
 {
     VERS_QT(view);
-    if (detruit_model_existant) {
-        auto model = qview->model();
-        delete model;
-    }
+    qt_table_view_definis_model_impl(qview, new ModèleTable(rappels), detruit_model_existant);
+}
 
-    qview->setModel(new ModèleTable(rappels));
+void QT_table_view_definis_model_proxy(QT_TableView *view,
+                                       QT_SortFilterProxyModel *modele,
+                                       bool detruit_model_existant)
+{
+    VERS_QT(view);
+    VERS_QT(modele);
+    qt_table_view_definis_model_impl(qview, qmodele, detruit_model_existant);
 }
 
 /** \} */

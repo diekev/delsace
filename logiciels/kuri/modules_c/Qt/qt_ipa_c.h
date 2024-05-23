@@ -2043,6 +2043,22 @@ struct QT_Rappels_TableModel {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_SortFilterProxyModel
+ * \{ */
+
+struct QT_SortFilterProxyModel;
+
+struct QT_SortFilterProxyModel *QT_cree_sort_filter_proxy_model(union QT_Generic_Object parent);
+void QT_sort_filter_proxy_model_definis_model_source(struct QT_SortFilterProxyModel *sfpm,
+                                                     struct QT_Rappels_TableModel *rappels);
+void QT_sort_filter_proxy_model_definis_regex_filtre(struct QT_SortFilterProxyModel *sfpm,
+                                                     struct QT_Chaine *regex);
+void QT_sort_filter_proxy_model_definis_colonne_filtre(struct QT_SortFilterProxyModel *sfpm,
+                                                       int colonne);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_TableView
  * \{ */
 
@@ -2050,6 +2066,9 @@ struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
 void QT_table_view_definis_model(struct QT_TableView *view,
                                  struct QT_Rappels_TableModel *rappels,
                                  bool detruit_model_existant);
+void QT_table_view_definis_model_proxy(struct QT_TableView *view,
+                                       struct QT_SortFilterProxyModel *modele,
+                                       bool detruit_model_existant);
 
 /** \} */
 
