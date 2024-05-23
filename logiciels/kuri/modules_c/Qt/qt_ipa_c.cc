@@ -91,16 +91,6 @@ inline QGraphicsItem *vers_qt(QT_Generic_GraphicsItem item)
     return reinterpret_cast<QGraphicsItem *>(item.item);
 }
 
-inline QPixmap *vers_qt(QT_Pixmap *pixmap)
-{
-    return reinterpret_cast<QPixmap *>(pixmap);
-}
-
-inline QT_Pixmap *vers_ipa(QPixmap *pixmap)
-{
-    return reinterpret_cast<QT_Pixmap *>(pixmap);
-}
-
 inline QColor vers_qt(QT_Color color)
 {
     auto résultat = QColor();
@@ -196,6 +186,20 @@ ENUMERE_TYPES_WIDGETS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_LAYOUTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_GRAPHICS_ITEM(TRANSTYPAGE_WIDGETS)
+
+#undef TRANSTYPAGE_WIDGETS
+
+#define TRANSTYPAGE_OBJET_SIMPLE(nom_qt, nom_ipa)                                                 \
+    inline nom_ipa *vers_ipa(nom_qt *widget)                                                      \
+    {                                                                                             \
+        return reinterpret_cast<nom_ipa *>(widget);                                               \
+    }                                                                                             \
+    inline nom_qt *vers_qt(nom_ipa *widget)                                                       \
+    {                                                                                             \
+        return reinterpret_cast<nom_qt *>(widget);                                                \
+    }
+
+TRANSTYPAGE_OBJET_SIMPLE(QPixmap, QT_Pixmap)
 
 #undef TRANSTYPAGE_WIDGETS
 
