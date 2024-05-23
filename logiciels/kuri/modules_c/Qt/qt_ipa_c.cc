@@ -1667,6 +1667,37 @@ void QT_line_edit_definis_texte(QT_LineEdit *line_edit, QT_Chaine texte)
     qline->setText(vers_qt(texte));
 }
 
+void QT_line_edit_connecte_sur_changement(QT_LineEdit *line_edit, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(line_edit);
+    QObject::connect(qline_edit, &QLineEdit::textChanged, [=]() { rappel->sur_rappel(rappel); });
+}
+
+QT_Chaine QT_line_edit_donne_texte(QT_LineEdit *line_edit)
+{
+    VERS_QT(line_edit);
+    static char tampon[FILENAME_MAX];
+
+    auto texte = qline_edit->text().toStdString();
+    QT_Chaine résultat;
+
+    if (texte.size() < FILENAME_MAX) {
+        memcpy(tampon, texte.c_str(), texte.size());
+        résultat.caractères = tampon;
+        résultat.taille = int64_t(texte.size());
+    }
+    else {
+        résultat.caractères = nullptr;
+        résultat.taille = 0;
+    }
+
+    return résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
