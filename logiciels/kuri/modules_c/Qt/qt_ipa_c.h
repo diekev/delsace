@@ -1338,6 +1338,7 @@ void QT_layout_definis_contrainte_taille(union QT_Generic_Layout layout,
                                          enum QT_Layout_Size_Constraint contrainte);
 void QT_vbox_layout_ajoute_etirement(struct QT_VBoxLayout *layout, int etirement);
 void QT_hbox_layout_ajoute_etirement(struct QT_HBoxLayout *layout, int etirement);
+void QT_vbox_layout_ajoute_espacage(struct QT_VBoxLayout *layout, int espacage);
 
 void QT_form_layout_ajoute_ligne_chaine(struct QT_FormLayout *layout,
                                         struct QT_Chaine label,

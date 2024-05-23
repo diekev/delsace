@@ -1317,6 +1317,12 @@ void QT_hbox_layout_ajoute_etirement(QT_HBoxLayout *layout, int etirement)
     qlayout->addStretch(etirement);
 }
 
+void QT_vbox_layout_ajoute_espacage(QT_VBoxLayout *layout, int espacage)
+{
+    VERS_QT(layout);
+    qlayout->addSpacing(espacage);
+}
+
 void QT_form_layout_ajoute_ligne_chaine(QT_FormLayout *layout,
                                         QT_Chaine label,
                                         QT_Generic_Widget widget)
