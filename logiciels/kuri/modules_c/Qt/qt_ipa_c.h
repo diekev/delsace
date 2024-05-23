@@ -179,6 +179,29 @@ union QT_Generic_Widget {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Generic_ItemModel
+ * \{ */
+
+#define ENUMERE_TYPES_ITEM_MODEL(O)                                                               \
+    O(QAbstractItemModel, QT_AbstractItemModel, item_model)                                       \
+    O(QSortFilterProxyModel, QT_SortFilterProxyModel, sort_filter_proxy_model)                    \
+    O(QAbstractTableModel, QT_AbstractTableModel, table_model)
+
+#define PRODECLARE_TYPES_ITEM_MODEL(nom_qt, nom_classe, nom_union) struct nom_classe;
+ENUMERE_TYPES_ITEM_MODEL(PRODECLARE_TYPES_ITEM_MODEL)
+#undef PRODECLARE_TYPES_ITEM_MODEL
+
+/** Type générique pour passer des layouts de type dérivé aux fonctions devant prendre un QLayout.
+ */
+union QT_Generic_ItemModel {
+#define DECLARE_TYPES_ITEM_MODEL(nom_qt, nom_classe, nom_union) struct nom_classe *nom_union;
+    ENUMERE_TYPES_ITEM_MODEL(DECLARE_TYPES_ITEM_MODEL)
+#undef DECLARE_TYPES_ITEM_MODEL
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Generic_Object
  * \{ */
 
@@ -203,6 +226,8 @@ union QT_Generic_Object {
     ENUMERE_TYPES_OBJETS(DECLARE_TYPES_WIDGETS)
     /* Widgets. */
     ENUMERE_TYPES_WIDGETS(DECLARE_TYPES_WIDGETS)
+    /* Item models. */
+    ENUMERE_TYPES_ITEM_MODEL(DECLARE_TYPES_WIDGETS)
 #undef DECLARE_TYPES_WIDGETS
 };
 
@@ -2066,7 +2091,19 @@ struct QT_Rappels_TableModel {
                                  enum QT_Item_Data_Role,
                                  struct QT_Variant *);
     void (*sur_destruction)(struct QT_Rappels_TableModel *);
+
+    /* Le QT_AbstractTableModel crée avec ces rappels. */
+    struct QT_AbstractTableModel *table_model;
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AbstractTableModel
+ * \{ */
+
+struct QT_AbstractTableModel *QT_cree_table_model(struct QT_Rappels_TableModel *rappels,
+                                                  union QT_Generic_Object parent);
 
 /** \} */
 
@@ -2074,11 +2111,9 @@ struct QT_Rappels_TableModel {
 /** \name QT_SortFilterProxyModel
  * \{ */
 
-struct QT_SortFilterProxyModel;
-
 struct QT_SortFilterProxyModel *QT_cree_sort_filter_proxy_model(union QT_Generic_Object parent);
 void QT_sort_filter_proxy_model_definis_model_source(struct QT_SortFilterProxyModel *sfpm,
-                                                     struct QT_Rappels_TableModel *rappels);
+                                                     union QT_Generic_ItemModel model);
 void QT_sort_filter_proxy_model_definis_regex_filtre(struct QT_SortFilterProxyModel *sfpm,
                                                      struct QT_Chaine *regex);
 void QT_sort_filter_proxy_model_definis_colonne_filtre(struct QT_SortFilterProxyModel *sfpm,
@@ -2092,11 +2127,8 @@ void QT_sort_filter_proxy_model_definis_colonne_filtre(struct QT_SortFilterProxy
 
 struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
 void QT_table_view_definis_model(struct QT_TableView *view,
-                                 struct QT_Rappels_TableModel *rappels,
+                                 union QT_Generic_ItemModel model,
                                  bool detruit_model_existant);
-void QT_table_view_definis_model_proxy(struct QT_TableView *view,
-                                       struct QT_SortFilterProxyModel *modele,
-                                       bool detruit_model_existant);
 
 /** \} */
 

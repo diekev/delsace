@@ -97,6 +97,11 @@ inline QGraphicsItem *vers_qt(QT_Generic_GraphicsItem item)
     return reinterpret_cast<QGraphicsItem *>(item.item);
 }
 
+inline QAbstractItemModel *vers_qt(QT_Generic_ItemModel model)
+{
+    return reinterpret_cast<QAbstractItemModel *>(model.item_model);
+}
+
 inline QColor vers_qt(QT_Color color)
 {
     auto résultat = QColor();
@@ -193,6 +198,7 @@ ENUMERE_TYPES_LAYOUTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_GRAPHICS_ITEM(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_BOX_LAYOUTS(TRANSTYPAGE_WIDGETS)
+ENUMERE_TYPES_ITEM_MODEL(TRANSTYPAGE_WIDGETS)
 
 #undef TRANSTYPAGE_WIDGETS
 
@@ -207,7 +213,6 @@ ENUMERE_TYPES_BOX_LAYOUTS(TRANSTYPAGE_WIDGETS)
     }
 
 TRANSTYPAGE_OBJET_SIMPLE(QPixmap, QT_Pixmap)
-TRANSTYPAGE_OBJET_SIMPLE(QSortFilterProxyModel, QT_SortFilterProxyModel)
 
 #undef TRANSTYPAGE_WIDGETS
 
@@ -2444,7 +2449,8 @@ class ModèleTable final : public QAbstractTableModel {
     QT_Rappels_TableModel *m_rappels = nullptr;
 
   public:
-    ModèleTable(QT_Rappels_TableModel *rappels) : m_rappels(rappels)
+    ModèleTable(QT_Rappels_TableModel *rappels, QObject *parent)
+        : QAbstractTableModel(parent), m_rappels(rappels)
     {
     }
 
@@ -2509,10 +2515,23 @@ class ModèleTable final : public QAbstractTableModel {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name QT_SortFilterProxyModel
+/** \name QT_AbstractTableModel
  * \{ */
 
-struct QT_SortFilterProxyModel;
+QT_AbstractTableModel *QT_cree_table_model(QT_Rappels_TableModel *rappels,
+                                           QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto modèle_table = new ModèleTable(rappels, qparent);
+    rappels->table_model = vers_ipa(modèle_table);
+    return vers_ipa(modèle_table);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SortFilterProxyModel
+ * \{ */
 
 QT_SortFilterProxyModel *QT_cree_sort_filter_proxy_model(QT_Generic_Object parent)
 {
@@ -2522,11 +2541,11 @@ QT_SortFilterProxyModel *QT_cree_sort_filter_proxy_model(QT_Generic_Object paren
 }
 
 void QT_sort_filter_proxy_model_definis_model_source(QT_SortFilterProxyModel *sfpm,
-                                                     QT_Rappels_TableModel *rappels)
+                                                     QT_Generic_ItemModel model)
 {
-    auto modèle_table = new ModèleTable(rappels);
+    VERS_QT(model);
     VERS_QT(sfpm);
-    qsfpm->setSourceModel(modèle_table);
+    qsfpm->setSourceModel(qmodel);
 }
 
 void QT_sort_filter_proxy_model_definis_regex_filtre(QT_SortFilterProxyModel *sfpm,
@@ -2555,33 +2574,18 @@ QT_TableView *QT_cree_table_view(QT_Generic_Widget parent)
     return vers_ipa(new QTableView(qparent));
 }
 
-static void qt_table_view_definis_model_impl(QTableView *view,
-                                             QAbstractItemModel *model,
-                                             bool détruit_existant)
-{
-    if (détruit_existant) {
-        auto model = view->model();
-        delete model;
-    }
-
-    view->setModel(model);
-}
-
 void QT_table_view_definis_model(QT_TableView *view,
-                                 QT_Rappels_TableModel *rappels,
+                                 QT_Generic_ItemModel model,
                                  bool detruit_model_existant)
 {
     VERS_QT(view);
-    qt_table_view_definis_model_impl(qview, new ModèleTable(rappels), detruit_model_existant);
-}
+    VERS_QT(model);
+    if (detruit_model_existant) {
+        auto model_existant = qview->model();
+        delete model_existant;
+    }
 
-void QT_table_view_definis_model_proxy(QT_TableView *view,
-                                       QT_SortFilterProxyModel *modele,
-                                       bool detruit_model_existant)
-{
-    VERS_QT(view);
-    VERS_QT(modele);
-    qt_table_view_definis_model_impl(qview, qmodele, detruit_model_existant);
+    qview->setModel(qmodel);
 }
 
 /** \} */
