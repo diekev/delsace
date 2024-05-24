@@ -27,6 +27,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
+#include <QSortFilterProxyModel>
 #include <QSpinBox>
 #include <QSplitter>
 #include <QStatusBar>
@@ -86,19 +87,19 @@ inline QLayout *vers_qt(QT_Generic_Layout layout)
     return reinterpret_cast<QLayout *>(layout.layout);
 }
 
+inline QBoxLayout *vers_qt(QT_Generic_BoxLayout layout)
+{
+    return reinterpret_cast<QBoxLayout *>(layout.box);
+}
+
 inline QGraphicsItem *vers_qt(QT_Generic_GraphicsItem item)
 {
     return reinterpret_cast<QGraphicsItem *>(item.item);
 }
 
-inline QPixmap *vers_qt(QT_Pixmap *pixmap)
+inline QAbstractItemModel *vers_qt(QT_Generic_ItemModel model)
 {
-    return reinterpret_cast<QPixmap *>(pixmap);
-}
-
-inline QT_Pixmap *vers_ipa(QPixmap *pixmap)
-{
-    return reinterpret_cast<QT_Pixmap *>(pixmap);
+    return reinterpret_cast<QAbstractItemModel *>(model.item_model);
 }
 
 inline QColor vers_qt(QT_Color color)
@@ -196,6 +197,22 @@ ENUMERE_TYPES_WIDGETS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_LAYOUTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_GRAPHICS_ITEM(TRANSTYPAGE_WIDGETS)
+ENUMERE_TYPES_BOX_LAYOUTS(TRANSTYPAGE_WIDGETS)
+ENUMERE_TYPES_ITEM_MODEL(TRANSTYPAGE_WIDGETS)
+
+#undef TRANSTYPAGE_WIDGETS
+
+#define TRANSTYPAGE_OBJET_SIMPLE(nom_qt, nom_ipa)                                                 \
+    inline nom_ipa *vers_ipa(nom_qt *widget)                                                      \
+    {                                                                                             \
+        return reinterpret_cast<nom_ipa *>(widget);                                               \
+    }                                                                                             \
+    inline nom_qt *vers_qt(nom_ipa *widget)                                                       \
+    {                                                                                             \
+        return reinterpret_cast<nom_qt *>(widget);                                                \
+    }
+
+TRANSTYPAGE_OBJET_SIMPLE(QPixmap, QT_Pixmap)
 
 #undef TRANSTYPAGE_WIDGETS
 
@@ -1270,19 +1287,6 @@ bool QT_layout_aligne_widget(QT_Generic_Layout layout,
     return qlayout->setAlignment(qwidget, convertis_alignement(alignement));
 }
 
-void QT_layout_ajoute_layout(QT_Generic_Layout layout, QT_Generic_Layout sous_layout)
-{
-    auto qlayout = vers_qt(layout);
-    auto qsous_layout = vers_qt(sous_layout);
-
-    if (auto hbox = dynamic_cast<QHBoxLayout *>(qlayout)) {
-        hbox->addLayout(qsous_layout);
-    }
-    else if (auto vbox = dynamic_cast<QVBoxLayout *>(qlayout)) {
-        vbox->addLayout(qsous_layout);
-    }
-}
-
 bool QT_layout_aligne_layout(QT_Generic_Layout layout,
                              QT_Generic_Layout sous_layout,
                              QT_Alignment alignement)
@@ -1299,16 +1303,23 @@ void QT_layout_definis_contrainte_taille(QT_Generic_Layout layout,
     qlayout->setSizeConstraint(convertis_contrainte_taille(contrainte));
 }
 
-void QT_vbox_layout_ajoute_etirement(QT_VBoxLayout *layout, int etirement)
+void QT_box_layout_ajoute_layout(QT_Generic_BoxLayout layout, QT_Generic_Layout sous_layout)
+{
+    VERS_QT(layout);
+    auto qsous_layout = vers_qt(sous_layout);
+    qlayout->addLayout(qsous_layout);
+}
+
+void QT_box_layout_ajoute_etirement(QT_Generic_BoxLayout layout, int etirement)
 {
     VERS_QT(layout);
     qlayout->addStretch(etirement);
 }
 
-void QT_hbox_layout_ajoute_etirement(QT_HBoxLayout *layout, int etirement)
+void QT_box_layout_ajoute_espacage(QT_Generic_BoxLayout layout, int espacage)
 {
     VERS_QT(layout);
-    qlayout->addStretch(etirement);
+    qlayout->addSpacing(espacage);
 }
 
 void QT_form_layout_ajoute_ligne_chaine(QT_FormLayout *layout,
@@ -1502,6 +1513,13 @@ void QT_tab_widget_ajoute_tab(QT_TabWidget *tab_widget, QT_Generic_Widget widget
     qtab_widget->addTab(qwidget, vers_qt(nom));
 }
 
+void QT_tab_widget_definis_infobulle_tab(QT_TabWidget *tab_widget, int index, QT_Chaine infobulle)
+{
+    VERS_QT(tab_widget);
+    VERS_QT(infobulle);
+    qtab_widget->setTabToolTip(index, qinfobulle);
+}
+
 void QT_tab_widget_supprime_tab(QT_TabWidget *tab_widget, int index)
 {
     auto qtab_widget = vers_qt(tab_widget);
@@ -1653,6 +1671,37 @@ void QT_line_edit_definis_texte(QT_LineEdit *line_edit, QT_Chaine texte)
 {
     auto qline = vers_qt(line_edit);
     qline->setText(vers_qt(texte));
+}
+
+void QT_line_edit_connecte_sur_changement(QT_LineEdit *line_edit, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(line_edit);
+    QObject::connect(qline_edit, &QLineEdit::textChanged, [=]() { rappel->sur_rappel(rappel); });
+}
+
+QT_Chaine QT_line_edit_donne_texte(QT_LineEdit *line_edit)
+{
+    VERS_QT(line_edit);
+    static char tampon[FILENAME_MAX];
+
+    auto texte = qline_edit->text().toStdString();
+    QT_Chaine résultat;
+
+    if (texte.size() < FILENAME_MAX) {
+        memcpy(tampon, texte.c_str(), texte.size());
+        résultat.caractères = tampon;
+        résultat.taille = int64_t(texte.size());
+    }
+    else {
+        résultat.caractères = nullptr;
+        résultat.taille = 0;
+    }
+
+    return résultat;
 }
 
 /** \} */
@@ -2400,7 +2449,8 @@ class ModèleTable final : public QAbstractTableModel {
     QT_Rappels_TableModel *m_rappels = nullptr;
 
   public:
-    ModèleTable(QT_Rappels_TableModel *rappels) : m_rappels(rappels)
+    ModèleTable(QT_Rappels_TableModel *rappels, QObject *parent)
+        : QAbstractTableModel(parent), m_rappels(rappels)
     {
     }
 
@@ -2465,6 +2515,56 @@ class ModèleTable final : public QAbstractTableModel {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_AbstractTableModel
+ * \{ */
+
+QT_AbstractTableModel *QT_cree_table_model(QT_Rappels_TableModel *rappels,
+                                           QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto modèle_table = new ModèleTable(rappels, qparent);
+    rappels->table_model = vers_ipa(modèle_table);
+    return vers_ipa(modèle_table);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SortFilterProxyModel
+ * \{ */
+
+QT_SortFilterProxyModel *QT_cree_sort_filter_proxy_model(QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto résultat = new QSortFilterProxyModel(qparent);
+    return vers_ipa(résultat);
+}
+
+void QT_sort_filter_proxy_model_definis_model_source(QT_SortFilterProxyModel *sfpm,
+                                                     QT_Generic_ItemModel model)
+{
+    VERS_QT(model);
+    VERS_QT(sfpm);
+    qsfpm->setSourceModel(qmodel);
+}
+
+void QT_sort_filter_proxy_model_definis_regex_filtre(QT_SortFilterProxyModel *sfpm,
+                                                     QT_Chaine *regex)
+{
+    VERS_QT(sfpm);
+    VERS_QT(regex);
+    qsfpm->setFilterRegExp(qregex);
+}
+
+void QT_sort_filter_proxy_model_definis_colonne_filtre(QT_SortFilterProxyModel *sfpm, int colonne)
+{
+    VERS_QT(sfpm);
+    qsfpm->setFilterKeyColumn(colonne);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_TableView
  * \{ */
 
@@ -2475,16 +2575,17 @@ QT_TableView *QT_cree_table_view(QT_Generic_Widget parent)
 }
 
 void QT_table_view_definis_model(QT_TableView *view,
-                                 QT_Rappels_TableModel *rappels,
+                                 QT_Generic_ItemModel model,
                                  bool detruit_model_existant)
 {
     VERS_QT(view);
+    VERS_QT(model);
     if (detruit_model_existant) {
-        auto model = qview->model();
-        delete model;
+        auto model_existant = qview->model();
+        delete model_existant;
     }
 
-    qview->setModel(new ModèleTable(rappels));
+    qview->setModel(qmodel);
 }
 
 /** \} */

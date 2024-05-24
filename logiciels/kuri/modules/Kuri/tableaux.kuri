@@ -364,3 +364,12 @@ tableau_taille_mémoire :: fonc (tableau: []$T) -> z64
 {
     retourne tableau.taille * taille_de(T) comme z64
 }
+
+tableau_avance :: fonc (tableau: []$T) -> []T
+{
+    si tableau.taille != 0 {
+        tableau.pointeur += 1
+        tableau.taille -= 1
+    }
+    retourne tableau
+}
