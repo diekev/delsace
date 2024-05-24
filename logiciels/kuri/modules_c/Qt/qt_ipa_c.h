@@ -179,6 +179,29 @@ union QT_Generic_Widget {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Generic_ItemModel
+ * \{ */
+
+#define ENUMERE_TYPES_ITEM_MODEL(O)                                                               \
+    O(QAbstractItemModel, QT_AbstractItemModel, item_model)                                       \
+    O(QSortFilterProxyModel, QT_SortFilterProxyModel, sort_filter_proxy_model)                    \
+    O(QAbstractTableModel, QT_AbstractTableModel, table_model)
+
+#define PRODECLARE_TYPES_ITEM_MODEL(nom_qt, nom_classe, nom_union) struct nom_classe;
+ENUMERE_TYPES_ITEM_MODEL(PRODECLARE_TYPES_ITEM_MODEL)
+#undef PRODECLARE_TYPES_ITEM_MODEL
+
+/** Type générique pour passer des layouts de type dérivé aux fonctions devant prendre un QLayout.
+ */
+union QT_Generic_ItemModel {
+#define DECLARE_TYPES_ITEM_MODEL(nom_qt, nom_classe, nom_union) struct nom_classe *nom_union;
+    ENUMERE_TYPES_ITEM_MODEL(DECLARE_TYPES_ITEM_MODEL)
+#undef DECLARE_TYPES_ITEM_MODEL
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Generic_Object
  * \{ */
 
@@ -203,6 +226,8 @@ union QT_Generic_Object {
     ENUMERE_TYPES_OBJETS(DECLARE_TYPES_WIDGETS)
     /* Widgets. */
     ENUMERE_TYPES_WIDGETS(DECLARE_TYPES_WIDGETS)
+    /* Item models. */
+    ENUMERE_TYPES_ITEM_MODEL(DECLARE_TYPES_WIDGETS)
 #undef DECLARE_TYPES_WIDGETS
 };
 
@@ -218,14 +243,34 @@ bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Generic_BoxLayout
+ * \{ */
+
+#define ENUMERE_TYPES_BOX_LAYOUTS(O)                                                              \
+    O(QVBoxLayout, QT_VBoxLayout, vbox)                                                           \
+    O(QHBoxLayout, QT_HBoxLayout, hbox)                                                           \
+    O(QBoxLayout, QT_BoxLayout, box)
+
+#define PRODECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe;
+ENUMERE_TYPES_BOX_LAYOUTS(PRODECLARE_TYPES_LAYOUTS)
+#undef PRODECLARE_TYPES_LAYOUTS
+
+/** Type générique pour passer des layouts de type dérivé aux fonctions devant prendre un QLayout.
+ */
+union QT_Generic_BoxLayout {
+#define DECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe *nom_union;
+    ENUMERE_TYPES_BOX_LAYOUTS(DECLARE_TYPES_LAYOUTS)
+#undef DECLARE_TYPES_LAYOUTS
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Generic_Layout
  * \{ */
 
 #define ENUMERE_TYPES_LAYOUTS(O)                                                                  \
     O(QLayout, QT_Layout, layout)                                                                 \
-    O(QVBoxLayout, QT_VBoxLayout, vbox)                                                           \
-    O(QHBoxLayout, QT_HBoxLayout, hbox)                                                           \
-    O(QBoxLayout, QT_BoxLayout, box)                                                              \
     O(QFormLayout, QT_FormLayout, form)                                                           \
     O(QGridLayout, QT_GridLayout, grid)
 
@@ -238,6 +283,7 @@ ENUMERE_TYPES_LAYOUTS(PRODECLARE_TYPES_LAYOUTS)
 union QT_Generic_Layout {
 #define DECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe *nom_union;
     ENUMERE_TYPES_LAYOUTS(DECLARE_TYPES_LAYOUTS)
+    ENUMERE_TYPES_BOX_LAYOUTS(DECLARE_TYPES_LAYOUTS)
 #undef DECLARE_TYPES_LAYOUTS
 };
 
@@ -1330,14 +1376,15 @@ void QT_layout_ajoute_widget(union QT_Generic_Layout layout, union QT_Generic_Wi
 bool QT_layout_aligne_widget(union QT_Generic_Layout layout,
                              union QT_Generic_Widget widget,
                              enum QT_Alignment alignement);
-void QT_layout_ajoute_layout(union QT_Generic_Layout layout, union QT_Generic_Layout sous_layout);
 bool QT_layout_aligne_layout(union QT_Generic_Layout layout,
                              union QT_Generic_Layout sous_layout,
                              enum QT_Alignment alignement);
 void QT_layout_definis_contrainte_taille(union QT_Generic_Layout layout,
                                          enum QT_Layout_Size_Constraint contrainte);
-void QT_vbox_layout_ajoute_etirement(struct QT_VBoxLayout *layout, int etirement);
-void QT_hbox_layout_ajoute_etirement(struct QT_HBoxLayout *layout, int etirement);
+void QT_box_layout_ajoute_layout(union QT_Generic_BoxLayout layout,
+                                 union QT_Generic_Layout sous_layout);
+void QT_box_layout_ajoute_etirement(union QT_Generic_BoxLayout layout, int etirement);
+void QT_box_layout_ajoute_espacage(union QT_Generic_BoxLayout layout, int espacage);
 
 void QT_form_layout_ajoute_ligne_chaine(struct QT_FormLayout *layout,
                                         struct QT_Chaine label,
@@ -1405,6 +1452,9 @@ void QT_tab_widget_widget_de_coin(struct QT_TabWidget *tab_widget, union QT_Gene
 void QT_tab_widget_ajoute_tab(struct QT_TabWidget *tab_widget,
                               union QT_Generic_Widget widget,
                               struct QT_Chaine *nom);
+void QT_tab_widget_definis_infobulle_tab(struct QT_TabWidget *tab_widget,
+                                         int index,
+                                         struct QT_Chaine infobulle);
 void QT_tab_widget_supprime_tab(struct QT_TabWidget *tab_widget, int index);
 void QT_tab_widget_definis_index_courant(struct QT_TabWidget *tab_widget, int index);
 int QT_tab_widget_donne_compte_tabs(struct QT_TabWidget *tab_widget);
@@ -1481,6 +1531,9 @@ void QT_tooltip_montre_texte(struct QT_Point point, struct QT_Chaine texte);
 
 struct QT_LineEdit *QT_cree_line_edit(union QT_Generic_Widget parent);
 void QT_line_edit_definis_texte(struct QT_LineEdit *line_edit, struct QT_Chaine texte);
+void QT_line_edit_connecte_sur_changement(struct QT_LineEdit *line_edit,
+                                          struct QT_Rappel_Generique *rappel);
+struct QT_Chaine QT_line_edit_donne_texte(struct QT_LineEdit *line_edit);
 
 /** \} */
 
@@ -2038,7 +2091,33 @@ struct QT_Rappels_TableModel {
                                  enum QT_Item_Data_Role,
                                  struct QT_Variant *);
     void (*sur_destruction)(struct QT_Rappels_TableModel *);
+
+    /* Le QT_AbstractTableModel crée avec ces rappels. */
+    struct QT_AbstractTableModel *table_model;
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AbstractTableModel
+ * \{ */
+
+struct QT_AbstractTableModel *QT_cree_table_model(struct QT_Rappels_TableModel *rappels,
+                                                  union QT_Generic_Object parent);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_SortFilterProxyModel
+ * \{ */
+
+struct QT_SortFilterProxyModel *QT_cree_sort_filter_proxy_model(union QT_Generic_Object parent);
+void QT_sort_filter_proxy_model_definis_model_source(struct QT_SortFilterProxyModel *sfpm,
+                                                     union QT_Generic_ItemModel model);
+void QT_sort_filter_proxy_model_definis_regex_filtre(struct QT_SortFilterProxyModel *sfpm,
+                                                     struct QT_Chaine *regex);
+void QT_sort_filter_proxy_model_definis_colonne_filtre(struct QT_SortFilterProxyModel *sfpm,
+                                                       int colonne);
 
 /** \} */
 
@@ -2048,7 +2127,7 @@ struct QT_Rappels_TableModel {
 
 struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
 void QT_table_view_definis_model(struct QT_TableView *view,
-                                 struct QT_Rappels_TableModel *rappels,
+                                 union QT_Generic_ItemModel model,
                                  bool detruit_model_existant);
 
 /** \} */
