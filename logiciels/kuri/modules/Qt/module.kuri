@@ -114,11 +114,18 @@ définis_valeur :: fonc (variant: *QT_Variant, valeur: $T)
         infos := info_de(T)
 
         si infos.id == GenreInfoType.ÉNUM {
-            valeur_eini : eini = ---
-            valeur_eini.info = infos
-            valeur_eini.pointeur = *valeur
-            nom := donne_nom_énum_pour_valeur(valeur_eini)
-            variant.definis_chaine(variant, vers_qt(nom))
+            si infos.est_drapeau {
+                valeur_nom := imprime_chaine("%", valeur)
+                variant.definis_chaine(variant, vers_qt(valeur_nom))
+                déloge(valeur_nom)
+            }
+            sinon {
+                valeur_eini : eini = ---
+                valeur_eini.info = infos
+                valeur_eini.pointeur = *valeur
+                nom := donne_nom_énum_pour_valeur(valeur_eini)
+                variant.definis_chaine(variant, vers_qt(nom))
+            }
         }
     }
 }
