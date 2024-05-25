@@ -23,6 +23,7 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QProgressBar>
 #include <QPushButton>
 #include <QScreen>
 #include <QScrollArea>
@@ -2665,6 +2666,36 @@ void QT_slider_definis_plage(QT_Slider *slider, int minimum, int maximum)
     VERS_QT(slider);
     qslider->setMinimum(minimum);
     qslider->setMaximum(maximum);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ProgressBar
+ * \{ */
+
+QT_ProgressBar *QT_cree_progress_bar(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QProgressBar(qparent));
+}
+
+void QT_progress_bar_definis_plage(QT_ProgressBar *progress_bar, int minimum, int maximum)
+{
+    VERS_QT(progress_bar);
+    qprogress_bar->setRange(minimum, maximum);
+}
+
+void QT_progress_bar_definis_valeur(QT_ProgressBar *progress_bar, int valeur)
+{
+    VERS_QT(progress_bar);
+    qprogress_bar->setValue(valeur);
+}
+
+void QT_progress_bar_definis_orientation(QT_ProgressBar *progress_bar, QT_Orientation orientation)
+{
+    VERS_QT(progress_bar);
+    qprogress_bar->setOrientation(convertis_orientation(orientation));
 }
 
 /** \} */

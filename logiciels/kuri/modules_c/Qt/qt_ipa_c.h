@@ -162,7 +162,8 @@ struct QT_Rappel_Generique {
     O(QTableView, QT_TableView, table_view)                                                       \
     O(QSpinBox, QT_SpinBox, spin_box)                                                             \
     O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
-    O(QSlider, QT_Slider, slider)
+    O(QSlider, QT_Slider, slider)                                                                 \
+    O(QProgressBar, QT_ProgressBar, progress_bar)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -2161,6 +2162,18 @@ void QT_slider_definis_position_tick(struct QT_Slider *slider,
                                      enum QT_Slider_Tick_Position position);
 void QT_slider_definis_interval_tick(struct QT_Slider *slider, int valeur);
 void QT_slider_definis_plage(struct QT_Slider *slider, int minimum, int maximum);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ProgressBar
+ * \{ */
+
+struct QT_ProgressBar *QT_cree_progress_bar(union QT_Generic_Widget parent);
+void QT_progress_bar_definis_plage(struct QT_ProgressBar *progress_bar, int minimum, int maximum);
+void QT_progress_bar_definis_valeur(struct QT_ProgressBar *progress_bar, int valeur);
+void QT_progress_bar_definis_orientation(struct QT_ProgressBar *progress_bar,
+                                         enum QT_Orientation orientation);
 
 /** \} */
 
