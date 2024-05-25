@@ -1145,6 +1145,12 @@ QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget pa
     return résultat;
 }
 
+QT_Rappels_GLWidget *QT_glwidget_donne_rappels(QT_GLWidget *widget)
+{
+    VERS_QT(widget);
+    return qwidget->donne_rappels();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

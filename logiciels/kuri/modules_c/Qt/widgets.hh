@@ -89,6 +89,11 @@ class GLWidget : public QGLWidget {
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int w, int h) override;
+
+    QT_Rappels_GLWidget *donne_rappels() const
+    {
+        return m_rappels;
+    }
 };
 
 /** \} */

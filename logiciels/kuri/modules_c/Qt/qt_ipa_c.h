@@ -1298,6 +1298,8 @@ struct QT_Rappels_GLWidget {
 struct QT_GLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
                                      union QT_Generic_Widget parent);
 
+struct QT_Rappels_GLWidget *QT_glwidget_donne_rappels(struct QT_GLWidget *widget);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
