@@ -1435,6 +1435,10 @@ void QT_splitter_definis_orientation(struct QT_Splitter *splitter,
                                      enum QT_Orientation orientation);
 void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Widget widget);
 void QT_splitter_definis_enfants_collapsables(struct QT_Splitter *splitter, bool ouinon);
+void QT_splitter_definis_tailles(struct QT_Splitter *splitter, int *éléments, int nombre_tailles);
+void QT_splitter_donne_tailles(struct QT_Splitter *splitter, int *r_éléments, int nombre_tailles);
+void QT_splitter_connecte_sur_mouvement_splitter(struct QT_Splitter *splitter,
+                                                 struct QT_Rappel_Generique *rappel);
 
 /** \} */
 

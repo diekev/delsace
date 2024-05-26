@@ -1485,6 +1485,45 @@ void QT_splitter_definis_enfants_collapsables(QT_Splitter *splitter, bool ouinon
     qsplitter->setChildrenCollapsible(ouinon);
 }
 
+void QT_splitter_definis_tailles(QT_Splitter *splitter, int *éléments, int nombre_tailles)
+{
+    VERS_QT(splitter);
+
+    QList<int> tailles;
+    for (int i = 0; i < nombre_tailles; i++) {
+        tailles.push_back(éléments[i]);
+    }
+
+    qsplitter->setSizes(tailles);
+}
+
+void QT_splitter_donne_tailles(QT_Splitter *splitter, int *r_éléments, int nombre_tailles)
+{
+    VERS_QT(splitter);
+
+    int i = 0;
+    for (auto size : qsplitter->sizes()) {
+        if (i >= nombre_tailles) {
+            break;
+        }
+
+        r_éléments[i++] = size;
+    }
+}
+
+void QT_splitter_connecte_sur_mouvement_splitter(QT_Splitter *splitter,
+                                                 QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(splitter);
+
+    QObject::connect(
+        qsplitter, &QSplitter::splitterMoved, [=](int, int) { rappel->sur_rappel(rappel); });
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
