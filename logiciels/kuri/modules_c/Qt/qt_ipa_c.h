@@ -1450,6 +1450,7 @@ struct QT_Rappels_TabWidget {
     void (*sur_changement_page)(struct QT_Rappels_TabWidget *, int index);
     void (*sur_fermeture_page)(struct QT_Rappels_TabWidget *, int index);
     void (*sur_destruction)(struct QT_Rappels_TabWidget *);
+    struct QT_TabWidget *widget;
 };
 
 struct QT_TabWidget *QT_cree_tab_widget(struct QT_Rappels_TabWidget *rappels,

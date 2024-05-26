@@ -1533,7 +1533,11 @@ void QT_splitter_connecte_sur_mouvement_splitter(QT_Splitter *splitter,
 QT_TabWidget *QT_cree_tab_widget(QT_Rappels_TabWidget *rappels, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new TabWidget(rappels, qparent));
+    auto résultat = vers_ipa(new TabWidget(rappels, qparent));
+    if (rappels) {
+        rappels->widget = résultat;
+    }
+    return résultat;
 }
 
 QT_Rappels_TabWidget *QT_tab_widget_donne_rappels(QT_TabWidget *tab)
