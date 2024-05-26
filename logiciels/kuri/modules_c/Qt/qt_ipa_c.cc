@@ -1479,6 +1479,12 @@ void QT_splitter_ajoute_widget(QT_Splitter *splitter, QT_Generic_Widget widget)
     qsplitter->addWidget(qwidget);
 }
 
+void QT_splitter_definis_enfants_collapsables(QT_Splitter *splitter, bool ouinon)
+{
+    VERS_QT(splitter);
+    qsplitter->setChildrenCollapsible(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

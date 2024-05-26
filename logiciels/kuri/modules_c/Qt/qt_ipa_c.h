@@ -1434,6 +1434,7 @@ struct QT_Splitter *QT_cree_splitter();
 void QT_splitter_definis_orientation(struct QT_Splitter *splitter,
                                      enum QT_Orientation orientation);
 void QT_splitter_ajoute_widget(struct QT_Splitter *splitter, union QT_Generic_Widget widget);
+void QT_splitter_definis_enfants_collapsables(struct QT_Splitter *splitter, bool ouinon);
 
 /** \} */
 
