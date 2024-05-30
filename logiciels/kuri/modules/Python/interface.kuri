@@ -1729,4 +1729,15 @@ PyConfig_SetBytesArgv :: fonc (config: *PyConfig, argc: Py_ssize_t, argv: *Chain
 PyConfig_SetArgv :: fonc (config: *PyConfig, argc: Py_ssize_t, argv: **wchar_t) -> PyStatus #externe libpython
 PyConfig_SetWideStringList :: fonc (config: *PyConfig, list: *PyWideStringList, length: Py_ssize_t, items: **wchar_t) -> PyStatus #externe libpython
 
+PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
+{
+    /* Met en place les chemins. */
+    chemin_recherche := crée_chaine_utf32(chemin)
+    /* Ajout terminateur nul. */
+    chaine_ajoute(*chemin_recherche, 0)
+
+    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur)
+    config.module_search_paths_set = 1
+}
+
 /** } */
