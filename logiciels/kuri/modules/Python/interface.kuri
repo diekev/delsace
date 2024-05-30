@@ -3,8 +3,16 @@
 importe Chaine
 importe Fondation
 importe Math
+importe PThread
 
 libpython :: #bibliothèque "python3.10"
+
+libdl :: #bibliothèque "dl"
+libutil :: #bibliothèque "util"
+
+// #dépendance_bibliothèque libpython libpthread
+// #dépendance_bibliothèque libpython libdl
+// #dépendance_bibliothèque libpython libutil
 
 Py_ssize_t :: z64
 Py_hash_t :: Py_ssize_t
