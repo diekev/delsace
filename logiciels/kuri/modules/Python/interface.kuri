@@ -1323,17 +1323,21 @@ PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject,
 
 /* The start symbol from the Python grammar for isolated expressions;
  * for use with Py_CompileString(). */
-Py_eval_input : z32 #externe libpython
+Py_eval_input :: 258
 
 /* The start symbol from the Python grammar for sequences of statements as read
  * from a file or other source; for use with Py_CompileString(). This is the
  * symbol to use when compiling arbitrarily long Python source code. */
-Py_file_input : z32 #externe libpython
+Py_file_input :: 257
 
 /* The start symbol from the Python grammar for a single statement;
  * for use with Py_CompileString(). This is the symbol used for the interactive
  * interpreter loop. */
-Py_single_input : z32 #externe libpython
+Py_single_input :: 256
+
+Py_func_type_input :: 345
+
+Py_fstring_input :: 800
 
 /** } */
 
