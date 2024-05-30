@@ -79,3 +79,85 @@ définis_enveloppage :: fonc (atlas: *AtlasTexture @inutilisée, enveloppe: GLen
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Texture2D
+ * \{ */
+
+Texture2D :: struct {
+	bindcode: n32
+	format_interne: n32
+	bordure: z32
+	nombre: n32
+	format: n32
+	type: n32
+}
+
+loge_texture_2d :: fonc (nombre: n32) -> *Texture2D
+{
+    résultat := loge(Texture2D)
+    initialise_texture_2d(résultat, nombre)
+    retourne résultat
+}
+
+initialise_texture_2d :: fonc (texture: *Texture2D, nombre: n32)
+{
+    texture.nombre = nombre
+    glGenTextures(1, *texture.bindcode)
+}
+
+déloge_texture_2d :: fonc (texture: *Texture2D)
+{
+    détruit_données_texture(texture, faux)
+    déloge(texture)
+}
+
+détruit_données_texture :: fonc (empl texture: *Texture2D, renouvel: bool)
+{
+	si glIsTexture(bindcode) {
+		glDeleteTextures(1, *bindcode)
+	}
+
+	si renouvel {
+		glGenTextures(1, *bindcode)
+	}
+}
+
+attache :: fonc (empl texture: *Texture2D)
+{
+	glActiveTexture(GL_TEXTURE0 + nombre)
+	glBindTexture(GL_TEXTURE_2D, bindcode)
+}
+
+détache :: fonc (empl texture: *Texture2D)
+{
+	glActiveTexture(GL_TEXTURE0 + nombre)
+	glBindTexture(GL_TEXTURE_2D, 0)
+}
+
+définis_typage :: fonc (texture: *Texture2D, type: n32, format: n32, format_interne: n32)
+{
+	texture.type = type
+	texture.format = format
+	texture.format_interne = format_interne
+}
+
+définis_filtre_min_mag :: fonc (texture: *Texture2D @inutilisée, min: GLenum, mag: GLenum)
+{
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag)
+}
+
+remplis :: fonc (empl texture: *Texture2D, données: *rien, taille: [2]z32)
+{
+	glTexImage2D(GL_TEXTURE_2D, 0, format_interne, taille[0], taille[1],
+				 bordure, format, type, données);
+}
+
+définis_enveloppage :: fonc (texture: *Texture2D @inutilisée, enveloppe: GLenum)
+{
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, enveloppe)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, enveloppe)
+}
+
+/** \} */
