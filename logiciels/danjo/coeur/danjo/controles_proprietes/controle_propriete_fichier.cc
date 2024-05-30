@@ -58,6 +58,14 @@ void SelecteurFichier::setChoosenFile()
     QString dir = "";
     QString filtres = m_filtres;
 
+    auto chemin_courant = m_line_edit->text();
+    if (!chemin_courant.isEmpty()) {
+        QFileInfo file_info(chemin_courant);
+        if (file_info.exists() && file_info.exists(file_info.dir().path())) {
+            dir = file_info.dir().path();
+        }
+    }
+
     if (m_input) {
         chemin = QFileDialog::getOpenFileName(this, caption, dir, filtres);
     }
