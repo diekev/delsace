@@ -294,3 +294,41 @@ bool GraphicsView::focusNextPrevChild(bool /*next*/)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Widget
+ * \{ */
+
+PlainTextEdit::PlainTextEdit(QT_Rappels_PlainTextEdit *rappels, QWidget *parent)
+    : QPlainTextEdit(parent), m_rappels(rappels)
+{
+}
+
+PlainTextEdit::~PlainTextEdit()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
+bool PlainTextEdit::event(QEvent *event)
+{
+    if (m_rappels && m_rappels->sur_evenement) {
+        QT_Generic_Event generic_event;
+        generic_event.event = reinterpret_cast<QT_Evenement *>(event);
+        if (m_rappels->sur_evenement(m_rappels, generic_event)) {
+            return true;
+        }
+    }
+    return QPlainTextEdit::event(event);
+}
+
+IMPLEMENTE_METHODES_EVENEMENTS(PlainTextEdit)
+
+QTextCursor *PlainTextEdit::donne_cursor()
+{
+    m_cached_cursor = this->textCursor();
+    return &m_cached_cursor;
+}
+
+/** \} */

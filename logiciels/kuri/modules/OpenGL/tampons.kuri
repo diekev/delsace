@@ -213,6 +213,23 @@ initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attr
     }
 }
 
+initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attribut: chaine, sommets: []Vec2, index: []n32)
+{
+    params.attribut = attribut
+    params.dimension_attribut = 2
+    params.pointeur_sommets = sommets.pointeur
+    params.taille_octet_sommets = tableau_taille_mémoire(sommets) comme n64
+    params.pointeur_index = index.pointeur
+    params.taille_octet_index = tableau_taille_mémoire(index) comme n64
+
+    si index.taille != 0 {
+        params.éléments = index.taille comme n64
+    }
+    sinon {
+        params.éléments = sommets.taille comme n64
+    }
+}
+
 initialise_paramètres_extra :: fonc (params: *ParamètresCréationTampon, attribut: chaine, données: []Vec3)
 {
     params.attribut = attribut
@@ -275,6 +292,7 @@ TamponRendu :: struct {
     dessin_indexé: bool
 
     atlas: *AtlasTexture
+    texture_2d: *Texture2D
 }
 
 crée_tampon_rendu :: fonc (programme: *ProgrammeDeNuançage) -> *TamponRendu
@@ -295,6 +313,9 @@ détruit_tampon_rendu :: fonc (tampon: *TamponRendu)
     si tampon.atlas {
         déloge_atlas_texture(tampon.atlas)
     }
+    si tampon.texture_2d {
+        déloge_texture_2d(tampon.texture_2d)
+    }
     déloge(tampon)
 }
 
@@ -311,6 +332,13 @@ ajoute_atlas :: fonc (tampon: *TamponRendu) -> *AtlasTexture
 {
     résultat := loge_atlas_texture(0)
     tampon.atlas = résultat
+    retourne résultat
+}
+
+ajoute_texture_2d :: fonc (tampon: *TamponRendu) -> *Texture2D
+{
+    résultat := loge_texture_2d(0)
+    tampon.texture_2d = résultat
     retourne résultat
 }
 
@@ -376,6 +404,7 @@ dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
     attache(données_tampon)
     diffère détache(données_tampon)
 
+    // textures
     si atlas {
         attache(atlas)
     }
@@ -383,7 +412,12 @@ dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
         détache(atlas)
     }
 
-    // textures
+    si texture_2d {
+        attache(texture_2d)
+    }
+    diffère si texture_2d {
+        détache(texture_2d)
+    }
 
     définis_uniforme(programme, "matrice", ctx.matrice_objet)
     vérifie_erreur("Erreur lors du passage de la matrice objet")
