@@ -3,8 +3,16 @@
 importe Chaine
 importe Fondation
 importe Math
+importe PThread
 
 libpython :: #bibliothèque "python3.10"
+
+libdl :: #bibliothèque "dl"
+libutil :: #bibliothèque "util"
+
+// #dépendance_bibliothèque libpython libpthread
+// #dépendance_bibliothèque libpython libdl
+// #dépendance_bibliothèque libpython libutil
 
 Py_ssize_t :: z64
 Py_hash_t :: Py_ssize_t
@@ -1288,6 +1296,8 @@ Py_Initialize :: fonc () -> rien #externe libpython
 
 Py_InitializeEx :: fonc (initsigs: z32) -> rien #externe libpython
 
+Py_InitializeFromConfig :: fonc (config: *PyConfig) -> PyStatus #externe libpython
+
 Py_FinalizeEx :: fonc () -> z32 #externe libpython
 
 /** } */
@@ -1323,17 +1333,21 @@ PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject,
 
 /* The start symbol from the Python grammar for isolated expressions;
  * for use with Py_CompileString(). */
-Py_eval_input : z32 #externe libpython
+Py_eval_input :: 258
 
 /* The start symbol from the Python grammar for sequences of statements as read
  * from a file or other source; for use with Py_CompileString(). This is the
  * symbol to use when compiling arbitrarily long Python source code. */
-Py_file_input : z32 #externe libpython
+Py_file_input :: 257
 
 /* The start symbol from the Python grammar for a single statement;
  * for use with Py_CompileString(). This is the symbol used for the interactive
  * interpreter loop. */
-Py_single_input : z32 #externe libpython
+Py_single_input :: 256
+
+Py_func_type_input :: 345
+
+Py_fstring_input :: 800
 
 /** } */
 
@@ -1497,5 +1511,241 @@ PyTuple_Check :: fonc (ob: *PyObject) -> bool
 PyTuple_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
 
 PyTuple_GetItem :: fonc (p: *PyObject, pos: Py_ssize_t) -> *PyObject #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Configuration (initconfig.h)
+ * \{ */
+
+wchar_t :: n32
+
+/* --- PyStatus ----------------------------------------------- */
+
+PyStatus :: struct {
+    OK :: 0
+    ERROR :: 1
+    EXIT :: 2
+
+    type: z32
+    func: ChaineC
+    err_msg: ChaineC
+    exitcode: z32
+}
+
+PyStatus_Ok :: fonc () -> PyStatus #externe libpython
+PyStatus_Error :: fonc (err_msg: ChaineC) -> PyStatus #externe libpython
+PyStatus_NoMemory :: fonc () -> PyStatus #externe libpython
+PyStatus_Exit :: fonc (exitcode: z32) -> PyStatus #externe libpython
+PyStatus_IsError :: fonc (err: PyStatus) -> z32 #externe libpython
+PyStatus_IsExit :: fonc (err: PyStatus) -> z32 #externe libpython
+PyStatus_Exception :: fonc (err: PyStatus) -> z32 #externe libpython
+
+Py_ExitStatusException :: fonc (status: PyStatus) -> rien #externe libpython
+
+/* --- PyWideStringList ------------------------------------------------ */
+
+PyWideStringList :: struct {
+    /* If length is greater than zero, items must be non-NULL
+       and all items strings must be non-NULL */
+    length: Py_ssize_t
+    items: **wchar_t
+}
+
+PyWideStringList_Append :: fonc (list: *PyWideStringList, item: *wchar_t) -> PyStatus #externe libpython
+PyWideStringList_Insert :: fonc (list: *PyWideStringList, index: Py_ssize_t, item: *wchar_t) -> PyStatus #externe libpython
+
+/* --- PyPreConfig ----------------------------------------------- */
+
+PyPreConfig :: struct {
+    _config_init: z32     /* _PyConfigInitEnum value */
+
+    /* Parse Py_PreInitializeFromBytesArgs() arguments?
+       See PyConfig.parse_argv */
+    parse_argv: z32
+
+    /* If greater than 0, enable isolated mode: sys.path contains
+       neither the script's directory nor the user's site-packages directory.
+
+       Set to 1 by the -I command line option. If set to -1 (default), inherit
+       Py_IsolatedFlag value. */
+    isolated: z32
+
+    /* If greater than 0: use environment variables.
+       Set to 0 by -E command line option. If set to -1 (default), it is
+       set to !Py_IgnoreEnvironmentFlag. */
+    use_environment: z32
+
+    /* Set the LC_CTYPE locale to the user preferred locale? If equals to 0,
+       set coerce_c_locale and coerce_c_locale_warn to 0. */
+    configure_locale: z32
+
+    /* Coerce the LC_CTYPE locale if it's equal to "C"? (PEP 538)
+
+       Set to 0 by PYTHONCOERCECLOCALE=0. Set to 1 by PYTHONCOERCECLOCALE=1.
+       Set to 2 if the user preferred LC_CTYPE locale is "C".
+
+       If it is equal to 1, LC_CTYPE locale is read to decide if it should be
+       coerced or not (ex: PYTHONCOERCECLOCALE=1). Internally, it is set to 2
+       if the LC_CTYPE locale must be coerced.
+
+       Disable by default (set to 0). Set it to -1 to let Python decide if it
+       should be enabled or not. */
+    coerce_c_locale: z32
+
+    /* Emit a warning if the LC_CTYPE locale is coerced?
+
+       Set to 1 by PYTHONCOERCECLOCALE=warn.
+
+       Disable by default (set to 0). Set it to -1 to let Python decide if it
+       should be enabled or not. */
+    coerce_c_locale_warn: z32
+
+// À FAIRE : windows
+// #ifdef MS_WINDOWS
+//     /* If greater than 1, use the "mbcs" encoding instead of the UTF-8
+//        encoding for the filesystem encoding.
+
+//        Set to 1 if the PYTHONLEGACYWINDOWSFSENCODING environment variable is
+//        set to a non-empty string. If set to -1 (default), inherit
+//        Py_LegacyWindowsFSEncodingFlag value.
+
+//        See PEP 529 for more details. */
+//     legacy_windows_fs_encoding: z32
+// #endif
+
+    /* Enable UTF-8 mode? (PEP 540)
+
+       Disabled by default (equals to 0).
+
+       Set to 1 by "-X utf8" and "-X utf8=1" command line options.
+       Set to 1 by PYTHONUTF8=1 environment variable.
+
+       Set to 0 by "-X utf8=0" and PYTHONUTF8=0.
+
+       If equals to -1, it is set to 1 if the LC_CTYPE locale is "C" or
+       "POSIX", otherwise it is set to 0. Inherit Py_UTF8Mode value value. */
+    utf8_mode: z32
+
+    /* If non-zero, enable the Python Development Mode.
+
+       Set to 1 by the -X dev command line option. Set by the PYTHONDEVMODE
+       environment variable. */
+    dev_mode: z32
+
+    /* Memory allocator: PYTHONMALLOC env var.
+       See PyMemAllocatorName for valid values. */
+    allocator: z32
+}
+
+PyPreConfig_InitPythonConfig :: fonc (config: *PyPreConfig) -> rien #externe libpython
+PyPreConfig_InitIsolatedConfig :: fonc (config: *PyPreConfig) -> rien #externe libpython
+
+Py_PreInitialize :: fonc (config: *PyPreConfig) -> PyStatus #externe libpython
+
+/* --- PyConfig ---------------------------------------------- */
+
+/* This structure is best documented in the Doc/c-api/init_config.rst file. */
+PyConfig :: struct {
+    _config_init: z32     /* _PyConfigInitEnum value */
+
+    isolated: z32
+    use_environment: z32
+    dev_mode: z32
+    install_signal_handlers: z32
+    use_hash_seed: z32
+    hash_seed: n64
+    faulthandler: z32
+    tracemalloc: z32
+    import_time: z32
+    show_ref_count: z32
+    dump_refs: z32
+    malloc_stats: z32
+    filesystem_encoding: *wchar_t
+    filesystem_errors: *wchar_t
+    pycache_prefix: *wchar_t
+    parse_argv: z32
+    orig_argv: PyWideStringList
+    argv: PyWideStringList
+    xoptions: PyWideStringList
+    warnoptions: PyWideStringList
+    site_import: z32
+    bytes_warning: z32
+    warn_default_encoding: z32
+    inspect: z32
+    interactive: z32
+    optimization_level: z32
+    parser_debug: z32
+    write_bytecode: z32
+    verbose: z32
+    quiet: z32
+    user_site_directory: z32
+    configure_c_stdio: z32
+    buffered_stdio: z32
+    stdio_encoding: *wchar_t
+    stdio_errors: *wchar_t
+    // À FAIRE : windows
+// #ifdef MS_WINDOWS
+//     legacy_windows_stdio: z32
+// #endif
+    check_hash_pycs_mode: *wchar_t
+
+    /* --- Path configuration inputs ------------ */
+    pathconfig_warnings: z32
+    program_name: *wchar_t
+    pythonpath_env: *wchar_t
+    home: *wchar_t
+    platlibdir: *wchar_t
+
+    /* --- Path configuration outputs ----------- */
+    module_search_paths_set: z32
+    module_search_paths: PyWideStringList
+    executable: *wchar_t
+    base_executable: *wchar_t
+    prefix: *wchar_t
+    base_prefix: *wchar_t
+    exec_prefix: *wchar_t
+    base_exec_prefix: *wchar_t
+
+    /* --- Parameter only used by Py_Main() ---------- */
+    skip_source_first_line: z32
+    run_command: *wchar_t
+    run_module: *wchar_t
+    run_filename: *wchar_t
+
+    /* --- Private fields ---------------------------- */
+
+    // Install importlib? If equals to 0, importlib is not initialized at all.
+    // Needed by freeze_importlib.
+    _install_importlib: z32
+
+    // If equal to 0, stop Python initialization before the "main" phase.
+    _init_main: z32
+
+    // If non-zero, disallow threads, subprocesses, and fork.
+    // Default: 0.
+    _isolated_interpreter: z32
+}
+
+PyConfig_InitPythonConfig :: fonc (config: *PyConfig) -> rien #externe libpython
+PyConfig_InitIsolatedConfig :: fonc (config: *PyConfig) -> rien #externe libpython
+PyConfig_Clear :: fonc (config: *PyConfig) -> rien #externe libpython
+PyConfig_SetString :: fonc (config: *PyConfig, config_str: **wchar_t, str: *wchar_t) -> PyStatus #externe libpython
+PyConfig_SetBytesString :: fonc (config: *PyConfig, config_str: **wchar_t, str: ChaineC) -> PyStatus #externe libpython
+PyConfig_Read :: fonc (config: *PyConfig) -> PyStatus #externe libpython
+PyConfig_SetBytesArgv :: fonc (config: *PyConfig, argc: Py_ssize_t, argv: *ChaineC) -> PyStatus #externe libpython
+PyConfig_SetArgv :: fonc (config: *PyConfig, argc: Py_ssize_t, argv: **wchar_t) -> PyStatus #externe libpython
+PyConfig_SetWideStringList :: fonc (config: *PyConfig, list: *PyWideStringList, length: Py_ssize_t, items: **wchar_t) -> PyStatus #externe libpython
+
+PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
+{
+    /* Met en place les chemins. */
+    chemin_recherche := crée_chaine_utf32(chemin)
+    /* Ajout terminateur nul. */
+    chaine_ajoute(*chemin_recherche, 0)
+
+    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur)
+    config.module_search_paths_set = 1
+}
 
 /** } */
