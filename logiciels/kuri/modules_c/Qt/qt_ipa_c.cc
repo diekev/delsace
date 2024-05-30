@@ -1136,6 +1136,13 @@ void QT_widget_definis_infobulle(QT_Generic_Widget widget, QT_Chaine texte)
     qwidget->setToolTip(qtexte);
 }
 
+void QT_widget_definis_fonte(union QT_Generic_Widget widget, struct QT_Font *fonte)
+{
+    VERS_QT(widget);
+    VERS_QT(fonte);
+    qwidget->setFont(qfonte);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

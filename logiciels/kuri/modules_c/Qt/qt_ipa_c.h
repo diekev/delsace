@@ -1279,6 +1279,8 @@ struct QT_Rect QT_widget_donne_geometrie(union QT_Generic_Widget widget);
 
 void QT_widget_definis_infobulle(union QT_Generic_Widget widget, struct QT_Chaine texte);
 
+void QT_widget_definis_fonte(union QT_Generic_Widget widget, struct QT_Font *fonte);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
