@@ -1,3 +1,4 @@
+importe Géométrie
 importe Math
 
 Caméra2D :: struct {
@@ -12,19 +13,78 @@ Caméra2D :: struct {
     /* Zoom. */
     zoom := 1.0 @mutable
 
-    matrice: Mat4r @accessible
+    monde_vers_caméra: Mat4r
+    projection: Mat4r
+
+    besoin_ajournement := vrai
 }
 
-ajourne_matrice :: fonc (caméra: *Caméra2D)
+ajourne_matrice :: fonc (empl caméra: *Caméra2D)
 {
-    caméra.matrice = construit_mat4r_neutre()
-    caméra.matrice.m[0][0] = caméra.zoom
-    caméra.matrice.m[1][1] = caméra.ratio_d_aspect() * caméra.zoom
-    caméra.matrice.m[3][0] = caméra.pos_x
-    caméra.matrice.m[3][1] = caméra.pos_y
+    saufsi besoin_ajournement {
+        retourne
+    }
+
+    position := Vec3(pos_x, pos_y, 1.0)
+    cible := Vec3(pos_x, pos_y, 0.0)
+    vecteur_haut := Vec3(0.0, 1.0, 0.0)
+
+    monde_vers_caméra = mire(position, cible, vecteur_haut)
+
+    largeur_ := largeur comme r32 / zoom
+    hauteur_ := hauteur comme r32 / zoom
+    projection = crée_matrice_projection_orthographique(0.0, largeur_, 0.0, hauteur_, -1.0, 1.0)
+
+    besoin_ajournement = faux
 } @Python "méthode"
+
+modèle_vue_projection :: fonc (empl caméra: *Caméra2D) -> Mat4r
+{
+    retourne projection * monde_vers_caméra
+}
+
+définis_dimension_fenêtre :: fonc (caméra: *Caméra2D, largeur: z32, hauteur: z32)
+{
+    caméra.largeur = largeur
+    caméra.hauteur = hauteur
+    caméra.besoin_ajournement = vrai
+}
 
 ratio_d_aspect :: fonc (caméra: *Caméra2D) -> r32
 {
     retourne (caméra.largeur comme r32) / (caméra.hauteur comme r32)
+}
+
+applique_zoom :: fonc (empl caméra: *Caméra2D, delta: r32, où: Point2D(z32))
+{
+    quantité := si delta >= 0.0 {
+        Constantes(r32).PHI
+    }
+    sinon {
+        Constantes(r32).PHI_INV
+    }
+
+    /* Zoom vers la souris. */
+    vieux_zoom := caméra.zoom
+    neuf_zoom := vieux_zoom * quantité
+
+    taille_vue := Vec2(caméra.largeur comme r32, caméra.hauteur comme r32)
+    souris := Vec2(où.x comme r32, où.y comme r32)
+
+    différence_pixels := taille_vue / vieux_zoom - taille_vue / neuf_zoom
+    ratio := souris / taille_vue
+
+    delta_position := différence_pixels * ratio
+
+    pos_x += delta_position.x
+    pos_y += delta_position.y
+    zoom = neuf_zoom
+    besoin_ajournement = vrai
+}
+
+applique_pan :: fonc (empl caméra: *Caméra2D, dx: r32, dy: r32)
+{
+    pos_x -= dx / zoom
+    pos_y -= dy / zoom
+    besoin_ajournement = vrai
 }
