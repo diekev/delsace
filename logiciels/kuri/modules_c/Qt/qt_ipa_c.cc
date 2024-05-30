@@ -148,10 +148,29 @@ inline QRect vers_qt(QT_Rect rect)
     return QRect(rect.x, rect.y, rect.largeur, rect.hauteur);
 }
 
+inline QString vers_qt(QT_Chaine const *chaine)
+{
+    if (!chaine) {
+        return "";
+    }
+    return chaine->vers_std_string().c_str();
+}
+
+inline QString vers_qt(QT_Chaine const chaine)
+{
+    return chaine.vers_std_string().c_str();
+}
+
 inline QFont vers_qt(QT_Font *font)
 {
-    auto résultat = QFont();
-    if (font) {
+    if (!font) {
+        return {};
+    }
+
+    auto famille = vers_qt(font->famille);
+
+    auto résultat = QFont(famille);
+    if (font->taille_point != 0) {
         résultat.setPointSize(font->taille_point);
     }
     return résultat;
@@ -168,19 +187,6 @@ inline QPen vers_qt(QT_Pen pen)
     résultat.setColor(vers_qt(pen.color));
     résultat.setWidthF(pen.width);
     return résultat;
-}
-
-inline QString vers_qt(QT_Chaine const *chaine)
-{
-    if (!chaine) {
-        return "";
-    }
-    return chaine->vers_std_string().c_str();
-}
-
-inline QString vers_qt(QT_Chaine const chaine)
-{
-    return chaine.vers_std_string().c_str();
 }
 
 #define TRANSTYPAGE_WIDGETS(nom_qt, nom_classe, nom_union)                                        \

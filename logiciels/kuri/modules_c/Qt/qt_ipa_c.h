@@ -617,6 +617,7 @@ struct QT_Brush {
  * \{ */
 
 struct QT_Font {
+    struct QT_Chaine famille;
     int taille_point;
 };
 
