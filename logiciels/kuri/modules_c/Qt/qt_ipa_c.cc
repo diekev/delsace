@@ -220,6 +220,7 @@ ENUMERE_TYPES_ITEM_MODEL(TRANSTYPAGE_WIDGETS)
     }
 
 TRANSTYPAGE_OBJET_SIMPLE(QPixmap, QT_Pixmap)
+TRANSTYPAGE_OBJET_SIMPLE(QTextCursor, QT_TextCursor)
 
 #undef TRANSTYPAGE_WIDGETS
 
@@ -2758,6 +2759,125 @@ void QT_progress_bar_definis_orientation(QT_ProgressBar *progress_bar, QT_Orient
 {
     VERS_QT(progress_bar);
     qprogress_bar->setOrientation(convertis_orientation(orientation));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TextCursor
+ * \{ */
+
+static QTextCursor::MoveOperation convertis_move_operation(QT_Text_Cursor_Move_Operation op)
+{
+    switch (op) {
+        ENUMERE_TEXT_CURSOR_MOVE_OPERATION(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QTextCursor::NoMove;
+}
+
+static QTextCursor::MoveMode convertis_move_mode(QT_Text_Cursor_Move_Mode mode)
+{
+    switch (mode) {
+        ENUMERE_TEXT_CURSOR_MOVE_MODE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QTextCursor::MoveAnchor;
+}
+
+int QT_text_cursor_donne_position(QT_TextCursor *cursor)
+{
+    VERS_QT(cursor);
+    return qcursor->position();
+}
+
+void QT_text_cursor_definis_position(QT_TextCursor *cursor,
+                                     int position,
+                                     QT_Text_Cursor_Move_Mode mode)
+{
+    VERS_QT(cursor);
+    qcursor->setPosition(position, convertis_move_mode(mode));
+}
+
+void QT_text_cursor_deplace_vers(QT_TextCursor *cursor,
+                                 QT_Text_Cursor_Move_Operation op,
+                                 QT_Text_Cursor_Move_Mode mode,
+                                 int n)
+{
+    VERS_QT(cursor);
+    qcursor->movePosition(convertis_move_operation(op), convertis_move_mode(mode), n);
+}
+
+void QT_text_cursor_donne_texte_selection(QT_TextCursor *cursor, QT_Chaine *résultat)
+{
+    if (!résultat) {
+        return;
+    }
+
+    VERS_QT(cursor);
+
+    static char tampon[128];
+
+    auto text = qcursor->selectedText().toStdString();
+
+    if (text.size() < 128) {
+        memcpy(tampon, text.c_str(), text.size());
+        résultat->caractères = tampon;
+        résultat->taille = int64_t(text.size());
+    }
+    else {
+        résultat->caractères = nullptr;
+        résultat->taille = 0;
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_PlainTextEdit
+ * \{ */
+
+QT_PlainTextEdit *QT_cree_plain_text_edit(QT_Rappels_PlainTextEdit *rappels,
+                                          QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    auto résultat = new PlainTextEdit(rappels, qparent);
+    if (rappels) {
+        rappels->widget = vers_ipa(résultat);
+    }
+    return vers_ipa(résultat);
+}
+
+QT_Rappels_PlainTextEdit *QT_plain_text_edit_donne_rappels(QT_PlainTextEdit *text_edit)
+{
+    auto base_text_edit = reinterpret_cast<QPlainTextEdit *>(text_edit);
+    if (auto qtext_edit = dynamic_cast<PlainTextEdit *>(base_text_edit)) {
+        return qtext_edit->donne_rappels();
+    }
+    return nullptr;
+}
+
+void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct QT_Chaine *texte)
+{
+    VERS_QT(text_edit);
+    VERS_QT(texte);
+    qtext_edit->setPlainText(qtexte);
+}
+
+QT_TextCursor *QT_plain_text_edit_donne_curseur(QT_PlainTextEdit *text_edit)
+{
+    auto base_text_edit = reinterpret_cast<QPlainTextEdit *>(text_edit);
+    if (auto qtext_edit = dynamic_cast<PlainTextEdit *>(base_text_edit)) {
+        return vers_ipa(qtext_edit->donne_cursor());
+    }
+    return nullptr;
+}
+
+void QT_plain_text_edit_definis_curseur(QT_PlainTextEdit *text_edit, QT_TextCursor *cursor)
+{
+    VERS_QT(text_edit);
+    VERS_QT(cursor);
+    if (cursor) {
+        qtext_edit->setTextCursor(*qcursor);
+    }
 }
 
 /** \} */

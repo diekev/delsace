@@ -14,6 +14,7 @@
 #include <QComboBox>
 #include <QGLWidget>
 #include <QGraphicsView>
+#include <QPlainTextEdit>
 #include <QTreeWidget>
 #include <QWidget>
 #if defined(__GNUC__)
@@ -202,6 +203,45 @@ class GraphicsView final : public QGraphicsView {
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     bool focusNextPrevChild(bool next) override;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name PlainTextEdit
+ * \{ */
+
+class PlainTextEdit : public QPlainTextEdit {
+    Q_OBJECT
+
+    QT_Rappels_PlainTextEdit *m_rappels = nullptr;
+    QTextCursor m_cached_cursor{};
+
+  public:
+    PlainTextEdit(QT_Rappels_PlainTextEdit *rappels, QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(PlainTextEdit);
+
+    ~PlainTextEdit() override;
+
+    bool event(QEvent *event) override;
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
+
+    QTextCursor *donne_cursor();
+
+    QT_Rappels_PlainTextEdit *donne_rappels() const
+    {
+        return m_rappels;
+    }
 };
 
 /** \} */

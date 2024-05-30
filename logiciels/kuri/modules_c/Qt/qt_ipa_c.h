@@ -163,7 +163,8 @@ struct QT_Rappel_Generique {
     O(QSpinBox, QT_SpinBox, spin_box)                                                             \
     O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
     O(QSlider, QT_Slider, slider)                                                                 \
-    O(QProgressBar, QT_ProgressBar, progress_bar)
+    O(QProgressBar, QT_ProgressBar, progress_bar)                                                 \
+    O(PlainTextEdit, QT_PlainTextEdit, plain_text_edit)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -2183,6 +2184,86 @@ void QT_progress_bar_definis_plage(struct QT_ProgressBar *progress_bar, int mini
 void QT_progress_bar_definis_valeur(struct QT_ProgressBar *progress_bar, int valeur);
 void QT_progress_bar_definis_orientation(struct QT_ProgressBar *progress_bar,
                                          enum QT_Orientation orientation);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TextCursor
+ * \{ */
+
+#define ENUMERE_TEXT_CURSOR_MOVE_MODE(O)                                                          \
+    O(QT_TEXT_CURSOR_MOVE_MODE_MOVE_ANCHOR, QTextCursor::MoveAnchor)                              \
+    O(QT_TEXT_CURSOR_MOVE_MODE_KEEP_ANCHOR, QTextCursor::KeepAnchor)
+
+enum QT_Text_Cursor_Move_Mode { ENUMERE_TEXT_CURSOR_MOVE_MODE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+#define ENUMERE_TEXT_CURSOR_MOVE_OPERATION(O)                                                     \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_NoMove, QTextCursor::NoMove)                                  \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_Start, QTextCursor::Start)                                    \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_Up, QTextCursor::Up)                                          \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_StartOfLine, QTextCursor::StartOfLine)                        \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_StartOfBlock, QTextCursor::StartOfBlock)                      \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_StartOfWord, QTextCursor::StartOfWord)                        \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_PreviousBlock, QTextCursor::PreviousBlock)                    \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_PreviousCharacter, QTextCursor::PreviousCharacter)            \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_PreviousWord, QTextCursor::PreviousWord)                      \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_Left, QTextCursor::Left)                                      \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_WordLeft, QTextCursor::WordLeft)                              \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_End, QTextCursor::End)                                        \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_Down, QTextCursor::Down)                                      \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_EndOfLine, QTextCursor::EndOfLine)                            \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_EndOfWord, QTextCursor::EndOfWord)                            \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_EndOfBlock, QTextCursor::EndOfBlock)                          \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_NextBlock, QTextCursor::NextBlock)                            \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_NextCharacter, QTextCursor::NextCharacter)                    \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_NextWord, QTextCursor::NextWord)                              \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_Right, QTextCursor::Right)                                    \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_WordRight, QTextCursor::WordRight)                            \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_NextCell, QTextCursor::NextCell)                              \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_PreviousCell, QTextCursor::PreviousCell)                      \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_NextRow, QTextCursor::NextRow)                                \
+    O(QT_TEXT_CURSOR_MOVE_OPERATION_PreviousRow, QTextCursor::PreviousRow)
+
+enum QT_Text_Cursor_Move_Operation {
+    ENUMERE_TEXT_CURSOR_MOVE_OPERATION(ENUMERE_DECLARATION_ENUM_IPA)
+};
+
+struct QT_TextCursor;
+
+int QT_text_cursor_donne_position(struct QT_TextCursor *cursor);
+void QT_text_cursor_deplace_vers(struct QT_TextCursor *cursor,
+                                 enum QT_Text_Cursor_Move_Operation op,
+                                 enum QT_Text_Cursor_Move_Mode mode,
+                                 int n);
+void QT_text_cursor_definis_position(struct QT_TextCursor *cursor,
+                                     int position,
+                                     enum QT_Text_Cursor_Move_Mode mode);
+void QT_text_cursor_donne_texte_selection(struct QT_TextCursor *cursor,
+                                          struct QT_Chaine *résultat);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_PlainTextEdit
+ * \{ */
+
+struct QT_Rappels_PlainTextEdit {
+    RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_PlainTextEdit);
+    /** Le widget pour lequel les rappels sont mis en place. */
+    struct QT_PlainTextEdit *widget;
+};
+
+struct QT_PlainTextEdit *QT_cree_plain_text_edit(struct QT_Rappels_PlainTextEdit *rappels,
+                                                 union QT_Generic_Widget parent);
+
+struct QT_Rappels_PlainTextEdit *QT_plain_text_edit_donne_rappels(
+    struct QT_PlainTextEdit *text_edit);
+
+void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct QT_Chaine *texte);
+
+struct QT_TextCursor *QT_plain_text_edit_donne_curseur(struct QT_PlainTextEdit *text_edit);
+void QT_plain_text_edit_definis_curseur(struct QT_PlainTextEdit *text_edit,
+                                        struct QT_TextCursor *cursor);
 
 /** \} */
 
