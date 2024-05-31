@@ -227,6 +227,8 @@ crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: c
     type_python := loge(TypePython)
     type_python.nom = nom
     type_python.nom_sauf = remplace(nom, '.', '_')
+    remplace_sans_copie(*type_python.nom_sauf, '(', '_')
+    remplace_sans_copie(*type_python.nom_sauf, ')', '_')
     type_python.type_kuri = info
     type_python.nom_globale_type = enchaine("PyType", type_python.nom_sauf, "PourPython")
     tableau_ajoute(*système.types, type_python)
@@ -399,7 +401,25 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
         }
         TRANCHE {
-            compilatrice_rapporte_erreur("Les types tranches ne sont pas convertibles vers Python pour le moment")
+            info_tableau := info comme *InfoTypeTableau
+            type_pointé := info_tableau.type_pointé
+
+            type_élément := convertis_vers_type_python(système, type_pointé)
+
+            nom := enchaine("Tranche_", type_élément.nom)
+            remplace_sans_copie(*nom, '.', '_')
+            type_python = système.crée_type_python_pour(info, nom)
+            type_python.drapeaux.TYPE_EST_TABLEAU = vrai
+            type_python.type_élément = type_élément
+            init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
+
+            /* Crée un type itérateur pour ce type. */
+            type_itérateur := système.crée_type_python_pour(info, enchaine("ItérateurPour", type_python.nom))
+            type_itérateur.drapeaux.TYPE_EST_ITÉRATEUR = vrai
+            type_itérateur.type_itéré = type_python
+            init_fonctions_type_structure(type_itérateur.fonctions, type_itérateur.nom)
+
+            type_python.type_itérateur = type_itérateur
         }
         RIEN {
             /* Le type rien n'est pas convertis en type Python, nous le détectons lors de la génération de code
@@ -411,7 +431,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         ÉNUM {
             info_énum := info comme *InfoTypeÉnum
             type_python = système.crée_type_python_pour(info, info_énum.nom)
-            init_fonctions_type_énum(type_python.fonctions, info_énum)
+            init_fonctions_type_énum(type_python.fonctions, type_python.nom_sauf, info_énum)
             type_python.drapeaux.TYPE_EST_ÉNUM = vrai
         }
         EINI {
@@ -425,7 +445,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         }
     }
 
-    si type_python {
+    si type_python && type_python.nom_type_kuri.taille == 0 {
         type_python.nom_type_kuri = chaine_pour_type(info)
     }
 
@@ -436,8 +456,14 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 
 /* Compilatrice, et logique de compilation (validation, parsage) des fonctions et types Kuri vers Python. */
 
+ChoseÀGénérer :: énum {
+    MODULE_POUR_BIBLIOTHÈQUE
+    TABLE_DE_CRÉATION_OBJET
+}
+
 CompilatriceModulePython :: struct {
     module: ModulePython
+    chose_à_générer: ChoseÀGénérer
 
     système_type: SystèmeType
 
@@ -453,9 +479,10 @@ détruit :: fonc (compilatrice: &CompilatriceModulePython)
     détruit(compilatrice.système_type)
 }
 
-crée_compilatrice_pour_un_module :: fonc (nom_module: chaine) -> CompilatriceModulePython
+crée_compilatrice_pour_un_module :: fonc (nom_module: chaine, chose_à_générer: ChoseÀGénérer) -> CompilatriceModulePython
 {
     compilatrice: CompilatriceModulePython
+    compilatrice.chose_à_générer = chose_à_générer
     compilatrice.module.nom = nom_module
     initialise_ensemble_de_modules(*compilatrice.modules_kuri_à_importer)
     retourne compilatrice
@@ -639,11 +666,19 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, ench
         génère_déclaration_type_python(enchaineuse, module, it)
     }
 
-    pour module.méthodes {
-        génère_interface_fonction(enchaineuse, it)
+    discr compilatrice.chose_à_générer {
+        MODULE_POUR_BIBLIOTHÈQUE {
+            pour module.méthodes {
+                génère_interface_fonction(enchaineuse, it)
+            }
+
+            génère_initialisation_module(enchaineuse, module, compilatrice.système_type.types)
+        }
+        TABLE_DE_CRÉATION_OBJET {
+            génère_initialisation_table_création_objet(enchaineuse, compilatrice.système_type.types)
+        }
     }
 
-    génère_initialisation_module(enchaineuse, module, compilatrice.système_type.types)
     retourne vrai
 }
 

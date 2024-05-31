@@ -385,7 +385,7 @@ convertis_type_curseur :: fonc (type_curseur: TypeCurseurSystème) -> SDL_System
         FLÈCHE_DOUBLE_VERTICALE { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENS }
         FLÈCHE_DOUBLE_TOUT { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL }
         INTERDIT { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO }
-        MAIN { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND }
+        MAIN_OUVERTE, MAIN_FERMÉE { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND }
         sinon {}
     }
 
