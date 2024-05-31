@@ -1327,6 +1327,15 @@ initialise_type_python :: fonc (type: *PyTypeObject) -> bool
     retourne PyType_Ready(type) == 0
 }
 
+initialise_types_table_création_objet :: fonc ()
+{
+    pour __table_création_objet {
+        saufsi initialise_type_python(it.type_python) {
+            retourne
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
