@@ -30,8 +30,10 @@ TypeCurseurSystème :: énum {
     FLÈCHE_DOUBLE_TOUT
     /* Curseur indiquant que quelque chose est interdit. */
     INTERDIT
-    /* Curseur représentant une main. */
-    MAIN
+    /* Curseur représentant une main ouverte. */
+    MAIN_OUVERTE
+    /* Curseur représentant une main fermée. */
+    MAIN_FERMÉE
 }
 
 /** \} */
