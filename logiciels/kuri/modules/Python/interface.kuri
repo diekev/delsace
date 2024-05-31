@@ -384,15 +384,6 @@ Py_GT :: 4
 Py_GE :: 5
 
 // ---------------------------------------------------
-// Module
-
-PyModule_Create2 :: fonc (module_def: *PyModuleDef, apiver: z32) -> *PyObject #externe libpython
-
-PyModule_AddObject :: fonc (module: *PyObject, name: ChaineC, value: *PyObject) #externe libpython
-PyModule_AddIntConstant :: fonc (module: *PyObject, name: ChaineC, value: z64) -> z32 #externe libpython
-PyModule_AddStringConstant :: fonc (module: *PyObject, name: ChaineC, value: ChaineC) -> z32 #externe libpython
-
-// ---------------------------------------------------
 // Objet
 
 PyType_IsSubtype :: fonc (type1: *PyTypeObject, type2: *PyTypeObject) -> z32 #externe libpython
@@ -1486,23 +1477,48 @@ donne_attribut :: fonc (o: *PyObject, nom_attribut: chaine) -> *PyObject
 PyObject_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
 PyObject_Length :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
 
+PyObject_GenericGetDict :: fonc (o: *PyObject, context: *rien = nul) -> *PyObject #externe libpython
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Dictionary Objects
+ * https://docs.python.org/3/c-api/dict.html
  * \{ */
 
 PyDict_New :: fonc () -> *PyObject #externe libpython
 PyDict_SetItem :: fonc (p: *PyObject, key: *PyObject, val: *PyObject) -> z32 #externe libpython
 PyDict_SetItemString :: fonc (p: *PyObject, key: ChaineC, val: *PyObject) -> z32 #externe libpython
 
+PyDict_Keys :: fonc (p: *PyObject) -> *PyObject #externe libpython
+PyDict_Values :: fonc (p: *PyObject) -> *PyObject #externe libpython
+
+PyDict_Merge :: fonc (a: *PyObject, b: *PyObject, override: z32) -> z32 #externe libpython
+PyDict_Update :: fonc (a: *PyObject, b: *PyObject) -> z32 #externe libpython
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Modules
+ * https://docs.python.org/3/c-api/module.html
  * \{ */
 
+PyModule_NewObject :: fonc (name: *PyObject) -> *PyObject #externe libpython
+PyModule_New :: fonc (name: ChaineC) -> *PyObject #externe libpython
 PyModule_GetDict :: fonc (module: *PyObject) -> *PyObject #externe libpython
+
+PyModule_Create2 :: fonc (module_def: *PyModuleDef, apiver: z32) -> *PyObject #externe libpython
+
+PyModule_AddObject :: fonc (module: *PyObject, name: ChaineC, value: *PyObject) #externe libpython
+PyModule_AddIntConstant :: fonc (module: *PyObject, name: ChaineC, value: z64) -> z32 #externe libpython
+PyModule_AddStringConstant :: fonc (module: *PyObject, name: ChaineC, value: ChaineC) -> z32 #externe libpython
+
+PyModule_New :: fonc (name: chaine) -> *PyObject
+{
+    chn_c_name := crée_chaine_c(name)
+    diffère détruit_chaine_c(chn_c_name)
+    retourne PyModule_New(chn_c_name)
+}
 
 /** } */
 
@@ -1511,6 +1527,8 @@ PyModule_GetDict :: fonc (module: *PyObject) -> *PyObject #externe libpython
  * \{ */
 
 PyImport_ImportModule :: fonc (name: ChaineC) -> *PyObject #externe libpython
+
+PyImport_ExecCodeModule :: fonc (name: ChaineC, co: *PyObject) -> *PyObject #externe libpython
 
 importe_module :: fonc (name: chaine) -> *PyObject
 {
@@ -1556,6 +1574,9 @@ PyObject_CallFunctionObjArgs :: fonc (callable: *PyObject, args: ...) -> *PyObje
 PyList_New :: fonc (len: Py_ssize_t) -> *PyObject #externe libpython
 
 PyList_SetItem :: fonc (list: *PyObject, index: Py_ssize_t, item: *PyObject) -> z32 #externe libpython
+PyList_GetItem :: fonc (list: *PyObject, index: Py_ssize_t) -> *PyObject #externe libpython
+
+PyList_Size :: fonc (list: *PyObject) -> Py_ssize_t #externe libpython
 
 /** } */
 
