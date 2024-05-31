@@ -1336,6 +1336,19 @@ initialise_types_table_création_objet :: fonc ()
     }
 }
 
+donne_type_python_pour :: fonc (info: *InfoType) -> *PyTypeObject
+{
+    pour __table_création_objet {
+        saufsi it.info_type == info {
+            continue
+        }
+
+        retourne it.type_python
+    }
+
+    retourne nul
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
