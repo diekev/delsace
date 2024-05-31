@@ -233,9 +233,9 @@ init_fonctions_type_structure :: fonc (fonctions: &FonctionsTypePython, nom: cha
     fonctions.pour_construction = enchaine("Py", nom, "_From", nom)
 }
 
-init_fonctions_type_énum :: fonc (fonctions: &FonctionsTypePython, type_énum: *InfoTypeÉnum)
+init_fonctions_type_énum :: fonc (fonctions: &FonctionsTypePython, nom: chaine, type_énum: *InfoTypeÉnum)
 {
-    init_fonctions_type_structure(fonctions, type_énum.nom)
+    init_fonctions_type_structure(fonctions, nom)
     fonctions.pour_valeur_unicode_enum = fonction_PyUnicodeEnum_Value_pour_info(type_énum)
 }
 

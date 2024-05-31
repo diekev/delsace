@@ -431,7 +431,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         ÉNUM {
             info_énum := info comme *InfoTypeÉnum
             type_python = système.crée_type_python_pour(info, info_énum.nom)
-            init_fonctions_type_énum(type_python.fonctions, info_énum)
+            init_fonctions_type_énum(type_python.fonctions, type_python.nom_sauf, info_énum)
             type_python.drapeaux.TYPE_EST_ÉNUM = vrai
         }
         EINI {
