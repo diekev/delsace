@@ -763,7 +763,7 @@ génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode:
     chaine_pour_extraction_énum := «
     % : %
     si PyUnicode_Check(pyobject_%) {
-        % = %(pyobject_%, info_de(%)) comme %
+        % = %(pyobject_%, info_de(%)) comme (%)
     }
     sinon {
         % = %(pyobject_%).notre_instance
@@ -772,7 +772,7 @@ génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode:
 
     pour méthode.paramètres_entrée {
         si it.type.drapeaux.TYPE_EST_ÉNUM {
-            enchaineuse.imprime_dans_enchaineuse(chaine_pour_extraction_énum, it.nom, it.type.nom, it.nom, it.nom, it.type.fonctions.pour_valeur_unicode_enum, it.nom, it.type.nom_sauf, it.type.nom_sauf, it.nom, it.type.fonctions.pour_extraction_valeur, it.nom)
+            enchaineuse.imprime_dans_enchaineuse(chaine_pour_extraction_énum, it.nom, it.type.nom, it.nom, it.nom, it.type.fonctions.pour_valeur_unicode_enum, it.nom, it.type.nom, it.type.nom, it.nom, it.type.fonctions.pour_extraction_valeur, it.nom)
             continue
         }
         enchaineuse.ajoute_au_tampon("    ", it.nom, " := ", it.type.fonctions.pour_extraction_valeur, "(pyobject_", it.nom, ")\n")
