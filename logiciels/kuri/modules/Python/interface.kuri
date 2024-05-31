@@ -1476,6 +1476,16 @@ PyObject_Length :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Dictionary Objects
+ * \{ */
+
+PyDict_New :: fonc () -> *PyObject #externe libpython
+PyDict_SetItem :: fonc (p: *PyObject, key: *PyObject, val: *PyObject) -> z32 #externe libpython
+PyDict_SetItemString :: fonc (p: *PyObject, key: ChaineC, val: *PyObject) -> z32 #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Modules
  * \{ */
 
