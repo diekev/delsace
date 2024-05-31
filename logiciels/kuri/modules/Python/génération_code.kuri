@@ -166,7 +166,7 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
     diffère si nom_fonction_mp_ass_subscript != "nul" { déloge(nom_fonction_mp_ass_subscript) }
 
     si possède_membre_mutable {
-        nom_fonction_mp_ass_subscript = enchaine("mp_ass_subscript_pour_", type.nom)
+        nom_fonction_mp_ass_subscript = enchaine("mp_ass_subscript_pour_", type.nom_sauf)
 
         enchaineuse.ajoute_au_tampon(nom_fonction_mp_ass_subscript, " :: fonc (self: *PyObject, key: *PyObject, v: *PyObject) -> z32\n")
         enchaineuse.ajoute_au_tampon("{\n    nom_membre := PyUnicode_AsChaine(key)\n")

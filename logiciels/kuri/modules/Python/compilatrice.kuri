@@ -227,6 +227,8 @@ crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: c
     type_python := loge(TypePython)
     type_python.nom = nom
     type_python.nom_sauf = remplace(nom, '.', '_')
+    remplace_sans_copie(*type_python.nom_sauf, '(', '_')
+    remplace_sans_copie(*type_python.nom_sauf, ')', '_')
     type_python.type_kuri = info
     type_python.nom_globale_type = enchaine("PyType", type_python.nom_sauf, "PourPython")
     tableau_ajoute(*système.types, type_python)
