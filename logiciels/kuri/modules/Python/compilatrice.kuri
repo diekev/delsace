@@ -445,7 +445,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         }
     }
 
-    si type_python {
+    si type_python && type_python.nom_type_kuri.taille == 0 {
         type_python.nom_type_kuri = chaine_pour_type(info)
     }
 
