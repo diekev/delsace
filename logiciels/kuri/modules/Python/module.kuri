@@ -346,7 +346,13 @@ détruit :: fonc (type: *TypePython)
     déloge(type.fonctions.pour_construction)
     déloge(type.fonctions.pour_extraction_valeur)
     déloge(type.membres)
+    pour type.méthodes {
+        détruit(it)
+    }
     déloge(type.méthodes)
+    si type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ITÉRATEUR {
+        déloge(type.nom)
+    }
     déloge(type.nom_globale_type)
     déloge(type.nom_sauf)
     déloge(type.nom_type_kuri)
