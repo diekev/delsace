@@ -401,7 +401,25 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
         }
         TRANCHE {
-            compilatrice_rapporte_erreur("Les types tranches ne sont pas convertibles vers Python pour le moment")
+            info_tableau := info comme *InfoTypeTableau
+            type_pointé := info_tableau.type_pointé
+
+            type_élément := convertis_vers_type_python(système, type_pointé)
+
+            nom := enchaine("Tranche_", type_élément.nom)
+            remplace_sans_copie(*nom, '.', '_')
+            type_python = système.crée_type_python_pour(info, nom)
+            type_python.drapeaux.TYPE_EST_TABLEAU = vrai
+            type_python.type_élément = type_élément
+            init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
+
+            /* Crée un type itérateur pour ce type. */
+            type_itérateur := système.crée_type_python_pour(info, enchaine("ItérateurPour", type_python.nom))
+            type_itérateur.drapeaux.TYPE_EST_ITÉRATEUR = vrai
+            type_itérateur.type_itéré = type_python
+            init_fonctions_type_structure(type_itérateur.fonctions, type_itérateur.nom)
+
+            type_python.type_itérateur = type_itérateur
         }
         RIEN {
             /* Le type rien n'est pas convertis en type Python, nous le détectons lors de la génération de code
