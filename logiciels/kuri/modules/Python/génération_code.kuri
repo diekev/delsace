@@ -166,7 +166,7 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
     diffère si nom_fonction_mp_ass_subscript != "nul" { déloge(nom_fonction_mp_ass_subscript) }
 
     si possède_membre_mutable {
-        nom_fonction_mp_ass_subscript = enchaine("mp_ass_subscript_pour_", type.nom)
+        nom_fonction_mp_ass_subscript = enchaine("mp_ass_subscript_pour_", type.nom_sauf)
 
         enchaineuse.ajoute_au_tampon(nom_fonction_mp_ass_subscript, " :: fonc (self: *PyObject, key: *PyObject, v: *PyObject) -> z32\n")
         enchaineuse.ajoute_au_tampon("{\n    nom_membre := PyUnicode_AsChaine(key)\n")
@@ -623,6 +623,13 @@ génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, 
     }
     enchaineuse.ajoute_au_tampon("    retourne résultat\n")
     enchaineuse.ajoute_au_tampon("}\n")
+
+    /* Fonction générique de création d'objet. */
+    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, "_générique :: fonc (valeur: eini) -> *PyObject\n")
+    enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.ajoute_au_tampon("    assert(valeur.info == info_de(", symbole_pointeur, type.nom_type_kuri, "))\n")
+    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.pointeur comme *", symbole_pointeur, type.nom_type_kuri, "))\n")
+    enchaineuse.ajoute_au_tampon("}\n")
 }
 
 type_supporte_itération :: fonc (type: *TypePython) -> bool
@@ -756,7 +763,7 @@ génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode:
     chaine_pour_extraction_énum := «
     % : %
     si PyUnicode_Check(pyobject_%) {
-        % = %(pyobject_%, info_de(%)) comme %
+        % = %(pyobject_%, info_de(%)) comme (%)
     }
     sinon {
         % = %(pyobject_%).notre_instance
@@ -765,7 +772,7 @@ génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode:
 
     pour méthode.paramètres_entrée {
         si it.type.drapeaux.TYPE_EST_ÉNUM {
-            enchaineuse.imprime_dans_enchaineuse(chaine_pour_extraction_énum, it.nom, it.type.nom, it.nom, it.nom, it.type.fonctions.pour_valeur_unicode_enum, it.nom, it.type.nom_sauf, it.type.nom_sauf, it.nom, it.type.fonctions.pour_extraction_valeur, it.nom)
+            enchaineuse.imprime_dans_enchaineuse(chaine_pour_extraction_énum, it.nom, it.type.nom, it.nom, it.nom, it.type.fonctions.pour_valeur_unicode_enum, it.nom, it.type.nom, it.type.nom, it.nom, it.type.fonctions.pour_extraction_valeur, it.nom)
             continue
         }
         enchaineuse.ajoute_au_tampon("    ", it.nom, " := ", it.type.fonctions.pour_extraction_valeur, "(pyobject_", it.nom, ")\n")
@@ -953,4 +960,31 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
 
     enchaineuse.ajoute_au_tampon("    retourne Py_AjouteTypesAuModule(module_pyobject, tous_les_types)\n")
     enchaineuse.ajoute_au_tampon("}\n")
+}
+
+génère_initialisation_table_création_objet :: fonc (enchaineuse: *Enchaineuse, types: [..]*TypePython)
+{
+    enchaineuse.ajoute_au_tampon("initialise_table_création_objet :: fonc ()\n")
+    enchaineuse.ajoute_au_tampon("{\n")
+
+    pour types {
+        si it.est_basique {
+            continue
+        }
+
+        si it.drapeaux.TYPE_EST_ITÉRATEUR {
+            /* Les fonctions de création ne sont pas disponibles pour les itérateurs. */
+            continue
+        }
+
+        symbole_pointeur := ""
+        si it.drapeaux.TOUJOURS_COMME_POINTEUR {
+            symbole_pointeur = "*"
+        }
+
+        enchaineuse.ajoute_au_tampon("    tableau_ajoute(*__table_création_objet, DonnéesCréationObjet(*", it.nom_globale_type, ", info_de(", symbole_pointeur, it.nom_type_kuri ,"), ", it.fonctions.pour_construction, "_générique))\n")
+    }
+
+    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("#ajoute_init initialise_table_création_objet()\n")
 }
