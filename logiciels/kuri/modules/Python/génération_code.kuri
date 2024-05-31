@@ -623,6 +623,13 @@ génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, 
     }
     enchaineuse.ajoute_au_tampon("    retourne résultat\n")
     enchaineuse.ajoute_au_tampon("}\n")
+
+    /* Fonction générique de création d'objet. */
+    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, "_générique :: fonc (valeur: eini) -> *PyObject\n")
+    enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.ajoute_au_tampon("    assert(valeur.info == info_de(", symbole_pointeur, type.nom_type_kuri, "))\n")
+    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.pointeur comme *", symbole_pointeur, type.nom_type_kuri, "))\n")
+    enchaineuse.ajoute_au_tampon("}\n")
 }
 
 type_supporte_itération :: fonc (type: *TypePython) -> bool
@@ -953,4 +960,31 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
 
     enchaineuse.ajoute_au_tampon("    retourne Py_AjouteTypesAuModule(module_pyobject, tous_les_types)\n")
     enchaineuse.ajoute_au_tampon("}\n")
+}
+
+génère_initialisation_table_création_objet :: fonc (enchaineuse: *Enchaineuse, types: [..]*TypePython)
+{
+    enchaineuse.ajoute_au_tampon("initialise_table_création_objet :: fonc ()\n")
+    enchaineuse.ajoute_au_tampon("{\n")
+
+    pour types {
+        si it.est_basique {
+            continue
+        }
+
+        si it.drapeaux.TYPE_EST_ITÉRATEUR {
+            /* Les fonctions de création ne sont pas disponibles pour les itérateurs. */
+            continue
+        }
+
+        symbole_pointeur := ""
+        si it.drapeaux.TOUJOURS_COMME_POINTEUR {
+            symbole_pointeur = "*"
+        }
+
+        enchaineuse.ajoute_au_tampon("    tableau_ajoute(*__table_création_objet, DonnéesCréationObjet(*", it.nom_globale_type, ", info_de(", symbole_pointeur, it.nom_type_kuri ,"), ", it.fonctions.pour_construction, "_générique))\n")
+    }
+
+    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("#ajoute_init initialise_table_création_objet()\n")
 }

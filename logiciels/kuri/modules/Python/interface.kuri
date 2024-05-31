@@ -1289,6 +1289,47 @@ Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -
 }
 
 /* ------------------------------------------------------------------------- */
+/** \nom Auxiliaires pour la table de création d'objets Python.
+ * \{ */
+
+DonnéesCréationObjet :: struct {
+    type_python: *PyTypeObject
+    info_type: *InfoType
+    fonction: fonc(eini)(*PyObject)
+}
+
+__table_création_objet: [..]DonnéesCréationObjet
+
+crée_objet_python_pour :: fonc (valeur: eini) -> *PyObject
+{
+    pour __table_création_objet {
+        saufsi it.info_type == valeur.info {
+            continue
+        }
+
+        type := it.type_python
+        saufsi initialise_type_python(type) {
+            retourne nul
+        }
+
+        retourne it.fonction(valeur)
+    }
+
+    retourne nul
+}
+
+initialise_type_python :: fonc (type: *PyTypeObject) -> bool
+{
+    si type.tp_flags & Py_TPFLAGS_READY {
+        retourne vrai
+    }
+
+    retourne PyType_Ready(type) == 0
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Initialisation
  * \{ */
 

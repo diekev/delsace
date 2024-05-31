@@ -456,8 +456,14 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 
 /* Compilatrice, et logique de compilation (validation, parsage) des fonctions et types Kuri vers Python. */
 
+ChoseÀGénérer :: énum {
+    MODULE_POUR_BIBLIOTHÈQUE
+    TABLE_DE_CRÉATION_OBJET
+}
+
 CompilatriceModulePython :: struct {
     module: ModulePython
+    chose_à_générer: ChoseÀGénérer
 
     système_type: SystèmeType
 
@@ -473,9 +479,10 @@ détruit :: fonc (compilatrice: &CompilatriceModulePython)
     détruit(compilatrice.système_type)
 }
 
-crée_compilatrice_pour_un_module :: fonc (nom_module: chaine) -> CompilatriceModulePython
+crée_compilatrice_pour_un_module :: fonc (nom_module: chaine, chose_à_générer: ChoseÀGénérer) -> CompilatriceModulePython
 {
     compilatrice: CompilatriceModulePython
+    compilatrice.chose_à_générer = chose_à_générer
     compilatrice.module.nom = nom_module
     initialise_ensemble_de_modules(*compilatrice.modules_kuri_à_importer)
     retourne compilatrice
@@ -659,11 +666,19 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, ench
         génère_déclaration_type_python(enchaineuse, module, it)
     }
 
-    pour module.méthodes {
-        génère_interface_fonction(enchaineuse, it)
+    discr compilatrice.chose_à_générer {
+        MODULE_POUR_BIBLIOTHÈQUE {
+            pour module.méthodes {
+                génère_interface_fonction(enchaineuse, it)
+            }
+
+            génère_initialisation_module(enchaineuse, module, compilatrice.système_type.types)
+        }
+        TABLE_DE_CRÉATION_OBJET {
+            génère_initialisation_table_création_objet(enchaineuse, compilatrice.système_type.types)
+        }
     }
 
-    génère_initialisation_module(enchaineuse, module, compilatrice.système_type.types)
     retourne vrai
 }
 
