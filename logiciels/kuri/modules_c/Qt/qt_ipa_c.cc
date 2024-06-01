@@ -13,6 +13,7 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDialog>
+#include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGraphicsRectItem>
@@ -280,6 +281,17 @@ static QT_ModelIndex vers_ipa(const QModelIndex &model)
 /** \} */
 
 extern "C" {
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Chaine
+ * \{ */
+
+void QT_chaine_detruit(struct QT_Chaine *chn)
+{
+    delete[] chn->caractères;
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name QT_Pixmap
@@ -974,6 +986,19 @@ void QT_widget_definis_hauteur_fixe(QT_Generic_Widget widget, int hauteur)
     qwidget->setFixedHeight(hauteur);
 }
 
+void QT_widget_redimensionne(QT_Generic_Widget widget, QT_Taille taille)
+{
+    VERS_QT(widget);
+    qwidget->resize(taille.largeur, taille.hauteur);
+}
+
+QT_Taille QT_widget_donne_taille(QT_Generic_Widget widget)
+{
+    VERS_QT(widget);
+    auto size = qwidget->size();
+    return QT_Taille{size.width(), size.height()};
+}
+
 void QT_widget_affiche(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
@@ -1202,6 +1227,13 @@ QT_Menu *QT_cree_menu(QT_Generic_Widget parent)
 {
     VERS_QT(parent);
     return vers_ipa(new QMenu(qparent));
+}
+
+QT_Menu *QT_cree_menu_titre(QT_Chaine titre, QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    VERS_QT(titre);
+    return vers_ipa(new QMenu(qtitre, qparent));
 }
 
 void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rappel)
@@ -1797,6 +1829,62 @@ void QT_push_button_connecte_sur_pression(QT_PushButton *button, QT_Rappel_Gener
     QObject::connect(qbutton, &QPushButton::pressed, [=]() { rappel->sur_rappel(rappel); });
 }
 
+void QT_push_button_connecte_sur_clic(QT_PushButton *button, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    auto qbutton = vers_qt(button);
+    QObject::connect(qbutton, &QPushButton::clicked, [=]() { rappel->sur_rappel(rappel); });
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_StandardButton
+ * \{ */
+
+static QMessageBox::StandardButton vers_qt(QT_StandardButton drapeaux)
+{
+    int résultat = QMessageBox::StandardButton::NoButton;
+    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
+    return QMessageBox::StandardButton(résultat);
+}
+
+static QT_StandardButton vers_ipa(QMessageBox::StandardButton drapeaux)
+{
+    int résultat = QMessageBox::StandardButton::NoButton;
+    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
+    return QT_StandardButton(résultat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DialogButtonBox
+ * \{ */
+
+QT_DialogButtonBox *QT_cree_dialog_button_box(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QDialogButtonBox(qparent));
+}
+
+void QT_dialog_button_box_definis_orientation(QT_DialogButtonBox *box, QT_Orientation orientation)
+{
+    VERS_QT(box);
+    qbox->setOrientation(convertis_orientation(orientation));
+}
+
+QT_PushButton *QT_dialog_button_box_ajoute_bouton_standard(QT_DialogButtonBox *box,
+                                                           QT_StandardButton button)
+{
+    VERS_QT(box);
+    auto résultat = qbox->addButton(QDialogButtonBox::StandardButton(vers_qt(button)));
+    return vers_ipa(résultat);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1814,14 +1902,14 @@ void QT_dialog_definis_bouton_accepter(QT_Dialog *dialog, QT_PushButton *bouton)
 {
     auto qdialog = vers_qt(dialog);
     auto qbouton = vers_qt(bouton);
-    QObject::connect(qbouton, &QPushButton::pressed, qdialog, &QDialog::accept);
+    QObject::connect(qbouton, &QPushButton::clicked, qdialog, &QDialog::accept);
 }
 
 void QT_dialog_definis_bouton_annuler(QT_Dialog *dialog, QT_PushButton *bouton)
 {
     auto qdialog = vers_qt(dialog);
     auto qbouton = vers_qt(bouton);
-    QObject::connect(qbouton, &QPushButton::pressed, qdialog, &QDialog::reject);
+    QObject::connect(qbouton, &QPushButton::clicked, qdialog, &QDialog::reject);
 }
 
 int QT_dialog_exec(QT_Dialog *dialog)
@@ -1909,20 +1997,6 @@ QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(QT_Generic_Widget parent,
 /* ------------------------------------------------------------------------- */
 /** \name QT_MessageBox
  * \{ */
-
-static QMessageBox::StandardButton vers_qt(QT_StandardButton drapeaux)
-{
-    int résultat = QMessageBox::StandardButton::NoButton;
-    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
-    return QMessageBox::StandardButton(résultat);
-}
-
-static QT_StandardButton vers_ipa(QMessageBox::StandardButton drapeaux)
-{
-    int résultat = QMessageBox::StandardButton::NoButton;
-    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
-    return QT_StandardButton(résultat);
-}
 
 QT_StandardButton QT_message_box_affiche_avertissement(QT_Generic_Widget parent,
                                                        QT_Chaine titre,
@@ -2853,6 +2927,18 @@ QT_Rappels_PlainTextEdit *QT_plain_text_edit_donne_rappels(QT_PlainTextEdit *tex
         return qtext_edit->donne_rappels();
     }
     return nullptr;
+}
+
+QT_Chaine QT_plain_text_edit_donne_texte(QT_PlainTextEdit *text_edit)
+{
+    VERS_QT(text_edit);
+    auto texte = qtext_edit->toPlainText().toStdString();
+
+    QT_Chaine résultat;
+    résultat.caractères = new char[texte.size()];
+    résultat.taille = int64_t(texte.size());
+    memcpy(résultat.caractères, texte.c_str(), texte.size());
+    return résultat;
 }
 
 void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct QT_Chaine *texte)
