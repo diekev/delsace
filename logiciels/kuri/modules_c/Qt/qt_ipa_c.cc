@@ -13,6 +13,7 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDialog>
+#include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGraphicsRectItem>
@@ -1831,6 +1832,52 @@ void QT_push_button_connecte_sur_pression(QT_PushButton *button, QT_Rappel_Gener
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_StandardButton
+ * \{ */
+
+static QMessageBox::StandardButton vers_qt(QT_StandardButton drapeaux)
+{
+    int résultat = QMessageBox::StandardButton::NoButton;
+    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
+    return QMessageBox::StandardButton(résultat);
+}
+
+static QT_StandardButton vers_ipa(QMessageBox::StandardButton drapeaux)
+{
+    int résultat = QMessageBox::StandardButton::NoButton;
+    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
+    return QT_StandardButton(résultat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DialogButtonBox
+ * \{ */
+
+QT_DialogButtonBox *QT_cree_dialog_button_box(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QDialogButtonBox(qparent));
+}
+
+void QT_dialog_button_box_definis_orientation(QT_DialogButtonBox *box, QT_Orientation orientation)
+{
+    VERS_QT(box);
+    qbox->setOrientation(convertis_orientation(orientation));
+}
+
+QT_PushButton *QT_dialog_button_box_ajoute_bouton_standard(QT_DialogButtonBox *box,
+                                                           QT_StandardButton button)
+{
+    VERS_QT(box);
+    auto résultat = qbox->addButton(QDialogButtonBox::StandardButton(vers_qt(button)));
+    return vers_ipa(résultat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Dialog
  * \{ */
 
@@ -1940,20 +1987,6 @@ QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(QT_Generic_Widget parent,
 /* ------------------------------------------------------------------------- */
 /** \name QT_MessageBox
  * \{ */
-
-static QMessageBox::StandardButton vers_qt(QT_StandardButton drapeaux)
-{
-    int résultat = QMessageBox::StandardButton::NoButton;
-    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
-    return QMessageBox::StandardButton(résultat);
-}
-
-static QT_StandardButton vers_ipa(QMessageBox::StandardButton drapeaux)
-{
-    int résultat = QMessageBox::StandardButton::NoButton;
-    ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
-    return QT_StandardButton(résultat);
-}
 
 QT_StandardButton QT_message_box_affiche_avertissement(QT_Generic_Widget parent,
                                                        QT_Chaine titre,

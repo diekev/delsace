@@ -166,7 +166,8 @@ struct QT_Rappel_Generique {
     O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
     O(QSlider, QT_Slider, slider)                                                                 \
     O(QProgressBar, QT_ProgressBar, progress_bar)                                                 \
-    O(PlainTextEdit, QT_PlainTextEdit, plain_text_edit)
+    O(PlainTextEdit, QT_PlainTextEdit, plain_text_edit)                                           \
+    O(QDialogButtonBox, QT_DialogButtonBox, dialog_button_box)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -1567,34 +1568,7 @@ void QT_push_button_connecte_sur_pression(struct QT_PushButton *button,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name QT_Dialog
- * \{ */
-
-struct QT_Dialog *QT_cree_dialog(union QT_Generic_Widget parent);
-void QT_dialog_definis_bouton_accepter(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
-void QT_dialog_definis_bouton_annuler(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
-int QT_dialog_exec(struct QT_Dialog *dialog);
-void QT_dialog_definis_modal(struct QT_Dialog *dialog, bool ouinon);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_FileDialog
- * \{ */
-
-struct QT_Chaine QT_file_dialog_donne_chemin_pour_lecture(union QT_Generic_Widget parent,
-                                                          struct QT_Chaine titre,
-                                                          struct QT_Chaine dossier,
-                                                          struct QT_Chaine filtre);
-struct QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(union QT_Generic_Widget parent,
-                                                           struct QT_Chaine titre,
-                                                           struct QT_Chaine dossier,
-                                                           struct QT_Chaine filtre);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Keyboard_Modifier
+/** \name QT_StandardButton
  * \{ */
 
 #define ENUMERE_BOUTON_STANDARD(O)                                                                \
@@ -1619,6 +1593,45 @@ struct QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(union QT_Generic_Widg
     O(QT_STANDARDBUTTON_RESTORE_DEFAULTS, QMessageBox::RestoreDefaults, 0x08000000)
 
 enum QT_StandardButton { ENUMERE_BOUTON_STANDARD(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DialogButtonBox
+ * \{ */
+
+struct QT_DialogButtonBox *QT_cree_dialog_button_box(union QT_Generic_Widget parent);
+void QT_dialog_button_box_definis_orientation(struct QT_DialogButtonBox *box,
+                                              enum QT_Orientation orientation);
+struct QT_PushButton *QT_dialog_button_box_ajoute_bouton_standard(struct QT_DialogButtonBox *box,
+                                                                  enum QT_StandardButton button);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Dialog
+ * \{ */
+
+struct QT_Dialog *QT_cree_dialog(union QT_Generic_Widget parent);
+void QT_dialog_definis_bouton_accepter(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
+void QT_dialog_definis_bouton_annuler(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
+int QT_dialog_exec(struct QT_Dialog *dialog);
+void QT_dialog_definis_modal(struct QT_Dialog *dialog, bool ouinon);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_FileDialog
+ * \{ */
+
+struct QT_Chaine QT_file_dialog_donne_chemin_pour_lecture(union QT_Generic_Widget parent,
+                                                          struct QT_Chaine titre,
+                                                          struct QT_Chaine dossier,
+                                                          struct QT_Chaine filtre);
+struct QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(union QT_Generic_Widget parent,
+                                                           struct QT_Chaine titre,
+                                                           struct QT_Chaine dossier,
+                                                           struct QT_Chaine filtre);
 
 /** \} */
 
