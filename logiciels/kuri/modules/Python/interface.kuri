@@ -1489,6 +1489,8 @@ PyObject_GenericGetDict :: fonc (o: *PyObject, context: *rien = nul) -> *PyObjec
 PyDict_New :: fonc () -> *PyObject #externe libpython
 PyDict_SetItem :: fonc (p: *PyObject, key: *PyObject, val: *PyObject) -> z32 #externe libpython
 PyDict_SetItemString :: fonc (p: *PyObject, key: ChaineC, val: *PyObject) -> z32 #externe libpython
+PyDict_GetItem :: fonc (p: *PyObject, key: *PyObject) -> *PyObject #externe libpython
+PyDict_DelItem :: fonc (p: *PyObject, key: *PyObject) -> z32 #externe libpython
 
 PyDict_Keys :: fonc (p: *PyObject) -> *PyObject #externe libpython
 PyDict_Values :: fonc (p: *PyObject) -> *PyObject #externe libpython
