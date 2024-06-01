@@ -2261,6 +2261,7 @@ struct QT_PlainTextEdit *QT_cree_plain_text_edit(struct QT_Rappels_PlainTextEdit
 struct QT_Rappels_PlainTextEdit *QT_plain_text_edit_donne_rappels(
     struct QT_PlainTextEdit *text_edit);
 
+struct QT_Chaine QT_plain_text_edit_donne_texte(struct QT_PlainTextEdit *text_edit);
 void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct QT_Chaine *texte);
 
 struct QT_TextCursor *QT_plain_text_edit_donne_curseur(struct QT_PlainTextEdit *text_edit);

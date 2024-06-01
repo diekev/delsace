@@ -2866,6 +2866,18 @@ QT_Rappels_PlainTextEdit *QT_plain_text_edit_donne_rappels(QT_PlainTextEdit *tex
     return nullptr;
 }
 
+QT_Chaine QT_plain_text_edit_donne_texte(QT_PlainTextEdit *text_edit)
+{
+    VERS_QT(text_edit);
+    auto texte = qtext_edit->toPlainText().toStdString();
+
+    QT_Chaine résultat;
+    résultat.caractères = new char[texte.size()];
+    résultat.taille = int64_t(texte.size());
+    memcpy(résultat.caractères, texte.c_str(), texte.size());
+    return résultat;
+}
+
 void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct QT_Chaine *texte)
 {
     VERS_QT(text_edit);
