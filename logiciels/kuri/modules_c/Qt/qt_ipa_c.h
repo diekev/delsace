@@ -1565,6 +1565,9 @@ struct QT_PushButton *QT_cree_push_button(struct QT_Chaine texte, union QT_Gener
 void QT_push_button_connecte_sur_pression(struct QT_PushButton *button,
                                           struct QT_Rappel_Generique *rappel);
 
+void QT_push_button_connecte_sur_clic(struct QT_PushButton *button,
+                                      struct QT_Rappel_Generique *rappel);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

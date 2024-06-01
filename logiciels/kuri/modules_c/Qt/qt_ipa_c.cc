@@ -1829,6 +1829,16 @@ void QT_push_button_connecte_sur_pression(QT_PushButton *button, QT_Rappel_Gener
     QObject::connect(qbutton, &QPushButton::pressed, [=]() { rappel->sur_rappel(rappel); });
 }
 
+void QT_push_button_connecte_sur_clic(QT_PushButton *button, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    auto qbutton = vers_qt(button);
+    QObject::connect(qbutton, &QPushButton::clicked, [=]() { rappel->sur_rappel(rappel); });
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
