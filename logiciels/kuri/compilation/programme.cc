@@ -1304,7 +1304,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
     m_résultat.fonctions.redimensionne(part.vrai.taille());
 
 #if 0
-    pour_chaque_element(m_espace.compilatrice().sys_module->modules, [&](Module const &module) {
+    pour_chaque_élément(m_espace.compilatrice().sys_module->modules, [&](Module const &module) {
         if (module.nom()->nom != "Coeur") {
             return;
         }
