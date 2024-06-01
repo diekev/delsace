@@ -64,6 +64,8 @@ struct QT_Chaine {
 #endif
 };
 
+void QT_chaine_detruit(struct QT_Chaine *chn);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -164,7 +166,8 @@ struct QT_Rappel_Generique {
     O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
     O(QSlider, QT_Slider, slider)                                                                 \
     O(QProgressBar, QT_ProgressBar, progress_bar)                                                 \
-    O(PlainTextEdit, QT_PlainTextEdit, plain_text_edit)
+    O(PlainTextEdit, QT_PlainTextEdit, plain_text_edit)                                           \
+    O(QDialogButtonBox, QT_DialogButtonBox, dialog_button_box)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -1229,6 +1232,8 @@ void QT_widget_definis_taille_minimum(union QT_Generic_Widget widget, struct QT_
 void QT_widget_definis_taille_fixe(union QT_Generic_Widget widget, struct QT_Taille taille);
 void QT_widget_definis_largeur_fixe(union QT_Generic_Widget widget, int largeur);
 void QT_widget_definis_hauteur_fixe(union QT_Generic_Widget widget, int hauteur);
+void QT_widget_redimensionne(union QT_Generic_Widget widget, struct QT_Taille taille);
+struct QT_Taille QT_widget_donne_taille(union QT_Generic_Widget widget);
 void QT_widget_affiche(union QT_Generic_Widget widget);
 void QT_widget_cache(union QT_Generic_Widget widget);
 void QT_widget_definis_visible(union QT_Generic_Widget widget, bool ouinon);
@@ -1328,6 +1333,7 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, struct QT_Menu *menu);
  * \{ */
 
 struct QT_Menu *QT_cree_menu(union QT_Generic_Widget parent);
+struct QT_Menu *QT_cree_menu_titre(struct QT_Chaine titre, union QT_Generic_Widget parent);
 void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
 void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 void QT_menu_ajoute_action(struct QT_Menu *menu, struct QT_Action *action);
@@ -1559,6 +1565,50 @@ struct QT_PushButton *QT_cree_push_button(struct QT_Chaine texte, union QT_Gener
 void QT_push_button_connecte_sur_pression(struct QT_PushButton *button,
                                           struct QT_Rappel_Generique *rappel);
 
+void QT_push_button_connecte_sur_clic(struct QT_PushButton *button,
+                                      struct QT_Rappel_Generique *rappel);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_StandardButton
+ * \{ */
+
+#define ENUMERE_BOUTON_STANDARD(O)                                                                \
+    O(QT_STANDARDBUTTON_AUCUN, QMessageBox::NoButton, 0x00000000)                                 \
+    O(QT_STANDARDBUTTON_OK, QMessageBox::Ok, 0x00000400)                                          \
+    O(QT_STANDARDBUTTON_SAVE, QMessageBox::Save, 0x00000800)                                      \
+    O(QT_STANDARDBUTTON_SAVE_ALL, QMessageBox::SaveAll, 0x00001000)                               \
+    O(QT_STANDARDBUTTON_OPEN, QMessageBox::Open, 0x00002000)                                      \
+    O(QT_STANDARDBUTTON_YES, QMessageBox::Yes, 0x00004000)                                        \
+    O(QT_STANDARDBUTTON_YES_TO_ALL, QMessageBox::YesToAll, 0x00008000)                            \
+    O(QT_STANDARDBUTTON_NO, QMessageBox::No, 0x00010000)                                          \
+    O(QT_STANDARDBUTTON_NO_TO_ALL, QMessageBox::NoToAll, 0x00020000)                              \
+    O(QT_STANDARDBUTTON_ABORT, QMessageBox::Abort, 0x00040000)                                    \
+    O(QT_STANDARDBUTTON_RETRY, QMessageBox::Retry, 0x00080000)                                    \
+    O(QT_STANDARDBUTTON_IGNORE, QMessageBox::Ignore, 0x00100000)                                  \
+    O(QT_STANDARDBUTTON_CLOSE, QMessageBox::Close, 0x00200000)                                    \
+    O(QT_STANDARDBUTTON_CANCEL, QMessageBox::Cancel, 0x00400000)                                  \
+    O(QT_STANDARDBUTTON_DISCARD, QMessageBox::Discard, 0x00800000)                                \
+    O(QT_STANDARDBUTTON_HELP, QMessageBox::Help, 0x01000000)                                      \
+    O(QT_STANDARDBUTTON_APPLY, QMessageBox::Apply, 0x02000000)                                    \
+    O(QT_STANDARDBUTTON_RESET, QMessageBox::Reset, 0x04000000)                                    \
+    O(QT_STANDARDBUTTON_RESTORE_DEFAULTS, QMessageBox::RestoreDefaults, 0x08000000)
+
+enum QT_StandardButton { ENUMERE_BOUTON_STANDARD(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DialogButtonBox
+ * \{ */
+
+struct QT_DialogButtonBox *QT_cree_dialog_button_box(union QT_Generic_Widget parent);
+void QT_dialog_button_box_definis_orientation(struct QT_DialogButtonBox *box,
+                                              enum QT_Orientation orientation);
+struct QT_PushButton *QT_dialog_button_box_ajoute_bouton_standard(struct QT_DialogButtonBox *box,
+                                                                  enum QT_StandardButton button);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1585,35 +1635,6 @@ struct QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(union QT_Generic_Widg
                                                            struct QT_Chaine titre,
                                                            struct QT_Chaine dossier,
                                                            struct QT_Chaine filtre);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Keyboard_Modifier
- * \{ */
-
-#define ENUMERE_BOUTON_STANDARD(O)                                                                \
-    O(QT_STANDARDBUTTON_AUCUN, QMessageBox::NoButton, 0x00000000)                                 \
-    O(QT_STANDARDBUTTON_OK, QMessageBox::Ok, 0x00000400)                                          \
-    O(QT_STANDARDBUTTON_SAVE, QMessageBox::Save, 0x00000800)                                      \
-    O(QT_STANDARDBUTTON_SAVE_ALL, QMessageBox::SaveAll, 0x00001000)                               \
-    O(QT_STANDARDBUTTON_OPEN, QMessageBox::Open, 0x00002000)                                      \
-    O(QT_STANDARDBUTTON_YES, QMessageBox::Yes, 0x00004000)                                        \
-    O(QT_STANDARDBUTTON_YES_TO_ALL, QMessageBox::YesToAll, 0x00008000)                            \
-    O(QT_STANDARDBUTTON_NO, QMessageBox::No, 0x00010000)                                          \
-    O(QT_STANDARDBUTTON_NO_TO_ALL, QMessageBox::NoToAll, 0x00020000)                              \
-    O(QT_STANDARDBUTTON_ABORT, QMessageBox::Abort, 0x00040000)                                    \
-    O(QT_STANDARDBUTTON_RETRY, QMessageBox::Retry, 0x00080000)                                    \
-    O(QT_STANDARDBUTTON_IGNORE, QMessageBox::Ignore, 0x00100000)                                  \
-    O(QT_STANDARDBUTTON_CLOSE, QMessageBox::Close, 0x00200000)                                    \
-    O(QT_STANDARDBUTTON_CANCEL, QMessageBox::Cancel, 0x00400000)                                  \
-    O(QT_STANDARDBUTTON_DISCARD, QMessageBox::Discard, 0x00800000)                                \
-    O(QT_STANDARDBUTTON_HELP, QMessageBox::Help, 0x01000000)                                      \
-    O(QT_STANDARDBUTTON_APPLY, QMessageBox::Apply, 0x02000000)                                    \
-    O(QT_STANDARDBUTTON_RESET, QMessageBox::Reset, 0x04000000)                                    \
-    O(QT_STANDARDBUTTON_RESTORE_DEFAULTS, QMessageBox::RestoreDefaults, 0x08000000)
-
-enum QT_StandardButton { ENUMERE_BOUTON_STANDARD(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
 
 /** \} */
 
@@ -2259,6 +2280,7 @@ struct QT_PlainTextEdit *QT_cree_plain_text_edit(struct QT_Rappels_PlainTextEdit
 struct QT_Rappels_PlainTextEdit *QT_plain_text_edit_donne_rappels(
     struct QT_PlainTextEdit *text_edit);
 
+struct QT_Chaine QT_plain_text_edit_donne_texte(struct QT_PlainTextEdit *text_edit);
 void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct QT_Chaine *texte);
 
 struct QT_TextCursor *QT_plain_text_edit_donne_curseur(struct QT_PlainTextEdit *text_edit);
