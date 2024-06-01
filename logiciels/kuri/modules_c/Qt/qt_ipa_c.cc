@@ -1228,6 +1228,13 @@ QT_Menu *QT_cree_menu(QT_Generic_Widget parent)
     return vers_ipa(new QMenu(qparent));
 }
 
+QT_Menu *QT_cree_menu_titre(QT_Chaine titre, QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    VERS_QT(titre);
+    return vers_ipa(new QMenu(qtitre, qparent));
+}
+
 void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rappel)
 {
     if (!rappel || !rappel->sur_rappel) {

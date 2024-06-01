@@ -1332,6 +1332,7 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, struct QT_Menu *menu);
  * \{ */
 
 struct QT_Menu *QT_cree_menu(union QT_Generic_Widget parent);
+struct QT_Menu *QT_cree_menu_titre(struct QT_Chaine titre, union QT_Generic_Widget parent);
 void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
 void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 void QT_menu_ajoute_action(struct QT_Menu *menu, struct QT_Action *action);
