@@ -44,6 +44,7 @@ SelecteurFichier::SelecteurFichier(BasePropriete *p, int temps, bool input, QWid
     setLayout(m_agencement);
 
     connect(m_push_button, SIGNAL(clicked()), this, SLOT(setChoosenFile()));
+    connect(m_line_edit, &QLineEdit::editingFinished, this, &SelecteurFichier::lineEditChanged);
 }
 
 void SelecteurFichier::setValue(const QString &text)
@@ -77,6 +78,11 @@ void SelecteurFichier::setChoosenFile()
         m_line_edit->setText(chemin);
         Q_EMIT(valeur_changee(chemin));
     }
+}
+
+void SelecteurFichier::lineEditChanged()
+{
+    Q_EMIT(valeur_changee(m_line_edit->text()));
 }
 
 void SelecteurFichier::ajourne_filtres(const QString &chaine)
