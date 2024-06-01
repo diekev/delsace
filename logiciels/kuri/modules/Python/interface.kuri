@@ -1482,6 +1482,22 @@ PyObject_GenericGetDict :: fonc (o: *PyObject, context: *rien = nul) -> *PyObjec
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Function Objects
+ * https://docs.python.org/3/c-api/function.html
+ * \{ */
+
+PyFunction_Type : PyTypeObject #externe libpython
+
+PyFunction_Check :: fonc (ob: *PyObject) -> bool
+{
+    retourne PyObject_TypeCheck(ob, *PyFunction_Type)
+}
+
+PyFunction_GetGlobals :: fonc (op: *PyObject) -> *PyObject #externe libpython
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Dictionary Objects
  * https://docs.python.org/3/c-api/dict.html
  * \{ */
