@@ -28,20 +28,34 @@
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QStyle>
 
 #include "donnees_controle.h"
+#include "fournisseuse_icones.hh"
 
 namespace danjo {
 
+static QIcon donne_icone_pour_bouton(QStyle *style)
+{
+    auto &fournisseuse = donne_fournisseuse_icone();
+    auto icône = fournisseuse.icone_pour_identifiant("ouvrir_dossier", ÉtatIcône::ACTIF);
+    if (icône.has_value()) {
+        return icône.value();
+    }
+    return style->standardIcon(QStyle::SP_DirOpenIcon);
+}
+
 SelecteurFichier::SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
-      m_line_edit(new QLineEdit(this)), m_push_button(new QPushButton("Choisir Fichier", this)),
-      m_input(input)
+      m_line_edit(new QLineEdit(this)), m_push_button(new QPushButton(this)), m_input(input)
 {
     m_agencement->addWidget(m_line_edit);
     m_agencement->addWidget(m_push_button);
 
     setLayout(m_agencement);
+
+    m_push_button->setIcon(donne_icone_pour_bouton(style()));
+    m_push_button->setToolTip("Choisir Fichier");
 
     connect(m_push_button, SIGNAL(clicked()), this, SLOT(setChoosenFile()));
     connect(m_line_edit, &QLineEdit::editingFinished, this, &SelecteurFichier::lineEditChanged);
