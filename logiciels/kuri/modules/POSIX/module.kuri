@@ -7,6 +7,8 @@ importe GlibC // pour timespec
 charge "confname"
 
 getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc
+setenv :: fonc (nom: ChaineC, valeur: ChaineC, remplace: z32) -> z32 #externe libc
+unsetenv :: fonc (nom: ChaineC) -> z32 #externe libc
 getuid :: fonc () -> z32 #externe libc
 system :: fonc (command: ChaineC) -> z32 #externe libc
 sleep :: fonc (temps: z32) -> rien #externe libc
@@ -34,6 +36,28 @@ chaine_environnement :: fonc (nom: chaine) -> chaine
     }
 
     retourne convertis_chaine_c(chn)
+}
+
+définis_variable_environnemnt :: fonc (nom: chaine, valeur: chaine, remplace: bool) -> bool
+{
+    chaine_c_nom := crée_chaine_c(nom)
+    diffère détruit_chaine_c(chn_c_nom)
+
+    chaine_c_valeur := crée_chaine_c(valeur)
+    diffère détruit_chaine_c(chn_c_valeur)
+
+    si setenv(chaine_c_nom, chaine_c_valeur, remplace comme z32) == -1 {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+supprime_variable_environnement :: fonc (nom: chaine) -> bool
+{
+    chaine_c_nom := crée_chaine_c(nom)
+    diffère détruit_chaine_c(chn_c_nom)
+    retourne unsetenv(chaine_c_nom) == 0
 }
 
 est_utilisateur_racine :: fonc () -> bool

@@ -61,6 +61,7 @@ class SelecteurFichier : public ControlePropriete {
 
   private Q_SLOTS:
     void setChoosenFile();
+    void lineEditChanged();
 
   Q_SIGNALS:
     void valeur_changee(const QString &text);
