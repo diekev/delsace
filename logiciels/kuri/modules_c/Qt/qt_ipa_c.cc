@@ -282,6 +282,17 @@ static QT_ModelIndex vers_ipa(const QModelIndex &model)
 extern "C" {
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Chaine
+ * \{ */
+
+void QT_chaine_detruit(struct QT_Chaine *chn)
+{
+    delete[] chn->caractères;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Pixmap
  * \{ */
 

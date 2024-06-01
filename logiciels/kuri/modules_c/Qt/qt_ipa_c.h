@@ -64,6 +64,8 @@ struct QT_Chaine {
 #endif
 };
 
+void QT_chaine_detruit(struct QT_Chaine *chn);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
