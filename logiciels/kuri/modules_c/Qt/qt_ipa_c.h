@@ -1231,6 +1231,8 @@ void QT_widget_definis_taille_minimum(union QT_Generic_Widget widget, struct QT_
 void QT_widget_definis_taille_fixe(union QT_Generic_Widget widget, struct QT_Taille taille);
 void QT_widget_definis_largeur_fixe(union QT_Generic_Widget widget, int largeur);
 void QT_widget_definis_hauteur_fixe(union QT_Generic_Widget widget, int hauteur);
+void QT_widget_redimensionne(union QT_Generic_Widget widget, struct QT_Taille taille);
+struct QT_Taille QT_widget_donne_taille(union QT_Generic_Widget widget);
 void QT_widget_affiche(union QT_Generic_Widget widget);
 void QT_widget_cache(union QT_Generic_Widget widget);
 void QT_widget_definis_visible(union QT_Generic_Widget widget, bool ouinon);

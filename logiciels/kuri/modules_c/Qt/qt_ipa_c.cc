@@ -985,6 +985,19 @@ void QT_widget_definis_hauteur_fixe(QT_Generic_Widget widget, int hauteur)
     qwidget->setFixedHeight(hauteur);
 }
 
+void QT_widget_redimensionne(QT_Generic_Widget widget, QT_Taille taille)
+{
+    VERS_QT(widget);
+    qwidget->resize(taille.largeur, taille.hauteur);
+}
+
+QT_Taille QT_widget_donne_taille(QT_Generic_Widget widget)
+{
+    VERS_QT(widget);
+    auto size = qwidget->size();
+    return QT_Taille{size.width(), size.height()};
+}
+
 void QT_widget_affiche(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
