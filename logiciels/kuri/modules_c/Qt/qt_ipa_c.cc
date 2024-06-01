@@ -1845,14 +1845,14 @@ void QT_dialog_definis_bouton_accepter(QT_Dialog *dialog, QT_PushButton *bouton)
 {
     auto qdialog = vers_qt(dialog);
     auto qbouton = vers_qt(bouton);
-    QObject::connect(qbouton, &QPushButton::pressed, qdialog, &QDialog::accept);
+    QObject::connect(qbouton, &QPushButton::clicked, qdialog, &QDialog::accept);
 }
 
 void QT_dialog_definis_bouton_annuler(QT_Dialog *dialog, QT_PushButton *bouton)
 {
     auto qdialog = vers_qt(dialog);
     auto qbouton = vers_qt(bouton);
-    QObject::connect(qbouton, &QPushButton::pressed, qdialog, &QDialog::reject);
+    QObject::connect(qbouton, &QPushButton::clicked, qdialog, &QDialog::reject);
 }
 
 int QT_dialog_exec(QT_Dialog *dialog)
