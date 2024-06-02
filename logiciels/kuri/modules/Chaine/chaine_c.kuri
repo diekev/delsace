@@ -6,11 +6,7 @@ ChaineC :: #opaque *z8
 
 crée_chaine_c :: fonc (chn: chaine) -> ChaineC
 {
-    saufsi chn {
-        retourne ChaineC(nul)
-    }
-
-    si chn.pointeur[chn.taille - 1] == '\0' {
+    si chn.taille > 0 && chn.pointeur[chn.taille - 1] == '\0' {
         copie := copie_chaine(chn)
         retourne ChaineC(copie.pointeur)
     }

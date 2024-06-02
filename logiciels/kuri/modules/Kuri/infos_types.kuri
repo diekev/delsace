@@ -108,6 +108,8 @@ InfoTypeStructure :: struct #interface {
     membres: []*InfoTypeMembreStructure
     structs_employées: []*InfoTypeStructure
     annotations: []*AnnotationCode
+    est_polymorphique: bool
+    polymorphe_de_base: *InfoTypeStructure
 }
 
 possède_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
@@ -128,7 +130,9 @@ InfoTypeUnion :: struct #interface {
     type_le_plus_grand: *InfoType
     décalage_index: z64
     est_sûre: bool
+    est_polymorphique: bool
     annotations: []*AnnotationCode
+    polymorphe_de_base: *InfoTypeUnion
 }
 
 possède_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> bool
