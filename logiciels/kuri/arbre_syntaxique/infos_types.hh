@@ -83,6 +83,8 @@ struct InfoTypeStructure : public InfoType {
     kuri::tranche<InfoTypeMembreStructure *> membres{};
     kuri::tranche<InfoTypeStructure *> structs_employées{};
     kuri::tranche<const Annotation *> annotations{};
+    bool est_polymorphique = false;
+    InfoTypeStructure *polymorphe_de_base = nullptr;
 };
 
 struct InfoTypeUnion : public InfoType {
@@ -91,7 +93,9 @@ struct InfoTypeUnion : public InfoType {
     InfoType *type_le_plus_grand = nullptr;
     int64_t décalage_index = 0;
     bool est_sûre = false;
+    bool est_polymorphique = false;
     kuri::tranche<const Annotation *> annotations{};
+    InfoTypeUnion *polymorphe_de_base = nullptr;
 };
 
 struct InfoTypeFonction : public InfoType {

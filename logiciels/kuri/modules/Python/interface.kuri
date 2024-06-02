@@ -1559,7 +1559,8 @@ importe_module :: fonc (name: chaine) -> *PyObject
 /** } */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Erreurs.
+/** \nom Gestion des exceptions.
+ * https://docs.python.org/3/c-api/exceptions.html
  * \{ */
 
 PyErr_PrintEx :: fonc (set_sys_last_vars: z32) -> rien #externe libpython
@@ -1568,6 +1569,13 @@ PyErr_Print :: fonc ()
 {
     PyErr_PrintEx(1)
 }
+
+PyErr_Fetch :: fonc (ptype: **PyObject, pvalue: **PyObject, ptraceback: **PyObject) -> rien #externe libpython
+PyErr_NormalizeException :: fonc (ptype: **PyObject, pvalue: **PyObject, ptraceback: **PyObject) -> rien #externe libpython
+
+PyErr_GetExcInfo :: fonc (ptype: **PyObject, pvalue: **PyObject, ptraceback: **PyObject) -> rien #externe libpython
+
+PyException_SetTraceback :: fonc (ex: *PyObject, tb: *PyObject) -> z32 #externe libpython
 
 /** } */
 
