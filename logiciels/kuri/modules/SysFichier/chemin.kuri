@@ -1,5 +1,6 @@
 importe Fondation
 importe Structures
+importe POSIX
 
 CheminFichier :: struct {
     chn: chaine
@@ -400,6 +401,156 @@ est_chemin_parent_de :: fonc (base: CheminFichier, chemin: CheminFichier) -> boo
 
     retourne vrai
 }
+
+
+/* ------------------------------------------------------------------------- */
+/** \nom Développement de variables d'environnement.
+ * \{ */
+
+/* Retourne un CheminFichier à partir du chemin donné dont les références à des
+ * variables d'environnement furent remplacées par leurs valeurs.
+ * S'il est impossible de créer un tel chemin, retourne une erreur.
+ *
+ * Et le chemin, et l'erreur sont logés en mémoire.
+ *
+ * Les variables d'environnement considérées doivent être d'une des deux formes suivantes :
+ * - $VARIABLE
+ * - ${VARIABLE}
+ *
+ * Pour la première forme, l'extraction du nom de la variable s'arrête au premier slash.
+ * Pour la deuxième forme, tous les caractères entre les accolades sont condidérés.
+ *
+ * Cette fonction n'est pas récurisve : si une variable d'environnement possède une
+ * référence à une autre variable elle ne sera pas développée.
+ */
+développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, chaine)
+{
+    tampon : [TAILLE_MAX_CHEMIN]z8
+
+    chn := chemin.chn
+
+    sortie := *tampon[0]
+    fin_sortie := sortie + TAILLE_MAX_CHEMIN
+
+    index : z64 = 0
+    tantque index < chn.taille {
+        it := chn.pointeur[index]
+
+        si it != '$' {
+            mémoire(sortie) = it
+            sortie += 1
+            index += 1
+
+            si sortie == fin_sortie {
+                retourne copie_chaine("Résultat trop grand pour la sortie")
+            }
+            continue
+        }
+
+        index += 1
+        si index >= chn.taille {
+            retourne copie_chaine("Entrée tronquée après '$'")
+        }
+
+        it = chn.pointeur[index]
+
+        si it == '{' {
+            index += 1
+            si index >= chn.taille {
+                retourne copie_chaine("Entrée tronquée après '{'")
+            }
+
+            début_variable := index
+            taille_mot := 0
+
+            accolade_fermante_trouvée := faux
+            tantque index < chn.taille {
+                it = chn.pointeur[index]
+
+                si it == '}' {
+                    accolade_fermante_trouvée = vrai
+                    index += 1
+                    arrête
+                }
+
+                index += 1
+                taille_mot += 1
+            }
+
+            saufsi accolade_fermante_trouvée {
+                retourne copie_chaine("Entrée tronquée. Aucune accolade fermante trouvée après '{'")
+            }
+
+            mot := chn.sous_chaine(début_variable, début_variable + taille_mot)
+            si mot == "" {
+                retourne copie_chaine("Nom de variable vide entre '{}'")
+            }
+
+            sortie = copie_variable_environnement(sortie, fin_sortie, mot)
+            saufsi sortie {
+                retourne imprime_chaine("Valeur de variable '%' inexistante ou trop longue pour la sortie", mot)
+            }
+            continue
+        }
+
+        début_variable := index
+        taille_mot := 0
+        tantque index < chn.taille {
+            it = chn.pointeur[index]
+
+            si it == '/' {
+                arrête
+            }
+
+            index += 1
+            taille_mot += 1
+        }
+
+        mot := chn.sous_chaine(début_variable, début_variable + taille_mot)
+        si mot == "" {
+            retourne copie_chaine("Nom de variable vide entre '$/'")
+        }
+
+        sortie = copie_variable_environnement(sortie, fin_sortie, mot)
+        saufsi sortie {
+            retourne imprime_chaine("Valeur de variable '%' inexistante ou trop longue pour la sortie", mot)
+        }
+    }
+
+    début_tampon := *tampon[0]
+    taille_résultat := (sortie - début_tampon) + 1
+
+    résultat: chaine = ---
+    résultat.pointeur = début_tampon
+    résultat.taille = taille_résultat
+
+    retourne CheminFichier(copie_chaine(résultat))
+}
+
+/* Copie la valeur de la variable d'environnement dans la sortie et retourne un
+ * pointeur se situant à la fin de l'insertion.
+ * Si la copie est impossible, retourne nul.
+ */
+copie_variable_environnement :: fonc (résultat: *z8, fin_résultat: *z8, variable: chaine) -> *z8
+{
+    valeur := chaine_environnement(variable)
+    saufsi valeur {
+        retourne nul
+    }
+
+    si résultat + valeur.taille >= fin_résultat {
+        retourne nul
+    }
+
+    pour valeur {
+        mémoire(résultat) = it
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+/** \} */
 
 /*
     À FAIRE : tests

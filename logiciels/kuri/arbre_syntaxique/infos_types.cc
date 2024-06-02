@@ -99,6 +99,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
     // À FAIRE : il est possible que les types ne soient pas encore validé quand nous générons des
     // messages pour les entêtes de fonctions
     if (type == nullptr) {
+        /* Nous pouvons être ici pour les membres nulles des classes polymorphiques. */
         return nullptr;
     }
 
@@ -267,6 +268,14 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->genre = GenreInfoType::STRUCTURE;
             info_type->taille_en_octet = type->taille_octet;
             info_type->nom = donne_nom_hiérarchique(type_struct);
+            info_type->est_polymorphique = type_struct->est_polymorphe;
+
+            if (type_struct->polymorphe_de_base) {
+                auto polymorphe = const_cast<NoeudDéclarationClasse *>(
+                    type_struct->polymorphe_de_base);
+                info_type->polymorphe_de_base = static_cast<InfoTypeStructure *>(
+                    crée_info_type_pour(typeuse, polymorphe));
+            }
 
             auto membres = kuri::tablet<InfoTypeMembreStructure *, 6>();
             membres.réserve(type_struct->membres.taille());
@@ -316,6 +325,14 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->décalage_index = type_union->décalage_index;
             info_type->taille_en_octet = type_union->taille_octet;
             info_type->nom = donne_nom_hiérarchique(type_union);
+            info_type->est_polymorphique = type_union->est_polymorphe;
+
+            if (type_union->polymorphe_de_base) {
+                auto polymorphe = const_cast<NoeudDéclarationClasse *>(
+                    type_union->polymorphe_de_base);
+                info_type->polymorphe_de_base = static_cast<InfoTypeUnion *>(
+                    crée_info_type_pour(typeuse, polymorphe));
+            }
 
             auto membres = kuri::tablet<InfoTypeMembreStructure *, 6>();
             membres.réserve(type_union->membres.taille());

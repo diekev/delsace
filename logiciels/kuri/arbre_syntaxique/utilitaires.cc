@@ -594,8 +594,17 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             break;
         }
-        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         case GenreNoeud::EXPRESSION_INFO_DE:
+        {
+            auto expression_info_de = racine->comme_info_de();
+            expression_info_de->position |= position;
+            aplatis_arbre(expression_info_de->expression,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_INFO_DE);
+            arbre_aplatis.ajoute(expression_info_de);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         case GenreNoeud::EXPRESSION_MÉMOIRE:
         case GenreNoeud::EXPRESSION_PARENTHÈSE:
         case GenreNoeud::OPÉRATEUR_UNAIRE:
