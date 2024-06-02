@@ -435,6 +435,8 @@ void QT_application_poste_evenement_et_donnees(union QT_Generic_Object receveur,
 void QT_application_sur_fin_boucle_evenement(struct QT_Application *app,
                                              struct QT_Rappel_Generique *rappel);
 
+void QT_application_beep();
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1550,6 +1552,7 @@ void QT_tooltip_montre_texte(struct QT_Point point, struct QT_Chaine texte);
 
 struct QT_LineEdit *QT_cree_line_edit(union QT_Generic_Widget parent);
 void QT_line_edit_definis_texte(struct QT_LineEdit *line_edit, struct QT_Chaine texte);
+void QT_line_edit_definis_texte_lieutenant(struct QT_LineEdit *line_edit, struct QT_Chaine texte);
 void QT_line_edit_connecte_sur_changement(struct QT_LineEdit *line_edit,
                                           struct QT_Rappel_Generique *rappel);
 struct QT_Chaine QT_line_edit_donne_texte(struct QT_LineEdit *line_edit);
@@ -2261,6 +2264,8 @@ void QT_text_cursor_definis_position(struct QT_TextCursor *cursor,
                                      enum QT_Text_Cursor_Move_Mode mode);
 void QT_text_cursor_donne_texte_selection(struct QT_TextCursor *cursor,
                                           struct QT_Chaine *résultat);
+void QT_text_cursor_insere_texte(struct QT_TextCursor *cursor, struct QT_Chaine texte);
+bool QT_text_cursor_possede_selection_apres(struct QT_TextCursor *cursor, int position);
 
 /** \} */
 
@@ -2286,6 +2291,9 @@ void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct
 struct QT_TextCursor *QT_plain_text_edit_donne_curseur(struct QT_PlainTextEdit *text_edit);
 void QT_plain_text_edit_definis_curseur(struct QT_PlainTextEdit *text_edit,
                                         struct QT_TextCursor *cursor);
+
+void QT_plain_text_edit_coupe(struct QT_PlainTextEdit *text_edit);
+void QT_plain_text_edit_copie(struct QT_PlainTextEdit *text_edit);
 
 /** \} */
 
