@@ -4255,8 +4255,17 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
              * décalage_index : z64
              * est_sûre: bool
              */
-            auto info_type_plus_grand = crée_info_type_avec_transtype(
-                type_union->type_le_plus_grand, site);
+            AtomeConstante *info_type_plus_grand = nullptr;
+            if (type_union->est_polymorphe) {
+                auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
+                    m_compilatrice.typeuse.type_info_type_, false);
+                info_type_plus_grand = m_constructrice.crée_constante_nulle(
+                    type_pointeur_info_type);
+            }
+            else {
+                info_type_plus_grand = crée_info_type_avec_transtype(
+                    type_union->type_le_plus_grand, site);
+            }
 
             // Pour les références à des globales, nous devons avoir un type pointeur.
             auto type_membre = m_compilatrice.typeuse.type_pointeur_pour(type_struct_membre,
@@ -4267,7 +4276,20 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto tableau_membre = m_constructrice.crée_tranche_globale(
                 *ident_valeurs, type_membre, std::move(valeurs_membres));
 
-            auto valeurs = kuri::tableau<AtomeConstante *>(7);
+            auto type_pointeur_info_type_union = m_compilatrice.typeuse.type_pointeur_pour(
+                type_info_union, false);
+
+            AtomeConstante *info_type_polymorphe_de_base = nullptr;
+            if (type_union->polymorphe_de_base) {
+                info_type_polymorphe_de_base = crée_info_type(type_union->polymorphe_de_base,
+                                                              site);
+            }
+            else {
+                info_type_polymorphe_de_base = m_constructrice.crée_constante_nulle(
+                    type_pointeur_info_type_union);
+            }
+
+            auto valeurs = kuri::tableau<AtomeConstante *>(9);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::UNION, type);
             valeurs[1] = crée_constante_pour_chaine(
                 donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
@@ -4275,7 +4297,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             valeurs[3] = info_type_plus_grand;
             valeurs[4] = m_constructrice.crée_z64(type_union->décalage_index);
             valeurs[5] = m_constructrice.crée_constante_booléenne(!type_union->est_nonsure);
-            valeurs[6] = crée_tableau_annotations_pour_info_membre(type_union->annotations);
+            valeurs[6] = m_constructrice.crée_constante_booléenne(type_union->est_polymorphe);
+            valeurs[7] = crée_tableau_annotations_pour_info_membre(type_union->annotations);
+            valeurs[8] = info_type_polymorphe_de_base;
 
             globale->initialisateur = m_constructrice.crée_constante_structure(type_info_union,
                                                                                std::move(valeurs));
@@ -4327,14 +4351,29 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto tableau_structs_employées = donne_tableau_pour_structs_employées(type_struct,
                                                                                   site);
 
+            auto type_pointeur_info_type_struct = m_compilatrice.typeuse.type_pointeur_pour(
+                type_info_struct, false);
+
+            AtomeConstante *info_type_polymorphe_de_base = nullptr;
+            if (type_struct->polymorphe_de_base) {
+                info_type_polymorphe_de_base = crée_info_type(type_struct->polymorphe_de_base,
+                                                              site);
+            }
+            else {
+                info_type_polymorphe_de_base = m_constructrice.crée_constante_nulle(
+                    type_pointeur_info_type_struct);
+            }
+
             /* { membres basiques, nom, membres } */
-            auto valeurs = kuri::tableau<AtomeConstante *>(5);
+            auto valeurs = kuri::tableau<AtomeConstante *>(7);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::STRUCTURE, type);
             valeurs[1] = crée_constante_pour_chaine(
                 donne_nom_hiérarchique(const_cast<TypeStructure *>(type_struct)));
             valeurs[2] = tableau_membre;
             valeurs[3] = tableau_structs_employées;
             valeurs[4] = crée_tableau_annotations_pour_info_membre(type_struct->annotations);
+            valeurs[5] = m_constructrice.crée_constante_booléenne(type_struct->est_polymorphe);
+            valeurs[6] = info_type_polymorphe_de_base;
 
             globale->initialisateur = m_constructrice.crée_constante_structure(type_info_struct,
                                                                                std::move(valeurs));
