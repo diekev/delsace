@@ -2800,7 +2800,8 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
 
     if (est_déclaration_polymorphique(decl) &&
         !expr->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL |
-                               PositionCodeNoeud::DROITE_CONTRAINTE_POLYMORPHIQUE)) {
+                               PositionCodeNoeud::DROITE_CONTRAINTE_POLYMORPHIQUE |
+                               PositionCodeNoeud::EXPRESSION_INFO_DE)) {
         espace
             ->rapporte_erreur(expr,
                               "Référence d'une déclaration polymorphique en dehors d'une "
