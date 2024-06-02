@@ -244,8 +244,6 @@ currying
     #cuisine ma_fonction(T = z32) // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
     #cuisine ma_fonction(x = 5)   // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
 
-information que la structure est polymorphique dans les infos-types
-
 impression des paramètres dans les messages d'erreur en cas de mésappariement
 
 Résultat de l'algorithme d'unification :

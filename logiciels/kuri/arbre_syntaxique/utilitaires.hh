@@ -112,6 +112,8 @@ enum class PositionCodeNoeud : uint8_t {
     EXPRESSION_TEST_DISCRIMINATION = (1u << 4),
     /* Le noeud est à droite d'une contrainte polymorphique (p.e. $T/noeud). */
     DROITE_CONTRAINTE_POLYMORPHIQUE = (1u << 5),
+    /* Le noeud est dans info_de(). */
+    EXPRESSION_INFO_DE = (1u << 6),
 };
 DEFINIS_OPERATEURS_DRAPEAU(PositionCodeNoeud)
 
