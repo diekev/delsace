@@ -604,19 +604,19 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             virgule_insérée := faux
 
             pour membre dans info_arg.membres {
-                si membre.drapeaux.EST_CONSTANT {
-                    continue
-                }
-
                 ajoute_au_tampon(enchaineuse, virgule, indentation_membres)
                 virgule = ",\n"
                 virgule_insérée = vrai
 
                 nom := membre.nom
-                décalage := membre.décalage
+                ajoute_au_tampon(enchaineuse, nom, " = ")
 
-                ajoute_au_tampon(enchaineuse, nom)
-                ajoute_au_tampon(enchaineuse, " = ")
+                si membre.drapeaux.EST_CONSTANT {
+                    imprime_type(enchaineuse, membre.id)
+                    continue
+                }
+
+                décalage := membre.décalage
 
                 valeur_membre : eini = ---
                 valeur_membre.pointeur = valeur.pointeur + décalage
