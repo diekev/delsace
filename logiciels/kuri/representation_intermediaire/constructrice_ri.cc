@@ -4207,7 +4207,8 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             /* { membres basiques, nom, valeurs, membres, est_drapeau } */
             auto valeurs = kuri::tableau<AtomeConstante *>(6);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::ÉNUM, type);
-            valeurs[1] = crée_constante_pour_chaine(donne_nom_hiérarchique(const_cast<TypeEnum *>(type_enum)));
+            valeurs[1] = crée_constante_pour_chaine(
+                donne_nom_hiérarchique(const_cast<TypeEnum *>(type_enum)));
             valeurs[2] = tableau_valeurs;
             valeurs[3] = tableau_noms;
             valeurs[4] = m_constructrice.crée_constante_booléenne(
@@ -4268,7 +4269,8 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             auto valeurs = kuri::tableau<AtomeConstante *>(7);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::UNION, type);
-            valeurs[1] = crée_constante_pour_chaine(donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
+            valeurs[1] = crée_constante_pour_chaine(
+                donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
             valeurs[2] = tableau_membre;
             valeurs[3] = info_type_plus_grand;
             valeurs[4] = m_constructrice.crée_z64(type_union->décalage_index);
@@ -5412,7 +5414,8 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     auto type_info_fonction_trace_appel = m_compilatrice.typeuse.type_info_fonction_trace_appel;
     auto decl = pour_fonction->decl;
     auto fichier = m_compilatrice.fichier(decl->lexème->fichier);
-    auto nom_fonction = decl->ident ? crée_constante_pour_chaine(decl->ident->nom) : crée_constante_pour_chaine("???");
+    auto nom_fonction = decl->ident ? crée_constante_pour_chaine(decl->ident->nom) :
+                                      crée_constante_pour_chaine("???");
     auto nom_fichier = crée_constante_pour_chaine(fichier->nom());
 
     kuri::tableau<AtomeConstante *> valeurs(3);
@@ -5451,7 +5454,8 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
 
         valeurs[0] = m_constructrice.crée_z32(uint64_t(lexeme->ligne));
         valeurs[1] = m_constructrice.crée_z32(uint64_t(lexeme->colonne));
-        valeurs[2] = crée_constante_pour_chaine(kuri::chaine_statique(texte_ligne.begin(), texte_ligne.taille()));
+        valeurs[2] = crée_constante_pour_chaine(
+            kuri::chaine_statique(texte_ligne.begin(), texte_ligne.taille()));
     }
     else {
         valeurs[0] = m_constructrice.crée_z32(0);
