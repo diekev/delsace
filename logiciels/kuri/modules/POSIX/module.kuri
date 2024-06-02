@@ -41,10 +41,10 @@ chaine_environnement :: fonc (nom: chaine) -> chaine
 définis_variable_environnemnt :: fonc (nom: chaine, valeur: chaine, remplace: bool) -> bool
 {
     chaine_c_nom := crée_chaine_c(nom)
-    diffère détruit_chaine_c(chn_c_nom)
+    diffère détruit_chaine_c(chaine_c_nom)
 
     chaine_c_valeur := crée_chaine_c(valeur)
-    diffère détruit_chaine_c(chn_c_valeur)
+    diffère détruit_chaine_c(chaine_c_valeur)
 
     si setenv(chaine_c_nom, chaine_c_valeur, remplace comme z32) == -1 {
         retourne faux
@@ -56,7 +56,7 @@ définis_variable_environnemnt :: fonc (nom: chaine, valeur: chaine, remplace: b
 supprime_variable_environnement :: fonc (nom: chaine) -> bool
 {
     chaine_c_nom := crée_chaine_c(nom)
-    diffère détruit_chaine_c(chn_c_nom)
+    diffère détruit_chaine_c(chaine_c_nom)
     retourne unsetenv(chaine_c_nom) == 0
 }
 
