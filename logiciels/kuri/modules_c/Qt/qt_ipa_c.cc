@@ -2908,6 +2908,24 @@ void QT_text_cursor_donne_texte_selection(QT_TextCursor *cursor, QT_Chaine *rés
     }
 }
 
+void QT_text_cursor_insere_texte(QT_TextCursor *cursor, QT_Chaine texte)
+{
+    VERS_QT(cursor);
+    VERS_QT(texte);
+    qcursor->insertText(qtexte);
+}
+
+bool QT_text_cursor_possede_selection_apres(QT_TextCursor *cursor, int position)
+{
+    VERS_QT(cursor);
+    if (!qcursor->hasSelection()) {
+        return false;
+    }
+    auto début = qcursor->selectionStart();
+    auto fin = qcursor->selectionEnd();
+    return début >= position && fin >= position;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2969,6 +2987,18 @@ void QT_plain_text_edit_definis_curseur(QT_PlainTextEdit *text_edit, QT_TextCurs
     if (cursor) {
         qtext_edit->setTextCursor(*qcursor);
     }
+}
+
+void QT_plain_text_edit_coupe(QT_PlainTextEdit *text_edit)
+{
+    VERS_QT(text_edit);
+    qtext_edit->cut();
+}
+
+void QT_plain_text_edit_copie(QT_PlainTextEdit *text_edit)
+{
+    VERS_QT(text_edit);
+    qtext_edit->copy();
 }
 
 /** \} */

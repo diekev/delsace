@@ -2263,6 +2263,8 @@ void QT_text_cursor_definis_position(struct QT_TextCursor *cursor,
                                      enum QT_Text_Cursor_Move_Mode mode);
 void QT_text_cursor_donne_texte_selection(struct QT_TextCursor *cursor,
                                           struct QT_Chaine *résultat);
+void QT_text_cursor_insere_texte(struct QT_TextCursor *cursor, struct QT_Chaine texte);
+bool QT_text_cursor_possede_selection_apres(struct QT_TextCursor *cursor, int position);
 
 /** \} */
 
@@ -2288,6 +2290,9 @@ void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct
 struct QT_TextCursor *QT_plain_text_edit_donne_curseur(struct QT_PlainTextEdit *text_edit);
 void QT_plain_text_edit_definis_curseur(struct QT_PlainTextEdit *text_edit,
                                         struct QT_TextCursor *cursor);
+
+void QT_plain_text_edit_coupe(struct QT_PlainTextEdit *text_edit);
+void QT_plain_text_edit_copie(struct QT_PlainTextEdit *text_edit);
 
 /** \} */
 
