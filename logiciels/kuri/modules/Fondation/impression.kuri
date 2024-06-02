@@ -532,7 +532,26 @@ imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) ->
     } tantque frac < 1.0 && frac != 0.0 && p > 0
 }
 
-imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: bool) -> rien
+__chaine_indentation : [1024]z8 = ---
+__chaine_indentation_initialisée := faux
+
+donne_chaine_indentation :: fonc (profondeur: z32) -> chaine
+{
+    saufsi __chaine_indentation_initialisée {
+        pour & __chaine_indentation {
+            it = ' '
+        }
+        __chaine_indentation_initialisée = vrai
+    }
+
+    taille_chaine := profondeur * 4
+    chaine_indentation : chaine = ---
+    chaine_indentation.pointeur = *__chaine_indentation[0]
+    chaine_indentation.taille = __chaine_indentation.taille
+    retourne chaine_indentation.sous_chaine(0, taille_chaine)
+}
+
+imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: bool, profondeur := 0) -> rien
 {
     fonction_de_formattage := trouve_fonction_de_formattage(valeur.info)
     si fonction_de_formattage {
@@ -575,19 +594,23 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
         }
         STRUCTURE {
             info_arg := valeur.info comme *InfoTypeStructure
-            ajoute_au_tampon(enchaineuse, info_arg.nom)
-            ajoute_au_tampon(enchaineuse, " {")
 
-            idx := 0
+            indentation := donne_chaine_indentation(profondeur)
+            indentation_membres := donne_chaine_indentation(profondeur + 1)
+
+            ajoute_au_tampon(enchaineuse, info_arg.nom)
+
+            virgule := " {\n"
+            virgule_insérée := faux
 
             pour membre dans info_arg.membres {
                 si (membre.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 {
                     continue
                 }
 
-                si idx != 0 {
-                    ajoute_au_tampon(enchaineuse, ',')
-                }
+                ajoute_au_tampon(enchaineuse, virgule, indentation_membres)
+                virgule = ",\n"
+                virgule_insérée = vrai
 
                 nom := membre.nom
                 décalage := membre.décalage
@@ -599,11 +622,15 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
                 valeur_membre.pointeur = valeur.pointeur + décalage
                 valeur_membre.info = membre.id
 
-                imprime_valeur(enchaineuse, valeur_membre, vrai)
-                idx += 1
+                imprime_valeur(enchaineuse, valeur_membre, vrai, profondeur + 1)
             }
 
-            ajoute_au_tampon(enchaineuse, " }")
+            si virgule_insérée {
+                ajoute_au_tampon(enchaineuse, "\n", indentation, "}")
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "{}")
+            }
         }
         POINTEUR {
             info_arg := valeur.info comme *InfoTypePointeur
@@ -613,7 +640,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
 
             si info_arg.est_référence {
                 valeur.info = info_arg.type_pointé
-                imprime_valeur(enchaineuse, valeur, vrai)
+                imprime_valeur(enchaineuse, valeur, vrai, profondeur + 1)
             }
             sinon {
                 fmt := FormatEntier(valeur = x comme n64, base = 16)
@@ -669,7 +696,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
                     ajoute_au_tampon(enchaineuse, ',')
                 }
 
-                imprime_valeur(enchaineuse, valeur_, vrai)
+                imprime_valeur(enchaineuse, valeur_, vrai, profondeur + 1)
                 index += 1
             }
 
@@ -699,7 +726,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
                     ajoute_au_tampon(enchaineuse, ',')
                 }
 
-                imprime_valeur(enchaineuse, valeur_, vrai)
+                imprime_valeur(enchaineuse, valeur_, vrai, profondeur + 1)
                 index += 1
             }
 
@@ -767,12 +794,12 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
                     valeur_membre.pointeur = valeur.pointeur
                     valeur_membre.info = membre.id
 
-                    imprime_valeur(enchaineuse, valeur_membre, vrai)
+                    imprime_valeur(enchaineuse, valeur_membre, vrai, profondeur + 1)
                 }
             }
             sinon {
                 valeur.info = info_arg.type_le_plus_grand
-                imprime_valeur(enchaineuse, valeur, faux)
+                imprime_valeur(enchaineuse, valeur, faux, profondeur + 1)
             }
 
             ajoute_au_tampon(enchaineuse, " }")
@@ -780,7 +807,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
         OPAQUE {
             info_arg := valeur.info comme *InfoTypeOpaque
             valeur.info = info_arg.type_opacifié
-            imprime_valeur(enchaineuse, valeur, échappe_chn)
+            imprime_valeur(enchaineuse, valeur, échappe_chn, profondeur)
         }
         VARIADIQUE {}
     }
