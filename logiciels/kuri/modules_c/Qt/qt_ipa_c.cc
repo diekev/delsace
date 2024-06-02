@@ -1780,6 +1780,12 @@ void QT_line_edit_definis_texte(QT_LineEdit *line_edit, QT_Chaine texte)
     qline->setText(vers_qt(texte));
 }
 
+void QT_line_edit_definis_texte_lieutenant(QT_LineEdit *line_edit, QT_Chaine texte)
+{
+    auto qline = vers_qt(line_edit);
+    qline->setPlaceholderText(vers_qt(texte));
+}
+
 void QT_line_edit_connecte_sur_changement(QT_LineEdit *line_edit, QT_Rappel_Generique *rappel)
 {
     if (!rappel || !rappel->sur_rappel) {

@@ -1552,6 +1552,7 @@ void QT_tooltip_montre_texte(struct QT_Point point, struct QT_Chaine texte);
 
 struct QT_LineEdit *QT_cree_line_edit(union QT_Generic_Widget parent);
 void QT_line_edit_definis_texte(struct QT_LineEdit *line_edit, struct QT_Chaine texte);
+void QT_line_edit_definis_texte_lieutenant(struct QT_LineEdit *line_edit, struct QT_Chaine texte);
 void QT_line_edit_connecte_sur_changement(struct QT_LineEdit *line_edit,
                                           struct QT_Rappel_Generique *rappel);
 struct QT_Chaine QT_line_edit_donne_texte(struct QT_LineEdit *line_edit);
