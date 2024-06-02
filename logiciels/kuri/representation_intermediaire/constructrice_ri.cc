@@ -2898,7 +2898,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto valeur_si_faux = depile_valeur();
 
             auto inst = m_constructrice.crée_sélection(noeud, false);
-            inst->type = sélection->si_vrai->type;
+            inst->type = noeud->type;
             inst->condition = valeur_condition;
             inst->si_vrai = valeur_si_vrai;
             inst->si_faux = valeur_si_faux;
