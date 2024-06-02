@@ -2598,7 +2598,7 @@ static NoeudExpressionSélection *peut_être_compilée_avec_sélection(NoeudSi *
     }
 
     auto résultat = assem->crée_sélection(inst_si->lexème, inst_si->condition, si_vrai, si_faux);
-    résultat->type = si_vrai->type;
+    résultat->type = inst_si->type;
     return résultat;
 }
 
