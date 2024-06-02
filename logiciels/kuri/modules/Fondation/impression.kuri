@@ -604,7 +604,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             virgule_insérée := faux
 
             pour membre dans info_arg.membres {
-                si (membre.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 {
+                si membre.drapeaux.EST_CONSTANT {
                     continue
                 }
 
