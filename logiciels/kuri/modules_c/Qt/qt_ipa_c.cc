@@ -473,6 +473,11 @@ void QT_application_sur_fin_boucle_evenement(QT_Application *app, QT_Rappel_Gene
     QObject::connect(qapp, &QCoreApplication::aboutToQuit, [=]() { rappel->sur_rappel(rappel); });
 }
 
+void QT_application_beep()
+{
+    QApplication::beep();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

@@ -435,6 +435,8 @@ void QT_application_poste_evenement_et_donnees(union QT_Generic_Object receveur,
 void QT_application_sur_fin_boucle_evenement(struct QT_Application *app,
                                              struct QT_Rappel_Generique *rappel);
 
+void QT_application_beep();
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
