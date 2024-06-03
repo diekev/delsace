@@ -913,8 +913,6 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
         }
 
         if (!m_résultat.globales.est_vide()) {
-            partitionne_globales_info_types();
-
             auto fonc_init = m_compilatrice_ri.genere_fonction_init_globales_et_appel(
                 &m_espace, m_résultat.globales, fonction);
 
@@ -923,6 +921,7 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
             }
 
             ajoute_fonction(fonc_init);
+            partitionne_globales_info_types();
         }
 
         /* Les métaprogrammes gèrent différemment les cas suivants, donc retournons directement. */

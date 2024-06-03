@@ -19,6 +19,7 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsView>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenuBar>
@@ -2723,6 +2724,15 @@ void QT_sort_filter_proxy_model_definis_colonne_filtre(QT_SortFilterProxyModel *
 /** \name QT_TableView
  * \{ */
 
+static QAbstractItemView::SelectionBehavior convertis_comportement_selection(
+    QT_Item_View_Selection_Behavior comportement)
+{
+    switch (comportement) {
+        ENUMERE_ITEM_VIEW_SELECTION_BEHAVIOR(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QAbstractItemView::SelectItems;
+}
+
 QT_TableView *QT_cree_table_view(QT_Generic_Widget parent)
 {
     VERS_QT(parent);
@@ -2741,6 +2751,107 @@ void QT_table_view_definis_model(QT_TableView *view,
     }
 
     qview->setModel(qmodel);
+}
+
+void QT_table_view_cache_colonne(QT_TableView *view, int colonne)
+{
+    VERS_QT(view);
+    qview->setColumnHidden(colonne, true);
+}
+
+QT_HeaderView *QT_table_view_donne_entete_horizontale(QT_TableView *view)
+{
+    VERS_QT(view);
+    auto résultat = qview->horizontalHeader();
+    return vers_ipa(résultat);
+}
+
+QT_HeaderView *QT_table_view_donne_entete_verticale(QT_TableView *view)
+{
+    VERS_QT(view);
+    auto résultat = qview->verticalHeader();
+    return vers_ipa(résultat);
+}
+
+void QT_table_view_definis_comportement_selection(QT_TableView *view,
+                                                  QT_Item_View_Selection_Behavior comportement)
+{
+    VERS_QT(view);
+    qview->setSelectionBehavior(convertis_comportement_selection(comportement));
+}
+
+void QT_table_view_connecte_sur_changement_item(QT_TableView *view, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(view);
+    auto model = qview->selectionModel();
+    if (!model) {
+        return;
+    }
+
+    QObject::connect(
+        model,
+        &QItemSelectionModel::currentChanged,
+        [=](const QModelIndex &, const QModelIndex &) { rappel->sur_rappel(rappel); });
+}
+
+void QT_table_view_donne_item_courant(QT_TableView *view, QT_ModelIndex *r_index)
+{
+    if (!r_index) {
+        return;
+    }
+
+    VERS_QT(view);
+    auto model = qview->selectionModel();
+    if (!model) {
+        return;
+    }
+
+    *r_index = vers_ipa(model->currentIndex());
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_HeaderView
+ * \{ */
+
+static QHeaderView::ResizeMode convertis_resize_mode(QT_Header_View_Resize_Mode mode)
+{
+    switch (mode) {
+        ENUMERE_HEADER_VIEW_RESIZE_MODE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QHeaderView::Interactive;
+}
+
+void QT_header_view_cache_colonne(QT_HeaderView *view, int colonne)
+{
+    VERS_QT(view);
+    qview->setSectionHidden(colonne, true);
+}
+
+void QT_header_view_definis_mode_redimension(QT_HeaderView *view,
+                                             QT_Header_View_Resize_Mode mode,
+                                             int colonne)
+{
+    VERS_QT(view);
+    qview->setSectionResizeMode(colonne, convertis_resize_mode(mode));
+}
+
+void QT_header_view_definis_mode_redimension_section(QT_HeaderView *view,
+                                                     QT_Header_View_Resize_Mode mode)
+{
+    VERS_QT(view);
+    qview->setSectionResizeMode(convertis_resize_mode(mode));
+}
+
+void QT_header_view_definis_alignement_defaut(QT_HeaderView *view, QT_Alignment alignement)
+{
+    VERS_QT(view);
+    qview->setDefaultAlignment(convertis_alignement(alignement));
 }
 
 /** \} */
