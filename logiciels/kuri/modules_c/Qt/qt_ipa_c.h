@@ -2186,7 +2186,10 @@ void QT_table_view_definis_comportement_selection(
 /* À FAIRE : déplace ces fonctions dans un QT_ItemSelectionModel. */
 void QT_table_view_connecte_sur_changement_item(struct QT_TableView *view,
                                                 struct QT_Rappel_Generique *rappel);
+void QT_table_view_connecte_sur_changement_selection(struct QT_TableView *view,
+                                                     struct QT_Rappel_Generique *rappel);
 void QT_table_view_donne_item_courant(struct QT_TableView *view, struct QT_ModelIndex *r_index);
+bool QT_table_view_possede_selection(struct QT_TableView *view);
 
 /** \} */
 
