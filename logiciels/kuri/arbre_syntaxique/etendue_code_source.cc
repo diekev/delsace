@@ -57,6 +57,10 @@ void ÉtendueSourceNoeud::fusionne(ÉtendueSourceNoeud autre)
                  false,
                  [&](NoeudExpression const *noeud_visité) -> DecisionVisiteNoeud {
                      auto lexème = noeud->lexème;
+                     if (!lexème) {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
+
                      auto étendue_noeud_visité = ÉtendueSourceNoeud::depuis_lexème(lexème);
 
                      if (noeud_visité->est_commentaire() || noeud_visité->est_littérale_chaine()) {

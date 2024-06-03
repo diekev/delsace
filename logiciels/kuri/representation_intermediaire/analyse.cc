@@ -1751,7 +1751,8 @@ static void analyse_durée_de_vie_variables(AtomeFonction const &fonction)
     durées_de_vie.redimensionne(fonction.numérote_instructions());
 
     POUR (fonction.instructions) {
-        visite_opérandes_instruction(it, [&](Atome const *opérande) {
+        /* visite_atome est récursif alors que visite_opérandes_instruction ne l'est pas. */
+        visite_atome(it, [&](Atome const *opérande) {
             if (!opérande->est_instruction()) {
                 return;
             }
@@ -1761,7 +1762,8 @@ static void analyse_durée_de_vie_variables(AtomeFonction const &fonction)
         });
     }
 
-    dbg() << "=================================================\n" << fonction.nom;
+    dbg() << "=================================================\n";
+    dbg() << imprime_fonction(&fonction);
 
     POUR (fonction.instructions) {
         if (!it->est_alloc()) {
@@ -1770,8 +1772,13 @@ static void analyse_durée_de_vie_variables(AtomeFonction const &fonction)
 
         auto alloc = it->comme_alloc();
         if (alloc->ident) {
-            dbg() << "%" << alloc->ident->nom << " -> " << "%"
-                  << durées_de_vie[alloc->numero].dernière_utilisation;
+            dbg() << "%" << alloc->numero << " -> "
+                  << "%" << durées_de_vie[alloc->numero].dernière_utilisation << " ("
+                  << alloc->ident->nom << ")";
+        }
+        else {
+            dbg() << "%" << alloc->numero << " -> "
+                  << "%" << durées_de_vie[alloc->numero].dernière_utilisation;
         }
     }
 }
