@@ -2780,6 +2780,39 @@ void QT_table_view_definis_comportement_selection(QT_TableView *view,
     qview->setSelectionBehavior(convertis_comportement_selection(comportement));
 }
 
+void QT_table_view_connecte_sur_changement_item(QT_TableView *view, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(view);
+    auto model = qview->selectionModel();
+    if (!model) {
+        return;
+    }
+
+    QObject::connect(
+        model,
+        &QItemSelectionModel::currentChanged,
+        [=](const QModelIndex &, const QModelIndex &) { rappel->sur_rappel(rappel); });
+}
+
+void QT_table_view_donne_item_courant(QT_TableView *view, QT_ModelIndex *r_index)
+{
+    if (!r_index) {
+        return;
+    }
+
+    VERS_QT(view);
+    auto model = qview->selectionModel();
+    if (!model) {
+        return;
+    }
+
+    *r_index = vers_ipa(model->currentIndex());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

@@ -2182,6 +2182,11 @@ struct QT_HeaderView *QT_table_view_donne_entete_verticale(struct QT_TableView *
 void QT_table_view_definis_comportement_selection(
     struct QT_TableView *view, enum QT_Item_View_Selection_Behavior comportement);
 
+/* À FAIRE : déplace ces fonctions dans un QT_ItemSelectionModel. */
+void QT_table_view_connecte_sur_changement_item(struct QT_TableView *view,
+                                                struct QT_Rappel_Generique *rappel);
+void QT_table_view_donne_item_courant(struct QT_TableView *view, struct QT_ModelIndex *r_index);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
