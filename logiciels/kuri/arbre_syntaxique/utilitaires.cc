@@ -578,9 +578,8 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto expr = racine->comme_appel();
             expr->position |= position;
 
-            aplatis_arbre(expr->expression,
-                          arbre_aplatis,
-                          position | PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL);
+            aplatis_arbre(expr->expression, arbre_aplatis, position);
+            expr->expression->position |= PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL;
 
             POUR (expr->paramètres) {
                 if (it->est_assignation_variable()) {
