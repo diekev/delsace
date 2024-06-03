@@ -162,6 +162,7 @@ struct QT_Rappel_Generique {
     O(QMenuBar, QT_MenuBar, menu_bar)                                                             \
     O(QToolBar, QT_ToolBar, tool_bar)                                                             \
     O(QTableView, QT_TableView, table_view)                                                       \
+    O(QHeaderView, QT_HeaderView, header_view)                                                    \
     O(QSpinBox, QT_SpinBox, spin_box)                                                             \
     O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
     O(QSlider, QT_Slider, slider)                                                                 \
@@ -2162,10 +2163,52 @@ void QT_sort_filter_proxy_model_definis_colonne_filtre(struct QT_SortFilterProxy
 /** \name QT_TableView
  * \{ */
 
+#define ENUMERE_ITEM_VIEW_SELECTION_BEHAVIOR(O)                                                   \
+    O(QT_ITEM_VIEW_SELECTION_BEHAVIOR_SelectItems, QAbstractItemView::SelectItems)                \
+    O(QT_ITEM_VIEW_SELECTION_BEHAVIOR_SelectRows, QAbstractItemView::SelectRows)                  \
+    O(QT_ITEM_VIEW_SELECTION_BEHAVIOR_SelectColumns, QAbstractItemView::SelectColumns)
+
+enum QT_Item_View_Selection_Behavior {
+    ENUMERE_ITEM_VIEW_SELECTION_BEHAVIOR(ENUMERE_DECLARATION_ENUM_IPA)
+};
+
 struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
 void QT_table_view_definis_model(struct QT_TableView *view,
                                  union QT_Generic_ItemModel model,
                                  bool detruit_model_existant);
+void QT_table_view_cache_colonne(struct QT_TableView *view, int colonne);
+struct QT_HeaderView *QT_table_view_donne_entete_horizontale(struct QT_TableView *view);
+struct QT_HeaderView *QT_table_view_donne_entete_verticale(struct QT_TableView *view);
+void QT_table_view_definis_comportement_selection(
+    struct QT_TableView *view, enum QT_Item_View_Selection_Behavior comportement);
+
+/* À FAIRE : déplace ces fonctions dans un QT_ItemSelectionModel. */
+void QT_table_view_connecte_sur_changement_item(struct QT_TableView *view,
+                                                struct QT_Rappel_Generique *rappel);
+void QT_table_view_donne_item_courant(struct QT_TableView *view, struct QT_ModelIndex *r_index);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_HeaderView
+ * \{ */
+
+#define ENUMERE_HEADER_VIEW_RESIZE_MODE(O)                                                        \
+    O(QT_HEADER_VIEW_RESIZE_MODE_Interactive, QHeaderView::Interactive)                           \
+    O(QT_HEADER_VIEW_RESIZE_MODE_Stretch, QHeaderView::Stretch)                                   \
+    O(QT_HEADER_VIEW_RESIZE_MODE_Fixed, QHeaderView::Fixed)                                       \
+    O(QT_HEADER_VIEW_RESIZE_MODE_ResizeToContents, QHeaderView::ResizeToContents)
+
+enum QT_Header_View_Resize_Mode { ENUMERE_HEADER_VIEW_RESIZE_MODE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+void QT_header_view_cache_colonne(struct QT_HeaderView *view, int colonne);
+void QT_header_view_definis_mode_redimension(struct QT_HeaderView *view,
+                                             enum QT_Header_View_Resize_Mode mode,
+                                             int colonne);
+void QT_header_view_definis_mode_redimension_section(struct QT_HeaderView *view,
+                                                     enum QT_Header_View_Resize_Mode mode);
+void QT_header_view_definis_alignement_defaut(struct QT_HeaderView *view,
+                                              enum QT_Alignment alignement);
 
 /** \} */
 
