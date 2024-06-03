@@ -1818,6 +1818,12 @@ QT_Chaine QT_line_edit_donne_texte(QT_LineEdit *line_edit)
     return résultat;
 }
 
+void QT_line_edit_definis_lecture_seule(QT_LineEdit *line_edit, bool ouinon)
+{
+    VERS_QT(line_edit);
+    qline_edit->setReadOnly(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

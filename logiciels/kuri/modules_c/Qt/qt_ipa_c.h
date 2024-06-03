@@ -1557,6 +1557,7 @@ void QT_line_edit_definis_texte_lieutenant(struct QT_LineEdit *line_edit, struct
 void QT_line_edit_connecte_sur_changement(struct QT_LineEdit *line_edit,
                                           struct QT_Rappel_Generique *rappel);
 struct QT_Chaine QT_line_edit_donne_texte(struct QT_LineEdit *line_edit);
+void QT_line_edit_definis_lecture_seule(struct QT_LineEdit *line_edit, bool ouinon);
 
 /** \} */
 
