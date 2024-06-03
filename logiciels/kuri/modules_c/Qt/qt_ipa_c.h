@@ -2163,6 +2163,15 @@ void QT_sort_filter_proxy_model_definis_colonne_filtre(struct QT_SortFilterProxy
 /** \name QT_TableView
  * \{ */
 
+#define ENUMERE_ITEM_VIEW_SELECTION_BEHAVIOR(O)                                                   \
+    O(QT_ITEM_VIEW_SELECTION_BEHAVIOR_SelectItems, QAbstractItemView::SelectItems)                \
+    O(QT_ITEM_VIEW_SELECTION_BEHAVIOR_SelectRows, QAbstractItemView::SelectRows)                  \
+    O(QT_ITEM_VIEW_SELECTION_BEHAVIOR_SelectColumns, QAbstractItemView::SelectColumns)
+
+enum QT_Item_View_Selection_Behavior {
+    ENUMERE_ITEM_VIEW_SELECTION_BEHAVIOR(ENUMERE_DECLARATION_ENUM_IPA)
+};
+
 struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
 void QT_table_view_definis_model(struct QT_TableView *view,
                                  union QT_Generic_ItemModel model,
@@ -2170,6 +2179,8 @@ void QT_table_view_definis_model(struct QT_TableView *view,
 void QT_table_view_cache_colonne(struct QT_TableView *view, int colonne);
 struct QT_HeaderView *QT_table_view_donne_entete_horizontale(struct QT_TableView *view);
 struct QT_HeaderView *QT_table_view_donne_entete_verticale(struct QT_TableView *view);
+void QT_table_view_definis_comportement_selection(
+    struct QT_TableView *view, enum QT_Item_View_Selection_Behavior comportement);
 
 /** \} */
 

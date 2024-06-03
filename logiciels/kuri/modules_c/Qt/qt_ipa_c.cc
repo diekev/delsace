@@ -2724,6 +2724,15 @@ void QT_sort_filter_proxy_model_definis_colonne_filtre(QT_SortFilterProxyModel *
 /** \name QT_TableView
  * \{ */
 
+static QAbstractItemView::SelectionBehavior convertis_comportement_selection(
+    QT_Item_View_Selection_Behavior comportement)
+{
+    switch (comportement) {
+        ENUMERE_ITEM_VIEW_SELECTION_BEHAVIOR(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QAbstractItemView::SelectItems;
+}
+
 QT_TableView *QT_cree_table_view(QT_Generic_Widget parent)
 {
     VERS_QT(parent);
@@ -2762,6 +2771,13 @@ QT_HeaderView *QT_table_view_donne_entete_verticale(QT_TableView *view)
     VERS_QT(view);
     auto résultat = qview->verticalHeader();
     return vers_ipa(résultat);
+}
+
+void QT_table_view_definis_comportement_selection(QT_TableView *view,
+                                                  QT_Item_View_Selection_Behavior comportement)
+{
+    VERS_QT(view);
+    qview->setSelectionBehavior(convertis_comportement_selection(comportement));
 }
 
 /** \} */
