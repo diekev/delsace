@@ -4173,6 +4173,12 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         }
     }
 
+    for (auto &membre : type_compose->membres) {
+        if (membre.expression_valeur_defaut) {
+            membre.expression_valeur_defaut->drapeaux |= DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
+        }
+    }
+
     /* Valide les types avant le calcul de la taille des types. */
     TENTE(valide_types_pour_calcule_taille_type(m_espace, type_compose));
 
