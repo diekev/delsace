@@ -1818,6 +1818,12 @@ QT_Chaine QT_line_edit_donne_texte(QT_LineEdit *line_edit)
     return résultat;
 }
 
+void QT_line_edit_definis_lecture_seule(QT_LineEdit *line_edit, bool ouinon)
+{
+    VERS_QT(line_edit);
+    qline_edit->setReadOnly(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2798,6 +2804,25 @@ void QT_table_view_connecte_sur_changement_item(QT_TableView *view, QT_Rappel_Ge
         [=](const QModelIndex &, const QModelIndex &) { rappel->sur_rappel(rappel); });
 }
 
+void QT_table_view_connecte_sur_changement_selection(QT_TableView *view,
+                                                     QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(view);
+    auto model = qview->selectionModel();
+    if (!model) {
+        return;
+    }
+
+    QObject::connect(
+        model,
+        &QItemSelectionModel::selectionChanged,
+        [=](const QItemSelection &, const QItemSelection &) { rappel->sur_rappel(rappel); });
+}
+
 void QT_table_view_donne_item_courant(QT_TableView *view, QT_ModelIndex *r_index)
 {
     if (!r_index) {
@@ -2811,6 +2836,16 @@ void QT_table_view_donne_item_courant(QT_TableView *view, QT_ModelIndex *r_index
     }
 
     *r_index = vers_ipa(model->currentIndex());
+}
+
+bool QT_table_view_possede_selection(QT_TableView *view)
+{
+    VERS_QT(view);
+    auto model = qview->selectionModel();
+    if (!model) {
+        return false;
+    }
+    return model->hasSelection();
 }
 
 /** \} */
