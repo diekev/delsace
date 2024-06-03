@@ -162,6 +162,7 @@ struct QT_Rappel_Generique {
     O(QMenuBar, QT_MenuBar, menu_bar)                                                             \
     O(QToolBar, QT_ToolBar, tool_bar)                                                             \
     O(QTableView, QT_TableView, table_view)                                                       \
+    O(QHeaderView, QT_HeaderView, header_view)                                                    \
     O(QSpinBox, QT_SpinBox, spin_box)                                                             \
     O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
     O(QSlider, QT_Slider, slider)                                                                 \
@@ -2166,6 +2167,32 @@ struct QT_TableView *QT_cree_table_view(union QT_Generic_Widget parent);
 void QT_table_view_definis_model(struct QT_TableView *view,
                                  union QT_Generic_ItemModel model,
                                  bool detruit_model_existant);
+void QT_table_view_cache_colonne(struct QT_TableView *view, int colonne);
+struct QT_HeaderView *QT_table_view_donne_entete_horizontale(struct QT_TableView *view);
+struct QT_HeaderView *QT_table_view_donne_entete_verticale(struct QT_TableView *view);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_HeaderView
+ * \{ */
+
+#define ENUMERE_HEADER_VIEW_RESIZE_MODE(O)                                                        \
+    O(QT_HEADER_VIEW_RESIZE_MODE_Interactive, QHeaderView::Interactive)                           \
+    O(QT_HEADER_VIEW_RESIZE_MODE_Stretch, QHeaderView::Stretch)                                   \
+    O(QT_HEADER_VIEW_RESIZE_MODE_Fixed, QHeaderView::Fixed)                                       \
+    O(QT_HEADER_VIEW_RESIZE_MODE_ResizeToContents, QHeaderView::ResizeToContents)
+
+enum QT_Header_View_Resize_Mode { ENUMERE_HEADER_VIEW_RESIZE_MODE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+void QT_header_view_cache_colonne(struct QT_HeaderView *view, int colonne);
+void QT_header_view_definis_mode_redimension(struct QT_HeaderView *view,
+                                             enum QT_Header_View_Resize_Mode mode,
+                                             int colonne);
+void QT_header_view_definis_mode_redimension_section(struct QT_HeaderView *view,
+                                                     enum QT_Header_View_Resize_Mode mode);
+void QT_header_view_definis_alignement_defaut(struct QT_HeaderView *view,
+                                              enum QT_Alignment alignement);
 
 /** \} */
 

@@ -19,6 +19,7 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsView>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenuBar>
@@ -2741,6 +2742,67 @@ void QT_table_view_definis_model(QT_TableView *view,
     }
 
     qview->setModel(qmodel);
+}
+
+void QT_table_view_cache_colonne(QT_TableView *view, int colonne)
+{
+    VERS_QT(view);
+    qview->setColumnHidden(colonne, true);
+}
+
+QT_HeaderView *QT_table_view_donne_entete_horizontale(QT_TableView *view)
+{
+    VERS_QT(view);
+    auto résultat = qview->horizontalHeader();
+    return vers_ipa(résultat);
+}
+
+QT_HeaderView *QT_table_view_donne_entete_verticale(QT_TableView *view)
+{
+    VERS_QT(view);
+    auto résultat = qview->verticalHeader();
+    return vers_ipa(résultat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_HeaderView
+ * \{ */
+
+static QHeaderView::ResizeMode convertis_resize_mode(QT_Header_View_Resize_Mode mode)
+{
+    switch (mode) {
+        ENUMERE_HEADER_VIEW_RESIZE_MODE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QHeaderView::Interactive;
+}
+
+void QT_header_view_cache_colonne(QT_HeaderView *view, int colonne)
+{
+    VERS_QT(view);
+    qview->setSectionHidden(colonne, true);
+}
+
+void QT_header_view_definis_mode_redimension(QT_HeaderView *view,
+                                             QT_Header_View_Resize_Mode mode,
+                                             int colonne)
+{
+    VERS_QT(view);
+    qview->setSectionResizeMode(colonne, convertis_resize_mode(mode));
+}
+
+void QT_header_view_definis_mode_redimension_section(QT_HeaderView *view,
+                                                     QT_Header_View_Resize_Mode mode)
+{
+    VERS_QT(view);
+    qview->setSectionResizeMode(convertis_resize_mode(mode));
+}
+
+void QT_header_view_definis_alignement_defaut(QT_HeaderView *view, QT_Alignment alignement)
+{
+    VERS_QT(view);
+    qview->setDefaultAlignment(convertis_alignement(alignement));
 }
 
 /** \} */
