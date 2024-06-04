@@ -9,6 +9,7 @@
 
 #include "danjo/conteneur_controles.h"
 #include "danjo/danjo.h"
+#include "danjo/dialogues_chemins.hh"
 #include "danjo/fournisseuse_icones.hh"
 
 /* ------------------------------------------------------------------------- */
@@ -75,6 +76,31 @@ class FournisseuseIcône final : public danjo::FournisseuseIcône {
     std::optional<QIcon> icone_pour_echelle_valeur(danjo::ÉtatIcône état) override;
     std::optional<QIcon> icone_pour_identifiant(std::string const &identifiant,
                                                 danjo::ÉtatIcône état) override;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DialoguesChemins
+ * \{ */
+
+class DialoguesChemins final : public danjo::DialoguesChemins {
+    DNJ_Rappels_DialoguesChemins *m_rappels = nullptr;
+
+  public:
+    DialoguesChemins(DNJ_Rappels_DialoguesChemins *rappels);
+    EMPECHE_COPIE(DialoguesChemins);
+    ~DialoguesChemins() override;
+
+    QString donne_chemin_pour_ouverture(QString const &chemin_existant,
+                                        QString const &caption,
+                                        QString const &dossier,
+                                        QString const &filtres) override;
+
+    QString donne_chemin_pour_écriture(QString const &chemin_existant,
+                                       QString const &caption,
+                                       QString const &dossier,
+                                       QString const &filtres) override;
 };
 
 /** \} */
