@@ -1797,6 +1797,16 @@ void QT_line_edit_connecte_sur_changement(QT_LineEdit *line_edit, QT_Rappel_Gene
     QObject::connect(qline_edit, &QLineEdit::textChanged, [=]() { rappel->sur_rappel(rappel); });
 }
 
+void QT_line_edit_connecte_sur_pression_retour(QT_LineEdit *line_edit, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(line_edit);
+    QObject::connect(qline_edit, &QLineEdit::returnPressed, [=]() { rappel->sur_rappel(rappel); });
+}
+
 QT_Chaine QT_line_edit_donne_texte(QT_LineEdit *line_edit)
 {
     VERS_QT(line_edit);
