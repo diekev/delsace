@@ -2538,6 +2538,38 @@ void DNJ_definis_fournisseuse_icone(struct DNJ_FournisseuseIcone *fournisseuse);
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Rappels_DialoguesChemins
+ * \{ */
+
+struct DNJ_Parametre_Dialogue_Chemin {
+    struct QT_Chaine chemin_existant;
+    struct QT_Chaine caption;
+    struct QT_Chaine dossier;
+    struct QT_Chaine filtres;
+};
+
+struct DNJ_Rappels_DialoguesChemins {
+    void (*sur_destruction)(struct DNJ_Rappels_DialoguesChemins *);
+
+    struct QT_Chaine (*donne_chemin_pour_ouverture)(struct DNJ_Rappels_DialoguesChemins *,
+                                                    struct DNJ_Parametre_Dialogue_Chemin *);
+
+    /* Les chaines données dans l'ordre : chemin existant, caption, dossier, filtres. */
+    struct QT_Chaine (*donne_chemin_pour_écriture)(struct DNJ_Rappels_DialoguesChemins *,
+                                                   struct DNJ_Parametre_Dialogue_Chemin *);
+};
+
+struct DNJ_DialoguesChemins;
+
+struct DNJ_DialoguesChemins *DNJ_cree_dialogues_chemins(
+    struct DNJ_Rappels_DialoguesChemins *rappels);
+void DNJ_detruit_dialogues_chemins(struct DNJ_DialoguesChemins *fournisseuse);
+
+void DNJ_definis_dialogues_chemins(struct DNJ_DialoguesChemins *fournisseuse);
+
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

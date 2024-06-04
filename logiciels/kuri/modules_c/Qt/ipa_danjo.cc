@@ -672,3 +672,75 @@ std::optional<QIcon> FournisseuseIcône::icone_pour_identifiant(std::string cons
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DialoguesChemins
+ * \{ */
+
+#define CHAINE_VERS_IPA(nom)                                                                      \
+    auto std_##nom = nom.toStdString();                                                           \
+    auto nom##_ipa = QT_Chaine                                                                    \
+    {                                                                                             \
+        const_cast<char *>(std_##nom.c_str()), int64_t(std_##nom.size())                          \
+    }
+
+DialoguesChemins::DialoguesChemins(DNJ_Rappels_DialoguesChemins *rappels) : m_rappels(rappels)
+{
+}
+
+DialoguesChemins::~DialoguesChemins()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
+QString DialoguesChemins::donne_chemin_pour_ouverture(QString const &chemin_existant,
+                                                      QString const &caption,
+                                                      QString const &dossier,
+                                                      QString const &filtres)
+{
+    if (!m_rappels || !m_rappels->donne_chemin_pour_ouverture) {
+        return "";
+    }
+
+    CHAINE_VERS_IPA(chemin_existant);
+    CHAINE_VERS_IPA(caption);
+    CHAINE_VERS_IPA(dossier);
+    CHAINE_VERS_IPA(filtres);
+
+    DNJ_Parametre_Dialogue_Chemin paramètres;
+    paramètres.chemin_existant = chemin_existant_ipa;
+    paramètres.caption = caption_ipa;
+    paramètres.dossier = dossier_ipa;
+    paramètres.filtres = filtres_ipa;
+
+    auto résultat = m_rappels->donne_chemin_pour_ouverture(m_rappels, &paramètres);
+    return résultat.vers_std_string().c_str();
+}
+
+QString DialoguesChemins::donne_chemin_pour_écriture(QString const &chemin_existant,
+                                                     QString const &caption,
+                                                     QString const &dossier,
+                                                     QString const &filtres)
+{
+    if (!m_rappels || !m_rappels->donne_chemin_pour_écriture) {
+        return "";
+    }
+
+    CHAINE_VERS_IPA(chemin_existant);
+    CHAINE_VERS_IPA(caption);
+    CHAINE_VERS_IPA(dossier);
+    CHAINE_VERS_IPA(filtres);
+
+    DNJ_Parametre_Dialogue_Chemin paramètres;
+    paramètres.chemin_existant = chemin_existant_ipa;
+    paramètres.caption = caption_ipa;
+    paramètres.dossier = dossier_ipa;
+    paramètres.filtres = filtres_ipa;
+
+    auto résultat = m_rappels->donne_chemin_pour_écriture(m_rappels, &paramètres);
+    return résultat.vers_std_string().c_str();
+}
+
+/** \} */

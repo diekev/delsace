@@ -3513,4 +3513,31 @@ void DNJ_definis_fournisseuse_icone(DNJ_FournisseuseIcone *fournisseuse)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Rappels_DialoguesChemins
+ * \{ */
+
+struct DNJ_DialoguesChemins *DNJ_cree_dialogues_chemins(
+    struct DNJ_Rappels_DialoguesChemins *rappels)
+{
+    auto résultat = new DialoguesChemins(rappels);
+    return reinterpret_cast<DNJ_DialoguesChemins *>(résultat);
+}
+
+void DNJ_detruit_dialogues_chemins(struct DNJ_DialoguesChemins *dialogues)
+{
+    auto qdialogues = reinterpret_cast<DialoguesChemins *>(dialogues);
+    delete qdialogues;
+}
+
+void DNJ_definis_dialogues_chemins(struct DNJ_DialoguesChemins *dialogues)
+{
+    auto qdialogues = reinterpret_cast<DialoguesChemins *>(dialogues);
+    if (qdialogues) {
+        danjo::définis_dialogues_chemins(*qdialogues);
+    }
+}
+
+/** \} */
 }
