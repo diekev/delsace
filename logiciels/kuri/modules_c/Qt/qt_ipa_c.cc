@@ -1867,6 +1867,18 @@ void QT_push_button_connecte_sur_clic(QT_PushButton *button, QT_Rappel_Generique
     QObject::connect(qbutton, &QPushButton::clicked, [=]() { rappel->sur_rappel(rappel); });
 }
 
+void QT_push_button_definis_autodefaut(QT_PushButton *button, bool ouinon)
+{
+    VERS_QT(button);
+    qbutton->setAutoDefault(ouinon);
+}
+
+void QT_push_button_definis_defaut(QT_PushButton *button, bool ouinon)
+{
+    VERS_QT(button);
+    qbutton->setDefault(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

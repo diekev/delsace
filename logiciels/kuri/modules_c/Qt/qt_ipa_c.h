@@ -1571,6 +1571,9 @@ void QT_push_button_connecte_sur_pression(struct QT_PushButton *button,
 void QT_push_button_connecte_sur_clic(struct QT_PushButton *button,
                                       struct QT_Rappel_Generique *rappel);
 
+void QT_push_button_definis_autodefaut(struct QT_PushButton *button, bool ouinon);
+void QT_push_button_definis_defaut(struct QT_PushButton *button, bool ouinon);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
