@@ -1200,24 +1200,23 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
 /** \name QT_Widget
  * \{ */
 
-#define RAPPELS_EVENEMENTS_COMMUNS(type_classe)                                                   \
-    bool (*sur_evenement)(struct type_classe *, union QT_Generic_Event);                          \
-    void (*sur_entree)(struct type_classe *, struct QT_Evenement *);                              \
-    void (*sur_sortie)(struct type_classe *, struct QT_Evenement *);                              \
-    void (*sur_pression_souris)(struct type_classe *, struct QT_MouseEvent *);                    \
-    void (*sur_deplacement_souris)(struct type_classe *, struct QT_MouseEvent *);                 \
-    void (*sur_relachement_souris)(struct type_classe *, struct QT_MouseEvent *);                 \
-    void (*sur_double_clique_souris)(struct type_classe *, struct QT_MouseEvent *);               \
-    void (*sur_molette_souris)(struct type_classe *, struct QT_WheelEvent *);                     \
-    void (*sur_redimensionnement)(struct type_classe *, struct QT_ResizeEvent *);                 \
-    void (*sur_pression_cle)(struct type_classe *, struct QT_KeyEvent *);                         \
-    void (*sur_relachement_cle)(struct type_classe *, struct QT_KeyEvent *);                      \
-    void (*sur_destruction)(struct type_classe *)
+#define RAPPELS_EVENEMENTS_COMMUNS(type_classe, type_rappels)                                     \
+    struct type_classe *widget;                                                                   \
+    bool (*sur_evenement)(struct type_rappels *, union QT_Generic_Event);                         \
+    void (*sur_entree)(struct type_rappels *, struct QT_Evenement *);                             \
+    void (*sur_sortie)(struct type_rappels *, struct QT_Evenement *);                             \
+    void (*sur_pression_souris)(struct type_rappels *, struct QT_MouseEvent *);                   \
+    void (*sur_deplacement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
+    void (*sur_relachement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
+    void (*sur_double_clique_souris)(struct type_rappels *, struct QT_MouseEvent *);              \
+    void (*sur_molette_souris)(struct type_rappels *, struct QT_WheelEvent *);                    \
+    void (*sur_redimensionnement)(struct type_rappels *, struct QT_ResizeEvent *);                \
+    void (*sur_pression_cle)(struct type_rappels *, struct QT_KeyEvent *);                        \
+    void (*sur_relachement_cle)(struct type_rappels *, struct QT_KeyEvent *);                     \
+    void (*sur_destruction)(struct type_rappels *)
 
 struct QT_Rappels_Widget {
-    RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_Widget);
-    /** Le widget pour lequel les rappels sont mis en place. */
-    struct QT_Widget *widget;
+    RAPPELS_EVENEMENTS_COMMUNS(QT_Widget, QT_Rappels_Widget);
 };
 
 struct QT_Widget *QT_cree_widget(struct QT_Rappels_Widget *rappels,
@@ -1297,15 +1296,12 @@ void QT_widget_definis_fonte(union QT_Generic_Widget widget, struct QT_Font *fon
  * \{ */
 
 struct QT_Rappels_GLWidget {
-    RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_GLWidget);
+    RAPPELS_EVENEMENTS_COMMUNS(QT_GLWidget, QT_Rappels_GLWidget);
 
     void (*sur_initialisation_gl)(struct QT_Rappels_GLWidget *);
     void (*sur_peinture_gl)(struct QT_Rappels_GLWidget *);
     /** Les dimensions sont passées dans l'ordre : largeur, hauteur. */
     void (*sur_redimensionnement_gl)(struct QT_Rappels_GLWidget *, struct QT_Taille);
-
-    /** Le widget pour lequel les rappels sont mis en place. */
-    struct QT_GLWidget *widget;
 };
 
 struct QT_GLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
@@ -2321,9 +2317,7 @@ bool QT_text_cursor_possede_selection_apres(struct QT_TextCursor *cursor, int po
  * \{ */
 
 struct QT_Rappels_PlainTextEdit {
-    RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_PlainTextEdit);
-    /** Le widget pour lequel les rappels sont mis en place. */
-    struct QT_PlainTextEdit *widget;
+    RAPPELS_EVENEMENTS_COMMUNS(QT_PlainTextEdit, QT_Rappels_PlainTextEdit);
 };
 
 struct QT_PlainTextEdit *QT_cree_plain_text_edit(struct QT_Rappels_PlainTextEdit *rappels,
