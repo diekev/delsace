@@ -1621,7 +1621,13 @@ struct QT_PushButton *QT_dialog_button_box_ajoute_bouton_standard(struct QT_Dial
 /** \name QT_Dialog
  * \{ */
 
+struct QT_Rappels_Dialog {
+    RAPPELS_EVENEMENTS_COMMUNS(QT_Dialog, QT_Rappels_Dialog);
+};
+
 struct QT_Dialog *QT_cree_dialog(union QT_Generic_Widget parent);
+struct QT_Dialog *QT_cree_dialog_rappels(struct QT_Rappels_Dialog *rappels,
+                                         union QT_Generic_Widget parent);
 void QT_dialog_definis_bouton_accepter(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
 void QT_dialog_definis_bouton_annuler(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
 int QT_dialog_exec(struct QT_Dialog *dialog);

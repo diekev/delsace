@@ -12,6 +12,7 @@
 #endif
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDialog>
 #include <QGLWidget>
 #include <QGraphicsView>
 #include <QPlainTextEdit>
@@ -228,6 +229,34 @@ class PlainTextEdit : public QPlainTextEdit {
     QTextCursor *donne_cursor();
 
     QT_Rappels_PlainTextEdit *donne_rappels() const
+    {
+        return m_rappels;
+    }
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Dialog
+ * \{ */
+
+class Dialog : public QDialog {
+    Q_OBJECT
+
+    QT_Rappels_Dialog *m_rappels = nullptr;
+
+  public:
+    Dialog(QT_Rappels_Dialog *rappels, QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(Dialog);
+
+    ~Dialog() override;
+
+    DECLARE_SURCHARGES_EVENEMENTS_COMMUNS;
+
+    QTextCursor *donne_cursor();
+
+    QT_Rappels_Dialog *donne_rappels() const
     {
         return m_rappels;
     }

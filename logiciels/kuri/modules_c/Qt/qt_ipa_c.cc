@@ -1938,6 +1938,16 @@ QT_Dialog *QT_cree_dialog(QT_Generic_Widget parent)
     return vers_ipa(résultat);
 }
 
+QT_Dialog *QT_cree_dialog_rappels(QT_Rappels_Dialog *rappels, QT_Generic_Widget parent)
+{
+    auto qparent = vers_qt(parent);
+    auto résultat = new Dialog(rappels, qparent);
+    if (rappels) {
+        rappels->widget = vers_ipa(résultat);
+    }
+    return vers_ipa(résultat);
+}
+
 void QT_dialog_definis_bouton_accepter(QT_Dialog *dialog, QT_PushButton *bouton)
 {
     auto qdialog = vers_qt(dialog);

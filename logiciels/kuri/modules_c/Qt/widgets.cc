@@ -307,3 +307,22 @@ QTextCursor *PlainTextEdit::donne_cursor()
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Dialog
+ * \{ */
+
+Dialog::Dialog(QT_Rappels_Dialog *rappels, QWidget *parent) : QDialog(parent), m_rappels(rappels)
+{
+}
+
+Dialog::~Dialog()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
+IMPLEMENTE_METHODES_EVENEMENTS(Dialog)
+
+/** \} */
