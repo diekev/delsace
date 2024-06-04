@@ -97,6 +97,7 @@ set(ENTETES
 	conteneur_controles.h
 	erreur.h
 	danjo.h
+        dialogues_chemins.hh
         fournisseuse_icones.hh
 	manipulable.h
         proprietes.hh
@@ -159,6 +160,7 @@ set(SOURCES
 	dialogue.cc
 	erreur.cc
 	danjo.cc
+        dialogues_chemins.cc
         fournisseuse_icones.cc
 	manipulable.cc
         proprietes.cc
