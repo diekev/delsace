@@ -26,6 +26,25 @@
 #include "qt_ipa_c.h"
 
 /* ------------------------------------------------------------------------- */
+/** \name Utilitaires
+ * \{ */
+
+#define DECLARE_SURCHARGES_EVENEMENTS_COMMUNS                                                     \
+    bool event(QEvent *event) override;                                                           \
+    void enterEvent(QEvent *event) override;                                                      \
+    void leaveEvent(QEvent *event) override;                                                      \
+    void mousePressEvent(QMouseEvent *event) override;                                            \
+    void mouseMoveEvent(QMouseEvent *event) override;                                             \
+    void mouseReleaseEvent(QMouseEvent *event) override;                                          \
+    void mouseDoubleClickEvent(QMouseEvent *event) override;                                      \
+    void wheelEvent(QWheelEvent *event) override;                                                 \
+    void resizeEvent(QResizeEvent *event) override;                                               \
+    void keyPressEvent(QKeyEvent *event) override;                                                \
+    void keyReleaseEvent(QKeyEvent *event) override
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Widget
  * \{ */
 
@@ -41,17 +60,7 @@ class Widget : public QWidget {
 
     ~Widget() override;
 
-    bool event(QEvent *event) override;
-    void enterEvent(QEvent *event) override;
-    void leaveEvent(QEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void mouseDoubleClickEvent(QMouseEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
+    DECLARE_SURCHARGES_EVENEMENTS_COMMUNS;
     bool focusNextPrevChild(bool next) override;
 };
 
@@ -74,17 +83,7 @@ class GLWidget : public QGLWidget {
     ~GLWidget() override;
 
     /* Évènements communs. */
-    bool event(QEvent *event) override;
-    void enterEvent(QEvent *event) override;
-    void leaveEvent(QEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void mouseDoubleClickEvent(QMouseEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
+    DECLARE_SURCHARGES_EVENEMENTS_COMMUNS;
 
     /* Évènements spécifiques. */
     void initializeGL() override;
@@ -224,17 +223,7 @@ class PlainTextEdit : public QPlainTextEdit {
 
     ~PlainTextEdit() override;
 
-    bool event(QEvent *event) override;
-    void enterEvent(QEvent *event) override;
-    void leaveEvent(QEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void mouseDoubleClickEvent(QMouseEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
+    DECLARE_SURCHARGES_EVENEMENTS_COMMUNS;
 
     QTextCursor *donne_cursor();
 
