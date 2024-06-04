@@ -15,6 +15,17 @@
     }
 
 #define IMPLEMENTE_METHODES_EVENEMENTS(classe)                                                    \
+    bool classe::event(QEvent *event)                                                             \
+    {                                                                                             \
+        if (m_rappels && m_rappels->sur_evenement) {                                              \
+            QT_Generic_Event generic_event;                                                       \
+            generic_event.event = reinterpret_cast<QT_Evenement *>(event);                        \
+            if (m_rappels->sur_evenement(m_rappels, generic_event)) {                             \
+                return true;                                                                      \
+            }                                                                                     \
+        }                                                                                         \
+        return Q##classe::event(event);                                                           \
+    }                                                                                             \
     IMPLEMENTE_METHODE_EVENEMENT(classe, QEvent, enterEvent, QT_Evenement, sur_entree)            \
     IMPLEMENTE_METHODE_EVENEMENT(classe, QEvent, leaveEvent, QT_Evenement, sur_sortie)            \
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
@@ -48,18 +59,6 @@ Widget::~Widget()
     }
 }
 
-bool Widget::event(QEvent *event)
-{
-    if (m_rappels && m_rappels->sur_evenement) {
-        QT_Generic_Event generic_event;
-        generic_event.event = reinterpret_cast<QT_Evenement *>(event);
-        if (m_rappels->sur_evenement(m_rappels, generic_event)) {
-            return true;
-        }
-    }
-    return QWidget::event(event);
-}
-
 bool Widget::focusNextPrevChild(bool /*next*/)
 {
     /* Pour pouvoir utiliser la touche tab, il faut désactiver la focalisation
@@ -85,18 +84,6 @@ GLWidget::~GLWidget()
     if (m_rappels && m_rappels->sur_destruction) {
         m_rappels->sur_destruction(m_rappels);
     }
-}
-
-bool GLWidget::event(QEvent *event)
-{
-    if (m_rappels && m_rappels->sur_evenement) {
-        QT_Generic_Event generic_event;
-        generic_event.event = reinterpret_cast<QT_Evenement *>(event);
-        if (m_rappels->sur_evenement(m_rappels, generic_event)) {
-            return true;
-        }
-    }
-    return QGLWidget::event(event);
 }
 
 IMPLEMENTE_METHODES_EVENEMENTS(GLWidget)
@@ -311,18 +298,6 @@ PlainTextEdit::~PlainTextEdit()
     }
 }
 
-bool PlainTextEdit::event(QEvent *event)
-{
-    if (m_rappels && m_rappels->sur_evenement) {
-        QT_Generic_Event generic_event;
-        generic_event.event = reinterpret_cast<QT_Evenement *>(event);
-        if (m_rappels->sur_evenement(m_rappels, generic_event)) {
-            return true;
-        }
-    }
-    return QPlainTextEdit::event(event);
-}
-
 IMPLEMENTE_METHODES_EVENEMENTS(PlainTextEdit)
 
 QTextCursor *PlainTextEdit::donne_cursor()
@@ -330,5 +305,24 @@ QTextCursor *PlainTextEdit::donne_cursor()
     m_cached_cursor = this->textCursor();
     return &m_cached_cursor;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Dialog
+ * \{ */
+
+Dialog::Dialog(QT_Rappels_Dialog *rappels, QWidget *parent) : QDialog(parent), m_rappels(rappels)
+{
+}
+
+Dialog::~Dialog()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
+IMPLEMENTE_METHODES_EVENEMENTS(Dialog)
 
 /** \} */
