@@ -16,6 +16,7 @@
 #endif
 
 #include "danjo/compilation/assembleuse_disposition.h"
+#include "danjo/controles_proprietes/controle_propriete.h"
 #include "danjo/controles_proprietes/donnees_controle.h"
 
 /* ------------------------------------------------------------------------- */
@@ -378,6 +379,337 @@ class ConstructriceListe : public DNJ_Constructrice_Liste {
 
 /** \} */
 
+#define ASSIGNE_RAPPEL(nom) nom = nom##_impl
+
+class Maconne_Disposition_Ligne;
+class Maconne_Disposition_Colonne;
+class Maconne_Disposition_Grille;
+
+class Maconne_Disposition_Ligne : public DNJ_Maconne_Disposition_Ligne {
+    danjo::MaçonneDispositionLigne *m_maçonne = nullptr;
+    dls::tableau<std::shared_ptr<Maconne_Disposition_Ligne>> m_lignes{};
+    dls::tableau<std::shared_ptr<Maconne_Disposition_Colonne>> m_colonnes{};
+    dls::tableau<std::shared_ptr<Maconne_Disposition_Grille>> m_grilles{};
+
+    static DNJ_Maconne_Disposition_Ligne *débute_ligne_impl(
+        DNJ_Maconne_Disposition_Ligne *instance);
+
+    static DNJ_Maconne_Disposition_Colonne *débute_colonne_impl(
+        DNJ_Maconne_Disposition_Ligne *instance);
+
+    static DNJ_Maconne_Disposition_Grille *débute_grille_impl(
+        DNJ_Maconne_Disposition_Ligne *instance);
+
+    static void ajoute_controle_impl(DNJ_Maconne_Disposition_Ligne *instance,
+                                     QT_Chaine nom,
+                                     struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
+    static void ajoute_etiquette_impl(DNJ_Maconne_Disposition_Ligne *instance, QT_Chaine nom);
+
+  public:
+    Maconne_Disposition_Ligne(danjo::MaçonneDispositionLigne *maçonne);
+
+    danjo::MaçonneDispositionLigne *donne_maçonne()
+    {
+        return m_maçonne;
+    }
+};
+
+class Maconne_Disposition_Colonne : public DNJ_Maconne_Disposition_Colonne {
+    danjo::MaçonneDispositionColonne *m_maçonne = nullptr;
+    dls::tableau<std::shared_ptr<Maconne_Disposition_Ligne>> m_lignes{};
+    dls::tableau<std::shared_ptr<Maconne_Disposition_Colonne>> m_colonnes{};
+    dls::tableau<std::shared_ptr<Maconne_Disposition_Grille>> m_grilles{};
+
+    static DNJ_Maconne_Disposition_Ligne *débute_ligne_impl(
+        DNJ_Maconne_Disposition_Colonne *instance);
+
+    static DNJ_Maconne_Disposition_Colonne *débute_colonne_impl(
+        DNJ_Maconne_Disposition_Colonne *instance);
+
+    static DNJ_Maconne_Disposition_Grille *débute_grille_impl(
+        DNJ_Maconne_Disposition_Colonne *instance);
+
+    static void ajoute_controle_impl(DNJ_Maconne_Disposition_Colonne *instance,
+                                     QT_Chaine nom,
+                                     struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
+    static void ajoute_etiquette_impl(DNJ_Maconne_Disposition_Colonne *instance, QT_Chaine nom);
+
+  public:
+    Maconne_Disposition_Colonne(danjo::MaçonneDispositionColonne *maçonne);
+
+    danjo::MaçonneDispositionColonne *donne_maçonne()
+    {
+        return m_maçonne;
+    }
+};
+
+class Maconne_Disposition_Grille : public DNJ_Maconne_Disposition_Grille {
+    danjo::MaçonneDispositionGrille *m_maçonne = nullptr;
+    dls::tableau<std::shared_ptr<Maconne_Disposition_Ligne>> m_lignes{};
+    dls::tableau<std::shared_ptr<Maconne_Disposition_Colonne>> m_colonnes{};
+    dls::tableau<std::shared_ptr<Maconne_Disposition_Grille>> m_grilles{};
+
+    static DNJ_Maconne_Disposition_Ligne *débute_ligne_impl(
+        DNJ_Maconne_Disposition_Grille *instance,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    static DNJ_Maconne_Disposition_Colonne *débute_colonne_impl(
+        DNJ_Maconne_Disposition_Grille *instance,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    static DNJ_Maconne_Disposition_Grille *débute_grille_impl(
+        DNJ_Maconne_Disposition_Grille *instance,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    static void ajoute_controle_impl(DNJ_Maconne_Disposition_Grille *instance,
+                                     QT_Chaine nom,
+                                     struct DNJ_Rappels_Enveloppe_Parametre *rappels_params,
+                                     int ligne,
+                                     int colonne,
+                                     int empan_ligne,
+                                     int empan_colonne);
+
+    static void ajoute_etiquette_impl(DNJ_Maconne_Disposition_Grille *instance,
+                                      QT_Chaine nom,
+                                      int ligne,
+                                      int colonne,
+                                      int empan_ligne,
+                                      int empan_colonne);
+
+  public:
+    Maconne_Disposition_Grille(danjo::MaçonneDispositionGrille *maçonne);
+
+    danjo::MaçonneDispositionGrille *donne_maçonne()
+    {
+        return m_maçonne;
+    }
+};
+
+DNJ_Maconne_Disposition_Ligne *Maconne_Disposition_Ligne::débute_ligne_impl(
+    DNJ_Maconne_Disposition_Ligne *instance)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Ligne *>(instance);
+    auto maçonne = inst->m_maçonne->débute_ligne();
+    auto résultat = std::make_shared<Maconne_Disposition_Ligne>(maçonne);
+    inst->m_lignes.ajoute(résultat);
+    return résultat.get();
+}
+
+DNJ_Maconne_Disposition_Colonne *Maconne_Disposition_Ligne::débute_colonne_impl(
+    DNJ_Maconne_Disposition_Ligne *instance)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Ligne *>(instance);
+    auto maçonne = inst->m_maçonne->débute_colonne();
+    auto résultat = std::make_shared<Maconne_Disposition_Colonne>(maçonne);
+    inst->m_colonnes.ajoute(résultat);
+    return résultat.get();
+}
+
+DNJ_Maconne_Disposition_Grille *Maconne_Disposition_Ligne::débute_grille_impl(
+    DNJ_Maconne_Disposition_Ligne *instance)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Ligne *>(instance);
+    auto maçonne = inst->m_maçonne->débute_grille();
+    auto résultat = std::make_shared<Maconne_Disposition_Grille>(maçonne);
+    inst->m_grilles.ajoute(résultat);
+    return résultat.get();
+}
+
+void Maconne_Disposition_Ligne::ajoute_controle_impl(
+    DNJ_Maconne_Disposition_Ligne *instance,
+    QT_Chaine nom,
+    DNJ_Rappels_Enveloppe_Parametre *rappels_params)
+{
+    danjo::DonneesControle données_controle;
+    données_controle.nom = nom.vers_std_string();
+
+    auto prop = memoire::loge<EnveloppeParamètre>("EnveloppeParamètre", rappels_params);
+    if (prop->type() == danjo::TypePropriete::ENUM) {
+        prop->crée_valeurs_énums(données_controle);
+    }
+
+    auto inst = reinterpret_cast<Maconne_Disposition_Ligne *>(instance);
+    inst->m_maçonne->ajoute_controle(données_controle, prop);
+}
+
+void Maconne_Disposition_Ligne::ajoute_etiquette_impl(DNJ_Maconne_Disposition_Ligne *instance,
+                                                      QT_Chaine nom)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Ligne *>(instance);
+    inst->m_maçonne->ajoute_etiquette(nom.vers_std_string());
+}
+
+Maconne_Disposition_Ligne::Maconne_Disposition_Ligne(danjo::MaçonneDispositionLigne *maçonne)
+    : m_maçonne(maçonne)
+{
+    ASSIGNE_RAPPEL(débute_ligne);
+    ASSIGNE_RAPPEL(débute_colonne);
+    ASSIGNE_RAPPEL(débute_grille);
+    ASSIGNE_RAPPEL(ajoute_controle);
+    ASSIGNE_RAPPEL(ajoute_etiquette);
+}
+
+DNJ_Maconne_Disposition_Ligne *Maconne_Disposition_Colonne::débute_ligne_impl(
+    DNJ_Maconne_Disposition_Colonne *instance)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Colonne *>(instance);
+    auto maçonne = inst->m_maçonne->débute_ligne();
+    auto résultat = std::make_shared<Maconne_Disposition_Ligne>(maçonne);
+    inst->m_lignes.ajoute(résultat);
+    return résultat.get();
+}
+
+DNJ_Maconne_Disposition_Colonne *Maconne_Disposition_Colonne::débute_colonne_impl(
+    DNJ_Maconne_Disposition_Colonne *instance)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Colonne *>(instance);
+    auto maçonne = inst->m_maçonne->débute_colonne();
+    auto résultat = std::make_shared<Maconne_Disposition_Colonne>(maçonne);
+    inst->m_colonnes.ajoute(résultat);
+    return résultat.get();
+}
+
+DNJ_Maconne_Disposition_Grille *Maconne_Disposition_Colonne::débute_grille_impl(
+    DNJ_Maconne_Disposition_Colonne *instance)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Colonne *>(instance);
+    auto maçonne = inst->m_maçonne->débute_grille();
+    auto résultat = std::make_shared<Maconne_Disposition_Grille>(maçonne);
+    inst->m_grilles.ajoute(résultat);
+    return résultat.get();
+}
+
+void Maconne_Disposition_Colonne::ajoute_controle_impl(
+    DNJ_Maconne_Disposition_Colonne *instance,
+    QT_Chaine nom,
+    DNJ_Rappels_Enveloppe_Parametre *rappels_params)
+{
+    danjo::DonneesControle données_controle;
+    données_controle.nom = nom.vers_std_string();
+
+    auto prop = memoire::loge<EnveloppeParamètre>("EnveloppeParamètre", rappels_params);
+    if (prop->type() == danjo::TypePropriete::ENUM) {
+        prop->crée_valeurs_énums(données_controle);
+    }
+
+    auto inst = reinterpret_cast<Maconne_Disposition_Colonne *>(instance);
+    inst->m_maçonne->ajoute_controle(données_controle, prop);
+}
+
+void Maconne_Disposition_Colonne::ajoute_etiquette_impl(DNJ_Maconne_Disposition_Colonne *instance,
+                                                        QT_Chaine nom)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Colonne *>(instance);
+    inst->m_maçonne->ajoute_etiquette(nom.vers_std_string());
+}
+
+Maconne_Disposition_Colonne::Maconne_Disposition_Colonne(danjo::MaçonneDispositionColonne *maçonne)
+    : m_maçonne(maçonne)
+{
+    ASSIGNE_RAPPEL(débute_ligne);
+    ASSIGNE_RAPPEL(débute_colonne);
+    ASSIGNE_RAPPEL(débute_grille);
+    ASSIGNE_RAPPEL(ajoute_controle);
+    ASSIGNE_RAPPEL(ajoute_etiquette);
+}
+
+DNJ_Maconne_Disposition_Ligne *Maconne_Disposition_Grille::débute_ligne_impl(
+    DNJ_Maconne_Disposition_Grille *instance,
+    int ligne,
+    int colonne,
+    int empan_ligne,
+    int empan_colonne)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Grille *>(instance);
+    auto maçonne = inst->m_maçonne->débute_ligne(ligne, colonne, empan_ligne, empan_colonne);
+    auto résultat = std::make_shared<Maconne_Disposition_Ligne>(maçonne);
+    inst->m_lignes.ajoute(résultat);
+    return résultat.get();
+}
+
+DNJ_Maconne_Disposition_Colonne *Maconne_Disposition_Grille::débute_colonne_impl(
+    DNJ_Maconne_Disposition_Grille *instance,
+    int ligne,
+    int colonne,
+    int empan_ligne,
+    int empan_colonne)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Grille *>(instance);
+    auto maçonne = inst->m_maçonne->débute_colonne(ligne, colonne, empan_ligne, empan_colonne);
+    auto résultat = std::make_shared<Maconne_Disposition_Colonne>(maçonne);
+    inst->m_colonnes.ajoute(résultat);
+    return résultat.get();
+}
+
+DNJ_Maconne_Disposition_Grille *Maconne_Disposition_Grille::débute_grille_impl(
+    DNJ_Maconne_Disposition_Grille *instance,
+    int ligne,
+    int colonne,
+    int empan_ligne,
+    int empan_colonne)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Grille *>(instance);
+    auto maçonne = inst->m_maçonne->débute_grille(ligne, colonne, empan_ligne, empan_colonne);
+    auto résultat = std::make_shared<Maconne_Disposition_Grille>(maçonne);
+    inst->m_grilles.ajoute(résultat);
+    return résultat.get();
+}
+
+void Maconne_Disposition_Grille::ajoute_controle_impl(
+    DNJ_Maconne_Disposition_Grille *instance,
+    QT_Chaine nom,
+    DNJ_Rappels_Enveloppe_Parametre *rappels_params,
+    int ligne,
+    int colonne,
+    int empan_ligne,
+    int empan_colonne)
+{
+    danjo::DonneesControle données_controle;
+    données_controle.nom = nom.vers_std_string();
+
+    auto prop = memoire::loge<EnveloppeParamètre>("EnveloppeParamètre", rappels_params);
+    if (prop->type() == danjo::TypePropriete::ENUM) {
+        prop->crée_valeurs_énums(données_controle);
+    }
+
+    auto inst = reinterpret_cast<Maconne_Disposition_Grille *>(instance);
+    inst->m_maçonne->ajoute_controle(
+        données_controle, prop, ligne, colonne, empan_ligne, empan_colonne);
+}
+
+void Maconne_Disposition_Grille::ajoute_etiquette_impl(DNJ_Maconne_Disposition_Grille *instance,
+                                                       QT_Chaine nom,
+                                                       int ligne,
+                                                       int colonne,
+                                                       int empan_ligne,
+                                                       int empan_colonne)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Grille *>(instance);
+    inst->m_maçonne->ajoute_etiquette(
+        nom.vers_std_string(), ligne, colonne, empan_ligne, empan_colonne);
+}
+
+Maconne_Disposition_Grille::Maconne_Disposition_Grille(danjo::MaçonneDispositionGrille *maçonne)
+    : m_maçonne(maçonne)
+{
+    ASSIGNE_RAPPEL(débute_ligne);
+    ASSIGNE_RAPPEL(débute_colonne);
+    ASSIGNE_RAPPEL(débute_grille);
+    ASSIGNE_RAPPEL(ajoute_controle);
+    ASSIGNE_RAPPEL(ajoute_etiquette);
+}
+
 /* ------------------------------------------------------------------------- */
 /** \name ConstructriceInterfaceParametres
  * \{ */
@@ -385,6 +717,7 @@ class ConstructriceListe : public DNJ_Constructrice_Liste {
 class ConstructriceInterfaceParametres : public DNJ_ConstructriceInterfaceParametres {
     danjo::AssembleurDisposition &m_assembleuse;
     danjo::Manipulable &m_manipulable;
+    danjo::ContexteMaçonnage ctx_maçonnage{};
 
     static void commence_disposition_impl(DNJ_ConstructriceInterfaceParametres *constructrice,
                                           DNJ_Type_Disposition type)
@@ -433,15 +766,76 @@ class ConstructriceInterfaceParametres : public DNJ_ConstructriceInterfaceParame
         assembleuse.ajoute_controle_pour_propriété(données_controle, prop);
     }
 
+    static DNJ_Maconne_Disposition_Ligne *débute_ligne_impl(
+        DNJ_ConstructriceInterfaceParametres *constructrice)
+    {
+        auto ctrice = static_cast<ConstructriceInterfaceParametres *>(constructrice);
+        auto résultat = new danjo::MaçonneDispositionLigne(&ctrice->ctx_maçonnage, nullptr);
+        ctrice->m_assembleuse.disposition()->addLayout(résultat->donne_layout());
+        return new Maconne_Disposition_Ligne(résultat);
+    }
+
+    static void termine_ligne_impl(DNJ_ConstructriceInterfaceParametres * /*constructrice*/,
+                                   DNJ_Maconne_Disposition_Ligne *ligne)
+    {
+        auto mligne = reinterpret_cast<Maconne_Disposition_Ligne *>(ligne);
+        delete mligne->donne_maçonne();
+        delete mligne;
+    }
+
+    static DNJ_Maconne_Disposition_Colonne *débute_colonne_impl(
+        DNJ_ConstructriceInterfaceParametres *constructrice)
+    {
+        auto ctrice = static_cast<ConstructriceInterfaceParametres *>(constructrice);
+        auto résultat = new danjo::MaçonneDispositionColonne(&ctrice->ctx_maçonnage, nullptr);
+        ctrice->m_assembleuse.disposition()->addLayout(résultat->donne_layout());
+        return new Maconne_Disposition_Colonne(résultat);
+    }
+
+    static void termine_colonne_impl(DNJ_ConstructriceInterfaceParametres * /*constructrice*/,
+                                     DNJ_Maconne_Disposition_Colonne *colonne)
+    {
+        auto mcolonne = reinterpret_cast<Maconne_Disposition_Colonne *>(colonne);
+        delete mcolonne->donne_maçonne();
+        delete mcolonne;
+    }
+
+    static DNJ_Maconne_Disposition_Grille *débute_grille_impl(
+        DNJ_ConstructriceInterfaceParametres *constructrice)
+    {
+        auto ctrice = static_cast<ConstructriceInterfaceParametres *>(constructrice);
+        auto résultat = new danjo::MaçonneDispositionGrille(&ctrice->ctx_maçonnage, nullptr);
+        ctrice->m_assembleuse.disposition()->addLayout(résultat->donne_layout());
+        return new Maconne_Disposition_Grille(résultat);
+    }
+
+    static void termine_grille_impl(DNJ_ConstructriceInterfaceParametres * /*constructrice*/,
+                                    DNJ_Maconne_Disposition_Grille *grille)
+    {
+        auto mgrille = reinterpret_cast<Maconne_Disposition_Grille *>(grille);
+        delete mgrille->donne_maçonne();
+        delete mgrille;
+    }
+
   public:
     ConstructriceInterfaceParametres(danjo::AssembleurDisposition &assembleuse,
-                                     danjo::Manipulable &manipulable)
+                                     danjo::Manipulable &manipulable,
+                                     danjo::ConteneurControles *conteneur)
         : m_assembleuse(assembleuse), m_manipulable(manipulable)
     {
         commence_disposition = commence_disposition_impl;
         termine_disposition = termine_disposition_impl;
         ajoute_etiquette = ajoute_etiquette_impl;
         ajoute_propriete = ajoute_propriete_impl;
+        debute_ligne = débute_ligne_impl;
+        debute_colonne = débute_colonne_impl;
+        debute_grille = débute_grille_impl;
+        ASSIGNE_RAPPEL(termine_ligne);
+        ASSIGNE_RAPPEL(termine_colonne);
+        ASSIGNE_RAPPEL(termine_grille);
+
+        ctx_maçonnage.manipulable = &manipulable;
+        ctx_maçonnage.conteneur = conteneur;
     }
 };
 
@@ -535,7 +929,7 @@ QLayout *ConteneurControles::crée_interface()
     /* Ajout d'une disposition par défaut. */
     assembleuse.ajoute_disposition(danjo::id_morceau::COLONNE);
 
-    auto constructrice = ConstructriceInterfaceParametres(assembleuse, manipulable);
+    auto constructrice = ConstructriceInterfaceParametres(assembleuse, manipulable, this);
 
     m_rappels->sur_creation_interface(m_rappels, &constructrice);
 
@@ -669,6 +1063,78 @@ std::optional<QIcon> FournisseuseIcône::icone_pour_identifiant(std::string cons
 
     auto qchn_résultat = chn_résultat.vers_std_string();
     return QIcon(qchn_résultat.c_str());
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DialoguesChemins
+ * \{ */
+
+#define CHAINE_VERS_IPA(nom)                                                                      \
+    auto std_##nom = nom.toStdString();                                                           \
+    auto nom##_ipa = QT_Chaine                                                                    \
+    {                                                                                             \
+        const_cast<char *>(std_##nom.c_str()), int64_t(std_##nom.size())                          \
+    }
+
+DialoguesChemins::DialoguesChemins(DNJ_Rappels_DialoguesChemins *rappels) : m_rappels(rappels)
+{
+}
+
+DialoguesChemins::~DialoguesChemins()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
+QString DialoguesChemins::donne_chemin_pour_ouverture(QString const &chemin_existant,
+                                                      QString const &caption,
+                                                      QString const &dossier,
+                                                      QString const &filtres)
+{
+    if (!m_rappels || !m_rappels->donne_chemin_pour_ouverture) {
+        return "";
+    }
+
+    CHAINE_VERS_IPA(chemin_existant);
+    CHAINE_VERS_IPA(caption);
+    CHAINE_VERS_IPA(dossier);
+    CHAINE_VERS_IPA(filtres);
+
+    DNJ_Parametre_Dialogue_Chemin paramètres;
+    paramètres.chemin_existant = chemin_existant_ipa;
+    paramètres.caption = caption_ipa;
+    paramètres.dossier = dossier_ipa;
+    paramètres.filtres = filtres_ipa;
+
+    auto résultat = m_rappels->donne_chemin_pour_ouverture(m_rappels, &paramètres);
+    return résultat.vers_std_string().c_str();
+}
+
+QString DialoguesChemins::donne_chemin_pour_écriture(QString const &chemin_existant,
+                                                     QString const &caption,
+                                                     QString const &dossier,
+                                                     QString const &filtres)
+{
+    if (!m_rappels || !m_rappels->donne_chemin_pour_écriture) {
+        return "";
+    }
+
+    CHAINE_VERS_IPA(chemin_existant);
+    CHAINE_VERS_IPA(caption);
+    CHAINE_VERS_IPA(dossier);
+    CHAINE_VERS_IPA(filtres);
+
+    DNJ_Parametre_Dialogue_Chemin paramètres;
+    paramètres.chemin_existant = chemin_existant_ipa;
+    paramètres.caption = caption_ipa;
+    paramètres.dossier = dossier_ipa;
+    paramètres.filtres = filtres_ipa;
+
+    auto résultat = m_rappels->donne_chemin_pour_écriture(m_rappels, &paramètres);
+    return résultat.vers_std_string().c_str();
 }
 
 /** \} */
