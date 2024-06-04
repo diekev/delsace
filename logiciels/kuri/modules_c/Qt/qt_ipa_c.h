@@ -2008,6 +2008,76 @@ struct DNJ_Rappels_Enveloppe_Parametre {
 /** \name DNJ_ConstructriceInterfaceParametres
  * \{ */
 
+struct DNJ_Maconne_Disposition_Ligne {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Ligne *);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Ligne *);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Ligne *);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Ligne *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Ligne *, struct QT_Chaine nom);
+};
+
+struct DNJ_Maconne_Disposition_Colonne {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Colonne *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Colonne *, struct QT_Chaine nom);
+};
+
+struct DNJ_Maconne_Disposition_Grille {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Grille *,
+                                                          int ligne,
+                                                          int colonne,
+                                                          int empan_ligne,
+                                                          int empan_colonne);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Grille *,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Grille *,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Grille *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop,
+                            int ligne,
+                            int colonne,
+                            int empan_ligne,
+                            int empan_colonne);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Grille *,
+                             struct QT_Chaine nom,
+                             int ligne,
+                             int colonne,
+                             int empan_ligne,
+                             int empan_colonne);
+};
+
 enum DNJ_Type_Disposition {
     DNJ_TYPE_DISPOSITION_LIGNE,
     DNJ_TYPE_DISPOSITION_COLONNE,
@@ -2021,6 +2091,18 @@ struct DNJ_ConstructriceInterfaceParametres {
     void (*ajoute_propriete)(struct DNJ_ConstructriceInterfaceParametres *,
                              struct QT_Chaine,
                              struct DNJ_Rappels_Enveloppe_Parametre *);
+    struct DNJ_Maconne_Disposition_Ligne *(*debute_ligne)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_ligne)(struct DNJ_ConstructriceInterfaceParametres *,
+                          struct DNJ_Maconne_Disposition_Ligne *);
+    struct DNJ_Maconne_Disposition_Colonne *(*debute_colonne)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_colonne)(struct DNJ_ConstructriceInterfaceParametres *,
+                            struct DNJ_Maconne_Disposition_Colonne *);
+    struct DNJ_Maconne_Disposition_Grille *(*debute_grille)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_grille)(struct DNJ_ConstructriceInterfaceParametres *,
+                           struct DNJ_Maconne_Disposition_Grille *);
 };
 
 /** \} */
