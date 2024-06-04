@@ -24,12 +24,14 @@
 
 #include "controle_propriete_fichier.h"
 
-#include <QFileDialog>
+#include <QDir>
+#include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QStyle>
 
+#include "dialogues_chemins.hh"
 #include "donnees_controle.h"
 #include "fournisseuse_icones.hh"
 
@@ -81,11 +83,12 @@ void SelecteurFichier::setChoosenFile()
         }
     }
 
+    auto &dialogues = donne_dialogues_chemins();
     if (m_input) {
-        chemin = QFileDialog::getOpenFileName(this, caption, dir, filtres);
+        chemin = dialogues.donne_chemin_pour_ouverture(chemin_courant, caption, dir, filtres);
     }
     else {
-        chemin = QFileDialog::getSaveFileName(this, caption, dir, filtres);
+        chemin = dialogues.donne_chemin_pour_écriture(chemin_courant, caption, dir, filtres);
     }
 
     if (!chemin.isEmpty()) {

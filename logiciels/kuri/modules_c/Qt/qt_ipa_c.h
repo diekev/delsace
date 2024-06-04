@@ -1200,24 +1200,23 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
 /** \name QT_Widget
  * \{ */
 
-#define RAPPELS_EVENEMENTS_COMMUNS(type_classe)                                                   \
-    bool (*sur_evenement)(struct type_classe *, union QT_Generic_Event);                          \
-    void (*sur_entree)(struct type_classe *, struct QT_Evenement *);                              \
-    void (*sur_sortie)(struct type_classe *, struct QT_Evenement *);                              \
-    void (*sur_pression_souris)(struct type_classe *, struct QT_MouseEvent *);                    \
-    void (*sur_deplacement_souris)(struct type_classe *, struct QT_MouseEvent *);                 \
-    void (*sur_relachement_souris)(struct type_classe *, struct QT_MouseEvent *);                 \
-    void (*sur_double_clique_souris)(struct type_classe *, struct QT_MouseEvent *);               \
-    void (*sur_molette_souris)(struct type_classe *, struct QT_WheelEvent *);                     \
-    void (*sur_redimensionnement)(struct type_classe *, struct QT_ResizeEvent *);                 \
-    void (*sur_pression_cle)(struct type_classe *, struct QT_KeyEvent *);                         \
-    void (*sur_relachement_cle)(struct type_classe *, struct QT_KeyEvent *);                      \
-    void (*sur_destruction)(struct type_classe *)
+#define RAPPELS_EVENEMENTS_COMMUNS(type_classe, type_rappels)                                     \
+    struct type_classe *widget;                                                                   \
+    bool (*sur_evenement)(struct type_rappels *, union QT_Generic_Event);                         \
+    void (*sur_entree)(struct type_rappels *, struct QT_Evenement *);                             \
+    void (*sur_sortie)(struct type_rappels *, struct QT_Evenement *);                             \
+    void (*sur_pression_souris)(struct type_rappels *, struct QT_MouseEvent *);                   \
+    void (*sur_deplacement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
+    void (*sur_relachement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
+    void (*sur_double_clique_souris)(struct type_rappels *, struct QT_MouseEvent *);              \
+    void (*sur_molette_souris)(struct type_rappels *, struct QT_WheelEvent *);                    \
+    void (*sur_redimensionnement)(struct type_rappels *, struct QT_ResizeEvent *);                \
+    void (*sur_pression_cle)(struct type_rappels *, struct QT_KeyEvent *);                        \
+    void (*sur_relachement_cle)(struct type_rappels *, struct QT_KeyEvent *);                     \
+    void (*sur_destruction)(struct type_rappels *)
 
 struct QT_Rappels_Widget {
-    RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_Widget);
-    /** Le widget pour lequel les rappels sont mis en place. */
-    struct QT_Widget *widget;
+    RAPPELS_EVENEMENTS_COMMUNS(QT_Widget, QT_Rappels_Widget);
 };
 
 struct QT_Widget *QT_cree_widget(struct QT_Rappels_Widget *rappels,
@@ -1297,15 +1296,12 @@ void QT_widget_definis_fonte(union QT_Generic_Widget widget, struct QT_Font *fon
  * \{ */
 
 struct QT_Rappels_GLWidget {
-    RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_GLWidget);
+    RAPPELS_EVENEMENTS_COMMUNS(QT_GLWidget, QT_Rappels_GLWidget);
 
     void (*sur_initialisation_gl)(struct QT_Rappels_GLWidget *);
     void (*sur_peinture_gl)(struct QT_Rappels_GLWidget *);
     /** Les dimensions sont passées dans l'ordre : largeur, hauteur. */
     void (*sur_redimensionnement_gl)(struct QT_Rappels_GLWidget *, struct QT_Taille);
-
-    /** Le widget pour lequel les rappels sont mis en place. */
-    struct QT_GLWidget *widget;
 };
 
 struct QT_GLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
@@ -1556,6 +1552,8 @@ void QT_line_edit_definis_texte(struct QT_LineEdit *line_edit, struct QT_Chaine 
 void QT_line_edit_definis_texte_lieutenant(struct QT_LineEdit *line_edit, struct QT_Chaine texte);
 void QT_line_edit_connecte_sur_changement(struct QT_LineEdit *line_edit,
                                           struct QT_Rappel_Generique *rappel);
+void QT_line_edit_connecte_sur_pression_retour(struct QT_LineEdit *line_edit,
+                                               struct QT_Rappel_Generique *rappel);
 struct QT_Chaine QT_line_edit_donne_texte(struct QT_LineEdit *line_edit);
 void QT_line_edit_definis_lecture_seule(struct QT_LineEdit *line_edit, bool ouinon);
 
@@ -1572,6 +1570,9 @@ void QT_push_button_connecte_sur_pression(struct QT_PushButton *button,
 
 void QT_push_button_connecte_sur_clic(struct QT_PushButton *button,
                                       struct QT_Rappel_Generique *rappel);
+
+void QT_push_button_definis_autodefaut(struct QT_PushButton *button, bool ouinon);
+void QT_push_button_definis_defaut(struct QT_PushButton *button, bool ouinon);
 
 /** \} */
 
@@ -1620,7 +1621,13 @@ struct QT_PushButton *QT_dialog_button_box_ajoute_bouton_standard(struct QT_Dial
 /** \name QT_Dialog
  * \{ */
 
+struct QT_Rappels_Dialog {
+    RAPPELS_EVENEMENTS_COMMUNS(QT_Dialog, QT_Rappels_Dialog);
+};
+
 struct QT_Dialog *QT_cree_dialog(union QT_Generic_Widget parent);
+struct QT_Dialog *QT_cree_dialog_rappels(struct QT_Rappels_Dialog *rappels,
+                                         union QT_Generic_Widget parent);
 void QT_dialog_definis_bouton_accepter(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
 void QT_dialog_definis_bouton_annuler(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
 int QT_dialog_exec(struct QT_Dialog *dialog);
@@ -2001,6 +2008,76 @@ struct DNJ_Rappels_Enveloppe_Parametre {
 /** \name DNJ_ConstructriceInterfaceParametres
  * \{ */
 
+struct DNJ_Maconne_Disposition_Ligne {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Ligne *);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Ligne *);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Ligne *);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Ligne *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Ligne *, struct QT_Chaine nom);
+};
+
+struct DNJ_Maconne_Disposition_Colonne {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Colonne *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Colonne *, struct QT_Chaine nom);
+};
+
+struct DNJ_Maconne_Disposition_Grille {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Grille *,
+                                                          int ligne,
+                                                          int colonne,
+                                                          int empan_ligne,
+                                                          int empan_colonne);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Grille *,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Grille *,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Grille *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop,
+                            int ligne,
+                            int colonne,
+                            int empan_ligne,
+                            int empan_colonne);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Grille *,
+                             struct QT_Chaine nom,
+                             int ligne,
+                             int colonne,
+                             int empan_ligne,
+                             int empan_colonne);
+};
+
 enum DNJ_Type_Disposition {
     DNJ_TYPE_DISPOSITION_LIGNE,
     DNJ_TYPE_DISPOSITION_COLONNE,
@@ -2014,6 +2091,18 @@ struct DNJ_ConstructriceInterfaceParametres {
     void (*ajoute_propriete)(struct DNJ_ConstructriceInterfaceParametres *,
                              struct QT_Chaine,
                              struct DNJ_Rappels_Enveloppe_Parametre *);
+    struct DNJ_Maconne_Disposition_Ligne *(*debute_ligne)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_ligne)(struct DNJ_ConstructriceInterfaceParametres *,
+                          struct DNJ_Maconne_Disposition_Ligne *);
+    struct DNJ_Maconne_Disposition_Colonne *(*debute_colonne)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_colonne)(struct DNJ_ConstructriceInterfaceParametres *,
+                            struct DNJ_Maconne_Disposition_Colonne *);
+    struct DNJ_Maconne_Disposition_Grille *(*debute_grille)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_grille)(struct DNJ_ConstructriceInterfaceParametres *,
+                           struct DNJ_Maconne_Disposition_Grille *);
 };
 
 /** \} */
@@ -2321,9 +2410,7 @@ bool QT_text_cursor_possede_selection_apres(struct QT_TextCursor *cursor, int po
  * \{ */
 
 struct QT_Rappels_PlainTextEdit {
-    RAPPELS_EVENEMENTS_COMMUNS(QT_Rappels_PlainTextEdit);
-    /** Le widget pour lequel les rappels sont mis en place. */
-    struct QT_PlainTextEdit *widget;
+    RAPPELS_EVENEMENTS_COMMUNS(QT_PlainTextEdit, QT_Rappels_PlainTextEdit);
 };
 
 struct QT_PlainTextEdit *QT_cree_plain_text_edit(struct QT_Rappels_PlainTextEdit *rappels,
@@ -2530,6 +2617,38 @@ struct DNJ_FournisseuseIcone *DNJ_cree_fournisseuse_icone(
 void DNJ_detruit_fournisseuse_icone(struct DNJ_FournisseuseIcone *fournisseuse);
 
 void DNJ_definis_fournisseuse_icone(struct DNJ_FournisseuseIcone *fournisseuse);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Rappels_DialoguesChemins
+ * \{ */
+
+struct DNJ_Parametre_Dialogue_Chemin {
+    struct QT_Chaine chemin_existant;
+    struct QT_Chaine caption;
+    struct QT_Chaine dossier;
+    struct QT_Chaine filtres;
+};
+
+struct DNJ_Rappels_DialoguesChemins {
+    void (*sur_destruction)(struct DNJ_Rappels_DialoguesChemins *);
+
+    struct QT_Chaine (*donne_chemin_pour_ouverture)(struct DNJ_Rappels_DialoguesChemins *,
+                                                    struct DNJ_Parametre_Dialogue_Chemin *);
+
+    /* Les chaines données dans l'ordre : chemin existant, caption, dossier, filtres. */
+    struct QT_Chaine (*donne_chemin_pour_écriture)(struct DNJ_Rappels_DialoguesChemins *,
+                                                   struct DNJ_Parametre_Dialogue_Chemin *);
+};
+
+struct DNJ_DialoguesChemins;
+
+struct DNJ_DialoguesChemins *DNJ_cree_dialogues_chemins(
+    struct DNJ_Rappels_DialoguesChemins *rappels);
+void DNJ_detruit_dialogues_chemins(struct DNJ_DialoguesChemins *fournisseuse);
+
+void DNJ_definis_dialogues_chemins(struct DNJ_DialoguesChemins *fournisseuse);
 
 /** \} */
 
