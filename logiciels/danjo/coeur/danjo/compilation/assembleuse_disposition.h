@@ -37,15 +37,125 @@
 #include "morceaux.h"
 
 class QBoxLayout;
+class QGridLayout;
+class QHBoxLayout;
+class QLayout;
 class QMenu;
 class QTabWidget;
 class QToolBar;
+class QVBoxLayout;
 
 namespace danjo {
 
 class Action;
 class Bouton;
 class ControlePropriete;
+
+/* ------------------------------------------------------------------------- */
+/** \name Maçonnes
+ * \{ */
+
+class MaçonneDispositionLigne;
+class MaçonneDispositionColonne;
+class MaçonneDispositionGrille;
+
+struct ContexteMaçonnage {
+    ConteneurControles *conteneur = nullptr;
+    Manipulable *manipulable = nullptr;
+};
+
+class MaçonneDisposition {
+    ContexteMaçonnage *m_ctx = nullptr;
+    MaçonneDisposition *m_parent = nullptr;
+
+  protected:
+    MaçonneDisposition(ContexteMaçonnage *ctx, MaçonneDisposition *parent);
+
+    ControlePropriete *crée_controle_propriété(DonneesControle const &données_controle,
+                                               BasePropriete *prop);
+
+    ControlePropriete *crée_étiquette(std::string_view nom);
+
+    MaçonneDispositionLigne *crée_maçonne_ligne();
+
+    MaçonneDispositionColonne *crée_maçonne_colonne();
+
+    MaçonneDispositionGrille *crée_maçonne_grille();
+};
+
+class MaçonneDispositionLigne : public MaçonneDisposition {
+    QHBoxLayout *m_layout = nullptr;
+
+  public:
+    MaçonneDispositionLigne(ContexteMaçonnage *ctx, MaçonneDisposition *parent);
+
+    MaçonneDispositionLigne *débute_ligne();
+
+    MaçonneDispositionColonne *débute_colonne();
+
+    MaçonneDispositionGrille *débute_grille();
+
+    void ajoute_controle(DonneesControle const &données_controle, BasePropriete *prop);
+
+    void ajoute_etiquette(std::string_view nom);
+
+    QLayout *donne_layout();
+};
+
+class MaçonneDispositionColonne : public MaçonneDisposition {
+    QVBoxLayout *m_layout = nullptr;
+
+  public:
+    MaçonneDispositionColonne(ContexteMaçonnage *ctx, MaçonneDisposition *parent);
+
+    MaçonneDispositionLigne *débute_ligne();
+
+    MaçonneDispositionColonne *débute_colonne();
+
+    MaçonneDispositionGrille *débute_grille();
+
+    void ajoute_controle(DonneesControle const &données_controle, BasePropriete *prop);
+
+    void ajoute_etiquette(std::string_view nom);
+
+    QLayout *donne_layout();
+};
+
+class MaçonneDispositionGrille : public MaçonneDisposition {
+    QGridLayout *m_layout = nullptr;
+
+  public:
+    MaçonneDispositionGrille(ContexteMaçonnage *ctx, MaçonneDisposition *parent);
+
+    MaçonneDispositionLigne *débute_ligne(int ligne,
+                                          int colonne,
+                                          int empan_ligne,
+                                          int empan_colonne);
+
+    MaçonneDispositionColonne *débute_colonne(int ligne,
+                                              int colonne,
+                                              int empan_ligne,
+                                              int empan_colonne);
+
+    MaçonneDispositionGrille *débute_grille(int ligne,
+                                            int colonne,
+                                            int empan_ligne,
+                                            int empan_colonne);
+
+    void ajoute_controle(DonneesControle const &données_controle,
+                         BasePropriete *prop,
+                         int ligne,
+                         int colonne,
+                         int empan_ligne,
+                         int empan_colonne);
+
+    void ajoute_etiquette(
+        std::string_view nom, int ligne, int colonne, int empan_ligne, int empan_colonne);
+
+    QLayout *donne_layout();
+};
+
+/** \} */
 
 /**
  * La classe AssembleurDisposition s'occupe de créer l'entreface en fonction de

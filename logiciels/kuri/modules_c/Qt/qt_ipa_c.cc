@@ -1797,6 +1797,16 @@ void QT_line_edit_connecte_sur_changement(QT_LineEdit *line_edit, QT_Rappel_Gene
     QObject::connect(qline_edit, &QLineEdit::textChanged, [=]() { rappel->sur_rappel(rappel); });
 }
 
+void QT_line_edit_connecte_sur_pression_retour(QT_LineEdit *line_edit, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(line_edit);
+    QObject::connect(qline_edit, &QLineEdit::returnPressed, [=]() { rappel->sur_rappel(rappel); });
+}
+
 QT_Chaine QT_line_edit_donne_texte(QT_LineEdit *line_edit)
 {
     VERS_QT(line_edit);
@@ -1857,6 +1867,18 @@ void QT_push_button_connecte_sur_clic(QT_PushButton *button, QT_Rappel_Generique
     QObject::connect(qbutton, &QPushButton::clicked, [=]() { rappel->sur_rappel(rappel); });
 }
 
+void QT_push_button_definis_autodefaut(QT_PushButton *button, bool ouinon)
+{
+    VERS_QT(button);
+    qbutton->setAutoDefault(ouinon);
+}
+
+void QT_push_button_definis_defaut(QT_PushButton *button, bool ouinon)
+{
+    VERS_QT(button);
+    qbutton->setDefault(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1913,6 +1935,16 @@ QT_Dialog *QT_cree_dialog(QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
     auto résultat = new QDialog(qparent);
+    return vers_ipa(résultat);
+}
+
+QT_Dialog *QT_cree_dialog_rappels(QT_Rappels_Dialog *rappels, QT_Generic_Widget parent)
+{
+    auto qparent = vers_qt(parent);
+    auto résultat = new Dialog(rappels, qparent);
+    if (rappels) {
+        rappels->widget = vers_ipa(résultat);
+    }
     return vers_ipa(résultat);
 }
 
@@ -3477,6 +3509,33 @@ void DNJ_definis_fournisseuse_icone(DNJ_FournisseuseIcone *fournisseuse)
 
     if (qfournisseuse) {
         danjo::définis_fournisseuse_icone(*qfournisseuse);
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Rappels_DialoguesChemins
+ * \{ */
+
+struct DNJ_DialoguesChemins *DNJ_cree_dialogues_chemins(
+    struct DNJ_Rappels_DialoguesChemins *rappels)
+{
+    auto résultat = new DialoguesChemins(rappels);
+    return reinterpret_cast<DNJ_DialoguesChemins *>(résultat);
+}
+
+void DNJ_detruit_dialogues_chemins(struct DNJ_DialoguesChemins *dialogues)
+{
+    auto qdialogues = reinterpret_cast<DialoguesChemins *>(dialogues);
+    delete qdialogues;
+}
+
+void DNJ_definis_dialogues_chemins(struct DNJ_DialoguesChemins *dialogues)
+{
+    auto qdialogues = reinterpret_cast<DialoguesChemins *>(dialogues);
+    if (qdialogues) {
+        danjo::définis_dialogues_chemins(*qdialogues);
     }
 }
 
