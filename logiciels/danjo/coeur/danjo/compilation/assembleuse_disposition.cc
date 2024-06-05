@@ -173,6 +173,17 @@ ControlePropriete *MaçonneDisposition::crée_étiquette_activable(std::string_v
     return controle;
 }
 
+ControlePropriete *MaçonneDisposition::crée_étiquette_propriété(std::string_view nom,
+                                                                BasePropriete *prop)
+{
+    auto nom_prop = std::string(nom.data(), nom.size());
+    auto résultat = new ControleProprieteEtiquettePropriete(prop, 0, m_ctx->conteneur);
+    if (m_ctx->gestionnaire) {
+        m_ctx->gestionnaire->ajoute_controle(nom_prop, résultat);
+    }
+    return résultat;
+}
+
 MaçonneDispositionLigne *MaçonneDisposition::crée_maçonne_ligne()
 {
     return new MaçonneDispositionLigne(m_ctx, this);
@@ -235,6 +246,12 @@ void MaçonneDispositionLigne::ajoute_étiquette_activable(std::string_view nom,
     m_layout->addWidget(étiquette);
 }
 
+void MaçonneDispositionLigne::ajoute_étiquette_propriété(std::string_view nom, BasePropriete *prop)
+{
+    auto étiquette = crée_étiquette_propriété(nom, prop);
+    m_layout->addWidget(étiquette);
+}
+
 void MaçonneDispositionLigne::ajoute_espaceur(int taille)
 {
     auto spaceur = new QSpacerItem(taille, taille);
@@ -291,6 +308,13 @@ void MaçonneDispositionColonne::ajoute_étiquette_activable(std::string_view no
                                                            BasePropriete *prop)
 {
     auto étiquette = crée_étiquette_activable(nom, prop);
+    m_layout->addWidget(étiquette);
+}
+
+void MaçonneDispositionColonne::ajoute_étiquette_propriété(std::string_view nom,
+                                                           BasePropriete *prop)
+{
+    auto étiquette = crée_étiquette_propriété(nom, prop);
     m_layout->addWidget(étiquette);
 }
 
@@ -368,6 +392,17 @@ void MaçonneDispositionGrille::ajoute_étiquette_activable(std::string_view nom
                                                           int empan_colonne)
 {
     auto étiquette = crée_étiquette_activable(nom, prop);
+    m_layout->addWidget(étiquette, ligne, colonne, empan_ligne, empan_colonne);
+}
+
+void MaçonneDispositionGrille::ajoute_étiquette_propriété(std::string_view nom,
+                                                          BasePropriete *prop,
+                                                          int ligne,
+                                                          int colonne,
+                                                          int empan_ligne,
+                                                          int empan_colonne)
+{
+    auto étiquette = crée_étiquette_propriété(nom, prop);
     m_layout->addWidget(étiquette, ligne, colonne, empan_ligne, empan_colonne);
 }
 

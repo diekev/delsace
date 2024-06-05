@@ -59,4 +59,19 @@ class ControleProprieteEtiquetteActivable final : public ControlePropriete {
     ControleProprieteEtiquetteActivable &operator=(ControleProprieteEtiquette const &) = delete;
 };
 
+class ControleProprieteEtiquettePropriete final : public ControlePropriete {
+    char pad[3];
+    QHBoxLayout *m_agencement{};
+    QLabel *m_etiquette{};
+
+  public:
+    ControleProprieteEtiquettePropriete(BasePropriete *p, int temps, QWidget *parent = nullptr);
+
+    ControleProprieteEtiquettePropriete(ControleProprieteEtiquettePropriete const &) = delete;
+    ControleProprieteEtiquettePropriete &operator=(ControleProprieteEtiquettePropriete const &) =
+        delete;
+
+    void ajourne_depuis_propriété() override;
+};
+
 } /* namespace danjo */

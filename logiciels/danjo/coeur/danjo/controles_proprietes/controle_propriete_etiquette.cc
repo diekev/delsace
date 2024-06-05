@@ -73,4 +73,23 @@ ControleProprieteEtiquetteActivable::ControleProprieteEtiquetteActivable(QString
     setEnabled(true);
 }
 
+ControleProprieteEtiquettePropriete::ControleProprieteEtiquettePropriete(BasePropriete *p,
+                                                                         int temps,
+                                                                         QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+      m_etiquette(new QLabel(this))
+{
+    définis_marges(m_agencement);
+    m_agencement->addWidget(m_etiquette);
+    ajourne_depuis_propriété();
+    setLayout(m_agencement);
+}
+
+void ControleProprieteEtiquettePropriete::ajourne_depuis_propriété()
+{
+    if (m_propriete) {
+        m_etiquette->setText(m_propriete->evalue_chaine(m_temps).c_str());
+    }
+}
+
 } /* namespace danjo */

@@ -79,6 +79,8 @@ class MaçonneDisposition {
 
     ControlePropriete *crée_étiquette_activable(std::string_view nom, BasePropriete *prop);
 
+    ControlePropriete *crée_étiquette_propriété(std::string_view nom, BasePropriete *prop);
+
     MaçonneDispositionLigne *crée_maçonne_ligne();
 
     MaçonneDispositionColonne *crée_maçonne_colonne();
@@ -102,6 +104,7 @@ class MaçonneDispositionLigne : public MaçonneDisposition {
 
     void ajoute_etiquette(std::string_view nom);
     void ajoute_étiquette_activable(std::string_view nom, BasePropriete *prop);
+    void ajoute_étiquette_propriété(std::string_view nom, BasePropriete *prop);
 
     void ajoute_espaceur(int taille);
 
@@ -124,6 +127,7 @@ class MaçonneDispositionColonne : public MaçonneDisposition {
 
     void ajoute_etiquette(std::string_view nom);
     void ajoute_étiquette_activable(std::string_view nom, BasePropriete *prop);
+    void ajoute_étiquette_propriété(std::string_view nom, BasePropriete *prop);
 
     void ajoute_espaceur(int taille);
 
@@ -162,6 +166,13 @@ class MaçonneDispositionGrille : public MaçonneDisposition {
         std::string_view nom, int ligne, int colonne, int empan_ligne, int empan_colonne);
 
     void ajoute_étiquette_activable(std::string_view nom,
+                                    BasePropriete *prop,
+                                    int ligne,
+                                    int colonne,
+                                    int empan_ligne,
+                                    int empan_colonne);
+
+    void ajoute_étiquette_propriété(std::string_view nom,
                                     BasePropriete *prop,
                                     int ligne,
                                     int colonne,

@@ -410,6 +410,10 @@ class Maconne_Disposition_Ligne : public DNJ_Maconne_Disposition_Ligne {
                                                 QT_Chaine nom,
                                                 DNJ_Rappels_Enveloppe_Parametre *rappels_params);
 
+    static void ajoute_etiquette_propriete_impl(DNJ_Maconne_Disposition_Ligne *instance,
+                                                QT_Chaine nom,
+                                                DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
     static void ajoute_espaceur_impl(DNJ_Maconne_Disposition_Ligne *instance, int taille);
 
   public:
@@ -443,6 +447,10 @@ class Maconne_Disposition_Colonne : public DNJ_Maconne_Disposition_Colonne {
     static void ajoute_etiquette_impl(DNJ_Maconne_Disposition_Colonne *instance, QT_Chaine nom);
 
     static void ajoute_etiquette_activable_impl(DNJ_Maconne_Disposition_Colonne *instance,
+                                                QT_Chaine nom,
+                                                DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
+    static void ajoute_etiquette_propriete_impl(DNJ_Maconne_Disposition_Colonne *instance,
                                                 QT_Chaine nom,
                                                 DNJ_Rappels_Enveloppe_Parametre *rappels_params);
 
@@ -500,6 +508,14 @@ class Maconne_Disposition_Grille : public DNJ_Maconne_Disposition_Grille {
                                       int empan_colonne);
 
     static void ajoute_etiquette_activable_impl(DNJ_Maconne_Disposition_Grille *instance,
+                                                QT_Chaine nom,
+                                                DNJ_Rappels_Enveloppe_Parametre *rappels_params,
+                                                int ligne,
+                                                int colonne,
+                                                int empan_ligne,
+                                                int empan_colonne);
+
+    static void ajoute_etiquette_propriete_impl(DNJ_Maconne_Disposition_Grille *instance,
                                                 QT_Chaine nom,
                                                 DNJ_Rappels_Enveloppe_Parametre *rappels_params,
                                                 int ligne,
@@ -587,6 +603,16 @@ void Maconne_Disposition_Ligne::ajoute_etiquette_activable_impl(
     inst->m_maçonne->ajoute_étiquette_activable(nom.vers_std_string(), prop);
 }
 
+void Maconne_Disposition_Ligne::ajoute_etiquette_propriete_impl(
+    DNJ_Maconne_Disposition_Ligne *instance,
+    QT_Chaine nom,
+    DNJ_Rappels_Enveloppe_Parametre *rappels_params)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Ligne *>(instance);
+    auto prop = memoire::loge<EnveloppeParamètre>("EnveloppeParamètre", rappels_params);
+    inst->m_maçonne->ajoute_étiquette_propriété(nom.vers_std_string(), prop);
+}
+
 void Maconne_Disposition_Ligne::ajoute_espaceur_impl(DNJ_Maconne_Disposition_Ligne *instance,
                                                      int taille)
 {
@@ -603,6 +629,7 @@ Maconne_Disposition_Ligne::Maconne_Disposition_Ligne(danjo::MaçonneDispositionL
     ASSIGNE_RAPPEL(ajoute_controle);
     ASSIGNE_RAPPEL(ajoute_etiquette);
     ASSIGNE_RAPPEL(ajoute_etiquette_activable);
+    ASSIGNE_RAPPEL(ajoute_etiquette_propriete);
     ASSIGNE_RAPPEL(ajoute_espaceur);
 }
 
@@ -670,6 +697,16 @@ void Maconne_Disposition_Colonne::ajoute_etiquette_activable_impl(
     inst->m_maçonne->ajoute_étiquette_activable(nom.vers_std_string(), prop);
 }
 
+void Maconne_Disposition_Colonne::ajoute_etiquette_propriete_impl(
+    DNJ_Maconne_Disposition_Colonne *instance,
+    QT_Chaine nom,
+    DNJ_Rappels_Enveloppe_Parametre *rappels_params)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Colonne *>(instance);
+    auto prop = memoire::loge<EnveloppeParamètre>("EnveloppeParamètre", rappels_params);
+    inst->m_maçonne->ajoute_étiquette_propriété(nom.vers_std_string(), prop);
+}
+
 void Maconne_Disposition_Colonne::ajoute_espaceur_impl(DNJ_Maconne_Disposition_Colonne *instance,
                                                        int taille)
 {
@@ -686,6 +723,7 @@ Maconne_Disposition_Colonne::Maconne_Disposition_Colonne(danjo::MaçonneDisposit
     ASSIGNE_RAPPEL(ajoute_controle);
     ASSIGNE_RAPPEL(ajoute_etiquette);
     ASSIGNE_RAPPEL(ajoute_etiquette_activable);
+    ASSIGNE_RAPPEL(ajoute_etiquette_propriete);
     ASSIGNE_RAPPEL(ajoute_espaceur);
 }
 
@@ -780,6 +818,21 @@ void Maconne_Disposition_Grille::ajoute_etiquette_activable_impl(
         nom.vers_std_string(), prop, ligne, colonne, empan_ligne, empan_colonne);
 }
 
+void Maconne_Disposition_Grille::ajoute_etiquette_propriete_impl(
+    DNJ_Maconne_Disposition_Grille *instance,
+    QT_Chaine nom,
+    DNJ_Rappels_Enveloppe_Parametre *rappels_params,
+    int ligne,
+    int colonne,
+    int empan_ligne,
+    int empan_colonne)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Grille *>(instance);
+    auto prop = memoire::loge<EnveloppeParamètre>("EnveloppeParamètre", rappels_params);
+    inst->m_maçonne->ajoute_étiquette_propriété(
+        nom.vers_std_string(), prop, ligne, colonne, empan_ligne, empan_colonne);
+}
+
 void Maconne_Disposition_Grille::ajoute_espaceur_impl(DNJ_Maconne_Disposition_Grille *instance,
                                                       int taille,
                                                       int ligne,
@@ -801,6 +854,7 @@ Maconne_Disposition_Grille::Maconne_Disposition_Grille(danjo::MaçonneDispositio
     ASSIGNE_RAPPEL(ajoute_etiquette);
     ASSIGNE_RAPPEL(ajoute_espaceur);
     ASSIGNE_RAPPEL(ajoute_etiquette_activable);
+    ASSIGNE_RAPPEL(ajoute_etiquette_propriete);
 }
 
 /* ------------------------------------------------------------------------- */

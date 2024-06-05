@@ -2379,6 +2379,10 @@ struct DNJ_Maconne_Disposition_Ligne {
                                        struct QT_Chaine nom,
                                        struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
 
+    void (*ajoute_etiquette_propriete)(struct DNJ_Maconne_Disposition_Ligne *instance,
+                                       struct QT_Chaine nom,
+                                       struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
     void (*ajoute_espaceur)(struct DNJ_Maconne_Disposition_Ligne *, int taille);
 };
 
@@ -2399,6 +2403,10 @@ struct DNJ_Maconne_Disposition_Colonne {
     void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Colonne *, struct QT_Chaine nom);
 
     void (*ajoute_etiquette_activable)(struct DNJ_Maconne_Disposition_Colonne *instance,
+                                       struct QT_Chaine nom,
+                                       struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
+    void (*ajoute_etiquette_propriete)(struct DNJ_Maconne_Disposition_Colonne *instance,
                                        struct QT_Chaine nom,
                                        struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
 
@@ -2442,6 +2450,14 @@ struct DNJ_Maconne_Disposition_Grille {
                              int empan_colonne);
 
     void (*ajoute_etiquette_activable)(struct DNJ_Maconne_Disposition_Grille *instance,
+                                       struct QT_Chaine nom,
+                                       struct DNJ_Rappels_Enveloppe_Parametre *rappels_params,
+                                       int ligne,
+                                       int colonne,
+                                       int empan_ligne,
+                                       int empan_colonne);
+
+    void (*ajoute_etiquette_propriete)(struct DNJ_Maconne_Disposition_Grille *instance,
                                        struct QT_Chaine nom,
                                        struct DNJ_Rappels_Enveloppe_Parametre *rappels_params,
                                        int ligne,
