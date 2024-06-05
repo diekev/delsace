@@ -80,6 +80,10 @@ class ControlePropriete : public QWidget {
                 &TypeControlePropriete::emets_termine_changement_controle);
     }
 
+    virtual void ajourne_depuis_propriété()
+    {
+    }
+
     BasePropriete *donne_propriete() const
     {
         return m_propriete;

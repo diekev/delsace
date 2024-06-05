@@ -354,6 +354,7 @@ void GestionnaireInterface::ajourne_controles()
     for (auto const &paire : m_controles) {
         auto controle = paire.second;
         auto prop = controle->donne_propriete();
+        controle->ajourne_depuis_propriété();
         controle->setEnabled(prop->est_visible());
     }
 }
