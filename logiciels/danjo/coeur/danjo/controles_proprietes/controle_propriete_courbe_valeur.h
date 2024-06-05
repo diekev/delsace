@@ -65,8 +65,7 @@ class ControleProprieteCourbeValeur final : public ControlePropriete {
     explicit ControleProprieteCourbeValeur(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteCourbeValeur() override;
 
-    ControleProprieteCourbeValeur(ControleProprieteCourbeValeur const &) = default;
-    ControleProprieteCourbeValeur &operator=(ControleProprieteCourbeValeur const &) = default;
+    EMPECHE_COPIE(ControleProprieteCourbeValeur);
 
     void finalise(const DonneesControle &donnees) override;
 
