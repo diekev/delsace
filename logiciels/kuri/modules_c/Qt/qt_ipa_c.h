@@ -1905,232 +1905,6 @@ void QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name DNJ_Constructrice_Parametre_Enum
- * \{ */
-
-struct DNJ_Constructrice_Parametre_Enum {
-    void (*ajoute_item)(struct DNJ_Constructrice_Parametre_Enum *,
-                        struct QT_Chaine,
-                        struct QT_Chaine);
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name DNJ_Rappels_Enveloppe_Parametre
- * \{ */
-
-#define ENEMERE_TYPE_PARAMETRE_DANJO(O)                                                           \
-    O(DNJ_TYPE_PARAMETRE_ENTIER, danjo::TypePropriete::ENTIER)                                    \
-    O(DNJ_TYPE_PARAMETRE_DECIMAL, danjo::TypePropriete::DECIMAL)                                  \
-    O(DNJ_TYPE_PARAMETRE_VECTEUR_DECIMAL, danjo::TypePropriete::VECTEUR_DECIMAL)                  \
-    O(DNJ_TYPE_PARAMETRE_VECTEUR_ENTIER, danjo::TypePropriete::VECTEUR_ENTIER)                    \
-    O(DNJ_TYPE_PARAMETRE_COULEUR, danjo::TypePropriete::COULEUR)                                  \
-    O(DNJ_TYPE_PARAMETRE_FICHIER_ENTREE, danjo::TypePropriete::FICHIER_ENTREE)                    \
-    O(DNJ_TYPE_PARAMETRE_FICHIER_SORTIE, danjo::TypePropriete::FICHIER_SORTIE)                    \
-    O(DNJ_TYPE_PARAMETRE_CHAINE_CARACTERE, danjo::TypePropriete::CHAINE_CARACTERE)                \
-    O(DNJ_TYPE_PARAMETRE_BOOL, danjo::TypePropriete::BOOL)                                        \
-    O(DNJ_TYPE_PARAMETRE_ENUM, danjo::TypePropriete::ENUM)                                        \
-    O(DNJ_TYPE_PARAMETRE_COURBE_COULEUR, danjo::TypePropriete::COURBE_COULEUR)                    \
-    O(DNJ_TYPE_PARAMETRE_COURBE_VALEUR, danjo::TypePropriete::COURBE_VALEUR)                      \
-    O(DNJ_TYPE_PARAMETRE_RAMPE_COULEUR, danjo::TypePropriete::RAMPE_COULEUR)                      \
-    O(DNJ_TYPE_PARAMETRE_TEXTE, danjo::TypePropriete::TEXTE)                                      \
-    O(DNJ_TYPE_PARAMETRE_LISTE, danjo::TypePropriete::LISTE)                                      \
-    O(DNJ_TYPE_PARAMETRE_LISTE_MANIP, danjo::TypePropriete::LISTE_MANIP)
-
-enum DNJ_Type_Parametre { ENEMERE_TYPE_PARAMETRE_DANJO(ENUMERE_DECLARATION_ENUM_IPA) };
-
-struct DNJ_Rappels_Enveloppe_Parametre {
-    enum DNJ_Type_Parametre (*donne_type_parametre)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    bool (*est_extra)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    void (*definis_visibilite)(struct DNJ_Rappels_Enveloppe_Parametre *, bool);
-    bool (*est_visible)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    void (*donne_infobulle)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
-    int (*donne_dimensions_vecteur)(struct DNJ_Rappels_Enveloppe_Parametre *);
-
-    void (*cree_items_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                            struct DNJ_Constructrice_Parametre_Enum *);
-
-    /* Évaluation des valeurs. */
-    bool (*evalue_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-    int (*evalue_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-    float (*evalue_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-    void (*evalue_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, int, float *);
-    void (*evalue_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int, int *);
-    void (*evalue_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, int, float *);
-    void (*evalue_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *, int, struct QT_Chaine *);
-    void (*evalue_enum)(struct DNJ_Rappels_Enveloppe_Parametre *, int, struct QT_Chaine *);
-
-    /* Définition des valeurs. */
-    void (*definis_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, bool);
-    void (*definis_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-    void (*definis_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float);
-    void (*definis_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float *);
-    void (*definis_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *);
-    void (*definis_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *);
-    void (*definis_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
-    void (*definis_enum)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
-
-    /* Plage des valeurs. */
-    void (*donne_plage_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int *);
-    void (*donne_plage_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, float *);
-    void (*donne_plage_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int *);
-    void (*donne_plage_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                                        float *,
-                                        float *);
-    void (*donne_plage_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, float *);
-
-    /* Animation. */
-    void (*ajoute_image_cle_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, bool, int);
-    void (*ajoute_image_cle_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int, int);
-    void (*ajoute_image_cle_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float, int);
-    void (*ajoute_image_cle_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                                             float *,
-                                             int);
-    void (*ajoute_image_cle_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int);
-    void (*ajoute_image_cle_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, int);
-    void (*ajoute_image_cle_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                                    struct QT_Chaine *,
-                                    int);
-    void (*ajoute_image_cle_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                                  struct QT_Chaine *,
-                                  int);
-
-    void (*supprime_animation)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    bool (*est_anime)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    bool (*est_animable)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    bool (*possede_image_cle)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-};
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name DNJ_ConstructriceInterfaceParametres
- * \{ */
-
-struct DNJ_Maconne_Disposition_Ligne {
-    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Ligne *);
-
-    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
-        struct DNJ_Maconne_Disposition_Ligne *);
-
-    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
-        struct DNJ_Maconne_Disposition_Ligne *);
-
-    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Ligne *,
-                            struct QT_Chaine nom,
-                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
-
-    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Ligne *, struct QT_Chaine nom);
-};
-
-struct DNJ_Maconne_Disposition_Colonne {
-    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(
-        struct DNJ_Maconne_Disposition_Colonne *);
-
-    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
-        struct DNJ_Maconne_Disposition_Colonne *);
-
-    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
-        struct DNJ_Maconne_Disposition_Colonne *);
-
-    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Colonne *,
-                            struct QT_Chaine nom,
-                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
-
-    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Colonne *, struct QT_Chaine nom);
-};
-
-struct DNJ_Maconne_Disposition_Grille {
-    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Grille *,
-                                                          int ligne,
-                                                          int colonne,
-                                                          int empan_ligne,
-                                                          int empan_colonne);
-
-    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
-        struct DNJ_Maconne_Disposition_Grille *,
-        int ligne,
-        int colonne,
-        int empan_ligne,
-        int empan_colonne);
-
-    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
-        struct DNJ_Maconne_Disposition_Grille *,
-        int ligne,
-        int colonne,
-        int empan_ligne,
-        int empan_colonne);
-
-    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Grille *,
-                            struct QT_Chaine nom,
-                            struct DNJ_Rappels_Enveloppe_Parametre *prop,
-                            int ligne,
-                            int colonne,
-                            int empan_ligne,
-                            int empan_colonne);
-
-    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Grille *,
-                             struct QT_Chaine nom,
-                             int ligne,
-                             int colonne,
-                             int empan_ligne,
-                             int empan_colonne);
-};
-
-enum DNJ_Type_Disposition {
-    DNJ_TYPE_DISPOSITION_LIGNE,
-    DNJ_TYPE_DISPOSITION_COLONNE,
-};
-
-struct DNJ_ConstructriceInterfaceParametres {
-    void (*commence_disposition)(struct DNJ_ConstructriceInterfaceParametres *,
-                                 enum DNJ_Type_Disposition);
-    void (*termine_disposition)(struct DNJ_ConstructriceInterfaceParametres *);
-    void (*ajoute_etiquette)(struct DNJ_ConstructriceInterfaceParametres *, struct QT_Chaine);
-    void (*ajoute_propriete)(struct DNJ_ConstructriceInterfaceParametres *,
-                             struct QT_Chaine,
-                             struct DNJ_Rappels_Enveloppe_Parametre *);
-    struct DNJ_Maconne_Disposition_Ligne *(*debute_ligne)(
-        struct DNJ_ConstructriceInterfaceParametres *);
-    void (*termine_ligne)(struct DNJ_ConstructriceInterfaceParametres *,
-                          struct DNJ_Maconne_Disposition_Ligne *);
-    struct DNJ_Maconne_Disposition_Colonne *(*debute_colonne)(
-        struct DNJ_ConstructriceInterfaceParametres *);
-    void (*termine_colonne)(struct DNJ_ConstructriceInterfaceParametres *,
-                            struct DNJ_Maconne_Disposition_Colonne *);
-    struct DNJ_Maconne_Disposition_Grille *(*debute_grille)(
-        struct DNJ_ConstructriceInterfaceParametres *);
-    void (*termine_grille)(struct DNJ_ConstructriceInterfaceParametres *,
-                           struct DNJ_Maconne_Disposition_Grille *);
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name DNJ_Constructrice_Liste
- * \{ */
-
-struct DNJ_Constructrice_Liste {
-    void (*ajoute_element)(struct DNJ_Constructrice_Liste *, struct QT_Chaine);
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name DNJ_Rappels_Pilote_Clique
- * \{ */
-
-struct DNJ_Rappels_Pilote_Clique {
-    void (*sur_destruction)(struct DNJ_Rappels_Pilote_Clique *);
-    bool (*sur_évaluation_prédicat)(struct DNJ_Rappels_Pilote_Clique *,
-                                    struct QT_Chaine,
-                                    struct QT_Chaine);
-    void (*sur_clique)(struct DNJ_Rappels_Pilote_Clique *, struct QT_Chaine, struct QT_Chaine);
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \name QT_Variant
  * \{ */
 
@@ -2477,6 +2251,232 @@ double QT_doublespinbox_donne_valeur(struct QT_DoubleSpinBox *doublespinbox);
 void QT_doublespinbox_definis_lecture_seule(struct QT_DoubleSpinBox *doublespinbox, bool ouinon);
 void QT_doublespinbox_definis_symboles_boutons(struct QT_DoubleSpinBox *doublespinbox,
                                                enum QT_SpinBox_Button_Symbols symbols);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Constructrice_Parametre_Enum
+ * \{ */
+
+struct DNJ_Constructrice_Parametre_Enum {
+    void (*ajoute_item)(struct DNJ_Constructrice_Parametre_Enum *,
+                        struct QT_Chaine,
+                        struct QT_Chaine);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Rappels_Enveloppe_Parametre
+ * \{ */
+
+#define ENEMERE_TYPE_PARAMETRE_DANJO(O)                                                           \
+    O(DNJ_TYPE_PARAMETRE_ENTIER, danjo::TypePropriete::ENTIER)                                    \
+    O(DNJ_TYPE_PARAMETRE_DECIMAL, danjo::TypePropriete::DECIMAL)                                  \
+    O(DNJ_TYPE_PARAMETRE_VECTEUR_DECIMAL, danjo::TypePropriete::VECTEUR_DECIMAL)                  \
+    O(DNJ_TYPE_PARAMETRE_VECTEUR_ENTIER, danjo::TypePropriete::VECTEUR_ENTIER)                    \
+    O(DNJ_TYPE_PARAMETRE_COULEUR, danjo::TypePropriete::COULEUR)                                  \
+    O(DNJ_TYPE_PARAMETRE_FICHIER_ENTREE, danjo::TypePropriete::FICHIER_ENTREE)                    \
+    O(DNJ_TYPE_PARAMETRE_FICHIER_SORTIE, danjo::TypePropriete::FICHIER_SORTIE)                    \
+    O(DNJ_TYPE_PARAMETRE_CHAINE_CARACTERE, danjo::TypePropriete::CHAINE_CARACTERE)                \
+    O(DNJ_TYPE_PARAMETRE_BOOL, danjo::TypePropriete::BOOL)                                        \
+    O(DNJ_TYPE_PARAMETRE_ENUM, danjo::TypePropriete::ENUM)                                        \
+    O(DNJ_TYPE_PARAMETRE_COURBE_COULEUR, danjo::TypePropriete::COURBE_COULEUR)                    \
+    O(DNJ_TYPE_PARAMETRE_COURBE_VALEUR, danjo::TypePropriete::COURBE_VALEUR)                      \
+    O(DNJ_TYPE_PARAMETRE_RAMPE_COULEUR, danjo::TypePropriete::RAMPE_COULEUR)                      \
+    O(DNJ_TYPE_PARAMETRE_TEXTE, danjo::TypePropriete::TEXTE)                                      \
+    O(DNJ_TYPE_PARAMETRE_LISTE, danjo::TypePropriete::LISTE)                                      \
+    O(DNJ_TYPE_PARAMETRE_LISTE_MANIP, danjo::TypePropriete::LISTE_MANIP)
+
+enum DNJ_Type_Parametre { ENEMERE_TYPE_PARAMETRE_DANJO(ENUMERE_DECLARATION_ENUM_IPA) };
+
+struct DNJ_Rappels_Enveloppe_Parametre {
+    enum DNJ_Type_Parametre (*donne_type_parametre)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    bool (*est_extra)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    void (*definis_visibilite)(struct DNJ_Rappels_Enveloppe_Parametre *, bool);
+    bool (*est_visible)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    void (*donne_infobulle)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+    int (*donne_dimensions_vecteur)(struct DNJ_Rappels_Enveloppe_Parametre *);
+
+    void (*cree_items_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                            struct DNJ_Constructrice_Parametre_Enum *);
+
+    /* Évaluation des valeurs. */
+    bool (*evalue_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+    int (*evalue_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+    float (*evalue_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+    void (*evalue_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, int, float *);
+    void (*evalue_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int, int *);
+    void (*evalue_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, int, float *);
+    void (*evalue_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *, int, struct QT_Chaine *);
+    void (*evalue_enum)(struct DNJ_Rappels_Enveloppe_Parametre *, int, struct QT_Chaine *);
+
+    /* Définition des valeurs. */
+    void (*definis_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, bool);
+    void (*definis_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+    void (*definis_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float);
+    void (*definis_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float *);
+    void (*definis_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *);
+    void (*definis_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *);
+    void (*definis_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+    void (*definis_enum)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+
+    /* Plage des valeurs. */
+    void (*donne_plage_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int *);
+    void (*donne_plage_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, float *);
+    void (*donne_plage_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int *);
+    void (*donne_plage_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                                        float *,
+                                        float *);
+    void (*donne_plage_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, float *);
+
+    /* Animation. */
+    void (*ajoute_image_cle_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, bool, int);
+    void (*ajoute_image_cle_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int, int);
+    void (*ajoute_image_cle_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float, int);
+    void (*ajoute_image_cle_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                                             float *,
+                                             int);
+    void (*ajoute_image_cle_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int);
+    void (*ajoute_image_cle_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, int);
+    void (*ajoute_image_cle_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                                    struct QT_Chaine *,
+                                    int);
+    void (*ajoute_image_cle_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                                  struct QT_Chaine *,
+                                  int);
+
+    void (*supprime_animation)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    bool (*est_anime)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    bool (*est_animable)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    bool (*possede_image_cle)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+};
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_ConstructriceInterfaceParametres
+ * \{ */
+
+struct DNJ_Maconne_Disposition_Ligne {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Ligne *);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Ligne *);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Ligne *);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Ligne *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Ligne *, struct QT_Chaine nom);
+};
+
+struct DNJ_Maconne_Disposition_Colonne {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Colonne *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Colonne *, struct QT_Chaine nom);
+};
+
+struct DNJ_Maconne_Disposition_Grille {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Grille *,
+                                                          int ligne,
+                                                          int colonne,
+                                                          int empan_ligne,
+                                                          int empan_colonne);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Grille *,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Grille *,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Grille *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop,
+                            int ligne,
+                            int colonne,
+                            int empan_ligne,
+                            int empan_colonne);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Grille *,
+                             struct QT_Chaine nom,
+                             int ligne,
+                             int colonne,
+                             int empan_ligne,
+                             int empan_colonne);
+};
+
+enum DNJ_Type_Disposition {
+    DNJ_TYPE_DISPOSITION_LIGNE,
+    DNJ_TYPE_DISPOSITION_COLONNE,
+};
+
+struct DNJ_ConstructriceInterfaceParametres {
+    void (*commence_disposition)(struct DNJ_ConstructriceInterfaceParametres *,
+                                 enum DNJ_Type_Disposition);
+    void (*termine_disposition)(struct DNJ_ConstructriceInterfaceParametres *);
+    void (*ajoute_etiquette)(struct DNJ_ConstructriceInterfaceParametres *, struct QT_Chaine);
+    void (*ajoute_propriete)(struct DNJ_ConstructriceInterfaceParametres *,
+                             struct QT_Chaine,
+                             struct DNJ_Rappels_Enveloppe_Parametre *);
+    struct DNJ_Maconne_Disposition_Ligne *(*debute_ligne)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_ligne)(struct DNJ_ConstructriceInterfaceParametres *,
+                          struct DNJ_Maconne_Disposition_Ligne *);
+    struct DNJ_Maconne_Disposition_Colonne *(*debute_colonne)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_colonne)(struct DNJ_ConstructriceInterfaceParametres *,
+                            struct DNJ_Maconne_Disposition_Colonne *);
+    struct DNJ_Maconne_Disposition_Grille *(*debute_grille)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_grille)(struct DNJ_ConstructriceInterfaceParametres *,
+                           struct DNJ_Maconne_Disposition_Grille *);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Constructrice_Liste
+ * \{ */
+
+struct DNJ_Constructrice_Liste {
+    void (*ajoute_element)(struct DNJ_Constructrice_Liste *, struct QT_Chaine);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Rappels_Pilote_Clique
+ * \{ */
+
+struct DNJ_Rappels_Pilote_Clique {
+    void (*sur_destruction)(struct DNJ_Rappels_Pilote_Clique *);
+    bool (*sur_évaluation_prédicat)(struct DNJ_Rappels_Pilote_Clique *,
+                                    struct QT_Chaine,
+                                    struct QT_Chaine);
+    void (*sur_clique)(struct DNJ_Rappels_Pilote_Clique *, struct QT_Chaine, struct QT_Chaine);
+};
 
 /** \} */
 
