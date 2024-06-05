@@ -997,7 +997,7 @@ void ConteneurControles::obtiens_liste(const dls::chaine &attache,
 RepondantCommande *ConteneurControles::donne_repondant_commande()
 {
     if (m_rappels && m_rappels->donne_pilote_clique) {
-        auto pilote = m_rappels->donne_pilote_clique;
+        auto pilote = m_rappels->donne_pilote_clique(m_rappels);
         return reinterpret_cast<PiloteClique *>(pilote);
     }
 
