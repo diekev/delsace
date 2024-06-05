@@ -49,8 +49,7 @@ class BaseControleProprieteVecteur : public ControlePropriete {
   public:
     BaseControleProprieteVecteur(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-    BaseControleProprieteVecteur(BaseControleProprieteVecteur const &) = default;
-    BaseControleProprieteVecteur &operator=(BaseControleProprieteVecteur const &) = default;
+    EMPECHE_COPIE(BaseControleProprieteVecteur);
 };
 
 /* ************************************************************************* */
@@ -67,8 +66,7 @@ class ControleProprieteVecteurDecimal final : public BaseControleProprieteVecteu
                                              QWidget *parent = nullptr);
     ~ControleProprieteVecteurDecimal() override;
 
-    ControleProprieteVecteurDecimal(ControleProprieteVecteurDecimal const &) = default;
-    ControleProprieteVecteurDecimal &operator=(ControleProprieteVecteurDecimal const &) = default;
+    EMPECHE_COPIE(ControleProprieteVecteurDecimal);
 
     void finalise(const DonneesControle &donnees) override;
 
@@ -99,8 +97,7 @@ class ControleProprieteVecteurEntier final : public BaseControleProprieteVecteur
                                             QWidget *parent = nullptr);
     ~ControleProprieteVecteurEntier() override;
 
-    ControleProprieteVecteurEntier(ControleProprieteVecteurEntier const &) = default;
-    ControleProprieteVecteurEntier &operator=(ControleProprieteVecteurEntier const &) = default;
+    EMPECHE_COPIE(ControleProprieteVecteurEntier);
 
     void finalise(const DonneesControle &donnees) override;
 
