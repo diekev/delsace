@@ -394,8 +394,6 @@ struct QT_Fenetre_Principale *QT_cree_fenetre_principale(
     struct QT_Rappels_Fenetre_Principale *rappels);
 void QT_detruit_fenetre_principale(struct QT_Fenetre_Principale *fenetre);
 
-void QT_fenetre_principale_definis_titre_fenetre(struct QT_Fenetre_Principale *fenetre,
-                                                 struct QT_Chaine nom);
 void QT_fenetre_principale_definis_widget_central(struct QT_Fenetre_Principale *fenetre,
                                                   union QT_Generic_Widget widget);
 
@@ -1223,6 +1221,7 @@ struct QT_Widget *QT_cree_widget(struct QT_Rappels_Widget *rappels,
                                  union QT_Generic_Widget parent);
 /* Pour les parents, etc. */
 struct QT_Widget *QT_widget_nul(void);
+void QT_widget_definis_titre_fenetre(union QT_Generic_Widget widget, struct QT_Chaine nom);
 void QT_widget_definis_layout(union QT_Generic_Widget widget, union QT_Generic_Layout layout);
 void QT_widget_remplace_layout(union QT_Generic_Widget widget, union QT_Generic_Layout layout);
 void QT_widget_affiche_maximisee(union QT_Generic_Widget widget);

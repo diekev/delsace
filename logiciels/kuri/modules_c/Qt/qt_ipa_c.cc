@@ -368,12 +368,6 @@ void QT_detruit_fenetre_principale(QT_Fenetre_Principale *fenetre)
     delete fenêtre_qt;
 }
 
-void QT_fenetre_principale_definis_titre_fenetre(QT_Fenetre_Principale *fenetre, QT_Chaine nom)
-{
-    auto fenêtre_qt = vers_qt(fenetre);
-    fenêtre_qt->setWindowTitle(vers_qt(nom));
-}
-
 void QT_fenetre_principale_definis_widget_central(QT_Fenetre_Principale *fenetre,
                                                   QT_Generic_Widget widget)
 {
@@ -914,6 +908,12 @@ QT_Widget *QT_cree_widget(QT_Rappels_Widget *rappels, QT_Generic_Widget parent)
 QT_Widget *QT_widget_nul()
 {
     return nullptr;
+}
+
+void QT_widget_definis_titre_fenetre(QT_Generic_Widget widget, QT_Chaine nom)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setWindowTitle(vers_qt(nom));
 }
 
 void QT_widget_definis_layout(QT_Generic_Widget widget, QT_Generic_Layout layout)
