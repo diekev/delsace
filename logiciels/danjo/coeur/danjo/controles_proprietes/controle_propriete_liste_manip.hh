@@ -86,8 +86,7 @@ class ControleProprieteListeManip : public ControlePropriete {
   public:
     explicit ControleProprieteListeManip(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-    ControleProprieteListeManip(ControleProprieteListeManip const &) = default;
-    ControleProprieteListeManip &operator=(ControleProprieteListeManip const &) = default;
+    EMPECHE_COPIE(ControleProprieteListeManip);
 
     ~ControleProprieteListeManip() override = default;
 

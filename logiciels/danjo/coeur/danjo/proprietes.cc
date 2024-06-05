@@ -115,6 +115,11 @@ std::string Propriete::donnne_infobulle() const
     return infobulle.c_str();
 }
 
+std::string Propriete::donnne_suffixe() const
+{
+    return suffixe.c_str();
+}
+
 /* Évaluation des valeurs. */
 
 bool Propriete::evalue_bool(int /*temps*/) const
