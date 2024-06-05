@@ -124,7 +124,6 @@ void ControleProprieteCourbeCouleur::finalise(const DonneesControle &donnees)
     m_utilise_table->setChecked(m_courbe->courbes[COURBE_COULEUR_MAITRESSE].utilise_table);
     m_pos_x->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
     m_pos_y->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
-    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteCourbeCouleur::change_mode_courbe(int mode)

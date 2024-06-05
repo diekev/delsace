@@ -104,7 +104,6 @@ void ControleProprieteCourbeValeur::finalise(const DonneesControle &donnees)
     m_utilise_table->setChecked(m_courbe->utilise_table);
     m_pos_x->ajourne_plage(m_courbe->valeur_min, m_courbe->valeur_max);
     m_pos_y->ajourne_plage(m_courbe->valeur_min, m_courbe->valeur_max);
-    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteCourbeValeur::bascule_utilise_table(bool ouinon)

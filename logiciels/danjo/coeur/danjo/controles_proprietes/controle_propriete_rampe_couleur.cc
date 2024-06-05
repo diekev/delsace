@@ -109,8 +109,6 @@ void ControleProprieteRampeCouleur::finalise(const DonneesControle &donnees)
     if (point != nullptr) {
         m_controle_couleur->couleur(point->couleur);
     }
-
-    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteRampeCouleur::ajourne_position(float x)
