@@ -45,8 +45,7 @@ class ControleProprieteCouleur final : public ControlePropriete {
     explicit ControleProprieteCouleur(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteCouleur() override = default;
 
-    ControleProprieteCouleur(ControleProprieteCouleur const &) = default;
-    ControleProprieteCouleur &operator=(ControleProprieteCouleur const &) = default;
+    EMPECHE_COPIE(ControleProprieteCouleur);
 
   private Q_SLOTS:
     void ajourne_couleur();

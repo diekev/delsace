@@ -42,8 +42,7 @@ class ControleProprieteBool final : public ControlePropriete {
     explicit ControleProprieteBool(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteBool() override = default;
 
-    ControleProprieteBool(ControleProprieteBool const &) = default;
-    ControleProprieteBool &operator=(ControleProprieteBool const &) = default;
+    EMPECHE_COPIE(ControleProprieteBool);
 
   private Q_SLOTS:
     void ajourne_valeur_pointee(bool valeur);

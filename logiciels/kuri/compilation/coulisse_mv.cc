@@ -11,6 +11,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "intrinseques.hh"
 #include "metaprogramme.hh"
 #include "programme.hh"
 
@@ -39,6 +40,18 @@ std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérat
         type->info_type = convertisseuse_noeud_code->crée_info_type_pour(compilatrice.typeuse,
                                                                          const_cast<Type *>(type));
         assert(type->info_type);
+    }
+
+    POUR (repr_inter.donne_fonctions()) {
+        if (!it->est_intrinsèque()) {
+            continue;
+        }
+
+        if (it->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
+            return ErreurCoulisse{
+                "Utilisation de intrinsèque_est_adresse_données_constantes dans "
+                "un métaprogramme.\nCette fonction n'est pas encore implémentée"};
+        }
     }
 
     compilatrice.dépose_convertisseuse(convertisseuse_noeud_code);
