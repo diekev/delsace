@@ -32,10 +32,18 @@
 
 namespace danjo {
 
+static void définis_marges(QLayout *layout)
+{
+    int left, top, right, bottom;
+    layout->getContentsMargins(&left, &top, &right, &bottom);
+    layout->setContentsMargins(left, 0, right, 0);
+}
+
 ControleProprieteEtiquette::ControleProprieteEtiquette(QString const &texte, QWidget *parent)
     : ControlePropriete(nullptr, 0, parent), m_agencement(new QHBoxLayout(this)),
       m_etiquette(new QLabel(this))
 {
+    définis_marges(m_agencement);
     m_agencement->addWidget(m_etiquette);
     m_etiquette->setText(texte);
     setLayout(m_agencement);
@@ -48,6 +56,7 @@ ControleProprieteEtiquetteActivable::ControleProprieteEtiquetteActivable(QString
     : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
       m_checkbox(new QCheckBox(texte, this))
 {
+    définis_marges(m_agencement);
     m_agencement->addWidget(m_checkbox);
     setLayout(m_agencement);
 
