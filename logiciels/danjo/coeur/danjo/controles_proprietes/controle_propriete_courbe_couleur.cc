@@ -43,8 +43,8 @@ namespace danjo {
 ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(BasePropriete *p,
                                                                int temps,
                                                                QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement_principal(new QVBoxLayout()),
-      m_agencement_nombre(new QHBoxLayout()), m_selection_mode(new QComboBox(this)),
+    : ControlePropriete(p, temps, parent), m_agencement_principal(crée_vbox_layout()),
+      m_agencement_nombre(crée_hbox_layout()), m_selection_mode(new QComboBox(this)),
       m_selection_type(new QComboBox(this)), m_utilise_table(new QCheckBox("Utilise table", this)),
       m_controle_courbe(new ControleCourbeCouleur(this)),
       m_bouton_echelle_x(crée_bouton_échelle_valeur(this)),
@@ -124,7 +124,6 @@ void ControleProprieteCourbeCouleur::finalise(const DonneesControle &donnees)
     m_utilise_table->setChecked(m_courbe->courbes[COURBE_COULEUR_MAITRESSE].utilise_table);
     m_pos_x->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
     m_pos_y->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
-    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteCourbeCouleur::change_mode_courbe(int mode)

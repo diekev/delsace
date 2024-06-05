@@ -31,6 +31,7 @@
 #include <QPushButton>
 #include <QStyle>
 
+#include "commun.hh"
 #include "dialogues_chemins.hh"
 #include "donnees_controle.h"
 #include "fournisseuse_icones.hh"
@@ -48,7 +49,7 @@ static QIcon donne_icone_pour_bouton(QStyle *style)
 }
 
 SelecteurFichier::SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_line_edit(new QLineEdit(this)), m_push_button(new QPushButton(this)), m_input(input)
 {
     m_agencement->addWidget(m_line_edit);

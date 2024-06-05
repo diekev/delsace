@@ -48,8 +48,7 @@ class ControleProprieteEntier final : public ControlePropriete {
     explicit ControleProprieteEntier(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteEntier() override;
 
-    ControleProprieteEntier(ControleProprieteEntier const &) = default;
-    ControleProprieteEntier &operator=(ControleProprieteEntier const &) = default;
+    EMPECHE_COPIE(ControleProprieteEntier);
 
     void finalise(const DonneesControle &donnees) override;
 

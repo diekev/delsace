@@ -37,6 +37,7 @@ class ConteneurControles : public danjo::ConteneurControles {
     void obtiens_liste(const dls::chaine &attache, dls::tableau<dls::chaine> &chaines) override;
 
     RepondantCommande *donne_repondant_commande();
+    danjo::GestionnaireInterface *donne_gestionnaire();
 
     QLayout *crée_interface();
 };

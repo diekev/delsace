@@ -28,6 +28,7 @@ détruit_données_observable :: fonc (observable: *Observable)
     message: MessageObservable
     message.envoyeur = info_de(Observable)
     message.quoi = "observable_est_supprimé"
+    message.données = observable
 
     /* Prévient les observatrices que nous sommes terminés. */
     pour observable.observatrices {

@@ -48,8 +48,7 @@ class ControleProprieteDecimal final : public ControlePropriete {
     explicit ControleProprieteDecimal(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteDecimal() override;
 
-    ControleProprieteDecimal(ControleProprieteDecimal const &) = default;
-    ControleProprieteDecimal &operator=(ControleProprieteDecimal const &) = default;
+    EMPECHE_COPIE(ControleProprieteDecimal);
 
     void finalise(const DonneesControle &donnees) override;
 

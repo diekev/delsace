@@ -49,8 +49,7 @@ class ControleProprieteEnum final : public ControlePropriete {
     explicit ControleProprieteEnum(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteEnum() override = default;
 
-    ControleProprieteEnum(ControleProprieteEnum const &) = default;
-    ControleProprieteEnum &operator=(ControleProprieteEnum const &) = default;
+    EMPECHE_COPIE(ControleProprieteEnum);
 
     void finalise(const DonneesControle &donnees) override;
 

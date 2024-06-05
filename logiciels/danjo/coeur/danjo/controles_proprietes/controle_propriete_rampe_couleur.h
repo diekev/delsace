@@ -66,8 +66,7 @@ class ControleProprieteRampeCouleur final : public ControlePropriete {
     explicit ControleProprieteRampeCouleur(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteRampeCouleur() override;
 
-    ControleProprieteRampeCouleur(ControleProprieteRampeCouleur const &) = default;
-    ControleProprieteRampeCouleur &operator=(ControleProprieteRampeCouleur const &) = default;
+    EMPECHE_COPIE(ControleProprieteRampeCouleur);
 
     void finalise(const DonneesControle &donnees) override;
 

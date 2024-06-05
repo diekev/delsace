@@ -344,6 +344,21 @@ bool GestionnaireInterface::montre_dialogue_fichier(DonneesInterface &donnees,
     return montre_dialogue_texte(donnees, dls::contenu_fichier(fichier));
 }
 
+void GestionnaireInterface::ajoute_controle(dls::chaine identifiant, ControlePropriete *controle)
+{
+    m_controles.insere({identifiant, controle});
+}
+
+void GestionnaireInterface::ajourne_controles()
+{
+    for (auto const &paire : m_controles) {
+        auto controle = paire.second;
+        auto prop = controle->donne_propriete();
+        controle->ajourne_depuis_propriété();
+        controle->setEnabled(prop->est_visible());
+    }
+}
+
 /* ************************************************************************** */
 
 static GestionnaireInterface __gestionnaire;

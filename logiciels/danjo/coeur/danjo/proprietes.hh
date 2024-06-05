@@ -68,6 +68,7 @@ class BasePropriete {
     virtual bool est_visible() const = 0;
 
     virtual std::string donnne_infobulle() const = 0;
+    virtual std::string donnne_suffixe() const = 0;
 
     virtual int donne_dimensions_vecteur() const = 0;
 
@@ -145,6 +146,7 @@ struct Propriete : public BasePropriete {
     dls::tableau<std::pair<int, std::any>> courbe{};
 
     dls::chaine infobulle{};
+    dls::chaine suffixe{};
 
     static Propriete *cree(TypePropriete type);
 
@@ -178,6 +180,7 @@ struct Propriete : public BasePropriete {
     }
 
     std::string donnne_infobulle() const override;
+    std::string donnne_suffixe() const override;
 
     int donne_dimensions_vecteur() const override
     {

@@ -368,12 +368,6 @@ void QT_detruit_fenetre_principale(QT_Fenetre_Principale *fenetre)
     delete fenêtre_qt;
 }
 
-void QT_fenetre_principale_definis_titre_fenetre(QT_Fenetre_Principale *fenetre, QT_Chaine nom)
-{
-    auto fenêtre_qt = vers_qt(fenetre);
-    fenêtre_qt->setWindowTitle(vers_qt(nom));
-}
-
 void QT_fenetre_principale_definis_widget_central(QT_Fenetre_Principale *fenetre,
                                                   QT_Generic_Widget widget)
 {
@@ -441,6 +435,11 @@ void QT_core_application_definis_nom_organisation(QT_Chaine nom)
 void QT_core_application_definis_nom_application(QT_Chaine nom)
 {
     QCoreApplication::setApplicationName(vers_qt(nom));
+}
+
+void QT_core_application_definis_feuille_de_style(QT_Chaine feuille)
+{
+    qApp->setStyleSheet(vers_qt(feuille));
 }
 
 QT_Application *QT_donne_application()
@@ -721,10 +720,21 @@ QT_Point QT_cursor_pos()
 /** \name QT_Evenement
  * \{ */
 
-int QT_evenement_donne_type(QT_Generic_Event evenement)
+static QT_Event_Type convertis_type_évènement(QEvent::Type type)
+{
+    switch (type) {
+        ENUMERE_EVENT_TYPE(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA);
+        default:
+        {
+            return (QT_Event_Type)type;
+        }
+    }
+}
+
+QT_Event_Type QT_evenement_donne_type(QT_Generic_Event evenement)
 {
     auto event = vers_qt(evenement);
-    return event->type();
+    return convertis_type_évènement(event->type());
 }
 
 void QT_evenement_accepte(QT_Generic_Event evenement)
@@ -914,6 +924,12 @@ QT_Widget *QT_cree_widget(QT_Rappels_Widget *rappels, QT_Generic_Widget parent)
 QT_Widget *QT_widget_nul()
 {
     return nullptr;
+}
+
+void QT_widget_definis_titre_fenetre(QT_Generic_Widget widget, QT_Chaine nom)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setWindowTitle(vers_qt(nom));
 }
 
 void QT_widget_definis_layout(QT_Generic_Widget widget, QT_Generic_Layout layout)
@@ -1946,6 +1962,12 @@ QT_Dialog *QT_cree_dialog_rappels(QT_Rappels_Dialog *rappels, QT_Generic_Widget 
         rappels->widget = vers_ipa(résultat);
     }
     return vers_ipa(résultat);
+}
+
+void QT_dialog_detruit(QT_Dialog *dialog)
+{
+    VERS_QT(dialog);
+    delete qdialog;
 }
 
 void QT_dialog_definis_bouton_accepter(QT_Dialog *dialog, QT_PushButton *bouton)
@@ -3355,6 +3377,9 @@ DNJ_Conteneur_Controles *DNJ_cree_conteneur_controle(DNJ_Rappels_Widget *rappels
 {
     auto qparent = vers_qt(parent);
     auto résultat = new ConteneurControles(rappels, qparent);
+    if (rappels) {
+        rappels->widget = vers_ipa(résultat);
+    }
     return vers_ipa(résultat);
 }
 
@@ -3483,6 +3508,12 @@ QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(DNJ_Gestionnaire_Interf
     auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
     auto résultat = dnj_gestionnaire->compile_entreface_fichier(données, chemin.vers_std_string());
     return vers_ipa(résultat);
+}
+
+void DNJ_gestionnaire_ajourne_controles(DNJ_Gestionnaire_Interface *gestionnaire)
+{
+    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    dnj_gestionnaire->ajourne_controles();
 }
 
 /** \} */

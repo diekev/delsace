@@ -26,6 +26,8 @@
 
 #include <QWidget>
 
+#include "biblinternes/outils/definitions.h"
+
 namespace danjo {
 
 struct DonneesControle;
@@ -47,14 +49,13 @@ class ControlePropriete : public QWidget {
   public:
     explicit ControlePropriete(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-    ControlePropriete(ControlePropriete const &) = default;
-    ControlePropriete &operator=(ControlePropriete const &) = default;
+    EMPECHE_COPIE(ControlePropriete);
 
     /**
      * Finalise le contrôle. Cette fonction est appelée à la fin de la création
      * du contrôle par l'assembleur de contrôle.
      */
-    virtual void finalise(const DonneesControle & /*donnees*/){};
+    virtual void finalise(const DonneesControle & /*donnees*/) {};
 
     template <typename TypeFonction>
     void émets_controle_changé_simple(TypeFonction &&fonction)
@@ -78,6 +79,15 @@ class ControlePropriete : public QWidget {
                 &TypeControle::termine_changement_controle,
                 controle_propriete,
                 &TypeControlePropriete::emets_termine_changement_controle);
+    }
+
+    virtual void ajourne_depuis_propriété()
+    {
+    }
+
+    BasePropriete *donne_propriete() const
+    {
+        return m_propriete;
     }
 
   Q_SIGNALS:

@@ -27,20 +27,16 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
-#include <sstream>
-
 #include "controles/controle_echelle_valeur.h"
 #include "controles/controle_nombre_decimal.h"
 
-#include "../manipulable.h"
-
 #include "commun.hh"
-#include "donnees_controle.h"
+#include "proprietes.hh"
 
 namespace danjo {
 
 ControleProprieteDecimal::ControleProprieteDecimal(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_controle(new ControleNombreDecimal(this)), m_bouton(crée_bouton_échelle_valeur(this)),
       m_bouton_animation(crée_bouton_animation_controle(this)),
       m_echelle(new ControleEchelleDecimale(m_controle, m_bouton))
@@ -114,7 +110,7 @@ void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
     auto plage = m_propriete->plage_valeur_decimal();
     m_controle->ajourne_plage(plage.min, plage.max);
     m_controle->valeur(m_propriete->evalue_decimal(m_temps));
-    m_controle->suffixe(donnees.suffixe.c_str());
+    m_controle->suffixe(m_propriete->donnne_suffixe().c_str());
 }
 
 } /* namespace danjo */
