@@ -603,6 +603,7 @@ Maconne_Disposition_Ligne::Maconne_Disposition_Ligne(danjo::MaçonneDispositionL
     ASSIGNE_RAPPEL(ajoute_controle);
     ASSIGNE_RAPPEL(ajoute_etiquette);
     ASSIGNE_RAPPEL(ajoute_etiquette_activable);
+    ASSIGNE_RAPPEL(ajoute_espaceur);
 }
 
 DNJ_Maconne_Disposition_Ligne *Maconne_Disposition_Colonne::débute_ligne_impl(
