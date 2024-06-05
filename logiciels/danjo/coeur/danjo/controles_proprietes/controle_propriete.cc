@@ -34,6 +34,7 @@ ControlePropriete::ControlePropriete(BasePropriete *p, int temps, QWidget *paren
     if (m_propriete) {
         /* Les étiquettes n'ont pas de propriété. */
         setToolTip(m_propriete->donnne_infobulle().c_str());
+        setEnabled(m_propriete->est_visible());
     }
 }
 

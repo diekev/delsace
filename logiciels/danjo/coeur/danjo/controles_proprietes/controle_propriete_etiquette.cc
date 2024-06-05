@@ -24,6 +24,7 @@
 
 #include "controle_propriete_etiquette.h"
 
+#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QLabel>
 
@@ -38,6 +39,29 @@ ControleProprieteEtiquette::ControleProprieteEtiquette(QString const &texte, QWi
     m_agencement->addWidget(m_etiquette);
     m_etiquette->setText(texte);
     setLayout(m_agencement);
+}
+
+ControleProprieteEtiquetteActivable::ControleProprieteEtiquetteActivable(QString const &texte,
+                                                                         BasePropriete *p,
+                                                                         int temps,
+                                                                         QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+      m_checkbox(new QCheckBox(texte, this))
+{
+    m_agencement->addWidget(m_checkbox);
+    setLayout(m_agencement);
+
+    m_checkbox->setChecked(p->est_visible());
+
+    QObject::connect(m_checkbox, &QCheckBox::stateChanged, [=](int state) {
+        p->definit_visibilité(state == Qt::Checked);
+    });
+
+    QObject::connect(
+        m_checkbox, &QCheckBox::stateChanged, this, &ControlePropriete::controle_change);
+
+    /* Ceci doit toujours être activé. */
+    setEnabled(true);
 }
 
 } /* namespace danjo */
