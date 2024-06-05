@@ -2299,6 +2299,7 @@ struct DNJ_Rappels_Enveloppe_Parametre {
     void (*definis_visibilite)(struct DNJ_Rappels_Enveloppe_Parametre *, bool);
     bool (*est_visible)(struct DNJ_Rappels_Enveloppe_Parametre *);
     void (*donne_infobulle)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+    void (*donnne_suffixe)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
     int (*donne_dimensions_vecteur)(struct DNJ_Rappels_Enveloppe_Parametre *);
 
     void (*cree_items_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,

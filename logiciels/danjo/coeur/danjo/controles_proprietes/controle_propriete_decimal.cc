@@ -114,7 +114,7 @@ void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
     auto plage = m_propriete->plage_valeur_decimal();
     m_controle->ajourne_plage(plage.min, plage.max);
     m_controle->valeur(m_propriete->evalue_decimal(m_temps));
-    m_controle->suffixe(donnees.suffixe.c_str());
+    m_controle->suffixe(m_propriete->donnne_suffixe().c_str());
 }
 
 } /* namespace danjo */
