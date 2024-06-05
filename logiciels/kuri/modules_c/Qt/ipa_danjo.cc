@@ -406,6 +406,8 @@ class Maconne_Disposition_Ligne : public DNJ_Maconne_Disposition_Ligne {
 
     static void ajoute_etiquette_impl(DNJ_Maconne_Disposition_Ligne *instance, QT_Chaine nom);
 
+    static void ajoute_espaceur_impl(DNJ_Maconne_Disposition_Ligne *instance, int taille);
+
   public:
     Maconne_Disposition_Ligne(danjo::MaçonneDispositionLigne *maçonne);
 
@@ -435,6 +437,8 @@ class Maconne_Disposition_Colonne : public DNJ_Maconne_Disposition_Colonne {
                                      struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
 
     static void ajoute_etiquette_impl(DNJ_Maconne_Disposition_Colonne *instance, QT_Chaine nom);
+
+    static void ajoute_espaceur_impl(DNJ_Maconne_Disposition_Colonne *instance, int taille);
 
   public:
     Maconne_Disposition_Colonne(danjo::MaçonneDispositionColonne *maçonne);
@@ -486,6 +490,13 @@ class Maconne_Disposition_Grille : public DNJ_Maconne_Disposition_Grille {
                                       int colonne,
                                       int empan_ligne,
                                       int empan_colonne);
+
+    static void ajoute_espaceur_impl(DNJ_Maconne_Disposition_Grille *,
+                                     int taille,
+                                     int ligne,
+                                     int colonne,
+                                     int empan_ligne,
+                                     int empan_colonne);
 
   public:
     Maconne_Disposition_Grille(danjo::MaçonneDispositionGrille *maçonne);
@@ -548,6 +559,13 @@ void Maconne_Disposition_Ligne::ajoute_etiquette_impl(DNJ_Maconne_Disposition_Li
 {
     auto inst = reinterpret_cast<Maconne_Disposition_Ligne *>(instance);
     inst->m_maçonne->ajoute_etiquette(nom.vers_std_string());
+}
+
+void Maconne_Disposition_Ligne::ajoute_espaceur_impl(DNJ_Maconne_Disposition_Ligne *instance,
+                                                     int taille)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Ligne *>(instance);
+    inst->m_maçonne->ajoute_espaceur(taille);
 }
 
 Maconne_Disposition_Ligne::Maconne_Disposition_Ligne(danjo::MaçonneDispositionLigne *maçonne)
@@ -614,6 +632,13 @@ void Maconne_Disposition_Colonne::ajoute_etiquette_impl(DNJ_Maconne_Disposition_
     inst->m_maçonne->ajoute_etiquette(nom.vers_std_string());
 }
 
+void Maconne_Disposition_Colonne::ajoute_espaceur_impl(DNJ_Maconne_Disposition_Colonne *instance,
+                                                       int taille)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Colonne *>(instance);
+    inst->m_maçonne->ajoute_espaceur(taille);
+}
+
 Maconne_Disposition_Colonne::Maconne_Disposition_Colonne(danjo::MaçonneDispositionColonne *maçonne)
     : m_maçonne(maçonne)
 {
@@ -622,6 +647,7 @@ Maconne_Disposition_Colonne::Maconne_Disposition_Colonne(danjo::MaçonneDisposit
     ASSIGNE_RAPPEL(débute_grille);
     ASSIGNE_RAPPEL(ajoute_controle);
     ASSIGNE_RAPPEL(ajoute_etiquette);
+    ASSIGNE_RAPPEL(ajoute_espaceur);
 }
 
 DNJ_Maconne_Disposition_Ligne *Maconne_Disposition_Grille::débute_ligne_impl(
@@ -700,6 +726,17 @@ void Maconne_Disposition_Grille::ajoute_etiquette_impl(DNJ_Maconne_Disposition_G
         nom.vers_std_string(), ligne, colonne, empan_ligne, empan_colonne);
 }
 
+void Maconne_Disposition_Grille::ajoute_espaceur_impl(DNJ_Maconne_Disposition_Grille *instance,
+                                                      int taille,
+                                                      int ligne,
+                                                      int colonne,
+                                                      int empan_ligne,
+                                                      int empan_colonne)
+{
+    auto inst = reinterpret_cast<Maconne_Disposition_Grille *>(instance);
+    inst->m_maçonne->ajoute_espaceur(taille, ligne, colonne, empan_ligne, empan_colonne);
+}
+
 Maconne_Disposition_Grille::Maconne_Disposition_Grille(danjo::MaçonneDispositionGrille *maçonne)
     : m_maçonne(maçonne)
 {
@@ -708,6 +745,7 @@ Maconne_Disposition_Grille::Maconne_Disposition_Grille(danjo::MaçonneDispositio
     ASSIGNE_RAPPEL(débute_grille);
     ASSIGNE_RAPPEL(ajoute_controle);
     ASSIGNE_RAPPEL(ajoute_etiquette);
+    ASSIGNE_RAPPEL(ajoute_espaceur);
 }
 
 /* ------------------------------------------------------------------------- */

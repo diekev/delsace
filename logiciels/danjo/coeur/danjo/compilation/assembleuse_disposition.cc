@@ -208,6 +208,12 @@ void MaçonneDispositionLigne::ajoute_etiquette(std::string_view nom)
     m_layout->addWidget(étiquette);
 }
 
+void MaçonneDispositionLigne::ajoute_espaceur(int taille)
+{
+    auto spaceur = new QSpacerItem(taille, taille);
+    m_layout->addItem(spaceur);
+}
+
 QLayout *MaçonneDispositionLigne::donne_layout()
 {
     return m_layout;
@@ -252,6 +258,12 @@ void MaçonneDispositionColonne::ajoute_etiquette(std::string_view nom)
 {
     auto étiquette = crée_étiquette(nom);
     m_layout->addWidget(étiquette);
+}
+
+void MaçonneDispositionColonne::ajoute_espaceur(int taille)
+{
+    auto spaceur = new QSpacerItem(taille, taille);
+    m_layout->addItem(spaceur);
 }
 
 QLayout *MaçonneDispositionColonne::donne_layout()
@@ -312,6 +324,13 @@ void MaçonneDispositionGrille::ajoute_etiquette(
 {
     auto étiquette = crée_étiquette(nom);
     m_layout->addWidget(étiquette, ligne, colonne, empan_ligne, empan_colonne);
+}
+
+void MaçonneDispositionGrille::ajoute_espaceur(
+    int taille, int ligne, int colonne, int empan_ligne, int empan_colonne)
+{
+    auto spaceur = new QSpacerItem(taille, taille);
+    m_layout->addItem(spaceur, ligne, colonne, empan_ligne, empan_colonne);
 }
 
 QLayout *MaçonneDispositionGrille::donne_layout()

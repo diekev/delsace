@@ -99,6 +99,8 @@ class MaçonneDispositionLigne : public MaçonneDisposition {
 
     void ajoute_etiquette(std::string_view nom);
 
+    void ajoute_espaceur(int taille);
+
     QLayout *donne_layout();
 };
 
@@ -117,6 +119,8 @@ class MaçonneDispositionColonne : public MaçonneDisposition {
     void ajoute_controle(DonneesControle const &données_controle, BasePropriete *prop);
 
     void ajoute_etiquette(std::string_view nom);
+
+    void ajoute_espaceur(int taille);
 
     QLayout *donne_layout();
 };
@@ -151,6 +155,8 @@ class MaçonneDispositionGrille : public MaçonneDisposition {
 
     void ajoute_etiquette(
         std::string_view nom, int ligne, int colonne, int empan_ligne, int empan_colonne);
+
+    void ajoute_espaceur(int taille, int ligne, int colonne, int empan_ligne, int empan_colonne);
 
     QLayout *donne_layout();
 };
