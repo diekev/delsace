@@ -31,12 +31,12 @@
 #include "controles/controle_nombre_entier.h"
 
 #include "commun.hh"
-#include "donnees_controle.h"
+#include "proprietes.hh"
 
 namespace danjo {
 
 ControleProprieteEntier::ControleProprieteEntier(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_controle(new ControleNombreEntier(this)), m_bouton(crée_bouton_échelle_valeur(this)),
       m_bouton_animation(crée_bouton_animation_controle(this)),
       m_echelle(new ControleEchelleEntiere(m_controle, m_bouton))
@@ -98,7 +98,7 @@ void ControleProprieteEntier::finalise(const DonneesControle &donnees)
     auto plage = m_propriete->plage_valeur_entier();
     m_controle->ajourne_plage(plage.min, plage.max);
     m_controle->valeur(m_propriete->evalue_entier(m_temps));
-    m_controle->suffixe(donnees.suffixe.c_str());
+    m_controle->suffixe(m_propriete->donnne_suffixe().c_str());
 }
 
 void ControleProprieteEntier::ajourne_valeur_pointee(int valeur)

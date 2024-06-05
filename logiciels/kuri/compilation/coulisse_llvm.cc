@@ -2003,6 +2003,18 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
     auto &espace = *args.espace;
     auto &repr_inter = *args.ri_programme;
 
+    POUR (repr_inter.donne_fonctions()) {
+        if (!it->est_intrinsèque()) {
+            continue;
+        }
+
+        if (it->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
+            return ErreurCoulisse{
+                "Utilisation de intrinsèque_est_adresse_données_constantes.\nCette fonction n'est "
+                "pas encore implémentée pour LLVM."};
+        }
+    }
+
     auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
     auto erreur = std::string{""};
