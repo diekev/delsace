@@ -3108,13 +3108,18 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
 
             consomme();
 
-            if (!apparie(GenreLexème::CHAINE_LITTERALE)) {
-                rapporte_erreur("Attendu le symbole de l'intrinsèque");
-            }
-
             noeud->données_externes =
                 m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
-            noeud->données_externes->nom_symbole = lexème_courant()->chaine;
+
+            if (apparie(GenreLexème::CHAINE_LITTERALE)) {
+                noeud->données_externes->nom_symbole = lexème_courant()->chaine;
+            }
+            else {
+                noeud->données_externes->nom_symbole = noeud->ident->nom;
+                /* Pour le consomme plus bas qui est sensé consommer l'identifiant de la directive.
+                 */
+                recule();
+            }
 
             auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
                 lexème_directive);
