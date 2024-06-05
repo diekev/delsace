@@ -62,6 +62,7 @@ class MaçonneDispositionGrille;
 struct ContexteMaçonnage {
     ConteneurControles *conteneur = nullptr;
     Manipulable *manipulable = nullptr;
+    GestionnaireInterface *gestionnaire = nullptr;
 };
 
 class MaçonneDisposition {
@@ -75,6 +76,10 @@ class MaçonneDisposition {
                                                BasePropriete *prop);
 
     ControlePropriete *crée_étiquette(std::string_view nom);
+
+    ControlePropriete *crée_étiquette_activable(std::string_view nom, BasePropriete *prop);
+
+    ControlePropriete *crée_étiquette_propriété(std::string_view nom, BasePropriete *prop);
 
     MaçonneDispositionLigne *crée_maçonne_ligne();
 
@@ -98,6 +103,10 @@ class MaçonneDispositionLigne : public MaçonneDisposition {
     void ajoute_controle(DonneesControle const &données_controle, BasePropriete *prop);
 
     void ajoute_etiquette(std::string_view nom);
+    void ajoute_étiquette_activable(std::string_view nom, BasePropriete *prop);
+    void ajoute_étiquette_propriété(std::string_view nom, BasePropriete *prop);
+
+    void ajoute_espaceur(int taille);
 
     QLayout *donne_layout();
 };
@@ -117,6 +126,10 @@ class MaçonneDispositionColonne : public MaçonneDisposition {
     void ajoute_controle(DonneesControle const &données_controle, BasePropriete *prop);
 
     void ajoute_etiquette(std::string_view nom);
+    void ajoute_étiquette_activable(std::string_view nom, BasePropriete *prop);
+    void ajoute_étiquette_propriété(std::string_view nom, BasePropriete *prop);
+
+    void ajoute_espaceur(int taille);
 
     QLayout *donne_layout();
 };
@@ -151,6 +164,22 @@ class MaçonneDispositionGrille : public MaçonneDisposition {
 
     void ajoute_etiquette(
         std::string_view nom, int ligne, int colonne, int empan_ligne, int empan_colonne);
+
+    void ajoute_étiquette_activable(std::string_view nom,
+                                    BasePropriete *prop,
+                                    int ligne,
+                                    int colonne,
+                                    int empan_ligne,
+                                    int empan_colonne);
+
+    void ajoute_étiquette_propriété(std::string_view nom,
+                                    BasePropriete *prop,
+                                    int ligne,
+                                    int colonne,
+                                    int empan_ligne,
+                                    int empan_colonne);
+
+    void ajoute_espaceur(int taille, int ligne, int colonne, int empan_ligne, int empan_colonne);
 
     QLayout *donne_layout();
 };
