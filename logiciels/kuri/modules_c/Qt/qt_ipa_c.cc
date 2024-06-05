@@ -720,10 +720,21 @@ QT_Point QT_cursor_pos()
 /** \name QT_Evenement
  * \{ */
 
-int QT_evenement_donne_type(QT_Generic_Event evenement)
+static QT_Event_Type convertis_type_évènement(QEvent::Type type)
+{
+    switch (type) {
+        ENUMERE_EVENT_TYPE(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA);
+        default:
+        {
+            return (QT_Event_Type)type;
+        }
+    }
+}
+
+QT_Event_Type QT_evenement_donne_type(QT_Generic_Event evenement)
 {
     auto event = vers_qt(evenement);
-    return event->type();
+    return convertis_type_évènement(event->type());
 }
 
 void QT_evenement_accepte(QT_Generic_Event evenement)
