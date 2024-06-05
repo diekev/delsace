@@ -423,6 +423,8 @@ int QT_application_exec(struct QT_Application *app);
 void QT_core_application_definis_nom_organisation(struct QT_Chaine nom);
 void QT_core_application_definis_nom_application(struct QT_Chaine nom);
 
+void QT_core_application_definis_feuille_de_style(struct QT_Chaine feuille);
+
 struct QT_Application *QT_donne_application(void);
 
 void QT_application_poste_evenement(union QT_Generic_Object receveur, int type_evenement);

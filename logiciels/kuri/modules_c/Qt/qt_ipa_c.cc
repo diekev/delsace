@@ -437,6 +437,11 @@ void QT_core_application_definis_nom_application(QT_Chaine nom)
     QCoreApplication::setApplicationName(vers_qt(nom));
 }
 
+void QT_core_application_definis_feuille_de_style(QT_Chaine feuille)
+{
+    qApp->setStyleSheet(vers_qt(feuille));
+}
+
 QT_Application *QT_donne_application()
 {
     return reinterpret_cast<QT_Application *>(qApp);
