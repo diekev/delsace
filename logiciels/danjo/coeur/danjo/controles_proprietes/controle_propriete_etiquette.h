@@ -28,6 +28,7 @@
 
 class QHBoxLayout;
 class QLabel;
+class QCheckBox;
 
 namespace danjo {
 
@@ -39,8 +40,34 @@ class ControleProprieteEtiquette final : public ControlePropriete {
   public:
     explicit ControleProprieteEtiquette(QString const &texte, QWidget *parent = nullptr);
 
-    ControleProprieteEtiquette(ControleProprieteEtiquette const &) = default;
-    ControleProprieteEtiquette &operator=(ControleProprieteEtiquette const &) = default;
+    EMPECHE_COPIE(ControleProprieteEtiquette);
+};
+
+class ControleProprieteEtiquetteActivable final : public ControlePropriete {
+    char pad[3];
+    QHBoxLayout *m_agencement{};
+    QCheckBox *m_checkbox{};
+
+  public:
+    ControleProprieteEtiquetteActivable(QString const &texte,
+                                        BasePropriete *p,
+                                        int temps,
+                                        QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(ControleProprieteEtiquetteActivable);
+};
+
+class ControleProprieteEtiquettePropriete final : public ControlePropriete {
+    char pad[3];
+    QHBoxLayout *m_agencement{};
+    QLabel *m_etiquette{};
+
+  public:
+    ControleProprieteEtiquettePropriete(BasePropriete *p, int temps, QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(ControleProprieteEtiquettePropriete);
+
+    void ajourne_depuis_propriété() override;
 };
 
 } /* namespace danjo */

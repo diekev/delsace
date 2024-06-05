@@ -26,6 +26,7 @@
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "intrinseques.hh"
 #include "programme.hh"
 #include "typage.hh"
 #include "utilitaires/log.hh"
@@ -1128,6 +1129,9 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto atome_fonc = atome->comme_fonction();
 
             if (atome_fonc->est_intrinsèque()) {
+                if (atome_fonc->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
+                    return "intrinseque_est_adresse_donnees_constantes";
+                }
                 return atome_fonc->decl->données_externes->nom_symbole;
             }
 
@@ -2069,6 +2073,14 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
     if (pour_entête) {
         os << ";\n";
+
+        os << "static inline bool intrinseque_est_adresse_donnees_constantes(const void *ptr)\n";
+        os << "{\n";
+        os << "    const uint8_t *ptr_type = (const uint8_t *)ptr;\n";
+        os << "    const uint8_t *ptr_base = &DC[0];\n";
+        os << "    return ptr_base <= ptr_type && ptr_type < (ptr_base + "
+           << données_constantes->taille_données_tableaux_constants << ");\n";
+        os << "}\n";
         return;
     }
 

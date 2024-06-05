@@ -55,8 +55,7 @@ class ControleProprieteListe final : public ControlePropriete {
   public:
     explicit ControleProprieteListe(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-    ControleProprieteListe(ControleProprieteListe const &) = default;
-    ControleProprieteListe &operator=(ControleProprieteListe const &) = default;
+    EMPECHE_COPIE(ControleProprieteListe);
 
     ~ControleProprieteListe() override = default;
 
