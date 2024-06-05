@@ -40,8 +40,7 @@ class ControleProprieteEtiquette final : public ControlePropriete {
   public:
     explicit ControleProprieteEtiquette(QString const &texte, QWidget *parent = nullptr);
 
-    ControleProprieteEtiquette(ControleProprieteEtiquette const &) = default;
-    ControleProprieteEtiquette &operator=(ControleProprieteEtiquette const &) = default;
+    EMPECHE_COPIE(ControleProprieteEtiquette);
 };
 
 class ControleProprieteEtiquetteActivable final : public ControlePropriete {
@@ -55,8 +54,7 @@ class ControleProprieteEtiquetteActivable final : public ControlePropriete {
                                         int temps,
                                         QWidget *parent = nullptr);
 
-    ControleProprieteEtiquetteActivable(ControleProprieteEtiquette const &) = delete;
-    ControleProprieteEtiquetteActivable &operator=(ControleProprieteEtiquette const &) = delete;
+    EMPECHE_COPIE(ControleProprieteEtiquetteActivable);
 };
 
 class ControleProprieteEtiquettePropriete final : public ControlePropriete {
@@ -67,9 +65,7 @@ class ControleProprieteEtiquettePropriete final : public ControlePropriete {
   public:
     ControleProprieteEtiquettePropriete(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-    ControleProprieteEtiquettePropriete(ControleProprieteEtiquettePropriete const &) = delete;
-    ControleProprieteEtiquettePropriete &operator=(ControleProprieteEtiquettePropriete const &) =
-        delete;
+    EMPECHE_COPIE(ControleProprieteEtiquettePropriete);
 
     void ajourne_depuis_propriété() override;
 };

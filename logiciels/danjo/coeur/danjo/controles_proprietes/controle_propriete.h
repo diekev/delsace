@@ -26,6 +26,8 @@
 
 #include <QWidget>
 
+#include "biblinternes/outils/definitions.h"
+
 namespace danjo {
 
 struct DonneesControle;
@@ -47,8 +49,7 @@ class ControlePropriete : public QWidget {
   public:
     explicit ControlePropriete(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-    ControlePropriete(ControlePropriete const &) = default;
-    ControlePropriete &operator=(ControlePropriete const &) = default;
+    EMPECHE_COPIE(ControlePropriete);
 
     /**
      * Finalise le contrôle. Cette fonction est appelée à la fin de la création
