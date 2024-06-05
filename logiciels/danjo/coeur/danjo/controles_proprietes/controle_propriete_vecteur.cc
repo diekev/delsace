@@ -27,19 +27,13 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
-#include "biblinternes/outils/chaine.hh"
-
-#include "compilation/morceaux.h"
-
 #include "controles/controle_echelle_valeur.h"
 #include "controles/controle_nombre_decimal.h"
 #include "controles/controle_nombre_entier.h"
 
 #include "commun.hh"
 #include "controle_propriete_decimal.h"
-#include "donnees_controle.h"
-
-#include <sstream>
+#include "proprietes.hh"
 
 namespace danjo {
 
@@ -48,7 +42,7 @@ namespace danjo {
 BaseControleProprieteVecteur::BaseControleProprieteVecteur(BasePropriete *p,
                                                            int temps,
                                                            QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_bouton_animation(crée_bouton_animation_controle(this))
 {
     for (int i = 0; i < DIMENSIONS_MAX; i++) {
