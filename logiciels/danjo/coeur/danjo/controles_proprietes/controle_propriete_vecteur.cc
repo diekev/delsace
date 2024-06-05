@@ -48,7 +48,7 @@ namespace danjo {
 BaseControleProprieteVecteur::BaseControleProprieteVecteur(BasePropriete *p,
                                                            int temps,
                                                            QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_bouton_animation(crée_bouton_animation_controle(this))
 {
     for (int i = 0; i < DIMENSIONS_MAX; i++) {

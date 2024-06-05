@@ -44,7 +44,7 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(BasePropriete *p,
                                                              int temps,
                                                              QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement_principal(new QVBoxLayout()),
-      m_agencement_nombre(new QHBoxLayout()), m_entrepolation(new QComboBox(this)),
+      m_agencement_nombre(crée_hbox_layout()), m_entrepolation(new QComboBox(this)),
       m_controle_rampe(new ControleRampeCouleur(this)),
       m_bouton_echelle(crée_bouton_échelle_valeur(this)), m_pos(new ControleNombreDecimal(this)),
       m_echelle(new ControleEchelleDecimale(m_pos, m_bouton_echelle)),

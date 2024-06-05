@@ -43,7 +43,7 @@ ControleProprieteCourbeValeur::ControleProprieteCourbeValeur(BasePropriete *p,
                                                              int temps,
                                                              QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement_principal(new QVBoxLayout()),
-      m_agencement_nombre(new QHBoxLayout()),
+      m_agencement_nombre(crée_hbox_layout()),
       m_utilise_table(new QCheckBox("Utilise table", this)),
       m_controle_courbe(new ControleCourbeCouleur(this)),
       m_bouton_echelle_x(crée_bouton_échelle_valeur(this)),

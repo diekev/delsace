@@ -28,6 +28,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "commun.hh"
 #include "donnees_controle.h"
 #include "types/liste_manip.hh"
 
@@ -68,7 +69,7 @@ TreeWidget::TreeWidget(QWidget *parent) : QTreeWidget(parent)
 ControleProprieteListeManip::ControleProprieteListeManip(BasePropriete *p,
                                                          int temps,
                                                          QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_disp_horiz(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_disp_horiz(crée_hbox_layout(this)),
       m_disp_boutons(new QVBoxLayout()), m_bouton_ajoute(new QPushButton("ajoute", this)),
       m_bouton_enleve(new QPushButton("enlève", this)),
       m_bouton_monte(new QPushButton("monte", this)),

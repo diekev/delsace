@@ -28,22 +28,15 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
+#include "commun.hh"
 #include "donnees_controle.h"
 
 namespace danjo {
 
-static void définis_marges(QLayout *layout)
-{
-    int left, top, right, bottom;
-    layout->getContentsMargins(&left, &top, &right, &bottom);
-    layout->setContentsMargins(left, 0, right, 0);
-}
-
 ControleProprieteEtiquette::ControleProprieteEtiquette(QString const &texte, QWidget *parent)
-    : ControlePropriete(nullptr, 0, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(nullptr, 0, parent), m_agencement(crée_hbox_layout(this)),
       m_etiquette(new QLabel(this))
 {
-    définis_marges(m_agencement);
     m_agencement->addWidget(m_etiquette);
     m_etiquette->setText(texte);
     setLayout(m_agencement);
@@ -53,10 +46,9 @@ ControleProprieteEtiquetteActivable::ControleProprieteEtiquetteActivable(QString
                                                                          BasePropriete *p,
                                                                          int temps,
                                                                          QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_checkbox(new QCheckBox(texte, this))
 {
-    définis_marges(m_agencement);
     m_agencement->addWidget(m_checkbox);
     setLayout(m_agencement);
 
@@ -76,10 +68,9 @@ ControleProprieteEtiquetteActivable::ControleProprieteEtiquetteActivable(QString
 ControleProprieteEtiquettePropriete::ControleProprieteEtiquettePropriete(BasePropriete *p,
                                                                          int temps,
                                                                          QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_etiquette(new QLabel(this))
 {
-    définis_marges(m_agencement);
     m_agencement->addWidget(m_etiquette);
     ajourne_depuis_propriété();
     setLayout(m_agencement);

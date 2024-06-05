@@ -40,7 +40,7 @@
 namespace danjo {
 
 ControleProprieteDecimal::ControleProprieteDecimal(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_controle(new ControleNombreDecimal(this)), m_bouton(crée_bouton_échelle_valeur(this)),
       m_bouton_animation(crée_bouton_animation_controle(this)),
       m_echelle(new ControleEchelleDecimale(m_controle, m_bouton))

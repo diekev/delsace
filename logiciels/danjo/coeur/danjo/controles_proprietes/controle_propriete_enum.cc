@@ -27,12 +27,13 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 
+#include "commun.hh"
 #include "donnees_controle.h"
 
 namespace danjo {
 
 ControleProprieteEnum::ControleProprieteEnum(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout()),
       m_liste_deroulante(new QComboBox(this)), m_index_valeur_defaut(0), m_index_courant(0)
 {
     m_agencement->addWidget(m_liste_deroulante);

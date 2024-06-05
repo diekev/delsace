@@ -29,6 +29,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 
+#include "commun.hh"
 #include "donnees_controle.h"
 
 namespace danjo {
@@ -36,7 +37,7 @@ namespace danjo {
 ControleProprieteChaineCaractere::ControleProprieteChaineCaractere(BasePropriete *p,
                                                                    int temps,
                                                                    QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout()),
       m_editeur_ligne(new QLineEdit(this))
 {
     m_agencement->addWidget(m_editeur_ligne);
