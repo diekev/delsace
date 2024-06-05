@@ -46,9 +46,7 @@ class ControleProprieteChaineCaractere final : public ControlePropriete {
                                               QWidget *parent = nullptr);
     ~ControleProprieteChaineCaractere() override = default;
 
-    ControleProprieteChaineCaractere(ControleProprieteChaineCaractere const &) = default;
-    ControleProprieteChaineCaractere &operator=(ControleProprieteChaineCaractere const &) =
-        default;
+    EMPECHE_COPIE(ControleProprieteChaineCaractere);
 
   private Q_SLOTS:
     void ajourne_valeur_pointee();
@@ -65,8 +63,7 @@ class ControleProprieteEditeurTexte final : public ControlePropriete {
     explicit ControleProprieteEditeurTexte(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteEditeurTexte() override = default;
 
-    ControleProprieteEditeurTexte(ControleProprieteEditeurTexte const &) = default;
-    ControleProprieteEditeurTexte &operator=(ControleProprieteEditeurTexte const &) = default;
+    EMPECHE_COPIE(ControleProprieteEditeurTexte);
 
   private Q_SLOTS:
     void ajourne_valeur_pointee();
