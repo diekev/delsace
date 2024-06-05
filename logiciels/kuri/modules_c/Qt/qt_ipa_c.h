@@ -2525,6 +2525,8 @@ void DNJ_detruit_pilote_clique(struct DNJ_Pilote_Clique *pilote);
 /** \name DNJ_Rappels_Widget
  * \{ */
 
+struct DNJ_Gestionnaire_Interface;
+
 struct DNJ_Rappels_Widget {
     void (*sur_changement_parametre)(struct DNJ_Rappels_Widget *);
     void (*sur_pre_changement_parametre)(struct DNJ_Rappels_Widget *);
@@ -2534,6 +2536,7 @@ struct DNJ_Rappels_Widget {
                               struct QT_Chaine,
                               struct DNJ_Constructrice_Liste *);
     struct DNJ_Pilote_Clique *(*donne_pilote_clique)(struct DNJ_Rappels_Widget *);
+    struct DNJ_Gestionnaire_Interface *(*donne_gestionnaire)(struct DNJ_Rappels_Widget *);
     void (*sur_creation_interface)(struct DNJ_Rappels_Widget *,
                                    struct DNJ_ConstructriceInterfaceParametres *);
     void (*sur_destruction)(struct DNJ_Rappels_Widget *);
@@ -2581,8 +2584,6 @@ struct DNJ_Donnees_Action {
 /** \name DNJ_Gestionnaire_Interface
  * \{ */
 
-struct DNJ_Gestionnaire_Interface;
-
 struct DNJ_Gestionnaire_Interface *DNJ_cree_gestionnaire_interface();
 void DNJ_detruit_gestionnaire_interface(struct DNJ_Gestionnaire_Interface *gestionnaire);
 struct QT_Menu *DNJ_gestionaire_compile_menu_fichier(
@@ -2610,6 +2611,8 @@ struct QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(
     struct DNJ_Gestionnaire_Interface *gestionnaire,
     struct DNJ_Contexte_Interface *context,
     struct QT_Chaine chemin);
+
+void DNJ_gestionnaire_ajourne_controles(struct DNJ_Gestionnaire_Interface *gestionnaire);
 
 /** \} */
 

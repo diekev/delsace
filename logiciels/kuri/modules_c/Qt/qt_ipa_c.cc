@@ -3496,6 +3496,12 @@ QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(DNJ_Gestionnaire_Interf
     return vers_ipa(résultat);
 }
 
+void DNJ_gestionnaire_ajourne_controles(DNJ_Gestionnaire_Interface *gestionnaire)
+{
+    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    dnj_gestionnaire->ajourne_controles();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

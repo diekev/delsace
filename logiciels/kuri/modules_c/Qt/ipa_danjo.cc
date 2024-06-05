@@ -913,7 +913,8 @@ class ConstructriceInterfaceParametres : public DNJ_ConstructriceInterfaceParame
   public:
     ConstructriceInterfaceParametres(danjo::AssembleurDisposition &assembleuse,
                                      danjo::Manipulable &manipulable,
-                                     danjo::ConteneurControles *conteneur)
+                                     danjo::ConteneurControles *conteneur,
+                                     danjo::GestionnaireInterface *gestionnaire)
         : m_assembleuse(assembleuse), m_manipulable(manipulable)
     {
         commence_disposition = commence_disposition_impl;
@@ -929,6 +930,7 @@ class ConstructriceInterfaceParametres : public DNJ_ConstructriceInterfaceParame
 
         ctx_maçonnage.manipulable = &manipulable;
         ctx_maçonnage.conteneur = conteneur;
+        ctx_maçonnage.gestionnaire = gestionnaire;
     }
 };
 
@@ -1004,6 +1006,16 @@ RepondantCommande *ConteneurControles::donne_repondant_commande()
     return nullptr;
 }
 
+danjo::GestionnaireInterface *ConteneurControles::donne_gestionnaire()
+{
+    if (m_rappels && m_rappels->donne_gestionnaire) {
+        auto gestionnaire = m_rappels->donne_gestionnaire(m_rappels);
+        return reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
+    }
+
+    return nullptr;
+}
+
 QLayout *ConteneurControles::crée_interface()
 {
     if (!m_rappels || !m_rappels->sur_creation_interface) {
@@ -1019,10 +1031,13 @@ QLayout *ConteneurControles::crée_interface()
 
     danjo::AssembleurDisposition assembleuse(données_interface);
 
+    auto gestionnaire = donne_gestionnaire();
+
     /* Ajout d'une disposition par défaut. */
     assembleuse.ajoute_disposition(danjo::id_morceau::COLONNE);
 
-    auto constructrice = ConstructriceInterfaceParametres(assembleuse, manipulable, this);
+    auto constructrice = ConstructriceInterfaceParametres(
+        assembleuse, manipulable, this, gestionnaire);
 
     m_rappels->sur_creation_interface(m_rappels, &constructrice);
 

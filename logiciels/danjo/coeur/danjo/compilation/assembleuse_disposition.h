@@ -62,6 +62,7 @@ class MaçonneDispositionGrille;
 struct ContexteMaçonnage {
     ConteneurControles *conteneur = nullptr;
     Manipulable *manipulable = nullptr;
+    GestionnaireInterface *gestionnaire = nullptr;
 };
 
 class MaçonneDisposition {

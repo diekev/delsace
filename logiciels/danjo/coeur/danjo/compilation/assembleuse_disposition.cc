@@ -148,7 +148,11 @@ ControlePropriete *MaçonneDisposition::crée_controle_propriété(
     const DonneesControle &données_controle, BasePropriete *prop)
 {
     m_ctx->manipulable->ajoute_propriete(données_controle.nom, prop);
-    return danjo::crée_controle_propriété(données_controle, prop, 0, m_ctx->conteneur);
+    auto résultat = danjo::crée_controle_propriété(données_controle, prop, 0, m_ctx->conteneur);
+    if (m_ctx->gestionnaire) {
+        m_ctx->gestionnaire->ajoute_controle(données_controle.nom, résultat);
+    }
+    return résultat;
 }
 
 ControlePropriete *MaçonneDisposition::crée_étiquette(std::string_view nom)
@@ -161,9 +165,11 @@ ControlePropriete *MaçonneDisposition::crée_étiquette(std::string_view nom)
 ControlePropriete *MaçonneDisposition::crée_étiquette_activable(std::string_view nom,
                                                                 BasePropriete *prop)
 {
+    auto nom_prop = std::string(nom.data(), nom.size());
     auto controle = new ControleProprieteEtiquetteActivable(
-        QString::fromStdString(std::string(nom.data(), nom.size())), prop, 0, m_ctx->conteneur);
+        QString::fromStdString(nom_prop), prop, 0, m_ctx->conteneur);
     connecte_propriété_au_conteneur(controle, m_ctx->conteneur);
+    /* Ne doit pas être ajoutée au gestionnaire car le controle ne doit jamais être désactivé. */
     return controle;
 }
 
