@@ -606,10 +606,14 @@ void ProtéineFonction::génère_code_kuri(FluxSortieKuri &os)
         }
     }
 
-    os << ")" << " -> " << *m_type_sortie;
+    os << ") -> " << *m_type_sortie;
 
     if (m_est_intrinsèque) {
-        os << " #intrinsèque \"" << m_symbole_gcc << "\"";
+        os << " #intrinsèque";
+
+        if (m_symbole_gcc != "") {
+            os << " \"" << m_symbole_gcc << "\"";
+        }
     }
     else if (m_est_ipa_compilatrice) {
         os << " #compilatrice";
