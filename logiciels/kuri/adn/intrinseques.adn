@@ -226,3 +226,12 @@ fonction intrinsèque_commute_octets(uint64_t x) -> uint64_t
 @gcc __builtin_bswap64
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions Kuri.
+* \{ */
+
+fonction intrinsèque_est_adresse_données_constantes(void *adresse) -> bool
+@intrinsèque EST_ADRESSE_DONNÉES_CONSTANTES
+
+/** \} */

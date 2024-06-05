@@ -394,8 +394,6 @@ struct QT_Fenetre_Principale *QT_cree_fenetre_principale(
     struct QT_Rappels_Fenetre_Principale *rappels);
 void QT_detruit_fenetre_principale(struct QT_Fenetre_Principale *fenetre);
 
-void QT_fenetre_principale_definis_titre_fenetre(struct QT_Fenetre_Principale *fenetre,
-                                                 struct QT_Chaine nom);
 void QT_fenetre_principale_definis_widget_central(struct QT_Fenetre_Principale *fenetre,
                                                   union QT_Generic_Widget widget);
 
@@ -424,6 +422,8 @@ int QT_application_exec(struct QT_Application *app);
 
 void QT_core_application_definis_nom_organisation(struct QT_Chaine nom);
 void QT_core_application_definis_nom_application(struct QT_Chaine nom);
+
+void QT_core_application_definis_feuille_de_style(struct QT_Chaine feuille);
 
 struct QT_Application *QT_donne_application(void);
 
@@ -642,7 +642,166 @@ struct QT_Point QT_cursor_pos();
 /** \name QT_Event
  * \{ */
 
-int QT_evenement_donne_type(union QT_Generic_Event evenement);
+#define ENUMERE_EVENT_TYPE(O)                                                                     \
+    O(QT_EVENT_TYPE_None, QEvent::None)                                                           \
+    O(QT_EVENT_TYPE_Timer, QEvent::Timer)                                                         \
+    O(QT_EVENT_TYPE_MouseButtonPress, QEvent::MouseButtonPress)                                   \
+    O(QT_EVENT_TYPE_MouseButtonRelease, QEvent::MouseButtonRelease)                               \
+    O(QT_EVENT_TYPE_MouseButtonDblClick, QEvent::MouseButtonDblClick)                             \
+    O(QT_EVENT_TYPE_MouseMove, QEvent::MouseMove)                                                 \
+    O(QT_EVENT_TYPE_KeyPress, QEvent::KeyPress)                                                   \
+    O(QT_EVENT_TYPE_KeyRelease, QEvent::KeyRelease)                                               \
+    O(QT_EVENT_TYPE_FocusIn, QEvent::FocusIn)                                                     \
+    O(QT_EVENT_TYPE_FocusOut, QEvent::FocusOut)                                                   \
+    O(QT_EVENT_TYPE_FocusAboutToChange, QEvent::FocusAboutToChange)                               \
+    O(QT_EVENT_TYPE_Enter, QEvent::Enter)                                                         \
+    O(QT_EVENT_TYPE_Leave, QEvent::Leave)                                                         \
+    O(QT_EVENT_TYPE_Paint, QEvent::Paint)                                                         \
+    O(QT_EVENT_TYPE_Move, QEvent::Move)                                                           \
+    O(QT_EVENT_TYPE_Resize, QEvent::Resize)                                                       \
+    O(QT_EVENT_TYPE_Create, QEvent::Create)                                                       \
+    O(QT_EVENT_TYPE_Destroy, QEvent::Destroy)                                                     \
+    O(QT_EVENT_TYPE_Show, QEvent::Show)                                                           \
+    O(QT_EVENT_TYPE_Hide, QEvent::Hide)                                                           \
+    O(QT_EVENT_TYPE_Close, QEvent::Close)                                                         \
+    O(QT_EVENT_TYPE_Quit, QEvent::Quit)                                                           \
+    O(QT_EVENT_TYPE_ParentChange, QEvent::ParentChange)                                           \
+    O(QT_EVENT_TYPE_ParentAboutToChange, QEvent::ParentAboutToChange)                             \
+    O(QT_EVENT_TYPE_ThreadChange, QEvent::ThreadChange)                                           \
+    O(QT_EVENT_TYPE_WindowActivate, QEvent::WindowActivate)                                       \
+    O(QT_EVENT_TYPE_WindowDeactivate, QEvent::WindowDeactivate)                                   \
+    O(QT_EVENT_TYPE_ShowToParent, QEvent::ShowToParent)                                           \
+    O(QT_EVENT_TYPE_HideToParent, QEvent::HideToParent)                                           \
+    O(QT_EVENT_TYPE_Wheel, QEvent::Wheel)                                                         \
+    O(QT_EVENT_TYPE_WindowTitleChange, QEvent::WindowTitleChange)                                 \
+    O(QT_EVENT_TYPE_WindowIconChange, QEvent::WindowIconChange)                                   \
+    O(QT_EVENT_TYPE_ApplicationWindowIconChange, QEvent::ApplicationWindowIconChange)             \
+    O(QT_EVENT_TYPE_ApplicationFontChange, QEvent::ApplicationFontChange)                         \
+    O(QT_EVENT_TYPE_ApplicationLayoutDirectionChange, QEvent::ApplicationLayoutDirectionChange)   \
+    O(QT_EVENT_TYPE_ApplicationPaletteChange, QEvent::ApplicationPaletteChange)                   \
+    O(QT_EVENT_TYPE_PaletteChange, QEvent::PaletteChange)                                         \
+    O(QT_EVENT_TYPE_Clipboard, QEvent::Clipboard)                                                 \
+    O(QT_EVENT_TYPE_Speech, QEvent::Speech)                                                       \
+    O(QT_EVENT_TYPE_MetaCall, QEvent::MetaCall)                                                   \
+    O(QT_EVENT_TYPE_SockAct, QEvent::SockAct)                                                     \
+    O(QT_EVENT_TYPE_WinEventAct, QEvent::WinEventAct)                                             \
+    O(QT_EVENT_TYPE_DeferredDelete, QEvent::DeferredDelete)                                       \
+    O(QT_EVENT_TYPE_DragEnter, QEvent::DragEnter)                                                 \
+    O(QT_EVENT_TYPE_DragMove, QEvent::DragMove)                                                   \
+    O(QT_EVENT_TYPE_DragLeave, QEvent::DragLeave)                                                 \
+    O(QT_EVENT_TYPE_Drop, QEvent::Drop)                                                           \
+    O(QT_EVENT_TYPE_DragResponse, QEvent::DragResponse)                                           \
+    O(QT_EVENT_TYPE_ChildAdded, QEvent::ChildAdded)                                               \
+    O(QT_EVENT_TYPE_ChildPolished, QEvent::ChildPolished)                                         \
+    O(QT_EVENT_TYPE_ChildRemoved, QEvent::ChildRemoved)                                           \
+    O(QT_EVENT_TYPE_ShowWindowRequest, QEvent::ShowWindowRequest)                                 \
+    O(QT_EVENT_TYPE_PolishRequest, QEvent::PolishRequest)                                         \
+    O(QT_EVENT_TYPE_Polish, QEvent::Polish)                                                       \
+    O(QT_EVENT_TYPE_LayoutRequest, QEvent::LayoutRequest)                                         \
+    O(QT_EVENT_TYPE_UpdateRequest, QEvent::UpdateRequest)                                         \
+    O(QT_EVENT_TYPE_UpdateLater, QEvent::UpdateLater)                                             \
+    O(QT_EVENT_TYPE_EmbeddingControl, QEvent::EmbeddingControl)                                   \
+    O(QT_EVENT_TYPE_ActivateControl, QEvent::ActivateControl)                                     \
+    O(QT_EVENT_TYPE_DeactivateControl, QEvent::DeactivateControl)                                 \
+    O(QT_EVENT_TYPE_ContextMenu, QEvent::ContextMenu)                                             \
+    O(QT_EVENT_TYPE_InputMethod, QEvent::InputMethod)                                             \
+    O(QT_EVENT_TYPE_TabletMove, QEvent::TabletMove)                                               \
+    O(QT_EVENT_TYPE_LocaleChange, QEvent::LocaleChange)                                           \
+    O(QT_EVENT_TYPE_LanguageChange, QEvent::LanguageChange)                                       \
+    O(QT_EVENT_TYPE_LayoutDirectionChange, QEvent::LayoutDirectionChange)                         \
+    O(QT_EVENT_TYPE_TabletPress, QEvent::TabletPress)                                             \
+    O(QT_EVENT_TYPE_TabletRelease, QEvent::TabletRelease)                                         \
+    O(QT_EVENT_TYPE_OkRequest, QEvent::OkRequest)                                                 \
+    O(QT_EVENT_TYPE_HelpRequest, QEvent::HelpRequest)                                             \
+    O(QT_EVENT_TYPE_IconDrag, QEvent::IconDrag)                                                   \
+    O(QT_EVENT_TYPE_FontChange, QEvent::FontChange)                                               \
+    O(QT_EVENT_TYPE_EnabledChange, QEvent::EnabledChange)                                         \
+    O(QT_EVENT_TYPE_ActivationChange, QEvent::ActivationChange)                                   \
+    O(QT_EVENT_TYPE_StyleChange, QEvent::StyleChange)                                             \
+    O(QT_EVENT_TYPE_ModifiedChange, QEvent::ModifiedChange)                                       \
+    O(QT_EVENT_TYPE_MouseTrackingChange, QEvent::MouseTrackingChange)                             \
+    O(QT_EVENT_TYPE_WindowBlocked, QEvent::WindowBlocked)                                         \
+    O(QT_EVENT_TYPE_WindowUnblocked, QEvent::WindowUnblocked)                                     \
+    O(QT_EVENT_TYPE_WindowStateChange, QEvent::WindowStateChange)                                 \
+    O(QT_EVENT_TYPE_ReadOnlyChange, QEvent::ReadOnlyChange)                                       \
+    O(QT_EVENT_TYPE_ToolTip, QEvent::ToolTip)                                                     \
+    O(QT_EVENT_TYPE_WhatsThis, QEvent::WhatsThis)                                                 \
+    O(QT_EVENT_TYPE_StatusTip, QEvent::StatusTip)                                                 \
+    O(QT_EVENT_TYPE_ActionChanged, QEvent::ActionChanged)                                         \
+    O(QT_EVENT_TYPE_ActionAdded, QEvent::ActionAdded)                                             \
+    O(QT_EVENT_TYPE_ActionRemoved, QEvent::ActionRemoved)                                         \
+    O(QT_EVENT_TYPE_FileOpen, QEvent::FileOpen)                                                   \
+    O(QT_EVENT_TYPE_Shortcut, QEvent::Shortcut)                                                   \
+    O(QT_EVENT_TYPE_ShortcutOverride, QEvent::ShortcutOverride)                                   \
+    O(QT_EVENT_TYPE_WhatsThisClicked, QEvent::WhatsThisClicked)                                   \
+    O(QT_EVENT_TYPE_ToolBarChange, QEvent::ToolBarChange)                                         \
+    O(QT_EVENT_TYPE_QueryWhatsThis, QEvent::QueryWhatsThis)                                       \
+    O(QT_EVENT_TYPE_EnterWhatsThisMode, QEvent::EnterWhatsThisMode)                               \
+    O(QT_EVENT_TYPE_LeaveWhatsThisMode, QEvent::LeaveWhatsThisMode)                               \
+    O(QT_EVENT_TYPE_ZOrderChange, QEvent::ZOrderChange)                                           \
+    O(QT_EVENT_TYPE_HoverEnter, QEvent::HoverEnter)                                               \
+    O(QT_EVENT_TYPE_HoverLeave, QEvent::HoverLeave)                                               \
+    O(QT_EVENT_TYPE_HoverMove, QEvent::HoverMove)                                                 \
+    O(QT_EVENT_TYPE_AcceptDropsChange, QEvent::AcceptDropsChange)                                 \
+    O(QT_EVENT_TYPE_ZeroTimerEvent, QEvent::ZeroTimerEvent)                                       \
+    O(QT_EVENT_TYPE_GraphicsSceneMouseMove, QEvent::GraphicsSceneMouseMove)                       \
+    O(QT_EVENT_TYPE_GraphicsSceneMousePress, QEvent::GraphicsSceneMousePress)                     \
+    O(QT_EVENT_TYPE_GraphicsSceneMouseRelease, QEvent::GraphicsSceneMouseRelease)                 \
+    O(QT_EVENT_TYPE_GraphicsSceneMouseDoubleClick, QEvent::GraphicsSceneMouseDoubleClick)         \
+    O(QT_EVENT_TYPE_GraphicsSceneContextMenu, QEvent::GraphicsSceneContextMenu)                   \
+    O(QT_EVENT_TYPE_GraphicsSceneHoverEnter, QEvent::GraphicsSceneHoverEnter)                     \
+    O(QT_EVENT_TYPE_GraphicsSceneHoverMove, QEvent::GraphicsSceneHoverMove)                       \
+    O(QT_EVENT_TYPE_GraphicsSceneHoverLeave, QEvent::GraphicsSceneHoverLeave)                     \
+    O(QT_EVENT_TYPE_GraphicsSceneHelp, QEvent::GraphicsSceneHelp)                                 \
+    O(QT_EVENT_TYPE_GraphicsSceneDragEnter, QEvent::GraphicsSceneDragEnter)                       \
+    O(QT_EVENT_TYPE_GraphicsSceneDragMove, QEvent::GraphicsSceneDragMove)                         \
+    O(QT_EVENT_TYPE_GraphicsSceneDragLeave, QEvent::GraphicsSceneDragLeave)                       \
+    O(QT_EVENT_TYPE_GraphicsSceneDrop, QEvent::GraphicsSceneDrop)                                 \
+    O(QT_EVENT_TYPE_GraphicsSceneWheel, QEvent::GraphicsSceneWheel)                               \
+    O(QT_EVENT_TYPE_KeyboardLayoutChange, QEvent::KeyboardLayoutChange)                           \
+    O(QT_EVENT_TYPE_DynamicPropertyChange, QEvent::DynamicPropertyChange)                         \
+    O(QT_EVENT_TYPE_TabletEnterProximity, QEvent::TabletEnterProximity)                           \
+    O(QT_EVENT_TYPE_TabletLeaveProximity, QEvent::TabletLeaveProximity)                           \
+    O(QT_EVENT_TYPE_NonClientAreaMouseMove, QEvent::NonClientAreaMouseMove)                       \
+    O(QT_EVENT_TYPE_NonClientAreaMouseButtonPress, QEvent::NonClientAreaMouseButtonPress)         \
+    O(QT_EVENT_TYPE_NonClientAreaMouseButtonRelease, QEvent::NonClientAreaMouseButtonRelease)     \
+    O(QT_EVENT_TYPE_NonClientAreaMouseButtonDblClick, QEvent::NonClientAreaMouseButtonDblClick)   \
+    O(QT_EVENT_TYPE_MacSizeChange, QEvent::MacSizeChange)                                         \
+    O(QT_EVENT_TYPE_FutureCallOut, QEvent::FutureCallOut)                                         \
+    O(QT_EVENT_TYPE_GraphicsSceneResize, QEvent::GraphicsSceneResize)                             \
+    O(QT_EVENT_TYPE_GraphicsSceneMove, QEvent::GraphicsSceneMove)                                 \
+    O(QT_EVENT_TYPE_CursorChange, QEvent::CursorChange)                                           \
+    O(QT_EVENT_TYPE_ToolTipChange, QEvent::ToolTipChange)                                         \
+    O(QT_EVENT_TYPE_GrabMouse, QEvent::GrabMouse)                                                 \
+    O(QT_EVENT_TYPE_UngrabMouse, QEvent::UngrabMouse)                                             \
+    O(QT_EVENT_TYPE_GrabKeyboard, QEvent::GrabKeyboard)                                           \
+    O(QT_EVENT_TYPE_UngrabKeyboard, QEvent::UngrabKeyboard)                                       \
+    O(QT_EVENT_TYPE_StateMachineSignal, QEvent::StateMachineSignal)                               \
+    O(QT_EVENT_TYPE_StateMachineWrapped, QEvent::StateMachineWrapped)                             \
+    O(QT_EVENT_TYPE_TouchBegin, QEvent::TouchBegin)                                               \
+    O(QT_EVENT_TYPE_TouchUpdate, QEvent::TouchUpdate)                                             \
+    O(QT_EVENT_TYPE_TouchEnd, QEvent::TouchEnd)                                                   \
+    O(QT_EVENT_TYPE_RequestSoftwareInputPanel, QEvent::RequestSoftwareInputPanel)                 \
+    O(QT_EVENT_TYPE_CloseSoftwareInputPanel, QEvent::CloseSoftwareInputPanel)                     \
+    O(QT_EVENT_TYPE_WinIdChange, QEvent::WinIdChange)                                             \
+    O(QT_EVENT_TYPE_ScrollPrepare, QEvent::ScrollPrepare)                                         \
+    O(QT_EVENT_TYPE_Scroll, QEvent::Scroll)                                                       \
+    O(QT_EVENT_TYPE_Expose, QEvent::Expose)                                                       \
+    O(QT_EVENT_TYPE_InputMethodQuery, QEvent::InputMethodQuery)                                   \
+    O(QT_EVENT_TYPE_OrientationChange, QEvent::OrientationChange)                                 \
+    O(QT_EVENT_TYPE_TouchCancel, QEvent::TouchCancel)                                             \
+    O(QT_EVENT_TYPE_ThemeChange, QEvent::ThemeChange)                                             \
+    O(QT_EVENT_TYPE_SockClose, QEvent::SockClose)                                                 \
+    O(QT_EVENT_TYPE_PlatformPanel, QEvent::PlatformPanel)                                         \
+    O(QT_EVENT_TYPE_StyleAnimationUpdate, QEvent::StyleAnimationUpdate)                           \
+    O(QT_EVENT_TYPE_ApplicationStateChange, QEvent::ApplicationStateChange)                       \
+    O(QT_EVENT_TYPE_PlatformSurface, QEvent::PlatformSurface)                                     \
+    O(QT_EVENT_TYPE_Pointer, QEvent::Pointer)                                                     \
+    O(QT_EVENT_TYPE_TabletTrackingChange, QEvent::TabletTrackingChange)
+
+enum QT_Event_Type { ENUMERE_EVENT_TYPE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+enum QT_Event_Type QT_evenement_donne_type(union QT_Generic_Event evenement);
 void QT_evenement_accepte(union QT_Generic_Event evenement);
 void QT_evenement_marque_accepte(union QT_Generic_Event evenement, int accepte);
 int QT_enregistre_evenement_personnel(void);
@@ -1223,6 +1382,7 @@ struct QT_Widget *QT_cree_widget(struct QT_Rappels_Widget *rappels,
                                  union QT_Generic_Widget parent);
 /* Pour les parents, etc. */
 struct QT_Widget *QT_widget_nul(void);
+void QT_widget_definis_titre_fenetre(union QT_Generic_Widget widget, struct QT_Chaine nom);
 void QT_widget_definis_layout(union QT_Generic_Widget widget, union QT_Generic_Layout layout);
 void QT_widget_remplace_layout(union QT_Generic_Widget widget, union QT_Generic_Layout layout);
 void QT_widget_affiche_maximisee(union QT_Generic_Widget widget);
@@ -1628,6 +1788,7 @@ struct QT_Rappels_Dialog {
 struct QT_Dialog *QT_cree_dialog(union QT_Generic_Widget parent);
 struct QT_Dialog *QT_cree_dialog_rappels(struct QT_Rappels_Dialog *rappels,
                                          union QT_Generic_Widget parent);
+void QT_dialog_detruit(struct QT_Dialog *dialog);
 void QT_dialog_definis_bouton_accepter(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
 void QT_dialog_definis_bouton_annuler(struct QT_Dialog *dialog, struct QT_PushButton *bouton);
 int QT_dialog_exec(struct QT_Dialog *dialog);
@@ -1902,232 +2063,6 @@ void QT_graphics_view_mappe_depuis_scene(struct QT_GraphicsView *graphics_view,
 void QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
                                         struct QT_Point point,
                                         struct QT_Point *r_point);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name DNJ_Constructrice_Parametre_Enum
- * \{ */
-
-struct DNJ_Constructrice_Parametre_Enum {
-    void (*ajoute_item)(struct DNJ_Constructrice_Parametre_Enum *,
-                        struct QT_Chaine,
-                        struct QT_Chaine);
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name DNJ_Rappels_Enveloppe_Parametre
- * \{ */
-
-#define ENEMERE_TYPE_PARAMETRE_DANJO(O)                                                           \
-    O(DNJ_TYPE_PARAMETRE_ENTIER, danjo::TypePropriete::ENTIER)                                    \
-    O(DNJ_TYPE_PARAMETRE_DECIMAL, danjo::TypePropriete::DECIMAL)                                  \
-    O(DNJ_TYPE_PARAMETRE_VECTEUR_DECIMAL, danjo::TypePropriete::VECTEUR_DECIMAL)                  \
-    O(DNJ_TYPE_PARAMETRE_VECTEUR_ENTIER, danjo::TypePropriete::VECTEUR_ENTIER)                    \
-    O(DNJ_TYPE_PARAMETRE_COULEUR, danjo::TypePropriete::COULEUR)                                  \
-    O(DNJ_TYPE_PARAMETRE_FICHIER_ENTREE, danjo::TypePropriete::FICHIER_ENTREE)                    \
-    O(DNJ_TYPE_PARAMETRE_FICHIER_SORTIE, danjo::TypePropriete::FICHIER_SORTIE)                    \
-    O(DNJ_TYPE_PARAMETRE_CHAINE_CARACTERE, danjo::TypePropriete::CHAINE_CARACTERE)                \
-    O(DNJ_TYPE_PARAMETRE_BOOL, danjo::TypePropriete::BOOL)                                        \
-    O(DNJ_TYPE_PARAMETRE_ENUM, danjo::TypePropriete::ENUM)                                        \
-    O(DNJ_TYPE_PARAMETRE_COURBE_COULEUR, danjo::TypePropriete::COURBE_COULEUR)                    \
-    O(DNJ_TYPE_PARAMETRE_COURBE_VALEUR, danjo::TypePropriete::COURBE_VALEUR)                      \
-    O(DNJ_TYPE_PARAMETRE_RAMPE_COULEUR, danjo::TypePropriete::RAMPE_COULEUR)                      \
-    O(DNJ_TYPE_PARAMETRE_TEXTE, danjo::TypePropriete::TEXTE)                                      \
-    O(DNJ_TYPE_PARAMETRE_LISTE, danjo::TypePropriete::LISTE)                                      \
-    O(DNJ_TYPE_PARAMETRE_LISTE_MANIP, danjo::TypePropriete::LISTE_MANIP)
-
-enum DNJ_Type_Parametre { ENEMERE_TYPE_PARAMETRE_DANJO(ENUMERE_DECLARATION_ENUM_IPA) };
-
-struct DNJ_Rappels_Enveloppe_Parametre {
-    enum DNJ_Type_Parametre (*donne_type_parametre)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    bool (*est_extra)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    void (*definis_visibilite)(struct DNJ_Rappels_Enveloppe_Parametre *, bool);
-    bool (*est_visible)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    void (*donne_infobulle)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
-    int (*donne_dimensions_vecteur)(struct DNJ_Rappels_Enveloppe_Parametre *);
-
-    void (*cree_items_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                            struct DNJ_Constructrice_Parametre_Enum *);
-
-    /* Évaluation des valeurs. */
-    bool (*evalue_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-    int (*evalue_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-    float (*evalue_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-    void (*evalue_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, int, float *);
-    void (*evalue_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int, int *);
-    void (*evalue_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, int, float *);
-    void (*evalue_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *, int, struct QT_Chaine *);
-    void (*evalue_enum)(struct DNJ_Rappels_Enveloppe_Parametre *, int, struct QT_Chaine *);
-
-    /* Définition des valeurs. */
-    void (*definis_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, bool);
-    void (*definis_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-    void (*definis_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float);
-    void (*definis_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float *);
-    void (*definis_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *);
-    void (*definis_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *);
-    void (*definis_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
-    void (*definis_enum)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
-
-    /* Plage des valeurs. */
-    void (*donne_plage_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int *);
-    void (*donne_plage_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, float *);
-    void (*donne_plage_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int *);
-    void (*donne_plage_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                                        float *,
-                                        float *);
-    void (*donne_plage_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, float *);
-
-    /* Animation. */
-    void (*ajoute_image_cle_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, bool, int);
-    void (*ajoute_image_cle_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int, int);
-    void (*ajoute_image_cle_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float, int);
-    void (*ajoute_image_cle_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                                             float *,
-                                             int);
-    void (*ajoute_image_cle_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int);
-    void (*ajoute_image_cle_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, int);
-    void (*ajoute_image_cle_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                                    struct QT_Chaine *,
-                                    int);
-    void (*ajoute_image_cle_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,
-                                  struct QT_Chaine *,
-                                  int);
-
-    void (*supprime_animation)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    bool (*est_anime)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    bool (*est_animable)(struct DNJ_Rappels_Enveloppe_Parametre *);
-    bool (*possede_image_cle)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
-};
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name DNJ_ConstructriceInterfaceParametres
- * \{ */
-
-struct DNJ_Maconne_Disposition_Ligne {
-    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Ligne *);
-
-    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
-        struct DNJ_Maconne_Disposition_Ligne *);
-
-    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
-        struct DNJ_Maconne_Disposition_Ligne *);
-
-    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Ligne *,
-                            struct QT_Chaine nom,
-                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
-
-    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Ligne *, struct QT_Chaine nom);
-};
-
-struct DNJ_Maconne_Disposition_Colonne {
-    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(
-        struct DNJ_Maconne_Disposition_Colonne *);
-
-    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
-        struct DNJ_Maconne_Disposition_Colonne *);
-
-    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
-        struct DNJ_Maconne_Disposition_Colonne *);
-
-    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Colonne *,
-                            struct QT_Chaine nom,
-                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
-
-    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Colonne *, struct QT_Chaine nom);
-};
-
-struct DNJ_Maconne_Disposition_Grille {
-    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Grille *,
-                                                          int ligne,
-                                                          int colonne,
-                                                          int empan_ligne,
-                                                          int empan_colonne);
-
-    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
-        struct DNJ_Maconne_Disposition_Grille *,
-        int ligne,
-        int colonne,
-        int empan_ligne,
-        int empan_colonne);
-
-    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
-        struct DNJ_Maconne_Disposition_Grille *,
-        int ligne,
-        int colonne,
-        int empan_ligne,
-        int empan_colonne);
-
-    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Grille *,
-                            struct QT_Chaine nom,
-                            struct DNJ_Rappels_Enveloppe_Parametre *prop,
-                            int ligne,
-                            int colonne,
-                            int empan_ligne,
-                            int empan_colonne);
-
-    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Grille *,
-                             struct QT_Chaine nom,
-                             int ligne,
-                             int colonne,
-                             int empan_ligne,
-                             int empan_colonne);
-};
-
-enum DNJ_Type_Disposition {
-    DNJ_TYPE_DISPOSITION_LIGNE,
-    DNJ_TYPE_DISPOSITION_COLONNE,
-};
-
-struct DNJ_ConstructriceInterfaceParametres {
-    void (*commence_disposition)(struct DNJ_ConstructriceInterfaceParametres *,
-                                 enum DNJ_Type_Disposition);
-    void (*termine_disposition)(struct DNJ_ConstructriceInterfaceParametres *);
-    void (*ajoute_etiquette)(struct DNJ_ConstructriceInterfaceParametres *, struct QT_Chaine);
-    void (*ajoute_propriete)(struct DNJ_ConstructriceInterfaceParametres *,
-                             struct QT_Chaine,
-                             struct DNJ_Rappels_Enveloppe_Parametre *);
-    struct DNJ_Maconne_Disposition_Ligne *(*debute_ligne)(
-        struct DNJ_ConstructriceInterfaceParametres *);
-    void (*termine_ligne)(struct DNJ_ConstructriceInterfaceParametres *,
-                          struct DNJ_Maconne_Disposition_Ligne *);
-    struct DNJ_Maconne_Disposition_Colonne *(*debute_colonne)(
-        struct DNJ_ConstructriceInterfaceParametres *);
-    void (*termine_colonne)(struct DNJ_ConstructriceInterfaceParametres *,
-                            struct DNJ_Maconne_Disposition_Colonne *);
-    struct DNJ_Maconne_Disposition_Grille *(*debute_grille)(
-        struct DNJ_ConstructriceInterfaceParametres *);
-    void (*termine_grille)(struct DNJ_ConstructriceInterfaceParametres *,
-                           struct DNJ_Maconne_Disposition_Grille *);
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name DNJ_Constructrice_Liste
- * \{ */
-
-struct DNJ_Constructrice_Liste {
-    void (*ajoute_element)(struct DNJ_Constructrice_Liste *, struct QT_Chaine);
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name DNJ_Rappels_Pilote_Clique
- * \{ */
-
-struct DNJ_Rappels_Pilote_Clique {
-    void (*sur_destruction)(struct DNJ_Rappels_Pilote_Clique *);
-    bool (*sur_évaluation_prédicat)(struct DNJ_Rappels_Pilote_Clique *,
-                                    struct QT_Chaine,
-                                    struct QT_Chaine);
-    void (*sur_clique)(struct DNJ_Rappels_Pilote_Clique *, struct QT_Chaine, struct QT_Chaine);
-};
 
 /** \} */
 
@@ -2482,6 +2417,276 @@ void QT_doublespinbox_definis_symboles_boutons(struct QT_DoubleSpinBox *doublesp
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name DNJ_Constructrice_Parametre_Enum
+ * \{ */
+
+struct DNJ_Constructrice_Parametre_Enum {
+    void (*ajoute_item)(struct DNJ_Constructrice_Parametre_Enum *,
+                        struct QT_Chaine,
+                        struct QT_Chaine);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Rappels_Enveloppe_Parametre
+ * \{ */
+
+#define ENEMERE_TYPE_PARAMETRE_DANJO(O)                                                           \
+    O(DNJ_TYPE_PARAMETRE_ENTIER, danjo::TypePropriete::ENTIER)                                    \
+    O(DNJ_TYPE_PARAMETRE_DECIMAL, danjo::TypePropriete::DECIMAL)                                  \
+    O(DNJ_TYPE_PARAMETRE_VECTEUR_DECIMAL, danjo::TypePropriete::VECTEUR_DECIMAL)                  \
+    O(DNJ_TYPE_PARAMETRE_VECTEUR_ENTIER, danjo::TypePropriete::VECTEUR_ENTIER)                    \
+    O(DNJ_TYPE_PARAMETRE_COULEUR, danjo::TypePropriete::COULEUR)                                  \
+    O(DNJ_TYPE_PARAMETRE_FICHIER_ENTREE, danjo::TypePropriete::FICHIER_ENTREE)                    \
+    O(DNJ_TYPE_PARAMETRE_FICHIER_SORTIE, danjo::TypePropriete::FICHIER_SORTIE)                    \
+    O(DNJ_TYPE_PARAMETRE_CHAINE_CARACTERE, danjo::TypePropriete::CHAINE_CARACTERE)                \
+    O(DNJ_TYPE_PARAMETRE_BOOL, danjo::TypePropriete::BOOL)                                        \
+    O(DNJ_TYPE_PARAMETRE_ENUM, danjo::TypePropriete::ENUM)                                        \
+    O(DNJ_TYPE_PARAMETRE_COURBE_COULEUR, danjo::TypePropriete::COURBE_COULEUR)                    \
+    O(DNJ_TYPE_PARAMETRE_COURBE_VALEUR, danjo::TypePropriete::COURBE_VALEUR)                      \
+    O(DNJ_TYPE_PARAMETRE_RAMPE_COULEUR, danjo::TypePropriete::RAMPE_COULEUR)                      \
+    O(DNJ_TYPE_PARAMETRE_TEXTE, danjo::TypePropriete::TEXTE)                                      \
+    O(DNJ_TYPE_PARAMETRE_LISTE, danjo::TypePropriete::LISTE)                                      \
+    O(DNJ_TYPE_PARAMETRE_LISTE_MANIP, danjo::TypePropriete::LISTE_MANIP)
+
+enum DNJ_Type_Parametre { ENEMERE_TYPE_PARAMETRE_DANJO(ENUMERE_DECLARATION_ENUM_IPA) };
+
+struct DNJ_Rappels_Enveloppe_Parametre {
+    enum DNJ_Type_Parametre (*donne_type_parametre)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    bool (*est_extra)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    void (*definis_visibilite)(struct DNJ_Rappels_Enveloppe_Parametre *, bool);
+    bool (*est_visible)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    void (*donne_infobulle)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+    void (*donnne_suffixe)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+    int (*donne_dimensions_vecteur)(struct DNJ_Rappels_Enveloppe_Parametre *);
+
+    void (*cree_items_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                            struct DNJ_Constructrice_Parametre_Enum *);
+
+    /* Évaluation des valeurs. */
+    bool (*evalue_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+    int (*evalue_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+    float (*evalue_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+    void (*evalue_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, int, float *);
+    void (*evalue_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int, int *);
+    void (*evalue_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, int, float *);
+    void (*evalue_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *, int, struct QT_Chaine *);
+    void (*evalue_enum)(struct DNJ_Rappels_Enveloppe_Parametre *, int, struct QT_Chaine *);
+
+    /* Définition des valeurs. */
+    void (*definis_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, bool);
+    void (*definis_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+    void (*definis_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float);
+    void (*definis_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float *);
+    void (*definis_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *);
+    void (*definis_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *);
+    void (*definis_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+    void (*definis_enum)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+
+    /* Plage des valeurs. */
+    void (*donne_plage_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int *);
+    void (*donne_plage_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, float *);
+    void (*donne_plage_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int *);
+    void (*donne_plage_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                                        float *,
+                                        float *);
+    void (*donne_plage_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, float *);
+
+    /* Animation. */
+    void (*ajoute_image_cle_bool)(struct DNJ_Rappels_Enveloppe_Parametre *, bool, int);
+    void (*ajoute_image_cle_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int, int);
+    void (*ajoute_image_cle_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *, float, int);
+    void (*ajoute_image_cle_vecteur_decimal)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                                             float *,
+                                             int);
+    void (*ajoute_image_cle_vecteur_entier)(struct DNJ_Rappels_Enveloppe_Parametre *, int *, int);
+    void (*ajoute_image_cle_couleur)(struct DNJ_Rappels_Enveloppe_Parametre *, float *, int);
+    void (*ajoute_image_cle_chaine)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                                    struct QT_Chaine *,
+                                    int);
+    void (*ajoute_image_cle_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,
+                                  struct QT_Chaine *,
+                                  int);
+
+    void (*supprime_animation)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    bool (*est_anime)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    bool (*est_animable)(struct DNJ_Rappels_Enveloppe_Parametre *);
+    bool (*possede_image_cle)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+};
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_ConstructriceInterfaceParametres
+ * \{ */
+
+struct DNJ_Maconne_Disposition_Ligne {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Ligne *);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Ligne *);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Ligne *);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Ligne *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Ligne *, struct QT_Chaine nom);
+
+    void (*ajoute_etiquette_activable)(struct DNJ_Maconne_Disposition_Ligne *instance,
+                                       struct QT_Chaine nom,
+                                       struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
+    void (*ajoute_etiquette_propriete)(struct DNJ_Maconne_Disposition_Ligne *instance,
+                                       struct QT_Chaine nom,
+                                       struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
+    void (*ajoute_espaceur)(struct DNJ_Maconne_Disposition_Ligne *, int taille);
+};
+
+struct DNJ_Maconne_Disposition_Colonne {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Colonne *);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Colonne *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Colonne *, struct QT_Chaine nom);
+
+    void (*ajoute_etiquette_activable)(struct DNJ_Maconne_Disposition_Colonne *instance,
+                                       struct QT_Chaine nom,
+                                       struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
+    void (*ajoute_etiquette_propriete)(struct DNJ_Maconne_Disposition_Colonne *instance,
+                                       struct QT_Chaine nom,
+                                       struct DNJ_Rappels_Enveloppe_Parametre *rappels_params);
+
+    void (*ajoute_espaceur)(struct DNJ_Maconne_Disposition_Colonne *, int taille);
+};
+
+struct DNJ_Maconne_Disposition_Grille {
+    struct DNJ_Maconne_Disposition_Ligne *(*débute_ligne)(struct DNJ_Maconne_Disposition_Grille *,
+                                                          int ligne,
+                                                          int colonne,
+                                                          int empan_ligne,
+                                                          int empan_colonne);
+
+    struct DNJ_Maconne_Disposition_Colonne *(*débute_colonne)(
+        struct DNJ_Maconne_Disposition_Grille *,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    struct DNJ_Maconne_Disposition_Grille *(*débute_grille)(
+        struct DNJ_Maconne_Disposition_Grille *,
+        int ligne,
+        int colonne,
+        int empan_ligne,
+        int empan_colonne);
+
+    void (*ajoute_controle)(struct DNJ_Maconne_Disposition_Grille *,
+                            struct QT_Chaine nom,
+                            struct DNJ_Rappels_Enveloppe_Parametre *prop,
+                            int ligne,
+                            int colonne,
+                            int empan_ligne,
+                            int empan_colonne);
+
+    void (*ajoute_etiquette)(struct DNJ_Maconne_Disposition_Grille *,
+                             struct QT_Chaine nom,
+                             int ligne,
+                             int colonne,
+                             int empan_ligne,
+                             int empan_colonne);
+
+    void (*ajoute_etiquette_activable)(struct DNJ_Maconne_Disposition_Grille *instance,
+                                       struct QT_Chaine nom,
+                                       struct DNJ_Rappels_Enveloppe_Parametre *rappels_params,
+                                       int ligne,
+                                       int colonne,
+                                       int empan_ligne,
+                                       int empan_colonne);
+
+    void (*ajoute_etiquette_propriete)(struct DNJ_Maconne_Disposition_Grille *instance,
+                                       struct QT_Chaine nom,
+                                       struct DNJ_Rappels_Enveloppe_Parametre *rappels_params,
+                                       int ligne,
+                                       int colonne,
+                                       int empan_ligne,
+                                       int empan_colonne);
+
+    void (*ajoute_espaceur)(struct DNJ_Maconne_Disposition_Grille *,
+                            int taille,
+                            int ligne,
+                            int colonne,
+                            int empan_ligne,
+                            int empan_colonne);
+};
+
+enum DNJ_Type_Disposition {
+    DNJ_TYPE_DISPOSITION_LIGNE,
+    DNJ_TYPE_DISPOSITION_COLONNE,
+};
+
+struct DNJ_ConstructriceInterfaceParametres {
+    void (*commence_disposition)(struct DNJ_ConstructriceInterfaceParametres *,
+                                 enum DNJ_Type_Disposition);
+    void (*termine_disposition)(struct DNJ_ConstructriceInterfaceParametres *);
+    void (*ajoute_etiquette)(struct DNJ_ConstructriceInterfaceParametres *, struct QT_Chaine);
+    void (*ajoute_propriete)(struct DNJ_ConstructriceInterfaceParametres *,
+                             struct QT_Chaine,
+                             struct DNJ_Rappels_Enveloppe_Parametre *);
+    struct DNJ_Maconne_Disposition_Ligne *(*debute_ligne)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_ligne)(struct DNJ_ConstructriceInterfaceParametres *,
+                          struct DNJ_Maconne_Disposition_Ligne *);
+    struct DNJ_Maconne_Disposition_Colonne *(*debute_colonne)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_colonne)(struct DNJ_ConstructriceInterfaceParametres *,
+                            struct DNJ_Maconne_Disposition_Colonne *);
+    struct DNJ_Maconne_Disposition_Grille *(*debute_grille)(
+        struct DNJ_ConstructriceInterfaceParametres *);
+    void (*termine_grille)(struct DNJ_ConstructriceInterfaceParametres *,
+                           struct DNJ_Maconne_Disposition_Grille *);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Constructrice_Liste
+ * \{ */
+
+struct DNJ_Constructrice_Liste {
+    void (*ajoute_element)(struct DNJ_Constructrice_Liste *, struct QT_Chaine);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name DNJ_Rappels_Pilote_Clique
+ * \{ */
+
+struct DNJ_Rappels_Pilote_Clique {
+    void (*sur_destruction)(struct DNJ_Rappels_Pilote_Clique *);
+    bool (*sur_évaluation_prédicat)(struct DNJ_Rappels_Pilote_Clique *,
+                                    struct QT_Chaine,
+                                    struct QT_Chaine);
+    void (*sur_clique)(struct DNJ_Rappels_Pilote_Clique *, struct QT_Chaine, struct QT_Chaine);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name DNJ_Pilote_Clique
  * \{ */
 
@@ -2496,6 +2701,8 @@ void DNJ_detruit_pilote_clique(struct DNJ_Pilote_Clique *pilote);
 /** \name DNJ_Rappels_Widget
  * \{ */
 
+struct DNJ_Gestionnaire_Interface;
+
 struct DNJ_Rappels_Widget {
     void (*sur_changement_parametre)(struct DNJ_Rappels_Widget *);
     void (*sur_pre_changement_parametre)(struct DNJ_Rappels_Widget *);
@@ -2505,9 +2712,12 @@ struct DNJ_Rappels_Widget {
                               struct QT_Chaine,
                               struct DNJ_Constructrice_Liste *);
     struct DNJ_Pilote_Clique *(*donne_pilote_clique)(struct DNJ_Rappels_Widget *);
+    struct DNJ_Gestionnaire_Interface *(*donne_gestionnaire)(struct DNJ_Rappels_Widget *);
     void (*sur_creation_interface)(struct DNJ_Rappels_Widget *,
                                    struct DNJ_ConstructriceInterfaceParametres *);
     void (*sur_destruction)(struct DNJ_Rappels_Widget *);
+
+    struct DNJ_Conteneur_Controles *widget;
 };
 
 /** \} */
@@ -2552,8 +2762,6 @@ struct DNJ_Donnees_Action {
 /** \name DNJ_Gestionnaire_Interface
  * \{ */
 
-struct DNJ_Gestionnaire_Interface;
-
 struct DNJ_Gestionnaire_Interface *DNJ_cree_gestionnaire_interface();
 void DNJ_detruit_gestionnaire_interface(struct DNJ_Gestionnaire_Interface *gestionnaire);
 struct QT_Menu *DNJ_gestionaire_compile_menu_fichier(
@@ -2581,6 +2789,8 @@ struct QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(
     struct DNJ_Gestionnaire_Interface *gestionnaire,
     struct DNJ_Contexte_Interface *context,
     struct QT_Chaine chemin);
+
+void DNJ_gestionnaire_ajourne_controles(struct DNJ_Gestionnaire_Interface *gestionnaire);
 
 /** \} */
 

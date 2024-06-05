@@ -72,8 +72,7 @@ class ControleProprieteCourbeCouleur final : public ControlePropriete {
                                             QWidget *parent = nullptr);
     ~ControleProprieteCourbeCouleur() override;
 
-    ControleProprieteCourbeCouleur(ControleProprieteCourbeCouleur const &) = default;
-    ControleProprieteCourbeCouleur &operator=(ControleProprieteCourbeCouleur const &) = default;
+    EMPECHE_COPIE(ControleProprieteCourbeCouleur);
 
     void finalise(const DonneesControle &donnees) override;
 
