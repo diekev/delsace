@@ -24,7 +24,7 @@
 
 #include "controle_propriete.h"
 
-#include "manipulable.h"
+#include "proprietes.hh"
 
 namespace danjo {
 

@@ -28,7 +28,7 @@
 #include <QHBoxLayout>
 
 #include "commun.hh"
-#include "donnees_controle.h"
+#include "proprietes.hh"
 
 namespace danjo {
 

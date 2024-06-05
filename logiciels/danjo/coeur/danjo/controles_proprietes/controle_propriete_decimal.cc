@@ -27,15 +27,11 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
-#include <sstream>
-
 #include "controles/controle_echelle_valeur.h"
 #include "controles/controle_nombre_decimal.h"
 
-#include "../manipulable.h"
-
 #include "commun.hh"
-#include "donnees_controle.h"
+#include "proprietes.hh"
 
 namespace danjo {
 

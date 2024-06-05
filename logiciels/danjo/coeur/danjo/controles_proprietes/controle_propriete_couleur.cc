@@ -26,17 +26,10 @@
 
 #include <QHBoxLayout>
 
-#include "biblinternes/outils/chaine.hh"
-
-#include "compilation/morceaux.h"
-
 #include "controles/controle_couleur.h"
 
-#include "donnees_controle.h"
-
 #include "commun.hh"
-
-#include <sstream>
+#include "proprietes.hh"
 
 namespace danjo {
 
