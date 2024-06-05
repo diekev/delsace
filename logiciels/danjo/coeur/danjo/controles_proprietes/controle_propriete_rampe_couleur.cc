@@ -43,8 +43,8 @@ namespace danjo {
 ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(BasePropriete *p,
                                                              int temps,
                                                              QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement_principal(new QVBoxLayout()),
-      m_agencement_nombre(new QHBoxLayout()), m_entrepolation(new QComboBox(this)),
+    : ControlePropriete(p, temps, parent), m_agencement_principal(crée_vbox_layout()),
+      m_agencement_nombre(crée_hbox_layout()), m_entrepolation(new QComboBox(this)),
       m_controle_rampe(new ControleRampeCouleur(this)),
       m_bouton_echelle(crée_bouton_échelle_valeur(this)), m_pos(new ControleNombreDecimal(this)),
       m_echelle(new ControleEchelleDecimale(m_pos, m_bouton_echelle)),
@@ -109,8 +109,6 @@ void ControleProprieteRampeCouleur::finalise(const DonneesControle &donnees)
     if (point != nullptr) {
         m_controle_couleur->couleur(point->couleur);
     }
-
-    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteRampeCouleur::ajourne_position(float x)

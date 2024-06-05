@@ -50,8 +50,7 @@ class SelecteurFichier : public ControlePropriete {
   public:
     explicit SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent = nullptr);
 
-    SelecteurFichier(SelecteurFichier const &) = default;
-    SelecteurFichier &operator=(SelecteurFichier const &) = default;
+    EMPECHE_COPIE(SelecteurFichier);
 
     ~SelecteurFichier() = default;
 
@@ -77,8 +76,7 @@ class ControleProprieteFichier final : public SelecteurFichier {
                                       QWidget *parent = nullptr);
     ~ControleProprieteFichier() override = default;
 
-    ControleProprieteFichier(ControleProprieteFichier const &) = default;
-    ControleProprieteFichier &operator=(ControleProprieteFichier const &) = default;
+    EMPECHE_COPIE(ControleProprieteFichier);
 
     void finalise(const DonneesControle &donnees) override;
 
