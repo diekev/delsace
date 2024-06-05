@@ -74,4 +74,11 @@ QHBoxLayout *crée_hbox_layout(QWidget *parent)
     return résultat;
 }
 
+QVBoxLayout *crée_vbox_layout(QWidget *parent)
+{
+    auto résultat = new QVBoxLayout(parent);
+    définis_marges(résultat);
+    return résultat;
+}
+
 }  // namespace danjo

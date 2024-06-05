@@ -71,7 +71,7 @@ class AffichageCouleur final : public QWidget {
 /* ************************************************************************** */
 
 DialogueCouleur::DialogueCouleur(QWidget *parent)
-    : QDialog(parent), m_disposition(new QVBoxLayout()), m_disposition_sel_ct(new QVBoxLayout()),
+    : QDialog(parent), m_disposition(crée_vbox_layout()), m_disposition_sel_ct(crée_vbox_layout()),
       m_disposition_sel_cv(crée_hbox_layout()), m_disposition_horiz(crée_hbox_layout()),
       m_disposition_rvba(new QGridLayout()), m_disposition_boutons(crée_hbox_layout()),
       m_selecteur_sat_val(new ControleSatVal(this)), m_selecteur_teinte(new SelecteurTeinte(this)),

@@ -62,7 +62,7 @@ void ControleProprieteChaineCaractere::ajourne_valeur_pointee()
 ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(BasePropriete *p,
                                                              int temps,
                                                              QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QVBoxLayout),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_vbox_layout()),
       m_editeur_ligne(new QTextEdit(this)), m_bouton(new QPushButton("Rafraîchis", this))
 {
     m_agencement->addWidget(m_editeur_ligne);
