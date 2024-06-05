@@ -46,7 +46,7 @@ ControleProprieteChaineCaractere::ControleProprieteChaineCaractere(BasePropriete
     m_editeur_ligne->setText(m_propriete->evalue_chaine(m_temps).c_str());
 
     connect(m_editeur_ligne,
-            &QLineEdit::returnPressed,
+            &QLineEdit::editingFinished,
             this,
             &ControleProprieteChaineCaractere::ajourne_valeur_pointee);
 }
