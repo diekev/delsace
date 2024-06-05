@@ -2557,6 +2557,8 @@ struct DNJ_Rappels_Widget {
     void (*sur_creation_interface)(struct DNJ_Rappels_Widget *,
                                    struct DNJ_ConstructriceInterfaceParametres *);
     void (*sur_destruction)(struct DNJ_Rappels_Widget *);
+
+    struct DNJ_Conteneur_Controles *widget;
 };
 
 /** \} */

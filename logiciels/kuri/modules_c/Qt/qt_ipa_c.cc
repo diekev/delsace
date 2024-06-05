@@ -3366,6 +3366,9 @@ DNJ_Conteneur_Controles *DNJ_cree_conteneur_controle(DNJ_Rappels_Widget *rappels
 {
     auto qparent = vers_qt(parent);
     auto résultat = new ConteneurControles(rappels, qparent);
+    if (rappels) {
+        rappels->widget = vers_ipa(résultat);
+    }
     return vers_ipa(résultat);
 }
 
