@@ -97,6 +97,28 @@ static ControlePropriete *cree_controle_pour_propriete(BasePropriete *propriete,
     }
 }
 
+static void connecte_propriété_au_conteneur(ControlePropriete *prop, ConteneurControles *conteneur)
+{
+    if (conteneur == nullptr) {
+        return;
+    }
+
+    QObject::connect(prop,
+                     &ControlePropriete::debute_changement_controle,
+                     conteneur,
+                     &ConteneurControles::debute_changement_controle);
+
+    QObject::connect(prop,
+                     &ControlePropriete::controle_change,
+                     conteneur,
+                     &ConteneurControles::ajourne_manipulable);
+
+    QObject::connect(prop,
+                     &ControlePropriete::termine_changement_controle,
+                     conteneur,
+                     &ConteneurControles::termine_changement_controle);
+}
+
 static ControlePropriete *crée_controle_propriété(DonneesControle const &donnees,
                                                   BasePropriete *prop,
                                                   int temps,
@@ -105,27 +127,11 @@ static ControlePropriete *crée_controle_propriété(DonneesControle const &donn
     auto résultat = cree_controle_pour_propriete(prop, temps);
     résultat->finalise(donnees);
 
-    if (conteneur != nullptr) {
-        if (prop->type() == TypePropriete::LISTE) {
-            static_cast<ControleProprieteListe *>(résultat)->conteneur(conteneur);
-        }
-
-        QObject::connect(résultat,
-                         &ControlePropriete::debute_changement_controle,
-                         conteneur,
-                         &ConteneurControles::debute_changement_controle);
-
-        QObject::connect(résultat,
-                         &ControlePropriete::controle_change,
-                         conteneur,
-                         &ConteneurControles::ajourne_manipulable);
-
-        QObject::connect(résultat,
-                         &ControlePropriete::termine_changement_controle,
-                         conteneur,
-                         &ConteneurControles::termine_changement_controle);
+    if (prop->type() == TypePropriete::LISTE) {
+        static_cast<ControleProprieteListe *>(résultat)->conteneur(conteneur);
     }
 
+    connecte_propriété_au_conteneur(résultat, conteneur);
     return résultat;
 }
 
@@ -142,14 +148,40 @@ ControlePropriete *MaçonneDisposition::crée_controle_propriété(
     const DonneesControle &données_controle, BasePropriete *prop)
 {
     m_ctx->manipulable->ajoute_propriete(données_controle.nom, prop);
-    return danjo::crée_controle_propriété(données_controle, prop, 0, m_ctx->conteneur);
+    auto résultat = danjo::crée_controle_propriété(données_controle, prop, 0, m_ctx->conteneur);
+    if (m_ctx->gestionnaire) {
+        m_ctx->gestionnaire->ajoute_controle(données_controle.nom, résultat);
+    }
+    return résultat;
 }
 
 ControlePropriete *MaçonneDisposition::crée_étiquette(std::string_view nom)
 {
     auto controle = new ControleProprieteEtiquette(
-        QString::fromStdString(std::string(nom.data(), nom.size())));
+        QString::fromStdString(std::string(nom.data(), nom.size())), m_ctx->conteneur);
     return controle;
+}
+
+ControlePropriete *MaçonneDisposition::crée_étiquette_activable(std::string_view nom,
+                                                                BasePropriete *prop)
+{
+    auto nom_prop = std::string(nom.data(), nom.size());
+    auto controle = new ControleProprieteEtiquetteActivable(
+        QString::fromStdString(nom_prop), prop, 0, m_ctx->conteneur);
+    connecte_propriété_au_conteneur(controle, m_ctx->conteneur);
+    /* Ne doit pas être ajoutée au gestionnaire car le controle ne doit jamais être désactivé. */
+    return controle;
+}
+
+ControlePropriete *MaçonneDisposition::crée_étiquette_propriété(std::string_view nom,
+                                                                BasePropriete *prop)
+{
+    auto nom_prop = std::string(nom.data(), nom.size());
+    auto résultat = new ControleProprieteEtiquettePropriete(prop, 0, m_ctx->conteneur);
+    if (m_ctx->gestionnaire) {
+        m_ctx->gestionnaire->ajoute_controle(nom_prop, résultat);
+    }
+    return résultat;
 }
 
 MaçonneDispositionLigne *MaçonneDisposition::crée_maçonne_ligne()
@@ -208,6 +240,24 @@ void MaçonneDispositionLigne::ajoute_etiquette(std::string_view nom)
     m_layout->addWidget(étiquette);
 }
 
+void MaçonneDispositionLigne::ajoute_étiquette_activable(std::string_view nom, BasePropriete *prop)
+{
+    auto étiquette = crée_étiquette_activable(nom, prop);
+    m_layout->addWidget(étiquette);
+}
+
+void MaçonneDispositionLigne::ajoute_étiquette_propriété(std::string_view nom, BasePropriete *prop)
+{
+    auto étiquette = crée_étiquette_propriété(nom, prop);
+    m_layout->addWidget(étiquette);
+}
+
+void MaçonneDispositionLigne::ajoute_espaceur(int taille)
+{
+    auto spaceur = new QSpacerItem(taille, taille);
+    m_layout->addItem(spaceur);
+}
+
 QLayout *MaçonneDispositionLigne::donne_layout()
 {
     return m_layout;
@@ -252,6 +302,26 @@ void MaçonneDispositionColonne::ajoute_etiquette(std::string_view nom)
 {
     auto étiquette = crée_étiquette(nom);
     m_layout->addWidget(étiquette);
+}
+
+void MaçonneDispositionColonne::ajoute_étiquette_activable(std::string_view nom,
+                                                           BasePropriete *prop)
+{
+    auto étiquette = crée_étiquette_activable(nom, prop);
+    m_layout->addWidget(étiquette);
+}
+
+void MaçonneDispositionColonne::ajoute_étiquette_propriété(std::string_view nom,
+                                                           BasePropriete *prop)
+{
+    auto étiquette = crée_étiquette_propriété(nom, prop);
+    m_layout->addWidget(étiquette);
+}
+
+void MaçonneDispositionColonne::ajoute_espaceur(int taille)
+{
+    auto spaceur = new QSpacerItem(taille, taille);
+    m_layout->addItem(spaceur);
 }
 
 QLayout *MaçonneDispositionColonne::donne_layout()
@@ -312,6 +382,35 @@ void MaçonneDispositionGrille::ajoute_etiquette(
 {
     auto étiquette = crée_étiquette(nom);
     m_layout->addWidget(étiquette, ligne, colonne, empan_ligne, empan_colonne);
+}
+
+void MaçonneDispositionGrille::ajoute_étiquette_activable(std::string_view nom,
+                                                          BasePropriete *prop,
+                                                          int ligne,
+                                                          int colonne,
+                                                          int empan_ligne,
+                                                          int empan_colonne)
+{
+    auto étiquette = crée_étiquette_activable(nom, prop);
+    m_layout->addWidget(étiquette, ligne, colonne, empan_ligne, empan_colonne);
+}
+
+void MaçonneDispositionGrille::ajoute_étiquette_propriété(std::string_view nom,
+                                                          BasePropriete *prop,
+                                                          int ligne,
+                                                          int colonne,
+                                                          int empan_ligne,
+                                                          int empan_colonne)
+{
+    auto étiquette = crée_étiquette_propriété(nom, prop);
+    m_layout->addWidget(étiquette, ligne, colonne, empan_ligne, empan_colonne);
+}
+
+void MaçonneDispositionGrille::ajoute_espaceur(
+    int taille, int ligne, int colonne, int empan_ligne, int empan_colonne)
+{
+    auto spaceur = new QSpacerItem(taille, taille);
+    m_layout->addItem(spaceur, ligne, colonne, empan_ligne, empan_colonne);
 }
 
 QLayout *MaçonneDispositionGrille::donne_layout()

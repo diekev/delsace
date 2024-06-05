@@ -27,12 +27,13 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 
-#include "donnees_controle.h"
+#include "commun.hh"
+#include "proprietes.hh"
 
 namespace danjo {
 
 ControleProprieteBool::ControleProprieteBool(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout()),
       m_case_a_cocher(new QCheckBox(this))
 {
     m_agencement->addWidget(m_case_a_cocher);

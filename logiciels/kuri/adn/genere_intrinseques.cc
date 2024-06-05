@@ -107,6 +107,10 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
             continue;
         }
 
+        if (protéine_fonction->donne_symbole_gcc() == "") {
+            continue;
+        }
+
         os << "    if (nom_gcc == \"" << protéine_fonction->donne_symbole_gcc() << "\") {\n";
         os << "        return GenreIntrinsèque::" << protéine_fonction->donne_genre_intrinsèque()
            << ";\n";
@@ -228,6 +232,10 @@ static void génère_code_machine_virtuelle(const kuri::tableau<Protéine *> &pr
         }
         auto fonction = dynamic_cast<ProtéineFonction *>(it);
         auto symbole = fonction->donne_symbole_gcc();
+
+        if (symbole == "") {
+            continue;
+        }
 
         os << "    if (decl->données_externes->nom_symbole == \"" << symbole << "\") {\n";
         génère_code_appel_intrinsèque(os, fonction);

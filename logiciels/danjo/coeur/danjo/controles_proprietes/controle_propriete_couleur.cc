@@ -26,20 +26,15 @@
 
 #include <QHBoxLayout>
 
-#include "biblinternes/outils/chaine.hh"
-
-#include "compilation/morceaux.h"
-
 #include "controles/controle_couleur.h"
 
-#include "donnees_controle.h"
-
-#include <sstream>
+#include "commun.hh"
+#include "proprietes.hh"
 
 namespace danjo {
 
 ControleProprieteCouleur::ControleProprieteCouleur(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_controle_couleur(new ControleCouleur(this))
 {
     m_agencement->addWidget(m_controle_couleur);

@@ -27,26 +27,22 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 
+#include "commun.hh"
 #include "donnees_controle.h"
 
 namespace danjo {
 
 ControleProprieteEnum::ControleProprieteEnum(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout()),
       m_liste_deroulante(new QComboBox(this)), m_index_valeur_defaut(0), m_index_courant(0)
 {
     m_agencement->addWidget(m_liste_deroulante);
     this->setLayout(m_agencement);
 
-    /* On ne peut pas utilisé le nouveau style de connection de Qt5 :
-     *     connect(m_liste_deroulante, &QComboBox::currentIndexChanged,
-     *             this, &ControleEnum::ajourne_valeur_pointee);
-     * car currentIndexChanged a deux signatures possibles et le compileur
-     * ne sait pas laquelle choisir. */
-    connect(m_liste_deroulante,
-            SIGNAL(currentIndexChanged(int)),
-            this,
-            SLOT(ajourne_valeur_pointee(int)));
+    QObject::connect(m_liste_deroulante,
+                     qOverload<int>(&QComboBox::currentIndexChanged),
+                     this,
+                     &ControleProprieteEnum::ajourne_valeur_pointee);
 }
 
 void ControleProprieteEnum::ajourne_valeur_pointee(int /*valeur*/)

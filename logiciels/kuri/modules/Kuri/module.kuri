@@ -216,6 +216,15 @@ déloge :: fonc (chn: &chaine, pos := PositionCodeSource())
     chn.taille = 0
 }
 
+déloge_si_logée :: fonc (chn: &chaine, pos := PositionCodeSource())
+{
+    saufsi intrinsèque_est_adresse_données_constantes(chn.pointeur) {
+        déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos)
+    }
+    chn.pointeur = nul
+    chn.taille = 0
+}
+
 // ----------------------------
 
 SystèmeExploitation :: énum {

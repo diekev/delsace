@@ -3,6 +3,7 @@
 
 #include "commun.hh"
 
+#include <QHBoxLayout>
 #include <QPushButton>
 
 #include "../fournisseuse_icones.hh"
@@ -58,6 +59,25 @@ QPushButton *crée_bouton_échelle_valeur(QWidget *parent)
     }
 
     résultat->setToolTip("Affiche une échelle de valeur pour éditer la valeur de la propriété");
+    return résultat;
+}
+
+static void définis_marges(QLayout *layout)
+{
+    layout->setContentsMargins(0, 0, 0, 0);
+}
+
+QHBoxLayout *crée_hbox_layout(QWidget *parent)
+{
+    auto résultat = new QHBoxLayout(parent);
+    définis_marges(résultat);
+    return résultat;
+}
+
+QVBoxLayout *crée_vbox_layout(QWidget *parent)
+{
+    auto résultat = new QVBoxLayout(parent);
+    définis_marges(résultat);
     return résultat;
 }
 
