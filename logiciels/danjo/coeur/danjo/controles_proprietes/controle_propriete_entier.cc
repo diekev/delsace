@@ -82,7 +82,12 @@ void ControleProprieteEntier::bascule_animation()
     });
 }
 
-void ControleProprieteEntier::finalise(const DonneesControle &donnees)
+void ControleProprieteEntier::finalise(const DonneesControle & /*donnees*/)
+{
+    this->ajourne_depuis_propriété();
+}
+
+void ControleProprieteEntier::ajourne_depuis_propriété()
 {
     if (!m_propriete->est_animable()) {
         m_bouton_animation->hide();
