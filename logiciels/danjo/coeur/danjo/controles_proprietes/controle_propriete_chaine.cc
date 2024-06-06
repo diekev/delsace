@@ -30,6 +30,7 @@
 #include <QTextEdit>
 
 #include "commun.hh"
+#include "fournisseuse_icones.hh"
 #include "proprietes.hh"
 
 namespace danjo {
@@ -46,7 +47,7 @@ ControleProprieteChaineCaractere::ControleProprieteChaineCaractere(BasePropriete
     m_editeur_ligne->setText(m_propriete->evalue_chaine(m_temps).c_str());
 
     connect(m_editeur_ligne,
-            &QLineEdit::returnPressed,
+            &QLineEdit::editingFinished,
             this,
             &ControleProprieteChaineCaractere::ajourne_valeur_pointee);
 }
@@ -59,11 +60,17 @@ void ControleProprieteChaineCaractere::ajourne_valeur_pointee()
     Q_EMIT(termine_changement_controle());
 }
 
+void ControleProprieteChaineCaractere::ajourne_depuis_propriété()
+{
+    m_editeur_ligne->setText(m_propriete->evalue_chaine(m_temps).c_str());
+}
+
 ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(BasePropriete *p,
                                                              int temps,
                                                              QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(crée_vbox_layout()),
-      m_editeur_ligne(new QTextEdit(this)), m_bouton(new QPushButton("Rafraîchis", this))
+      m_editeur_ligne(new QTextEdit(this)),
+      m_bouton(crée_bouton(IcônePourBouton::RAFRAICHIS_TEXTE, this))
 {
     m_agencement->addWidget(m_editeur_ligne);
     m_agencement->addWidget(m_bouton);
@@ -81,6 +88,11 @@ void ControleProprieteEditeurTexte::ajourne_valeur_pointee()
 {
     m_propriete->définis_valeur_chaine(m_editeur_ligne->toPlainText().toStdString());
     Q_EMIT(controle_change());
+}
+
+void ControleProprieteEditeurTexte::ajourne_depuis_propriété()
+{
+    m_editeur_ligne->setText(m_propriete->evalue_chaine(m_temps).c_str());
 }
 
 } /* namespace danjo */
