@@ -89,22 +89,16 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    saute_premier_slash := chemin.est_relatif()
+    saufsi chemin.est_relatif() {
+        ajoute_au_tampon(*enchaineuse, séparateur_chemin())
+    }
 
     tantque !pile.est_vide() {
-        saufsi saute_premier_slash {
-            ajoute_au_tampon(*enchaineuse, séparateur_chemin())
-        }
         ajoute_au_tampon(*enchaineuse, pile.dépile())
-
-        saute_premier_slash = faux
+        ajoute_au_tampon(*enchaineuse, séparateur_chemin())
 
         chemin_dossier := chaine_depuis_enchaineuse(*enchaineuse)
         diffère déloge(chemin_dossier)
-
-        si est_un_dossier(CheminFichier(chemin_dossier)) {
-            continue
-        }
 
         tente système_crée_dossier(chemin_dossier, 0o755) piège err {
             retourne err
