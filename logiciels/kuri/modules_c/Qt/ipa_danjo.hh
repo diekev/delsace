@@ -73,8 +73,8 @@ class FournisseuseIcône final : public danjo::FournisseuseIcône {
     EMPECHE_COPIE(FournisseuseIcône);
     ~FournisseuseIcône() override;
 
-    std::optional<QIcon> icone_pour_bouton_animation(danjo::ÉtatIcône état) override;
-    std::optional<QIcon> icone_pour_echelle_valeur(danjo::ÉtatIcône état) override;
+    std::optional<QIcon> icone_pour_bouton(const danjo::IcônePourBouton bouton,
+                                           danjo::ÉtatIcône état) override;
     std::optional<QIcon> icone_pour_identifiant(std::string const &identifiant,
                                                 danjo::ÉtatIcône état) override;
 };

@@ -32,6 +32,7 @@
 #include <iostream>
 
 #include "donnees_controle.h"
+#include "fournisseuse_icones.hh"
 
 #include "commun.hh"
 #include "conteneur_controles.h"
@@ -40,8 +41,8 @@ namespace danjo {
 
 ControleProprieteListe::ControleProprieteListe(BasePropriete *p, int temps, QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
-      m_editeur_texte(new QLineEdit(this)), m_bouton_liste(new QPushButton("list", this)),
-      m_liste(new QMenu(this))
+      m_editeur_texte(new QLineEdit(this)),
+      m_bouton_liste(crée_bouton(IcônePourBouton::LISTE_CHAINE, this)), m_liste(new QMenu(this))
 {
     m_agencement->addWidget(m_editeur_texte);
     m_agencement->addWidget(m_bouton_liste);

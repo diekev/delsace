@@ -30,6 +30,7 @@
 #include <QTextEdit>
 
 #include "commun.hh"
+#include "fournisseuse_icones.hh"
 #include "proprietes.hh"
 
 namespace danjo {
@@ -63,7 +64,8 @@ ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(BasePropriete *p,
                                                              int temps,
                                                              QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(crée_vbox_layout()),
-      m_editeur_ligne(new QTextEdit(this)), m_bouton(new QPushButton("Rafraîchis", this))
+      m_editeur_ligne(new QTextEdit(this)),
+      m_bouton(crée_bouton(IcônePourBouton::RAFRAICHIS_TEXTE, this))
 {
     m_agencement->addWidget(m_editeur_ligne);
     m_agencement->addWidget(m_bouton);

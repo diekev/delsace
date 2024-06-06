@@ -2797,6 +2797,19 @@ struct QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(
 /** \name DNJ_FournisseuseIcone
  * \{ */
 
+#define ENUMERE_DNJ_ICONE_POUR_BOUTON(O)                                                          \
+    O(DNJ_ICONE_POUR_BOUTON_AJOUTE, danjo::IcônePourBouton::AJOUTE)                               \
+    O(DNJ_ICONE_POUR_BOUTON_AJOUTE_IMAGE_CLÉ, danjo::IcônePourBouton::AJOUTE_IMAGE_CLÉ)           \
+    O(DNJ_ICONE_POUR_BOUTON_CHOISIR_FICHIER, danjo::IcônePourBouton::CHOISIR_FICHIER)             \
+    O(DNJ_ICONE_POUR_BOUTON_DÉPLACE_EN_HAUT, danjo::IcônePourBouton::DÉPLACE_EN_HAUT)             \
+    O(DNJ_ICONE_POUR_BOUTON_DÉPLACE_EN_BAS, danjo::IcônePourBouton::DÉPLACE_EN_BAS)               \
+    O(DNJ_ICONE_POUR_BOUTON_ÉCHELLE_VALEUR, danjo::IcônePourBouton::ÉCHELLE_VALEUR)               \
+    O(DNJ_ICONE_POUR_BOUTON_LISTE_CHAINE, danjo::IcônePourBouton::LISTE_CHAINE)                   \
+    O(DNJ_ICONE_POUR_BOUTON_RAFRAICHIS_TEXTE, danjo::IcônePourBouton::RAFRAICHIS_TEXTE)           \
+    O(DNJ_ICONE_POUR_BOUTON_SUPPRIME, danjo::IcônePourBouton::SUPPRIME)
+
+enum DNJ_Icone_Pour_Bouton { ENUMERE_DNJ_ICONE_POUR_BOUTON(ENUMERE_DECLARATION_ENUM_IPA) };
+
 enum DNJ_Etat_Icone {
     DNJ_ETAT_ICONE_ACTIF,
     DNJ_ETAT_ICONE_INACTIF,
@@ -2805,13 +2818,10 @@ enum DNJ_Etat_Icone {
 struct DNJ_Rappels_Fournisseuse_Icone {
     void (*sur_destruction)(struct DNJ_Rappels_Fournisseuse_Icone *);
 
-    bool (*donne_icone_pour_bouton_animation)(struct DNJ_Rappels_Fournisseuse_Icone *,
-                                              enum DNJ_Etat_Icone,
-                                              struct QT_Chaine *);
-
-    bool (*donne_icone_pour_echelle_valeur)(struct DNJ_Rappels_Fournisseuse_Icone *,
-                                            enum DNJ_Etat_Icone,
-                                            struct QT_Chaine *);
+    bool (*donne_icone_pour_bouton)(struct DNJ_Rappels_Fournisseuse_Icone *,
+                                    enum DNJ_Icone_Pour_Bouton,
+                                    enum DNJ_Etat_Icone,
+                                    struct QT_Chaine *);
 
     bool (*donne_icone_pour_identifiant)(struct DNJ_Rappels_Fournisseuse_Icone *,
                                          struct QT_Chaine,

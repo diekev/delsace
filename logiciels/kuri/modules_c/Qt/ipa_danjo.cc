@@ -1177,6 +1177,15 @@ static DNJ_Etat_Icone vers_ipa(danjo::ÉtatIcône état)
     return DNJ_ETAT_ICONE_ACTIF;
 }
 
+static DNJ_Icone_Pour_Bouton vers_ipa(danjo::IcônePourBouton icône)
+{
+    switch (icône) {
+        ENUMERE_DNJ_ICONE_POUR_BOUTON(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+    }
+
+    return DNJ_ICONE_POUR_BOUTON_AJOUTE;
+}
+
 FournisseuseIcône::FournisseuseIcône(DNJ_Rappels_Fournisseuse_Icone *rappels) : m_rappels(rappels)
 {
 }
@@ -1188,32 +1197,16 @@ FournisseuseIcône::~FournisseuseIcône()
     }
 }
 
-std::optional<QIcon> FournisseuseIcône::icone_pour_bouton_animation(danjo::ÉtatIcône état)
+std::optional<QIcon> FournisseuseIcône::icone_pour_bouton(const danjo::IcônePourBouton bouton,
+                                                          danjo::ÉtatIcône état)
 {
-    if (!m_rappels || !m_rappels->donne_icone_pour_bouton_animation) {
+    if (!m_rappels || !m_rappels->donne_icone_pour_bouton) {
         return {};
     }
 
     auto chn_résultat = QT_Chaine{};
-    auto résultat = m_rappels->donne_icone_pour_bouton_animation(
-        m_rappels, vers_ipa(état), &chn_résultat);
-    if (!résultat) {
-        return {};
-    }
-
-    auto qchn_résultat = chn_résultat.vers_std_string();
-    return QIcon(qchn_résultat.c_str());
-}
-
-std::optional<QIcon> FournisseuseIcône::icone_pour_echelle_valeur(danjo::ÉtatIcône état)
-{
-    if (!m_rappels || !m_rappels->donne_icone_pour_echelle_valeur) {
-        return {};
-    }
-
-    auto chn_résultat = QT_Chaine{};
-    auto résultat = m_rappels->donne_icone_pour_echelle_valeur(
-        m_rappels, vers_ipa(état), &chn_résultat);
+    auto résultat = m_rappels->donne_icone_pour_bouton(
+        m_rappels, vers_ipa(bouton), vers_ipa(état), &chn_résultat);
     if (!résultat) {
         return {};
     }
