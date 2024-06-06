@@ -47,6 +47,8 @@ class ControleProprieteCouleur final : public ControlePropriete {
 
     EMPECHE_COPIE(ControleProprieteCouleur);
 
+    void ajourne_depuis_propriété() override;
+
   private Q_SLOTS:
     void ajourne_couleur();
 };
