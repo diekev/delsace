@@ -2064,6 +2064,35 @@ QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(QT_Generic_Widget parent,
     return résultat;
 }
 
+QT_Chaine QT_file_dialog_donne_dossier_existant(QT_Generic_Widget parent,
+                                                QT_Chaine titre,
+                                                QT_Chaine dossier)
+{
+    auto qparent = vers_qt(parent);
+    auto qtitre = titre.vers_std_string();
+    auto qdossier = dossier.vers_std_string();
+
+    auto chemin = QFileDialog::getExistingDirectory(qparent, qtitre.c_str(), qdossier.c_str());
+
+    auto std_chemin = chemin.toStdString();
+
+    static char tampon[FILENAME_MAX];
+
+    QT_Chaine résultat;
+
+    if (std_chemin.size() < FILENAME_MAX) {
+        memcpy(tampon, std_chemin.c_str(), std_chemin.size());
+        résultat.caractères = tampon;
+        résultat.taille = int64_t(std_chemin.size());
+    }
+    else {
+        résultat.caractères = nullptr;
+        résultat.taille = 0;
+    }
+
+    return résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -3383,11 +3412,16 @@ DNJ_Conteneur_Controles *DNJ_cree_conteneur_controle(DNJ_Rappels_Widget *rappels
     return vers_ipa(résultat);
 }
 
-QT_Layout *DNJ_conteneur_cree_interface(DNJ_Conteneur_Controles *conteneur)
+void DNJ_conteneur_cree_interface(DNJ_Conteneur_Controles *conteneur)
 {
     auto qconteneur = vers_qt(conteneur);
-    auto résultat = qconteneur->crée_interface();
-    return vers_ipa(résultat);
+    qconteneur->crée_interface();
+}
+
+void DNJ_conteneur_ajourne_controles(DNJ_Conteneur_Controles *conteneur)
+{
+    auto qconteneur = vers_qt(conteneur);
+    qconteneur->ajourne_controles();
 }
 
 /** \} */
@@ -3508,12 +3542,6 @@ QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(DNJ_Gestionnaire_Interf
     auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
     auto résultat = dnj_gestionnaire->compile_entreface_fichier(données, chemin.vers_std_string());
     return vers_ipa(résultat);
-}
-
-void DNJ_gestionnaire_ajourne_controles(DNJ_Gestionnaire_Interface *gestionnaire)
-{
-    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
-    dnj_gestionnaire->ajourne_controles();
 }
 
 /** \} */

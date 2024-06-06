@@ -39,7 +39,7 @@ class ConteneurControles : public danjo::ConteneurControles {
     RepondantCommande *donne_repondant_commande();
     danjo::GestionnaireInterface *donne_gestionnaire();
 
-    QLayout *crée_interface();
+    void crée_interface();
 };
 
 /** \} */
@@ -73,8 +73,8 @@ class FournisseuseIcône final : public danjo::FournisseuseIcône {
     EMPECHE_COPIE(FournisseuseIcône);
     ~FournisseuseIcône() override;
 
-    std::optional<QIcon> icone_pour_bouton_animation(danjo::ÉtatIcône état) override;
-    std::optional<QIcon> icone_pour_echelle_valeur(danjo::ÉtatIcône état) override;
+    std::optional<QIcon> icone_pour_bouton(const danjo::IcônePourBouton bouton,
+                                           danjo::ÉtatIcône état) override;
     std::optional<QIcon> icone_pour_identifiant(std::string const &identifiant,
                                                 danjo::ÉtatIcône état) override;
 };
@@ -102,6 +102,10 @@ class DialoguesChemins final : public danjo::DialoguesChemins {
                                        QString const &caption,
                                        QString const &dossier,
                                        QString const &filtres) override;
+
+    QString donne_chemin_pour_dossier(QString const &chemin_existant,
+                                      QString const &caption,
+                                      QString const &dossier) override;
 };
 
 /** \} */
