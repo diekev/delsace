@@ -612,6 +612,8 @@ void AssembleurDisposition::ajoute_disposition(id_morceau identifiant)
             break;
     }
 
+    disposition->setContentsMargins(0, 0, 0, 0);
+
     if (!m_pile_dispositions.est_vide()) {
         m_pile_dispositions.haut()->addLayout(disposition);
     }
