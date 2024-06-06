@@ -30,6 +30,7 @@ static std::any donne_valeur_défaut_pour_type(TypePropriete const type)
         case TypePropriete::FICHIER_ENTREE:
         case TypePropriete::FICHIER_SORTIE:
         case TypePropriete::CHAINE_CARACTERE:
+        case TypePropriete::DOSSIER:
         case TypePropriete::TEXTE:
         case TypePropriete::LISTE:
             return std::any(dls::chaine(""));
@@ -98,6 +99,7 @@ Propriete *Propriete::cree(TypePropriete type, std::any valeur_)
         case TypePropriete::TEXTE:
         case TypePropriete::FICHIER_ENTREE:
         case TypePropriete::FICHIER_SORTIE:
+        case TypePropriete::DOSSIER:
         case TypePropriete::COURBE_COULEUR:
         case TypePropriete::COURBE_VALEUR:
         case TypePropriete::RAMPE_COULEUR:

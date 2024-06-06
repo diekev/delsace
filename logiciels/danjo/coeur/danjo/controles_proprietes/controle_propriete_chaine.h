@@ -48,6 +48,8 @@ class ControleProprieteChaineCaractere final : public ControlePropriete {
 
     EMPECHE_COPIE(ControleProprieteChaineCaractere);
 
+    void ajourne_depuis_propriété() override;
+
   private Q_SLOTS:
     void ajourne_valeur_pointee();
 };
@@ -64,6 +66,8 @@ class ControleProprieteEditeurTexte final : public ControlePropriete {
     ~ControleProprieteEditeurTexte() override = default;
 
     EMPECHE_COPIE(ControleProprieteEditeurTexte);
+
+    void ajourne_depuis_propriété() override;
 
   private Q_SLOTS:
     void ajourne_valeur_pointee();

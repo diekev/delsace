@@ -1080,11 +1080,13 @@ danjo::GestionnaireInterface *ConteneurControles::donne_gestionnaire()
     return nullptr;
 }
 
-QLayout *ConteneurControles::crée_interface()
+void ConteneurControles::crée_interface()
 {
     if (!m_rappels || !m_rappels->sur_creation_interface) {
-        return nullptr;
+        return;
     }
+
+    efface_controles();
 
     danjo::Manipulable manipulable;
 
@@ -1107,11 +1109,16 @@ QLayout *ConteneurControles::crée_interface()
 
     auto disp = assembleuse.disposition();
     if (disp == nullptr) {
-        return nullptr;
+        return;
     }
 
     disp->addStretch();
-    return disp;
+
+    if (auto layout_existant = layout()) {
+        QWidget temp;
+        temp.setLayout(layout_existant);
+    }
+    setLayout(disp);
 }
 
 /** \} */
@@ -1170,6 +1177,15 @@ static DNJ_Etat_Icone vers_ipa(danjo::ÉtatIcône état)
     return DNJ_ETAT_ICONE_ACTIF;
 }
 
+static DNJ_Icone_Pour_Bouton vers_ipa(danjo::IcônePourBouton icône)
+{
+    switch (icône) {
+        ENUMERE_DNJ_ICONE_POUR_BOUTON(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+    }
+
+    return DNJ_ICONE_POUR_BOUTON_AJOUTE;
+}
+
 FournisseuseIcône::FournisseuseIcône(DNJ_Rappels_Fournisseuse_Icone *rappels) : m_rappels(rappels)
 {
 }
@@ -1181,32 +1197,16 @@ FournisseuseIcône::~FournisseuseIcône()
     }
 }
 
-std::optional<QIcon> FournisseuseIcône::icone_pour_bouton_animation(danjo::ÉtatIcône état)
+std::optional<QIcon> FournisseuseIcône::icone_pour_bouton(const danjo::IcônePourBouton bouton,
+                                                          danjo::ÉtatIcône état)
 {
-    if (!m_rappels || !m_rappels->donne_icone_pour_bouton_animation) {
+    if (!m_rappels || !m_rappels->donne_icone_pour_bouton) {
         return {};
     }
 
     auto chn_résultat = QT_Chaine{};
-    auto résultat = m_rappels->donne_icone_pour_bouton_animation(
-        m_rappels, vers_ipa(état), &chn_résultat);
-    if (!résultat) {
-        return {};
-    }
-
-    auto qchn_résultat = chn_résultat.vers_std_string();
-    return QIcon(qchn_résultat.c_str());
-}
-
-std::optional<QIcon> FournisseuseIcône::icone_pour_echelle_valeur(danjo::ÉtatIcône état)
-{
-    if (!m_rappels || !m_rappels->donne_icone_pour_echelle_valeur) {
-        return {};
-    }
-
-    auto chn_résultat = QT_Chaine{};
-    auto résultat = m_rappels->donne_icone_pour_echelle_valeur(
-        m_rappels, vers_ipa(état), &chn_résultat);
+    auto résultat = m_rappels->donne_icone_pour_bouton(
+        m_rappels, vers_ipa(bouton), vers_ipa(état), &chn_résultat);
     if (!résultat) {
         return {};
     }
@@ -1306,6 +1306,27 @@ QString DialoguesChemins::donne_chemin_pour_écriture(QString const &chemin_exis
     paramètres.filtres = filtres_ipa;
 
     auto résultat = m_rappels->donne_chemin_pour_écriture(m_rappels, &paramètres);
+    return résultat.vers_std_string().c_str();
+}
+
+QString DialoguesChemins::donne_chemin_pour_dossier(QString const &chemin_existant,
+                                                    QString const &caption,
+                                                    QString const &dossier)
+{
+    if (!m_rappels || !m_rappels->donne_chemin_pour_dossier) {
+        return "";
+    }
+
+    CHAINE_VERS_IPA(chemin_existant);
+    CHAINE_VERS_IPA(caption);
+    CHAINE_VERS_IPA(dossier);
+
+    DNJ_Parametre_Dialogue_Chemin paramètres;
+    paramètres.chemin_existant = chemin_existant_ipa;
+    paramètres.caption = caption_ipa;
+    paramètres.dossier = dossier_ipa;
+
+    auto résultat = m_rappels->donne_chemin_pour_dossier(m_rappels, &paramètres);
     return résultat.vers_std_string().c_str();
 }
 

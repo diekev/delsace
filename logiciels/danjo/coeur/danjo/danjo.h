@@ -110,10 +110,6 @@ class GestionnaireInterface {
     bool montre_dialogue_texte(DonneesInterface &donnees, dls::chaine const &texte);
 
     bool montre_dialogue_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
-
-    void ajoute_controle(dls::chaine identifiant, ControlePropriete *controle);
-
-    void ajourne_controles();
 };
 
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);

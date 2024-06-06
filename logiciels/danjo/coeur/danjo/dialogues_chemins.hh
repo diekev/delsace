@@ -20,6 +20,9 @@ class DialoguesChemins {
                                                QString const &caption,
                                                QString const &dossier,
                                                QString const &filtres) = 0;
+    virtual QString donne_chemin_pour_dossier(QString const &chemin_existant,
+                                              QString const &caption,
+                                              QString const &dossier) = 0;
 };
 
 DialoguesChemins &donne_dialogues_chemins();

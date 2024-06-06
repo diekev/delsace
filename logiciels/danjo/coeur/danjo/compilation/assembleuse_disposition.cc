@@ -57,41 +57,45 @@
 
 namespace danjo {
 
-static ControlePropriete *cree_controle_pour_propriete(BasePropriete *propriete, int temps)
+static ControlePropriete *cree_controle_pour_propriete(BasePropriete *propriete,
+                                                       int temps,
+                                                       QWidget *parent)
 {
     switch (propriete->type()) {
         case TypePropriete::ENTIER:
-            return new ControleProprieteEntier(propriete, temps);
+            return new ControleProprieteEntier(propriete, temps, parent);
         case TypePropriete::DECIMAL:
-            return new ControleProprieteDecimal(propriete, temps);
+            return new ControleProprieteDecimal(propriete, temps, parent);
         case TypePropriete::ENUM:
-            return new ControleProprieteEnum(propriete, temps);
+            return new ControleProprieteEnum(propriete, temps, parent);
         case TypePropriete::LISTE:
-            return new ControleProprieteListe(propriete, temps);
+            return new ControleProprieteListe(propriete, temps, parent);
         case TypePropriete::BOOL:
-            return new ControleProprieteBool(propriete, temps);
+            return new ControleProprieteBool(propriete, temps, parent);
         case TypePropriete::CHAINE_CARACTERE:
-            return new ControleProprieteChaineCaractere(propriete, temps);
+            return new ControleProprieteChaineCaractere(propriete, temps, parent);
         case TypePropriete::FICHIER_ENTREE:
-            return new ControleProprieteFichier(propriete, temps, true);
+            return new ControleProprieteFichier(propriete, temps, parent);
         case TypePropriete::FICHIER_SORTIE:
-            return new ControleProprieteFichier(propriete, temps, false);
+            return new ControleProprieteFichier(propriete, temps, parent);
+        case TypePropriete::DOSSIER:
+            return new ControleProprieteFichier(propriete, temps, parent);
         case TypePropriete::COULEUR:
-            return new ControleProprieteCouleur(propriete, temps);
+            return new ControleProprieteCouleur(propriete, temps, parent);
         case TypePropriete::VECTEUR_DECIMAL:
-            return new ControleProprieteVecteurDecimal(propriete, temps);
+            return new ControleProprieteVecteurDecimal(propriete, temps, parent);
         case TypePropriete::VECTEUR_ENTIER:
-            return new ControleProprieteVecteurEntier(propriete, temps);
+            return new ControleProprieteVecteurEntier(propriete, temps, parent);
         case TypePropriete::COURBE_COULEUR:
-            return new ControleProprieteCourbeCouleur(propriete, temps);
+            return new ControleProprieteCourbeCouleur(propriete, temps, parent);
         case TypePropriete::COURBE_VALEUR:
-            return new ControleProprieteCourbeValeur(propriete, temps);
+            return new ControleProprieteCourbeValeur(propriete, temps, parent);
         case TypePropriete::RAMPE_COULEUR:
-            return new ControleProprieteRampeCouleur(propriete, temps);
+            return new ControleProprieteRampeCouleur(propriete, temps, parent);
         case TypePropriete::TEXTE:
-            return new ControleProprieteEditeurTexte(propriete, temps);
+            return new ControleProprieteEditeurTexte(propriete, temps, parent);
         case TypePropriete::LISTE_MANIP:
-            return new ControleProprieteListeManip(propriete, temps);
+            return new ControleProprieteListeManip(propriete, temps, parent);
         default:
             return nullptr;
     }
@@ -124,7 +128,7 @@ static ControlePropriete *crée_controle_propriété(DonneesControle const &donn
                                                   int temps,
                                                   ConteneurControles *conteneur)
 {
-    auto résultat = cree_controle_pour_propriete(prop, temps);
+    auto résultat = cree_controle_pour_propriete(prop, temps, conteneur);
     résultat->finalise(donnees);
 
     if (prop->type() == TypePropriete::LISTE) {
@@ -149,8 +153,8 @@ ControlePropriete *MaçonneDisposition::crée_controle_propriété(
 {
     m_ctx->manipulable->ajoute_propriete(données_controle.nom, prop);
     auto résultat = danjo::crée_controle_propriété(données_controle, prop, 0, m_ctx->conteneur);
-    if (m_ctx->gestionnaire) {
-        m_ctx->gestionnaire->ajoute_controle(données_controle.nom, résultat);
+    if (m_ctx->conteneur) {
+        m_ctx->conteneur->ajoute_controle(données_controle.nom, résultat);
     }
     return résultat;
 }
@@ -178,8 +182,8 @@ ControlePropriete *MaçonneDisposition::crée_étiquette_propriété(std::string
 {
     auto nom_prop = std::string(nom.data(), nom.size());
     auto résultat = new ControleProprieteEtiquettePropriete(prop, 0, m_ctx->conteneur);
-    if (m_ctx->gestionnaire) {
-        m_ctx->gestionnaire->ajoute_controle(nom_prop, résultat);
+    if (m_ctx->conteneur) {
+        m_ctx->conteneur->ajoute_controle(nom_prop, résultat);
     }
     return résultat;
 }
@@ -439,6 +443,8 @@ static TypePropriete type_propriete_pour_lexeme(id_morceau lexeme)
             return TypePropriete::FICHIER_ENTREE;
         case id_morceau::FICHIER_SORTIE:
             return TypePropriete::FICHIER_SORTIE;
+        case id_morceau::DOSSIER:
+            return TypePropriete::DOSSIER;
         case id_morceau::COULEUR:
             return TypePropriete::COULEUR;
         case id_morceau::VECTEUR:
@@ -521,6 +527,7 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
         case TypePropriete::TEXTE:
         case TypePropriete::FICHIER_ENTREE:
         case TypePropriete::FICHIER_SORTIE:
+        case TypePropriete::DOSSIER:
         {
             résultat->valeur = donnees.valeur_defaut;
             break;
@@ -611,6 +618,8 @@ void AssembleurDisposition::ajoute_disposition(id_morceau identifiant)
             disposition = new QVBoxLayout;
             break;
     }
+
+    disposition->setContentsMargins(0, 0, 0, 0);
 
     if (!m_pile_dispositions.est_vide()) {
         m_pile_dispositions.haut()->addLayout(disposition);

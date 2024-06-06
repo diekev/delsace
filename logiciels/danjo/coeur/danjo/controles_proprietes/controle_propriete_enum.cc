@@ -34,7 +34,7 @@ namespace danjo {
 
 ControleProprieteEnum::ControleProprieteEnum(BasePropriete *p, int temps, QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout()),
-      m_liste_deroulante(new QComboBox(this)), m_index_valeur_defaut(0), m_index_courant(0)
+      m_liste_deroulante(new QComboBox(this))
 {
     m_agencement->addWidget(m_liste_deroulante);
     this->setLayout(m_agencement);
@@ -55,25 +55,20 @@ void ControleProprieteEnum::ajourne_valeur_pointee(int /*valeur*/)
 
 void ControleProprieteEnum::finalise(const DonneesControle &donnees)
 {
-    const auto vieil_etat = m_liste_deroulante->blockSignals(true);
-
-    auto valeur_defaut = m_propriete->evalue_énum(0);
-
-    auto index_courant = 0;
+    const QSignalBlocker blocker(m_liste_deroulante);
 
     for (const auto &pair : donnees.valeur_enum) {
         m_liste_deroulante->addItem(pair.first.c_str(), QVariant(pair.second.c_str()));
-
-        if (pair.second == valeur_defaut) {
-            m_index_valeur_defaut = index_courant;
-        }
-
-        index_courant++;
     }
 
-    m_liste_deroulante->setCurrentIndex(m_index_valeur_defaut);
+    auto valeur_defaut = m_propriete->evalue_énum(0);
+    m_liste_deroulante->setCurrentText(valeur_defaut.c_str());
+}
 
-    m_liste_deroulante->blockSignals(vieil_etat);
+void ControleProprieteEnum::ajourne_depuis_propriété()
+{
+    const QSignalBlocker blocker(m_liste_deroulante);
+    m_liste_deroulante->setCurrentText(m_propriete->evalue_énum(m_temps).c_str());
 }
 
 } /* namespace danjo */

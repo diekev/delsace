@@ -295,6 +295,7 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
                         case TypePropriete::ENUM:
                         case TypePropriete::FICHIER_ENTREE:
                         case TypePropriete::FICHIER_SORTIE:
+                        case TypePropriete::DOSSIER:
                         case TypePropriete::CHAINE_CARACTERE:
                         {
                             tmp.valeur = manipulable->evalue_chaine(nom);

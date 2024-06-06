@@ -24,6 +24,13 @@ class DialoguesCheminsDefaut : public DialoguesChemins {
     {
         return QFileDialog::getSaveFileName(nullptr, caption, dossier, filtres);
     }
+
+    QString donne_chemin_pour_dossier(QString const &chemin_existant,
+                                      QString const &caption,
+                                      QString const &dossier) override
+    {
+        return QFileDialog::getExistingDirectory(nullptr, caption, dossier);
+    }
 };
 
 static DialoguesCheminsDefaut __dialogues_defaut = {};

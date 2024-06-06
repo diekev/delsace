@@ -70,6 +70,8 @@ class ControleProprieteVecteurDecimal final : public BaseControleProprieteVecteu
 
     void finalise(const DonneesControle &donnees) override;
 
+    void ajourne_depuis_propriété() override;
+
   private Q_SLOTS:
     void ajourne_valeur_0(float valeur);
     void ajourne_valeur_1(float valeur);
@@ -100,6 +102,8 @@ class ControleProprieteVecteurEntier final : public BaseControleProprieteVecteur
     EMPECHE_COPIE(ControleProprieteVecteurEntier);
 
     void finalise(const DonneesControle &donnees) override;
+
+    void ajourne_depuis_propriété() override;
 
   private Q_SLOTS:
     void ajourne_valeur_0(int valeur);
