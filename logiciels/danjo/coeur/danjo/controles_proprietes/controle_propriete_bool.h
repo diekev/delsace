@@ -44,6 +44,8 @@ class ControleProprieteBool final : public ControlePropriete {
 
     EMPECHE_COPIE(ControleProprieteBool);
 
+    void ajourne_depuis_propriété() override;
+
   private Q_SLOTS:
     void ajourne_valeur_pointee(bool valeur);
 };
