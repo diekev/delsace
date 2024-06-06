@@ -55,6 +55,9 @@ class ConteneurControles : public QWidget {
 
     void ajourne_controles();
 
+  protected:
+    void efface_controles();
+
   public Q_SLOTS:
     /**
      * Cette méthode est appelée à chaque qu'un contrôle associé est modifiée

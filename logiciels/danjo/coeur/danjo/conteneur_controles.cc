@@ -50,6 +50,11 @@ void ConteneurControles::ajourne_controles()
     }
 }
 
+void ConteneurControles::efface_controles()
+{
+    m_controles.efface();
+}
+
 void ConteneurControles::onglet_dossier_change(int index)
 {
     INUTILISE(index);

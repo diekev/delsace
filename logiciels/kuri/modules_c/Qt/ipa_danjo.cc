@@ -1086,6 +1086,8 @@ QLayout *ConteneurControles::crée_interface()
         return nullptr;
     }
 
+    efface_controles();
+
     danjo::Manipulable manipulable;
 
     danjo::DonneesInterface données_interface{};
