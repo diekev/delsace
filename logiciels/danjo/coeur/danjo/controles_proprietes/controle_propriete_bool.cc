@@ -48,6 +48,12 @@ ControleProprieteBool::ControleProprieteBool(BasePropriete *p, int temps, QWidge
             &ControleProprieteBool::ajourne_valeur_pointee);
 }
 
+void ControleProprieteBool::ajourne_depuis_propriété()
+{
+    const QSignalBlocker blocker(m_case_a_cocher);
+    m_case_a_cocher->setChecked(m_propriete->evalue_bool(m_temps));
+}
+
 void ControleProprieteBool::ajourne_valeur_pointee(bool valeur)
 {
     émets_controle_changé_simple([this, valeur]() { m_propriete->définis_valeur_bool(valeur); });

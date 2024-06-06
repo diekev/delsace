@@ -30,6 +30,7 @@
 
 #include "commun.hh"
 #include "donnees_controle.h"
+#include "fournisseuse_icones.hh"
 #include "types/liste_manip.hh"
 
 namespace danjo {
@@ -70,10 +71,12 @@ ControleProprieteListeManip::ControleProprieteListeManip(BasePropriete *p,
                                                          int temps,
                                                          QWidget *parent)
     : ControlePropriete(p, temps, parent), m_disp_horiz(crée_hbox_layout(this)),
-      m_disp_boutons(crée_vbox_layout()), m_bouton_ajoute(new QPushButton("ajoute", this)),
-      m_bouton_enleve(new QPushButton("enlève", this)),
-      m_bouton_monte(new QPushButton("monte", this)),
-      m_bouton_descend(new QPushButton("descend", this)), m_widget_arbre(new TreeWidget(this))
+      m_disp_boutons(crée_vbox_layout()),
+      m_bouton_ajoute(crée_bouton(IcônePourBouton::AJOUTE, this)),
+      m_bouton_enleve(crée_bouton(IcônePourBouton::SUPPRIME, this)),
+      m_bouton_monte(crée_bouton(IcônePourBouton::DÉPLACE_EN_HAUT, this)),
+      m_bouton_descend(crée_bouton(IcônePourBouton::DÉPLACE_EN_BAS, this)),
+      m_widget_arbre(new TreeWidget(this))
 {
     m_disp_boutons->addWidget(m_bouton_ajoute);
     m_disp_boutons->addWidget(m_bouton_enleve);

@@ -21,6 +21,7 @@ enum class TypePropriete : int {
     COULEUR,
     FICHIER_ENTREE,
     FICHIER_SORTIE,
+    DOSSIER,
     CHAINE_CARACTERE,
     BOOL,
     ENUM,

@@ -65,6 +65,8 @@ class ControleProprieteListe final : public ControlePropriete {
 
     void finalise(const DonneesControle &donnees) override;
 
+    void ajourne_depuis_propriété() override;
+
   private Q_SLOTS:
     void montre_liste();
     void repond_clique();

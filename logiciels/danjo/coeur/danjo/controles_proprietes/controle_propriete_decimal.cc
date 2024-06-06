@@ -94,7 +94,12 @@ void ControleProprieteDecimal::bascule_animation()
     });
 }
 
-void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
+void ControleProprieteDecimal::finalise(const DonneesControle & /*donnees*/)
+{
+    this->ajourne_depuis_propriété();
+}
+
+void ControleProprieteDecimal::ajourne_depuis_propriété()
 {
     if (!m_propriete->est_animable()) {
         m_bouton_animation->hide();
