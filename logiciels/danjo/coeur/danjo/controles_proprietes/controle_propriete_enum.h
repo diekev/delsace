@@ -41,10 +41,6 @@ class ControleProprieteEnum final : public ControlePropriete {
     QHBoxLayout *m_agencement{};
     QComboBox *m_liste_deroulante{};
 
-    dls::chaine m_valeur_defaut{};
-    int m_index_valeur_defaut{};
-    int m_index_courant{};
-
   public:
     explicit ControleProprieteEnum(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteEnum() override = default;
@@ -52,6 +48,8 @@ class ControleProprieteEnum final : public ControlePropriete {
     EMPECHE_COPIE(ControleProprieteEnum);
 
     void finalise(const DonneesControle &donnees) override;
+
+    void ajourne_depuis_propriété() override;
 
   private Q_SLOTS:
     void ajourne_valeur_pointee(int valeur);

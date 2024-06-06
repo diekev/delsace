@@ -518,7 +518,8 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
     }
 
     début_tampon := *tampon[0]
-    taille_résultat := (sortie - début_tampon) + 1
+    /* sortie dépasse la fin de 1 donc inutile d'ajouter 1. */
+    taille_résultat := (sortie - début_tampon)
 
     résultat: chaine = ---
     résultat.pointeur = début_tampon
