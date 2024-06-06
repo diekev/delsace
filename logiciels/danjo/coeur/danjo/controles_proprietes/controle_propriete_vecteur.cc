@@ -116,7 +116,12 @@ ControleProprieteVecteurDecimal::~ControleProprieteVecteurDecimal()
     }
 }
 
-void ControleProprieteVecteurDecimal::finalise(const DonneesControle &donnees)
+void ControleProprieteVecteurDecimal::finalise(const DonneesControle & /*donnees*/)
+{
+    this->ajourne_depuis_propriété();
+}
+
+void ControleProprieteVecteurDecimal::ajourne_depuis_propriété()
 {
     auto plage = m_propriete->plage_valeur_vecteur_décimal();
 
@@ -271,6 +276,11 @@ ControleProprieteVecteurEntier::~ControleProprieteVecteurEntier()
 }
 
 void ControleProprieteVecteurEntier::finalise(const DonneesControle &donnees)
+{
+    this->ajourne_depuis_propriété();
+}
+
+void ControleProprieteVecteurEntier::ajourne_depuis_propriété()
 {
     auto plage = m_propriete->plage_valeur_vecteur_entier();
 
