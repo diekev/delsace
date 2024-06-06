@@ -1808,6 +1808,9 @@ struct QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(union QT_Generic_Widg
                                                            struct QT_Chaine titre,
                                                            struct QT_Chaine dossier,
                                                            struct QT_Chaine filtre);
+struct QT_Chaine QT_file_dialog_donne_dossier_existant(union QT_Generic_Widget parent,
+                                                       struct QT_Chaine titre,
+                                                       struct QT_Chaine dossier);
 
 /** \} */
 
@@ -2440,6 +2443,7 @@ struct DNJ_Constructrice_Parametre_Enum {
     O(DNJ_TYPE_PARAMETRE_COULEUR, danjo::TypePropriete::COULEUR)                                  \
     O(DNJ_TYPE_PARAMETRE_FICHIER_ENTREE, danjo::TypePropriete::FICHIER_ENTREE)                    \
     O(DNJ_TYPE_PARAMETRE_FICHIER_SORTIE, danjo::TypePropriete::FICHIER_SORTIE)                    \
+    O(DNJ_TYPE_PARAMETRE_DOSSIER, danjo::TypePropriete::DOSSIER)                                  \
     O(DNJ_TYPE_PARAMETRE_CHAINE_CARACTERE, danjo::TypePropriete::CHAINE_CARACTERE)                \
     O(DNJ_TYPE_PARAMETRE_BOOL, danjo::TypePropriete::BOOL)                                        \
     O(DNJ_TYPE_PARAMETRE_ENUM, danjo::TypePropriete::ENUM)                                        \
@@ -2728,7 +2732,8 @@ struct DNJ_Rappels_Widget {
 
 struct DNJ_Conteneur_Controles *DNJ_cree_conteneur_controle(struct DNJ_Rappels_Widget *rappels,
                                                             union QT_Generic_Widget parent);
-struct QT_Layout *DNJ_conteneur_cree_interface(struct DNJ_Conteneur_Controles *conteneur);
+void DNJ_conteneur_cree_interface(struct DNJ_Conteneur_Controles *conteneur);
+void DNJ_conteneur_ajourne_controles(struct DNJ_Conteneur_Controles *conteneur);
 
 /** \} */
 
@@ -2790,13 +2795,24 @@ struct QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(
     struct DNJ_Contexte_Interface *context,
     struct QT_Chaine chemin);
 
-void DNJ_gestionnaire_ajourne_controles(struct DNJ_Gestionnaire_Interface *gestionnaire);
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name DNJ_FournisseuseIcone
  * \{ */
+
+#define ENUMERE_DNJ_ICONE_POUR_BOUTON(O)                                                          \
+    O(DNJ_ICONE_POUR_BOUTON_AJOUTE, danjo::IcônePourBouton::AJOUTE)                               \
+    O(DNJ_ICONE_POUR_BOUTON_AJOUTE_IMAGE_CLÉ, danjo::IcônePourBouton::AJOUTE_IMAGE_CLÉ)           \
+    O(DNJ_ICONE_POUR_BOUTON_CHOISIR_FICHIER, danjo::IcônePourBouton::CHOISIR_FICHIER)             \
+    O(DNJ_ICONE_POUR_BOUTON_DÉPLACE_EN_HAUT, danjo::IcônePourBouton::DÉPLACE_EN_HAUT)             \
+    O(DNJ_ICONE_POUR_BOUTON_DÉPLACE_EN_BAS, danjo::IcônePourBouton::DÉPLACE_EN_BAS)               \
+    O(DNJ_ICONE_POUR_BOUTON_ÉCHELLE_VALEUR, danjo::IcônePourBouton::ÉCHELLE_VALEUR)               \
+    O(DNJ_ICONE_POUR_BOUTON_LISTE_CHAINE, danjo::IcônePourBouton::LISTE_CHAINE)                   \
+    O(DNJ_ICONE_POUR_BOUTON_RAFRAICHIS_TEXTE, danjo::IcônePourBouton::RAFRAICHIS_TEXTE)           \
+    O(DNJ_ICONE_POUR_BOUTON_SUPPRIME, danjo::IcônePourBouton::SUPPRIME)
+
+enum DNJ_Icone_Pour_Bouton { ENUMERE_DNJ_ICONE_POUR_BOUTON(ENUMERE_DECLARATION_ENUM_IPA) };
 
 enum DNJ_Etat_Icone {
     DNJ_ETAT_ICONE_ACTIF,
@@ -2806,13 +2822,10 @@ enum DNJ_Etat_Icone {
 struct DNJ_Rappels_Fournisseuse_Icone {
     void (*sur_destruction)(struct DNJ_Rappels_Fournisseuse_Icone *);
 
-    bool (*donne_icone_pour_bouton_animation)(struct DNJ_Rappels_Fournisseuse_Icone *,
-                                              enum DNJ_Etat_Icone,
-                                              struct QT_Chaine *);
-
-    bool (*donne_icone_pour_echelle_valeur)(struct DNJ_Rappels_Fournisseuse_Icone *,
-                                            enum DNJ_Etat_Icone,
-                                            struct QT_Chaine *);
+    bool (*donne_icone_pour_bouton)(struct DNJ_Rappels_Fournisseuse_Icone *,
+                                    enum DNJ_Icone_Pour_Bouton,
+                                    enum DNJ_Etat_Icone,
+                                    struct QT_Chaine *);
 
     bool (*donne_icone_pour_identifiant)(struct DNJ_Rappels_Fournisseuse_Icone *,
                                          struct QT_Chaine,
@@ -2847,9 +2860,11 @@ struct DNJ_Rappels_DialoguesChemins {
     struct QT_Chaine (*donne_chemin_pour_ouverture)(struct DNJ_Rappels_DialoguesChemins *,
                                                     struct DNJ_Parametre_Dialogue_Chemin *);
 
-    /* Les chaines données dans l'ordre : chemin existant, caption, dossier, filtres. */
     struct QT_Chaine (*donne_chemin_pour_écriture)(struct DNJ_Rappels_DialoguesChemins *,
                                                    struct DNJ_Parametre_Dialogue_Chemin *);
+
+    struct QT_Chaine (*donne_chemin_pour_dossier)(struct DNJ_Rappels_DialoguesChemins *,
+                                                  struct DNJ_Parametre_Dialogue_Chemin *);
 };
 
 struct DNJ_DialoguesChemins;
