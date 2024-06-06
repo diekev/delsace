@@ -65,6 +65,11 @@ ControleProprieteEtiquetteActivable::ControleProprieteEtiquetteActivable(QString
     setEnabled(true);
 }
 
+void ControleProprieteEtiquetteActivable::ajourne_depuis_propriété()
+{
+    m_checkbox->setChecked(m_propriete->est_visible());
+}
+
 ControleProprieteEtiquettePropriete::ControleProprieteEtiquettePropriete(BasePropriete *p,
                                                                          int temps,
                                                                          QWidget *parent)

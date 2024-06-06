@@ -52,6 +52,8 @@ class ControleProprieteDecimal final : public ControlePropriete {
 
     void finalise(const DonneesControle &donnees) override;
 
+    void ajourne_depuis_propriété() override;
+
   private Q_SLOTS:
     void ajourne_valeur_pointee(float valeur);
     void bascule_animation();

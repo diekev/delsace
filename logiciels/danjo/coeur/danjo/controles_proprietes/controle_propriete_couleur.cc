@@ -49,6 +49,11 @@ ControleProprieteCouleur::ControleProprieteCouleur(BasePropriete *p, int temps, 
             &ControleProprieteCouleur::ajourne_couleur);
 }
 
+void ControleProprieteCouleur::ajourne_depuis_propriété()
+{
+    m_controle_couleur->couleur(m_propriete->evalue_couleur(m_temps));
+}
+
 void ControleProprieteCouleur::ajourne_couleur()
 {
     émets_controle_changé_simple(
