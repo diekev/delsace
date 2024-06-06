@@ -7,12 +7,7 @@ namespace danjo {
 
 class FournisseuseIcôneDefaut final : public FournisseuseIcône {
   public:
-    std::optional<QIcon> icone_pour_bouton_animation(ÉtatIcône /*état*/) override
-    {
-        return {};
-    }
-
-    std::optional<QIcon> icone_pour_echelle_valeur(ÉtatIcône /*état*/) override
+    std::optional<QIcon> icone_pour_bouton(const IcônePourBouton, ÉtatIcône /*état*/) override
     {
         return {};
     }
