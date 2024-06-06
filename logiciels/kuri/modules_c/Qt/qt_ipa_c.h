@@ -2443,6 +2443,7 @@ struct DNJ_Constructrice_Parametre_Enum {
     O(DNJ_TYPE_PARAMETRE_COULEUR, danjo::TypePropriete::COULEUR)                                  \
     O(DNJ_TYPE_PARAMETRE_FICHIER_ENTREE, danjo::TypePropriete::FICHIER_ENTREE)                    \
     O(DNJ_TYPE_PARAMETRE_FICHIER_SORTIE, danjo::TypePropriete::FICHIER_SORTIE)                    \
+    O(DNJ_TYPE_PARAMETRE_DOSSIER, danjo::TypePropriete::DOSSIER)                                  \
     O(DNJ_TYPE_PARAMETRE_CHAINE_CARACTERE, danjo::TypePropriete::CHAINE_CARACTERE)                \
     O(DNJ_TYPE_PARAMETRE_BOOL, danjo::TypePropriete::BOOL)                                        \
     O(DNJ_TYPE_PARAMETRE_ENUM, danjo::TypePropriete::ENUM)                                        \
@@ -2859,9 +2860,11 @@ struct DNJ_Rappels_DialoguesChemins {
     struct QT_Chaine (*donne_chemin_pour_ouverture)(struct DNJ_Rappels_DialoguesChemins *,
                                                     struct DNJ_Parametre_Dialogue_Chemin *);
 
-    /* Les chaines données dans l'ordre : chemin existant, caption, dossier, filtres. */
     struct QT_Chaine (*donne_chemin_pour_écriture)(struct DNJ_Rappels_DialoguesChemins *,
                                                    struct DNJ_Parametre_Dialogue_Chemin *);
+
+    struct QT_Chaine (*donne_chemin_pour_dossier)(struct DNJ_Rappels_DialoguesChemins *,
+                                                  struct DNJ_Parametre_Dialogue_Chemin *);
 };
 
 struct DNJ_DialoguesChemins;

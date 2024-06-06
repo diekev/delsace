@@ -102,6 +102,10 @@ class DialoguesChemins final : public danjo::DialoguesChemins {
                                        QString const &caption,
                                        QString const &dossier,
                                        QString const &filtres) override;
+
+    QString donne_chemin_pour_dossier(QString const &chemin_existant,
+                                      QString const &caption,
+                                      QString const &dossier) override;
 };
 
 /** \} */

@@ -73,9 +73,11 @@ static ControlePropriete *cree_controle_pour_propriete(BasePropriete *propriete,
         case TypePropriete::CHAINE_CARACTERE:
             return new ControleProprieteChaineCaractere(propriete, temps);
         case TypePropriete::FICHIER_ENTREE:
-            return new ControleProprieteFichier(propriete, temps, true);
+            return new ControleProprieteFichier(propriete, temps);
         case TypePropriete::FICHIER_SORTIE:
-            return new ControleProprieteFichier(propriete, temps, false);
+            return new ControleProprieteFichier(propriete, temps);
+        case TypePropriete::DOSSIER:
+            return new ControleProprieteFichier(propriete, temps);
         case TypePropriete::COULEUR:
             return new ControleProprieteCouleur(propriete, temps);
         case TypePropriete::VECTEUR_DECIMAL:
@@ -439,6 +441,8 @@ static TypePropriete type_propriete_pour_lexeme(id_morceau lexeme)
             return TypePropriete::FICHIER_ENTREE;
         case id_morceau::FICHIER_SORTIE:
             return TypePropriete::FICHIER_SORTIE;
+        case id_morceau::DOSSIER:
+            return TypePropriete::DOSSIER;
         case id_morceau::COULEUR:
             return TypePropriete::COULEUR;
         case id_morceau::VECTEUR:
@@ -521,6 +525,7 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
         case TypePropriete::TEXTE:
         case TypePropriete::FICHIER_ENTREE:
         case TypePropriete::FICHIER_SORTIE:
+        case TypePropriete::DOSSIER:
         {
             résultat->valeur = donnees.valeur_defaut;
             break;

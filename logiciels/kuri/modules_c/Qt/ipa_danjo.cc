@@ -1309,4 +1309,25 @@ QString DialoguesChemins::donne_chemin_pour_écriture(QString const &chemin_exis
     return résultat.vers_std_string().c_str();
 }
 
+QString DialoguesChemins::donne_chemin_pour_dossier(QString const &chemin_existant,
+                                                    QString const &caption,
+                                                    QString const &dossier)
+{
+    if (!m_rappels || !m_rappels->donne_chemin_pour_dossier) {
+        return "";
+    }
+
+    CHAINE_VERS_IPA(chemin_existant);
+    CHAINE_VERS_IPA(caption);
+    CHAINE_VERS_IPA(dossier);
+
+    DNJ_Parametre_Dialogue_Chemin paramètres;
+    paramètres.chemin_existant = chemin_existant_ipa;
+    paramètres.caption = caption_ipa;
+    paramètres.dossier = dossier_ipa;
+
+    auto résultat = m_rappels->donne_chemin_pour_dossier(m_rappels, &paramètres);
+    return résultat.vers_std_string().c_str();
+}
+
 /** \} */

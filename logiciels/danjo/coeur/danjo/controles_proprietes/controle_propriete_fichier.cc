@@ -37,10 +37,10 @@
 
 namespace danjo {
 
-SelecteurFichier::SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent)
+SelecteurFichier::SelecteurFichier(BasePropriete *p, int temps, QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
       m_line_edit(new QLineEdit(this)),
-      m_push_button(crée_bouton(IcônePourBouton::CHOISIR_FICHIER, this)), m_input(input)
+      m_push_button(crée_bouton(IcônePourBouton::CHOISIR_FICHIER, this))
 {
     m_agencement->addWidget(m_line_edit);
     m_agencement->addWidget(m_push_button);
@@ -72,11 +72,14 @@ void SelecteurFichier::setChoosenFile()
     }
 
     auto &dialogues = donne_dialogues_chemins();
-    if (m_input) {
+    if (m_propriete->type() == TypePropriete::FICHIER_ENTREE) {
         chemin = dialogues.donne_chemin_pour_ouverture(chemin_courant, caption, dir, filtres);
     }
-    else {
+    else if (m_propriete->type() == TypePropriete::FICHIER_SORTIE) {
         chemin = dialogues.donne_chemin_pour_écriture(chemin_courant, caption, dir, filtres);
+    }
+    else if (m_propriete->type() == TypePropriete::DOSSIER) {
+        chemin = dialogues.donne_chemin_pour_dossier(chemin_courant, caption, dir);
     }
 
     if (!chemin.isEmpty()) {
@@ -95,11 +98,8 @@ void SelecteurFichier::ajourne_filtres(const QString &chaine)
     m_filtres = chaine;
 }
 
-ControleProprieteFichier::ControleProprieteFichier(BasePropriete *p,
-                                                   int temps,
-                                                   bool input,
-                                                   QWidget *parent)
-    : SelecteurFichier(p, temps, input, parent)
+ControleProprieteFichier::ControleProprieteFichier(BasePropriete *p, int temps, QWidget *parent)
+    : SelecteurFichier(p, temps, parent)
 {
     setValue(p->evalue_chaine(temps).c_str());
     connect(this,

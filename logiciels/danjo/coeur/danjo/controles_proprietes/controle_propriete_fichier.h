@@ -44,11 +44,9 @@ class SelecteurFichier : public ControlePropriete {
     QPushButton *m_push_button{};
 
     QString m_filtres{};
-    bool m_input{};
-    char pad1[7];
 
   public:
-    explicit SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent = nullptr);
+    explicit SelecteurFichier(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(SelecteurFichier);
 
@@ -70,10 +68,7 @@ class ControleProprieteFichier final : public SelecteurFichier {
     Q_OBJECT
 
   public:
-    explicit ControleProprieteFichier(BasePropriete *p,
-                                      int temps,
-                                      bool input,
-                                      QWidget *parent = nullptr);
+    explicit ControleProprieteFichier(BasePropriete *p, int temps, QWidget *parent = nullptr);
     ~ControleProprieteFichier() override = default;
 
     EMPECHE_COPIE(ControleProprieteFichier);

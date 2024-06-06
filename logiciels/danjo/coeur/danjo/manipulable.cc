@@ -222,6 +222,7 @@ void *Manipulable::operator[](const dls::chaine &nom)
         case TypePropriete::ENUM:
         case TypePropriete::FICHIER_ENTREE:
         case TypePropriete::FICHIER_SORTIE:
+        case TypePropriete::DOSSIER:
         case TypePropriete::CHAINE_CARACTERE:
         case TypePropriete::TEXTE:
             pointeur = std::any_cast<dls::chaine>(&propriete->valeur);
