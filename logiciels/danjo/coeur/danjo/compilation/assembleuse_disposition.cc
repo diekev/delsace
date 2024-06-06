@@ -149,8 +149,8 @@ ControlePropriete *MaçonneDisposition::crée_controle_propriété(
 {
     m_ctx->manipulable->ajoute_propriete(données_controle.nom, prop);
     auto résultat = danjo::crée_controle_propriété(données_controle, prop, 0, m_ctx->conteneur);
-    if (m_ctx->gestionnaire) {
-        m_ctx->gestionnaire->ajoute_controle(données_controle.nom, résultat);
+    if (m_ctx->conteneur) {
+        m_ctx->conteneur->ajoute_controle(données_controle.nom, résultat);
     }
     return résultat;
 }
@@ -178,8 +178,8 @@ ControlePropriete *MaçonneDisposition::crée_étiquette_propriété(std::string
 {
     auto nom_prop = std::string(nom.data(), nom.size());
     auto résultat = new ControleProprieteEtiquettePropriete(prop, 0, m_ctx->conteneur);
-    if (m_ctx->gestionnaire) {
-        m_ctx->gestionnaire->ajoute_controle(nom_prop, résultat);
+    if (m_ctx->conteneur) {
+        m_ctx->conteneur->ajoute_controle(nom_prop, résultat);
     }
     return résultat;
 }

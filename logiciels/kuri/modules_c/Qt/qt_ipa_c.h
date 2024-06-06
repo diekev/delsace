@@ -2729,6 +2729,7 @@ struct DNJ_Rappels_Widget {
 struct DNJ_Conteneur_Controles *DNJ_cree_conteneur_controle(struct DNJ_Rappels_Widget *rappels,
                                                             union QT_Generic_Widget parent);
 struct QT_Layout *DNJ_conteneur_cree_interface(struct DNJ_Conteneur_Controles *conteneur);
+void DNJ_conteneur_ajourne_controles(struct DNJ_Conteneur_Controles *conteneur);
 
 /** \} */
 
@@ -2789,8 +2790,6 @@ struct QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(
     struct DNJ_Gestionnaire_Interface *gestionnaire,
     struct DNJ_Contexte_Interface *context,
     struct QT_Chaine chemin);
-
-void DNJ_gestionnaire_ajourne_controles(struct DNJ_Gestionnaire_Interface *gestionnaire);
 
 /** \} */
 

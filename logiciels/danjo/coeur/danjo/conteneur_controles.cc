@@ -26,10 +26,28 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include "controles_proprietes/controle_propriete.h"
+#include "proprietes.hh"
+
 namespace danjo {
 
 ConteneurControles::ConteneurControles(QWidget *parent) : QWidget(parent)
 {
+}
+
+void ConteneurControles::ajoute_controle(dls::chaine identifiant, ControlePropriete *controle)
+{
+    m_controles.insere({identifiant, controle});
+}
+
+void ConteneurControles::ajourne_controles()
+{
+    for (auto const &paire : m_controles) {
+        auto controle = paire.second;
+        auto prop = controle->donne_propriete();
+        controle->ajourne_depuis_propriété();
+        controle->setEnabled(prop->est_visible());
+    }
 }
 
 void ConteneurControles::onglet_dossier_change(int index)

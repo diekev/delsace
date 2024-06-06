@@ -3390,6 +3390,12 @@ QT_Layout *DNJ_conteneur_cree_interface(DNJ_Conteneur_Controles *conteneur)
     return vers_ipa(résultat);
 }
 
+void DNJ_conteneur_ajourne_controles(DNJ_Conteneur_Controles *conteneur)
+{
+    auto qconteneur = vers_qt(conteneur);
+    qconteneur->ajourne_controles();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -3508,12 +3514,6 @@ QT_BoxLayout *DNJ_gestionnaire_compile_entreface_fichier(DNJ_Gestionnaire_Interf
     auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
     auto résultat = dnj_gestionnaire->compile_entreface_fichier(données, chemin.vers_std_string());
     return vers_ipa(résultat);
-}
-
-void DNJ_gestionnaire_ajourne_controles(DNJ_Gestionnaire_Interface *gestionnaire)
-{
-    auto dnj_gestionnaire = reinterpret_cast<danjo::GestionnaireInterface *>(gestionnaire);
-    dnj_gestionnaire->ajourne_controles();
 }
 
 /** \} */
