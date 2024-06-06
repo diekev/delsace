@@ -2064,6 +2064,35 @@ QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(QT_Generic_Widget parent,
     return résultat;
 }
 
+QT_Chaine QT_file_dialog_donne_dossier_existant(QT_Generic_Widget parent,
+                                                QT_Chaine titre,
+                                                QT_Chaine dossier)
+{
+    auto qparent = vers_qt(parent);
+    auto qtitre = titre.vers_std_string();
+    auto qdossier = dossier.vers_std_string();
+
+    auto chemin = QFileDialog::getExistingDirectory(qparent, qtitre.c_str(), qdossier.c_str());
+
+    auto std_chemin = chemin.toStdString();
+
+    static char tampon[FILENAME_MAX];
+
+    QT_Chaine résultat;
+
+    if (std_chemin.size() < FILENAME_MAX) {
+        memcpy(tampon, std_chemin.c_str(), std_chemin.size());
+        résultat.caractères = tampon;
+        résultat.taille = int64_t(std_chemin.size());
+    }
+    else {
+        résultat.caractères = nullptr;
+        résultat.taille = 0;
+    }
+
+    return résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

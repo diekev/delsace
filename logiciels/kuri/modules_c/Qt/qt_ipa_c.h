@@ -1808,6 +1808,9 @@ struct QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(union QT_Generic_Widg
                                                            struct QT_Chaine titre,
                                                            struct QT_Chaine dossier,
                                                            struct QT_Chaine filtre);
+struct QT_Chaine QT_file_dialog_donne_dossier_existant(union QT_Generic_Widget parent,
+                                                       struct QT_Chaine titre,
+                                                       struct QT_Chaine dossier);
 
 /** \} */
 
