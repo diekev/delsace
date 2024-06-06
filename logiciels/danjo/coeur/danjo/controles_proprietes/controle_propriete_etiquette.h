@@ -55,6 +55,8 @@ class ControleProprieteEtiquetteActivable final : public ControlePropriete {
                                         QWidget *parent = nullptr);
 
     EMPECHE_COPIE(ControleProprieteEtiquetteActivable);
+
+    void ajourne_depuis_propriété() override;
 };
 
 class ControleProprieteEtiquettePropriete final : public ControlePropriete {

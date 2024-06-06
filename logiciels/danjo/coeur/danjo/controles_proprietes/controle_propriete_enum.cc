@@ -65,4 +65,10 @@ void ControleProprieteEnum::finalise(const DonneesControle &donnees)
     m_liste_deroulante->setCurrentText(valeur_defaut.c_str());
 }
 
+void ControleProprieteEnum::ajourne_depuis_propriété()
+{
+    const QSignalBlocker blocker(m_liste_deroulante);
+    m_liste_deroulante->setCurrentText(m_propriete->evalue_énum(m_temps).c_str());
+}
+
 } /* namespace danjo */

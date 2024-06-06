@@ -98,6 +98,11 @@ void SelecteurFichier::ajourne_filtres(const QString &chaine)
     m_filtres = chaine;
 }
 
+void SelecteurFichier::ajourne_depuis_propriété()
+{
+    m_line_edit->setText(m_propriete->evalue_chaine(m_temps).c_str());
+}
+
 ControleProprieteFichier::ControleProprieteFichier(BasePropriete *p, int temps, QWidget *parent)
     : SelecteurFichier(p, temps, parent)
 {

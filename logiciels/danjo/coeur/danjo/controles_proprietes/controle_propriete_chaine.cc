@@ -60,6 +60,11 @@ void ControleProprieteChaineCaractere::ajourne_valeur_pointee()
     Q_EMIT(termine_changement_controle());
 }
 
+void ControleProprieteChaineCaractere::ajourne_depuis_propriété()
+{
+    m_editeur_ligne->setText(m_propriete->evalue_chaine(m_temps).c_str());
+}
+
 ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(BasePropriete *p,
                                                              int temps,
                                                              QWidget *parent)
@@ -83,6 +88,11 @@ void ControleProprieteEditeurTexte::ajourne_valeur_pointee()
 {
     m_propriete->définis_valeur_chaine(m_editeur_ligne->toPlainText().toStdString());
     Q_EMIT(controle_change());
+}
+
+void ControleProprieteEditeurTexte::ajourne_depuis_propriété()
+{
+    m_editeur_ligne->setText(m_propriete->evalue_chaine(m_temps).c_str());
 }
 
 } /* namespace danjo */

@@ -56,6 +56,8 @@ class SelecteurFichier : public ControlePropriete {
 
     void ajourne_filtres(const QString &chaine);
 
+    void ajourne_depuis_propriété() override;
+
   private Q_SLOTS:
     void setChoosenFile();
     void lineEditChanged();

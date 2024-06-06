@@ -71,6 +71,11 @@ void ControleProprieteListe::finalise(const DonneesControle &donnees)
     attache(donnees.nom);
 }
 
+void ControleProprieteListe::ajourne_depuis_propriété()
+{
+    m_editeur_texte->setText(m_propriete->evalue_chaine(m_temps).c_str());
+}
+
 void ControleProprieteListe::montre_liste()
 {
     /* La liste est positionnée en dessous du bouton, alignée à sa gauche. */
