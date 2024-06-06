@@ -27,9 +27,12 @@
 #include <QWidget>
 
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
 
 namespace danjo {
+
+class ControlePropriete;
 
 /**
  * La classe ConteneurControles sert de classe de base pour faire le pont entre
@@ -43,8 +46,17 @@ namespace danjo {
 class ConteneurControles : public QWidget {
     Q_OBJECT
 
+    dls::dico_desordonne<dls::chaine, ControlePropriete *> m_controles{};
+
   public:
     explicit ConteneurControles(QWidget *parent = nullptr);
+
+    void ajoute_controle(dls::chaine identifiant, ControlePropriete *controle);
+
+    void ajourne_controles();
+
+  protected:
+    void efface_controles();
 
   public Q_SLOTS:
     /**
