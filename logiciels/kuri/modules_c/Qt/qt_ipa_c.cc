@@ -3383,11 +3383,10 @@ DNJ_Conteneur_Controles *DNJ_cree_conteneur_controle(DNJ_Rappels_Widget *rappels
     return vers_ipa(résultat);
 }
 
-QT_Layout *DNJ_conteneur_cree_interface(DNJ_Conteneur_Controles *conteneur)
+void DNJ_conteneur_cree_interface(DNJ_Conteneur_Controles *conteneur)
 {
     auto qconteneur = vers_qt(conteneur);
-    auto résultat = qconteneur->crée_interface();
-    return vers_ipa(résultat);
+    qconteneur->crée_interface();
 }
 
 void DNJ_conteneur_ajourne_controles(DNJ_Conteneur_Controles *conteneur)

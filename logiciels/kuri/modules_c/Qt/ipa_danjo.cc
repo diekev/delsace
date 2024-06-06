@@ -1080,10 +1080,10 @@ danjo::GestionnaireInterface *ConteneurControles::donne_gestionnaire()
     return nullptr;
 }
 
-QLayout *ConteneurControles::crée_interface()
+void ConteneurControles::crée_interface()
 {
     if (!m_rappels || !m_rappels->sur_creation_interface) {
-        return nullptr;
+        return;
     }
 
     efface_controles();
@@ -1109,11 +1109,16 @@ QLayout *ConteneurControles::crée_interface()
 
     auto disp = assembleuse.disposition();
     if (disp == nullptr) {
-        return nullptr;
+        return;
     }
 
     disp->addStretch();
-    return disp;
+
+    if (auto layout_existant = layout()) {
+        QWidget temp;
+        temp.setLayout(layout_existant);
+    }
+    setLayout(disp);
 }
 
 /** \} */

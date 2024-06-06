@@ -39,7 +39,7 @@ class ConteneurControles : public danjo::ConteneurControles {
     RepondantCommande *donne_repondant_commande();
     danjo::GestionnaireInterface *donne_gestionnaire();
 
-    QLayout *crée_interface();
+    void crée_interface();
 };
 
 /** \} */
