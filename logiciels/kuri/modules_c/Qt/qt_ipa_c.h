@@ -1449,6 +1449,18 @@ void QT_widget_definis_infobulle(union QT_Generic_Widget widget, struct QT_Chain
 
 void QT_widget_definis_fonte(union QT_Generic_Widget widget, struct QT_Font *fonte);
 
+#define ENUMERE_FOCUS_POLICY(O)                                                                   \
+    O(QT_FOCUS_POLICY_NoFocus, Qt::NoFocus)                                                       \
+    O(QT_FOCUS_POLICY_TabFocus, Qt::TabFocus)                                                     \
+    O(QT_FOCUS_POLICY_ClickFocus, Qt::ClickFocus)                                                 \
+    O(QT_FOCUS_POLICY_StrongFocus, Qt::StrongFocus)                                               \
+    O(QT_FOCUS_POLICY_WheelFocus, Qt::WheelFocus)
+
+enum QT_Focus_Policy { ENUMERE_FOCUS_POLICY(ENUMERE_DECLARATION_ENUM_IPA) };
+
+void QT_widget_definis_comportement_focus(union QT_Generic_Widget widget,
+                                          enum QT_Focus_Policy policy);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
