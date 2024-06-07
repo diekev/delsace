@@ -1191,6 +1191,20 @@ void QT_widget_definis_fonte(union QT_Generic_Widget widget, struct QT_Font *fon
     qwidget->setFont(qfonte);
 }
 
+static Qt::FocusPolicy convertis_focus_policy(QT_Focus_Policy policy)
+{
+    switch (policy) {
+        ENUMERE_FOCUS_POLICY(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::NoFocus;
+}
+
+void QT_widget_definis_comportement_focus(QT_Generic_Widget widget, QT_Focus_Policy policy)
+{
+    VERS_QT(widget);
+    qwidget->setFocusPolicy(convertis_focus_policy(policy));
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
