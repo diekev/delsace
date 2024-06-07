@@ -27,7 +27,7 @@ CréatriceGéométrie :: struct {
      * - coordonnée y du point
      * - coordonnée z du point
      */
-    ajoute_point: fonc(*rien, r32, r32, r32)(rien)
+    ajoute_point: fonc(*CréatriceGéométrie, r32, r32, r32)(rien)
 
     /* Ajoute un polygone à la géométrie de sortie.
      * Paramètres :
@@ -35,10 +35,7 @@ CréatriceGéométrie :: struct {
      * - pointeur vers une liste d'index de points formant le polygone
      * - nombre d'index de points formant le polygone
      */
-    ajoute_polygone: fonc(*rien, *z32, z32)(rien)
-
-    /* Données utilisateur de l'application cliente. */
-    données: *rien
+    ajoute_polygone: fonc(*CréatriceGéométrie, *z32, z32)(rien)
 }
 
 /* Chargement de données depuis des fichiers .obj */
@@ -94,7 +91,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
             }
         }
 
-        créatrice.ajoute_polygone(créatrice.données, *polygone[0], taille_polygone)
+        créatrice.ajoute_polygone(créatrice, *polygone[0], taille_polygone)
     }
     sinon si ligne.commence_par("v ") {
         tmp := avance(ligne, 2)
@@ -110,7 +107,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
             z = extrait_nombre_réel(mots[2]) comme r32
         }
 
-        créatrice.ajoute_point(créatrice.données, x, y, z)
+        créatrice.ajoute_point(créatrice, x, y, z)
     }
 }
 
