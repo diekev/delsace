@@ -20,6 +20,9 @@ libtbb :: #bibliothèque "tbb"
 /* Structure contenant des fonctions de rappels devant être renseignées par
  * les applications clientes afin de créer la géométrie. */
 CréatriceGéométrie :: struct {
+    /* Débute un nouvel objet dont le nom est passé en paramètre */
+    commence_nouvel_objet: fonc(*CréatriceGéométrie, chaine)(rien)
+
     /* Ajout un point à la géométrie de sortie.
      * Paramètres :
      * - données utilisateurs
@@ -108,6 +111,12 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
         }
 
         créatrice.ajoute_point(créatrice, x, y, z)
+    }
+    sinon si ligne.commence_par("o ") {
+        nom := avance(ligne, 2)
+        si créatrice.commence_nouvel_objet {
+            créatrice.commence_nouvel_objet(créatrice, nom)
+        }
     }
 }
 
