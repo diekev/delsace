@@ -92,3 +92,18 @@ possède_erreur :: fonc (résultat: Résultat($T, $E)) -> bool
         }
     }
 }
+
+est_type_résultat :: fonc (type: *InfoType) -> *InfoTypeUnion
+{
+    si type.id != GenreInfoType.UNION {
+        retourne nul
+    }
+
+    type_union := type comme *InfoTypeUnion
+
+    si type_union.polymorphe_de_base != info_de(Résultat) {
+        retourne nul
+    }
+
+    retourne type_union
+}
