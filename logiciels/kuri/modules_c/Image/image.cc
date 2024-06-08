@@ -599,10 +599,24 @@ struct ParseuseDonneesImage {
     }
 };
 
+static bool rappel_progression(void *opaque_data, float portion_done)
+{
+    auto rappels = static_cast<ImageIO_RappelsProgression *>(opaque_data);
+    return rappels->rappel_progression(rappels, portion_done);
+}
+
 ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
                                                  int64_t taille_chemin,
-                                                 AdaptriceImage *image)
+                                                 AdaptriceImage *image,
+                                                 ImageIO_RappelsProgression *rappels)
 {
+    OIIO::ProgressCallback progress_callback = rappel_progression;
+
+    if (!rappels || !rappels->rappel_progression) {
+        rappels = nullptr;
+        progress_callback = nullptr;
+    }
+
     const auto chemin_ = std::string(chemin, size_t(taille_chemin));
 
     auto input = OIIO::ImageInput::open(chemin_);
@@ -648,8 +662,17 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
 
             auto const index_canal = desc_canal.index;
 
-            auto const succes = input->read_image(
-                0, 0, index_canal, index_canal + 1, format, donnees_canal);
+            auto const succes = input->read_image(0,
+                                                  0,
+                                                  index_canal,
+                                                  index_canal + 1,
+                                                  format,
+                                                  donnees_canal,
+                                                  OIIO::AutoStride,
+                                                  OIIO::AutoStride,
+                                                  OIIO::AutoStride,
+                                                  progress_callback,
+                                                  rappels);
             if (!succes) {
                 return ResultatOperation::LECTURE_DONNEES_IMPOSSIBLE;
             }
@@ -662,8 +685,16 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
 // À FAIRE : paramétrise les calques à écrire.
 ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
                                                  int64_t taille_chemin,
-                                                 AdaptriceImage *image)
+                                                 AdaptriceImage *image,
+                                                 ImageIO_RappelsProgression *rappels)
 {
+    OIIO::ProgressCallback progress_callback = rappel_progression;
+
+    if (!rappels || !rappels->rappel_progression) {
+        rappels = nullptr;
+        progress_callback = nullptr;
+    }
+
     const auto chemin_ = std::string(chemin, size_t(taille_chemin));
     auto out = OIIO::ImageOutput::create(chemin_);
 
@@ -708,7 +739,13 @@ ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
         }
     }
 
-    if (!out->write_image(OIIO::TypeDesc::FLOAT, donnees)) {
+    if (!out->write_image(OIIO::TypeDesc::FLOAT,
+                          donnees,
+                          OIIO::AutoStride,
+                          OIIO::AutoStride,
+                          OIIO::AutoStride,
+                          progress_callback,
+                          rappels)) {
         return ResultatOperation::IMAGE_INEXISTANTE;
     }
 

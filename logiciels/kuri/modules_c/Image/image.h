@@ -7,6 +7,8 @@
 
 #ifdef __cplusplus
 extern "C" {
+#else
+typedef unsigned char bool;
 #endif
 
 enum ResultatOperation {
@@ -123,13 +125,19 @@ struct AdaptriceImage {
     float *(*donnees_canal_pour_ecriture)(const struct AdaptriceImage *, const void *canal);
 };
 
+struct ImageIO_RappelsProgression {
+    bool (*rappel_progression)(struct ImageIO_RappelsProgression *, float);
+};
+
 enum ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
                                                       int64_t taille_chemin,
-                                                      struct AdaptriceImage *image);
+                                                      struct AdaptriceImage *image,
+                                                      struct ImageIO_RappelsProgression *rappels);
 
 enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
                                                       int64_t taille_chemin,
-                                                      struct AdaptriceImage *image);
+                                                      struct AdaptriceImage *image,
+                                                      struct ImageIO_RappelsProgression *rappels);
 
 // ----------------------------------------------------------------------------
 // Simumlation de grain sur image
