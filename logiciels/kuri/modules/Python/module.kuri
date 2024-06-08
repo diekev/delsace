@@ -61,6 +61,10 @@ ParamètreMéthodePython :: struct {
      * est vrai). Ceci nous sers à déterminer, lors des appels de nos fonctions,
      * si nous devrions passer la valeur par pointeur ou par valeur. */
     param_originel_est_pointeur: bool
+
+    /* Pour les fonctions qui retourne Résultat() */
+    type_est_résultat: bool
+    type_erreur: *TypePython
 }
 
 MéthodePython :: struct {
@@ -286,6 +290,10 @@ DrapeauxType :: énum_drapeau {
     /* Pour les types composés, le programme devra définir une fonction de rafinage
      * appelée « rafine_type_{nom_du_type}. */
     REQUIERS_RAFINAGE
+    /* Pour les dérivées de Résultat() */
+    TYPE_EST_RÉSULTAT
+    /* Pour les dérivées de Optionnel() */
+    TYPE_EST_OPTIONNEL
 }
 
 TypePython :: struct {
@@ -330,6 +338,13 @@ TypePython :: struct {
     /* Type de l'objet itéré pour les itérateurs. */
     type_itéré: *TypePython
     type_itérateur: *TypePython
+
+    /* Si le type dérive de Résultat. */
+    type_ok: *TypePython
+    type_erreur: *TypePython
+
+    /* Si le type dérive de Optionnel. */
+    type_quelque: *TypePython
 
     /* Interne, pour généré le code d'initialisation des types dans l'ordre d'héritage. */
     code_pour_init_module_fut_généré: bool

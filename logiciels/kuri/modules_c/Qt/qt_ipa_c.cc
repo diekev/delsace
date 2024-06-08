@@ -1295,6 +1295,13 @@ void QT_menu_ajoute_action(QT_Menu *menu, QT_Action *action)
     qmenu->addAction(qaction);
 }
 
+void QT_menu_ajoute_section(QT_Menu *menu, QT_Chaine titre)
+{
+    VERS_QT(menu);
+    VERS_QT(titre);
+    qmenu->addSection(qtitre);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -3248,6 +3255,12 @@ void QT_plain_text_edit_copie(QT_PlainTextEdit *text_edit)
 {
     VERS_QT(text_edit);
     qtext_edit->copy();
+}
+
+void QT_plain_text_edit_definis_lecture_seule(QT_PlainTextEdit *text_edit, bool ouinon)
+{
+    VERS_QT(text_edit);
+    qtext_edit->setReadOnly(ouinon);
 }
 
 /** \} */
