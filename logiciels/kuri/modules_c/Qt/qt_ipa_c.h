@@ -2380,6 +2380,8 @@ void QT_plain_text_edit_definis_curseur(struct QT_PlainTextEdit *text_edit,
 void QT_plain_text_edit_coupe(struct QT_PlainTextEdit *text_edit);
 void QT_plain_text_edit_copie(struct QT_PlainTextEdit *text_edit);
 
+void QT_plain_text_edit_definis_lecture_seule(struct QT_PlainTextEdit *text_edit, bool ouinon);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

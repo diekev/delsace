@@ -3257,6 +3257,12 @@ void QT_plain_text_edit_copie(QT_PlainTextEdit *text_edit)
     qtext_edit->copy();
 }
 
+void QT_plain_text_edit_definis_lecture_seule(QT_PlainTextEdit *text_edit, bool ouinon)
+{
+    VERS_QT(text_edit);
+    qtext_edit->setReadOnly(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
