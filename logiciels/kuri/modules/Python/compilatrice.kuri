@@ -229,6 +229,9 @@ crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: c
     type_python.nom_sauf = remplace(nom, '.', '_')
     remplace_sans_copie(*type_python.nom_sauf, '(', '_')
     remplace_sans_copie(*type_python.nom_sauf, ')', '_')
+    remplace_sans_copie(*type_python.nom_sauf, ' ', '_')
+    remplace_sans_copie(*type_python.nom_sauf, '*', '_')
+    remplace_sans_copie(*type_python.nom_sauf, ',', '_')
     type_python.type_kuri = info
     type_python.nom_globale_type = enchaine("PyType", type_python.nom_sauf, "PourPython")
     tableau_ajoute(*système.types, type_python)
@@ -348,7 +351,16 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
             type_python.drapeaux.TYPE_EST_UNION = vrai
 
-            pour info_union.membres {
+            si est_type_résultat(info_union) {
+                type_python.drapeaux.TYPE_EST_RÉSULTAT = vrai
+                type_python.type_ok = convertis_vers_type_python(système, info_union.membres[0].id)
+                type_python.type_erreur = convertis_vers_type_python(système, info_union.membres[1].id)
+            }
+            sinon si info_union.polymorphe_de_base == info_de(Optionnel) {
+                type_python.drapeaux.TYPE_EST_OPTIONNEL = vrai
+                type_python.type_quelque = convertis_vers_type_python(système, info_union.membres[0].id)
+            }
+            sinon pour info_union.membres {
                 confidentialité := confidentialité_pour_annotation(it.annotations)
 
                 si confidentialité == ConfidentialitéType.OPAQUE {
