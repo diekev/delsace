@@ -58,6 +58,55 @@ typedef struct IMG_Fenetre {
     int max_y;
 } IMG_Fenetre;
 
+#define ENUMERE_DECLARATION_ENUM_IPA(nom_ipa, nom_natif) nom_ipa,
+
+#define ENUMERE_TRANSLATION_ENUM_NATIF_VERS_IPA(nom_ipa, nom_natif)                               \
+    case nom_natif:                                                                               \
+    {                                                                                             \
+        return nom_ipa;                                                                           \
+    }
+
+#define ENUM_IMAGEIO_DATATYPE(O)                                                                  \
+    O(IMAGEIO_DATATYPE_UNKNOWN, OIIO::TypeDesc::UNKNOWN)                                          \
+    O(IMAGEIO_DATATYPE_NONE, OIIO::TypeDesc::NONE)                                                \
+    O(IMAGEIO_DATATYPE_UINT8, OIIO::TypeDesc::UINT8)                                              \
+    O(IMAGEIO_DATATYPE_INT8, OIIO::TypeDesc::INT8)                                                \
+    O(IMAGEIO_DATATYPE_UINT16, OIIO::TypeDesc::UINT16)                                            \
+    O(IMAGEIO_DATATYPE_INT16, OIIO::TypeDesc::INT16)                                              \
+    O(IMAGEIO_DATATYPE_UINT32, OIIO::TypeDesc::UINT32)                                            \
+    O(IMAGEIO_DATATYPE_INT32, OIIO::TypeDesc::INT32)                                              \
+    O(IMAGEIO_DATATYPE_UINT64, OIIO::TypeDesc::UINT64)                                            \
+    O(IMAGEIO_DATATYPE_INT64, OIIO::TypeDesc::INT64)                                              \
+    O(IMAGEIO_DATATYPE_HALF, OIIO::TypeDesc::HALF)                                                \
+    O(IMAGEIO_DATATYPE_FLOAT, OIIO::TypeDesc::FLOAT)                                              \
+    O(IMAGEIO_DATATYPE_DOUBLE, OIIO::TypeDesc::DOUBLE)                                            \
+    O(IMAGEIO_DATATYPE_STRING, OIIO::TypeDesc::STRING)                                            \
+    O(IMAGEIO_DATATYPE_PTR, OIIO::TypeDesc::PTR)
+
+enum ImageIO_DataType { ENUM_IMAGEIO_DATATYPE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+#define ENUM_IMAGEIO_AGGREGATETYPE(O)                                                             \
+    O(IMAGEIO_AGGREGATETYPE_SCALAR, OIIO::TypeDesc::SCALAR)                                       \
+    O(IMAGEIO_AGGREGATETYPE_VEC2, OIIO::TypeDesc::VEC2)                                           \
+    O(IMAGEIO_AGGREGATETYPE_VEC3, OIIO::TypeDesc::VEC3)                                           \
+    O(IMAGEIO_AGGREGATETYPE_VEC4, OIIO::TypeDesc::VEC4)                                           \
+    O(IMAGEIO_AGGREGATETYPE_MATRIX33, OIIO::TypeDesc::MATRIX33)                                   \
+    O(IMAGEIO_AGGREGATETYPE_MATRIX44, OIIO::TypeDesc::MATRIX44)
+
+enum ImageIO_AggregateType { ENUM_IMAGEIO_AGGREGATETYPE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+struct ImageIO_Chaine {
+    const char *caractères;
+    uint64_t taille;
+};
+
+enum ImageIO_Options_Lecture {
+    /* Lis les pixels de l'image. */
+    IMAGEIO_OPTIONS_LECTURE_LIS_PIXELS = 1,
+    /* Lis les attributs de l'image. */
+    IMAGEIO_OPTIONS_LECTURE_LIS_ATTRIBUTS = 2,
+};
+
 /** Structure de rappel pour créer des calques et des canaux dans une image, ou pour accéder à
  * ceux-ci.
  * Les applications clientes doivent dériver cette structure afin de placer leurs données
@@ -123,6 +172,13 @@ struct AdaptriceImage {
 
     /** Rappel pour accéder aux données en écriture du canal. */
     float *(*donnees_canal_pour_ecriture)(const struct AdaptriceImage *, const void *canal);
+
+    void (*ajoute_attribut)(const struct AdaptriceImage *,
+                            struct ImageIO_Chaine *nom,
+                            enum ImageIO_DataType type,
+                            enum ImageIO_AggregateType aggregate,
+                            const void *donnees,
+                            int nombre_valeur);
 };
 
 struct ImageIO_RappelsProgression {
@@ -132,7 +188,8 @@ struct ImageIO_RappelsProgression {
 enum ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
                                                       int64_t taille_chemin,
                                                       struct AdaptriceImage *image,
-                                                      struct ImageIO_RappelsProgression *rappels);
+                                                      struct ImageIO_RappelsProgression *rappels,
+                                                      enum ImageIO_Options_Lecture options);
 
 enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
                                                       int64_t taille_chemin,

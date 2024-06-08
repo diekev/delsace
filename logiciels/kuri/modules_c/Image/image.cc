@@ -605,10 +605,31 @@ static bool rappel_progression(void *opaque_data, float portion_done)
     return rappels->rappel_progression(rappels, portion_done);
 }
 
+static ImageIO_DataType convertis_data_type(OIIO::TypeDesc::BASETYPE type)
+{
+    switch (type) {
+        ENUM_IMAGEIO_DATATYPE(ENUMERE_TRANSLATION_ENUM_NATIF_VERS_IPA)
+        case OIIO::TypeDesc::LASTBASE:
+        {
+            return IMAGEIO_DATATYPE_UNKNOWN;
+        }
+    }
+    return IMAGEIO_DATATYPE_UNKNOWN;
+}
+
+static ImageIO_AggregateType convertis_aggregate_type(OIIO::TypeDesc::AGGREGATE type)
+{
+    switch (type) {
+        ENUM_IMAGEIO_AGGREGATETYPE(ENUMERE_TRANSLATION_ENUM_NATIF_VERS_IPA)
+    }
+    return IMAGEIO_AGGREGATETYPE_SCALAR;
+}
+
 ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
                                                  int64_t taille_chemin,
                                                  AdaptriceImage *image,
-                                                 ImageIO_RappelsProgression *rappels)
+                                                 ImageIO_RappelsProgression *rappels,
+                                                 ImageIO_Options_Lecture options)
 {
     OIIO::ProgressCallback progress_callback = rappel_progression;
 
@@ -634,6 +655,39 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
     DescriptionImage desc_image{};
     desc_image.hauteur = spec.height;
     desc_image.largeur = spec.width;
+
+    if ((options & IMAGEIO_OPTIONS_LECTURE_LIS_ATTRIBUTS) != 0 && image->ajoute_attribut) {
+        for (auto const &param : spec.extra_attribs) {
+            auto const &param_type = param.type();
+
+            auto type_données = convertis_data_type(OIIO::TypeDesc::BASETYPE(param_type.basetype));
+            auto type_aggregat = convertis_aggregate_type(
+                OIIO::TypeDesc::AGGREGATE(param_type.aggregate));
+
+            ImageIO_Chaine nom;
+            nom.caractères = param.name().c_str();
+            nom.taille = param.name().size();
+
+            if (param.type() == OIIO::TypeDesc::STRING) {
+                auto value = static_cast<const OIIO::ustring *>(param.data());
+
+                ImageIO_Chaine chaine;
+                chaine.caractères = value->c_str();
+                chaine.taille = value->size();
+
+                image->ajoute_attribut(
+                    image, &nom, type_données, type_aggregat, &chaine, param.nvalues());
+            }
+            else {
+                image->ajoute_attribut(
+                    image, &nom, type_données, type_aggregat, param.data(), param.nvalues());
+            }
+        }
+    }
+
+    if ((options & IMAGEIO_OPTIONS_LECTURE_LIS_PIXELS) == 0) {
+        return ResultatOperation::OK;
+    }
 
     auto parseuse = ParseuseDonneesImage();
     parseuse.parse_canaux(spec.channelnames, spec.z_channel);
