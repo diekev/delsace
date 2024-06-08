@@ -1508,6 +1508,7 @@ struct QT_Menu *QT_cree_menu_titre(struct QT_Chaine titre, union QT_Generic_Widg
 void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
 void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 void QT_menu_ajoute_action(struct QT_Menu *menu, struct QT_Action *action);
+void QT_menu_ajoute_section(struct QT_Menu *menu, struct QT_Chaine titre);
 
 /** \} */
 
@@ -2378,6 +2379,8 @@ void QT_plain_text_edit_definis_curseur(struct QT_PlainTextEdit *text_edit,
 
 void QT_plain_text_edit_coupe(struct QT_PlainTextEdit *text_edit);
 void QT_plain_text_edit_copie(struct QT_PlainTextEdit *text_edit);
+
+void QT_plain_text_edit_definis_lecture_seule(struct QT_PlainTextEdit *text_edit, bool ouinon);
 
 /** \} */
 
