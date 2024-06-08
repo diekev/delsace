@@ -629,6 +629,24 @@ génère_corps_fonction_construction_objet :: fonc (enchaineuse: *Enchaineuse, t
         retourne
     }
 
+    si type.drapeaux.TYPE_EST_OPTIONNEL {
+        enchaineuse.ajoute_au_tampon("    discr valeur {\n")
+        enchaineuse.ajoute_au_tampon("        Quelque(r) {\n")
+        si type.type_quelque.type_kuri == info_de(ErreurPython) {
+            /* Relance l'erreur. */
+            enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_Erreur(r)\n")
+        }
+        sinon {
+            enchaineuse.ajoute_au_tampon("            retourne ", type.type_quelque.fonctions.pour_construction, "(r)\n")
+        }
+        enchaineuse.ajoute_au_tampon("        }\n")
+        enchaineuse.ajoute_au_tampon("        sinon {\n")
+        enchaineuse.ajoute_au_tampon("            retourne python_retourne_rien()\n")
+        enchaineuse.ajoute_au_tampon("        }\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+        retourne
+    }
+
     si type.drapeaux.TOUJOURS_COMME_POINTEUR {
         enchaineuse.ajoute_au_tampon("    saufsi valeur {\n")
         enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien() comme *", type.nom_sauf, "PourPython\n")

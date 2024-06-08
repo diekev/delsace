@@ -292,6 +292,8 @@ DrapeauxType :: énum_drapeau {
     REQUIERS_RAFINAGE
     /* Pour les dérivées de Résultat() */
     TYPE_EST_RÉSULTAT
+    /* Pour les dérivées de Optionnel() */
+    TYPE_EST_OPTIONNEL
 }
 
 TypePython :: struct {
@@ -337,9 +339,12 @@ TypePython :: struct {
     type_itéré: *TypePython
     type_itérateur: *TypePython
 
-    /* Si le type dérive de résultat. */
+    /* Si le type dérive de Résultat. */
     type_ok: *TypePython
     type_erreur: *TypePython
+
+    /* Si le type dérive de Optionnel. */
+    type_quelque: *TypePython
 
     /* Interne, pour généré le code d'initialisation des types dans l'ordre d'héritage. */
     code_pour_init_module_fut_généré: bool

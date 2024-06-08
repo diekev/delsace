@@ -356,6 +356,10 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
                 type_python.type_ok = convertis_vers_type_python(système, info_union.membres[0].id)
                 type_python.type_erreur = convertis_vers_type_python(système, info_union.membres[1].id)
             }
+            sinon si info_union.polymorphe_de_base == info_de(Optionnel) {
+                type_python.drapeaux.TYPE_EST_OPTIONNEL = vrai
+                type_python.type_quelque = convertis_vers_type_python(système, info_union.membres[0].id)
+            }
             sinon pour info_union.membres {
                 confidentialité := confidentialité_pour_annotation(it.annotations)
 
