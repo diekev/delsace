@@ -1139,6 +1139,12 @@ PyErr_DonneErreur :: fonc () -> ErreurPython
     retourne ErreurPython(type, valeur, traceback)
 }
 
+PyErr_PrintErreur :: fonc (e: ErreurPython)
+{
+    PyErr_Restore(e.type, e.valeur, e.traceback)
+    PyErr_Print()
+}
+
 PyErr_Raise_Erreur :: fonc (e: ErreurPython) -> *PyObject
 {
     PyErr_Restore(e.type, e.valeur, e.traceback)
