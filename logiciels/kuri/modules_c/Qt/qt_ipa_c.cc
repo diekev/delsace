@@ -1295,6 +1295,13 @@ void QT_menu_ajoute_action(QT_Menu *menu, QT_Action *action)
     qmenu->addAction(qaction);
 }
 
+void QT_menu_ajoute_section(QT_Menu *menu, QT_Chaine titre)
+{
+    VERS_QT(menu);
+    VERS_QT(titre);
+    qmenu->addSection(qtitre);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

@@ -1508,6 +1508,7 @@ struct QT_Menu *QT_cree_menu_titre(struct QT_Chaine titre, union QT_Generic_Widg
 void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
 void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 void QT_menu_ajoute_action(struct QT_Menu *menu, struct QT_Action *action);
+void QT_menu_ajoute_section(struct QT_Menu *menu, struct QT_Chaine titre);
 
 /** \} */
 
