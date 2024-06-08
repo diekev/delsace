@@ -1117,6 +1117,12 @@ PyErr_SetObject :: fonc (exception: *PyObject, value: *PyObject) #externe libpyt
 
 /* Fonctions d'erreur pour le code généré. */
 
+PyErr_Raise_Generic :: fonc (message: chaine) -> *PyObject
+{
+    PyErr_SetObject(PyExc_Exception, PyUnicode_FromChaine(message))
+    retourne nul
+}
+
 /* Erreur si le type d'un argument d'un appel de fonction n'est pas le bon. */
 PyErr_MauvaisTypeArgument :: fonc (argument: *PyObject, nom_argument_attendu: chaine, type_argument_attendu: chaine) -> *PyObject
 {
