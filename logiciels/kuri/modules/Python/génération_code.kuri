@@ -598,8 +598,54 @@ génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, 
     }
     enchaineuse.ajoute_au_tampon("    retourne faux\n")
     enchaineuse.ajoute_au_tampon("}\n")
-    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, " :: fonc (valeur: ", symbole_pointeur, type.nom_type_kuri, ") -> *", type.nom_sauf, "PourPython\n")
+    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, " :: fonc (valeur: ", symbole_pointeur, type.nom_type_kuri, ") -> *PyObject\n")
     enchaineuse.ajoute_au_tampon("{\n")
+    génère_corps_fonction_construction_objet(enchaineuse, type)
+    enchaineuse.ajoute_au_tampon("}\n")
+
+    /* Fonction générique de création d'objet. */
+    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, "_générique :: fonc (valeur: eini) -> *PyObject\n")
+    enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.ajoute_au_tampon("    assert(valeur.info == info_de(", symbole_pointeur, type.nom_type_kuri, "))\n")
+    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.pointeur comme *", symbole_pointeur, type.nom_type_kuri, "))\n")
+    enchaineuse.ajoute_au_tampon("}\n")
+}
+
+/* Corps des fonctions PyXXX_From_XXX */
+génère_corps_fonction_construction_objet :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
+{
+    si type.drapeaux.TYPE_EST_RÉSULTAT {
+        enchaineuse.ajoute_au_tampon("    discr valeur {\n")
+        enchaineuse.ajoute_au_tampon("        Ok(r) {\n")
+        enchaineuse.ajoute_au_tampon("            retourne ", type.type_ok.fonctions.pour_construction, "(r)\n")
+        enchaineuse.ajoute_au_tampon("        }\n")
+        enchaineuse.ajoute_au_tampon("        Erreur(e) {\n")
+        enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_", type.type_erreur.nom, "(e)\n")
+        enchaineuse.ajoute_au_tampon("        }\n")
+        enchaineuse.ajoute_au_tampon("        sinon {\n")
+        enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_Generic(\"Erreur inconnue\")\n")
+        enchaineuse.ajoute_au_tampon("        }\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+        retourne
+    }
+
+    si type.drapeaux.TYPE_EST_OPTIONNEL {
+        enchaineuse.ajoute_au_tampon("    discr valeur {\n")
+        enchaineuse.ajoute_au_tampon("        Quelque(r) {\n")
+        si type.type_quelque.type_kuri == info_de(ErreurPython) {
+            /* Relance l'erreur. */
+            enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_Erreur(r)\n")
+        }
+        sinon {
+            enchaineuse.ajoute_au_tampon("            retourne ", type.type_quelque.fonctions.pour_construction, "(r)\n")
+        }
+        enchaineuse.ajoute_au_tampon("        }\n")
+        enchaineuse.ajoute_au_tampon("        sinon {\n")
+        enchaineuse.ajoute_au_tampon("            retourne python_retourne_rien()\n")
+        enchaineuse.ajoute_au_tampon("        }\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+        retourne
+    }
 
     si type.drapeaux.TOUJOURS_COMME_POINTEUR {
         enchaineuse.ajoute_au_tampon("    saufsi valeur {\n")
@@ -622,14 +668,6 @@ génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, 
         enchaineuse.ajoute_au_tampon("    résultat.remplis_champs_requis_py_buffer = remplis_champs_requis_py_buffer_pour_", type.nom_globale_type, "\n")
     }
     enchaineuse.ajoute_au_tampon("    retourne résultat\n")
-    enchaineuse.ajoute_au_tampon("}\n")
-
-    /* Fonction générique de création d'objet. */
-    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, "_générique :: fonc (valeur: eini) -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    assert(valeur.info == info_de(", symbole_pointeur, type.nom_type_kuri, "))\n")
-    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.pointeur comme *", symbole_pointeur, type.nom_type_kuri, "))\n")
-    enchaineuse.ajoute_au_tampon("}\n")
 }
 
 type_supporte_itération :: fonc (type: *TypePython) -> bool
