@@ -1117,6 +1117,34 @@ PyErr_SetObject :: fonc (exception: *PyObject, value: *PyObject) #externe libpyt
 
 /* Fonctions d'erreur pour le code généré. */
 
+ErreurPython :: struct {
+    type: *PyObject
+    valeur: *PyObject
+    traceback: *PyObject
+}
+
+PyErr_DonneErreur :: fonc () -> ErreurPython
+{
+    type: *PyObject
+    valeur: *PyObject
+    traceback: *PyObject
+
+    PyErr_Fetch(*type, *valeur, *traceback)
+    PyErr_NormalizeException(*type, *valeur, *traceback)
+
+    si traceback {
+        _ := PyException_SetTraceback(valeur, traceback)
+    }
+
+    retourne ErreurPython(type, valeur, traceback)
+}
+
+PyErr_Raise_Erreur :: fonc (e: ErreurPython) -> *PyObject
+{
+    PyErr_Restore(e.type, e.valeur, e.traceback)
+    retourne nul
+}
+
 PyErr_Raise_Generic :: fonc (message: chaine) -> *PyObject
 {
     PyErr_SetObject(PyExc_Exception, PyUnicode_FromChaine(message))
@@ -1577,6 +1605,7 @@ PyErr_Print :: fonc ()
 }
 
 PyErr_Fetch :: fonc (ptype: **PyObject, pvalue: **PyObject, ptraceback: **PyObject) -> rien #externe libpython
+PyErr_Restore :: fonc (ptype: *PyObject, pvalue: *PyObject, ptraceback: *PyObject) -> rien #externe libpython
 PyErr_NormalizeException :: fonc (ptype: **PyObject, pvalue: **PyObject, ptraceback: **PyObject) -> rien #externe libpython
 
 PyErr_GetExcInfo :: fonc (ptype: **PyObject, pvalue: **PyObject, ptraceback: **PyObject) -> rien #externe libpython
