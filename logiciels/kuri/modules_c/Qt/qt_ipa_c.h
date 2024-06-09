@@ -524,6 +524,7 @@ void QT_settings_ecris_liste_chaine(struct QT_Settings *settings,
  * \{ */
 
 struct QT_Action *QT_cree_action(struct QT_Chaine texte, union QT_Generic_Object parent);
+void QT_action_definis_icone(struct QT_Action *action, struct QT_Icon *icon);
 void QT_action_definis_donnee_z32(struct QT_Action *action, int donnee);
 int QT_action_donne_donnee_z32(struct QT_Action *action);
 void QT_action_sur_declenchage(struct QT_Action *action, struct QT_Rappel_Generique *rappel);

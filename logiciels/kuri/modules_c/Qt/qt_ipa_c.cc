@@ -657,6 +657,15 @@ QT_Action *QT_cree_action(QT_Chaine texte, QT_Generic_Object parent)
     return vers_ipa(new QAction(vers_qt(texte), qparent));
 }
 
+void QT_action_definis_icone(QT_Action *action, QT_Icon *icon)
+{
+    VERS_QT(action);
+    VERS_QT(icon);
+    if (qicon) {
+        qaction->setIcon(*qicon);
+    }
+}
+
 void QT_action_definis_donnee_z32(QT_Action *action, int donnee)
 {
     VERS_QT(action);
