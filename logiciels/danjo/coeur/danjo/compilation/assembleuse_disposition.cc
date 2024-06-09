@@ -871,10 +871,10 @@ void AssembleurDisposition::sort_menu()
     m_pile_menus.depile();
 }
 
-void AssembleurDisposition::ajoute_action()
+Action *AssembleurDisposition::ajoute_action()
 {
     if (m_initialisation_seule) {
-        return;
+        return nullptr;
     }
 
     QWidget *parent_action;
@@ -897,6 +897,7 @@ void AssembleurDisposition::ajoute_action()
     }
 
     m_derniere_action = action;
+    return m_derniere_action;
 }
 
 void AssembleurDisposition::ajoute_separateur()
