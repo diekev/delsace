@@ -301,7 +301,7 @@ class AssembleurDisposition {
 
     void sort_menu();
 
-    void ajoute_action();
+    Action *ajoute_action();
 
     void propriete_action(id_morceau identifiant, const dls::chaine &valeur);
 
