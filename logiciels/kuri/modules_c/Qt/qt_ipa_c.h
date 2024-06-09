@@ -91,6 +91,17 @@ void QT_detruit_pixmap(struct QT_Pixmap *pixmap);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Icon
+ * \{ */
+
+struct QT_Icon;
+
+struct QT_Icon *QT_cree_icon_chemin(struct QT_Chaine chemin);
+void QT_detruit_icon(struct QT_Icon *icon);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_CursorShape
  * \{ */
 
@@ -154,7 +165,8 @@ struct QT_Rappel_Generique {
     O(QTreeWidget, QT_TreeWidget, tree_widget)                                                    \
     O(TreeWidgetItem, QT_TreeWidgetItem, tree_widget_item)                                        \
     O(ConteneurControles, DNJ_Conteneur_Controles, conteneur_controles)                           \
-    O(QPushButton, QT_PushButton, button)                                                         \
+    O(QPushButton, QT_PushButton, push_button)                                                    \
+    O(QToolButton, QT_ToolButton, tool_button)                                                    \
     O(QDialog, QT_Dialog, dialogue)                                                               \
     O(QGraphicsView, QT_GraphicsView, graphics_view)                                              \
     O(QStatusBar, QT_StatusBar, status_bar)                                                       \
@@ -513,6 +525,7 @@ void QT_settings_ecris_liste_chaine(struct QT_Settings *settings,
  * \{ */
 
 struct QT_Action *QT_cree_action(struct QT_Chaine texte, union QT_Generic_Object parent);
+void QT_action_definis_icone(struct QT_Action *action, struct QT_Icon *icon);
 void QT_action_definis_donnee_z32(struct QT_Action *action, int donnee);
 int QT_action_donne_donnee_z32(struct QT_Action *action);
 void QT_action_sur_declenchage(struct QT_Action *action, struct QT_Rappel_Generique *rappel);
@@ -1733,6 +1746,29 @@ void QT_line_edit_definis_lecture_seule(struct QT_LineEdit *line_edit, bool ouin
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QToolButton
+ * \{ */
+
+#define ENUMERE_TOOL_BUTTON_STYLE(O)                                                              \
+    O(QT_TOOL_BUTTON_STYLE_IconOnly, Qt::ToolButtonIconOnly)                                      \
+    O(QT_TOOL_BUTTON_STYLE_TextOnly, Qt::ToolButtonTextOnly)                                      \
+    O(QT_TOOL_BUTTON_STYLE_TextBesideIcon, Qt::ToolButtonTextBesideIcon)                          \
+    O(QT_TOOL_BUTTON_STYLE_TextUnderIcon, Qt::ToolButtonTextUnderIcon)                            \
+    O(QT_TOOL_BUTTON_STYLE_FollowStyle, Qt::ToolButtonFollowStyle)
+
+enum QT_Tool_Button_Style { ENUMERE_TOOL_BUTTON_STYLE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+struct QT_ToolButton *QT_cree_tool_button(union QT_Generic_Widget parent);
+void QT_tool_button_definis_action_defaut(struct QT_ToolButton *tool_button,
+                                          struct QT_Action *action);
+void QT_tool_button_definis_style(struct QT_ToolButton *tool_button,
+                                  enum QT_Tool_Button_Style style);
+void QT_tool_button_definis_taille_icone(struct QT_ToolButton *tool_button,
+                                         struct QT_Taille *taille);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_PushButton
  * \{ */
 
@@ -1746,6 +1782,7 @@ void QT_push_button_connecte_sur_clic(struct QT_PushButton *button,
 
 void QT_push_button_definis_autodefaut(struct QT_PushButton *button, bool ouinon);
 void QT_push_button_definis_defaut(struct QT_PushButton *button, bool ouinon);
+void QT_push_button_definis_icone(struct QT_PushButton *button, struct QT_Icon *icon);
 
 /** \} */
 
