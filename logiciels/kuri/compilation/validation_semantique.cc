@@ -6660,7 +6660,11 @@ RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionI
 
     // @concurrence critique
     if (fichier->importe_module(module->nom())) {
-        m_espace->rapporte_avertissement(inst, "Importation superflux du module");
+        if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
+            /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes de
+             * générer ces instructions redondantes. */
+            m_espace->rapporte_avertissement(inst, "Importation superflux du module");
+        }
     }
     else {
         fichier->modules_importés.insère(module);

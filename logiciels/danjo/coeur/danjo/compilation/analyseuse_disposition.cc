@@ -32,7 +32,7 @@
 
 #include "assembleuse_disposition.h"
 
-//#define DEBOGUE_ANALYSEUR
+// #define DEBOGUE_ANALYSEUR
 
 namespace danjo {
 
@@ -388,11 +388,86 @@ void AnalyseuseDisposition::analyse_action()
         lance_erreur("Attendu l'ouverture d'une paranthèse après 'action' !");
     }
 
-    m_assembleur->ajoute_action();
+    /*auto action =*/m_assembleur->ajoute_action();
 
     if (!m_valideuse.cherche_magasin(id_morceau::ACTION)) {
         lance_erreur("Impossible de trouver le magasin de propriétés pour l'action");
     }
+
+#if 0
+    while (!fini()) {
+        if (!est_identifiant_propriete(identifiant_courant())) {
+            lance_erreur("Attendu la déclaration d'un identifiant !");
+        }
+
+        const auto identifiant_propriete = identifiant_courant();
+
+        avance();
+        auto est_drapeaux = dls::outils::est_element(
+            identifiant_propriete, id_morceau::ANIMABLE, id_morceau::ACTIVABLE);
+        if (!est_drapeaux && !requiers_identifiant(id_morceau::EGAL)) {
+            lance_erreur("Attendu la déclaration '=' !");
+        }
+
+        switch (identifiant_propriete) {
+            default:
+            {
+                lance_erreur("Propriété invalide pour une action");
+                break;
+            }
+
+            case id_morceau::ATTACHE:
+            {
+                if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+                    lance_erreur("Attendu une chaine littérale !");
+                }
+
+                action->etablie_attache();
+                break;
+            }
+            case id_morceau::INFOBULLE:
+            {
+                if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+                    lance_erreur("Attendu une chaine littérale !");
+                }
+
+                action->etablie_infobulle();
+                break;
+            }
+            case id_morceau::VALEUR:
+            {
+                if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+                    lance_erreur("Attendu une chaine littérale !");
+                }
+
+                action->etablie_valeur();
+                break;
+            }
+            case id_morceau::ICONE:
+            {
+                if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+                    lance_erreur("Attendu une chaine littérale !");
+                }
+
+                action->etablie_icone();
+                break;
+            }
+            case id_morceau::METADONNEE:
+            {
+                if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+                    lance_erreur("Attendu une chaine littérale !");
+                }
+
+                action->etablie_metadonnee();
+                break;
+            }
+            case id_morceau::ACTIVABLE:
+            {
+                break;
+            }
+        }
+    }
+#endif
 
     analyse_propriete(id_morceau::ACTION);
 
