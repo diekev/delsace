@@ -36,6 +36,7 @@
 #include <QStatusBar>
 #include <QTableView>
 #include <QTimer>
+#include <QToolButton>
 #include <QToolTip>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
@@ -221,6 +222,7 @@ ENUMERE_TYPES_ITEM_MODEL(TRANSTYPAGE_WIDGETS)
         return reinterpret_cast<nom_qt *>(widget);                                                \
     }
 
+TRANSTYPAGE_OBJET_SIMPLE(QIcon, QT_Icon)
 TRANSTYPAGE_OBJET_SIMPLE(QPixmap, QT_Pixmap)
 TRANSTYPAGE_OBJET_SIMPLE(QTextCursor, QT_TextCursor)
 
@@ -307,6 +309,23 @@ void QT_detruit_pixmap(QT_Pixmap *pixmap)
 {
     auto qpixmap = vers_qt(pixmap);
     delete (qpixmap);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Icon
+ * \{ */
+
+QT_Icon *QT_cree_icon_chemin(QT_Chaine chemin)
+{
+    return vers_ipa(new QIcon(vers_qt(chemin)));
+}
+
+void QT_detruit_icon(QT_Icon *icon)
+{
+    auto qicon = vers_qt(icon);
+    delete qicon;
 }
 
 /** \} */
@@ -637,6 +656,15 @@ QT_Action *QT_cree_action(QT_Chaine texte, QT_Generic_Object parent)
 {
     VERS_QT(parent);
     return vers_ipa(new QAction(vers_qt(texte), qparent));
+}
+
+void QT_action_definis_icone(QT_Action *action, QT_Icon *icon)
+{
+    VERS_QT(action);
+    VERS_QT(icon);
+    if (qicon) {
+        qaction->setIcon(*qicon);
+    }
 }
 
 void QT_action_definis_donnee_z32(QT_Action *action, int donnee)
@@ -1874,6 +1902,45 @@ void QT_line_edit_definis_lecture_seule(QT_LineEdit *line_edit, bool ouinon)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QToolButton
+ * \{ */
+
+static Qt::ToolButtonStyle convertis_tool_button_style(QT_Tool_Button_Style style)
+{
+    switch (style) {
+        ENUMERE_TOOL_BUTTON_STYLE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::ToolButtonIconOnly;
+}
+
+QT_ToolButton *QT_cree_tool_button(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QToolButton(qparent));
+}
+
+void QT_tool_button_definis_action_defaut(QT_ToolButton *tool_button, QT_Action *action)
+{
+    VERS_QT(tool_button);
+    VERS_QT(action);
+    qtool_button->setDefaultAction(qaction);
+}
+
+void QT_tool_button_definis_style(QT_ToolButton *tool_button, QT_Tool_Button_Style style)
+{
+    VERS_QT(tool_button);
+    qtool_button->setToolButtonStyle(convertis_tool_button_style(style));
+}
+
+void QT_tool_button_definis_taille_icone(QT_ToolButton *tool_button, QT_Taille *taille)
+{
+    VERS_QT(tool_button);
+    qtool_button->setIconSize(QSize(taille->largeur, taille->hauteur));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_PushButton
  * \{ */
 
@@ -1914,6 +1981,13 @@ void QT_push_button_definis_defaut(QT_PushButton *button, bool ouinon)
 {
     VERS_QT(button);
     qbutton->setDefault(ouinon);
+}
+
+void QT_push_button_definis_icone(QT_PushButton *button, QT_Icon *icon)
+{
+    VERS_QT(button);
+    VERS_QT(icon);
+    qbutton->setIcon(*qicon);
 }
 
 /** \} */
