@@ -36,6 +36,7 @@
 #include <QStatusBar>
 #include <QTableView>
 #include <QTimer>
+#include <QToolButton>
 #include <QToolTip>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
@@ -1896,6 +1897,45 @@ void QT_line_edit_definis_lecture_seule(QT_LineEdit *line_edit, bool ouinon)
 {
     VERS_QT(line_edit);
     qline_edit->setReadOnly(ouinon);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QToolButton
+ * \{ */
+
+static Qt::ToolButtonStyle convertis_tool_button_style(QT_Tool_Button_Style style)
+{
+    switch (style) {
+        ENUMERE_TOOL_BUTTON_STYLE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::ToolButtonIconOnly;
+}
+
+QT_ToolButton *QT_cree_tool_button(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QToolButton(qparent));
+}
+
+void QT_tool_button_definis_action_defaut(QT_ToolButton *tool_button, QT_Action *action)
+{
+    VERS_QT(tool_button);
+    VERS_QT(action);
+    qtool_button->setDefaultAction(qaction);
+}
+
+void QT_tool_button_definis_style(QT_ToolButton *tool_button, QT_Tool_Button_Style style)
+{
+    VERS_QT(tool_button);
+    qtool_button->setToolButtonStyle(convertis_tool_button_style(style));
+}
+
+void QT_tool_button_definis_taille_icone(QT_ToolButton *tool_button, QT_Taille *taille)
+{
+    VERS_QT(tool_button);
+    qtool_button->setIconSize(QSize(taille->largeur, taille->hauteur));
 }
 
 /** \} */

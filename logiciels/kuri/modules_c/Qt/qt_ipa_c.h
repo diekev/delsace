@@ -165,7 +165,8 @@ struct QT_Rappel_Generique {
     O(QTreeWidget, QT_TreeWidget, tree_widget)                                                    \
     O(TreeWidgetItem, QT_TreeWidgetItem, tree_widget_item)                                        \
     O(ConteneurControles, DNJ_Conteneur_Controles, conteneur_controles)                           \
-    O(QPushButton, QT_PushButton, button)                                                         \
+    O(QPushButton, QT_PushButton, push_button)                                                    \
+    O(QToolButton, QT_ToolButton, tool_button)                                                    \
     O(QDialog, QT_Dialog, dialogue)                                                               \
     O(QGraphicsView, QT_GraphicsView, graphics_view)                                              \
     O(QStatusBar, QT_StatusBar, status_bar)                                                       \
@@ -1741,6 +1742,29 @@ void QT_line_edit_connecte_sur_pression_retour(struct QT_LineEdit *line_edit,
                                                struct QT_Rappel_Generique *rappel);
 struct QT_Chaine QT_line_edit_donne_texte(struct QT_LineEdit *line_edit);
 void QT_line_edit_definis_lecture_seule(struct QT_LineEdit *line_edit, bool ouinon);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QToolButton
+ * \{ */
+
+#define ENUMERE_TOOL_BUTTON_STYLE(O)                                                              \
+    O(QT_TOOL_BUTTON_STYLE_IconOnly, Qt::ToolButtonIconOnly)                                      \
+    O(QT_TOOL_BUTTON_STYLE_TextOnly, Qt::ToolButtonTextOnly)                                      \
+    O(QT_TOOL_BUTTON_STYLE_TextBesideIcon, Qt::ToolButtonTextBesideIcon)                          \
+    O(QT_TOOL_BUTTON_STYLE_TextUnderIcon, Qt::ToolButtonTextUnderIcon)                            \
+    O(QT_TOOL_BUTTON_STYLE_FollowStyle, Qt::ToolButtonFollowStyle)
+
+enum QT_Tool_Button_Style { ENUMERE_TOOL_BUTTON_STYLE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+struct QT_ToolButton *QT_cree_tool_button(union QT_Generic_Widget parent);
+void QT_tool_button_definis_action_defaut(struct QT_ToolButton *tool_button,
+                                          struct QT_Action *action);
+void QT_tool_button_definis_style(struct QT_ToolButton *tool_button,
+                                  enum QT_Tool_Button_Style style);
+void QT_tool_button_definis_taille_icone(struct QT_ToolButton *tool_button,
+                                         struct QT_Taille *taille);
 
 /** \} */
 
