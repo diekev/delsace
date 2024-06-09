@@ -1983,6 +1983,13 @@ void QT_push_button_definis_defaut(QT_PushButton *button, bool ouinon)
     qbutton->setDefault(ouinon);
 }
 
+void QT_push_button_definis_icone(QT_PushButton *button, QT_Icon *icon)
+{
+    VERS_QT(button);
+    VERS_QT(icon);
+    qbutton->setIcon(*qicon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
