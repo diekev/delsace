@@ -221,6 +221,7 @@ ENUMERE_TYPES_ITEM_MODEL(TRANSTYPAGE_WIDGETS)
         return reinterpret_cast<nom_qt *>(widget);                                                \
     }
 
+TRANSTYPAGE_OBJET_SIMPLE(QIcon, QT_Icon)
 TRANSTYPAGE_OBJET_SIMPLE(QPixmap, QT_Pixmap)
 TRANSTYPAGE_OBJET_SIMPLE(QTextCursor, QT_TextCursor)
 
@@ -307,6 +308,23 @@ void QT_detruit_pixmap(QT_Pixmap *pixmap)
 {
     auto qpixmap = vers_qt(pixmap);
     delete (qpixmap);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Icon
+ * \{ */
+
+QT_Icon *QT_cree_icon_chemin(QT_Chaine chemin)
+{
+    return vers_ipa(new QIcon(vers_qt(chemin)));
+}
+
+void QT_detruit_icon(QT_Icon *icon)
+{
+    auto qicon = vers_qt(icon);
+    delete qicon;
 }
 
 /** \} */

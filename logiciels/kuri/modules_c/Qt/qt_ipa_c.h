@@ -91,6 +91,17 @@ void QT_detruit_pixmap(struct QT_Pixmap *pixmap);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Icon
+ * \{ */
+
+struct QT_Icon;
+
+struct QT_Icon *QT_cree_icon_chemin(struct QT_Chaine chemin);
+void QT_detruit_icon(struct QT_Icon *icon);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_CursorShape
  * \{ */
 
