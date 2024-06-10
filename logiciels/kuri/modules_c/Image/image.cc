@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cmath>
 #include <math.h>
+#include <sstream>
 #include <stdexcept>
 #include <string.h>
 #include <string>
@@ -526,6 +527,17 @@ std::string encode(
 
 extern "C" {
 
+void IMG_detruit_chaine(struct ImageIO_Chaine *chn)
+{
+    if (!chn) {
+        return;
+    }
+
+    delete[] chn->caractères;
+    chn->caractères = nullptr;
+    chn->taille = 0;
+}
+
 struct NomCanal {
     std::string nom_calque{};
     std::string nom_canal{};
@@ -734,6 +746,29 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
     }
 
     return ResultatOperation::OK;
+}
+
+ImageIO_Chaine IMG_donne_filtre_extensions()
+{
+    auto map = OIIO::get_extension_map();
+
+    std::stringstream flux;
+
+    for (auto const &pair : map) {
+        for (auto const &v : pair.second) {
+            flux << "*." << v << ";";
+        }
+    }
+
+    auto str = flux.str();
+    auto caractères = new char[str.size()];
+
+    memcpy(caractères, str.data(), str.size());
+
+    ImageIO_Chaine résultat;
+    résultat.caractères = caractères;
+    résultat.taille = str.size();
+    return résultat;
 }
 
 // À FAIRE : paramétrise les calques à écrire.
