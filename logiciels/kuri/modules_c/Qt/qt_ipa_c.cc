@@ -14,6 +14,7 @@
 #include <QCoreApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QDrag>
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGraphicsRectItem>
@@ -24,6 +25,7 @@
 #include <QLineEdit>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QProgressBar>
 #include <QPushButton>
@@ -691,6 +693,76 @@ void QT_action_sur_declenchage(QT_Action *action, QT_Rappel_Generique *rappel)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Drag
+ * \{ */
+
+static QT_DropAction convertis_drop_action(Qt::DropAction drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_DROP_ACTION(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA);
+    return QT_DropAction(résultat);
+}
+
+QT_Drag *QT_cree_drag(QT_Generic_Object source)
+{
+    VERS_QT(source);
+    return vers_ipa(new QDrag(qsource));
+}
+
+void QT_drag_definis_mimedata(QT_Drag *drag, QT_MimeData *mimedata)
+{
+    VERS_QT(drag);
+    VERS_QT(mimedata);
+    qdrag->setMimeData(qmimedata);
+}
+
+void QT_drag_definis_pixmap(QT_Drag *drag, QT_Pixmap *pixmap)
+{
+    VERS_QT(drag);
+    VERS_QT(pixmap);
+    if (qpixmap) {
+        qdrag->setPixmap(*qpixmap);
+    }
+}
+
+QT_DropAction QT_drag_exec(QT_Drag *drag)
+{
+    VERS_QT(drag);
+    return convertis_drop_action(qdrag->exec());
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MimeData
+ * \{ */
+
+QT_MimeData *QT_cree_mimedata()
+{
+    return vers_ipa(new QMimeData);
+}
+
+void QT_mimedata_definis_donnee(QT_MimeData *mimedata,
+                                QT_Chaine mimetype,
+                                uint8_t *donnees,
+                                uint64_t taille_donnees)
+{
+    VERS_QT(mimedata);
+    VERS_QT(mimetype);
+    qmimedata->setData(qmimetype,
+                       QByteArray(reinterpret_cast<const char *>(donnees), int(taille_donnees)));
+}
+
+bool QT_mimedata_a_format(QT_MimeData *mimedata, QT_Chaine mimetype)
+{
+    VERS_QT(mimedata);
+    VERS_QT(mimetype);
+    return qmimedata->hasFormat(qmimetype);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Rect
  * \{ */
 
@@ -931,6 +1003,67 @@ QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
     }
 
     return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ContextMenuEvent
+ * \{ */
+
+void QT_context_menu_event_donne_position_globale(QT_ContextMenuEvent *event,
+                                                  QT_Position *r_position)
+{
+    VERS_QT(event);
+    if (r_position) {
+        r_position->x = qevent->globalPos().x();
+        r_position->y = qevent->globalPos().y();
+    }
+}
+
+void QT_context_menu_event_donne_position(QT_ContextMenuEvent *event, QT_Position *r_position)
+{
+    VERS_QT(event);
+    if (r_position) {
+        r_position->x = qevent->pos().x();
+        r_position->y = qevent->pos().y();
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DragEnterEvent
+ * \{ */
+
+QT_MimeData *QT_drag_enter_event_donne_mimedata(QT_DragEnterEvent *event)
+{
+    VERS_QT(event);
+    return vers_ipa(const_cast<QMimeData *>(qevent->mimeData()));
+}
+
+void QT_drag_enter_event_accepte_action_propose(QT_DragEnterEvent *event)
+{
+    VERS_QT(event);
+    qevent->acceptProposedAction();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DropEvent
+ * \{ */
+
+QT_MimeData *QT_drop_event_donne_mimedata(QT_DropEvent *event)
+{
+    VERS_QT(event);
+    return vers_ipa(const_cast<QMimeData *>(qevent->mimeData()));
+}
+
+void QT_drop_event_accepte_action_propose(QT_DropEvent *event)
+{
+    VERS_QT(event);
+    qevent->acceptProposedAction();
 }
 
 /** \} */
@@ -1233,6 +1366,12 @@ void QT_widget_definis_comportement_focus(QT_Generic_Widget widget, QT_Focus_Pol
     qwidget->setFocusPolicy(convertis_focus_policy(policy));
 }
 
+void QT_widget_accepte_drop(union QT_Generic_Widget widget, bool ouinon)
+{
+    VERS_QT(widget);
+    qwidget->setAcceptDrops(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1298,6 +1437,12 @@ QT_Menu *QT_cree_menu_titre(QT_Chaine titre, QT_Generic_Widget parent)
     VERS_QT(parent);
     VERS_QT(titre);
     return vers_ipa(new QMenu(qtitre, qparent));
+}
+
+void QT_menu_detruit(QT_Menu *menu)
+{
+    VERS_QT(menu);
+    delete qmenu;
 }
 
 void QT_menu_connecte_sur_pret_a_montrer(QT_Menu *menu, QT_Rappel_Generique *rappel)
@@ -1711,6 +1856,27 @@ int QT_tab_widget_donne_compte_tabs(QT_TabWidget *tab_widget)
     return qtab_widget->count();
 }
 
+void QT_tab_widget_remplace_widget_page_courante(QT_TabWidget *tab_widget,
+                                                 QT_Generic_Widget widget)
+{
+    VERS_QT(tab_widget);
+    VERS_QT(widget);
+
+    auto index_courant = qtab_widget->currentIndex();
+
+    /* Sauvegarde les données. */
+    auto texte = qtab_widget->tabText(index_courant);
+    auto icon = qtab_widget->tabIcon(index_courant);
+    auto infobulle = qtab_widget->tabToolTip(index_courant);
+
+    qtab_widget->removeTab(index_courant);
+
+    auto nouvel_index = qtab_widget->insertTab(index_courant, qwidget, icon, texte);
+    qtab_widget->setTabToolTip(nouvel_index, infobulle);
+
+    qtab_widget->setCurrentIndex(nouvel_index);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1917,6 +2083,17 @@ QT_ToolButton *QT_cree_tool_button(QT_Generic_Widget parent)
 {
     VERS_QT(parent);
     return vers_ipa(new QToolButton(qparent));
+}
+
+QT_ToolButton *QT_cree_tool_button_rappels(QT_Rappels_ToolButton *rappels,
+                                           QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    auto résultat = vers_ipa(new ToolButton(rappels, qparent));
+    if (rappels) {
+        rappels->widget = résultat;
+    }
+    return résultat;
 }
 
 void QT_tool_button_definis_action_defaut(QT_ToolButton *tool_button, QT_Action *action)
