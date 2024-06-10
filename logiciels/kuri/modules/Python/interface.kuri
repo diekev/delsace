@@ -1139,6 +1139,22 @@ PyErr_DonneErreur :: fonc () -> ErreurPython
     retourne ErreurPython(type, valeur, traceback)
 }
 
+PyErr_DonneChaineErreur :: fonc () -> chaine
+{
+    e := PyErr_DonneErreur()
+
+    chn_type := donne_chaine_object(e.type)
+    diffère déloge(chn_type)
+
+    chn_valeur := donne_chaine_object(e.valeur)
+    diffère déloge(chn_valeur)
+
+    chn_traceback := donne_chaine_object(e.traceback)
+    diffère déloge(chn_traceback)
+
+    retourne enchaine("Erreur Python :\n", chn_type, "\n", chn_valeur, "\n", chn_traceback)
+}
+
 PyErr_PrintErreur :: fonc (e: ErreurPython)
 {
     PyErr_Restore(e.type, e.valeur, e.traceback)
@@ -1583,6 +1599,8 @@ PyModule_New :: fonc (name: chaine) -> *PyObject
 /* ------------------------------------------------------------------------- */
 /** \nom Import Module.
  * \{ */
+
+PyImport_AddModule :: fonc (name: ChaineC) -> *PyObject #externe libpython
 
 PyImport_ImportModule :: fonc (name: ChaineC) -> *PyObject #externe libpython
 
