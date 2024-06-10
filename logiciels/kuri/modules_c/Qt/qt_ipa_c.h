@@ -230,7 +230,9 @@ union QT_Generic_ItemModel {
     O(QScreen, QT_Screen, screen)                                                                 \
     O(QGraphicsScene, QT_GraphicsScene, graphics_scene)                                           \
     O(QSettings, QT_Settings, settings)                                                           \
-    O(QAction, QT_Action, action)
+    O(QAction, QT_Action, action)                                                                 \
+    O(QDrag, QT_Drag, drag)                                                                       \
+    O(QMimeData, QT_MimeData, mimedata)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -316,7 +318,10 @@ union QT_Generic_Layout {
     O(QMouseEvent, QT_MouseEvent, mouse_event)                                                    \
     O(QWheelEvent, QT_WheelEvent, wheel_event)                                                    \
     O(QResizeEvent, QT_ResizeEvent, resize_event)                                                 \
-    O(QKeyEvent, QT_KeyEvent, key_event)
+    O(QKeyEvent, QT_KeyEvent, key_event)                                                          \
+    O(QContextMenuEvent, QT_ContextMenuEvent, context_menu_event)                                 \
+    O(QDragEnterEvent, QT_DragEnterEvent, drag_enter_event)                                       \
+    O(QDropEvent, QT_DropEvent, drop_event)
 
 #define PRODECLARE_TYPES_EVENTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_EVENTS(PRODECLARE_TYPES_EVENTS)
@@ -529,6 +534,38 @@ void QT_action_definis_icone(struct QT_Action *action, struct QT_Icon *icon);
 void QT_action_definis_donnee_z32(struct QT_Action *action, int donnee);
 int QT_action_donne_donnee_z32(struct QT_Action *action);
 void QT_action_sur_declenchage(struct QT_Action *action, struct QT_Rappel_Generique *rappel);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Drag
+ * \{ */
+
+#define ENUMERE_DROP_ACTION(O)                                                                    \
+    O(QT_DROP_ACTION_Copy, Qt::CopyAction, 0x1)                                                   \
+    O(QT_DROP_ACTION_Move, Qt::MoveAction, 0x2)                                                   \
+    O(QT_DROP_ACTION_Link, Qt::LinkAction, 0x4)                                                   \
+    O(QT_DROP_ACTION_TargetMove, Qt::TargetMoveAction, 0x8002)
+
+enum QT_DropAction { ENUMERE_DROP_ACTION(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
+
+struct QT_Drag *QT_cree_drag(union QT_Generic_Object source);
+void QT_drag_definis_mimedata(struct QT_Drag *drag, struct QT_MimeData *mimedata);
+void QT_drag_definis_pixmap(struct QT_Drag *drag, struct QT_Pixmap *pixmap);
+enum QT_DropAction QT_drag_exec(struct QT_Drag *drag);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MimeData
+ * \{ */
+
+struct QT_MimeData *QT_cree_mimedata();
+void QT_mimedata_definis_donnee(struct QT_MimeData *mimedata,
+                                struct QT_Chaine mimetype,
+                                uint8_t *donnees,
+                                uint64_t taille_donnees);
+bool QT_mimedata_a_format(struct QT_MimeData *mimedata, struct QT_Chaine mimetype);
 
 /** \} */
 
@@ -1369,6 +1406,35 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ContextMenuEvent
+ * \{ */
+
+void QT_context_menu_event_donne_position_globale(struct QT_ContextMenuEvent *event,
+                                                  struct QT_Position *r_position);
+void QT_context_menu_event_donne_position(struct QT_ContextMenuEvent *event,
+                                          struct QT_Position *r_position);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DragEnterEvent
+ * \{ */
+
+struct QT_MimeData *QT_drag_enter_event_donne_mimedata(struct QT_DragEnterEvent *vent);
+void QT_drag_enter_event_accepte_action_propose(struct QT_DragEnterEvent *vent);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_DropEvent
+ * \{ */
+
+struct QT_MimeData *QT_drop_event_donne_mimedata(struct QT_DropEvent *vent);
+void QT_drop_event_accepte_action_propose(struct QT_DropEvent *vent);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Widget
  * \{ */
 
@@ -1385,6 +1451,9 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
     void (*sur_redimensionnement)(struct type_rappels *, struct QT_ResizeEvent *);                \
     void (*sur_pression_cle)(struct type_rappels *, struct QT_KeyEvent *);                        \
     void (*sur_relachement_cle)(struct type_rappels *, struct QT_KeyEvent *);                     \
+    void (*sur_menu_contexte)(struct type_rappels *, struct QT_ContextMenuEvent *);               \
+    void (*sur_entree_drag)(struct type_rappels *, struct QT_DragEnterEvent *);                   \
+    void (*sur_drop)(struct type_rappels *, struct QT_DropEvent *);                               \
     void (*sur_destruction)(struct type_rappels *)
 
 struct QT_Rappels_Widget {
@@ -1474,6 +1543,8 @@ enum QT_Focus_Policy { ENUMERE_FOCUS_POLICY(ENUMERE_DECLARATION_ENUM_IPA) };
 void QT_widget_definis_comportement_focus(union QT_Generic_Widget widget,
                                           enum QT_Focus_Policy policy);
 
+void QT_widget_accepte_drop(union QT_Generic_Widget widget, bool ouinon);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1518,6 +1589,7 @@ void QT_menu_bar_ajoute_menu(struct QT_MenuBar *menu_bar, struct QT_Menu *menu);
 
 struct QT_Menu *QT_cree_menu(union QT_Generic_Widget parent);
 struct QT_Menu *QT_cree_menu_titre(struct QT_Chaine titre, union QT_Generic_Widget parent);
+void QT_menu_detruit(struct QT_Menu *menu);
 void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_Generique *rappel);
 void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 void QT_menu_ajoute_action(struct QT_Menu *menu, struct QT_Action *action);
@@ -1662,6 +1734,8 @@ void QT_tab_widget_definis_infobulle_tab(struct QT_TabWidget *tab_widget,
 void QT_tab_widget_supprime_tab(struct QT_TabWidget *tab_widget, int index);
 void QT_tab_widget_definis_index_courant(struct QT_TabWidget *tab_widget, int index);
 int QT_tab_widget_donne_compte_tabs(struct QT_TabWidget *tab_widget);
+void QT_tab_widget_remplace_widget_page_courante(struct QT_TabWidget *tab_widget,
+                                                 union QT_Generic_Widget widget);
 
 /** \} */
 
@@ -1758,7 +1832,13 @@ void QT_line_edit_definis_lecture_seule(struct QT_LineEdit *line_edit, bool ouin
 
 enum QT_Tool_Button_Style { ENUMERE_TOOL_BUTTON_STYLE(ENUMERE_DECLARATION_ENUM_IPA) };
 
+struct QT_Rappels_ToolButton {
+    RAPPELS_EVENEMENTS_COMMUNS(QT_ToolButton, QT_Rappels_ToolButton);
+};
+
 struct QT_ToolButton *QT_cree_tool_button(union QT_Generic_Widget parent);
+struct QT_ToolButton *QT_cree_tool_button_rappels(struct QT_Rappels_ToolButton *rappels,
+                                                  union QT_Generic_Widget parent);
 void QT_tool_button_definis_action_defaut(struct QT_ToolButton *tool_button,
                                           struct QT_Action *action);
 void QT_tool_button_definis_style(struct QT_ToolButton *tool_button,

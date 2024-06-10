@@ -16,6 +16,7 @@
 #include <QGLWidget>
 #include <QGraphicsView>
 #include <QPlainTextEdit>
+#include <QToolButton>
 #include <QTreeWidget>
 #include <QWidget>
 #if defined(__GNUC__)
@@ -41,7 +42,10 @@
     void wheelEvent(QWheelEvent *event) override;                                                 \
     void resizeEvent(QResizeEvent *event) override;                                               \
     void keyPressEvent(QKeyEvent *event) override;                                                \
-    void keyReleaseEvent(QKeyEvent *event) override
+    void keyReleaseEvent(QKeyEvent *event) override;                                              \
+    void contextMenuEvent(QContextMenuEvent *event) override;                                     \
+    void dragEnterEvent(QDragEnterEvent *event) override;                                         \
+    void dropEvent(QDropEvent *event) override
 
 /** \} */
 
@@ -260,6 +264,27 @@ class Dialog : public QDialog {
     {
         return m_rappels;
     }
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name ToolButton
+ * \{ */
+
+class ToolButton : public QToolButton {
+    Q_OBJECT
+
+    QT_Rappels_ToolButton *m_rappels = nullptr;
+
+  public:
+    ToolButton(QT_Rappels_ToolButton *rappels, QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(ToolButton);
+
+    ~ToolButton() override;
+
+    DECLARE_SURCHARGES_EVENEMENTS_COMMUNS;
 };
 
 /** \} */
