@@ -44,7 +44,19 @@
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
         classe, QKeyEvent, keyReleaseEvent, QT_KeyEvent, sur_relachement_cle)                     \
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
-        classe, QContextMenuEvent, contextMenuEvent, QT_ContextMenuEvent, sur_menu_contexte)
+        classe, QContextMenuEvent, contextMenuEvent, QT_ContextMenuEvent, sur_menu_contexte)      \
+    IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
+        classe, QDragEnterEvent, dragEnterEvent, QT_DragEnterEvent, sur_entree_drag)              \
+    IMPLEMENTE_METHODE_EVENEMENT(classe, QDropEvent, dropEvent, QT_DropEvent, sur_drop)
+
+template <typename TypeRappels>
+static void autodefinis_supporte_drag_drop(QWidget *widget, TypeRappels *rappels)
+{
+    if (!rappels) {
+        return;
+    }
+    widget->setAcceptDrops(rappels->sur_drop != nullptr);
+}
 
 /* ------------------------------------------------------------------------- */
 /** \name Widget
@@ -52,6 +64,7 @@
 
 Widget::Widget(QT_Rappels_Widget *rappels, QWidget *parent) : QWidget(parent), m_rappels(rappels)
 {
+    autodefinis_supporte_drag_drop(this, m_rappels);
 }
 
 Widget::~Widget()
@@ -79,6 +92,7 @@ IMPLEMENTE_METHODES_EVENEMENTS(Widget)
 GLWidget::GLWidget(QT_Rappels_GLWidget *rappels, QWidget *parent)
     : QGLWidget(parent), m_rappels(rappels)
 {
+    autodefinis_supporte_drag_drop(this, m_rappels);
 }
 
 GLWidget::~GLWidget()
@@ -291,6 +305,7 @@ bool GraphicsView::focusNextPrevChild(bool /*next*/)
 PlainTextEdit::PlainTextEdit(QT_Rappels_PlainTextEdit *rappels, QWidget *parent)
     : QPlainTextEdit(parent), m_rappels(rappels)
 {
+    autodefinis_supporte_drag_drop(this, m_rappels);
 }
 
 PlainTextEdit::~PlainTextEdit()
@@ -336,6 +351,7 @@ IMPLEMENTE_METHODES_EVENEMENTS(Dialog)
 ToolButton::ToolButton(QT_Rappels_ToolButton *rappels, QWidget *parent)
     : QToolButton(parent), m_rappels(rappels)
 {
+    autodefinis_supporte_drag_drop(this, m_rappels);
 }
 
 ToolButton::~ToolButton()
