@@ -1758,7 +1758,13 @@ void QT_line_edit_definis_lecture_seule(struct QT_LineEdit *line_edit, bool ouin
 
 enum QT_Tool_Button_Style { ENUMERE_TOOL_BUTTON_STYLE(ENUMERE_DECLARATION_ENUM_IPA) };
 
+struct QT_Rappels_ToolButton {
+    RAPPELS_EVENEMENTS_COMMUNS(QT_ToolButton, QT_Rappels_ToolButton);
+};
+
 struct QT_ToolButton *QT_cree_tool_button(union QT_Generic_Widget parent);
+struct QT_ToolButton *QT_cree_tool_button_rappels(struct QT_Rappels_ToolButton *rappels,
+                                                  union QT_Generic_Widget parent);
 void QT_tool_button_definis_action_defaut(struct QT_ToolButton *tool_button,
                                           struct QT_Action *action);
 void QT_tool_button_definis_style(struct QT_ToolButton *tool_button,

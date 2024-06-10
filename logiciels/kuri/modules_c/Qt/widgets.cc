@@ -326,3 +326,23 @@ Dialog::~Dialog()
 IMPLEMENTE_METHODES_EVENEMENTS(Dialog)
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name ToolButton
+ * \{ */
+
+ToolButton::ToolButton(QT_Rappels_ToolButton *rappels, QWidget *parent)
+    : QToolButton(parent), m_rappels(rappels)
+{
+}
+
+ToolButton::~ToolButton()
+{
+    if (m_rappels && m_rappels->sur_destruction) {
+        m_rappels->sur_destruction(m_rappels);
+    }
+}
+
+IMPLEMENTE_METHODES_EVENEMENTS(ToolButton)
+
+/** \} */

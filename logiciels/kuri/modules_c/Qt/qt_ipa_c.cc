@@ -1919,6 +1919,17 @@ QT_ToolButton *QT_cree_tool_button(QT_Generic_Widget parent)
     return vers_ipa(new QToolButton(qparent));
 }
 
+QT_ToolButton *QT_cree_tool_button_rappels(QT_Rappels_ToolButton *rappels,
+                                           QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    auto résultat = vers_ipa(new ToolButton(rappels, qparent));
+    if (rappels) {
+        rappels->widget = résultat;
+    }
+    return résultat;
+}
+
 void QT_tool_button_definis_action_defaut(QT_ToolButton *tool_button, QT_Action *action)
 {
     VERS_QT(tool_button);
