@@ -1600,6 +1600,8 @@ PyModule_New :: fonc (name: chaine) -> *PyObject
 /** \nom Import Module.
  * \{ */
 
+PyImport_AddModule :: fonc (name: ChaineC) -> *PyObject #externe libpython
+
 PyImport_ImportModule :: fonc (name: ChaineC) -> *PyObject #externe libpython
 
 PyImport_ExecCodeModule :: fonc (name: ChaineC, co: *PyObject) -> *PyObject #externe libpython
