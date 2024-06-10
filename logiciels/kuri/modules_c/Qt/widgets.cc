@@ -42,7 +42,9 @@
         classe, QResizeEvent, resizeEvent, QT_ResizeEvent, sur_redimensionnement)                 \
     IMPLEMENTE_METHODE_EVENEMENT(classe, QKeyEvent, keyPressEvent, QT_KeyEvent, sur_pression_cle) \
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
-        classe, QKeyEvent, keyReleaseEvent, QT_KeyEvent, sur_relachement_cle)
+        classe, QKeyEvent, keyReleaseEvent, QT_KeyEvent, sur_relachement_cle)                     \
+    IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
+        classe, QContextMenuEvent, contextMenuEvent, QT_ContextMenuEvent, sur_menu_contexte)
 
 /* ------------------------------------------------------------------------- */
 /** \name Widget

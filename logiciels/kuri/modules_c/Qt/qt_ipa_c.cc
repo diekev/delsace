@@ -936,6 +936,31 @@ QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ContextMenuEvent
+ * \{ */
+
+void QT_context_menu_event_donne_position_globale(QT_ContextMenuEvent *event,
+                                                  QT_Position *r_position)
+{
+    VERS_QT(event);
+    if (r_position) {
+        r_position->x = qevent->globalPos().x();
+        r_position->y = qevent->globalPos().y();
+    }
+}
+
+void QT_context_menu_event_donne_position(QT_ContextMenuEvent *event, QT_Position *r_position)
+{
+    VERS_QT(event);
+    if (r_position) {
+        r_position->x = qevent->pos().x();
+        r_position->y = qevent->pos().y();
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Widget
  * \{ */
 

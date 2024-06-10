@@ -316,7 +316,8 @@ union QT_Generic_Layout {
     O(QMouseEvent, QT_MouseEvent, mouse_event)                                                    \
     O(QWheelEvent, QT_WheelEvent, wheel_event)                                                    \
     O(QResizeEvent, QT_ResizeEvent, resize_event)                                                 \
-    O(QKeyEvent, QT_KeyEvent, key_event)
+    O(QKeyEvent, QT_KeyEvent, key_event)                                                          \
+    O(QContextMenuEvent, QT_ContextMenuEvent, context_menu_event)
 
 #define PRODECLARE_TYPES_EVENTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_EVENTS(PRODECLARE_TYPES_EVENTS)
@@ -1369,6 +1370,17 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ContextMenuEvent
+ * \{ */
+
+void QT_context_menu_event_donne_position_globale(struct QT_ContextMenuEvent *event,
+                                                  struct QT_Position *r_position);
+void QT_context_menu_event_donne_position(struct QT_ContextMenuEvent *event,
+                                          struct QT_Position *r_position);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Widget
  * \{ */
 
@@ -1385,6 +1397,7 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
     void (*sur_redimensionnement)(struct type_rappels *, struct QT_ResizeEvent *);                \
     void (*sur_pression_cle)(struct type_rappels *, struct QT_KeyEvent *);                        \
     void (*sur_relachement_cle)(struct type_rappels *, struct QT_KeyEvent *);                     \
+    void (*sur_menu_contexte)(struct type_rappels *, struct QT_ContextMenuEvent *);               \
     void (*sur_destruction)(struct type_rappels *)
 
 struct QT_Rappels_Widget {
