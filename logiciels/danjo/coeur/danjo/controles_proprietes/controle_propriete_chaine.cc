@@ -68,12 +68,12 @@ void ControleProprieteChaineCaractere::ajourne_depuis_propriété()
 ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(BasePropriete *p,
                                                              int temps,
                                                              QWidget *parent)
-    : ControlePropriete(p, temps, parent), m_agencement(crée_vbox_layout()),
+    : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout()),
       m_editeur_ligne(new QTextEdit(this)),
       m_bouton(crée_bouton(IcônePourBouton::RAFRAICHIS_TEXTE, this))
 {
     m_agencement->addWidget(m_editeur_ligne);
-    m_agencement->addWidget(m_bouton);
+    m_agencement->addWidget(m_bouton, 0, Qt::AlignTop);
     this->setLayout(m_agencement);
 
     m_editeur_ligne->setText(m_propriete->evalue_chaine(m_temps).c_str());

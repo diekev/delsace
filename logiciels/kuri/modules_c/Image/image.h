@@ -100,6 +100,8 @@ struct ImageIO_Chaine {
     uint64_t taille;
 };
 
+void IMG_detruit_chaine(struct ImageIO_Chaine *chn);
+
 enum ImageIO_Options_Lecture {
     /* Lis les pixels de l'image. */
     IMAGEIO_OPTIONS_LECTURE_LIS_PIXELS = 1,
@@ -195,6 +197,8 @@ enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
                                                       int64_t taille_chemin,
                                                       struct AdaptriceImage *image,
                                                       struct ImageIO_RappelsProgression *rappels);
+
+struct ImageIO_Chaine IMG_donne_filtre_extensions();
 
 // ----------------------------------------------------------------------------
 // Simumlation de grain sur image

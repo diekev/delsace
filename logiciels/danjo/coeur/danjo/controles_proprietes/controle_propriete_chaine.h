@@ -57,7 +57,7 @@ class ControleProprieteChaineCaractere final : public ControlePropriete {
 class ControleProprieteEditeurTexte final : public ControlePropriete {
     Q_OBJECT
 
-    QVBoxLayout *m_agencement{};
+    QHBoxLayout *m_agencement{};
     QTextEdit *m_editeur_ligne{};
     QPushButton *m_bouton{};
 
