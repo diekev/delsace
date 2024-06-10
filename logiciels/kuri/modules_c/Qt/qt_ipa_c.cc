@@ -1742,6 +1742,27 @@ int QT_tab_widget_donne_compte_tabs(QT_TabWidget *tab_widget)
     return qtab_widget->count();
 }
 
+void QT_tab_widget_remplace_widget_page_courante(QT_TabWidget *tab_widget,
+                                                 QT_Generic_Widget widget)
+{
+    VERS_QT(tab_widget);
+    VERS_QT(widget);
+
+    auto index_courant = qtab_widget->currentIndex();
+
+    /* Sauvegarde les données. */
+    auto texte = qtab_widget->tabText(index_courant);
+    auto icon = qtab_widget->tabIcon(index_courant);
+    auto infobulle = qtab_widget->tabToolTip(index_courant);
+
+    qtab_widget->removeTab(index_courant);
+
+    auto nouvel_index = qtab_widget->insertTab(index_courant, qwidget, icon, texte);
+    qtab_widget->setTabToolTip(nouvel_index, infobulle);
+
+    qtab_widget->setCurrentIndex(nouvel_index);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
