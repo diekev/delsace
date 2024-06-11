@@ -3708,6 +3708,12 @@ double QT_doublespinbox_donne_valeur(QT_DoubleSpinBox *doublespinbox)
     return qdoublespinbox->value();
 }
 
+void QT_doublespinbox_definis_pas(QT_DoubleSpinBox *doublespinbox, double valeur)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setSingleStep(valeur);
+}
+
 void QT_doublespinbox_definis_lecture_seule(QT_DoubleSpinBox *doublespinbox, bool ouinon)
 {
     VERS_QT(doublespinbox);

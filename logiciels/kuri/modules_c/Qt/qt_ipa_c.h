@@ -2572,6 +2572,7 @@ void QT_doublespinbox_definis_plage(struct QT_DoubleSpinBox *doublespinbox,
                                     double maximum);
 void QT_doublespinbox_definis_valeur(struct QT_DoubleSpinBox *doublespinbox, double valeur);
 double QT_doublespinbox_donne_valeur(struct QT_DoubleSpinBox *doublespinbox);
+void QT_doublespinbox_definis_pas(struct QT_DoubleSpinBox *doublespinbox, double valeur);
 void QT_doublespinbox_definis_lecture_seule(struct QT_DoubleSpinBox *doublespinbox, bool ouinon);
 void QT_doublespinbox_definis_symboles_boutons(struct QT_DoubleSpinBox *doublespinbox,
                                                enum QT_SpinBox_Button_Symbols symbols);
