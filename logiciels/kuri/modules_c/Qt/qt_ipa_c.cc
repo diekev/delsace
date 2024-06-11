@@ -1037,6 +1037,30 @@ QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ResizeEvent
+ * \{ */
+
+void QT_resize_event_donne_vieille_taille(QT_ResizeEvent *event, QT_Taille *r_taille)
+{
+    VERS_QT(event);
+    if (r_taille) {
+        r_taille->hauteur = qevent->oldSize().height();
+        r_taille->largeur = qevent->oldSize().width();
+    }
+}
+
+void QT_resize_event_donne_taille(QT_ResizeEvent *event, QT_Taille *r_taille)
+{
+    VERS_QT(event);
+    if (r_taille) {
+        r_taille->hauteur = qevent->size().height();
+        r_taille->largeur = qevent->size().width();
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_ContextMenuEvent
  * \{ */
 

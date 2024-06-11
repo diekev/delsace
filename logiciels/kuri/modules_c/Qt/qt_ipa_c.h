@@ -1421,6 +1421,16 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ResizeEvent
+ * \{ */
+
+void QT_resize_event_donne_vieille_taille(struct QT_ResizeEvent *event,
+                                          struct QT_Taille *r_taille);
+void QT_resize_event_donne_taille(struct QT_ResizeEvent *event, struct QT_Taille *r_taille);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_ContextMenuEvent
  * \{ */
 
