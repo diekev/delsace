@@ -557,6 +557,19 @@ enum QT_DropAction QT_drag_exec(struct QT_Drag *drag);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ByteArray
+ * \{ */
+
+struct QT_ByteArray {
+    uint8_t *donnees;
+    uint64_t taille_donnees;
+};
+
+void QT_byte_array_detruit(struct QT_ByteArray *array);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_MimeData
  * \{ */
 

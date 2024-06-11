@@ -734,6 +734,21 @@ QT_DropAction QT_drag_exec(QT_Drag *drag)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ByteArray
+ * \{ */
+
+void QT_byte_array_detruit(QT_ByteArray *array)
+{
+    if (array) {
+        delete[] array->donnees;
+        array->donnees = nullptr;
+        array->taille_donnees = 0;
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_MimeData
  * \{ */
 
