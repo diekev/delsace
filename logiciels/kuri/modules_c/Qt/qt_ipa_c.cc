@@ -2016,6 +2016,12 @@ void QT_checkbox_definis_coche(QT_CheckBox *checkbox, int coche)
     qcheckbox->setChecked(bool(coche));
 }
 
+bool QT_checkbox_est_coche(QT_CheckBox *checkbox)
+{
+    auto qcheckbox = vers_qt(checkbox);
+    return qcheckbox->isChecked();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
