@@ -1802,6 +1802,7 @@ struct QT_Rappels_CheckBox {
 
 struct QT_CheckBox *QT_checkbox_cree(struct QT_Rappels_CheckBox *rappels,
                                      union QT_Generic_Widget parent);
+void QT_checkbox_definis_texte(struct QT_CheckBox *checkbox, struct QT_Chaine texte);
 void QT_checkbox_definis_coche(struct QT_CheckBox *checkbox, int coche);
 
 /** \} */

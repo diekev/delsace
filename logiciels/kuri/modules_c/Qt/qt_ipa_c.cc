@@ -2003,6 +2003,13 @@ QT_CheckBox *QT_checkbox_cree(QT_Rappels_CheckBox *rappels, QT_Generic_Widget pa
     return vers_ipa(résultat);
 }
 
+void QT_checkbox_definis_texte(QT_CheckBox *checkbox, QT_Chaine texte)
+{
+    VERS_QT(checkbox);
+    VERS_QT(texte);
+    qcheckbox->setText(qtexte);
+}
+
 void QT_checkbox_definis_coche(QT_CheckBox *checkbox, int coche)
 {
     auto qcheckbox = vers_qt(checkbox);
