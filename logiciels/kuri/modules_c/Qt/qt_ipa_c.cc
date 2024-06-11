@@ -768,6 +768,20 @@ void QT_mimedata_definis_donnee(QT_MimeData *mimedata,
                        QByteArray(reinterpret_cast<const char *>(donnees), int(taille_donnees)));
 }
 
+QT_ByteArray QT_mimedata_donne_donnee(QT_MimeData *mimedata, QT_Chaine mimetype)
+{
+    VERS_QT(mimedata);
+    VERS_QT(mimetype);
+
+    auto array = qmimedata->data(qmimetype);
+
+    QT_ByteArray résultat;
+    résultat.donnees = new uint8_t[array.size()];
+    résultat.taille_donnees = array.size();
+    memcpy(résultat.donnees, array.data(), array.size());
+    return résultat;
+}
+
 bool QT_mimedata_a_format(QT_MimeData *mimedata, QT_Chaine mimetype)
 {
     VERS_QT(mimedata);

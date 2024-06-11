@@ -579,6 +579,8 @@ void QT_mimedata_definis_donnee(struct QT_MimeData *mimedata,
                                 uint8_t *donnees,
                                 uint64_t taille_donnees);
 bool QT_mimedata_a_format(struct QT_MimeData *mimedata, struct QT_Chaine mimetype);
+struct QT_ByteArray QT_mimedata_donne_donnee(struct QT_MimeData *mimedata,
+                                             struct QT_Chaine mimetype);
 
 /** \} */
 
