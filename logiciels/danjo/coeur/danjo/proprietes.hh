@@ -70,6 +70,7 @@ class BasePropriete {
 
     virtual std::string donnne_infobulle() const = 0;
     virtual std::string donnne_suffixe() const = 0;
+    virtual std::string donne_filtre_extensions() const = 0;
 
     virtual int donne_dimensions_vecteur() const = 0;
 
@@ -148,6 +149,7 @@ struct Propriete : public BasePropriete {
 
     dls::chaine infobulle{};
     dls::chaine suffixe{};
+    dls::chaine filtre_extension{};
 
     static Propriete *cree(TypePropriete type);
 
@@ -182,6 +184,7 @@ struct Propriete : public BasePropriete {
 
     std::string donnne_infobulle() const override;
     std::string donnne_suffixe() const override;
+    std::string donne_filtre_extensions() const override;
 
     int donne_dimensions_vecteur() const override
     {
