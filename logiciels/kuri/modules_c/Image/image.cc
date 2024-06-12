@@ -752,22 +752,40 @@ ImageIO_Chaine IMG_donne_filtre_extensions()
 {
     auto map = OIIO::get_extension_map();
 
-    std::stringstream flux;
-
+    std::stringstream flux_tous_fichiers;
+    flux_tous_fichiers << "Images";
+    auto virgule = " (";
     for (auto const &pair : map) {
         for (auto const &v : pair.second) {
-            flux << "*." << v << ";";
+            flux_tous_fichiers << virgule << "*." << v;
+            virgule = " ";
         }
     }
+    flux_tous_fichiers << ");;";
 
-    auto str = flux.str();
-    auto caractères = new char[str.size()];
+    std::stringstream flux;
+    for (auto const &pair : map) {
+        flux << pair.first;
+        virgule = " (";
+        for (auto const &v : pair.second) {
+            flux << virgule << "*." << v;
+            virgule = " ";
+        }
+        flux << ");;";
+    }
 
-    memcpy(caractères, str.data(), str.size());
+    flux_tous_fichiers << flux.str();
+
+    auto const str = flux_tous_fichiers.str();
+    /* -2 pour supprimer les derniers point-virugles. */
+    auto const taille = str.size() - 2;
+    auto caractères = new char[taille];
+
+    memcpy(caractères, str.data(), taille);
 
     ImageIO_Chaine résultat;
     résultat.caractères = caractères;
-    résultat.taille = str.size();
+    résultat.taille = taille;
     return résultat;
 }
 

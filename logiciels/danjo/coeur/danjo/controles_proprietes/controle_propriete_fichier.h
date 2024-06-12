@@ -43,8 +43,6 @@ class SelecteurFichier : public ControlePropriete {
     QLineEdit *m_line_edit{};
     QPushButton *m_push_button{};
 
-    QString m_filtres{};
-
   public:
     explicit SelecteurFichier(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
@@ -53,8 +51,6 @@ class SelecteurFichier : public ControlePropriete {
     ~SelecteurFichier() = default;
 
     void setValue(const QString &text);
-
-    void ajourne_filtres(const QString &chaine);
 
     void ajourne_depuis_propriété() override;
 
@@ -74,8 +70,6 @@ class ControleProprieteFichier final : public SelecteurFichier {
     ~ControleProprieteFichier() override = default;
 
     EMPECHE_COPIE(ControleProprieteFichier);
-
-    void finalise(const DonneesControle &donnees) override;
 
   private Q_SLOTS:
     void ajourne_valeur_pointee(const QString &valeur);
