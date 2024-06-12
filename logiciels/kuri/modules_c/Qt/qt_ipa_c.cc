@@ -734,6 +734,21 @@ QT_DropAction QT_drag_exec(QT_Drag *drag)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ByteArray
+ * \{ */
+
+void QT_byte_array_detruit(QT_ByteArray *array)
+{
+    if (array) {
+        delete[] array->donnees;
+        array->donnees = nullptr;
+        array->taille_donnees = 0;
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_MimeData
  * \{ */
 
@@ -751,6 +766,20 @@ void QT_mimedata_definis_donnee(QT_MimeData *mimedata,
     VERS_QT(mimetype);
     qmimedata->setData(qmimetype,
                        QByteArray(reinterpret_cast<const char *>(donnees), int(taille_donnees)));
+}
+
+QT_ByteArray QT_mimedata_donne_donnee(QT_MimeData *mimedata, QT_Chaine mimetype)
+{
+    VERS_QT(mimedata);
+    VERS_QT(mimetype);
+
+    auto array = qmimedata->data(qmimetype);
+
+    QT_ByteArray résultat;
+    résultat.donnees = new uint8_t[array.size()];
+    résultat.taille_donnees = array.size();
+    memcpy(résultat.donnees, array.data(), array.size());
+    return résultat;
 }
 
 bool QT_mimedata_a_format(QT_MimeData *mimedata, QT_Chaine mimetype)
@@ -1003,6 +1032,30 @@ QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
     }
 
     return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ResizeEvent
+ * \{ */
+
+void QT_resize_event_donne_vieille_taille(QT_ResizeEvent *event, QT_Taille *r_taille)
+{
+    VERS_QT(event);
+    if (r_taille) {
+        r_taille->hauteur = qevent->oldSize().height();
+        r_taille->largeur = qevent->oldSize().width();
+    }
+}
+
+void QT_resize_event_donne_taille(QT_ResizeEvent *event, QT_Taille *r_taille)
+{
+    VERS_QT(event);
+    if (r_taille) {
+        r_taille->hauteur = qevent->size().height();
+        r_taille->largeur = qevent->size().width();
+    }
 }
 
 /** \} */
@@ -1950,10 +2003,23 @@ QT_CheckBox *QT_checkbox_cree(QT_Rappels_CheckBox *rappels, QT_Generic_Widget pa
     return vers_ipa(résultat);
 }
 
+void QT_checkbox_definis_texte(QT_CheckBox *checkbox, QT_Chaine texte)
+{
+    VERS_QT(checkbox);
+    VERS_QT(texte);
+    qcheckbox->setText(qtexte);
+}
+
 void QT_checkbox_definis_coche(QT_CheckBox *checkbox, int coche)
 {
     auto qcheckbox = vers_qt(checkbox);
     qcheckbox->setChecked(bool(coche));
+}
+
+bool QT_checkbox_est_coche(QT_CheckBox *checkbox)
+{
+    auto qcheckbox = vers_qt(checkbox);
+    return qcheckbox->isChecked();
 }
 
 /** \} */
@@ -3640,6 +3706,12 @@ double QT_doublespinbox_donne_valeur(QT_DoubleSpinBox *doublespinbox)
 {
     VERS_QT(doublespinbox);
     return qdoublespinbox->value();
+}
+
+void QT_doublespinbox_definis_pas(QT_DoubleSpinBox *doublespinbox, double valeur)
+{
+    VERS_QT(doublespinbox);
+    qdoublespinbox->setSingleStep(valeur);
 }
 
 void QT_doublespinbox_definis_lecture_seule(QT_DoubleSpinBox *doublespinbox, bool ouinon)
