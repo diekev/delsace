@@ -557,6 +557,19 @@ enum QT_DropAction QT_drag_exec(struct QT_Drag *drag);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ByteArray
+ * \{ */
+
+struct QT_ByteArray {
+    uint8_t *donnees;
+    uint64_t taille_donnees;
+};
+
+void QT_byte_array_detruit(struct QT_ByteArray *array);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_MimeData
  * \{ */
 
@@ -566,6 +579,8 @@ void QT_mimedata_definis_donnee(struct QT_MimeData *mimedata,
                                 uint8_t *donnees,
                                 uint64_t taille_donnees);
 bool QT_mimedata_a_format(struct QT_MimeData *mimedata, struct QT_Chaine mimetype);
+struct QT_ByteArray QT_mimedata_donne_donnee(struct QT_MimeData *mimedata,
+                                             struct QT_Chaine mimetype);
 
 /** \} */
 
@@ -1406,6 +1421,16 @@ struct QT_Chaine QT_key_event_donne_texte(struct QT_KeyEvent *event);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_ResizeEvent
+ * \{ */
+
+void QT_resize_event_donne_vieille_taille(struct QT_ResizeEvent *event,
+                                          struct QT_Taille *r_taille);
+void QT_resize_event_donne_taille(struct QT_ResizeEvent *event, struct QT_Taille *r_taille);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_ContextMenuEvent
  * \{ */
 
@@ -1777,7 +1802,9 @@ struct QT_Rappels_CheckBox {
 
 struct QT_CheckBox *QT_checkbox_cree(struct QT_Rappels_CheckBox *rappels,
                                      union QT_Generic_Widget parent);
+void QT_checkbox_definis_texte(struct QT_CheckBox *checkbox, struct QT_Chaine texte);
 void QT_checkbox_definis_coche(struct QT_CheckBox *checkbox, int coche);
+bool QT_checkbox_est_coche(struct QT_CheckBox *checkbox);
 
 /** \} */
 
@@ -2545,6 +2572,7 @@ void QT_doublespinbox_definis_plage(struct QT_DoubleSpinBox *doublespinbox,
                                     double maximum);
 void QT_doublespinbox_definis_valeur(struct QT_DoubleSpinBox *doublespinbox, double valeur);
 double QT_doublespinbox_donne_valeur(struct QT_DoubleSpinBox *doublespinbox);
+void QT_doublespinbox_definis_pas(struct QT_DoubleSpinBox *doublespinbox, double valeur);
 void QT_doublespinbox_definis_lecture_seule(struct QT_DoubleSpinBox *doublespinbox, bool ouinon);
 void QT_doublespinbox_definis_symboles_boutons(struct QT_DoubleSpinBox *doublespinbox,
                                                enum QT_SpinBox_Button_Symbols symbols);
@@ -2595,6 +2623,7 @@ struct DNJ_Rappels_Enveloppe_Parametre {
     bool (*est_visible)(struct DNJ_Rappels_Enveloppe_Parametre *);
     void (*donne_infobulle)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
     void (*donnne_suffixe)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+    void (*donne_filtre_extensions)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
     int (*donne_dimensions_vecteur)(struct DNJ_Rappels_Enveloppe_Parametre *);
 
     void (*cree_items_enum)(struct DNJ_Rappels_Enveloppe_Parametre *,
