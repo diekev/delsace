@@ -121,6 +121,16 @@ class EnveloppeParamètre final : public danjo::BasePropriete {
         return "";
     }
 
+    std::string donne_filtre_extensions() const override
+    {
+        if (m_rappels && m_rappels->donne_filtre_extensions) {
+            QT_Chaine résultat;
+            m_rappels->donne_filtre_extensions(m_rappels, &résultat);
+            return résultat.vers_std_string();
+        }
+        return "";
+    }
+
     int donne_dimensions_vecteur() const override
     {
         if (m_rappels && m_rappels->donne_dimensions_vecteur) {
