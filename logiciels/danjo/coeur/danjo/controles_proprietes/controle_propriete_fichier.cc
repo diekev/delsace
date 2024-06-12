@@ -61,7 +61,7 @@ void SelecteurFichier::setChoosenFile()
     QString chemin;
     QString caption = "";
     QString dir = "";
-    QString filtres = m_filtres;
+    QString filtres = m_propriete->donne_filtre_extensions().c_str();
 
     auto chemin_courant = m_line_edit->text();
     if (!chemin_courant.isEmpty()) {
@@ -93,11 +93,6 @@ void SelecteurFichier::lineEditChanged()
     Q_EMIT(valeur_changee(m_line_edit->text()));
 }
 
-void SelecteurFichier::ajourne_filtres(const QString &chaine)
-{
-    m_filtres = chaine;
-}
-
 void SelecteurFichier::ajourne_depuis_propriété()
 {
     m_line_edit->setText(m_propriete->evalue_chaine(m_temps).c_str());
@@ -111,11 +106,6 @@ ControleProprieteFichier::ControleProprieteFichier(BasePropriete *p, int temps, 
             &SelecteurFichier::valeur_changee,
             this,
             &ControleProprieteFichier::ajourne_valeur_pointee);
-}
-
-void ControleProprieteFichier::finalise(const DonneesControle &donnees)
-{
-    ajourne_filtres(donnees.filtres.c_str());
 }
 
 void ControleProprieteFichier::ajourne_valeur_pointee(const QString &valeur)

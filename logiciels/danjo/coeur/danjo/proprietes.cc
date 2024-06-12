@@ -122,6 +122,11 @@ std::string Propriete::donnne_suffixe() const
     return suffixe.c_str();
 }
 
+std::string Propriete::donne_filtre_extensions() const
+{
+    return filtre_extension.c_str();
+}
+
 /* Évaluation des valeurs. */
 
 bool Propriete::evalue_bool(int /*temps*/) const
