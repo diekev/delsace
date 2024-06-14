@@ -189,6 +189,113 @@ calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y:
     retourne résultat
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Empreinte différentielle.
+ *
+ * Réduis l'image en niveau de gris pour faire 9x8 pixels (8 bit par ligne).
+ * Pour chaque pixel de chaque ligne, le bit de l'empreinte est activé si la
+ * valeur dudit pixel est inférieure à la valeur du pixel suivant.
+ * Les lignes ont un pixel de plus pour la différence du dernier pixel (d'où la
+ * taille de 9x8 au lieu de 8x8).
+ *
+ * Les bits sont mis en place en grand boutisme, du haut-gauche au bas-droit de
+ * l'image.
+ * 
+ * Référence :
+ * https://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html
+ * \{ */
+
+calcule_empreinte_différentielle :: fonc (image: &ImageIO) -> n64
+{
+    gris := convertis_en_nuances_de_gris(image)
+    diffère détruit_image(gris)
+
+    tampon_gris := gris.donne_tampon_gris()
+
+    sortie: [9 * 8]r32 = ---
+    largeur_empreinte := 9
+    hauteur_empreinte := 8
+    tampon_empreinte: TamponImage(r32)
+    tampon_empreinte.données = *sortie[0]
+    tampon_empreinte.largeur = largeur_empreinte
+    tampon_empreinte.hauteur = hauteur_empreinte
+
+    rééchantillonne_prochain_voisin(tampon_gris, *tampon_empreinte)
+
+    empreinte: n64
+    bit : n64 = 63
+
+    pour y dans hauteur_empreinte {
+        pour x dans largeur_empreinte - 1 {
+            index := y * largeur_empreinte + x
+            
+            si sortie[index] < sortie[index + 1] {
+                empreinte |= (1 << bit) 
+            }
+
+            bit -= 1
+        }
+    }
+
+    retourne empreinte
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Empreinte moyenne.
+ *
+ * Réduis l'image en niveau de gris pour faire 8x8 pixels (1 valeur par bit
+ * d'empreinte). Pour chaque pixel, le bit de l'empreinte est activé si la
+ * valeur dudit pixel est inférieure à la valeur moyenne des pixels.
+ *
+ * Les bits sont mis en place en grand boutisme, du haut-gauche au bas-droit de
+ * l'image.
+ * 
+ * Référence :
+ * https://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
+ * \{ */
+
+calcule_empreinte_moyenne :: fonc (image: &ImageIO) -> n64
+{
+    gris := convertis_en_nuances_de_gris(image)
+    diffère détruit_image(gris)
+
+    tampon_gris := gris.donne_tampon_gris()
+
+    sortie: [8 * 8]r32 = ---
+    largeur_empreinte := 8
+    hauteur_empreinte := 8
+    tampon_empreinte: TamponImage(r32)
+    tampon_empreinte.données = *sortie[0]
+    tampon_empreinte.largeur = largeur_empreinte
+    tampon_empreinte.hauteur = hauteur_empreinte
+
+    rééchantillonne_prochain_voisin(tampon_gris, *tampon_empreinte)
+
+    moyenne: r32
+    pour sortie {
+        moyenne += it
+    }
+    moyenne /= sortie.taille comme r32
+
+    empreinte: n64
+    bit : n64 = 63
+
+    pour sortie {
+        si it < moyenne {
+            empreinte |= (1 << bit) 
+        }
+
+        bit -= 1
+    }
+
+    retourne empreinte
+}
+
+/** \} */
+
+
 convertis_en_nuances_de_gris :: fonc (image: &ImageIO) -> ImageIO
 {
     résultat := alloc_image(image.hauteur, image.largeur, 1)
