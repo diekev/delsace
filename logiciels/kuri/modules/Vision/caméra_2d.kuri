@@ -88,3 +88,17 @@ applique_pan :: fonc (empl caméra: *Caméra2D, dx: r32, dy: r32)
     pos_y -= dy / zoom
     besoin_ajournement = vrai
 }
+
+/* Retourne le niveau MIP d'une image qui devrait être affiché selon les paramètres de la caméra.
+ * Le niveau 0 est considéré comme étant l'image de base (2^0 = 1). */
+donne_niveau_image_mip :: fonc (empl caméra: *Caméra2D, largeur_image: z64) -> z32
+{
+    si largeur == 0 || zoom == 0.0 {
+        retourne 0
+    }
+
+    largeur_caméra := largeur comme r32 / zoom
+    ratio_image_caméra :=  min(1.0, (largeur_image comme r32) / largeur_caméra)
+    niveau_mip_map := (1.0 / ratio_image_caméra + 0.5) comme z32
+    retourne 31 - intrinsèque_compte_zéros_en_tête(niveau_mip_map comme n32)
+}
