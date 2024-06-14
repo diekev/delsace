@@ -71,7 +71,7 @@ nom_fichier :: fonc (chemin: &CheminFichier) -> chaine
 
 nom_fichier_avec_extension :: fonc (chemin: CheminFichier) -> chaine
 {
-    pos := trouve_caractère_depuis_la_fin(chemin.chn, '/')
+    pos := trouve_caractère_depuis_la_fin(chemin.chn, séparateur_chemin())
 
     si pos >= 0 {
         si pos > 0 {
@@ -498,7 +498,7 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
         tantque index < chn.taille {
             it = chn.pointeur[index]
 
-            si it == '/' {
+            si it == séparateur_chemin() {
                 arrête
             }
 
