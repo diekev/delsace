@@ -626,32 +626,6 @@ multiplyBasisFunction :: fonc (
     retourne *résultat_fonction_base[0]
 }
 
-linearTosRGB :: fonc (value: r32) -> z32
-{
-    v := max(0.0, min(1.0, value))
-
-    si v <= 0.0031308 {
-        retourne (v * 12.92 * 255.0 + 0.5) comme z32
-    }
-
-    retourne ((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5) comme z32
-}
-
-sRGBToLinear :: fonc (value: z32) -> r32
-{
-    v := value comme r32 / 255.0
-    retourne sRGBToLinear(v)
-}
-
-sRGBToLinear :: fonc (value: r32) -> r32
-{
-    si value <= 0.04045 {
-        retourne value / 12.92
-    }
-
-    retourne puissance((value + 0.055) / 1.055, 2.4)
-}
-
 encodeDC :: fonc (r: r32, g: r32, b: r32) -> z32
 {
     roundedR := linearTosRGB(r)
