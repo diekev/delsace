@@ -241,6 +241,54 @@ TamponImageGrise8Bit :: TamponImage(n8)
 TamponImageRVBA8Bit :: TamponImage(CouleurRVBAN8)
 TamponImageRVBA32Bit :: TamponImage(CouleurRVBA)
 
+donne_tampon_spectre :: fonc (image: &ImageIO) -> TamponImage(Spectre)
+{
+    résultat: TamponImage(Spectre) = ---
+    résultat.données = image.donnees comme *Spectre
+    résultat.largeur = image.largeur
+    résultat.hauteur = image.hauteur
+    retourne résultat
+}
+
+donne_tampon_rvba :: fonc (image: &ImageIO) -> TamponImage(CouleurRVBA)
+{
+    résultat: TamponImage(Spectre) = ---
+    résultat.données = image.donnees comme *CouleurRVBA
+    résultat.largeur = image.largeur
+    résultat.hauteur = image.hauteur
+    retourne résultat
+}
+
+imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(r32)) -> ImageIO
+{
+    résultat: ImageIO
+    résultat.donnees = tampon.données
+    résultat.largeur = tampon.largeur
+    résultat.hauteur = tampon.hauteur
+    résultat.nombre_composants = 1
+    retourne résultat
+}
+
+imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(Spectre)) -> ImageIO
+{
+    résultat: ImageIO
+    résultat.donnees = tampon.données comme *r32
+    résultat.largeur = tampon.largeur
+    résultat.hauteur = tampon.hauteur
+    résultat.nombre_composants = 3
+    retourne résultat
+}
+
+imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(CouleurRVBA)) -> ImageIO
+{
+    résultat: ImageIO
+    résultat.donnees = tampon.données comme *r32
+    résultat.largeur = tampon.largeur
+    résultat.hauteur = tampon.hauteur
+    résultat.nombre_composants = 4
+    retourne résultat
+}
+
 /*
 
 // tentative de l'implémentation en Kuri de https://github.com/woltapp/blurhash/tree/master/C
