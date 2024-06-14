@@ -3,15 +3,15 @@ importe Math
 
 Caméra2D :: struct {
     /* Dimension de la fenêtre en pixels. */
-    hauteur := 0 @mutable
-    largeur := 0 @mutable
+    hauteur := 0
+    largeur := 0
 
     /* Position mondiale. */
-    pos_x := 0.0 @mutable
-    pos_y := 0.0 @mutable
+    pos_x := 0.0
+    pos_y := 0.0
 
     /* Zoom. */
-    zoom := 1.0 @mutable
+    zoom := 1.0
 
     monde_vers_caméra: Mat4r
     projection: Mat4r
@@ -36,7 +36,7 @@ ajourne_matrice :: fonc (empl caméra: *Caméra2D)
     projection = crée_matrice_projection_orthographique(0.0, largeur_, 0.0, hauteur_, -1.0, 1.0)
 
     besoin_ajournement = faux
-} @Python "méthode"
+}
 
 modèle_vue_projection :: fonc (empl caméra: *Caméra2D) -> Mat4r
 {
