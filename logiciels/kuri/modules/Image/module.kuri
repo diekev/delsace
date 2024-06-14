@@ -289,6 +289,91 @@ imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(CouleurRVBA)) -> Ima
     retourne résultat
 }
 
+rééchantillonne_prochain_voisin :: fonc (entrée: TamponImage($T), sortie: *TamponImage(T))
+{
+    dlargeur := (entrée.largeur comme r32) / (sortie.largeur comme r32)
+    dhauteur := (entrée.hauteur comme r32) / (sortie.hauteur comme r32)
+
+    index_sortie := 0
+
+    pixels_entrée := entrée.données
+    pixels_sortie := sortie.données
+
+    pour y dans sortie.hauteur {
+        pour x dans sortie.largeur {
+            position_x := (x comme r32 * dlargeur) comme z32
+            position_y := (y comme r32 * dhauteur) comme z32
+
+            index_entrée := position_y * entrée.largeur + position_x
+
+            pixels_sortie[index_sortie] = pixels_entrée[index_entrée]
+            index_sortie += 1
+        }
+    }
+}
+
+rééchantillonne_linéaire :: fonc (entrée: TamponImage($T), sortie: *TamponImage(T))
+{
+    dlargeur := 1.0 / (sortie.largeur comme r32)
+    dhauteur := 1.0 / (sortie.hauteur comme r32)
+
+    index_sortie := 0
+
+    pixels_sortie := sortie.données
+
+    pour y dans sortie.hauteur {
+        pour x dans sortie.largeur {
+            position_x := x comme r32 * dlargeur
+            position_y := y comme r32 * dhauteur
+            pixels_sortie[index_sortie] = échantillon_linéaire(entrée, position_x, position_y)
+            index_sortie += 1
+        }
+    }
+}
+
+échantillon_linéaire :: fonc (entrée: TamponImage($T), x: r32, y: r32) -> T
+{
+    rx := entrée.largeur
+    ry := entrée.hauteur
+
+    /* Enveloppe pour que 0 <= (x, y) < 1. */
+    x = enveloppe(x)
+    y = enveloppe(y)
+
+    /* Convertis la position dans l'espace continu. */
+    xc := x * rx comme r32
+    yc := y * ry comme r32
+
+    i0 := part_entière(xc)
+    j0 := part_entière(yc)
+
+    i1 := i0 + 1
+    j1 := j0 + 1
+
+    frac_x := part_réelle(xc)
+    frac_y := part_réelle(yc)
+
+    i0 %= rx
+    j0 %= ry
+
+    i1 %= rx
+    j1 %= ry
+
+    idx0 := i0 + j0 * rx
+    idx1 := i1 + j0 * rx
+    idx2 := i0 + j1 * rx
+    idx3 := i1 + j1 * rx
+
+    grille := entrée.données
+
+    résultat: T
+    résultat += frac_x * frac_y * grille[idx0]
+    résultat += (1.0 - frac_x) * frac_y * grille[idx1]
+    résultat += frac_x * (1.0 - frac_y) * grille[idx2]
+    résultat += (1.0 - frac_x) * (1.0 - frac_y) * grille[idx3]
+    retourne résultat
+}
+
 /*
 
 // tentative de l'implémentation en Kuri de https://github.com/woltapp/blurhash/tree/master/C
