@@ -189,6 +189,48 @@ calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y:
     retourne résultat
 }
 
+convertis_en_nuances_de_gris :: fonc (image: &ImageIO) -> ImageIO
+{
+    résultat := alloc_image(image.hauteur, image.largeur, 1)
+    pixels_entrée := image.donnees
+    pixels_sortie := résultat.donnees
+
+    si image.nombre_composants == 1 {
+        copie_mem_nonsur(src = pixels_entrée, dst = pixels_sortie, taille = image.nombre_de_pixels() * taille_de(r32) comme z32)
+        retourne résultat
+    }
+
+    si image.nombre_composants == 2 {
+        pour image.nombre_de_pixels() {
+            r := mémoire(pixels_entrée)
+            v := mémoire(pixels_entrée + 1)
+           
+            mémoire(pixels_sortie) = (r + v) * 0.5
+
+            pixels_entrée += 2
+            pixels_sortie += 1
+        }
+
+        retourne résultat
+    }
+
+    assert(image.nombre_composants >= 3)
+
+    pour image.nombre_de_pixels() {
+        r := mémoire(pixels_entrée)
+        v := mémoire(pixels_entrée + 1)
+        b := mémoire(pixels_entrée + 2)
+
+        l := luminance(CouleurRVBA(r, v, b))
+        mémoire(pixels_sortie) = l
+
+        pixels_entrée += 3
+        pixels_sortie += 1
+    }
+
+    retourne résultat
+}
+
 TamponImage :: struct ($T: type_de_données) {
     données: *T
     largeur: z32
