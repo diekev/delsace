@@ -241,6 +241,15 @@ TamponImageGrise8Bit :: TamponImage(n8)
 TamponImageRVBA8Bit :: TamponImage(CouleurRVBAN8)
 TamponImageRVBA32Bit :: TamponImage(CouleurRVBA)
 
+donne_tampon_gris :: fonc (image: &ImageIO) -> TamponImage(r32)
+{
+    résultat: TamponImage(r32) = ---
+    résultat.données = image.donnees
+    résultat.largeur = image.largeur
+    résultat.hauteur = image.hauteur
+    retourne résultat
+}
+
 donne_tampon_spectre :: fonc (image: &ImageIO) -> TamponImage(Spectre)
 {
     résultat: TamponImage(Spectre) = ---
