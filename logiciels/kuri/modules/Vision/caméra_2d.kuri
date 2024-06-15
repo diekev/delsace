@@ -102,3 +102,29 @@ donne_niveau_image_mip :: fonc (empl caméra: *Caméra2D, largeur_image: z64) ->
     niveau_mip_map := (1.0 / ratio_image_caméra + 0.5) comme z32
     retourne 31 - intrinsèque_compte_zéros_en_tête(niveau_mip_map comme n32)
 }
+
+centre_sur_image :: fonc (empl caméra: *Caméra2D, largeur_image: z32, hauteur_image: z32, bordure := 0)
+{
+    largeur_image += 2 * bordure
+    hauteur_image += 2 * bordure
+
+    si largeur_image < largeur && hauteur_image < hauteur {
+        zoom = 1.0
+    }
+    sinon si largeur_image > hauteur_image {
+        zoom = largeur comme r32 / largeur_image comme r32
+    }
+    sinon {
+        zoom = hauteur comme r32 / hauteur_image comme r32
+    }
+
+    centre_x_image := (largeur_image / 2 - bordure) comme r32
+    centre_x_caméra := (largeur / 2) comme r32
+    pos_x = centre_x_image - centre_x_caméra / zoom
+
+    centre_y_image := (hauteur_image / 2 - bordure) comme r32
+    centre_y_caméra := (hauteur / 2) comme r32
+    pos_y = centre_y_image - centre_y_caméra / zoom
+
+    besoin_ajournement = vrai
+}
