@@ -430,18 +430,41 @@ rééchantillonne_prochain_voisin :: fonc (entrée: TamponImage($T), sortie: *Ta
 
 rééchantillonne_linéaire :: fonc (entrée: TamponImage($T), sortie: *TamponImage(T))
 {
-    dlargeur := 1.0 / (sortie.largeur comme r32)
-    dhauteur := 1.0 / (sortie.hauteur comme r32)
-
     index_sortie := 0
-
     pixels_sortie := sortie.données
 
-    pour y dans sortie.hauteur {
-        pour x dans sortie.largeur {
-            position_x := x comme r32 * dlargeur
-            position_y := y comme r32 * dhauteur
-            pixels_sortie[index_sortie] = échantillon_linéaire(entrée, position_x, position_y)
+    échelle_x := (entrée.largeur comme r32) / (sortie.largeur comme r32)
+    échelle_y := (entrée.hauteur comme r32) / (sortie.hauteur comme r32)
+
+    pour sy dans sortie.hauteur {
+        yc := sy comme r32 * échelle_y
+        frac_y := part_réelle(yc)
+        j0 := part_entière(yc)
+        j1 := j0 + 1
+
+        décalage_j0 := j0 * entrée.largeur
+        décalage_j1 := j1 * entrée.largeur
+
+        pour sx dans sortie.largeur {
+            xc := sx comme r32 * échelle_x
+            frac_x := part_réelle(xc)
+            i0 := part_entière(xc)
+            i1 := i0 + 1
+
+            idx0 := i0 + décalage_j0
+            idx1 := i1 + décalage_j0
+            idx2 := i0 + décalage_j1
+            idx3 := i1 + décalage_j1
+
+            grille := entrée.données
+
+            résultat: T
+            résultat += frac_x * frac_y * grille[idx0]
+            résultat += (1.0 - frac_x) * frac_y * grille[idx1]
+            résultat += frac_x * (1.0 - frac_y) * grille[idx2]
+            résultat += (1.0 - frac_x) * (1.0 - frac_y) * grille[idx3]
+
+            pixels_sortie[index_sortie] = résultat
             index_sortie += 1
         }
     }
