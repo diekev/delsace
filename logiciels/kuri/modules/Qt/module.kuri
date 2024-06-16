@@ -72,6 +72,11 @@ QT_yellow :: fonc () -> QT_Color #enligne
     retourne QT_Color(1.0, 1.0, 0.0, 1.0)
 }
 
+QT_blue :: fonc () -> QT_Color #enligne
+{
+    retourne QT_Color(0.0, 0.0, 1.0, 1.0)
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
