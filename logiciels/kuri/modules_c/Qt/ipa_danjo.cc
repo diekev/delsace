@@ -439,6 +439,8 @@ class Maconne_Disposition_Ligne : public DNJ_Maconne_Disposition_Ligne {
   public:
     Maconne_Disposition_Ligne(danjo::MaçonneDispositionLigne *maçonne);
 
+    EMPECHE_COPIE(Maconne_Disposition_Ligne);
+
     danjo::MaçonneDispositionLigne *donne_maçonne()
     {
         return m_maçonne;
@@ -478,6 +480,8 @@ class Maconne_Disposition_Colonne : public DNJ_Maconne_Disposition_Colonne {
 
   public:
     Maconne_Disposition_Colonne(danjo::MaçonneDispositionColonne *maçonne);
+
+    EMPECHE_COPIE(Maconne_Disposition_Colonne);
 
     danjo::MaçonneDispositionColonne *donne_maçonne()
     {
@@ -552,6 +556,8 @@ class Maconne_Disposition_Grille : public DNJ_Maconne_Disposition_Grille {
 
   public:
     Maconne_Disposition_Grille(danjo::MaçonneDispositionGrille *maçonne);
+
+    EMPECHE_COPIE(Maconne_Disposition_Grille);
 
     danjo::MaçonneDispositionGrille *donne_maçonne()
     {

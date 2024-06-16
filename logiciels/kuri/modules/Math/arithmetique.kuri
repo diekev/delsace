@@ -51,6 +51,8 @@ copie_signe :: fonc (a: r32, b: r32) -> r32 #externe libcmath "copysignf"
 copie_signe :: fonc (a: r64, b: r64) -> r64 #externe libcmath "copysign"
 log :: fonc (a: r32) -> r32 #externe libcmath "logf"
 log :: fonc (a: r64) -> r64 #externe libcmath
+log10 :: fonc (a: r32) -> r32 #externe libcmath "log10f"
+log10 :: fonc (a: r64) -> r64 #externe libcmath
 exp :: fonc (a: r32) -> r32 #externe libcmath "expf"
 exp :: fonc (a: r64) -> r64 #externe libcmath
 mod :: fonc (a: r32, b: r32) -> r32 #externe libcmath "fmodf"
