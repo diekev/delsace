@@ -255,6 +255,9 @@ parse_autorité :: fonc (uri: *URI) -> ErreurURI
         }
     }
     sinon {
+        si début == -1 {
+            début = 0
+        }
         composant_serveur := avance(uri.autorité, début)
 
         tente parse_info_serveur(uri, composant_serveur) piège err {
