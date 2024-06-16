@@ -1527,6 +1527,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
             valeur_retour = m_builder.CreateUnaryIntrinsic(llvm::Intrinsic::bswap, arg);
             break;
         }
+        case GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES:
+        {
+            break;
+        }
     }
 
     if (valeur_retour) {
