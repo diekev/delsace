@@ -189,6 +189,155 @@ calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y:
     retourne résultat
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Empreinte différentielle.
+ *
+ * Réduis l'image en niveau de gris pour faire 9x8 pixels (8 bit par ligne).
+ * Pour chaque pixel de chaque ligne, le bit de l'empreinte est activé si la
+ * valeur dudit pixel est inférieure à la valeur du pixel suivant.
+ * Les lignes ont un pixel de plus pour la différence du dernier pixel (d'où la
+ * taille de 9x8 au lieu de 8x8).
+ *
+ * Les bits sont mis en place en grand boutisme, du haut-gauche au bas-droit de
+ * l'image.
+ * 
+ * Référence :
+ * https://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html
+ * \{ */
+
+calcule_empreinte_différentielle :: fonc (image: &ImageIO) -> n64
+{
+    gris := convertis_en_nuances_de_gris(image)
+    diffère détruit_image(gris)
+
+    tampon_gris := gris.donne_tampon_gris()
+
+    sortie: [9 * 8]r32 = ---
+    largeur_empreinte := 9
+    hauteur_empreinte := 8
+    tampon_empreinte: TamponImage(r32)
+    tampon_empreinte.données = *sortie[0]
+    tampon_empreinte.largeur = largeur_empreinte
+    tampon_empreinte.hauteur = hauteur_empreinte
+
+    rééchantillonne_prochain_voisin(tampon_gris, *tampon_empreinte)
+
+    empreinte: n64
+    bit : n64 = 63
+
+    pour y dans hauteur_empreinte {
+        pour x dans largeur_empreinte - 1 {
+            index := y * largeur_empreinte + x
+            
+            si sortie[index] < sortie[index + 1] {
+                empreinte |= (1 << bit) 
+            }
+
+            bit -= 1
+        }
+    }
+
+    retourne empreinte
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Empreinte moyenne.
+ *
+ * Réduis l'image en niveau de gris pour faire 8x8 pixels (1 valeur par bit
+ * d'empreinte). Pour chaque pixel, le bit de l'empreinte est activé si la
+ * valeur dudit pixel est inférieure à la valeur moyenne des pixels.
+ *
+ * Les bits sont mis en place en grand boutisme, du haut-gauche au bas-droit de
+ * l'image.
+ * 
+ * Référence :
+ * https://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
+ * \{ */
+
+calcule_empreinte_moyenne :: fonc (image: &ImageIO) -> n64
+{
+    gris := convertis_en_nuances_de_gris(image)
+    diffère détruit_image(gris)
+
+    tampon_gris := gris.donne_tampon_gris()
+
+    sortie: [8 * 8]r32 = ---
+    largeur_empreinte := 8
+    hauteur_empreinte := 8
+    tampon_empreinte: TamponImage(r32)
+    tampon_empreinte.données = *sortie[0]
+    tampon_empreinte.largeur = largeur_empreinte
+    tampon_empreinte.hauteur = hauteur_empreinte
+
+    rééchantillonne_prochain_voisin(tampon_gris, *tampon_empreinte)
+
+    moyenne: r32
+    pour sortie {
+        moyenne += it
+    }
+    moyenne /= sortie.taille comme r32
+
+    empreinte: n64
+    bit : n64 = 63
+
+    pour sortie {
+        si it < moyenne {
+            empreinte |= (1 << bit) 
+        }
+
+        bit -= 1
+    }
+
+    retourne empreinte
+}
+
+/** \} */
+
+
+convertis_en_nuances_de_gris :: fonc (image: &ImageIO) -> ImageIO
+{
+    résultat := alloc_image(image.hauteur, image.largeur, 1)
+    pixels_entrée := image.donnees
+    pixels_sortie := résultat.donnees
+
+    si image.nombre_composants == 1 {
+        copie_mem_nonsur(src = pixels_entrée, dst = pixels_sortie, taille = image.nombre_de_pixels() * taille_de(r32) comme z32)
+        retourne résultat
+    }
+
+    si image.nombre_composants == 2 {
+        pour image.nombre_de_pixels() {
+            r := mémoire(pixels_entrée)
+            v := mémoire(pixels_entrée + 1)
+           
+            mémoire(pixels_sortie) = (r + v) * 0.5
+
+            pixels_entrée += 2
+            pixels_sortie += 1
+        }
+
+        retourne résultat
+    }
+
+    assert(image.nombre_composants >= 3)
+
+    pour image.nombre_de_pixels() {
+        r := mémoire(pixels_entrée)
+        v := mémoire(pixels_entrée + 1)
+        b := mémoire(pixels_entrée + 2)
+
+        l := luminance(CouleurRVBA(r, v, b))
+        mémoire(pixels_sortie) = l
+
+        pixels_entrée += 3
+        pixels_sortie += 1
+    }
+
+    retourne résultat
+}
+
 TamponImage :: struct ($T: type_de_données) {
     données: *T
     largeur: z32
@@ -198,6 +347,171 @@ TamponImage :: struct ($T: type_de_données) {
 TamponImageGrise8Bit :: TamponImage(n8)
 TamponImageRVBA8Bit :: TamponImage(CouleurRVBAN8)
 TamponImageRVBA32Bit :: TamponImage(CouleurRVBA)
+
+donne_tampon_gris :: fonc (image: &ImageIO) -> TamponImage(r32)
+{
+    résultat: TamponImage(r32) = ---
+    résultat.données = image.donnees
+    résultat.largeur = image.largeur
+    résultat.hauteur = image.hauteur
+    retourne résultat
+}
+
+donne_tampon_spectre :: fonc (image: &ImageIO) -> TamponImage(Spectre)
+{
+    résultat: TamponImage(Spectre) = ---
+    résultat.données = image.donnees comme *Spectre
+    résultat.largeur = image.largeur
+    résultat.hauteur = image.hauteur
+    retourne résultat
+}
+
+donne_tampon_rvba :: fonc (image: &ImageIO) -> TamponImage(CouleurRVBA)
+{
+    résultat: TamponImage(Spectre) = ---
+    résultat.données = image.donnees comme *CouleurRVBA
+    résultat.largeur = image.largeur
+    résultat.hauteur = image.hauteur
+    retourne résultat
+}
+
+imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(r32)) -> ImageIO
+{
+    résultat: ImageIO
+    résultat.donnees = tampon.données
+    résultat.largeur = tampon.largeur
+    résultat.hauteur = tampon.hauteur
+    résultat.nombre_composants = 1
+    retourne résultat
+}
+
+imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(Spectre)) -> ImageIO
+{
+    résultat: ImageIO
+    résultat.donnees = tampon.données comme *r32
+    résultat.largeur = tampon.largeur
+    résultat.hauteur = tampon.hauteur
+    résultat.nombre_composants = 3
+    retourne résultat
+}
+
+imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(CouleurRVBA)) -> ImageIO
+{
+    résultat: ImageIO
+    résultat.donnees = tampon.données comme *r32
+    résultat.largeur = tampon.largeur
+    résultat.hauteur = tampon.hauteur
+    résultat.nombre_composants = 4
+    retourne résultat
+}
+
+rééchantillonne_prochain_voisin :: fonc (entrée: TamponImage($T), sortie: *TamponImage(T))
+{
+    dlargeur := (entrée.largeur comme r32) / (sortie.largeur comme r32)
+    dhauteur := (entrée.hauteur comme r32) / (sortie.hauteur comme r32)
+
+    index_sortie := 0
+
+    pixels_entrée := entrée.données
+    pixels_sortie := sortie.données
+
+    pour y dans sortie.hauteur {
+        pour x dans sortie.largeur {
+            position_x := (x comme r32 * dlargeur) comme z32
+            position_y := (y comme r32 * dhauteur) comme z32
+
+            index_entrée := position_y * entrée.largeur + position_x
+
+            pixels_sortie[index_sortie] = pixels_entrée[index_entrée]
+            index_sortie += 1
+        }
+    }
+}
+
+rééchantillonne_linéaire :: fonc (entrée: TamponImage($T), sortie: *TamponImage(T))
+{
+    index_sortie := 0
+    pixels_sortie := sortie.données
+
+    échelle_x := (entrée.largeur comme r32) / (sortie.largeur comme r32)
+    échelle_y := (entrée.hauteur comme r32) / (sortie.hauteur comme r32)
+
+    pour sy dans sortie.hauteur {
+        yc := sy comme r32 * échelle_y
+        frac_y := part_réelle(yc)
+        j0 := part_entière(yc)
+        j1 := j0 + 1
+
+        décalage_j0 := j0 * entrée.largeur
+        décalage_j1 := j1 * entrée.largeur
+
+        pour sx dans sortie.largeur {
+            xc := sx comme r32 * échelle_x
+            frac_x := part_réelle(xc)
+            i0 := part_entière(xc)
+            i1 := i0 + 1
+
+            idx0 := i0 + décalage_j0
+            idx1 := i1 + décalage_j0
+            idx2 := i0 + décalage_j1
+            idx3 := i1 + décalage_j1
+
+            grille := entrée.données
+
+            résultat: T
+            résultat += frac_x * frac_y * grille[idx0]
+            résultat += (1.0 - frac_x) * frac_y * grille[idx1]
+            résultat += frac_x * (1.0 - frac_y) * grille[idx2]
+            résultat += (1.0 - frac_x) * (1.0 - frac_y) * grille[idx3]
+
+            pixels_sortie[index_sortie] = résultat
+            index_sortie += 1
+        }
+    }
+}
+
+échantillon_linéaire :: fonc (entrée: TamponImage($T), x: r32, y: r32) -> T
+{
+    rx := entrée.largeur
+    ry := entrée.hauteur
+
+    /* Enveloppe pour que 0 <= (x, y) < 1. */
+    x = enveloppe(x)
+    y = enveloppe(y)
+
+    /* Convertis la position dans l'espace continu. */
+    xc := x * rx comme r32
+    yc := y * ry comme r32
+
+    i0 := part_entière(xc)
+    j0 := part_entière(yc)
+
+    i1 := i0 + 1
+    j1 := j0 + 1
+
+    frac_x := part_réelle(xc)
+    frac_y := part_réelle(yc)
+
+    i0 %= rx
+    j0 %= ry
+
+    i1 %= rx
+    j1 %= ry
+
+    idx0 := i0 + j0 * rx
+    idx1 := i1 + j0 * rx
+    idx2 := i0 + j1 * rx
+    idx3 := i1 + j1 * rx
+
+    grille := entrée.données
+
+    résultat: T
+    résultat += frac_x * frac_y * grille[idx0]
+    résultat += (1.0 - frac_x) * frac_y * grille[idx1]
+    résultat += frac_x * (1.0 - frac_y) * grille[idx2]
+    résultat += (1.0 - frac_x) * (1.0 - frac_y) * grille[idx3]
+    retourne résultat
+}
 
 /*
 
@@ -333,32 +647,6 @@ multiplyBasisFunction :: fonc (
     résultat_fonction_base[2] = b * scale
 
     retourne *résultat_fonction_base[0]
-}
-
-linearTosRGB :: fonc (value: r32) -> z32
-{
-    v := max(0.0, min(1.0, value))
-
-    si v <= 0.0031308 {
-        retourne (v * 12.92 * 255.0 + 0.5) comme z32
-    }
-
-    retourne ((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5) comme z32
-}
-
-sRGBToLinear :: fonc (value: z32) -> r32
-{
-    v := value comme r32 / 255.0
-    retourne sRGBToLinear(v)
-}
-
-sRGBToLinear :: fonc (value: r32) -> r32
-{
-    si value <= 0.04045 {
-        retourne value / 12.92
-    }
-
-    retourne puissance((value + 0.055) / 1.055, 2.4)
 }
 
 encodeDC :: fonc (r: r32, g: r32, b: r32) -> z32
