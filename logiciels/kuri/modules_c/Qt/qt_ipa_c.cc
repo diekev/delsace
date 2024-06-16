@@ -774,11 +774,12 @@ QT_ByteArray QT_mimedata_donne_donnee(QT_MimeData *mimedata, QT_Chaine mimetype)
     VERS_QT(mimetype);
 
     auto array = qmimedata->data(qmimetype);
+    auto taille = uint64_t(array.size());
 
     QT_ByteArray résultat;
-    résultat.donnees = new uint8_t[array.size()];
-    résultat.taille_donnees = array.size();
-    memcpy(résultat.donnees, array.data(), array.size());
+    résultat.donnees = new uint8_t[taille];
+    résultat.taille_donnees = taille;
+    memcpy(résultat.donnees, array.data(), taille);
     return résultat;
 }
 
@@ -855,7 +856,7 @@ static QT_Event_Type convertis_type_évènement(QEvent::Type type)
         ENUMERE_EVENT_TYPE(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA);
         default:
         {
-            return (QT_Event_Type)type;
+            return QT_Event_Type(type);
         }
     }
 }
@@ -1435,7 +1436,7 @@ QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget pa
 {
     auto qparent = vers_qt(parent);
     auto résultat = vers_ipa(new GLWidget(rappels, qparent));
-    if (rappels->widget) {
+    if (rappels) {
         rappels->widget = résultat;
     }
     return résultat;
