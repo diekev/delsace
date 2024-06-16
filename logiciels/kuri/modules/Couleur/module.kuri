@@ -380,4 +380,12 @@ linéaire_vers_srgb :: fonc (value: r32) -> z32
     retourne ((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5) comme z32
 }
 
+srgb_vers_linéaire :: fonc (valeur: r32) -> r32
+{
+    si valeur > 0.04045 {
+        retourne puissance((valeur + 0.055) / 1.055, 2.4)
+    }
+    retourne valeur / 12.92
+}
+
 /** \} */

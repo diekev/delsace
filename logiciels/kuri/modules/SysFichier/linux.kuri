@@ -316,6 +316,16 @@ crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> Optionnel(
     retourne donne_erreur_si_résultat_invalide(résultat)
 }
 
+// enveloppe autour de crée_lien_symbolique, car nous n'avons pas de système pour ignorer une erreur, un bloc de piège devant toujours retourner...
+crée_lien_symbolique_ex :: fonc (cible: CheminFichier, chemin_lien: CheminFichier) -> bool
+{
+    tente crée_lien_symbolique(cible.chn, chemin_lien.chn) piège err {
+        retourne err == ErreurFichier.FichierExisteDéjà
+    }
+
+    retourne vrai
+}
+
 // À FAIRE : tests
 système_crée_dossier :: fonc (chemin_dossier: chaine, mode: z32) -> Optionnel(ErreurFichier)
 {

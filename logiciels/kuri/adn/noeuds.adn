@@ -433,7 +433,7 @@ struct NoeudExpressionUnaire : NoeudExpression {
     @genre_valeur DROITE
 
     NoeudExpression *opérande [code enfant construction]
-    OpérateurUnaire const *op
+    OpérateurUnaire const *op [copie]
 }
 
 struct NoeudExpressionPriseAdresse : NoeudExpression {
@@ -471,8 +471,8 @@ struct NoeudExpressionBinaire : NoeudExpression {
 
     NoeudExpression *opérande_gauche [code enfant construction]
     NoeudExpression *opérande_droite [code enfant construction]
-    OpérateurBinaire const *op
-    bool permute_opérandes
+    OpérateurBinaire const *op [copie]
+    bool permute_opérandes [copie]
 }
 
 struct NoeudExpressionComparaisonChainée : NoeudExpressionBinaire {
