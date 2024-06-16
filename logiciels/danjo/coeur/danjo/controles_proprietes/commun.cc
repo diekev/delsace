@@ -51,6 +51,8 @@ static const char *donne_texte_pour_icône(const IcônePourBouton icône)
             return "Supprime";
         }
     }
+
+    return "";
 }
 
 static const char *donne_infobulle_pour_icône(const IcônePourBouton icône)
@@ -93,6 +95,8 @@ static const char *donne_infobulle_pour_icône(const IcônePourBouton icône)
             return "Supprime l'élément";
         }
     }
+
+    return "";
 }
 
 static std::optional<QIcon> donne_icone_pour_bouton(const IcônePourBouton icône, QStyle *style)
