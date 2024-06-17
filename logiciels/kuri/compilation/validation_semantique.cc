@@ -6047,7 +6047,8 @@ static bool est_appel_coroutine(const NoeudExpression *itérand)
     auto const appel = itérand->comme_appel();
     auto const fonction_appelee = appel->noeud_fonction_appelée;
 
-    if (!fonction_appelee->est_entête_fonction()) {
+    /* fonction_appelee peut être nulle pour les appels de pointeur de membre. */
+    if (!fonction_appelee || !fonction_appelee->est_entête_fonction()) {
         return false;
     }
 
