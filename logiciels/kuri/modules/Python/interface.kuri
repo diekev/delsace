@@ -1570,6 +1570,12 @@ PyDict_Values :: fonc (p: *PyObject) -> *PyObject #externe libpython
 PyDict_Merge :: fonc (a: *PyObject, b: *PyObject, override: z32) -> z32 #externe libpython
 PyDict_Update :: fonc (a: *PyObject, b: *PyObject) -> z32 #externe libpython
 
+PyDict_SetItem :: fonc (p: *PyObject, key: chaine, val: *PyObject) -> z32
+{
+    ckey := PyUnicode_FromChaine(key)
+    retourne PyDict_SetItem(p, ckey, val)
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
