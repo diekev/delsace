@@ -40,9 +40,24 @@ class QT_Creatrice_Barre_Menu : public ::QT_Creatrice_Barre_Menu {
         }
     }
 
-    static void ajoute_action_impl(::QT_Creatrice_Barre_Menu *créatrice,
-                                   QT_Chaine *nom,
-                                   QT_Chaine *données)
+    static void ajoute_action_impl(::QT_Creatrice_Barre_Menu *créatrice, QT_Action *données)
+    {
+        auto impl = static_cast<QT_Creatrice_Barre_Menu *>(créatrice);
+        if (impl->m_menus.empty()) {
+            return;
+        }
+
+        auto menu = impl->m_menus.top();
+        auto action = reinterpret_cast<QAction *>(données);
+        menu->addAction(action);
+
+        auto fenêtre = impl->m_fenêtre_principale;
+        fenêtre->connect(action, SIGNAL(triggered(bool)), fenêtre, SLOT(repond_clique_menu()));
+    }
+
+    static void ajoute_action_chaine_impl(::QT_Creatrice_Barre_Menu *créatrice,
+                                          QT_Chaine *nom,
+                                          QT_Chaine *données)
     {
         auto impl = static_cast<QT_Creatrice_Barre_Menu *>(créatrice);
         if (impl->m_menus.empty()) {
@@ -68,6 +83,17 @@ class QT_Creatrice_Barre_Menu : public ::QT_Creatrice_Barre_Menu {
         menu->addSeparator();
     }
 
+    static void ajoute_section_impl(::QT_Creatrice_Barre_Menu *créatrice, QT_Chaine *nom)
+    {
+        auto impl = static_cast<QT_Creatrice_Barre_Menu *>(créatrice);
+        if (impl->m_menus.empty()) {
+            return;
+        }
+
+        auto menu = impl->m_menus.top();
+        menu->addSection(nom->vers_std_string().c_str());
+    }
+
     static void termine_menu_impl(::QT_Creatrice_Barre_Menu *créatrice)
     {
         auto impl = static_cast<QT_Creatrice_Barre_Menu *>(créatrice);
@@ -83,7 +109,9 @@ class QT_Creatrice_Barre_Menu : public ::QT_Creatrice_Barre_Menu {
     {
         commence_menu = commence_menu_impl;
         ajoute_action = ajoute_action_impl;
+        ajoute_action_chaine = ajoute_action_chaine_impl;
         ajoute_separateur = ajoute_separateur_impl;
+        ajoute_section = ajoute_section_impl;
         termine_menu = termine_menu_impl;
     }
 
