@@ -1771,6 +1771,12 @@ QT_Chaine QT_combobox_donne_valeur_courante_chaine(QT_ComboBox *combo)
     return résultat;
 }
 
+void QT_combobox_definis_modifiable(QT_ComboBox *combo, bool ouinon)
+{
+    VERS_QT(combo);
+    qcombo->setEditable(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
