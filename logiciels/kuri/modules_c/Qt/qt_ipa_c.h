@@ -367,10 +367,12 @@ union QT_Generic_GraphicsItem {
 
 struct QT_Creatrice_Barre_Menu {
     void (*commence_menu)(struct QT_Creatrice_Barre_Menu *, struct QT_Chaine *);
-    void (*ajoute_action)(struct QT_Creatrice_Barre_Menu *,
-                          struct QT_Chaine *,
-                          struct QT_Chaine *);
+    void (*ajoute_action_chaine)(struct QT_Creatrice_Barre_Menu *,
+                                 struct QT_Chaine *,
+                                 struct QT_Chaine *);
+    void (*ajoute_action)(struct QT_Creatrice_Barre_Menu *, struct QT_Action *);
     void (*ajoute_separateur)(struct QT_Creatrice_Barre_Menu *);
+    void (*ajoute_section)(struct QT_Creatrice_Barre_Menu *, struct QT_Chaine *);
     void (*termine_menu)(struct QT_Creatrice_Barre_Menu *);
 };
 

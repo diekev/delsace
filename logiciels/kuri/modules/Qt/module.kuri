@@ -72,6 +72,11 @@ QT_yellow :: fonc () -> QT_Color #enligne
     retourne QT_Color(1.0, 1.0, 0.0, 1.0)
 }
 
+QT_blue :: fonc () -> QT_Color #enligne
+{
+    retourne QT_Color(0.0, 0.0, 1.0, 1.0)
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -134,6 +139,46 @@ définis_valeur :: fonc (variant: *QT_Variant, valeur: $T)
             }
         }
     }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom QT_Creatrice_Barre_Menu
+ * \{ */
+
+commence_menu_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu, titre: chaine)
+{
+    qtitre := vers_qt(titre)
+    créatrice.commence_menu(créatrice, *qtitre)
+}
+
+ajoute_action_chaine_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu, titre: chaine, données: chaine)
+{
+    qtitre := vers_qt(titre)
+    qdonnées := vers_qt(données)
+    créatrice.ajoute_action_chaine(créatrice, *qtitre, *qdonnées)
+}
+
+ajoute_action_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu, action: *QT_Action)
+{
+    créatrice.ajoute_action(créatrice, action)
+}
+
+ajoute_separateur_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu)
+{
+    créatrice.ajoute_separateur(créatrice)
+}
+
+ajoute_section_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu, titre: chaine)
+{
+    qtitre := vers_qt(titre)
+    créatrice.ajoute_section(créatrice, *qtitre)
+}
+
+termine_menu_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu)
+{
+    créatrice.termine_menu(créatrice)
 }
 
 /** } */
