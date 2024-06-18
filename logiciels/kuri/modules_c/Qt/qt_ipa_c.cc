@@ -11,6 +11,7 @@
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
 #include <QApplication>
+#include <QClipboard>
 #include <QCoreApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -499,6 +500,11 @@ void QT_application_beep()
     QApplication::beep();
 }
 
+QT_Clipboard *QT_application_donne_clipboard()
+{
+    return vers_ipa(QApplication::clipboard());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -788,6 +794,31 @@ bool QT_mimedata_a_format(QT_MimeData *mimedata, QT_Chaine mimetype)
     VERS_QT(mimedata);
     VERS_QT(mimetype);
     return qmimedata->hasFormat(qmimetype);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Clipboard
+ * \{ */
+
+QT_MimeData *QT_clipboard_donne_mimedata(QT_Clipboard *clipboard)
+{
+    VERS_QT(clipboard);
+    return vers_ipa(const_cast<QMimeData *>(qclipboard->mimeData()));
+}
+
+void QT_clipboard_definis_mimedata(QT_Clipboard *clipboard, QT_MimeData *mimedata)
+{
+    VERS_QT(clipboard);
+    VERS_QT(mimedata);
+    qclipboard->setMimeData(qmimedata);
+}
+
+void QT_clipboard_efface(QT_Clipboard *clipboard)
+{
+    VERS_QT(clipboard);
+    qclipboard->clear();
 }
 
 /** \} */

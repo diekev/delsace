@@ -232,7 +232,8 @@ union QT_Generic_ItemModel {
     O(QSettings, QT_Settings, settings)                                                           \
     O(QAction, QT_Action, action)                                                                 \
     O(QDrag, QT_Drag, drag)                                                                       \
-    O(QMimeData, QT_MimeData, mimedata)
+    O(QMimeData, QT_MimeData, mimedata)                                                           \
+    O(QClipboard, QT_Clipboard, clipboard)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -456,6 +457,7 @@ void QT_application_sur_fin_boucle_evenement(struct QT_Application *app,
                                              struct QT_Rappel_Generique *rappel);
 
 void QT_application_beep();
+struct QT_Clipboard *QT_application_donne_clipboard();
 
 /** \} */
 
@@ -583,6 +585,16 @@ void QT_mimedata_definis_donnee(struct QT_MimeData *mimedata,
 bool QT_mimedata_a_format(struct QT_MimeData *mimedata, struct QT_Chaine mimetype);
 struct QT_ByteArray QT_mimedata_donne_donnee(struct QT_MimeData *mimedata,
                                              struct QT_Chaine mimetype);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Clipboard
+ * \{ */
+
+struct QT_MimeData *QT_clipboard_donne_mimedata(struct QT_Clipboard *clipboard);
+void QT_clipboard_definis_mimedata(struct QT_Clipboard *clipboard, struct QT_MimeData *mimedata);
+void QT_clipboard_efface(struct QT_Clipboard *clipboard);
 
 /** \} */
 
