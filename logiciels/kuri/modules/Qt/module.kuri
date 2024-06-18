@@ -244,6 +244,14 @@ donne_clique_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, act
     retourne résultat
 }
 
+donne_raccourcis_clavier :: fonc (évènement: *QT_KeyEvent) -> RaccourcisClavier
+{
+    résultat: RaccourcisClavier
+    résultat.clé = table_conversion_clé[QT_key_event_donne_cle(évènement)]
+    résultat.modificateur = donne_modificateur_clavier_depuis_qt()
+    retourne résultat
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
