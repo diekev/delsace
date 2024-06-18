@@ -203,11 +203,11 @@ crée_rectangle_pos_dim :: fonc (a: Point2D($T), b: Point2D(T)) -> RectanglePosD
     hauteur := a.y - b.y
     largeur := a.x - b.x
 
-    si hauteur < 0.0 {
+    si largeur < 0.0 {
         largeur = -largeur
     }
     si hauteur < 0.0 {
-        largeur = -largeur
+        hauteur = -hauteur
     }
 
     retourne RectanglePosDim(T)(x, y, hauteur, largeur)
