@@ -252,6 +252,9 @@ AdaptriceÉléments :: struct {
     /* Doit retourner le rectangle de sélection de l'élément à l'index donné.
      * L'index est dans [0, donne_nombre_élément() - 1] */
     donne_rectangle: fonc(*AdaptriceÉléments, z64)(RectanglePosDim(r32))
+    /* Doit retourner si l'éléème à l'index donné intersecte le rectangle.
+     * L'index est dans [0, donne_nombre_élément() - 1] */
+    intersecte_rectangle: fonc(*AdaptriceÉléments, z64, RectanglePosDim(r32))(bool)
 }
 
 /** \} */
@@ -303,6 +306,13 @@ crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *G
         rect_chemin := crée_rectangle_pos_dim(a, b)
 
         pour adaptrice.donne_nombre_éléments(adaptrice) {
+            si adaptrice.intersecte_rectangle {
+                si adaptrice.intersecte_rectangle(adaptrice, index_it, rect_chemin) {
+                    ensemble_ajoute(*résultat, index_it comme z32)
+                }
+                continue
+            }
+
             rect := adaptrice.donne_rectangle(adaptrice, index_it)
 
             si rect_chemin.intersecte(rect) {
