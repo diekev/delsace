@@ -65,6 +65,8 @@ ParamètreMéthodePython :: struct {
     /* Pour les fonctions qui retourne Résultat() */
     type_est_résultat: bool
     type_erreur: *TypePython
+
+    valeur_défaut: *NoeudCode
 }
 
 MéthodePython :: struct {
@@ -96,11 +98,37 @@ ne_retourne_rien :: fonc (méthode: &MéthodePython) -> bool
 
 convertis_paramètre :: fonc (param: *NoeudCode, système_type: &SystèmeType) -> ParamètreMéthodePython
 {
+    valeur_défaut: *NoeudCode
+    si param.genre == GenreNoeud.DÉCLARATION_VARIABLE {
+        déclaration := param comme *NoeudCodeDéclarationVariable
+        si déclaration.expression && !est_valeur_défaut_supportée(déclaration.expression) {
+            compilatrice_rapporte_erreur(param, "Valeur défaut non supportée par Python")
+        }
+        valeur_défaut = déclaration.expression
+    }
     résultat: ParamètreMéthodePython
     résultat.nom = param.nom
+    résultat.valeur_défaut = valeur_défaut
     résultat.type = système_type.convertis_vers_type_python(param.type)
     résultat.param_originel_est_pointeur = param.type.id == GenreInfoType.POINTEUR
     retourne résultat
+}
+
+est_valeur_défaut_supportée :: fonc (expression: *NoeudCode) -> bool
+{
+    discr expression.genre {
+        EXPRESSION_LITTÉRALE_NUL,
+        EXPRESSION_LITTÉRALE_BOOLÉEN,
+        EXPRESSION_LITTÉRALE_NOMBRE_ENTIER,
+        EXPRESSION_LITTÉRALE_NOMBRE_RÉEL,
+        EXPRESSION_LITTÉRALE_CHAINE,
+        EXPRESSION_LITTÉRALE_CARACTÈRE {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 // ignore_premier_paramètre est pour les fonctions d'allocation, etc.
