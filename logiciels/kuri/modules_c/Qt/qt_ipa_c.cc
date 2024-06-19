@@ -2824,6 +2824,39 @@ void QT_graphics_rect_item_definis_rect(QT_GraphicsRectItem *item, QT_RectF *rec
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsEllipseItem
+ * \{ */
+
+QT_GraphicsEllipseItem *QT_cree_graphics_ellipse_item(QT_Generic_GraphicsItem parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QGraphicsEllipseItem(qparent));
+}
+
+void QT_graphics_ellipse_item_definis_pinceau(QT_GraphicsEllipseItem *item, QT_Pen *pinceau)
+{
+    auto qitem = vers_qt(item);
+    auto qpen = vers_qt(*pinceau);
+    qitem->setPen(qpen);
+}
+
+void QT_graphics_ellipse_item_definis_brosse(QT_GraphicsEllipseItem *item, QT_Brush *brush)
+{
+    auto qitem = vers_qt(item);
+    auto qbrush = vers_qt(*brush);
+    qitem->setBrush(qbrush);
+}
+
+void QT_graphics_ellipse_item_definis_rect(QT_GraphicsEllipseItem *item, QT_RectF *rect)
+{
+    auto qitem = vers_qt(item);
+    auto qrect = QRectF(rect->x, rect->y, rect->largeur, rect->hauteur);
+    qitem->setRect(qrect);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_GraphicsTextItem
  * \{ */
 

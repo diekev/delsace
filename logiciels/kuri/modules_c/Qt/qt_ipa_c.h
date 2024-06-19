@@ -346,7 +346,8 @@ union QT_Generic_Event {
     O(QGraphicsItem, QT_GraphicsItem, item)                                                       \
     O(QGraphicsLineItem, QT_GraphicsLineItem, line_item)                                          \
     O(QGraphicsRectItem, QT_GraphicsRectItem, rect_item)                                          \
-    O(QGraphicsTextItem, QT_GraphicsTextItem, text_item)
+    O(QGraphicsTextItem, QT_GraphicsTextItem, text_item)                                          \
+    O(QGraphicsEllipseItem, QT_GraphicsEllipseItem, ellipse_item)
 
 #define PRODECLARE_TYPES_GRAPHICS_ITEM(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_GRAPHICS_ITEM(PRODECLARE_TYPES_GRAPHICS_ITEM)
@@ -2171,6 +2172,20 @@ void QT_graphics_rect_item_definis_pinceau(struct QT_GraphicsRectItem *item,
 void QT_graphics_rect_item_definis_brosse(struct QT_GraphicsRectItem *item,
                                           struct QT_Brush *brush);
 void QT_graphics_rect_item_definis_rect(struct QT_GraphicsRectItem *item, struct QT_RectF *rect);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsEllipseItem
+ * \{ */
+
+struct QT_GraphicsEllipseItem *QT_cree_graphics_ellipse_item(union QT_Generic_GraphicsItem parent);
+void QT_graphics_ellipse_item_definis_pinceau(struct QT_GraphicsEllipseItem *item,
+                                              struct QT_Pen *pinceau);
+void QT_graphics_ellipse_item_definis_brosse(struct QT_GraphicsEllipseItem *item,
+                                             struct QT_Brush *brush);
+void QT_graphics_ellipse_item_definis_rect(struct QT_GraphicsEllipseItem *item,
+                                           struct QT_RectF *rect);
 
 /** \} */
 
