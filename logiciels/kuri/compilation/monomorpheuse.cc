@@ -589,8 +589,12 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
     else if (expression_polymorphique->est_prise_adresse()) {
         auto const prise_adresse = expression_polymorphique->comme_prise_adresse();
         if (type_reçu->est_type_pointeur()) {
-            parse_candidats(
-                prise_adresse->opérande, site, type_reçu->comme_type_pointeur()->type_pointé);
+            auto type_élément = type_reçu->comme_type_pointeur()->type_pointé;
+            /* "nul" peut-être passé en paramètre... */
+            if (type_élément != nullptr) {
+                parse_candidats(
+                    prise_adresse->opérande, site, type_reçu->comme_type_pointeur()->type_pointé);
+            }
         }
         else {
             erreur_genre_type(site, type_reçu, "n'est pas un pointeur");

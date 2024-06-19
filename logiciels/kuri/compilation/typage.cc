@@ -1194,19 +1194,18 @@ std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
 /** \name Accès aux noms hiérarchiques des types.
  * \{ */
 
-static kuri::chaine nom_hiérarchique(NoeudBloc *bloc, kuri::chaine_statique ident)
+static void nom_hiérarchique(Enchaineuse &enchaineuse,
+                             NoeudBloc *bloc,
+                             kuri::chaine_statique ident)
 {
     auto const noms = donne_les_noms_de_la_hiérarchie(bloc);
 
-    Enchaineuse enchaineuse;
     /* -2 pour éviter le nom du module. */
     for (auto i = noms.taille() - 2; i >= 0; --i) {
         enchaineuse.ajoute(noms[i]->nom);
         enchaineuse.ajoute(".");
     }
     enchaineuse.ajoute(ident);
-
-    return enchaineuse.chaine();
 }
 
 kuri::chaine_statique donne_nom_hiérarchique(TypeUnion *type)
@@ -1215,7 +1214,7 @@ kuri::chaine_statique donne_nom_hiérarchique(TypeUnion *type)
         return type->nom_hiérarchique_;
     }
 
-    type->nom_hiérarchique_ = nom_hiérarchique(type->bloc_parent, chaine_type(type, false));
+    type->nom_hiérarchique_ = chaine_type(type, false);
     return type->nom_hiérarchique_;
 }
 
@@ -1225,7 +1224,7 @@ kuri::chaine_statique donne_nom_hiérarchique(TypeEnum *type)
         return type->nom_hiérarchique_;
     }
 
-    type->nom_hiérarchique_ = nom_hiérarchique(type->bloc_parent, chaine_type(type, false));
+    type->nom_hiérarchique_ = chaine_type(type, false);
     return type->nom_hiérarchique_;
 }
 
@@ -1235,7 +1234,7 @@ kuri::chaine_statique donne_nom_hiérarchique(TypeOpaque *type)
         return type->nom_hiérarchique_;
     }
 
-    type->nom_hiérarchique_ = nom_hiérarchique(type->bloc_parent, chaine_type(type, false));
+    type->nom_hiérarchique_ = chaine_type(type, false);
     return type->nom_hiérarchique_;
 }
 
@@ -1245,7 +1244,7 @@ kuri::chaine_statique donne_nom_hiérarchique(TypeStructure *type)
         return type->nom_hiérarchique_;
     }
 
-    type->nom_hiérarchique_ = nom_hiérarchique(type->bloc_parent, chaine_type(type, false));
+    type->nom_hiérarchique_ = chaine_type(type, false);
     return type->nom_hiérarchique_;
 }
 
@@ -1506,7 +1505,7 @@ static void chaine_type_structure(Enchaineuse &enchaineuse,
                                   const NoeudDéclarationClasse *decl,
                                   OptionsImpressionType options)
 {
-    enchaineuse << decl->ident->nom;
+    nom_hiérarchique(enchaineuse, decl->bloc_parent, decl->ident->nom);
 
     auto parenthèses = donne_parenthèses_paramètres_polymorphiques(options);
 
@@ -1711,7 +1710,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         {
-            enchaineuse << type->ident->nom;
+            nom_hiérarchique(enchaineuse, type->bloc_parent, type->ident->nom);
             return;
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
@@ -1732,7 +1731,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = static_cast<TypeOpaque const *>(type);
-            enchaineuse << static_cast<TypeOpaque const *>(type)->ident->nom;
+            nom_hiérarchique(enchaineuse, type->bloc_parent, type->ident->nom);
 
             if (drapeau_est_actif(options,
                                   OptionsImpressionType::AJOUTE_PARAMÈTRES_POLYMORPHIQUE)) {

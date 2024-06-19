@@ -1,0 +1,147 @@
+importe Fondation
+importe Math
+importe Périphériques
+
+ContexteExécutionCommande :: struct {
+    souris: CliqueSouris
+    souris_prétransformée: CliqueSouris
+    /* Non-nul lors d'une exécution modale. */
+    souris_précédente: Optionnel(CliqueSouris)
+    souris_originelle: Optionnel(CliqueSouris)
+    /* Métadonnées passée à la commande. */
+    métadonnée: chaine
+}
+
+donne_delta_position_souris :: fonc (ctx: *ContexteExécutionCommande) -> Vec2
+{
+    résultat: Vec2
+
+    discr ctx.souris_précédente {
+        Quelque(souris) {
+            résultat.x = (ctx.souris.état.où.x - souris.état.où.x) comme r32
+            résultat.y = (ctx.souris.état.où.y - souris.état.où.y) comme r32
+        }
+        sinon {}
+    }
+
+    retourne résultat
+}
+
+donne_delta_position_souris_originelle :: fonc (ctx: *ContexteExécutionCommande) -> Vec2
+{
+    résultat: Vec2
+
+    discr ctx.souris_originelle {
+        Quelque(souris) {
+            résultat.x = (souris.état.où.x - ctx.souris.état.où.x) comme r32
+            résultat.y = (souris.état.où.y - ctx.souris.état.où.y) comme r32
+        }
+        sinon {}
+    }
+
+    retourne résultat
+}
+
+RésultatExécutionCommande :: énum {
+    TERMINÉ
+    PASSE_EN_MODAL
+    ANNULÉ
+}
+
+IDGroupeCommande :: z32
+
+Commande :: struct {
+    contexte: IDGroupeCommande
+    nom: chaine
+    raccourcis: Optionnel(RaccourcisClavier)
+    bouton_souris: Optionnel(BoutonSouris)
+    action_souris: Optionnel(ActionSouris)
+    modificateur: Optionnel(ModificateurClavier)
+
+    exécute: fonc(*ContexteExécutionCommande)(RésultatExécutionCommande)
+    exécute_modal: fonc(*ContexteExécutionCommande)(rien)
+    termine_modal: fonc(*ContexteExécutionCommande)(rien)
+}
+
+GestionnaireCommande :: struct {
+    commandes: [..]*Commande
+
+    ctx_modal: ContexteExécutionCommande
+    commande_modale: *Commande
+}
+
+sauvegarde_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, commande_modale: *Commande, ctx: *ContexteExécutionCommande)
+{
+    gestionnaire.commande_modale = commande_modale
+    gestionnaire.ctx_modal = mémoire(ctx)
+}
+
+détruit_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
+{
+    déloge_tableau_et_ses_éléments(gestionnaire.commandes)
+    déloge(gestionnaire)
+}
+
+ajoute_commande :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, nom: chaine) -> *Commande
+{
+    résultat := loge(Commande)
+    tableau_ajoute(*gestionnaire.commandes, résultat)
+    résultat.nom = nom
+    résultat.contexte = contexte
+    retourne résultat
+}
+
+trouve_commande_pour_clique :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, souris: CliqueSouris) -> *Commande
+{
+    pour gestionnaire.commandes {
+        si it.contexte != contexte {
+            continue
+        }
+
+        saufsi a_valeur(it.bouton_souris, souris.bouton) {
+            continue
+        }
+
+        saufsi a_valeur(it.action_souris, souris.action) {
+            continue
+        }
+
+        si souris.état.modificateur != ModificateurClavier.zéro && !a_valeur(it.modificateur, souris.état.modificateur) {
+            continue
+        }
+
+        retourne it
+    }
+
+    retourne nul
+}
+
+trouve_commande_pour_raccourcis :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, raccourcis: RaccourcisClavier) -> *Commande
+{
+    pour gestionnaire.commandes {
+        si it.contexte != contexte {
+            continue
+        }
+
+        saufsi a_valeur(it.raccourcis, raccourcis) {
+            continue
+        }
+
+        retourne it
+    }
+
+    retourne nul
+}
+
+trouve_commande_pour_nom :: fonc (gestionnaire: *GestionnaireCommande, nom: chaine) -> *Commande
+{
+    pour gestionnaire.commandes {
+        si it.nom != nom {
+            continue
+        }
+
+        retourne it
+    }
+
+    retourne nul
+}

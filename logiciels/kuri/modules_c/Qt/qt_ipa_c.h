@@ -232,7 +232,8 @@ union QT_Generic_ItemModel {
     O(QSettings, QT_Settings, settings)                                                           \
     O(QAction, QT_Action, action)                                                                 \
     O(QDrag, QT_Drag, drag)                                                                       \
-    O(QMimeData, QT_MimeData, mimedata)
+    O(QMimeData, QT_MimeData, mimedata)                                                           \
+    O(QClipboard, QT_Clipboard, clipboard)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -345,7 +346,8 @@ union QT_Generic_Event {
     O(QGraphicsItem, QT_GraphicsItem, item)                                                       \
     O(QGraphicsLineItem, QT_GraphicsLineItem, line_item)                                          \
     O(QGraphicsRectItem, QT_GraphicsRectItem, rect_item)                                          \
-    O(QGraphicsTextItem, QT_GraphicsTextItem, text_item)
+    O(QGraphicsTextItem, QT_GraphicsTextItem, text_item)                                          \
+    O(QGraphicsEllipseItem, QT_GraphicsEllipseItem, ellipse_item)
 
 #define PRODECLARE_TYPES_GRAPHICS_ITEM(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_GRAPHICS_ITEM(PRODECLARE_TYPES_GRAPHICS_ITEM)
@@ -456,6 +458,7 @@ void QT_application_sur_fin_boucle_evenement(struct QT_Application *app,
                                              struct QT_Rappel_Generique *rappel);
 
 void QT_application_beep();
+struct QT_Clipboard *QT_application_donne_clipboard();
 
 /** \} */
 
@@ -583,6 +586,16 @@ void QT_mimedata_definis_donnee(struct QT_MimeData *mimedata,
 bool QT_mimedata_a_format(struct QT_MimeData *mimedata, struct QT_Chaine mimetype);
 struct QT_ByteArray QT_mimedata_donne_donnee(struct QT_MimeData *mimedata,
                                              struct QT_Chaine mimetype);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Clipboard
+ * \{ */
+
+struct QT_MimeData *QT_clipboard_donne_mimedata(struct QT_Clipboard *clipboard);
+void QT_clipboard_definis_mimedata(struct QT_Clipboard *clipboard, struct QT_MimeData *mimedata);
+void QT_clipboard_efface(struct QT_Clipboard *clipboard);
 
 /** \} */
 
@@ -1712,6 +1725,7 @@ int QT_combobox_donne_index_courant(struct QT_ComboBox *combo);
 void QT_combobox_connecte_sur_changement_index(struct QT_ComboBox *combo,
                                                struct QT_Rappel_Generique *rappel);
 struct QT_Chaine QT_combobox_donne_valeur_courante_chaine(struct QT_ComboBox *combo);
+void QT_combobox_definis_modifiable(struct QT_ComboBox *combo, bool ouinon);
 
 /** \} */
 
@@ -2158,6 +2172,20 @@ void QT_graphics_rect_item_definis_pinceau(struct QT_GraphicsRectItem *item,
 void QT_graphics_rect_item_definis_brosse(struct QT_GraphicsRectItem *item,
                                           struct QT_Brush *brush);
 void QT_graphics_rect_item_definis_rect(struct QT_GraphicsRectItem *item, struct QT_RectF *rect);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsEllipseItem
+ * \{ */
+
+struct QT_GraphicsEllipseItem *QT_cree_graphics_ellipse_item(union QT_Generic_GraphicsItem parent);
+void QT_graphics_ellipse_item_definis_pinceau(struct QT_GraphicsEllipseItem *item,
+                                              struct QT_Pen *pinceau);
+void QT_graphics_ellipse_item_definis_brosse(struct QT_GraphicsEllipseItem *item,
+                                             struct QT_Brush *brush);
+void QT_graphics_ellipse_item_definis_rect(struct QT_GraphicsEllipseItem *item,
+                                           struct QT_RectF *rect);
 
 /** \} */
 
