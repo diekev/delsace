@@ -951,7 +951,7 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
             ajoute_au_tampon(enchaineuse, "octet")
         }
         UNION {
-            info_arg := info comme *InfoTypeStructure
+            info_arg := info comme *InfoTypeUnion
             ajoute_au_tampon(enchaineuse, info_arg.nom)
         }
         TYPE_DE_DONNÉES {
