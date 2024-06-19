@@ -28,10 +28,22 @@ détruit_fichier :: fonc (fichier: *FichierPaginéMémoire)
     déloge_toutes_les_pages(fichier)
 }
 
+donne_taille_fichier :: fonc (fichier: *FichierPaginéMémoire) -> z64
+{
+    résultat: z64
+    page := fichier.première_page
+
+    tantque page != nul {
+        résultat += page.occupé
+        page = page.page_suivante
+    }
+
+    retourne résultat
+}
+
 aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> [..]octet
 {
-    nombre_de_pages := nombre_de_pages_dans_liste(fichier.première_page)
-    taille_octet := nombre_de_pages * TAILLE_PAGE
+    taille_octet := donne_taille_fichier(*fichier)
 
     résultat: [..]octet
     tableau_redimensionne(résultat, taille_octet)
@@ -42,10 +54,10 @@ aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> [..]octet
     tantque page != nul {
         src := *page.données[0]
 
-        copie_mem_nonsur(src = src, dst = dst, taille = TAILLE_PAGE)
+        copie_mem_nonsur(src = src, dst = dst, taille = page.occupé)
 
+        dst += page.occupé
         page = page.page_suivante
-        dst += TAILLE_PAGE
     }
 
     retourne résultat
