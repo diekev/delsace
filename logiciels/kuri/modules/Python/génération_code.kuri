@@ -1,3 +1,4 @@
+importe Compilatrice
 importe Fondation
 
 /* Génération du code Kuri à partir des données du module. */
@@ -756,6 +757,41 @@ génère_fonction_itérateur_next :: fonc (enchaineuse: *Enchaineuse, type: *Typ
     retourne nom_fonction
 }
 
+génère_création_valeur_défaut :: fonc (enchaineuse: *Enchaineuse, valeur_défaut: *NoeudCode)
+{
+    discr valeur_défaut.genre {
+        EXPRESSION_LITTÉRALE_NUL {
+            enchaineuse.ajoute_au_tampon(" := python_retourne_rien()\n")
+        }
+        EXPRESSION_LITTÉRALE_BOOLÉEN {
+            littérale := valeur_défaut comme *NoeudCodeLittéraleBool
+            si littérale.valeur {
+                enchaineuse.ajoute_au_tampon(" := python_retourne_true()\n")
+            }
+            sinon {
+                enchaineuse.ajoute_au_tampon(" := python_retourne_faux()\n")
+            }
+        }
+        EXPRESSION_LITTÉRALE_NOMBRE_ENTIER {
+            littérale := valeur_défaut comme *NoeudCodeLittéraleEntier
+            enchaineuse.imprime_dans_enchaineuse(" := PyLong_FromLong(%)\n", littérale.valeur)
+        }
+        EXPRESSION_LITTÉRALE_NOMBRE_RÉEL {
+            littérale := valeur_défaut comme *NoeudCodeLittéraleRéel
+            enchaineuse.imprime_dans_enchaineuse(" := PyLong_FromLong(%)\n", littérale.valeur)
+        }
+        EXPRESSION_LITTÉRALE_CHAINE {
+            littérale := valeur_défaut comme *NoeudCodeLittéraleChaine
+            enchaineuse.imprime_dans_enchaineuse(" := PyUnicode_FromChaine(\"%\")\n", littérale.valeur)
+        }
+        EXPRESSION_LITTÉRALE_CARACTÈRE {
+            littérale := valeur_défaut comme *NoeudCodeLittéraleCaractère
+            enchaineuse.imprime_dans_enchaineuse(" := PyLong_FromLong(%)\n", littérale.valeur)
+        }
+        sinon {}
+    }
+}
+
 /* Extrait les paramètres des arguments passés à la fonction. Pour le moment ces arguments
  * ont des types conforment à Python. Le nom des arguments doit être "args". */
 génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython, valeur_retour: chaine)
@@ -765,11 +801,22 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
     }
 
     pour méthode.paramètres_entrée {
-        enchaineuse.imprime_dans_enchaineuse("    pyobject_%: *PyObject\n", it.nom)
+        enchaineuse.ajoute_au_tampon("    pyobject_", it.nom)
+        si it.valeur_défaut {
+            enchaineuse.génère_création_valeur_défaut(it.valeur_défaut)
+        }
+        sinon {
+            enchaineuse.ajoute_au_tampon(": *PyObject\n")
+        }
     }
 
     enchaineuse.ajoute_au_tampon("    chn_objets := crée_chaine_c(\"")
+    séparateur_arguments_optionel_fut_ajouté := faux
     pour méthode.paramètres_entrée {
+        si it.valeur_défaut != nul && !séparateur_arguments_optionel_fut_ajouté {
+            enchaineuse.ajoute_au_tampon("|")
+            séparateur_arguments_optionel_fut_ajouté = vrai
+        }
         enchaineuse.ajoute_au_tampon("O")
     }
     enchaineuse.ajoute_au_tampon("\")\n")
