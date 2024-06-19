@@ -1230,6 +1230,11 @@ static RésultatAppariement apparie_construction_type_composé(
         }
 
         auto const index_membre = apparieuse_params.index_pour_slot(index_it);
+        if (index_membre == -1) {
+            /* À FAIRE : meilleure erreur, ceci peut arriver pour les constructions invalides. */
+            return ErreurAppariement::mécomptage_arguments(
+                it, type_compose->membres.taille(), apparieuse_params.slots().taille());
+        }
         auto &membre = type_compose->membres[index_membre];
 
         auto résultat = vérifie_compatibilité(membre.type, it->type, it);

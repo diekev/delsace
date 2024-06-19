@@ -1,0 +1,5 @@
+/* Module de fonctionnalités diverses pour les applications ayant une interface graphique.
+ * À FAIRE : menu, bouton, IDGroupe, Groupe */
+
+charge "commandes"
+charge "sélection"
