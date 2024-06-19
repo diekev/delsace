@@ -29,9 +29,7 @@
 #include "biblinternes/structures/chaine.hh"
 
 class QHBoxLayout;
-class QLineEdit;
-class QMenu;
-class QPushButton;
+class QComboBox;
 
 namespace danjo {
 
@@ -44,9 +42,7 @@ class ControleProprieteListe final : public ControlePropriete {
 
     /* entreface */
     QHBoxLayout *m_agencement{};
-    QLineEdit *m_editeur_texte{};
-    QPushButton *m_bouton_liste{};
-    QMenu *m_liste{};
+    QComboBox *m_combobox{};
 
     /* connexion */
     ConteneurControles *m_conteneur = nullptr;
@@ -68,9 +64,8 @@ class ControleProprieteListe final : public ControlePropriete {
     void ajourne_depuis_propriété() override;
 
   private Q_SLOTS:
-    void montre_liste();
-    void repond_clique();
     void texte_modifie();
+    void index_modifie(int);
     void ajourne_liste();
     void ajourne_valeur_pointee(const QString &valeur);
 };
