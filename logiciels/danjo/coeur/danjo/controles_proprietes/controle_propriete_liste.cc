@@ -24,10 +24,9 @@
 
 #include "controle_propriete_liste.h"
 
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLineEdit>
-#include <QMenu>
-#include <QPushButton>
 
 #include <iostream>
 
@@ -41,19 +40,25 @@ namespace danjo {
 
 ControleProprieteListe::ControleProprieteListe(BasePropriete *p, int temps, QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(crée_hbox_layout(this)),
-      m_editeur_texte(new QLineEdit(this)),
-      m_bouton_liste(crée_bouton(IcônePourBouton::LISTE_CHAINE, this)), m_liste(new QMenu(this))
+      m_combobox(new QComboBox(this))
 {
-    m_agencement->addWidget(m_editeur_texte);
-    m_agencement->addWidget(m_bouton_liste);
+    m_agencement->addWidget(m_combobox);
 
     setLayout(m_agencement);
 
-    m_editeur_texte->setText(m_propriete->evalue_chaine(m_temps).c_str());
+    m_combobox->setInsertPolicy(QComboBox::NoInsert);
+    m_combobox->setEditable(true);
 
-    connect(m_bouton_liste, SIGNAL(clicked()), this, SLOT(montre_liste()));
-    connect(m_editeur_texte, SIGNAL(returnPressed()), this, SLOT(texte_modifie()));
-    connect(m_liste, SIGNAL(aboutToShow()), this, SLOT(ajourne_liste()));
+    m_combobox->setCurrentText(m_propriete->evalue_chaine(m_temps).c_str());
+
+    connect(m_combobox->lineEdit(),
+            &QLineEdit::editingFinished,
+            this,
+            &ControleProprieteListe::texte_modifie);
+    connect(m_combobox,
+            qOverload<int>(&QComboBox::currentIndexChanged),
+            this,
+            &ControleProprieteListe::index_modifie);
 }
 
 void ControleProprieteListe::attache(const dls::chaine &attache)
@@ -64,30 +69,29 @@ void ControleProprieteListe::attache(const dls::chaine &attache)
 void ControleProprieteListe::conteneur(ConteneurControles *conteneur)
 {
     m_conteneur = conteneur;
+    ajourne_liste();
 }
 
 void ControleProprieteListe::finalise(const DonneesControle &donnees)
 {
+    ajourne_liste();
     attache(donnees.nom);
 }
 
 void ControleProprieteListe::ajourne_depuis_propriété()
 {
-    m_editeur_texte->setText(m_propriete->evalue_chaine(m_temps).c_str());
-}
-
-void ControleProprieteListe::montre_liste()
-{
-    /* La liste est positionnée en dessous du bouton, alignée à sa gauche. */
-    const auto &rect = m_bouton_liste->geometry();
-    const auto &bas_gauche = m_bouton_liste->parentWidget()->mapToGlobal(rect.bottomLeft());
-
-    m_liste->popup(bas_gauche);
+    QSignalBlocker blocke(m_combobox);
+    m_combobox->setCurrentText(m_propriete->evalue_chaine(m_temps).c_str());
 }
 
 void ControleProprieteListe::texte_modifie()
 {
-    ajourne_valeur_pointee(m_editeur_texte->text());
+    ajourne_valeur_pointee(m_combobox->currentText());
+}
+
+void ControleProprieteListe::index_modifie(int)
+{
+    texte_modifie();
 }
 
 void ControleProprieteListe::ajourne_valeur_pointee(const QString &valeur)
@@ -102,40 +106,17 @@ void ControleProprieteListe::ajourne_liste()
         return;
     }
 
+    QSignalBlocker blocke(m_combobox);
+
     dls::tableau<dls::chaine> chaines;
     m_conteneur->obtiens_liste(m_attache, chaines);
 
-    m_liste->clear();
+    m_combobox->clear();
 
     for (const auto &chaine : chaines) {
-        auto action = m_liste->addAction(chaine.c_str());
-        connect(action, SIGNAL(triggered()), this, SLOT(repond_clique()));
+        m_combobox->addItem(chaine.c_str());
     }
-}
-
-void ControleProprieteListe::repond_clique()
-{
-    auto action = qobject_cast<QAction *>(sender());
-
-    if (!action) {
-        return;
-    }
-
-    const auto &texte_action = action->text();
-    auto texte_courant = m_editeur_texte->text();
-
-    if (texte_courant.contains(texte_action)) {
-        return;
-    }
-
-    if (!texte_courant.isEmpty()) {
-        texte_courant += ",";
-    }
-
-    texte_courant += action->text();
-
-    m_editeur_texte->setText(texte_courant);
-    ajourne_valeur_pointee(texte_courant);
+    ajourne_depuis_propriété();
 }
 
 } /* namespace danjo */

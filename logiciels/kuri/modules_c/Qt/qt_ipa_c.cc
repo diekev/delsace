@@ -11,6 +11,7 @@
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
 #include <QApplication>
+#include <QClipboard>
 #include <QCoreApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -499,6 +500,11 @@ void QT_application_beep()
     QApplication::beep();
 }
 
+QT_Clipboard *QT_application_donne_clipboard()
+{
+    return vers_ipa(QApplication::clipboard());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -788,6 +794,31 @@ bool QT_mimedata_a_format(QT_MimeData *mimedata, QT_Chaine mimetype)
     VERS_QT(mimedata);
     VERS_QT(mimetype);
     return qmimedata->hasFormat(qmimetype);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Clipboard
+ * \{ */
+
+QT_MimeData *QT_clipboard_donne_mimedata(QT_Clipboard *clipboard)
+{
+    VERS_QT(clipboard);
+    return vers_ipa(const_cast<QMimeData *>(qclipboard->mimeData()));
+}
+
+void QT_clipboard_definis_mimedata(QT_Clipboard *clipboard, QT_MimeData *mimedata)
+{
+    VERS_QT(clipboard);
+    VERS_QT(mimedata);
+    qclipboard->setMimeData(qmimedata);
+}
+
+void QT_clipboard_efface(QT_Clipboard *clipboard)
+{
+    VERS_QT(clipboard);
+    qclipboard->clear();
 }
 
 /** \} */
@@ -1769,6 +1800,12 @@ QT_Chaine QT_combobox_donne_valeur_courante_chaine(QT_ComboBox *combo)
     }
 
     return résultat;
+}
+
+void QT_combobox_definis_modifiable(QT_ComboBox *combo, bool ouinon)
+{
+    VERS_QT(combo);
+    qcombo->setEditable(ouinon);
 }
 
 /** \} */
@@ -2778,6 +2815,39 @@ void QT_graphics_rect_item_definis_brosse(QT_GraphicsRectItem *item, QT_Brush *b
 }
 
 void QT_graphics_rect_item_definis_rect(QT_GraphicsRectItem *item, QT_RectF *rect)
+{
+    auto qitem = vers_qt(item);
+    auto qrect = QRectF(rect->x, rect->y, rect->largeur, rect->hauteur);
+    qitem->setRect(qrect);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_GraphicsEllipseItem
+ * \{ */
+
+QT_GraphicsEllipseItem *QT_cree_graphics_ellipse_item(QT_Generic_GraphicsItem parent)
+{
+    auto qparent = vers_qt(parent);
+    return vers_ipa(new QGraphicsEllipseItem(qparent));
+}
+
+void QT_graphics_ellipse_item_definis_pinceau(QT_GraphicsEllipseItem *item, QT_Pen *pinceau)
+{
+    auto qitem = vers_qt(item);
+    auto qpen = vers_qt(*pinceau);
+    qitem->setPen(qpen);
+}
+
+void QT_graphics_ellipse_item_definis_brosse(QT_GraphicsEllipseItem *item, QT_Brush *brush)
+{
+    auto qitem = vers_qt(item);
+    auto qbrush = vers_qt(*brush);
+    qitem->setBrush(qbrush);
+}
+
+void QT_graphics_ellipse_item_definis_rect(QT_GraphicsEllipseItem *item, QT_RectF *rect)
 {
     auto qitem = vers_qt(item);
     auto qrect = QRectF(rect->x, rect->y, rect->largeur, rect->hauteur);
