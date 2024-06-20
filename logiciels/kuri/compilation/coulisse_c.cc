@@ -188,6 +188,8 @@ struct GénératriceCodeC {
 
     void génère_code(CoulisseC::FichierC const &fichier);
 
+    void génère_code_pour_appel(Enchaineuse &os, InstructionAppel const *appel);
+
     void génère_code_entête(CoulisseC::FichierC const &fichier, Enchaineuse &os);
     void génère_code_source(CoulisseC::FichierC const &fichier, Enchaineuse &os);
 
@@ -1410,49 +1412,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         }
         case GenreInstruction::APPEL:
         {
-            auto inst_appel = inst->comme_appel();
-            auto const est_init_contexte = est_appel_init_contexte(inst_appel);
-
-            auto arguments = kuri::tablet<kuri::chaine, 10>();
-
-            POUR (inst_appel->args) {
-                arguments.ajoute(génère_code_pour_atome(it, os, false));
-            }
-
-            os << "  ";
-
-            auto type_fonction = inst_appel->appelé->type->comme_type_fonction();
-            if (!type_fonction->type_sortie->est_type_rien()) {
-                auto nom_ret = donne_nom_pour_instruction(inst);
-                os << "const " << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
-                table_valeurs[inst->numero] = nom_ret;
-            }
-
-            os << génère_code_pour_atome(inst_appel->appelé, os, false);
-
-            auto virgule = "(";
-
-            POUR_INDEX (arguments) {
-                os << virgule;
-                if (est_init_contexte && index_it == 1) {
-                    os << "(signed char **)";
-                }
-                else {
-                    auto type = type_paramètre_pour_fonction_clé(inst_appel->appelé, index_it);
-                    if (type.has_value()) {
-                        os << "(" << *type << ")";
-                    }
-                }
-                os << it;
-                virgule = ", ";
-            }
-
-            if (inst_appel->args.taille() == 0) {
-                os << virgule;
-            }
-
-            os << ");\n";
-
+            génère_code_pour_appel(os, inst->comme_appel());
             break;
         }
         case GenreInstruction::BRANCHE:
@@ -2050,6 +2010,51 @@ void GénératriceCodeC::génère_code(CoulisseC::FichierC const &fichier)
     std::ofstream of(vers_std_path(fichier.chemin_fichier));
     enchaineuse.imprime_dans_flux(of);
     of.close();
+}
+
+void GénératriceCodeC::génère_code_pour_appel(Enchaineuse &os, InstructionAppel const *appel)
+{
+    auto const est_init_contexte = est_appel_init_contexte(appel);
+
+    auto arguments = kuri::tablet<kuri::chaine, 10>();
+
+    POUR (appel->args) {
+        arguments.ajoute(génère_code_pour_atome(it, os, false));
+    }
+
+    os << "  ";
+
+    auto type_fonction = appel->appelé->type->comme_type_fonction();
+    if (!type_fonction->type_sortie->est_type_rien()) {
+        auto nom_ret = donne_nom_pour_instruction(appel);
+        os << "const " << donne_nom_pour_type(appel->type) << ' ' << nom_ret << " = ";
+        table_valeurs[appel->numero] = nom_ret;
+    }
+
+    os << génère_code_pour_atome(appel->appelé, os, false);
+
+    auto virgule = "(";
+
+    POUR_INDEX (arguments) {
+        os << virgule;
+        if (est_init_contexte && index_it == 1) {
+            os << "(signed char **)";
+        }
+        else {
+            auto type = type_paramètre_pour_fonction_clé(appel->appelé, index_it);
+            if (type.has_value()) {
+                os << "(" << *type << ")";
+            }
+        }
+        os << it;
+        virgule = ", ";
+    }
+
+    if (appel->args.taille() == 0) {
+        os << virgule;
+    }
+
+    os << ");\n";
 }
 
 void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
