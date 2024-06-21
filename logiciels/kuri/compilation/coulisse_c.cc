@@ -195,7 +195,8 @@ struct GénératriceCodeC {
                                             DonnéesSymboleExterne const *données_externe);
     void génère_code_pour_appel_intrinsèque_atomique(Enchaineuse &os,
                                                      InstructionAppel const *appel,
-                                                     int32_t index_ordre_mémoire);
+                                                     int32_t index_ordre_mémoire,
+                                                     int32_t index_ordre_mémoire2 = -1);
     kuri::chaine_statique donne_valeur_pour_ordre_mémoire(Enchaineuse &os, Atome *arg);
 
     void génère_code_entête(CoulisseC::FichierC const &fichier, Enchaineuse &os);
@@ -2111,16 +2112,154 @@ void GénératriceCodeC::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::COMMUTE_OCTETS_32:
         case GenreIntrinsèque::COMMUTE_OCTETS_64:
         case GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES:
+        case GenreIntrinsèque::ATOMIQUE_TOUJOURS_SANS_VERROU:
+        case GenreIntrinsèque::ATOMIQUE_EST_SANS_VERROU:
         {
             génère_code_pour_appel_impl(os, appel);
             break;
         }
         case GenreIntrinsèque::ATOMIQUE_BARRIÈRE_FIL:
+        case GenreIntrinsèque::ATOMIQUE_BARRIÈRE_SIGNAL:
         {
             génère_code_pour_appel_intrinsèque_atomique(os, appel, 0);
             break;
         }
-        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJOUTE:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_BOOL:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_N8:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_N16:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_N32:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_N64:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_Z8:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_Z16:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_Z32:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_Z64:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_PTR:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_ADRESSE_FONCTION:
+        {
+            génère_code_pour_appel_intrinsèque_atomique(os, appel, 1);
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_BOOL:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_N8:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_N16:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_N32:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_N64:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_Z8:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_Z16:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_Z32:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_Z64:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_PTR:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_ADRESSE_FONCTION:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_BOOL:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_N8:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_N16:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_N32:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_N64:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_Z8:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_Z16:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_Z32:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_Z64:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_PTR:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_ADRESSE_FONCTION:
+        {
+            génère_code_pour_appel_intrinsèque_atomique(os, appel, 2);
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_BOOL:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_N8:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_N16:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_N32:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_N64:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_Z8:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_Z16:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_Z32:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_Z64:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_PTR:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_ADRESSE_FONCTION:
+        {
+            génère_code_pour_appel_intrinsèque_atomique(os, appel, 4, 5);
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_ADRESSE_FONCTION:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_ADRESSE_FONCTION:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_ADRESSE_FONCTION:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_ADRESSE_FONCTION:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_ADRESSE_FONCTION:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_ADRESSE_FONCTION:
         {
             génère_code_pour_appel_intrinsèque_atomique(os, appel, 2);
             break;
@@ -2130,12 +2269,13 @@ void GénératriceCodeC::génère_code_pour_appel_intrinsèque(
 
 void GénératriceCodeC::génère_code_pour_appel_intrinsèque_atomique(Enchaineuse &os,
                                                                    InstructionAppel const *appel,
-                                                                   int32_t index_ordre_mémoire)
+                                                                   int32_t index_ordre_mémoire,
+                                                                   int32_t index_ordre_mémoire2)
 {
     auto arguments = kuri::tablet<kuri::chaine, 10>();
 
     POUR_INDEX (appel->args) {
-        if (index_it == index_ordre_mémoire) {
+        if (index_it == index_ordre_mémoire || index_it == index_ordre_mémoire2) {
             arguments.ajoute(donne_valeur_pour_ordre_mémoire(os, it));
         }
         else {

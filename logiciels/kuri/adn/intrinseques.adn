@@ -233,12 +233,17 @@ fonction intrinsèque_commute_octets(uint64_t x) -> uint64_t
 
 fonction intrinsèque_est_adresse_données_constantes(void *adresse) -> bool
 @intrinsèque EST_ADRESSE_DONNÉES_CONSTANTES
+@exclus_métaprogramme
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name Atomiques.
-* \{ */
+ * Non-portés :
+ * __atomic_*_fetch
+ * __atomic_test_and_set
+ * __atomic_clear
+ * \{ */
 
 énum OrdreMémoire {
     @type int32_t
@@ -265,9 +270,641 @@ fonction intrinsèque_est_adresse_données_constantes(void *adresse) -> bool
 fonction atomique_barrière_fil(OrdreMémoire ordre_mémoire)
 @intrinsèque ATOMIQUE_BARRIÈRE_FIL
 @gcc __atomic_thread_fence
+@exclus_métaprogramme
 
-fonction atomique_donne_puis_ajoute(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> uint32_t
-@intrinsèque ATOMIQUE_DONNE_PUIS_AJOUTE
+fonction atomique_barrière_signal(OrdreMémoire ordre_mémoire)
+@intrinsèque ATOMIQUE_BARRIÈRE_SIGNAL
+@gcc __atomic_signal_fence
+@exclus_métaprogramme
+
+fonction atomique_toujours_sans_verrou(n64 taille, void *ptr) -> bool
+@intrinsèque ATOMIQUE_TOUJOURS_SANS_VERROU
+@gcc __atomic_always_lock_free
+@exclus_métaprogramme
+
+fonction atomique_est_sans_verrou(n64 taille, void *ptr) -> bool
+@intrinsèque ATOMIQUE_EST_SANS_VERROU
+@gcc __atomic_is_lock_free
+@exclus_métaprogramme
+
+fonction atomique_charge(bool *ptr, OrdreMémoire ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_CHARGE_BOOL
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(octet *ptr, OrdreMémoire ordre_mémoire) -> octet
+@intrinsèque ATOMIQUE_CHARGE_OCTET
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(uint8_t *ptr, OrdreMémoire ordre_mémoire) -> uint8_t
+@intrinsèque ATOMIQUE_CHARGE_N8
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(uint16_t *ptr, OrdreMémoire ordre_mémoire) -> uint16_t
+@intrinsèque ATOMIQUE_CHARGE_N16
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(uint32_t *ptr, OrdreMémoire ordre_mémoire) -> uint32_t
+@intrinsèque ATOMIQUE_CHARGE_N32
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(uint64_t *ptr, OrdreMémoire ordre_mémoire) -> uint64_t
+@intrinsèque ATOMIQUE_CHARGE_N64
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(int8_t *ptr, OrdreMémoire ordre_mémoire) -> int8_t
+@intrinsèque ATOMIQUE_CHARGE_Z8
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(int16_t *ptr, OrdreMémoire ordre_mémoire) -> int16_t
+@intrinsèque ATOMIQUE_CHARGE_Z16
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(int32_t *ptr, OrdreMémoire ordre_mémoire) -> int32_t
+@intrinsèque ATOMIQUE_CHARGE_Z32
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(int64_t *ptr, OrdreMémoire ordre_mémoire) -> int64_t
+@intrinsèque ATOMIQUE_CHARGE_Z64
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(void * *ptr, OrdreMémoire ordre_mémoire) -> void *
+@intrinsèque ATOMIQUE_CHARGE_PTR
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(type_de_données *ptr, OrdreMémoire ordre_mémoire) -> type_de_données
+@intrinsèque ATOMIQUE_CHARGE_TYPE_DE_DONNÉES
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_charge(adresse_fonction *ptr, OrdreMémoire ordre_mémoire) -> adresse_fonction
+@intrinsèque ATOMIQUE_CHARGE_ADRESSE_FONCTION
+@gcc __atomic_load_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(bool *ptr, bool val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_BOOL
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(octet *ptr, octet val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_OCTET
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(uint8_t *ptr, uint8_t val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_N8
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(uint16_t *ptr, uint16_t val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_N16
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_N32
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(uint64_t *ptr, uint64_t val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_N64
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(int8_t *ptr, int8_t val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_Z8
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(int16_t *ptr, int16_t val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_Z16
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(int32_t *ptr, int32_t val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_Z32
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(int64_t *ptr, int64_t val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_Z64
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(void * *ptr, void * val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_PTR
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(type_de_données *ptr, type_de_données val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_TYPE_DE_DONNÉES
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_stocke(adresse_fonction *ptr, adresse_fonction val, OrdreMémoire ordre_mémoire) -> void
+@intrinsèque ATOMIQUE_STOCKE_ADRESSE_FONCTION
+@gcc __atomic_store_n
+@exclus_métaprogramme
+
+fonction atomique_échange(bool *ptr, bool val, OrdreMémoire ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_ÉCHANGE_BOOL
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(octet *ptr, octet val, OrdreMémoire ordre_mémoire) -> octet
+@intrinsèque ATOMIQUE_ÉCHANGE_OCTET
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(uint8_t *ptr, uint8_t val, OrdreMémoire ordre_mémoire) -> uint8_t
+@intrinsèque ATOMIQUE_ÉCHANGE_N8
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(uint16_t *ptr, uint16_t val, OrdreMémoire ordre_mémoire) -> uint16_t
+@intrinsèque ATOMIQUE_ÉCHANGE_N16
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> uint32_t
+@intrinsèque ATOMIQUE_ÉCHANGE_N32
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(uint64_t *ptr, uint64_t val, OrdreMémoire ordre_mémoire) -> uint64_t
+@intrinsèque ATOMIQUE_ÉCHANGE_N64
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(int8_t *ptr, int8_t val, OrdreMémoire ordre_mémoire) -> int8_t
+@intrinsèque ATOMIQUE_ÉCHANGE_Z8
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(int16_t *ptr, int16_t val, OrdreMémoire ordre_mémoire) -> int16_t
+@intrinsèque ATOMIQUE_ÉCHANGE_Z16
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(int32_t *ptr, int32_t val, OrdreMémoire ordre_mémoire) -> int32_t
+@intrinsèque ATOMIQUE_ÉCHANGE_Z32
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(int64_t *ptr, int64_t val, OrdreMémoire ordre_mémoire) -> int64_t
+@intrinsèque ATOMIQUE_ÉCHANGE_Z64
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(void * *ptr, void * val, OrdreMémoire ordre_mémoire) -> void *
+@intrinsèque ATOMIQUE_ÉCHANGE_PTR
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(type_de_données *ptr, type_de_données val, OrdreMémoire ordre_mémoire) -> type_de_données
+@intrinsèque ATOMIQUE_ÉCHANGE_TYPE_DE_DONNÉES
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_échange(adresse_fonction *ptr, adresse_fonction val, OrdreMémoire ordre_mémoire) -> adresse_fonction
+@intrinsèque ATOMIQUE_ÉCHANGE_ADRESSE_FONCTION
+@gcc __atomic_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(bool *ptr, bool *expected, bool desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_BOOL
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(octet *ptr, octet *expected, octet desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_OCTET
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(uint8_t *ptr, uint8_t *expected, uint8_t desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_N8
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(uint16_t *ptr, uint16_t *expected, uint16_t desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_N16
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(uint32_t *ptr, uint32_t *expected, uint32_t desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_N32
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(uint64_t *ptr, uint64_t *expected, uint64_t desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_N64
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(int8_t *ptr, int8_t *expected, int8_t desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_Z8
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(int16_t *ptr, int16_t *expected, int16_t desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_Z16
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(int32_t *ptr, int32_t *expected, int32_t desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_Z32
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(int64_t *ptr, int64_t *expected, int64_t desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_Z64
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(void * *ptr, void * *expected, void * desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_PTR
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(type_de_données *ptr, type_de_données *expected, type_de_données desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_TYPE_DE_DONNÉES
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_compare_échange(adresse_fonction *ptr, adresse_fonction *expected, adresse_fonction desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire) -> bool
+@intrinsèque ATOMIQUE_COMPARE_ÉCHANGE_ADRESSE_FONCTION
+@gcc __atomic_compare_exchange_n
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(octet *ptr, octet val, OrdreMémoire ordre_mémoire) -> octet
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_OCTET
 @gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(uint8_t *ptr, uint8_t val, OrdreMémoire ordre_mémoire) -> uint8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_N8
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(uint16_t *ptr, uint16_t val, OrdreMémoire ordre_mémoire) -> uint16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_N16
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> uint32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_N32
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(uint64_t *ptr, uint64_t val, OrdreMémoire ordre_mémoire) -> uint64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_N64
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(int8_t *ptr, int8_t val, OrdreMémoire ordre_mémoire) -> int8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_Z8
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(int16_t *ptr, int16_t val, OrdreMémoire ordre_mémoire) -> int16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_Z16
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(int32_t *ptr, int32_t val, OrdreMémoire ordre_mémoire) -> int32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_Z32
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(int64_t *ptr, int64_t val, OrdreMémoire ordre_mémoire) -> int64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_Z64
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(void * *ptr, void * val, OrdreMémoire ordre_mémoire) -> void *
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_PTR
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(type_de_données *ptr, type_de_données val, OrdreMémoire ordre_mémoire) -> type_de_données
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_TYPE_DE_DONNÉES
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ajt(adresse_fonction *ptr, adresse_fonction val, OrdreMémoire ordre_mémoire) -> adresse_fonction
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJT_ADRESSE_FONCTION
+@gcc __atomic_fetch_add
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(octet *ptr, octet val, OrdreMémoire ordre_mémoire) -> octet
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_OCTET
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(uint8_t *ptr, uint8_t val, OrdreMémoire ordre_mémoire) -> uint8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_N8
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(uint16_t *ptr, uint16_t val, OrdreMémoire ordre_mémoire) -> uint16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_N16
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> uint32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_N32
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(uint64_t *ptr, uint64_t val, OrdreMémoire ordre_mémoire) -> uint64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_N64
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(int8_t *ptr, int8_t val, OrdreMémoire ordre_mémoire) -> int8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_Z8
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(int16_t *ptr, int16_t val, OrdreMémoire ordre_mémoire) -> int16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_Z16
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(int32_t *ptr, int32_t val, OrdreMémoire ordre_mémoire) -> int32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_Z32
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(int64_t *ptr, int64_t val, OrdreMémoire ordre_mémoire) -> int64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_Z64
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(void * *ptr, void * val, OrdreMémoire ordre_mémoire) -> void *
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_PTR
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(type_de_données *ptr, type_de_données val, OrdreMémoire ordre_mémoire) -> type_de_données
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_TYPE_DE_DONNÉES
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_sst(adresse_fonction *ptr, adresse_fonction val, OrdreMémoire ordre_mémoire) -> adresse_fonction
+@intrinsèque ATOMIQUE_DONNE_PUIS_SST_ADRESSE_FONCTION
+@gcc __atomic_fetch_sub
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(octet *ptr, octet val, OrdreMémoire ordre_mémoire) -> octet
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_OCTET
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(uint8_t *ptr, uint8_t val, OrdreMémoire ordre_mémoire) -> uint8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_N8
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(uint16_t *ptr, uint16_t val, OrdreMémoire ordre_mémoire) -> uint16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_N16
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> uint32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_N32
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(uint64_t *ptr, uint64_t val, OrdreMémoire ordre_mémoire) -> uint64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_N64
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(int8_t *ptr, int8_t val, OrdreMémoire ordre_mémoire) -> int8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_Z8
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(int16_t *ptr, int16_t val, OrdreMémoire ordre_mémoire) -> int16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_Z16
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(int32_t *ptr, int32_t val, OrdreMémoire ordre_mémoire) -> int32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_Z32
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(int64_t *ptr, int64_t val, OrdreMémoire ordre_mémoire) -> int64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_Z64
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(void * *ptr, void * val, OrdreMémoire ordre_mémoire) -> void *
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_PTR
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(type_de_données *ptr, type_de_données val, OrdreMémoire ordre_mémoire) -> type_de_données
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_TYPE_DE_DONNÉES
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_et(adresse_fonction *ptr, adresse_fonction val, OrdreMémoire ordre_mémoire) -> adresse_fonction
+@intrinsèque ATOMIQUE_DONNE_PUIS_ET_ADRESSE_FONCTION
+@gcc __atomic_fetch_and
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(octet *ptr, octet val, OrdreMémoire ordre_mémoire) -> octet
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_OCTET
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(uint8_t *ptr, uint8_t val, OrdreMémoire ordre_mémoire) -> uint8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_N8
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(uint16_t *ptr, uint16_t val, OrdreMémoire ordre_mémoire) -> uint16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_N16
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> uint32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_N32
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(uint64_t *ptr, uint64_t val, OrdreMémoire ordre_mémoire) -> uint64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_N64
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(int8_t *ptr, int8_t val, OrdreMémoire ordre_mémoire) -> int8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_Z8
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(int16_t *ptr, int16_t val, OrdreMémoire ordre_mémoire) -> int16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_Z16
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(int32_t *ptr, int32_t val, OrdreMémoire ordre_mémoire) -> int32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_Z32
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(int64_t *ptr, int64_t val, OrdreMémoire ordre_mémoire) -> int64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_Z64
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(void * *ptr, void * val, OrdreMémoire ordre_mémoire) -> void *
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_PTR
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(type_de_données *ptr, type_de_données val, OrdreMémoire ordre_mémoire) -> type_de_données
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_TYPE_DE_DONNÉES
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_ou(adresse_fonction *ptr, adresse_fonction val, OrdreMémoire ordre_mémoire) -> adresse_fonction
+@intrinsèque ATOMIQUE_DONNE_PUIS_OU_ADRESSE_FONCTION
+@gcc __atomic_fetch_xor
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(octet *ptr, octet val, OrdreMémoire ordre_mémoire) -> octet
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_OCTET
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(uint8_t *ptr, uint8_t val, OrdreMémoire ordre_mémoire) -> uint8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_N8
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(uint16_t *ptr, uint16_t val, OrdreMémoire ordre_mémoire) -> uint16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_N16
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> uint32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_N32
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(uint64_t *ptr, uint64_t val, OrdreMémoire ordre_mémoire) -> uint64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_N64
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(int8_t *ptr, int8_t val, OrdreMémoire ordre_mémoire) -> int8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_Z8
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(int16_t *ptr, int16_t val, OrdreMémoire ordre_mémoire) -> int16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_Z16
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(int32_t *ptr, int32_t val, OrdreMémoire ordre_mémoire) -> int32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_Z32
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(int64_t *ptr, int64_t val, OrdreMémoire ordre_mémoire) -> int64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_Z64
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(void * *ptr, void * val, OrdreMémoire ordre_mémoire) -> void *
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_PTR
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(type_de_données *ptr, type_de_données val, OrdreMémoire ordre_mémoire) -> type_de_données
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_TYPE_DE_DONNÉES
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_oux(adresse_fonction *ptr, adresse_fonction val, OrdreMémoire ordre_mémoire) -> adresse_fonction
+@intrinsèque ATOMIQUE_DONNE_PUIS_OUX_ADRESSE_FONCTION
+@gcc __atomic_fetch_or
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(octet *ptr, octet val, OrdreMémoire ordre_mémoire) -> octet
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_OCTET
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(uint8_t *ptr, uint8_t val, OrdreMémoire ordre_mémoire) -> uint8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_N8
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(uint16_t *ptr, uint16_t val, OrdreMémoire ordre_mémoire) -> uint16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_N16
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> uint32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_N32
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(uint64_t *ptr, uint64_t val, OrdreMémoire ordre_mémoire) -> uint64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_N64
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(int8_t *ptr, int8_t val, OrdreMémoire ordre_mémoire) -> int8_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_Z8
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(int16_t *ptr, int16_t val, OrdreMémoire ordre_mémoire) -> int16_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_Z16
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(int32_t *ptr, int32_t val, OrdreMémoire ordre_mémoire) -> int32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_Z32
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(int64_t *ptr, int64_t val, OrdreMémoire ordre_mémoire) -> int64_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_Z64
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(void * *ptr, void * val, OrdreMémoire ordre_mémoire) -> void *
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_PTR
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(type_de_données *ptr, type_de_données val, OrdreMémoire ordre_mémoire) -> type_de_données
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_TYPE_DE_DONNÉES
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
+
+fonction atomique_donne_puis_net(adresse_fonction *ptr, adresse_fonction val, OrdreMémoire ordre_mémoire) -> adresse_fonction
+@intrinsèque ATOMIQUE_DONNE_PUIS_NET_ADRESSE_FONCTION
+@gcc __atomic_fetch_nand
+@exclus_métaprogramme
 
 /** \} */

@@ -1556,16 +1556,227 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_BARRIÈRE_FIL:
         {
             auto arg = inst_appel->args[0];
-            m_builder.CreateFence(donne_valeur_pour_ordre_mémoire(arg));
+            m_builder.CreateFence(donne_valeur_pour_ordre_mémoire(arg), llvm::SyncScope::System);
             break;
         }
-        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJOUTE:
+        case GenreIntrinsèque::ATOMIQUE_BARRIÈRE_SIGNAL:
+        {
+            auto arg = inst_appel->args[0];
+            m_builder.CreateFence(donne_valeur_pour_ordre_mémoire(arg),
+                                  llvm::SyncScope::SingleThread);
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_TOUJOURS_SANS_VERROU:
+        case GenreIntrinsèque::ATOMIQUE_EST_SANS_VERROU:
+        {
+            /* À FAIRE(LLVM) : __atomic_always_lock_free, __atomic_is_lock_free */
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_BOOL:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_N8:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_N16:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_N32:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_N64:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_Z8:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_Z16:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_Z32:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_Z64:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_PTR:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_CHARGE_ADRESSE_FONCTION:
+        {
+            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto load = m_builder.CreateLoad(arg->getType(), arg);
+            load->setAtomic(donne_valeur_pour_ordre_mémoire(inst_appel->args[1]));
+            valeur_retour = load;
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_BOOL:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_N8:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_N16:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_N32:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_N64:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_Z8:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_Z16:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_Z32:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_Z64:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_PTR:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_STOCKE_ADRESSE_FONCTION:
+        {
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto store = m_builder.CreateStore(arg1, arg0);
+            store->setAtomic(donne_valeur_pour_ordre_mémoire(inst_appel->args[2]));
+            valeur_retour = store;
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_BOOL:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_N8:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_N16:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_N32:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_N64:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_Z8:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_Z16:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_Z32:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_Z64:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_PTR:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_ADRESSE_FONCTION:
+        {
+            /* À FAIRE(llvm) : __atomic_exchange. */
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_BOOL:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_N8:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_N16:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_N32:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_N64:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_Z8:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_Z16:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_Z32:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_Z64:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_PTR:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_ADRESSE_FONCTION:
+        {
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg2 = génère_code_pour_atome(inst_appel->args[2], false);
+            auto arg3 = inst_appel->args[3];
+            auto arg4 = inst_appel->args[4];
+            auto arg5 = inst_appel->args[5];
+            auto compare_échange = m_builder.CreateAtomicCmpXchg(
+                arg0,
+                arg1,
+                arg2,
+                donne_valeur_pour_ordre_mémoire(arg4),
+                donne_valeur_pour_ordre_mémoire(arg5));
+            compare_échange->setWeak(arg3->comme_constante_booléenne()->valeur);
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_ADRESSE_FONCTION:
         {
             auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
             auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
             auto arg2 = inst_appel->args[0];
-            m_builder.CreateAtomicRMW(
+            valeur_retour = m_builder.CreateAtomicRMW(
                 llvm::AtomicRMWInst::Add, arg0, arg1, donne_valeur_pour_ordre_mémoire(arg2));
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_ADRESSE_FONCTION:
+        {
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg2 = inst_appel->args[0];
+            valeur_retour = m_builder.CreateAtomicRMW(
+                llvm::AtomicRMWInst::Sub, arg0, arg1, donne_valeur_pour_ordre_mémoire(arg2));
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_ADRESSE_FONCTION:
+        {
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg2 = inst_appel->args[0];
+            valeur_retour = m_builder.CreateAtomicRMW(
+                llvm::AtomicRMWInst::And, arg0, arg1, donne_valeur_pour_ordre_mémoire(arg2));
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_ADRESSE_FONCTION:
+        {
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg2 = inst_appel->args[0];
+            valeur_retour = m_builder.CreateAtomicRMW(
+                llvm::AtomicRMWInst::Or, arg0, arg1, donne_valeur_pour_ordre_mémoire(arg2));
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_ADRESSE_FONCTION:
+        {
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg2 = inst_appel->args[0];
+            valeur_retour = m_builder.CreateAtomicRMW(
+                llvm::AtomicRMWInst::Xor, arg0, arg1, donne_valeur_pour_ordre_mémoire(arg2));
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_OCTET:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_N8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_N16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_N32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_N64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_Z8:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_Z16:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_Z32:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_Z64:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_PTR:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_TYPE_DE_DONNÉES:
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_ADRESSE_FONCTION:
+        {
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg2 = inst_appel->args[0];
+            valeur_retour = m_builder.CreateAtomicRMW(
+                llvm::AtomicRMWInst::Nand, arg0, arg1, donne_valeur_pour_ordre_mémoire(arg2));
             break;
         }
         case GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES:
@@ -2039,6 +2250,13 @@ CoulisseLLVM::~CoulisseLLVM()
     delete m_machine_cible;
 }
 
+static bool est_intrinsèque_supportée_par_llvm(IdentifiantCode const *ident)
+{
+    return ident != ID::intrinsèque_est_adresse_données_constantes &&
+           ident != ID::atomique_échange && ident != ID::atomique_toujours_sans_verrou &&
+           ident != ID::atomique_est_sans_verrou;
+}
+
 std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
 {
     if (!initialise_llvm()) {
@@ -2053,10 +2271,11 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
             continue;
         }
 
-        if (it->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
-            return ErreurCoulisse{
-                "Utilisation de intrinsèque_est_adresse_données_constantes.\nCette fonction n'est "
-                "pas encore implémentée pour LLVM."};
+        if (!est_intrinsèque_supportée_par_llvm(it->decl->ident)) {
+            auto message = enchaine("Utilisation d'une intrinsèque non-implémentée pour LLVM : ",
+                                    it->decl->ident->nom,
+                                    ".");
+            return ErreurCoulisse{message};
         }
     }
 

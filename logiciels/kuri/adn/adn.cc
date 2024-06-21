@@ -746,6 +746,10 @@ void SyntaxeuseADN::parse_fonction()
             énum_discriminate->ajoute_membre(membre);
             consomme();
         }
+        else if (apparie("exclus_métaprogramme")) {
+            fonction->marque_exclus_métaprogramme();
+            consomme();
+        }
         else if (apparie("compilatrice")) {
             if (fonction->est_marquée_intrinsèque()) {
                 rapporte_erreur("Fonction marquée comme faisant partie de l'IPA compilatrice "
