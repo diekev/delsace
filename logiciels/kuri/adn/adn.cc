@@ -609,11 +609,7 @@ void ProtéineFonction::génère_code_kuri(FluxSortieKuri &os)
     os << ") -> " << *m_type_sortie;
 
     if (m_est_intrinsèque) {
-        os << " #intrinsèque";
-
-        if (m_symbole_gcc != "") {
-            os << " \"" << m_symbole_gcc << "\"";
-        }
+        os << " #intrinsèque " << m_genre_intrinsèque;
     }
     else if (m_est_ipa_compilatrice) {
         os << " #compilatrice";
@@ -1190,10 +1186,16 @@ void genere_déclaration_identifiants_code(const kuri::tableau<Protéine *> &pro
 
     kuri::ensemble<kuri::chaine_statique> identifiants;
     POUR (protéines) {
-        if (!it->est_fonction()) {
-            continue;
+        if (it->est_fonction()) {
+            identifiants.insère(it->nom().nom());
         }
-        identifiants.insère(it->nom().nom());
+        else if (it->comme_enum() && it->comme_enum()->nom().nom() == "GenreIntrinsèque") {
+            auto protéine_enum = it->comme_enum();
+
+            for (auto const &membre : protéine_enum->donne_membres()) {
+                identifiants.insère(membre.nom.nom());
+            }
+        }
     }
 
     os << "namespace ID {\n";

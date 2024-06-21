@@ -69,9 +69,13 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
 
         os << "\n";
 
+        os << "std::optional<kuri::chaine_statique> "
+              "donne_nom_intrinsèque_gcc_pour_identifiant(IdentifiantCode const *ident);\n";
+
+        os << "\n";
+
         os << "std::optional<GenreIntrinsèque> "
-              "donne_genre_intrinsèque_pour_nom_gcc(kuri::chaine_statique "
-              "nom_gcc);\n";
+              "donne_genre_intrinsèque_pour_identifiant(IdentifiantCode const *ident);\n";
 
         return;
     }
@@ -91,10 +95,8 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
     }
 
     os << "\n";
-
-    os << "std::optional<GenreIntrinsèque> "
-          "donne_genre_intrinsèque_pour_nom_gcc(kuri::chaine_statique "
-          "nom_gcc)\n";
+    os << "std::optional<kuri::chaine_statique> "
+          "donne_nom_intrinsèque_gcc_pour_identifiant(IdentifiantCode const *ident)\n";
     os << "{\n";
 
     POUR (protéines) {
@@ -111,9 +113,37 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
             continue;
         }
 
-        os << "    if (nom_gcc == \"" << protéine_fonction->donne_symbole_gcc() << "\") {\n";
-        os << "        return GenreIntrinsèque::" << protéine_fonction->donne_genre_intrinsèque()
-           << ";\n";
+        os << "    if (ident == ID::" << protéine_fonction->donne_genre_intrinsèque() << ") {\n";
+        os << "        return \"" << protéine_fonction->donne_symbole_gcc() << "\";\n";
+        os << "    }\n";
+    }
+
+    os << "    return {};\n";
+    os << "}\n";
+
+    ProtéineEnum *enum_genre_intrinsèque = nullptr;
+    POUR (protéines) {
+        auto protéine_enum = it->comme_enum();
+        if (!protéine_enum) {
+            continue;
+        }
+
+        if (protéine_enum->nom().nom() != "GenreIntrinsèque") {
+            continue;
+        }
+
+        enum_genre_intrinsèque = protéine_enum;
+        break;
+    }
+
+    os << "\n";
+    os << "std::optional<GenreIntrinsèque> "
+          "donne_genre_intrinsèque_pour_identifiant(IdentifiantCode const *ident)\n";
+    os << "{\n";
+
+    for (auto const &membre : enum_genre_intrinsèque->donne_membres()) {
+        os << "    if (ident == ID::" << membre.nom.nom() << ") {\n";
+        os << "        return GenreIntrinsèque::" << membre.nom.nom() << ";\n";
         os << "    }\n";
     }
 

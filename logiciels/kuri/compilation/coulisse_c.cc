@@ -2078,8 +2078,8 @@ void GénératriceCodeC::génère_code_pour_appel_impl(Enchaineuse &os, Instruct
 void GénératriceCodeC::génère_code_pour_appel_intrinsèque(
     Enchaineuse &os, InstructionAppel const *appel, DonnéesSymboleExterne const *données_externe)
 {
-    auto opt_genre_intrinsèque = donne_genre_intrinsèque_pour_nom_gcc(
-        données_externe->nom_symbole);
+    auto opt_genre_intrinsèque = donne_genre_intrinsèque_pour_identifiant(
+        données_externe->ident_énum_intrinsèque);
 
     if (!opt_genre_intrinsèque.has_value()) {
         génère_code_pour_appel_impl(os, appel);

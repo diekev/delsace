@@ -1373,8 +1373,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
 void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
     InstructionAppel const *inst_appel, DonnéesSymboleExterne const *données_externe)
 {
-    auto opt_genre_intrinsèque = donne_genre_intrinsèque_pour_nom_gcc(
-        données_externe->nom_symbole);
+    auto opt_genre_intrinsèque = donne_genre_intrinsèque_pour_identifiant(
+        données_externe->ident_énum_intrinsèque);
     assert(opt_genre_intrinsèque.has_value());
     auto genre_intrinsèque = opt_genre_intrinsèque.value();
 

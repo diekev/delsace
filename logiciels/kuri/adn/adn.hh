@@ -633,6 +633,11 @@ class ProtéineEnum final : public Protéine {
     {
         return m_type_discrimine;
     }
+
+    kuri::tableau_statique<Membre> donne_membres() const
+    {
+        return m_membres;
+    }
 };
 
 struct Parametre {
