@@ -2957,6 +2957,9 @@ void CompilatriceRI::génère_ri_pour_fonction(NoeudDéclarationEntêteFonction 
             if (it->est_instruction()) {
                 dbg() << "-- " << imprime_instruction(it->comme_instruction());
             }
+            else if (it->est_fonction()) {
+                dbg() << "-- " << it->comme_fonction()->nom;
+            }
             else {
                 dbg() << "-- " << it->genre_atome;
             }
