@@ -199,7 +199,8 @@ static void génère_code_appel_intrinsèque(FluxSortieCPP &os, ProtéineFonctio
 {
     auto symbole = fonction->donne_symbole_gcc();
 
-    if (symbole == "__builtin___clear_cache" || symbole == "__builtin_prefetch") {
+    if (symbole == "__builtin___clear_cache" || symbole == "__builtin_prefetch" ||
+        symbole == "__atomic_thread_fence" || symbole == "__atomic_fetch_add") {
         génère_code_appel_intrinsèque_ignorée(os, fonction, "{}");
     }
     else if (symbole == "__builtin_expect" || symbole == "__builtin_expect_with_probability") {

@@ -189,6 +189,14 @@ struct GénératriceCodeC {
     void génère_code(CoulisseC::FichierC const &fichier);
 
     void génère_code_pour_appel(Enchaineuse &os, InstructionAppel const *appel);
+    void génère_code_pour_appel_impl(Enchaineuse &os, InstructionAppel const *appel);
+    void génère_code_pour_appel_intrinsèque(Enchaineuse &os,
+                                            InstructionAppel const *appel,
+                                            DonnéesSymboleExterne const *données_externe);
+    void génère_code_pour_appel_intrinsèque_atomique(Enchaineuse &os,
+                                                     InstructionAppel const *appel,
+                                                     int32_t index_ordre_mémoire);
+    kuri::chaine_statique donne_valeur_pour_ordre_mémoire(Enchaineuse &os, Atome *arg);
 
     void génère_code_entête(CoulisseC::FichierC const &fichier, Enchaineuse &os);
     void génère_code_source(CoulisseC::FichierC const &fichier, Enchaineuse &os);
@@ -2014,6 +2022,16 @@ void GénératriceCodeC::génère_code(CoulisseC::FichierC const &fichier)
 
 void GénératriceCodeC::génère_code_pour_appel(Enchaineuse &os, InstructionAppel const *appel)
 {
+    if (auto données_externe = appel->est_appel_intrinsèque()) {
+        génère_code_pour_appel_intrinsèque(os, appel, données_externe);
+        return;
+    }
+
+    génère_code_pour_appel_impl(os, appel);
+}
+
+void GénératriceCodeC::génère_code_pour_appel_impl(Enchaineuse &os, InstructionAppel const *appel)
+{
     auto const est_init_contexte = est_appel_init_contexte(appel);
 
     auto arguments = kuri::tablet<kuri::chaine, 10>();
@@ -2055,6 +2073,140 @@ void GénératriceCodeC::génère_code_pour_appel(Enchaineuse &os, InstructionAp
     }
 
     os << ");\n";
+}
+
+void GénératriceCodeC::génère_code_pour_appel_intrinsèque(
+    Enchaineuse &os, InstructionAppel const *appel, DonnéesSymboleExterne const *données_externe)
+{
+    auto opt_genre_intrinsèque = donne_genre_intrinsèque_pour_nom_gcc(
+        données_externe->nom_symbole);
+
+    if (!opt_genre_intrinsèque.has_value()) {
+        génère_code_pour_appel_impl(os, appel);
+        return;
+    }
+
+    auto genre_intrinsèque = opt_genre_intrinsèque.value();
+
+    switch (genre_intrinsèque) {
+        case GenreIntrinsèque::RÉINITIALISE_TAMPON_INSTRUCTION:
+        case GenreIntrinsèque::PRÉCHARGE:
+        case GenreIntrinsèque::PRÉDIT:
+        case GenreIntrinsèque::PRÉDIT_AVEC_PROBABILITÉ:
+        case GenreIntrinsèque::PIÈGE:
+        case GenreIntrinsèque::NONATTEIGNABLE:
+        case GenreIntrinsèque::TROUVE_PREMIER_ACTIF_32:
+        case GenreIntrinsèque::TROUVE_PREMIER_ACTIF_64:
+        case GenreIntrinsèque::COMPTE_ZÉROS_EN_TÊTE_32:
+        case GenreIntrinsèque::COMPTE_ZÉROS_EN_TÊTE_64:
+        case GenreIntrinsèque::COMPTE_ZÉROS_EN_FIN_32:
+        case GenreIntrinsèque::COMPTE_ZÉROS_EN_FIN_64:
+        case GenreIntrinsèque::COMPTE_REDONDANCE_BIT_SIGNE_32:
+        case GenreIntrinsèque::COMPTE_REDONDANCE_BIT_SIGNE_64:
+        case GenreIntrinsèque::COMPTE_BITS_ACTIFS_32:
+        case GenreIntrinsèque::COMPTE_BITS_ACTIFS_64:
+        case GenreIntrinsèque::PARITÉ_BITS_32:
+        case GenreIntrinsèque::PARITÉ_BITS_64:
+        case GenreIntrinsèque::COMMUTE_OCTETS_16:
+        case GenreIntrinsèque::COMMUTE_OCTETS_32:
+        case GenreIntrinsèque::COMMUTE_OCTETS_64:
+        case GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES:
+        {
+            génère_code_pour_appel_impl(os, appel);
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_BARRIÈRE_FIL:
+        {
+            génère_code_pour_appel_intrinsèque_atomique(os, appel, 0);
+            break;
+        }
+        case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJOUTE:
+        {
+            génère_code_pour_appel_intrinsèque_atomique(os, appel, 2);
+            break;
+        }
+    }
+}
+
+void GénératriceCodeC::génère_code_pour_appel_intrinsèque_atomique(Enchaineuse &os,
+                                                                   InstructionAppel const *appel,
+                                                                   int32_t index_ordre_mémoire)
+{
+    auto arguments = kuri::tablet<kuri::chaine, 10>();
+
+    POUR_INDEX (appel->args) {
+        if (index_it == index_ordre_mémoire) {
+            arguments.ajoute(donne_valeur_pour_ordre_mémoire(os, it));
+        }
+        else {
+            arguments.ajoute(génère_code_pour_atome(it, os, false));
+        }
+    }
+
+    os << "  ";
+
+    auto type_fonction = appel->appelé->type->comme_type_fonction();
+    if (!type_fonction->type_sortie->est_type_rien()) {
+        auto nom_ret = donne_nom_pour_instruction(appel);
+        os << "const " << donne_nom_pour_type(appel->type) << ' ' << nom_ret << " = ";
+        table_valeurs[appel->numero] = nom_ret;
+    }
+
+    os << génère_code_pour_atome(appel->appelé, os, false);
+
+    auto virgule = "(";
+
+    POUR_INDEX (arguments) {
+        os << virgule << it;
+        virgule = ", ";
+    }
+
+    if (appel->args.taille() == 0) {
+        os << virgule;
+    }
+
+    os << ");\n";
+}
+
+kuri::chaine_statique GénératriceCodeC::donne_valeur_pour_ordre_mémoire(Enchaineuse &os,
+                                                                        Atome *arg)
+{
+    if (arg->est_constante_entière()) {
+        auto valeur = OrdreMémoire(arg->comme_constante_entière()->valeur);
+
+        switch (valeur) {
+            default:
+            {
+                break;
+            }
+            case OrdreMémoire::RELAXÉ:
+            {
+                return "__ATOMIC_RELAXED";
+            }
+            case OrdreMémoire::CONSOMME:
+            {
+                return "__ATOMIC_CONSUME";
+            }
+            case OrdreMémoire::ACQUIÈRE:
+            {
+                return "__ATOMIC_ACQUIRE";
+            }
+            case OrdreMémoire::RELÂCHE:
+            {
+                return "__ATOMIC_RELEASE";
+            }
+            case OrdreMémoire::ACQUIÈRE_RELÂCHE:
+            {
+                return "__ATOMIC_ACQ_REL";
+            }
+            case OrdreMémoire::SEQ_CST:
+            {
+                return "__ATOMIC_SEQ_CST";
+            }
+        }
+    }
+
+    return génère_code_pour_atome(arg, os, false);
 }
 
 void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(

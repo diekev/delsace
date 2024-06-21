@@ -235,3 +235,39 @@ fonction intrinsèque_est_adresse_données_constantes(void *adresse) -> bool
 @intrinsèque EST_ADRESSE_DONNÉES_CONSTANTES
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Atomiques.
+* \{ */
+
+énum OrdreMémoire {
+    @type int32_t
+
+    /* Implies no inter-thread ordering constraints. */
+    RELAXÉ
+
+    /* This is currently implemented using the stronger __ATOMIC_ACQUIRE memory order because of a deficiency in C++11’s semantics for memory_order_consume. */
+    CONSOMME
+
+    /* Creates an inter-thread happens-before constraint from the release (or stronger) semantic store to this acquire load. Can prevent hoisting of code to before the operation. */
+    ACQUIÈRE
+
+    /* Creates an inter-thread happens-before constraint to acquire (or stronger) semantic loads that read from this release store. Can prevent sinking of code to after the operation. */
+    RELÂCHE
+
+    /* Combines the effects of both __ATOMIC_ACQUIRE and __ATOMIC_RELEASE. */
+    ACQUIÈRE_RELÂCHE
+
+    /* Enforces total ordering with all other __ATOMIC_SEQ_CST operations. */
+    SEQ_CST
+}
+
+fonction atomique_barrière_fil(OrdreMémoire ordre_mémoire)
+@intrinsèque ATOMIQUE_BARRIÈRE_FIL
+@gcc __atomic_thread_fence
+
+fonction atomique_donne_puis_ajoute(uint32_t *ptr, uint32_t val, OrdreMémoire ordre_mémoire) -> uint32_t
+@intrinsèque ATOMIQUE_DONNE_PUIS_AJOUTE
+@gcc __atomic_fetch_add
+
+/** \} */
