@@ -5594,8 +5594,10 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
 
     for (auto i = 1; i < anciennes_instructions.taille(); i++) {
         auto inst = anciennes_instructions[i];
+        auto doit_ajouter_trace_appel = inst->est_appel() &&
+                                        !inst->comme_appel()->est_appel_intrinsèque();
 
-        if (inst->est_appel()) {
+        if (doit_ajouter_trace_appel) {
             /* Définis trace appel. */
             /* trace_appel.info_appel = *info_appel */
             auto ref_info_appel = m_constructrice.crée_référence_membre(
@@ -5611,7 +5613,7 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
 
         fonction->instructions.ajoute(inst);
 
-        if (inst->est_appel()) {
+        if (doit_ajouter_trace_appel) {
             /* Restaure trace appel. */
             /* __contexte_fil_principal.trace_appel = ma_trace.précédente */
             auto ref_trace_appel_contexte = m_constructrice.crée_référence_membre(
