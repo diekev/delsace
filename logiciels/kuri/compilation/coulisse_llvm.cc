@@ -1331,24 +1331,9 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
     }
 }
 
-static DonnéesSymboleExterne *est_appel_intrinsèque(InstructionAppel const *appel)
-{
-    auto appelée = appel->appelé;
-    if (!appelée->est_fonction()) {
-        return nullptr;
-    }
-
-    auto fonction = appelée->comme_fonction();
-    if (!fonction->est_intrinsèque()) {
-        return nullptr;
-    }
-
-    return fonction->decl->données_externes;
-}
-
 void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *inst_appel)
 {
-    if (auto données_externe = est_appel_intrinsèque(inst_appel)) {
+    if (auto données_externe = inst_appel->est_appel_intrinsèque()) {
         génère_code_pour_appel_intrinsèque(inst_appel, données_externe);
         return;
     }
