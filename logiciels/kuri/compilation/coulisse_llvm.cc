@@ -1370,6 +1370,47 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
     définis_valeur_instruction(inst_appel, résultat);
 }
 
+llvm::AtomicOrdering donne_valeur_pour_ordre_mémoire(Atome const *arg)
+{
+    if (arg->est_constante_entière()) {
+        auto valeur = OrdreMémoire(arg->comme_constante_entière()->valeur);
+
+        switch (valeur) {
+            default:
+            {
+                return llvm::AtomicOrdering::SequentiallyConsistent;
+            }
+            case OrdreMémoire::RELAXÉ:
+            {
+                return llvm::AtomicOrdering::Monotonic;
+            }
+            case OrdreMémoire::CONSOMME:
+            {
+                /* LLVM n'a pas de "consomme", utilise donc la contrainte la plus forte. */
+                return llvm::AtomicOrdering::SequentiallyConsistent;
+            }
+            case OrdreMémoire::ACQUIÈRE:
+            {
+                return llvm::AtomicOrdering::Acquire;
+            }
+            case OrdreMémoire::RELÂCHE:
+            {
+                return llvm::AtomicOrdering::Release;
+            }
+            case OrdreMémoire::ACQUIÈRE_RELÂCHE:
+            {
+                return llvm::AtomicOrdering::AcquireRelease;
+            }
+            case OrdreMémoire::SEQ_CST:
+            {
+                return llvm::AtomicOrdering::SequentiallyConsistent;
+            }
+        }
+    }
+
+    return llvm::AtomicOrdering::SequentiallyConsistent;
+}
+
 void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
     InstructionAppel const *inst_appel, DonnéesSymboleExterne const *données_externe)
 {
@@ -1513,7 +1554,20 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
             break;
         }
         case GenreIntrinsèque::ATOMIQUE_BARRIÈRE_FIL:
+        {
+            auto arg = inst_appel->args[0];
+            m_builder.CreateFence(donne_valeur_pour_ordre_mémoire(arg));
+            break;
+        }
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJOUTE:
+        {
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg2 = inst_appel->args[0];
+            m_builder.CreateAtomicRMW(
+                llvm::AtomicRMWInst::Add, arg0, arg1, donne_valeur_pour_ordre_mémoire(arg2));
+            break;
+        }
         case GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES:
         {
             break;
