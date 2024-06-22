@@ -4450,6 +4450,13 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
         if (résoud_type_final(decl->expression_type, decl->type) == CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
+        if (decl->type && decl->type->est_type_rien() &&
+            !decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE |
+                                   DrapeauxNoeud::EST_MEMBRE_STRUCTURE)) {
+            m_espace->rapporte_erreur(decl,
+                                      "Impossible de déclarer une variable de type « rien »");
+            return CodeRetourValidation::Erreur;
+        }
     }
 
     auto expression = decl->expression;
@@ -4473,6 +4480,13 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
                 m_espace->rapporte_erreur(
                     expression,
                     "Trop de valeurs pour initialiser une déclaration de variable singulière.");
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_de_l_expression->est_type_rien()) {
+                m_espace->rapporte_erreur(expression,
+                                          "Impossible de déclarer une variable depuis "
+                                          "une expression ne retournant rien.");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -4653,6 +4667,12 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
                         TransformationType(TypeTransformation::DEREFERENCE));
                 }
                 else {
+                    if (type_de_l_expression->est_type_rien()) {
+                        m_espace->rapporte_erreur(expression,
+                                                  "Impossible de déclarer une variable depuis "
+                                                  "une expression ne retournant rien.");
+                        return CodeRetourValidation::Erreur;
+                    }
                     variable->type = type_de_l_expression;
                     donnees.variables.ajoute(variable);
                     donnees.transformations.ajoute(
@@ -4661,6 +4681,12 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
             }
         }
         else {
+            if (variable->type->est_type_rien()) {
+                m_espace->rapporte_erreur(variable,
+                                          "Impossible de déclarer une variable de type « rien »");
+                return CodeRetourValidation::Erreur;
+            }
+
             auto résultat = cherche_transformation(type_de_l_expression, variable->type);
 
             if (std::holds_alternative<Attente>(résultat)) {
