@@ -1080,7 +1080,7 @@ void ConstructriceProgrammeFormeRI::génère_traces_d_appel()
 
         bool possède_appels = false;
         POUR_NOMME (inst, it->instructions) {
-            if (!inst->est_appel()) {
+            if (!inst->est_appel() || inst->comme_appel()->est_appel_intrinsèque()) {
                 continue;
             }
             possède_appels = true;

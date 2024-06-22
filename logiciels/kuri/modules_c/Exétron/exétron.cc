@@ -11,6 +11,7 @@
 
 #include "../InterfaceCKuri/contexte_kuri.hh"
 
+#include <tbb/flow_graph.h>
 #include <tbb/parallel_for.h>
 
 extern "C" {
@@ -203,4 +204,193 @@ void EXETRON_boucle_parallele_lourde(PlageExecution const *plage, DonneesTachePa
     RETOURNE_SI_NUL
     EXETRON_boucle_parallele(plage, donnees, 1);
 }
+
+struct corps_fonction {
+    fonction_noeud_execution m_fonction;
+    void *m_données;
+
+    corps_fonction(fonction_noeud_execution fonction, void *donnees)
+        : m_fonction(fonction), m_données(donnees)
+    {
+    }
+
+    void operator()(tbb::flow::continue_msg) const
+    {
+        if (m_fonction) {
+            m_fonction(m_données);
+        }
+    }
+};
+
+class graphe_execution {
+    tbb::flow::graph m_graphe{};
+    std::vector<tbb::flow::broadcast_node<tbb::flow::continue_msg>> m_racines{};
+    std::vector<tbb::flow::continue_node<tbb::flow::continue_msg>> m_noeuds{};
+
+  public:
+    uint64_t crée_racine()
+    {
+        m_racines.emplace_back(m_graphe);
+        return m_racines.size() << 32;
+    }
+
+    uint64_t crée_noeud(fonction_noeud_execution fonction, void *donnees)
+    {
+        m_noeuds.emplace_back(m_graphe, corps_fonction(fonction, donnees));
+        return m_noeuds.size();
+    }
+
+    void crée_connexion(uint64_t sortie, uint64_t entrée)
+    {
+        if (sortie >> 32 != 0 && entrée >> 32 == 0) {
+            tbb::flow::make_edge(m_racines[(sortie >> 32) - 1], m_noeuds[entrée - 1]);
+        }
+        else if (sortie >> 32 == 0 && entrée >> 32 == 0) {
+            tbb::flow::make_edge(m_noeuds[sortie - 1], m_noeuds[entrée - 1]);
+        }
+    }
+
+    void exécute(uint64_t racine)
+    {
+        auto index_racine = (racine >> 32) - 1;
+        m_racines[index_racine].try_put(tbb::flow::continue_msg());
+    }
+
+    void attend_sur_tous()
+    {
+        m_graphe.wait_for_all();
+    }
+
+    void exécute_et_attend_sur_tous(uint64_t racine)
+    {
+        exécute(racine);
+        attend_sur_tous();
+    }
+};
+
+struct poignee_graphe_execution *EXETRON_cree_graphe_execution()
+{
+    auto résultat = new graphe_execution();
+    return reinterpret_cast<poignee_graphe_execution *>(résultat);
+}
+
+void EXETRON_detruit_graphe_execution(struct poignee_graphe_execution *graphe)
+{
+    auto graphe_tbb = reinterpret_cast<graphe_execution *>(graphe);
+    delete graphe_tbb;
+}
+
+void EXETRON_graphe_execute(struct poignee_graphe_execution *graphe, uint64_t racine)
+{
+    auto graphe_tbb = reinterpret_cast<graphe_execution *>(graphe);
+    graphe_tbb->exécute(racine);
+}
+
+void EXETRON_graphe_attend_sur_tous(struct poignee_graphe_execution *graphe)
+{
+    auto graphe_tbb = reinterpret_cast<graphe_execution *>(graphe);
+    graphe_tbb->attend_sur_tous();
+}
+
+void EXETRON_graphe_execute_et_attend_sur_tous(struct poignee_graphe_execution *graphe,
+                                               uint64_t racine)
+{
+    auto graphe_tbb = reinterpret_cast<graphe_execution *>(graphe);
+    graphe_tbb->exécute_et_attend_sur_tous(racine);
+}
+
+uint64_t EXETRON_graphe_cree_racine(struct poignee_graphe_execution *graphe)
+{
+    auto graphe_tbb = reinterpret_cast<graphe_execution *>(graphe);
+    return graphe_tbb->crée_racine();
+}
+
+uint64_t EXETRON_graphe_cree_noeud(struct poignee_graphe_execution *graphe,
+                                   fonction_noeud_execution fonction,
+                                   void *donnees)
+{
+    auto graphe_tbb = reinterpret_cast<graphe_execution *>(graphe);
+    return graphe_tbb->crée_noeud(fonction, donnees);
+}
+
+void EXETRON_graphe_connecte_noeud_noeud(struct poignee_graphe_execution *graphe,
+                                         uint64_t sortie,
+                                         uint64_t entree)
+{
+    auto graphe_tbb = reinterpret_cast<graphe_execution *>(graphe);
+    graphe_tbb->crée_connexion(sortie, entree);
+}
+
+#if 0
+struct poignee_noeud_racine;
+struct poignee_noeud_execution;
+
+struct poignee_graphe_execution *EXETRON_cree_graphe_execution()
+{
+    auto résultat = new tbb::flow::graph();
+    return reinterpret_cast<poignee_graphe_execution *>(résultat);
+}
+
+void EXETRON_detruit_graphe_execution(struct poignee_graphe_execution *graphe)
+{
+    auto graphe_tbb = reinterpret_cast<tbb::flow::graph *>(graphe);
+    delete graphe_tbb;
+}
+
+void EXETRON_graphe_attend_sur_tous(struct poignee_graphe_execution *graphe)
+{
+    auto graphe_tbb = reinterpret_cast<tbb::flow::graph *>(graphe);
+    graphe_tbb->wait_for_all();
+}
+
+struct poignee_noeud_racine *EXETRON_donne_noeud_racine(struct poignee_graphe_execution *graphe)
+{
+    auto graphe_tbb = reinterpret_cast<tbb::flow::graph *>(graphe);
+    auto résultat = new tbb::flow::broadcast_node<tbb::flow::continue_msg>(*graphe_tbb);
+    return reinterpret_cast<poignee_noeud_racine *>(résultat);
+}
+
+void EXETRON_detruit_noeud_racine(struct poignee_noeud_racine *racine)
+{
+    auto racine_tbb = reinterpret_cast<tbb::flow::broadcast_node<tbb::flow::continue_msg> *>(
+        racine);
+    delete racine_tbb;
+}
+
+struct poignee_noeud_execution *EXETRON_cree_noeud_execution(
+    struct poignee_graphe_execution *graphe, fonction_noeud_execution fonction, void *donnees)
+{
+    auto graphe_tbb = reinterpret_cast<tbb::flow::graph *>(graphe);
+    auto résultat = new tbb::flow::continue_node<tbb::flow::continue_msg>(
+        *graphe_tbb, corps_fonction(fonction, donnees));
+    return reinterpret_cast<poignee_noeud_execution *>(résultat);
+}
+
+void EXETRON_detruit_noeud_execution(struct poignee_noeud_execution *noeud)
+{
+    auto noeud_tbb = reinterpret_cast<tbb::flow::continue_node<tbb::flow::continue_msg> *>(noeud);
+    delete noeud_tbb;
+}
+
+void EXETRON_connecte_racine_noeud(struct poignee_noeud_racine *racine,
+                                   struct poignee_noeud_execution *noeud)
+{
+    auto racine_tbb = reinterpret_cast<tbb::flow::broadcast_node<tbb::flow::continue_msg> *>(
+        racine);
+    auto noeud_tbb = reinterpret_cast<tbb::flow::continue_node<tbb::flow::continue_msg> *>(noeud);
+
+    tbb::flow::make_edge(*racine_tbb, *noeud_tbb);
+}
+
+void EXETRON_connecte_noeud_noeud(struct poignee_noeud_execution *sortie,
+                                  struct poignee_noeud_execution *entree)
+{
+    auto sortie_tbb = reinterpret_cast<tbb::flow::continue_node<tbb::flow::continue_msg> *>(
+        sortie);
+    auto entree_tbb = reinterpret_cast<tbb::flow::continue_node<tbb::flow::continue_msg> *>(
+        entree);
+
+    tbb::flow::make_edge(*sortie_tbb, *entree_tbb);
+}
+#endif
 }
