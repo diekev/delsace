@@ -1,3 +1,7 @@
+importe Fondation
+importe Ordinatrice
+importe PThread
+
 charge "interface_exétron"
 
 // ------------------------------------------
@@ -65,3 +69,145 @@ détruit :: fonc (mutex: &*Mutex)
     EXETRON_detruit_mutex(mutex)
     mutex = nul
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom File de travail.
+ * \{ */
+
+__file_globale: FileDeTravail
+__file_globale_initialisée := faux
+__fils_exécutions: [..]InfoFilExécution
+
+initialise_file_globale :: fonc ()
+{
+    nombre_de_fils := nombre_threads_disponible() - 1
+    tableau_redimensionne(__fils_exécutions, nombre_de_fils)
+
+    _ := sem_init(*__file_globale.sémaphore, 0, 0)
+
+    pour * __fils_exécutions {
+        it.index_logique = index_it comme z32
+        it.file = *__file_globale
+
+        _ := pthread_create(*it.index_natif, nul, fonction_fil, it)
+    }
+
+    __file_globale_initialisée = vrai
+}
+
+contexte_ajoute_tâche :: fonc (rappel: fonc(*$T)(rien), données: *T)
+{
+    saufsi __file_globale_initialisée {
+        initialise_file_globale()
+    }
+
+    ajoute_tâche(*__file_globale, rappel comme fonc(*rien)(rien), données)
+}
+
+contexte_attend_sur_tâches :: fonc ()
+{
+    attend_sur_complétion_tâches(*__file_globale)
+}
+
+DonnéesEntréeFileTravail :: struct {
+    données: *rien
+    fonction_travail: fonc(*rien)(rien)
+}
+
+FileDeTravail :: struct {
+    sémaphore: sem_t
+    choses_terminées: n32
+    prochaine_entrée_à_faire: n32
+    nombre_d_entrées: n32
+
+    entrées: [256]DonnéesEntréeFileTravail
+
+    fils_exécution: [..]InfoFilExécution
+}
+
+EntréeFileTravail :: struct {
+    données: *rien
+    fonction_travail: fonc(*rien)(rien)
+    est_valide: bool
+}
+
+ajoute_tâche :: fonc (file: *FileDeTravail, fonction_travail: fonc(*rien)(rien), données: *rien)
+{
+    assert(file.nombre_d_entrées < file.entrées.taille comme n32)
+
+    entrée := *file.entrées[file.nombre_d_entrées]
+    entrée.fonction_travail = fonction_travail
+    entrée.données = données
+
+    atomique_barrière_fil(OrdreMémoire.ACQUIÈRE)
+    file.nombre_d_entrées += 1
+
+    _ := sem_post(*file.sémaphore)
+}
+
+complète_et_donne_prochaine_entrée_file :: fonc (file: *FileDeTravail, complétée: EntréeFileTravail) -> EntréeFileTravail
+{
+    résultat: EntréeFileTravail
+
+    si complétée.est_valide {
+        _ := atomique_donne_puis_ajt(*file.choses_terminées, 1, OrdreMémoire.ACQUIÈRE)
+    }
+
+    si file.prochaine_entrée_à_faire < file.nombre_d_entrées {
+        index_entrée := atomique_donne_puis_ajt(*file.prochaine_entrée_à_faire, 1, OrdreMémoire.ACQUIÈRE)
+
+        entrée := *file.entrées[index_entrée]
+        résultat.données = entrée.données
+        résultat.fonction_travail = entrée.fonction_travail
+        résultat.est_valide = vrai
+
+        atomique_barrière_fil(OrdreMémoire.RELÂCHE)
+    }
+
+    retourne résultat
+}
+
+InfoFilExécution :: struct {
+    file: *FileDeTravail
+    index_logique: z32
+    index_natif: pthread_t
+}
+
+travail_sur_la_tâche :: fonc (entrée: EntréeFileTravail, index_logique: z32 @inutilisée)
+{
+    assert(entrée.est_valide)
+    assert(entrée.fonction_travail != nul)
+    entrée.fonction_travail(entrée.données)
+}
+
+fonction_fil :: fonc (arg: *rien) -> *rien
+{
+    info_fil := arg comme *InfoFilExécution
+
+    entrée: EntréeFileTravail
+    boucle {
+        entrée = complète_et_donne_prochaine_entrée_file(info_fil.file, entrée)
+        si entrée.est_valide {
+            travail_sur_la_tâche(entrée, info_fil.index_logique)
+        }
+        sinon  {
+            _ := sem_wait(*info_fil.file.sémaphore)
+        }
+    }
+
+    retourne nul
+}
+
+attend_sur_complétion_tâches :: fonc (file: *FileDeTravail)
+{
+    index_logique := file.fils_exécution.taille comme z32 - 1
+    entrée: EntréeFileTravail
+    tantque file.choses_terminées != file.nombre_d_entrées {
+        entrée = complète_et_donne_prochaine_entrée_file(file, entrée)
+        si entrée.est_valide {
+            travail_sur_la_tâche(entrée, index_logique)
+        }
+    }
+}
+
+/** \} */

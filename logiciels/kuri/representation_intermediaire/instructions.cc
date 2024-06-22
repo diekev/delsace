@@ -130,6 +130,20 @@ InstructionAppel::InstructionAppel(NoeudExpression const *site_,
     this->args = std::move(args_);
 }
 
+DonnéesSymboleExterne *InstructionAppel::est_appel_intrinsèque() const
+{
+    if (!appelé->est_fonction()) {
+        return nullptr;
+    }
+
+    auto fonction = appelé->comme_fonction();
+    if (!fonction->est_intrinsèque()) {
+        return nullptr;
+    }
+
+    return fonction->decl->données_externes;
+}
+
 InstructionAllocation::InstructionAllocation(NoeudExpression const *site_,
                                              Type const *type_,
                                              IdentifiantCode *ident_)

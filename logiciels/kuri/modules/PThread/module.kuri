@@ -392,3 +392,27 @@ pthread_getspecific :: fonc (__key: n32) -> *rien #externe libpthread
 pthread_setspecific :: fonc (__key: n32, __pointer: *rien) -> z32 #externe libpthread
 pthread_getcpuclockid :: fonc (__thread_id: pthread_t, __clock_id: *__clockid_t) -> z32 #externe libpthread
 pthread_atfork :: fonc (__prepare: fonc()(rien), __parent: fonc()(rien), __child: fonc()(rien)) -> z32 #externe libpthread
+
+
+/* ------------------------------------------------------------------------- */
+/** \nom semaphore.h
+ * \{ */
+
+// À FAIRE : 32-bit
+// #if __WORDSIZE == 64
+// # define __SIZEOF_SEM_T	32
+// #else
+// # define __SIZEOF_SEM_T	16
+// #endif
+__SIZEOF_SEM_T :: 32
+
+sem_t :: union nonsûr {
+    __size: [__SIZEOF_SEM_T]z8
+    __align: z64
+}
+
+sem_init :: fonc (sem: *sem_t, pshared: z32, value: n32) -> z32 #externe libpthread
+sem_post :: fonc (sem: *sem_t) -> z32 #externe libpthread
+sem_wait :: fonc (sem: *sem_t) -> z32 #externe libpthread
+
+/** \} */
