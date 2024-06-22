@@ -47,10 +47,12 @@ std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérat
             continue;
         }
 
-        if (it->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
-            return ErreurCoulisse{
-                "Utilisation de intrinsèque_est_adresse_données_constantes dans "
-                "un métaprogramme.\nCette fonction n'est pas encore implémentée"};
+        if (!intrinsèque_est_supportée_pour_métaprogramme(it->decl->ident)) {
+            auto message = enchaine(
+                "Utilisation d'une intrinsèque non-implémentée pour les métaprogrammes : ",
+                it->decl->ident->nom,
+                ".");
+            return ErreurCoulisse{message};
         }
     }
 
