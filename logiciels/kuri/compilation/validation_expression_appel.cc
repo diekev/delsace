@@ -8,6 +8,7 @@
 
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/copieuse.hh"
@@ -1754,8 +1755,37 @@ static NoeudDéclarationClasse *monomorphise_au_besoin(
 
 /* ************************************************************************** */
 
-/* Cette fonction est utilisée pour valider les appels aux intrinsèques afin de faire en sorte que
- * les intrinsèques requérant des paramètres constants reçurent des valeurs constantes. */
+static bool requiers_valeur_droite(EspaceDeTravail &espace,
+                                   IdentifiantCode const *nom,
+                                   kuri::tableau_statique<IdentifiantEtExpression> args,
+                                   int argument,
+                                   kuri::chaine_statique nom_énum = "")
+{
+    auto expr = args[argument].expr;
+    if (expr->genre_valeur == GenreValeur::DROITE) {
+        return true;
+    }
+
+    static const kuri::chaine_statique compteurs[] = {
+        "premier", "deuxième", "troisième", "quatrième", "cinquième", "sizième"};
+
+    Enchaineuse enchaineuse;
+    enchaineuse << "Le " << compteurs[argument] << " argument de « " << nom->nom
+                << " » ne peut pas être une variable, vous devez utiliser une valeur ";
+
+    if (nom_énum != "") {
+        enchaineuse << "de " << nom_énum << " directement.";
+    }
+    else {
+        enchaineuse << "constante.";
+    }
+
+    espace.rapporte_erreur(expr, enchaineuse.chaine());
+    return false;
+}
+
+/* Cette fonction est utilisée pour valider les appels aux intrinsèques afin de faire en sorte
+ * que les intrinsèques requérant des paramètres constants reçurent des valeurs constantes. */
 static bool appel_fonction_est_valide(EspaceDeTravail &espace,
                                       NoeudDéclarationEntêteFonction const *fonction,
                                       kuri::tableau<IdentifiantEtExpression> const &args)
@@ -1765,21 +1795,12 @@ static bool appel_fonction_est_valide(EspaceDeTravail &espace,
     }
 
     if (fonction->ident == ID::intrinsèque_précharge) {
-        /* Le deuxième et troisième argument doivent être des valeurs droites. */
-        if (args[1].expr->genre_valeur != GenreValeur::DROITE) {
-            espace.rapporte_erreur(
-                args[1].expr,
-                "Le deuxième argument de « intrinsèque_précharge » ne peut pas être une variable, "
-                "vous devez utiliser une valeur de RaisonPréchargement directement.");
+        if (!requiers_valeur_droite(espace, fonction->ident, args, 1, "RaisonPréchargement")) {
             return false;
         }
 
-        if (args[2].expr->genre_valeur != GenreValeur::DROITE) {
-            espace.rapporte_erreur(
-                args[2].expr,
-                "Le troisième argument de « intrinsèque_précharge » ne peut pas être une "
-                "variable, vous devez utiliser une valeur de TemporalitéPréchargement "
-                "directement.");
+        if (!requiers_valeur_droite(
+                espace, fonction->ident, args, 2, "TemporalitéPréchargement")) {
             return false;
         }
 
@@ -1787,15 +1808,129 @@ static bool appel_fonction_est_valide(EspaceDeTravail &espace,
     }
 
     if (fonction->ident == ID::intrinsèque_prédit_avec_probabilité) {
-        /* Le troisième argument doit être une constante. */
+        return requiers_valeur_droite(espace, fonction->ident, args, 2);
+    }
 
-        if (args[2].expr->genre_valeur != GenreValeur::DROITE) {
-            espace.rapporte_erreur(
-                args[2].expr,
-                "Le troisième argument de « intrinsèque_prédit_avec_probabilité » ne peut pas "
-                "être une variable, vous devez utiliser une valeur constante.");
+    if (fonction->ident == ID::atomique_charge || fonction->ident == ID::atomique_stocke) {
+        if (!requiers_valeur_droite(espace, fonction->ident, args, 1, "OrdreMémoire")) {
             return false;
         }
+
+        auto expr_ordre_mémoire = args[1].expr;
+        auto résultat = évalue_expression(espace.compilatrice(), expr_ordre_mémoire);
+        if (résultat.est_erroné) {
+            espace.rapporte_erreur(expr_ordre_mémoire, résultat.message_erreur);
+            return false;
+        }
+
+        auto valeur = résultat.valeur.entière();
+
+        switch (OrdreMémoire(valeur)) {
+            default:
+            {
+                auto message = enchaine("Le troisième argument de ",
+                                        fonction->ident->nom,
+                                        " doit être l'une des valeurs suivante "
+                                        ":\n\tOrdreMémoire.RELAXÉ\n\tOrdreMémoire.CONSOMME\n\t"
+                                        "OrdreMémoire.ACQUIÈRE\n\tOrdreMémoire.SEQ_CST");
+                espace.rapporte_erreur(expr_ordre_mémoire, message);
+                return false;
+            }
+            case OrdreMémoire::RELAXÉ:
+            case OrdreMémoire::CONSOMME:
+            case OrdreMémoire::ACQUIÈRE:
+            case OrdreMémoire::SEQ_CST:
+            {
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    if (dls::outils::est_element(fonction->ident,
+                                 ID::atomique_donne_puis_sst,
+                                 ID::atomique_donne_puis_ajt,
+                                 ID::atomique_donne_puis_et,
+                                 ID::atomique_donne_puis_ou,
+                                 ID::atomique_donne_puis_oux,
+                                 ID::atomique_donne_puis_net,
+                                 ID::atomique_échange)) {
+        return requiers_valeur_droite(espace, fonction->ident, args, 2, "OrdreMémoire");
+    }
+
+    if (fonction->ident == ID::atomique_compare_échange) {
+        if (!requiers_valeur_droite(espace, fonction->ident, args, 3, "")) {
+            return false;
+        }
+
+        if (!requiers_valeur_droite(espace, fonction->ident, args, 4, "OrdreMémoire")) {
+            return false;
+        }
+
+        if (!requiers_valeur_droite(espace, fonction->ident, args, 5, "OrdreMémoire")) {
+            return false;
+        }
+
+        auto résultat_arg4 = évalue_expression(espace.compilatrice(), args[4].expr);
+        if (résultat_arg4.est_erroné) {
+            espace.rapporte_erreur(args[4].expr, résultat_arg4.message_erreur);
+            return false;
+        }
+
+        auto résultat_arg5 = évalue_expression(espace.compilatrice(), args[5].expr);
+        if (résultat_arg5.est_erroné) {
+            espace.rapporte_erreur(args[5].expr, résultat_arg5.message_erreur);
+            return false;
+        }
+
+        auto valeur_arg4 = résultat_arg4.valeur.entière();
+        auto valeur_arg5 = résultat_arg5.valeur.entière();
+
+        switch (OrdreMémoire(valeur_arg5)) {
+            default:
+            {
+                break;
+            }
+            case OrdreMémoire::RELÂCHE:
+            case OrdreMémoire::ACQUIÈRE_RELÂCHE:
+            {
+                auto message = enchaine(
+                    "Le dernier argument de ",
+                    fonction->ident->nom,
+                    " ne peut pas être OrdreMémoire.RELÂCHE ou OrdreMémoire.ACQUIÈRE_RELÂCHE.");
+                espace.rapporte_erreur(args[5].expr, message);
+                return false;
+            }
+        }
+
+        static bool est_ordre_plus_fort_que[6][6] = {
+            {false, false, false, false, false, false},
+            {true, false, false, false, false, false},
+            {true, true, false, false, false, false},
+            {true, true, true, false, false, false},
+            {true, true, true, true, false, false},
+            {true, true, true, true, true, false},
+        };
+
+        if (est_ordre_plus_fort_que[valeur_arg5][valeur_arg4]) {
+            auto message = enchaine("L'ordre mémoire pour l'échec de ",
+                                    fonction->ident->nom,
+                                    " ne peut pas être plus fort que celui pour le succès.");
+            espace.rapporte_erreur(args[5].expr, message);
+            return false;
+        }
+
+        return true;
+    }
+
+    if (fonction->ident == ID::atomique_barrière_fil ||
+        fonction->ident == ID::atomique_barrière_signal) {
+        return requiers_valeur_droite(espace, fonction->ident, args, 0, "OrdreMémoire");
+    }
+
+    if (fonction->ident == ID::atomique_toujours_sans_verrou) {
+        return requiers_valeur_droite(espace, fonction->ident, args, 0, "");
     }
 
     return true;
