@@ -12,6 +12,18 @@ MessageObservable :: struct {
     données: *rien
 }
 
+imprime_message_observable :: fonc (message: *MessageObservable)
+{
+    chn_envoyeur := "envoyeur inconnu"
+    si message.envoyeur {
+        si message.envoyeur.id == GenreInfoType.STRUCTURE {
+            chn_envoyeur = (message.envoyeur comme *InfoTypeStructure).nom
+        }
+    }
+
+    imprime("[%] : % [%]\n", chn_envoyeur, message.quoi, message.données)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

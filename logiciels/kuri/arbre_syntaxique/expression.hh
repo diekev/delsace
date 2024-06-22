@@ -178,6 +178,8 @@ struct RésultatExpression {
     COPIE_CONSTRUCT(RésultatExpression);
 };
 
+RésultatExpression évalue_expression(const Compilatrice &compilatrice, const NoeudExpression *b);
+
 RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                                      NoeudBloc *bloc,
                                      const NoeudExpression *b);

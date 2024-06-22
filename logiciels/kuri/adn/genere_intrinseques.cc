@@ -69,9 +69,16 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
 
         os << "\n";
 
+        os << "std::optional<kuri::chaine_statique> "
+              "donne_nom_intrinsèque_gcc_pour_identifiant(IdentifiantCode const *ident);\n";
+
+        os << "\n";
+
         os << "std::optional<GenreIntrinsèque> "
-              "donne_genre_intrinsèque_pour_nom_gcc(kuri::chaine_statique "
-              "nom_gcc);\n";
+              "donne_genre_intrinsèque_pour_identifiant(IdentifiantCode const *ident);\n";
+
+        os << "\n";
+        os << "bool intrinsèque_est_supportée_pour_métaprogramme(IdentifiantCode const *ident);\n";
 
         return;
     }
@@ -91,10 +98,8 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
     }
 
     os << "\n";
-
-    os << "std::optional<GenreIntrinsèque> "
-          "donne_genre_intrinsèque_pour_nom_gcc(kuri::chaine_statique "
-          "nom_gcc)\n";
+    os << "std::optional<kuri::chaine_statique> "
+          "donne_nom_intrinsèque_gcc_pour_identifiant(IdentifiantCode const *ident)\n";
     os << "{\n";
 
     POUR (protéines) {
@@ -111,13 +116,73 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
             continue;
         }
 
-        os << "    if (nom_gcc == \"" << protéine_fonction->donne_symbole_gcc() << "\") {\n";
-        os << "        return GenreIntrinsèque::" << protéine_fonction->donne_genre_intrinsèque()
-           << ";\n";
+        os << "    if (ident == ID::" << protéine_fonction->donne_genre_intrinsèque() << ") {\n";
+        os << "        return \"" << protéine_fonction->donne_symbole_gcc() << "\";\n";
         os << "    }\n";
     }
 
     os << "    return {};\n";
+    os << "}\n";
+
+    ProtéineEnum *enum_genre_intrinsèque = nullptr;
+    POUR (protéines) {
+        auto protéine_enum = it->comme_enum();
+        if (!protéine_enum) {
+            continue;
+        }
+
+        if (protéine_enum->nom().nom() != "GenreIntrinsèque") {
+            continue;
+        }
+
+        enum_genre_intrinsèque = protéine_enum;
+        break;
+    }
+
+    os << "\n";
+    os << "std::optional<GenreIntrinsèque> "
+          "donne_genre_intrinsèque_pour_identifiant(IdentifiantCode const *ident)\n";
+    os << "{\n";
+
+    for (auto const &membre : enum_genre_intrinsèque->donne_membres()) {
+        os << "    if (ident == ID::" << membre.nom.nom() << ") {\n";
+        os << "        return GenreIntrinsèque::" << membre.nom.nom() << ";\n";
+        os << "    }\n";
+    }
+
+    os << "    return {};\n";
+    os << "}\n";
+
+    os << "\n";
+    os << "bool intrinsèque_est_supportée_pour_métaprogramme(IdentifiantCode const *ident)\n";
+    os << "{\n";
+
+    kuri::ensemble<kuri::chaine_statique> identifiants;
+
+    POUR (protéines) {
+        auto protéine_fonction = it->comme_fonction();
+        if (!protéine_fonction) {
+            continue;
+        }
+
+        if (!protéine_fonction->est_marquée_intrinsèque()) {
+            continue;
+        }
+
+        if (!protéine_fonction->est_exclus_métaprogramme()) {
+            continue;
+        }
+
+        identifiants.insère(protéine_fonction->nom().nom());
+    }
+
+    identifiants.pour_chaque_element([&](auto identifiant) {
+        os << "    if (ident == ID::" << identifiant << ") {\n";
+        os << "        return false;\n";
+        os << "    }\n";
+    });
+
+    os << "    return true;\n";
     os << "}\n";
 }
 
@@ -231,6 +296,10 @@ static void génère_code_machine_virtuelle(const kuri::tableau<Protéine *> &pr
             continue;
         }
         auto fonction = dynamic_cast<ProtéineFonction *>(it);
+        if (fonction->est_exclus_métaprogramme()) {
+            continue;
+        }
+
         auto symbole = fonction->donne_symbole_gcc();
 
         if (symbole == "") {
@@ -316,3 +385,90 @@ int main(int argc, const char **argv)
 
     return 0;
 }
+
+/*
+
+    types := ["bool", "octet", "n8", "n16", "n32", "n64", "z8", "z16", "z32", "z64", "void *",
+   "type_de_données", "adresse_fonction"] types_c := ["bool", "octet", "uint8_t", "uint16_t",
+   "uint32_t", "uint64_t", "int8_t", "int16_t", "int32_t", "int64_t", "void *", "type_de_données",
+   "adresse_fonction"]
+
+    DonnéesAtomique :: struct {
+        nom_gcc: chaine
+        type_retour: chaine
+        arguments: chaine
+        nom_kuri: chaine
+        supporte_bool: bool = vrai
+    }
+
+    noms_atomiques := [
+        DonnéesAtomique("__atomic_load_n", "type", "(type *ptr, OrdreMémoire ordre_mémoire)",
+   "atomique_charge"), DonnéesAtomique("__atomic_store_n", "void", "(type *ptr, type val,
+   OrdreMémoire ordre_mémoire)", "atomique_stocke"), DonnéesAtomique("__atomic_exchange_n", "type",
+   "(type *ptr, type val, OrdreMémoire ordre_mémoire)", "atomique_échange"),
+        DonnéesAtomique("__atomic_compare_exchange_n", "bool", "(type *ptr, type *expected, type
+   desired, bool weak, OrdreMémoire success_ordre_mémoire, OrdreMémoire failure_ordre_mémoire)",
+   "atomique_compare_échange"), DonnéesAtomique("__atomic_fetch_add", "type", "(type *ptr, type
+   val, OrdreMémoire ordre_mémoire)", "atomique_donne_puis_ajt", faux),
+        DonnéesAtomique("__atomic_fetch_sub", "type", "(type *ptr, type val, OrdreMémoire
+   ordre_mémoire)", "atomique_donne_puis_sst", faux), DonnéesAtomique("__atomic_fetch_and", "type",
+   "(type *ptr, type val, OrdreMémoire ordre_mémoire)", "atomique_donne_puis_et", faux),
+        DonnéesAtomique("__atomic_fetch_xor", "type", "(type *ptr, type val, OrdreMémoire
+   ordre_mémoire)", "atomique_donne_puis_ou", faux), DonnéesAtomique("__atomic_fetch_or", "type",
+   "(type *ptr, type val, OrdreMémoire ordre_mémoire)", "atomique_donne_puis_oux", faux),
+        DonnéesAtomique("__atomic_fetch_nand", "type", "(type *ptr, type val, OrdreMémoire
+   ordre_mémoire)", "atomique_donne_puis_net", faux)
+    ]
+
+    imprime_atomique :: fonc (nom_gcc: chaine, nom_kuri: chaine, arguments: chaine, type_retour:
+   chaine, nom_énum: chaine)
+    {
+        imprime("fonction %% -> %\n", nom_kuri, arguments, type_retour)
+        imprime("@intrinsèque %\n", nom_énum)
+        imprime("@gcc %\n", nom_gcc)
+        imprime("@exclus_métaprogramme\n")
+        imprime("\n")
+    }
+
+    pour noms_atomiques {
+        pour type, index_type dans types {
+            si type == "bool" && !it.supporte_bool {
+                continue
+            }
+
+            nom_gcc := it.nom_gcc
+            nom_kuri := it.nom_kuri
+
+            type_kuri := type
+            type_c := types_c[index_type]
+
+            arguments := remplace(it.arguments, "type", type_c)
+            type_retour := remplace(it.type_retour, "type", type_c)
+            nom_énum_kuri := enchaine(it.nom_kuri, "_", type_kuri)
+            nom_énum_kuri = remplace(nom_énum_kuri, "void *", "PTR")
+            nom_énum_kuri = en_majuscule(nom_énum_kuri)
+            nom_énum_kuri = remplace(nom_énum_kuri, "é", "É")
+
+            imprime_atomique(nom_gcc, nom_kuri, arguments, type_retour, nom_énum_kuri)
+        }
+    }
+
+    pour noms_atomiques {
+        pour type dans types {
+            si type == "bool" && !it.supporte_bool {
+                continue
+            }
+
+            type_kuri := type
+
+            nom_énum_kuri := enchaine(it.nom_kuri, "_", type_kuri)
+            nom_énum_kuri = remplace(nom_énum_kuri, "void *", "PTR")
+            nom_énum_kuri = en_majuscule(nom_énum_kuri)
+            nom_énum_kuri = remplace(nom_énum_kuri, "é", "É")
+
+            imprime("case GenreIntrinsèque::%:\n", nom_énum_kuri)
+        }
+    }
+
+
+*/

@@ -633,6 +633,11 @@ class ProtéineEnum final : public Protéine {
     {
         return m_type_discrimine;
     }
+
+    kuri::tableau_statique<Membre> donne_membres() const
+    {
+        return m_membres;
+    }
 };
 
 struct Parametre {
@@ -645,6 +650,7 @@ class ProtéineFonction final : public Protéine {
     Type *m_type_sortie = nullptr;
     bool m_est_ipa_compilatrice = false;
     bool m_est_intrinsèque = false;
+    bool m_exclus_métaprogramme = false;
     kuri::chaine_statique m_genre_intrinsèque = "";
     /* Pour les intrinsèques, le symbole GCC correspondant. */
     kuri::chaine_statique m_symbole_gcc = "";
@@ -702,6 +708,15 @@ class ProtéineFonction final : public Protéine {
     {
         m_genre_intrinsèque = genre_intrinsèque;
         m_est_intrinsèque = true;
+    }
+
+    bool est_exclus_métaprogramme() const
+    {
+        return m_exclus_métaprogramme;
+    }
+    void marque_exclus_métaprogramme()
+    {
+        m_exclus_métaprogramme = true;
     }
 
     kuri::chaine_statique donne_genre_intrinsèque() const

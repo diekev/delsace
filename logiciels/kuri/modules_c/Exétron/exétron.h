@@ -83,6 +83,29 @@ void EXETRON_boucle_parallele_legere(struct PlageExecution const *plage,
 void EXETRON_boucle_parallele_lourde(struct PlageExecution const *plage,
                                      struct DonneesTacheParallele *donnees);
 
+struct poignee_graphe_execution;
+typedef void (*fonction_noeud_execution)(void *);
+
+struct poignee_graphe_execution *EXETRON_cree_graphe_execution();
+void EXETRON_detruit_graphe_execution(struct poignee_graphe_execution *graphe);
+
+void EXETRON_graphe_execute(struct poignee_graphe_execution *graphe, uint64_t racine);
+
+void EXETRON_graphe_attend_sur_tous(struct poignee_graphe_execution *graphe);
+
+void EXETRON_graphe_execute_et_attend_sur_tous(struct poignee_graphe_execution *graphe,
+                                               uint64_t racine);
+
+uint64_t EXETRON_graphe_cree_racine(struct poignee_graphe_execution *graphe);
+
+uint64_t EXETRON_graphe_cree_noeud(struct poignee_graphe_execution *graphe,
+                                   fonction_noeud_execution fonction,
+                                   void *donnees);
+
+void EXETRON_graphe_connecte_noeud_noeud(struct poignee_graphe_execution *graphe,
+                                         uint64_t sortie,
+                                         uint64_t entree);
+
 #ifdef __cplusplus
 }
 #endif
