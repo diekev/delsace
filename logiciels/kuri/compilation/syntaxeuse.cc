@@ -18,6 +18,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "intrinseques.hh"
 #include "ipa.hh"
 #include "numerique.hh"
 #include "typage.hh"
@@ -3111,11 +3112,19 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
             noeud->données_externes =
                 m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
 
-            if (apparie(GenreLexème::CHAINE_LITTERALE)) {
-                noeud->données_externes->nom_symbole = lexème_courant()->chaine;
+            if (apparie(GenreLexème::CHAINE_CARACTERE)) {
+                noeud->données_externes->ident_énum_intrinsèque = lexème_courant()->ident;
+
+                auto nom_gcc = donne_nom_intrinsèque_gcc_pour_identifiant(lexème_courant()->ident);
+                if (nom_gcc.has_value()) {
+                    noeud->données_externes->nom_symbole = nom_gcc.value();
+                }
+                else {
+                    noeud->données_externes->nom_symbole = noeud->ident->nom;
+                }
             }
             else {
-                noeud->données_externes->nom_symbole = noeud->ident->nom;
+                rapporte_erreur("Attendu un identifiant après #intrinsèque");
                 /* Pour le consomme plus bas qui est sensé consommer l'identifiant de la directive.
                  */
                 recule();
