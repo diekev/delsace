@@ -373,3 +373,13 @@ tableau_avance :: fonc (tableau: []$T) -> []T
     }
     retourne tableau
 }
+
+tableau_donne_index :: fonc (tableau: []$T, valeur: T) -> z64
+{
+    pour tableau {
+        si it == valeur {
+            retourne index_it
+        }
+    }
+    retourne -1
+}

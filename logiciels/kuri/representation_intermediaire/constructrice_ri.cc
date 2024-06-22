@@ -32,25 +32,37 @@
 
 /* ************************************************************************** */
 
-/* Retourne la déclaration de la fontion si l'expression d'appel est un appel vers une telle
- * fontion. */
-static NoeudDéclarationEntêteFonction *est_appel_fonction_initialisation(
-    NoeudExpression *expression)
+static NoeudDéclarationEntêteFonction *est_appel_fonction_avec_drapeau(
+    NoeudExpression *expression, DrapeauxNoeudFonction drapeau)
 {
     if (expression->est_entête_fonction()) {
         auto entete = expression->comme_entête_fonction();
-        if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+        if (entete->possède_drapeau(drapeau)) {
             return entete;
         }
         return nullptr;
     }
 
     if (expression->est_référence_déclaration()) {
-        return est_appel_fonction_initialisation(
-            expression->comme_référence_déclaration()->déclaration_référée);
+        return est_appel_fonction_avec_drapeau(
+            expression->comme_référence_déclaration()->déclaration_référée, drapeau);
     }
 
     return nullptr;
+}
+
+/* Retourne la déclaration de la fontion si l'expression d'appel est un appel vers une telle
+ * fontion. */
+static NoeudDéclarationEntêteFonction *est_appel_fonction_initialisation(
+    NoeudExpression *expression)
+{
+    return est_appel_fonction_avec_drapeau(expression,
+                                           DrapeauxNoeudFonction::EST_INITIALISATION_TYPE);
+}
+
+static NoeudDéclarationEntêteFonction *est_appel_fonction_intrinsèque(NoeudExpression *expression)
+{
+    return est_appel_fonction_avec_drapeau(expression, DrapeauxNoeudFonction::EST_INTRINSÈQUE);
 }
 
 static bool est_référence_compatible_pointeur(Type const *type_dest, Type const *type_source)
@@ -2009,6 +2021,8 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 return;
             }
 
+            auto const est_intrinsèque = est_appel_fonction_intrinsèque(expr_appel->expression);
+
             POUR (expr_appel->paramètres_résolus) {
                 génère_ri_pour_expression_droite(it, nullptr);
                 auto valeur = depile_valeur();
@@ -2018,7 +2032,8 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                  * simple de remplacer une allocation par une autre. Par contre si nous avons une
                  * instruction de chargement (indiquant une allocation, ou référence d'une chose
                  * ultimement allouée), ce n'est pas la peine de créer une temporaire. */
-                if (valeur->est_instruction() && valeur->comme_instruction()->est_charge()) {
+                if (est_intrinsèque ||
+                    (valeur->est_instruction() && valeur->comme_instruction()->est_charge())) {
                     args.ajoute(valeur);
                     continue;
                 }
@@ -2941,6 +2956,9 @@ void CompilatriceRI::génère_ri_pour_fonction(NoeudDéclarationEntêteFonction 
         POUR (m_pile) {
             if (it->est_instruction()) {
                 dbg() << "-- " << imprime_instruction(it->comme_instruction());
+            }
+            else if (it->est_fonction()) {
+                dbg() << "-- " << it->comme_fonction()->nom;
             }
             else {
                 dbg() << "-- " << it->genre_atome;
@@ -5579,8 +5597,10 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
 
     for (auto i = 1; i < anciennes_instructions.taille(); i++) {
         auto inst = anciennes_instructions[i];
+        auto doit_ajouter_trace_appel = inst->est_appel() &&
+                                        !inst->comme_appel()->est_appel_intrinsèque();
 
-        if (inst->est_appel()) {
+        if (doit_ajouter_trace_appel) {
             /* Définis trace appel. */
             /* trace_appel.info_appel = *info_appel */
             auto ref_info_appel = m_constructrice.crée_référence_membre(
@@ -5596,7 +5616,7 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
 
         fonction->instructions.ajoute(inst);
 
-        if (inst->est_appel()) {
+        if (doit_ajouter_trace_appel) {
             /* Restaure trace appel. */
             /* __contexte_fil_principal.trace_appel = ma_trace.précédente */
             auto ref_trace_appel_contexte = m_constructrice.crée_référence_membre(
