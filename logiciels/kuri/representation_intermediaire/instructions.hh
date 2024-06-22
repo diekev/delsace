@@ -14,6 +14,7 @@
 #include "utilitaires/macros.hh"
 
 struct DonnéesExécutionFonction;
+struct DonnéesSymboleExterne;
 struct IdentifiantCode;
 struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
@@ -513,6 +514,8 @@ struct InstructionAppel : public Instruction {
     InstructionAppel(NoeudExpression const *site_,
                      Atome *appele_,
                      kuri::tableau<Atome *, int> &&args_);
+
+    DonnéesSymboleExterne *est_appel_intrinsèque() const;
 };
 
 struct InstructionAllocation : public Instruction {

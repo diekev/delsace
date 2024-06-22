@@ -223,6 +223,11 @@ static RésultatExpression erreur_évaluation(const NoeudExpression *b, const ch
     return res;
 }
 
+RésultatExpression évalue_expression(const Compilatrice &compilatrice, const NoeudExpression *b)
+{
+    return évalue_expression(compilatrice, b->bloc_parent, b);
+}
+
 /**
  * Évalue l'expression dont « b » est la racine. L'expression doit être
  * constante, c'est à dire ne contenir que des noeuds dont la valeur est connue
