@@ -250,9 +250,15 @@ static bool ajoute_dépendances_au_programme(GrapheDépendance &graphe,
                     relation->globale());
             }
             else if (relation->est_type()) {
-                programme.ajoute_type(
-                    relation->type(), RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
-                données_dépendances.dépendances_épendues.types_utilisés.insère(relation->type());
+                auto type = relation->type();
+                programme.ajoute_type(type, RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
+                données_dépendances.dépendances_épendues.types_utilisés.insère(type);
+
+                if (programme.possède_init_types(type)) {
+                    if (type->fonction_init) {
+                        programme.ajoute_fonction(type->fonction_init);
+                    }
+                }
             }
         });
     });
