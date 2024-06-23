@@ -19,6 +19,11 @@ opérateur == :: fonc (p0: Point2D(r32), p1: Point2D(r32)) -> bool
     retourne p0.x == p1.x && p0.y == p1.y
 }
 
+donne_point_2d_réel :: fonc (point: Point2D(z32)) -> Point2D(r32)
+{
+    retourne Point2D(r32)(point.x comme r32, point.y comme r32)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

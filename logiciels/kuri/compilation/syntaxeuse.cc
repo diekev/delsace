@@ -741,7 +741,7 @@ void Syntaxeuse::quand_commence()
         type_structure->est_corps_texte = false;
     }
 
-    métaprogramme->fut_exécuté = true;
+    métaprogramme->état = ÉtatMétaprogramme::EXÉCUTION_TERMINÉE;
 }
 
 void Syntaxeuse::quand_termine()
