@@ -1744,8 +1744,7 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
                 dbg() << "    métaprogramme "
                       << it->pour_métaprogramme()->donne_nom_pour_fichier_log()
                       // << "\n        phase : " << it->ajourne_état_compilation().phase_courante()
-                      << "\n        en_exécution : " << it->pour_métaprogramme()->en_exécution
-                      << "\n        exécuté : " << it->pour_métaprogramme()->fut_exécuté;
+                      << "\n        état : " << it->pour_métaprogramme()->état;
             }
             else if (it->espace()->phase_courante() != PhaseCompilation::COMPILATION_TERMINÉE) {
                 dbg() << "    " << it->espace()->nom << " : " << it->espace()->phase_courante()

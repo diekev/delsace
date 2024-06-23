@@ -636,7 +636,6 @@ void Tacheronne::gère_unité_pour_exécution(UniteCompilation *unite)
     assert(metaprogramme->fonction->drapeaux & DrapeauxNoeud::RI_FUT_GENEREE);
 
     metaprogramme->données_exécution = mv->loge_données_exécution();
-    metaprogramme->en_exécution = true;
     mv->ajoute_métaprogramme(metaprogramme);
 
     exécute_métaprogrammes();
