@@ -2225,6 +2225,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::vérifie_cible_appe
 
 void MachineVirtuelle::ajoute_métaprogramme(MetaProgramme *métaprogramme)
 {
+    métaprogramme->état = ÉtatMétaprogramme::EN_EXÉCUTION;
     /* Appel le métaprogramme pour initialiser sa frame d'appels, l'installation et la
      * désinstallation ajournement les données d'exécution. */
     installe_métaprogramme(métaprogramme);
