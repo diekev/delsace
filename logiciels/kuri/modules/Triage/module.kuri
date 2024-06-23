@@ -40,21 +40,22 @@ tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T)(z32))
     tri_rapide(pivot + 1, dernier, Comparaison)
 }
 
+/* Basée sur https://www.geeksforgeeks.org/quick-sort-in-c/ */
 partition_tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T)(z32)) -> *T
 {
     /* Le pivot est l'élément médian. */
-    position_pivot := premier + distance(premier, dernier) / 2
+    position_pivot := premier // + distance(premier, dernier) / 2
     pivot := mémoire(position_pivot)
 
     i := premier
     j := dernier - 1
 
     boucle {
-        tantque i < dernier && Comparaison(mémoire(i), pivot) < 0 {
+        tantque i < dernier && Comparaison(mémoire(i), pivot) <= 0 {
             i += 1
         }
 
-        tantque j > premier && Comparaison(mémoire(j), pivot) >= 0 {
+        tantque j > premier && Comparaison(mémoire(j), pivot) > 0 {
             j -= 1
         }
 
@@ -65,6 +66,6 @@ partition_tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T
         permute(i, j)
     }
 
-    permute(i, position_pivot)
-    retourne i
+    permute(j, position_pivot)
+    retourne j
 }
