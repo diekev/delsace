@@ -141,8 +141,15 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
 
 void Programme::ajoute_init_type(Type *type)
 {
+    if (pour_métaprogramme()) {
+        dbg() << __func__ << " : " << chaine_type(type);
+    }
     m_éléments_sont_sales[TYPES][POUR_RI] |= m_init_types.insère(type);
     m_éléments_sont_sales[TYPES][POUR_RI] |= type->fonction_init == nullptr;
+
+    if (type->fonction_init) {
+        ajoute_fonction(type->fonction_init);
+    }
 }
 
 bool Programme::typages_terminés(DiagnostiqueÉtatCompilation &diagnostique) const

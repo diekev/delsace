@@ -704,6 +704,8 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
                                              EspaceDeTravail *espace,
                                              GrapheDépendance &graphe)
 {
+    auto const est_crée_contexte = noeud == m_compilatrice->interface_kuri->decl_creation_contexte;
+
     DÉBUTE_STAT(DÉTERMINE_DÉPENDANCES);
     dépendances.reinitialise();
 
@@ -730,6 +732,10 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
                 continue;
             }
 
+            if (est_crée_contexte) {
+                dbg() << "-- ajout de crée_contexte";
+            }
+
             it->ajoute_racine(entete);
 
             if (entete->corps && !entete->corps->unité) {
@@ -745,6 +751,9 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
         if (!doit_ajouter_les_dépendances_au_programme(noeud, it)) {
             continue;
         }
+        if (est_crée_contexte) {
+            dbg() << "-- ajoute_dépendances_au_programme de crée_contexte";
+        }
         if (!ajoute_dépendances_au_programme(graphe, dépendances, espace, *it, noeud)) {
             break;
         }
@@ -754,7 +763,13 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
     /* Crée les unités de typage si nécessaire. */
     if (dépendances_ajoutees) {
         DÉBUTE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
+        if (est_crée_contexte) {
+            dbg() << "-- garantie_typage_des_dépendances de crée_contexte";
+        }
         dépendances.dépendances.fusionne(dépendances.dépendances_épendues);
+        if (est_crée_contexte) {
+            dbg() << "-- garantie_typage_des_dépendances de crée_contexte";
+        }
         garantie_typage_des_dépendances(*this, dépendances.dépendances, espace);
         TERMINE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
     }
