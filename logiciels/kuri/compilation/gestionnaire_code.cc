@@ -1491,7 +1491,7 @@ void GestionnaireCode::message_reçu(Message const *message)
 void GestionnaireCode::execution_terminée(UniteCompilation *unité)
 {
     assert(unité->metaprogramme);
-    assert(unité->metaprogramme->fut_exécuté);
+    assert(unité->metaprogramme->fut_exécuté());
     auto espace = unité->espace;
     TACHE_TERMINEE(EXECUTION, true);
     enleve_programme(unité->metaprogramme->programme);
@@ -1863,7 +1863,7 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
 
         /* Nous devons attendre la fin de l'exécution de ces métaprogrammes avant de pouvoir généré
          * le code machine. */
-        executions_en_cours |= !exécute->métaprogramme->fut_exécuté;
+        executions_en_cours |= !exécute->métaprogramme->fut_exécuté();
     });
 
     if (executions_requises || executions_en_cours) {

@@ -94,6 +94,28 @@ static void imprime_date_format_iso(Date date, Enchaineuse &os)
 #undef IMPRIME_AVEC_ZERO
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name État du métaprogramme.
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, ÉtatMétaprogramme état)
+{
+#define IMPRIME_ETAT(x)                                                                           \
+    case ÉtatMétaprogramme::x:                                                                    \
+        return os << #x
+
+    switch (état) {
+        IMPRIME_ETAT(EN_COMPILATION);
+        IMPRIME_ETAT(EN_EXÉCUTION);
+        IMPRIME_ETAT(EXÉCUTION_TERMINÉE);
+    }
+
+    return os;
+#undef IMPRIME_ETAT
+}
+
+/** \} */
+
 kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
 {
     if (m_nom_pour_fichier_log) {
