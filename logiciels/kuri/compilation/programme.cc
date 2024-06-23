@@ -450,7 +450,7 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDéc
         return;
     }
 
-    auto corps = déclaration->comme_entête_fonction();
+    auto corps = déclaration->comme_entête_fonction()->corps;
     if (corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         /* NOTE : ceci peut-être un faux positif car un thread différent peut mettre en place le
          * drapeau... */
