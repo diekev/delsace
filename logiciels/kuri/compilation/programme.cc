@@ -70,6 +70,9 @@ void Programme::ajoute_fonction(NoeudDéclarationEntêteFonction *fonction)
     m_éléments_sont_sales[FONCTIONS][POUR_RI] = true;
     if (fonction->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insère(fonction);
+        //        if (!pour_métaprogramme()) {
+        //            dbg() << "Dépendances manquantes pour " << nom_humainement_lisible(fonction);
+        //        }
     }
     if (pour_métaprogramme()) {
         if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
@@ -1301,6 +1304,8 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
             continue;
         }
 
+        // dbg() << fonction->nom;
+
         fonctions_visitées.insère(fonction);
         fonctions_utilisées.ajoute(fonction);
         m_visiteuse_atome.réinitialise();
@@ -1308,6 +1313,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
         POUR (fonction->instructions) {
             m_visiteuse_atome.visite_atome(it, [&](Atome *atome) {
                 if (atome->est_fonction()) {
+                    // dbg() << "    " << nom_humainement_lisible(atome->comme_fonction()->decl);
                     fonction_à_visiter.empile(atome->comme_fonction());
                 }
             });

@@ -214,6 +214,7 @@ struct GrapheDépendance {
             auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
             accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
             accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
+            accepte |= relation.type == TypeRelation::UTILISE_INIT_TYPE;
 
             if (!accepte) {
                 continue;
