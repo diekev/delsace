@@ -37,7 +37,7 @@
  * des tableaux d'octets pour toutes les structures. */
 #define TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
 
-#undef IMPRIME_COMMENTAIRE
+#define IMPRIME_COMMENTAIRE
 
 /* Noms de base pour le code généré. Une seule lettre pour minimiser le code. */
 static const char *nom_base_chaine = "C";

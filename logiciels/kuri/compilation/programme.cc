@@ -1314,6 +1314,15 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
         }
     }
 
+    fonctions_visitées.pour_chaque_element([&](auto &fonction) {
+        assert_rappel(
+            m_programme.possède(const_cast<NoeudDéclarationEntêteFonction *>(fonction->decl)),
+            [&]() {
+                dbg() << "La fonction " << nom_humainement_lisible(fonction->decl)
+                      << " manque à l'appel.";
+            });
+    });
+
     auto part = kuri::partition_stable(m_résultat.fonctions, [&](auto &fonction1) {
         return fonctions_visitées.possède(fonction1);
     });
