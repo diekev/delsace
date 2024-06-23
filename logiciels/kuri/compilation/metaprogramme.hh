@@ -108,6 +108,20 @@ enum class TypeLogMétaprogramme : uint32_t {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name État du métaprogramme.
+ * \{ */
+
+enum class ÉtatMétaprogramme : uint32_t {
+    EN_COMPILATION,
+    EN_EXÉCUTION,
+    EXÉCUTION_TERMINÉE,
+};
+
+std::ostream &operator<<(std::ostream &os, ÉtatMétaprogramme état);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name MétaProgramme.
  * \{ */
 
@@ -131,7 +145,7 @@ struct MetaProgramme {
 
     UniteCompilation *unité = nullptr;
 
-    bool fut_exécuté = false;
+    ÉtatMétaprogramme état = ÉtatMétaprogramme::EN_COMPILATION;
     bool a_rapporté_une_erreur = false;
 
     RésultatExécution résultat{};
@@ -190,6 +204,11 @@ struct MetaProgramme {
     void préserve_log_empilage()
     {
         m_le_log_d_empilage_doit_être_préservé = true;
+    }
+
+    bool fut_exécuté() const
+    {
+        return état == ÉtatMétaprogramme::EXÉCUTION_TERMINÉE;
     }
 
   private:
