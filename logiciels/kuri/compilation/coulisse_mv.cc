@@ -27,10 +27,6 @@ std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérat
     auto métaprogramme = programme.pour_métaprogramme();
     assert(métaprogramme);
 
-    POUR (repr_inter.donne_fonctions()) {
-        dbg() << it->nom;
-    }
-
     auto convertisseuse_noeud_code = compilatrice.donne_convertisseuse_noeud_code_disponible();
 
     /* Génère les infos type manquants. Les globales représentant des infos types sont substitutées

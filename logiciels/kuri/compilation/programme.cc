@@ -141,9 +141,6 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
 
 void Programme::ajoute_init_type(Type *type)
 {
-    if (pour_métaprogramme()) {
-        dbg() << __func__ << " : " << chaine_type(type);
-    }
     m_éléments_sont_sales[TYPES][POUR_RI] |= m_init_types.insère(type);
     m_éléments_sont_sales[TYPES][POUR_RI] |= type->fonction_init == nullptr;
 
@@ -1323,11 +1320,11 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
 
     m_résultat.fonctions.redimensionne(part.vrai.taille());
 
-    POUR (m_programme.fonctions()) {
-        if (it->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
-            dbg() << nom_humainement_lisible(it);
-        }
-    }
+    //    POUR (m_programme.fonctions()) {
+    //        if (it->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+    //            dbg() << nom_humainement_lisible(it);
+    //        }
+    //    }
 
     //    POUR (m_programme.init_types()) {
     //        dbg() << chaine_type(it);
