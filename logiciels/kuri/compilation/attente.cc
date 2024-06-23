@@ -399,7 +399,7 @@ RAPPEL_POUR_COMMENTAIRE(métaprogramme)
         résultat << " " << metaprogramme_attendu;
     }
 
-    résultat << " (fut exécuté : " << metaprogramme_attendu->fut_exécuté << ")\n";
+    résultat << " (état : " << metaprogramme_attendu->état << ")\n";
 
     return résultat.chaine();
 }
@@ -407,7 +407,7 @@ RAPPEL_POUR_COMMENTAIRE(métaprogramme)
 RAPPEL_POUR_EST_RÉSOLUE(métaprogramme)
 {
     auto metaprogramme_attendu = attente.métaprogramme();
-    return metaprogramme_attendu->fut_exécuté;
+    return metaprogramme_attendu->fut_exécuté();
 }
 
 /* À FAIRE(condition blocage) : vérifie que le métaprogramme est en cours d'exécution ? */
