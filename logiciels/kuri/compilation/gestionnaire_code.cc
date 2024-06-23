@@ -1724,6 +1724,31 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
     ordonnanceuse.imprime_donnees_files(std::cerr);
     std::cerr << "--------------------------------------------------------\n";
 #endif
+
+#if 0
+    if (unités_en_attente.taille() == 0 && ordonnanceuse.nombre_de_tâches_en_attente() == 0) {
+        dbg() << "Nous avons un problème..."
+              << "\n   m_validation_doit_attendre_sur_lexage "
+              << m_validation_doit_attendre_sur_lexage
+              << "\n   métaprogrammes_en_attente_de_crée_contexte "
+              << métaprogrammes_en_attente_de_crée_contexte.taille();
+
+        POUR (programmes_en_cours) {
+            if (it->pour_métaprogramme()) {
+                dbg() << "    métaprogramme "
+                      << it->pour_métaprogramme()->donne_nom_pour_fichier_log()
+                      // << "\n        phase : " << it->ajourne_état_compilation().phase_courante()
+                      << "\n        en_exécution : " << it->pour_métaprogramme()->en_exécution
+                      << "\n        exécuté : " << it->pour_métaprogramme()->fut_exécuté;
+            }
+            else if (it->espace()->phase_courante() != PhaseCompilation::COMPILATION_TERMINÉE) {
+                dbg() << "    " << it->espace()->nom << " : " << it->espace()->phase_courante()
+                      << "\n        ri générées " << it->ri_générées() << "\n        ri générées "
+                      << it->espace()->peut_generer_code_final();
+            }
+        }
+    }
+#endif
 }
 
 bool GestionnaireCode::plus_rien_n_est_à_faire()
@@ -1764,7 +1789,7 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
 
         tente_de_garantir_fonction_point_d_entrée(espace);
 
-        it->imprime_diagnostique(std::cerr);
+        // it->imprime_diagnostique(std::cerr, !it->pour_métaprogramme());
 
         if (it->pour_métaprogramme()) {
             auto etat = it->ajourne_état_compilation();

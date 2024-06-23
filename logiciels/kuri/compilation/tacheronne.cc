@@ -578,10 +578,11 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
             types_utilises, DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE, attentes_possibles);
 
         if (!attentes_possibles.est_vide()) {
+            // dbg() << attentes_possibles.taille() << " attentes sur init_de";
             POUR (attentes_possibles) {
+                // dbg() << "-- " << chaine_type(it.type());
                 it = Attente::sur_initialisation_type(it.type());
             }
-            dbg() << attentes_possibles.taille() << " attentes sur init_de";
             compilatrice.gestionnaire_code->mets_en_attente(unite, attentes_possibles);
             return false;
         }
@@ -635,6 +636,7 @@ void Tacheronne::gère_unité_pour_exécution(UniteCompilation *unite)
     assert(metaprogramme->fonction->drapeaux & DrapeauxNoeud::RI_FUT_GENEREE);
 
     metaprogramme->données_exécution = mv->loge_données_exécution();
+    metaprogramme->en_exécution = true;
     mv->ajoute_métaprogramme(metaprogramme);
 
     exécute_métaprogrammes();

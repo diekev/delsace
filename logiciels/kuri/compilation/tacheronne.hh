@@ -111,7 +111,6 @@ struct OrdonnanceuseTache {
 
     void imprime_donnees_files(std::ostream &os);
 
-  private:
     int64_t nombre_de_tâches_en_attente() const;
 };
 

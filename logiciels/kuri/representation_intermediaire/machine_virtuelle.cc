@@ -24,6 +24,7 @@
 #include "utilitaires/calcul.hh"
 #include "utilitaires/log.hh"
 
+#include "impression.hh"
 #include "instructions.hh"
 
 /* ------------------------------------------------------------------------- */
@@ -591,6 +592,18 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression const *sit
 {
     if (profondeur_appel == TAILLE_FRAMES_APPEL) {
         rapporte_erreur_exécution("Dépassement de la profondeur d'appels possibles.");
+        return false;
+    }
+
+    if (!fonction || !fonction->données_exécution) {
+        if (fonction) {
+            rapporte_erreur_exécution(fonction->nom);
+            dbg() << imprime_fonction(fonction);
+        }
+        else {
+            rapporte_erreur_exécution("Fonction nulle");
+        }
+
         return false;
     }
 

@@ -114,9 +114,9 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     m_éléments_sont_sales[TYPES][POUR_TYPAGE] = true;
     m_éléments_sont_sales[TYPES][POUR_RI] = true;
 
-    if (type->fonction_init) {
-        ajoute_fonction(type->fonction_init);
-    }
+    //    if (type->fonction_init) {
+    //        ajoute_fonction(type->fonction_init);
+    //    }
 
 #if 1
     static_cast<void>(raison);
@@ -345,7 +345,15 @@ void Programme::imprime_diagnostique(std::ostream &os, bool ignore_doublon)
     if (!m_dernier_diagnostique.has_value() ||
         (diag != m_dernier_diagnostique.value() || !ignore_doublon)) {
         os << "==========================================================\n";
-        os << "Diagnostique pour programme de " << m_espace->nom << '\n';
+        os << "Diagnostique pour programme de ";
+        if (pour_métaprogramme()) {
+            os << pour_métaprogramme()->donne_nom_pour_fichier_log();
+        }
+        else {
+            os << m_espace->nom;
+        }
+        os << "\n";
+
         ::imprime_diagnostique(diag, os);
     }
 
@@ -456,7 +464,7 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDéc
         return;
     }
 
-    auto corps = déclaration->comme_entête_fonction();
+    auto corps = déclaration->comme_entête_fonction()->corps;
     if (corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         /* NOTE : ceci peut-être un faux positif car un thread différent peut mettre en place le
          * drapeau... */
