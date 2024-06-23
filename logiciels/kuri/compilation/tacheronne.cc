@@ -711,7 +711,7 @@ void Tacheronne::exécute_métaprogrammes()
         /* Maintenant que nous avons le résultat des opérations, nous pouvons indiquer que le
          * métaprogramme fut exécuté. Nous ne pouvons le faire plus tôt car un autre fil
          * d'exécution pourrait tenté d'accéder au résultat avant sa création. */
-        it->fut_exécuté = true;
+        it->état = ÉtatMétaprogramme::EXÉCUTION_TERMINÉE;
         it->vidange_logs_sur_disque();
 
         mv->déloge_données_exécution(it->données_exécution);
