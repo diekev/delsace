@@ -339,7 +339,15 @@ void Programme::imprime_diagnostique(std::ostream &os, bool ignore_doublon)
     if (!m_dernier_diagnostique.has_value() ||
         (diag != m_dernier_diagnostique.value() || !ignore_doublon)) {
         os << "==========================================================\n";
-        os << "Diagnostique pour programme de " << m_espace->nom << '\n';
+        os << "Diagnostique pour programme de ";
+        if (pour_métaprogramme()) {
+            os << pour_métaprogramme()->donne_nom_pour_fichier_log();
+        }
+        else {
+            os << m_espace->nom;
+        }
+        os << "\n";
+
         ::imprime_diagnostique(diag, os);
     }
 
