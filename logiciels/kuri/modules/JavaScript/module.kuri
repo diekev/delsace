@@ -209,18 +209,33 @@ crée_objet :: fonc () -> *Object
 
 définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
 {
+    propriété := trouve_propriété(objet, nom)
+    si propriété {
+        propriété.valeur = valeur
+        retourne
+    }
+
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur))
 }
 
 donne_valeur :: fonc (objet: *Object, nom: ECMAString) -> Valeur
 {
-    pour objet.propriétés {
-        si it.nom == nom {
-            retourne it.valeur
-        }
+    propriété := trouve_propriété(objet, nom)
+    si propriété {
+        retourne propriété.valeur
     }
     
     retourne js_undefined
+}
+
+trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
+{
+    pour * objet.propriétés {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
 }
 
 /** \} */
