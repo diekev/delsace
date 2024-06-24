@@ -1678,6 +1678,10 @@ static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *foncti
         return true;
     }
 
+    if (!param->possède_drapeau(DrapeauxNoeud::EST_UTILISEE)) {
+        return true;
+    }
+
     /* À FAIRE : il est possible qu'une fonction soit vidée car un "retourne" est la première
      * expression (pour désactiver le code), il faudra détecter ce cas dans la RI ou lors de la
      * validation sémantique et marquer les paramètres comme inutilisés. */
