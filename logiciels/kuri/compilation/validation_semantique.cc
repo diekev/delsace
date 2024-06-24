@@ -3438,6 +3438,10 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
                 if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
                     decl->aide_génération_code = REQUIERS_RETOUR_UNION_VIA_RIEN;
                 }
+                else {
+                    rapporte_erreur(
+                        "Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
+                }
             }
             else {
                 if ((!type_fonc->type_sortie->est_type_rien() && !entete->est_coroutine) ||
