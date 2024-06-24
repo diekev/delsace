@@ -521,6 +521,30 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ObjectExpression
+ * \{ */
+
+ObjectExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_object_expression
+}
+
+crée_object_expression :: fonc () -> *ObjectExpression
+{
+    résultat := loge(ObjectExpression)
+    retourne résultat
+}
+
+sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse) -> Valeur
+{
+    objet := crée_objet(interpréteuse.donne_tas_de_mémoire())
+    retourne Valeur(Object = objet)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 
