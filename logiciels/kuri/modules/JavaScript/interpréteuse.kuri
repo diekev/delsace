@@ -1,3 +1,4 @@
+importe Ensemble
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -79,6 +80,19 @@ retourne_de_la_fonction :: fonc (interpréteuse: &Interpréteuse @inutilisée)
 donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoire
 {
     retourne *interpréteuse.tas_de_mémoire
+}
+
+rassemble_racines :: fonc (interpréteuse: *Interpréteuse, racines: *[..]*Cellule)
+{
+    ensemble_ajoute(racines, interpréteuse.objet_global)
+
+    pour interpréteuse.pile_scope {
+        pour variable dans it.variables {
+            si variable.valeur.est_object() {
+                ensemble_ajoute(racines, variable.valeur.donne_objet())
+            }
+        }
+    }
 }
 
 donne_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString) -> Valeur
