@@ -85,9 +85,15 @@ construit_programme_3 :: fonc () -> *Programme
     retourne crée_programme(fonction, expression)
 }
 
+construit_programme_4 :: fonc () -> *Programme
+{
+    // "hello friends".length
+    retourne crée_programme(crée_member_expression(crée_literal("hello friends"), crée_identifier("length")))
+}
+
 principale :: fonc () -> z32
 {
-    programme := construit_programme_3()
+    programme := construit_programme_4()
 
     imprime_arbre(programme)
 
