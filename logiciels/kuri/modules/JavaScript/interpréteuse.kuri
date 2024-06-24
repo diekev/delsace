@@ -1,0 +1,54 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interpréteuse
+ * \{ */
+
+FrameScope :: struct {
+    noeud_scope: *NoeudScope
+}
+
+Interpréteuse :: struct {
+    pile_scope: [..]FrameScope
+    objet_global: *Object
+}
+
+initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
+{
+    interpréteuse.objet_global = crée_objet()
+}
+
+exécute :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope) -> Valeur
+{
+    résultat := js_undefined
+
+    entre(interpréteuse, scope)
+
+    pour scope.enfants {
+        résultat = exécute_noeud(it, interpréteuse)
+    }
+
+    sors(interpréteuse, scope)
+
+    retourne résultat
+}
+
+entre :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
+{
+    tableau_ajoute(*interpréteuse.pile_scope, FrameScope(scope))
+}
+
+sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
+{
+    pile_scope := *interpréteuse.pile_scope    
+    assert(pile_scope.taille > 0)
+    assert(mémoire(pile_scope)[pile_scope.taille - 1].noeud_scope == scope)
+    pile_scope.taille -= 1
+}
+
+retourne_de_la_fonction :: fonc (interpréteuse: &Interpréteuse @inutilisée)
+{
+    imprime("À FAIRE : retour des fonction\n")
+}
+
+/** \} */

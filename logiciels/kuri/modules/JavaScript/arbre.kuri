@@ -1,0 +1,527 @@
+importe Fondation
+importe Introspection
+
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudSyntaxique
+ * \{ */
+
+NoeudSyntaxique :: struct {
+    type := #type_de_cette_structure
+
+    sur_exécution: fonc(*NoeudSyntaxique, &Interpréteuse)(Valeur)
+}
+
+exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    // imprime("Exécution de %\n", noeud.type)
+    retourne noeud.sur_exécution(noeud, interpréteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudScope
+ * Type Utilisé pour Interpréteuse.exécute
+ * \{ */
+
+NoeudScope :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_scope
+
+    enfants: [..]*NoeudSyntaxique
+}
+
+sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    retourne interpréteuse.exécute(noeud comme *NoeudScope)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Programme
+ * \{ */
+
+Programme :: struct {
+    empl scope: NoeudScope
+    type = #type_de_cette_structure
+
+    type_source := "script"
+}
+
+crée_programme :: fonc (expressions: ...*NoeudSyntaxique) -> *Programme
+{
+    résultat := loge(Programme)
+    pour expressions {
+        tableau_ajoute(*résultat.enfants, it)
+    }
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionDeclaration
+ * \{ */
+
+FunctionDeclaration :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_function_declaration
+
+    id: *Identifier
+    params: [..]*NoeudSyntaxique
+    corps: *NoeudSyntaxique
+
+    generator := faux
+    expression := faux
+    async := faux
+}
+
+crée_function_déclaration :: fonc (id: *Identifier, /* params: []*NoeudSyntaxique, */ corps: *NoeudSyntaxique) -> *FunctionDeclaration
+{
+    résultat := loge(FunctionDeclaration)
+    résultat.id = id
+    résultat.corps = corps
+    // pour params {
+    //     tableau_ajoute(*résultat.params, it)
+    // }
+    retourne résultat
+}
+
+sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    noeud := base comme *FunctionDeclaration
+
+    fonction := crée_fonction(noeud.id.nom, noeud.corps)
+
+    objet_global := interpréteuse.objet_global
+    objet_global.définis_valeur(noeud.id.nom, Valeur(Function = fonction))
+
+    retourne Valeur(Function = fonction)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Identifier
+ * \{ */
+
+Identifier :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_identifier
+
+    nom: ECMAString
+}
+
+crée_identifier :: fonc (nom: ECMAString) -> *Identifier
+{
+    résultat := loge(Identifier)
+    résultat.nom = nom
+    retourne résultat
+}
+
+sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    noeud := base comme *Identifier
+    objet_global := interpréteuse.objet_global
+    retourne objet_global.donne_valeur(noeud.nom)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BlockStatement
+ * \{ */
+
+BlockStatement :: struct {
+    empl scope: NoeudScope
+    type = #type_de_cette_structure
+}
+
+crée_block_statement :: fonc (expressions: ...*NoeudSyntaxique) -> *BlockStatement
+{
+    résultat := loge(BlockStatement)
+    pour expressions {
+        tableau_ajoute(*résultat.enfants, it)
+    }
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ReturnStatement
+ * \{ */
+
+ReturnStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_return
+
+    argument: *NoeudSyntaxique
+}
+
+crée_return_statement :: fonc (argument: *NoeudSyntaxique) -> *ReturnStatement
+{
+    résultat := loge(ReturnStatement)
+    résultat.argument = argument
+    retourne résultat
+}
+
+sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    noeud := base comme *ReturnStatement
+
+    résultat := js_null
+
+    si noeud.argument {
+        résultat = exécute_noeud(noeud.argument, interpréteuse)
+    }
+
+    retourne_de_la_fonction(interpréteuse)
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BinaryExpression
+ * \{ */
+
+BinaryOperation :: énum {
+    Plus
+    Moins
+    Multiplie
+    Divise
+}
+
+BinaryExpression :: struct {
+    empl  base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_binary_expression
+
+    opération: BinaryOperation
+    gauche: *NoeudSyntaxique
+    droite: *NoeudSyntaxique
+}
+
+crée_binary_expression :: fonc (opération: BinaryOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *BinaryExpression
+{
+    résultat := loge(BinaryExpression)
+    résultat.opération = opération
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+
+sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    noeud := base comme *BinaryExpression
+    gauche := exécute_noeud(noeud.gauche, interpréteuse)
+    droite := exécute_noeud(noeud.droite, interpréteuse)
+    retourne évalue_expression_binaire(noeud.opération, gauche, droite)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-applystringornumericbinaryoperator */
+évalue_expression_binaire :: fonc (opération: BinaryOperation, gauche: Valeur, droite: Valeur) -> Valeur
+{
+    // si opération == BinaryOperation.Plus {
+    //     primitive_gauche := vers_primitive(gauche)
+    //     primitive_droite := vers_primitive(droite)
+
+    //     si primitive_gauche.est_chaine() || primitive_droite.est_chaine() {
+    //         str_gauche := primitive_gauche.vers_chaine()
+    //         str_droite := primitive_droite.vers_chaine()
+
+    //         retourne concatène(str_gauche, str_droite)
+    //     }
+
+    //     gauche = primitive_gauche
+    //     droite = primitive_droite
+    // }
+
+    // nombre_gauche := vers_numeric(gauche)
+    // nombre_droite := vers_numeric(droite)
+
+    // If Type(lnum) != Type(rnum)
+
+    discr opération {
+        Plus {
+            retourne ajoute_valeurs(gauche, droite)
+        }
+        Moins {
+            retourne soustrait_valeurs(gauche, droite)
+        }
+        Multiplie {
+            retourne multiplie_valeurs(gauche, droite)
+        }
+        Divise {
+            retourne divise_valeurs(gauche, droite)
+        }
+    }
+
+    retourne js_undefined
+}
+
+ajoute_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number + droite.Number)
+}
+
+soustrait_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number - droite.Number)
+}
+
+multiplie_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number * droite.Number)
+}
+
+divise_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number / droite.Number)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Literal
+ * \{ */
+
+Literal :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_literal
+
+    valeur: r64
+    // raw: ECMAString
+}
+
+crée_literal :: fonc (valeur: r64) -> *Literal
+{
+    résultat := loge(Literal)
+    résultat.valeur = valeur
+    retourne résultat
+}
+
+sur_exécution_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse @inutilisée) -> Valeur
+{
+    noeud := base comme *Literal
+    retourne Valeur(Number = noeud.valeur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ExpressionStatement
+ * \{ */
+
+ExpressionStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_expression_statement
+
+    expression: *NoeudSyntaxique
+}
+
+crée_expression_statement :: fonc (expression: *NoeudSyntaxique) -> *NoeudSyntaxique
+{
+    résultat := loge(ExpressionStatement)
+    résultat.expression = expression
+    retourne résultat
+}
+
+sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    noeud := base comme *ExpressionStatement
+    si noeud.expression {
+        retourne exécute_noeud(noeud.expression, interpréteuse)
+    }
+    retourne js_undefined
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CallExpression
+ * \{ */
+
+CallExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_call_expression
+
+    appelé: *NoeudSyntaxique
+    arguments: [..]*NoeudSyntaxique
+}
+
+crée_call_expression :: fonc (appelé: *NoeudSyntaxique, arguments: ...*NoeudSyntaxique) -> *CallExpression
+{
+    résultat := loge(CallExpression)
+    résultat.appelé = appelé
+    pour arguments {
+        tableau_ajoute(*résultat.arguments, it)
+    }
+    retourne résultat
+}
+
+sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    noeud := base comme *CallExpression
+
+    valeur_appelée := exécute_noeud(noeud.appelé, interpréteuse)
+    assert(valeur_appelée.est_fonction())
+
+    fonction := valeur_appelée.Function
+    retourne exécute_noeud(fonction.corps, interpréteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Visiteuse arbre.
+ * \{ */
+
+DirectionVisiteNoeud :: énum {
+    PRÉ_ORDRE
+    POST_ORDRE
+}
+
+VisiteuseNoeud :: struct {
+    arbre: *NoeudSyntaxique
+    rappel_pour_noeud: fonc(*VisiteuseNoeud, *NoeudSyntaxique, *InfoTypeStructure)(rien)
+    rappel_pour_tableau: fonc(*VisiteuseNoeud, [..]*NoeudSyntaxique)(rien)
+    profondeur: z32
+    direction_visite: DirectionVisiteNoeud
+}
+
+donne_info_pour_type_noeud :: fonc (racine: *NoeudSyntaxique) -> *InfoTypeStructure
+{
+    résultat := __table_des_types[racine.type] comme *InfoTypeStructure
+    assert(est_struct_ou_employeuse_de(résultat, info_de(NoeudSyntaxique)))
+    retourne résultat
+}
+
+visite_noeud :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSyntaxique, $Rappel: fonc(*VisiteuseNoeud, *NoeudSyntaxique, *InfoTypeStructure)(rien))
+{
+    infos := donne_info_pour_type_noeud(racine)
+    Rappel(visiteuse, racine, infos)
+}
+
+visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSyntaxique, info: *InfoTypeStructure)
+{
+    si visiteuse.direction_visite == DirectionVisiteNoeud.PRÉ_ORDRE && visiteuse.rappel_pour_noeud {
+        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
+    }
+
+    valeur_eini : eini = ---
+    valeur_eini.pointeur = racine
+    valeur_eini.info = info
+
+    pour info.membres {
+        si it.id == info_de(*NoeudSyntaxique) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+            expression := mémoire(membre.pointeur comme **NoeudSyntaxique)
+            si expression == nul {
+                continue
+            }
+
+            si possède_annotation(it, "NeVisitePas") {
+                continue
+            }
+
+            visiteuse.profondeur += 1
+            visite_noeud(visiteuse, expression, visite_noeud_générique)
+            visiteuse.profondeur -= 1
+            continue
+        }
+
+        si it.id == info_de([..]*NoeudSyntaxique) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+
+            tableau := mémoire(membre.pointeur comme *[..]*NoeudSyntaxique)
+
+            pour noeud dans tableau {
+                visiteuse.profondeur += 1
+                visite_noeud(visiteuse, noeud, visite_noeud_générique)
+                visiteuse.profondeur -= 1
+            }
+
+            si visiteuse.rappel_pour_tableau {
+                visiteuse.profondeur += 1
+                visiteuse.rappel_pour_tableau(visiteuse, tableau)
+                visiteuse.profondeur -= 1
+            }
+
+            continue
+        }
+
+        si it.id == info_de(NoeudScope) {
+            // À FAIRE : assert(est_base)
+            scope := racine comme *NoeudScope
+            tableau := scope.enfants
+
+            pour noeud dans tableau {
+                visiteuse.profondeur += 1
+                visite_noeud(visiteuse, noeud, visite_noeud_générique)
+                visiteuse.profondeur -= 1
+            }
+
+            si visiteuse.rappel_pour_tableau {
+                visiteuse.profondeur += 1
+                visiteuse.rappel_pour_tableau(visiteuse, tableau)
+                visiteuse.profondeur -= 1
+            }
+
+            continue
+        }
+    }
+
+    si visiteuse.direction_visite == DirectionVisiteNoeud.POST_ORDRE && visiteuse.rappel_pour_noeud {
+        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Impression arbre.
+ * \{ */
+
+crée_visiteuse_pour_impression :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseNoeud
+{
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud, noeud: *NoeudSyntaxique @inutilisée, info: *InfoTypeStructure)
+    {
+        imprime_tabulation(visiteuse.profondeur)
+        imprime("%\n", info.nom)
+    }
+
+    résultat: VisiteuseNoeud
+    résultat.arbre = noeud
+    résultat.rappel_pour_noeud = rappel_pour_noeud
+    résultat.direction_visite = DirectionVisiteNoeud.PRÉ_ORDRE
+    retourne résultat
+}
+
+imprime_arbre :: fonc (noeud: *NoeudSyntaxique)
+{
+    visiteuse := crée_visiteuse_pour_impression(noeud)
+    visite_noeud(*visiteuse, noeud, visite_noeud_générique)
+}
+
+/** \} */

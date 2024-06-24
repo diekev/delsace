@@ -1,0 +1,28 @@
+importe Fondation
+
+importe "../../JavaScript"
+
+principale :: fonc () -> z32
+{
+    bin_op := crée_binary_expression(BinaryOperation.Plus, crée_literal(1), crée_literal(2))
+    bin_op = crée_binary_expression(BinaryOperation.Plus, bin_op, crée_literal(3))
+    return := crée_return_statement(bin_op)
+    corps := crée_block_statement(return)
+    foo := crée_identifier("foo")
+    fonction := crée_function_déclaration(foo, corps)
+
+    appel := crée_call_expression(foo)
+    expression := crée_expression_statement(appel)
+
+    programme := crée_programme(fonction, expression)
+
+    imprime_arbre(programme)
+
+    interpréteuse: Interpréteuse
+    initialise_interpréteuse(interpréteuse)
+
+    résultat := interpréteuse.exécute(programme)
+    imprime("%\n", résultat)
+
+    retourne 0
+}
