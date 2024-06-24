@@ -243,7 +243,7 @@ opérateur pour :: fonc (bloc: *BlocDeMémoire) -> *Cellule
 Cellule :: struct {
     type := #type_de_cette_structure
     sur_destruction: fonc(*Cellule)(rien)
-    sur_visite_graphe: fonc(*Cellule, *VisiteuseCellule)(rien)
+    sur_visite_graphe := cellule_sur_visite_graphe
 
     marqué := faux
     vivante := vrai

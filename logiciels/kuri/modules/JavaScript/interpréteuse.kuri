@@ -88,8 +88,8 @@ rassemble_racines :: fonc (interpréteuse: *Interpréteuse, racines: *[..]*Cellu
 
     pour interpréteuse.pile_scope {
         pour variable dans it.variables {
-            si variable.valeur.est_object() {
-                ensemble_ajoute(racines, variable.valeur.donne_objet())
+            si variable.valeur.est_cellule() {
+                ensemble_ajoute(racines, variable.valeur.donne_cellule())
             }
         }
     }

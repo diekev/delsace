@@ -18,7 +18,7 @@ Valeur :: union {
     Boolean: bool
     Number: r64
     // BigInt
-    String: ECMAString
+    String: *PrimitiveChaine
     // Symbol
     Function: *Function
     Object: *Object
@@ -57,6 +57,29 @@ donne_objet :: fonc (valeur: Valeur) -> *Object
         }
         Function(function) {
             retourne function
+        }
+        sinon {
+            retourne nul
+        }
+    }
+}
+
+est_cellule :: fonc (valeur: Valeur) -> bool
+{
+    retourne valeur.est_object() || valeur.est_chaine()
+}
+
+donne_cellule :: fonc (valeur: Valeur) -> *Cellule
+{
+    discr valeur {
+        Object(o) {
+            retourne o
+        }
+        Function(f) {
+            retourne f
+        }
+        String(s) {
+            retourne s
         }
         sinon {
             retourne nul
@@ -271,8 +294,8 @@ sur_visite_graphe_objet :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
     objet := base comme *Object
 
     pour objet.propriétés {
-        si it.valeur.est_object() {
-            visite_graphe(it.valeur.donne_objet(), visiteuse)
+        si it.valeur.est_cellule() {
+            visite_graphe(it.valeur.donne_cellule(), visiteuse)
         }
     }
 }
@@ -297,6 +320,33 @@ crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps:
     résultat.nom = nom
     résultat.corps = corps
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PrimitiveChaine
+ * \{ */
+
+PrimitiveChaine :: struct {
+    empl objet: Cellule
+    type = #type_de_cette_structure
+    sur_destruction = sur_destruction_primitive_chaine
+
+    texte: ECMAString
+}
+
+crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine
+{
+    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
+    résultat.texte = copie_chaine(texte)
+    retourne résultat
+}
+
+sur_destruction_primitive_chaine :: fonc (base: *Cellule)
+{
+    primitive := base comme *PrimitiveChaine
+    déloge(primitive.texte)
 }
 
 /** \} */
