@@ -351,16 +351,6 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression const *exp
 CodeRetourValidation Sémanticienne::valide_expression_pour_condition(
     NoeudExpression const *condition, bool permet_déclaration)
 {
-    if (!est_expression_convertible_en_bool(condition)) {
-        m_espace
-            ->rapporte_erreur(condition,
-                              "Impossible de convertir implicitement l'expression vers "
-                              "une expression booléenne",
-                              erreur::Genre::TYPE_DIFFERENTS)
-            .ajoute_message("Le type de l'expression est ", chaine_type(condition->type), "\n");
-        return CodeRetourValidation::Erreur;
-    }
-
     if (!est_valeur_droite(condition->genre_valeur)) {
         if (permet_déclaration && condition->est_déclaration_variable()) {
             if (!condition->type->est_type_bool()) {
@@ -375,6 +365,16 @@ CodeRetourValidation Sémanticienne::valide_expression_pour_condition(
 
         m_espace->rapporte_erreur(condition,
                                   "Attendu une valeur droite pour l'expression conditionnelle.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!est_expression_convertible_en_bool(condition)) {
+        m_espace
+            ->rapporte_erreur(condition,
+                              "Impossible de convertir implicitement l'expression vers "
+                              "une expression booléenne",
+                              erreur::Genre::TYPE_DIFFERENTS)
+            .ajoute_message("Le type de l'expression est ", chaine_type(condition->type), "\n");
         return CodeRetourValidation::Erreur;
     }
 
