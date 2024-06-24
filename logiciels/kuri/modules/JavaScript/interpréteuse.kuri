@@ -10,12 +10,14 @@ FrameScope :: struct {
 
 Interpréteuse :: struct {
     pile_scope: [..]FrameScope
+    tas_de_mémoire: TasDeMémoire
     objet_global: *Object
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
 {
-    interpréteuse.objet_global = crée_objet()
+    interpréteuse.tas_de_mémoire.interpréteuse = *interpréteuse
+    interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire)
 }
 
 exécute :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope) -> Valeur
@@ -49,6 +51,11 @@ sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
 retourne_de_la_fonction :: fonc (interpréteuse: &Interpréteuse @inutilisée)
 {
     imprime("À FAIRE : retour des fonction\n")
+}
+
+donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoire
+{
+    retourne *interpréteuse.tas_de_mémoire
 }
 
 /** \} */

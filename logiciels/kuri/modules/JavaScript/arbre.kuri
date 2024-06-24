@@ -95,7 +95,7 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
 {
     noeud := base comme *FunctionDeclaration
 
-    fonction := crée_fonction(noeud.id.nom, noeud.corps)
+    fonction := crée_fonction(interpréteuse.donne_tas_de_mémoire(), noeud.id.nom, noeud.corps)
 
     objet_global := interpréteuse.objet_global
     objet_global.définis_valeur(noeud.id.nom, Valeur(Function = fonction))

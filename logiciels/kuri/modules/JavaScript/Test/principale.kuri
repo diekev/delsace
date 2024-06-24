@@ -24,5 +24,15 @@ principale :: fonc () -> z32
     résultat := interpréteuse.exécute(programme)
     imprime("%\n", résultat)
 
+    _ := crée_objet(interpréteuse.donne_tas_de_mémoire())
+
+    imprime("Ébouage...\n")
+    éboue(interpréteuse.donne_tas_de_mémoire())
+
+    interpréteuse.objet_global.définis_valeur("foo", Valeur(Number = 5.0))
+
+    imprime("Ébouage après surécriture objet_global.foo...\n")
+    éboue(interpréteuse.donne_tas_de_mémoire())
+
     retourne 0
 }

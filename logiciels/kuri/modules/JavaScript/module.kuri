@@ -49,6 +49,21 @@ est_object :: fonc (valeur: Valeur) -> bool
     }
 }
 
+donne_objet :: fonc (valeur: Valeur) -> *Object
+{
+    discr valeur {
+        Object(objet) {
+            retourne objet
+        }
+        Function(function) {
+            retourne function
+        }
+        sinon {
+            retourne nul
+        }
+    }
+}
+
 est_nombre :: fonc (valeur: Valeur) -> bool
 {
     discr valeur {
@@ -194,6 +209,11 @@ vers_nombre :: fonc (valeur: Valeur) -> Valeur
  * \{ */
 
 Object :: struct {
+    empl base: Cellule
+    type = #type_de_cette_structure
+    sur_destruction = sur_destruction_objet
+    sur_visite_graphe = sur_visite_graphe_objet
+
     Propriété :: struct {
         nom: ECMAString
         valeur: Valeur
@@ -202,9 +222,15 @@ Object :: struct {
     propriétés: [..]Propriété
 }
 
-crée_objet :: fonc () -> *Object
+crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire) -> *Object
 {
-    retourne loge(Object)
+    retourne tas_de_mémoire.alloue(Object)
+}
+
+sur_destruction_objet :: fonc (base: *Cellule)
+{
+    objet := base comme *Object
+    déloge(objet.propriétés)
 }
 
 définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
@@ -238,6 +264,19 @@ trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Proprié
     retourne nul
 }
 
+sur_visite_graphe_objet :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    cellule_sur_visite_graphe(base, visiteuse)
+
+    objet := base comme *Object
+
+    pour objet.propriétés {
+        si it.valeur.est_object() {
+            visite_graphe(it.valeur.donne_objet(), visiteuse)
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -245,15 +284,16 @@ trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Proprié
  * \{ */
 
 Function :: struct {
-    empl base: Object
+    empl objet: Object
+    type = #type_de_cette_structure
 
     nom: ECMAString
     corps: *NoeudSyntaxique
 }
 
-crée_fonction :: fonc (nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
+crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
 {
-    résultat := loge(Function)
+    résultat := tas_de_mémoire.alloue(Function)
     résultat.nom = nom
     résultat.corps = corps
     retourne résultat
