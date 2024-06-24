@@ -57,9 +57,37 @@ construit_programme_2 :: fonc () -> *Programme
     retourne crée_programme(expr_assignment, fonction, expression)
 }
 
+construit_programme_3 :: fonc () -> *Programme
+{
+    // function foo()
+    // {
+    //     var x = {};
+    //     rm();
+    // }
+    // foo();
+
+    x := crée_identifier("x")
+    rm := crée_identifier("rm")
+
+    declarator_x := crée_variable_declarator(x, crée_object_expression())
+    declaration_x := crée_variable_declaration(declarator_x)
+
+    appel_rm := crée_call_expression(rm)
+    expression_rm := crée_expression_statement(appel_rm)
+
+    corps := crée_block_statement(declaration_x, expression_rm)
+    foo := crée_identifier("foo")
+    fonction := crée_function_déclaration(foo, corps)
+
+    appel := crée_call_expression(foo)
+    expression := crée_expression_statement(appel)
+
+    retourne crée_programme(fonction, expression)
+}
+
 principale :: fonc () -> z32
 {
-    programme := construit_programme_2()
+    programme := construit_programme_3()
 
     imprime_arbre(programme)
 
@@ -69,15 +97,7 @@ principale :: fonc () -> z32
     résultat := interpréteuse.exécute(programme)
     imprime("%\n", résultat)
 
-    _ := crée_objet(interpréteuse.donne_tas_de_mémoire())
-
     imprime("Ébouage...\n")
     éboue(interpréteuse.donne_tas_de_mémoire())
-
-    interpréteuse.objet_global.définis_valeur("foo", Valeur(Number = 5.0))
-
-    imprime("Ébouage après surécriture objet_global.foo...\n")
-    éboue(interpréteuse.donne_tas_de_mémoire())
-
     retourne 0
 }
