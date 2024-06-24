@@ -80,14 +80,14 @@ FunctionDeclaration :: struct {
     async := faux
 }
 
-crée_function_déclaration :: fonc (id: *Identifier, /* params: []*NoeudSyntaxique, */ corps: *NoeudSyntaxique) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (id: *Identifier, params: []*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionDeclaration
 {
     résultat := loge(FunctionDeclaration)
     résultat.id = id
     résultat.corps = corps
-    // pour params {
-    //     tableau_ajoute(*résultat.params, it)
-    // }
+    pour params {
+        tableau_ajoute(*résultat.params, it)
+    }
     retourne résultat
 }
 

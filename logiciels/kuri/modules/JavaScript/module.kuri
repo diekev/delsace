@@ -2,6 +2,10 @@ importe Fondation
 
 charge "arbre"
 charge "interpréteuse"
+charge "lexage"
+charge "lexèmes"
+charge "script"
+charge "tas_de_mémoire"
 
 ECMAString :: chaine
 

@@ -1,0 +1,356 @@
+importe Fondation
+
+GenreLexème :: énum {
+    NonInitialisé
+
+    Identifiant
+    ChaineLittérale
+    NombreLittéral
+
+    // opérateurs
+    Plus
+    Moins
+    Étoile
+    Slash
+    Pourcent
+    Inférieur
+    Supérieur
+    DécalageGauche
+    DécalageDroite
+    EtBinaire
+    EtLogique
+    OuBinaire
+    OuLogique
+    OuExclusif
+    NonBinaire
+    NonLogique
+    Égal
+    PlusÉgal
+    MoinsÉgal
+    ÉtoileÉgal
+    SlashÉgal
+    PourcentÉgal
+    InférieurÉgal
+    SupérieurÉgal
+    DécalageGaucheÉgal
+    DécalageDroiteÉgal
+    EtBinaireÉgal
+    OuBinaireÉgal
+    OuExclusifÉgal
+    NonBinaireÉgal
+    EstÉgal
+    NEspaPasÉgal
+
+    // opérateurs unaires
+    PlusUnaire
+    MoinsUnaire
+
+    // ponctuation
+    Point
+    Virgule
+    PointVirgule
+    ParenthèseOuvrante
+    ParenthèseFermante
+    AccoladeOuvrante
+    AccoladeFermante
+    CrochetOuvrant
+    CrochetFermant
+
+    // mot-clé
+    Function
+    Return
+    Var
+}
+
+donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> GenreLexème
+{
+    discr genre {
+        PlusÉgal { retourne GenreLexème.Plus }
+        MoinsÉgal { retourne GenreLexème.Moins }
+        ÉtoileÉgal { retourne GenreLexème.Étoile }
+        SlashÉgal { retourne GenreLexème.Slash }
+        PourcentÉgal { retourne GenreLexème.Pourcent }
+        DécalageGaucheÉgal { retourne GenreLexème.DécalageGauche }
+        DécalageDroiteÉgal { retourne GenreLexème.DécalageDroite }
+        EtBinaireÉgal { retourne GenreLexème.EtBinaire }
+        OuBinaireÉgal { retourne GenreLexème.OuBinaire }
+        OuExclusifÉgal { retourne GenreLexème.OuExclusif }
+        NonBinaireÉgal { retourne GenreLexème.NonBinaire }
+        sinon {}
+    }
+
+    assert(faux)
+    retourne GenreLexème.Plus
+}
+
+rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
+{
+    si identifiant.taille == 3 {
+        si identifiant == "var" { retourne GenreLexème.Var }
+    }
+    sinon si identifiant.taille == 6 {
+        si identifiant == "return" { retourne GenreLexème.Return }
+    }
+    sinon si identifiant.taille == 8 {
+        si identifiant == "function" { retourne GenreLexème.Function }
+    }
+
+    retourne GenreLexème.Identifiant
+}
+
+Lexème :: struct {
+    genre: GenreLexème
+    texte: chaine
+    ligne: z32
+    colonne: z32
+}
+
+Associativité :: énum {
+    Gauche
+    Droite
+}
+
+associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
+{
+    discr genre {
+        Plus,
+        Moins,
+        Étoile,
+        Slash,
+        Pourcent,
+        Inférieur,
+        Supérieur,
+        DécalageGauche,
+        DécalageDroite,
+        EtBinaire,
+        EtLogique,
+        OuBinaire,
+        OuLogique,
+        OuExclusif,
+        Égal,
+        PlusÉgal,
+        MoinsÉgal,
+        ÉtoileÉgal,
+        SlashÉgal,
+        PourcentÉgal,
+        InférieurÉgal,
+        SupérieurÉgal,
+        DécalageGaucheÉgal,
+        DécalageDroiteÉgal,
+        EtBinaireÉgal,
+        OuBinaireÉgal,
+        OuExclusifÉgal,
+        NonBinaireÉgal,
+        EstÉgal,
+        NEspaPasÉgal,
+        Point,
+        ParenthèseOuvrante,
+        CrochetOuvrant {
+            retourne Associativité.Gauche
+        }
+        MoinsUnaire,
+        NonBinaire,
+        NonLogique,
+        PlusUnaire {
+            retourne Associativité.Droite
+        }
+        sinon {
+            retourne Associativité.Gauche
+        }
+    }
+}
+
+précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
+{
+    discr genre {
+        Égal,
+        PlusÉgal,
+        MoinsÉgal,
+        ÉtoileÉgal,
+        SlashÉgal,
+        PourcentÉgal,
+        DécalageGaucheÉgal,
+        DécalageDroiteÉgal,
+        EtBinaireÉgal,
+        OuBinaireÉgal,
+        OuExclusifÉgal,
+        NonBinaireÉgal {
+            retourne 2
+        }
+        OuLogique {
+            retourne 3
+        }
+        EtLogique {
+            retourne 4
+        }
+        OuBinaire {
+            retourne 5
+        }
+        OuExclusif {
+            retourne 6
+        }
+        EtBinaire {
+            retourne 7
+        }
+        EstÉgal,
+        NEspaPasÉgal {
+            retourne 8
+        }
+        Inférieur,
+        InférieurÉgal,
+        Supérieur,
+        SupérieurÉgal {
+            retourne 9
+        }
+        DécalageGauche,
+        DécalageDroite {
+            retourne 10
+        }
+        Plus,
+        Moins {
+            retourne 11
+        }
+        Étoile,
+        Slash,
+        Pourcent {
+            retourne 12
+        }
+        MoinsUnaire,
+        NonBinaire,
+        NonLogique,
+        PlusUnaire {
+            retourne 13
+        }
+        Point,
+        ParenthèseOuvrante,
+        CrochetOuvrant {
+            retourne 14
+        }
+        sinon {
+            retourne -1
+        }
+    }
+}
+
+est_lexème_expression :: fonc (genre: GenreLexème) -> bool
+{
+    discr genre {
+        Identifiant,
+        ChaineLittérale,
+        NombreLittéral,
+        ParenthèseOuvrante,
+        AccoladeOuvrante {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_lexème_expression_unaire :: fonc (genre: GenreLexème) -> bool
+{
+    discr genre {
+        Plus,
+        Moins,
+        NonBinaire,
+        NonLogique {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
+{
+    discr genre {
+        Plus,
+        Moins,
+        Étoile,
+        Slash,
+        Pourcent,
+        Inférieur,
+        Supérieur,
+        DécalageGauche,
+        DécalageDroite,
+        EtBinaire,
+        EtLogique,
+        OuBinaire,
+        OuLogique,
+        OuExclusif,
+        NonBinaire,
+        NonLogique,
+        Égal,
+        PlusÉgal,
+        MoinsÉgal,
+        ÉtoileÉgal,
+        SlashÉgal,
+        PourcentÉgal,
+        InférieurÉgal,
+        SupérieurÉgal,
+        DécalageGaucheÉgal,
+        DécalageDroiteÉgal,
+        EtBinaireÉgal,
+        OuBinaireÉgal,
+        OuExclusifÉgal,
+        NonBinaireÉgal,
+        EstÉgal,
+        NEspaPasÉgal,
+        Point,
+        ParenthèseOuvrante,
+        CrochetOuvrant {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
+{
+    discr genre {
+        Var,
+        Function,
+        Return {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+DrapeauxLexèmePourParsage :: énum_drapeau {
+    EstExpression
+    EstExpressionUnaire
+    EstExpressionSecondaire
+    EstInstruction
+}
+
+DonnéesLexèmePourParsage :: struct {
+    associativité: Associativité
+    précédence: z32
+    drapeaux: DrapeauxLexèmePourParsage
+}
+
+données_lexèmes_pour_parsage: [GenreLexème.nombre_éléments]DonnéesLexèmePourParsage
+
+initialise_données_lexèmes_pour_parsage :: fonc ()
+{
+    pour & données_lexèmes_pour_parsage {
+        genre_lexème := (index_it comme z32) comme GenreLexème
+
+        it.associativité = associativité_pour_opérateur(genre_lexème)
+        it.précédence = précédence_pour_opérateur(genre_lexème)
+
+        it.drapeaux.EstExpression = est_lexème_expression(genre_lexème)
+        it.drapeaux.EstExpressionUnaire = est_lexème_expression_unaire(genre_lexème)
+        it.drapeaux.EstExpressionSecondaire = est_lexème_expression_secondaire(genre_lexème)
+        it.drapeaux.EstInstruction = est_lexème_instruction(genre_lexème)
+    }
+}
+
+#ajoute_init initialise_données_lexèmes_pour_parsage()

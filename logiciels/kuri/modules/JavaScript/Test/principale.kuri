@@ -1,4 +1,5 @@
 importe Fondation
+importe SysFichier
 
 importe "../../JavaScript"
 
@@ -91,7 +92,7 @@ construit_programme_4 :: fonc () -> *Programme
     retourne crée_programme(crée_member_expression(crée_literal("hello friends"), crée_identifier("length")))
 }
 
-principale :: fonc () -> z32
+test_programme :: fonc ()
 {
     programme := construit_programme_4()
 
@@ -105,5 +106,29 @@ principale :: fonc () -> z32
 
     imprime("Ébouage...\n")
     éboue(interpréteuse.donne_tas_de_mémoire())
+}
+
+principale :: fonc () -> z32
+{
+    pour ExploratriceFichier(CheminFichier("fichiers/")) {
+        contenu := contenu_fichier_texte(it.chn)
+        imprime("%\n", contenu)
+
+        discr compile_script(contenu) {
+            Ok(script) {
+                // pour lexème dans script.lexèmes {
+                //     imprime("%\n", lexème)
+                // }
+
+                // imprime_arbre(script.programme)
+            }
+            Erreur(e) {
+                imprime("%\n", e.message)
+            }
+            sinon {
+            }
+        }
+    }
+
     retourne 0
 }
