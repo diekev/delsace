@@ -572,6 +572,42 @@ sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, i
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ObjectExpression
+ * \{ */
+
+MemberExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_member_expression
+
+    objet: *NoeudSyntaxique
+    propriété: *NoeudSyntaxique
+    calculé := faux
+}
+
+crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique) -> *MemberExpression
+{
+    résultat := loge(MemberExpression)
+    résultat.objet = objet
+    résultat.propriété = propriété
+    retourne résultat
+}
+
+sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    membre := base comme *MemberExpression
+
+    objet := vers_objet(interpréteuse.donne_tas_de_mémoire(), exécute_noeud(membre.objet, interpréteuse))
+
+    assert(membre.propriété.type == Identifier)
+    identifier := membre.propriété comme *Identifier
+
+    retourne objet.donne_valeur(identifier.nom)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 
