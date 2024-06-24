@@ -1,3 +1,5 @@
+importe Fondation
+
 charge "arbre"
 charge "interpréteuse"
 
@@ -173,6 +175,17 @@ TypePréféré :: énum {
 
 }
 
+vers_objet :: fonc (tas_de_mémoire: *TasDeMémoire, valeur: Valeur) -> *Object
+{
+    si valeur.est_object() {
+        retourne valeur.donne_objet()
+    }
+
+    assert(valeur.est_chaine())
+    objet := tas_de_mémoire.crée_chaine(valeur.String)
+    retourne Valeur(Object = objet)
+}
+
 vers_chaine :: fonc (valeur: Valeur) -> ECMAString
 {
 
@@ -298,6 +311,37 @@ sur_visite_graphe_objet :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
             visite_graphe(it.valeur.donne_cellule(), visiteuse)
         }
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjetChaine
+ * \{ */
+
+ObjetChaine :: struct {
+    empl objet: Object
+    type = #type_de_cette_structure
+    sur_visite_graphe = sur_visite_graphe_chaine
+
+    chn: *PrimitiveChaine
+}
+
+crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, chn: *PrimitiveChaine) -> *ObjetChaine
+{
+    résultat := tas_de_mémoire.alloue(ObjetChaine)
+    résultat.chn = chn
+
+    résultat.définis_valeur("length", Valeur(Number = chn.texte.taille comme r64))
+
+    retourne résultat
+}
+
+sur_visite_graphe_chaine :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    objet_chaine := base comme *ObjetChaine
+    sur_visite_graphe_objet(objet_chaine, visiteuse)
+    cellule_sur_visite_graphe(objet_chaine.chn, visiteuse)
 }
 
 /** \} */
