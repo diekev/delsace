@@ -6,6 +6,28 @@ importe Fondation
 
 FrameScope :: struct {
     noeud_scope: *NoeudScope
+
+    Variable :: struct {
+        nom: ECMAString
+        valeur: Valeur
+    }
+
+    variables: [..]Variable
+}
+
+trouve_variable :: fonc (scope: *FrameScope, nom: chaine) -> *FrameScope.Variable
+{
+    pour * scope.variables {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+détruit_scope :: fonc (scope: *FrameScope)
+{
+    déloge(scope.variables)
 }
 
 Interpréteuse :: struct {
@@ -45,6 +67,7 @@ sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
     pile_scope := *interpréteuse.pile_scope    
     assert(pile_scope.taille > 0)
     assert(mémoire(pile_scope)[pile_scope.taille - 1].noeud_scope == scope)
+    détruit_scope(donne_scope_courant(interpréteuse))
     pile_scope.taille -= 1
 }
 
@@ -56,6 +79,44 @@ retourne_de_la_fonction :: fonc (interpréteuse: &Interpréteuse @inutilisée)
 donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoire
 {
     retourne *interpréteuse.tas_de_mémoire
+}
+
+donne_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString) -> Valeur
+{
+    pour > * interpréteuse.pile_scope {
+        variable := it.trouve_variable(nom)
+        si variable {
+            retourne variable.valeur
+        }
+    }
+
+    objet_global := interpréteuse.objet_global
+    retourne objet_global.donne_valeur(nom)
+}
+
+définis_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, valeur: Valeur)
+{
+    pour > * interpréteuse.pile_scope {
+        variable := it.trouve_variable(nom)
+        si variable {
+            variable.valeur = valeur
+            retourne
+        }
+    }
+
+    objet_global := interpréteuse.objet_global
+    objet_global.définis_valeur(nom, valeur)
+}
+
+déclare_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString)
+{
+    scope := interpréteuse.donne_scope_courant()
+    tableau_ajoute(*scope.variables, FrameScope.Variable(nom, js_undefined))
+}
+
+donne_scope_courant :: fonc (interpréteuse: &Interpréteuse) -> *FrameScope
+{
+    retourne *interpréteuse.pile_scope[interpréteuse.pile_scope.taille -1]
 }
 
 /** \} */

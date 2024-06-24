@@ -2,8 +2,10 @@ importe Fondation
 
 importe "../../JavaScript"
 
-principale :: fonc () -> z32
+construit_programme_1 :: fonc () -> *Programme
 {
+    // function foo() { return (1 + 2) + 3 }
+    // foo()
     bin_op := crée_binary_expression(BinaryOperation.Plus, crée_literal(1), crée_literal(2))
     bin_op = crée_binary_expression(BinaryOperation.Plus, bin_op, crée_literal(3))
     return := crée_return_statement(bin_op)
@@ -14,7 +16,50 @@ principale :: fonc () -> z32
     appel := crée_call_expression(foo)
     expression := crée_expression_statement(appel)
 
-    programme := crée_programme(fonction, expression)
+    retourne crée_programme(fonction, expression)
+}
+
+construit_programme_2 :: fonc () -> *Programme
+{
+    // c = 1
+    // function foo()
+    // {
+    //     var a = 5
+    //     var b = 7
+    //     return (a + b) + c
+    // }
+    // foo()
+
+    c := crée_identifier("c")
+    un := crée_literal(1)
+
+    assignment := crée_assignment_expression(AssignmentOperation.Assigne, c, un)
+    expr_assignment := crée_expression_statement(assignment)
+
+    a := crée_identifier("a")
+    declarator_a := crée_variable_declarator(a, crée_literal(5))
+    declaration_a := crée_variable_declaration(declarator_a)
+
+    b := crée_identifier("b")
+    declarator_b := crée_variable_declarator(b, crée_literal(7))
+    declaration_b := crée_variable_declaration(declarator_b)
+
+    bin_op := crée_binary_expression(BinaryOperation.Plus, a, b)
+    bin_op = crée_binary_expression(BinaryOperation.Plus, bin_op, c)
+    return := crée_return_statement(bin_op)
+    corps := crée_block_statement(declaration_a, declaration_b, return)
+    foo := crée_identifier("foo")
+    fonction := crée_function_déclaration(foo, corps)
+
+    appel := crée_call_expression(foo)
+    expression := crée_expression_statement(appel)
+
+    retourne crée_programme(expr_assignment, fonction, expression)
+}
+
+principale :: fonc () -> z32
+{
+    programme := construit_programme_2()
 
     imprime_arbre(programme)
 

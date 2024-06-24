@@ -127,8 +127,7 @@ crée_identifier :: fonc (nom: ECMAString) -> *Identifier
 sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
 {
     noeud := base comme *Identifier
-    objet_global := interpréteuse.objet_global
-    retourne objet_global.donne_valeur(noeud.nom)
+    retourne interpréteuse.donne_variable(noeud.nom)
 }
 
 /** \} */
@@ -389,6 +388,126 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     fonction := valeur_appelée.Function
     retourne exécute_noeud(fonction.corps, interpréteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom AssignmentExpression
+ * \{ */
+
+AssignmentOperation :: énum {
+    Assigne /* = */
+}
+
+AssignmentExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_assignment_expression
+
+    opération: AssignmentOperation
+    gauche: *NoeudSyntaxique
+    droite: *NoeudSyntaxique
+}
+
+crée_assignment_expression :: fonc (opération: AssignmentOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *AssignmentExpression
+{
+    résultat := loge(AssignmentExpression)
+    résultat.opération = opération
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    noeud := base comme *AssignmentExpression
+    assert(noeud.opération == AssignmentOperation.Assigne)
+
+    assert(noeud.gauche.type == Identifier)
+    identifier := noeud.gauche comme *Identifier
+
+    valeur := exécute_noeud(noeud.droite, interpréteuse)
+    interpréteuse.définis_variable(identifier.nom, valeur)
+    retourne valeur
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom VariableDeclaration
+ * \{ */
+
+VariableDeclaration :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_variable_declaration
+
+    expressions: [..]*NoeudSyntaxique
+}
+
+crée_variable_declaration :: fonc (expressions: ...*NoeudSyntaxique) -> *VariableDeclaration
+{
+    résultat := loge(VariableDeclaration)
+    pour expressions {
+        tableau_ajoute(*résultat.expressions, it)
+    }
+    retourne résultat
+}
+
+sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    noeud := base comme *VariableDeclaration
+    
+    dernière_valeur := js_undefined
+
+    pour noeud.expressions {
+        dernière_valeur = exécute_noeud(it, interpréteuse)
+    }
+
+    retourne dernière_valeur
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom VariableDeclarator
+ * \{ */
+
+VariableDeclarator :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_variable_declarator
+
+    id: *NoeudSyntaxique
+    init: *NoeudSyntaxique
+}
+
+crée_variable_declarator :: fonc (id: *NoeudSyntaxique, init: *NoeudSyntaxique) -> *VariableDeclarator
+{
+    résultat := loge(VariableDeclarator)
+    résultat.id = id
+    résultat.init = init
+    retourne résultat
+}
+
+sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    noeud := base comme *VariableDeclarator
+
+    assert(noeud.id.type == Identifier)
+    identifier := noeud.id comme *Identifier
+
+    résultat := js_undefined
+
+    interpréteuse.déclare_variable(identifier.nom)
+    si noeud.init {
+        valeur := exécute_noeud(noeud.init, interpréteuse)
+        interpréteuse.définis_variable(identifier.nom, valeur)
+        résultat = valeur
+    }
+
+    retourne résultat
 }
 
 /** \} */
