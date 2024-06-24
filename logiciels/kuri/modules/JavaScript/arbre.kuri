@@ -383,6 +383,14 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 {
     noeud := base comme *CallExpression
 
+    si noeud.appelé.type == Identifier {
+        id := noeud.appelé comme *Identifier
+        si id.nom == "rm" {
+            éboue(interpréteuse.donne_tas_de_mémoire())
+            retourne js_undefined
+        }
+    }
+
     valeur_appelée := exécute_noeud(noeud.appelé, interpréteuse)
     assert(valeur_appelée.est_fonction())
 
