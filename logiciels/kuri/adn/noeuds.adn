@@ -363,7 +363,7 @@ struct NoeudDéclarationConstante : BaseDéclarationVariable {
     @code  NoeudCodeDéclarationConstante
     @genre_valeur DROITE
 
-    ValeurExpression valeur_expression
+    ValeurExpression valeur_expression [copie]
 }
 
 struct NoeudAssignation : NoeudExpression {
@@ -542,7 +542,7 @@ struct NoeudExpressionMembre : NoeudExpression {
     /* Pour l'accès à des modules. */
     NoeudDéclaration *déclaration_référée
     /* Pour l'accès à des structures. */
-    int index_membre
+    int index_membre [copie]
 }
 
 struct NoeudExpressionMembreUnion : NoeudExpressionMembre {

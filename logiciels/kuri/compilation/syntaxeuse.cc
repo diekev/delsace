@@ -909,7 +909,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
             consomme();
             consomme(GenreLexème::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
 
-            auto expression = analyse_expression({}, GenreLexème::INFO_DE, GenreLexème::INCONNU);
+            auto expression = analyse_expression({}, GenreLexème::INFO_DE, GenreLexème::VIRGULE);
 
             consomme(GenreLexème::PARENTHESE_FERMANTE,
                      "Attendu ')' après l'expression de 'info_de'");
@@ -921,7 +921,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
             consomme();
             consomme(GenreLexème::PARENTHESE_OUVRANTE, "Attendu '(' après 'init_de'");
 
-            auto expression = analyse_expression({}, GenreLexème::INIT_DE, GenreLexème::INCONNU);
+            auto expression = analyse_expression({}, GenreLexème::INIT_DE, GenreLexème::VIRGULE);
 
             consomme(GenreLexème::PARENTHESE_FERMANTE,
                      "Attendu ')' après l'expression de 'init_de'");
@@ -933,7 +933,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème racine_exp
             consomme();
             consomme(GenreLexème::PARENTHESE_OUVRANTE, "Attendu '(' après 'mémoire'");
 
-            auto expression = analyse_expression({}, GenreLexème::MÉMOIRE, GenreLexème::INCONNU);
+            auto expression = analyse_expression({}, GenreLexème::MÉMOIRE, GenreLexème::VIRGULE);
 
             consomme(GenreLexème::PARENTHESE_FERMANTE, "Attendu ')' après l'expression");
 

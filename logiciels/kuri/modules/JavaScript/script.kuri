@@ -1,0 +1,176 @@
+importe Fondation
+importe Numérique
+importe Unicode
+
+TexteSource :: struct {
+    texte: chaine
+}
+
+PositionSource :: struct {
+    texte_ligne: chaine
+    ligne: z32
+    colonne: z32
+}
+
+donne_position_source :: fonc (texte: &TexteSource, lexème: &Lexème) -> PositionSource
+{
+    résultat: PositionSource
+
+    décalage_lexème := (lexème.texte.pointeur - texte.texte.pointeur)
+
+    si décalage_lexème < 0 || décalage_lexème >= texte.texte.taille {
+        retourne résultat
+    }
+
+    /* Compte les lignes. */
+    début_ligne := texte.texte.pointeur
+    décalage := début_ligne
+    ligne := 0
+    pour texte.texte {
+        si it == '\n' {
+            début_ligne = décalage + 1
+            ligne += 1
+        }
+
+        décalage += 1
+        si décalage >= lexème.texte.pointeur {
+            arrête
+        }
+    }
+
+    résultat.ligne = ligne
+    résultat.colonne = (lexème.texte.pointeur - début_ligne) comme z32
+
+    résultat.texte_ligne = construit_chaine(début_ligne, 0)
+
+    fin_texte := texte.texte.pointeur + texte.texte.taille
+    tantque début_ligne < fin_texte {
+        si mémoire(début_ligne) == '\n' {
+            arrête
+        }
+
+        résultat.texte_ligne.taille += 1
+        début_ligne += 1
+    }
+
+    retourne résultat
+}
+
+crée_texte_source :: fonc (texte: chaine) -> TexteSource
+{
+    résultat : TexteSource = ---
+    résultat.texte = copie_chaine(texte)
+    retourne résultat
+}
+
+Script :: struct {
+    source: TexteSource
+
+    /* Les lexèmes du script, les lexèmes des noeuds sont des adresses dans ce tableau. */
+    lexèmes: [..]Lexème
+
+    /* Arbre syntaxique. */
+    programme: *Programme
+}
+
+crée_script :: fonc (texte: chaine) -> Script
+{
+    retourne Script(source = crée_texte_source(texte))
+}
+
+détruit_script :: fonc (script: &Script)
+{
+    déloge(script.source.texte)
+    déloge(script.lexèmes)
+    si script.programme {
+        détruit_arbre(script.programme)
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom Erreur de compilation.
+ * \{ */
+
+ErreurCompilation :: struct {
+    message: chaine
+}
+
+crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: PositionSource) -> ErreurCompilation
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ligne := position.texte_ligne
+
+    ajoute_au_tampon(*enchaineuse, classe, " :\n\n")
+    imprime_dans_enchaineuse(*enchaineuse, " % | %\n", position.ligne + 1, ligne)
+
+    /* +2 pour les espaces autour du nombre de la ligne. */
+    pour magnitude_décimale(position.ligne + 1) + 2 {
+        ajoute_au_tampon(*enchaineuse, " ")
+    }
+    ajoute_au_tampon(*enchaineuse, "| ")
+
+    index_colonne := 0
+    tantque index_colonne < position.colonne {
+        nombre_octets := nombre_octets_utf8(*ligne[index_colonne])
+        si nombre_octets == 0 {
+            // À FAIRE : déplace ceci dans la lexeuse
+            nombre_octets = 1
+        }
+
+        si ligne[index_colonne] == '\t' {
+            ajoute_au_tampon(*enchaineuse, "\t")
+        }
+        sinon {
+            ajoute_au_tampon(*enchaineuse, " ")
+        }
+
+        index_colonne += nombre_octets
+    }
+    ajoute_au_tampon(*enchaineuse, "^\n\n")
+
+    ajoute_au_tampon(*enchaineuse, message, "\n\n")
+
+    résultat: ErreurCompilation
+    résultat.message = chaine_depuis_enchaineuse(*enchaineuse)
+    retourne résultat
+}
+
+/** \} */
+
+compile_script :: fonc (texte: chaine) -> Résultat(Script, ErreurCompilation)
+{
+    script := crée_script(texte)
+
+    discr lèxe(script.source) {
+        Ok(lexèmes) {
+            script.lexèmes = lexèmes
+        }
+        Erreur(erreur_de_compilation) {
+            détruit_script(script)
+            retourne erreur_de_compilation
+        }
+        sinon {
+            détruit_script(script)
+            retourne ErreurCompilation(copie_chaine("Erreur interne : le lexage n'a rien retourné"))
+        }
+    }
+
+    discr parse(*script) {
+        Ok(programme) {
+            script.programme = programme
+        }
+        Erreur(erreur_de_compilation) {
+            détruit_script(script)
+            retourne erreur_de_compilation
+        }
+        sinon {
+            détruit_script(script)
+            retourne ErreurCompilation(copie_chaine("Erreur interne : le syntaxage n'a rien retourné"))
+        }
+    }
+
+    retourne script
+}
