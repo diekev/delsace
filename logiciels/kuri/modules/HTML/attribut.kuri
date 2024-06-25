@@ -3,6 +3,8 @@ importe Chaine
 Attribut :: struct {
     nom: ChaineUTF16
     valeur: ChaineUTF16
+
+    // À FAIRE(langage) élément: *Élément
 }
 
 détruit_attributs :: fonc (attributs: &[..]Attribut)

@@ -34,7 +34,19 @@ est_tag_auto_fermant :: fonc (tag: *ChaineInternée) -> bool
 Élément :: struct {
     empl base: Noeud
 
-    texte: *ChaineInternée
+    espace_de_nom: chaine // DOMString @namespaceURI
+    texte: *ChaineInternée // DOMString @localName
+
+    état_élément_custom: chaine
+    définition_élément_custom: *rien
+}
+
+/* https://dom.spec.whatwg.org/#concept-element-attributes-append */
+ajoute_attribut :: fonc (élément: *Élément, attribut: Attribut)
+{
+    // attribut.élément = élément
+    ajoute_attribut(élément, attribut.nom, attribut.valeur)
+    /* INCOMPLET : 3. Handle attribute changes. */
 }
 
 initialise_élément :: fonc (élément: *Élément, document: *Document, texte: *ChaineInternée) -> rien

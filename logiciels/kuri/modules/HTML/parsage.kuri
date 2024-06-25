@@ -118,15 +118,75 @@ trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_o
     retourne cible
 }
 
-insère_élément_html :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Élément
+/* https://infra.spec.whatwg.org/#html-namespace */
+EspaceDeNom :: chaine
+EspaceDeNom_HTML :: "http://www.w3.org/1999/xhtml"
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#insert-an-html-element */
+insère_élément_html :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *HTMLElement
 {
+    retourne insère_élément_étranger(parseuse, lexème, EspaceDeNom_HTML, faux) comme *HTMLElement
+}
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element */
+insère_élément_étranger :: fonc (parseuse: *Parseuse, lexème: Lexème, espace_de_nom: EspaceDeNom, ajoute_seulement_à_pile_élément: bool) -> *Élément
+{
+    /* 1. */
     position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
-    élément := parseuse.crée_élément_pour(lexème)
-    // À FAIRE : vérifie s'il est possible d'insérer élément à position_ajustée_d_insertion
-    // À FAIRE : file d'évènements, voir spec
-    position_ajustée_d_insertion.ajoute_enfant(élément)
+    /* 2. */
+    élément := parseuse.crée_élément_pour_lexème(lexème, espace_de_nom, position_ajustée_d_insertion)
+    /* 3. INCOMPLET */
+    saufsi ajoute_seulement_à_pile_élément {
+        position_ajustée_d_insertion.ajoute_enfant(élément)
+    }
+    /* 4. */
     empile(*parseuse.pile_éléments_ouvert, élément)
+    /* 5.  */
     retourne élément
+}
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#create-an-element-for-the-token */
+crée_élément_pour_lexème :: fonc (parseuse: *Parseuse, lexème: Lexème, espace_de_nom: EspaceDeNom, parent_prévu: *Noeud) -> *Élément
+{
+    /* INCOMPLET : 1. if the active speculative parser... */
+    /* INCOMPLET : 2. optionally create a speculative mock element... */
+
+    document := parent_prévu.document
+    nom_local := lexème.nom
+
+    /* INCOMPLET : 5. 6. 7. 8. */
+
+    /* 9. INCOMPLET : will execute script */
+    élément := crée_un_élément(parseuse, document, nom_local, espace_de_nom)
+
+    /* 10. */
+    pour lexème.attributs {
+        élément.ajoute_attribut(it)
+    }
+
+    /* INCOMPLET : 11. 12. 13. 14. */
+
+    /* 15. */
+    retourne élément
+}
+
+/* https://dom.spec.whatwg.org/#concept-create-element */
+crée_un_élément :: fonc (parseuse: *Parseuse @inutilisée, document: *Document, nom_local: *ChaineInternée, espace_de_nom: EspaceDeNom) -> *Élément
+{
+    /* INCOMPLET : optional prefix, is, and synchronous custom elements flag */
+    résultat: *Élément = nul
+
+    /* INCOMPLET : 4. 5. 6. & 7.1 */
+
+    /* 7.2. */
+    résultat = crée_élément_avec_tag(document, nom_local)
+    résultat.espace_de_nom = espace_de_nom
+    résultat.état_élément_custom = "uncustomized"
+    résultat.définition_élément_custom = nul
+
+    /* INCOMPLET 7.3. */
+
+    retourne résultat
 }
 
 insère_caractère :: fonc (parseuse: *Parseuse, point_de_code: n32)
