@@ -1974,6 +1974,10 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
         return "fonction anonyme";
     }
 
+    if (noeud->est_déclaration_type()) {
+        return chaine_type(noeud->comme_déclaration_type());
+    }
+
     if (noeud->ident) {
         return noeud->ident->nom;
     }
