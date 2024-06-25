@@ -9,10 +9,10 @@ importe Introspection
 NoeudSyntaxique :: struct {
     type := #type_de_cette_structure
 
-    sur_exécution: fonc(*NoeudSyntaxique, &Interpréteuse)(Valeur)
+    sur_exécution: fonc(*NoeudSyntaxique, &Interpréteuse)(CompletionRecord)
 }
 
-exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     // imprime("Exécution de %\n", noeud.type)
     retourne noeud.sur_exécution(noeud, interpréteuse)
@@ -33,7 +33,7 @@ NoeudScope :: struct {
     enfants: [..]*NoeudSyntaxique
 }
 
-sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     retourne interpréteuse.exécute(noeud comme *NoeudScope)
 }
@@ -91,7 +91,7 @@ crée_function_déclaration :: fonc (id: *Identifier, params: []*NoeudSyntaxique
     retourne résultat
 }
 
-sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *FunctionDeclaration
 
@@ -100,7 +100,7 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
     objet_global := interpréteuse.objet_global
     objet_global.définis_valeur(noeud.id.nom, Valeur(Function = fonction))
 
-    retourne Valeur(Function = fonction)
+    retourne normal_completion(Valeur(Function = fonction))
 }
 
 /** \} */
@@ -124,10 +124,10 @@ crée_identifier :: fonc (nom: ECMAString) -> *Identifier
     retourne résultat
 }
 
-sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *Identifier
-    retourne interpréteuse.donne_variable(noeud.nom)
+    retourne normal_completion(interpréteuse.donne_variable(noeud.nom))
 }
 
 /** \} */
@@ -171,11 +171,11 @@ crée_return_statement :: fonc (argument: *NoeudSyntaxique) -> *ReturnStatement
     retourne résultat
 }
 
-sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *ReturnStatement
 
-    résultat := js_null
+    résultat := return_completion(js_null)
 
     si noeud.argument {
         résultat = exécute_noeud(noeud.argument, interpréteuse)
@@ -227,12 +227,20 @@ crée_binary_expression :: fonc (opération: BinaryOperation, gauche: *NoeudSynt
 }
 
 
-sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *BinaryExpression
-    gauche := exécute_noeud(noeud.gauche, interpréteuse)
-    droite := exécute_noeud(noeud.droite, interpréteuse)
-    retourne évalue_expression_binaire(noeud.opération, gauche, droite)
+    completion_gauche := exécute_noeud(noeud.gauche, interpréteuse)
+    saufsi completion_gauche.est_normal() {
+        retourne completion_gauche
+    }
+    completion_droite := exécute_noeud(noeud.droite, interpréteuse)
+    saufsi completion_droite.est_normal() {
+        retourne completion_droite
+    }
+    gauche := completion_gauche.valeur
+    droite := completion_droite.valeur
+    retourne normal_completion(évalue_expression_binaire(noeud.opération, gauche, droite))
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-applystringornumericbinaryoperator */
@@ -386,10 +394,10 @@ crée_literal :: fonc (valeur: r64) -> *NumericLiteral
     retourne résultat
 }
 
-sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse @inutilisée) -> Valeur
+sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
 {
     noeud := base comme *NumericLiteral
-    retourne Valeur(Number = noeud.valeur)
+    retourne normal_completion(Valeur(Number = noeud.valeur))
 }
 
 /** \} */
@@ -413,10 +421,10 @@ crée_literal :: fonc (valeur: ECMAString) -> *StringLiteral
     retourne résultat
 }
 
-sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *StringLiteral
-    retourne crée_chaine(interpréteuse.donne_tas_de_mémoire(), noeud.valeur)
+    retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), noeud.valeur))
 }
 
 /** \} */
@@ -440,13 +448,13 @@ crée_expression_statement :: fonc (expression: *NoeudSyntaxique) -> *NoeudSynta
     retourne résultat
 }
 
-sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *ExpressionStatement
     si noeud.expression {
         retourne exécute_noeud(noeud.expression, interpréteuse)
     }
-    retourne js_undefined
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
@@ -474,7 +482,7 @@ crée_call_expression :: fonc (appelé: *NoeudSyntaxique, arguments: ...*NoeudSy
     retourne résultat
 }
 
-sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *CallExpression
 
@@ -482,11 +490,16 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
         id := noeud.appelé comme *Identifier
         si id.nom == "rm" {
             éboue(interpréteuse.donne_tas_de_mémoire())
-            retourne js_undefined
+            retourne normal_completion(js_undefined)
         }
     }
 
-    valeur_appelée := exécute_noeud(noeud.appelé, interpréteuse)
+    completion_valeur_appelée := exécute_noeud(noeud.appelé, interpréteuse)
+    saufsi completion_valeur_appelée.est_normal() {
+        retourne completion_valeur_appelée
+    }
+
+    valeur_appelée := completion_valeur_appelée.valeur
     assert(valeur_appelée.est_fonction())
 
     fonction := valeur_appelée.Function
@@ -522,7 +535,7 @@ crée_assignment_expression :: fonc (opération: AssignmentOperation, gauche: *N
     retourne résultat
 }
 
-sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *AssignmentExpression
     assert(noeud.opération == AssignmentOperation.Assigne)
@@ -530,9 +543,14 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     assert(noeud.gauche.type == Identifier)
     identifier := noeud.gauche comme *Identifier
 
-    valeur := exécute_noeud(noeud.droite, interpréteuse)
+    completion_valeur := exécute_noeud(noeud.droite, interpréteuse)
+    saufsi completion_valeur.est_normal() {
+        retourne completion_valeur
+    }
+
+    valeur := completion_valeur.valeur
     interpréteuse.définis_variable(identifier.nom, valeur)
-    retourne valeur
+    retourne normal_completion(valeur)
 }
 
 /** \} */
@@ -565,11 +583,11 @@ crée_variable_declaration :: fonc (nature: VariableDeclarationKind, expressions
     retourne résultat
 }
 
-sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *VariableDeclaration
     
-    dernière_valeur := js_undefined
+    dernière_valeur := normal_completion(js_undefined)
 
     /* À FAIRE : différence entre let et var. */
     pour noeud.expressions {
@@ -602,7 +620,7 @@ crée_variable_declarator :: fonc (id: *NoeudSyntaxique, init: *NoeudSyntaxique)
     retourne résultat
 }
 
-sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *VariableDeclarator
 
@@ -613,12 +631,17 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
 
     interpréteuse.déclare_variable(identifier.nom)
     si noeud.init {
-        valeur := exécute_noeud(noeud.init, interpréteuse)
+        completion_valeur := exécute_noeud(noeud.init, interpréteuse)
+        saufsi completion_valeur.est_normal() {
+            retourne completion_valeur
+        }
+
+        valeur := completion_valeur.valeur
         interpréteuse.définis_variable(identifier.nom, valeur)
         résultat = valeur
     }
 
-    retourne résultat
+    retourne normal_completion(résultat)
 }
 
 /** \} */
@@ -639,10 +662,10 @@ crée_object_expression :: fonc () -> *ObjectExpression
     retourne résultat
 }
 
-sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     objet := crée_objet(interpréteuse.donne_tas_de_mémoire())
-    retourne Valeur(Object = objet)
+    retourne normal_completion(Valeur(Object = objet))
 }
 
 /** \} */
@@ -669,16 +692,22 @@ crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyn
     retourne résultat
 }
 
-sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     membre := base comme *MemberExpression
 
-    objet := vers_objet(interpréteuse.donne_tas_de_mémoire(), exécute_noeud(membre.objet, interpréteuse))
+    completion_valeur := exécute_noeud(membre.objet, interpréteuse)
+    saufsi completion_valeur.est_normal() {
+        retourne completion_valeur
+    }
+
+    valeur := completion_valeur.valeur
+    objet := vers_objet(interpréteuse.donne_tas_de_mémoire(), valeur)
 
     assert(membre.propriété.type == Identifier)
     identifier := membre.propriété comme *Identifier
 
-    retourne objet.donne_valeur(identifier.nom)
+    retourne normal_completion(objet.donne_valeur(identifier.nom))
 }
 
 /** \} */
@@ -710,7 +739,7 @@ crée_update_expression :: fonc (argument: *NoeudSyntaxique, operation: UpdateOp
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-postfix-increment-operator */
-sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     update := base comme *UpdateExpression
     assert(update.argument.type == Identifier)
@@ -729,7 +758,7 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 
     interpréteuse.définis_variable(id.nom, nouvelle_valeur)
 
-    retourne vieille_valeur
+    retourne normal_completion(vieille_valeur)
 }
 
 /** \} */
@@ -759,32 +788,47 @@ crée_for_statement :: fonc (init: *NoeudSyntaxique, test: *NoeudSyntaxique, upd
     retourne résultat
 }
 
-sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     for := base comme *ForStatement
 
     si for.init {
-        _ := exécute_noeud(for.init, interpréteuse)
+        doit_continuer := exécute_noeud(for.init, interpréteuse)
+        saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
     }
 
     boucle {
         si for.test {
             doit_continuer := exécute_noeud(for.test, interpréteuse)
-            assert(doit_continuer.est_boolean())
+            saufsi doit_continuer.est_normal() {
+                retourne doit_continuer
+            }
 
-            si doit_continuer.est_false() {
+            valeur := doit_continuer.valeur
+
+            assert(valeur.est_boolean())
+
+            si valeur.est_false() {
                 arrête
             }
         }
 
         si for.update {
-            _ := exécute_noeud(for.update, interpréteuse)
+            doit_continuer := exécute_noeud(for.update, interpréteuse)
+            saufsi doit_continuer.est_normal() {
+                retourne doit_continuer
+            }
         }
 
-        _ := exécute_noeud(for.body, interpréteuse)
+        doit_continuer := exécute_noeud(for.body, interpréteuse)
+        saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
     }
 
-    retourne js_undefined
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */

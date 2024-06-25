@@ -2,6 +2,52 @@ importe Ensemble
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
+/** \nom CompletionRecord
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-completion-record-specification-type
+ * \{ */
+
+CompletionRecord :: struct {
+    Type :: énum {
+        NORMAL
+        BREAK
+        CONTINUE
+        RETURN
+        THROW
+    }
+
+    type: Type
+    valeur: Valeur
+    cible: chaine
+}
+
+normal_completion :: fonc (valeur: Valeur) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
+}
+
+return_completion :: fonc (valeur: Valeur) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
+}
+
+est_normal :: fonc (completion: CompletionRecord) -> bool
+{
+    retourne completion.type == CompletionRecord.Type.NORMAL
+}
+
+est_abrupt :: fonc (completion: CompletionRecord) -> bool
+{
+    retourne !est_normal(completion)
+}
+
+est_return :: fonc (completion: CompletionRecord) -> bool
+{
+    retourne completion.type == CompletionRecord.Type.RETOURNE
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Interpréteuse
  * \{ */
 
@@ -43,9 +89,9 @@ initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
     interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire)
 }
 
-exécute :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope) -> Valeur
+exécute :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope) -> CompletionRecord
 {
-    résultat := js_undefined
+    résultat := normal_completion(js_undefined)
 
     entre(interpréteuse, scope)
 
