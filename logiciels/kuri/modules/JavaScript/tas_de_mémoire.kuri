@@ -1,0 +1,308 @@
+importe Ensemble
+importe Fondation
+
+DÉBOGUGE_MÉMOIRE :: vrai
+
+/* ------------------------------------------------------------------------- */
+/** \nom TasDeMémoire
+ * Allocatrice servant de ramasse-miette "marque et balaie"
+ * \{ */
+
+TasDeMémoire :: struct {
+    interpréteuse: *Interpréteuse
+    blocs: [..]*BlocDeMémoire
+}
+
+détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
+{
+    pour tas_de_mémoire.blocs {
+        déloge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, it, info_de(BlocDeMémoire), PositionCodeSource())
+    }
+
+    déloge(tas_de_mémoire.blocs)
+}
+
+alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
+{
+    résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
+    init_de(T)(résultat)
+    retourne résultat
+}
+
+alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
+{
+    pour tas_de_mémoire.blocs {
+        si taille > it.taille_cellule {
+            continue
+        }
+
+        cellule := it.alloue_cellule()
+        si cellule {
+            retourne cellule
+        }
+    }
+
+    mémoire_bloc := loge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), PositionCodeSource())
+    bloc := mémoire_bloc comme *BlocDeMémoire
+    init_de(BlocDeMémoire)(bloc)
+
+    initialise_bloc(bloc, taille)
+
+    tableau_ajoute(*tas_de_mémoire.blocs, bloc)
+
+    retourne bloc.alloue_cellule()
+}
+
+/* Ramasse les miettes. */
+éboue :: fonc (tas_de_mémoire: *TasDeMémoire)
+{
+    racines: [..]*Cellule
+    diffère déloge(racines)
+    rassemble_racines(tas_de_mémoire, *racines)
+
+    cellules_vivantes: [..]*Cellule
+    diffère déloge(cellules_vivantes)
+    visite_cellules_vivantes(tas_de_mémoire, racines, *cellules_vivantes)
+
+    réinitialise_bits_de_marquage(tas_de_mémoire)
+    marque_cellules_vivantes(tas_de_mémoire, *cellules_vivantes)
+    balaie_cellules_mortes(tas_de_mémoire)
+}
+
+rassemble_racines :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule)
+{
+    rassemble_racines(tas_de_mémoire.interpréteuse, racines)
+
+    #si DÉBOGUGE_MÉMOIRE {
+        imprime("%\n", #nom_de_cette_fonction)
+        pour mémoire(racines) {
+            imprime("    + %\n", it)
+        }
+    }
+}
+
+visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, racines: []*Cellule, cellules_vivantes: *[..]*Cellule)
+{
+    VisiteuseVivance :: struct {
+        empl base: VisiteuseCellule
+
+        cellules_vivantes: *[..]*Cellule
+    }
+
+    sur_a_visité :: fonc (base: *VisiteuseCellule, cellule: *Cellule)
+    {
+        visiteuse := base comme *VisiteuseVivance
+        ensemble_ajoute(visiteuse.cellules_vivantes, cellule)
+    }
+
+    visiteuse: VisiteuseVivance
+    visiteuse.cellules_vivantes = cellules_vivantes
+    visiteuse.sur_a_visité = sur_a_visité
+
+    pour racines {
+        it.visite_graphe(*visiteuse)
+    }
+
+    #si DÉBOGUGE_MÉMOIRE {
+        imprime("%\n", #nom_de_cette_fonction)
+        pour mémoire(cellules_vivantes) {
+            imprime("    @ %\n", it)
+        }
+    }
+}
+
+réinitialise_bits_de_marquage :: fonc (tas_de_mémoire: *TasDeMémoire)
+{
+    pour tas_de_mémoire.blocs {
+        pour cellule dans it {
+            cellule.marqué = faux
+        }
+    }
+}
+
+marque_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, cellules_vivantes: *[..]*Cellule)
+{
+    #si DÉBOGUGE_MÉMOIRE {
+        imprime("%\n", #nom_de_cette_fonction)
+    }
+
+    pour tas_de_mémoire.blocs {
+        pour cellule dans it {
+            si ensemble_possède(cellules_vivantes, cellule) {
+                cellule.marqué = vrai
+                #si DÉBOGUGE_MÉMOIRE {
+                    imprime("    ! %\n", cellule)
+                }
+            }
+        }
+    }
+}
+
+balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
+{
+    #si DÉBOGUGE_MÉMOIRE {
+        imprime("%\n", #nom_de_cette_fonction)
+    }
+
+    pour tas_de_mémoire.blocs {
+        pour cellule dans it {
+            si cellule.vivante && !cellule.marqué {
+                it.désalloue(cellule)
+                #si DÉBOGUGE_MÉMOIRE {
+                    imprime("    ~ %\n", cellule)
+                }
+            }
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BlocDeMémoire
+ * Mémoire pour allouer des Cellules.
+ * \{ */
+
+BlocDeMémoire :: struct {
+    TAILLE_BLOC : n64 : 16 * 1024
+    
+    taille_cellule: n64
+
+    EntréeListeLibre :: struct {
+        empl base: Cellule
+        suivante: *EntréeListeLibre
+    }
+
+    liste_libre: *EntréeListeLibre
+}
+
+initialise_bloc :: fonc (bloc: *BlocDeMémoire, taille_cellule: n64)
+{
+    bloc.taille_cellule = taille_cellule
+
+    pour bloc {
+        liste := it comme *BlocDeMémoire.EntréeListeLibre
+        liste.vivante = faux
+
+        si index_it comme n64 == bloc.nombre_de_cellules() {
+            liste.suivante = nul
+        }
+        sinon {
+            liste.suivante = bloc.donne_cellule(index_it comme n64 + 1) comme *BlocDeMémoire.EntréeListeLibre
+        }
+    }
+
+    bloc.liste_libre = bloc.donne_cellule(0) comme *BlocDeMémoire.EntréeListeLibre
+}
+
+nombre_de_cellules :: fonc (bloc: *BlocDeMémoire) -> n64
+{
+    retourne (BlocDeMémoire.TAILLE_BLOC - taille_de(BlocDeMémoire)) / bloc.taille_cellule
+}
+
+donne_cellule :: fonc (bloc: *BlocDeMémoire, index: n64) -> *Cellule
+{
+    stockage := (bloc + 1) comme *octet
+    retourne (stockage + index * bloc.taille_cellule) comme *Cellule
+}
+
+alloue_cellule :: fonc (bloc: *BlocDeMémoire) -> *Cellule
+{
+    saufsi bloc.liste_libre {
+        retourne nul
+    }
+
+    résultat := bloc.liste_libre
+    bloc.liste_libre = bloc.liste_libre.suivante
+    retourne résultat
+}
+
+désalloue :: fonc (bloc: *BlocDeMémoire, cellule: *Cellule)
+{
+    assert(cellule.vivante == vrai)
+    assert(cellule.marqué == faux)
+
+    détruit_cellule(cellule)
+
+    entrée := cellule comme *BlocDeMémoire.EntréeListeLibre
+    entrée.vivante = faux
+    entrée.suivante = bloc.liste_libre
+    bloc.liste_libre = entrée
+}
+
+opérateur pour :: fonc (bloc: *BlocDeMémoire) -> *Cellule
+{
+    pour bloc.nombre_de_cellules() {
+        cellule := bloc.donne_cellule(index_it)
+
+        `it = cellule
+        `index_it = index_it comme z64
+
+        #corps_boucle
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Cellule
+ * Structure de base pour être éboué.
+ * \{ */
+
+Cellule :: struct {
+    type := #type_de_cette_structure
+    sur_destruction: fonc(*Cellule)(rien)
+    sur_visite_graphe := cellule_sur_visite_graphe
+
+    marqué := faux
+    vivante := vrai
+}
+
+donne_nom_classe :: fonc (cellule: *Cellule) -> chaine
+{
+    infos := __table_des_types[cellule.type] comme *InfoTypeStructure
+    retourne infos.nom
+}
+
+imprime_cellule :: fonc (enchaineuse: *Enchaineuse, addr_cellule: **Cellule)
+{
+    saufsi addr_cellule && mémoire(addr_cellule) {
+        ajoute_au_tampon(enchaineuse, "{nul}")
+        retourne
+    }
+
+    cellule := mémoire(addr_cellule)
+    imprime_dans_enchaineuse(enchaineuse, "%{%}", cellule.donne_nom_classe(), cellule comme *rien)
+} @FormattageImpression
+
+cellule_sur_visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    visiteuse.a_visité(cellule)
+}
+
+détruit_cellule :: fonc (cellule: *Cellule)
+{
+    si cellule.sur_destruction {
+        cellule.sur_destruction(cellule)
+    }
+}
+
+visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    si cellule.sur_visite_graphe {
+        cellule.sur_visite_graphe(cellule, visiteuse)
+    }
+}
+
+/** \} */
+
+VisiteuseCellule :: struct {
+    sur_a_visité: fonc(*VisiteuseCellule, *Cellule)(rien)
+}
+
+a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)
+{
+    si visiteuse.sur_a_visité {
+        visiteuse.sur_a_visité(visiteuse, cellule)
+    }
+}

@@ -124,6 +124,7 @@ TAG_track: *ChaineInternée
 TAG_tt: *ChaineInternée
 TAG_u: *ChaineInternée
 TAG_ul: *ChaineInternée
+TAG_video: *ChaineInternée
 TAG_wbr: *ChaineInternée
 TAG_xmp: *ChaineInternée
 

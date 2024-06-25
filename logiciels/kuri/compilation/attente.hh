@@ -364,6 +364,8 @@ struct Attente {
         assert(est<AttenteSurInitialisationType>());
         return std::get<AttenteSurInitialisationType>(attente).valeur.type;
     }
+
+    kuri::chaine donne_commentaire() const;
 };
 
 /** \} */
