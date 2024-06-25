@@ -788,6 +788,7 @@ crée_for_statement :: fonc (init: *NoeudSyntaxique, test: *NoeudSyntaxique, upd
     retourne résultat
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-for-statement */
 sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     for := base comme *ForStatement
