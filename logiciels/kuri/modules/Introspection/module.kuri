@@ -4,6 +4,27 @@ importe Compilatrice
 importe Fondation
 importe Numérique
 
+/** Retourne vrai si le type du membre actif de l'union correspond au type donné.
+ * Sinon, retourne faux.
+ * Cette fonction retourne également faux si l'union n'a aucun membre actif. */
+est_membre_actif :: fonc (u: $TypeUnion, $TypeMembre: type_de_données) -> bool
+{
+    #assert info_de(TypeUnion).id == GenreInfoType.UNION
+    #assert info_de(TypeUnion).est_sûre == vrai
+
+    info_union := info_de(TypeUnion)
+    adresse_index := (*u comme *octet + info_union.décalage_index) comme *z32
+
+    index := mémoire(adresse_index)
+
+    si index == 0 {
+        retourne faux
+    }
+
+    membre := info_union.membres[index - 1]
+    retourne membre.id == info_de(TypeMembre)
+}
+
 est_valide :: fonc (valeur: eini) -> bool
 {
     retourne valeur.pointeur != nul

@@ -159,14 +159,6 @@ Attente const *UniteCompilation::première_attente_bloquée_ou_non() const
     return nullptr;
 }
 
-static kuri::chaine commentaire_pour_attente(Attente const &attente)
-{
-    if (attente.info && attente.info->commentaire) {
-        return attente.info->commentaire(attente);
-    }
-    return "ERREUR COMPILATRICE";
-}
-
 static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente const &attente)
 {
     if (attente.info && attente.info->émets_erreur) {
@@ -222,7 +214,7 @@ kuri::chaine UniteCompilation::chaine_attentes_récursives() const
     auto attente = première_attente_bloquée();
     assert(attente);
     auto attendue = unité_pour_attente(*attente);
-    auto commentaire = commentaire_pour_attente(*attente);
+    auto commentaire = attente->donne_commentaire();
 
     if (!attendue) {
         fc << "    " << commentaire << " est bloquée !\n";
@@ -244,7 +236,7 @@ kuri::chaine UniteCompilation::chaine_attentes_récursives() const
 
         attente = attendue->première_attente_bloquée_ou_non();
         fc << "    " << commentaire << " attend sur ";
-        commentaire = commentaire_pour_attente(*attente);
+        commentaire = attente->donne_commentaire();
         fc << commentaire << '\n';
 
         unités_visitées.insère(attendue);
