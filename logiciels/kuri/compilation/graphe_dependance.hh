@@ -97,6 +97,8 @@ struct NoeudDépendance {
         return m_type_noeud == TypeNoeudDependance::FONCTION;
     }
 
+    const NoeudExpression *noeud() const;
+
     inline Type *type() const
     {
         assert(est_type());

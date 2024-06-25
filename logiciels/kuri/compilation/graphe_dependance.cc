@@ -47,6 +47,11 @@ NoeudDépendance::NoeudDépendance(Type *t) : m_type(t), m_type_noeud(TypeNoeudD
 {
 }
 
+const NoeudExpression *NoeudDépendance::noeud() const
+{
+    return m_noeud_globale;
+}
+
 void NoeudDépendance::ajoute_relation(Badge<GrapheDépendance>, const Relation &relation)
 {
     POUR (m_relations.plage()) {
