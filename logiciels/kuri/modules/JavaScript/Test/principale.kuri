@@ -1,0 +1,134 @@
+importe Fondation
+importe SysFichier
+
+importe "../../JavaScript"
+
+construit_programme_1 :: fonc () -> *Programme
+{
+    // function foo() { return (1 + 2) + 3 }
+    // foo()
+    bin_op := crée_binary_expression(BinaryOperation.Plus, crée_literal(1), crée_literal(2))
+    bin_op = crée_binary_expression(BinaryOperation.Plus, bin_op, crée_literal(3))
+    return := crée_return_statement(bin_op)
+    corps := crée_block_statement(return)
+    foo := crée_identifier("foo")
+    fonction := crée_function_déclaration(foo, corps)
+
+    appel := crée_call_expression(foo)
+    expression := crée_expression_statement(appel)
+
+    retourne crée_programme(fonction, expression)
+}
+
+construit_programme_2 :: fonc () -> *Programme
+{
+    // c = 1
+    // function foo()
+    // {
+    //     var a = 5
+    //     var b = 7
+    //     return (a + b) + c
+    // }
+    // foo()
+
+    c := crée_identifier("c")
+    un := crée_literal(1)
+
+    assignment := crée_assignment_expression(AssignmentOperation.Assigne, c, un)
+    expr_assignment := crée_expression_statement(assignment)
+
+    a := crée_identifier("a")
+    declarator_a := crée_variable_declarator(a, crée_literal(5))
+    declaration_a := crée_variable_declaration(declarator_a)
+
+    b := crée_identifier("b")
+    declarator_b := crée_variable_declarator(b, crée_literal(7))
+    declaration_b := crée_variable_declaration(declarator_b)
+
+    bin_op := crée_binary_expression(BinaryOperation.Plus, a, b)
+    bin_op = crée_binary_expression(BinaryOperation.Plus, bin_op, c)
+    return := crée_return_statement(bin_op)
+    corps := crée_block_statement(declaration_a, declaration_b, return)
+    foo := crée_identifier("foo")
+    fonction := crée_function_déclaration(foo, corps)
+
+    appel := crée_call_expression(foo)
+    expression := crée_expression_statement(appel)
+
+    retourne crée_programme(expr_assignment, fonction, expression)
+}
+
+construit_programme_3 :: fonc () -> *Programme
+{
+    // function foo()
+    // {
+    //     var x = {};
+    //     rm();
+    // }
+    // foo();
+
+    x := crée_identifier("x")
+    rm := crée_identifier("rm")
+
+    declarator_x := crée_variable_declarator(x, crée_object_expression())
+    declaration_x := crée_variable_declaration(declarator_x)
+
+    appel_rm := crée_call_expression(rm)
+    expression_rm := crée_expression_statement(appel_rm)
+
+    corps := crée_block_statement(declaration_x, expression_rm)
+    foo := crée_identifier("foo")
+    fonction := crée_function_déclaration(foo, corps)
+
+    appel := crée_call_expression(foo)
+    expression := crée_expression_statement(appel)
+
+    retourne crée_programme(fonction, expression)
+}
+
+construit_programme_4 :: fonc () -> *Programme
+{
+    // "hello friends".length
+    retourne crée_programme(crée_member_expression(crée_literal("hello friends"), crée_identifier("length")))
+}
+
+test_programme :: fonc ()
+{
+    programme := construit_programme_4()
+
+    imprime_arbre(programme)
+
+    interpréteuse: Interpréteuse
+    initialise_interpréteuse(interpréteuse)
+
+    résultat := interpréteuse.exécute(programme)
+    imprime("%\n", résultat)
+
+    imprime("Ébouage...\n")
+    éboue(interpréteuse.donne_tas_de_mémoire())
+}
+
+principale :: fonc () -> z32
+{
+    pour ExploratriceFichier(CheminFichier("fichiers/")) {
+        contenu := contenu_fichier_texte(it.chn)
+        imprime("%\n", contenu)
+
+        discr compile_script(contenu) {
+            Ok(script) {
+                // pour lexème dans script.lexèmes {
+                //     imprime("%\n", lexème)
+                // }
+
+                // imprime_arbre(script.programme)
+            }
+            Erreur(e) {
+                imprime("%\n", e.message)
+            }
+            sinon {
+            }
+        }
+    }
+
+    retourne 0
+}

@@ -490,6 +490,14 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDéc
 
     os << "-- validation non performée pour le corps de " << nom_humainement_lisible(déclaration)
        << "\n";
+#ifdef ENREGISTRE_HISTORIQUE
+    POUR (unité_corps->donne_historique()) {
+        os << "-- " << it.état << " " << it.raison << " " << it.fonction << '\n';
+    }
+#endif
+    POUR (unité_corps->donne_attentes()) {
+        os << "-- Attente : " << it.donne_commentaire() << '\n';
+    }
 }
 
 static void imprime_détails_ri_à_générée(std::ostream &os, NoeudDéclaration *déclaration)
