@@ -473,17 +473,24 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 /** \nom VariableDeclaration
  * \{ */
 
+VariableDeclarationKind :: énum {
+    Let
+    Var
+}
+
 VariableDeclaration :: struct {
     empl base: NoeudSyntaxique
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_variable_declaration
 
+    nature: VariableDeclarationKind
     expressions: [..]*NoeudSyntaxique
 }
 
-crée_variable_declaration :: fonc (expressions: ...*NoeudSyntaxique) -> *VariableDeclaration
+crée_variable_declaration :: fonc (nature: VariableDeclarationKind, expressions: ...*NoeudSyntaxique) -> *VariableDeclaration
 {
     résultat := loge(VariableDeclaration)
+    résultat.nature = nature
     pour expressions {
         tableau_ajoute(*résultat.expressions, it)
     }
@@ -496,6 +503,7 @@ sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréte
     
     dernière_valeur := js_undefined
 
+    /* À FAIRE : différence entre let et var. */
     pour noeud.expressions {
         dernière_valeur = exécute_noeud(it, interpréteuse)
     }

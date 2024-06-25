@@ -131,8 +131,11 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         Function {
             retourne parse_function_declaration(parseuse)
         }
+        Let {
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let)
+        }
         Var {
-            retourne parse_variable_declaration(parseuse)
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Var)
         }
         Return {
             retourne parse_return_statement(parseuse)
@@ -183,7 +186,7 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
     retourne crée_function_déclaration(id, paramètres, bloc)
 }
 
-parse_variable_declaration :: fonc (parseuse: *Parseuse) -> *VariableDeclaration
+parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind) -> *VariableDeclaration
 {
     parseuse.consomme()
 
@@ -203,7 +206,7 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse) -> *VariableDeclaration
 
     declarator := crée_variable_declarator(id, init)
 
-    retourne crée_variable_declaration(declarator)
+    retourne crée_variable_declaration(nature, declarator)
 }
 
 parse_return_statement :: fonc (parseuse: *Parseuse) -> *ReturnStatement

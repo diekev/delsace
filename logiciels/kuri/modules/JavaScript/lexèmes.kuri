@@ -60,6 +60,7 @@ GenreLexème :: énum {
     Function
     Return
     Var
+    Let
 }
 
 donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> GenreLexème
@@ -87,6 +88,7 @@ rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
 {
     si identifiant.taille == 3 {
         si identifiant == "var" { retourne GenreLexème.Var }
+        si identifiant == "let" { retourne GenreLexème.Let }
     }
     sinon si identifiant.taille == 6 {
         si identifiant == "return" { retourne GenreLexème.Return }
@@ -311,6 +313,7 @@ est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
 {
     discr genre {
         Var,
+        Let,
         Function,
         Return {
             retourne vrai
