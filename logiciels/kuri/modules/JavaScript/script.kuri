@@ -95,7 +95,7 @@ ErreurCompilation :: struct {
     message: chaine
 }
 
-crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, source: TexteSource, position: PositionSource) -> ErreurCompilation
+crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: PositionSource) -> ErreurCompilation
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)

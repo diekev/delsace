@@ -568,9 +568,9 @@ consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
     }
 }
 
-rapporte_erreur :: fonc (lexeuse: &Lexeuse, message: chaine) -> ErreurCompilation
+rapporte_erreur :: fonc (lexeuse: &Lexeuse @inutilisée, message: chaine) -> ErreurCompilation
 {
     position: PositionSource
     /* À FAIRE : ligne, colonne */
-    retourne crée_erreur_de_compilation("Erreur de lexage", message, lexeuse.source, position)
+    retourne crée_erreur_de_compilation("Erreur de lexage", message, position)
 }

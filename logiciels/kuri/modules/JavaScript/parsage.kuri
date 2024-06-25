@@ -589,7 +589,7 @@ rapporte_erreur :: fonc (parseuse: *Parseuse, lexème: *Lexème, message: chaine
 
     position := donne_position_source(parseuse.script.source, mémoire(lexème))
 
-    erreur_de_compilation := crée_erreur_de_compilation("Erreur de parsage", message, parseuse.script.source, position)
+    erreur_de_compilation := crée_erreur_de_compilation("Erreur de parsage", message, position)
     parseuse.erreur_de_compilation = erreur_de_compilation
     parseuse.possède_erreur = vrai
 }
