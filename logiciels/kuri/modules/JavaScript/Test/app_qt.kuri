@@ -1,0 +1,183 @@
+importe Chaine
+importe Fondation
+importe JavaScript
+importe Qt
+importe SysFichier
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction principale.
+ * \{ */
+
+principale :: fonc () -> z32
+{
+    mémoire_entrée := mémoire_utilisée()
+
+    arguments := __arguments_ligne_commande
+
+    /* Création application. */
+    taille_arguments := arguments.taille comme z32
+    app := QT_cree_application(*taille_arguments, arguments.pointeur)
+    diffère QT_detruit_application(app)
+
+    rappel_fermeture: RappelFermetureApp
+    rappel_fermeture.mémoire_entrée = mémoire_entrée
+    QT_application_sur_fin_boucle_evenement(app, *rappel_fermeture)
+
+    QT_core_application_definis_nom_organisation(vers_qt("delsace"))
+    QT_core_application_definis_nom_application(vers_qt("JavaScript"))
+
+    /* Création fenêtre. */
+    rappels_fenêtre : RappelsFenetrePrincipale
+
+    fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
+    diffère QT_detruit_fenetre_principale(fenêtre)
+
+    rappel_sauvegarde: RappelSauvegarde
+    rappel_sauvegarde.rappels_fenêtre = *rappels_fenêtre
+    raccourcis := QT_shortcut_cree(fenêtre)
+    QT_shortcut_definis_touches(raccourcis, QT_Keyboard_Modifier.CTRL, QT_Key.S)
+    QT_shortcut_sur_activation(raccourcis, *rappel_sauvegarde)
+
+    QT_widget_definis_titre_fenetre(fenêtre, vers_qt("JavaScript"))
+    QT_widget_affiche_maximisee(fenêtre)
+
+    /* Création widgets. */
+    widget := QT_cree_widget(nul, fenêtre)
+    QT_fenetre_principale_definis_widget_central(fenêtre, widget)
+
+    fonte: QT_Font
+    fonte.famille = vers_qt("Monospace")
+    feuille_de_style := vers_qt("QPlainTextEdit { background: black; color: white; }")
+
+    éditeur := QT_cree_plain_text_edit(nul, widget)
+    QT_widget_definis_feuille_de_style(éditeur, *feuille_de_style)
+    QT_widget_definis_fonte(éditeur, *fonte)
+    ouvre_fichier(éditeur)
+
+    sortie := QT_cree_plain_text_edit(nul, widget)
+    QT_plain_text_edit_definis_lecture_seule(sortie, vrai)
+    QT_widget_definis_feuille_de_style(sortie, *feuille_de_style)
+    QT_widget_definis_fonte(sortie, *fonte)
+
+    rappels_fenêtre.éditeur = éditeur
+    rappels_fenêtre.sortie = sortie
+
+    disp := QT_cree_hbox_layout(widget)
+    QT_layout_ajoute_widget(disp, éditeur)
+    QT_layout_ajoute_widget(disp, sortie)
+
+    retourne QT_application_exec(app)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sur fermeture application.
+ * \{ */
+
+RappelFermetureApp :: struct {
+    empl base: QT_Rappel_Generique
+
+    mémoire_entrée: z64
+
+    sur_rappel = sur_fermeture_application
+}
+
+sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
+{
+    rappel := base comme *RappelFermetureApp
+    imprime("mémoire_utilisée %\n", mémoire_utilisée() - rappel.mémoire_entrée)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Données fenêtre principale.
+ * \{ */
+
+RappelsFenetrePrincipale :: struct {
+    empl base : QT_Rappels_Fenetre_Principale
+
+    éditeur: *QT_PlainTextEdit
+    sortie: *QT_PlainTextEdit
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sauvegarde/Évaluation du fichier de test.
+ * \{ */
+
+RappelSauvegarde :: struct {
+    empl base: QT_Rappel_Generique
+
+    rappels_fenêtre: *RappelsFenetrePrincipale
+
+    sur_rappel = sur_rappel_sauvegarde
+}
+
+ouvre_fichier :: fonc (éditeur: *QT_PlainTextEdit)
+{
+    contenu := contenu_fichier_texte("/tmp/test.js")
+    qcontenu := contenu.vers_qt()
+    QT_plain_text_edit_definis_texte(éditeur, *qcontenu)
+    déloge(contenu)
+}
+
+sauvegarde_fichier :: fonc (contenu: chaine)
+{
+    chemin := "/tmp/test.js"
+    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin), pour_écriture_tronquée) piège err {
+        imprime("%\n", err)
+        retourne
+    }
+
+    diffère _ := ferme(*fichier)
+
+    _ := écris(*fichier, contenu)
+}
+
+sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
+{   
+    rappel := base comme *RappelSauvegarde
+    rappels_fenêtre := rappel.rappels_fenêtre
+
+    éditeur := rappels_fenêtre.éditeur
+    sortie := rappels_fenêtre.sortie
+
+    texte := QT_plain_text_edit_donne_texte(éditeur)
+    contenu := texte.vers_kuri()
+
+    sauvegarde_fichier(contenu)
+
+    discr compile_script(contenu) {
+        Ok(script) {
+            diffère détruit_script(script)
+            imprime_arbre(script.programme)
+
+            interpréteuse: Interpréteuse
+            diffère détruit_données_interpreteuse(interpréteuse)
+            initialise_interpréteuse(interpréteuse)
+
+            résultat := interpréteuse.exécute(script.programme)
+            texte_résultat := imprime_chaine("%\n", résultat)
+            diffère déloge(texte_résultat)
+
+            éboue(interpréteuse.donne_tas_de_mémoire())
+
+            chn_texte_résultat := texte_résultat.vers_qt()
+            QT_plain_text_edit_definis_texte(sortie, *chn_texte_résultat)
+        }
+        Erreur(e) {
+            chn := e.message.vers_qt()
+            QT_plain_text_edit_definis_texte(sortie, *chn)
+            déloge(e.message)
+        }
+        sinon {
+            chn := "Erreur inconnue".vers_qt()
+            QT_plain_text_edit_definis_texte(sortie, *chn)
+        }
+    }
+}
+
+/** \} */

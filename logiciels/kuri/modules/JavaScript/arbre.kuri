@@ -1,0 +1,1029 @@
+importe Fondation
+importe Introspection
+
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudSyntaxique
+ * \{ */
+
+NoeudSyntaxique :: struct {
+    type := #type_de_cette_structure
+
+    sur_exécution: fonc(*NoeudSyntaxique, &Interpréteuse)(CompletionRecord)
+}
+
+exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    // imprime("Exécution de %\n", noeud.type)
+    retourne noeud.sur_exécution(noeud, interpréteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudScope
+ * Type Utilisé pour Interpréteuse.exécute
+ * \{ */
+
+NoeudScope :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_scope
+
+    enfants: [..]*NoeudSyntaxique
+}
+
+sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    retourne interpréteuse.exécute(noeud comme *NoeudScope, TypeScope.BLOC)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Programme
+ * \{ */
+
+Programme :: struct {
+    empl scope: NoeudScope
+    type = #type_de_cette_structure
+
+    type_source := "script"
+}
+
+crée_programme :: fonc (expressions: ...*NoeudSyntaxique) -> *Programme
+{
+    résultat := loge(Programme)
+    pour expressions {
+        tableau_ajoute(*résultat.enfants, it)
+    }
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionDeclaration
+ * \{ */
+
+FunctionDeclaration :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_function_declaration
+
+    id: *Identifier
+    params: [..]*NoeudSyntaxique
+    corps: *NoeudSyntaxique
+
+    generator := faux
+    expression := faux
+    async := faux
+}
+
+crée_function_déclaration :: fonc (id: *Identifier, params: []*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionDeclaration
+{
+    résultat := loge(FunctionDeclaration)
+    résultat.id = id
+    résultat.corps = corps
+    pour params {
+        tableau_ajoute(*résultat.params, it)
+    }
+    retourne résultat
+}
+
+sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *FunctionDeclaration
+
+    fonction := crée_fonction(interpréteuse.donne_tas_de_mémoire(), noeud.id.nom, noeud.corps)
+
+    objet_global := interpréteuse.objet_global
+    objet_global.définis_valeur(noeud.id.nom, Valeur(Function = fonction))
+
+    retourne normal_completion(Valeur(Function = fonction))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Identifier
+ * \{ */
+
+Identifier :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_identifier
+
+    nom: ECMAString
+}
+
+crée_identifier :: fonc (nom: ECMAString) -> *Identifier
+{
+    résultat := loge(Identifier)
+    résultat.nom = nom
+    retourne résultat
+}
+
+sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *Identifier
+    retourne normal_completion(interpréteuse.donne_variable(noeud.nom))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BlockStatement
+ * \{ */
+
+BlockStatement :: struct {
+    empl scope: NoeudScope
+    type = #type_de_cette_structure
+}
+
+crée_block_statement :: fonc (expressions: ...*NoeudSyntaxique) -> *BlockStatement
+{
+    résultat := loge(BlockStatement)
+    pour expressions {
+        tableau_ajoute(*résultat.enfants, it)
+    }
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ReturnStatement
+ * \{ */
+
+ReturnStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_return
+
+    argument: *NoeudSyntaxique
+}
+
+crée_return_statement :: fonc (argument: *NoeudSyntaxique) -> *ReturnStatement
+{
+    résultat := loge(ReturnStatement)
+    résultat.argument = argument
+    retourne résultat
+}
+
+sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *ReturnStatement
+
+    résultat := return_completion(js_null)
+
+    si noeud.argument {
+        résultat = exécute_noeud(noeud.argument, interpréteuse)
+        si résultat.est_normal() {
+            retourne return_completion(résultat.valeur)
+        }
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BinaryExpression
+ * \{ */
+
+BinaryOperation :: énum {
+    Plus
+    Moins
+    Multiplie
+    Divise
+
+    Supérieur
+    Inférieur
+    SupérieurÉgal
+    InférieurÉgal
+
+    Égal
+    Inégal
+}
+
+BinaryExpression :: struct {
+    empl  base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_binary_expression
+
+    opération: BinaryOperation
+    gauche: *NoeudSyntaxique
+    droite: *NoeudSyntaxique
+}
+
+crée_binary_expression :: fonc (opération: BinaryOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *BinaryExpression
+{
+    résultat := loge(BinaryExpression)
+    résultat.opération = opération
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+
+sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *BinaryExpression
+    completion_gauche := exécute_noeud(noeud.gauche, interpréteuse)
+    saufsi completion_gauche.est_normal() {
+        retourne completion_gauche
+    }
+    completion_droite := exécute_noeud(noeud.droite, interpréteuse)
+    saufsi completion_droite.est_normal() {
+        retourne completion_droite
+    }
+    valeur_complétion_gauche := donne_valeur(completion_gauche.valeur)
+    si valeur_complétion_gauche.possède_erreur() {
+        retourne valeur_complétion_gauche.Erreur
+    }
+    valeur_complétion_droite := donne_valeur(completion_droite.valeur)
+    si valeur_complétion_droite.possède_erreur() {
+        retourne valeur_complétion_droite.Erreur
+    }
+    gauche := valeur_complétion_gauche.Ok
+    droite := valeur_complétion_droite.Ok
+    retourne normal_completion(évalue_expression_binaire(noeud.opération, gauche, droite))
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-applystringornumericbinaryoperator */
+évalue_expression_binaire :: fonc (opération: BinaryOperation, gauche: Valeur, droite: Valeur) -> Valeur
+{
+    // si opération == BinaryOperation.Plus {
+    //     primitive_gauche := vers_primitive(gauche)
+    //     primitive_droite := vers_primitive(droite)
+
+    //     si primitive_gauche.est_chaine() || primitive_droite.est_chaine() {
+    //         str_gauche := primitive_gauche.vers_chaine()
+    //         str_droite := primitive_droite.vers_chaine()
+
+    //         retourne concatène(str_gauche, str_droite)
+    //     }
+
+    //     gauche = primitive_gauche
+    //     droite = primitive_droite
+    // }
+
+    // nombre_gauche := vers_numeric(gauche)
+    // nombre_droite := vers_numeric(droite)
+
+    // If Type(lnum) != Type(rnum)
+
+    discr opération {
+        Plus {
+            retourne ajoute_valeurs(gauche, droite)
+        }
+        Moins {
+            retourne soustrait_valeurs(gauche, droite)
+        }
+        Multiplie {
+            retourne multiplie_valeurs(gauche, droite)
+        }
+        Divise {
+            retourne divise_valeurs(gauche, droite)
+        }
+        Supérieur {
+            retourne compare_supérieur_valeurs(gauche, droite)
+        }
+        Inférieur {
+            retourne compare_inférieur_valeurs(gauche, droite)
+        }
+        SupérieurÉgal {
+            retourne compare_supérieur_égal_valeurs(gauche, droite)
+        }
+        InférieurÉgal {
+            retourne compare_inférieur_égal_valeurs(gauche, droite)
+        }
+        Égal {
+            retourne compare_égal_valeurs(gauche, droite)
+        }
+        Inégal {
+            retourne compare_inégal_valeurs(gauche, droite)
+        }
+    }
+
+    retourne js_undefined
+}
+
+ajoute_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number + droite.Number)
+}
+
+soustrait_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number - droite.Number)
+}
+
+multiplie_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number * droite.Number)
+}
+
+divise_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number / droite.Number)
+}
+
+compare_supérieur_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number > droite.Number)
+}
+
+compare_inférieur_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number < droite.Number)
+}
+
+compare_supérieur_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number >= droite.Number)
+}
+
+compare_inférieur_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number <= droite.Number)
+}
+
+compare_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number == droite.Number)
+}
+
+compare_inégal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number != droite.Number)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NumericLiteral
+ * \{ */
+
+NumericLiteral :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_numeric_literal
+
+    valeur: r64
+    // raw: ECMAString
+}
+
+crée_literal :: fonc (valeur: r64) -> *NumericLiteral
+{
+    résultat := loge(NumericLiteral)
+    résultat.valeur = valeur
+    retourne résultat
+}
+
+sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
+{
+    noeud := base comme *NumericLiteral
+    retourne normal_completion(Valeur(Number = noeud.valeur))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom StringLiteral
+ * \{ */
+
+StringLiteral :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_string_literal
+
+    valeur: ECMAString
+}
+
+crée_literal :: fonc (valeur: ECMAString) -> *StringLiteral
+{
+    résultat := loge(StringLiteral)
+    résultat.valeur = valeur
+    retourne résultat
+}
+
+sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *StringLiteral
+    retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), noeud.valeur))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ExpressionStatement
+ * \{ */
+
+ExpressionStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_expression_statement
+
+    expression: *NoeudSyntaxique
+}
+
+crée_expression_statement :: fonc (expression: *NoeudSyntaxique) -> *NoeudSyntaxique
+{
+    résultat := loge(ExpressionStatement)
+    résultat.expression = expression
+    retourne résultat
+}
+
+sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *ExpressionStatement
+    si noeud.expression {
+        retourne exécute_noeud(noeud.expression, interpréteuse)
+    }
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CallExpression
+ * \{ */
+
+CallExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_call_expression
+
+    appelé: *NoeudSyntaxique
+    arguments: [..]*NoeudSyntaxique
+}
+
+crée_call_expression :: fonc (appelé: *NoeudSyntaxique, arguments: ...*NoeudSyntaxique) -> *CallExpression
+{
+    résultat := loge(CallExpression)
+    résultat.appelé = appelé
+    pour arguments {
+        tableau_ajoute(*résultat.arguments, it)
+    }
+    retourne résultat
+}
+
+sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *CallExpression
+
+    si noeud.appelé.type == Identifier {
+        id := noeud.appelé comme *Identifier
+        si id.nom == "rm" {
+            éboue(interpréteuse.donne_tas_de_mémoire())
+            retourne normal_completion(js_undefined)
+        }
+    }
+
+    completion_valeur_appelée := exécute_noeud(noeud.appelé, interpréteuse)
+    saufsi completion_valeur_appelée.est_normal() {
+        retourne completion_valeur_appelée
+    }
+
+    valeur_complétion := donne_valeur(completion_valeur_appelée.valeur)
+    si valeur_complétion.possède_erreur() {
+        retourne valeur_complétion.Erreur
+    }
+
+    valeur_appelée := valeur_complétion.Ok
+    assert(valeur_appelée.est_fonction())
+
+    fonction := valeur_appelée.Function
+    retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom AssignmentExpression
+ * \{ */
+
+AssignmentOperation :: énum {
+    Assigne /* = */
+}
+
+AssignmentExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_assignment_expression
+
+    opération: AssignmentOperation
+    gauche: *NoeudSyntaxique
+    droite: *NoeudSyntaxique
+}
+
+crée_assignment_expression :: fonc (opération: AssignmentOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *AssignmentExpression
+{
+    résultat := loge(AssignmentExpression)
+    résultat.opération = opération
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *AssignmentExpression
+    assert(noeud.opération == AssignmentOperation.Assigne)
+
+    assert(noeud.gauche.type == Identifier)
+    identifier := noeud.gauche comme *Identifier
+
+    completion_valeur := exécute_noeud(noeud.droite, interpréteuse)
+    saufsi completion_valeur.est_normal() {
+        retourne completion_valeur
+    }
+    valeur_complétion := donne_valeur(completion_valeur.valeur)
+    si valeur_complétion.possède_erreur() {
+        retourne valeur_complétion.Erreur
+    }
+    valeur := valeur_complétion.Ok
+    interpréteuse.définis_variable(identifier.nom, valeur)
+    retourne normal_completion(valeur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom VariableDeclaration
+ * \{ */
+
+VariableDeclarationKind :: énum {
+    Let
+    Var
+}
+
+VariableDeclaration :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_variable_declaration
+
+    nature: VariableDeclarationKind
+    expressions: [..]*NoeudSyntaxique
+}
+
+crée_variable_declaration :: fonc (nature: VariableDeclarationKind, expressions: ...*NoeudSyntaxique) -> *VariableDeclaration
+{
+    résultat := loge(VariableDeclaration)
+    résultat.nature = nature
+    pour expressions {
+        tableau_ajoute(*résultat.expressions, it)
+    }
+    retourne résultat
+}
+
+sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *VariableDeclaration
+    
+    dernière_valeur := normal_completion(js_undefined)
+
+    /* À FAIRE : différence entre let et var. */
+    pour noeud.expressions {
+        dernière_valeur = exécute_noeud(it, interpréteuse)
+    }
+
+    retourne dernière_valeur
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom VariableDeclarator
+ * \{ */
+
+VariableDeclarator :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_variable_declarator
+
+    id: *NoeudSyntaxique
+    init: *NoeudSyntaxique
+}
+
+crée_variable_declarator :: fonc (id: *NoeudSyntaxique, init: *NoeudSyntaxique) -> *VariableDeclarator
+{
+    résultat := loge(VariableDeclarator)
+    résultat.id = id
+    résultat.init = init
+    retourne résultat
+}
+
+sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *VariableDeclarator
+
+    assert(noeud.id.type == Identifier)
+    identifier := noeud.id comme *Identifier
+
+    résultat := js_undefined
+
+    interpréteuse.déclare_variable(identifier.nom)
+    si noeud.init {
+        completion_valeur := exécute_noeud(noeud.init, interpréteuse)
+        saufsi completion_valeur.est_normal() {
+            retourne completion_valeur
+        }
+        valeur_complétion := donne_valeur(completion_valeur.valeur)
+        si valeur_complétion.possède_erreur() {
+            retourne valeur_complétion.Erreur
+        }
+        valeur := valeur_complétion.Ok
+        interpréteuse.définis_variable(identifier.nom, valeur)
+        résultat = valeur
+    }
+
+    retourne normal_completion(résultat)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjectExpression
+ * \{ */
+
+ObjectExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_object_expression
+}
+
+crée_object_expression :: fonc () -> *ObjectExpression
+{
+    résultat := loge(ObjectExpression)
+    retourne résultat
+}
+
+sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    objet := crée_objet(interpréteuse.donne_tas_de_mémoire())
+    retourne normal_completion(Valeur(Object = objet))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjectExpression
+ * \{ */
+
+MemberExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_member_expression
+
+    objet: *NoeudSyntaxique
+    propriété: *NoeudSyntaxique
+    calculé := faux
+}
+
+crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique) -> *MemberExpression
+{
+    résultat := loge(MemberExpression)
+    résultat.objet = objet
+    résultat.propriété = propriété
+    retourne résultat
+}
+
+sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    membre := base comme *MemberExpression
+
+    completion_valeur := exécute_noeud(membre.objet, interpréteuse)
+    saufsi completion_valeur.est_normal() {
+        retourne completion_valeur
+    }
+
+    valeur_complétion := donne_valeur(completion_valeur.valeur)
+    si valeur_complétion.possède_erreur() {
+        retourne valeur_complétion.Erreur
+    }
+
+    valeur := valeur_complétion.Ok
+
+    objet := vers_objet(interpréteuse.donne_tas_de_mémoire(), valeur)
+
+    assert(membre.propriété.type == Identifier)
+    identifier := membre.propriété comme *Identifier
+
+    retourne normal_completion(objet.donne_valeur(identifier.nom))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom UpdateExpression
+ * \{ */
+
+UpdateOperation :: énum {
+    Increment
+    Decrement
+}
+
+UpdateExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_update_expression
+
+    argument: *NoeudSyntaxique
+    operation: UpdateOperation
+}
+
+crée_update_expression :: fonc (argument: *NoeudSyntaxique, operation: UpdateOperation) -> *UpdateExpression
+{
+    résultat := loge(UpdateExpression)
+    résultat.argument = argument
+    résultat.operation = operation
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-postfix-increment-operator */
+sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    update := base comme *UpdateExpression
+    assert(update.argument.type == Identifier)
+
+    id := update.argument comme *Identifier
+    
+    vieille_valeur := interpréteuse.donne_variable(id.nom)
+    nouvelle_valeur: Valeur
+
+    si update.operation == UpdateOperation.Increment {
+        nouvelle_valeur = ajoute_valeurs(vieille_valeur, Valeur(Number = 1))
+    }
+    sinon {
+        nouvelle_valeur = soustrait_valeurs(vieille_valeur, Valeur(Number = 1))
+    }
+
+    interpréteuse.définis_variable(id.nom, nouvelle_valeur)
+
+    retourne normal_completion(vieille_valeur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ForStatement
+ * \{ */
+
+ForStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_for_statement
+
+    init: *NoeudSyntaxique
+    test: *NoeudSyntaxique
+    update: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_for_statement :: fonc (init: *NoeudSyntaxique, test: *NoeudSyntaxique, update: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForStatement
+{
+    résultat := loge(ForStatement)
+    résultat.init = init
+    résultat.test = test
+    résultat.update = update
+    résultat.body = body
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-for-statement */
+sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    for := base comme *ForStatement
+
+    si for.init {
+        doit_continuer := exécute_noeud(for.init, interpréteuse)
+        saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+    }
+
+    boucle {
+        si for.test {
+            doit_continuer := exécute_noeud(for.test, interpréteuse)
+            saufsi doit_continuer.est_normal() {
+                retourne doit_continuer
+            }
+            valeur_complétion := donne_valeur(doit_continuer.valeur)
+            si valeur_complétion.possède_erreur() {
+                retourne valeur_complétion.Erreur
+            }
+
+            valeur := valeur_complétion.Ok
+            assert(valeur.est_boolean())
+
+            si valeur.est_false() {
+                arrête
+            }
+        }
+
+        si for.update {
+            doit_continuer := exécute_noeud(for.update, interpréteuse)
+            saufsi doit_continuer.est_normal() {
+                retourne doit_continuer
+            }
+        }
+
+        doit_continuer := exécute_noeud(for.body, interpréteuse)
+        saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+    }
+
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Visiteuse arbre.
+ * \{ */
+
+DirectionVisiteNoeud :: énum {
+    PRÉ_ORDRE
+    POST_ORDRE
+}
+
+VisiteuseNoeud :: struct {
+    arbre: *NoeudSyntaxique
+    rappel_pour_noeud: fonc(*VisiteuseNoeud, *NoeudSyntaxique, *InfoTypeStructure)(rien)
+    rappel_pour_tableau: fonc(*VisiteuseNoeud, [..]*NoeudSyntaxique)(rien)
+    profondeur: z32
+    direction_visite: DirectionVisiteNoeud
+}
+
+donne_info_pour_type_noeud :: fonc (racine: *NoeudSyntaxique) -> *InfoTypeStructure
+{
+    résultat := __table_des_types[racine.type] comme *InfoTypeStructure
+    assert(est_struct_ou_employeuse_de(résultat, info_de(NoeudSyntaxique)))
+    retourne résultat
+}
+
+visite_noeud :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSyntaxique, $Rappel: fonc(*VisiteuseNoeud, *NoeudSyntaxique, *InfoTypeStructure)(rien))
+{
+    infos := donne_info_pour_type_noeud(racine)
+    Rappel(visiteuse, racine, infos)
+}
+
+visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSyntaxique, info: *InfoTypeStructure)
+{
+    si visiteuse.direction_visite == DirectionVisiteNoeud.PRÉ_ORDRE && visiteuse.rappel_pour_noeud {
+        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
+    }
+
+    valeur_eini : eini = ---
+    valeur_eini.pointeur = racine
+    valeur_eini.info = info
+
+    pour info.membres {
+        si it.id == info_de(*NoeudSyntaxique) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+            expression := mémoire(membre.pointeur comme **NoeudSyntaxique)
+            si expression == nul {
+                continue
+            }
+
+            si possède_annotation(it, "NeVisitePas") {
+                continue
+            }
+
+            visiteuse.profondeur += 1
+            visite_noeud(visiteuse, expression, visite_noeud_générique)
+            visiteuse.profondeur -= 1
+            continue
+        }
+
+        si it.id == info_de([..]*NoeudSyntaxique) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+
+            tableau := mémoire(membre.pointeur comme *[..]*NoeudSyntaxique)
+
+            pour noeud dans tableau {
+                visiteuse.profondeur += 1
+                visite_noeud(visiteuse, noeud, visite_noeud_générique)
+                visiteuse.profondeur -= 1
+            }
+
+            si visiteuse.rappel_pour_tableau {
+                visiteuse.profondeur += 1
+                visiteuse.rappel_pour_tableau(visiteuse, tableau)
+                visiteuse.profondeur -= 1
+            }
+
+            continue
+        }
+
+        si it.id == info_de(NoeudScope) {
+            // À FAIRE : assert(est_base)
+            scope := racine comme *NoeudScope
+            tableau := scope.enfants
+
+            pour noeud dans tableau {
+                visiteuse.profondeur += 1
+                visite_noeud(visiteuse, noeud, visite_noeud_générique)
+                visiteuse.profondeur -= 1
+            }
+
+            si visiteuse.rappel_pour_tableau {
+                visiteuse.profondeur += 1
+                visiteuse.rappel_pour_tableau(visiteuse, tableau)
+                visiteuse.profondeur -= 1
+            }
+
+            continue
+        }
+    }
+
+    si visiteuse.direction_visite == DirectionVisiteNoeud.POST_ORDRE && visiteuse.rappel_pour_noeud {
+        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Impression arbre.
+ * \{ */
+
+crée_visiteuse_pour_impression :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseNoeud
+{
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud, noeud: *NoeudSyntaxique @inutilisée, info: *InfoTypeStructure)
+    {
+        imprime_tabulation(visiteuse.profondeur)
+        imprime("%\n", info.nom)
+    }
+
+    résultat: VisiteuseNoeud
+    résultat.arbre = noeud
+    résultat.rappel_pour_noeud = rappel_pour_noeud
+    résultat.direction_visite = DirectionVisiteNoeud.PRÉ_ORDRE
+    retourne résultat
+}
+
+imprime_arbre :: fonc (noeud: *NoeudSyntaxique)
+{
+    visiteuse := crée_visiteuse_pour_impression(noeud)
+    visite_noeud(*visiteuse, noeud, visite_noeud_générique)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Destruction arbre.
+ * \{ */
+
+crée_visiteuse_pour_destruction :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseNoeud
+{
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, noeud: *NoeudSyntaxique, info: *InfoTypeStructure)
+    {
+        déloge_mémoire(info.taille_en_octet comme z64, noeud, info, PositionCodeSource())
+    }
+
+    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, tableau: [..]*NoeudSyntaxique)
+    {
+        déloge(tableau)
+    }
+
+    résultat: VisiteuseNoeud
+    résultat.arbre = noeud
+    résultat.rappel_pour_noeud = rappel_pour_noeud
+    résultat.rappel_pour_tableau = rappel_pour_tableau
+    résultat.direction_visite = DirectionVisiteNoeud.POST_ORDRE
+    retourne résultat
+}
+
+détruit_arbre :: fonc (noeud: *NoeudSyntaxique)
+{
+    visiteuse := crée_visiteuse_pour_destruction(noeud)
+    visite_noeud(*visiteuse, noeud, visite_noeud_générique)
+}
+
+/** \} */
