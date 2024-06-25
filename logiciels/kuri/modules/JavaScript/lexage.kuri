@@ -1,0 +1,576 @@
+importe Fondation
+importe Numérique
+importe Unicode
+
+/* nous utilisons des fanions pour déterminer si un caractère peut suivre un autre afin de pouvoir lèxer des identifiants ou des nombres dans des petites boucles */
+fanions_caractères: [256]FanionCaractère
+
+FanionCaractère :: énum_drapeau n16 {
+    PeutSuivreZéro
+    PeutSuivreChiffre
+    DébuteIdentifiant
+    DébuteMotClé
+    ContinueIdentifiant
+    EstChiffre
+    Ponctuation
+    Opérateur
+    PeutSuivreOpérateur
+    DébuteChaineLittérale
+    EstEspaceBlanche
+}
+
+initialise_fanions_caractères :: fonc ()
+{
+    pour 0 ... 255 {
+        fanion: FanionCaractère
+
+        si ('a' comme z32) <= it <= ('z' comme z32) {
+            fanion |= (FanionCaractère.DébuteIdentifiant | FanionCaractère.ContinueIdentifiant)
+        }
+
+        si ('A' comme z32) <= it <= ('Z' comme z32) {
+            fanion |= (FanionCaractère.DébuteIdentifiant | FanionCaractère.ContinueIdentifiant)
+        }
+
+        si ('0' comme z32) <= it <= ('9' comme z32) {
+            fanion |= (FanionCaractère.EstChiffre | FanionCaractère.ContinueIdentifiant | FanionCaractère.PeutSuivreChiffre)
+        }
+
+        si it == '_' comme z32 {
+            fanion |= FanionCaractère.ContinueIdentifiant
+        }
+
+        // À FAIRE : début de caractère Unicode
+        si it > 127 {
+            fanion |= FanionCaractère.ContinueIdentifiant
+        }
+
+        si it == '(' || it == ')' || it == '"' || it == '[' || it == ']' || it == '{' || it == '}' || it == ';' || it == ',' {
+            fanion = FanionCaractère.Ponctuation
+        }
+
+        si it == '.' {
+            fanion = (FanionCaractère.Ponctuation | FanionCaractère.PeutSuivreChiffre | FanionCaractère.PeutSuivreZéro)
+        }
+
+        si it == '+' || it == '-' || it == '*' || it == '/' || it == '<' || it == '>' || it == '&' || it == '|' || it == '^' || it == '%' || it == '!' || it == '~' {
+            fanion = (FanionCaractère.Opérateur)
+        }
+
+        si it == '=' {
+            fanion = (FanionCaractère.Opérateur | FanionCaractère.PeutSuivreOpérateur)
+        }
+
+        si it == '<' || it == '>' || it == '&' || it == '|' || it == '+' {
+            fanion |= (FanionCaractère.PeutSuivreOpérateur)
+        }
+
+        si it == '"' {
+            fanion.DébuteChaineLittérale = vrai
+        }
+
+        si it == ' ' || it == '\t' || it == '\r' || it == '\n' {
+            fanion.EstEspaceBlanche = vrai
+        }
+
+        fanions_caractères[it] = fanion
+    }
+}
+
+// doit être dans le même ordre que les définitions dans GenreLexème
+chaines_opérateurs := [ "+", "-", "*", "/", "%", "<", ">", "<<", ">>", "&", "&&", "|", "||", "^", "~", "!", "=", "+=", "-=", "*=", "/=", "%=", "<=", ">=", "<<=", ">>=", "&=", "|=", "^=", "~=", "==", "!=", "++", "--" ]
+
+empreintes_opérateurs: [chaines_opérateurs.taille]z32
+
+calcule_empreintes_opérateurs :: fonc ()
+{
+    pour chaines_opérateurs {
+        empreinte := 0
+
+        pour c, index_c dans it {
+            empreinte += (c * (index_c + 1)) comme z32
+        }
+
+        empreintes_opérateurs[index_it] = empreinte
+    }
+}
+
+génère_tableaux :: fonc ()
+{
+    empreintes : [32]z32 = ---
+
+    pour opérateurs {
+        empreinte := 0
+
+        pour c, index_c dans it {
+            empreinte += (c * (index_c + 1)) comme z32
+        }
+
+        empreintes[index_it] = empreinte
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "empreintes_opérateurs : [32]z32 = ")
+
+    virgule := "[ "
+
+    pour empreintes {
+        ajoute_au_tampon(*enchaineuse, virgule, it)
+        virgule = ", "
+    }
+
+    ajoute_au_tampon(*enchaineuse, " ]")
+
+    chn := chaine_depuis_enchaineuse(*enchaineuse)
+    imprime("%\n", chn)
+
+    // À FAIRE : ajoute la chaine de compilation dans ce module, pour cet espace de travail
+}
+
+// #exécute génère_tableaux()
+
+initialise_données_globales :: fonc ()
+{
+    // À FAIRE : nous pourrions utiliser un métaprogramme pour générer ces données
+    initialise_fanions_caractères()
+    calcule_empreintes_opérateurs()
+}
+
+#ajoute_init initialise_données_globales()
+
+finalise_lexèmes :: fonc (lexèmes: [..]Lexème)
+{
+    /* Résoud les mots-clés depuis les identifiants. */
+    pour & lexèmes {
+        saufsi it.genre == GenreLexème.Identifiant {
+            continue
+        }
+
+        it.genre = rafine_genre_lexème_identifiant(it.texte)
+    }
+}
+
+Lexeuse :: struct {
+    source: TexteSource
+
+    début_mot: *z8
+    début_source: *z8
+    fin_source: *z8
+
+    lexèmes: [..]Lexème
+}
+
+initialise_lexeuse_depuis_source :: fonc (lexeuse: &Lexeuse, source: TexteSource)
+{
+    début_source := source.texte.pointeur
+    fin_source := début_source + source.texte.taille
+
+    lexeuse.source = source
+    lexeuse.début_mot = début_source
+    lexeuse.début_source = début_source
+    lexeuse.fin_source = fin_source
+    déloge(lexeuse.lexèmes)
+}
+
+fini :: fonc (lexeuse: &Lexeuse) -> bool #enligne
+{
+    retourne lexeuse.début_source >= lexeuse.fin_source
+}
+
+caractère_courant :: fonc (lexeuse: &Lexeuse) -> z8 #enligne
+{
+    retourne mémoire(lexeuse.début_source)
+}
+
+apparie :: fonc (empl lexeuse: &Lexeuse, texte: chaine) -> bool
+{
+    si début_source + texte.taille >= fin_source {
+        retourne faux
+    }
+
+    sous_chn := construit_chaine(début_source, texte.taille)
+    retourne sous_chn == texte
+}
+
+avance :: fonc (empl lexeuse: &Lexeuse, n := 1) #enligne
+{
+    début_source += n
+}
+
+débute_lexème :: fonc (empl lexeuse: &Lexeuse) #enligne
+{
+    début_mot = début_source
+    début_source += 1
+}
+
+crée_lexème :: fonc (empl lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
+{
+    texte := construit_chaine(début_mot, (début_source - début_mot) comme z32)
+    retourne Lexème(genre = genre, texte = texte)
+}
+
+crée_lexème_pour_caractère :: fonc (lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
+{
+    débute_lexème(lexeuse)
+    retourne crée_lexème(lexeuse, genre)
+}
+
+lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+{
+    lexeuse.débute_lexème()
+
+    eu_point := faux
+    dernier_caractère_est_point := faux
+
+    tantque !fini(lexeuse) {
+        c := lexeuse.caractère_courant()
+        fanion := fanions_caractères[c comme n8]
+
+        saufsi fanion.PeutSuivreChiffre {
+            si dernier_caractère_est_point {
+                retourne rapporte_erreur(lexeuse, "Attendu un chiffre après le point décimal")
+            }
+
+            arrête
+        }
+
+        si c == '.' {
+            si eu_point {
+                retourne rapporte_erreur(lexeuse, "Seulement un seul point peut suivre un chiffre")
+            }
+
+            eu_point = vrai
+            dernier_caractère_est_point = vrai
+        }
+        sinon {
+            dernier_caractère_est_point = faux
+        }
+
+        lexeuse.avance()
+    }
+
+    retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+}
+
+// nombres valides
+// 0
+// 123456789
+// 123.456789
+// 123.456e789
+// 123.456E789
+// 123.456e+789
+// 123.456E+789
+// 123.456e-789
+// 123.456E-789
+// 0.123
+// 0.123e789
+// 0e5
+parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
+{
+    données_nombre: CompositionNombreScientifique
+
+    texte_original := lexème.texte
+    texte := lexème.texte
+
+    /* Part entière. */
+    taille_part_entière := 0
+    tantque texte.taille > 0 && ('0' <= texte[0] <= '9') {
+        texte = avance(texte, 1)
+        taille_part_entière += 1
+    }
+
+    données_nombre.partie_entière = texte_original.sous_chaine(0, taille_part_entière)
+    texte_original = texte
+
+    /* Part décimale. */
+    si texte.taille > 0 && texte[0] == '.' {
+        texte = avance(texte, 1)
+
+        taille_part_décimale := 0
+
+        tantque texte.taille > 0 && ('0' <= texte[0] <= '9') {
+            texte = avance(texte, 1)
+            taille_part_entière += 1
+        }
+
+        données_nombre.partie_décimale = texte_original.sous_chaine(0, taille_part_décimale)
+    }
+
+    /* Exposant. */
+    si texte.taille > 0 && (texte[0] == 'e' || texte[0] == 'E') {
+        texte = avance(texte, 1)
+        données_nombre.exposant = texte
+    }
+
+    retourne convertis_nombre_scientifique_en_réel(données_nombre)
+}
+
+lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+{
+    lexeuse.débute_lexème()
+    /* N'incluons pas les guillemets. */
+    lexeuse.début_mot = lexeuse.début_source
+
+    eu_guillemet_fermant := faux
+
+    tantque !fini(lexeuse) {
+        c := lexeuse.caractère_courant()
+
+        si c == '"' {
+            eu_guillemet_fermant = vrai
+            arrête
+        }
+
+        début_source += 1
+    }
+
+    saufsi eu_guillemet_fermant {
+        lexeuse.début_source = lexeuse.début_mot - 1
+        retourne rapporte_erreur(lexeuse, "Guillemet fermant manquant pour le guillemet ouvrant")
+    }
+
+    résultat := crée_lexème(lexeuse, GenreLexème.ChaineLittérale)
+    /* N'incluons pas les guillemets. */
+    début_source += 1
+
+    retourne résultat
+}
+
+lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+{
+    lexeuse.débute_lexème()
+
+    tantque !fini(lexeuse) {
+        n := nombre_octets_utf8_rapide(lexeuse.début_source)
+        si n == 0 {
+            retourne rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le caractère")
+        }
+
+        si n == 1 {
+            c := lexeuse.caractère_courant()
+            fanion := fanions_caractères[c comme n8]
+
+            saufsi fanion.ContinueIdentifiant {
+                arrête
+            }
+
+            lexeuse.avance()
+            continue
+        }
+
+        point_de_code := converti_utf8_utf32(lexeuse.début_source) comme n32
+        si est_espace_blanche_unicode(point_de_code) {
+            arrête
+        }
+
+        lexeuse.avance(n comme z32)
+    }
+
+    retourne crée_lexème(lexeuse, GenreLexème.Identifiant)
+}
+
+lèxe :: fonc (source: TexteSource) -> Résultat([..]Lexème, ErreurCompilation)
+{
+    lexeuse: Lexeuse
+    initialise_lexeuse_depuis_source(lexeuse, source)
+
+    diffère si __ret0.possède_erreur() {
+        déloge(lexeuse.lexèmes)
+    }
+
+    tantque !fini(lexeuse) {
+        erreur_potentielle := consomme_espaces_blanches(lexeuse)
+        si erreur_potentielle.possède_valeur() {
+            retourne erreur_potentielle.Quelque
+        }
+
+        si fini(lexeuse) {
+            arrête
+        }
+
+        discr donne_lexème_suivant(lexeuse) {
+            Ok(lexème) {
+                tableau_ajoute(*lexeuse.lexèmes, lexème)
+            }
+            Erreur(erreur_de_compilation) {
+                retourne erreur_de_compilation
+            }
+            sinon {
+                retourne rapporte_erreur(lexeuse, "Impossible de lexer le texte pour raison inconnue")
+            }
+        }
+    }
+
+    finalise_lexèmes(lexeuse.lexèmes)
+    retourne lexeuse.lexèmes
+}
+
+donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+{
+    c := lexeuse.caractère_courant()
+    fanion := fanions_caractères[c comme n8]
+
+    si fanion.DébuteChaineLittérale {
+        retourne lèxe_chaine_littérale(lexeuse)
+    }
+
+    si fanion.DébuteIdentifiant {
+        retourne lèxe_identifiant(lexeuse)
+    }
+
+    si fanion.EstChiffre {
+        retourne lèxe_nombre(lexeuse)
+    }
+
+    si fanion.Ponctuation {
+        genre_lexème: GenreLexème
+
+        discr c {
+            '.' { genre_lexème = GenreLexème.Point }
+            ',' { genre_lexème = GenreLexème.Virgule }
+            ';' { genre_lexème = GenreLexème.PointVirgule }
+            '(' { genre_lexème = GenreLexème.ParenthèseOuvrante }
+            ')' { genre_lexème = GenreLexème.ParenthèseFermante }
+            '{' { genre_lexème = GenreLexème.AccoladeOuvrante }
+            '}' { genre_lexème = GenreLexème.AccoladeFermante }
+            '[' { genre_lexème = GenreLexème.CrochetOuvrant }
+            ']' { genre_lexème = GenreLexème.CrochetFermant }
+            sinon {
+                retourne rapporte_erreur(lexeuse, "Caractère ponctuant inconnu")
+            }
+        }
+
+        retourne crée_lexème_pour_caractère(lexeuse, genre_lexème)
+    }
+
+    si fanion.Opérateur {
+        lexeuse.débute_lexème()
+
+        empreinte := c comme z32
+        taille_mot_courant := 1
+
+        tantque !fini(lexeuse) {
+            c = lexeuse.caractère_courant()
+            fanion = fanions_caractères[c comme n8]
+
+            saufsi fanion.PeutSuivreOpérateur {
+                arrête
+            }
+
+            empreinte += c comme z32 * (taille_mot_courant + 1)
+
+            lexeuse.avance()
+            taille_mot_courant += 1
+        }
+
+        genre_lexème: GenreLexème
+
+        pour empreintes_opérateurs {
+            si it == empreinte {
+                genre_lexème = ((GenreLexème.Plus comme z32) + index_it comme z32) comme GenreLexème
+                arrête
+            }
+        }
+        sansarrêt {
+            lexeuse.début_source = lexeuse.début_mot
+            retourne rapporte_erreur(lexeuse, "Opérateur inconnu")
+        }
+
+        retourne crée_lexème(lexeuse, genre_lexème)
+    }
+
+    // cas à gérer : caractères littéraux
+
+    /* Vérifie si nous avons un caractère Unicode. */
+    n := nombre_octets_utf8_rapide(lexeuse.début_source)
+
+    si n == 0 {
+        retourne rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte")
+    }
+
+    retourne lèxe_identifiant(lexeuse)
+}
+
+consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse) -> Optionnel(ErreurCompilation)
+{
+    tantque !fini(lexeuse) {
+        c := lexeuse.caractère_courant()
+        fanion := fanions_caractères[c comme n8]
+
+        si fanion.EstEspaceBlanche {
+            lexeuse.avance()
+            continue
+        }
+
+        si c == '/' {
+            si apparie(lexeuse, "//") {
+                consomme_commentaire_ligne_seule(lexeuse)
+                continue
+            }
+
+            si apparie(lexeuse, "/*") {
+                consomme_commentaire_bloc(lexeuse)
+                continue
+            }
+
+            /* Nous laissons donne_lexème_suivant s'occuper de ce cas. */
+            arrête
+        }
+
+        /* Vérifie si nous avons un caractère Unicode. */
+        n := nombre_octets_utf8_rapide(lexeuse.début_source)
+
+        si n == 0 {
+            retourne rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte")
+        }
+
+        si n == 1 {
+            /* Caractère ASCII n'étant pas noté comme espace blanche. */
+            arrête
+        }
+
+        point_de_code := converti_utf8_utf32(lexeuse.début_source, n) comme n32
+        saufsi est_espace_blanche_unicode(point_de_code) {
+            arrête
+        }
+
+        lexeuse.début_source += n
+    }
+}
+
+consomme_commentaire_ligne_seule :: fonc (lexeuse: &Lexeuse)
+{
+    /* Lèxe commentaire. */
+    tantque !fini(lexeuse) {
+        c := lexeuse.caractère_courant()
+        /* À FAIRE : valide caractère Unicode ? */
+        lexeuse.avance()
+
+        si c == '\n' {
+            arrête
+        }
+    }
+}
+
+consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
+{
+    /* Lèxe commentaire. */
+    tantque !fini(lexeuse) {
+        si apparie(lexeuse, "*/") {
+            lexeuse.avance(2)
+            arrête
+        }
+
+        /* À FAIRE : valide caractère Unicode ? */
+        lexeuse.avance()
+    }
+}
+
+rapporte_erreur :: fonc (lexeuse: &Lexeuse @inutilisée, message: chaine) -> ErreurCompilation
+{
+    position: PositionSource
+    /* À FAIRE : ligne, colonne */
+    retourne crée_erreur_de_compilation("Erreur de lexage", message, position)
+}
