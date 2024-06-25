@@ -303,6 +303,47 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
     retourne nul
 }
 
+donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> BinaryOperation
+{
+    discr genre {
+        Plus {
+            retourne BinaryOperation.Plus
+        }
+        Moins {
+            retourne BinaryOperation.Moins
+        }
+        Étoile {
+            retourne BinaryOperation.Multiplie
+        }
+        Slash {
+            retourne BinaryOperation.Divise
+        }
+        Inférieur {
+            retourne BinaryOperation.Inférieur
+        }
+        Supérieur {
+            retourne BinaryOperation.Supérieur
+        }
+        InférieurÉgal {
+            retourne BinaryOperation.InférieurÉgal
+        }
+        SupérieurÉgal {
+            retourne BinaryOperation.SupérieurÉgal
+        }
+        EstÉgal {
+            retourne BinaryOperation.Égal
+        }
+        NEspaPasÉgal {
+            retourne BinaryOperation.Inégal
+        }
+        sinon {
+            panique("genre opérateur non-géré")
+        }
+    }
+
+    retourne BinaryOperation.Plus
+}
+
 parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, précédence: z32, associativité: Associativité) -> *NoeudSyntaxique
 {
     lexème := parseuse.lexème_courant()
@@ -312,25 +353,16 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         Moins,
         Étoile,
         Slash,
-        Pourcent,
         Inférieur,
         Supérieur,
-        DécalageGauche,
-        DécalageDroite,
-        EtBinaire,
-        OuBinaire,
-        OuExclusif,
-        NonBinaire,
-        NonLogique,
         InférieurÉgal,
         SupérieurÉgal,
         EstÉgal,
         NEspaPasÉgal {
+            opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
-
             opérande_droite := parseuse.parse_expression(précédence, associativité)
-
-            retourne crée_binary_expression(BinaryOperation.Plus, gauche, opérande_droite)
+            retourne crée_binary_expression(opération, gauche, opérande_droite)
         }
         Égal {
             parseuse.consomme()

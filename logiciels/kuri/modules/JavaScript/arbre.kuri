@@ -197,6 +197,14 @@ BinaryOperation :: énum {
     Moins
     Multiplie
     Divise
+
+    Supérieur
+    Inférieur
+    SupérieurÉgal
+    InférieurÉgal
+
+    Égal
+    Inégal
 }
 
 BinaryExpression :: struct {
@@ -263,6 +271,24 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         Divise {
             retourne divise_valeurs(gauche, droite)
         }
+        Supérieur {
+            retourne compare_supérieur_valeurs(gauche, droite)
+        }
+        Inférieur {
+            retourne compare_inférieur_valeurs(gauche, droite)
+        }
+        SupérieurÉgal {
+            retourne compare_supérieur_égal_valeurs(gauche, droite)
+        }
+        InférieurÉgal {
+            retourne compare_inférieur_égal_valeurs(gauche, droite)
+        }
+        Égal {
+            retourne compare_égal_valeurs(gauche, droite)
+        }
+        Inégal {
+            retourne compare_inégal_valeurs(gauche, droite)
+        }
     }
 
     retourne js_undefined
@@ -294,6 +320,48 @@ divise_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
     assert(gauche.est_nombre())
     assert(droite.est_nombre())
     retourne Valeur(Number = gauche.Number / droite.Number)
+}
+
+compare_supérieur_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number > droite.Number)
+}
+
+compare_inférieur_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number < droite.Number)
+}
+
+compare_supérieur_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number >= droite.Number)
+}
+
+compare_inférieur_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number <= droite.Number)
+}
+
+compare_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number == droite.Number)
+}
+
+compare_inégal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Boolean = gauche.Number != droite.Number)
 }
 
 /** \} */
