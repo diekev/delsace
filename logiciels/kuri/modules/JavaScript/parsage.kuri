@@ -134,6 +134,9 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         Return {
             retourne parse_return_statement(parseuse)
         }
+        For {
+            retourne parse_for_statement(parseuse)
+        }
         sinon {
             panique("Instruction inconnue")
         }
@@ -214,6 +217,59 @@ parse_return_statement :: fonc (parseuse: *Parseuse) -> *ReturnStatement
     }
 
     retourne crée_return_statement(argument)
+}
+
+parse_for_statement :: fonc (parseuse: *Parseuse) -> *ForStatement
+{
+    parseuse.consomme()
+
+    saufsi parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse ouvrante")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    init: *NoeudSyntaxique
+    si parseuse.apparie_expression() {
+        init = parseuse.parse_expression()
+    }
+    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
+        parseuse.rapporte_erreur("Attendu un point-virgule")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    test: *NoeudSyntaxique
+    si parseuse.apparie_expression() {
+        test = parseuse.parse_expression()
+    }
+    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
+        parseuse.rapporte_erreur("Attendu un point-virgule")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    update: *NoeudSyntaxique
+    si parseuse.apparie_expression() {
+        update = parseuse.parse_expression()
+    }
+    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse fermante")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    body: *NoeudSyntaxique
+
+    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+        expressions := parse_bloc(parseuse, vrai)
+        body = crée_block_statement(...expressions)
+    }
+    sinon {
+        body = parseuse.parse_expression()
+    }
+
+    retourne crée_for_statement(init, test, update, body)
 }
 
 parse_expression :: fonc (parseuse: *Parseuse, précédence : z32 = 0, associativité : Associativité = Associativité.Gauche) -> *NoeudSyntaxique

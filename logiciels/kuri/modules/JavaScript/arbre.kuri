@@ -735,6 +735,61 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ForStatement
+ * \{ */
+
+ForStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_for_statement
+
+    init: *NoeudSyntaxique
+    test: *NoeudSyntaxique
+    update: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_for_statement :: fonc (init: *NoeudSyntaxique, test: *NoeudSyntaxique, update: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForStatement
+{
+    résultat := loge(ForStatement)
+    résultat.init = init
+    résultat.test = test
+    résultat.update = update
+    résultat.body = body
+    retourne résultat
+}
+
+sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    for := base comme *ForStatement
+
+    si for.init {
+        _ := exécute_noeud(for.init, interpréteuse)
+    }
+
+    boucle {
+        si for.test {
+            doit_continuer := exécute_noeud(for.test, interpréteuse)
+            assert(doit_continuer.est_boolean())
+
+            si doit_continuer.est_false() {
+                arrête
+            }
+        }
+
+        si for.update {
+            _ := exécute_noeud(for.update, interpréteuse)
+        }
+
+        _ := exécute_noeud(for.body, interpréteuse)
+    }
+
+    retourne js_undefined
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 
