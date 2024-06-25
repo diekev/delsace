@@ -1,0 +1,412 @@
+importe Fondation
+
+charge "arbre"
+charge "interpréteuse"
+charge "lexage"
+charge "lexèmes"
+charge "script"
+charge "tas_de_mémoire"
+
+ECMAString :: chaine
+
+/* ------------------------------------------------------------------------- */
+/** \nom Valeur
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
+ * \{ */
+
+/* Ceux-là ne sont pas dans le standard, ce n'est que pour avoir des types pour l'union. */
+UndefinedType :: #opaque z32
+NullType :: #opaque z32
+
+Valeur :: union {
+    Undefined: UndefinedType
+    Null: NullType
+    Boolean: bool
+    Number: r64
+    // BigInt
+    String: *PrimitiveChaine
+    // Symbol
+    Function: *Function
+    Object: *Object
+}
+
+/* À FAIRE(language) : index_de(valeur) == Number  */
+est_fonction :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Function {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_object :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Object {
+            retourne vrai
+        }
+        sinon {
+            retourne est_fonction(valeur)
+        }
+    }
+}
+
+donne_objet :: fonc (valeur: Valeur) -> *Object
+{
+    discr valeur {
+        Object(objet) {
+            retourne objet
+        }
+        Function(function) {
+            retourne function
+        }
+        sinon {
+            retourne nul
+        }
+    }
+}
+
+est_cellule :: fonc (valeur: Valeur) -> bool
+{
+    retourne valeur.est_object() || valeur.est_chaine()
+}
+
+donne_cellule :: fonc (valeur: Valeur) -> *Cellule
+{
+    discr valeur {
+        Object(o) {
+            retourne o
+        }
+        Function(f) {
+            retourne f
+        }
+        String(s) {
+            retourne s
+        }
+        sinon {
+            retourne nul
+        }
+    }
+}
+
+est_nombre :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Number {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_chaine :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        String {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_nulle :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Null {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_undefined :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Undefined {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_boolean :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Boolean {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_true :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Boolean {
+            retourne valeur.Boolean
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_false :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Boolean {
+            retourne !valeur.Boolean
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+concatène :: fonc (str_gauche: ECMAString, str_droite: ECMAString) -> Valeur
+{
+    résultat := enchaine(str_gauche, str_droite)
+    retourne Valeur(String = résultat)
+}
+
+js_null := Valeur(Null = NullType(0))
+js_undefined := Valeur(Undefined = UndefinedType(0))
+
+TypePréféré :: énum {
+    Aucun
+
+}
+
+vers_objet :: fonc (tas_de_mémoire: *TasDeMémoire, valeur: Valeur) -> *Object
+{
+    si valeur.est_object() {
+        retourne valeur.donne_objet()
+    }
+
+    assert(valeur.est_chaine())
+    objet := tas_de_mémoire.crée_chaine(valeur.String)
+    retourne Valeur(Object = objet)
+}
+
+vers_chaine :: fonc (valeur: Valeur) -> ECMAString
+{
+
+}
+
+/* https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toprimitive */
+vers_primitive :: fonc (valeur: Valeur, type_préféré := TypePréféré.Aucun) -> Valeur
+{
+    saufsi valeur.est_object() {
+        retourne valeur
+    }
+}
+
+vers_numeric :: fonc (valeur: Valeur) -> Valeur
+{
+    valeur_primitive := valeur.vers_primitive()
+
+    // À FAIRE(BigInt)
+    // If primValue is a BigInt, return primValue.
+
+    retourne vers_nombre(valeur_primitive)
+}
+
+/* https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumber */
+vers_nombre :: fonc (valeur: Valeur) -> Valeur
+{
+    // 1. If argument is a Number, return argument.
+    si valeur.est_nombre() {
+        retourne valeur
+    }
+
+    // 2. If argument is either a Symbol or a BigInt, throw a TypeError exception.
+
+    // 3. If argument is undefined, return NaN.
+
+    // 4. If argument is either null or false, return +0𝔽.
+    si valeur.est_nulle() || valeur.est_false() {
+        retourne Valeur(Number = 0.0)
+    }
+
+    // 5. If argument is true, return 1𝔽.
+    si valeur.est_true() {
+        retourne Valeur(Number = 1.0)
+    }
+
+    // 6. If argument is a String, return StringToNumber(argument).
+    // 7. Assert: argument is an Object.
+    // 8. Let primValue be ? ToPrimitive(argument, NUMBER).
+    // 9. Assert: primValue is not an Object.
+    // 10. Return ? ToNumber(primValue).
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Object
+ * \{ */
+
+Object :: struct {
+    empl base: Cellule
+    type = #type_de_cette_structure
+    sur_destruction = sur_destruction_objet
+    sur_visite_graphe = sur_visite_graphe_objet
+
+    Propriété :: struct {
+        nom: ECMAString
+        valeur: Valeur
+    }
+
+    propriétés: [..]Propriété
+}
+
+crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire) -> *Object
+{
+    retourne tas_de_mémoire.alloue(Object)
+}
+
+sur_destruction_objet :: fonc (base: *Cellule)
+{
+    objet := base comme *Object
+    déloge(objet.propriétés)
+}
+
+définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
+{
+    propriété := trouve_propriété(objet, nom)
+    si propriété {
+        propriété.valeur = valeur
+        retourne
+    }
+
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur))
+}
+
+donne_valeur :: fonc (objet: *Object, nom: ECMAString) -> Valeur
+{
+    propriété := trouve_propriété(objet, nom)
+    si propriété {
+        retourne propriété.valeur
+    }
+    
+    retourne js_undefined
+}
+
+trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
+{
+    pour * objet.propriétés {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+sur_visite_graphe_objet :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    cellule_sur_visite_graphe(base, visiteuse)
+
+    objet := base comme *Object
+
+    pour objet.propriétés {
+        si it.valeur.est_cellule() {
+            visite_graphe(it.valeur.donne_cellule(), visiteuse)
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjetChaine
+ * \{ */
+
+ObjetChaine :: struct {
+    empl objet: Object
+    type = #type_de_cette_structure
+    sur_visite_graphe = sur_visite_graphe_chaine
+
+    chn: *PrimitiveChaine
+}
+
+crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, chn: *PrimitiveChaine) -> *ObjetChaine
+{
+    résultat := tas_de_mémoire.alloue(ObjetChaine)
+    résultat.chn = chn
+
+    résultat.définis_valeur("length", Valeur(Number = chn.texte.taille comme r64))
+
+    retourne résultat
+}
+
+sur_visite_graphe_chaine :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    objet_chaine := base comme *ObjetChaine
+    sur_visite_graphe_objet(objet_chaine, visiteuse)
+    cellule_sur_visite_graphe(objet_chaine.chn, visiteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction
+ * \{ */
+
+Function :: struct {
+    empl objet: Object
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+    corps: *NoeudSyntaxique
+}
+
+crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
+{
+    résultat := tas_de_mémoire.alloue(Function)
+    résultat.nom = nom
+    résultat.corps = corps
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PrimitiveChaine
+ * \{ */
+
+PrimitiveChaine :: struct {
+    empl objet: Cellule
+    type = #type_de_cette_structure
+    sur_destruction = sur_destruction_primitive_chaine
+
+    texte: ECMAString
+}
+
+crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine
+{
+    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
+    résultat.texte = copie_chaine(texte)
+    retourne résultat
+}
+
+sur_destruction_primitive_chaine :: fonc (base: *Cellule)
+{
+    primitive := base comme *PrimitiveChaine
+    déloge(primitive.texte)
+}
+
+/** \} */
