@@ -95,7 +95,17 @@ normal_completion :: fonc (valeur: Valeur) -> CompletionRecord
     retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
 }
 
+normal_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
+}
+
 return_completion :: fonc (valeur: Valeur) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
+}
+
+return_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
 {
     retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
 }
@@ -112,7 +122,7 @@ est_abrupt :: fonc (completion: CompletionRecord) -> bool
 
 est_return :: fonc (completion: CompletionRecord) -> bool
 {
-    retourne completion.type == CompletionRecord.Type.RETOURNE
+    retourne completion.type == CompletionRecord.Type.RETURN
 }
 
 /** } */
@@ -120,6 +130,12 @@ est_return :: fonc (completion: CompletionRecord) -> bool
 /* ------------------------------------------------------------------------- */
 /** \nom Interpréteuse
  * \{ */
+
+TypeScope :: énum {
+    AUCUN
+    BLOC
+    FUNCTION
+}
 
 FrameScope :: struct {
     noeud_scope: *NoeudScope
@@ -165,17 +181,37 @@ détruit_données_interpreteuse :: fonc (interpréteuse: &Interpréteuse)
     détruit_données_tas_de_mémoire(*interpréteuse.tas_de_mémoire)
 }
 
-exécute :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope) -> CompletionRecord
+exécute :: fonc (interpréteuse: &Interpréteuse, programme: *Programme) -> CompletionRecord
 {
+    retourne exécute(interpréteuse, programme, TypeScope.AUCUN)
+}
+
+exécute :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxique, type_scope: TypeScope) -> CompletionRecord
+{
+    si noeud.type != NoeudScope && noeud.type != Programme && noeud.type != BlockStatement {
+        retourne exécute_noeud(noeud, interpréteuse)
+    }
+
     résultat := normal_completion(js_undefined)
 
+    scope := noeud comme *NoeudScope
     entre(interpréteuse, scope)
+    diffère sors(interpréteuse, scope)
 
     pour scope.enfants {
         résultat = exécute_noeud(it, interpréteuse)
-    }
+        si résultat.est_normal() {
+            continue
+        }
 
-    sors(interpréteuse, scope)
+        si résultat.est_return() {
+            si type_scope == TypeScope.FUNCTION {
+                retourne normal_completion(résultat.valeur)
+            }
+        }
+
+        retourne résultat
+    }
 
     retourne résultat
 }
@@ -192,11 +228,6 @@ sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
     assert(mémoire(pile_scope)[pile_scope.taille - 1].noeud_scope == scope)
     détruit_scope(donne_scope_courant(interpréteuse))
     pile_scope.taille -= 1
-}
-
-retourne_de_la_fonction :: fonc (interpréteuse: &Interpréteuse @inutilisée)
-{
-    imprime("À FAIRE : retour des fonction\n")
 }
 
 donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoire

@@ -35,7 +35,7 @@ NoeudScope :: struct {
 
 sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
-    retourne interpréteuse.exécute(noeud comme *NoeudScope)
+    retourne interpréteuse.exécute(noeud comme *NoeudScope, TypeScope.BLOC)
 }
 
 /** \} */
@@ -179,9 +179,10 @@ sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpr�
 
     si noeud.argument {
         résultat = exécute_noeud(noeud.argument, interpréteuse)
+        si résultat.est_normal() {
+            retourne return_completion(résultat.valeur)
+        }
     }
-
-    retourne_de_la_fonction(interpréteuse)
 
     retourne résultat
 }
@@ -516,7 +517,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     assert(valeur_appelée.est_fonction())
 
     fonction := valeur_appelée.Function
-    retourne exécute_noeud(fonction.corps, interpréteuse)
+    retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
 }
 
 /** \} */
