@@ -141,6 +141,18 @@ est_undefined :: fonc (valeur: Valeur) -> bool
     }
 }
 
+est_boolean :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Boolean {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 est_true :: fonc (valeur: Valeur) -> bool
 {
     discr valeur {
