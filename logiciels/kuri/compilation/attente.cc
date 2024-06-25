@@ -374,7 +374,7 @@ RAPPEL_POUR_COMMENTAIRE(métaprogramme)
 {
     auto metaprogramme_attendu = attente.métaprogramme();
     auto résultat = Enchaineuse();
-    résultat << "métaprogramme";
+    résultat << "métaprogramme " << metaprogramme_attendu->donne_nom_pour_fichier_log();
 
     if (metaprogramme_attendu->corps_texte) {
         résultat << " #corps_texte pour ";
@@ -392,8 +392,7 @@ RAPPEL_POUR_COMMENTAIRE(métaprogramme)
     else if (metaprogramme_attendu->directive) {
         auto directive = metaprogramme_attendu->directive;
         auto expression = directive->expression;
-        auto appel = expression->comme_appel();
-        résultat << " " << appel->expression->ident->nom;
+        résultat << " " << nom_humainement_lisible(expression);
     }
     else {
         résultat << " " << metaprogramme_attendu;
