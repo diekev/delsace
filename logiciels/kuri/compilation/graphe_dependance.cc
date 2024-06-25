@@ -47,6 +47,11 @@ NoeudDépendance::NoeudDépendance(Type *t) : m_type(t), m_type_noeud(TypeNoeudD
 {
 }
 
+const NoeudExpression *NoeudDépendance::noeud() const
+{
+    return m_noeud_globale;
+}
+
 void NoeudDépendance::ajoute_relation(Badge<GrapheDépendance>, const Relation &relation)
 {
     POUR (m_relations.plage()) {
@@ -464,4 +469,40 @@ kuri::chaine imprime_dépendances(Type const *type)
     Enchaineuse sortie;
     imprime_dépendances(type->noeud_dépendance, chaine_type(type), type, sortie);
     return sortie.chaine();
+}
+
+static void trouve_chemin_entre(NoeudDépendance const *début,
+                                NoeudDépendance const *fin,
+                                kuri::tableau<NoeudDépendance const *> chemin_courant,
+                                kuri::ensemble<NoeudDépendance const *> &visités)
+{
+    if (visités.possède(début)) {
+        return;
+    }
+
+    chemin_courant.ajoute(début);
+    visités.insère(début);
+
+    POUR (début->relations().plage()) {
+        if (it.noeud_fin == fin) {
+            Enchaineuse enchaineuse;
+            auto virgule = "Chemin :\n     ";
+            POUR_NOMME (noeud, chemin_courant) {
+                enchaineuse << virgule << nom_humainement_lisible(noeud->noeud());
+                virgule = "\n     ==> ";
+            }
+            enchaineuse << virgule << nom_humainement_lisible(it.noeud_fin->noeud());
+
+            dbg() << enchaineuse.chaine();
+        }
+        else {
+            trouve_chemin_entre(it.noeud_fin, fin, chemin_courant, visités);
+        }
+    }
+}
+
+void trouve_chemins_entre(NoeudDépendance const *début, NoeudDépendance const *fin)
+{
+    kuri::ensemble<NoeudDépendance const *> visités;
+    trouve_chemin_entre(début, fin, {}, visités);
 }

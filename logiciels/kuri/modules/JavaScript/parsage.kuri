@@ -1,0 +1,595 @@
+importe Fondation
+importe Structures
+
+parse :: fonc (script: *Script) -> Résultat(*Programme, ErreurCompilation)
+{
+    saufsi script.lexèmes {
+        retourne ErreurCompilation(message = copie_chaine("Le texte est vide"))
+    }
+
+    parseuse: Parseuse
+    diffère détruit_données_parseuse(*parseuse)
+
+    parseuse.script = script
+    parseuse.lexèmes = script.lexèmes
+
+    expressions := parse_bloc(*parseuse, faux)
+    diffère déloge(expressions)
+
+    si parseuse.possède_erreur {
+        retourne parseuse.erreur_de_compilation
+    }
+
+    retourne crée_programme(...expressions)
+}
+
+Parseuse :: struct {
+    script: *Script
+    lexèmes: [..]Lexème
+    position := 0
+    erreur_de_compilation: ErreurCompilation
+    possède_erreur: bool
+
+    noeuds: [..]octet
+}
+
+détruit_données_parseuse :: fonc (parseuse: *Parseuse @inutilisée)
+{
+}
+
+lexème_courant :: fonc (parseuse: *Parseuse) -> *Lexème
+{
+    retourne *parseuse.lexèmes[parseuse.position]
+}
+
+fini :: fonc (parseuse: *Parseuse) -> bool
+{
+    retourne parseuse.possède_erreur || parseuse.position >= parseuse.lexèmes.taille
+}
+
+consomme :: fonc (parseuse: *Parseuse)
+{
+    parseuse.position += 1
+}
+
+consomme :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème, message: chaine)
+{
+    si parseuse.lexèmes[parseuse.position].genre != genre_lexème {
+        parseuse.rapporte_erreur(message)
+    }
+
+    parseuse.consomme()
+}
+
+consome_point_virgule_potentiel :: fonc (parseuse: *Parseuse)
+{
+    si parseuse.apparie(GenreLexème.PointVirgule) {
+        parseuse.consomme()
+    }
+}
+
+apparie :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème) -> bool
+{
+    si parseuse.fini() {
+        retourne faux
+    }
+    retourne parseuse.lexème_courant().genre == genre_lexème
+}
+
+apparie :: fonc (parseuse: *Parseuse, chn: chaine) -> bool
+{
+    retourne apparie(parseuse, GenreLexème.Identifiant) && parseuse.lexème_courant().texte == chn
+}
+
+apparie_expression :: fonc (parseuse: *Parseuse) -> bool
+{
+    si parseuse.fini() {
+        retourne faux
+    }
+    genre := parseuse.lexème_courant().genre
+    drapeaux := données_lexèmes_pour_parsage[genre].drapeaux
+    retourne drapeaux.EstExpression == vrai || drapeaux.EstExpressionUnaire == vrai
+}
+
+apparie_expression_unaire :: fonc (parseuse: *Parseuse) -> bool #enligne
+{
+    genre := parseuse.lexème_courant().genre
+    si données_lexèmes_pour_parsage[genre].drapeaux.EstExpressionUnaire == vrai {
+        retourne vrai
+    }
+    retourne faux
+}
+
+apparie_expression_secondaire :: fonc (parseuse: *Parseuse) -> bool #enligne
+{
+    si parseuse.fini() {
+        retourne faux
+    }
+    genre := parseuse.lexème_courant().genre
+    si données_lexèmes_pour_parsage[genre].drapeaux.EstExpressionSecondaire == vrai {
+        retourne vrai
+    }
+    retourne faux
+}
+
+apparie_instruction :: fonc (parseuse: *Parseuse) -> bool #enligne
+{
+    si parseuse.fini() {
+        retourne faux
+    }
+    genre := parseuse.lexème_courant().genre
+    si données_lexèmes_pour_parsage[genre].drapeaux.EstInstruction == vrai {
+        retourne vrai
+    }
+    retourne faux
+}
+
+parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
+{
+    lexème := parseuse.lexème_courant()
+
+    discr lexème.genre {
+        Function {
+            retourne parse_function_declaration(parseuse)
+        }
+        Return {
+            retourne parse_return_statement(parseuse)
+        }
+        For {
+            retourne parse_for_statement(parseuse)
+        }
+        sinon {
+            panique("Instruction inconnue")
+        }
+    }
+
+    retourne nul
+}
+
+parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
+{
+    parseuse.consomme()
+
+    saufsi apparie(parseuse, GenreLexème.Identifiant) {
+        parseuse.rapporte_erreur("Attendu un identifiant après 'function'")
+        retourne nul
+    }
+
+    id := crée_identifier(lexème_courant(parseuse).texte)
+    parseuse.consomme()
+
+    saufsi apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse ouvrante après le nom de la fonction")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    paramètres: [..]*NoeudSyntaxique
+    diffère déloge(paramètres)
+    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+        paramètres = parse_expression_virgule(parseuse)
+    }
+
+    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse fermante à la fin de l'expression d'appel")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    expressions := parse_bloc(parseuse, vrai)
+    diffère déloge(expressions)
+
+    bloc := crée_block_statement(...expressions)
+
+    retourne crée_function_déclaration(id, paramètres, bloc)
+}
+
+parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind) -> *VariableDeclaration
+{
+    parseuse.consomme()
+
+    saufsi apparie(parseuse, GenreLexème.Identifiant) {
+        parseuse.rapporte_erreur("Attendu un identifiant après 'var'")
+        retourne nul
+    }
+
+    id := crée_identifier(lexème_courant(parseuse).texte)
+    parseuse.consomme()
+
+    init: *NoeudSyntaxique
+    si apparie(parseuse, GenreLexème.Égal) {
+        parseuse.consomme()
+        init = parseuse.parse_expression()
+    }
+
+    declarator := crée_variable_declarator(id, init)
+
+    retourne crée_variable_declaration(nature, declarator)
+}
+
+parse_return_statement :: fonc (parseuse: *Parseuse) -> *ReturnStatement
+{
+    parseuse.consomme()
+
+    argument: *NoeudSyntaxique
+
+    si parseuse.apparie_expression() {
+        argument = parse_expression(parseuse)
+    }
+
+    retourne crée_return_statement(argument)
+}
+
+parse_for_statement :: fonc (parseuse: *Parseuse) -> *ForStatement
+{
+    parseuse.consomme()
+
+    saufsi parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse ouvrante")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    init: *NoeudSyntaxique
+    si parseuse.apparie_expression() {
+        init = parseuse.parse_expression()
+    }
+    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
+        parseuse.rapporte_erreur("Attendu un point-virgule")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    test: *NoeudSyntaxique
+    si parseuse.apparie_expression() {
+        test = parseuse.parse_expression()
+    }
+    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
+        parseuse.rapporte_erreur("Attendu un point-virgule")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    update: *NoeudSyntaxique
+    si parseuse.apparie_expression() {
+        update = parseuse.parse_expression()
+    }
+    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse fermante")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    body: *NoeudSyntaxique
+
+    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+        expressions := parse_bloc(parseuse, vrai)
+        body = crée_block_statement(...expressions)
+        déloge(expressions)
+    }
+    sinon {
+        body = parseuse.parse_expression()
+    }
+
+    retourne crée_for_statement(init, test, update, body)
+}
+
+parse_expression :: fonc (parseuse: *Parseuse, précédence : z32 = 0, associativité : Associativité = Associativité.Gauche) -> *NoeudSyntaxique
+{
+    saufsi parseuse.apparie_expression() {
+        parseuse.rapporte_erreur("Attendu une expression primaire")
+        retourne nul
+    }
+
+    expression := parseuse.parse_expression_primaire()
+
+    tantque parseuse.apparie_expression_secondaire() {
+        données := données_lexèmes_pour_parsage[parseuse.lexème_courant().genre]
+
+        nouvelle_précédence := données.précédence
+
+        si nouvelle_précédence < précédence {
+            arrête
+        }
+
+        si nouvelle_précédence == précédence && associativité == Associativité.Gauche {
+            arrête
+        }
+
+        expression = parseuse.parse_expression_secondaire(expression, nouvelle_précédence, données.associativité)
+    }
+
+    retourne expression
+}
+
+parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
+{
+    lexème := parseuse.lexème_courant()
+
+    si parseuse.apparie_expression_unaire() {
+        retourne parseuse.parse_expression_unaire()
+    }
+
+    discr lexème.genre {
+        ChaineLittérale {
+            parseuse.consomme()
+            retourne crée_literal(lexème.texte)
+        }
+        NombreLittéral {
+            parseuse.consomme()
+            valeur := parse_nombre_depuis_lexème(lexème)
+            retourne crée_literal(valeur)
+        }
+        Identifiant {
+            parseuse.consomme()
+            retourne crée_identifier(lexème.texte)
+        }
+        ParenthèseOuvrante {
+            parseuse.consomme()
+
+            expression := parseuse.parse_expression()
+
+            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+                parseuse.rapporte_erreur("Attendu une parenthèse fermante à la fin de l'expression parenthèse")
+                retourne nul
+            }
+            parseuse.consomme()
+            retourne expression
+        }
+        AccoladeOuvrante {
+            parseuse.consomme()
+
+            saufsi apparie(parseuse, GenreLexème.AccoladeFermante) {
+                parseuse.rapporte_erreur("Attendu une accolade fermante à la fin de l'expression d'objet")
+                retourne nul
+            }
+            parseuse.consomme()
+
+            retourne crée_object_expression()
+        }
+        Let {
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let)
+        }
+        Var {
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Var)
+        }
+        sinon {
+            parseuse.rapporte_erreur("lexème non géré dans parse_expression_primaire")
+        }
+    }
+
+    retourne nul
+}
+
+donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> BinaryOperation
+{
+    discr genre {
+        Plus {
+            retourne BinaryOperation.Plus
+        }
+        Moins {
+            retourne BinaryOperation.Moins
+        }
+        Étoile {
+            retourne BinaryOperation.Multiplie
+        }
+        Slash {
+            retourne BinaryOperation.Divise
+        }
+        Inférieur {
+            retourne BinaryOperation.Inférieur
+        }
+        Supérieur {
+            retourne BinaryOperation.Supérieur
+        }
+        InférieurÉgal {
+            retourne BinaryOperation.InférieurÉgal
+        }
+        SupérieurÉgal {
+            retourne BinaryOperation.SupérieurÉgal
+        }
+        EstÉgal {
+            retourne BinaryOperation.Égal
+        }
+        NEspaPasÉgal {
+            retourne BinaryOperation.Inégal
+        }
+        sinon {
+            panique("genre opérateur non-géré")
+        }
+    }
+
+    retourne BinaryOperation.Plus
+}
+
+parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, précédence: z32, associativité: Associativité) -> *NoeudSyntaxique
+{
+    lexème := parseuse.lexème_courant()
+
+    discr lexème.genre {
+        Plus,
+        Moins,
+        Étoile,
+        Slash,
+        Inférieur,
+        Supérieur,
+        InférieurÉgal,
+        SupérieurÉgal,
+        EstÉgal,
+        NEspaPasÉgal {
+            opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
+            parseuse.consomme()
+            opérande_droite := parseuse.parse_expression(précédence, associativité)
+            retourne crée_binary_expression(opération, gauche, opérande_droite)
+        }
+        PlusPlus,
+        MoinsMoins {
+            parseuse.consomme()
+
+            operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.Increment } sinon { UpdateOperation.Decrement }
+            update := crée_update_expression(gauche, operation)
+
+            si parseuse.apparie_expression_secondaire() {
+                retourne parseuse.parse_expression_secondaire(update, précédence, associativité)
+            }
+
+            retourne update
+        }
+        Égal {
+            parseuse.consomme()
+
+            expression := parseuse.parse_expression(précédence, associativité)
+            retourne crée_assignment_expression(AssignmentOperation.Assigne, gauche, expression)
+        }
+        Point {
+            parseuse.consomme()
+
+            saufsi apparie(parseuse, GenreLexème.Identifiant) {
+                parseuse.rapporte_erreur("Attendu un identifiant après '.'")
+                retourne nul
+            }
+
+            lexème = parseuse.lexème_courant()
+            parseuse.consomme()
+
+            propriété := crée_identifier(lexème.texte)
+            retourne crée_member_expression(gauche, propriété)
+        }
+        ParenthèseOuvrante {
+            parseuse.consomme()
+
+            arguments: [..]*NoeudSyntaxique
+            diffère déloge(arguments)
+            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+                arguments = parse_expression_virgule(parseuse)
+            }
+
+            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+                parseuse.rapporte_erreur("Attendu une parenthèse fermante à la fin de l'expression d'appel")
+                retourne nul
+            }
+            parseuse.consomme()
+
+            retourne crée_call_expression(gauche, ...arguments)
+        }
+        sinon {
+            imprime("Erreur : genre de lexème non géré dans parse_expression_secondaire : %\n", lexème.genre)
+        }
+    }
+
+    retourne nul
+}
+
+parse_expression_virgule :: fonc (parseuse: *Parseuse) -> [..]*NoeudSyntaxique
+{
+    résultat: [..]*NoeudSyntaxique
+    tantque !fini(parseuse) {
+        expr := parseuse.parse_expression()
+
+        tableau_ajoute(*résultat, expr)
+
+        saufsi parseuse.apparie(GenreLexème.Virgule) {
+            arrête
+        }
+
+        parseuse.consomme()
+    }
+    retourne résultat
+}
+
+parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
+{
+    lexème := parseuse.lexème_courant()
+
+    discr lexème.genre {
+        Plus,
+        Moins,
+        NonBinaire,
+        NonLogique {
+            parseuse.rapporte_erreur("opérateur unaire non-géré")
+        }
+        PlusPlus,
+        MoinsMoins {
+            parseuse.rapporte_erreur("++/-- unaire non-géré")
+        }
+        sinon {
+            parseuse.rapporte_erreur("genre de lexème non géré dans parse_expression_unaire")
+        }
+    }
+
+    retourne nul
+}
+
+parse_bloc :: fonc (parseuse: *Parseuse, requiers_accolades: bool) -> [..]*NoeudSyntaxique
+{
+    si requiers_accolades {
+        saufsi apparie(parseuse, GenreLexème.AccoladeOuvrante) {
+            parseuse.rapporte_erreur("Attendu une accolade ouvrante pour commencer le bloc")
+        }
+        parseuse.consomme()
+    }
+
+    expressions: [..]*NoeudSyntaxique
+    eu_accolade_fermante := faux
+
+    tantque !fini(parseuse) {
+        parseuse.consome_point_virgule_potentiel()
+
+        si apparie_expression(parseuse) {
+            expression := parse_expression(parseuse)
+            parseuse.consome_point_virgule_potentiel()
+            tableau_ajoute(*expressions, expression)
+            continue
+        }
+
+        si apparie_instruction(parseuse) {
+            instruction := parse_instruction(parseuse)
+            tableau_ajoute(*expressions, instruction)
+            continue
+        }
+
+        si apparie(parseuse, GenreLexème.AccoladeFermante) {
+            saufsi requiers_accolades {
+                parseuse.rapporte_erreur("accolade fermante trouvée dans le bloc alors qu'aucune accolade ouvrante ne fut requise")
+            }
+            eu_accolade_fermante = vrai
+            parseuse.consomme()
+            arrête
+        }
+
+        parseuse.rapporte_erreur("Expression inattendue dans le bloc !")
+        retourne expressions
+    }
+
+    si requiers_accolades && !eu_accolade_fermante {
+        parseuse.rapporte_erreur("Attendu une accolade fermante pour terminer le bloc")
+    }
+
+    retourne expressions
+}
+
+rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine)
+{
+    lexème := si parseuse.fini() {
+        *parseuse.lexèmes[parseuse.lexèmes.taille - 1]
+    }
+    sinon {
+        parseuse.lexème_courant()
+    }
+
+    rapporte_erreur(parseuse, lexème, message)
+}
+
+rapporte_erreur :: fonc (parseuse: *Parseuse, lexème: *Lexème, message: chaine)
+{
+    si parseuse.possède_erreur {
+        parseuse.consomme()
+        retourne
+    }
+
+    position := donne_position_source(parseuse.script.source, mémoire(lexème))
+
+    erreur_de_compilation := crée_erreur_de_compilation("Erreur de parsage", message, position)
+    parseuse.erreur_de_compilation = erreur_de_compilation
+    parseuse.possède_erreur = vrai
+}

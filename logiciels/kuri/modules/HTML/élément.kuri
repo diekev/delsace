@@ -26,6 +26,11 @@ est_tag_auto_fermant :: fonc (tag: *ChaineInternée) -> bool
     }
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Élément
+ * https://dom.spec.whatwg.org/#element
+ * \{ */
+
 Élément :: struct {
     empl base: Noeud
 
@@ -42,7 +47,23 @@ initialise_élément :: fonc (élément: *Élément, document: *Document, texte:
 crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) -> *Élément
 {
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
-    élément := loge(Élément)
+    élément: *Élément
+    si tag == TAG_a {
+        élément = loge(HTMLAnchorElement)
+    }
+    sinon si tag == TAG_img {
+        élément = loge(HTMLImageElement)
+    }
+    sinon si tag == TAG_script {
+        élément = loge(HTMLScriptElement)
+    }
+    sinon si tag == TAG_video {
+        élément = loge(HTMLVideoElement)
+    }
+    sinon {
+        élément = loge(Élément)
+    }
+
     initialise_élément(élément, document, tag)
     retourne élément
 }
@@ -100,6 +121,8 @@ est_compatible_html5 :: fonc (élément: *Élément) -> bool
     }
 }
 
+/** \} */
+
 fait_partie_de_catégorie_spécial :: fonc (nom: *ChaineInternée) -> bool
 {
     // À FAIRE : utilisation d'une recherche binaire
@@ -141,3 +164,117 @@ enfant_directe_avec_balise :: fonc (élément: *Élément, balise: *ChaineIntern
 
     retourne nul
 }
+
+DOMString :: ChaineUTF16
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLElement
+ * https://html.spec.whatwg.org/multipage/dom.html#htmlelement
+ * \{ */
+
+HTMLElement :: struct {
+    empl base_élément: Élément
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLAnchorElement
+ * https://html.spec.whatwg.org/multipage/text-level-semantics.html#htmlanchorelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLAnchorElement
+ * \{ */
+
+HTMLAnchorElement :: struct {
+    empl html_element: HTMLElement
+}
+
+est_hyperlien :: fonc (anchor: *HTMLAnchorElement) -> bool
+{
+    retourne anchor.cherche_attribut("href") != nul
+}
+
+donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
+{
+    attribut := anchor.cherche_attribut("href")
+    si attribut {
+        retourne attribut.valeur
+    }
+    retourne DOMString()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLAnchorElement
+ * https://html.spec.whatwg.org/multipage/embedded-content.html#htmlimageelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement
+ * \{ */
+
+HTMLImageElement :: struct {
+    empl html_element: HTMLElement
+}
+
+donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
+{
+    attribut := anchor.cherche_attribut("src")
+    si attribut {
+        retourne attribut.valeur
+    }
+    retourne DOMString()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLMediaElement
+ * https://html.spec.whatwg.org/multipage/media.html#htmlmediaelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement
+ * \{ */
+
+HTMLMediaElement :: struct {
+    empl html_element: HTMLElement
+}
+
+donne_src :: fonc (anchor: *HTMLMediaElement) -> DOMString
+{
+    attribut := anchor.cherche_attribut("src")
+    si attribut {
+        retourne attribut.valeur
+    }
+    retourne DOMString()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLVideoElement
+ * https://html.spec.whatwg.org/multipage/media.html#htmlvideoelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement
+ * \{ */
+
+HTMLVideoElement :: struct {
+    empl html_media: HTMLMediaElement
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLScriptElement
+ * https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement
+ * \{ */
+
+HTMLScriptElement :: struct {
+    empl html_element: HTMLElement
+}
+
+donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString
+{
+    attribut := anchor.cherche_attribut("src")
+    si attribut {
+        retourne attribut.valeur
+    }
+    retourne DOMString()
+}
+
+/** \} */

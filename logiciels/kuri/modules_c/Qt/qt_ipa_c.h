@@ -233,7 +233,8 @@ union QT_Generic_ItemModel {
     O(QAction, QT_Action, action)                                                                 \
     O(QDrag, QT_Drag, drag)                                                                       \
     O(QMimeData, QT_MimeData, mimedata)                                                           \
-    O(QClipboard, QT_Clipboard, clipboard)
+    O(QClipboard, QT_Clipboard, clipboard)                                                        \
+    O(QShortcut, QT_Shortcut, shortcut)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -596,312 +597,6 @@ struct QT_ByteArray QT_mimedata_donne_donnee(struct QT_MimeData *mimedata,
 struct QT_MimeData *QT_clipboard_donne_mimedata(struct QT_Clipboard *clipboard);
 void QT_clipboard_definis_mimedata(struct QT_Clipboard *clipboard, struct QT_MimeData *mimedata);
 void QT_clipboard_efface(struct QT_Clipboard *clipboard);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Position
- * \{ */
-
-struct QT_Position {
-    int x;
-    int y;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Point
- * \{ */
-
-struct QT_Point {
-    int x;
-    int y;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_PointF
- * \{ */
-
-struct QT_PointF {
-    double x;
-    double y;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Rect
- * \{ */
-
-struct QT_Rect {
-    int x;
-    int y;
-    int largeur;
-    int hauteur;
-};
-
-struct QT_Point QT_rect_donne_bas_gauche(struct QT_Rect rect);
-struct QT_Point QT_rect_donne_bas_droit(struct QT_Rect rect);
-struct QT_Point QT_rect_donne_haut_gauche(struct QT_Rect rect);
-struct QT_Point QT_rect_donne_haut_droit(struct QT_Rect rect);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_RectF
- * \{ */
-
-struct QT_RectF {
-    double x;
-    double y;
-    double largeur;
-    double hauteur;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Color
- * \{ */
-
-struct QT_Color {
-    double r;
-    double g;
-    double b;
-    double a;
-};
-
-void QT_color_depuis_tsl(double t, double s, double l, double a, struct QT_Color *r_color);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Pen
- * \{ */
-
-struct QT_Pen {
-    struct QT_Color color;
-    double width;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Brush
- * \{ */
-
-struct QT_Brush {
-    struct QT_Color color;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Font
- * \{ */
-
-struct QT_Font {
-    struct QT_Chaine famille;
-    int taille_point;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Cursor
- * \{ */
-
-struct QT_Point QT_cursor_pos();
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Event
- * \{ */
-
-#define ENUMERE_EVENT_TYPE(O)                                                                     \
-    O(QT_EVENT_TYPE_None, QEvent::None)                                                           \
-    O(QT_EVENT_TYPE_Timer, QEvent::Timer)                                                         \
-    O(QT_EVENT_TYPE_MouseButtonPress, QEvent::MouseButtonPress)                                   \
-    O(QT_EVENT_TYPE_MouseButtonRelease, QEvent::MouseButtonRelease)                               \
-    O(QT_EVENT_TYPE_MouseButtonDblClick, QEvent::MouseButtonDblClick)                             \
-    O(QT_EVENT_TYPE_MouseMove, QEvent::MouseMove)                                                 \
-    O(QT_EVENT_TYPE_KeyPress, QEvent::KeyPress)                                                   \
-    O(QT_EVENT_TYPE_KeyRelease, QEvent::KeyRelease)                                               \
-    O(QT_EVENT_TYPE_FocusIn, QEvent::FocusIn)                                                     \
-    O(QT_EVENT_TYPE_FocusOut, QEvent::FocusOut)                                                   \
-    O(QT_EVENT_TYPE_FocusAboutToChange, QEvent::FocusAboutToChange)                               \
-    O(QT_EVENT_TYPE_Enter, QEvent::Enter)                                                         \
-    O(QT_EVENT_TYPE_Leave, QEvent::Leave)                                                         \
-    O(QT_EVENT_TYPE_Paint, QEvent::Paint)                                                         \
-    O(QT_EVENT_TYPE_Move, QEvent::Move)                                                           \
-    O(QT_EVENT_TYPE_Resize, QEvent::Resize)                                                       \
-    O(QT_EVENT_TYPE_Create, QEvent::Create)                                                       \
-    O(QT_EVENT_TYPE_Destroy, QEvent::Destroy)                                                     \
-    O(QT_EVENT_TYPE_Show, QEvent::Show)                                                           \
-    O(QT_EVENT_TYPE_Hide, QEvent::Hide)                                                           \
-    O(QT_EVENT_TYPE_Close, QEvent::Close)                                                         \
-    O(QT_EVENT_TYPE_Quit, QEvent::Quit)                                                           \
-    O(QT_EVENT_TYPE_ParentChange, QEvent::ParentChange)                                           \
-    O(QT_EVENT_TYPE_ParentAboutToChange, QEvent::ParentAboutToChange)                             \
-    O(QT_EVENT_TYPE_ThreadChange, QEvent::ThreadChange)                                           \
-    O(QT_EVENT_TYPE_WindowActivate, QEvent::WindowActivate)                                       \
-    O(QT_EVENT_TYPE_WindowDeactivate, QEvent::WindowDeactivate)                                   \
-    O(QT_EVENT_TYPE_ShowToParent, QEvent::ShowToParent)                                           \
-    O(QT_EVENT_TYPE_HideToParent, QEvent::HideToParent)                                           \
-    O(QT_EVENT_TYPE_Wheel, QEvent::Wheel)                                                         \
-    O(QT_EVENT_TYPE_WindowTitleChange, QEvent::WindowTitleChange)                                 \
-    O(QT_EVENT_TYPE_WindowIconChange, QEvent::WindowIconChange)                                   \
-    O(QT_EVENT_TYPE_ApplicationWindowIconChange, QEvent::ApplicationWindowIconChange)             \
-    O(QT_EVENT_TYPE_ApplicationFontChange, QEvent::ApplicationFontChange)                         \
-    O(QT_EVENT_TYPE_ApplicationLayoutDirectionChange, QEvent::ApplicationLayoutDirectionChange)   \
-    O(QT_EVENT_TYPE_ApplicationPaletteChange, QEvent::ApplicationPaletteChange)                   \
-    O(QT_EVENT_TYPE_PaletteChange, QEvent::PaletteChange)                                         \
-    O(QT_EVENT_TYPE_Clipboard, QEvent::Clipboard)                                                 \
-    O(QT_EVENT_TYPE_Speech, QEvent::Speech)                                                       \
-    O(QT_EVENT_TYPE_MetaCall, QEvent::MetaCall)                                                   \
-    O(QT_EVENT_TYPE_SockAct, QEvent::SockAct)                                                     \
-    O(QT_EVENT_TYPE_WinEventAct, QEvent::WinEventAct)                                             \
-    O(QT_EVENT_TYPE_DeferredDelete, QEvent::DeferredDelete)                                       \
-    O(QT_EVENT_TYPE_DragEnter, QEvent::DragEnter)                                                 \
-    O(QT_EVENT_TYPE_DragMove, QEvent::DragMove)                                                   \
-    O(QT_EVENT_TYPE_DragLeave, QEvent::DragLeave)                                                 \
-    O(QT_EVENT_TYPE_Drop, QEvent::Drop)                                                           \
-    O(QT_EVENT_TYPE_DragResponse, QEvent::DragResponse)                                           \
-    O(QT_EVENT_TYPE_ChildAdded, QEvent::ChildAdded)                                               \
-    O(QT_EVENT_TYPE_ChildPolished, QEvent::ChildPolished)                                         \
-    O(QT_EVENT_TYPE_ChildRemoved, QEvent::ChildRemoved)                                           \
-    O(QT_EVENT_TYPE_ShowWindowRequest, QEvent::ShowWindowRequest)                                 \
-    O(QT_EVENT_TYPE_PolishRequest, QEvent::PolishRequest)                                         \
-    O(QT_EVENT_TYPE_Polish, QEvent::Polish)                                                       \
-    O(QT_EVENT_TYPE_LayoutRequest, QEvent::LayoutRequest)                                         \
-    O(QT_EVENT_TYPE_UpdateRequest, QEvent::UpdateRequest)                                         \
-    O(QT_EVENT_TYPE_UpdateLater, QEvent::UpdateLater)                                             \
-    O(QT_EVENT_TYPE_EmbeddingControl, QEvent::EmbeddingControl)                                   \
-    O(QT_EVENT_TYPE_ActivateControl, QEvent::ActivateControl)                                     \
-    O(QT_EVENT_TYPE_DeactivateControl, QEvent::DeactivateControl)                                 \
-    O(QT_EVENT_TYPE_ContextMenu, QEvent::ContextMenu)                                             \
-    O(QT_EVENT_TYPE_InputMethod, QEvent::InputMethod)                                             \
-    O(QT_EVENT_TYPE_TabletMove, QEvent::TabletMove)                                               \
-    O(QT_EVENT_TYPE_LocaleChange, QEvent::LocaleChange)                                           \
-    O(QT_EVENT_TYPE_LanguageChange, QEvent::LanguageChange)                                       \
-    O(QT_EVENT_TYPE_LayoutDirectionChange, QEvent::LayoutDirectionChange)                         \
-    O(QT_EVENT_TYPE_TabletPress, QEvent::TabletPress)                                             \
-    O(QT_EVENT_TYPE_TabletRelease, QEvent::TabletRelease)                                         \
-    O(QT_EVENT_TYPE_OkRequest, QEvent::OkRequest)                                                 \
-    O(QT_EVENT_TYPE_HelpRequest, QEvent::HelpRequest)                                             \
-    O(QT_EVENT_TYPE_IconDrag, QEvent::IconDrag)                                                   \
-    O(QT_EVENT_TYPE_FontChange, QEvent::FontChange)                                               \
-    O(QT_EVENT_TYPE_EnabledChange, QEvent::EnabledChange)                                         \
-    O(QT_EVENT_TYPE_ActivationChange, QEvent::ActivationChange)                                   \
-    O(QT_EVENT_TYPE_StyleChange, QEvent::StyleChange)                                             \
-    O(QT_EVENT_TYPE_ModifiedChange, QEvent::ModifiedChange)                                       \
-    O(QT_EVENT_TYPE_MouseTrackingChange, QEvent::MouseTrackingChange)                             \
-    O(QT_EVENT_TYPE_WindowBlocked, QEvent::WindowBlocked)                                         \
-    O(QT_EVENT_TYPE_WindowUnblocked, QEvent::WindowUnblocked)                                     \
-    O(QT_EVENT_TYPE_WindowStateChange, QEvent::WindowStateChange)                                 \
-    O(QT_EVENT_TYPE_ReadOnlyChange, QEvent::ReadOnlyChange)                                       \
-    O(QT_EVENT_TYPE_ToolTip, QEvent::ToolTip)                                                     \
-    O(QT_EVENT_TYPE_WhatsThis, QEvent::WhatsThis)                                                 \
-    O(QT_EVENT_TYPE_StatusTip, QEvent::StatusTip)                                                 \
-    O(QT_EVENT_TYPE_ActionChanged, QEvent::ActionChanged)                                         \
-    O(QT_EVENT_TYPE_ActionAdded, QEvent::ActionAdded)                                             \
-    O(QT_EVENT_TYPE_ActionRemoved, QEvent::ActionRemoved)                                         \
-    O(QT_EVENT_TYPE_FileOpen, QEvent::FileOpen)                                                   \
-    O(QT_EVENT_TYPE_Shortcut, QEvent::Shortcut)                                                   \
-    O(QT_EVENT_TYPE_ShortcutOverride, QEvent::ShortcutOverride)                                   \
-    O(QT_EVENT_TYPE_WhatsThisClicked, QEvent::WhatsThisClicked)                                   \
-    O(QT_EVENT_TYPE_ToolBarChange, QEvent::ToolBarChange)                                         \
-    O(QT_EVENT_TYPE_QueryWhatsThis, QEvent::QueryWhatsThis)                                       \
-    O(QT_EVENT_TYPE_EnterWhatsThisMode, QEvent::EnterWhatsThisMode)                               \
-    O(QT_EVENT_TYPE_LeaveWhatsThisMode, QEvent::LeaveWhatsThisMode)                               \
-    O(QT_EVENT_TYPE_ZOrderChange, QEvent::ZOrderChange)                                           \
-    O(QT_EVENT_TYPE_HoverEnter, QEvent::HoverEnter)                                               \
-    O(QT_EVENT_TYPE_HoverLeave, QEvent::HoverLeave)                                               \
-    O(QT_EVENT_TYPE_HoverMove, QEvent::HoverMove)                                                 \
-    O(QT_EVENT_TYPE_AcceptDropsChange, QEvent::AcceptDropsChange)                                 \
-    O(QT_EVENT_TYPE_ZeroTimerEvent, QEvent::ZeroTimerEvent)                                       \
-    O(QT_EVENT_TYPE_GraphicsSceneMouseMove, QEvent::GraphicsSceneMouseMove)                       \
-    O(QT_EVENT_TYPE_GraphicsSceneMousePress, QEvent::GraphicsSceneMousePress)                     \
-    O(QT_EVENT_TYPE_GraphicsSceneMouseRelease, QEvent::GraphicsSceneMouseRelease)                 \
-    O(QT_EVENT_TYPE_GraphicsSceneMouseDoubleClick, QEvent::GraphicsSceneMouseDoubleClick)         \
-    O(QT_EVENT_TYPE_GraphicsSceneContextMenu, QEvent::GraphicsSceneContextMenu)                   \
-    O(QT_EVENT_TYPE_GraphicsSceneHoverEnter, QEvent::GraphicsSceneHoverEnter)                     \
-    O(QT_EVENT_TYPE_GraphicsSceneHoverMove, QEvent::GraphicsSceneHoverMove)                       \
-    O(QT_EVENT_TYPE_GraphicsSceneHoverLeave, QEvent::GraphicsSceneHoverLeave)                     \
-    O(QT_EVENT_TYPE_GraphicsSceneHelp, QEvent::GraphicsSceneHelp)                                 \
-    O(QT_EVENT_TYPE_GraphicsSceneDragEnter, QEvent::GraphicsSceneDragEnter)                       \
-    O(QT_EVENT_TYPE_GraphicsSceneDragMove, QEvent::GraphicsSceneDragMove)                         \
-    O(QT_EVENT_TYPE_GraphicsSceneDragLeave, QEvent::GraphicsSceneDragLeave)                       \
-    O(QT_EVENT_TYPE_GraphicsSceneDrop, QEvent::GraphicsSceneDrop)                                 \
-    O(QT_EVENT_TYPE_GraphicsSceneWheel, QEvent::GraphicsSceneWheel)                               \
-    O(QT_EVENT_TYPE_KeyboardLayoutChange, QEvent::KeyboardLayoutChange)                           \
-    O(QT_EVENT_TYPE_DynamicPropertyChange, QEvent::DynamicPropertyChange)                         \
-    O(QT_EVENT_TYPE_TabletEnterProximity, QEvent::TabletEnterProximity)                           \
-    O(QT_EVENT_TYPE_TabletLeaveProximity, QEvent::TabletLeaveProximity)                           \
-    O(QT_EVENT_TYPE_NonClientAreaMouseMove, QEvent::NonClientAreaMouseMove)                       \
-    O(QT_EVENT_TYPE_NonClientAreaMouseButtonPress, QEvent::NonClientAreaMouseButtonPress)         \
-    O(QT_EVENT_TYPE_NonClientAreaMouseButtonRelease, QEvent::NonClientAreaMouseButtonRelease)     \
-    O(QT_EVENT_TYPE_NonClientAreaMouseButtonDblClick, QEvent::NonClientAreaMouseButtonDblClick)   \
-    O(QT_EVENT_TYPE_MacSizeChange, QEvent::MacSizeChange)                                         \
-    O(QT_EVENT_TYPE_FutureCallOut, QEvent::FutureCallOut)                                         \
-    O(QT_EVENT_TYPE_GraphicsSceneResize, QEvent::GraphicsSceneResize)                             \
-    O(QT_EVENT_TYPE_GraphicsSceneMove, QEvent::GraphicsSceneMove)                                 \
-    O(QT_EVENT_TYPE_CursorChange, QEvent::CursorChange)                                           \
-    O(QT_EVENT_TYPE_ToolTipChange, QEvent::ToolTipChange)                                         \
-    O(QT_EVENT_TYPE_GrabMouse, QEvent::GrabMouse)                                                 \
-    O(QT_EVENT_TYPE_UngrabMouse, QEvent::UngrabMouse)                                             \
-    O(QT_EVENT_TYPE_GrabKeyboard, QEvent::GrabKeyboard)                                           \
-    O(QT_EVENT_TYPE_UngrabKeyboard, QEvent::UngrabKeyboard)                                       \
-    O(QT_EVENT_TYPE_StateMachineSignal, QEvent::StateMachineSignal)                               \
-    O(QT_EVENT_TYPE_StateMachineWrapped, QEvent::StateMachineWrapped)                             \
-    O(QT_EVENT_TYPE_TouchBegin, QEvent::TouchBegin)                                               \
-    O(QT_EVENT_TYPE_TouchUpdate, QEvent::TouchUpdate)                                             \
-    O(QT_EVENT_TYPE_TouchEnd, QEvent::TouchEnd)                                                   \
-    O(QT_EVENT_TYPE_RequestSoftwareInputPanel, QEvent::RequestSoftwareInputPanel)                 \
-    O(QT_EVENT_TYPE_CloseSoftwareInputPanel, QEvent::CloseSoftwareInputPanel)                     \
-    O(QT_EVENT_TYPE_WinIdChange, QEvent::WinIdChange)                                             \
-    O(QT_EVENT_TYPE_ScrollPrepare, QEvent::ScrollPrepare)                                         \
-    O(QT_EVENT_TYPE_Scroll, QEvent::Scroll)                                                       \
-    O(QT_EVENT_TYPE_Expose, QEvent::Expose)                                                       \
-    O(QT_EVENT_TYPE_InputMethodQuery, QEvent::InputMethodQuery)                                   \
-    O(QT_EVENT_TYPE_OrientationChange, QEvent::OrientationChange)                                 \
-    O(QT_EVENT_TYPE_TouchCancel, QEvent::TouchCancel)                                             \
-    O(QT_EVENT_TYPE_ThemeChange, QEvent::ThemeChange)                                             \
-    O(QT_EVENT_TYPE_SockClose, QEvent::SockClose)                                                 \
-    O(QT_EVENT_TYPE_PlatformPanel, QEvent::PlatformPanel)                                         \
-    O(QT_EVENT_TYPE_StyleAnimationUpdate, QEvent::StyleAnimationUpdate)                           \
-    O(QT_EVENT_TYPE_ApplicationStateChange, QEvent::ApplicationStateChange)                       \
-    O(QT_EVENT_TYPE_PlatformSurface, QEvent::PlatformSurface)                                     \
-    O(QT_EVENT_TYPE_Pointer, QEvent::Pointer)                                                     \
-    O(QT_EVENT_TYPE_TabletTrackingChange, QEvent::TabletTrackingChange)
-
-enum QT_Event_Type { ENUMERE_EVENT_TYPE(ENUMERE_DECLARATION_ENUM_IPA) };
-
-enum QT_Event_Type QT_evenement_donne_type(union QT_Generic_Event evenement);
-void QT_evenement_accepte(union QT_Generic_Event evenement);
-void QT_evenement_marque_accepte(union QT_Generic_Event evenement, int accepte);
-int QT_enregistre_evenement_personnel(void);
-void *QT_event_perso_donne_donnees(struct QT_Evenement *event);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_MouseButton
- * \{ */
-
-/* À FAIRE : implémente tous les cas. */
-#define ENUMERE_BOUTON_SOURIS(O)                                                                  \
-    O(QT_MOUSEBUTTON_GAUCHE, Qt::LeftButton)                                                      \
-    O(QT_MOUSEBUTTON_DROIT, Qt::RightButton)                                                      \
-    O(QT_MOUSEBUTTON_MILLIEU, Qt::MiddleButton)                                                   \
-    O(QT_MOUSEBUTTON_ARRIERE, Qt::BackButton)                                                     \
-    O(QT_MOUSEBUTTON_AUCUN, Qt::NoButton)
-
-enum QT_MouseButton { ENUMERE_BOUTON_SOURIS(ENUMERE_DECLARATION_ENUM_IPA) };
 
 /** \} */
 
@@ -1402,6 +1097,323 @@ enum QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void);
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name QT_Shortcut
+ * \{ */
+
+struct QT_Shortcut *QT_shortcut_cree(union QT_Generic_Widget parent);
+void QT_shortcut_definis_touches(struct QT_Shortcut *shortcut,
+                                 enum QT_Keyboard_Modifier mod,
+                                 enum QT_Key key);
+void QT_shortcut_sur_activation(struct QT_Shortcut *shortcut, struct QT_Rappel_Generique *rappel);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Position
+ * \{ */
+
+struct QT_Position {
+    int x;
+    int y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Point
+ * \{ */
+
+struct QT_Point {
+    int x;
+    int y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_PointF
+ * \{ */
+
+struct QT_PointF {
+    double x;
+    double y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Rect
+ * \{ */
+
+struct QT_Rect {
+    int x;
+    int y;
+    int largeur;
+    int hauteur;
+};
+
+struct QT_Point QT_rect_donne_bas_gauche(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_bas_droit(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_haut_gauche(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_haut_droit(struct QT_Rect rect);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_RectF
+ * \{ */
+
+struct QT_RectF {
+    double x;
+    double y;
+    double largeur;
+    double hauteur;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Color
+ * \{ */
+
+struct QT_Color {
+    double r;
+    double g;
+    double b;
+    double a;
+};
+
+void QT_color_depuis_tsl(double t, double s, double l, double a, struct QT_Color *r_color);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Pen
+ * \{ */
+
+struct QT_Pen {
+    struct QT_Color color;
+    double width;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Brush
+ * \{ */
+
+struct QT_Brush {
+    struct QT_Color color;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Font
+ * \{ */
+
+struct QT_Font {
+    struct QT_Chaine famille;
+    int taille_point;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Cursor
+ * \{ */
+
+struct QT_Point QT_cursor_pos();
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Event
+ * \{ */
+
+#define ENUMERE_EVENT_TYPE(O)                                                                     \
+    O(QT_EVENT_TYPE_None, QEvent::None)                                                           \
+    O(QT_EVENT_TYPE_Timer, QEvent::Timer)                                                         \
+    O(QT_EVENT_TYPE_MouseButtonPress, QEvent::MouseButtonPress)                                   \
+    O(QT_EVENT_TYPE_MouseButtonRelease, QEvent::MouseButtonRelease)                               \
+    O(QT_EVENT_TYPE_MouseButtonDblClick, QEvent::MouseButtonDblClick)                             \
+    O(QT_EVENT_TYPE_MouseMove, QEvent::MouseMove)                                                 \
+    O(QT_EVENT_TYPE_KeyPress, QEvent::KeyPress)                                                   \
+    O(QT_EVENT_TYPE_KeyRelease, QEvent::KeyRelease)                                               \
+    O(QT_EVENT_TYPE_FocusIn, QEvent::FocusIn)                                                     \
+    O(QT_EVENT_TYPE_FocusOut, QEvent::FocusOut)                                                   \
+    O(QT_EVENT_TYPE_FocusAboutToChange, QEvent::FocusAboutToChange)                               \
+    O(QT_EVENT_TYPE_Enter, QEvent::Enter)                                                         \
+    O(QT_EVENT_TYPE_Leave, QEvent::Leave)                                                         \
+    O(QT_EVENT_TYPE_Paint, QEvent::Paint)                                                         \
+    O(QT_EVENT_TYPE_Move, QEvent::Move)                                                           \
+    O(QT_EVENT_TYPE_Resize, QEvent::Resize)                                                       \
+    O(QT_EVENT_TYPE_Create, QEvent::Create)                                                       \
+    O(QT_EVENT_TYPE_Destroy, QEvent::Destroy)                                                     \
+    O(QT_EVENT_TYPE_Show, QEvent::Show)                                                           \
+    O(QT_EVENT_TYPE_Hide, QEvent::Hide)                                                           \
+    O(QT_EVENT_TYPE_Close, QEvent::Close)                                                         \
+    O(QT_EVENT_TYPE_Quit, QEvent::Quit)                                                           \
+    O(QT_EVENT_TYPE_ParentChange, QEvent::ParentChange)                                           \
+    O(QT_EVENT_TYPE_ParentAboutToChange, QEvent::ParentAboutToChange)                             \
+    O(QT_EVENT_TYPE_ThreadChange, QEvent::ThreadChange)                                           \
+    O(QT_EVENT_TYPE_WindowActivate, QEvent::WindowActivate)                                       \
+    O(QT_EVENT_TYPE_WindowDeactivate, QEvent::WindowDeactivate)                                   \
+    O(QT_EVENT_TYPE_ShowToParent, QEvent::ShowToParent)                                           \
+    O(QT_EVENT_TYPE_HideToParent, QEvent::HideToParent)                                           \
+    O(QT_EVENT_TYPE_Wheel, QEvent::Wheel)                                                         \
+    O(QT_EVENT_TYPE_WindowTitleChange, QEvent::WindowTitleChange)                                 \
+    O(QT_EVENT_TYPE_WindowIconChange, QEvent::WindowIconChange)                                   \
+    O(QT_EVENT_TYPE_ApplicationWindowIconChange, QEvent::ApplicationWindowIconChange)             \
+    O(QT_EVENT_TYPE_ApplicationFontChange, QEvent::ApplicationFontChange)                         \
+    O(QT_EVENT_TYPE_ApplicationLayoutDirectionChange, QEvent::ApplicationLayoutDirectionChange)   \
+    O(QT_EVENT_TYPE_ApplicationPaletteChange, QEvent::ApplicationPaletteChange)                   \
+    O(QT_EVENT_TYPE_PaletteChange, QEvent::PaletteChange)                                         \
+    O(QT_EVENT_TYPE_Clipboard, QEvent::Clipboard)                                                 \
+    O(QT_EVENT_TYPE_Speech, QEvent::Speech)                                                       \
+    O(QT_EVENT_TYPE_MetaCall, QEvent::MetaCall)                                                   \
+    O(QT_EVENT_TYPE_SockAct, QEvent::SockAct)                                                     \
+    O(QT_EVENT_TYPE_WinEventAct, QEvent::WinEventAct)                                             \
+    O(QT_EVENT_TYPE_DeferredDelete, QEvent::DeferredDelete)                                       \
+    O(QT_EVENT_TYPE_DragEnter, QEvent::DragEnter)                                                 \
+    O(QT_EVENT_TYPE_DragMove, QEvent::DragMove)                                                   \
+    O(QT_EVENT_TYPE_DragLeave, QEvent::DragLeave)                                                 \
+    O(QT_EVENT_TYPE_Drop, QEvent::Drop)                                                           \
+    O(QT_EVENT_TYPE_DragResponse, QEvent::DragResponse)                                           \
+    O(QT_EVENT_TYPE_ChildAdded, QEvent::ChildAdded)                                               \
+    O(QT_EVENT_TYPE_ChildPolished, QEvent::ChildPolished)                                         \
+    O(QT_EVENT_TYPE_ChildRemoved, QEvent::ChildRemoved)                                           \
+    O(QT_EVENT_TYPE_ShowWindowRequest, QEvent::ShowWindowRequest)                                 \
+    O(QT_EVENT_TYPE_PolishRequest, QEvent::PolishRequest)                                         \
+    O(QT_EVENT_TYPE_Polish, QEvent::Polish)                                                       \
+    O(QT_EVENT_TYPE_LayoutRequest, QEvent::LayoutRequest)                                         \
+    O(QT_EVENT_TYPE_UpdateRequest, QEvent::UpdateRequest)                                         \
+    O(QT_EVENT_TYPE_UpdateLater, QEvent::UpdateLater)                                             \
+    O(QT_EVENT_TYPE_EmbeddingControl, QEvent::EmbeddingControl)                                   \
+    O(QT_EVENT_TYPE_ActivateControl, QEvent::ActivateControl)                                     \
+    O(QT_EVENT_TYPE_DeactivateControl, QEvent::DeactivateControl)                                 \
+    O(QT_EVENT_TYPE_ContextMenu, QEvent::ContextMenu)                                             \
+    O(QT_EVENT_TYPE_InputMethod, QEvent::InputMethod)                                             \
+    O(QT_EVENT_TYPE_TabletMove, QEvent::TabletMove)                                               \
+    O(QT_EVENT_TYPE_LocaleChange, QEvent::LocaleChange)                                           \
+    O(QT_EVENT_TYPE_LanguageChange, QEvent::LanguageChange)                                       \
+    O(QT_EVENT_TYPE_LayoutDirectionChange, QEvent::LayoutDirectionChange)                         \
+    O(QT_EVENT_TYPE_TabletPress, QEvent::TabletPress)                                             \
+    O(QT_EVENT_TYPE_TabletRelease, QEvent::TabletRelease)                                         \
+    O(QT_EVENT_TYPE_OkRequest, QEvent::OkRequest)                                                 \
+    O(QT_EVENT_TYPE_HelpRequest, QEvent::HelpRequest)                                             \
+    O(QT_EVENT_TYPE_IconDrag, QEvent::IconDrag)                                                   \
+    O(QT_EVENT_TYPE_FontChange, QEvent::FontChange)                                               \
+    O(QT_EVENT_TYPE_EnabledChange, QEvent::EnabledChange)                                         \
+    O(QT_EVENT_TYPE_ActivationChange, QEvent::ActivationChange)                                   \
+    O(QT_EVENT_TYPE_StyleChange, QEvent::StyleChange)                                             \
+    O(QT_EVENT_TYPE_ModifiedChange, QEvent::ModifiedChange)                                       \
+    O(QT_EVENT_TYPE_MouseTrackingChange, QEvent::MouseTrackingChange)                             \
+    O(QT_EVENT_TYPE_WindowBlocked, QEvent::WindowBlocked)                                         \
+    O(QT_EVENT_TYPE_WindowUnblocked, QEvent::WindowUnblocked)                                     \
+    O(QT_EVENT_TYPE_WindowStateChange, QEvent::WindowStateChange)                                 \
+    O(QT_EVENT_TYPE_ReadOnlyChange, QEvent::ReadOnlyChange)                                       \
+    O(QT_EVENT_TYPE_ToolTip, QEvent::ToolTip)                                                     \
+    O(QT_EVENT_TYPE_WhatsThis, QEvent::WhatsThis)                                                 \
+    O(QT_EVENT_TYPE_StatusTip, QEvent::StatusTip)                                                 \
+    O(QT_EVENT_TYPE_ActionChanged, QEvent::ActionChanged)                                         \
+    O(QT_EVENT_TYPE_ActionAdded, QEvent::ActionAdded)                                             \
+    O(QT_EVENT_TYPE_ActionRemoved, QEvent::ActionRemoved)                                         \
+    O(QT_EVENT_TYPE_FileOpen, QEvent::FileOpen)                                                   \
+    O(QT_EVENT_TYPE_Shortcut, QEvent::Shortcut)                                                   \
+    O(QT_EVENT_TYPE_ShortcutOverride, QEvent::ShortcutOverride)                                   \
+    O(QT_EVENT_TYPE_WhatsThisClicked, QEvent::WhatsThisClicked)                                   \
+    O(QT_EVENT_TYPE_ToolBarChange, QEvent::ToolBarChange)                                         \
+    O(QT_EVENT_TYPE_QueryWhatsThis, QEvent::QueryWhatsThis)                                       \
+    O(QT_EVENT_TYPE_EnterWhatsThisMode, QEvent::EnterWhatsThisMode)                               \
+    O(QT_EVENT_TYPE_LeaveWhatsThisMode, QEvent::LeaveWhatsThisMode)                               \
+    O(QT_EVENT_TYPE_ZOrderChange, QEvent::ZOrderChange)                                           \
+    O(QT_EVENT_TYPE_HoverEnter, QEvent::HoverEnter)                                               \
+    O(QT_EVENT_TYPE_HoverLeave, QEvent::HoverLeave)                                               \
+    O(QT_EVENT_TYPE_HoverMove, QEvent::HoverMove)                                                 \
+    O(QT_EVENT_TYPE_AcceptDropsChange, QEvent::AcceptDropsChange)                                 \
+    O(QT_EVENT_TYPE_ZeroTimerEvent, QEvent::ZeroTimerEvent)                                       \
+    O(QT_EVENT_TYPE_GraphicsSceneMouseMove, QEvent::GraphicsSceneMouseMove)                       \
+    O(QT_EVENT_TYPE_GraphicsSceneMousePress, QEvent::GraphicsSceneMousePress)                     \
+    O(QT_EVENT_TYPE_GraphicsSceneMouseRelease, QEvent::GraphicsSceneMouseRelease)                 \
+    O(QT_EVENT_TYPE_GraphicsSceneMouseDoubleClick, QEvent::GraphicsSceneMouseDoubleClick)         \
+    O(QT_EVENT_TYPE_GraphicsSceneContextMenu, QEvent::GraphicsSceneContextMenu)                   \
+    O(QT_EVENT_TYPE_GraphicsSceneHoverEnter, QEvent::GraphicsSceneHoverEnter)                     \
+    O(QT_EVENT_TYPE_GraphicsSceneHoverMove, QEvent::GraphicsSceneHoverMove)                       \
+    O(QT_EVENT_TYPE_GraphicsSceneHoverLeave, QEvent::GraphicsSceneHoverLeave)                     \
+    O(QT_EVENT_TYPE_GraphicsSceneHelp, QEvent::GraphicsSceneHelp)                                 \
+    O(QT_EVENT_TYPE_GraphicsSceneDragEnter, QEvent::GraphicsSceneDragEnter)                       \
+    O(QT_EVENT_TYPE_GraphicsSceneDragMove, QEvent::GraphicsSceneDragMove)                         \
+    O(QT_EVENT_TYPE_GraphicsSceneDragLeave, QEvent::GraphicsSceneDragLeave)                       \
+    O(QT_EVENT_TYPE_GraphicsSceneDrop, QEvent::GraphicsSceneDrop)                                 \
+    O(QT_EVENT_TYPE_GraphicsSceneWheel, QEvent::GraphicsSceneWheel)                               \
+    O(QT_EVENT_TYPE_KeyboardLayoutChange, QEvent::KeyboardLayoutChange)                           \
+    O(QT_EVENT_TYPE_DynamicPropertyChange, QEvent::DynamicPropertyChange)                         \
+    O(QT_EVENT_TYPE_TabletEnterProximity, QEvent::TabletEnterProximity)                           \
+    O(QT_EVENT_TYPE_TabletLeaveProximity, QEvent::TabletLeaveProximity)                           \
+    O(QT_EVENT_TYPE_NonClientAreaMouseMove, QEvent::NonClientAreaMouseMove)                       \
+    O(QT_EVENT_TYPE_NonClientAreaMouseButtonPress, QEvent::NonClientAreaMouseButtonPress)         \
+    O(QT_EVENT_TYPE_NonClientAreaMouseButtonRelease, QEvent::NonClientAreaMouseButtonRelease)     \
+    O(QT_EVENT_TYPE_NonClientAreaMouseButtonDblClick, QEvent::NonClientAreaMouseButtonDblClick)   \
+    O(QT_EVENT_TYPE_MacSizeChange, QEvent::MacSizeChange)                                         \
+    O(QT_EVENT_TYPE_FutureCallOut, QEvent::FutureCallOut)                                         \
+    O(QT_EVENT_TYPE_GraphicsSceneResize, QEvent::GraphicsSceneResize)                             \
+    O(QT_EVENT_TYPE_GraphicsSceneMove, QEvent::GraphicsSceneMove)                                 \
+    O(QT_EVENT_TYPE_CursorChange, QEvent::CursorChange)                                           \
+    O(QT_EVENT_TYPE_ToolTipChange, QEvent::ToolTipChange)                                         \
+    O(QT_EVENT_TYPE_GrabMouse, QEvent::GrabMouse)                                                 \
+    O(QT_EVENT_TYPE_UngrabMouse, QEvent::UngrabMouse)                                             \
+    O(QT_EVENT_TYPE_GrabKeyboard, QEvent::GrabKeyboard)                                           \
+    O(QT_EVENT_TYPE_UngrabKeyboard, QEvent::UngrabKeyboard)                                       \
+    O(QT_EVENT_TYPE_StateMachineSignal, QEvent::StateMachineSignal)                               \
+    O(QT_EVENT_TYPE_StateMachineWrapped, QEvent::StateMachineWrapped)                             \
+    O(QT_EVENT_TYPE_TouchBegin, QEvent::TouchBegin)                                               \
+    O(QT_EVENT_TYPE_TouchUpdate, QEvent::TouchUpdate)                                             \
+    O(QT_EVENT_TYPE_TouchEnd, QEvent::TouchEnd)                                                   \
+    O(QT_EVENT_TYPE_RequestSoftwareInputPanel, QEvent::RequestSoftwareInputPanel)                 \
+    O(QT_EVENT_TYPE_CloseSoftwareInputPanel, QEvent::CloseSoftwareInputPanel)                     \
+    O(QT_EVENT_TYPE_WinIdChange, QEvent::WinIdChange)                                             \
+    O(QT_EVENT_TYPE_ScrollPrepare, QEvent::ScrollPrepare)                                         \
+    O(QT_EVENT_TYPE_Scroll, QEvent::Scroll)                                                       \
+    O(QT_EVENT_TYPE_Expose, QEvent::Expose)                                                       \
+    O(QT_EVENT_TYPE_InputMethodQuery, QEvent::InputMethodQuery)                                   \
+    O(QT_EVENT_TYPE_OrientationChange, QEvent::OrientationChange)                                 \
+    O(QT_EVENT_TYPE_TouchCancel, QEvent::TouchCancel)                                             \
+    O(QT_EVENT_TYPE_ThemeChange, QEvent::ThemeChange)                                             \
+    O(QT_EVENT_TYPE_SockClose, QEvent::SockClose)                                                 \
+    O(QT_EVENT_TYPE_PlatformPanel, QEvent::PlatformPanel)                                         \
+    O(QT_EVENT_TYPE_StyleAnimationUpdate, QEvent::StyleAnimationUpdate)                           \
+    O(QT_EVENT_TYPE_ApplicationStateChange, QEvent::ApplicationStateChange)                       \
+    O(QT_EVENT_TYPE_PlatformSurface, QEvent::PlatformSurface)                                     \
+    O(QT_EVENT_TYPE_Pointer, QEvent::Pointer)                                                     \
+    O(QT_EVENT_TYPE_TabletTrackingChange, QEvent::TabletTrackingChange)
+
+enum QT_Event_Type { ENUMERE_EVENT_TYPE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+enum QT_Event_Type QT_evenement_donne_type(union QT_Generic_Event evenement);
+void QT_evenement_accepte(union QT_Generic_Event evenement);
+void QT_evenement_marque_accepte(union QT_Generic_Event evenement, int accepte);
+int QT_enregistre_evenement_personnel(void);
+void *QT_event_perso_donne_donnees(struct QT_Evenement *event);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MouseButton
+ * \{ */
+
+/* À FAIRE : implémente tous les cas. */
+#define ENUMERE_BOUTON_SOURIS(O)                                                                  \
+    O(QT_MOUSEBUTTON_GAUCHE, Qt::LeftButton)                                                      \
+    O(QT_MOUSEBUTTON_DROIT, Qt::RightButton)                                                      \
+    O(QT_MOUSEBUTTON_MILLIEU, Qt::MiddleButton)                                                   \
+    O(QT_MOUSEBUTTON_ARRIERE, Qt::BackButton)                                                     \
+    O(QT_MOUSEBUTTON_AUCUN, Qt::NoButton)
+
+enum QT_MouseButton { ENUMERE_BOUTON_SOURIS(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
 /* ------------------------------------------------------------------------- */
 /** \name QT_MouseEvent
  * \{ */
