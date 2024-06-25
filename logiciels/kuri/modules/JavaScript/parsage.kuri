@@ -248,9 +248,9 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 {
     lexème := parseuse.lexème_courant()
 
-    // si parseuse.apparie_expression_unaire() {
-    //     retourne parseuse.parse_expression_unaire()
-    // }
+    si parseuse.apparie_expression_unaire() {
+        retourne parseuse.parse_expression_unaire()
+    }
 
     discr lexème.genre {
         ChaineLittérale {
@@ -364,6 +364,19 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             opérande_droite := parseuse.parse_expression(précédence, associativité)
             retourne crée_binary_expression(opération, gauche, opérande_droite)
         }
+        PlusPlus,
+        MoinsMoins {
+            parseuse.consomme()
+
+            operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.Increment } sinon { UpdateOperation.Decrement }
+            update := crée_update_expression(gauche, operation)
+
+            si parseuse.apparie_expression_secondaire() {
+                retourne parseuse.parse_expression_secondaire(update, précédence, associativité)
+            }
+
+            retourne update
+        }
         Égal {
             parseuse.consomme()
 
@@ -426,28 +439,28 @@ parse_expression_virgule :: fonc (parseuse: *Parseuse) -> [..]*NoeudSyntaxique
     retourne résultat
 }
 
-// parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
-// {
-//     lexème := parseuse.lexème_courant()
+parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
+{
+    lexème := parseuse.lexème_courant()
 
-//     discr lexème.genre {
-//         Plus,
-//         Moins,
-//         NonBinaire,
-//         NonLogique {
-//             parseuse.consomme()
-//             opérande := parseuse.parse_expression()
-//             n, index := crée_noeud_retourne_noeud(parseuse, lexème, NoeudExpressionUnaire)
-//             n.opérande = opérande
-//             retourne index
-//         }
-//         sinon {
-//             parseuse.rapporte_erreur("genre de lexème non géré dans parse_expression_unaire")
-//         }
-//     }
+    discr lexème.genre {
+        Plus,
+        Moins,
+        NonBinaire,
+        NonLogique {
+            parseuse.rapporte_erreur("opérateur unaire non-géré")
+        }
+        PlusPlus,
+        MoinsMoins {
+            parseuse.rapporte_erreur("++/-- unaire non-géré")
+        }
+        sinon {
+            parseuse.rapporte_erreur("genre de lexème non géré dans parse_expression_unaire")
+        }
+    }
 
-//     retourne nul
-// }
+    retourne nul
+}
 
 parse_bloc :: fonc (parseuse: *Parseuse, requiers_accolades: bool) -> [..]*NoeudSyntaxique
 {

@@ -40,6 +40,8 @@ GenreLexème :: énum {
     NonBinaireÉgal
     EstÉgal
     NEspaPasÉgal
+    PlusPlus
+    MoinsMoins
 
     // opérateurs unaires
     PlusUnaire
@@ -154,12 +156,17 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         PlusUnaire {
             retourne Associativité.Droite
         }
+        PlusPlus,
+        MoinsMoins {
+            retourne Associativité.Gauche // N/A
+        }
         sinon {
             retourne Associativité.Gauche
         }
     }
 }
 
+/* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence */
 précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
 {
     discr genre {
@@ -221,10 +228,14 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
         PlusUnaire {
             retourne 13
         }
+        PlusPlus,
+        MoinsMoins {
+            retourne 14
+        }
         Point,
         ParenthèseOuvrante,
         CrochetOuvrant {
-            retourne 14
+            retourne 15
         }
         sinon {
             retourne -1
@@ -253,6 +264,8 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
 est_lexème_expression_unaire :: fonc (genre: GenreLexème) -> bool
 {
     discr genre {
+        PlusPlus,
+        MoinsMoins,
         Plus,
         Moins,
         NonBinaire,
@@ -269,7 +282,9 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
 {
     discr genre {
         Plus,
+        PlusPlus,
         Moins,
+        MoinsMoins,
         Étoile,
         Slash,
         Pourcent,

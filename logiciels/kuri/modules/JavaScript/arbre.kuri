@@ -684,6 +684,57 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom UpdateExpression
+ * \{ */
+
+UpdateOperation :: énum {
+    Increment
+    Decrement
+}
+
+UpdateExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_update_expression
+
+    argument: *NoeudSyntaxique
+    operation: UpdateOperation
+}
+
+crée_update_expression :: fonc (argument: *NoeudSyntaxique, operation: UpdateOperation) -> *UpdateExpression
+{
+    résultat := loge(UpdateExpression)
+    résultat.argument = argument
+    résultat.operation = operation
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-postfix-increment-operator */
+sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> Valeur
+{
+    update := base comme *UpdateExpression
+    assert(update.argument.type == Identifier)
+
+    id := update.argument comme *Identifier
+    
+    vieille_valeur := interpréteuse.donne_variable(id.nom)
+    nouvelle_valeur: Valeur
+
+    si update.operation == UpdateOperation.Increment {
+        nouvelle_valeur = ajoute_valeurs(vieille_valeur, Valeur(Number = 1))
+    }
+    sinon {
+        nouvelle_valeur = soustrait_valeurs(vieille_valeur, Valeur(Number = 1))
+    }
+
+    interpréteuse.définis_variable(id.nom, nouvelle_valeur)
+
+    retourne vieille_valeur
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 

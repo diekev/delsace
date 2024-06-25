@@ -61,7 +61,7 @@ initialise_fanions_caractères :: fonc ()
             fanion = (FanionCaractère.Opérateur | FanionCaractère.PeutSuivreOpérateur)
         }
 
-        si it == '<' || it == '>' || it == '&' || it == '|' {
+        si it == '<' || it == '>' || it == '&' || it == '|' || it == '+' {
             fanion |= (FanionCaractère.PeutSuivreOpérateur)
         }
 
@@ -78,7 +78,7 @@ initialise_fanions_caractères :: fonc ()
 }
 
 // doit être dans le même ordre que les définitions dans GenreLexème
-chaines_opérateurs := [ "+", "-", "*", "/", "%", "<", ">", "<<", ">>", "&", "&&", "|", "||", "^", "~", "!", "=", "+=", "-=", "*=", "/=", "%=", "<=", ">=", "<<=", ">>=", "&=", "|=", "^=", "~=", "==", "!=" ]
+chaines_opérateurs := [ "+", "-", "*", "/", "%", "<", ">", "<<", ">>", "&", "&&", "|", "||", "^", "~", "!", "=", "+=", "-=", "*=", "/=", "%=", "<=", ">=", "<<=", ">>=", "&=", "|=", "^=", "~=", "==", "!=", "++", "--" ]
 
 empreintes_opérateurs: [chaines_opérateurs.taille]z32
 
