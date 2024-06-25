@@ -763,3 +763,21 @@ InfoTypeAttente info_type_attente_sur_initialisation_type = {
     émets_erreur_pour_attente_défaut};
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Attente.
+ * \{ */
+
+kuri::chaine Attente::donne_commentaire() const
+{
+    if (!info) {
+        return "Aucune info pour le commentaire de l'attente.";
+    }
+    if (!info->commentaire) {
+        return "Aucune manière d'obtenir un commentaire pour l'attente.";
+    }
+
+    return info->commentaire(*this);
+}
+
+/** \} */
