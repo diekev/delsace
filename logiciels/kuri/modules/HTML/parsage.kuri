@@ -13,8 +13,8 @@ Parseuse :: struct {
     lexeuse: Lexeuse
     document: *Document
 
-    élément_head: *Élément
-    élément_form: *Élément
+    élément_head: *HTMLHeadElement
+    élément_form: *HTMLFormElement
 
     pile_éléments_ouvert: PileÉlémentsOuverts
     liste_éléments_actifs_formattage: ListeÉlémentsActifsFormattage
@@ -252,7 +252,7 @@ insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_head {
-            élément := parseuse.insère_élément_html(lexème)
+            élément := parseuse.insère_élément_html(lexème) comme *HTMLHeadElement
             parseuse.élément_head = élément
             parseuse.mode_insertion = insère_mode_DansHead
             retourne
@@ -264,7 +264,7 @@ insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     lexème_head := Lexème(genre = GenreLexème.DébutTag, nom = TAG_head)
-    élément := parseuse.insère_élément_html(lexème_head)
+    élément := parseuse.insère_élément_html(lexème_head) comme *HTMLHeadElement
     parseuse.élément_head = élément
     parseuse.mode_insertion = insère_mode_DansHead
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
@@ -601,7 +601,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             élément := parseuse.insère_élément_html(lexème)
 
             si !template_dans_portée {
-                parseuse.élément_form = élément
+                parseuse.élément_form = élément comme *HTMLFormElement
             }
 
             retourne
@@ -1278,7 +1278,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 retourne
             }
 
-            parseuse.élément_form = parseuse.insère_élément_html(lexème)
+            parseuse.élément_form = parseuse.insère_élément_html(lexème) comme *HTMLFormElement
             dépile(*parseuse.pile_éléments_ouvert)
             retourne
         }

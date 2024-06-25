@@ -51,6 +51,12 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) ->
     si tag == TAG_a {
         élément = loge(HTMLAnchorElement)
     }
+    sinon si tag == TAG_form {
+        élément = loge(HTMLFormElement)
+    }
+    sinon si tag == TAG_head {
+        élément = loge(HTMLHeadElement)
+    }
     sinon si tag == TAG_img {
         élément = loge(HTMLImageElement)
     }
@@ -200,6 +206,30 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
         retourne attribut.valeur
     }
     retourne DOMString()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLFormElement
+ * https://html.spec.whatwg.org/multipage/forms.html#htmlformelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement
+ * \{ */
+
+HTMLFormElement :: struct {
+    empl base_élément: Élément
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLHeadElement
+ * https://html.spec.whatwg.org/multipage/dom.html#htmlheadelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHeadElement
+ * \{ */
+
+HTMLHeadElement :: struct {
+    empl base_élément: Élément
 }
 
 /** \} */
