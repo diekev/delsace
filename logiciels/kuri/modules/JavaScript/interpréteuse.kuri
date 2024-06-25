@@ -1,0 +1,289 @@
+importe Ensemble
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom ReferenceRecord
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-reference-record-specification-type
+ * \{ */
+
+EnvironmentRecord :: #opaque z32
+
+ReferenceRecord :: struct {
+    Base :: union {
+        V: Valeur
+        E: EnvironmentRecord
+        UNRESOLVABLE
+    }
+
+    base: Base
+    referenced_name: Valeur
+    strict: bool
+    valeur_this: Optionnel(Valeur)
+}
+
+est_référence_propriété :: fonc (référence: ReferenceRecord) -> bool
+{
+    discr référence.base {
+        UNRESOLVABLE {
+            retourne faux
+        }
+        E {
+            retourne faux
+        }
+        sinon {
+            retourne vrai
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ValeurCompletion
+ * \{ */
+
+ValeurCompletion :: union {
+    V: Valeur
+    R: ReferenceRecord
+}
+
+est_reference_record :: fonc (valeur: ValeurCompletion) -> bool
+{
+    discr valeur {
+        R {
+            retourne vrai
+        }
+        V {
+            retourne faux
+        }
+        sinon { retourne faux }
+    }
+}
+
+donne_valeur :: fonc (valeur: ValeurCompletion) -> Résultat(Valeur, CompletionRecord)
+{
+    saufsi valeur.est_reference_record() {
+        retourne valeur.V
+    }
+
+    panique("donne_valeur pour ReferenceRecord non implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CompletionRecord
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-completion-record-specification-type
+ * \{ */
+
+CompletionRecord :: struct {
+    Type :: énum {
+        NORMAL
+        BREAK
+        CONTINUE
+        RETURN
+        THROW
+    }
+
+    type: Type
+    valeur: ValeurCompletion
+    cible: chaine
+}
+
+normal_completion :: fonc (valeur: Valeur) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
+}
+
+normal_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
+}
+
+return_completion :: fonc (valeur: Valeur) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
+}
+
+return_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
+}
+
+est_normal :: fonc (completion: CompletionRecord) -> bool
+{
+    retourne completion.type == CompletionRecord.Type.NORMAL
+}
+
+est_abrupt :: fonc (completion: CompletionRecord) -> bool
+{
+    retourne !est_normal(completion)
+}
+
+est_return :: fonc (completion: CompletionRecord) -> bool
+{
+    retourne completion.type == CompletionRecord.Type.RETURN
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interpréteuse
+ * \{ */
+
+TypeScope :: énum {
+    AUCUN
+    BLOC
+    FUNCTION
+}
+
+FrameScope :: struct {
+    noeud_scope: *NoeudScope
+
+    Variable :: struct {
+        nom: ECMAString
+        valeur: Valeur
+    }
+
+    variables: [..]Variable
+}
+
+trouve_variable :: fonc (scope: *FrameScope, nom: chaine) -> *FrameScope.Variable
+{
+    pour * scope.variables {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+détruit_scope :: fonc (scope: *FrameScope)
+{
+    déloge(scope.variables)
+}
+
+Interpréteuse :: struct {
+    pile_scope: [..]FrameScope
+    tas_de_mémoire: TasDeMémoire
+    objet_global: *Object
+}
+
+initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
+{
+    interpréteuse.tas_de_mémoire.interpréteuse = *interpréteuse
+    interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire)
+}
+
+détruit_données_interpreteuse :: fonc (interpréteuse: &Interpréteuse)
+{
+    déloge(interpréteuse.pile_scope)
+    détruit_données_tas_de_mémoire(*interpréteuse.tas_de_mémoire)
+}
+
+exécute :: fonc (interpréteuse: &Interpréteuse, programme: *Programme) -> CompletionRecord
+{
+    retourne exécute(interpréteuse, programme, TypeScope.AUCUN)
+}
+
+exécute :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxique, type_scope: TypeScope) -> CompletionRecord
+{
+    si noeud.type != NoeudScope && noeud.type != Programme && noeud.type != BlockStatement {
+        retourne exécute_noeud(noeud, interpréteuse)
+    }
+
+    résultat := normal_completion(js_undefined)
+
+    scope := noeud comme *NoeudScope
+    entre(interpréteuse, scope)
+    diffère sors(interpréteuse, scope)
+
+    pour scope.enfants {
+        résultat = exécute_noeud(it, interpréteuse)
+        si résultat.est_normal() {
+            continue
+        }
+
+        si résultat.est_return() {
+            si type_scope == TypeScope.FUNCTION {
+                retourne normal_completion(résultat.valeur)
+            }
+        }
+
+        retourne résultat
+    }
+
+    retourne résultat
+}
+
+entre :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
+{
+    tableau_ajoute(*interpréteuse.pile_scope, FrameScope(scope))
+}
+
+sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
+{
+    pile_scope := *interpréteuse.pile_scope    
+    assert(pile_scope.taille > 0)
+    assert(mémoire(pile_scope)[pile_scope.taille - 1].noeud_scope == scope)
+    détruit_scope(donne_scope_courant(interpréteuse))
+    pile_scope.taille -= 1
+}
+
+donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoire
+{
+    retourne *interpréteuse.tas_de_mémoire
+}
+
+rassemble_racines :: fonc (interpréteuse: *Interpréteuse, racines: *[..]*Cellule)
+{
+    ensemble_ajoute(racines, interpréteuse.objet_global)
+
+    pour interpréteuse.pile_scope {
+        pour variable dans it.variables {
+            si variable.valeur.est_cellule() {
+                ensemble_ajoute(racines, variable.valeur.donne_cellule())
+            }
+        }
+    }
+}
+
+donne_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString) -> Valeur
+{
+    pour > * interpréteuse.pile_scope {
+        variable := it.trouve_variable(nom)
+        si variable {
+            retourne variable.valeur
+        }
+    }
+
+    objet_global := interpréteuse.objet_global
+    retourne objet_global.donne_valeur(nom)
+}
+
+définis_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, valeur: Valeur)
+{
+    pour > * interpréteuse.pile_scope {
+        variable := it.trouve_variable(nom)
+        si variable {
+            variable.valeur = valeur
+            retourne
+        }
+    }
+
+    objet_global := interpréteuse.objet_global
+    objet_global.définis_valeur(nom, valeur)
+}
+
+déclare_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString)
+{
+    scope := interpréteuse.donne_scope_courant()
+    tableau_ajoute(*scope.variables, FrameScope.Variable(nom, js_undefined))
+}
+
+donne_scope_courant :: fonc (interpréteuse: &Interpréteuse) -> *FrameScope
+{
+    retourne *interpréteuse.pile_scope[interpréteuse.pile_scope.taille -1]
+}
+
+/** \} */

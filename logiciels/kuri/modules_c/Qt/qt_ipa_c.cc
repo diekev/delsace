@@ -33,6 +33,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
+#include <QShortcut>
 #include <QSortFilterProxyModel>
 #include <QSpinBox>
 #include <QSplitter>
@@ -824,6 +825,84 @@ void QT_clipboard_efface(QT_Clipboard *clipboard)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Keyboard_Modifier
+ * \{ */
+
+static Qt::KeyboardModifiers convertis_modificateurs_clavier(QT_Keyboard_Modifier drapeaux)
+{
+    uint résultat = Qt::KeyboardModifier::NoModifier;
+    ENUMERE_MODIFICATEURS_CLAVIER(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT);
+    return Qt::KeyboardModifiers(résultat);
+}
+
+static QT_Keyboard_Modifier modificateurs_vers_ipa(Qt::KeyboardModifiers drapeaux)
+{
+    int résultat = QT_KEYBOARD_MODIFIER_AUCUN;
+    ENUMERE_MODIFICATEURS_CLAVIER(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA);
+    return QT_Keyboard_Modifier(résultat);
+}
+
+QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void)
+{
+    auto drapeaux = QApplication::keyboardModifiers();
+    return modificateurs_vers_ipa(drapeaux);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Key
+ * \{ */
+
+static Qt::Key convertis_touche_clavier(QT_Key key)
+{
+    switch (key) {
+        ENUMERE_CLE_CLAVIER(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::Key_unknown;
+}
+
+static QT_Key qt_key_vers_ipa(Qt::Key key)
+{
+    switch (key) {
+        ENUMERE_CLE_CLAVIER(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+    }
+    return QT_KEY_unknown;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Shortcut
+ * \{ */
+
+QT_Shortcut *QT_shortcut_cree(QT_Generic_Widget parent)
+{
+    VERS_QT(parent);
+    return vers_ipa(new QShortcut(qparent));
+}
+
+void QT_shortcut_definis_touches(QT_Shortcut *shortcut, QT_Keyboard_Modifier mod, QT_Key key)
+{
+    VERS_QT(shortcut);
+    auto qmod = convertis_modificateurs_clavier(mod);
+    auto qkey = convertis_touche_clavier(key);
+    qshortcut->setKey(int(uint(qmod) | uint(qkey)));
+}
+
+void QT_shortcut_sur_activation(QT_Shortcut *shortcut, QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(shortcut);
+    QObject::connect(qshortcut, &QShortcut::activated, [=]() { rappel->sur_rappel(rappel); });
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Rect
  * \{ */
 
@@ -924,25 +1003,6 @@ void *QT_event_perso_donne_donnees(QT_Evenement *event)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name QT_Keyboard_Modifier
- * \{ */
-
-static QT_Keyboard_Modifier modificateurs_vers_ipa(Qt::KeyboardModifiers drapeaux)
-{
-    int résultat = QT_KEYBOARD_MODIFIER_AUCUN;
-    ENUMERE_MODIFICATEURS_CLAVIER(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA);
-    return QT_Keyboard_Modifier(résultat);
-}
-
-QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void)
-{
-    auto drapeaux = QApplication::keyboardModifiers();
-    return modificateurs_vers_ipa(drapeaux);
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \name QT_MouseEvent
  * \{ */
 
@@ -993,14 +1053,6 @@ int QT_wheel_event_donne_delta(QT_WheelEvent *event)
 /* ------------------------------------------------------------------------- */
 /** \name QT_KeyEvent
  * \{ */
-
-static QT_Key qt_key_vers_ipa(Qt::Key key)
-{
-    switch (key) {
-        ENUMERE_CLE_CLAVIER(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
-    }
-    return QT_KEY_unknown;
-}
 
 QT_Key QT_key_event_donne_cle(QT_KeyEvent *event)
 {
