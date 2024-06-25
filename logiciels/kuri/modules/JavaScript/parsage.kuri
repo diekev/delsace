@@ -131,12 +131,6 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         Function {
             retourne parse_function_declaration(parseuse)
         }
-        Let {
-            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let)
-        }
-        Var {
-            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Var)
-        }
         Return {
             retourne parse_return_statement(parseuse)
         }
@@ -294,6 +288,12 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
             parseuse.consomme()
 
             retourne crée_object_expression()
+        }
+        Let {
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let)
+        }
+        Var {
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Var)
         }
         sinon {
             parseuse.rapporte_erreur("lexème non géré dans parse_expression_primaire")

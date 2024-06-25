@@ -235,6 +235,8 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
 est_lexème_expression :: fonc (genre: GenreLexème) -> bool
 {
     discr genre {
+        Var,
+        Let,
         Identifiant,
         ChaineLittérale,
         NombreLittéral,
@@ -312,8 +314,6 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
 est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
 {
     discr genre {
-        Var,
-        Let,
         Function,
         Return {
             retourne vrai
