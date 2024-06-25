@@ -4,14 +4,58 @@ importe Unicode
 
 TexteSource :: struct {
     texte: chaine
-    lignes: [..]chaine
+}
+
+PositionSource :: struct {
+    texte_ligne: chaine
+    ligne: z32
+    colonne: z32
+}
+
+donne_position_source :: fonc (texte: &TexteSource, lexème: &Lexème) -> PositionSource
+{
+    résultat: PositionSource
+
+    décalage_lexème := (lexème.texte.pointeur - texte.texte.pointeur)
+
+    si décalage_lexème < 0 || décalage_lexème >= texte.texte.taille {
+        retourne résultat
+    }
+
+    /* Compte les lignes. */
+    début_ligne := texte.texte.pointeur
+    décalage := début_ligne
+    ligne := 0
+    pour texte.texte {
+        si it == '\n' {
+            début_ligne = décalage + 1
+            ligne += 1
+        }
+
+        décalage += 1
+        si décalage >= lexème.texte.pointeur {
+            arrête
+        }
+    }
+
+    résultat.ligne = ligne
+    résultat.colonne = ((lexème.texte.pointeur - début_ligne) + 1) comme z32
+
+    résultat.texte_ligne = construit_chaine(début_ligne, 0)
+
+    fin_texte := texte.texte.pointeur + texte.texte.taille
+    tantque début_ligne < fin_texte {
+        résultat.texte_ligne.taille += 1
+        début_ligne += 1
+    }
+
+    retourne résultat
 }
 
 crée_texte_source :: fonc (texte: chaine) -> TexteSource
 {
     résultat : TexteSource = ---
     résultat.texte = copie_chaine(texte)
-    résultat.lignes = divise(résultat.texte, '\n')
     retourne résultat
 }
 
@@ -33,7 +77,6 @@ crée_script :: fonc (texte: chaine) -> Script
 détruit_script :: fonc (script: &Script)
 {
     déloge(script.source.texte)
-    déloge(script.source.lignes)
     déloge(script.lexèmes)
 }
 
@@ -45,13 +88,13 @@ ErreurCompilation :: struct {
     message: chaine
 }
 
-crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, source: TexteSource, position: PositionCodeSource) -> ErreurCompilation
+crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, source: TexteSource, position: PositionSource) -> ErreurCompilation
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    ligne := source.lignes[position.ligne]
+    ligne := position.texte_ligne
 
     ajoute_au_tampon(*enchaineuse, classe, " :\n\n")
     imprime_dans_enchaineuse(*enchaineuse, " % | %\n", position.ligne + 1, ligne)

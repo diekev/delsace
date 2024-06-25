@@ -156,11 +156,8 @@ Lexeuse :: struct {
     source: TexteSource
 
     début_mot: *z8
-    début_ligne: *z8
     début_source: *z8
     fin_source: *z8
-
-    ligne := 0
 
     lexèmes: [..]Lexème
 }
@@ -172,10 +169,8 @@ initialise_lexeuse_depuis_source :: fonc (lexeuse: &Lexeuse, source: TexteSource
 
     lexeuse.source = source
     lexeuse.début_mot = début_source
-    lexeuse.début_ligne = début_source
     lexeuse.début_source = début_source
     lexeuse.fin_source = fin_source
-    lexeuse.ligne = 0
     déloge(lexeuse.lexèmes)
 }
 
@@ -213,7 +208,7 @@ débute_lexème :: fonc (empl lexeuse: &Lexeuse) #enligne
 crée_lexème :: fonc (empl lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
 {
     texte := construit_chaine(début_mot, (début_source - début_mot) comme z32)
-    retourne Lexème(genre = genre, texte = texte, ligne = ligne, colonne = (début_mot - début_ligne) comme z32)
+    retourne Lexème(genre = genre, texte = texte)
 }
 
 crée_lexème_pour_caractère :: fonc (lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
@@ -505,31 +500,6 @@ consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse) -> Optionnel(ErreurCompila
         fanion := fanions_caractères[c comme n8]
 
         si fanion.EstEspaceBlanche {
-            si c == '\r' {
-                lexeuse.ligne += 1
-                lexeuse.début_source += 1
-                lexeuse.début_ligne = lexeuse.début_source
-
-                si fini(lexeuse) {
-                    arrête
-                }
-
-                c = lexeuse.caractère_courant()
-
-                si c == '\n' {
-                    lexeuse.début_source += 1
-                }
-
-                continue
-            }
-
-            si c == '\n' {
-                lexeuse.ligne += 1
-                lexeuse.début_source += 1
-                lexeuse.début_ligne = lexeuse.début_source
-                continue
-            }
-
             lexeuse.avance()
             continue
         }
@@ -579,8 +549,6 @@ consomme_commentaire_ligne_seule :: fonc (lexeuse: &Lexeuse)
         lexeuse.avance()
 
         si c == '\n' {
-            lexeuse.ligne += 1
-            lexeuse.début_ligne = lexeuse.début_source
             arrête
         }
     }
@@ -595,21 +563,14 @@ consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
             arrête
         }
 
-        c := lexeuse.caractère_courant()
         /* À FAIRE : valide caractère Unicode ? */
         lexeuse.avance()
-
-        si c == '\n' {
-            lexeuse.ligne += 1
-            lexeuse.début_ligne = lexeuse.début_source
-        }
     }
 }
 
 rapporte_erreur :: fonc (lexeuse: &Lexeuse, message: chaine) -> ErreurCompilation
 {
-    position: PositionCodeSource
-    position.ligne = lexeuse.ligne
-    position.colonne = (lexeuse.début_source - lexeuse.début_ligne) comme z32
+    position: PositionSource
+    /* À FAIRE : ligne, colonne */
     retourne crée_erreur_de_compilation("Erreur de lexage", message, lexeuse.source, position)
 }

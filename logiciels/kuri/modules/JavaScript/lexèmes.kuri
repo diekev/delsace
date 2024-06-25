@@ -99,10 +99,8 @@ rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
 }
 
 Lexème :: struct {
-    genre: GenreLexème
     texte: chaine
-    ligne: z32
-    colonne: z32
+    genre: GenreLexème
 }
 
 Associativité :: énum {

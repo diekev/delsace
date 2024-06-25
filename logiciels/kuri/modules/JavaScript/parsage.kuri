@@ -481,16 +481,7 @@ rapporte_erreur :: fonc (parseuse: *Parseuse, lexème: *Lexème, message: chaine
         retourne
     }
 
-    ligne := parseuse.script.source.lignes[lexème.ligne]
-
-    position: PositionCodeSource
-    position.ligne = lexème.ligne
-    position.colonne = si parseuse.fini() {
-        ligne.taille comme z32
-    }
-    sinon {
-        lexème.colonne
-    }
+    position := donne_position_source(parseuse.script.source, mémoire(lexème))
 
     erreur_de_compilation := crée_erreur_de_compilation("Erreur de parsage", message, parseuse.script.source, position)
     parseuse.erreur_de_compilation = erreur_de_compilation
