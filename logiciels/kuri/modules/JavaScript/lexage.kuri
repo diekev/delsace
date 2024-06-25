@@ -534,26 +534,19 @@ consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse) -> Optionnel(ErreurCompila
             continue
         }
 
-        si c == '#' {
-            si apparie(lexeuse, "#!") {
-                /* Nous laissons donne_lexème_suivant s'occuper de ce cas. */
-                arrête
+        si c == '/' {
+            si apparie(lexeuse, "//") {
+                consomme_commentaire_ligne_seule(lexeuse)
+                continue
             }
 
-            /* Lèxe commentaire. */
-            tantque !fini(lexeuse) {
-                c = lexeuse.caractère_courant()
-                /* À FAIRE : valide caractère Unicode ? */
-                lexeuse.avance()
-
-                si c == '\n' {
-                    lexeuse.ligne += 1
-                    lexeuse.début_ligne = lexeuse.début_source
-                    arrête
-                }
+            si apparie(lexeuse, "/*") {
+                consomme_commentaire_bloc(lexeuse)
+                continue
             }
 
-            continue
+            /* Nous laissons donne_lexème_suivant s'occuper de ce cas. */
+            arrête
         }
 
         /* Vérifie si nous avons un caractère Unicode. */
@@ -574,6 +567,42 @@ consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse) -> Optionnel(ErreurCompila
         }
 
         lexeuse.début_source += n
+    }
+}
+
+consomme_commentaire_ligne_seule :: fonc (lexeuse: &Lexeuse)
+{
+    /* Lèxe commentaire. */
+    tantque !fini(lexeuse) {
+        c := lexeuse.caractère_courant()
+        /* À FAIRE : valide caractère Unicode ? */
+        lexeuse.avance()
+
+        si c == '\n' {
+            lexeuse.ligne += 1
+            lexeuse.début_ligne = lexeuse.début_source
+            arrête
+        }
+    }
+}
+
+consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
+{
+    /* Lèxe commentaire. */
+    tantque !fini(lexeuse) {
+        si apparie(lexeuse, "*/") {
+            lexeuse.avance(2)
+            arrête
+        }
+
+        c := lexeuse.caractère_courant()
+        /* À FAIRE : valide caractère Unicode ? */
+        lexeuse.avance()
+
+        si c == '\n' {
+            lexeuse.ligne += 1
+            lexeuse.début_ligne = lexeuse.début_source
+        }
     }
 }
 
