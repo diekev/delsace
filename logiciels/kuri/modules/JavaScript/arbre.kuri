@@ -238,8 +238,16 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     saufsi completion_droite.est_normal() {
         retourne completion_droite
     }
-    gauche := completion_gauche.valeur
-    droite := completion_droite.valeur
+    valeur_complétion_gauche := donne_valeur(completion_gauche.valeur)
+    si valeur_complétion_gauche.possède_erreur() {
+        retourne valeur_complétion_gauche.Erreur
+    }
+    valeur_complétion_droite := donne_valeur(completion_droite.valeur)
+    si valeur_complétion_droite.possède_erreur() {
+        retourne valeur_complétion_droite.Erreur
+    }
+    gauche := valeur_complétion_gauche.Ok
+    droite := valeur_complétion_droite.Ok
     retourne normal_completion(évalue_expression_binaire(noeud.opération, gauche, droite))
 }
 
@@ -499,7 +507,12 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
         retourne completion_valeur_appelée
     }
 
-    valeur_appelée := completion_valeur_appelée.valeur
+    valeur_complétion := donne_valeur(completion_valeur_appelée.valeur)
+    si valeur_complétion.possède_erreur() {
+        retourne valeur_complétion.Erreur
+    }
+
+    valeur_appelée := valeur_complétion.Ok
     assert(valeur_appelée.est_fonction())
 
     fonction := valeur_appelée.Function
@@ -547,8 +560,11 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     saufsi completion_valeur.est_normal() {
         retourne completion_valeur
     }
-
-    valeur := completion_valeur.valeur
+    valeur_complétion := donne_valeur(completion_valeur.valeur)
+    si valeur_complétion.possède_erreur() {
+        retourne valeur_complétion.Erreur
+    }
+    valeur := valeur_complétion.Ok
     interpréteuse.définis_variable(identifier.nom, valeur)
     retourne normal_completion(valeur)
 }
@@ -635,8 +651,11 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
         saufsi completion_valeur.est_normal() {
             retourne completion_valeur
         }
-
-        valeur := completion_valeur.valeur
+        valeur_complétion := donne_valeur(completion_valeur.valeur)
+        si valeur_complétion.possède_erreur() {
+            retourne valeur_complétion.Erreur
+        }
+        valeur := valeur_complétion.Ok
         interpréteuse.définis_variable(identifier.nom, valeur)
         résultat = valeur
     }
@@ -701,7 +720,13 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         retourne completion_valeur
     }
 
-    valeur := completion_valeur.valeur
+    valeur_complétion := donne_valeur(completion_valeur.valeur)
+    si valeur_complétion.possède_erreur() {
+        retourne valeur_complétion.Erreur
+    }
+
+    valeur := valeur_complétion.Ok
+
     objet := vers_objet(interpréteuse.donne_tas_de_mémoire(), valeur)
 
     assert(membre.propriété.type == Identifier)
@@ -806,9 +831,12 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
             saufsi doit_continuer.est_normal() {
                 retourne doit_continuer
             }
+            valeur_complétion := donne_valeur(doit_continuer.valeur)
+            si valeur_complétion.possède_erreur() {
+                retourne valeur_complétion.Erreur
+            }
 
-            valeur := doit_continuer.valeur
-
+            valeur := valeur_complétion.Ok
             assert(valeur.est_boolean())
 
             si valeur.est_false() {

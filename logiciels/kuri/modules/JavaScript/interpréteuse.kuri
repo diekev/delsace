@@ -2,6 +2,76 @@ importe Ensemble
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
+/** \nom ReferenceRecord
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-reference-record-specification-type
+ * \{ */
+
+EnvironmentRecord :: #opaque z32
+
+ReferenceRecord :: struct {
+    Base :: union {
+        V: Valeur
+        E: EnvironmentRecord
+        UNRESOLVABLE
+    }
+
+    base: Base
+    referenced_name: Valeur
+    strict: bool
+    valeur_this: Optionnel(Valeur)
+}
+
+est_référence_propriété :: fonc (référence: ReferenceRecord) -> bool
+{
+    discr référence.base {
+        UNRESOLVABLE {
+            retourne faux
+        }
+        E {
+            retourne faux
+        }
+        sinon {
+            retourne vrai
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ValeurCompletion
+ * \{ */
+
+ValeurCompletion :: union {
+    V: Valeur
+    R: ReferenceRecord
+}
+
+est_reference_record :: fonc (valeur: ValeurCompletion) -> bool
+{
+    discr valeur {
+        R {
+            retourne vrai
+        }
+        V {
+            retourne faux
+        }
+        sinon { retourne faux }
+    }
+}
+
+donne_valeur :: fonc (valeur: ValeurCompletion) -> Résultat(Valeur, CompletionRecord)
+{
+    saufsi valeur.est_reference_record() {
+        retourne valeur.V
+    }
+
+    panique("donne_valeur pour ReferenceRecord non implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom CompletionRecord
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-completion-record-specification-type
  * \{ */
@@ -16,7 +86,7 @@ CompletionRecord :: struct {
     }
 
     type: Type
-    valeur: Valeur
+    valeur: ValeurCompletion
     cible: chaine
 }
 
