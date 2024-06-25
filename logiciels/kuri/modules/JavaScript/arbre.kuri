@@ -966,3 +966,35 @@ imprime_arbre :: fonc (noeud: *NoeudSyntaxique)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Destruction arbre.
+ * \{ */
+
+crée_visiteuse_pour_destruction :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseNoeud
+{
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, noeud: *NoeudSyntaxique, info: *InfoTypeStructure)
+    {
+        déloge_mémoire(info.taille_en_octet comme z64, noeud, info, PositionCodeSource())
+    }
+
+    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, tableau: [..]*NoeudSyntaxique)
+    {
+        déloge(tableau)
+    }
+
+    résultat: VisiteuseNoeud
+    résultat.arbre = noeud
+    résultat.rappel_pour_noeud = rappel_pour_noeud
+    résultat.rappel_pour_tableau = rappel_pour_tableau
+    résultat.direction_visite = DirectionVisiteNoeud.POST_ORDRE
+    retourne résultat
+}
+
+détruit_arbre :: fonc (noeud: *NoeudSyntaxique)
+{
+    visiteuse := crée_visiteuse_pour_destruction(noeud)
+    visite_noeud(*visiteuse, noeud, visite_noeud_générique)
+}
+
+/** \} */

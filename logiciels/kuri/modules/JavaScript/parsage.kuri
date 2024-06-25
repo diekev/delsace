@@ -14,6 +14,7 @@ parse :: fonc (script: *Script) -> Résultat(*Programme, ErreurCompilation)
     parseuse.lexèmes = script.lexèmes
 
     expressions := parse_bloc(*parseuse, faux)
+    diffère déloge(expressions)
 
     si parseuse.possède_erreur {
         retourne parseuse.erreur_de_compilation
@@ -264,6 +265,7 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *ForStatement
     si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
         expressions := parse_bloc(parseuse, vrai)
         body = crée_block_statement(...expressions)
+        déloge(expressions)
     }
     sinon {
         body = parseuse.parse_expression()

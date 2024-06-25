@@ -82,6 +82,9 @@ détruit_script :: fonc (script: &Script)
 {
     déloge(script.source.texte)
     déloge(script.lexèmes)
+    si script.programme {
+        détruit_arbre(script.programme)
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -146,9 +149,11 @@ compile_script :: fonc (texte: chaine) -> Résultat(Script, ErreurCompilation)
             script.lexèmes = lexèmes
         }
         Erreur(erreur_de_compilation) {
+            détruit_script(script)
             retourne erreur_de_compilation
         }
         sinon {
+            détruit_script(script)
             retourne ErreurCompilation(copie_chaine("Erreur interne : le lexage n'a rien retourné"))
         }
     }
@@ -158,9 +163,11 @@ compile_script :: fonc (texte: chaine) -> Résultat(Script, ErreurCompilation)
             script.programme = programme
         }
         Erreur(erreur_de_compilation) {
+            détruit_script(script)
             retourne erreur_de_compilation
         }
         sinon {
+            détruit_script(script)
             retourne ErreurCompilation(copie_chaine("Erreur interne : le syntaxage n'a rien retourné"))
         }
     }

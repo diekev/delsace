@@ -89,6 +89,12 @@ initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
     interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire)
 }
 
+détruit_données_interpreteuse :: fonc (interpréteuse: &Interpréteuse)
+{
+    déloge(interpréteuse.pile_scope)
+    détruit_données_tas_de_mémoire(*interpréteuse.tas_de_mémoire)
+}
+
 exécute :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope) -> CompletionRecord
 {
     résultat := normal_completion(js_undefined)

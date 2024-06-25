@@ -13,6 +13,15 @@ TasDeMémoire :: struct {
     blocs: [..]*BlocDeMémoire
 }
 
+détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
+{
+    pour tas_de_mémoire.blocs {
+        déloge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, it, info_de(BlocDeMémoire), PositionCodeSource())
+    }
+
+    déloge(tas_de_mémoire.blocs)
+}
+
 alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
 {
     résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
