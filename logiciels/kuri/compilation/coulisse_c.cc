@@ -667,33 +667,20 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::RÉEL:
         case GenreNoeud::RIEN:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
+        case GenreNoeud::RÉFÉRENCE:
+        case GenreNoeud::POINTEUR:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             /* Rien à faire pour ces types-là. */
             return;
         }
-        case GenreNoeud::ERREUR:
-        case GenreNoeud::ENUM_DRAPEAU:
-        case GenreNoeud::DÉCLARATION_ÉNUM:
-        {
-            auto type_enum = type->comme_type_énum();
-            génère_code_pour_type(type_enum->type_sous_jacent, enchaineuse);
-            break;
-        }
         case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto opaque = type->comme_type_opaque();
             génère_code_pour_type(opaque->type_opacifié, enchaineuse);
-            break;
-        }
-        case GenreNoeud::RÉFÉRENCE:
-        {
-            génère_code_pour_type(type->comme_type_référence()->type_pointé, enchaineuse);
-            break;
-        }
-        case GenreNoeud::POINTEUR:
-        {
-            génère_code_pour_type(type->comme_type_pointeur()->type_pointé, enchaineuse);
             break;
         }
         case GenreNoeud::EINI:
@@ -1688,6 +1675,10 @@ static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *foncti
 
     auto const param = entête->parametre_entree(index);
     if (param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
+        return true;
+    }
+
+    if (!param->possède_drapeau(DrapeauxNoeud::EST_UTILISEE)) {
         return true;
     }
 

@@ -1,0 +1,15 @@
+/* Aucune erreur si une fonction retournant une union n'a pas d'instruction de retour.
+ * Catégorie : [validation sémantique]
+ */
+
+importe Fondation
+
+fonction :: fonc () -> Résultat(z32, r32)
+{
+}
+
+principale :: fonc () -> z32
+{
+    _ := fonction()
+    retourne 0
+}

@@ -97,6 +97,8 @@ struct NoeudDépendance {
         return m_type_noeud == TypeNoeudDependance::FONCTION;
     }
 
+    const NoeudExpression *noeud() const;
+
     inline Type *type() const
     {
         assert(est_type());
@@ -231,3 +233,6 @@ void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dépendance);
 /* Impression des dépendances directes. */
 [[nodiscard]] kuri::chaine imprime_dépendances(NoeudDéclarationSymbole const *symbole);
 [[nodiscard]] kuri::chaine imprime_dépendances(Type const *type);
+
+/* Imprime les chemins possibles entre les deux noeuds. */
+void trouve_chemins_entre(NoeudDépendance const *début, NoeudDépendance const *fin);

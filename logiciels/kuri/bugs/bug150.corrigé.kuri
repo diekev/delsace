@@ -1,0 +1,10 @@
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    a := 5
+    si a = 6 {
+        
+    }
+    retourne 0
+}
