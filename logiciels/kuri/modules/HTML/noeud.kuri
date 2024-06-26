@@ -31,6 +31,41 @@ est_élément :: fonc (noeud: *Noeud) -> bool
     retourne noeud.genre == GenreNoeud.Élément
 }
 
+est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
+{
+    saufsi est_élément(noeud) {
+        retourne nul
+    }
+
+    élément := noeud comme *Élément
+
+    si élément.texte == type {
+        retourne élément
+    }
+
+    retourne nul
+}
+
+est_élément_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
+{
+    saufsi est_élément(noeud) {
+        retourne nul
+    }
+
+    élément := noeud comme *Élément
+
+    si élément.texte == tag {
+        retourne élément
+    }
+
+    retourne nul
+}
+
+est_élément_script :: fonc (noeud: *Noeud) -> bool
+{
+    retourne est_élément_type(noeud, TAG_script) != nul
+}
+
 est_doctype :: fonc (noeud: *Noeud) -> bool
 {
     retourne noeud.genre == GenreNoeud.Doctype

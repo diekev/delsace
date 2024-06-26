@@ -86,36 +86,6 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) ->
     retourne élément
 }
 
-est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
-{
-    si noeud.genre != GenreNoeud.Élément {
-        retourne nul
-    }
-
-    élément := noeud comme *Élément
-
-    si élément.texte == type {
-        retourne élément
-    }
-
-    retourne nul
-}
-
-est_élément_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
-{
-    si noeud.genre != GenreNoeud.Élément {
-        retourne nul
-    }
-
-    élément := noeud comme *Élément
-
-    si élément.texte == tag {
-        retourne élément
-    }
-
-    retourne nul
-}
-
 est_compatible_html5 :: fonc (élément: *Élément) -> bool
 {
     discr élément.texte {
@@ -337,16 +307,6 @@ HTMLScriptElement :: struct {
 
     type: TypeScript
     // result : "uninitialized", null, scipt, import map parse result
-}
-
-est_élément_script :: fonc (noeud: *Noeud) -> bool
-{
-    saufsi noeud.genre == GenreNoeud.Élément {
-        retourne faux
-    }
-
-    élément := noeud comme *Élément
-    retourne élément.texte == TAG_script
 }
 
 donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString

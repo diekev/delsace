@@ -204,7 +204,7 @@ insère_caractère :: fonc (parseuse: *Parseuse, point_de_code: n32)
 {
     position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
 
-    si position_ajustée_d_insertion.genre == GenreNoeud.Document {
+    si position_ajustée_d_insertion.est_document() {
         // ignore
         retourne
     }

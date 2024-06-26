@@ -24,11 +24,11 @@ imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien
 {
     imprime_tabulation(tab)
 
-    si noeud.genre == GenreNoeud.Texte {
+    si noeud.est_texte() {
         texte := noeud comme *NoeudTexte
         imprime("%\n", texte.données)
     }
-    sinon si noeud.genre == GenreNoeud.Élément {
+    sinon si noeud.est_élément() {
         élément := noeud comme *Élément
         imprime("<%", élément.texte)
 
@@ -38,7 +38,7 @@ imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien
 
         imprime(">\n")
     }
-    sinon si noeud.genre == GenreNoeud.Commentaire {
+    sinon si noeud.est_commentaire() {
         commentaire := noeud comme *NoeudCommentaire
         imprime("<!--%-->\n", commentaire.données)
     }
@@ -63,7 +63,7 @@ imprime_document :: fonc (document: *Document)
 rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudTexte, eini)(rien), données: eini)
 {
     pour noeud.enfants {
-        si it.genre == GenreNoeud.Texte {
+        si it.est_texte() {
             texte := it comme *NoeudTexte
             rappel_pour_texte(texte, données)
         }
