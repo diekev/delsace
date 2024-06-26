@@ -78,7 +78,6 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 
     détruit(rappel.rappels_fenêtre.parsat)
     déloge(rappel.rappels_fenêtre.contenu)
-    détruit_chaines_internées()
 
     imprime("mémoire_utilisée %\n", mémoire_utilisée() - rappel.mémoire_entrée)
 }

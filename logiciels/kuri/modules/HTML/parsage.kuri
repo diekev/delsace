@@ -36,8 +36,6 @@ Parseuse :: struct {
 
 initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
 {
-    initialise_tags()
-
     flux_utf32 := crée_chaine_utf32(entrée)
 
     parseuse: Parseuse
