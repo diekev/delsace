@@ -3,6 +3,8 @@ importe Chaine
 Attribut :: struct {
     nom: ChaineUTF16
     valeur: ChaineUTF16
+
+    // À FAIRE(langage) élément: *Élément
 }
 
 détruit_attributs :: fonc (attributs: &[..]Attribut)
@@ -25,17 +27,6 @@ chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := ChaineUTF16()) -> Cha
 }
 
 cherche_attribut :: fonc (attributs: [..]Attribut, nom: ChaineUTF16) -> *Attribut
-{
-    pour * attributs {
-        si it.nom == nom {
-            retourne it
-        }
-    }
-
-    retourne nul
-}
-
-cherche_attribut :: fonc (attributs: [..]Attribut, nom: chaine) -> *Attribut
 {
     pour * attributs {
         si it.nom == nom {

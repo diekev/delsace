@@ -68,7 +68,7 @@ génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent
 
     ctx_entropie.profondeur += 1
     pour parent.enfants {
-        saufsi it.genre == GenreNoeud.Élément {
+        saufsi it.est_élément() {
             continue
         }
 

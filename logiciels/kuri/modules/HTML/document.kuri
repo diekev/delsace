@@ -1,23 +1,123 @@
 importe Chaine
 importe Fondation
 
+/* ------------------------------------------------------------------------- */
+/** \nom Document.
+ * \{ */
+
+Encodage :: énum {
+    UTF8
+    UTF8LE
+    UTF8BE
+}
+
+ModeDocument :: énum {
+    NO_QUIRKS
+    QUIRKS
+    LIMITED_QUIRKS
+}
+
+formatte_mode_document :: fonc (enchaineuse: *Enchaineuse, mode: *ModeDocument)
+{
+    saufsi mode {
+        retourne
+    }
+    discr mémoire(mode) {
+        NO_QUIRKS {
+            ajoute_au_tampon(enchaineuse, "no-quirks")
+        }
+        QUIRKS {
+            ajoute_au_tampon(enchaineuse, "quirks")
+        }
+        LIMITED_QUIRKS {
+            ajoute_au_tampon(enchaineuse, "limited-quirks")
+        }
+    }
+} @FormattageImpression
+
 Document :: struct {
     empl base: Noeud
 
-    quirks_mode := faux
+    type_contenu: chaine
+    type: chaine
+    url: chaine
+    encodage: Encodage
+    mode: ModeDocument
+    permets_racines_shadow_déclaratives: bool
+
+    pending_parsing_blocking_script: *HTMLScriptElement
+
+    la_parseuse_ne_peut_changer_le_mode: bool
 }
 
 crée_noeud_document :: fonc () -> *Document
 {
     document := loge(Document)
     document.genre = GenreNoeud.Document
-    document.document = document // au cas où
+    document.encodage = Encodage.UTF8
+    document.mode = ModeDocument.NO_QUIRKS
+    document.type_contenu = "application/xml"
+    document.type = "xml"
+    document.url = "about:blank"
+    document.document = document
 
     retourne document
 }
 
+est_en_mode_quirks :: fonc (document: *Document) -> bool
+{
+    retourne document.mode == ModeDocument.QUIRKS
+}
+
+/* https://html.spec.whatwg.org/multipage/iframe-embed-object.html#an-iframe-srcdoc-document */
+est_iframe_srcdoc :: fonc (document: *Document) -> bool
+{
+    retourne document.url == "about:srcdoc"
+}
+
+donne_doctype :: fonc (document: *Document) -> *DocumentType
+{
+    pour document.enfants {
+        si it.genre == GenreNoeud.Doctype {
+            retourne it comme *DocumentType
+        }
+    }
+    retourne nul
+}
+
+donne_title_element :: fonc (document: *Document) -> *Élément
+{
+    retourne donne_premier_élément_de_type(document, TAG_title)
+}
+
+donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
+{
+    si noeud.est_élément_type(tag) {
+        retourne noeud comme *Élément
+    }
+
+    pour noeud.enfants {
+        élément := donne_premier_élément_de_type(it, tag)
+        si élément {
+            retourne élément
+        }
+    }
+
+    retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom DocumentType.
+ * \{ */
+
 DocumentType :: struct {
     empl base: Noeud
+
+    nom: ChaineUTF16
+    public_id: ChaineUTF16
+    system_id: ChaineUTF16
 }
 
 crée_noeud_doctype :: fonc (document: *Document) -> *DocumentType
@@ -28,6 +128,12 @@ crée_noeud_doctype :: fonc (document: *Document) -> *DocumentType
 
     retourne doctype
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudTexte.
+ * \{ */
 
 NoeudTexte :: struct {
     empl base: Noeud
@@ -44,6 +150,12 @@ crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
     retourne texte
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudCommentaire.
+ * \{ */
+
 NoeudCommentaire :: struct {
     empl base: Noeud
 
@@ -59,3 +171,5 @@ crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> 
 
     retourne commentaire
 }
+
+/** \} */

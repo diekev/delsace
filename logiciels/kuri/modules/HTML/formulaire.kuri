@@ -18,8 +18,8 @@ formulaire_depuis_élément :: fonc (élément: *Élément) -> Formulaire
 {
     formulaire: Formulaire
     // À FAIRE : l'action par défaut est la page courante
-    formulaire.action = chaine_ou_défaut(cherche_attribut(élément, "action"), "/")
-    formulaire.méthode = chaine_ou_défaut(cherche_attribut(élément, "method"), "GET")
+    formulaire.action = chaine_ou_défaut(cherche_attribut(élément, ATTR_action), "/")
+    formulaire.méthode = chaine_ou_défaut(cherche_attribut(élément, ATTR_method), "GET")
 
     pour élément.enfants {
         input := est_élément_type(it, "input")
@@ -37,9 +37,9 @@ formulaire_depuis_élément :: fonc (élément: *Élément) -> Formulaire
 ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Élément)
 {
     entrée: EntréeFormulaire
-    entrée.nom = chaine_ou_défaut(cherche_attribut(input, "name"))
-    entrée.type = chaine_ou_défaut(cherche_attribut(input, "type"))
-    entrée.valeur_défaut = chaine_ou_défaut(cherche_attribut(input, "value"))
+    entrée.nom = chaine_ou_défaut(cherche_attribut(input, ATTR_name))
+    entrée.type = chaine_ou_défaut(cherche_attribut(input, ATTR_type))
+    entrée.valeur_défaut = chaine_ou_défaut(cherche_attribut(input, ATTR_value))
     tableau_ajoute(*formulaire.entrées, entrée)
 }
 
