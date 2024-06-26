@@ -85,6 +85,27 @@ donne_doctype :: fonc (document: *Document) -> *DocumentType
     retourne nul
 }
 
+donne_title_element :: fonc (document: *Document) -> *Élément
+{
+    retourne donne_premier_élément_de_type(document, TAG_title)
+}
+
+donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
+{
+    si noeud.est_élément_type(tag) {
+        retourne noeud comme *Élément
+    }
+
+    pour noeud.enfants {
+        élément := donne_premier_élément_de_type(it, tag)
+        si élément {
+            retourne élément
+        }
+    }
+
+    retourne nul
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
