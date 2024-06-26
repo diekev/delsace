@@ -21,6 +21,48 @@ Noeud :: struct {
     document: *Document
 }
 
+détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
+{
+    discr noeud.genre {
+        Invalide {
+            déloge(noeud)
+        }
+        Document {
+            document := noeud comme *Document
+            déloge(document)
+        }
+        Commentaire {
+            commentaire := noeud comme *NoeudCommentaire
+            détruit_chaine(commentaire.données)
+            déloge(commentaire)
+        }
+        Élément {
+            élément := noeud comme *Élément
+            // Ne pas détruire le texte, c'est un pointeur partagé !
+            déloge(élément)
+        }
+        Texte {
+            texte := noeud comme *NoeudTexte
+            détruit_chaine(texte.données)
+            déloge(texte)
+        }
+        Doctype {
+            type_document := noeud comme *DocumentType
+            détruit_chaine(type_document.nom)
+            détruit_chaine(type_document.public_id)
+            détruit_chaine(type_document.system_id)
+            déloge(type_document)
+        }
+    }
+}
+
+détruit_noeud :: fonc (noeud: *Noeud)
+{
+    détruit_attributs(noeud.attributs)
+    déloge_tableau_et_ses_éléments(noeud.enfants, détruit_noeud)
+    détruit_noeud_selon_genre(noeud)
+}
+
 est_document :: fonc (noeud: *Noeud) -> bool
 {
     retourne noeud.genre == GenreNoeud.Document
@@ -29,6 +71,41 @@ est_document :: fonc (noeud: *Noeud) -> bool
 est_élément :: fonc (noeud: *Noeud) -> bool
 {
     retourne noeud.genre == GenreNoeud.Élément
+}
+
+est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
+{
+    saufsi est_élément(noeud) {
+        retourne nul
+    }
+
+    élément := noeud comme *Élément
+
+    si élément.texte == type {
+        retourne élément
+    }
+
+    retourne nul
+}
+
+est_élément_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
+{
+    saufsi est_élément(noeud) {
+        retourne nul
+    }
+
+    élément := noeud comme *Élément
+
+    si élément.texte == tag {
+        retourne élément
+    }
+
+    retourne nul
+}
+
+est_élément_script :: fonc (noeud: *Noeud) -> bool
+{
+    retourne est_élément_type(noeud, TAG_script) != nul
 }
 
 est_doctype :: fonc (noeud: *Noeud) -> bool
@@ -46,6 +123,16 @@ est_commentaire :: fonc (noeud: *Noeud) -> bool
     retourne noeud.genre == GenreNoeud.Commentaire
 }
 
+possède_enfants :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.enfants.taille != 0
+}
+
+dernier_enfant :: fonc (noeud: *Noeud) -> *Noeud
+{
+    retourne noeud.enfants[noeud.enfants.taille - 1]
+}
+
 ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
 {
     enfant.parent = parent
@@ -58,21 +145,9 @@ ajoute_enfant_dernier :: fonc (parent: *Noeud, enfant: *Noeud)
     tableau_ajoute(*parent.enfants, enfant)
 }
 
-ajoute_attribut :: fonc (noeud: *Noeud @inutilisée, nom: chaine @inutilisée, valeur: chaine @inutilisée)
-{
-    // attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
-    // tableau_ajoute(*noeud.attributs, attribut)
-}
-
 ajoute_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16, valeur: ChaineUTF16)
 {
     ajoute_attribut(*noeud.attributs, nom, valeur)
-}
-
-ajoute_attribut :: fonc (noeud: *Noeud @inutilisée, nom: chaine @inutilisée, valeur: *ChaineInternée @inutilisée)
-{
-    // attribut := Attribut(nom = copie_chaine(nom), valeur = valeur.chaine_native())
-    // tableau_ajoute(*noeud.attributs, attribut)
 }
 
 possède_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16) -> bool
@@ -80,9 +155,18 @@ possède_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16) -> bool
     retourne cherche_attribut(noeud.attributs, nom) != nul
 }
 
-cherche_attribut :: fonc (noeud: *Noeud, nom: chaine) -> *Attribut
+cherche_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16) -> *Attribut
 {
     retourne cherche_attribut(noeud.attributs, nom)
+}
+
+donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: ChaineUTF16) -> Optionnel(ChaineUTF16)
+{
+    attribut := cherche_attribut(noeud, nom_qualifié)
+    saufsi attribut {
+        retourne
+    }
+    retourne attribut.valeur
 }
 
 /* Retourne le premier enfant ayant le tag donné, ou nul si le noeud n'a pas
@@ -100,4 +184,67 @@ donne_premier_enfant_taggé :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *N
     }
 
     retourne nul
+}
+
+/* https://dom.spec.whatwg.org/#connected */
+est_connecté :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.donne_racine_shadow_including().est_document()
+}
+
+/* https://dom.spec.whatwg.org/#concept-tree-root */
+donne_racine :: fonc (noeud: *Noeud) -> *Noeud
+{
+    résultat := noeud
+    tantque résultat.parent != nul {
+        résultat = résultat.parent
+    }
+    retourne résultat
+}
+
+/* https://dom.spec.whatwg.org/#concept-shadow-including-root */
+donne_racine_shadow_including :: fonc (noeud: *Noeud) -> *Noeud
+{
+    racine := noeud.donne_racine()
+    /* INCOMPLET : shadow root */
+    retourne racine
+}
+
+rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudTexte, eini)(rien), données: eini)
+{
+    pour noeud.enfants {
+        si it.est_texte() {
+            texte := it comme *NoeudTexte
+            rappel_pour_texte(texte, données)
+        }
+        sinon {
+            rassemble_texte_noeud(it, rappel_pour_texte, données)
+        }
+    }
+}
+
+/* Fonction auxillaire pour extraire le texte d'un noeud et de ses enfants. */
+extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
+{
+    ExtractriceTexte :: struct {
+        texte: ChaineUTF16
+    }
+
+    rappel_pour_extraction_texte :: fonc (noeud_texte: *NoeudTexte, données: eini)
+    {
+        extractrice := mémoire(données.pointeur comme **ExtractriceTexte)
+
+        tableau_réserve(*extractrice.texte.unités, noeud_texte.données.taille())
+
+        pour noeud_texte.données.unités {
+            tableau_ajoute(*extractrice.texte.unités, it)
+        }
+    }
+
+    extractrice: ExtractriceTexte
+    diffère détruit_chaine(extractrice.texte)
+
+    rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice)
+
+    retourne imprime_chaine("%", extractrice.texte)
 }
