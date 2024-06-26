@@ -1,0 +1,223 @@
+importe Chaine
+importe Fondation
+importe HTML
+importe Qt
+importe SysFichier
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction principale.
+ * \{ */
+
+principale :: fonc () -> z32
+{
+    mémoire_entrée := mémoire_utilisée()
+
+    arguments := __arguments_ligne_commande
+
+    chemin_fichier: chaine
+    si arguments.taille > 1 {
+        arg1 := convertis_chaine_c_statique(ChaineC(arguments[1]))
+
+        si est_un_fichier_régulier(CheminFichier(arg1)) {
+            chemin_fichier = arg1
+        }
+    }
+
+    /* Création application. */
+    taille_arguments := arguments.taille comme z32
+    app := QT_cree_application(*taille_arguments, arguments.pointeur)
+    diffère QT_detruit_application(app)
+
+    rappel_fermeture: RappelFermetureApp
+    rappel_fermeture.mémoire_entrée = mémoire_entrée
+    QT_application_sur_fin_boucle_evenement(app, *rappel_fermeture)
+
+    QT_core_application_definis_nom_organisation(vers_qt("delsace"))
+    QT_core_application_definis_nom_application(vers_qt("HTML"))
+
+    /* Création fenêtre. */
+    rappels_fenêtre : RappelsFenetrePrincipale
+    rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
+
+    fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
+    diffère QT_detruit_fenetre_principale(fenêtre)
+
+    QT_widget_definis_titre_fenetre(fenêtre, vers_qt("HTML"))
+    QT_widget_affiche_maximisee(fenêtre)
+
+    contenu := contenu_fichier_texte(chemin_fichier)
+
+    rappels_fenêtre.parsat = parse_document(contenu)
+    rappels_fenêtre.contenu = contenu
+
+    /* Création widgets. */
+    widget := crée_widget_arbre_pour_dom(fenêtre)
+    QT_fenetre_principale_definis_widget_central(fenêtre, widget)
+
+    retourne QT_application_exec(app)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sur fermeture application.
+ * \{ */
+
+RappelFermetureApp :: struct {
+    empl base: QT_Rappel_Generique
+
+    rappels_fenêtre: *RappelsFenetrePrincipale
+    mémoire_entrée: z64
+
+    sur_rappel = sur_fermeture_application
+}
+
+sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
+{    
+    rappel := base comme *RappelFermetureApp
+
+    détruit(rappel.rappels_fenêtre.parsat)
+    déloge(rappel.rappels_fenêtre.contenu)
+    détruit_chaines_internées()
+
+    imprime("mémoire_utilisée %\n", mémoire_utilisée() - rappel.mémoire_entrée)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Données fenêtre principale.
+ * \{ */
+
+RappelsFenetrePrincipale :: struct {
+    empl base : QT_Rappels_Fenetre_Principale
+
+    parsat: ParsatHTML
+    contenu: chaine
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ÉditriceArborescence
+ * \{ */
+
+WidgetArbre :: struct {
+    empl base: QT_Rappels_TreeWidget
+}
+
+crée_widget_arbre :: fonc (rappels: *QT_Rappels_TreeWidget, parent: QT_Generic_Widget) -> *QT_TreeWidget
+{
+    résultat := QT_cree_treewidget(rappels, parent)
+
+    QT_treewidget_definis_taille_icone(résultat, 20, 20)
+    QT_treewidget_definis_toutes_les_colonnes_montre_focus(résultat, 1)
+    QT_treewidget_definis_anime(résultat, 0)
+    QT_treewidget_definis_auto_defilement(résultat, 0)
+    QT_treewidget_definis_hauteurs_uniformes_lignes(résultat, 1)
+    QT_treewidget_definis_mode_selection(résultat, QT_Mode_Selection.SELECTION_UNIQUE)
+    QT_treewidget_definis_mode_drag_drop(résultat, QT_Mode_DragDrop.AUCUN_DRAG_DROP)
+    QT_treewidget_definis_activation_drag(résultat, 0)
+    QT_treewidget_definis_comportement_focus(résultat, QT_Comportement_Focus.AUCUN_FOCUS)
+    QT_treewidget_definis_comportement_menu_contextuel(résultat, QT_Comportement_Menu_Contextuel.MENU_PERSONNALISE)
+    QT_treewidget_definis_entete_visible(résultat, 1)
+
+    retourne résultat
+}
+
+RappelsArborescence :: struct {
+    empl base: QT_Rappels_TreeWidget
+
+    fenêtre_principale: *QT_Fenetre_Principale
+}
+
+initialise_rappels_arborescence :: fonc (fenêtre_principale: *QT_Fenetre_Principale) -> RappelsArborescence
+{
+    // sur_changement_item_courant :: fonc (rappels: *QT_Rappels_TreeWidget, courant: *QT_TreeWidgetItem, précédent: *QT_TreeWidgetItem @inutilisée)
+    // {
+    //     rappels_arborescence := rappels comme *RappelsArborescence
+    //     données := QT_treewidgetitem_donne_donnees(courant)
+    // }
+
+    résultat: RappelsArborescence
+    résultat.fenêtre_principale = fenêtre_principale
+    résultat.sur_changement_item_courant = sur_changement_item_courant
+    retourne résultat
+}
+
+crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale) -> *QT_TreeWidget
+{
+    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
+
+    résultat := crée_widget_arbre(nul, fenêtre)
+
+    parsat := rappels.parsat
+    si parsat.document {
+        titre := parsat.document.donne_title_element()
+        si titre {
+            texte_titre := extrait_texte_noeud(titre)
+            diffère déloge(texte_titre)
+
+            QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_titre))
+        }
+
+        item_document := QT_cree_treewidgetitem(nul, nul)
+        QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+        texte := vers_qt("document")
+        QT_treewidgetitem_definis_texte(item_document, 0, *texte)
+        QT_treewidget_ajoute_item_racine(résultat, item_document)
+
+        pour parsat.document.enfants {
+            ajoute_item_pour_noeud(item_document, it)
+        }
+    }
+
+    retourne résultat
+}
+
+ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
+{
+    texte := ""
+    diffère déloge(texte)
+
+    si noeud.est_élément() {
+        élément := noeud comme *Élément
+
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+        diffère détruit_tampons(*enchaineuse)
+
+        ajoute_au_tampon(*enchaineuse, "<", élément.texte.chaine_native())
+
+        pour noeud.attributs {
+            ajoute_au_tampon(*enchaineuse, " ", it.nom, "=\"", it.valeur, "\"")
+        }
+
+        ajoute_au_tampon(*enchaineuse, ">")
+
+        texte = chaine_depuis_enchaineuse(*enchaineuse)
+    }
+    sinon {
+        si noeud.est_texte() {
+            noeud_texte := noeud comme *NoeudTexte
+            si est_vide_ou_uniquement_espace_blanches(noeud_texte.données) {
+                retourne
+            }
+        }
+
+        texte = imprime_chaine("%", noeud.genre)
+    }
+
+    item_noeud := QT_cree_treewidgetitem(nul, nul)
+    QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+    qtexte := vers_qt(texte)
+    QT_treewidgetitem_definis_texte(item_noeud, 0, *qtexte)
+
+    QT_treewidgetitem_ajoute_enfant(parent, item_noeud)
+
+    pour noeud.enfants {
+        ajoute_item_pour_noeud(item_noeud, it)
+    }
+}
+
+/** \} */
