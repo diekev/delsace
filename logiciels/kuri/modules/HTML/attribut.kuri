@@ -37,17 +37,6 @@ cherche_attribut :: fonc (attributs: [..]Attribut, nom: ChaineUTF16) -> *Attribu
     retourne nul
 }
 
-cherche_attribut :: fonc (attributs: [..]Attribut, nom: chaine) -> *Attribut
-{
-    pour * attributs {
-        si it.nom == nom {
-            retourne it
-        }
-    }
-
-    retourne nul
-}
-
 ajoute_attribut :: fonc (attributs: *[..]Attribut, nom: ChaineUTF16, valeur: ChaineUTF16)
 {
     attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
