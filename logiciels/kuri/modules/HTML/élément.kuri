@@ -34,7 +34,19 @@ est_tag_auto_fermant :: fonc (tag: *ChaineInternée) -> bool
 Élément :: struct {
     empl base: Noeud
 
-    texte: *ChaineInternée
+    espace_de_nom: chaine // DOMString @namespaceURI
+    texte: *ChaineInternée // DOMString @localName
+
+    état_élément_custom: chaine
+    définition_élément_custom: *rien
+}
+
+/* https://dom.spec.whatwg.org/#concept-element-attributes-append */
+ajoute_attribut :: fonc (élément: *Élément, attribut: Attribut)
+{
+    // attribut.élément = élément
+    ajoute_attribut(élément, attribut.nom, attribut.valeur)
+    /* INCOMPLET : 3. Handle attribute changes. */
 }
 
 initialise_élément :: fonc (élément: *Élément, document: *Document, texte: *ChaineInternée) -> rien
@@ -51,6 +63,12 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) ->
     si tag == TAG_a {
         élément = loge(HTMLAnchorElement)
     }
+    sinon si tag == TAG_form {
+        élément = loge(HTMLFormElement)
+    }
+    sinon si tag == TAG_head {
+        élément = loge(HTMLHeadElement)
+    }
     sinon si tag == TAG_img {
         élément = loge(HTMLImageElement)
     }
@@ -66,36 +84,6 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) ->
 
     initialise_élément(élément, document, tag)
     retourne élément
-}
-
-est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
-{
-    si noeud.genre != GenreNoeud.Élément {
-        retourne nul
-    }
-
-    élément := noeud comme *Élément
-
-    si élément.texte == type {
-        retourne élément
-    }
-
-    retourne nul
-}
-
-est_élément_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
-{
-    si noeud.genre != GenreNoeud.Élément {
-        retourne nul
-    }
-
-    élément := noeud comme *Élément
-
-    si élément.texte == tag {
-        retourne élément
-    }
-
-    retourne nul
 }
 
 est_compatible_html5 :: fonc (élément: *Élément) -> bool
@@ -190,16 +178,40 @@ HTMLAnchorElement :: struct {
 
 est_hyperlien :: fonc (anchor: *HTMLAnchorElement) -> bool
 {
-    retourne anchor.cherche_attribut("href") != nul
+    retourne anchor.donne_attribut(ATTR_href).possède_valeur()
 }
 
 donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut("href")
-    si attribut {
-        retourne attribut.valeur
+    attribut := anchor.donne_attribut(ATTR_href)
+    si attribut.possède_valeur() {
+        retourne attribut.Quelque
     }
     retourne DOMString()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLFormElement
+ * https://html.spec.whatwg.org/multipage/forms.html#htmlformelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement
+ * \{ */
+
+HTMLFormElement :: struct {
+    empl base_élément: Élément
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLHeadElement
+ * https://html.spec.whatwg.org/multipage/dom.html#htmlheadelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHeadElement
+ * \{ */
+
+HTMLHeadElement :: struct {
+    empl base_élément: Élément
 }
 
 /** \} */
@@ -216,9 +228,9 @@ HTMLImageElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut("src")
-    si attribut {
-        retourne attribut.valeur
+    attribut := anchor.donne_attribut(ATTR_src)
+    si attribut.possède_valeur() {
+        retourne attribut.Quelque
     }
     retourne DOMString()
 }
@@ -237,9 +249,9 @@ HTMLMediaElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLMediaElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut("src")
-    si attribut {
-        retourne attribut.valeur
+    attribut := anchor.donne_attribut(ATTR_src)
+    si attribut.possède_valeur() {
+        retourne attribut.Quelque
     }
     retourne DOMString()
 }
@@ -264,17 +276,280 @@ HTMLVideoElement :: struct {
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement
  * \{ */
 
+TypeScript :: énum {
+    NUL
+    CLASSIC
+    MODULE
+    IMPORTMAP
+}
+
+OptionsFetchScript :: struct {
+    cryptographic_nonce: chaine
+    integrity_metadata: chaine
+    parser_metadata := "not-parser-inserted"
+    credentials_mode := "same-origin"
+    referrer_policy: chaine
+    render_blocking: bool
+    fetch_priority := "auto"
+}
+
 HTMLScriptElement :: struct {
     empl html_element: HTMLElement
+
+    document_parseur: *Document
+    document_du_temps_de_préparation: *Document
+
+    force_async := vrai // À FAIRE : doit être faux lors de l'ajout d'un attribut async
+    provient_de_fichier_externe := faux
+    prêt_à_être_exécuté_par_parseuse := faux
+    déjà_commencé := faux
+    temporise_évènement_de_charge := faux
+
+    type: TypeScript
+    // result : "uninitialized", null, scipt, import map parse result
 }
 
 donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut("src")
-    si attribut {
-        retourne attribut.valeur
+    attribut := anchor.donne_attribut(ATTR_src)
+    si attribut.possède_valeur() {
+        retourne attribut.Quelque
     }
     retourne DOMString()
+}
+
+/* https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element */
+prépare :: fonc (script: *HTMLScriptElement)
+{
+    /* 1. */
+    si script.déjà_commencé {
+        retourne
+    }
+
+    /* 2. & 3. */
+    document_parseur := script.document_parseur
+    script.document_parseur = nul
+
+    /* 4. */
+    si document_parseur != nul && !script.possède_attribut(ATTR_async) {
+        script.force_async = vrai
+    }
+
+    /* 5. */
+    texte_source := extrait_texte_noeud(script)
+    diffère déloge(texte_source)
+
+    /* 6. */
+    possède_attr_src := script.possède_attribut(ATTR_src)
+    si !possède_attr_src && texte_source == "" {
+        retourne
+    }
+
+    /* 7. */
+    saufsi script.est_connecté() {
+        retourne
+    }
+
+    /* 8. */
+    type_bloc_script := détermine_type_block_script(script)
+    diffère détruit_chaine(type_bloc_script)
+    
+    /* 9. */
+    si est_type_mime_javascript(type_bloc_script) {
+        script.type = TypeScript.CLASSIC
+    }
+    /* 10. */
+    sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, "module") {
+        script.type = TypeScript.MODULE
+    }
+    /* 11. */
+    sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, "importmap") {
+        script.type = TypeScript.IMPORTMAP
+    }
+    /* 12. */
+    sinon {
+        retourne
+    }
+
+    /* 13. */
+    si document_parseur != nul {
+        script.document_parseur = document_parseur
+        script.force_async = faux
+    }
+
+    /* 14. */
+    script.déjà_commencé = vrai
+
+    /* 15. */
+    script.document_du_temps_de_préparation = script.document
+
+    /* 16. */
+    si document_parseur != nul && document_parseur != script.document_du_temps_de_préparation {
+        retourne
+    }
+
+    /* 17. */
+    si script.scripting_est_désactivé() {
+        retourne
+    }
+
+    /* 18. */
+    si script.possède_attribut(ATTR_nomodule) && script.type == TypeScript.CLASSIC {
+        retourne
+    }
+
+    /* 19. */
+    saufsi possède_attr_src {
+        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(script, "script", texte_source)
+        si bloqué == "Blocked" {
+            retourne
+        }
+    }
+
+    /* 20. */
+    si script.type == TypeScript.CLASSIC && script.possède_attribut(ATTR_for) && script.possède_attribut(ATTR_event) {
+        valeur_for := script.donne_attribut(ATTR_for).Quelque
+        valeur_event := script.donne_attribut(ATTR_event).Quelque
+
+        valeur_event = supprime_espace_blanches_autour(valeur_event)
+        valeur_for = supprime_espace_blanches_autour(valeur_for)
+
+        saufsi compare_ascii_insensible_à_la_casse(valeur_for, "window") {
+            retourne
+        }
+    
+        saufsi compare_ascii_insensible_à_la_casse(valeur_event, "onload") || compare_ascii_insensible_à_la_casse(valeur_event, "onload()") {
+            retourne
+        }
+    }
+
+    /* 21. INCOMPLET : charset */
+
+    /* 22. INCOMPLET */
+    /* 23. INCOMPLET */
+    module_script_credentials := ""
+
+    /* 24. INCOMPLET */
+    cryptographic_nonce := ""
+
+    /* 25. INCOMPLET */
+    integrity := ""
+
+    /* 26. INCOMPLET */
+    referrer_policy := ""
+
+    /* 27. INCOMPLET */
+    fetch_priority := ""
+
+    /* 28. */
+    métadonnée_parseuse := si script.est_inséré_par_parseuse() {
+        "parser-inserted"
+    }
+    sinon {
+        "not-parser-inserted"
+    }
+
+    /* 29. */
+    options: OptionsFetchScript
+    options.cryptographic_nonce = cryptographic_nonce
+    options.integrity_metadata = integrity
+    options.parser_metadata = métadonnée_parseuse
+    options.credentials_mode = module_script_credentials
+    options.referrer_policy = referrer_policy
+    options.fetch_priority = fetch_priority
+
+    /* 30. INCOMPLET settings object */
+
+    /* 31. */
+    si possède_attr_src {
+        imprime("source\n")
+    }
+    /* 32. */
+    sinon {
+        imprime("pas de source\n")
+        imprime("Texte source: %\n", texte_source)
+    }
+
+    /* 33. INCOMPLET */
+
+    /* 34. INCOMPLET */
+}
+
+est_inséré_par_parseuse :: fonc (script: *HTMLScriptElement) -> bool
+{
+    retourne script.document_parseur != nul
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#concept-n-noscript */
+scripting_est_désactivé :: fonc (script: *HTMLScriptElement @inutilisée) -> bool
+{
+    /* À FAIRE. */
+    retourne vrai
+}
+
+détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> ChaineUTF16
+{
+    attr_type := script.cherche_attribut(ATTR_type)
+    attr_language := script.cherche_attribut(ATTR_language)
+
+    si (attr_type != nul && attr_type.valeur.est_vide()) ||
+         (attr_type == nul && attr_language != nul && attr_language.valeur.est_vide()) ||
+         (attr_type == nul && attr_language == nul) {
+        retourne crée_chaine_utf16("text/javascript")
+    }
+
+    si attr_type {
+        /* À FAIRE : supprime espace blanches */
+        retourne supprime_espace_blanches_autour(attr_type.valeur)
+    }
+
+    assert(attr_language != nul)
+    chn := imprime_chaine("text/%", attr_language.valeur)
+    diffère déloge(chn)
+    retourne crée_chaine_utf16(chn)
+}
+
+/* https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match */
+est_type_mime_javascript :: fonc (chn: ChaineUTF16) -> bool
+{
+    mimes_possibles := [
+        "application/ecmascript",
+        "application/javascript",
+        "application/x-ecmascript",
+        "application/x-javascript",
+        "text/ecmascript",
+        "text/javascript",
+        "text/javascript1.0",
+        "text/javascript1.1",
+        "text/javascript1.2",
+        "text/javascript1.3",
+        "text/javascript1.4",
+        "text/javascript1.5",
+        "text/jscript",
+        "text/livescript",
+        "text/x-ecmascript",
+        "text/x-javascript"
+    ]
+
+    pour mimes_possibles {
+        si compare_ascii_insensible_à_la_casse(chn, it) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+/* https://w3c.github.io/webappsec-csp/#should-block-inline */
+le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élément: *Élément, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
+{
+    assert(élément != nul)
+
+    résultat := "Allowed"
+
+    /* À FAIRE. */
+
+    retourne résultat
 }
 
 /** \} */
