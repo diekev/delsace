@@ -32,6 +32,9 @@ Lexème :: struct {
     // doctype
     identifiant_public_doctype: ChaineUTF32
     identifiant_système_doctype: ChaineUTF32
+    doctype_name_absent := vrai
+    doctype_public_id_absent := vrai
+    doctype_system_id_absent := vrai
     drapeau_force_quirks := faux
 
     // tag début ou fin
@@ -512,6 +515,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             DOCTYPEName {
+                lexeuse.lexème_courant.doctype_name_absent = faux
+
                 si est_espace_blanc_html(c) {
                     lexeuse.état = ÉtatLexage.AfterDOCTYPEName
                 }
@@ -634,6 +639,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             DOCTYPEPublicIdentifierDoubleQuoted {
+                lexeuse.lexème_courant.doctype_public_id_absent = faux
+
                 si c == GUILLEMET {
                     lexeuse.état = ÉtatLexage.AfterDOCTYPEPublicIdentifier
                 }
@@ -657,6 +664,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             DOCTYPEPublicIdentifierSingleQuoted {
+                lexeuse.lexème_courant.doctype_public_id_absent = faux
+
                 si c == APOSTROPHE {
                     lexeuse.état = ÉtatLexage.AfterDOCTYPEPublicIdentifier
                 }
@@ -802,6 +811,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             DOCTYPESystemIdentifierDoubleQuoted {
+                lexeuse.lexème_courant.doctype_system_id_absent = faux
+
                 si c == GUILLEMET {
                     lexeuse.état = ÉtatLexage.AfterDOCTYPESystemIdentifier
                 }
@@ -825,6 +836,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             DOCTYPESystemIdentifierSingleQuoted {
+                lexeuse.lexème_courant.doctype_system_id_absent = faux
+
                 si c == APOSTROPHE {
                     lexeuse.état = ÉtatLexage.AfterDOCTYPESystemIdentifier
                 }

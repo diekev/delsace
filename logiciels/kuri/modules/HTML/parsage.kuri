@@ -43,6 +43,7 @@ initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
     parseuse.mode_insertion = insère_mode_Initial
     parseuse.lexeuse = initialise_lexeuse(flux_utf32)
     parseuse.document = crée_noeud_document()
+    parseuse.document.type = "html"
 
     retourne parseuse
 }
@@ -234,6 +235,7 @@ insère_commentaire :: fonc (parseuse: *Parseuse, lexème: Lexème, position : *
     position_ajustée_d_insertion.ajoute_enfant(noeud_commentaire)
 }
 
+/* https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode */
 insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code) {
@@ -246,17 +248,184 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
+        si lexème.nom != "html" ||
+            lexème.doctype_public_id_absent == faux ||
+            lexème.doctype_system_id_absent == faux ||
+            lexème.identifiant_système_doctype != "about:legacy-compat" {
+            erreur_de_parsage(parseuse, "missing-doctype-name")
+        }
+
         doctype := crée_noeud_doctype(parseuse.document)
-        doctype.ajoute_attribut("name", lexème.nom)
-        parseuse.document.ajoute_enfant(doctype)
+        doctype.nom = crée_chaine_utf16(lexème.nom.chaine_native())
+        doctype.public_id = crée_chaine_utf16(lexème.identifiant_public_doctype)
+        doctype.system_id = crée_chaine_utf16(lexème.identifiant_système_doctype)
+
+        document := parseuse.document
+        document.ajoute_enfant(doctype)
+
+        si !document.est_iframe_srcdoc() && !document.la_parseuse_ne_peut_changer_le_mode && vérifie_lexème_doctype_pour_quirks(lexème) {
+            document.mode = ModeDocument.QUIRKS
+        }
+        sinon si !document.est_iframe_srcdoc() && !document.la_parseuse_ne_peut_changer_le_mode && vérifie_lexème_doctype_pour_limited_quirks(lexème) {
+            document.mode = ModeDocument.LIMITED_QUIRKS
+        }
+
         parseuse.mode_insertion = insère_mode_AvantHtml
         retourne
     }
 
-    // À FAIRE : vérifie si nous avons un iframe srcdoc
+    document := parseuse.document
+    saufsi document.est_iframe_srcdoc() {
+        erreur_de_parsage(parseuse, "token inattendu en mode d'insertion initial")
+    }
+
+    si document.la_parseuse_ne_peut_changer_le_mode {
+        document.mode = ModeDocument.QUIRKS
+    }
 
     parseuse.mode_insertion = insère_mode_AvantHtml
     parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
+}
+
+vérifie_lexème_doctype_pour_limited_quirks :: fonc (lexème: &Lexème) -> bool
+{
+    /* À FAIRE : ascii insensible à la casse */
+    si lexème.drapeau_force_quirks {
+        retourne vrai
+    }
+
+    si lexème.nom != "html" {
+        retourne vrai
+    }
+
+    si lexème.doctype_public_id_absent == faux {
+        noms_publics_invalides := [
+            "-//W3O//DTD W3 HTML Strict 3.0//EN//",
+            "-/W3C/DTD HTML 4.0 Transitional/EN",
+            "HTML"
+        ]
+
+        chn := converti_vers_chaine(lexème.identifiant_public_doctype)
+        diffère déloge(chn)
+
+        pour noms_publics_invalides {
+            si it == chn {
+                retourne vrai
+            }
+        }
+
+        préfixes_publics_invalides := [
+            "+//Silmaril//dtd html Pro v0r11 19970101//",
+            "-//AS//DTD HTML 3.0 asWedit + extensions//",
+            "-//AdvaSoft Ltd//DTD HTML 3.0 asWedit + extensions//",
+            "-//IETF//DTD HTML 2.0 Level 1//",
+            "-//IETF//DTD HTML 2.0 Level 2//",
+            "-//IETF//DTD HTML 2.0 Strict Level 1//",
+            "-//IETF//DTD HTML 2.0 Strict Level 2//",
+            "-//IETF//DTD HTML 2.0 Strict//",
+            "-//IETF//DTD HTML 2.0//",
+            "-//IETF//DTD HTML 2.1E//",
+            "-//IETF//DTD HTML 3.0//",
+            "-//IETF//DTD HTML 3.2 Final//",
+            "-//IETF//DTD HTML 3.2//",
+            "-//IETF//DTD HTML 3//",
+            "-//IETF//DTD HTML Level 0//",
+            "-//IETF//DTD HTML Level 1//",
+            "-//IETF//DTD HTML Level 2//",
+            "-//IETF//DTD HTML Level 3//",
+            "-//IETF//DTD HTML Strict Level 0//",
+            "-//IETF//DTD HTML Strict Level 1//",
+            "-//IETF//DTD HTML Strict Level 2//",
+            "-//IETF//DTD HTML Strict Level 3//",
+            "-//IETF//DTD HTML Strict//",
+            "-//IETF//DTD HTML//",
+            "-//Metrius//DTD Metrius Presentational//",
+            "-//Microsoft//DTD Internet Explorer 2.0 HTML Strict//",
+            "-//Microsoft//DTD Internet Explorer 2.0 HTML//",
+            "-//Microsoft//DTD Internet Explorer 2.0 Tables//",
+            "-//Microsoft//DTD Internet Explorer 3.0 HTML Strict//",
+            "-//Microsoft//DTD Internet Explorer 3.0 HTML//",
+            "-//Microsoft//DTD Internet Explorer 3.0 Tables//",
+            "-//Netscape Comm. Corp.//DTD HTML//",
+            "-//Netscape Comm. Corp.//DTD Strict HTML//",
+            "-//O'Reilly and Associates//DTD HTML 2.0//",
+            "-//O'Reilly and Associates//DTD HTML Extended 1.0//",
+            "-//O'Reilly and Associates//DTD HTML Extended Relaxed 1.0//",
+            "-//SQ//DTD HTML 2.0 HoTMetaL + extensions//",
+            "-//SoftQuad Software//DTD HoTMetaL PRO 6.0::19990601::extensions to HTML 4.0//",
+            "-//SoftQuad//DTD HoTMetaL PRO 4.0::19971010::extensions to HTML 4.0//",
+            "-//Spyglass//DTD HTML 2.0 Extended//",
+            "-//Sun Microsystems Corp.//DTD HotJava HTML//",
+            "-//Sun Microsystems Corp.//DTD HotJava Strict HTML//",
+            "-//W3C//DTD HTML 3 1995-03-24//",
+            "-//W3C//DTD HTML 3.2 Draft//",
+            "-//W3C//DTD HTML 3.2 Final//",
+            "-//W3C//DTD HTML 3.2//",
+            "-//W3C//DTD HTML 3.2S Draft//",
+            "-//W3C//DTD HTML 4.0 Frameset//",
+            "-//W3C//DTD HTML 4.0 Transitional//",
+            "-//W3C//DTD HTML Experimental 19960712//",
+            "-//W3C//DTD HTML Experimental 970421//",
+            "-//W3C//DTD W3 HTML//",
+            "-//W3O//DTD W3 HTML 3.0//",
+            "-//WebTechs//DTD Mozilla HTML 2.0//",
+            "-//WebTechs//DTD Mozilla HTML//"
+        ]
+
+        pour préfixes_publics_invalides {
+            si chn.commence_par(it) {
+                retourne vrai
+            }
+        }
+
+        si lexème.doctype_system_id_absent {
+            si chn.commence_par("-//W3C//DTD HTML 4.01 Frameset//") {
+                retourne vrai
+            }
+
+            si chn.commence_par("-//W3C//DTD HTML 4.01 Transitional//") {
+                retourne vrai
+            }
+        }
+    }
+
+    si lexème.doctype_system_id_absent == faux {
+        retourne lexème.identifiant_système_doctype == "http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd"
+    }
+
+    retourne faux
+}
+
+vérifie_lexème_doctype_pour_quirks :: fonc (lexème: &Lexème) -> bool
+{
+    /* À FAIRE : ascii insensible à la casse */
+    si lexème.doctype_public_id_absent == faux {
+        chn := converti_vers_chaine(lexème.identifiant_public_doctype)
+        diffère déloge(chn)
+
+        préfixes_publics_invalides := [
+            "-//W3C//DTD XHTML 1.0 Frameset//",
+            "-//W3C//DTD XHTML 1.0 Transitional//"
+        ]
+
+        pour préfixes_publics_invalides {
+            si chn.commence_par(it) {
+                retourne vrai
+            }
+        }
+
+        si lexème.doctype_system_id_absent == faux {
+            si chn.commence_par("-//W3C//DTD HTML 4.01 Frameset//") {
+                retourne vrai
+            }
+
+            si chn.commence_par("-//W3C//DTD HTML 4.01 Transitional//") {
+                retourne vrai
+            }
+        }
+    }
+
+    retourne faux
 }
 
 insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -852,7 +1021,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_table {
-            si !parseuse.document.quirks_mode && possède_dans_portée_button(*parseuse.pile_éléments_ouvert, TAG_p) {
+            si !parseuse.document.est_en_mode_quirks() && possède_dans_portée_button(*parseuse.pile_éléments_ouvert, TAG_p) {
                 ferme_un_élément_p(parseuse)
             }
 

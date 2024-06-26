@@ -48,6 +48,9 @@ détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
         }
         Doctype {
             type_document := noeud comme *DocumentType
+            détruit_chaine(type_document.nom)
+            détruit_chaine(type_document.public_id)
+            détruit_chaine(type_document.system_id)
             déloge(type_document)
         }
     }
