@@ -26,6 +26,8 @@ GenreLexème :: énum {
 Lexème :: struct {
     genre: GenreLexème
 
+    position: z32
+
     // général
     nom : *ChaineInternée = TAG_vide
 
@@ -214,7 +216,7 @@ Lexeuse :: struct {
 initialise_lexeuse :: fonc (document: &ChaineUTF32) -> Lexeuse
 {
     /* Ajout un point de code pour signifer la fin du fichier, ceci
-     * nous évite d'avoir à appeler a_fini pour chaque point_de_code. */
+     * nous évite d'avoir un test pour pour chaque point_de_code. */
     tableau_ajoute(*document.points_de_code, FIN_DE_FICHIER)
     retourne Lexeuse(document = document)
 }
@@ -236,14 +238,9 @@ point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
     retourne lexeuse.document.points_de_code[position]
 }
 
-a_fini :: fonc (lexeuse: *Lexeuse) -> bool #enligne
-{
-    retourne lexeuse.curseur >= lexeuse.document.taille()
-}
-
 crée_lexème :: fonc (lexeuse: *Lexeuse, genre: GenreLexème) #enligne
 {
-    lexeuse.lexème_courant = Lexème(genre = genre)
+    lexeuse.lexème_courant = Lexème(genre = genre, position = lexeuse.curseur)
 }
 
 émet_lexème :: fonc (lexeuse: *Lexeuse) -> Lexème

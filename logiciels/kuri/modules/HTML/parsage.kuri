@@ -11,6 +11,7 @@ Parseuse :: struct {
     mode_insertion_original: TypeFonctionModeInsertion
     pile_insertion_template: [..]TypeFonctionModeInsertion
     lexeuse: Lexeuse
+    lexème_courant: Lexème
     document: *Document
 
     élément_head: *HTMLHeadElement
@@ -65,6 +66,8 @@ parse :: fonc (parseuse: *Parseuse)
         si lexème.genre == GenreLexème.FinDeFichier {
             arrête
         }
+
+        parseuse.lexème_courant = lexème
 
         //imprime("mode_insertion : %\n", parseuse.mode_insertion)
 
@@ -2418,6 +2421,12 @@ dépile_vers_contexte_table_row :: fonc (parseuse: *Parseuse)
 
 erreur_de_parsage :: fonc (parseuse: *Parseuse, message: chaine)
 {
+    // lexème := parseuse.lexème_courant
+    // début := lexème.position - 10
+    // fin := lexème.position + 10
+    // texte := parseuse.lexeuse.document.sous_chaine(début, fin)
+    // imprime("[%] % % %\n", lexème.genre, lexème.nom.chaine_native(), lexème.position, message)
+    // imprime(">>> %\n", texte)
     tableau_ajoute(*parseuse.erreurs, message)
 }
 
