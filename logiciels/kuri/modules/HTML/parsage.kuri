@@ -11,10 +11,11 @@ Parseuse :: struct {
     mode_insertion_original: TypeFonctionModeInsertion
     pile_insertion_template: [..]TypeFonctionModeInsertion
     lexeuse: Lexeuse
+    lexème_courant: Lexème
     document: *Document
 
-    élément_head: *Élément
-    élément_form: *Élément
+    élément_head: *HTMLHeadElement
+    élément_form: *HTMLFormElement
 
     pile_éléments_ouvert: PileÉlémentsOuverts
     liste_éléments_actifs_formattage: ListeÉlémentsActifsFormattage
@@ -28,18 +29,20 @@ Parseuse :: struct {
     niveau_imbrication_script := 0
 
     erreurs: [..]chaine
+
+    /* https://html.spec.whatwg.org/multipage/parsing.html#active-speculative-html-parser */
+    parseuse_spéculative_active: *Parseuse
 }
 
 initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
 {
-    initialise_tags()
-
     flux_utf32 := crée_chaine_utf32(entrée)
 
     parseuse: Parseuse
     parseuse.mode_insertion = insère_mode_Initial
     parseuse.lexeuse = initialise_lexeuse(flux_utf32)
     parseuse.document = crée_noeud_document()
+    parseuse.document.type = "html"
 
     retourne parseuse
 }
@@ -61,6 +64,8 @@ parse :: fonc (parseuse: *Parseuse)
         si lexème.genre == GenreLexème.FinDeFichier {
             arrête
         }
+
+        parseuse.lexème_courant = lexème
 
         //imprime("mode_insertion : %\n", parseuse.mode_insertion)
 
@@ -99,49 +104,133 @@ gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: TypeFonctionModeInse
     mode(parseuse, lexème)
 }
 
-trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override : *Noeud = nul) -> *Noeud
+est_un_élément_parmis :: fonc (noeud: *Noeud, tags: ...*ChaineInternée) -> bool
 {
-    cible : *Noeud = nul
-
-    si cible_override {
-        cible = cible_override
-    }
-    sinon {
-        cible = parseuse.noeud_courant()
+    saufsi noeud.est_élément() {
+        retourne faux
     }
 
-    si parseuse.adoption_activée {
-        panique("adotion non implémenté")
-    }
-
-    // À FAIRE : si la cible est un template, retourne le dernier enfant de son contenu
-    retourne cible
+    élément := noeud comme *Élément
+    retourne fait_partie_de(élément.texte, ...tags)
 }
 
-insère_élément_html :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Élément
+/* https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node */
+trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override : *Noeud = nul) -> *Noeud
 {
+    cible := si cible_override {
+        cible_override
+    }
+    sinon {
+        parseuse.noeud_courant()
+    }
+
+    position_ajustée_d_insertion: *Noeud
+    si parseuse.adoption_activée && est_un_élément_parmis(cible, TAG_table, TAG_tbody, TAG_thead, TAG_tfoot, TAG_tr) {
+        panique("adoption non implémenté")
+    }
+    sinon {
+        position_ajustée_d_insertion = cible
+    }
+
+    si position_ajustée_d_insertion.est_élément_type(TAG_template) {
+        panique("insertion dans template non-implémentée")
+    }
+
+    retourne position_ajustée_d_insertion
+}
+
+/* https://infra.spec.whatwg.org/#html-namespace */
+EspaceDeNom :: chaine
+EspaceDeNom_HTML :: "http://www.w3.org/1999/xhtml"
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#insert-an-html-element */
+insère_élément_html :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *HTMLElement
+{
+    résultat := insère_élément_étranger(parseuse, lexème, EspaceDeNom_HTML, faux) comme *HTMLElement
+
+    si résultat.est_élément_script() {
+        script := résultat comme *HTMLScriptElement
+        script.document_parseur = parseuse.document
+        script.force_async = faux
+    }
+
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element */
+insère_élément_étranger :: fonc (parseuse: *Parseuse, lexème: Lexème, espace_de_nom: EspaceDeNom, ajoute_seulement_à_pile_élément: bool) -> *Élément
+{
+    /* 1. */
     position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
-    élément := parseuse.crée_élément_pour(lexème)
-    // À FAIRE : vérifie s'il est possible d'insérer élément à position_ajustée_d_insertion
-    // À FAIRE : file d'évènements, voir spec
-    position_ajustée_d_insertion.ajoute_enfant(élément)
+    /* 2. */
+    élément := parseuse.crée_élément_pour_lexème(lexème, espace_de_nom, position_ajustée_d_insertion)
+    /* 3. INCOMPLET */
+    saufsi ajoute_seulement_à_pile_élément {
+        position_ajustée_d_insertion.ajoute_enfant(élément)
+    }
+    /* 4. */
     empile(*parseuse.pile_éléments_ouvert, élément)
+    /* 5.  */
     retourne élément
+}
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#create-an-element-for-the-token */
+crée_élément_pour_lexème :: fonc (parseuse: *Parseuse, lexème: Lexème, espace_de_nom: EspaceDeNom, parent_prévu: *Noeud) -> *Élément
+{
+    /* INCOMPLET : 1. if the active speculative parser... */
+    /* INCOMPLET : 2. optionally create a speculative mock element... */
+
+    document := parent_prévu.document
+    nom_local := lexème.nom
+
+    /* INCOMPLET : 5. 6. 7. 8. */
+
+    /* 9. INCOMPLET : will execute script */
+    élément := crée_un_élément(parseuse, document, nom_local, espace_de_nom)
+
+    /* 10. */
+    pour lexème.attributs {
+        élément.ajoute_attribut(it)
+    }
+
+    /* INCOMPLET : 11. 12. 13. 14. */
+
+    /* 15. */
+    retourne élément
+}
+
+/* https://dom.spec.whatwg.org/#concept-create-element */
+crée_un_élément :: fonc (parseuse: *Parseuse @inutilisée, document: *Document, nom_local: *ChaineInternée, espace_de_nom: EspaceDeNom) -> *Élément
+{
+    /* INCOMPLET : optional prefix, is, and synchronous custom elements flag */
+    résultat: *Élément = nul
+
+    /* INCOMPLET : 4. 5. 6. & 7.1 */
+
+    /* 7.2. */
+    résultat = crée_élément_avec_tag(document, nom_local)
+    résultat.espace_de_nom = espace_de_nom
+    résultat.état_élément_custom = "uncustomized"
+    résultat.définition_élément_custom = nul
+
+    /* INCOMPLET 7.3. */
+
+    retourne résultat
 }
 
 insère_caractère :: fonc (parseuse: *Parseuse, point_de_code: n32)
 {
     position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
 
-    si position_ajustée_d_insertion.genre == GenreNoeud.Document {
+    si position_ajustée_d_insertion.est_document() {
         // ignore
         retourne
     }
 
     noeud_texte : *NoeudTexte = nul
 
-    si position_ajustée_d_insertion.enfants.taille != 0 && position_ajustée_d_insertion.enfants[position_ajustée_d_insertion.enfants.taille - 1].genre == GenreNoeud.Texte {
-        noeud_texte = position_ajustée_d_insertion.enfants[position_ajustée_d_insertion.enfants.taille - 1] comme *NoeudTexte
+    si position_ajustée_d_insertion.possède_enfants() && position_ajustée_d_insertion.dernier_enfant().est_texte() {
+        noeud_texte = position_ajustée_d_insertion.dernier_enfant() comme *NoeudTexte
     }
     sinon {
         noeud_texte = crée_noeud_texte(position_ajustée_d_insertion.document)
@@ -163,6 +252,7 @@ insère_commentaire :: fonc (parseuse: *Parseuse, lexème: Lexème, position : *
     position_ajustée_d_insertion.ajoute_enfant(noeud_commentaire)
 }
 
+/* https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode */
 insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code) {
@@ -175,17 +265,184 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
+        si lexème.nom != "html" ||
+            lexème.doctype_public_id_absent == faux ||
+            lexème.doctype_system_id_absent == faux ||
+            lexème.identifiant_système_doctype != "about:legacy-compat" {
+            erreur_de_parsage(parseuse, "missing-doctype-name")
+        }
+
         doctype := crée_noeud_doctype(parseuse.document)
-        doctype.ajoute_attribut("name", lexème.nom)
-        parseuse.document.ajoute_enfant(doctype)
+        doctype.nom = crée_chaine_utf16(lexème.nom.chaine_native())
+        doctype.public_id = crée_chaine_utf16(lexème.identifiant_public_doctype)
+        doctype.system_id = crée_chaine_utf16(lexème.identifiant_système_doctype)
+
+        document := parseuse.document
+        document.ajoute_enfant(doctype)
+
+        si !document.est_iframe_srcdoc() && !document.la_parseuse_ne_peut_changer_le_mode && vérifie_lexème_doctype_pour_quirks(lexème) {
+            document.mode = ModeDocument.QUIRKS
+        }
+        sinon si !document.est_iframe_srcdoc() && !document.la_parseuse_ne_peut_changer_le_mode && vérifie_lexème_doctype_pour_limited_quirks(lexème) {
+            document.mode = ModeDocument.LIMITED_QUIRKS
+        }
+
         parseuse.mode_insertion = insère_mode_AvantHtml
         retourne
     }
 
-    // À FAIRE : vérifie si nous avons un iframe srcdoc
+    document := parseuse.document
+    saufsi document.est_iframe_srcdoc() {
+        erreur_de_parsage(parseuse, "token inattendu en mode d'insertion initial")
+    }
+
+    si document.la_parseuse_ne_peut_changer_le_mode {
+        document.mode = ModeDocument.QUIRKS
+    }
 
     parseuse.mode_insertion = insère_mode_AvantHtml
     parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
+}
+
+vérifie_lexème_doctype_pour_limited_quirks :: fonc (lexème: &Lexème) -> bool
+{
+    /* À FAIRE : ascii insensible à la casse */
+    si lexème.drapeau_force_quirks {
+        retourne vrai
+    }
+
+    si lexème.nom != "html" {
+        retourne vrai
+    }
+
+    si lexème.doctype_public_id_absent == faux {
+        noms_publics_invalides := [
+            "-//W3O//DTD W3 HTML Strict 3.0//EN//",
+            "-/W3C/DTD HTML 4.0 Transitional/EN",
+            "HTML"
+        ]
+
+        chn := converti_vers_chaine(lexème.identifiant_public_doctype)
+        diffère déloge(chn)
+
+        pour noms_publics_invalides {
+            si it == chn {
+                retourne vrai
+            }
+        }
+
+        préfixes_publics_invalides := [
+            "+//Silmaril//dtd html Pro v0r11 19970101//",
+            "-//AS//DTD HTML 3.0 asWedit + extensions//",
+            "-//AdvaSoft Ltd//DTD HTML 3.0 asWedit + extensions//",
+            "-//IETF//DTD HTML 2.0 Level 1//",
+            "-//IETF//DTD HTML 2.0 Level 2//",
+            "-//IETF//DTD HTML 2.0 Strict Level 1//",
+            "-//IETF//DTD HTML 2.0 Strict Level 2//",
+            "-//IETF//DTD HTML 2.0 Strict//",
+            "-//IETF//DTD HTML 2.0//",
+            "-//IETF//DTD HTML 2.1E//",
+            "-//IETF//DTD HTML 3.0//",
+            "-//IETF//DTD HTML 3.2 Final//",
+            "-//IETF//DTD HTML 3.2//",
+            "-//IETF//DTD HTML 3//",
+            "-//IETF//DTD HTML Level 0//",
+            "-//IETF//DTD HTML Level 1//",
+            "-//IETF//DTD HTML Level 2//",
+            "-//IETF//DTD HTML Level 3//",
+            "-//IETF//DTD HTML Strict Level 0//",
+            "-//IETF//DTD HTML Strict Level 1//",
+            "-//IETF//DTD HTML Strict Level 2//",
+            "-//IETF//DTD HTML Strict Level 3//",
+            "-//IETF//DTD HTML Strict//",
+            "-//IETF//DTD HTML//",
+            "-//Metrius//DTD Metrius Presentational//",
+            "-//Microsoft//DTD Internet Explorer 2.0 HTML Strict//",
+            "-//Microsoft//DTD Internet Explorer 2.0 HTML//",
+            "-//Microsoft//DTD Internet Explorer 2.0 Tables//",
+            "-//Microsoft//DTD Internet Explorer 3.0 HTML Strict//",
+            "-//Microsoft//DTD Internet Explorer 3.0 HTML//",
+            "-//Microsoft//DTD Internet Explorer 3.0 Tables//",
+            "-//Netscape Comm. Corp.//DTD HTML//",
+            "-//Netscape Comm. Corp.//DTD Strict HTML//",
+            "-//O'Reilly and Associates//DTD HTML 2.0//",
+            "-//O'Reilly and Associates//DTD HTML Extended 1.0//",
+            "-//O'Reilly and Associates//DTD HTML Extended Relaxed 1.0//",
+            "-//SQ//DTD HTML 2.0 HoTMetaL + extensions//",
+            "-//SoftQuad Software//DTD HoTMetaL PRO 6.0::19990601::extensions to HTML 4.0//",
+            "-//SoftQuad//DTD HoTMetaL PRO 4.0::19971010::extensions to HTML 4.0//",
+            "-//Spyglass//DTD HTML 2.0 Extended//",
+            "-//Sun Microsystems Corp.//DTD HotJava HTML//",
+            "-//Sun Microsystems Corp.//DTD HotJava Strict HTML//",
+            "-//W3C//DTD HTML 3 1995-03-24//",
+            "-//W3C//DTD HTML 3.2 Draft//",
+            "-//W3C//DTD HTML 3.2 Final//",
+            "-//W3C//DTD HTML 3.2//",
+            "-//W3C//DTD HTML 3.2S Draft//",
+            "-//W3C//DTD HTML 4.0 Frameset//",
+            "-//W3C//DTD HTML 4.0 Transitional//",
+            "-//W3C//DTD HTML Experimental 19960712//",
+            "-//W3C//DTD HTML Experimental 970421//",
+            "-//W3C//DTD W3 HTML//",
+            "-//W3O//DTD W3 HTML 3.0//",
+            "-//WebTechs//DTD Mozilla HTML 2.0//",
+            "-//WebTechs//DTD Mozilla HTML//"
+        ]
+
+        pour préfixes_publics_invalides {
+            si chn.commence_par(it) {
+                retourne vrai
+            }
+        }
+
+        si lexème.doctype_system_id_absent {
+            si chn.commence_par("-//W3C//DTD HTML 4.01 Frameset//") {
+                retourne vrai
+            }
+
+            si chn.commence_par("-//W3C//DTD HTML 4.01 Transitional//") {
+                retourne vrai
+            }
+        }
+    }
+
+    si lexème.doctype_system_id_absent == faux {
+        retourne lexème.identifiant_système_doctype == "http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd"
+    }
+
+    retourne faux
+}
+
+vérifie_lexème_doctype_pour_quirks :: fonc (lexème: &Lexème) -> bool
+{
+    /* À FAIRE : ascii insensible à la casse */
+    si lexème.doctype_public_id_absent == faux {
+        chn := converti_vers_chaine(lexème.identifiant_public_doctype)
+        diffère déloge(chn)
+
+        préfixes_publics_invalides := [
+            "-//W3C//DTD XHTML 1.0 Frameset//",
+            "-//W3C//DTD XHTML 1.0 Transitional//"
+        ]
+
+        pour préfixes_publics_invalides {
+            si chn.commence_par(it) {
+                retourne vrai
+            }
+        }
+
+        si lexème.doctype_system_id_absent == faux {
+            si chn.commence_par("-//W3C//DTD HTML 4.01 Frameset//") {
+                retourne vrai
+            }
+
+            si chn.commence_par("-//W3C//DTD HTML 4.01 Transitional//") {
+                retourne vrai
+            }
+        }
+    }
+
+    retourne faux
 }
 
 insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -252,7 +509,7 @@ insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_head {
-            élément := parseuse.insère_élément_html(lexème)
+            élément := parseuse.insère_élément_html(lexème) comme *HTMLHeadElement
             parseuse.élément_head = élément
             parseuse.mode_insertion = insère_mode_DansHead
             retourne
@@ -264,7 +521,7 @@ insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     lexème_head := Lexème(genre = GenreLexème.DébutTag, nom = TAG_head)
-    élément := parseuse.insère_élément_html(lexème_head)
+    élément := parseuse.insère_élément_html(lexème_head) comme *HTMLHeadElement
     parseuse.élément_head = élément
     parseuse.mode_insertion = insère_mode_DansHead
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
@@ -522,13 +779,15 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 }
 
+/* https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody */
 insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     // continue le spec à An end tag whose tag name is "p"
 
     si lexème.genre == GenreLexème.Caractère {
         si lexème.point_de_code == 0x0 {
-            // ignore
+            erreur_de_parsage(parseuse, "caractère nul dans body")
+            /* Ignore le lexème. */
             retourne
         }
 
@@ -547,9 +806,29 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
+    si lexème.genre == GenreLexème.Doctype {
+        erreur_de_parsage(parseuse, "DOCTYPE dans body")
+        /* Ignore le lexème. */
+        retourne
+    }
+
     si lexème.genre == GenreLexème.DébutTag {
         si lexème.nom == TAG_html {
-            panique("algorithme d'insertion incomplet")
+            erreur_de_parsage(parseuse, "html dans body")
+
+            si possède_élément_de_type(*parseuse.pile_éléments_ouvert, TAG_template) {
+                /* Ignore le lexème. */
+                retourne
+            }
+
+            noeud := noeud_courant(*parseuse.pile_éléments_ouvert)
+            pour lexème.attributs {
+                saufsi noeud.possède_attribut(it.nom) {
+                    noeud.ajoute_attribut(it.nom, it.valeur)
+                }
+            }
+
+            retourne
         }
 
         si fait_partie_de(lexème.nom, TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title) {
@@ -558,6 +837,8 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_body {
+            erreur_de_parsage(parseuse, "body dans body")
+
             si taille(*parseuse.pile_éléments_ouvert) == 1 {
                 retourne
             }
@@ -601,7 +882,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             élément := parseuse.insère_élément_html(lexème)
 
             si !template_dans_portée {
-                parseuse.élément_form = élément
+                parseuse.élément_form = élément comme *HTMLFormElement
             }
 
             retourne
@@ -781,7 +1062,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_table {
-            si !parseuse.document.quirks_mode && possède_dans_portée_button(*parseuse.pile_éléments_ouvert, TAG_p) {
+            si !parseuse.document.est_en_mode_quirks() && possède_dans_portée_button(*parseuse.pile_éléments_ouvert, TAG_p) {
                 ferme_un_élément_p(parseuse)
             }
 
@@ -1127,6 +1408,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 }
 
+/* https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incdata */
 insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère {
@@ -1135,7 +1417,12 @@ insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinDeFichier {
-        // À FAIRE : gère élément script
+        noeud := noeud_courant(parseuse)
+        si noeud.est_élément_script() {
+            /* Empêche l'exécution du script. */
+            script := noeud comme *HTMLScriptElement
+            script.déjà_commencé = vrai
+        }
 
         dépile(*parseuse.pile_éléments_ouvert)
         parseuse.mode_insertion = parseuse.mode_insertion_original
@@ -1144,26 +1431,47 @@ insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_script {
-        // À FAIRE : JavaScript execution context stack
-
-        /* script */
-        _ := parseuse.noeud_courant()
-        dépile(*parseuse.pile_éléments_ouvert)
-        parseuse.mode_insertion = parseuse.mode_insertion_original
-
-        // À FAIRE : old insertion point
-        // À FAIRE : prépare le script
-
-        parseuse.niveau_imbrication_script -= 1
-        parseuse.pause = parseuse.niveau_imbrication_script == 0
-
-        // À FAIRE : restaure insertion point (insertion_point = old_insertion_point)
-        // À FAIRE : pending parsing-blocking script
+        finalise_insertion_script_mode_texte(parseuse)
         retourne
     }
 
     dépile(*parseuse.pile_éléments_ouvert)
     parseuse.mode_insertion = parseuse.mode_insertion_original
+}
+
+finalise_insertion_script_mode_texte :: fonc (parseuse: *Parseuse)
+{
+    // À FAIRE : JavaScript execution context stack
+    // si parseuse.parseuse_spéculative_active == nul /* && javascript_execution_context_stack.est_vide() */ {
+        /* À FAIRE : performe a microtask checkpoint. */
+    // }
+
+    script := parseuse.noeud_courant() comme *HTMLScriptElement
+    assert(script.est_élément_script())
+
+    dépile(*parseuse.pile_éléments_ouvert)
+    parseuse.mode_insertion = parseuse.mode_insertion_original
+
+    // À FAIRE : sauvegarde point d'insertion
+
+    parseuse.niveau_imbrication_script += 1
+
+    si parseuse.parseuse_spéculative_active == nul {
+        prépare(script)
+    }
+
+    parseuse.niveau_imbrication_script -= 1
+    si parseuse.niveau_imbrication_script == 0 {
+        parseuse.pause = faux
+    }
+
+    // À FAIRE : restore point d'insertion
+
+    si parseuse.document.pending_parsing_blocking_script == nul {
+        retourne
+    }
+
+    panique("pending_parsing_blocking_script non-implémente")
 }
 
 insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -1254,7 +1562,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_input {
-            attr := cherche_attribut(*lexème, "type")
+            attr := cherche_attribut(*lexème, ATTR_type)
 
             si attr == nul || !compare_ascii_insensible_à_la_casse(attr.valeur, "hidden") {
                 erreur_de_parsage(parseuse, "lexème inattendu dans table")
@@ -1278,7 +1586,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 retourne
             }
 
-            parseuse.élément_form = parseuse.insère_élément_html(lexème)
+            parseuse.élément_form = parseuse.insère_élément_html(lexème) comme *HTMLFormElement
             dépile(*parseuse.pile_éléments_ouvert)
             retourne
         }
@@ -2151,6 +2459,12 @@ dépile_vers_contexte_table_row :: fonc (parseuse: *Parseuse)
 
 erreur_de_parsage :: fonc (parseuse: *Parseuse, message: chaine)
 {
+    // lexème := parseuse.lexème_courant
+    // début := lexème.position - 10
+    // fin := lexème.position + 10
+    // texte := parseuse.lexeuse.document.sous_chaine(début, fin)
+    // imprime("[%] % % %\n", lexème.genre, lexème.nom.chaine_native(), lexème.position, message)
+    // imprime(">>> %\n", texte)
     tableau_ajoute(*parseuse.erreurs, message)
 }
 
