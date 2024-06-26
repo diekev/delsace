@@ -1524,7 +1524,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_input {
-            attr := cherche_attribut(*lexème, "type")
+            attr := cherche_attribut(*lexème, ATTR_type)
 
             si attr == nul || !compare_ascii_insensible_à_la_casse(attr.valeur, "hidden") {
                 erreur_de_parsage(parseuse, "lexème inattendu dans table")

@@ -167,16 +167,16 @@ peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage @inutili
 {
     si tag == TAG_script {
         // "type" n'est pas requis en HTML5, "charset" et "language" sont dépréciés
-        retourne attribut.nom == "type" || attribut.nom == "charset" || attribut.nom == "language"
+        retourne attribut.nom == ATTR_type || attribut.nom == ATTR_charset || attribut.nom == ATTR_language
     }
 
     si tag == TAG_style {
         // "type" n'est pas requis en HTML5
-        retourne attribut.nom == "type"
+        retourne attribut.nom == ATTR_type
     }
 
     si tag == TAG_input {
-        retourne attribut.nom == "value" && attribut.valeur == ""
+        retourne attribut.nom == ATTR_value && attribut.valeur == ""
     }
 
     retourne faux
@@ -229,13 +229,13 @@ cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag:
 
         si tag == TAG_a {
             // "name" est déprécié, remplace par "id"
-            si it.nom == "name" {
+            si it.nom == ATTR_name {
                 détruit_chaine(it.valeur)
-                it.valeur = crée_chaine_utf16("id")
+                it.valeur = crée_chaine_utf16(ATTR_id)
             }
         }
 
-        si it.nom == "class" {
+        si it.nom == ATTR_class {
             nouvelle_valeur := tri_classes_css(it.valeur)
             détruit_chaine(it.valeur)
             it.valeur = nouvelle_valeur

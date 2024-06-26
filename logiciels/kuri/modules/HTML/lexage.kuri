@@ -51,7 +51,7 @@ Lexème :: struct {
     données: ChaineUTF16
 }
 
-cherche_attribut :: fonc (lexème: *Lexème, nom: chaine) -> *Attribut
+cherche_attribut :: fonc (lexème: *Lexème, nom: ChaineUTF16) -> *Attribut
 {
     retourne cherche_attribut(lexème.attributs, nom)
 }

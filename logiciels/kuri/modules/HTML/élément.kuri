@@ -178,12 +178,12 @@ HTMLAnchorElement :: struct {
 
 est_hyperlien :: fonc (anchor: *HTMLAnchorElement) -> bool
 {
-    retourne anchor.cherche_attribut("href") != nul
+    retourne anchor.cherche_attribut(ATTR_href) != nul
 }
 
 donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut("href")
+    attribut := anchor.cherche_attribut(ATTR_href)
     si attribut {
         retourne attribut.valeur
     }
@@ -228,7 +228,7 @@ HTMLImageElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut("src")
+    attribut := anchor.cherche_attribut(ATTR_src)
     si attribut {
         retourne attribut.valeur
     }
@@ -249,7 +249,7 @@ HTMLMediaElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLMediaElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut("src")
+    attribut := anchor.cherche_attribut(ATTR_src)
     si attribut {
         retourne attribut.valeur
     }

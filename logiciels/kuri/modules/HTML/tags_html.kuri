@@ -130,13 +130,29 @@ TAG_xmp: *ChaineInternée
 
 /* Atributs */
 
+ATTR_action : ChaineUTF16 = ---
+ATTR_alt : ChaineUTF16 = ---
 ATTR_async : ChaineUTF16 = ---
+ATTR_charset : ChaineUTF16 = ---
+ATTR_class : ChaineUTF16 = ---
+ATTR_content : ChaineUTF16 = ---
 ATTR_event : ChaineUTF16 = ---
 ATTR_for : ChaineUTF16 = ---
+ATTR_height : ChaineUTF16 = ---
+ATTR_href : ChaineUTF16 = ---
+ATTR_http_equiv : ChaineUTF16 = ---
+ATTR_id : ChaineUTF16 = ---
+ATTR_is : ChaineUTF16 = ---
+ATTR_lang : ChaineUTF16 = ---
 ATTR_language : ChaineUTF16 = ---
+ATTR_method : ChaineUTF16 = ---
+ATTR_name : ChaineUTF16 = ---
 ATTR_nomodule : ChaineUTF16 = ---
 ATTR_src : ChaineUTF16 = ---
+ATTR_title : ChaineUTF16 = ---
 ATTR_type : ChaineUTF16 = ---
+ATTR_value : ChaineUTF16 = ---
+ATTR_width : ChaineUTF16 = ---
 
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
  * métaprogrammes plus bas. */
@@ -197,6 +213,9 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
             }
             sinon {
                 nom_attr := it.texte.avance(5)
+                si nom_attr == "http_equiv" {
+                    nom_attr = "http-equiv"
+                }
                 ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16(\"", nom_attr, "\")\n")
             }
         }
