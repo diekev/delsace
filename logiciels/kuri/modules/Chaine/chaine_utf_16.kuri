@@ -314,6 +314,21 @@ opérateur < :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
     retourne a.unités[n] < b.unités[n]
 }
 
+supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16) -> ChaineUTF16
+{
+    résultat: ChaineUTF16
+
+    pour chn.unités {
+        si it == 0x09 || it == 0x0A || it == 0x0C || it == 0x0D || it == 0x20 {
+            continue
+        }
+
+        tableau_ajoute(*résultat.unités, it)
+    }
+
+    retourne résultat
+}
+
 EnchaineuseUTF16 :: struct {
     Tampon :: struct {
         suivant: *Tampon
