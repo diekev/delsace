@@ -120,6 +120,17 @@ possède :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> bool
     retourne faux
 }
 
+possède_élément_de_type :: fonc (pile: *PileÉlémentsOuverts, tag: *ChaineInternée) -> bool
+{
+    pour pile.éléments {
+        si it.est_élément_type(tag) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
 supprime_élément :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
 {
     index : z64 = 0

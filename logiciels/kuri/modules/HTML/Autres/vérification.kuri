@@ -158,7 +158,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             // Voir aussi https://www.w3.org/International/geo/html-tech/tech-lang.html#ri20030510.102829377
             possède_lang := faux
             pour élément.attributs {
-                si it.nom == "lang" {
+                si it.nom == ATTR_lang {
                     possède_lang = vrai
                     // À FAIRE : vérifie que le langage est valide
                     // https://www.w3.org/International/geo/html-tech/tech-lang.html#ri20030218.131140352
@@ -177,10 +177,10 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             détruit_chaine(texte)
         }
         sinon si élément.texte == TAG_meta {
-            attr_charset := élément.cherche_attribut("charset")
-            attr_name := élément.cherche_attribut("name")
-            attr_content := élément.cherche_attribut("content")
-            attr_http_equiv := élément.cherche_attribut("http-equiv")
+            attr_charset := élément.cherche_attribut(ATTR_charset)
+            attr_name := élément.cherche_attribut(ATTR_name)
+            attr_content := élément.cherche_attribut(ATTR_content)
+            attr_http_equiv := élément.cherche_attribut(ATTR_http_equiv)
 
             si attr_charset {
                 // À FAIRE : vérifie que le charset est valide
@@ -243,9 +243,9 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             contexte_vérification.ajoute_diagnostique("<strike> rencontré, préférez utiliser CSS pour la mise en style")
         }
         sinon si élément.texte == TAG_img {
-            possède_hauteur := élément.cherche_attribut("height")
-            possède_largeur := élément.cherche_attribut("width")
-            possède_alt := élément.cherche_attribut("alt")
+            possède_hauteur := élément.cherche_attribut(ATTR_height)
+            possède_largeur := élément.cherche_attribut(ATTR_width)
+            possède_alt := élément.cherche_attribut(ATTR_alt)
 
             saufsi possède_hauteur {
                 contexte_vérification.ajoute_diagnostique("<img> sans attribut de hauteur")
@@ -260,8 +260,8 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             }
         }
         sinon si élément.texte == TAG_a {
-            possède_titre := élément.cherche_attribut("title")
-            possède_href := élément.cherche_attribut("href")
+            possède_titre := élément.cherche_attribut(ATTR_title)
+            possède_href := élément.cherche_attribut(ATTR_href)
 
             saufsi possède_titre {
                 contexte_vérification.ajoute_diagnostique("<a> sans attribut de titre")
