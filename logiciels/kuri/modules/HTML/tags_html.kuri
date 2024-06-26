@@ -128,6 +128,16 @@ TAG_video: *ChaineInternée
 TAG_wbr: *ChaineInternée
 TAG_xmp: *ChaineInternée
 
+/* Atributs */
+
+ATTR_async : ChaineUTF16 = ---
+ATTR_event : ChaineUTF16 = ---
+ATTR_for : ChaineUTF16 = ---
+ATTR_language : ChaineUTF16 = ---
+ATTR_nomodule : ChaineUTF16 = ---
+ATTR_src : ChaineUTF16 = ---
+ATTR_type : ChaineUTF16 = ---
+
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
  * métaprogrammes plus bas. */
 tags_initialisés := faux
@@ -169,19 +179,26 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
             continue
         }
 
-        saufsi it.texte.commence_par("TAG_") {
-            continue
-        }
-
-        si pour_impression {
-            ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ".chn)\n")
-        }
-        sinon {
-            nom_tag := it.texte.avance(4)
-            si nom_tag == "annotation_xml" {
-                nom_tag = "annotation-xml"
+        si it.texte.commence_par("TAG_") {
+            si pour_impression {
+                ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ".chn)\n")
             }
-            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_internée_converti_utf32(\"", nom_tag, "\")\n")
+            sinon {
+                nom_tag := it.texte.avance(4)
+                si nom_tag == "annotation_xml" {
+                    nom_tag = "annotation-xml"
+                }
+                ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_internée_converti_utf32(\"", nom_tag, "\")\n")
+            }
+        }
+        sinon si it.texte.commence_par("ATTR_") {
+            si pour_impression {
+                ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ")\n")
+            }
+            sinon {
+                nom_attr := it.texte.avance(5)
+                ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16(\"", nom_attr, "\")\n")
+            }
         }
     }
 

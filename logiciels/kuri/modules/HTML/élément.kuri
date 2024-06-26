@@ -311,7 +311,7 @@ HTMLScriptElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut("src")
+    attribut := anchor.cherche_attribut(ATTR_src)
     si attribut {
         retourne attribut.valeur
     }
@@ -331,10 +331,7 @@ prépare :: fonc (script: *HTMLScriptElement)
     script.document_parseur = nul
 
     /* 4. */
-    CHN_async := crée_chaine_utf16("async")
-    diffère détruit_chaine(CHN_async)
-
-    si document_parseur != nul && !script.possède_attribut(CHN_async) {
+    si document_parseur != nul && !script.possède_attribut(ATTR_async) {
         script.force_async = vrai
     }
 
@@ -343,9 +340,7 @@ prépare :: fonc (script: *HTMLScriptElement)
     diffère déloge(texte_source)
 
     /* 6. */
-    CHN_src := crée_chaine_utf16("src")
-    diffère détruit_chaine(CHN_src)
-    possède_attr_src := script.possède_attribut(CHN_src)
+    possède_attr_src := script.possède_attribut(ATTR_src)
     si !possède_attr_src && texte_source == "" {
         retourne
     }
@@ -399,7 +394,7 @@ prépare :: fonc (script: *HTMLScriptElement)
     }
 
     /* 18. */
-    si script.cherche_attribut("nomodule") != nul && script.type == TypeScript.CLASSIC {
+    si script.cherche_attribut(ATTR_nomodule) != nul && script.type == TypeScript.CLASSIC {
         retourne
     }
 
@@ -412,15 +407,9 @@ prépare :: fonc (script: *HTMLScriptElement)
     }
 
     /* 20. */
-    CHN_for := crée_chaine_utf16("for")
-    diffère détruit_chaine(CHN_for)
-
-    CHN_event := crée_chaine_utf16("event")
-    diffère détruit_chaine(CHN_event)
-
-    si script.type == TypeScript.CLASSIC && script.possède_attribut(CHN_for) && script.possède_attribut(CHN_event) {
-        valeur_for := script.cherche_attribut(CHN_for).valeur
-        valeur_event := script.cherche_attribut(CHN_event).valeur
+    si script.type == TypeScript.CLASSIC && script.possède_attribut(ATTR_for) && script.possède_attribut(ATTR_event) {
+        valeur_for := script.cherche_attribut(ATTR_for).valeur
+        valeur_event := script.cherche_attribut(ATTR_event).valeur
 
         valeur_event = supprime_espace_blanches_autour(valeur_event)
         valeur_for = supprime_espace_blanches_autour(valeur_for)
@@ -500,14 +489,8 @@ scripting_est_désactivé :: fonc (script: *HTMLScriptElement @inutilisée) -> b
 
 détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> ChaineUTF16
 {
-    CHN_type := crée_chaine_utf16("type")
-    diffère détruit_chaine(CHN_type)
-
-    CHN_language := crée_chaine_utf16("langage")
-    diffère détruit_chaine(CHN_language)
-
-    attr_type := script.cherche_attribut(CHN_type)
-    attr_language := script.cherche_attribut(CHN_language)
+    attr_type := script.cherche_attribut(ATTR_type)
+    attr_language := script.cherche_attribut(ATTR_language)
 
     si (attr_type != nul && attr_type.valeur.est_vide()) ||
          (attr_type == nul && attr_language != nul && attr_language.valeur.est_vide()) ||
