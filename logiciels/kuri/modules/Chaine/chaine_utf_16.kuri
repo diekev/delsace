@@ -314,18 +314,55 @@ opérateur < :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
     retourne a.unités[n] < b.unités[n]
 }
 
-supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16) -> ChaineUTF16
+donne_position_premier_caractère_non_blanc :: fonc (chn: ChaineUTF16) -> z64
 {
-    résultat: ChaineUTF16
-
     pour chn.unités {
-        si it == 0x09 || it == 0x0A || it == 0x0C || it == 0x0D || it == 0x20 {
+        si est_caractère_espace_blanc(it) {
             continue
         }
 
-        tableau_ajoute(*résultat.unités, it)
+        retourne index_it
     }
 
+    retourne chn.taille()
+}
+
+donne_position_dernier_caractère_non_blanc :: fonc (chn: ChaineUTF16) -> z64
+{
+    pour > chn.unités {
+        si est_caractère_espace_blanc(it) {
+            continue
+        }
+
+        retourne chn.taille() - index_it - 1
+    }
+
+    retourne 0
+}
+
+supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16) -> ChaineUTF16
+{
+    début := donne_position_premier_caractère_non_blanc(chn)
+    fin := donne_position_dernier_caractère_non_blanc(chn)
+
+    si début < fin {
+        résultat := sous_chaine(chn, début, fin)
+        retourne copie_chaine(résultat)
+    }
+
+    retourne ChaineUTF16()
+}
+
+sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
+{
+    assert(début >= 0)
+    assert(début < chn.taille())
+    assert(fin >= début)
+    assert(fin < chn.taille())
+
+    résultat: ChaineUTF16
+    résultat.unités.pointeur = chn.unités.pointeur + début
+    résultat.unités.taille = (fin - début) + 1
     retourne résultat
 }
 
