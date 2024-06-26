@@ -160,6 +160,15 @@ cherche_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16) -> *Attribut
     retourne cherche_attribut(noeud.attributs, nom)
 }
 
+donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: ChaineUTF16) -> Optionnel(ChaineUTF16)
+{
+    attribut := cherche_attribut(noeud, nom_qualifié)
+    saufsi attribut {
+        retourne
+    }
+    retourne attribut.valeur
+}
+
 /* Retourne le premier enfant ayant le tag donné, ou nul si le noeud n'a pas
  * d'enfants ou aucun enfant du tag donné. */
 donne_premier_enfant_taggé :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Noeud

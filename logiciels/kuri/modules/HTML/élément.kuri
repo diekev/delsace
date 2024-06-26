@@ -178,14 +178,14 @@ HTMLAnchorElement :: struct {
 
 est_hyperlien :: fonc (anchor: *HTMLAnchorElement) -> bool
 {
-    retourne anchor.cherche_attribut(ATTR_href) != nul
+    retourne anchor.donne_attribut(ATTR_href).possède_valeur()
 }
 
 donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut(ATTR_href)
-    si attribut {
-        retourne attribut.valeur
+    attribut := anchor.donne_attribut(ATTR_href)
+    si attribut.possède_valeur() {
+        retourne attribut.Quelque
     }
     retourne DOMString()
 }
@@ -228,9 +228,9 @@ HTMLImageElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut(ATTR_src)
-    si attribut {
-        retourne attribut.valeur
+    attribut := anchor.donne_attribut(ATTR_src)
+    si attribut.possède_valeur() {
+        retourne attribut.Quelque
     }
     retourne DOMString()
 }
@@ -249,9 +249,9 @@ HTMLMediaElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLMediaElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut(ATTR_src)
-    si attribut {
-        retourne attribut.valeur
+    attribut := anchor.donne_attribut(ATTR_src)
+    si attribut.possède_valeur() {
+        retourne attribut.Quelque
     }
     retourne DOMString()
 }
@@ -311,9 +311,9 @@ HTMLScriptElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString
 {
-    attribut := anchor.cherche_attribut(ATTR_src)
-    si attribut {
-        retourne attribut.valeur
+    attribut := anchor.donne_attribut(ATTR_src)
+    si attribut.possède_valeur() {
+        retourne attribut.Quelque
     }
     retourne DOMString()
 }
@@ -394,7 +394,7 @@ prépare :: fonc (script: *HTMLScriptElement)
     }
 
     /* 18. */
-    si script.cherche_attribut(ATTR_nomodule) != nul && script.type == TypeScript.CLASSIC {
+    si script.possède_attribut(ATTR_nomodule) && script.type == TypeScript.CLASSIC {
         retourne
     }
 
@@ -408,8 +408,8 @@ prépare :: fonc (script: *HTMLScriptElement)
 
     /* 20. */
     si script.type == TypeScript.CLASSIC && script.possède_attribut(ATTR_for) && script.possède_attribut(ATTR_event) {
-        valeur_for := script.cherche_attribut(ATTR_for).valeur
-        valeur_event := script.cherche_attribut(ATTR_event).valeur
+        valeur_for := script.donne_attribut(ATTR_for).Quelque
+        valeur_event := script.donne_attribut(ATTR_event).Quelque
 
         valeur_event = supprime_espace_blanches_autour(valeur_event)
         valeur_for = supprime_espace_blanches_autour(valeur_for)
