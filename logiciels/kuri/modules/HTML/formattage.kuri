@@ -167,16 +167,16 @@ peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage @inutili
 {
     si tag == TAG_script {
         // "type" n'est pas requis en HTML5, "charset" et "language" sont dépréciés
-        retourne attribut.nom == "type" || attribut.nom == "charset" || attribut.nom == "language"
+        retourne attribut.nom == ATTR_type || attribut.nom == ATTR_charset || attribut.nom == ATTR_language
     }
 
     si tag == TAG_style {
         // "type" n'est pas requis en HTML5
-        retourne attribut.nom == "type"
+        retourne attribut.nom == ATTR_type
     }
 
     si tag == TAG_input {
-        retourne attribut.nom == "value" && attribut.valeur == ""
+        retourne attribut.nom == ATTR_value && attribut.valeur == ""
     }
 
     retourne faux
@@ -229,13 +229,13 @@ cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag:
 
         si tag == TAG_a {
             // "name" est déprécié, remplace par "id"
-            si it.nom == "name" {
-                détruit_chaine(it.valeur)
-                it.valeur = crée_chaine_utf16("id")
+            si it.nom == ATTR_name {
+                détruit_chaine(it.nom)
+                it.nom = ATTR_id
             }
         }
 
-        si it.nom == "class" {
+        si it.nom == ATTR_class {
             nouvelle_valeur := tri_classes_css(it.valeur)
             détruit_chaine(it.valeur)
             it.valeur = nouvelle_valeur
@@ -289,6 +289,11 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
 
             élément := noeud comme *Élément
 
+            garde_tag_sur_la_même_ligne := faux
+            si élément.texte == TAG_a || élément.texte == TAG_p || élément.texte == TAG_span || élément.texte == TAG_br {
+                garde_tag_sur_la_même_ligne = vrai
+            }
+
             chn_tag := chaine_native(élément.texte)
             diffère déloge(chn_tag)
 
@@ -324,25 +329,36 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
                     enchaineuse.ajoute_au_tampon("/>")
                 }
 
-                nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+                saufsi garde_tag_sur_la_même_ligne {
+                    nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+                }
                 retourne
             }
 
             enchaineuse.ajoute_au_tampon(">")
-            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+            saufsi garde_tag_sur_la_même_ligne {
+                nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+            }
 
             /* Enfants. */
             contexte_formattage.profondeur += 1
+            indente_tags := contexte_formattage.indente_tags
+            contexte_formattage.indente_tags = !garde_tag_sur_la_même_ligne
             pour élément.enfants {
                 formatte_noeud(contexte_formattage, it, enchaineuse)
             }
+            contexte_formattage.indente_tags = indente_tags
             contexte_formattage.profondeur -= 1
 
             /* Fermeture du tag. */
             saufsi contexte_formattage.ignore_tag_fin_éléments_optionnels && est_élément_optionnel(élément.texte) {
-                tabulation_au_besoin(contexte_formattage, enchaineuse)
+                saufsi garde_tag_sur_la_même_ligne {
+                    tabulation_au_besoin(contexte_formattage, enchaineuse)
+                }
                 enchaineuse.imprime_dans_enchaineuse("</%>", chn_tag)
-                nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+                saufsi garde_tag_sur_la_même_ligne {
+                    nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+                }
             }
         }
     }
