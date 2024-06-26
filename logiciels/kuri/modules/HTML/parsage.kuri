@@ -104,23 +104,39 @@ gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: TypeFonctionModeInse
     mode(parseuse, lexème)
 }
 
+est_un_élément_parmis :: fonc (noeud: *Noeud, tags: ...*ChaineInternée) -> bool
+{
+    saufsi noeud.est_élément() {
+        retourne faux
+    }
+
+    élément := noeud comme *Élément
+    retourne fait_partie_de(élément.texte, ...tags)
+}
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node */
 trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override : *Noeud = nul) -> *Noeud
 {
-    cible : *Noeud = nul
-
-    si cible_override {
-        cible = cible_override
+    cible := si cible_override {
+        cible_override
     }
     sinon {
-        cible = parseuse.noeud_courant()
+        parseuse.noeud_courant()
     }
 
-    si parseuse.adoption_activée {
-        panique("adotion non implémenté")
+    position_ajustée_d_insertion: *Noeud
+    si parseuse.adoption_activée && est_un_élément_parmis(cible, TAG_table, TAG_tbody, TAG_thead, TAG_tfoot, TAG_tr) {
+        panique("adoption non implémenté")
+    }
+    sinon {
+        position_ajustée_d_insertion = cible
     }
 
-    // À FAIRE : si la cible est un template, retourne le dernier enfant de son contenu
-    retourne cible
+    si position_ajustée_d_insertion.est_élément_type(TAG_template) {
+        panique("insertion dans template non-implémentée")
+    }
+
+    retourne position_ajustée_d_insertion
 }
 
 /* https://infra.spec.whatwg.org/#html-namespace */
@@ -763,13 +779,15 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 }
 
+/* https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody */
 insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     // continue le spec à An end tag whose tag name is "p"
 
     si lexème.genre == GenreLexème.Caractère {
         si lexème.point_de_code == 0x0 {
-            // ignore
+            erreur_de_parsage(parseuse, "caractère nul dans body")
+            /* Ignore le lexème. */
             retourne
         }
 
@@ -788,9 +806,29 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
+    si lexème.genre == GenreLexème.Doctype {
+        erreur_de_parsage(parseuse, "DOCTYPE dans body")
+        /* Ignore le lexème. */
+        retourne
+    }
+
     si lexème.genre == GenreLexème.DébutTag {
         si lexème.nom == TAG_html {
-            panique("algorithme d'insertion incomplet")
+            erreur_de_parsage(parseuse, "html dans body")
+
+            si possède_élément_de_type(*parseuse.pile_éléments_ouvert, TAG_template) {
+                /* Ignore le lexème. */
+                retourne
+            }
+
+            noeud := noeud_courant(*parseuse.pile_éléments_ouvert)
+            pour lexème.attributs {
+                saufsi noeud.possède_attribut(it.nom) {
+                    noeud.ajoute_attribut(it.nom, it.valeur)
+                }
+            }
+
+            retourne
         }
 
         si fait_partie_de(lexème.nom, TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title) {
@@ -799,6 +837,8 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_body {
+            erreur_de_parsage(parseuse, "body dans body")
+
             si taille(*parseuse.pile_éléments_ouvert) == 1 {
                 retourne
             }
