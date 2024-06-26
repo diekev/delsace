@@ -5,6 +5,8 @@ Document :: struct {
     empl base: Noeud
 
     quirks_mode := faux
+
+    pending_parsing_blocking_script: *HTMLScriptElement
 }
 
 crée_noeud_document :: fonc () -> *Document

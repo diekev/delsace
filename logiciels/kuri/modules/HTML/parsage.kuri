@@ -28,6 +28,9 @@ Parseuse :: struct {
     niveau_imbrication_script := 0
 
     erreurs: [..]chaine
+
+    /* https://html.spec.whatwg.org/multipage/parsing.html#active-speculative-html-parser */
+    parseuse_spéculative_active: *Parseuse
 }
 
 initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
@@ -125,7 +128,15 @@ EspaceDeNom_HTML :: "http://www.w3.org/1999/xhtml"
 /* https://html.spec.whatwg.org/multipage/parsing.html#insert-an-html-element */
 insère_élément_html :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *HTMLElement
 {
-    retourne insère_élément_étranger(parseuse, lexème, EspaceDeNom_HTML, faux) comme *HTMLElement
+    résultat := insère_élément_étranger(parseuse, lexème, EspaceDeNom_HTML, faux) comme *HTMLElement
+
+    si résultat.est_élément_script() {
+        script := résultat comme *HTMLScriptElement
+        script.document_parseur = parseuse.document
+        script.force_async = faux
+    }
+
+    retourne résultat
 }
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element */
@@ -1187,6 +1198,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 }
 
+/* https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incdata */
 insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère {
@@ -1195,7 +1207,12 @@ insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinDeFichier {
-        // À FAIRE : gère élément script
+        noeud := noeud_courant(parseuse)
+        si noeud.est_élément_script() {
+            /* Empêche l'exécution du script. */
+            script := noeud comme *HTMLScriptElement
+            script.déjà_commencé = vrai
+        }
 
         dépile(*parseuse.pile_éléments_ouvert)
         parseuse.mode_insertion = parseuse.mode_insertion_original
@@ -1204,26 +1221,47 @@ insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_script {
-        // À FAIRE : JavaScript execution context stack
-
-        /* script */
-        _ := parseuse.noeud_courant()
-        dépile(*parseuse.pile_éléments_ouvert)
-        parseuse.mode_insertion = parseuse.mode_insertion_original
-
-        // À FAIRE : old insertion point
-        // À FAIRE : prépare le script
-
-        parseuse.niveau_imbrication_script -= 1
-        parseuse.pause = parseuse.niveau_imbrication_script == 0
-
-        // À FAIRE : restaure insertion point (insertion_point = old_insertion_point)
-        // À FAIRE : pending parsing-blocking script
+        finalise_insertion_script_mode_texte(parseuse)
         retourne
     }
 
     dépile(*parseuse.pile_éléments_ouvert)
     parseuse.mode_insertion = parseuse.mode_insertion_original
+}
+
+finalise_insertion_script_mode_texte :: fonc (parseuse: *Parseuse)
+{
+    // À FAIRE : JavaScript execution context stack
+    // si parseuse.parseuse_spéculative_active == nul /* && javascript_execution_context_stack.est_vide() */ {
+        /* À FAIRE : performe a microtask checkpoint. */
+    // }
+
+    script := parseuse.noeud_courant() comme *HTMLScriptElement
+    assert(script.est_élément_script())
+
+    dépile(*parseuse.pile_éléments_ouvert)
+    parseuse.mode_insertion = parseuse.mode_insertion_original
+
+    // À FAIRE : sauvegarde point d'insertion
+
+    parseuse.niveau_imbrication_script += 1
+
+    si parseuse.parseuse_spéculative_active == nul {
+        prépare(script)
+    }
+
+    parseuse.niveau_imbrication_script -= 1
+    si parseuse.niveau_imbrication_script == 0 {
+        parseuse.pause = faux
+    }
+
+    // À FAIRE : restore point d'insertion
+
+    si parseuse.document.pending_parsing_blocking_script == nul {
+        retourne
+    }
+
+    panique("pending_parsing_blocking_script non-implémente")
 }
 
 insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
