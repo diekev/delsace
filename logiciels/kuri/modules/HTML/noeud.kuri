@@ -234,6 +234,8 @@ extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
     {
         extractrice := mémoire(données.pointeur comme **ExtractriceTexte)
 
+        tableau_réserve(*extractrice.texte.unités, noeud_texte.données.taille())
+
         pour noeud_texte.données.unités {
             tableau_ajoute(*extractrice.texte.unités, it)
         }
