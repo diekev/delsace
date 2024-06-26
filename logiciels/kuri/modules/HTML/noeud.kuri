@@ -142,8 +142,26 @@ donne_premier_enfant_taggé :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *N
     retourne nul
 }
 
-/* À FAIRE : https://dom.spec.whatwg.org/#connected */
-est_connecté :: fonc (noeud: *Noeud @inutilisée) -> bool
+/* https://dom.spec.whatwg.org/#connected */
+est_connecté :: fonc (noeud: *Noeud) -> bool
 {
-    retourne vrai
+    retourne noeud.donne_racine_shadow_including().est_document()
+}
+
+/* https://dom.spec.whatwg.org/#concept-tree-root */
+donne_racine :: fonc (noeud: *Noeud) -> *Noeud
+{
+    résultat := noeud
+    tantque résultat.parent != nul {
+        résultat = résultat.parent
+    }
+    retourne résultat
+}
+
+/* https://dom.spec.whatwg.org/#concept-shadow-including-root */
+donne_racine_shadow_including :: fonc (noeud: *Noeud) -> *Noeud
+{
+    racine := noeud.donne_racine()
+    /* INCOMPLET : shadow root */
+    retourne racine
 }
