@@ -509,6 +509,15 @@ crée_chaine_utf16 :: fonc (chn: chaine) -> ChaineUTF16
     retourne chaine_depuis_enchaineuse(enchaineuse)
 }
 
+crée_chaine_utf16 :: fonc (chn: ChaineUTF32) -> ChaineUTF16
+{
+    résultat: ChaineUTF16
+    pour chn.points_de_code {
+        chaine_ajoute(*résultat, it)
+    }
+    retourne résultat
+}
+
 crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16
