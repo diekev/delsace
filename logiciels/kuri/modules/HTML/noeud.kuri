@@ -21,6 +21,45 @@ Noeud :: struct {
     document: *Document
 }
 
+détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
+{
+    discr noeud.genre {
+        Invalide {
+            déloge(noeud)
+        }
+        Document {
+            document := noeud comme *Document
+            déloge(document)
+        }
+        Commentaire {
+            commentaire := noeud comme *NoeudCommentaire
+            détruit_chaine(commentaire.données)
+            déloge(commentaire)
+        }
+        Élément {
+            élément := noeud comme *Élément
+            // Ne pas détruire le texte, c'est un pointeur partagé !
+            déloge(élément)
+        }
+        Texte {
+            texte := noeud comme *NoeudTexte
+            détruit_chaine(texte.données)
+            déloge(texte)
+        }
+        Doctype {
+            type_document := noeud comme *DocumentType
+            déloge(type_document)
+        }
+    }
+}
+
+détruit_noeud :: fonc (noeud: *Noeud)
+{
+    détruit_attributs(noeud.attributs)
+    déloge_tableau_et_ses_éléments(noeud.enfants, détruit_noeud)
+    détruit_noeud_selon_genre(noeud)
+}
+
 est_document :: fonc (noeud: *Noeud) -> bool
 {
     retourne noeud.genre == GenreNoeud.Document
@@ -79,6 +118,16 @@ est_texte :: fonc (noeud: *Noeud) -> bool
 est_commentaire :: fonc (noeud: *Noeud) -> bool
 {
     retourne noeud.genre == GenreNoeud.Commentaire
+}
+
+possède_enfants :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.enfants.taille != 0
+}
+
+dernier_enfant :: fonc (noeud: *Noeud) -> *Noeud
+{
+    retourne noeud.enfants[noeud.enfants.taille - 1]
 }
 
 ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
@@ -164,4 +213,41 @@ donne_racine_shadow_including :: fonc (noeud: *Noeud) -> *Noeud
     racine := noeud.donne_racine()
     /* INCOMPLET : shadow root */
     retourne racine
+}
+
+rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudTexte, eini)(rien), données: eini)
+{
+    pour noeud.enfants {
+        si it.est_texte() {
+            texte := it comme *NoeudTexte
+            rappel_pour_texte(texte, données)
+        }
+        sinon {
+            rassemble_texte_noeud(it, rappel_pour_texte, données)
+        }
+    }
+}
+
+/* Fonction auxillaire pour extraire le texte d'un noeud et de ses enfants. */
+extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
+{
+    ExtractriceTexte :: struct {
+        texte: ChaineUTF16
+    }
+
+    rappel_pour_extraction_texte :: fonc (noeud_texte: *NoeudTexte, données: eini)
+    {
+        extractrice := mémoire(données.pointeur comme **ExtractriceTexte)
+
+        pour noeud_texte.données.unités {
+            tableau_ajoute(*extractrice.texte.unités, it)
+        }
+    }
+
+    extractrice: ExtractriceTexte
+    diffère détruit_chaine(extractrice.texte)
+
+    rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice)
+
+    retourne imprime_chaine("%", extractrice.texte)
 }

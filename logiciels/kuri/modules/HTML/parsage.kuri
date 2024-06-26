@@ -211,8 +211,8 @@ insère_caractère :: fonc (parseuse: *Parseuse, point_de_code: n32)
 
     noeud_texte : *NoeudTexte = nul
 
-    si position_ajustée_d_insertion.enfants.taille != 0 && position_ajustée_d_insertion.enfants[position_ajustée_d_insertion.enfants.taille - 1].genre == GenreNoeud.Texte {
-        noeud_texte = position_ajustée_d_insertion.enfants[position_ajustée_d_insertion.enfants.taille - 1] comme *NoeudTexte
+    si position_ajustée_d_insertion.possède_enfants() && position_ajustée_d_insertion.dernier_enfant().est_texte() {
+        noeud_texte = position_ajustée_d_insertion.dernier_enfant() comme *NoeudTexte
     }
     sinon {
         noeud_texte = crée_noeud_texte(position_ajustée_d_insertion.document)

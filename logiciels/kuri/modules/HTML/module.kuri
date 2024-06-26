@@ -60,43 +60,6 @@ imprime_document :: fonc (document: *Document)
     }
 }
 
-rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudTexte, eini)(rien), données: eini)
-{
-    pour noeud.enfants {
-        si it.est_texte() {
-            texte := it comme *NoeudTexte
-            rappel_pour_texte(texte, données)
-        }
-        sinon {
-            rassemble_texte_noeud(it, rappel_pour_texte, données)
-        }
-    }
-}
-
-/* Fonction auxillaire pour extraire le texte d'un noeud et de ses enfants. */
-extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
-{
-    ExtractriceTexte :: struct {
-        texte: ChaineUTF16
-    }
-
-    rappel_pour_extraction_texte :: fonc (noeud_texte: *NoeudTexte, données: eini)
-    {
-        extractrice := mémoire(données.pointeur comme **ExtractriceTexte)
-
-        pour noeud_texte.données.unités {
-            tableau_ajoute(*extractrice.texte.unités, it)
-        }
-    }
-
-    extractrice: ExtractriceTexte
-    diffère détruit_chaine(extractrice.texte)
-
-    rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice)
-
-    retourne imprime_chaine("%", extractrice.texte)
-}
-
 /* ------------------------------------------------------------------------- */
 /** \nom Traversée, visite, d'un noeud et de ses enfants.
  * \{ */
@@ -135,46 +98,6 @@ traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud)(DécisionTr
 
 /** \} */
 
-// ces fonctions devraient plutôt être dans noeud.kuri, mais nous avons des
-// dépendances cycliques entre les modules que le langage ne sait pas encore gérer
-détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
-{
-    discr noeud.genre {
-        Invalide {
-            déloge(noeud)
-        }
-        Document {
-            document := noeud comme *Document
-            déloge(document)
-        }
-        Commentaire {
-            commentaire := noeud comme *NoeudCommentaire
-            détruit_chaine(commentaire.données)
-            déloge(commentaire)
-        }
-        Élément {
-            élément := noeud comme *Élément
-            // Ne pas détruire le texte, c'est un pointeur partagé !
-            déloge(élément)
-        }
-        Texte {
-            texte := noeud comme *NoeudTexte
-            détruit_chaine(texte.données)
-            déloge(texte)
-        }
-        Doctype {
-            type_document := noeud comme *DocumentType
-            déloge(type_document)
-        }
-    }
-}
-
-détruit_noeud :: fonc (noeud: *Noeud)
-{
-    détruit_attributs(noeud.attributs)
-    déloge_tableau_et_ses_éléments(noeud.enfants, détruit_noeud)
-    détruit_noeud_selon_genre(noeud)
-}
 
 /* Résultat du parsage (« parsat », de « parser » + « -at ») d'un document HTML. */
 ParsatHTML :: struct {
