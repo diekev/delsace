@@ -51,8 +51,13 @@ principale :: fonc () -> z32
     rappels_fenêtre.contenu = contenu
 
     /* Création widgets. */
-    widget := crée_widget_arbre_pour_dom(fenêtre)
-    QT_fenetre_principale_definis_widget_central(fenêtre, widget)
+    tabs := QT_cree_tab_widget(nul, fenêtre)
+    QT_tab_widget_definis_tabs_fermable(tabs, 0)
+
+    widget_arbre := crée_widget_arbre_pour_dom(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_arbre, "DOM")
+
+    QT_fenetre_principale_definis_widget_central(fenêtre, tabs)
 
     retourne QT_application_exec(app)
 }
@@ -144,11 +149,11 @@ initialise_rappels_arborescence :: fonc (fenêtre_principale: *QT_Fenetre_Princi
     retourne résultat
 }
 
-crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale) -> *QT_TreeWidget
+crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
 
-    résultat := crée_widget_arbre(nul, fenêtre)
+    résultat := crée_widget_arbre(nul, parent)
 
     parsat := rappels.parsat
     si parsat.document {
