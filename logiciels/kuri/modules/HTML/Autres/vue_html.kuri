@@ -1,16 +1,37 @@
+importe Allocatrices
 importe Chaine
 importe Fondation
 importe HTML
 importe Qt
 importe SysFichier
 
+DÉBOGUE_ALLOCATIONS :: faux
+
 /* ------------------------------------------------------------------------- */
 /** \nom Fonction principale.
  * \{ */
 
+allocatrice_gardée: AllocatriceGardée
+contexte_entrée: ContexteProgramme
+
+mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
+{
+    imprime("%\n", c)
+}
+
 principale :: fonc () -> z32
 {
     mémoire_entrée := mémoire_utilisée()
+
+    /* Nous ne pouvons pas utiliser un nouveau contexte car la fonction principale
+     * peut ne pas se terminer (lors des fermetures de fenêtres). */
+    contexte_entrée = __contexte_fil_principal
+
+    #si DÉBOGUE_ALLOCATIONS {
+        __contexte_fil_principal.logueur = mon_logueur
+        __contexte_fil_principal.allocatrice = allocation_gardée
+        __contexte_fil_principal.données_allocatrice = *allocatrice_gardée
+    }
 
     arguments := __arguments_ligne_commande
 
@@ -87,7 +108,14 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
     détruit(rappel.rappels_fenêtre.parsat)
     déloge(rappel.rappels_fenêtre.contenu)
 
+    /* Restaure le contexte. */
+    __contexte_fil_principal = contexte_entrée
+
     imprime("mémoire_utilisée %\n", mémoire_utilisée() - rappel.mémoire_entrée)
+
+    #si DÉBOGUE_ALLOCATIONS {
+        imprime_liste_mémoire(*allocatrice_gardée)
+    }
 }
 
 /** \} */
