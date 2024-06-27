@@ -322,4 +322,29 @@ donne_contenu_texte_descandants :: fonc (noeud: *Noeud) -> ChaineUTF16
     retourne chaine_depuis_enchaineuse(enchaineuse)
 }
 
+/* https://dom.spec.whatwg.org/#concept-node-length */
+donne_longueur :: fonc (noeud: *Noeud) -> z64
+{
+    discr noeud.genre {
+        TypeDocument {
+            retourne 0
+        }
+        Commentaire,
+        Texte,
+        Section_CDATA,
+        ProcessingInstruction {
+            retourne texte.données.taille
+        }
+        sinon {
+            retourne noeud.enfants.taille
+        }
+    }
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-empty */
+est_vide :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.donne_longueur() == 0
+}
+
 /** \} */
