@@ -52,8 +52,7 @@ détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
         }
         Élément {
             élément := noeud comme *Élément
-            // Ne pas détruire le texte, c'est un pointeur partagé !
-            déloge(élément)
+            détruit_élément(élément)
         }
         Commentaire,
         Section_CDATA,
