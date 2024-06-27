@@ -2546,6 +2546,12 @@ bool QT_text_cursor_possede_selection_apres(struct QT_TextCursor *cursor, int po
 /** \name QT_PlainTextEdit
  * \{ */
 
+#define ENUMERE_MODE_RETOUR_LIGNE(O)                                                              \
+    O(QT_LINE_WRAP_MODE_AUCUN, QPlainTextEdit::LineWrapMode::NoWrap)                              \
+    O(QT_LINE_WRAP_MODE_WIDGET, QPlainTextEdit::LineWrapMode::WidgetWidth)
+
+enum QT_Line_Wrap_Mode { ENUMERE_MODE_RETOUR_LIGNE(ENUMERE_DECLARATION_ENUM_IPA) };
+
 struct QT_Rappels_PlainTextEdit {
     RAPPELS_EVENEMENTS_COMMUNS(QT_PlainTextEdit, QT_Rappels_PlainTextEdit);
 };
@@ -2567,6 +2573,9 @@ void QT_plain_text_edit_coupe(struct QT_PlainTextEdit *text_edit);
 void QT_plain_text_edit_copie(struct QT_PlainTextEdit *text_edit);
 
 void QT_plain_text_edit_definis_lecture_seule(struct QT_PlainTextEdit *text_edit, bool ouinon);
+
+void QT_plain_text_edit_definis_mode_retour_ligne(struct QT_PlainTextEdit *text_edit,
+                                                  enum QT_Line_Wrap_Mode mode);
 
 /** \} */
 
