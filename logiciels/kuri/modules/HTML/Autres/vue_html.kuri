@@ -57,6 +57,9 @@ principale :: fonc () -> z32
     widget_arbre := crée_widget_arbre_pour_dom(fenêtre, tabs)
     QT_tab_widget_ajoute_tab(tabs, widget_arbre, "DOM")
 
+    widget_source := crée_widget_vue_source(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_source, "Source")
+
     QT_fenetre_principale_definis_widget_central(fenêtre, tabs)
 
     retourne QT_application_exec(app)
@@ -222,6 +225,24 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
     pour noeud.enfants {
         ajoute_item_pour_noeud(item_noeud, it)
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom VueSource
+ * \{ */
+
+crée_widget_vue_source :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_PlainTextEdit
+{
+    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
+    contenu := rappels.contenu
+
+    résultat := QT_cree_plain_text_edit(nul, parent)
+    QT_plain_text_edit_definis_lecture_seule(résultat, vrai)
+    QT_plain_text_edit_definis_mode_retour_ligne(résultat, QT_Line_Wrap_Mode.AUCUN)
+    QT_plain_text_edit_definis_texte(résultat, contenu)
+    retourne résultat
 }
 
 /** \} */
