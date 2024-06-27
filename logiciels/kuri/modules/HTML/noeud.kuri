@@ -248,3 +248,44 @@ extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
 
     retourne imprime_chaine("%", extractrice.texte)
 }
+
+/* https://dom.spec.whatwg.org/#concept-child-text-content */
+donne_contenu_texte_enfant :: fonc (noeud: *Noeud) -> ChaineUTF16
+{
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    pour noeud.enfants {
+        saufsi it.est_texte() {
+            continue
+        }
+
+        texte := noeud comme *NoeudTexte
+        ajoute_au_tampon(enchaineuse, texte.données)
+    }
+
+    retourne chaine_depuis_enchaineuse(enchaineuse)
+}
+
+/* https://dom.spec.whatwg.org/#concept-descendant-text-content */
+donne_contenu_texte_descandants :: fonc (noeud: *Noeud) -> ChaineUTF16
+{
+    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Noeud, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée
+    {
+        si noeud.est_texte() {
+            texte := noeud comme *NoeudTexte
+            ajoute(enchaineuse, texte.données)
+        }
+
+        retourne DécisionTraversée.CONTINUE
+    }
+
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+    
+    traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, enchaineuse)
+
+    retourne chaine_depuis_enchaineuse(enchaineuse)
+}
