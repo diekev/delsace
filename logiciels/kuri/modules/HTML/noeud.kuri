@@ -24,12 +24,12 @@ GenreNoeud :: énum n16 {
     Élément :: ELEMENT_NODE
     // ATTRIBUTE_NODE
     Texte :: TEXT_NODE
-    // CDATA_SECTION_NODE
-    // PROCESSING_INSTRUCTION_NODE
+    Section_CDATA :: CDATA_SECTION_NODE
+    ProcessingInstruction :: PROCESSING_INSTRUCTION_NODE
     Commentaire :: COMMENT_NODE
     Document :: DOCUMENT_NODE
-    Doctype :: DOCUMENT_TYPE_NODE
-    // DOCUMENT_FRAGMENT_NODE
+    TypeDocument :: DOCUMENT_TYPE_NODE
+    FragmentDocument :: DOCUMENT_FRAGMENT_NODE
 }
 
 Noeud :: struct {
@@ -50,27 +50,34 @@ détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
             document := noeud comme *Document
             déloge(document)
         }
-        Commentaire {
-            commentaire := noeud comme *NoeudCommentaire
-            détruit_chaine(commentaire.données)
-            déloge(commentaire)
-        }
         Élément {
             élément := noeud comme *Élément
             // Ne pas détruire le texte, c'est un pointeur partagé !
             déloge(élément)
         }
+        Commentaire,
+        Section_CDATA,
         Texte {
-            texte := noeud comme *NoeudTexte
+            texte := noeud comme *NoeudDonnéesCaractères
             détruit_chaine(texte.données)
             déloge(texte)
         }
-        Doctype {
-            type_document := noeud comme *DocumentType
+        ProcessingInstruction {
+            pi := noeud comme *NoeudProcessingInstruction
+            détruit_chaine(pi.données)
+            détruit_chaine(pi.cible)
+            déloge(pi)
+        }
+        TypeDocument {
+            type_document := noeud comme *NoeudTypeDocument
             détruit_chaine(type_document.nom)
             détruit_chaine(type_document.public_id)
             détruit_chaine(type_document.system_id)
             déloge(type_document)
+        }
+        FragmentDocument {
+            fragment := noeud comme *NoeudFragmentDocument
+            déloge(fragment)
         }
     }
 }
@@ -129,10 +136,16 @@ est_élément_script :: fonc (noeud: *Noeud) -> bool
 
 est_doctype :: fonc (noeud: *Noeud) -> bool
 {
-    retourne noeud.genre == GenreNoeud.Doctype
+    retourne noeud.genre == GenreNoeud.TypeDocument
 }
 
 est_texte :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.Texte || noeud.genre == GenreNoeud.Section_CDATA
+}
+
+/* https://dom.spec.whatwg.org/#exclusive-text-node */
+est_texte_exclusif :: fonc (noeud: *Noeud) -> bool
 {
     retourne noeud.genre == GenreNoeud.Texte
 }
