@@ -57,6 +57,12 @@ QT_tab_widget_ajoute_tab :: fonc (tab: *QT_TabWidget, widget: QT_Generic_Widget,
     QT_tab_widget_ajoute_tab(tab, widget, *nom_qt)
 }
 
+QT_plain_text_edit_definis_texte :: fonc (text_edit: *QT_PlainTextEdit, texte: chaine)
+{
+    texte_qt := vers_qt(texte)
+    QT_plain_text_edit_definis_texte(text_edit, *texte_qt)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
