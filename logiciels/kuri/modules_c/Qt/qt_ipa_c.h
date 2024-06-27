@@ -2663,7 +2663,8 @@ struct DNJ_Constructrice_Parametre_Enum {
     O(DNJ_TYPE_PARAMETRE_RAMPE_COULEUR, danjo::TypePropriete::RAMPE_COULEUR)                      \
     O(DNJ_TYPE_PARAMETRE_TEXTE, danjo::TypePropriete::TEXTE)                                      \
     O(DNJ_TYPE_PARAMETRE_LISTE, danjo::TypePropriete::LISTE)                                      \
-    O(DNJ_TYPE_PARAMETRE_LISTE_MANIP, danjo::TypePropriete::LISTE_MANIP)
+    O(DNJ_TYPE_PARAMETRE_LISTE_MANIP, danjo::TypePropriete::LISTE_MANIP)                          \
+    O(DNJ_TYPE_PARAMETRE_BOUTON, danjo::TypePropriete::BOUTON)
 
 enum DNJ_Type_Parametre { ENEMERE_TYPE_PARAMETRE_DANJO(ENUMERE_DECLARATION_ENUM_IPA) };
 
@@ -2729,6 +2730,9 @@ struct DNJ_Rappels_Enveloppe_Parametre {
     bool (*est_anime)(struct DNJ_Rappels_Enveloppe_Parametre *);
     bool (*est_animable)(struct DNJ_Rappels_Enveloppe_Parametre *);
     bool (*possede_image_cle)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+
+    void (*donne_texte_bouton)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+    void (*sur_pression)(struct DNJ_Rappels_Enveloppe_Parametre *);
 };
 /** \} */
 
