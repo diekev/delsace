@@ -63,11 +63,17 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) ->
     si tag == TAG_a {
         élément = loge(HTMLAnchorElement)
     }
+    sinon si tag == TAG_body {
+        élément = loge(HTMLBodyElement)
+    }
     sinon si tag == TAG_form {
         élément = loge(HTMLFormElement)
     }
     sinon si tag == TAG_head {
         élément = loge(HTMLHeadElement)
+    }
+    sinon si tag == TAG_html {
+        élément = loge(HTMLHtmlElement)
     }
     sinon si tag == TAG_img {
         élément = loge(HTMLImageElement)
@@ -193,6 +199,18 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom HTMLBodyElement
+ * https://html.spec.whatwg.org/multipage/sections.html#the-body-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLBodyElement
+ * \{ */
+
+HTMLBodyElement :: struct {
+    empl base_élément: Élément
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom HTMLFormElement
  * https://html.spec.whatwg.org/multipage/forms.html#htmlformelement
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement
@@ -211,6 +229,18 @@ HTMLFormElement :: struct {
  * \{ */
 
 HTMLHeadElement :: struct {
+    empl base_élément: Élément
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLHtmlElement
+ * https://html.spec.whatwg.org/multipage/semantics.html#the-html-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHtmlElement
+ * \{ */
+
+HTMLHtmlElement :: struct {
     empl base_élément: Élément
 }
 

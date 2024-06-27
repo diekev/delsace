@@ -107,6 +107,41 @@ donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -
     retourne nul
 }
 
+/* https://dom.spec.whatwg.org/#document-element */
+donne_élément_document :: fonc (document: *Document) -> *Élément
+{
+    pour document.enfants {
+        si it.est_élément() {
+            retourne it comme *Élément
+        }
+    }
+    retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#dom-tree-accessors */
+donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
+{
+    élément := donne_élément_document(document)
+    si élément && élément.texte == TAG_html {
+        retourne élément comme *HTMLHtmlElement
+    }
+    retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#the-body-element-2 */
+donne_élément_body :: fonc (document: *Document) -> *Élément
+{
+    élément_html := document.donne_élément_html()
+    si élément_html {
+        pour élément_html.enfants {
+            si it.est_élément_type(TAG_body) || it.est_élément_type(TAG_frameset) {
+                retourne it comme *Élément
+            }
+        }
+    }
+    retourne nul
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
