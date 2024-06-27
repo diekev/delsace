@@ -51,6 +51,12 @@ QT_crée_label :: fonc (texte: chaine, parent: QT_Generic_Widget) -> *QT_Label
     retourne QT_cree_label(*texte_qt, parent)
 }
 
+QT_tab_widget_ajoute_tab :: fonc (tab: *QT_TabWidget, widget: QT_Generic_Widget, nom: chaine)
+{
+    nom_qt := vers_qt(nom)
+    QT_tab_widget_ajoute_tab(tab, widget, *nom_qt)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
