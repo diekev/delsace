@@ -217,33 +217,3 @@ allocation_gardée :: fonc (
 
     retourne nul
 }
-
-/*
-XXX :: struct {
-    mqlsjdk: z32
-}
-
-mon_logueur :: fonc (c: chaine, message: chaine, mode: ModeLogage, données: *rien)
-{
-    imprime("%\n", c)
-}
-
-principale :: fonc () -> z32
-{
-    allocatrice_gardée : AllocatriceGardée
-
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = allocation_gardée
-    nouveau_contexte.données_allocatrice = *allocatrice_gardée
-
-    pousse_contexte nouveau_contexte {
-        a := loge(XXX)
-        //déloge(a)
-    }
-
-    __contexte_fil_principal.logueur = mon_logueur
-    imprime_liste_mémoire(*allocatrice_gardée)
-
-    retourne 0
-}
-*/
