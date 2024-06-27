@@ -150,6 +150,12 @@ crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
     retourne texte
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#inter-element-whitespace */
+est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
+{
+    retourne est_vide_ou_uniquement_espaces_blanches(texte.données)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
