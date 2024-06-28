@@ -37,6 +37,7 @@
 #include "controles/menu_filtrable.hh"
 
 #include "controles_proprietes/controle_propriete_bool.h"
+#include "controles_proprietes/controle_propriete_bouton.h"
 #include "controles_proprietes/controle_propriete_chaine.h"
 #include "controles_proprietes/controle_propriete_couleur.h"
 #include "controles_proprietes/controle_propriete_courbe_couleur.h"
@@ -96,6 +97,8 @@ static ControlePropriete *cree_controle_pour_propriete(BasePropriete *propriete,
             return new ControleProprieteEditeurTexte(propriete, temps, parent);
         case TypePropriete::LISTE_MANIP:
             return new ControleProprieteListeManip(propriete, temps, parent);
+        case TypePropriete::BOUTON:
+            return new ControleProprieteBouton(propriete, temps, parent);
         default:
             return nullptr;
     }
@@ -460,6 +463,8 @@ static TypePropriete type_propriete_pour_lexeme(id_morceau lexeme)
             return TypePropriete::TEXTE;
         case id_morceau::LISTE_MANIP:
             return TypePropriete::LISTE_MANIP;
+        case id_morceau::BOUTON:
+            return TypePropriete::BOUTON;
         default:
             break;
     }
@@ -586,6 +591,10 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
             break;
         }
         case TypePropriete::LISTE_MANIP:
+        {
+            break;
+        }
+        case TypePropriete::BOUTON:
         {
             break;
         }
