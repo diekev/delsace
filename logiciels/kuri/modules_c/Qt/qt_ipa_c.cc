@@ -3628,6 +3628,14 @@ bool QT_text_cursor_possede_selection_apres(QT_TextCursor *cursor, int position)
 /** \name QT_PlainTextEdit
  * \{ */
 
+static QPlainTextEdit::LineWrapMode convertis_line_wrap_mode(QT_Line_Wrap_Mode mode)
+{
+    switch (mode) {
+        ENUMERE_MODE_RETOUR_LIGNE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QPlainTextEdit::LineWrapMode::WidgetWidth;
+}
+
 QT_PlainTextEdit *QT_cree_plain_text_edit(QT_Rappels_PlainTextEdit *rappels,
                                           QT_Generic_Widget parent)
 {
@@ -3701,6 +3709,13 @@ void QT_plain_text_edit_definis_lecture_seule(QT_PlainTextEdit *text_edit, bool 
 {
     VERS_QT(text_edit);
     qtext_edit->setReadOnly(ouinon);
+}
+
+void QT_plain_text_edit_definis_mode_retour_ligne(QT_PlainTextEdit *text_edit,
+                                                  QT_Line_Wrap_Mode mode)
+{
+    VERS_QT(text_edit);
+    qtext_edit->setLineWrapMode(convertis_line_wrap_mode(mode));
 }
 
 /** \} */
