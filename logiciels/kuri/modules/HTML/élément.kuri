@@ -63,11 +63,17 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) ->
     si tag == TAG_a {
         élément = loge(HTMLAnchorElement)
     }
+    sinon si tag == TAG_body {
+        élément = loge(HTMLBodyElement)
+    }
     sinon si tag == TAG_form {
         élément = loge(HTMLFormElement)
     }
     sinon si tag == TAG_head {
         élément = loge(HTMLHeadElement)
+    }
+    sinon si tag == TAG_html {
+        élément = loge(HTMLHtmlElement)
     }
     sinon si tag == TAG_img {
         élément = loge(HTMLImageElement)
@@ -84,6 +90,48 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) ->
 
     initialise_élément(élément, document, tag)
     retourne élément
+}
+
+détruit_élément :: fonc (base: *Élément)
+{
+    /* Ne pas détruire le texte, c'est un pointeur partagé ! */
+    tag := base.texte
+
+    si tag == TAG_a {
+        élément := base comme *HTMLAnchorElement
+        déloge(élément)
+    }
+    sinon si tag == TAG_body {
+        élément := base comme *HTMLBodyElement
+        déloge(élément)
+    }
+    sinon si tag == TAG_form {
+        élément := base comme *HTMLFormElement
+        déloge(élément)
+    }
+    sinon si tag == TAG_head {
+        élément := base comme *HTMLHeadElement
+        déloge(élément)
+    }
+    sinon si tag == TAG_html {
+        élément := base comme *HTMLHtmlElement
+        déloge(élément)
+    }
+    sinon si tag == TAG_img {
+        élément := base comme *HTMLImageElement
+        déloge(élément)
+    }
+    sinon si tag == TAG_script {
+        élément := base comme *HTMLScriptElement
+        déloge(élément)
+    }
+    sinon si tag == TAG_video {
+        élément := base comme *HTMLVideoElement
+        déloge(élément)
+    }
+    sinon {
+        déloge(base)
+    }
 }
 
 est_compatible_html5 :: fonc (élément: *Élément) -> bool
@@ -193,6 +241,18 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom HTMLBodyElement
+ * https://html.spec.whatwg.org/multipage/sections.html#the-body-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLBodyElement
+ * \{ */
+
+HTMLBodyElement :: struct {
+    empl base_élément: Élément
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom HTMLFormElement
  * https://html.spec.whatwg.org/multipage/forms.html#htmlformelement
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement
@@ -211,6 +271,18 @@ HTMLFormElement :: struct {
  * \{ */
 
 HTMLHeadElement :: struct {
+    empl base_élément: Élément
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLHtmlElement
+ * https://html.spec.whatwg.org/multipage/semantics.html#the-html-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHtmlElement
+ * \{ */
+
+HTMLHtmlElement :: struct {
     empl base_élément: Élément
 }
 
