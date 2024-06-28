@@ -1,13 +1,35 @@
 importe Chaine
 importe Fondation
 
-GenreNoeud :: énum {
-    Invalide
-    Document
-    Commentaire
-    Élément
-    Texte
-    Doctype
+/* ------------------------------------------------------------------------- */
+/** \nom Noeud
+ * https://dom.spec.whatwg.org/#node
+ * \{ */
+
+/* Ces valeurs sont tirées de la spécification. */
+ELEMENT_NODE : n16 : 1
+ATTRIBUTE_NODE : n16 : 2
+TEXT_NODE : n16 : 3
+CDATA_SECTION_NODE : n16 : 4
+ENTITY_REFERENCE_NODE : n16 : 5 // legacy
+ENTITY_NODE : n16 : 6 // legacy
+PROCESSING_INSTRUCTION_NODE : n16 : 7
+COMMENT_NODE : n16 : 8
+DOCUMENT_NODE : n16 : 9
+DOCUMENT_TYPE_NODE : n16 : 10
+DOCUMENT_FRAGMENT_NODE : n16 : 11
+NOTATION_NODE : n16 : 12 // legacy
+
+GenreNoeud :: énum n16 {
+    Élément :: ELEMENT_NODE
+    // ATTRIBUTE_NODE
+    Texte :: TEXT_NODE
+    Section_CDATA :: CDATA_SECTION_NODE
+    ProcessingInstruction :: PROCESSING_INSTRUCTION_NODE
+    Commentaire :: COMMENT_NODE
+    Document :: DOCUMENT_NODE
+    TypeDocument :: DOCUMENT_TYPE_NODE
+    FragmentDocument :: DOCUMENT_FRAGMENT_NODE
 }
 
 Noeud :: struct {
@@ -24,34 +46,37 @@ Noeud :: struct {
 détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
 {
     discr noeud.genre {
-        Invalide {
-            déloge(noeud)
-        }
         Document {
             document := noeud comme *Document
             déloge(document)
         }
-        Commentaire {
-            commentaire := noeud comme *NoeudCommentaire
-            détruit_chaine(commentaire.données)
-            déloge(commentaire)
-        }
         Élément {
             élément := noeud comme *Élément
-            // Ne pas détruire le texte, c'est un pointeur partagé !
-            déloge(élément)
+            détruit_élément(élément)
         }
+        Commentaire,
+        Section_CDATA,
         Texte {
-            texte := noeud comme *NoeudTexte
+            texte := noeud comme *NoeudDonnéesCaractères
             détruit_chaine(texte.données)
             déloge(texte)
         }
-        Doctype {
-            type_document := noeud comme *DocumentType
+        ProcessingInstruction {
+            pi := noeud comme *NoeudProcessingInstruction
+            détruit_chaine(pi.données)
+            détruit_chaine(pi.cible)
+            déloge(pi)
+        }
+        TypeDocument {
+            type_document := noeud comme *NoeudTypeDocument
             détruit_chaine(type_document.nom)
             détruit_chaine(type_document.public_id)
             détruit_chaine(type_document.system_id)
             déloge(type_document)
+        }
+        FragmentDocument {
+            fragment := noeud comme *NoeudFragmentDocument
+            déloge(fragment)
         }
     }
 }
@@ -110,10 +135,16 @@ est_élément_script :: fonc (noeud: *Noeud) -> bool
 
 est_doctype :: fonc (noeud: *Noeud) -> bool
 {
-    retourne noeud.genre == GenreNoeud.Doctype
+    retourne noeud.genre == GenreNoeud.TypeDocument
 }
 
 est_texte :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.Texte || noeud.genre == GenreNoeud.Section_CDATA
+}
+
+/* https://dom.spec.whatwg.org/#exclusive-text-node */
+est_texte_exclusif :: fonc (noeud: *Noeud) -> bool
 {
     retourne noeud.genre == GenreNoeud.Texte
 }
@@ -248,3 +279,71 @@ extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
 
     retourne imprime_chaine("%", extractrice.texte)
 }
+
+/* https://dom.spec.whatwg.org/#concept-child-text-content */
+donne_contenu_texte_enfant :: fonc (noeud: *Noeud) -> ChaineUTF16
+{
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    pour noeud.enfants {
+        saufsi it.est_texte() {
+            continue
+        }
+
+        texte := noeud comme *NoeudTexte
+        ajoute_au_tampon(enchaineuse, texte.données)
+    }
+
+    retourne chaine_depuis_enchaineuse(enchaineuse)
+}
+
+/* https://dom.spec.whatwg.org/#concept-descendant-text-content */
+donne_contenu_texte_descandants :: fonc (noeud: *Noeud) -> ChaineUTF16
+{
+    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Noeud, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée
+    {
+        si noeud.est_texte() {
+            texte := noeud comme *NoeudTexte
+            ajoute(enchaineuse, texte.données)
+        }
+
+        retourne DécisionTraversée.CONTINUE
+    }
+
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+    
+    traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, enchaineuse)
+
+    retourne chaine_depuis_enchaineuse(enchaineuse)
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-length */
+donne_longueur :: fonc (noeud: *Noeud) -> z64
+{
+    discr noeud.genre {
+        TypeDocument {
+            retourne 0
+        }
+        Commentaire,
+        Texte,
+        Section_CDATA,
+        ProcessingInstruction {
+            retourne texte.données.taille
+        }
+        sinon {
+            retourne noeud.enfants.taille
+        }
+    }
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-empty */
+est_vide :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.donne_longueur() == 0
+}
+
+/** \} */
