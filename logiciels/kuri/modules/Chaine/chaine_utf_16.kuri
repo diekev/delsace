@@ -22,7 +22,7 @@ est_vide :: fonc (chn: &ChaineUTF16) -> bool #enligne
     retourne chn.unités.taille == 0
 }
 
-est_vide_ou_uniquement_espace_blanches :: fonc (chn: ChaineUTF16) -> bool
+est_vide_ou_uniquement_espaces_blanches :: fonc (chn: ChaineUTF16) -> bool
 {
     retourne donne_position_premier_caractère_non_blanc(chn) == chn.taille()
 }
