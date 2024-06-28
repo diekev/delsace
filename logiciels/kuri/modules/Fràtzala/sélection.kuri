@@ -94,6 +94,7 @@ détruit_état_sélection :: fonc (sélection: *ÉtatSélection)
 {
     déloge(sélection.sélection_courante)
     déloge(sélection.état_sélection_éléments)
+    détruit_données_chemin(*sélection.chemin)
     déloge(sélection)
 }
 
@@ -236,6 +237,13 @@ grandis_chemin :: fonc (géométrie: *GéométrieSélection, chemin: *CheminSél
 donne_domaine_sélection :: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, domaine : *[..]z32 = nul) -> [..]z32
 {
     retourne géométrie.sur_domaine_sélection(géométrie, chemin, domaine)
+}
+
+détruit_géométrie :: fonc (géométrie: *GéométrieSélection)
+{
+    si géométrie && géométrie.sur_destruction {
+        géométrie.sur_destruction(géométrie)
+    }
 }
 
 /** \} */

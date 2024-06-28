@@ -766,7 +766,10 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
         mémoire(ptr comme **octet) = tampon_tableau.pointeur
 
         ptr_taille := tableau.pointeur + 8
-        mémoire(ptr_taille comme *z64) = index
+        mémoire(ptr_taille comme *z64) = tampon_tableau.taille / type_pointé.taille_en_octet comme z64
+
+        ptr_capacité := tableau.pointeur + 16
+        mémoire(ptr_capacité comme *z64) = tampon_tableau.capacité / type_pointé.taille_en_octet comme z64
     }
 
     retourne LexèmeJSON.CROCHET_FERMANT
