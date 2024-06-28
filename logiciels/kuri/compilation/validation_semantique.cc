@@ -2055,6 +2055,7 @@ RésultatValidation Sémanticienne::valide_paramètres_fonction(NoeudDéclaratio
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__PARAMETRES);
     auto noms = kuri::ensemblon<IdentifiantCode *, 16>();
     auto dernier_est_variadic = false;
+    auto dernier_possède_expression = false;
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         if (!decl->params[i]->est_déclaration_variable() && !decl->params[i]->est_empl() &&
@@ -2086,6 +2087,13 @@ RésultatValidation Sémanticienne::valide_paramètres_fonction(NoeudDéclaratio
             }
 
             expression->drapeaux |= DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
+            dernier_possède_expression = true;
+        }
+        else if (dernier_possède_expression) {
+            rapporte_erreur("Valeur par défaut manquante. Le paramètre doit avoir une valeur par "
+                            "défaut, puisque le paramètre précédent en possède une.",
+                            param);
+            return CodeRetourValidation::Erreur;
         }
 
         noms.insère(param->ident);
