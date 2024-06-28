@@ -28,6 +28,10 @@ inverse :: fonc (chn: *chaine) -> rien
 
 copie_chaine :: fonc (chn: chaine) -> chaine
 {
+    si chn.taille == 0 {
+        retourne ""
+    }
+
     nchn := loge_chaine(chn.taille)
     copie_mem_nonsur(src = chn.pointeur, dst = nchn.pointeur, taille = chn.taille)
     retourne nchn

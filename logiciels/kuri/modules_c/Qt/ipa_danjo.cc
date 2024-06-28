@@ -373,6 +373,22 @@ class EnveloppeParamètre final : public danjo::BasePropriete {
         }
         return false;
     }
+
+    std::string donne_texte_bouton() const override
+    {
+        if (m_rappels && m_rappels->donne_texte_bouton) {
+            QT_Chaine résultat;
+            m_rappels->donne_texte_bouton(m_rappels, &résultat);
+            return résultat.vers_std_string();
+        }
+    }
+
+    void sur_pression() const override
+    {
+        if (m_rappels && m_rappels->sur_pression) {
+            m_rappels->sur_pression(m_rappels);
+        }
+    }
 };
 
 /** \} */

@@ -55,6 +55,10 @@ static std::any donne_valeur_défaut_pour_type(TypePropriete const type)
             auto liste = ListeManipulable();
             return std::any(liste);
         }
+        case TypePropriete::BOUTON:
+        {
+            return {};
+        }
     }
 
     return {};
@@ -104,6 +108,7 @@ Propriete *Propriete::cree(TypePropriete type, std::any valeur_)
         case TypePropriete::COURBE_VALEUR:
         case TypePropriete::RAMPE_COULEUR:
         case TypePropriete::LISTE_MANIP:
+        case TypePropriete::BOUTON:
         {
             break;
         }

@@ -327,7 +327,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
         }
         contexte_vérification.profondeur -= 1
     }
-    sinon si noeud.genre == HTML.GenreNoeud.Doctype {
+    sinon si noeud.genre == HTML.GenreNoeud.TypeDocument {
         // RÀF pour le moment
     }
     sinon si noeud.genre == HTML.GenreNoeud.Document {

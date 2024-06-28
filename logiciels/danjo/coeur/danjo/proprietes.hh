@@ -31,6 +31,7 @@ enum class TypePropriete : int {
     TEXTE,
     LISTE,
     LISTE_MANIP,
+    BOUTON,
 };
 
 enum etat_propriete : char {
@@ -114,6 +115,10 @@ class BasePropriete {
     virtual bool est_animable() const = 0;
 
     virtual bool possede_cle(int temps) const = 0;
+
+    /* Pour les boutons. */
+    virtual std::string donne_texte_bouton() const = 0;
+    virtual void sur_pression() const = 0;
 };
 
 /** \} */
@@ -228,6 +233,16 @@ struct Propriete : public BasePropriete {
     bool possede_cle(int temps) const override;
 
     void supprime_animation() override;
+
+    std::string donne_texte_bouton() const override
+    {
+        return "";
+    }
+
+    /* Pour les boutons. */
+    void sur_pression() const override
+    {
+    }
 
   private:
     void ajoute_cle_impl(const std::any &v, int temps);
