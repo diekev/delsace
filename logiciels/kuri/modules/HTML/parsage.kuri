@@ -273,7 +273,9 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         doctype := crée_noeud_doctype(parseuse.document)
-        doctype.nom = crée_chaine_utf16(lexème.nom.chaine_native())
+        chn_nom := lexème.nom.chaine_native()
+        diffère déloge(chn_nom)
+        doctype.nom = crée_chaine_utf16(chn_nom)
         doctype.public_id = crée_chaine_utf16(lexème.identifiant_public_doctype)
         doctype.system_id = crée_chaine_utf16(lexème.identifiant_système_doctype)
 
