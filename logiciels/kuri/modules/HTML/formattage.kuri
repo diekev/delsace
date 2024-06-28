@@ -254,7 +254,9 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
     flux_sortie := crée_flux_sortie(enchaineuse)
 
     discr noeud.genre {
-        Invalide {
+        FragmentDocument,
+        ProcessingInstruction,
+        Section_CDATA {
             retourne
         }
         Commentaire {
@@ -274,7 +276,7 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
                 formatte_noeud(contexte_formattage, it, enchaineuse)
             }
         }
-        Doctype {
+        TypeDocument {
             enchaineuse.ajoute_au_tampon("<!DOCTYPE html>")
             nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
         }

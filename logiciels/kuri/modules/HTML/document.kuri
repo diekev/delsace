@@ -3,6 +3,7 @@ importe Fondation
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.
+ * https://dom.spec.whatwg.org/#document
  * \{ */
 
 Encodage :: énum {
@@ -75,11 +76,11 @@ est_iframe_srcdoc :: fonc (document: *Document) -> bool
     retourne document.url == "about:srcdoc"
 }
 
-donne_doctype :: fonc (document: *Document) -> *DocumentType
+donne_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 {
     pour document.enfants {
-        si it.genre == GenreNoeud.Doctype {
-            retourne it comme *DocumentType
+        si it.genre == GenreNoeud.TypeDocument {
+            retourne it comme *NoeudTypeDocument
         }
     }
     retourne nul
@@ -106,13 +107,49 @@ donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -
     retourne nul
 }
 
+/* https://dom.spec.whatwg.org/#document-element */
+donne_élément_document :: fonc (document: *Document) -> *Élément
+{
+    pour document.enfants {
+        si it.est_élément() {
+            retourne it comme *Élément
+        }
+    }
+    retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#dom-tree-accessors */
+donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
+{
+    élément := donne_élément_document(document)
+    si élément && élément.texte == TAG_html {
+        retourne élément comme *HTMLHtmlElement
+    }
+    retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#the-body-element-2 */
+donne_élément_body :: fonc (document: *Document) -> *Élément
+{
+    élément_html := document.donne_élément_html()
+    si élément_html {
+        pour élément_html.enfants {
+            si it.est_élément_type(TAG_body) || it.est_élément_type(TAG_frameset) {
+                retourne it comme *Élément
+            }
+        }
+    }
+    retourne nul
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom DocumentType.
+/** \nom NoeudTypeDocument.
+ * https://dom.spec.whatwg.org/#documenttype
  * \{ */
 
-DocumentType :: struct {
+NoeudTypeDocument :: struct {
     empl base: Noeud
 
     nom: ChaineUTF16
@@ -120,10 +157,10 @@ DocumentType :: struct {
     system_id: ChaineUTF16
 }
 
-crée_noeud_doctype :: fonc (document: *Document) -> *DocumentType
+crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 {
-    doctype := loge(DocumentType)
-    doctype.genre = GenreNoeud.Doctype
+    doctype := loge(NoeudTypeDocument)
+    doctype.genre = GenreNoeud.TypeDocument
     doctype.document = document
 
     retourne doctype
@@ -132,13 +169,60 @@ crée_noeud_doctype :: fonc (document: *Document) -> *DocumentType
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudTexte.
+/** \nom NoeudFragmentDocument.
+ * https://dom.spec.whatwg.org/#documentfragment
  * \{ */
 
-NoeudTexte :: struct {
+NoeudFragmentDocument :: struct {
+    empl base: Noeud
+}
+
+crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDocument
+{
+    doctype := loge(NoeudFragmentDocument)
+    doctype.genre = GenreNoeud.FragmentDocument
+    doctype.document = document
+
+    retourne doctype
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDonnéesCaractères.
+ * Correspond à CharacterDataNode
+ * https://dom.spec.whatwg.org/#characterdata
+ * \{ */
+
+NoeudDonnéesCaractères :: struct {
     empl base: Noeud
 
     données: ChaineUTF16
+}
+
+est_données_caractères :: fonc (noeud: Noeud)
+{
+    discr noeud.genre {
+        Commentaire,
+        Texte,
+        ProcessingInstruction {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudTexte.
+ * https://dom.spec.whatwg.org/#text
+ * \{ */
+
+NoeudTexte :: struct {
+    empl base_données: NoeudDonnéesCaractères
 }
 
 crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
@@ -150,16 +234,41 @@ crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
     retourne texte
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#inter-element-whitespace */
+est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
+{
+    retourne est_vide_ou_uniquement_espaces_blanches(texte.données)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudSectionCDATA.
+ * https://dom.spec.whatwg.org/#cdatasection
+ * \{ */
+
+NoeudSectionCDATA :: struct {
+    empl base_texte: NoeudTexte
+}
+
+crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
+{
+    texte := loge(NoeudSectionCDATA)
+    texte.genre = GenreNoeud.Section_CDATA
+    texte.document = document
+
+    retourne texte
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom NoeudCommentaire.
+ * https://dom.spec.whatwg.org/#comment
  * \{ */
 
 NoeudCommentaire :: struct {
-    empl base: Noeud
-
-    données: ChaineUTF16
+    empl base_données: NoeudDonnéesCaractères
 }
 
 crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
@@ -170,6 +279,29 @@ crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> 
     commentaire.données = copie_chaine(données)
 
     retourne commentaire
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudProcessingInstruction.
+ * https://dom.spec.whatwg.org/#processinginstruction
+ * \{ */
+
+NoeudProcessingInstruction :: struct {
+    empl base_données: NoeudDonnéesCaractères
+
+    cible: ChaineUTF16
+}
+
+crée_noeud_processing_instruction :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
+{
+    résultat := loge(NoeudCommentaire)
+    résultat.genre = GenreNoeud.Commentaire
+    résultat.document = document
+    résultat.données = copie_chaine(données)
+
+    retourne résultat
 }
 
 /** \} */

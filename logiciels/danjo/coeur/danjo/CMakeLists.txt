@@ -40,6 +40,7 @@ set(ENTETES_POUR_QT
 
     controles_proprietes/controle_propriete.h
     controles_proprietes/controle_propriete_bool.h
+    controles_proprietes/controle_propriete_bouton.h
     controles_proprietes/controle_propriete_chaine.h
     controles_proprietes/controle_propriete_couleur.h
     controles_proprietes/controle_propriete_courbe_couleur.h
@@ -124,6 +125,7 @@ set(SOURCES
         controles_proprietes/commun.cc
 	controles_proprietes/controle_propriete.cc
 	controles_proprietes/controle_propriete_bool.cc
+        controles_proprietes/controle_propriete_bouton.cc
 	controles_proprietes/controle_propriete_chaine.cc
 	controles_proprietes/controle_propriete_couleur.cc
 	controles_proprietes/controle_propriete_courbe_couleur.cc
@@ -185,6 +187,7 @@ set(SOURCES
         controles_proprietes/commun.hh
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h
+        controles_proprietes/controle_propriete_bouton.h
 	controles_proprietes/controle_propriete_chaine.h
 	controles_proprietes/controle_propriete_couleur.h
 	controles_proprietes/controle_propriete_courbe_couleur.h
