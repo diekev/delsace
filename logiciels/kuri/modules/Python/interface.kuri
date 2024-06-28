@@ -1926,6 +1926,7 @@ PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
 {
     /* Met en place les chemins. */
     chemin_recherche := crée_chaine_utf32(chemin)
+    diffère détruit_chaine(chemin_recherche)
     /* Ajout terminateur nul. */
     chaine_ajoute(*chemin_recherche, 0)
 
