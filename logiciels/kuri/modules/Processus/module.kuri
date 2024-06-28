@@ -122,7 +122,7 @@ lis :: fonc (canal: &BaseCanal) -> chaine
     diffère détruit_tampons(*enchaineuse)
 
     boucle {
-        tmp := tente lis_tout(*canal.lecteur) piège err {
+        tmp := tente lis_tout(*canal.lecteur) piège _ {
             retourne chaine_depuis_enchaineuse(*enchaineuse)
         }
 

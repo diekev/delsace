@@ -2546,6 +2546,12 @@ bool QT_text_cursor_possede_selection_apres(struct QT_TextCursor *cursor, int po
 /** \name QT_PlainTextEdit
  * \{ */
 
+#define ENUMERE_MODE_RETOUR_LIGNE(O)                                                              \
+    O(QT_LINE_WRAP_MODE_AUCUN, QPlainTextEdit::LineWrapMode::NoWrap)                              \
+    O(QT_LINE_WRAP_MODE_WIDGET, QPlainTextEdit::LineWrapMode::WidgetWidth)
+
+enum QT_Line_Wrap_Mode { ENUMERE_MODE_RETOUR_LIGNE(ENUMERE_DECLARATION_ENUM_IPA) };
+
 struct QT_Rappels_PlainTextEdit {
     RAPPELS_EVENEMENTS_COMMUNS(QT_PlainTextEdit, QT_Rappels_PlainTextEdit);
 };
@@ -2567,6 +2573,9 @@ void QT_plain_text_edit_coupe(struct QT_PlainTextEdit *text_edit);
 void QT_plain_text_edit_copie(struct QT_PlainTextEdit *text_edit);
 
 void QT_plain_text_edit_definis_lecture_seule(struct QT_PlainTextEdit *text_edit, bool ouinon);
+
+void QT_plain_text_edit_definis_mode_retour_ligne(struct QT_PlainTextEdit *text_edit,
+                                                  enum QT_Line_Wrap_Mode mode);
 
 /** \} */
 
@@ -2654,7 +2663,8 @@ struct DNJ_Constructrice_Parametre_Enum {
     O(DNJ_TYPE_PARAMETRE_RAMPE_COULEUR, danjo::TypePropriete::RAMPE_COULEUR)                      \
     O(DNJ_TYPE_PARAMETRE_TEXTE, danjo::TypePropriete::TEXTE)                                      \
     O(DNJ_TYPE_PARAMETRE_LISTE, danjo::TypePropriete::LISTE)                                      \
-    O(DNJ_TYPE_PARAMETRE_LISTE_MANIP, danjo::TypePropriete::LISTE_MANIP)
+    O(DNJ_TYPE_PARAMETRE_LISTE_MANIP, danjo::TypePropriete::LISTE_MANIP)                          \
+    O(DNJ_TYPE_PARAMETRE_BOUTON, danjo::TypePropriete::BOUTON)
 
 enum DNJ_Type_Parametre { ENEMERE_TYPE_PARAMETRE_DANJO(ENUMERE_DECLARATION_ENUM_IPA) };
 
@@ -2720,6 +2730,9 @@ struct DNJ_Rappels_Enveloppe_Parametre {
     bool (*est_anime)(struct DNJ_Rappels_Enveloppe_Parametre *);
     bool (*est_animable)(struct DNJ_Rappels_Enveloppe_Parametre *);
     bool (*possede_image_cle)(struct DNJ_Rappels_Enveloppe_Parametre *, int);
+
+    void (*donne_texte_bouton)(struct DNJ_Rappels_Enveloppe_Parametre *, struct QT_Chaine *);
+    void (*sur_pression)(struct DNJ_Rappels_Enveloppe_Parametre *);
 };
 /** \} */
 

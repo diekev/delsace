@@ -244,6 +244,7 @@ void *Manipulable::operator[](const dls::chaine &nom)
             break;
         case TypePropriete::VECTEUR_ENTIER:
         case TypePropriete::LISTE:
+        case TypePropriete::BOUTON:
             break;
     }
 
