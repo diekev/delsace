@@ -293,6 +293,34 @@ extern "C" {
 /** \name QT_Chaine
  * \{ */
 
+static QT_Chaine crée_qt_chaine(const QString &string)
+{
+    auto const std_string = string.toStdString();
+    QT_Chaine résultat;
+    résultat.caractères = new char[std_string.size()];
+    résultat.taille = int64_t(std_string.size());
+    memcpy(résultat.caractères, std_string.c_str(), std_string.size());
+    return résultat;
+}
+
+static QT_Chaine crée_qt_chaine_tampon(const QString &string, char *tampon, size_t taille_tampon)
+{
+    auto const std_string = string.toStdString();
+    QT_Chaine résultat;
+
+    if (std_string.size() < taille_tampon) {
+        memcpy(tampon, std_string.c_str(), std_string.size());
+        résultat.caractères = tampon;
+        résultat.taille = int64_t(std_string.size());
+    }
+    else {
+        résultat.caractères = nullptr;
+        résultat.taille = 0;
+    }
+
+    return résultat;
+}
+
 void QT_chaine_detruit(struct QT_Chaine *chn)
 {
     delete[] chn->caractères;
@@ -1099,23 +1127,8 @@ uint32_t QT_key_event_donne_modificateurs_natifs(QT_KeyEvent *event)
 QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
 {
     static char tampon[128];
-
     auto qevent = vers_qt(event);
-    auto text = qevent->text().toStdString();
-
-    QT_Chaine résultat;
-
-    if (text.size() < 128) {
-        memcpy(tampon, text.c_str(), text.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(text.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(qevent->text(), tampon, sizeof(tampon));
 }
 
 /** \} */
@@ -1835,23 +1848,8 @@ void QT_combobox_connecte_sur_changement_index(QT_ComboBox *combo, QT_Rappel_Gen
 QT_Chaine QT_combobox_donne_valeur_courante_chaine(QT_ComboBox *combo)
 {
     VERS_QT(combo);
-    auto chaine = qcombo->currentData().toString().toStdString();
-
     static char tampon[FILENAME_MAX];
-
-    QT_Chaine résultat;
-
-    if (chaine.size() < FILENAME_MAX) {
-        memcpy(tampon, chaine.c_str(), chaine.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(chaine.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(qcombo->currentData().toString(), tampon, sizeof(tampon));
 }
 
 void QT_combobox_definis_modifiable(QT_ComboBox *combo, bool ouinon)
@@ -2198,21 +2196,7 @@ QT_Chaine QT_line_edit_donne_texte(QT_LineEdit *line_edit)
 {
     VERS_QT(line_edit);
     static char tampon[FILENAME_MAX];
-
-    auto texte = qline_edit->text().toStdString();
-    QT_Chaine résultat;
-
-    if (texte.size() < FILENAME_MAX) {
-        memcpy(tampon, texte.c_str(), texte.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(texte.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(qline_edit->text(), tampon, sizeof(tampon));
 }
 
 void QT_line_edit_definis_lecture_seule(QT_LineEdit *line_edit, bool ouinon)
@@ -2441,23 +2425,8 @@ QT_Chaine QT_file_dialog_donne_chemin_pour_lecture(QT_Generic_Widget parent,
     auto chemin = QFileDialog::getOpenFileName(
         qparent, qtitre.c_str(), qdossier.c_str(), qfiltre.c_str());
 
-    auto std_chemin = chemin.toStdString();
-
     static char tampon[FILENAME_MAX];
-
-    QT_Chaine résultat;
-
-    if (std_chemin.size() < FILENAME_MAX) {
-        memcpy(tampon, std_chemin.c_str(), std_chemin.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(std_chemin.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(chemin, tampon, sizeof(tampon));
 }
 
 QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(QT_Generic_Widget parent,
@@ -2473,23 +2442,8 @@ QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(QT_Generic_Widget parent,
     auto chemin = QFileDialog::getSaveFileName(
         qparent, qtitre.c_str(), qdossier.c_str(), qfiltre.c_str());
 
-    auto std_chemin = chemin.toStdString();
-
     static char tampon[FILENAME_MAX];
-
-    QT_Chaine résultat;
-
-    if (std_chemin.size() < FILENAME_MAX) {
-        memcpy(tampon, std_chemin.c_str(), std_chemin.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(std_chemin.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(chemin, tampon, sizeof(tampon));
 }
 
 QT_Chaine QT_file_dialog_donne_dossier_existant(QT_Generic_Widget parent,
@@ -2502,23 +2456,8 @@ QT_Chaine QT_file_dialog_donne_dossier_existant(QT_Generic_Widget parent,
 
     auto chemin = QFileDialog::getExistingDirectory(qparent, qtitre.c_str(), qdossier.c_str());
 
-    auto std_chemin = chemin.toStdString();
-
     static char tampon[FILENAME_MAX];
-
-    QT_Chaine résultat;
-
-    if (std_chemin.size() < FILENAME_MAX) {
-        memcpy(tampon, std_chemin.c_str(), std_chemin.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(std_chemin.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(chemin, tampon, sizeof(tampon));
 }
 
 /** \} */
@@ -3590,18 +3529,7 @@ void QT_text_cursor_donne_texte_selection(QT_TextCursor *cursor, QT_Chaine *rés
     VERS_QT(cursor);
 
     static char tampon[128];
-
-    auto text = qcursor->selectedText().toStdString();
-
-    if (text.size() < 128) {
-        memcpy(tampon, text.c_str(), text.size());
-        résultat->caractères = tampon;
-        résultat->taille = int64_t(text.size());
-    }
-    else {
-        résultat->caractères = nullptr;
-        résultat->taille = 0;
-    }
+    *résultat = crée_qt_chaine_tampon(qcursor->selectedText(), tampon, sizeof(tampon));
 }
 
 void QT_text_cursor_insere_texte(QT_TextCursor *cursor, QT_Chaine texte)
@@ -3660,12 +3588,7 @@ QT_Chaine QT_plain_text_edit_donne_texte(QT_PlainTextEdit *text_edit)
 {
     VERS_QT(text_edit);
     auto texte = qtext_edit->toPlainText().toStdString();
-
-    QT_Chaine résultat;
-    résultat.caractères = new char[texte.size()];
-    résultat.taille = int64_t(texte.size());
-    memcpy(résultat.caractères, texte.c_str(), texte.size());
-    return résultat;
+    return crée_qt_chaine(qtext_edit->toPlainText());
 }
 
 void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct QT_Chaine *texte)
