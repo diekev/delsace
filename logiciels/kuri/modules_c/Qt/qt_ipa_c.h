@@ -2287,6 +2287,10 @@ void QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
 
 struct QT_Variant {
     void (*definis_chaine)(struct QT_Variant *, struct QT_Chaine);
+    bool (*est_chaine)(struct QT_Variant *);
+    struct QT_Chaine (*donne_chaine)(struct QT_Variant *);
+
+    void (*definis_brosse)(struct QT_Variant *, struct QT_Brush *);
 
 #define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
     void (*definis_##type_kuri)(struct QT_Variant *, type_cpp);

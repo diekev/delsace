@@ -3043,6 +3043,29 @@ class EnveloppeVariant : public QT_Variant {
         enveloppe->m_variant = vers_qt(chaine);
     }
 
+    static QT_Chaine sur_donne_chaine(QT_Variant *variant)
+    {
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);
+        auto string = enveloppe->m_variant.toString();
+        return crée_qt_chaine(string);
+    }
+
+    static bool sur_est_chaine(QT_Variant *variant)
+    {
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);
+        return enveloppe->m_variant.type() == QVariant::String;
+    }
+
+    static void sur_définis_brosse(QT_Variant *variant, QT_Brush *brosse)
+    {
+        if (!brosse) {
+            return;
+        }
+
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);
+        enveloppe->m_variant = vers_qt(*brosse);
+    }
+
 #define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
     static void sur_définis_##type_kuri(QT_Variant *variant, type_cpp valeur)                     \
     {                                                                                             \
@@ -3061,6 +3084,9 @@ class EnveloppeVariant : public QT_Variant {
     EnveloppeVariant(const QVariant &variant) : m_variant(variant)
     {
         definis_chaine = sur_définis_chaine;
+        donne_chaine = sur_donne_chaine;
+        est_chaine = sur_est_chaine;
+        definis_brosse = sur_définis_brosse;
 #define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
     definis_##type_kuri = sur_définis_##type_kuri;
         ENUMERE_TYPE_STANDARD(ENUMERE_RAPPEL_TYPE_STANDARD)
