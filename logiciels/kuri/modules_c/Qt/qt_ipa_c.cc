@@ -3102,6 +3102,46 @@ class EnveloppeVariant : public QT_Variant {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Item_Flags
+ * \{ */
+
+static QT_Item_Flags item_flags_vers_ipa(Qt::ItemFlags drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_ITEM_FLAGS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA);
+    return QT_Item_Flags(résultat);
+}
+
+static Qt::ItemFlags item_flags_vers_qt(QT_Item_Flags drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_ITEM_FLAGS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT);
+    return Qt::ItemFlags(résultat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Item_Edit_Triggers
+ * \{ */
+
+static QT_Item_Edit_Triggers item_edit_triggers_vers_ipa(QAbstractItemView::EditTriggers drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_ITEM_EDIT_TRIGGERS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA);
+    return QT_Item_Edit_Triggers(résultat);
+}
+
+static QAbstractItemView::EditTriggers item_edit_triggers_vers_qt(QT_Item_Edit_Triggers drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_ITEM_EDIT_TRIGGERS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT);
+    return QAbstractItemView::EditTriggers(résultat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Item_Data_Role
  * \{ */
 
@@ -3136,6 +3176,17 @@ class ModèleTable final : public QAbstractTableModel {
         if (m_rappels && m_rappels->sur_destruction) {
             m_rappels->sur_destruction(m_rappels);
         }
+    }
+
+    Qt::ItemFlags flags(const QModelIndex &index) const override
+    {
+        if (m_rappels && m_rappels->donne_flags) {
+            auto model = vers_ipa(index);
+            auto résultat = m_rappels->donne_flags(
+                m_rappels, &model, item_flags_vers_ipa(QAbstractTableModel::flags(index)));
+            return item_flags_vers_qt(résultat);
+        }
+        return QAbstractTableModel::flags(index);
     }
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override
@@ -3184,6 +3235,17 @@ class ModèleTable final : public QAbstractTableModel {
         m_rappels->donne_donnee_cellule(
             m_rappels, &model, convertis_role(Qt::ItemDataRole(role)), &enveloppe_variant);
         return enveloppe_variant.donne_variant();
+    }
+
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override
+    {
+        if (m_rappels && m_rappels->definis_donnee_cellule) {
+            auto enveloppe_variant = EnveloppeVariant(value);
+            auto model = vers_ipa(index);
+            return m_rappels->definis_donnee_cellule(
+                m_rappels, &model, convertis_role(Qt::ItemDataRole(role)), &enveloppe_variant);
+        }
+        return QAbstractTableModel::setData(index, value, role);
     }
 };
 
@@ -3359,6 +3421,12 @@ bool QT_table_view_possede_selection(QT_TableView *view)
         return false;
     }
     return model->hasSelection();
+}
+
+void QT_table_view_definis_edit_triggers(QT_TableView *view, QT_Item_Edit_Triggers edit_triggers)
+{
+    VERS_QT(view);
+    qview->setEditTriggers(item_edit_triggers_vers_qt(edit_triggers));
 }
 
 /** \} */

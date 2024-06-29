@@ -2301,6 +2301,42 @@ struct QT_Variant {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Item_Flags
+ * \{ */
+
+#define ENUMERE_ITEM_FLAGS(O)                                                                     \
+    O(QT_ITEM_FLAGS_Aucun, Qt::NoItemFlags, 0)                                                    \
+    O(QT_ITEM_FLAGS_Selectable, Qt::ItemIsSelectable, 1)                                          \
+    O(QT_ITEM_FLAGS_Editable, Qt::ItemIsEditable, 2)                                              \
+    O(QT_ITEM_FLAGS_IsDragEnabled, Qt::ItemIsDragEnabled, 4)                                      \
+    O(QT_ITEM_FLAGS_IsDropEnabled, Qt::ItemIsDropEnabled, 8)                                      \
+    O(QT_ITEM_FLAGS_IsUserCheckable, Qt::ItemIsUserCheckable, 16)                                 \
+    O(QT_ITEM_FLAGS_IsEnabled, Qt::ItemIsEnabled, 32)                                             \
+    O(QT_ITEM_FLAGS_IsAutoTristate, Qt::ItemIsAutoTristate, 64)                                   \
+    O(QT_ITEM_FLAGS_NeverHasChildren, Qt::ItemNeverHasChildren, 128)                              \
+    O(QT_ITEM_FLAGS_IsUserTristate, Qt::ItemIsUserTristate, 256)
+
+enum QT_Item_Flags { ENUMERE_ITEM_FLAGS(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Item_Edit_Triggers
+ * \{ */
+
+#define ENUMERE_ITEM_EDIT_TRIGGERS(O)                                                             \
+    O(QT_ITEM_EDIT_TRIGGERS_NoEditTriggers, QAbstractItemView::NoEditTriggers, 0)                 \
+    O(QT_ITEM_EDIT_TRIGGERS_CurrentChanged, QAbstractItemView::CurrentChanged, 1)                 \
+    O(QT_ITEM_EDIT_TRIGGERS_DoubleClicked, QAbstractItemView::DoubleClicked, 2)                   \
+    O(QT_ITEM_EDIT_TRIGGERS_SelectedClicked, QAbstractItemView::SelectedClicked, 4)               \
+    O(QT_ITEM_EDIT_TRIGGERS_EditKeyPressed, QAbstractItemView::EditKeyPressed, 8)                 \
+    O(QT_ITEM_EDIT_TRIGGERS_AnyKeyPressed, QAbstractItemView::AnyKeyPressed, 16)
+
+enum QT_Item_Edit_Triggers { ENUMERE_ITEM_EDIT_TRIGGERS(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Item_Data_Role
  * \{ */
 
@@ -2359,7 +2395,14 @@ struct QT_Rappels_TableModel {
                                  struct QT_ModelIndex *,
                                  enum QT_Item_Data_Role,
                                  struct QT_Variant *);
+    bool (*definis_donnee_cellule)(struct QT_Rappels_TableModel *,
+                                   struct QT_ModelIndex *,
+                                   enum QT_Item_Data_Role,
+                                   struct QT_Variant *);
     void (*sur_destruction)(struct QT_Rappels_TableModel *);
+    enum QT_Item_Flags (*donne_flags)(struct QT_Rappels_TableModel *,
+                                      struct QT_ModelIndex *,
+                                      enum QT_Item_Flags);
 
     /* Le QT_AbstractTableModel crée avec ces rappels. */
     struct QT_AbstractTableModel *table_model;
@@ -2420,6 +2463,8 @@ void QT_table_view_connecte_sur_changement_selection(struct QT_TableView *view,
                                                      struct QT_Rappel_Generique *rappel);
 void QT_table_view_donne_item_courant(struct QT_TableView *view, struct QT_ModelIndex *r_index);
 bool QT_table_view_possede_selection(struct QT_TableView *view);
+void QT_table_view_definis_edit_triggers(struct QT_TableView *view,
+                                         enum QT_Item_Edit_Triggers edit_triggers);
 
 /** \} */
 
