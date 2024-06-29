@@ -3054,7 +3054,11 @@ class EnveloppeVariant : public QT_Variant {
 #undef ENUMERE_RAPPEL_TYPE_STANDARD
 
   public:
-    EnveloppeVariant()
+    EnveloppeVariant() : EnveloppeVariant(QVariant{})
+    {
+    }
+
+    EnveloppeVariant(const QVariant &variant) : m_variant(variant)
     {
         definis_chaine = sur_définis_chaine;
 #define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
