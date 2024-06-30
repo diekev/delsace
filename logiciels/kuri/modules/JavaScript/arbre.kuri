@@ -18,6 +18,14 @@ exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse
     retourne noeud.sur_exécution(noeud, interpréteuse)
 }
 
+/* 8.4.3 Static Semantics: IsAnonymousFunctionDefinition
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-isanonymousfunctiondefinition */
+is_anonymous_function_definition :: fonc (noeud: *NoeudSyntaxique @inutilisée) -> bool
+{
+    // À FAIRE
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -127,7 +135,7 @@ crée_identifier :: fonc (nom: ECMAString) -> *Identifier
 sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *Identifier
-    retourne normal_completion(interpréteuse.donne_variable(noeud.nom))
+    retourne resolve_binding(interpréteuse, noeud.nom)
 }
 
 /** \} */
@@ -637,31 +645,55 @@ crée_variable_declarator :: fonc (id: *NoeudSyntaxique, init: *NoeudSyntaxique)
     retourne résultat
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-variable-statement */
 sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *VariableDeclarator
-
     assert(noeud.id.type == Identifier)
     identifier := noeud.id comme *Identifier
 
-    résultat := js_undefined
+    // À FAIRE : cas sans init
+    assert(noeud.init != nul)
 
-    interpréteuse.déclare_variable(identifier.nom)
-    si noeud.init {
+    // 1. Let bindingId be the StringValue of BindingIdentifier.
+    binding_id := identifier.nom
+
+    // 2. Let lhs be ? ResolveBinding(bindingId).
+    completion_lhs := interpréteuse.resolve_binding(binding_id)
+    saufsi completion_lhs.est_normal() {
+        retourne completion_lhs
+    }
+    lhs := completion_lhs.valeur
+
+    valeur := js_undefined
+    // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    si is_anonymous_function_definition(noeud.init) {
+        // a. Let value be ? NamedEvaluation of Initializer with argument bindingId.
+        panique("init avec is_anonymous_function non-implémenté")
+    }
+    // 4. Else,
+    sinon {
+        // a. Let rhs be ? Evaluation of Initializer.
         completion_valeur := exécute_noeud(noeud.init, interpréteuse)
         saufsi completion_valeur.est_normal() {
             retourne completion_valeur
         }
+        // b. Let value be ? GetValue(rhs).
         valeur_complétion := donne_valeur(completion_valeur.valeur)
         si valeur_complétion.possède_erreur() {
             retourne valeur_complétion.Erreur
         }
-        valeur := valeur_complétion.Ok
-        interpréteuse.définis_variable(identifier.nom, valeur)
-        résultat = valeur
+        valeur = valeur_complétion.Ok
     }
 
-    retourne normal_completion(résultat)
+    // 5. Perform ? PutValue(lhs, value).
+    completion_put_value := put_value(interpréteuse, lhs, valeur)
+    saufsi completion_put_value.est_normal() {
+        retourne completion_put_value
+    }
+
+    // 6. Return EMPTY.
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */

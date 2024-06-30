@@ -296,6 +296,37 @@ définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur))
 }
 
+/* 7.3.2 Get
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
+get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+{
+    // À FAIRE : type property_key
+    // À FAIRE : différentes méthodes pour différents objets
+    // 1. Return ? O.[[Get]](P, O).
+    retourne normal_completion(donne_valeur(object, property_key))
+}
+
+/* 7.3.4 Set
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
+set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: bool @inutilisée) -> CompletionRecord
+{
+    // À FAIRE : type property_key
+
+    // 1. Let success be ? O.[[Set]](P, V, O).
+    // À FAIRE : différentes méthodes pour différents objets
+    définis_valeur(object, property_key, valeur)
+    // À FAIRE(langage)
+    // succès := vrai
+
+    // // 2. If success is false and Throw is true, throw a TypeError exception.
+    // si succès == faux && throw == vrai {
+    //     panique("exceptions non-implémentées")
+    // }
+
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
 donne_valeur :: fonc (objet: *Object, nom: ECMAString) -> Valeur
 {
     propriété := trouve_propriété(objet, nom)
