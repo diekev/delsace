@@ -247,11 +247,11 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     saufsi completion_droite.est_normal() {
         retourne completion_droite
     }
-    valeur_complétion_gauche := donne_valeur(completion_gauche.valeur)
+    valeur_complétion_gauche := get_value(interpréteuse, completion_gauche.valeur)
     si valeur_complétion_gauche.possède_erreur() {
         retourne valeur_complétion_gauche.Erreur
     }
-    valeur_complétion_droite := donne_valeur(completion_droite.valeur)
+    valeur_complétion_droite := get_value(interpréteuse, completion_droite.valeur)
     si valeur_complétion_droite.possède_erreur() {
         retourne valeur_complétion_droite.Erreur
     }
@@ -516,7 +516,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
         retourne completion_valeur_appelée
     }
 
-    valeur_complétion := donne_valeur(completion_valeur_appelée.valeur)
+    valeur_complétion := get_value(interpréteuse, completion_valeur_appelée.valeur)
     si valeur_complétion.possède_erreur() {
         retourne valeur_complétion.Erreur
     }
@@ -569,7 +569,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     saufsi completion_valeur.est_normal() {
         retourne completion_valeur
     }
-    valeur_complétion := donne_valeur(completion_valeur.valeur)
+    valeur_complétion := get_value(interpréteuse, completion_valeur.valeur)
     si valeur_complétion.possède_erreur() {
         retourne valeur_complétion.Erreur
     }
@@ -679,7 +679,7 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
             retourne completion_valeur
         }
         // b. Let value be ? GetValue(rhs).
-        valeur_complétion := donne_valeur(completion_valeur.valeur)
+        valeur_complétion := get_value(interpréteuse, completion_valeur.valeur)
         si valeur_complétion.possède_erreur() {
             retourne valeur_complétion.Erreur
         }
@@ -744,28 +744,50 @@ crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyn
     retourne résultat
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors-runtime-semantics-evaluation */
 sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     membre := base comme *MemberExpression
 
-    completion_valeur := exécute_noeud(membre.objet, interpréteuse)
-    saufsi completion_valeur.est_normal() {
-        retourne completion_valeur
-    }
-
-    valeur_complétion := donne_valeur(completion_valeur.valeur)
-    si valeur_complétion.possède_erreur() {
-        retourne valeur_complétion.Erreur
-    }
-
-    valeur := valeur_complétion.Ok
-
-    objet := vers_objet(interpréteuse, valeur)
-
     assert(membre.propriété.type == Identifier)
     identifier := membre.propriété comme *Identifier
 
-    retourne normal_completion(objet.donne_valeur(identifier.nom))
+    // MemberExpression : MemberExpression . IdentifierName
+
+    // 1. Let baseReference be ? Evaluation of MemberExpression.
+    completion_base_reference := exécute_noeud(membre.objet, interpréteuse)
+    saufsi completion_base_reference.est_normal() {
+        retourne completion_base_reference
+    }
+    base_reference := completion_base_reference.valeur
+
+    // 2. Let baseValue be ? GetValue(baseReference).
+    valeur_base_reference := get_value(interpréteuse, base_reference)
+    si valeur_base_reference.possède_erreur() {
+        retourne valeur_base_reference.Erreur
+    }
+    base_value := valeur_base_reference.Ok
+
+    // 3. Let strict be IsStrict(this MemberExpression).
+    // À FAIRE : strict
+    strict := faux
+
+    retourne evaluate_property_access_with_identifier_key(base_value, identifier, strict)
+}
+
+/* 13.3.4 EvaluatePropertyAccessWithIdentifierKey ( baseValue, identifierName, strict )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluate-property-access-with-identifier-key */
+evaluate_property_access_with_identifier_key :: fonc (base_value: Valeur, identifier_name: *Identifier, strict: bool) -> CompletionRecord
+{
+    // 1. Let propertyNameString be the StringValue of identifierName.
+    property_name_string := identifier_name.nom
+
+    // 2. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyNameString, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
+    résultat: ReferenceRecord
+    résultat.base = base_value
+    résultat.referenced_name = property_name_string
+    résultat.strict = strict
+    retourne normal_completion(résultat)
 }
 
 /** \} */
@@ -864,7 +886,7 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
             saufsi doit_continuer.est_normal() {
                 retourne doit_continuer
             }
-            valeur_complétion := donne_valeur(doit_continuer.valeur)
+            valeur_complétion := get_value(interpréteuse, doit_continuer.valeur)
             si valeur_complétion.possède_erreur() {
                 retourne valeur_complétion.Erreur
             }

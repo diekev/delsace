@@ -83,7 +83,7 @@ est_reference_record :: fonc (valeur: ValeurCompletion) -> bool
 
 /* 6.2.5.5 GetValue
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
-donne_valeur :: fonc (valeur: ValeurCompletion) -> Résultat(Valeur, CompletionRecord)
+get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) -> Résultat(Valeur, CompletionRecord)
 {
     // 1. If V is not a Reference Record, return V.
     saufsi valeur.est_reference_record() {
@@ -97,13 +97,18 @@ donne_valeur :: fonc (valeur: ValeurCompletion) -> Résultat(Valeur, CompletionR
 
     // 3. If IsPropertyReference(V) is true, then
     si est_référence_propriété(valeur) {
+        V := valeur.R
         // a. Let baseObj be ? ToObject(V.[[Base]]).
+        base_object := vers_objet(interpréteuse, V.base.V)
+
+        // À FAIRE
         // b. If IsPrivateReference(V) is true, then
             // i. Return ? PrivateGet(baseObj, V.[[ReferencedName]]).
         // c. If V.[[ReferencedName]] is not a property key, then
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
+
         // d. Return ? baseObj.[[Get]](V.[[ReferencedName]], GetThisValue(V)).
-        panique("donne_valeur pour est_référence_propriété non implémenté")
+        retourne get(base_object, V.referenced_name, get_this_value(V))
     }
 
     // 4. Else,
@@ -120,6 +125,34 @@ donne_valeur :: fonc (valeur: ValeurCompletion) -> Résultat(Valeur, CompletionR
     }
 
     retourne complétion
+}
+
+/* 6.2.5.7 GetThisValue ( V )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getthisvalue */
+get_this_value :: fonc (reference: ReferenceRecord) -> Valeur
+{
+    // 1. Assert: IsPropertyReference(V) is true.
+    assert(est_référence_propriété(reference))
+    // 2. If IsSuperReference(V) is true, return V.[[ThisValue]]; otherwise return V.[[Base]].
+    si is_super_reference(reference) {
+        retourne reference.valeur_this.Quelque
+    }
+    retourne reference.base.V
+}
+
+/* 6.2.5.3 IsSuperReference ( V )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-issuperreference */
+is_super_reference :: fonc (reference: ReferenceRecord) -> bool
+{
+    /* 1. If V.[[ThisValue]] is not EMPTY, return true; otherwise return false. */
+    discr reference.valeur_this {
+        Quelque {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 /** \} */
