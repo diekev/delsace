@@ -557,25 +557,60 @@ crée_assignment_expression :: fonc (opération: AssignmentOperation, gauche: *N
     retourne résultat
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-assignment-operators-runtime-semantics-evaluation */
 sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *AssignmentExpression
     assert(noeud.opération == AssignmentOperation.Assigne)
 
-    assert(noeud.gauche.type == Identifier)
-    identifier := noeud.gauche comme *Identifier
+    // À FAIRE : array literal
+    // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
+    si noeud.gauche.type != ObjectExpression {
+        // a. Let lref be ? Evaluation of LeftHandSideExpression.
+        completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
+        saufsi completion_lref.est_normal() {
+            retourne completion_lref
+        }
+        lref := completion_lref.valeur
 
-    completion_valeur := exécute_noeud(noeud.droite, interpréteuse)
-    saufsi completion_valeur.est_normal() {
-        retourne completion_valeur
+        rval: Valeur
+        // À FAIRE
+        // b. If IsAnonymousFunctionDefinition(AssignmentExpression) is true and IsIdentifierRef of LeftHandSideExpression is true, then
+            // i. Let lhs be the StringValue of LeftHandSideExpression.
+            // ii. Let rval be ? NamedEvaluation of AssignmentExpression with argument lhs.
+        // c. Else,
+        {
+            // i. Let rref be ? Evaluation of AssignmentExpression.
+            completion_rref := exécute_noeud(noeud.droite, interpréteuse)
+            saufsi completion_rref.est_normal() {
+                retourne completion_rref
+            }
+            rref := completion_rref.valeur
+
+            // ii. Let rval be ? GetValue(rref).
+            completion_rval := get_value(interpréteuse, rref)
+            si completion_rval.possède_erreur() {
+                retourne completion_rval.Erreur
+            }
+            rval = completion_rval.Ok
+        }
+
+        // d. Perform ? PutValue(lref, rval).
+        completion_assignment := put_value(interpréteuse, lref, rval)
+        si completion_assignment.est_normal() {
+            retourne completion_assignment
+        }
+
+        // e. Return rval.
+        retourne normal_completion(rval)
     }
-    valeur_complétion := get_value(interpréteuse, completion_valeur.valeur)
-    si valeur_complétion.possède_erreur() {
-        retourne valeur_complétion.Erreur
-    }
-    valeur := valeur_complétion.Ok
-    interpréteuse.définis_variable(identifier.nom, valeur)
-    retourne normal_completion(valeur)
+
+    panique("assignement expression non-implémenté")
+    // 2. Let assignmentPattern be the AssignmentPattern that is covered by LeftHandSideExpression.
+    // 3. Let rref be ? Evaluation of AssignmentExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Perform ? DestructuringAssignmentEvaluation of assignmentPattern with argument rval.
+    // 6. Return rval.
 }
 
 /** \} */
@@ -824,21 +859,49 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     update := base comme *UpdateExpression
     assert(update.argument.type == Identifier)
 
-    id := update.argument comme *Identifier
-    
-    vieille_valeur := interpréteuse.donne_variable(id.nom)
+    // 1. Let lhs be ? Evaluation of LeftHandSideExpression.
+    complétion_lhs := exécute_noeud(update.argument, interpréteuse)
+    saufsi complétion_lhs.est_normal() {
+        retourne complétion_lhs
+    }
+    lhs := complétion_lhs.valeur
+
+    // 2. Let oldValue be ? ToNumeric(? GetValue(lhs)).
+    lhs_value := get_value(interpréteuse, lhs)
+    si lhs_value.possède_erreur() {
+        retourne lhs_value.Erreur
+    }
+
+    old_value := to_numeric(lhs_value.Ok)
+
     nouvelle_valeur: Valeur
 
-    si update.operation == UpdateOperation.Increment {
-        nouvelle_valeur = ajoute_valeurs(vieille_valeur, Valeur(Number = 1))
+    // 3. If oldValue is a Number, then
+    si est_nombre(old_value) {
+        // a. Let newValue be Number::add(oldValue, 1𝔽).
+        // NOTE : nous faison ++ et -- directement.
+        si update.operation == UpdateOperation.Increment {
+            nouvelle_valeur = ajoute_valeurs(old_value, Valeur(Number = 1))
+        }
+        sinon {
+            nouvelle_valeur = soustrait_valeurs(old_value, Valeur(Number = 1))
+        }
     }
+    // 4. Else,
     sinon {
-        nouvelle_valeur = soustrait_valeurs(vieille_valeur, Valeur(Number = 1))
+        // a. Assert: oldValue is a BigInt.
+        // b. Let newValue be BigInt::add(oldValue, 1ℤ).
+        panique("update expression sur BigInt non-implémentée")
     }
 
-    interpréteuse.définis_variable(id.nom, nouvelle_valeur)
+    // 5. Perform ? PutValue(lhs, newValue).
+    complétion_update := put_value(interpréteuse, lhs, nouvelle_valeur)
+    saufsi complétion_update.est_normal() {
+        retourne complétion_update
+    }
 
-    retourne normal_completion(vieille_valeur)
+    // 6. Return oldValue.
+    retourne normal_completion(old_value)
 }
 
 /** \} */
