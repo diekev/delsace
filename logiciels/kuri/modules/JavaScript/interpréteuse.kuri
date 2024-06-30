@@ -222,12 +222,20 @@ Interpréteuse :: struct {
     objet_global: *Object
 
     lexical_environment: *Environment
+
+    // realm.[[Intrinsics]]
+    string_prototype: *StringPrototype
+    object_prototype: *ObjectPrototype
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
 {
     interpréteuse.tas_de_mémoire.interpréteuse = *interpréteuse
-    interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire)
+
+    interpréteuse.object_prototype = crée_object_prototype(*interpréteuse.tas_de_mémoire)
+    interpréteuse.string_prototype = crée_string_prototype(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
+
+    interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
     interpréteuse.lexical_environment = new_global_environment(*interpréteuse.tas_de_mémoire, interpréteuse.objet_global, nul)
 }
 
