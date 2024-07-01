@@ -3281,7 +3281,7 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
                          if (noeud->est_entête_fonction()) {
                              auto message = enchaine(
                                  "Dans la fonction ",
-                                 entête.ident->nom,
+                                 nom_humainement_lisible(&entête),
                                  " : fonction « ",
                                  (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
                                  " » inutilisée");
@@ -3293,7 +3293,7 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
 
                          auto message = enchaine(
                              "Dans la fonction ",
-                             entête.ident->nom,
+                             nom_humainement_lisible(&entête),
                              " : déclaration « ",
                              (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
                              " » inutilisée");
