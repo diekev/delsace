@@ -283,7 +283,7 @@ parse_expression :: fonc (parseuse: *Parseuse, précédence : z32 = 0, associati
 
     expression := parseuse.parse_expression_primaire()
 
-    tantque parseuse.apparie_expression_secondaire() {
+    tantque !parseuse.fini() && parseuse.apparie_expression_secondaire() {
         données := données_lexèmes_pour_parsage[parseuse.lexème_courant().genre]
 
         nouvelle_précédence := données.précédence
@@ -473,7 +473,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             retourne crée_call_expression(gauche, ...arguments)
         }
         sinon {
-            imprime("Erreur : genre de lexème non géré dans parse_expression_secondaire : %\n", lexème.genre)
+            rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")
         }
     }
 
