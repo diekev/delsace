@@ -293,6 +293,34 @@ extern "C" {
 /** \name QT_Chaine
  * \{ */
 
+static QT_Chaine crée_qt_chaine(const QString &string)
+{
+    auto const std_string = string.toStdString();
+    QT_Chaine résultat;
+    résultat.caractères = new char[std_string.size()];
+    résultat.taille = int64_t(std_string.size());
+    memcpy(résultat.caractères, std_string.c_str(), std_string.size());
+    return résultat;
+}
+
+static QT_Chaine crée_qt_chaine_tampon(const QString &string, char *tampon, size_t taille_tampon)
+{
+    auto const std_string = string.toStdString();
+    QT_Chaine résultat;
+
+    if (std_string.size() < taille_tampon) {
+        memcpy(tampon, std_string.c_str(), std_string.size());
+        résultat.caractères = tampon;
+        résultat.taille = int64_t(std_string.size());
+    }
+    else {
+        résultat.caractères = nullptr;
+        résultat.taille = 0;
+    }
+
+    return résultat;
+}
+
 void QT_chaine_detruit(struct QT_Chaine *chn)
 {
     delete[] chn->caractères;
@@ -1099,23 +1127,8 @@ uint32_t QT_key_event_donne_modificateurs_natifs(QT_KeyEvent *event)
 QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
 {
     static char tampon[128];
-
     auto qevent = vers_qt(event);
-    auto text = qevent->text().toStdString();
-
-    QT_Chaine résultat;
-
-    if (text.size() < 128) {
-        memcpy(tampon, text.c_str(), text.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(text.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(qevent->text(), tampon, sizeof(tampon));
 }
 
 /** \} */
@@ -1835,23 +1848,8 @@ void QT_combobox_connecte_sur_changement_index(QT_ComboBox *combo, QT_Rappel_Gen
 QT_Chaine QT_combobox_donne_valeur_courante_chaine(QT_ComboBox *combo)
 {
     VERS_QT(combo);
-    auto chaine = qcombo->currentData().toString().toStdString();
-
     static char tampon[FILENAME_MAX];
-
-    QT_Chaine résultat;
-
-    if (chaine.size() < FILENAME_MAX) {
-        memcpy(tampon, chaine.c_str(), chaine.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(chaine.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(qcombo->currentData().toString(), tampon, sizeof(tampon));
 }
 
 void QT_combobox_definis_modifiable(QT_ComboBox *combo, bool ouinon)
@@ -2198,21 +2196,7 @@ QT_Chaine QT_line_edit_donne_texte(QT_LineEdit *line_edit)
 {
     VERS_QT(line_edit);
     static char tampon[FILENAME_MAX];
-
-    auto texte = qline_edit->text().toStdString();
-    QT_Chaine résultat;
-
-    if (texte.size() < FILENAME_MAX) {
-        memcpy(tampon, texte.c_str(), texte.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(texte.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(qline_edit->text(), tampon, sizeof(tampon));
 }
 
 void QT_line_edit_definis_lecture_seule(QT_LineEdit *line_edit, bool ouinon)
@@ -2441,23 +2425,8 @@ QT_Chaine QT_file_dialog_donne_chemin_pour_lecture(QT_Generic_Widget parent,
     auto chemin = QFileDialog::getOpenFileName(
         qparent, qtitre.c_str(), qdossier.c_str(), qfiltre.c_str());
 
-    auto std_chemin = chemin.toStdString();
-
     static char tampon[FILENAME_MAX];
-
-    QT_Chaine résultat;
-
-    if (std_chemin.size() < FILENAME_MAX) {
-        memcpy(tampon, std_chemin.c_str(), std_chemin.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(std_chemin.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(chemin, tampon, sizeof(tampon));
 }
 
 QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(QT_Generic_Widget parent,
@@ -2473,23 +2442,8 @@ QT_Chaine QT_file_dialog_donne_chemin_pour_ecriture(QT_Generic_Widget parent,
     auto chemin = QFileDialog::getSaveFileName(
         qparent, qtitre.c_str(), qdossier.c_str(), qfiltre.c_str());
 
-    auto std_chemin = chemin.toStdString();
-
     static char tampon[FILENAME_MAX];
-
-    QT_Chaine résultat;
-
-    if (std_chemin.size() < FILENAME_MAX) {
-        memcpy(tampon, std_chemin.c_str(), std_chemin.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(std_chemin.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(chemin, tampon, sizeof(tampon));
 }
 
 QT_Chaine QT_file_dialog_donne_dossier_existant(QT_Generic_Widget parent,
@@ -2502,23 +2456,8 @@ QT_Chaine QT_file_dialog_donne_dossier_existant(QT_Generic_Widget parent,
 
     auto chemin = QFileDialog::getExistingDirectory(qparent, qtitre.c_str(), qdossier.c_str());
 
-    auto std_chemin = chemin.toStdString();
-
     static char tampon[FILENAME_MAX];
-
-    QT_Chaine résultat;
-
-    if (std_chemin.size() < FILENAME_MAX) {
-        memcpy(tampon, std_chemin.c_str(), std_chemin.size());
-        résultat.caractères = tampon;
-        résultat.taille = int64_t(std_chemin.size());
-    }
-    else {
-        résultat.caractères = nullptr;
-        résultat.taille = 0;
-    }
-
-    return résultat;
+    return crée_qt_chaine_tampon(chemin, tampon, sizeof(tampon));
 }
 
 /** \} */
@@ -3104,6 +3043,29 @@ class EnveloppeVariant : public QT_Variant {
         enveloppe->m_variant = vers_qt(chaine);
     }
 
+    static QT_Chaine sur_donne_chaine(QT_Variant *variant)
+    {
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);
+        auto string = enveloppe->m_variant.toString();
+        return crée_qt_chaine(string);
+    }
+
+    static bool sur_est_chaine(QT_Variant *variant)
+    {
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);
+        return enveloppe->m_variant.type() == QVariant::String;
+    }
+
+    static void sur_définis_brosse(QT_Variant *variant, QT_Brush *brosse)
+    {
+        if (!brosse) {
+            return;
+        }
+
+        auto enveloppe = static_cast<EnveloppeVariant *>(variant);
+        enveloppe->m_variant = vers_qt(*brosse);
+    }
+
 #define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
     static void sur_définis_##type_kuri(QT_Variant *variant, type_cpp valeur)                     \
     {                                                                                             \
@@ -3115,9 +3077,16 @@ class EnveloppeVariant : public QT_Variant {
 #undef ENUMERE_RAPPEL_TYPE_STANDARD
 
   public:
-    EnveloppeVariant()
+    EnveloppeVariant() : EnveloppeVariant(QVariant{})
+    {
+    }
+
+    EnveloppeVariant(const QVariant &variant) : m_variant(variant)
     {
         definis_chaine = sur_définis_chaine;
+        donne_chaine = sur_donne_chaine;
+        est_chaine = sur_est_chaine;
+        definis_brosse = sur_définis_brosse;
 #define ENUMERE_RAPPEL_TYPE_STANDARD(type_kuri, type_cpp)                                         \
     definis_##type_kuri = sur_définis_##type_kuri;
         ENUMERE_TYPE_STANDARD(ENUMERE_RAPPEL_TYPE_STANDARD)
@@ -3129,6 +3098,46 @@ class EnveloppeVariant : public QT_Variant {
         return m_variant;
     }
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Item_Flags
+ * \{ */
+
+static QT_Item_Flags item_flags_vers_ipa(Qt::ItemFlags drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_ITEM_FLAGS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA);
+    return QT_Item_Flags(résultat);
+}
+
+static Qt::ItemFlags item_flags_vers_qt(QT_Item_Flags drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_ITEM_FLAGS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT);
+    return Qt::ItemFlags(résultat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Item_Edit_Triggers
+ * \{ */
+
+static QT_Item_Edit_Triggers item_edit_triggers_vers_ipa(QAbstractItemView::EditTriggers drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_ITEM_EDIT_TRIGGERS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA);
+    return QT_Item_Edit_Triggers(résultat);
+}
+
+static QAbstractItemView::EditTriggers item_edit_triggers_vers_qt(QT_Item_Edit_Triggers drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_ITEM_EDIT_TRIGGERS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT);
+    return QAbstractItemView::EditTriggers(résultat);
+}
 
 /** \} */
 
@@ -3167,6 +3176,17 @@ class ModèleTable final : public QAbstractTableModel {
         if (m_rappels && m_rappels->sur_destruction) {
             m_rappels->sur_destruction(m_rappels);
         }
+    }
+
+    Qt::ItemFlags flags(const QModelIndex &index) const override
+    {
+        if (m_rappels && m_rappels->donne_flags) {
+            auto model = vers_ipa(index);
+            auto résultat = m_rappels->donne_flags(
+                m_rappels, &model, item_flags_vers_ipa(QAbstractTableModel::flags(index)));
+            return item_flags_vers_qt(résultat);
+        }
+        return QAbstractTableModel::flags(index);
     }
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override
@@ -3215,6 +3235,17 @@ class ModèleTable final : public QAbstractTableModel {
         m_rappels->donne_donnee_cellule(
             m_rappels, &model, convertis_role(Qt::ItemDataRole(role)), &enveloppe_variant);
         return enveloppe_variant.donne_variant();
+    }
+
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override
+    {
+        if (m_rappels && m_rappels->definis_donnee_cellule) {
+            auto enveloppe_variant = EnveloppeVariant(value);
+            auto model = vers_ipa(index);
+            return m_rappels->definis_donnee_cellule(
+                m_rappels, &model, convertis_role(Qt::ItemDataRole(role)), &enveloppe_variant);
+        }
+        return QAbstractTableModel::setData(index, value, role);
     }
 };
 
@@ -3390,6 +3421,12 @@ bool QT_table_view_possede_selection(QT_TableView *view)
         return false;
     }
     return model->hasSelection();
+}
+
+void QT_table_view_definis_edit_triggers(QT_TableView *view, QT_Item_Edit_Triggers edit_triggers)
+{
+    VERS_QT(view);
+    qview->setEditTriggers(item_edit_triggers_vers_qt(edit_triggers));
 }
 
 /** \} */
@@ -3590,18 +3627,7 @@ void QT_text_cursor_donne_texte_selection(QT_TextCursor *cursor, QT_Chaine *rés
     VERS_QT(cursor);
 
     static char tampon[128];
-
-    auto text = qcursor->selectedText().toStdString();
-
-    if (text.size() < 128) {
-        memcpy(tampon, text.c_str(), text.size());
-        résultat->caractères = tampon;
-        résultat->taille = int64_t(text.size());
-    }
-    else {
-        résultat->caractères = nullptr;
-        résultat->taille = 0;
-    }
+    *résultat = crée_qt_chaine_tampon(qcursor->selectedText(), tampon, sizeof(tampon));
 }
 
 void QT_text_cursor_insere_texte(QT_TextCursor *cursor, QT_Chaine texte)
@@ -3660,12 +3686,7 @@ QT_Chaine QT_plain_text_edit_donne_texte(QT_PlainTextEdit *text_edit)
 {
     VERS_QT(text_edit);
     auto texte = qtext_edit->toPlainText().toStdString();
-
-    QT_Chaine résultat;
-    résultat.caractères = new char[texte.size()];
-    résultat.taille = int64_t(texte.size());
-    memcpy(résultat.caractères, texte.c_str(), texte.size());
-    return résultat;
+    return crée_qt_chaine(qtext_edit->toPlainText());
 }
 
 void QT_plain_text_edit_definis_texte(struct QT_PlainTextEdit *text_edit, struct QT_Chaine *texte)

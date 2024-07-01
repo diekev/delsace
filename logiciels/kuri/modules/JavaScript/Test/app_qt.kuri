@@ -160,7 +160,7 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
             initialise_interpréteuse(interpréteuse)
 
             résultat := interpréteuse.exécute(script.programme)
-            texte_résultat := imprime_chaine("%\n", résultat)
+            texte_résultat := imprime_chaine("%\n", get_value(interpréteuse, résultat.valeur))
             diffère déloge(texte_résultat)
 
             éboue(interpréteuse.donne_tas_de_mémoire())

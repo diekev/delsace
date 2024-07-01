@@ -381,6 +381,8 @@ class EnveloppeParamètre final : public danjo::BasePropriete {
             m_rappels->donne_texte_bouton(m_rappels, &résultat);
             return résultat.vers_std_string();
         }
+
+        return "";
     }
 
     void sur_pression() const override
