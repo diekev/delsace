@@ -1,0 +1,368 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Environment Record
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-environment-records
+ * \{ */
+
+Environment :: struct {
+    empl cellule: Cellule
+
+    outer_environment: *Environment
+
+    sur_has_binding: fonc(*Environment, ECMAString)(bool)
+    sur_get_binding_value: fonc(*Environment, ECMAString, bool)(CompletionRecord)
+}
+
+environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    cellule_sur_visite_graphe(base, visiteuse)
+
+    environment := base comme *Environment
+    si environment.outer_environment {
+        environment_sur_visite_graphe(environment, visiteuse)
+    }
+}
+
+has_binding :: fonc (environment: *Environment, nom: ECMAString) -> CompletionRecord
+{
+    assert(environment.sur_has_binding != nul)
+    résultat := environment.sur_has_binding(environment, nom)
+    retourne normal_completion(Valeur(Boolean = résultat))
+}
+
+get_binding_value :: fonc (environment: *Environment, nom: ECMAString, strict: bool) -> CompletionRecord
+{
+    assert(environment.sur_get_binding_value != nul)
+    retourne environment.sur_get_binding_value(environment, nom, strict)
+}
+
+/* 9.1.2.1 GetIdentifierReference
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-getidentifierreference */
+get_identifier_reference :: fonc (environment: *Environment, nom: ECMAString, strict: bool) -> CompletionRecord
+{
+    // 1. If env is null, then
+    saufsi environment {
+        // a. Return the Reference Record { [[Base]]: UNRESOLVABLE, [[ReferencedName]]: name, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
+        retourne normal_completion(référence_non_résolvable(nom, strict))
+    }
+
+    // 2. Let exists be ? env.HasBinding(name).
+    completion_exists := has_binding(environment, nom)
+    saufsi completion_exists.est_normal() {
+        retourne completion_exists
+    }
+    exists := completion_exists.valeur.V.Boolean
+
+    // 3. If exists is true, then
+    si exists {
+        // a. Return the Reference Record { [[Base]]: env, [[ReferencedName]]: name, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
+        résultat: ReferenceRecord
+        résultat.base = environment
+        résultat.referenced_name = nom
+        résultat.strict = strict
+        retourne normal_completion(résultat)
+    }
+
+    // 4. Else,
+    // a. Let outer be env.[[OuterEnv]].
+    outer := environment.outer_environment
+    // b. Return ? GetIdentifierReference(outer, name, strict).
+    retourne get_identifier_reference(outer, nom, strict)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Declarative Environment Record
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records
+ * \{ */
+
+DeclarativeEnvironment :: struct {
+    empl base: Environment
+
+    /* Cellule */
+    type = DeclarativeEnvironment
+    sur_visite_graphe = environment_sur_visite_graphe
+
+    /* Environment */
+    sur_has_binding = declarative_environment_has_binding
+    sur_get_binding_value = declarative_environment_get_binding_value
+}
+
+/* 9.1.2.2 NewDeclarativeEnvironment ( E )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-newdeclarativeenvironment */
+new_declarative_environment :: fonc (tas_de_mémoire: *TasDeMémoire, environment: *Environment) -> *DeclarativeEnvironment
+{
+    // 1. Let env be a new Declarative Environment Record containing no bindings.
+    env := tas_de_mémoire.alloue(DeclarativeEnvironment)
+
+    // 2. Set env.[[OuterEnv]] to E.
+    env.outer_environment = environment
+
+    // 3. Return env.
+    retourne env
+}
+
+/* 9.1.1.2.1 HasBinding
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-hasbinding-n */
+declarative_environment_has_binding :: fonc (base: *Environment @inutilisée, nom: ECMAString @inutilisée) -> bool
+{
+    // environment := base comme *DeclarativeEnvironment
+
+    // 1. If envRec has a binding for N, return true.
+    // À FAIRE : comprend ce qui se passe ici
+
+    // 2. Return false.
+    retourne faux
+}
+
+/* 9.1.1.1.6 GetBindingValue ( N, S )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-getbindingvalue-n-s */
+declarative_environment_get_binding_value :: fonc (environment: *Environment @inutilisée, nom: ECMAString @inutilisée, strict: bool @inutilisée) -> CompletionRecord
+{
+    panique("declarative_environment_get_binding_value non-implémentée")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Function Environment Record
+ * \{ */
+
+FunctionEnvironment :: struct {
+    empl base_decl: DeclarativeEnvironment
+
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Module Environment Record
+ * \{ */
+
+ModuleEnvironment :: struct {
+    empl base_decl: DeclarativeEnvironment
+
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Object Environment Record
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records
+ * \{ */
+
+ObjectEnvironment :: struct {
+    empl base: Environment
+
+    binding_object: *Object
+    is_with_environment: bool
+
+    /* Cellule */
+    type = ObjectEnvironment
+    sur_visite_graphe = object_environment_sur_visite_graphe
+
+    /* Environment */
+    sur_has_binding = object_environment_has_binding
+    sur_get_binding_value = object_environment_get_binding_value
+}
+
+object_environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    environment := base comme *ObjectEnvironment
+    environment_sur_visite_graphe(environment, visiteuse)
+
+    sur_visite_graphe_objet(environment.binding_object, visiteuse)
+}
+
+/* 9.1.2.3 NewObjectEnvironment ( O, W, E )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-newobjectenvironment */
+new_object_environment :: fonc (tas_de_mémoire: *TasDeMémoire, global: *Object, is_with_environment: bool, environment: *Environment) -> *ObjectEnvironment
+{
+    // 1. Let env be a new Object Environment Record.
+    env := tas_de_mémoire.alloue(ObjectEnvironment)
+
+    // 2. Set env.[[BindingObject]] to O.
+    env.binding_object = global
+
+    // 3. Set env.[[IsWithEnvironment]] to W.
+    env.is_with_environment = is_with_environment
+
+    // 4. Set env.[[OuterEnv]] to E.
+    env.outer_environment = environment
+
+    // 5. Return env.
+    retourne env
+}
+
+/* 9.1.1.2.1 HasBinding
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-hasbinding-n */
+object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> bool
+{
+    environment := base comme *ObjectEnvironment
+
+    // 1. Let bindingObject be envRec.[[BindingObject]].
+    binding_object := environment.binding_object
+
+    // 2. Let foundBinding be ? HasProperty(bindingObject, N).
+    found_binding := trouve_propriété(binding_object, nom) // has_property(binding_object, nom)
+
+    // 3. If foundBinding is false, return false.
+    saufsi found_binding {
+        retourne faux
+    }
+
+    // 4. If envRec.[[IsWithEnvironment]] is false, return true.
+    saufsi environment.is_with_environment {
+        retourne vrai
+    }
+
+    panique("is_with_environment non-implémenté")
+
+    // 5. Let unscopables be ? Get(bindingObject, @@unscopables).
+    // 6. If unscopables is an Object, then
+    // a. Let blocked be ToBoolean(? Get(unscopables, N)).
+    // b. If blocked is true, return false.
+    // 7. Return true.
+    // retourne vrai
+}
+
+/* 9.1.1.2.6 GetBindingValue ( N, S ) 
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-getbindingvalue-n-s */
+object_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAString, strict: bool) -> CompletionRecord
+{
+    environment := base comme *ObjectEnvironment
+
+    // 1. Let bindingObject be envRec.[[BindingObject]].
+    binding_object := environment.binding_object
+
+    // 2. Let value be ? HasProperty(bindingObject, N).
+    value := trouve_propriété(binding_object, nom)
+
+    // 3. If value is false, then
+    saufsi value {
+        // a. If S is false, return undefined; otherwise throw a ReferenceError exception.
+        si strict == faux {
+            retourne normal_completion(js_undefined)
+        }
+
+        panique("exceptions non-implémentées")
+    }
+
+    // 4. Return ? Get(bindingObject, N).
+    retourne get(binding_object, nom)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Global Environment Record
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records
+ * \{ */
+
+GlobalEnvironment :: struct {
+    empl base: Environment
+
+    /* Cellule */
+    type = GlobalEnvironment
+    sur_visite_graphe = global_environment_sur_visite_graphe
+
+    /* Environment */
+    object_record: *ObjectEnvironment
+    global_this_value: *Object
+    declarative_record: *DeclarativeEnvironment
+    var_names: [..]ECMAString
+
+    sur_has_binding = global_environment_has_binding
+    sur_get_binding_value = global_environment_get_binding_value
+}
+
+global_environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    environment := base comme *GlobalEnvironment
+    environment_sur_visite_graphe(environment, visiteuse)
+
+    environment_sur_visite_graphe(environment.object_record, visiteuse)
+    environment_sur_visite_graphe(environment.declarative_record, visiteuse)
+
+    si environment.global_this_value {
+        sur_visite_graphe_objet(environment.global_this_value, visiteuse)
+    }
+}
+
+/* 9.1.2.5 NewGlobalEnvironment ( G, thisValue )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-newglobalenvironment */
+new_global_environment :: fonc (tas_de_mémoire: *TasDeMémoire, global: *Object, this_value: *Object) -> *GlobalEnvironment
+{
+    // 1. Let objRec be NewObjectEnvironment(G, false, null).
+    obj_rec := new_object_environment(tas_de_mémoire, global, faux, nul)
+
+    // 2. Let dclRec be NewDeclarativeEnvironment(null).
+    dcl_rec := new_declarative_environment(tas_de_mémoire, nul)
+
+    // 3. Let env be a new Global Environment Record.
+    env := tas_de_mémoire.alloue(GlobalEnvironment)
+
+    // 4. Set env.[[ObjectRecord]] to objRec.
+    env.object_record = obj_rec
+
+    // 5. Set env.[[GlobalThisValue]] to thisValue.
+    env.global_this_value = this_value
+
+    // 6. Set env.[[DeclarativeRecord]] to dclRec.
+    env.declarative_record = dcl_rec
+
+    // 7. Set env.[[VarNames]] to a new empty List.
+
+    // 8. Set env.[[OuterEnv]] to null.
+    env.outer_environment = nul
+
+    // 9. Return env.
+    retourne env
+}
+
+/* 9.1.1.4.1 HasBinding
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-hasbinding-n */
+global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> bool
+{
+    environment := base comme *GlobalEnvironment
+
+    // 1. Let DclRec be envRec.[[DeclarativeRecord]].
+    dclrec := environment.declarative_record
+
+    // 2. If ! DclRec.HasBinding(N) is true, return true.
+    si has_binding(dclrec, nom).valeur.V.Boolean {
+        retourne vrai
+    }
+
+    // 3. Let ObjRec be envRec.[[ObjectRecord]].
+    objrec := environment.object_record
+
+    // 4. Return ? ObjRec.HasBinding(N).
+    retourne has_binding(objrec, nom).valeur.V.Boolean
+}
+
+/* 9.1.1.4.6 GetBindingValue ( N, S )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getbindingvalue-n-s */
+global_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAString, strict: bool) -> CompletionRecord
+{
+    environment := base comme *GlobalEnvironment
+
+    // 1. Let DclRec be envRec.[[DeclarativeRecord]].
+    dclrec := environment.declarative_record
+
+    // 2. If ! DclRec.HasBinding(N) is true, then
+    si has_binding(dclrec, nom).valeur.V.Boolean {
+        // a. Return ? DclRec.GetBindingValue(N, S).
+        retourne get_binding_value(dclrec, nom, strict)
+    }
+
+    // 3. Let ObjRec be envRec.[[ObjectRecord]].
+    objrec := environment.object_record
+
+    // 4. Return ? ObjRec.GetBindingValue(N, S).
+    retourne get_binding_value(objrec, nom, strict)
+}
+
+/** \} */
