@@ -188,17 +188,16 @@ js_undefined := Valeur(Undefined = UndefinedType(0))
 
 TypePréféré :: énum {
     Aucun
-
 }
 
-vers_objet :: fonc (tas_de_mémoire: *TasDeMémoire, valeur: Valeur) -> *Object
+vers_objet :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> *Object
 {
     si valeur.est_object() {
         retourne valeur.donne_objet()
     }
 
     assert(valeur.est_chaine())
-    objet := tas_de_mémoire.crée_chaine(valeur.String)
+    objet := crée_chaine(*interpréteuse.tas_de_mémoire, interpréteuse.string_prototype, valeur.String)
     retourne Valeur(Object = objet)
 }
 
@@ -213,10 +212,17 @@ vers_primitive :: fonc (valeur: Valeur, type_préféré := TypePréféré.Aucun)
     saufsi valeur.est_object() {
         retourne valeur
     }
+
+    panique("to_primitive non-implémenté")
 }
 
-vers_numeric :: fonc (valeur: Valeur) -> Valeur
+/* 7.1.3 ToNumeric ( value )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumeric */
+to_numeric :: fonc (valeur: Valeur) -> Valeur
 {
+    // 1. Let primValue be ? ToPrimitive(value, NUMBER).
+    // 2. If primValue is a BigInt, return primValue.
+    // 3. Return ? ToNumber(primValue).
     valeur_primitive := valeur.vers_primitive()
 
     // À FAIRE(BigInt)
@@ -252,6 +258,7 @@ vers_nombre :: fonc (valeur: Valeur) -> Valeur
     // 8. Let primValue be ? ToPrimitive(argument, NUMBER).
     // 9. Assert: primValue is not an Object.
     // 10. Return ? ToNumber(primValue).
+    panique("to_number non-implémenté")
 }
 
 /** \} */
@@ -272,11 +279,15 @@ Object :: struct {
     }
 
     propriétés: [..]Propriété
+
+    prototype: *Object
 }
 
-crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire) -> *Object
+crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *Object
 {
-    retourne tas_de_mémoire.alloue(Object)
+    résultat := tas_de_mémoire.alloue(Object)
+    résultat.prototype = prototype
+    retourne résultat
 }
 
 sur_destruction_objet :: fonc (base: *Cellule)
@@ -294,6 +305,112 @@ définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
     }
 
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur))
+}
+
+get_prototype_of :: fonc (object: *Object) -> *Object
+{
+    retourne ordinary_get_prototype_of(object)
+}
+
+/* 10.1.1.1 OrdinaryGetPrototypeOf ( O )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetprototypeof */
+ordinary_get_prototype_of :: fonc (object: *Object) -> *Object
+{
+    // Return O.[[Prototype]].
+    retourne object.prototype
+}
+
+/* 7.3.2 Get
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
+get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+{
+    // À FAIRE : type property_key
+    // 1. Return ? O.[[Get]](P, O).
+    retourne get(object, property_key, Valeur(Object = object))
+}
+
+get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
+{
+    // À FAIRE : type property_key
+    // 1. Return ? O.[[Get]](P, O).
+    retourne ordinary_get(object, property_key, receiver)
+}
+
+/* 10.1.8.1 OrdinaryGet ( O, P, Receiver )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver */
+ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
+{
+    // 1. Let desc be ? O.[[GetOwnProperty]](P).
+    desc := get_own_property(object, property_key)
+
+    // 2. If desc is undefined, then
+    si desc.est_undefined() {
+        // a. Let parent be ? O.[[GetPrototypeOf]]().
+        parent := get_prototype_of(object)
+
+        // b. If parent is null, return undefined.
+        si parent == nul {
+            retourne normal_completion(desc)
+        }
+
+        // c. Return ? parent.[[Get]](P, Receiver).
+        retourne get(parent, property_key, receiver)
+    }
+
+    /* À FAIRE : descripteurs */
+    // 3. If IsDataDescriptor(desc) is true, return desc.[[Value]].
+    // 4. Assert: IsAccessorDescriptor(desc) is true.
+    // 5. Let getter be desc.[[Get]].
+    // 6. If getter is undefined, return undefined.
+    // 7. Return ? Call(getter, Receiver).
+    retourne normal_completion(desc)
+}
+
+get_own_property :: fonc (object: *Object, property_key: ECMAString) -> Valeur
+{
+    retourne ordinary_get_own_property(object, property_key)
+}
+
+/* 10.1.5.1 OrdinaryGetOwnProperty ( O, P )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetownproperty */
+ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> Valeur
+{
+    retourne donne_valeur(object, property_key)
+    // À FAIRE
+    // 1. If O does not have an own property with key P, return undefined.
+    // 2. Let D be a newly created Property Descriptor with no fields.
+    // 3. Let X be O's own property whose key is P.
+    // 4. If X is a data property, then
+    // a. Set D.[[Value]] to the value of X's [[Value]] attribute.
+    // b. Set D.[[Writable]] to the value of X's [[Writable]] attribute.
+    // 5. Else,
+    // a. Assert: X is an accessor property.
+    // b. Set D.[[Get]] to the value of X's [[Get]] attribute.
+    // c. Set D.[[Set]] to the value of X's [[Set]] attribute.
+    // 6. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
+    // 7. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
+    // 8. Return D.
+}
+
+/* 7.3.4 Set
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
+set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: bool @inutilisée) -> CompletionRecord
+{
+    // À FAIRE : type property_key
+
+    // 1. Let success be ? O.[[Set]](P, V, O).
+    // À FAIRE : différentes méthodes pour différents objets
+    définis_valeur(object, property_key, valeur)
+    // À FAIRE(langage)
+    // succès := vrai
+
+    // // 2. If success is false and Throw is true, throw a TypeError exception.
+    // si succès == faux && throw == vrai {
+    //     panique("exceptions non-implémentées")
+    // }
+
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
 }
 
 donne_valeur :: fonc (objet: *Object, nom: ECMAString) -> Valeur
@@ -322,6 +439,10 @@ sur_visite_graphe_objet :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
 
     objet := base comme *Object
 
+    si objet.prototype {
+        visite_graphe(objet.prototype, visiteuse)
+    }
+
     pour objet.propriétés {
         si it.valeur.est_cellule() {
             visite_graphe(it.valeur.donne_cellule(), visiteuse)
@@ -343,9 +464,10 @@ ObjetChaine :: struct {
     chn: *PrimitiveChaine
 }
 
-crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, chn: *PrimitiveChaine) -> *ObjetChaine
+crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *StringPrototype, chn: *PrimitiveChaine) -> *ObjetChaine
 {
     résultat := tas_de_mémoire.alloue(ObjetChaine)
+    résultat.prototype = string_prototype
     résultat.chn = chn
 
     résultat.définis_valeur("length", Valeur(Number = chn.texte.taille comme r64))
@@ -358,6 +480,42 @@ sur_visite_graphe_chaine :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
     objet_chaine := base comme *ObjetChaine
     sur_visite_graphe_objet(objet_chaine, visiteuse)
     cellule_sur_visite_graphe(objet_chaine.chn, visiteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjectPrototype
+ * \{ */
+
+ObjectPrototype :: struct {
+    empl objet: Object
+    type = #type_de_cette_structure
+}
+
+crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectPrototype
+{
+    résultat := tas_de_mémoire.alloue(ObjectPrototype)
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom StringPrototype
+ * \{ */
+
+StringPrototype :: struct {
+    empl objet: Object
+    type = #type_de_cette_structure
+}
+
+crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *StringPrototype
+{
+    résultat := tas_de_mémoire.alloue(StringPrototype)
+    résultat.prototype = prototype
+
+    retourne résultat
 }
 
 /** \} */

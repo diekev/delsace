@@ -87,6 +87,13 @@ sérialise_entier :: fonc (sérialiseuse: &Sérialiseuse, entier: $T)
     sérialiseuse.curseur += (taille_de(T) comme z64)
 }
 
+sérialise_chaine_préfixée_taille :: fonc (sérialiseuse: &Sérialiseuse, chn: chaine, $TypeTaille: type_de_données)
+{
+    sérialise_entier(sérialiseuse, chn.taille comme TypeTaille)
+    sérialise_chaine_sans_taille(sérialiseuse.tampon, sérialiseuse.curseur, chn)
+    sérialiseuse.curseur += chn.taille
+}
+
 sérialise_chaine_sans_taille :: fonc (sérialiseuse: &Sérialiseuse, chn: chaine)
 {
     sérialise_chaine_sans_taille(sérialiseuse.tampon, sérialiseuse.curseur, chn)
@@ -139,6 +146,13 @@ désérialise_chaine :: fonc (désérialiseuse: &Désérialiseuse, chn: *chaine)
 {
     désérialise_chaine(désérialiseuse.tampon, désérialiseuse.curseur, chn)
     désérialiseuse.curseur += (taille_de(z64) comme z64) + chn.taille
+}
+
+désérialise_chaine_préfixée_taille :: fonc (désérialiseuse: &Désérialiseuse, chn: *chaine, $TypeTaille: type_de_données)
+{
+    chn.taille = désérialise_entier(désérialiseuse, TypeTaille)
+    désérialise_chaine_sans_taille(désérialiseuse.tampon, désérialiseuse.curseur, chn)
+    désérialiseuse.curseur += chn.taille
 }
 
 désérialise_chaine_sans_taille :: fonc (désérialiseuse: &Désérialiseuse, chn: *chaine)

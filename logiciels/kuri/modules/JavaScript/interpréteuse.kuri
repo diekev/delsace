@@ -6,17 +6,17 @@ importe Fondation
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-reference-record-specification-type
  * \{ */
 
-EnvironmentRecord :: #opaque z32
+TypeUnresolvable :: #opaque z32
 
 ReferenceRecord :: struct {
     Base :: union {
         V: Valeur
-        E: EnvironmentRecord
-        UNRESOLVABLE
+        E: *Environment
+        UNRESOLVABLE: TypeUnresolvable
     }
 
     base: Base
-    referenced_name: Valeur
+    referenced_name: ECMAString // À FAIRE ce doit être une Valeur
     strict: bool
     valeur_this: Optionnel(Valeur)
 }
@@ -32,6 +32,27 @@ est_référence_propriété :: fonc (référence: ReferenceRecord) -> bool
         }
         sinon {
             retourne vrai
+        }
+    }
+}
+
+référence_non_résolvable :: fonc (nom: ECMAString, strict: bool) -> ReferenceRecord
+{
+    résultat: ReferenceRecord
+    résultat.base = TypeUnresolvable(0)
+    résultat.strict = strict
+    résultat.referenced_name = nom
+    retourne résultat
+}
+
+est_référence_non_résolvable :: fonc (référence: ReferenceRecord) -> bool
+{
+    discr référence.base {
+        UNRESOLVABLE {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
         }
     }
 }
@@ -60,13 +81,78 @@ est_reference_record :: fonc (valeur: ValeurCompletion) -> bool
     }
 }
 
-donne_valeur :: fonc (valeur: ValeurCompletion) -> Résultat(Valeur, CompletionRecord)
+/* 6.2.5.5 GetValue
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
+get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) -> Résultat(Valeur, CompletionRecord)
 {
+    // 1. If V is not a Reference Record, return V.
     saufsi valeur.est_reference_record() {
         retourne valeur.V
     }
 
-    panique("donne_valeur pour ReferenceRecord non implémenté")
+    // 2. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
+    si est_référence_non_résolvable(valeur) {
+        panique("exceptions non-implémentées")
+    }
+
+    // 3. If IsPropertyReference(V) is true, then
+    si est_référence_propriété(valeur) {
+        V := valeur.R
+        // a. Let baseObj be ? ToObject(V.[[Base]]).
+        base_object := vers_objet(interpréteuse, V.base.V)
+
+        // À FAIRE
+        // b. If IsPrivateReference(V) is true, then
+            // i. Return ? PrivateGet(baseObj, V.[[ReferencedName]]).
+        // c. If V.[[ReferencedName]] is not a property key, then
+            // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
+
+        // d. Return ? baseObj.[[Get]](V.[[ReferencedName]], GetThisValue(V)).
+        retourne get(base_object, V.referenced_name, get_this_value(V))
+    }
+
+    // 4. Else,
+    V := valeur.R
+
+    // a. Let base be V.[[Base]].
+    base := V.base.E
+    // b. Assert: base is an Environment Record.
+
+    // c. Return ? base.GetBindingValue(V.[[ReferencedName]], V.[[Strict]]) (see 9.1).
+    complétion := base.get_binding_value(V.referenced_name, V.strict)
+    si complétion.est_normal() {
+        retourne complétion.valeur.V
+    }
+
+    retourne complétion
+}
+
+/* 6.2.5.7 GetThisValue ( V )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getthisvalue */
+get_this_value :: fonc (reference: ReferenceRecord) -> Valeur
+{
+    // 1. Assert: IsPropertyReference(V) is true.
+    assert(est_référence_propriété(reference))
+    // 2. If IsSuperReference(V) is true, return V.[[ThisValue]]; otherwise return V.[[Base]].
+    si is_super_reference(reference) {
+        retourne reference.valeur_this.Quelque
+    }
+    retourne reference.base.V
+}
+
+/* 6.2.5.3 IsSuperReference ( V )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-issuperreference */
+is_super_reference :: fonc (reference: ReferenceRecord) -> bool
+{
+    /* 1. If V.[[ThisValue]] is not EMPTY, return true; otherwise return false. */
+    discr reference.valeur_this {
+        Quelque {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 /** \} */
@@ -139,40 +225,29 @@ TypeScope :: énum {
 
 FrameScope :: struct {
     noeud_scope: *NoeudScope
-
-    Variable :: struct {
-        nom: ECMAString
-        valeur: Valeur
-    }
-
-    variables: [..]Variable
-}
-
-trouve_variable :: fonc (scope: *FrameScope, nom: chaine) -> *FrameScope.Variable
-{
-    pour * scope.variables {
-        si it.nom == nom {
-            retourne it
-        }
-    }
-    retourne nul
-}
-
-détruit_scope :: fonc (scope: *FrameScope)
-{
-    déloge(scope.variables)
 }
 
 Interpréteuse :: struct {
     pile_scope: [..]FrameScope
     tas_de_mémoire: TasDeMémoire
     objet_global: *Object
+
+    lexical_environment: *Environment
+
+    // realm.[[Intrinsics]]
+    string_prototype: *StringPrototype
+    object_prototype: *ObjectPrototype
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
 {
     interpréteuse.tas_de_mémoire.interpréteuse = *interpréteuse
-    interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire)
+
+    interpréteuse.object_prototype = crée_object_prototype(*interpréteuse.tas_de_mémoire)
+    interpréteuse.string_prototype = crée_string_prototype(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
+
+    interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
+    interpréteuse.lexical_environment = new_global_environment(*interpréteuse.tas_de_mémoire, interpréteuse.objet_global, nul)
 }
 
 détruit_données_interpreteuse :: fonc (interpréteuse: &Interpréteuse)
@@ -226,7 +301,6 @@ sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
     pile_scope := *interpréteuse.pile_scope    
     assert(pile_scope.taille > 0)
     assert(mémoire(pile_scope)[pile_scope.taille - 1].noeud_scope == scope)
-    détruit_scope(donne_scope_courant(interpréteuse))
     pile_scope.taille -= 1
 }
 
@@ -238,47 +312,7 @@ donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoir
 rassemble_racines :: fonc (interpréteuse: *Interpréteuse, racines: *[..]*Cellule)
 {
     ensemble_ajoute(racines, interpréteuse.objet_global)
-
-    pour interpréteuse.pile_scope {
-        pour variable dans it.variables {
-            si variable.valeur.est_cellule() {
-                ensemble_ajoute(racines, variable.valeur.donne_cellule())
-            }
-        }
-    }
-}
-
-donne_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString) -> Valeur
-{
-    pour > * interpréteuse.pile_scope {
-        variable := it.trouve_variable(nom)
-        si variable {
-            retourne variable.valeur
-        }
-    }
-
-    objet_global := interpréteuse.objet_global
-    retourne objet_global.donne_valeur(nom)
-}
-
-définis_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, valeur: Valeur)
-{
-    pour > * interpréteuse.pile_scope {
-        variable := it.trouve_variable(nom)
-        si variable {
-            variable.valeur = valeur
-            retourne
-        }
-    }
-
-    objet_global := interpréteuse.objet_global
-    objet_global.définis_valeur(nom, valeur)
-}
-
-déclare_variable :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString)
-{
-    scope := interpréteuse.donne_scope_courant()
-    tableau_ajoute(*scope.variables, FrameScope.Variable(nom, js_undefined))
+    ensemble_ajoute(racines, interpréteuse.lexical_environment)
 }
 
 donne_scope_courant :: fonc (interpréteuse: &Interpréteuse) -> *FrameScope
@@ -287,3 +321,87 @@ donne_scope_courant :: fonc (interpréteuse: &Interpréteuse) -> *FrameScope
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Execution context.
+ * \{ */
+
+/* 9.4.2 Resolve Binding
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-resolvebinding */
+resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, environment: *Environment = nul) -> CompletionRecord
+{
+    // 1. If env is not present or env is undefined, then
+    // À FAIRE : undefined
+    saufsi environment {
+        // a. Set env to the running execution context's LexicalEnvironment.
+        environment = interpréteuse.lexical_environment
+    }
+
+    // 2. Assert: env is an Environment Record.
+
+    // 3. Let strict be IsStrict(the syntactic production that is being evaluated).
+    // À FAIRE : is strict
+    strict := faux
+
+    // 4. Return ? GetIdentifierReference(env, name, strict).
+    retourne get_identifier_reference(environment, nom, strict)
+}
+
+/* 9.4.6 GetGlobalObject
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-getglobalobject */
+get_global_object :: fonc (interpréteuse: &Interpréteuse) -> *Object
+{
+    // À FAIRE : realms
+    // 1. Let currentRealm be the current Realm Record.
+    // 2. Return currentRealm.[[GlobalObject]].
+    retourne interpréteuse.objet_global
+}
+
+/* 6.2.5.6 PutValue
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-putvalue */
+put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletion, valeur: Valeur) -> CompletionRecord
+{
+    // 1. If V is not a Reference Record, throw a ReferenceError exception.
+    saufsi est_reference_record(référence) {
+        panique("exceptions non-implémentées")
+    }
+
+    record := référence.R
+
+    // 2. If IsUnresolvableReference(V) is true, then
+    si est_référence_non_résolvable(record) {
+        // a. If V.[[Strict]] is true, throw a ReferenceError exception.
+        si record.strict {
+            panique("exceptions non-implémentées")
+        }
+
+        // b. Let globalObj be GetGlobalObject().
+        global_obj := get_global_object(interpréteuse)
+
+        // c. Perform ? Set(globalObj, V.[[ReferencedName]], W, false).
+        completion := set(global_obj, record.referenced_name, valeur, faux)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        // d. Return UNUSED.
+        retourne normal_completion(js_undefined)
+    }
+
+    panique("put_value non-implémenté")
+    // 3. If IsPropertyReference(V) is true, then
+        // a. Let baseObj be ? ToObject(V.[[Base]]).
+        // b. If IsPrivateReference(V) is true, then
+            // i. Return ? PrivateSet(baseObj, V.[[ReferencedName]], W).
+        // c. If V.[[ReferencedName]] is not a property key, then
+            // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
+        // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
+        // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
+        // f. Return UNUSED.
+    // 4. Else,
+        // a. Let base be V.[[Base]].
+        // b. Assert: base is an Environment Record.
+        // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
+}
+
+/** } */
