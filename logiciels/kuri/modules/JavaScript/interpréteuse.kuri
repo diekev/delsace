@@ -388,20 +388,30 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
         retourne normal_completion(js_undefined)
     }
 
-    panique("put_value non-implémenté")
     // 3. If IsPropertyReference(V) is true, then
+    si est_référence_propriété(record) {
         // a. Let baseObj be ? ToObject(V.[[Base]]).
+        base_obj := vers_objet(interpréteuse, record.base.V)
+
+        // À FAIRE
         // b. If IsPrivateReference(V) is true, then
             // i. Return ? PrivateSet(baseObj, V.[[ReferencedName]], W).
         // c. If V.[[ReferencedName]] is not a property key, then
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
+
+        // À FAIRE
         // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
+        base_obj.définis_valeur(record.referenced_name, valeur)
         // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
         // f. Return UNUSED.
+        retourne normal_completion(js_undefined)
+    }
+
     // 4. Else,
         // a. Let base be V.[[Base]].
         // b. Assert: base is an Environment Record.
         // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
+    panique("put_value non-implémenté")
 }
 
 /** } */
