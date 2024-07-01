@@ -1322,19 +1322,44 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *in
     return inst;
 }
 
-static void rassemble_opérations_chainées(NoeudExpression *racine,
+static void rassemble_opérations_chainées(EspaceDeTravail &espace,
+                                          NoeudExpression *racine,
                                           kuri::tableau<NoeudExpressionBinaire> &comparaisons)
 {
     auto expr_bin = racine->comme_expression_binaire();
+    auto opérande_gauche = expr_bin->opérande_gauche;
 
-    if (est_opérateur_comparaison(expr_bin->opérande_gauche->lexème->genre)) {
-        rassemble_opérations_chainées(expr_bin->opérande_gauche, comparaisons);
+    auto transtypage_à_transférer = NoeudComme::nul();
 
-        auto expr_opérande = expr_bin->opérande_gauche->comme_expression_binaire();
+    if (opérande_gauche->est_comme()) {
+        /* Dans l'expression a < b < c, l'expression (a < b) est devenue ((a < b) comme type) car b
+         * doit être transtypé pour être comparé à c. */
+        auto transtypage = opérande_gauche->comme_comme();
+        assert(transtypage->possède_drapeau(DrapeauxNoeud::TRANSTYPAGE_IMPLICITE));
+        assert(transtypage->expression->est_expression_binaire());
+
+        auto expression_binaire = transtypage->expression->comme_expression_binaire();
+
+        if (est_opérateur_comparaison(expression_binaire->lexème->genre)) {
+            transtypage_à_transférer = transtypage;
+            opérande_gauche = transtypage->expression;
+        }
+    }
+
+    if (est_opérateur_comparaison(opérande_gauche->lexème->genre)) {
+        rassemble_opérations_chainées(espace, opérande_gauche, comparaisons);
+
+        auto expr_opérande = opérande_gauche->comme_expression_binaire();
 
         auto comparaison = NoeudExpressionBinaire{};
         comparaison.lexème = expr_bin->lexème;
-        comparaison.opérande_gauche = expr_opérande->opérande_droite;
+        auto opérande_droite = expr_opérande->opérande_droite;
+        if (transtypage_à_transférer) {
+            transtypage_à_transférer->expression = opérande_droite;
+            opérande_droite = transtypage_à_transférer;
+            transtypage_à_transférer = nullptr;
+        }
+        comparaison.opérande_gauche = opérande_droite;
         comparaison.opérande_droite = expr_bin->opérande_droite;
         comparaison.op = expr_bin->op;
         comparaison.permute_opérandes = expr_bin->permute_opérandes;
@@ -1344,13 +1369,15 @@ static void rassemble_opérations_chainées(NoeudExpression *racine,
     else {
         auto comparaison = NoeudExpressionBinaire{};
         comparaison.lexème = expr_bin->lexème;
-        comparaison.opérande_gauche = expr_bin->opérande_gauche;
+        comparaison.opérande_gauche = opérande_gauche;
         comparaison.opérande_droite = expr_bin->opérande_droite;
         comparaison.op = expr_bin->op;
         comparaison.permute_opérandes = expr_bin->permute_opérandes;
 
         comparaisons.ajoute(comparaison);
     }
+
+    assert(transtypage_à_transférer == nullptr);
 }
 
 NoeudExpression *Simplificatrice::crée_expression_pour_op_chainée(
@@ -1425,7 +1452,7 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
 NoeudExpression *Simplificatrice::simplifie_comparaison_chainée(NoeudExpressionBinaire *comp)
 {
     auto comparaisons = kuri::tableau<NoeudExpressionBinaire>();
-    rassemble_opérations_chainées(comp, comparaisons);
+    rassemble_opérations_chainées(*espace, comp, comparaisons);
 
     /*
       a <= b <= c
