@@ -81,6 +81,21 @@ est_reference_record :: fonc (valeur: ValeurCompletion) -> bool
     }
 }
 
+/* 6.2.5.3 IsSuperReference ( V )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-issuperreference */
+is_super_reference :: fonc (reference: ReferenceRecord) -> bool
+{
+    /* 1. If V.[[ThisValue]] is not EMPTY, return true; otherwise return false. */
+    discr reference.valeur_this {
+        Quelque {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 /* 6.2.5.5 GetValue
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
 get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) -> Résultat(Valeur, CompletionRecord)
@@ -108,7 +123,7 @@ get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) ->
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
 
         // d. Return ? baseObj.[[Get]](V.[[ReferencedName]], GetThisValue(V)).
-        retourne get(base_object, V.referenced_name, get_this_value(V))
+        retourne base_object.sur_get(base_object, V.referenced_name, get_this_value(V))
     }
 
     // 4. Else,
@@ -127,6 +142,63 @@ get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) ->
     retourne complétion
 }
 
+/* 6.2.5.6 PutValue
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-putvalue */
+put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletion, valeur: Valeur) -> CompletionRecord
+{
+    // 1. If V is not a Reference Record, throw a ReferenceError exception.
+    saufsi est_reference_record(référence) {
+        panique("exceptions non-implémentées")
+    }
+
+    record := référence.R
+
+    // 2. If IsUnresolvableReference(V) is true, then
+    si est_référence_non_résolvable(record) {
+        // a. If V.[[Strict]] is true, throw a ReferenceError exception.
+        si record.strict {
+            panique("exceptions non-implémentées")
+        }
+
+        // b. Let globalObj be GetGlobalObject().
+        global_obj := get_global_object(interpréteuse)
+
+        // c. Perform ? Set(globalObj, V.[[ReferencedName]], W, false).
+        completion := set(global_obj, record.referenced_name, valeur, faux)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        // d. Return UNUSED.
+        retourne normal_completion(js_undefined)
+    }
+
+    // 3. If IsPropertyReference(V) is true, then
+    si est_référence_propriété(record) {
+        // a. Let baseObj be ? ToObject(V.[[Base]]).
+        base_obj := vers_objet(interpréteuse, record.base.V)
+
+        // À FAIRE
+        // b. If IsPrivateReference(V) is true, then
+            // i. Return ? PrivateSet(baseObj, V.[[ReferencedName]], W).
+        // c. If V.[[ReferencedName]] is not a property key, then
+            // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
+
+        // À FAIRE
+        // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
+        base_obj.définis_valeur(record.referenced_name, valeur)
+        // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
+        // f. Return UNUSED.
+        retourne normal_completion(js_undefined)
+    }
+
+    // 4. Else,
+        // a. Let base be V.[[Base]].
+        // b. Assert: base is an Environment Record.
+        // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
+    panique("put_value non-implémenté")
+}
+
 /* 6.2.5.7 GetThisValue ( V )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getthisvalue */
 get_this_value :: fonc (reference: ReferenceRecord) -> Valeur
@@ -138,21 +210,6 @@ get_this_value :: fonc (reference: ReferenceRecord) -> Valeur
         retourne reference.valeur_this.Quelque
     }
     retourne reference.base.V
-}
-
-/* 6.2.5.3 IsSuperReference ( V )
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-issuperreference */
-is_super_reference :: fonc (reference: ReferenceRecord) -> bool
-{
-    /* 1. If V.[[ThisValue]] is not EMPTY, return true; otherwise return false. */
-    discr reference.valeur_this {
-        Quelque {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
 }
 
 /** \} */
@@ -355,63 +412,6 @@ get_global_object :: fonc (interpréteuse: &Interpréteuse) -> *Object
     // 1. Let currentRealm be the current Realm Record.
     // 2. Return currentRealm.[[GlobalObject]].
     retourne interpréteuse.objet_global
-}
-
-/* 6.2.5.6 PutValue
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-putvalue */
-put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletion, valeur: Valeur) -> CompletionRecord
-{
-    // 1. If V is not a Reference Record, throw a ReferenceError exception.
-    saufsi est_reference_record(référence) {
-        panique("exceptions non-implémentées")
-    }
-
-    record := référence.R
-
-    // 2. If IsUnresolvableReference(V) is true, then
-    si est_référence_non_résolvable(record) {
-        // a. If V.[[Strict]] is true, throw a ReferenceError exception.
-        si record.strict {
-            panique("exceptions non-implémentées")
-        }
-
-        // b. Let globalObj be GetGlobalObject().
-        global_obj := get_global_object(interpréteuse)
-
-        // c. Perform ? Set(globalObj, V.[[ReferencedName]], W, false).
-        completion := set(global_obj, record.referenced_name, valeur, faux)
-        saufsi completion.est_normal() {
-            retourne completion
-        }
-
-        // d. Return UNUSED.
-        retourne normal_completion(js_undefined)
-    }
-
-    // 3. If IsPropertyReference(V) is true, then
-    si est_référence_propriété(record) {
-        // a. Let baseObj be ? ToObject(V.[[Base]]).
-        base_obj := vers_objet(interpréteuse, record.base.V)
-
-        // À FAIRE
-        // b. If IsPrivateReference(V) is true, then
-            // i. Return ? PrivateSet(baseObj, V.[[ReferencedName]], W).
-        // c. If V.[[ReferencedName]] is not a property key, then
-            // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
-
-        // À FAIRE
-        // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
-        base_obj.définis_valeur(record.referenced_name, valeur)
-        // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
-        // f. Return UNUSED.
-        retourne normal_completion(js_undefined)
-    }
-
-    // 4. Else,
-        // a. Let base be V.[[Base]].
-        // b. Assert: base is an Environment Record.
-        // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
-    panique("put_value non-implémenté")
 }
 
 /** } */
