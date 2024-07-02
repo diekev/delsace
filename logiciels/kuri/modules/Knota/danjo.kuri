@@ -1,0 +1,411 @@
+importe Couleur
+importe Math
+importe Fondation
+importe Qt
+
+/* ------------------------------------------------------------------------- */
+/** \nom Dessin de la table de paramètre.
+ * \{ */
+
+DNJ_dessine_table_paramètres :: fonc (noeud: *Noeud, constructrice: *DNJ_ConstructriceInterfaceParametres)
+{
+    table := noeud.table_paramètres
+    si table == nul {
+        retourne
+    }
+
+    maçonne_grille := constructrice.debute_grille(constructrice)
+    diffère constructrice.termine_grille(constructrice, maçonne_grille)
+
+    index_ligne := 0
+
+    pour table.informations_dessin {
+        discr it {
+            AjouteEspaceur(espaceur) {
+                taille := espaceur comme octet comme z32
+                maçonne_grille.ajoute_espaceur(maçonne_grille, taille, index_ligne, 0, 1, 1)
+            }
+            DessineÉtiquette(texte) {
+                maçonne_grille.ajoute_etiquette(maçonne_grille, vers_qt(texte), index_ligne, 0, 1, 2)
+            }
+            DessineParamètre(param) {
+                type := donne_type_paramètre_danjo(param)
+                saufsi type.possède_valeur() {
+                    continue
+                }
+
+                enveloppe_valeur := crée_enveloppe_paramètre(noeud, param)
+
+                nom_param := param.nom
+
+                si param.est_étiquette {
+                    maçonne_grille.ajoute_etiquette_propriete(maçonne_grille, vers_qt(nom_param), enveloppe_valeur, index_ligne, 0, 1, 2)
+                    index_ligne += 1
+                    continue
+                }
+
+                si param.est_activable_depuis_interface {
+                    maçonne_grille.ajoute_etiquette_activable(maçonne_grille, vers_qt(nom_param), enveloppe_valeur, index_ligne, 0, 1, 1)
+                }
+                sinon {
+                    maçonne_grille.ajoute_etiquette(maçonne_grille, vers_qt(nom_param), index_ligne, 0, 1, 1)
+                }
+
+                maçonne_grille.ajoute_controle(maçonne_grille, vers_qt(nom_param), enveloppe_valeur, index_ligne, 1, 1, 1)
+
+                si noeud.paramètre_est_erroné(nom_param) {
+                    index_ligne += 1
+                    erreur_param := noeud.erreur_pour_paramètre(nom_param)
+
+                    // À FAIRE : icone, stylisation du paramètre
+                    maçonne_grille.ajoute_etiquette(maçonne_grille, vers_qt(erreur_param), index_ligne, 1, 1, 1)
+                }
+            }
+            sinon {
+                continue
+            }
+        }
+
+        index_ligne += 1
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeParamètresDanjo
+ * \{ */
+
+EnveloppeParamètresDanjo :: struct {
+    empl base: DNJ_Rappels_Enveloppe_Parametre
+
+    noeud: *Noeud
+    param: *TableParamètres.Paramètre
+}
+
+crée_enveloppe_paramètre :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre) -> *EnveloppeParamètresDanjo
+{
+    résultat := loge(EnveloppeParamètresDanjo)
+    résultat.param = param
+    résultat.noeud = noeud
+    résultat.cree_items_enum = crée_items_énum_paramètre_danjo
+    résultat.est_visible = donne_est_paramètre_visible_danjo
+    résultat.definis_visibilite = definis_visibilite_paramètre_danjo
+    résultat.donne_type_parametre = rappel_donne_type_paramètre_danjo
+    résultat.donne_dimensions_vecteur = donne_dimensions_vecteur_danjo
+    résultat.donne_filtre_extensions = paramètre_danjo_donne_filtre_extensions
+    résultat.evalue_entier = évalue_paramètre_entier_danjo
+    résultat.definis_entier = définis_paramètre_entier_danjo
+    résultat.evalue_couleur = évalue_paramètre_couleur_danjo
+    résultat.definis_couleur = définis_paramètre_couleur_danjo
+    résultat.evalue_decimal = évalue_paramètre_réel_danjo
+    résultat.definis_decimal = définis_paramètre_réel_danjo
+    résultat.evalue_chaine = évalue_chaine_danjo
+    résultat.definis_chaine = définis_chaine_danjo
+    résultat.evalue_enum = évalue_énum_danjo
+    résultat.definis_enum = définis_énum_danjo
+    résultat.evalue_bool = évalue_paramètre_bool_danjo
+    résultat.definis_bool = définis_paramètre_bool_danjo
+    résultat.evalue_vecteur_decimal = évalue_paramètre_vecteur_decimal_danjo
+    résultat.definis_vecteur_decimal = définis_paramètre_vecteur_decimal_danjo
+    résultat.donne_plage_entier = donne_plage_valeur_entier_danjo
+    résultat.donne_plage_decimal = donne_plage_valeur_decimal_danjo
+    résultat.donne_plage_vecteur_decimal = donne_plage_valeur_vecteur_décimal_danjo
+    résultat.donne_plage_couleur = donne_plage_valeur_couleur_danjo
+    résultat.donne_texte_bouton = donne_texte_bouton_danjo
+    résultat.sur_pression = sur_pression_bouton_danjo
+    retourne résultat
+}
+
+donne_type_paramètre_danjo :: fonc (param: *TableParamètres.Paramètre) -> Optionnel(DNJ_Type_Parametre)
+{
+    discr param.type {
+        CHAINE {
+            si param.index_prise_pour_recherche_chaine != -1 {
+                retourne DNJ_Type_Parametre.LISTE
+            }
+            retourne DNJ_Type_Parametre.CHAINE_CARACTERE
+        }
+        CHEMIN_FICHIER_ENTRÉE {
+            retourne DNJ_Type_Parametre.FICHIER_ENTREE
+        }
+        CHEMIN_FICHIER_SORTIE {
+            retourne DNJ_Type_Parametre.FICHIER_SORTIE
+        }
+        DOSSIER {
+            retourne DNJ_Type_Parametre.DOSSIER
+        }
+        NOMBRE_ENTIER {
+            retourne DNJ_Type_Parametre.ENTIER
+        }
+        NOMBRE_RÉEL {
+            retourne DNJ_Type_Parametre.DECIMAL
+        }
+        VALEUR_BOOLÉENNE {
+            retourne DNJ_Type_Parametre.BOOL
+        }
+        VEC2,
+        VEC3 {
+            retourne DNJ_Type_Parametre.VECTEUR_DECIMAL
+        }
+        COULEUR {
+            retourne DNJ_Type_Parametre.COULEUR
+        }
+        ÉNUMÉRATION {
+            retourne DNJ_Type_Parametre.ENUM
+        }
+        TEXTE {
+            retourne DNJ_Type_Parametre.TEXTE
+        }
+        BOUTON {
+            retourne DNJ_Type_Parametre.BOUTON
+        }
+    }
+
+    retourne
+}
+
+rappel_donne_type_paramètre_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre) -> DNJ_Type_Parametre
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+
+    type := donne_type_paramètre_danjo(param)
+    si type.possède_valeur() {
+        retourne type.Quelque
+    }
+
+    panique("% : type valeur '%' non-implémenté", #nom_de_cette_fonction, param.type)
+}
+
+paramètre_danjo_donne_filtre_extensions :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, r_filtre: *QT_Chaine)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    /* À FAIRE : fuite de mémoire */
+    filtre := donne_filtre_extension_pour_type_fichier(param.type_fichier)
+    mémoire(r_filtre) = vers_qt(filtre)
+}
+
+donne_dimensions_vecteur_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre) -> z32
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    si param.type == TypeParamètre.VEC2 {
+        retourne 2
+    }
+    retourne 3
+}
+
+donne_est_paramètre_visible_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre) -> bool
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    retourne param.est_actif()
+}
+
+definis_visibilite_paramètre_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, ouinon: bool)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    param.définis_actif(ouinon)
+}
+
+crée_items_énum_paramètre_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, constructrice: *DNJ_Constructrice_Parametre_Enum)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+
+    pour param.noms_valeurs_énum() {
+        constructrice.ajoute_item(constructrice, vers_qt(it), vers_qt(it))
+    }
+}
+
+évalue_paramètre_entier_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, temps: z32 @inutilisée) -> z32
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    retourne param.lis_valeur_entier()
+}
+
+définis_paramètre_entier_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, nouvelle_valeur: z32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    noeud := enveloppe.noeud
+    noeud.définis_param_entier(param, nouvelle_valeur)
+}
+
+évalue_paramètre_réel_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, temps: z32 @inutilisée) -> r32
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    retourne param.lis_valeur_réel()
+}
+
+définis_paramètre_réel_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, nouvelle_valeur: r32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    noeud := enveloppe.noeud
+    noeud.définis_param_réel(param, nouvelle_valeur)
+}
+
+évalue_paramètre_couleur_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, temps: z32 @inutilisée, r_valeur: *r32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    couleur := param.lis_valeur_couleur()
+    r_valeur[0] = couleur.r
+    r_valeur[1] = couleur.v
+    r_valeur[2] = couleur.b
+    r_valeur[3] = couleur.a
+}
+
+définis_paramètre_couleur_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, nouvelle_valeur: *r32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    noeud := enveloppe.noeud
+    couleur := CouleurRVBA(nouvelle_valeur[0], nouvelle_valeur[1], nouvelle_valeur[2], nouvelle_valeur[3])
+    noeud.définis_param_couleur(param, couleur)
+}
+
+évalue_chaine_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, temps: z32 @inutilisée, r_valeur: *QT_Chaine)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    mémoire(r_valeur) = vers_qt(param.lis_valeur_chaine())
+}
+
+définis_chaine_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, nouvelle_valeur: *QT_Chaine)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    noeud := enveloppe.noeud
+    noeud.définis_param_chaine(param, vers_kuri(nouvelle_valeur))
+}
+
+évalue_énum_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, temps: z32 @inutilisée, r_valeur: *QT_Chaine)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    mémoire(r_valeur) = vers_qt(param.lis_valeur_énum())
+}
+
+définis_énum_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, nouvelle_valeur: *QT_Chaine)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    noeud := enveloppe.noeud
+    noeud.définis_param_énum(param, vers_kuri(nouvelle_valeur))
+}
+
+évalue_paramètre_bool_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, temps: z32 @inutilisée) -> bool
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    retourne param.lis_valeur_bool()
+}
+
+définis_paramètre_bool_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, nouvelle_valeur: bool)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    noeud := enveloppe.noeud
+    noeud.définis_param_bool(param, nouvelle_valeur)
+}
+
+évalue_paramètre_vecteur_decimal_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, temps: z32 @inutilisée, r_valeur: *r32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+
+    si param.type == TypeParamètre.VEC2 {
+        v := param.lis_valeur_vec2()
+        r_valeur[0] = v.x
+        r_valeur[1] = v.y
+        retourne
+    }
+
+    v := param.lis_valeur_vec3()
+    r_valeur[0] = v.x
+    r_valeur[1] = v.y
+    r_valeur[2] = v.z
+}
+
+définis_paramètre_vecteur_decimal_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, nouvelle_valeur: *r32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    noeud := enveloppe.noeud
+
+    si param.type == TypeParamètre.VEC2 {
+        v := Vec2(nouvelle_valeur[0], nouvelle_valeur[1])
+        noeud.définis_param_vec2(param, v)
+        retourne
+    }
+
+    v := Vec3(nouvelle_valeur[0], nouvelle_valeur[1], nouvelle_valeur[2])
+    noeud.définis_param_vec3(param, v)
+}
+
+donne_plage_valeur_decimal_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, r_min: *r32, r_max: *r32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    limites := param.limites_valeur_réel()
+    mémoire(r_min) = limites.min
+    mémoire(r_max) = limites.max
+}
+
+donne_plage_valeur_entier_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, r_min: *z32, r_max: *z32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    limites := param.limites_valeur_entier()
+    mémoire(r_min) = limites.min
+    mémoire(r_max) = limites.max
+}
+
+donne_plage_valeur_vecteur_décimal_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, r_min: *r32, r_max: *r32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    si param.type == TypeParamètre.VEC2 {
+        limites := param.limites_valeur_vec2()
+        mémoire(r_min) = limites.min
+        mémoire(r_max) = limites.max
+        retourne
+    }
+    limites := param.limites_valeur_vec3()
+    mémoire(r_min) = limites.min
+    mémoire(r_max) = limites.max
+}
+
+donne_plage_valeur_couleur_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, r_min: *r32, r_max: *r32)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    limites := param.limites_valeur_couleur()
+    mémoire(r_min) = limites.min
+    mémoire(r_max) = limites.max
+}
+
+donne_texte_bouton_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre, r_valeur: *QT_Chaine)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    bouton := param.donne_bouton()
+    mémoire(r_valeur) = vers_qt(bouton.texte)
+}
+
+sur_pression_bouton_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametre)
+{
+    enveloppe := rappels comme *EnveloppeParamètresDanjo
+    param := enveloppe.param
+    noeud := enveloppe.noeud
+    noeud.sur_pression(param)
+}
+
+/** \} */

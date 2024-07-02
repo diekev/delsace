@@ -145,3 +145,116 @@ trouve_commande_pour_nom :: fonc (gestionnaire: *GestionnaireCommande, nom: chai
 
     retourne nul
 }
+
+appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, nom: chaine, métadonnée := "")
+{
+    commande := trouve_commande_pour_nom(gestionnaire, nom)
+    saufsi commande {
+        retourne
+    }
+
+    saufsi commande.exécute {
+        retourne
+    }
+
+    ctx.métadonnée = métadonnée
+    résultat := commande.exécute(ctx)
+
+    discr résultat {
+        TERMINÉ { /* OK. */ }
+        ANNULÉ { /* OK. */ }
+        PASSE_EN_MODAL {
+            gestionnaire.sauvegarde_commande_modale(commande, ctx)
+        }
+    }
+
+    retourne
+}
+
+appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, souris: CliqueSouris) -> bool
+{
+    commande := trouve_commande_pour_clique(gestionnaire, type_éditrice, souris)
+    saufsi commande {
+        retourne faux
+    }
+
+    saufsi commande.exécute {
+        retourne faux
+    }
+
+    ctx.souris = souris
+    ctx.souris_originelle = souris
+    résultat := commande.exécute(ctx)
+
+    discr résultat {
+        TERMINÉ { /* OK. */ }
+        ANNULÉ { /* OK. */ }
+        PASSE_EN_MODAL {
+            gestionnaire.sauvegarde_commande_modale(commande, ctx)
+        }
+    }
+
+    retourne vrai
+}
+
+appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, raccourcis: RaccourcisClavier, souris: ÉtatSouris) -> bool
+{
+    commande := trouve_commande_pour_raccourcis(gestionnaire, type_éditrice, raccourcis)
+    saufsi commande {
+        retourne faux
+    }
+
+    saufsi commande.exécute {
+        retourne faux
+    }
+
+    ctx.souris.état = souris
+    résultat := commande.exécute(ctx)
+
+    discr résultat {
+        TERMINÉ { /* OK. */ }
+        ANNULÉ { /* OK. */ }
+        PASSE_EN_MODAL {
+            gestionnaire.sauvegarde_commande_modale(commande, ctx)
+        }
+    }
+
+    retourne vrai
+}
+
+ajourne_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: CliqueSouris, souris_prétransformée: CliqueSouris) -> bool
+{
+    commande := gestionnaire.commande_modale
+    saufsi commande {
+        retourne faux
+    }
+
+    saufsi commande.exécute_modal {
+        retourne faux
+    }
+
+    ctx.souris = souris
+    ctx.souris_prétransformée = souris_prétransformée
+    ctx.souris_précédente = gestionnaire.ctx_modal.souris
+    ctx.souris_originelle = gestionnaire.ctx_modal.souris_originelle
+
+    commande.exécute_modal(ctx)
+
+    gestionnaire.ctx_modal.souris = souris
+    retourne vrai
+}
+
+achève_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: CliqueSouris) -> bool
+{
+    commande := gestionnaire.commande_modale
+
+    si commande && commande.termine_modal {
+        ctx.souris = souris
+        ctx.souris_précédente = gestionnaire.ctx_modal.souris
+        commande.termine_modal(ctx)
+    }
+
+    gestionnaire.commande_modale = nul
+    gestionnaire.ctx_modal = ContexteExécutionCommande()
+    retourne vrai
+}
