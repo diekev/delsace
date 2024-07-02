@@ -256,6 +256,21 @@ donne_clique_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, act
     retourne résultat
 }
 
+donne_clique_souris_depuis_évènement :: fonc (évènement: *QT_WheelEvent) -> CliqueSouris
+{
+    position: QT_Position
+    QT_wheel_event_donne_position(évènement, *position)
+
+    résultat: CliqueSouris
+    résultat.état.où.x = position.x
+    résultat.état.où.y = position.y
+    résultat.état.modificateur = donne_modificateur_clavier_depuis_qt()
+    résultat.bouton = BoutonSouris.MOLETTE
+    résultat.action = ActionSouris.ROULEMENT
+    résultat.delta = QT_wheel_event_donne_delta(évènement)
+    retourne résultat
+}
+
 donne_raccourcis_clavier :: fonc (évènement: *QT_KeyEvent) -> RaccourcisClavier
 {
     résultat: RaccourcisClavier

@@ -1,2 +1,12 @@
 charge "caméra_2d"
 charge "caméra_3d"
+
+/* ------------------------------------------------------------------------- */
+/** \nom Messages des caméras.
+ * \{ */
+
+MessageCaméraPositionChangée :: "position_caméra_changée"
+MessageCaméraDimensionsChangées :: "dimension_caméra_changée"
+
+/** } */
+
