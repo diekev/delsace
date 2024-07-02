@@ -1,5 +1,6 @@
 importe Géométrie
 importe Math
+importe Observation
 
 Caméra2D :: struct {
     /* Dimension de la fenêtre en pixels. */
@@ -128,3 +129,63 @@ centre_sur_image :: fonc (empl caméra: *Caméra2D, largeur_image: z32, hauteur_
 
     besoin_ajournement = vrai
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Enveloppe autour de Vision.Caméra2D pour l'observation.
+ * \{ */
+
+Caméra2DObservable :: struct {
+    empl base: Observable
+
+    caméra: Caméra2D
+}
+
+initialise_caméra :: fonc (enveloppe: *Caméra2DObservable)
+{
+}
+
+détruit_caméra :: fonc (enveloppe: *Caméra2DObservable)
+{
+    détruit_données_observable(enveloppe)
+    déloge(enveloppe)
+}
+
+donne_hauteur :: fonc (enveloppe: *Caméra2DObservable) -> z32
+{
+    retourne enveloppe.caméra.hauteur
+}
+
+donne_largeur :: fonc (enveloppe: *Caméra2DObservable) -> z32
+{
+    retourne enveloppe.caméra.largeur
+}
+
+applique_zoom :: fonc (empl enveloppe: *Caméra2DObservable, delta: r32, où: Point2D(z32))
+{
+    applique_zoom(*caméra, delta, où)
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra2DObservable), MessageCaméraPositionChangée))
+}
+
+applique_pan :: fonc (enveloppe: *Caméra2DObservable, dx: r32, dy: r32)
+{
+    applique_pan(*enveloppe.caméra, dx, dy)
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra2DObservable), MessageCaméraPositionChangée))
+}
+
+ajourne :: fonc (enveloppe: *Caméra2DObservable)
+{
+    ajourne_matrice(*enveloppe.caméra)
+}
+
+modèle_vue_projection :: fonc (enveloppe: *Caméra2DObservable) -> Mat4r
+{
+    retourne modèle_vue_projection(*enveloppe.caméra)
+}
+
+définis_dimension_fenêtre :: fonc (enveloppe: *Caméra2DObservable, largeur: z32, hauteur: z32)
+{
+    définis_dimension_fenêtre(*enveloppe.caméra, largeur, hauteur)
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra2DObservable), MessageCaméraDimensionsChangées))
+}
+
+/** \} */
