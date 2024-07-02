@@ -1,0 +1,421 @@
+importe Fondation
+importe Fràtzala
+importe Géométrie
+importe Math
+importe Observation
+importe Périphériques
+
+/* ------------------------------------------------------------------------- */
+/** \nom Modification interractive des noeuds.
+ * \{ */
+
+commence_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
+{
+    graphe.mode_interaction = ModeInteractionGraphe.AUCUNE
+
+    sélection := graphe.sélection
+
+    pos_souris := souris.état.où
+    point := pos_souris.donne_point_2d_réel()
+
+    si sélection.est_sur_sélectionné(point) {
+        éléments := sélection.donne_éléments_sélectionnés()
+
+        si éléments.taille > 1 {
+            graphe.mode_interaction = ModeInteractionGraphe.DÉPLACE_SÉLECTION_ACTIVE
+            retourne
+        }
+
+        noeud_actif := graphe.noeuds[éléments[0]]
+        si commence_connexion_interactive(graphe, noeud_actif, point) {
+            graphe.mode_interaction = ModeInteractionGraphe.CONNEXION_INTERACTIVE
+        }
+        sinon {
+            si noeud_actif.rectangle_drapeau.contient(point) {
+                noeud_actif.bascule_drapeau_rendu()
+            }
+
+            graphe.mode_interaction = ModeInteractionGraphe.DÉPLACE_SÉLECTION_ACTIVE
+        }
+    
+        retourne
+    }
+
+    sélection.clic(point)
+    éléments := sélection.donne_éléments_sélectionnés()
+
+    si éléments.taille == 0 {
+        graphe.définis_noeud_actif(nul)
+        graphe.mode_interaction = ModeInteractionGraphe.UTILISE_OUTIL_SÉLECTION
+        retourne
+    }
+
+    noeud_actif := graphe.noeuds[éléments[0]]
+    assert(noeud_actif != graphe.noeud_actif)
+
+    graphe.définis_noeud_actif(noeud_actif)
+
+    si commence_connexion_interactive(graphe, noeud_actif, point) {
+        graphe.mode_interaction = ModeInteractionGraphe.CONNEXION_INTERACTIVE
+    }
+    sinon {
+        si noeud_actif.rectangle_drapeau.contient(point) {
+            noeud_actif.bascule_drapeau_rendu()
+        }
+        graphe.mode_interaction = ModeInteractionGraphe.DÉPLACE_SÉLECTION_ACTIVE
+    }
+}
+
+ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris, delta: Vec2)
+{
+    discr graphe.mode_interaction {
+        AUCUNE {
+            retourne
+        }
+        CONNEXION_INTERACTIVE {
+            assert(graphe.connexion_interactive != nul)
+            connexion := graphe.débute_connexion_interactive()
+            connexion.x = souris.état.où.x comme r32
+            connexion.y = souris.état.où.y comme r32
+        }
+        DÉPLACE_SÉLECTION_ACTIVE {
+            sélection := graphe.sélection
+            éléments_sélectionnées := sélection.donne_éléments_sélectionnés()
+
+            guette_survol_connexion(graphe)
+
+            pour éléments_sélectionnées {
+                noeud := graphe.noeuds[it]
+                noeud.définis_position(noeud.pos_x + delta.x, noeud.pos_y + delta.y)
+            }
+        }
+        UTILISE_OUTIL_SÉLECTION {
+            sélection := graphe.sélection
+            pos_souris := souris.état.où
+            point := pos_souris.donne_point_2d_réel()
+            sélection.clic_majuscule(point)
+            graphe.utilise_outil_sélection = vrai
+            graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGrapheOutilSélection))
+        }
+    }
+}
+
+termine_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
+{
+    diffère graphe.connexion_pour_survol_noeud = nul
+
+    discr graphe.mode_interaction {
+        AUCUNE {
+            retourne
+        }
+        CONNEXION_INTERACTIVE {
+            assert(graphe.connexion_interactive != nul)
+            connexion := graphe.connexion_interactive
+            entrée: *PriseEntrée
+            sortie: *PriseSortie
+
+            si connexion.prise_entrée != nul {
+                entrée = connexion.prise_entrée
+                sortie = trouve_prise_sortie(graphe, donne_point_2d_réel(souris.état.où))
+            }
+            sinon {
+                entrée = trouve_prise_entrée(graphe, donne_point_2d_réel(souris.état.où))
+                sortie = connexion.prise_sortie
+            }
+
+            /* Déconnecte la prise entrée originelle si existante. */
+            si connexion.connexion_originelle {
+                prise_entrée := connexion.connexion_originelle.prise_entrée
+                graphe.déconnecte(prise_entrée)
+            }
+
+            si peut_connecter(entrée, sortie) {
+                graphe.crée_connexion(entrée, sortie)
+            }
+
+            graphe.termine_connexion_interactive()
+        }
+        DÉPLACE_SÉLECTION_ACTIVE {
+            si graphe.connexion_pour_survol_noeud {
+                /* Nous lâchons un noeud sur une connexion, connectons-le. */
+                sélection := graphe.sélection
+                éléments_sélectionnées := sélection.donne_éléments_sélectionnés()
+
+                assert(éléments_sélectionnées.taille == 1) 
+                noeud := graphe.noeuds[éléments_sélectionnées[0]]
+
+                connexion := graphe.connexion_pour_survol_noeud
+
+                prise_entrée := connexion.prise_entrée
+                prise_sortie := connexion.prise_sortie
+
+                prise_entrée_noeud := noeud.entrées[0]
+                prise_sortie_noeud := noeud.sorties[0]
+
+                graphe.déconnecte(prise_entrée)
+
+                graphe.crée_connexion(prise_entrée_noeud, prise_sortie)
+                graphe.crée_connexion(prise_entrée, prise_sortie_noeud)
+
+                /* Fait de la place pour l'ajout du noeud. */
+                noeud_amont := prise_sortie.noeud_parent
+                noeud_aval := prise_entrée.noeud_parent
+
+                pos_y_amont := noeud_amont.pos_y
+                pos_y_aval := noeud_aval.pos_y
+
+                si (noeud.pos_y - pos_y_amont) < (3.0 * noeud.rectangle().hauteur) {
+                    décalage := (3.0 * noeud.rectangle().hauteur) - (noeud.pos_y - pos_y_amont)
+                    noeud.décale_verticalement_noeuds_en_amont(-décalage)
+                }
+
+                si (pos_y_aval - noeud.pos_y) < (3.0 * noeud.rectangle().hauteur) {
+                    décalage := (3.0 * noeud.rectangle().hauteur) - (pos_y_aval - noeud.pos_y)
+                    noeud.décale_verticalement_noeuds_en_aval(décalage)
+                }
+
+                /* Positionne le noeud horizontalement à mi-chemin entre les prises. */
+                pos_x := (noeud_aval.pos_x + noeud_amont.pos_x) * 0.5
+                noeud.définis_position(pos_x, noeud.pos_y)
+                
+                graphe.connexion_pour_survol_noeud = nul
+                graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGraphePositionChangée))
+            }
+        }
+        UTILISE_OUTIL_SÉLECTION {
+            graphe.utilise_outil_sélection = faux
+            graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGrapheOutilSélection))
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Modification de la sélection.
+ * \{ */
+
+/* Retourne vrai si quelque chose fut supprimé, faux si la sélection fut vide. */
+supprime_sélection :: fonc (graphe: *Graphe) -> bool
+{
+    sélection := graphe.sélection
+
+    noeuds_à_supprimer: [..]*Noeud
+    diffère déloge(noeuds_à_supprimer)
+
+    pour sélection.donne_éléments_sélectionnés() {
+        tableau_ajoute(*noeuds_à_supprimer, graphe.noeuds[it])
+    }
+
+    si noeuds_à_supprimer.taille == 0 {
+        retourne faux
+    }
+
+    pour noeuds_à_supprimer {
+        graphe.supprime_noeud(it)
+    }
+
+    sélection.réinitialise()
+    retourne vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires.
+ * \{ */
+
+/**
+ * Retourne vrai si l'entrée et la sortie sont compatibles pour être connectées.
+ */
+peut_connecter :: fonc (entrée: *PriseEntrée, sortie: *PriseSortie) -> bool
+{
+    si entrée == nul || sortie == nul {
+        retourne faux
+    }
+
+    si entrée.noeud_parent == sortie.noeud_parent {
+        retourne faux
+    }
+
+    si entrée.type != sortie.type {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+R32_MAX :: 0r7f7fffff
+
+trouve_noeud :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *Noeud
+{
+    noeud_le_plus_proche: *Noeud
+    distance_la_plus_proche := R32_MAX
+
+    pour graphe.noeuds {
+        rectangle_noeud := it.rectangle()
+
+        centre := rectangle_noeud.donne_point_central()
+
+        dx := centre.x - point.x
+        dy := centre.y - point.y
+
+        distance_carrée := dx * dx + dy * dy
+
+        si distance_carrée < distance_la_plus_proche {
+            distance_la_plus_proche = distance_carrée
+            noeud_le_plus_proche = it
+        }
+    }
+
+    retourne noeud_le_plus_proche
+}
+
+trouve_prise_contenant :: fonc (prises: []*$T, point: Point2D(r32)) -> *T
+{
+    pour prises {
+        si it.rectangle.contient(point) {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
+trouve_prise_sortie :: fonc (noeud: *Noeud, point: Point2D(r32)) -> *PriseSortie
+{
+    retourne trouve_prise_contenant(noeud.sorties, point)
+}
+
+trouve_prise_sortie :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *PriseSortie
+{
+    noeud_le_plus_proche := trouve_noeud(graphe, point)
+    si noeud_le_plus_proche == nul {
+        retourne nul
+    }
+
+    retourne trouve_prise_sortie(noeud_le_plus_proche, point)
+}
+
+trouve_prise_entrée :: fonc (noeud: *Noeud, point: Point2D(r32)) -> *PriseEntrée
+{
+    retourne trouve_prise_contenant(noeud.entrées, point)
+}
+
+trouve_prise_entrée :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *PriseEntrée
+{
+    noeud_le_plus_proche := trouve_noeud(graphe, point)
+    si noeud_le_plus_proche == nul {
+        retourne nul
+    }
+
+    retourne trouve_prise_entrée(noeud_le_plus_proche, point)
+}
+
+finalise_ajout_noeud :: fonc (graphe: *Graphe, noeud: *Noeud)
+{
+    noeud.définis_position(graphe.centre_x, graphe.centre_y)
+
+    // if (graphe.connexion_active != nul) {
+    // 	if (graphe.connexion_active->prise_entrée != nul) {
+    // 		graphe.connecte(noeud.sortie(0), graphe.connexion_active->prise_entrée);
+    // 	}
+    // 	else if (graphe.connexion_active->prise_sortie != nul) {
+    // 		graphe.connecte(graphe.connexion_active->prise_sortie, noeud.entrée(0));
+    // 	}
+
+    // 	memoire::deloge("Connexion", graphe.connexion_active);
+    // }
+
+    /* Définis actif et ajout à la sélection. */
+    graphe.définis_noeud_actif(noeud)
+
+    position := Point2D(r32)(noeud.pos_x, noeud.pos_y)
+    sélection := graphe.sélection
+    sélection.clic(position)
+}
+
+commence_connexion_interactive :: fonc (graphe: *Graphe, noeud: *Noeud, point: Point2D(r32)) -> bool
+{
+    prise_entrée := trouve_prise_entrée(noeud, point)
+    prise_sortie := trouve_prise_sortie(noeud, point)
+
+    si prise_entrée != nul || prise_sortie != nul {
+        connexion := graphe.débute_connexion_interactive()
+        connexion.x = point.x
+        connexion.y = point.y
+
+        /* Si nous débutons sur une prise entrée déjà connectée, nous devons nous préparer à la
+         * déconnecter. */
+        si prise_entrée != nul && prise_entrée.connexion != nul {
+            prise_sortie = prise_entrée.connexion.prise_sortie
+            connexion.connexion_originelle = prise_entrée.connexion
+            prise_entrée = nul
+        }
+
+        connexion.prise_entrée = prise_entrée
+        connexion.prise_sortie = prise_sortie
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+guette_survol_connexion :: fonc (graphe: *Graphe)
+{
+    sélection := graphe.sélection
+    éléments_sélectionnées := sélection.donne_éléments_sélectionnés()
+
+    si éléments_sélectionnées.taille != 1 {
+        retourne
+    }
+
+    noeud := graphe.noeuds[éléments_sélectionnées[0]]
+    si noeud.entrées.taille == 0 || noeud.sorties.taille == 0 {
+        retourne
+    }
+
+    rect_noeud := noeud.rectangle()
+    graphe.connexion_pour_survol_noeud = nul
+
+    pour graphe.connexions {
+        si it.prise_entrée.noeud_parent == noeud {
+            continue
+        }
+
+        si it.prise_sortie.noeud_parent == noeud {
+            continue
+        }
+
+        p0 := it.prise_entrée.rectangle.donne_point_central()
+        p1 := it.prise_sortie.rectangle.donne_point_central()
+
+        si intersecte_ligne_rectangle(p0, p1, rect_noeud) {
+            graphe.connexion_pour_survol_noeud = it
+        }
+    }
+}
+
+décale_verticalement_noeuds_en_amont :: fonc (aval: *Noeud, décalage: r32)
+{
+    pour aval.entrées {
+        si it.connexion {
+            amont := it.connexion.prise_sortie.noeud_parent
+            amont.définis_position(amont.pos_x, amont.pos_y + décalage)
+            décale_verticalement_noeuds_en_amont(amont, décalage)
+        }
+    }
+}
+
+décale_verticalement_noeuds_en_aval :: fonc (amont: *Noeud, décalage: r32)
+{
+    pour amont.sorties {
+        pour connexion dans it.connexions {
+            aval := connexion.prise_entrée.noeud_parent
+            aval.définis_position(aval.pos_x, aval.pos_y + décalage)
+            décale_verticalement_noeuds_en_aval(aval, décalage)
+        }
+    }
+}
+
+/** \} */
