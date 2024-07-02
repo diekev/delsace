@@ -1,5 +1,6 @@
 importe Fondation
 importe Math
+importe Observation
 
 mire :: fonc (oeil: Vec3, centre: Vec3, haut: Vec3) -> Mat4r
 {
@@ -548,3 +549,90 @@ qprincipale :: fonc () -> z32
     retourne 0
 }
 */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Enveloppe autour de Caméra3D pour l'observation.
+ * \{ */
+
+Caméra3DObservable :: struct {
+    empl base: Observable
+
+    caméra: Caméra3D
+}
+
+initialise_caméra :: fonc (enveloppe: *Caméra3DObservable)
+{
+    initialise_caméra(*enveloppe.caméra, type_projection = TypeProjection.PERSPECTIVE)
+} 
+
+détruit_caméra :: fonc (enveloppe: *Caméra3DObservable)
+{
+    détruit_données_observable(enveloppe)
+    déloge(enveloppe)
+}
+
+donne_plan_éloigné :: fonc (enveloppe: *Caméra3DObservable) -> r32
+{
+    retourne enveloppe.caméra.plan_éloigné
+}
+
+donne_direction :: fonc (enveloppe: *Caméra3DObservable) -> Vec3
+{
+    retourne enveloppe.caméra.direction
+}
+
+donne_hauteur :: fonc (enveloppe: *Caméra3DObservable) -> z32
+{
+    retourne enveloppe.caméra.hauteur
+}
+
+donne_largeur :: fonc (enveloppe: *Caméra3DObservable) -> z32
+{
+    retourne enveloppe.caméra.largeur
+}
+
+donne_position_écran :: fonc (enveloppe: *Caméra3DObservable, pos: Vec3) -> Vec2
+{
+    retourne donne_position_écran(*enveloppe.caméra, pos)
+}
+
+applique_zoom :: fonc (enveloppe: *Caméra3DObservable, delta: r32)
+{
+    zoom(*enveloppe.caméra, delta)
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraPositionChangée))
+}
+
+applique_tourne :: fonc (enveloppe: *Caméra3DObservable, dx: r32, dy: r32)
+{
+    tourne(*enveloppe.caméra, dx, dy)
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraPositionChangée))
+}
+
+applique_pan :: fonc (enveloppe: *Caméra3DObservable, dx: r32, dy: r32)
+{
+    pan(*enveloppe.caméra, dx, dy)
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraPositionChangée))
+}
+
+ajourne :: fonc (enveloppe: *Caméra3DObservable)
+{
+    ajourne(*enveloppe.caméra)
+}
+
+MV :: fonc (enveloppe: *Caméra3DObservable) -> Mat4r
+{
+    retourne MV(*enveloppe.caméra)
+}
+
+P :: fonc (enveloppe: *Caméra3DObservable) -> Mat4r
+{
+    retourne P(*enveloppe.caméra)
+}
+
+définis_dimension_fenêtre :: fonc (enveloppe: *Caméra3DObservable, largeur: z32, hauteur: z32)
+{
+    définis_dimension_fenêtre(*enveloppe.caméra, largeur, hauteur)
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraDimensionsChangées))
+}
+
+/** \} */

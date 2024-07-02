@@ -1,0 +1,315 @@
+importe Fondation
+importe Math
+importe Processus
+importe Numérique
+
+/* ------------------------------------------------------------------------- */
+/** \nom Disposition automatique des noeuds.
+ * \{ */
+
+dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
+{
+    texte := donne_texte_graphviz(graphe, "BT")
+    // À FAIRE(langage) : ceci génère une erreur de compilation
+    // diffère déloge(texte)
+
+    discr ouvre_canal_de_communication("dot", "-Tplain") {
+        Quelque(canal) {
+            canal.écris(texte)
+            canal.ferme_écriture()
+            texte_résultat := canal.lis()
+            diffère déloge(texte_résultat)
+
+            lignes := divise(texte_résultat, '\n')
+            diffère déloge(lignes)
+
+            index_noeud := 0
+
+            pour lignes {
+                saufsi it.commence_par("node ") {
+                    continue
+                }
+
+                diffère index_noeud += 1
+
+                lexèmes := it.divise(' ')
+                diffère déloge(lexèmes)
+
+                saufsi lexèmes.taille >= 4 {
+                    continue
+                }
+
+                x := tente extrait_r64(lexèmes[2]) piège _ {
+                    continue
+                }
+
+                y := tente extrait_r64(lexèmes[3]) piège _ {
+                    continue
+                }
+
+                noeud := graphe.noeuds[index_noeud]
+                assert(noeud.nom == lexèmes[1])
+
+                noeud.définis_position((x * 100.0) comme r32, (y * 100.0) comme r32)
+            }
+        }
+        sinon {
+            déloge(texte)
+            retourne ÉchecOpération("Impossible de se connecter à dot")
+        }
+    }
+
+    déloge(texte)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Export GraphViz
+ * \{ */
+
+donne_texte_graphviz :: fonc (graphe: *Graphe, direction: chaine) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    taille_max_texte_noeud : r32 = 0.0
+    pour graphe.noeuds {
+        taille_max_texte_noeud = max(taille_max_texte_noeud, it.rectangle_texte.largeur)
+    }
+
+    nom_police :: "helvetica"
+    taille_police :: 16.0
+
+    ajoute_au_tampon(*enchaineuse, "digraph d {\n")
+    ajoute_au_tampon(*enchaineuse, "rankdir=", direction, "\n")
+    ajoute_au_tampon(*enchaineuse, "nodesep=", taille_max_texte_noeud / 100.0 ,"\n")
+    ajoute_au_tampon(*enchaineuse, "ranksep=1\n")
+    ajoute_au_tampon(*enchaineuse, "graph [")
+    ajoute_au_tampon(*enchaineuse, "labbelloc=\"t\"")
+    imprime_dans_enchaineuse(*enchaineuse, ",fontsize=\"%\",fontname=\"%\"", taille_police, nom_police)
+    ajoute_au_tampon(*enchaineuse, ",label=\"", graphe.noeud_parent.nom, "\"")
+    ajoute_au_tampon(*enchaineuse, "]\n")
+
+    pour graphe.noeuds {
+        imprime_noeud_graphviz(*enchaineuse, it, nom_police, taille_max_texte_noeud)
+    }
+
+    pour graphe.connexions {
+        imprime_connexion_graphviz(*enchaineuse, it)
+    }
+
+    ajoute_au_tampon(*enchaineuse, "}\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_police: chaine, taille_max_texte_noeud: r32 @inutilisée)
+{
+    taille_label_noeud :: 16.0
+    valeur_couleur :: "gold1"
+    forme := "box"
+    style := "filled,rounded"
+    couleur := "black"
+    couleur_remplissage := "gainsboro"
+    largeur_stylo := 1.0
+
+    nombre_entrées := noeud.entrées.taille
+    nombre_sorties := noeud.sorties.taille
+
+    ChoixIndexColonne :: énum {
+        PlaceSurPair
+        PlaceSurImpair
+        PlaceSurDonné
+    }
+
+    AssignationPriseColonne :: struct {
+        choix_index: ChoixIndexColonne
+        décalage: z64
+    }
+
+    donne_index_prise_pour_assignation :: fonc (assignation: AssignationPriseColonne, index_colonne: z64) -> z64
+    {
+        index_effectif := index_colonne - assignation.décalage
+        si index_effectif < 0 {
+            retourne -1
+        }
+
+        discr assignation.choix_index {
+            PlaceSurPair {
+                si index_colonne % 2 != 0 {
+                    retourne -1
+                }
+
+                retourne index_effectif / 2
+            }
+            PlaceSurImpair {
+                si index_colonne % 2 == 0 {
+                    retourne -1
+                }
+
+                retourne index_effectif / 2
+            }
+            PlaceSurDonné {
+                retourne index_effectif
+            }
+        }
+
+        retourne -1
+    }
+
+    assignation_entrée: AssignationPriseColonne
+    assignation_sortie: AssignationPriseColonne
+
+    nombre_de_colonnes := si nombre_entrées == nombre_sorties {
+        assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0)
+        assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0)
+
+        nombre_entrées
+    }
+    sinon si (nombre_entrées + nombre_sorties) % 2 != 0 {
+        si nombre_entrées > nombre_sorties {
+            // place les entrées sur les index paires, sorties sur impaires
+            décalage := (nombre_entrées - nombre_sorties) / 2
+            assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurPair, 0)
+            assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurImpair, décalage)
+        }
+        sinon {
+            // place les entrées sur les index impaires, sorties sur paires
+            décalage := (nombre_sorties - nombre_entrées) / 2
+            assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurImpair, décalage)
+            assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurPair, 0)
+        }
+
+        nombre_entrées + nombre_sorties
+    }
+    sinon {
+        si nombre_entrées > nombre_sorties {
+            // décale premier index
+            décalage := (nombre_entrées - nombre_sorties) / 2
+            assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0)
+            assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, décalage)
+        }
+        sinon {
+            // décale premier index
+            décalage := (nombre_sorties - nombre_entrées) / 2
+            assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, décalage)
+            assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0)
+        }
+
+        max(nombre_entrées, nombre_sorties)
+    }
+
+    taille_noeud := noeud.rectangle().largeur comme r64
+    hauteur_noeud := noeud.rectangle().hauteur comme r64
+    hauteur_prise := hauteur_noeud * 0.5
+    taille_prise := taille_noeud / nombre_de_colonnes comme r32
+
+    ajoute_au_tampon(enchaineuse, "// ", noeud.nom, "\n")
+    id_dot_pour_noeud(enchaineuse, noeud)
+    ajoute_au_tampon(enchaineuse, "[")
+
+    ajoute_au_tampon(enchaineuse, "label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\">")
+
+    ajoute_au_tampon(enchaineuse, "<TR>")
+    pour nombre_de_colonnes {
+        index_prise := donne_index_prise_pour_assignation(assignation_entrée, index_it)
+        si index_prise < 0 {
+            ajoute_au_tampon(enchaineuse, "<TD WIDTH=\"", taille_prise , "\" HEIGHT=\"", hauteur_prise , "\" FIXEDSIZE=\"true\"></TD>")
+            continue
+        }
+
+        prise := noeud.entrées[index_prise]
+
+        ajoute_au_tampon(enchaineuse, "<TD")
+        ajoute_au_tampon(enchaineuse, " PORT=")
+        id_dot_pour_prise(enchaineuse, prise, index_prise)
+        ajoute_au_tampon(enchaineuse, " BORDER=\"1\"")
+        ajoute_au_tampon(enchaineuse, " BGCOLOR=\"", valeur_couleur, "\"")
+        ajoute_au_tampon(enchaineuse, " HEIGHT=\"", hauteur_prise, "\"")
+        ajoute_au_tampon(enchaineuse, " WIDTH=\"", taille_prise, "\"")
+        ajoute_au_tampon(enchaineuse, " FIXEDSIZE=\"true\"")
+        ajoute_au_tampon(enchaineuse, ">")
+        ajoute_au_tampon(enchaineuse, prise.nom)
+        ajoute_au_tampon(enchaineuse, "</TD>")
+    }
+
+    // imprime_dans_enchaineuse(enchaineuse, "<TD ALIGN=\"LEFT\" ROWSPAN=\"2\" HEIGHT=\"%\" WIDTH=\"%\" FIXEDSIZE=\"true\">%</TD>", hauteur_noeud, taille_max_texte_noeud, noeud.nom)
+
+    ajoute_au_tampon(enchaineuse, "</TR>")
+
+    ajoute_au_tampon(enchaineuse, "<TR>")
+    pour nombre_de_colonnes {
+        index_prise := donne_index_prise_pour_assignation(assignation_sortie, index_it)
+        si index_prise < 0 {
+            ajoute_au_tampon(enchaineuse, "<TD WIDTH=\"", taille_prise , "\" HEIGHT=\"", hauteur_prise , "\" FIXEDSIZE=\"true\"></TD>")
+            continue
+        }
+
+        prise := noeud.sorties[index_prise]
+
+        ajoute_au_tampon(enchaineuse, "<TD")
+        ajoute_au_tampon(enchaineuse, " PORT=")
+        id_dot_pour_prise(enchaineuse, prise, index_prise + noeud.entrées.taille)
+        ajoute_au_tampon(enchaineuse, " BORDER=\"1\"")
+        ajoute_au_tampon(enchaineuse, " BGCOLOR=\"", valeur_couleur, "\"")
+        ajoute_au_tampon(enchaineuse, " HEIGHT=\"", hauteur_prise, "\"")
+        ajoute_au_tampon(enchaineuse, " WIDTH=\"", taille_prise, "\"")
+        ajoute_au_tampon(enchaineuse, " FIXEDSIZE=\"true\"")
+        ajoute_au_tampon(enchaineuse, ">")
+        ajoute_au_tampon(enchaineuse, prise.nom)
+        ajoute_au_tampon(enchaineuse, "</TD>")
+    }
+    ajoute_au_tampon(enchaineuse, "</TR>")
+
+    ajoute_au_tampon(enchaineuse, "</TABLE>>")
+
+    ajoute_au_tampon(enchaineuse, "fontname=\"", nom_police, "\"")
+    ajoute_au_tampon(enchaineuse, ",fontsize=\"", taille_label_noeud, "\"")
+    ajoute_au_tampon(enchaineuse, ",shape=\"", forme, "\"")
+    ajoute_au_tampon(enchaineuse, ",style=\"", style, "\"")
+    ajoute_au_tampon(enchaineuse, ",color=\"", couleur, "\"")
+    ajoute_au_tampon(enchaineuse, ",fillcolor=\"", couleur_remplissage, "\"")
+    ajoute_au_tampon(enchaineuse, ",penwidth=\"", largeur_stylo, "\"")
+    ajoute_au_tampon(enchaineuse, "];\n")
+}
+
+imprime_connexion_graphviz :: fonc (enchaineuse: *Enchaineuse, connexion: *Connexion)
+{
+    largeur_stylo := 2.0
+
+    sortie := connexion.prise_sortie
+    entrée := connexion.prise_entrée
+
+    id_dot_pour_noeud(enchaineuse, sortie.noeud_parent)
+    ajoute_au_tampon(enchaineuse, ":")
+    id_dot_pour_prise(enchaineuse, sortie, sortie.donne_index() + sortie.noeud_parent.entrées.taille)
+    ajoute_au_tampon(enchaineuse, ":s")
+
+    ajoute_au_tampon(enchaineuse, "->")
+
+    id_dot_pour_noeud(enchaineuse, entrée.noeud_parent)
+    ajoute_au_tampon(enchaineuse, ":")
+    id_dot_pour_prise(enchaineuse, entrée, entrée.donne_index())
+    ajoute_au_tampon(enchaineuse, ":n")
+
+    ajoute_au_tampon(enchaineuse, "[")
+
+    /* Note: graphviz/dot semble requérir soit un id, soit un label */
+    imprime_dans_enchaineuse(enchaineuse, "id=\"VAL%\"", connexion)
+    imprime_dans_enchaineuse(enchaineuse, ",penwidth=\"%\"", largeur_stylo)
+    ajoute_au_tampon(enchaineuse, "];\n\n")
+}
+
+id_dot_pour_noeud :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud)
+{
+    imprime_dans_enchaineuse(enchaineuse, "\"%\"", noeud.nom)
+}
+
+id_dot_pour_prise :: fonc (enchaineuse: *Enchaineuse, prise: *Prise, index: z64)
+{
+    imprime_dans_enchaineuse(enchaineuse, "\"P%%\"", prise.nom, index)
+}
+
+/** \} */
