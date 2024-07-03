@@ -120,7 +120,9 @@ get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) ->
 
     // 2. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
     si est_référence_non_résolvable(valeur) {
-        panique("exceptions non-implémentées")
+        message := imprime_chaine("\"%\" is not defined", valeur.R.referenced_name)
+        exception := crée_reference_error(*interpréteuse.tas_de_mémoire, interpréteuse.reference_error_prototype, message)
+        retourne throw_completion(exception)
     }
 
     // 3. If IsPropertyReference(V) is true, then
@@ -165,7 +167,9 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
     si est_référence_non_résolvable(record) {
         // a. If V.[[Strict]] is true, throw a ReferenceError exception.
         si record.strict {
-            panique("exceptions non-implémentées")
+            message := imprime_chaine("assignment to undeclared variable \"%\"", record.referenced_name)
+            exception := crée_reference_error(*interpréteuse.tas_de_mémoire, interpréteuse.reference_error_prototype, message)
+            retourne throw_completion(exception)
         }
 
         // b. Let globalObj be GetGlobalObject().
@@ -250,6 +254,11 @@ imprime_complétion :: fonc (enchaineuse: *Enchaineuse, completion: *CompletionR
         retourne
     }
 
+    si completion.type == CompletionRecord.Type.THROW {
+        ajoute_au_tampon(enchaineuse, completion.valeur.V)
+        retourne
+    }
+
     saufsi completion.type == CompletionRecord.Type.NORMAL {
         ajoute_au_tampon(enchaineuse, "À FAIRE : impression des complétions anormales.")
         retourne
@@ -309,6 +318,12 @@ est_return :: fonc (completion: CompletionRecord) -> bool
     retourne completion.type == CompletionRecord.Type.RETURN
 }
 
+throw_completion :: fonc (error: *Error) -> CompletionRecord
+{
+    valeur := ValeurCompletion(Valeur(Object = error))
+    retourne CompletionRecord(CompletionRecord.Type.THROW, valeur)
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -335,6 +350,8 @@ Interpréteuse :: struct {
     // realm.[[Intrinsics]]
     string_prototype: *StringPrototype
     object_prototype: *ObjectPrototype
+    error_prototype: *ErrorPrototype
+    reference_error_prototype: *ReferenceErrorPrototype
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
@@ -343,6 +360,8 @@ initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
 
     interpréteuse.object_prototype = crée_object_prototype(*interpréteuse.tas_de_mémoire)
     interpréteuse.string_prototype = crée_string_prototype(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
+    interpréteuse.error_prototype = crée_error_prototype(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
+    interpréteuse.reference_error_prototype = crée_reference_error_prototype(*interpréteuse.tas_de_mémoire, interpréteuse.error_prototype)
 
     interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
     interpréteuse.lexical_environment = new_global_environment(*interpréteuse.tas_de_mémoire, interpréteuse.objet_global, nul)

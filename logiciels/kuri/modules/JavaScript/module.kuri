@@ -56,10 +56,16 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
             ajoute_au_tampon(enchaineuse, n)
         }
         Object(o) {
-            ajoute_au_tampon(enchaineuse, "Object ", o)
+            si o.type == ReferenceError {
+                error := o comme *ReferenceError
+                ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]")
+            }
         }
         Function(o) {
-            ajoute_au_tampon(enchaineuse, "Function ", o)
+            ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]")
         }
         String(s) {
             ajoute_au_tampon(enchaineuse, "\"", s.texte, "\"")
@@ -721,6 +727,86 @@ sur_destruction_primitive_chaine :: fonc (base: *Cellule)
 {
     primitive := base comme *PrimitiveChaine
     déloge(primitive.texte)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Error
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-error-objects
+ * \{ */
+
+Error :: struct {
+    empl objet: Object
+    type = Error
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-error-prototype-object
+ * \{ */
+
+ErrorPrototype :: struct {
+    empl objet: Object
+    type = ErrorPrototype
+}
+
+crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(ErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ReferenceError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-referenceerror
+ * \{ */
+
+ReferenceError :: struct {
+    empl error: Error
+    type = ReferenceError
+    sur_visite_graphe = reference_error_sur_visite_graphe
+
+    message: *PrimitiveChaine
+}
+
+crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ReferenceErrorPrototype, message: chaine) -> *ReferenceError
+{
+    résultat := tas_de_mémoire.alloue(ReferenceError)
+    résultat.prototype = prototype
+    résultat.message = crée_chaine(tas_de_mémoire, message)
+    retourne résultat
+}
+
+reference_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    reference_error := base comme *ReferenceError
+    sur_visite_graphe_objet(reference_error, visiteuse)
+    cellule_sur_visite_graphe(reference_error.message, visiteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ReferenceErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+ReferenceErrorPrototype :: struct {
+    empl objet: Object
+    type = ReferenceErrorPrototype
+}
+
+crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(ReferenceErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
 }
 
 /** \} */
