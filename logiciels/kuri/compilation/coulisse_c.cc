@@ -1675,17 +1675,21 @@ static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *foncti
 
     auto const param = entête->parametre_entree(index);
     if (param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
+        /* Explicitement marquée @inutilisée. */
         return true;
     }
 
     if (!param->possède_drapeau(DrapeauxNoeud::EST_UTILISEE)) {
+        /* Aucune utilisation ne fut détectée lors de la validation sémantique. */
         return true;
     }
 
-    /* À FAIRE : il est possible qu'une fonction soit vidée car un "retourne" est la première
-     * expression (pour désactiver le code), il faudra détecter ce cas dans la RI ou lors de la
-     * validation sémantique et marquer les paramètres comme inutilisés. */
-    return fonction->instructions.taille() == 2;
+    if (!fonction->params_entrée[index]->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
+        /* L'atome n'est plus utilisé suite à une optimisation. */
+        return true;
+    }
+
+    return false;
 }
 
 /* Pour une liste des attributs GCC pour les fonctions :
