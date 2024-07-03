@@ -428,8 +428,24 @@ donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoir
 
 rassemble_racines :: fonc (interpréteuse: *Interpréteuse, racines: *[..]*Cellule)
 {
-    ensemble_ajoute(racines, interpréteuse.objet_global)
-    ensemble_ajoute(racines, interpréteuse.lexical_environment)
+    si interpréteuse.objet_global {
+        ensemble_ajoute(racines, interpréteuse.objet_global)
+    }
+    si interpréteuse.lexical_environment {
+        ensemble_ajoute(racines, interpréteuse.lexical_environment)
+    }
+    si interpréteuse.object_prototype {
+        ensemble_ajoute(racines, interpréteuse.object_prototype)
+    }
+    si interpréteuse.string_prototype {
+        ensemble_ajoute(racines, interpréteuse.string_prototype)
+    }
+    si interpréteuse.error_prototype {
+        ensemble_ajoute(racines, interpréteuse.error_prototype)
+    }
+    si interpréteuse.reference_error_prototype {
+        ensemble_ajoute(racines, interpréteuse.reference_error_prototype)
+    }
 }
 
 donne_scope_courant :: fonc (interpréteuse: &Interpréteuse) -> *FrameScope
