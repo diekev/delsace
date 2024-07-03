@@ -382,6 +382,11 @@ définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur))
 }
 
+ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, writable: bool, enumerable: bool, configurable: bool)
+{
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, writable = writable, enumerable = enumerable, configurable = configurable))
+}
+
 get_prototype_of :: fonc (object: *Object) -> *Object
 {
     retourne ordinary_get_prototype_of(object)
@@ -550,6 +555,7 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
 
 /* ------------------------------------------------------------------------- */
 /** \nom ObjetChaine
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-string-objects
  * \{ */
 
 ObjetChaine :: struct {
@@ -566,7 +572,8 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
     résultat.prototype = string_prototype
     résultat.chn = chn
 
-    résultat.définis_valeur("length", Valeur(Number = chn.texte.taille comme r64))
+    résultat.ajoute_propriété("length", Valeur(Number = chn.texte.taille comme r64), faux, faux, faux)
+    résultat.ajoute_propriété("prototype", Valeur(Object = string_prototype), faux, faux, faux)
 
     retourne résultat
 }
@@ -599,19 +606,32 @@ crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectProto
 
 /* ------------------------------------------------------------------------- */
 /** \nom StringPrototype
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-properties-of-the-string-prototype-object
  * \{ */
 
 StringPrototype :: struct {
     empl objet: Object
     type = #type_de_cette_structure
+    sur_visite_graphe = string_prototype_sur_visite_graphe
+
+    string_data: *PrimitiveChaine
 }
 
 crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *StringPrototype
 {
     résultat := tas_de_mémoire.alloue(StringPrototype)
     résultat.prototype = prototype
+    résultat.string_data = crée_chaine(tas_de_mémoire, "")
+    résultat.ajoute_propriété("length", Valeur(Number = 0.0), faux, faux, faux)
 
     retourne résultat
+}
+
+string_prototype_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    string_prototype := base comme *StringPrototype
+    sur_visite_graphe_objet(string_prototype, visiteuse)
+    cellule_sur_visite_graphe(string_prototype.string_data, visiteuse)
 }
 
 /** \} */
