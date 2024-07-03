@@ -42,7 +42,7 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
         }
     }
 
-    mémoire_bloc := loge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), PositionCodeSource())
+    mémoire_bloc := loge_mémoire_alignée(BlocDeMémoire.TAILLE_BLOC comme z64, BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), PositionCodeSource())
     bloc := mémoire_bloc comme *BlocDeMémoire
     init_de(BlocDeMémoire)(bloc)
 
