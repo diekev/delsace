@@ -421,16 +421,6 @@ set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: b
     retourne normal_completion(js_undefined)
 }
 
-donne_valeur :: fonc (objet: *Object, nom: ECMAString) -> Valeur
-{
-    propriété := trouve_propriété(objet, nom)
-    si propriété {
-        retourne propriété.valeur
-    }
-    
-    retourne js_undefined
-}
-
 trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
 {
     pour * objet.propriétés {
