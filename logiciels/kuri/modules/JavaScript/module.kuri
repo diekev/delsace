@@ -30,6 +30,52 @@ Valeur :: union {
     Object: *Object
 }
 
+imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
+{
+    saufsi valeur {
+        ajoute_au_tampon(enchaineuse, "nul")
+        retourne
+    }
+
+    discr mémoire(valeur) {
+        Undefined {
+            ajoute_au_tampon(enchaineuse, "undefined")
+        }
+        Null {
+            ajoute_au_tampon(enchaineuse, "null")
+        }
+        Boolean(b) {
+            si b {
+                ajoute_au_tampon(enchaineuse, "true")
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "false")
+            }
+        }
+        Number(n) {
+            ajoute_au_tampon(enchaineuse, n)
+        }
+        Object(o) {
+            si o.type == ReferenceError {
+                error := o comme *ReferenceError
+                ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]")
+            }
+        }
+        Function(o) {
+            ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]")
+        }
+        String(s) {
+            ajoute_au_tampon(enchaineuse, "\"", s.texte, "\"")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "Valeur inconnue.")
+        }
+    }
+} @FormattageImpression
+
 /* À FAIRE(language) : index_de(valeur) == Number  */
 est_fonction :: fonc (valeur: Valeur) -> bool
 {
@@ -264,6 +310,59 @@ vers_nombre :: fonc (valeur: Valeur) -> Valeur
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom PropertyDescriptor
+ * 6.2.6 The Property Descriptor Specification Type
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-descriptor-specification-type
+ * \{ */
+
+PropertyDescriptor :: struct {
+    value: Optionnel(Valeur)
+    get: Optionnel(*Object) // ou undefined
+    set: Optionnel(*Object) // ou undefined
+    writable: Optionnel(bool)
+    configurable: Optionnel(bool)
+    enumerable: Optionnel(bool)
+}
+
+/* 6.2.6.1 IsAccessorDescriptor ( Desc )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isaccessordescriptor */
+is_accessor_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
+{
+    // À FAIRE 1. If Desc is undefined, return false.
+
+    // 2. If Desc has a [[Get]] field, return true.
+    si desc.get.possède_valeur() {
+        retourne vrai
+    }
+    // 3. If Desc has a [[Set]] field, return true.
+    si desc.set.possède_valeur() {
+        retourne vrai
+    }
+    // 4. Return false.
+    retourne faux
+}
+
+/* 6.2.6.2 IsDataDescriptor ( Desc )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isdatadescriptor */
+is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
+{
+    // À FAIRE 1. If Desc is undefined, return false.
+
+    // 2. If Desc has a [[Value]] field, return true.
+    si desc.value.possède_valeur() {
+        retourne vrai
+    }
+    // 3. If Desc has a [[Writable]] field, return true.
+    si desc.writable.possède_valeur() {
+        retourne vrai
+    }
+    // 4. Return false.
+    retourne faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Object
  * \{ */
 
@@ -279,6 +378,10 @@ Object :: struct {
         valeur: Valeur
         get: fonc(*Object)(Valeur)
         set: fonc(*Object, Valeur)(rien)
+        /* À FAIRE : traite proprement ces valeurs. */
+        writable := vrai
+        configurable := vrai
+        enumerable := vrai
     }
 
     propriétés: [..]Propriété
@@ -289,6 +392,16 @@ Object :: struct {
     sur_get_prototype_of := ordinary_get_prototype_of
     sur_get_own_property := ordinary_get_own_property
     sur_get := ordinary_get
+}
+
+is_data_propery :: fonc (propriété: &Object.Propriété) -> bool
+{
+    retourne propriété.get == nul && propriété.set == nul
+}
+
+is_accessor_propery :: fonc (propriété: &Object.Propriété) -> bool
+{
+    retourne !is_data_propery(propriété)
 }
 
 crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *Object
@@ -315,6 +428,11 @@ définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur))
 }
 
+ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, writable: bool, enumerable: bool, configurable: bool)
+{
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, writable = writable, enumerable = enumerable, configurable = configurable))
+}
+
 get_prototype_of :: fonc (object: *Object) -> *Object
 {
     retourne ordinary_get_prototype_of(object)
@@ -329,40 +447,29 @@ get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
     retourne object.sur_get(object, property_key, Valeur(Object = object))
 }
 
-get_own_property :: fonc (object: *Object, property_key: ECMAString) -> Valeur
+get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
 {
     retourne ordinary_get_own_property(object, property_key)
 }
 
 /* 7.3.4 Set
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
-set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: bool @inutilisée) -> CompletionRecord
+set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: bool) -> CompletionRecord
 {
     // À FAIRE : type property_key
 
     // 1. Let success be ? O.[[Set]](P, V, O).
     // À FAIRE : différentes méthodes pour différents objets
     définis_valeur(object, property_key, valeur)
-    // À FAIRE(langage)
-    // succès := vrai
+    succès := vrai
 
-    // // 2. If success is false and Throw is true, throw a TypeError exception.
-    // si succès == faux && throw == vrai {
-    //     panique("exceptions non-implémentées")
-    // }
+    // 2. If success is false and Throw is true, throw a TypeError exception.
+    si succès == faux && throw == vrai {
+        panique("exceptions non-implémentées")
+    }
 
     // 3. Return UNUSED.
     retourne normal_completion(js_undefined)
-}
-
-donne_valeur :: fonc (objet: *Object, nom: ECMAString) -> Valeur
-{
-    propriété := trouve_propriété(objet, nom)
-    si propriété {
-        retourne propriété.valeur
-    }
-    
-    retourne js_undefined
 }
 
 trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
@@ -409,23 +516,47 @@ ordinary_get_prototype_of :: fonc (object: *Object) -> *Object
 
 /* 10.1.5.1 OrdinaryGetOwnProperty ( O, P )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetownproperty */
-ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> Valeur
+ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
 {
-    retourne donne_valeur(object, property_key)
-    // À FAIRE
+    propriété := object.trouve_propriété(property_key)
+
     // 1. If O does not have an own property with key P, return undefined.
+    saufsi propriété {
+        retourne normal_completion(js_undefined)
+    }
+
     // 2. Let D be a newly created Property Descriptor with no fields.
+    D: PropertyDescriptor
+
     // 3. Let X be O's own property whose key is P.
+    X := mémoire(propriété)
+
     // 4. If X is a data property, then
-    // a. Set D.[[Value]] to the value of X's [[Value]] attribute.
-    // b. Set D.[[Writable]] to the value of X's [[Writable]] attribute.
+    si is_data_propery(X) {
+        // a. Set D.[[Value]] to the value of X's [[Value]] attribute.
+        D.value = propriété.valeur
+
+        // b. Set D.[[Writable]] to the value of X's [[Writable]] attribute.
+        D.writable = propriété.writable
+    }
     // 5. Else,
-    // a. Assert: X is an accessor property.
-    // b. Set D.[[Get]] to the value of X's [[Get]] attribute.
-    // c. Set D.[[Set]] to the value of X's [[Set]] attribute.
+    sinon {
+        // a. Assert: X is an accessor property.
+        assert(is_accessor_propery(X))
+        panique("accessor property non-implémenté")
+
+        // b. Set D.[[Get]] to the value of X's [[Get]] attribute.
+        // c. Set D.[[Set]] to the value of X's [[Set]] attribute.
+    }
+
     // 6. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
+    D.enumerable = propriété.enumerable
+
     // 7. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
+    D.configurable = propriété.configurable
+
     // 8. Return D.
+    retourne normal_completion(D)
 }
 
 /* 10.1.8.1 OrdinaryGet ( O, P, Receiver )
@@ -433,7 +564,12 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
 ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
-    desc := get_own_property(object, property_key)
+    completion_desc := get_own_property(object, property_key)
+    saufsi completion_desc.est_normal() {
+        retourne completion_desc
+    }
+
+    desc := completion_desc.valeur
 
     // 2. If desc is undefined, then
     si desc.est_undefined() {
@@ -449,19 +585,23 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
         retourne parent.sur_get(parent, property_key, receiver)
     }
 
-    /* À FAIRE : descripteurs */
     // 3. If IsDataDescriptor(desc) is true, return desc.[[Value]].
+    si is_data_descriptor(desc.P) {
+        retourne normal_completion(desc.P.value.Quelque)
+    }
+
+    panique("accessor property non-implémenté")
     // 4. Assert: IsAccessorDescriptor(desc) is true.
     // 5. Let getter be desc.[[Get]].
     // 6. If getter is undefined, return undefined.
     // 7. Return ? Call(getter, Receiver).
-    retourne normal_completion(desc)
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ObjetChaine
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-string-objects
  * \{ */
 
 ObjetChaine :: struct {
@@ -478,7 +618,8 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
     résultat.prototype = string_prototype
     résultat.chn = chn
 
-    résultat.définis_valeur("length", Valeur(Number = chn.texte.taille comme r64))
+    résultat.ajoute_propriété("length", Valeur(Number = chn.texte.taille comme r64), faux, faux, faux)
+    résultat.ajoute_propriété("prototype", Valeur(Object = string_prototype), faux, faux, faux)
 
     retourne résultat
 }
@@ -511,19 +652,32 @@ crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectProto
 
 /* ------------------------------------------------------------------------- */
 /** \nom StringPrototype
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-properties-of-the-string-prototype-object
  * \{ */
 
 StringPrototype :: struct {
     empl objet: Object
     type = #type_de_cette_structure
+    sur_visite_graphe = string_prototype_sur_visite_graphe
+
+    string_data: *PrimitiveChaine
 }
 
 crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *StringPrototype
 {
     résultat := tas_de_mémoire.alloue(StringPrototype)
     résultat.prototype = prototype
+    résultat.string_data = crée_chaine(tas_de_mémoire, "")
+    résultat.ajoute_propriété("length", Valeur(Number = 0.0), faux, faux, faux)
 
     retourne résultat
+}
+
+string_prototype_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    string_prototype := base comme *StringPrototype
+    sur_visite_graphe_objet(string_prototype, visiteuse)
+    cellule_sur_visite_graphe(string_prototype.string_data, visiteuse)
 }
 
 /** \} */
@@ -573,6 +727,86 @@ sur_destruction_primitive_chaine :: fonc (base: *Cellule)
 {
     primitive := base comme *PrimitiveChaine
     déloge(primitive.texte)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Error
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-error-objects
+ * \{ */
+
+Error :: struct {
+    empl objet: Object
+    type = Error
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-error-prototype-object
+ * \{ */
+
+ErrorPrototype :: struct {
+    empl objet: Object
+    type = ErrorPrototype
+}
+
+crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(ErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ReferenceError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-referenceerror
+ * \{ */
+
+ReferenceError :: struct {
+    empl error: Error
+    type = ReferenceError
+    sur_visite_graphe = reference_error_sur_visite_graphe
+
+    message: *PrimitiveChaine
+}
+
+crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ReferenceErrorPrototype, message: chaine) -> *ReferenceError
+{
+    résultat := tas_de_mémoire.alloue(ReferenceError)
+    résultat.prototype = prototype
+    résultat.message = crée_chaine(tas_de_mémoire, message)
+    retourne résultat
+}
+
+reference_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    reference_error := base comme *ReferenceError
+    sur_visite_graphe_objet(reference_error, visiteuse)
+    cellule_sur_visite_graphe(reference_error.message, visiteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ReferenceErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+ReferenceErrorPrototype :: struct {
+    empl objet: Object
+    type = ReferenceErrorPrototype
+}
+
+crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(ReferenceErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
 }
 
 /** \} */

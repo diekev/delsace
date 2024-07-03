@@ -29,13 +29,7 @@ struct AllocatricePoule {
 
 # À FAIRE: libère mémoire
 
-#!nulctx fonc allocatrice_poule(
-    mode : ModeAllocatrice,
-    nouvelle_taille : z64,
-    ancienne_taille : z64,
-    ancien_pointeur : *rien,
-    données : *rien,
-    info : *InfoType) -> *rien
+allocatrice_poule :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     alloc := données comme *AllocatricePoule
 

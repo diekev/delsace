@@ -191,27 +191,22 @@ déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *ri
     retourne nul
 }
 
-allocation_gardée :: fonc (
-    mode: ModeAllocatrice,
-    nouvelle_taille: z64,
-    ancienne_taille: z64,
-    ancien_pointeur: *rien,
-    données: *BaseAllocatrice,
-    info: *InfoType,
-    pos: PositionCodeSource) -> *rien
+allocation_gardée :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
-    discr mode {
-        ALLOUE {
+    discr params.mode {
+        ALLOUE,
+        ALLOUE_ALIGNÉ {
+            /* À FAIRE : ALLOUE_ALIGNÉ */
             allocatrice := données comme *AllocatriceGardée
-            retourne loge_mémoire(allocatrice, nouvelle_taille, info, pos)
+            retourne loge_mémoire(allocatrice, params.nouvelle_taille, params.info, params.pos)
         }
         RÉALLOUE {
             allocatrice := données comme *AllocatriceGardée
-            retourne reloge_mémoire(allocatrice, ancien_pointeur, ancienne_taille, nouvelle_taille, info, pos)
+            retourne reloge_mémoire(allocatrice, params.ancien_pointeur, params.ancienne_taille, params.nouvelle_taille, params.info, params.pos)
         }
         DÉSALLOUE {
             allocatrice := données comme *AllocatriceGardée
-            retourne déloge_mémoire(allocatrice, ancien_pointeur, ancienne_taille, info)
+            retourne déloge_mémoire(allocatrice, params.ancien_pointeur, params.ancienne_taille, params.info)
         }
     }
 
