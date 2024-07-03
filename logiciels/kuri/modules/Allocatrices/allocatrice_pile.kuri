@@ -42,14 +42,7 @@ loge_pile :: fonc(
     retourne ptr
 }
 
-allocatrice_pile :: fonc(
-    mode : ModeAllocatrice,
-    nouvelle_taille : z64,
-    ancienne_taille : z64,
-    ancien_pointeur : *rien,
-    données : *BaseAllocatrice,
-    info : *InfoType,
-    pos: PositionCodeSource) -> *rien
+allocatrice_pile :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     alloc := données comme *AllocatricePile
 

@@ -3253,35 +3253,38 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             break;
         }
         case TypeTransformation::EXTRAIT_UNION:
+        case TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION:
         {
             auto type_union = noeud->type->comme_type_union();
 
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
             if (!type_union->est_nonsure) {
-                auto membre_actif = m_constructrice.crée_reference_membre_et_charge(
-                    noeud, valeur, 1);
+                if (transformation.type != TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION) {
+                    auto membre_actif = m_constructrice.crée_reference_membre_et_charge(
+                        noeud, valeur, 1);
 
-                auto label_si_vrai = m_constructrice.réserve_label(noeud);
-                auto label_si_faux = m_constructrice.réserve_label(noeud);
+                    auto label_si_vrai = m_constructrice.réserve_label(noeud);
+                    auto label_si_faux = m_constructrice.réserve_label(noeud);
 
-                auto condition = m_constructrice.crée_op_comparaison(
-                    noeud,
-                    OpérateurBinaire::Genre::Comp_Inegal,
-                    membre_actif,
-                    m_constructrice.crée_z32(
-                        static_cast<unsigned>(transformation.index_membre + 1)));
+                    auto condition = m_constructrice.crée_op_comparaison(
+                        noeud,
+                        OpérateurBinaire::Genre::Comp_Inegal,
+                        membre_actif,
+                        m_constructrice.crée_z32(
+                            static_cast<unsigned>(transformation.index_membre + 1)));
 
-                m_constructrice.crée_branche_condition(
-                    noeud, condition, label_si_vrai, label_si_faux);
-                m_constructrice.insère_label(label_si_vrai);
-                // À FAIRE : nous pourrions avoir une erreur différente ici.
-                m_constructrice.crée_appel(
-                    noeud,
-                    m_constructrice.trouve_ou_insère_fonction(
-                        m_compilatrice.interface_kuri->decl_panique_membre_union));
-                m_constructrice.crée_inatteignable(noeud);
-                m_constructrice.insère_label(label_si_faux);
+                    m_constructrice.crée_branche_condition(
+                        noeud, condition, label_si_vrai, label_si_faux);
+                    m_constructrice.insère_label(label_si_vrai);
+                    // À FAIRE : nous pourrions avoir une erreur différente ici.
+                    m_constructrice.crée_appel(
+                        noeud,
+                        m_constructrice.trouve_ou_insère_fonction(
+                            m_compilatrice.interface_kuri->decl_panique_membre_union));
+                    m_constructrice.crée_inatteignable(noeud);
+                    m_constructrice.insère_label(label_si_faux);
+                }
 
                 valeur = m_constructrice.crée_référence_membre(noeud, valeur, 0);
             }
