@@ -243,6 +243,32 @@ CompletionRecord :: struct {
     cible: chaine
 }
 
+imprime_complétion :: fonc (enchaineuse: *Enchaineuse, completion: *CompletionRecord)
+{
+    saufsi completion {
+        ajoute_au_tampon(enchaineuse, "nul")
+        retourne
+    }
+
+    saufsi completion.type == CompletionRecord.Type.NORMAL {
+        ajoute_au_tampon(enchaineuse, "À FAIRE : impression des complétions anormales.")
+        retourne
+    }
+
+    discr completion.valeur {
+        V(v) {
+            ajoute_au_tampon(enchaineuse, v)
+        }
+        R(r) {
+            ajoute_au_tampon(enchaineuse, r)
+        }
+        P(p) {
+            ajoute_au_tampon(enchaineuse, p)
+        }
+        sinon {}
+    }
+} @FormattageImpression
+
 normal_completion :: fonc (valeur: Valeur) -> CompletionRecord
 {
     retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)

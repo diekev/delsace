@@ -30,6 +30,46 @@ Valeur :: union {
     Object: *Object
 }
 
+imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
+{
+    saufsi valeur {
+        ajoute_au_tampon(enchaineuse, "nul")
+        retourne
+    }
+
+    discr mémoire(valeur) {
+        Undefined {
+            ajoute_au_tampon(enchaineuse, "undefined")
+        }
+        Null {
+            ajoute_au_tampon(enchaineuse, "null")
+        }
+        Boolean(b) {
+            si b {
+                ajoute_au_tampon(enchaineuse, "true")
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "false")
+            }
+        }
+        Number(n) {
+            ajoute_au_tampon(enchaineuse, n)
+        }
+        Object(o) {
+            ajoute_au_tampon(enchaineuse, "Object ", o)
+        }
+        Function(o) {
+            ajoute_au_tampon(enchaineuse, "Function ", o)
+        }
+        String(s) {
+            ajoute_au_tampon(enchaineuse, "\"", s.texte, "\"")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "Valeur inconnue.")
+        }
+    }
+} @FormattageImpression
+
 /* À FAIRE(language) : index_de(valeur) == Number  */
 est_fonction :: fonc (valeur: Valeur) -> bool
 {
