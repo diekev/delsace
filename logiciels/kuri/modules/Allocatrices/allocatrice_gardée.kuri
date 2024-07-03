@@ -194,7 +194,9 @@ déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *ri
 allocation_gardée :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     discr params.mode {
-        ALLOUE {
+        ALLOUE,
+        ALLOUE_ALIGNÉ {
+            /* À FAIRE : ALLOUE_ALIGNÉ */
             allocatrice := données comme *AllocatriceGardée
             retourne loge_mémoire(allocatrice, params.nouvelle_taille, params.info, params.pos)
         }

@@ -44,7 +44,8 @@ allocatrice_stats_alloc :: fonc (params: &ParamètresAllocation, données: *Base
     alloc := données comme *AllocatriceStats
 
     discr params.mode {
-        ALLOUE {
+        ALLOUE,
+        ALLOUE_ALIGNÉ {
             alloc.mémoire_utilisée += nouvelle_taille
             alloc.nombre_allocations += 1
             si alloc.pic_de_mémoire < alloc.mémoire_utilisée {

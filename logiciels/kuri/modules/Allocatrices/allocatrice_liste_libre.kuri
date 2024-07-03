@@ -14,7 +14,9 @@ allocatrice_liste_libre :: fonc (params: &ParamètresAllocation, données: *Base
     allocatrice := données comme *AllocatriceListeLibre
 
     discr mode {
-        ALLOUE {
+        ALLOUE,
+        ALLOUE_ALIGNÉ {
+            /* À FAIRE : ALLOUE_ALIGNÉ */
             données.mémoire_utilisée += nouvelle_taille
             données.nombre_allocations += 1
 
