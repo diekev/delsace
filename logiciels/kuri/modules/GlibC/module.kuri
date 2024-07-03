@@ -16,6 +16,7 @@ sprintf :: fonc (tmp: ChaineC, fmt: ChaineC, args: ...) -> z32 #externe libc
 /* ------------------------------------------------------------------------- */
 
 malloc :: fonc (taille: n64) -> *rien #externe libc
+aligned_alloc :: fonc (alignment: n64, taille: n64) -> *rien #externe libc
 realloc :: fonc (ptr: *rien, taille: n64) -> *rien #externe libc
 free :: fonc (ptr: *rien) -> rien #externe libc
 
