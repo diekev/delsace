@@ -111,11 +111,11 @@ is_super_reference :: fonc (reference: ReferenceRecord) -> bool
 
 /* 6.2.5.5 GetValue
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
-get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) -> Résultat(Valeur, CompletionRecord)
+get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) -> CompletionRecord
 {
     // 1. If V is not a Reference Record, return V.
     saufsi valeur.est_reference_record() {
-        retourne valeur.V
+        retourne normal_completion(valeur.V)
     }
 
     // 2. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
@@ -147,12 +147,7 @@ get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) ->
     // b. Assert: base is an Environment Record.
 
     // c. Return ? base.GetBindingValue(V.[[ReferencedName]], V.[[Strict]]) (see 9.1).
-    complétion := base.get_binding_value(V.referenced_name, V.strict)
-    si complétion.est_normal() {
-        retourne complétion.valeur.V
-    }
-
-    retourne complétion
+    retourne base.get_binding_value(V.referenced_name, V.strict)
 }
 
 /* 6.2.5.6 PutValue
