@@ -59,18 +59,24 @@ BaseAllocatrice :: struct #interface {
     allocatrice_secours : *BaseAllocatrice = nul
 }
 
-TypeFonctionAllocation :: fonc(ModeAllocatrice, z64, z64, *rien, *BaseAllocatrice, *InfoType, PositionCodeSource)(*rien)
+ParamètresAllocation :: struct {
+    mode: ModeAllocatrice
+    nouvelle_taille: z64
+    ancienne_taille: z64
+    ancien_pointeur: *rien
+    info: *InfoType
+    pos: PositionCodeSource
+}
 
-allocatrice_défaut :: fonc (
-    mode: ModeAllocatrice,
-    nouvelle_taille: z64,
-    ancienne_taille: z64,
-    ancien_pointeur: *rien,
-    données: *BaseAllocatrice,
-    info: *InfoType @inutilisée,
-    pos: PositionCodeSource @inutilisée) -> *rien
+TypeFonctionAllocation :: fonc(&ParamètresAllocation, *BaseAllocatrice)(*rien)
+
+allocatrice_défaut :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
-    discr mode {
+    nouvelle_taille := params.nouvelle_taille
+    ancienne_taille := params.ancienne_taille
+    ancien_pointeur := params.ancien_pointeur
+
+    discr params.mode {
         ALLOUE {
             données.mémoire_utilisée += nouvelle_taille
             données.nombre_allocations += 1
@@ -108,15 +114,13 @@ allocatrice_défaut :: fonc (
 
 loge_mémoire :: fonc (taille: z64, info: *InfoType, pos: PositionCodeSource) -> *rien
 {
-    ptr := contexte().allocatrice(
-        ModeAllocatrice.ALLOUE,
-        taille,
-        0,
-        nul,
-        contexte().données_allocatrice,
-        info,
-        pos
-    )
+    params: ParamètresAllocation
+    params.mode = ModeAllocatrice.ALLOUE
+    params.nouvelle_taille = taille
+    params.info = info
+    params.pos = pos
+
+    ptr := contexte().allocatrice(params, contexte().données_allocatrice)
 
     saufsi ptr {
         panique_hors_mémoire()
@@ -127,15 +131,15 @@ loge_mémoire :: fonc (taille: z64, info: *InfoType, pos: PositionCodeSource) ->
 
 reloge_mémoire :: fonc (ancienne_taille: z64, nouvelle_taille: z64, ancien_pointeur: *rien, info: *InfoType, pos: PositionCodeSource) -> *rien
 {
-    nouveau_pointeur := contexte().allocatrice(
-        ModeAllocatrice.RÉALLOUE,
-        nouvelle_taille,
-        ancienne_taille,
-        ancien_pointeur,
-        contexte().données_allocatrice,
-        info,
-        pos
-    )
+    params: ParamètresAllocation
+    params.mode = ModeAllocatrice.RÉALLOUE
+    params.nouvelle_taille = nouvelle_taille
+    params.ancienne_taille = ancienne_taille
+    params.ancien_pointeur = ancien_pointeur
+    params.info = info
+    params.pos = pos
+
+    nouveau_pointeur := contexte().allocatrice(params, contexte().données_allocatrice)
 
     saufsi nouveau_pointeur {
         panique_hors_mémoire()
@@ -146,15 +150,15 @@ reloge_mémoire :: fonc (ancienne_taille: z64, nouvelle_taille: z64, ancien_poin
 
 déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos: PositionCodeSource)
 {
-    _ := contexte().allocatrice(
-        ModeAllocatrice.DÉSALLOUE,
-        0,
-        taille,
-        pointeur,
-        contexte().données_allocatrice,
-        info,
-        pos
-    )
+    params: ParamètresAllocation
+    params.mode = ModeAllocatrice.DÉSALLOUE
+    params.nouvelle_taille = 0
+    params.ancienne_taille = taille
+    params.ancien_pointeur = pointeur
+    params.info = info
+    params.pos = pos
+
+    _ := contexte().allocatrice(params, contexte().données_allocatrice)
 }
 
 loge :: fonc ($T: type_de_données, pos := PositionCodeSource()) -> *T
@@ -495,18 +499,15 @@ alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, nouvelle_taille: 
     retourne ptr
 }
 
-__stockage_temporaire :: fonc (
-    mode: ModeAllocatrice,
-    nouvelle_taille: z64,
-    ancienne_taille: z64,
-    ancien_pointeur: *rien,
-    données: *BaseAllocatrice @inutilisée,
-    info: *InfoType @inutilisée,
-    pos: PositionCodeSource @inutilisée) -> *rien
+__stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice @inutilisée) -> *rien
 {
+    nouvelle_taille := params.nouvelle_taille
+    ancienne_taille := params.ancienne_taille
+    ancien_pointeur := params.ancien_pointeur
+
     alloc := contexte().stockage_temporaire
 
-    discr mode {
+    discr params.mode {
         ALLOUE {
             retourne alloc_stockage_temporaire(alloc, nouvelle_taille)
         }

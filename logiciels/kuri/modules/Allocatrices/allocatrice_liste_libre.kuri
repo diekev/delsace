@@ -5,15 +5,12 @@ importe Fondation
 /** \nom Fonction d'allocation.
  * \{ */
 
-allocatrice_liste_libre :: fonc (
-    mode: ModeAllocatrice,
-    nouvelle_taille: z64,
-    ancienne_taille: z64,
-    ancien_pointeur: *rien,
-    données: *BaseAllocatrice,
-    info: *InfoType,
-    pos: PositionCodeSource) -> *rien
+allocatrice_liste_libre :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
+    nouvelle_taille := params.nouvelle_taille
+    ancienne_taille := params.ancienne_taille
+    ancien_pointeur := params.ancien_pointeur
+
     allocatrice := données comme *AllocatriceListeLibre
 
     discr mode {
@@ -32,7 +29,9 @@ allocatrice_liste_libre :: fonc (
                 retourne bloc
             }
 
-            retourne allocatrice.allocatrice(mode, nouvelle_taille_effective, ancienne_taille, ancien_pointeur, allocatrice.données_allocatrice, info, pos)
+            params.nouvelle_taille_effective = nouvelle_taille_effective
+
+            retourne allocatrice.allocatrice(params, allocatrice.données_allocatrice)
         }
         RÉALLOUE {
             ancienne_taille_effective := multiple_de_2_suivant(ancienne_taille)
@@ -60,7 +59,10 @@ allocatrice_liste_libre :: fonc (
                 retourne bloc
             }
 
-            retourne allocatrice.allocatrice(mode, nouvelle_taille_effective, ancienne_taille_effective, ancien_pointeur, allocatrice.données_allocatrice, info, pos)
+            params.nouvelle_taille_effective = nouvelle_taille_effective
+            params.ancienne_taille_effective = ancienne_taille_effective
+
+            retourne allocatrice.allocatrice(params, allocatrice.données_allocatrice)
         }
         DÉSALLOUE {
             taille_effective := multiple_de_2_suivant(ancienne_taille)
@@ -133,12 +135,18 @@ installe_allocatrice :: fonc (ctx: *ContexteProgramme, allocatrice: *Allocatrice
 
 détruit_allocatrice :: fonc (allocatrice: *AllocatriceListeLibre)
 {
+    params: ParamètresAllocation
+    params.mode = ModeAllocatrice.DÉSALLOUE
+    params.pos = PositionCodeSource()
+
     pour allocatrice.racines {
         taille_bloc := (1 comme z64) << index_it
         bloc := it
         tantque bloc != nul {
             bloc_suivant := bloc.suivant
-            _ := allocatrice.allocatrice(ModeAllocatrice.DÉSALLOUE, 0, taille_bloc, bloc, allocatrice.données_allocatrice, nul, PositionCodeSource())
+            params.ancienne_taille = taille_bloc
+            params.ancien_pointeur = bloc
+            _ := allocatrice.allocatrice(params, allocatrice.données_allocatrice)
             bloc = bloc_suivant
         }
     }
@@ -147,7 +155,12 @@ détruit_allocatrice :: fonc (allocatrice: *AllocatriceListeLibre)
 ajoute_bloc :: fonc (allocatrice: *AllocatriceListeLibre, adresse: *rien, taille: z64)
 {
     si taille < taille_de(AllocatriceListeLibre.Noeud) comme z64 {
-        _ := allocatrice.allocatrice(ModeAllocatrice.DÉSALLOUE, 0, taille, adresse, allocatrice.données_allocatrice, nul, PositionCodeSource())
+        params: ParamètresAllocation
+        params.mode = ModeAllocatrice.DÉSALLOUE
+        params.pos = PositionCodeSource()
+        params.ancienne_taille = taille
+        params.ancien_pointeur = adresse
+        _ := allocatrice.allocatrice(params, allocatrice.données_allocatrice)
         retourne
     }
 
