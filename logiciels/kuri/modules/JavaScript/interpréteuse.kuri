@@ -193,10 +193,12 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
     }
 
     // 4. Else,
-        // a. Let base be V.[[Base]].
-        // b. Assert: base is an Environment Record.
-        // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
-    panique("put_value non-implémenté")
+    // a. Let base be V.[[Base]].
+    base := record.base.E
+    // b. Assert: base is an Environment Record.
+
+    // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
+    retourne base.set_mutable_binding(record.referenced_name, valeur, record.strict)
 }
 
 /* 6.2.5.7 GetThisValue ( V )
