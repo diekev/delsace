@@ -153,7 +153,7 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
     discr compile_script(contenu) {
         Ok(script) {
             diffère détruit_script(script)
-            imprime_arbre(script.programme)
+            // imprime_arbre(script.programme)
 
             interpréteuse: Interpréteuse
             diffère détruit_données_interpreteuse(interpréteuse)

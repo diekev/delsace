@@ -201,12 +201,13 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
 
     auto bloc_insertion = paire_discr->bloc;
 
-    /* L'initialisation est une extraction de la valeur de l'union.
-     * À FAIRE(discr) : ignore la vérification sur l'activité du membre. */
+    /* L'initialisation est une extraction de la valeur de l'union. */
     auto initialisation_déclaration = assembleuse->crée_comme(param->lexème, expression, nullptr);
     initialisation_déclaration->type = type_membre;
     initialisation_déclaration->transformation = {
-        TypeTransformation::EXTRAIT_UNION, type_membre, info_membre.index_membre};
+        TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION,
+        type_membre,
+        info_membre.index_membre};
 
     auto déclaration_pour_expression = assembleuse->crée_déclaration_variable(
         param->comme_référence_déclaration(), initialisation_déclaration);
