@@ -35,19 +35,17 @@ StatsAllocations :: struct {
     nombre_désallocations: z64
 }
 
-allocatrice_stats_alloc :: fonc (
-    mode: ModeAllocatrice,
-    nouvelle_taille: z64,
-    ancienne_taille: z64,
-    ancien_pointeur: *rien,
-    données: *BaseAllocatrice,
-    info: *InfoType,
-    pos: PositionCodeSource) -> *rien
+allocatrice_stats_alloc :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
+    nouvelle_taille := params.nouvelle_taille
+    ancienne_taille := params.ancienne_taille
+    ancien_pointeur := params.ancien_pointeur
+
     alloc := données comme *AllocatriceStats
 
-    discr mode {
-        ALLOUE {
+    discr params.mode {
+        ALLOUE,
+        ALLOUE_ALIGNÉ {
             alloc.mémoire_utilisée += nouvelle_taille
             alloc.nombre_allocations += 1
             si alloc.pic_de_mémoire < alloc.mémoire_utilisée {
@@ -74,7 +72,7 @@ allocatrice_stats_alloc :: fonc (
         }
     }
 
-    retourne alloc.allocatrice(mode, nouvelle_taille, ancienne_taille, ancien_pointeur, alloc.données_allocatrice, info, pos)
+    retourne alloc.allocatrice(params, alloc.données_allocatrice)
 }
 
 /** \} */
