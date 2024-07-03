@@ -66,6 +66,7 @@ est_référence_non_résolvable :: fonc (référence: ReferenceRecord) -> bool
 ValeurCompletion :: union {
     V: Valeur
     R: ReferenceRecord
+    P: PropertyDescriptor
 }
 
 est_reference_record :: fonc (valeur: ValeurCompletion) -> bool
@@ -78,6 +79,18 @@ est_reference_record :: fonc (valeur: ValeurCompletion) -> bool
             retourne faux
         }
         sinon { retourne faux }
+    }
+}
+
+est_undefined :: fonc (valeur: ValeurCompletion) -> bool
+{
+    discr valeur {
+        V(v) {
+            retourne est_undefined(v)
+        }
+        sinon {
+            retourne faux
+        }
     }
 }
 
@@ -258,6 +271,11 @@ return_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
 est_normal :: fonc (completion: CompletionRecord) -> bool
 {
     retourne completion.type == CompletionRecord.Type.NORMAL
+}
+
+est_undefined :: fonc (completion: CompletionRecord) -> bool
+{
+    retourne est_normal(completion) && est_undefined(completion.valeur)
 }
 
 est_abrupt :: fonc (completion: CompletionRecord) -> bool
