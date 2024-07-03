@@ -1525,6 +1525,21 @@ static bool rapproche_allocations_des_stockages(Bloc *bloc)
     return bloc_modifié;
 }
 
+static void marque_paramètres_utilisés(AtomeFonction const &fonction)
+{
+    POUR (fonction.params_entrée) {
+        it->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
+    }
+
+    fonction.param_sortie->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
+
+    POUR (fonction.instructions) {
+        visite_opérandes_instruction(it, [&](Atome *atome_courant) {
+            atome_courant->drapeaux |= DrapeauxAtome::EST_UTILISÉ;
+        });
+    }
+}
+
 static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &fonction)
 {
     POUR (fonction.instructions) {
@@ -2166,6 +2181,8 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
     }
 
     fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
+
+    marque_paramètres_utilisés(*atome);
 
     valide_fonction(espace, *atome);
 

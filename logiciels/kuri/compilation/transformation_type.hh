@@ -19,6 +19,7 @@ using Type = NoeudDéclarationType;
     ENUMERE_TYPE_TRANSFORMATION_EX(IMPOSSIBLE)                                                    \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_UNION)                                               \
     ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_UNION)                                                 \
+    ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_UNION_SANS_VERIFICATION)                               \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_EINI)                                                \
     ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_EINI)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_TABL_OCTET)                                          \
