@@ -278,16 +278,26 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b, bool accepte_appels)
     if (di->est_discr()) {
         auto discr = di->comme_discr();
 
-        if (discr->bloc_sinon) {
-            return derniere_instruction(discr->bloc_sinon, accepte_appels);
-        }
-
         /* vérifie que toutes les branches retournes */
         POUR (discr->paires_discr) {
             di = derniere_instruction(it->bloc, accepte_appels);
 
             if (di == nullptr || !di->est_retourne()) {
+                /* Toutes les branches ne retournent pas => ignore. */
+                di = nullptr;
                 break;
+            }
+        }
+
+        if (discr->bloc_sinon) {
+            auto di_sinon = derniere_instruction(discr->bloc_sinon, accepte_appels);
+            if (di_sinon != nullptr && di != nullptr) {
+                /* Le bloc sinon retourne et les autres également => accepte. */
+                di = di_sinon;
+            }
+            else {
+                /* Toutes les branches ne retournent pas => ignore. */
+                di = nullptr;
             }
         }
 

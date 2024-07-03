@@ -248,15 +248,15 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         retourne completion_droite
     }
     valeur_complétion_gauche := get_value(interpréteuse, completion_gauche.valeur)
-    si valeur_complétion_gauche.possède_erreur() {
-        retourne valeur_complétion_gauche.Erreur
+    saufsi valeur_complétion_gauche.est_normal() {
+        retourne valeur_complétion_gauche
     }
     valeur_complétion_droite := get_value(interpréteuse, completion_droite.valeur)
-    si valeur_complétion_droite.possède_erreur() {
-        retourne valeur_complétion_droite.Erreur
+    saufsi valeur_complétion_droite.est_normal() {
+        retourne valeur_complétion_droite
     }
-    gauche := valeur_complétion_gauche.Ok
-    droite := valeur_complétion_droite.Ok
+    gauche := valeur_complétion_gauche.valeur.V
+    droite := valeur_complétion_droite.valeur.V
     retourne normal_completion(évalue_expression_binaire(noeud.opération, gauche, droite))
 }
 
@@ -517,11 +517,11 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     }
 
     valeur_complétion := get_value(interpréteuse, completion_valeur_appelée.valeur)
-    si valeur_complétion.possède_erreur() {
-        retourne valeur_complétion.Erreur
+    saufsi valeur_complétion.est_normal() {
+        retourne valeur_complétion
     }
 
-    valeur_appelée := valeur_complétion.Ok
+    valeur_appelée := valeur_complétion.valeur.V
     assert(valeur_appelée.est_fonction())
 
     fonction := valeur_appelée.Function
@@ -589,10 +589,10 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 
             // ii. Let rval be ? GetValue(rref).
             completion_rval := get_value(interpréteuse, rref)
-            si completion_rval.possède_erreur() {
-                retourne completion_rval.Erreur
+            saufsi completion_rval.est_normal() {
+                retourne completion_rval
             }
-            rval = completion_rval.Ok
+            rval = completion_rval.valeur.V
         }
 
         // d. Perform ? PutValue(lref, rval).
@@ -715,10 +715,10 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
         }
         // b. Let value be ? GetValue(rhs).
         valeur_complétion := get_value(interpréteuse, completion_valeur.valeur)
-        si valeur_complétion.possède_erreur() {
-            retourne valeur_complétion.Erreur
+        saufsi valeur_complétion.est_normal() {
+            retourne valeur_complétion
         }
-        valeur = valeur_complétion.Ok
+        valeur = valeur_complétion.valeur.V
     }
 
     // 5. Perform ? PutValue(lhs, value).
@@ -798,10 +798,10 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 
     // 2. Let baseValue be ? GetValue(baseReference).
     valeur_base_reference := get_value(interpréteuse, base_reference)
-    si valeur_base_reference.possède_erreur() {
-        retourne valeur_base_reference.Erreur
+    saufsi valeur_base_reference.est_normal() {
+        retourne valeur_base_reference
     }
-    base_value := valeur_base_reference.Ok
+    base_value := valeur_base_reference.valeur.V
 
     // 3. Let strict be IsStrict(this MemberExpression).
     // À FAIRE : strict
@@ -868,11 +868,11 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 
     // 2. Let oldValue be ? ToNumeric(? GetValue(lhs)).
     lhs_value := get_value(interpréteuse, lhs)
-    si lhs_value.possède_erreur() {
-        retourne lhs_value.Erreur
+    saufsi lhs_value.est_normal() {
+        retourne lhs_value
     }
 
-    old_value := to_numeric(lhs_value.Ok)
+    old_value := to_numeric(lhs_value.valeur.V)
 
     nouvelle_valeur: Valeur
 
@@ -950,11 +950,11 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
                 retourne doit_continuer
             }
             valeur_complétion := get_value(interpréteuse, doit_continuer.valeur)
-            si valeur_complétion.possède_erreur() {
-                retourne valeur_complétion.Erreur
+            saufsi valeur_complétion.est_normal() {
+                retourne valeur_complétion
             }
 
-            valeur := valeur_complétion.Ok
+            valeur := valeur_complétion.valeur.V
             assert(valeur.est_boolean())
 
             si valeur.est_false() {
