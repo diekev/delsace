@@ -10,8 +10,7 @@ importe Numérique
 dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
 {
     texte := donne_texte_graphviz(graphe, "BT")
-    // À FAIRE(langage) : ceci génère une erreur de compilation
-    // diffère déloge(texte)
+    diffère déloge(texte)
 
     discr ouvre_canal_de_communication("dot", "-Tplain") {
         Quelque(canal) {
@@ -54,12 +53,9 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
             }
         }
         sinon {
-            déloge(texte)
             retourne ÉchecOpération("Impossible de se connecter à dot")
         }
     }
-
-    déloge(texte)
 }
 
 /** \} */
