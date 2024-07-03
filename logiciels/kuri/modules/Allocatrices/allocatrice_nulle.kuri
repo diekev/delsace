@@ -1,12 +1,5 @@
 /*
-allocatrice_nulle :: fonc(
-    mode : ModeAllocatrice,
-    nouvelle_taille : z64,
-    ancienne_taille : z64,
-    ancien_pointeur : *rien,
-    données : *BaseAllocatrice,
-    info : *InfoType,
-    pos: PositionCodeSource) -> *rien
+allocatrice_nulle :: fonc (params: &ParamètresAllocation @inutilisée, données: *BaseAllocatrice @inutilisée) -> *rien
 {
     retourne nul
 }

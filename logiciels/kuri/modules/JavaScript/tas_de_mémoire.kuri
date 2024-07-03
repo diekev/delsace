@@ -42,12 +42,13 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
         }
     }
 
-    mémoire_bloc := loge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), PositionCodeSource())
+    mémoire_bloc := loge_mémoire_alignée(BlocDeMémoire.TAILLE_BLOC comme z64, BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), PositionCodeSource())
     bloc := mémoire_bloc comme *BlocDeMémoire
     init_de(BlocDeMémoire)(bloc)
 
     initialise_bloc(bloc, taille)
 
+    bloc.tas_de_mémoire = tas_de_mémoire
     tableau_ajoute(*tas_de_mémoire.blocs, bloc)
 
     retourne bloc.alloue_cellule()
@@ -167,6 +168,7 @@ BlocDeMémoire :: struct {
     TAILLE_BLOC : n64 : 16 * 1024
     
     taille_cellule: n64
+    tas_de_mémoire: *TasDeMémoire
 
     EntréeListeLibre :: struct {
         empl base: Cellule
@@ -292,6 +294,18 @@ visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
     si cellule.sur_visite_graphe {
         cellule.sur_visite_graphe(cellule, visiteuse)
     }
+}
+
+donne_bloc_de_mémoire :: fonc (cellule: *Cellule) -> *BlocDeMémoire #enligne
+{
+    v := cellule comme n64
+    retourne (v & ~(BlocDeMémoire.TAILLE_BLOC - 1)) comme *BlocDeMémoire
+}
+
+donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
+{
+    bloc := cellule.donne_bloc_de_mémoire()
+    retourne bloc.tas_de_mémoire
 }
 
 /** \} */
