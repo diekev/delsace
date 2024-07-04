@@ -325,6 +325,10 @@ donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom VisiteuseCellule
+ * \{ */
+
 VisiteuseCellule :: struct {
     sur_a_visité: fonc(*VisiteuseCellule, *Cellule)(rien)
     sur_a_déjà_visité: fonc(*VisiteuseCellule, *Cellule)(bool)
@@ -345,3 +349,5 @@ a_déjà_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule) -> bo
 
     retourne faux
 }
+
+/** \} */

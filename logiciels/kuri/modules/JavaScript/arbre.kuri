@@ -132,6 +132,7 @@ crée_identifier :: fonc (nom: ECMAString) -> *Identifier
     retourne résultat
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-identifiers-runtime-semantics-evaluation */
 sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *Identifier
