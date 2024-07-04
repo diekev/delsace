@@ -137,6 +137,51 @@ sauvegarde_fichier :: fonc (contenu: chaine)
     _ := écris(*fichier, contenu)
 }
 
+Console :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = console_sur_création_enveloppe
+}
+
+console_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+{
+    fonction_native_log :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        imprime("this_value : %\n", this_value)
+
+        pour arguments {
+            imprime("%", it)
+        }
+        imprime("\n")
+
+        retourne normal_completion(js_undefined)
+    }
+
+    enveloppe.type = Console
+    enveloppe.ajoute_fonction_native("log", fonction_native_log)
+}
+
+fonction_native_éboue :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+{
+    imprime("<<<<< ébouage forcé\n")
+    éboue(interpréteuse.donne_tas_de_mémoire())
+    imprime(">>>>> ébouage forcé\n")
+    retourne normal_completion(js_undefined)
+}
+
+RappelsHôteTest :: struct {
+    empl base: RappelsHôte
+
+    console: Console
+}
+
+crée_propriétés_hôte_objet_global :: fonc(base: *RappelsHôte, global: *Object)
+{
+    rappels := base comme *RappelsHôteTest
+
+    global.ajoute_fonction_native("rm", fonction_native_éboue)
+    global.ajoute_objet_natif("console", *rappels.console)
+}
+
 sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
 {   
     rappel := base comme *RappelSauvegarde
@@ -158,6 +203,14 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
             interpréteuse: Interpréteuse
             diffère détruit_données_interpreteuse(interpréteuse)
             initialise_interpréteuse(interpréteuse)
+
+            rappels_hôte: RappelsHôteTest
+            rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+
+            realm := initialise_host_defined_realm(*interpréteuse.tas_de_mémoire, *rappels_hôte)
+            interpréteuse.realm = realm
+            interpréteuse.tas_de_mémoire.realm = realm
+            interpréteuse.lexical_environment = realm.global_environment
 
             résultat := interpréteuse.exécute(script.programme)
             texte_résultat := imprime_chaine("%\n", get_value(interpréteuse, résultat.valeur))
