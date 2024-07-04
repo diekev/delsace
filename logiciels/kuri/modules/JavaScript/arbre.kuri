@@ -105,7 +105,7 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
 
     fonction := crée_fonction(interpréteuse.donne_tas_de_mémoire(), noeud.id.nom, noeud.corps)
 
-    objet_global := interpréteuse.objet_global
+    objet_global := interpréteuse.get_global_object()
     objet_global.définis_valeur(noeud.id.nom, Valeur(Function = fonction))
 
     retourne normal_completion(Valeur(Function = fonction))
@@ -132,6 +132,7 @@ crée_identifier :: fonc (nom: ECMAString) -> *Identifier
     retourne résultat
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-identifiers-runtime-semantics-evaluation */
 sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *Identifier
@@ -499,33 +500,107 @@ crée_call_expression :: fonc (appelé: *NoeudSyntaxique, arguments: ...*NoeudSy
     retourne résultat
 }
 
+/* 13.3.6 Function Calls
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-function-calls-runtime-semantics-evaluation */
 sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
+    // À FAIRE : CoverCallExpressionAndAsyncArrowHead
+
+    // CallExpression : CallExpression Arguments
+
     noeud := base comme *CallExpression
 
-    si noeud.appelé.type == Identifier {
-        id := noeud.appelé comme *Identifier
-        si id.nom == "rm" {
-            éboue(interpréteuse.donne_tas_de_mémoire())
-            retourne normal_completion(js_undefined)
+    // 1. Let ref be ? Evaluation of CallExpression.
+    completion_ref := exécute_noeud(noeud.appelé, interpréteuse)
+    saufsi completion_ref.est_normal() {
+        retourne completion_ref
+    }
+
+    ref := completion_ref.valeur
+
+    // 2. Let func be ? GetValue(ref).
+    complétion_func := get_value(interpréteuse, ref)
+    saufsi complétion_func.est_normal() {
+        retourne complétion_func
+    }
+
+    func := complétion_func.valeur.V
+
+    // 3. Let thisCall be this CallExpression.
+    // this_call := noeud
+
+    // À FAIRE 4. Let tailCall be IsInTailPosition(thisCall).
+    tail_call := faux
+
+    // 5. Return ? EvaluateCall(func, ref, Arguments, tailCall).
+    retourne evaluate_call(interpréteuse, func, ref, noeud.arguments, tail_call)
+}
+
+/* 13.3.6.2 EvaluateCall ( func, ref, arguments, tailPosition )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluatecall */
+evaluate_call :: fonc (interpréteuse: &Interpréteuse, func: Valeur, ref: ValeurCompletion, arguments: [..]*NoeudSyntaxique, tail_position: bool) -> CompletionRecord
+{
+    this_value: Valeur = ---
+    // 1. If ref is a Reference Record, then
+    si est_reference_record(ref) {
+        // a. If IsPropertyReference(ref) is true, then
+        si est_référence_propriété(ref) {
+            // i. Let thisValue be GetThisValue(ref).
+            this_value = get_this_value(ref.R)
+        }
+        // b. Else,
+        sinon {
+            // i. Let refEnv be ref.[[Base]].
+            ref_env := ref.R.base.E
+            // ii. Assert: refEnv is an Environment Record.
+            // iii. Let thisValue be refEnv.WithBaseObject().
+            this_value = ref_env.with_base_object()
         }
     }
-
-    completion_valeur_appelée := exécute_noeud(noeud.appelé, interpréteuse)
-    saufsi completion_valeur_appelée.est_normal() {
-        retourne completion_valeur_appelée
+    // 2. Else,
+    sinon {
+        // a. Let thisValue be undefined.
+        this_value = js_undefined
     }
 
-    valeur_complétion := get_value(interpréteuse, completion_valeur_appelée.valeur)
-    saufsi valeur_complétion.est_normal() {
-        retourne valeur_complétion
+    // 3. Let argList be ? ArgumentListEvaluation of arguments.
+    // À FAIRE : fuite de mémoire
+    arg_list: [..]Valeur
+
+    pour arguments {
+        complétion_arg := exécute_noeud(it, interpréteuse)
+        saufsi complétion_arg.est_normal() {
+            déloge(arg_list)
+            retourne complétion_arg
+        }
+        complétion_valeur := get_value(interpréteuse, complétion_arg.valeur)
+        saufsi complétion_valeur.est_normal() {
+            déloge(arg_list)
+            retourne complétion_valeur
+        }
+        valeur_arg := complétion_valeur.valeur.V
+        tableau_ajoute(*arg_list, valeur_arg)
     }
 
-    valeur_appelée := valeur_complétion.valeur.V
-    assert(valeur_appelée.est_fonction())
+    // 4. If func is not an Object, throw a TypeError exception.
+    saufsi func.est_object() {
+        message := imprime_chaine("'%' is not an Object", func)
+        retourne lance_type_error(interpréteuse, message)
+    }
+    
+    // 5. If IsCallable(func) is false, throw a TypeError exception.
+    saufsi func.is_callable() {
+        message := imprime_chaine("'%' is not callable", func)
+        retourne lance_type_error(interpréteuse, message)
+    }
 
-    fonction := valeur_appelée.Function
-    retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
+    // 6. If tailPosition is true, perform PrepareForTailCall().
+    si tail_position {
+        panique("tail position non-implémeté")
+    }
+
+    // 7. Return ? Call(func, thisValue, argList).
+    retourne call(interpréteuse, func, this_value, arg_list)
 }
 
 /** \} */
@@ -751,7 +826,7 @@ crée_object_expression :: fonc () -> *ObjectExpression
 
 sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
-    objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.object_prototype)
+    objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.realm.intrinsics.object_prototype)
     retourne normal_completion(Valeur(Object = objet))
 }
 

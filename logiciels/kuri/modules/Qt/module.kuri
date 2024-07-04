@@ -279,6 +279,27 @@ donne_raccourcis_clavier :: fonc (évènement: *QT_KeyEvent) -> RaccourcisClavie
     retourne résultat
 }
 
+convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
+{
+    discr curseur {
+        FLÈCHE { retourne QT_CursorShape.ARROW }
+        ATTENTE { retourne QT_CursorShape.WAIT }
+        FLÈCHE_AVEC_ATTENTE { retourne QT_CursorShape.BUSY }
+        MAIN_OUVERTE { retourne QT_CursorShape.OPEN_HAND }
+        MAIN_FERMÉE { retourne QT_CursorShape.CLOSED_HAND }
+        TEXTE { retourne QT_CursorShape.IBEAM }
+        CROIX { retourne QT_CursorShape.CROSS }
+        FLÈCHE_DOUBLE_TOUT { retourne QT_CursorShape.SIZE_ALL }
+        FLÈCHE_DOUBLE_NOSE { retourne QT_CursorShape.SIZE_FDIALOG }
+        FLÈCHE_DOUBLE_NESO { retourne QT_CursorShape.SIZE_BDIALOG }
+        FLÈCHE_DOUBLE_VERTICALE { retourne QT_CursorShape.SIZE_VERTICAL }
+        FLÈCHE_DOUBLE_HORIZONTALE { retourne QT_CursorShape.SIZE_HORIZONTAL }
+        INTERDIT { retourne QT_CursorShape.FORBIDDEN }
+    }
+
+    retourne QT_CursorShape.ARROW
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
