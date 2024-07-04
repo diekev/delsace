@@ -1,6 +1,7 @@
 importe Fondation
 
 charge "arbre"
+charge "enveloppe"
 charge "environment"
 charge "interpréteuse"
 charge "lexage"
