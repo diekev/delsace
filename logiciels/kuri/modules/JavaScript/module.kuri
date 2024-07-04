@@ -1,9 +1,11 @@
 importe Fondation
 
 charge "arbre"
+charge "environment"
 charge "interpréteuse"
 charge "lexage"
 charge "lexèmes"
+charge "parsage"
 charge "script"
 charge "tas_de_mémoire"
 
