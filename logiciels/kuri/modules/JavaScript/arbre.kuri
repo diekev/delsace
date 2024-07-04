@@ -551,9 +551,10 @@ evaluate_call :: fonc (interpréteuse: &Interpréteuse, func: Valeur, ref: Valeu
         // b. Else,
         sinon {
             // i. Let refEnv be ref.[[Base]].
+            ref_env := ref.R.base.E
             // ii. Assert: refEnv is an Environment Record.
-            // À FAIRE iii. Let thisValue be refEnv.WithBaseObject().
-            this_value = js_undefined
+            // iii. Let thisValue be refEnv.WithBaseObject().
+            this_value = ref_env.with_base_object()
         }
     }
     // 2. Else,
