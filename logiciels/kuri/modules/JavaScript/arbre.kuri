@@ -504,14 +504,6 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 {
     noeud := base comme *CallExpression
 
-    si noeud.appelé.type == Identifier {
-        id := noeud.appelé comme *Identifier
-        si id.nom == "rm" {
-            éboue(interpréteuse.donne_tas_de_mémoire())
-            retourne normal_completion(js_undefined)
-        }
-    }
-
     completion_valeur_appelée := exécute_noeud(noeud.appelé, interpréteuse)
     saufsi completion_valeur_appelée.est_normal() {
         retourne completion_valeur_appelée

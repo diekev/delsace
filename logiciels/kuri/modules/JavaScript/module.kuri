@@ -722,6 +722,34 @@ sur_appel_fonction_instruite :: fonc (fonction: *Function, interpréteuse: &Inte
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom FunctionNative
+ * \{ */
+
+TypeRappelFonction :: fonc(*Function, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
+
+FunctionNative :: struct {
+    empl function: Function
+    type = #type_de_cette_structure
+}
+
+crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeRappelFonction) -> *FunctionNative
+{
+    résultat := tas_de_mémoire.alloue(FunctionNative)
+    résultat.nom = nom
+    résultat.sur_appel = sur_appel
+    retourne résultat
+}
+
+ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeRappelFonction)
+{
+    tas_de_mémoire := objet.donne_tas_de_mémoire()
+    fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel)
+    ajoute_propriété(objet, nom, Valeur(Function = fonction), faux, faux, faux)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom PrimitiveChaine
  * \{ */
 
