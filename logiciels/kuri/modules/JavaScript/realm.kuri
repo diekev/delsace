@@ -1,0 +1,160 @@
+/* ------------------------------------------------------------------------- */
+/** \nom Intrinsics
+ * realm.[[Intrinsics]]
+ *
+ * Voir "Table 6: Well-Known Intrinsic Objects"
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#table-well-known-intrinsic-objects
+ * \{ */
+
+Intrinsics :: struct {
+    string_prototype: *StringPrototype
+    object_prototype: *ObjectPrototype
+    error_prototype: *ErrorPrototype
+    reference_error_prototype: *ReferenceErrorPrototype
+    type_error_prototype: *TypeErrorPrototype
+}
+
+/* 9.3.2 CreateIntrinsics ( realmRec )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-createintrinsics */
+create_intrinsics :: fonc (realm: *Realm)
+{
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+
+    realm.intrinsics.object_prototype = crée_object_prototype(tas_de_mémoire)
+    realm.intrinsics.string_prototype = crée_string_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
+    realm.intrinsics.error_prototype = crée_error_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
+    realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
+    realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
+}
+
+visite_intrinsics :: fonc (intrinsics: &Intrinsics, visiteuse: *VisiteuseCellule)
+{
+    visite_graphe(intrinsics.object_prototype, visiteuse)
+    visite_graphe(intrinsics.string_prototype, visiteuse)
+    visite_graphe(intrinsics.error_prototype, visiteuse)
+    visite_graphe(intrinsics.reference_error_prototype, visiteuse)
+    visite_graphe(intrinsics.type_error_prototype, visiteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsHôte
+ * \{ */
+
+RappelsHôte :: struct {
+    crée_objet_global: fonc(*RappelsHôte, *Realm)(*Object)
+    donne_this_binding_global: fonc(*RappelsHôte)(*Object)
+    crée_propriétés_hôte_objet_global: fonc(*RappelsHôte, *Object)(rien)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Realm
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-code-realms
+ * \{ */
+
+Realm :: struct {
+    empl base: Cellule
+    type = #type_de_cette_structure
+    sur_visite_graphe = realm_sur_visite_graphe
+
+    intrinsics: Intrinsics
+    global_object: *Object
+    global_environment: *GlobalEnvironment
+}
+
+realm_sur_visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    cellule_sur_visite_graphe(cellule, visiteuse)
+
+    realm := cellule comme *Realm
+    visite_graphe(realm.global_object, visiteuse)
+    visite_graphe(realm.global_environment, visiteuse)
+    visite_intrinsics(realm.intrinsics, visiteuse)
+}
+
+/* 9.3.1 InitializeHostDefinedRealm ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-initializehostdefinedrealm */
+initialise_host_defined_realm :: fonc (tas_de_mémoire: *TasDeMémoire, rappels : *RappelsHôte = nul) -> *Realm
+{
+    // 1. Let realm be a new Realm Record.
+    realm := tas_de_mémoire.alloue(Realm)
+
+    // 2. Perform CreateIntrinsics(realm).
+    create_intrinsics(realm)
+
+    // À FAIRE
+    // 3. Set realm.[[AgentSignifier]] to AgentSignifier().
+    // 4. Set realm.[[GlobalObject]] to undefined.
+    // 5. Set realm.[[GlobalEnv]] to undefined.
+    // 6. Set realm.[[TemplateMap]] to a new empty List.
+    // 7. Let newContext be a new execution context.
+    // 8. Set the Function of newContext to null.
+    // 9. Set the Realm of newContext to realm.
+    // 10. Set the ScriptOrModule of newContext to null.
+    // 11. Push newContext onto the execution context stack; newContext is now the running execution context.
+
+    global : *Object = ---
+    // 12. If the host requires use of an exotic object to serve as realm's global object, then
+    si rappels && rappels.crée_objet_global {
+        // a. Let global be such an object created in a host-defined manner.
+        global = rappels.crée_objet_global(rappels, realm)
+    }
+    // 13. Else,
+    sinon {
+        // a. Let global be OrdinaryObjectCreate(realm.[[Intrinsics]].[[%Object.prototype%]]).
+        global = crée_objet(tas_de_mémoire, realm.intrinsics.object_prototype)
+    }
+
+    this_value : *Object = ---
+    // 14. If the host requires that the this binding in realm's global scope return an object other than the global object, then
+    si rappels && rappels.donne_this_binding_global {
+        // a. Let thisValue be such an object created in a host-defined manner.
+        this_value = rappels.donne_this_binding_global(rappels)
+    }
+    // 15. Else,
+    sinon {
+        // a. Let thisValue be global.
+        this_value = global
+    }
+
+    // 16. Set realm.[[GlobalObject]] to global.
+    realm.global_object = global
+
+    // 17. Set realm.[[GlobalEnv]] to NewGlobalEnvironment(global, thisValue).
+    realm.global_environment = new_global_environment(tas_de_mémoire, global, this_value)
+
+    // 18. Perform ? SetDefaultGlobalBindings(realm).
+    set_default_global_bindings(realm)
+
+    // 19. Create any host-defined global object properties on global.
+    si rappels && rappels.crée_propriétés_hôte_objet_global {
+        rappels.crée_propriétés_hôte_objet_global(rappels, global)
+    }
+
+    // 20. Return UNUSED.
+    retourne realm
+}
+
+/* 9.3.3 SetDefaultGlobalBindings ( realmRec )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-setdefaultglobalbindings */
+set_default_global_bindings :: fonc (realm: *Realm)
+{
+    // 1. Let global be realmRec.[[GlobalObject]].
+    global := realm.global_object
+
+    // À FAIRE : implémente le reste
+    // 2. For each property of the Global Object specified in clause 19, do
+    // a. Let name be the String value of the property name.
+    // b. Let desc be the fully populated data Property Descriptor for the property, containing the specified attributes for the property. For properties listed in 19.2, 19.3, or 19.4 the value of the [[Value]] attribute is the corresponding intrinsic object from realmRec.
+    // c. Perform ? DefinePropertyOrThrow(global, name, desc).
+
+    // À FAIRE : DefinePropertyOrThrow
+    global.ajoute_propriété("globalThis", Valeur(Object = realm.global_environment.global_this_value), faux, faux, vrai)
+
+    // 3. Return UNUSED.
+}
+
+/** \} */
