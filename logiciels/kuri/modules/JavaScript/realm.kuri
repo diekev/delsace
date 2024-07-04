@@ -11,6 +11,7 @@ Intrinsics :: struct {
     object_prototype: *ObjectPrototype
     error_prototype: *ErrorPrototype
     reference_error_prototype: *ReferenceErrorPrototype
+    type_error_prototype: *TypeErrorPrototype
 }
 
 /* 9.3.2 CreateIntrinsics ( realmRec )
@@ -23,6 +24,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.string_prototype = crée_string_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.error_prototype = crée_error_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
+    realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
 }
 
 visite_intrinsics :: fonc (intrinsics: &Intrinsics, visiteuse: *VisiteuseCellule)
@@ -31,6 +33,7 @@ visite_intrinsics :: fonc (intrinsics: &Intrinsics, visiteuse: *VisiteuseCellule
     visite_graphe(intrinsics.string_prototype, visiteuse)
     visite_graphe(intrinsics.error_prototype, visiteuse)
     visite_graphe(intrinsics.reference_error_prototype, visiteuse)
+    visite_graphe(intrinsics.type_error_prototype, visiteuse)
 }
 
 /** \} */

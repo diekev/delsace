@@ -63,6 +63,10 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
                 error := o comme *ReferenceError
                 ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
             }
+            sinon si o.type == TypeError {
+                error := o comme *TypeError
+                ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
+            }
             sinon {
                 ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]")
             }
@@ -870,6 +874,61 @@ ReferenceErrorPrototype :: struct {
 crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
 {
     résultat := tas_de_mémoire.alloue(ReferenceErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TypeError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-typeerror
+ * \{ */
+
+TypeError :: struct {
+    empl error: Error
+    type = TypeError
+    sur_visite_graphe = type_error_sur_visite_graphe
+
+    message: *PrimitiveChaine
+}
+
+crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeErrorPrototype, message: chaine) -> *TypeError
+{
+    résultat := tas_de_mémoire.alloue(TypeError)
+    résultat.prototype = prototype
+    résultat.message = crée_chaine(tas_de_mémoire, message)
+    retourne résultat
+}
+
+type_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    type_error := base comme *TypeError
+    sur_visite_graphe_objet(type_error, visiteuse)
+    cellule_sur_visite_graphe(type_error.message, visiteuse)
+}
+
+lance_type_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
+{
+    exception := crée_type_error(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.type_error_prototype, message)
+    retourne throw_completion(exception)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TypeErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+TypeErrorPrototype :: struct {
+    empl objet: Object
+    type = TypeErrorPrototype
+}
+
+crée_type_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *TypeErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(TypeErrorPrototype)
     résultat.prototype = prototype
     retourne résultat
 }
