@@ -1,9 +1,13 @@
 importe Fondation
 
 charge "arbre"
+charge "enveloppe"
+charge "environment"
 charge "interpréteuse"
 charge "lexage"
 charge "lexèmes"
+charge "parsage"
+charge "realm"
 charge "script"
 charge "tas_de_mémoire"
 
@@ -58,6 +62,10 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
         Object(o) {
             si o.type == ReferenceError {
                 error := o comme *ReferenceError
+                ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
+            }
+            sinon si o.type == TypeError {
+                error := o comme *TypeError
                 ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
             }
             sinon {
@@ -243,7 +251,7 @@ vers_objet :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> *Object
     }
 
     assert(valeur.est_chaine())
-    objet := crée_chaine(*interpréteuse.tas_de_mémoire, interpréteuse.string_prototype, valeur.String)
+    objet := crée_chaine(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.string_prototype, valeur.String)
     retourne Valeur(Object = objet)
 }
 
@@ -307,6 +315,25 @@ vers_nombre :: fonc (valeur: Valeur) -> Valeur
     panique("to_number non-implémenté")
 }
 
+/* 7.2.3 IsCallable ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iscallable */
+is_callable :: fonc (argument: Valeur) -> bool
+{
+    // 1. If argument is not an Object, return false.
+    saufsi argument.est_object() {
+        retourne faux
+    }
+
+    // 2. If argument has a [[Call]] internal method, return true.
+    object := argument.donne_objet()
+    si object.sur_call {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -366,6 +393,8 @@ is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 /** \nom Object
  * \{ */
 
+TypeFonctionObjectCall :: fonc(*Object, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
+
 Object :: struct {
     empl base: Cellule
     type = #type_de_cette_structure
@@ -392,6 +421,7 @@ Object :: struct {
     sur_get_prototype_of := ordinary_get_prototype_of
     sur_get_own_property := ordinary_get_own_property
     sur_get := ordinary_get
+    sur_call: TypeFonctionObjectCall
 }
 
 is_data_propery :: fonc (propriété: &Object.Propriété) -> bool
@@ -699,7 +729,65 @@ crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps:
     résultat := tas_de_mémoire.alloue(Function)
     résultat.nom = nom
     résultat.corps = corps
+    résultat.sur_call = sur_appel_fonction_instruite
     retourne résultat
+}
+
+/* 7.3.13 Call ( F, V [ , argumentsList ] )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
+call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
+{
+    // 1. If argumentsList is not present, set argumentsList to a new empty List.
+    arguments: []Valeur
+    retourne call(interpréteuse, valeur, this_value, arguments)
+}
+
+call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // Continuation de la version sans arguments.
+    // 2. If IsCallable(F) is false, throw a TypeError exception.
+    saufsi is_callable(valeur) {
+        message := imprime_chaine("'%' is not callable", valeur)
+        retourne lance_type_error(interpréteuse, message)
+    }
+
+    object := valeur.donne_objet()
+
+    // 3. Return ? F.[[Call]](V, argumentsList).
+    retourne object.sur_call(object, interpréteuse, this_value, arguments)
+}
+
+sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+{
+    assert(object.type == Function)
+    fonction := object comme *Function
+    retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionNative
+ * \{ */
+
+FunctionNative :: struct {
+    empl function: Function
+    type = #type_de_cette_structure
+}
+
+crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall) -> *FunctionNative
+{
+    résultat := tas_de_mémoire.alloue(FunctionNative)
+    résultat.nom = nom
+    résultat.sur_call = sur_appel
+    retourne résultat
+}
+
+ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeFonctionObjectCall)
+{
+    tas_de_mémoire := objet.donne_tas_de_mémoire()
+    fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel)
+    ajoute_propriété(objet, nom, Valeur(Function = fonction), faux, faux, faux)
 }
 
 /** \} */
@@ -805,6 +893,61 @@ ReferenceErrorPrototype :: struct {
 crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
 {
     résultat := tas_de_mémoire.alloue(ReferenceErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TypeError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-typeerror
+ * \{ */
+
+TypeError :: struct {
+    empl error: Error
+    type = TypeError
+    sur_visite_graphe = type_error_sur_visite_graphe
+
+    message: *PrimitiveChaine
+}
+
+crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeErrorPrototype, message: chaine) -> *TypeError
+{
+    résultat := tas_de_mémoire.alloue(TypeError)
+    résultat.prototype = prototype
+    résultat.message = crée_chaine(tas_de_mémoire, message)
+    retourne résultat
+}
+
+type_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    type_error := base comme *TypeError
+    sur_visite_graphe_objet(type_error, visiteuse)
+    cellule_sur_visite_graphe(type_error.message, visiteuse)
+}
+
+lance_type_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
+{
+    exception := crée_type_error(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.type_error_prototype, message)
+    retourne throw_completion(exception)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TypeErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+TypeErrorPrototype :: struct {
+    empl objet: Object
+    type = TypeErrorPrototype
+}
+
+crée_type_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *TypeErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(TypeErrorPrototype)
     résultat.prototype = prototype
     retourne résultat
 }

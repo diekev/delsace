@@ -13,6 +13,7 @@ Environment :: struct {
     sur_has_binding: fonc(*Environment, ECMAString)(bool)
     sur_get_binding_value: fonc(*Environment, ECMAString, bool)(CompletionRecord)
     sur_set_mutable_binding: fonc(*Environment, ECMAString, Valeur, bool)(CompletionRecord)
+    sur_with_base_object: fonc(*Environment)(Valeur)
 }
 
 environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
@@ -42,6 +43,12 @@ get_binding_value :: fonc (environment: *Environment, nom: ECMAString, strict: b
 {
     assert(environment.sur_get_binding_value != nul)
     retourne environment.sur_get_binding_value(environment, nom, strict)
+}
+
+with_base_object :: fonc (environment: *Environment) -> Valeur
+{
+    assert(environment.sur_with_base_object != nul)
+    retourne environment.sur_with_base_object(environment)
 }
 
 /* 9.1.2.1 GetIdentifierReference
@@ -96,6 +103,7 @@ DeclarativeEnvironment :: struct {
     sur_has_binding = declarative_environment_has_binding
     sur_get_binding_value = declarative_environment_get_binding_value
     sur_set_mutable_binding = declarative_environment_set_mutable_binding
+    sur_with_base_object = declarative_environment_with_base_object
 }
 
 /* 9.1.2.2 NewDeclarativeEnvironment ( E )
@@ -138,6 +146,16 @@ declarative_environment_get_binding_value :: fonc (environment: *Environment @in
 {
     panique("declarative_environment_get_binding_value non-implémentée")
 }
+
+/* 9.1.1.1.10 WithBaseObject ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-withbaseobject */
+declarative_environment_with_base_object :: fonc (base: *Environment @inutilisée) -> Valeur
+{
+    // 1. Return undefined.
+    retourne js_undefined
+}
+
+/** \} */
 
 /** \} */
 
@@ -182,6 +200,7 @@ ObjectEnvironment :: struct {
     sur_has_binding = object_environment_has_binding
     sur_get_binding_value = object_environment_get_binding_value
     sur_set_mutable_binding = object_environment_set_mutable_binding
+    sur_with_base_object = object_environment_with_base_object
 }
 
 object_environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
@@ -296,6 +315,20 @@ object_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAStrin
     retourne get(binding_object, nom)
 }
 
+/* 9.1.1.2.10 WithBaseObject ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-withbaseobject */
+object_environment_with_base_object :: fonc (base: *Environment) -> Valeur
+{
+    environment := base comme *ObjectEnvironment
+
+    // 1. If envRec.[[IsWithEnvironment]] is true, return envRec.[[BindingObject]].
+    si environment.is_with_environment {
+        retourne Valeur(Object = environment.binding_object)
+    }
+    // 2. Otherwise, return undefined.
+    retourne js_undefined
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -319,6 +352,7 @@ GlobalEnvironment :: struct {
     sur_has_binding = global_environment_has_binding
     sur_get_binding_value = global_environment_get_binding_value
     sur_set_mutable_binding = global_environment_set_mutable_binding
+    sur_with_base_object = global_environment_with_base_object
 }
 
 global_environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
@@ -428,6 +462,14 @@ global_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAStrin
 
     // 4. Return ? ObjRec.GetBindingValue(N, S).
     retourne get_binding_value(objrec, nom, strict)
+}
+
+/* 9.1.1.4.10 WithBaseObject ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-withbaseobject */
+global_environment_with_base_object :: fonc (base: *Environment @inutilisée) -> Valeur
+{
+    // 1. Return undefined.
+    retourne js_undefined
 }
 
 /** \} */

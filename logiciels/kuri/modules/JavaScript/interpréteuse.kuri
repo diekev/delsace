@@ -121,7 +121,7 @@ get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) ->
     // 2. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
     si est_référence_non_résolvable(valeur) {
         message := imprime_chaine("\"%\" is not defined", valeur.R.referenced_name)
-        exception := crée_reference_error(*interpréteuse.tas_de_mémoire, interpréteuse.reference_error_prototype, message)
+        exception := crée_reference_error(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.reference_error_prototype, message)
         retourne throw_completion(exception)
     }
 
@@ -168,7 +168,7 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
         // a. If V.[[Strict]] is true, throw a ReferenceError exception.
         si record.strict {
             message := imprime_chaine("assignment to undeclared variable \"%\"", record.referenced_name)
-            exception := crée_reference_error(*interpréteuse.tas_de_mémoire, interpréteuse.reference_error_prototype, message)
+            exception := crée_reference_error(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.reference_error_prototype, message)
             retourne throw_completion(exception)
         }
 
@@ -343,28 +343,13 @@ FrameScope :: struct {
 Interpréteuse :: struct {
     pile_scope: [..]FrameScope
     tas_de_mémoire: TasDeMémoire
-    objet_global: *Object
 
+    realm: *Realm
     lexical_environment: *Environment
-
-    // realm.[[Intrinsics]]
-    string_prototype: *StringPrototype
-    object_prototype: *ObjectPrototype
-    error_prototype: *ErrorPrototype
-    reference_error_prototype: *ReferenceErrorPrototype
 }
 
-initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse)
+initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse @inutilisée)
 {
-    interpréteuse.tas_de_mémoire.interpréteuse = *interpréteuse
-
-    interpréteuse.object_prototype = crée_object_prototype(*interpréteuse.tas_de_mémoire)
-    interpréteuse.string_prototype = crée_string_prototype(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
-    interpréteuse.error_prototype = crée_error_prototype(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
-    interpréteuse.reference_error_prototype = crée_reference_error_prototype(*interpréteuse.tas_de_mémoire, interpréteuse.error_prototype)
-
-    interpréteuse.objet_global = crée_objet(*interpréteuse.tas_de_mémoire, interpréteuse.object_prototype)
-    interpréteuse.lexical_environment = new_global_environment(*interpréteuse.tas_de_mémoire, interpréteuse.objet_global, nul)
 }
 
 détruit_données_interpreteuse :: fonc (interpréteuse: &Interpréteuse)
@@ -426,28 +411,6 @@ donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoir
     retourne *interpréteuse.tas_de_mémoire
 }
 
-rassemble_racines :: fonc (interpréteuse: *Interpréteuse, racines: *[..]*Cellule)
-{
-    si interpréteuse.objet_global {
-        ensemble_ajoute(racines, interpréteuse.objet_global)
-    }
-    si interpréteuse.lexical_environment {
-        ensemble_ajoute(racines, interpréteuse.lexical_environment)
-    }
-    si interpréteuse.object_prototype {
-        ensemble_ajoute(racines, interpréteuse.object_prototype)
-    }
-    si interpréteuse.string_prototype {
-        ensemble_ajoute(racines, interpréteuse.string_prototype)
-    }
-    si interpréteuse.error_prototype {
-        ensemble_ajoute(racines, interpréteuse.error_prototype)
-    }
-    si interpréteuse.reference_error_prototype {
-        ensemble_ajoute(racines, interpréteuse.reference_error_prototype)
-    }
-}
-
 donne_scope_courant :: fonc (interpréteuse: &Interpréteuse) -> *FrameScope
 {
     retourne *interpréteuse.pile_scope[interpréteuse.pile_scope.taille -1]
@@ -484,10 +447,9 @@ resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, envir
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-getglobalobject */
 get_global_object :: fonc (interpréteuse: &Interpréteuse) -> *Object
 {
-    // À FAIRE : realms
     // 1. Let currentRealm be the current Realm Record.
     // 2. Return currentRealm.[[GlobalObject]].
-    retourne interpréteuse.objet_global
+    retourne interpréteuse.realm.global_object
 }
 
 /** } */
