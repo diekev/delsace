@@ -732,10 +732,28 @@ crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps:
     retourne résultat
 }
 
-appele :: fonc (interpréteuse: &Interpréteuse, fonction: *Function, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+/* 7.3.13 Call ( F, V [ , argumentsList ] )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
+call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
 {
-    assert(fonction.sur_call != nul)
-    retourne fonction.sur_call(fonction, interpréteuse, this_value, arguments)
+    // 1. If argumentsList is not present, set argumentsList to a new empty List.
+    arguments: []Valeur
+    retourne call(interpréteuse, valeur, this_value, arguments)
+}
+
+call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // Continuation de la version sans arguments.
+    // 2. If IsCallable(F) is false, throw a TypeError exception.
+    saufsi is_callable(valeur) {
+        message := imprime_chaine("'%' is not callable", valeur)
+        retourne lance_type_error(interpréteuse, message)
+    }
+
+    object := valeur.donne_objet()
+
+    // 3. Return ? F.[[Call]](V, argumentsList).
+    retourne object.sur_call(object, interpréteuse, this_value, arguments)
 }
 
 sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
