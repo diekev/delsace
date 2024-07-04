@@ -9,7 +9,7 @@ DÉBOGUGE_MÉMOIRE :: vrai
  * \{ */
 
 TasDeMémoire :: struct {
-    interpréteuse: *Interpréteuse
+    realm: *Realm
     blocs: [..]*BlocDeMémoire
 }
 
@@ -72,7 +72,7 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
 
 rassemble_racines :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule)
 {
-    rassemble_racines(tas_de_mémoire.interpréteuse, racines)
+    ensemble_ajoute(racines, tas_de_mémoire.realm)
 
     #si DÉBOGUGE_MÉMOIRE {
         imprime("%\n", #nom_de_cette_fonction)

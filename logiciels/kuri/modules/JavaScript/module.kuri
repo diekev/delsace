@@ -6,6 +6,7 @@ charge "interpréteuse"
 charge "lexage"
 charge "lexèmes"
 charge "parsage"
+charge "realm"
 charge "script"
 charge "tas_de_mémoire"
 
@@ -245,7 +246,7 @@ vers_objet :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> *Object
     }
 
     assert(valeur.est_chaine())
-    objet := crée_chaine(*interpréteuse.tas_de_mémoire, interpréteuse.string_prototype, valeur.String)
+    objet := crée_chaine(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.string_prototype, valeur.String)
     retourne Valeur(Object = objet)
 }
 

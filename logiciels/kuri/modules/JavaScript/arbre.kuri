@@ -105,7 +105,7 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
 
     fonction := crée_fonction(interpréteuse.donne_tas_de_mémoire(), noeud.id.nom, noeud.corps)
 
-    objet_global := interpréteuse.objet_global
+    objet_global := interpréteuse.get_global_object()
     objet_global.définis_valeur(noeud.id.nom, Valeur(Function = fonction))
 
     retourne normal_completion(Valeur(Function = fonction))
@@ -751,7 +751,7 @@ crée_object_expression :: fonc () -> *ObjectExpression
 
 sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
-    objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.object_prototype)
+    objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.realm.intrinsics.object_prototype)
     retourne normal_completion(Valeur(Object = objet))
 }
 
