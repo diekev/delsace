@@ -9,7 +9,7 @@ DÉBOGUGE_MÉMOIRE :: vrai
  * \{ */
 
 TasDeMémoire :: struct {
-    interpréteuse: *Interpréteuse
+    realm: *Realm
     blocs: [..]*BlocDeMémoire
 }
 
@@ -72,7 +72,7 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
 
 rassemble_racines :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule)
 {
-    rassemble_racines(tas_de_mémoire.interpréteuse, racines)
+    ensemble_ajoute(racines, tas_de_mémoire.realm)
 
     #si DÉBOGUGE_MÉMOIRE {
         imprime("%\n", #nom_de_cette_fonction)
@@ -96,9 +96,16 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, 
         ensemble_ajoute(visiteuse.cellules_vivantes, cellule)
     }
 
+    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule, cellule: *Cellule) -> bool
+    {
+        visiteuse := base comme *VisiteuseVivance
+        retourne ensemble_possède(visiteuse.cellules_vivantes, cellule)
+    }
+
     visiteuse: VisiteuseVivance
     visiteuse.cellules_vivantes = cellules_vivantes
     visiteuse.sur_a_visité = sur_a_visité
+    visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
 
     pour racines {
         it.visite_graphe(*visiteuse)
@@ -291,6 +298,14 @@ détruit_cellule :: fonc (cellule: *Cellule)
 
 visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
 {
+    saufsi cellule {
+        retourne
+    }
+
+    si visiteuse.a_déjà_visité(cellule) {
+        retourne
+    }
+
     si cellule.sur_visite_graphe {
         cellule.sur_visite_graphe(cellule, visiteuse)
     }
@@ -310,8 +325,13 @@ donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom VisiteuseCellule
+ * \{ */
+
 VisiteuseCellule :: struct {
     sur_a_visité: fonc(*VisiteuseCellule, *Cellule)(rien)
+    sur_a_déjà_visité: fonc(*VisiteuseCellule, *Cellule)(bool)
 }
 
 a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)
@@ -320,3 +340,14 @@ a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)
         visiteuse.sur_a_visité(visiteuse, cellule)
     }
 }
+
+a_déjà_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule) -> bool
+{
+    si visiteuse.sur_a_déjà_visité {
+        retourne visiteuse.sur_a_déjà_visité(visiteuse, cellule)
+    }
+
+    retourne faux
+}
+
+/** \} */
