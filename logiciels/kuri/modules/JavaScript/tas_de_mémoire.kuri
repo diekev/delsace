@@ -291,6 +291,10 @@ détruit_cellule :: fonc (cellule: *Cellule)
 
 visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
 {
+    saufsi cellule {
+        retourne
+    }
+
     si cellule.sur_visite_graphe {
         cellule.sur_visite_graphe(cellule, visiteuse)
     }
