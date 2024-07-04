@@ -96,9 +96,16 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, 
         ensemble_ajoute(visiteuse.cellules_vivantes, cellule)
     }
 
+    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule, cellule: *Cellule) -> bool
+    {
+        visiteuse := base comme *VisiteuseVivance
+        retourne ensemble_possède(visiteuse.cellules_vivantes, cellule)
+    }
+
     visiteuse: VisiteuseVivance
     visiteuse.cellules_vivantes = cellules_vivantes
     visiteuse.sur_a_visité = sur_a_visité
+    visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
 
     pour racines {
         it.visite_graphe(*visiteuse)
@@ -295,6 +302,10 @@ visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
         retourne
     }
 
+    si visiteuse.a_déjà_visité(cellule) {
+        retourne
+    }
+
     si cellule.sur_visite_graphe {
         cellule.sur_visite_graphe(cellule, visiteuse)
     }
@@ -316,6 +327,7 @@ donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
 
 VisiteuseCellule :: struct {
     sur_a_visité: fonc(*VisiteuseCellule, *Cellule)(rien)
+    sur_a_déjà_visité: fonc(*VisiteuseCellule, *Cellule)(bool)
 }
 
 a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)
@@ -323,4 +335,13 @@ a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)
     si visiteuse.sur_a_visité {
         visiteuse.sur_a_visité(visiteuse, cellule)
     }
+}
+
+a_déjà_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule) -> bool
+{
+    si visiteuse.sur_a_déjà_visité {
+        retourne visiteuse.sur_a_déjà_visité(visiteuse, cellule)
+    }
+
+    retourne faux
 }
