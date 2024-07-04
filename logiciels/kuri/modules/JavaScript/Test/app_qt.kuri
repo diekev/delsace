@@ -137,7 +137,7 @@ sauvegarde_fichier :: fonc (contenu: chaine)
     _ := écris(*fichier, contenu)
 }
 
-fonction_native_éboue :: fonc (fonction: *Function @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+fonction_native_éboue :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
 {
     imprime("<<<<< ébouage forcé\n")
     éboue(interpréteuse.donne_tas_de_mémoire())

@@ -310,6 +310,25 @@ vers_nombre :: fonc (valeur: Valeur) -> Valeur
     panique("to_number non-implémenté")
 }
 
+/* 7.2.3 IsCallable ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iscallable */
+is_callable :: fonc (argument: Valeur) -> bool
+{
+    // 1. If argument is not an Object, return false.
+    saufsi argument.est_object() {
+        retourne faux
+    }
+
+    // 2. If argument has a [[Call]] internal method, return true.
+    object := argument.donne_objet()
+    si object.sur_call {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -369,6 +388,8 @@ is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 /** \nom Object
  * \{ */
 
+TypeFonctionObjectCall :: fonc(*Object, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
+
 Object :: struct {
     empl base: Cellule
     type = #type_de_cette_structure
@@ -395,6 +416,7 @@ Object :: struct {
     sur_get_prototype_of := ordinary_get_prototype_of
     sur_get_own_property := ordinary_get_own_property
     sur_get := ordinary_get
+    sur_call: TypeFonctionObjectCall
 }
 
 is_data_propery :: fonc (propriété: &Object.Propriété) -> bool
@@ -695,8 +717,6 @@ Function :: struct {
 
     nom: ECMAString
     corps: *NoeudSyntaxique
-
-    sur_appel: fonc(*Function, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
 }
 
 crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
@@ -704,18 +724,20 @@ crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps:
     résultat := tas_de_mémoire.alloue(Function)
     résultat.nom = nom
     résultat.corps = corps
-    résultat.sur_appel = sur_appel_fonction_instruite
+    résultat.sur_call = sur_appel_fonction_instruite
     retourne résultat
 }
 
 appele :: fonc (interpréteuse: &Interpréteuse, fonction: *Function, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
 {
-    assert(fonction.sur_appel != nul)
-    retourne fonction.sur_appel(fonction, interpréteuse, this_value, arguments)
+    assert(fonction.sur_call != nul)
+    retourne fonction.sur_call(fonction, interpréteuse, this_value, arguments)
 }
 
-sur_appel_fonction_instruite :: fonc (fonction: *Function, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
 {
+    assert(object.type == Function)
+    fonction := object comme *Function
     retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
 }
 
@@ -725,22 +747,20 @@ sur_appel_fonction_instruite :: fonc (fonction: *Function, interpréteuse: &Inte
 /** \nom FunctionNative
  * \{ */
 
-TypeRappelFonction :: fonc(*Function, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
-
 FunctionNative :: struct {
     empl function: Function
     type = #type_de_cette_structure
 }
 
-crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeRappelFonction) -> *FunctionNative
+crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall) -> *FunctionNative
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
     résultat.nom = nom
-    résultat.sur_appel = sur_appel
+    résultat.sur_call = sur_appel
     retourne résultat
 }
 
-ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeRappelFonction)
+ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeFonctionObjectCall)
 {
     tas_de_mémoire := objet.donne_tas_de_mémoire()
     fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel)
