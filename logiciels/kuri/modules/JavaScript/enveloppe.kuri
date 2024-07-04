@@ -1,0 +1,63 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Enveloppable
+ * Structure de base pour les applications externes souhaitant envelopper un
+ * de leurs objets pour être stocké (enveloppé) dans une objet JavaScript.
+ * \{ */
+
+Enveloppable :: struct {
+    enveloppe: *Enveloppe
+
+    /* Appelé lors de la création de l'enveloppe. */
+    sur_création_enveloppe: fonc(*Enveloppable, *Enveloppe)(rien)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Enveloppe
+ * Structure de base pour envelopper les objets Enveloppables.
+ * \{ */
+
+Enveloppe :: struct {
+    empl objet: Object
+    type = #type_de_cette_structure
+    sur_destruction = enveloppe_sur_destruction
+
+    enveloppable: *Enveloppable
+}
+
+crée_enveloppe :: fonc (tas_de_mémoire: *TasDeMémoire, objet: *Enveloppable) -> *Enveloppe
+{
+    si objet.enveloppe {
+        assert(objet.enveloppe.enveloppable == objet)
+        retourne objet.enveloppe
+    }
+
+    résultat := tas_de_mémoire.alloue(Enveloppe)
+    objet.enveloppe = résultat
+    résultat.enveloppable = objet
+
+    si objet.sur_création_enveloppe {
+        objet.sur_création_enveloppe(objet, résultat)
+    }
+
+    retourne résultat
+}
+
+enveloppe_sur_destruction :: fonc (base: *Cellule)
+{
+    enveloppe := base comme *Enveloppe
+    sur_destruction_objet(enveloppe)
+    enveloppe.enveloppable.enveloppe = nul
+}
+
+ajoute_objet_natif :: fonc (object: *Object, nom: ECMAString, enveloppable: *Enveloppable)
+{
+    tas_de_mémoire := object.donne_tas_de_mémoire()
+    enveloppe := crée_enveloppe(tas_de_mémoire, enveloppable)
+    ajoute_propriété(object, nom, Valeur(Object = enveloppe), faux, faux, faux)
+}
+
+/** \} */
