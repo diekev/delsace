@@ -145,6 +145,11 @@ fonction_native_éboue :: fonc (object: *Object @inutilisée, interpréteuse: &I
     retourne normal_completion(js_undefined)
 }
 
+crée_propriétés_hôte_objet_global :: fonc(rappels: *RappelsHôte @inutilisée, global: *Object)
+{
+    global.ajoute_fonction_native("rm", fonction_native_éboue)
+}
+
 sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
 {   
     rappel := base comme *RappelSauvegarde
@@ -167,12 +172,13 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
             diffère détruit_données_interpreteuse(interpréteuse)
             initialise_interpréteuse(interpréteuse)
 
-            realm := initialise_host_defined_realm(*interpréteuse.tas_de_mémoire)
+            rappels_hôte: RappelsHôte
+            rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+
+            realm := initialise_host_defined_realm(*interpréteuse.tas_de_mémoire, *rappels_hôte)
             interpréteuse.realm = realm
             interpréteuse.tas_de_mémoire.realm = realm
             interpréteuse.lexical_environment = realm.global_environment
-
-            realm.global_object.ajoute_fonction_native("rm", fonction_native_éboue)
 
             résultat := interpréteuse.exécute(script.programme)
             texte_résultat := imprime_chaine("%\n", get_value(interpréteuse, résultat.valeur))
