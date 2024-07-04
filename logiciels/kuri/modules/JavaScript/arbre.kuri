@@ -526,7 +526,8 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     assert(valeur_appelée.est_fonction())
 
     fonction := valeur_appelée.Function
-    retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
+    arguments: [..]Valeur
+    retourne appele(interpréteuse, fonction, js_undefined, arguments)
 }
 
 /** \} */

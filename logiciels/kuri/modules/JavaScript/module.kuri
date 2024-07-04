@@ -695,6 +695,8 @@ Function :: struct {
 
     nom: ECMAString
     corps: *NoeudSyntaxique
+
+    sur_appel: fonc(*Function, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
 }
 
 crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
@@ -702,7 +704,19 @@ crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps:
     résultat := tas_de_mémoire.alloue(Function)
     résultat.nom = nom
     résultat.corps = corps
+    résultat.sur_appel = sur_appel_fonction_instruite
     retourne résultat
+}
+
+appele :: fonc (interpréteuse: &Interpréteuse, fonction: *Function, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    assert(fonction.sur_appel != nul)
+    retourne fonction.sur_appel(fonction, interpréteuse, this_value, arguments)
+}
+
+sur_appel_fonction_instruite :: fonc (fonction: *Function, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+{
+    retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
 }
 
 /** \} */
