@@ -421,6 +421,8 @@ donne_entrée_cache_pour :: fonc (cache: *CacheUtilisateur, nom: chaine) -> *Cac
 ItemGraphe :: struct {
     empl observable: Observable
 
+    type_item: type_de_données
+
     /* Le graphe dans lequel l'item fut insérée. */
     graphe_parent: *Graphe
 
@@ -433,6 +435,7 @@ ItemGraphe :: struct {
 détruit_données_item_graphe :: fonc (item: *ItemGraphe)
 {
     détruit_données_observable(item)
+    déloge(item.nom)
 }
 
 définis_position :: fonc (item: *ItemGraphe, x: r32, y: r32)
@@ -446,6 +449,41 @@ définis_position :: fonc (item: *ItemGraphe, x: r32, y: r32)
     item.envoie_message(MessageObservable(info_de(Noeud), MessageNoeudPositionChangée))
 }
 
+/* Définit le nom de l'item.
+ * Si le graphe parent de l'item possède déjà un item nommé de la sorte, ceci
+ * modifiera le nom pour être unique.
+ * Si le nom possède des caracètres invalides, ceux-ci seront remplacés par un '_'. */
+définis_nom :: fonc (item: *ItemGraphe, nom: chaine)
+{
+    assert(item.graphe_parent != nul)
+
+    si item.nom == nom {
+        retourne
+    }
+
+    déloge(item.nom)
+
+    graphe := item.graphe_parent
+    item.nom = garantis_nom_valide_et_unique(*graphe.noms_noeuds_existants, nom)
+
+    si item.type_item == Noeud {
+        invalide_chemin_mémoire_vive(item comme *Noeud)
+    }
+}
+
+/* Définit le nom de l'item sans vérifier que le nom est unique ou valide.
+ * Ceci est uilisé lors de la lecture des fichiers de sauvegarde où nous
+ * savons que le nom fut déjà unique et valide. */
+définis_nom_sans_vérification :: fonc (item: *ItemGraphe, nom: chaine)
+{
+    déloge(item.nom)
+    item.nom = copie_chaine(nom)
+
+    si item.type_item == Noeud {
+        invalide_chemin_mémoire_vive(item comme *Noeud)
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -454,6 +492,7 @@ définis_position :: fonc (item: *ItemGraphe, x: r32, y: r32)
 
 Noeud :: struct {
     empl item: ItemGraphe
+    type_item = #type_de_cette_structure
 
     table: *TableVirtuelleNoeud
 
@@ -515,37 +554,6 @@ identifiant :: fonc (noeud: *Noeud) -> chaine
     }
 
     retourne noeud.table.identifiant
-}
-
-/* Définit le nom du noeud.
- * Si le graphe parent du noeud possède déjà un noeud nommé de la sorte, ceci
- * modifiera le nom pour être unique.
- * Si le nom possède des caracètres invalides, ceux-ci seront remplacés par un '_'. */
-définis_nom :: fonc (noeud: *Noeud, nom: chaine)
-{
-    assert(noeud.graphe_parent != nul)
-
-    si noeud.nom == nom {
-        retourne
-    }
-
-    déloge(noeud.nom)
-
-    graphe := noeud.graphe_parent
-    noeud.nom = garantis_nom_valide_et_unique(*graphe.noms_noeuds_existants, nom)
-
-    invalide_chemin_mémoire_vive(noeud)
-}
-
-/* Définit le nom du noeud sans vérifier que le nom est unique ou valide.
- * Ceci est uilisé lors de la lecture des fichiers de sauvegarde où nous
- * savons que le nom fut déjà unique et valide. */
-définis_nom_sans_vérification :: fonc (noeud: *Noeud, nom: chaine)
-{
-    déloge(noeud.nom)
-    noeud.nom = copie_chaine(nom)
-
-    invalide_chemin_mémoire_vive(noeud)
 }
 
 /* Invalide le chemin du noeud. Typiquement fait lors du changement de son nom. */
@@ -672,7 +680,6 @@ détruit_noeud :: fonc (noeud: *Noeud)
     réinitialise_erreurs(noeud)
     réinitialise_informations(noeud)
 
-    déloge(noeud.nom)
     déloge(noeud.mémoire_vive.chemin)
     détruit_table_paramètres(noeud.table_paramètres)
     détruit_données_cache(*noeud.cache)
