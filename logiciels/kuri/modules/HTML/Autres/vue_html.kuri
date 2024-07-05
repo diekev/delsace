@@ -84,6 +84,9 @@ principale :: fonc () -> z32
     widget_texte := crée_widget_vue_texte(fenêtre, tabs)
     QT_tab_widget_ajoute_tab(tabs, widget_texte, "Texte")
 
+    widget_arbre_disposition := crée_widget_vue_arbre_de_disposition(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_arbre_disposition, "Arbre de Disposition")
+
     QT_fenetre_principale_definis_widget_central(fenêtre, tabs)
 
     retourne QT_application_exec(app)
@@ -110,6 +113,7 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 
     détruit(rappel.rappels_fenêtre.parsat)
     déloge(rappel.rappels_fenêtre.contenu)
+    détruit_arbre(rappel.rappels_fenêtre.arbre_de_disposition)
 
     /* Restaure le contexte. */
     __contexte_fil_principal = contexte_entrée
@@ -132,6 +136,7 @@ RappelsFenetrePrincipale :: struct {
 
     parsat: ParsatHTML
     contenu: chaine
+    arbre_de_disposition: *ArbreDeDisposition
 }
 
 /** \} */
@@ -299,6 +304,183 @@ crée_widget_vue_texte :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Gen
         QT_plain_text_edit_definis_texte(résultat, texte)
     }
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Vue arbre de disposition
+ * \{ */
+
+crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
+{
+    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
+    document := rappels.parsat.document
+
+    résultat := crée_widget_arbre(nul, parent)
+
+    arbre := crée_arbre_de_disposition(document)
+    si arbre {
+        item_document := QT_cree_treewidgetitem(nul, nul)
+        QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+        texte := vers_qt("bloc")
+        QT_treewidgetitem_definis_texte(item_document, 0, *texte)
+        QT_treewidget_ajoute_item_racine(résultat, item_document)
+
+        pour arbre.racine.enfants {
+            ajoute_item_pour_noeud(item_document, it)
+        }
+
+        rappels.arbre_de_disposition = arbre
+    }
+    retourne résultat
+}
+
+ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *NoeudDeDisposition)
+{
+    item_noeud := QT_cree_treewidgetitem(nul, nul)
+    QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+    texte := si noeud.type == NoeudDeDispositionBloc {
+        "bloc"
+    }
+    sinon {
+        "texte"
+    }
+    qtexte := vers_qt(texte)
+    QT_treewidgetitem_definis_texte(item_noeud, 0, *qtexte)
+
+    QT_treewidgetitem_ajoute_enfant(parent, item_noeud)
+
+    pour noeud.enfants {
+        ajoute_item_pour_noeud(item_noeud, it)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Arbre de disposition
+ * \{ */
+
+ArbreDeDisposition :: struct {
+    racine: *NoeudDeDisposition
+
+    noeuds: [..]*NoeudDeDisposition
+}
+
+détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
+{
+    saufsi arbre {
+        retourne
+    }
+
+    pour arbre.noeuds {
+        déloge(it.enfants)
+
+        si it.type == NoeudDeDispositionBloc {
+            bloc := it comme *NoeudDeDispositionBloc
+            déloge(bloc)
+        }
+        sinon si it.type == NoeudDeDispositionTexte {
+            texte := it comme *NoeudDeDispositionBloc
+            déloge(texte)
+        }
+        sinon {
+            imprime("noeud inconnu !")
+            déloge(it)
+        }
+    }
+
+    déloge(arbre.noeuds)
+    déloge(arbre)
+}
+
+crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -> *TypeNoeud
+{
+    résultat := loge(TypeNoeud)
+    tableau_ajoute(*arbre.noeuds, résultat)
+    retourne résultat
+}
+
+NoeudDeDisposition :: struct {
+    type := #type_de_cette_structure
+
+    parent: *NoeudDeDisposition
+    enfants: [..]*NoeudDeDisposition
+
+    // sur_mesure: fonc (*NoeudDisposition)(rien)
+    // sur_dessin: fonc (*NoeudDisposition)(rien)
+}
+
+ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
+{
+    enfant.parent = parent
+    tableau_ajoute(*parent.enfants, enfant)
+}
+
+/* Créé pour chaque noeud hors texte */
+NoeudDeDispositionBloc :: struct {
+    empl base: NoeudDeDisposition
+    type = #type_de_cette_structure
+
+    élément: *Élément
+}
+
+/* Créé pour chaque élément contenant du texte. */
+NoeudDeDispositionTexte :: struct {
+    empl base: NoeudDeDisposition
+    type = #type_de_cette_structure
+
+    noeud_texte: *NoeudTexte
+}
+
+crée_arbre_de_disposition :: fonc (document: *Document) -> *ArbreDeDisposition
+{
+    saufsi document {
+        retourne nul
+    }
+
+    body := document.donne_élément_body()
+    saufsi body {
+        retourne nul
+    }
+
+    résultat := loge(ArbreDeDisposition)
+
+    racine := résultat.crée_noeud(NoeudDeDispositionBloc)
+    racine.élément = body
+
+    résultat.racine = racine
+
+    pour body.enfants {
+        crée_noeud_pour_élément(résultat, résultat.racine, it)
+    }
+
+    imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
+
+    retourne résultat
+}
+
+crée_noeud_pour_élément :: fonc (arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *Noeud)
+{
+    si noeud.est_élément_script() {
+        retourne
+    }
+
+    si noeud.est_texte() {
+        résultat := arbre.crée_noeud(NoeudDeDispositionTexte)
+        résultat.noeud_texte = noeud comme *NoeudTexte
+        parent.ajoute_enfant(résultat)
+        retourne
+    }
+
+    pour noeud.enfants {
+        résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
+        résultat.élément = it comme *Élément
+        parent.ajoute_enfant(résultat)
+
+        crée_noeud_pour_élément(arbre, résultat, it)
+    }
 }
 
 /** \} */
