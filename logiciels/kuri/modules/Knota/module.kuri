@@ -419,6 +419,8 @@ donne_entrée_cache_pour :: fonc (cache: *CacheUtilisateur, nom: chaine) -> *Cac
  * \{ */
 
 ItemGraphe :: struct {
+    empl observable: Observable
+
     /* Le graphe dans lequel l'item fut inséré. */
     graphe_parent: *Graphe
 
@@ -426,6 +428,22 @@ ItemGraphe :: struct {
 
     /* Nom unique pour l'item dans le graphe. */
     nom: chaine
+}
+
+détruit_données_item_graphe :: fonc (item: *ItemGraphe)
+{
+    détruit_données_observable(item)
+}
+
+définis_position :: fonc (item: *ItemGraphe, x: r32, y: r32)
+{
+    si item.position.x == x && item.position.y == y {
+        retourne
+    }
+    item.position.x = x
+    item.position.y = y
+    /* À FAIRE : remplace ceci par ItemGraphe */
+    item.envoie_message(MessageObservable(info_de(Noeud), MessageNoeudPositionChangée))
 }
 
 /** \} */
@@ -436,7 +454,6 @@ ItemGraphe :: struct {
 
 Noeud :: struct {
     empl item: ItemGraphe
-    empl observable: Observable
 
     table: *TableVirtuelleNoeud
 
@@ -648,7 +665,7 @@ marques_connexions_inactives :: fonc (connexions: [..]*Connexion)
 
 détruit_noeud :: fonc (noeud: *Noeud)
 {
-    détruit_données_observable(noeud)
+    détruit_données_item_graphe(noeud)
     déloge_tableau_et_ses_éléments(noeud.entrées, déloge_prise_entrée)
     déloge_tableau_et_ses_éléments(noeud.sorties, déloge_prise_sortie)
 
@@ -944,16 +961,6 @@ donne_sous_graphe :: fonc (noeud: *Noeud) -> *Graphe
     }
 
     retourne nul
-}
-
-définis_position :: fonc (noeud: *Noeud, x: r32, y: r32)
-{
-    si noeud.position.x == x && noeud.position.y == y {
-        retourne
-    }
-    noeud.position.x = x
-    noeud.position.y = y
-    noeud.envoie_message(MessageObservable(info_de(Noeud), MessageNoeudPositionChangée))
 }
 
 // --------------------------------------------------------------
