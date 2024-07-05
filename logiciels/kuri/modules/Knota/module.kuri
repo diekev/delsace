@@ -421,7 +421,7 @@ donne_entrée_cache_pour :: fonc (cache: *CacheUtilisateur, nom: chaine) -> *Cac
 ItemGraphe :: struct {
     empl observable: Observable
 
-    /* Le graphe dans lequel l'item fut inséré. */
+    /* Le graphe dans lequel l'item fut insérée. */
     graphe_parent: *Graphe
 
     position: Point2D(r32)
