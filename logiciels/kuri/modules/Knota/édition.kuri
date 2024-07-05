@@ -86,7 +86,7 @@ ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris, d
 
             pour éléments_sélectionnées {
                 noeud := graphe.noeuds[it]
-                noeud.définis_position(noeud.pos_x + delta.x, noeud.pos_y + delta.y)
+                noeud.définis_position(noeud.position.x + delta.x, noeud.position.y + delta.y)
             }
         }
         UTILISE_OUTIL_SÉLECTION {
@@ -161,22 +161,22 @@ termine_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
                 noeud_amont := prise_sortie.noeud_parent
                 noeud_aval := prise_entrée.noeud_parent
 
-                pos_y_amont := noeud_amont.pos_y
-                pos_y_aval := noeud_aval.pos_y
+                pos_y_amont := noeud_amont.position.y
+                pos_y_aval := noeud_aval.position.y
 
-                si (noeud.pos_y - pos_y_amont) < (3.0 * noeud.rectangle().hauteur) {
-                    décalage := (3.0 * noeud.rectangle().hauteur) - (noeud.pos_y - pos_y_amont)
+                si (noeud.position.y - pos_y_amont) < (3.0 * noeud.rectangle().hauteur) {
+                    décalage := (3.0 * noeud.rectangle().hauteur) - (noeud.position.y - pos_y_amont)
                     noeud.décale_verticalement_noeuds_en_amont(-décalage)
                 }
 
-                si (pos_y_aval - noeud.pos_y) < (3.0 * noeud.rectangle().hauteur) {
-                    décalage := (3.0 * noeud.rectangle().hauteur) - (pos_y_aval - noeud.pos_y)
+                si (pos_y_aval - noeud.position.y) < (3.0 * noeud.rectangle().hauteur) {
+                    décalage := (3.0 * noeud.rectangle().hauteur) - (pos_y_aval - noeud.position.y)
                     noeud.décale_verticalement_noeuds_en_aval(décalage)
                 }
 
                 /* Positionne le noeud horizontalement à mi-chemin entre les prises. */
-                pos_x := (noeud_aval.pos_x + noeud_amont.pos_x) * 0.5
-                noeud.définis_position(pos_x, noeud.pos_y)
+                pos_x := (noeud_aval.position.x + noeud_amont.position.x) * 0.5
+                noeud.définis_position(pos_x, noeud.position.y)
                 
                 graphe.connexion_pour_survol_noeud = nul
                 graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGraphePositionChangée))
@@ -330,9 +330,8 @@ finalise_ajout_noeud :: fonc (graphe: *Graphe, noeud: *Noeud)
     /* Définis actif et ajout à la sélection. */
     graphe.définis_noeud_actif(noeud)
 
-    position := Point2D(r32)(noeud.pos_x, noeud.pos_y)
     sélection := graphe.sélection
-    sélection.clic(position)
+    sélection.clic(noeud.position)
 }
 
 commence_connexion_interactive :: fonc (graphe: *Graphe, noeud: *Noeud, point: Point2D(r32)) -> bool
@@ -401,7 +400,7 @@ décale_verticalement_noeuds_en_amont :: fonc (aval: *Noeud, décalage: r32)
     pour aval.entrées {
         si it.connexion {
             amont := it.connexion.prise_sortie.noeud_parent
-            amont.définis_position(amont.pos_x, amont.pos_y + décalage)
+            amont.définis_position(amont.position.x, amont.position.y + décalage)
             décale_verticalement_noeuds_en_amont(amont, décalage)
         }
     }
@@ -412,7 +411,7 @@ décale_verticalement_noeuds_en_aval :: fonc (amont: *Noeud, décalage: r32)
     pour amont.sorties {
         pour connexion dans it.connexions {
             aval := connexion.prise_entrée.noeud_parent
-            aval.définis_position(aval.pos_x, aval.pos_y + décalage)
+            aval.définis_position(aval.position.x, aval.position.y + décalage)
             décale_verticalement_noeuds_en_aval(aval, décalage)
         }
     }

@@ -415,19 +415,30 @@ donne_entrée_cache_pour :: fonc (cache: *CacheUtilisateur, nom: chaine) -> *Cac
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ItemGraphe.
+ * \{ */
+
+ItemGraphe :: struct {
+    /* Le graphe dans lequel l'item fut inséré. */
+    graphe_parent: *Graphe
+
+    position: Point2D(r32)
+
+    /* Nom unique pour l'item dans le graphe. */
+    nom: chaine
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Noeud.
  * \{ */
 
 Noeud :: struct {
+    empl item: ItemGraphe
     empl observable: Observable
 
     table: *TableVirtuelleNoeud
-
-    /* Le graphe dans lequel le noeud fut inséré. */
-    graphe_parent: *Graphe
-
-    /* Nom unique pour le noeud dans le graphe. */
-    nom: chaine @accessible
 
     entrées: [..]*PriseEntrée @accessible
     sorties: [..]*PriseSortie @accessible
@@ -447,9 +458,6 @@ Noeud :: struct {
 
     informations: InformationsNoeud
 
-    /* Informations interface. */
-    pos_x: r32 @mutable
-    pos_y: r32 @mutable
     hauteur: r32 @mutable
     largeur: r32 @mutable
 
@@ -560,7 +568,7 @@ donne_créateur :: fonc (noeud: *Noeud) -> *Noeud
 
 rectangle :: fonc (noeud: *Noeud) -> RectanglePosDim(r32)
 {
-    retourne RectanglePosDim(r32)(noeud.pos_x, noeud.pos_y, noeud.hauteur, noeud.largeur)
+    retourne RectanglePosDim(r32)(noeud.position.x, noeud.position.y, noeud.hauteur, noeud.largeur)
 }
 
 prise_entrée :: fonc (noeud: *Noeud, nom: chaine) -> *PriseEntrée
@@ -940,11 +948,11 @@ donne_sous_graphe :: fonc (noeud: *Noeud) -> *Graphe
 
 définis_position :: fonc (noeud: *Noeud, x: r32, y: r32)
 {
-    si noeud.pos_x == x && noeud.pos_y == y {
+    si noeud.position.x == x && noeud.position.y == y {
         retourne
     }
-    noeud.pos_x = x
-    noeud.pos_y = y
+    noeud.position.x = x
+    noeud.position.y = y
     noeud.envoie_message(MessageObservable(info_de(Noeud), MessageNoeudPositionChangée))
 }
 
