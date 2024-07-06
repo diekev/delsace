@@ -254,8 +254,12 @@ vers_objet :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> *Object
     }
 
     assert(valeur.est_chaine())
-    objet := crée_chaine(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.string_prototype, valeur.String)
-    retourne Valeur(Object = objet)
+
+    chn := valeur.String
+    saufsi chn.objet {
+        chn.objet = crée_chaine(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.string_prototype, valeur.String)
+    }
+    retourne Valeur(Object = chn.objet)
 }
 
 vers_chaine :: fonc (valeur: Valeur) -> ECMAString
@@ -823,11 +827,13 @@ ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: Type
  * \{ */
 
 PrimitiveChaine :: struct {
-    empl objet: Cellule
+    empl cellule: Cellule
     type = #type_de_cette_structure
+    sur_visite_graphe = string_primitive_sur_visite_graphe
     sur_destruction = sur_destruction_primitive_chaine
 
     texte: ECMAString
+    objet: *Object
 }
 
 crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine
@@ -835,6 +841,15 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *Pr
     résultat := tas_de_mémoire.alloue(PrimitiveChaine)
     résultat.texte = copie_chaine(texte)
     retourne résultat
+}
+
+string_primitive_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    string_primitive := base comme *PrimitiveChaine
+    cellule_sur_visite_graphe(string_primitive, visiteuse)
+    si string_primitive.objet {
+        sur_visite_graphe_objet(string_primitive.objet, visiteuse)
+    }
 }
 
 sur_destruction_primitive_chaine :: fonc (base: *Cellule)
