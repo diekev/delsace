@@ -258,66 +258,107 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     }
     gauche := valeur_complétion_gauche.valeur.V
     droite := valeur_complétion_droite.valeur.V
-    retourne normal_completion(évalue_expression_binaire(noeud.opération, gauche, droite))
+    retourne évalue_expression_binaire(interpréteuse, noeud.opération, gauche, droite)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-applystringornumericbinaryoperator */
-évalue_expression_binaire :: fonc (opération: BinaryOperation, gauche: Valeur, droite: Valeur) -> Valeur
+évalue_expression_binaire :: fonc (interpréteuse: &Interpréteuse, opération: BinaryOperation, gauche: Valeur, droite: Valeur) -> CompletionRecord
 {
-    // si opération == BinaryOperation.Plus {
-    //     primitive_gauche := vers_primitive(gauche)
-    //     primitive_droite := vers_primitive(droite)
+    // 1. If opText is +, then
+    si opération == BinaryOperation.Plus {
+        // a. Let lprim be ? ToPrimitive(lval).
+        complétion_lprim := vers_primitive(interpréteuse, gauche)
+        saufsi complétion_lprim.est_normal() {
+            retourne complétion_lprim
+        }
+        lprim := complétion_lprim.valeur.V
+        // b. Let rprim be ? ToPrimitive(rval).
+        complétion_rprim := vers_primitive(interpréteuse, droite)
+        saufsi complétion_rprim.est_normal() {
+            retourne complétion_rprim
+        }
+        rprim := complétion_rprim.valeur.V
+        // c. If lprim is a String or rprim is a String, then
+        si lprim.est_chaine() || rprim.est_chaine() {
+            panique("concaténation chaine non-implémenté")
+            // i. Let lstr be ? ToString(lprim).
+            // ii. Let rstr be ? ToString(rprim).
+            // iii. Return the string-concatenation of lstr and rstr.
+        }
+    
+        // d. Set lval to lprim.
+        gauche = lprim
+        // e. Set rval to rprim.
+        droite = rprim
+    }
 
-    //     si primitive_gauche.est_chaine() || primitive_droite.est_chaine() {
-    //         str_gauche := primitive_gauche.vers_chaine()
-    //         str_droite := primitive_droite.vers_chaine()
+    // 2. NOTE: At this point, it must be a numeric operation.
 
-    //         retourne concatène(str_gauche, str_droite)
-    //     }
+    // 3. Let lnum be ? ToNumeric(lval).
+    complétion_lnum := to_numeric(interpréteuse, gauche)
+    saufsi complétion_lnum.est_normal() {
+        retourne complétion_lnum
+    }
+    gauche = complétion_lnum.valeur.V
 
-    //     gauche = primitive_gauche
-    //     droite = primitive_droite
+    // 4. Let rnum be ? ToNumeric(rval).
+    complétion_rnum := to_numeric(interpréteuse, droite)
+    saufsi complétion_rnum.est_normal() {
+        retourne complétion_rnum
+    }
+    droite = complétion_rnum.valeur.V
+
+    // 5. If Type(lnum) is not Type(rnum), throw a TypeError exception.
+    // si type(lum) != type(rnum) {
+    // À FAIRE
     // }
 
-    // nombre_gauche := vers_numeric(gauche)
-    // nombre_droite := vers_numeric(droite)
+    // À FAIRE : bigint
+    // 6. If lnum is a BigInt, then
+    // a. If opText is **, return ? BigInt::exponentiate(lnum, rnum).
+    // b. If opText is /, return ? BigInt::divide(lnum, rnum).
+    // c. If opText is %, return ? BigInt::remainder(lnum, rnum).
+    // d. If opText is >>>, return ? BigInt::unsignedRightShift(lnum, rnum).
 
-    // If Type(lnum) != Type(rnum)
+    // 7. Let operation be the abstract operation associated with opText and Type(lnum) in the following table:
+
+    // 8. Return operation(lnum, rnum).
+    valeur := js_undefined
 
     discr opération {
         Plus {
-            retourne ajoute_valeurs(gauche, droite)
+            valeur = ajoute_valeurs(gauche, droite)
         }
         Moins {
-            retourne soustrait_valeurs(gauche, droite)
+            valeur = soustrait_valeurs(gauche, droite)
         }
         Multiplie {
-            retourne multiplie_valeurs(gauche, droite)
+            valeur = multiplie_valeurs(gauche, droite)
         }
         Divise {
-            retourne divise_valeurs(gauche, droite)
+            valeur = divise_valeurs(gauche, droite)
         }
         Supérieur {
-            retourne compare_supérieur_valeurs(gauche, droite)
+            valeur = compare_supérieur_valeurs(gauche, droite)
         }
         Inférieur {
-            retourne compare_inférieur_valeurs(gauche, droite)
+            valeur = compare_inférieur_valeurs(gauche, droite)
         }
         SupérieurÉgal {
-            retourne compare_supérieur_égal_valeurs(gauche, droite)
+            valeur = compare_supérieur_égal_valeurs(gauche, droite)
         }
         InférieurÉgal {
-            retourne compare_inférieur_égal_valeurs(gauche, droite)
+            valeur = compare_inférieur_égal_valeurs(gauche, droite)
         }
         Égal {
-            retourne compare_égal_valeurs(gauche, droite)
+            valeur = compare_égal_valeurs(gauche, droite)
         }
         Inégal {
-            retourne compare_inégal_valeurs(gauche, droite)
+            valeur = compare_inégal_valeurs(gauche, droite)
         }
     }
 
-    retourne js_undefined
+    retourne normal_completion(valeur)
 }
 
 ajoute_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
