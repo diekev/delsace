@@ -236,7 +236,7 @@ initialise_bloc :: fonc (bloc: *BlocDeMémoire, taille_cellule: n64)
         liste := it comme *BlocDeMémoire.EntréeListeLibre
         liste.vivante = faux
 
-        si index_it comme n64 == bloc.nombre_de_cellules() {
+        si index_it comme n64 == bloc.nombre_de_cellules() - 1 {
             liste.suivante = nul
         }
         sinon {
