@@ -947,7 +947,11 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         retourne lhs_value
     }
 
-    old_value := to_numeric(lhs_value.valeur.V)
+    complétion_old_value := to_numeric(interpréteuse, lhs_value.valeur.V)
+    saufsi complétion_old_value.est_normal() {
+        retourne complétion_old_value
+    }
+    old_value := complétion_old_value.valeur.V
 
     nouvelle_valeur: Valeur
 
