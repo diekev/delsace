@@ -11,6 +11,10 @@ DÉBOGUGE_MÉMOIRE :: vrai
 TasDeMémoire :: struct {
     realm: *Realm
     blocs: [..]*BlocDeMémoire
+
+    doit_ébouer_à_chaque_allocation := faux
+    allocations_entre_ébouages := 1000
+    allocations_depuis_dernier_ébouage := 0
 }
 
 détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
@@ -31,6 +35,13 @@ alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
 
 alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
 {
+    si tas_de_mémoire.doit_ébouer_à_chaque_allocation {
+        éboue(tas_de_mémoire)
+    }
+    sinon si tas_de_mémoire.allocations_depuis_dernier_ébouage > tas_de_mémoire.allocations_entre_ébouages {
+        éboue(tas_de_mémoire)
+    }
+
     pour tas_de_mémoire.blocs {
         si taille > it.taille_cellule {
             continue
@@ -53,6 +64,8 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
     bloc.tas_de_mémoire = tas_de_mémoire
     tableau_ajoute(*tas_de_mémoire.blocs, bloc)
 
+    tas_de_mémoire.allocations_depuis_dernier_ébouage += 1
+
     retourne bloc.alloue_cellule()
 }
 
@@ -70,6 +83,8 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
     réinitialise_bits_de_marquage(tas_de_mémoire)
     marque_cellules_vivantes(tas_de_mémoire, *cellules_vivantes)
     balaie_cellules_mortes(tas_de_mémoire)
+
+    tas_de_mémoire.allocations_depuis_dernier_ébouage = 0
 }
 
 rassemble_racines :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule)
