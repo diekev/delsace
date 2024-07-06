@@ -26,7 +26,9 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
             retourne
         }
 
-        noeud_actif := graphe.noeuds[éléments[0]]
+        // À FAIRE(items)
+        noeud_actif := graphe.items[éléments[0]] comme *Noeud
+        assert(noeud_actif.type_item == Noeud)
         si commence_connexion_interactive(graphe, noeud_actif, point) {
             graphe.mode_interaction = ModeInteractionGraphe.CONNEXION_INTERACTIVE
         }
@@ -50,7 +52,9 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
         retourne
     }
 
-    noeud_actif := graphe.noeuds[éléments[0]]
+    // À FAIRE(items)
+    noeud_actif := graphe.items[éléments[0]] comme *Noeud
+    assert(noeud_actif.type_item == Noeud)
     assert(noeud_actif != graphe.noeud_actif)
 
     graphe.définis_noeud_actif(noeud_actif)
@@ -85,8 +89,8 @@ ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris, d
             guette_survol_connexion(graphe)
 
             pour éléments_sélectionnées {
-                noeud := graphe.noeuds[it]
-                noeud.définis_position(noeud.position.x + delta.x, noeud.position.y + delta.y)
+                item := graphe.items[it]
+                item.définis_position(item.position.x + delta.x, item.position.y + delta.y)
             }
         }
         UTILISE_OUTIL_SÉLECTION {
@@ -142,7 +146,8 @@ termine_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
                 éléments_sélectionnées := sélection.donne_éléments_sélectionnés()
 
                 assert(éléments_sélectionnées.taille == 1) 
-                noeud := graphe.noeuds[éléments_sélectionnées[0]]
+                noeud := graphe.items[éléments_sélectionnées[0]] comme *Noeud
+                assert(noeud.type_item == Noeud)
 
                 connexion := graphe.connexion_pour_survol_noeud
 
@@ -204,7 +209,11 @@ supprime_sélection :: fonc (graphe: *Graphe) -> bool
     diffère déloge(noeuds_à_supprimer)
 
     pour sélection.donne_éléments_sélectionnés() {
-        tableau_ajoute(*noeuds_à_supprimer, graphe.noeuds[it])
+        item := graphe.items[it]
+        saufsi item.type_item == Noeud {
+            continue
+        }
+        tableau_ajoute(*noeuds_à_supprimer, item comme *Noeud)
     }
 
     si noeuds_à_supprimer.taille == 0 {
@@ -252,7 +261,7 @@ trouve_noeud :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *Noeud
     noeud_le_plus_proche: *Noeud
     distance_la_plus_proche := R32_MAX
 
-    pour graphe.noeuds {
+    pour graphe.itère_noeuds() {
         rectangle_noeud := it.rectangle()
 
         centre := rectangle_noeud.donne_point_central()
@@ -369,7 +378,11 @@ guette_survol_connexion :: fonc (graphe: *Graphe)
         retourne
     }
 
-    noeud := graphe.noeuds[éléments_sélectionnées[0]]
+    item := graphe.items[éléments_sélectionnées[0]]
+    saufsi item.type_item == Noeud {
+        retourne
+    }
+    noeud := item comme *Noeud
     si noeud.entrées.taille == 0 || noeud.sorties.taille == 0 {
         retourne
     }
