@@ -471,6 +471,7 @@ StringLiteral :: struct {
     sur_exécution = sur_exécution_string_literal
 
     valeur: ECMAString
+    index_chaine : z64 = -1
 }
 
 crée_literal :: fonc (valeur: ECMAString) -> *StringLiteral
@@ -483,7 +484,20 @@ crée_literal :: fonc (valeur: ECMAString) -> *StringLiteral
 sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *StringLiteral
-    retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), noeud.valeur))
+
+    realm := interpréteuse.tas_de_mémoire.realm
+
+    chn: *PrimitiveChaine
+    si noeud.index_chaine == -1 {
+        chn = crée_chaine(interpréteuse.donne_tas_de_mémoire(), noeud.valeur)
+        tableau_ajoute(*realm.chaines_littérales, chn)
+        noeud.index_chaine = realm.chaines_littérales.taille - 1
+    }
+    sinon {
+        chn = realm.chaines_littérales[noeud.index_chaine]
+    }
+
+    retourne normal_completion(chn)
 }
 
 /** \} */
