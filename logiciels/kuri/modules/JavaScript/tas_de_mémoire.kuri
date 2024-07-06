@@ -69,12 +69,20 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
     retourne bloc.alloue_cellule()
 }
 
+TypeÉbouage :: énum {
+    RAMASSE_MIETTES
+    /* À n'utiliser que pour la destruction. */
+    RAMASSE_TOUT
+}
+
 /* Ramasse les miettes. */
-éboue :: fonc (tas_de_mémoire: *TasDeMémoire)
+éboue :: fonc (tas_de_mémoire: *TasDeMémoire, type_ébouage := TypeÉbouage.RAMASSE_MIETTES)
 {
     racines: [..]*Cellule
     diffère déloge(racines)
-    rassemble_racines(tas_de_mémoire, *racines)
+    si type_ébouage == TypeÉbouage.RAMASSE_MIETTES {
+        rassemble_racines(tas_de_mémoire, *racines)
+    }
 
     cellules_vivantes: [..]*Cellule
     diffère déloge(cellules_vivantes)

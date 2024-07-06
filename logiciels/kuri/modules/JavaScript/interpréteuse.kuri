@@ -355,6 +355,7 @@ initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse @inutilisée)
 détruit_données_interpreteuse :: fonc (interpréteuse: &Interpréteuse)
 {
     déloge(interpréteuse.pile_scope)
+    éboue(*interpréteuse.tas_de_mémoire, TypeÉbouage.RAMASSE_TOUT)
     détruit_données_tas_de_mémoire(*interpréteuse.tas_de_mémoire)
 }
 
