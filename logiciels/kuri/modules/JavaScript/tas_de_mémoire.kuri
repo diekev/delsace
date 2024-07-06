@@ -40,6 +40,8 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
         si cellule {
             retourne cellule
         }
+
+        arrête
     }
 
     mémoire_bloc := loge_mémoire_alignée(BlocDeMémoire.TAILLE_BLOC comme z64, BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), PositionCodeSource())
