@@ -1088,9 +1088,7 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
                 retourne valeur_complétion
             }
 
-            valeur := valeur_complétion.valeur.V
-            assert(valeur.est_boolean())
-
+            valeur := to_boolean(valeur_complétion.valeur.V)
             si valeur.est_false() {
                 arrête
             }
