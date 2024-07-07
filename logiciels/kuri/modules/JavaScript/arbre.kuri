@@ -629,6 +629,56 @@ sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom BooleanLiteral
+ * \{ */
+
+BooleanLiteral :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_boolean_literal
+
+    valeur: bool
+}
+
+crée_boolean_literal :: fonc (valeur: bool) -> *BooleanLiteral
+{
+    résultat := loge(BooleanLiteral)
+    résultat.valeur = valeur
+    retourne résultat
+}
+
+sur_exécution_boolean_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
+{
+    noeud := base comme *BooleanLiteral
+    retourne normal_completion(Valeur(Boolean = noeud.valeur))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NullLiteral
+ * \{ */
+
+NullLiteral :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_null_literal
+}
+
+crée_null_literal :: fonc () -> *NullLiteral
+{
+    résultat := loge(NullLiteral)
+    retourne résultat
+}
+
+sur_exécution_null_literal :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
+{
+    retourne normal_completion(js_null)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom StringLiteral
  * \{ */
 
