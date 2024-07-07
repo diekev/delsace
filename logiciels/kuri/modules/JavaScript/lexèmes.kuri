@@ -255,7 +255,8 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
             retourne 13
         }
         PlusPlus,
-        MoinsMoins {
+        MoinsMoins,
+        Typeof {
             retourne 14
         }
         Point,

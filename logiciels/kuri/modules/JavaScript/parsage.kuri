@@ -583,6 +583,11 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         MoinsMoins {
             parseuse.rapporte_erreur("++/-- unaire non-géré")
         }
+        Typeof {
+            parseuse.consomme()
+            argument := parseuse.parse_expression_primaire()
+            retourne crée_typeof_operator(argument)
+        }
         sinon {
             parseuse.rapporte_erreur("genre de lexème non géré dans parse_expression_unaire")
         }
