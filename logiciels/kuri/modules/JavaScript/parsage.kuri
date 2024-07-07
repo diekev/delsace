@@ -444,18 +444,28 @@ donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> Bin
         SupérieurÉgal {
             retourne BinaryOperation.SupérieurÉgal
         }
-        EstÉgal {
-            retourne BinaryOperation.Égal
-        }
-        NEspaPasÉgal {
-            retourne BinaryOperation.Inégal
-        }
         sinon {
             panique("genre opérateur non-géré")
         }
     }
 
     retourne BinaryOperation.Plus
+}
+
+donne_opération_égalitaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> EqualityOperation
+{
+    discr genre {
+        EstÉgal {
+            retourne EqualityOperation.Égal
+        }
+        NEspaPasÉgal {
+            retourne EqualityOperation.Inégal
+        }
+        sinon {
+            panique("genre opérateur non-géré")
+        }
+    }
+    retourne EqualityOperation.Égal
 }
 
 parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, précédence: z32, associativité: Associativité) -> *NoeudSyntaxique
@@ -470,13 +480,18 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         Inférieur,
         Supérieur,
         InférieurÉgal,
-        SupérieurÉgal,
-        EstÉgal,
-        NEspaPasÉgal {
+        SupérieurÉgal {
             opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(précédence, associativité)
             retourne crée_binary_expression(opération, gauche, opérande_droite)
+        }
+        EstÉgal,
+        NEspaPasÉgal {
+            opération := donne_opération_égalitaire_pour_genre_lexème(lexème.genre)
+            parseuse.consomme()
+            opérande_droite := parseuse.parse_expression(précédence, associativité)
+            retourne crée_equality_expression(opération, gauche, opérande_droite)
         }
         PlusPlus,
         MoinsMoins {

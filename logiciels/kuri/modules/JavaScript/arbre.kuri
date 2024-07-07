@@ -212,9 +212,6 @@ BinaryOperation :: énum {
     Inférieur
     SupérieurÉgal
     InférieurÉgal
-
-    Égal
-    Inégal
 }
 
 BinaryExpression :: struct {
@@ -350,12 +347,6 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         InférieurÉgal {
             valeur = compare_inférieur_égal_valeurs(gauche, droite)
         }
-        Égal {
-            valeur = compare_égal_valeurs(gauche, droite)
-        }
-        Inégal {
-            valeur = compare_inégal_valeurs(gauche, droite)
-        }
     }
 
     retourne normal_completion(valeur)
@@ -417,18 +408,182 @@ compare_inférieur_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Val
     retourne Valeur(Boolean = gauche.Number <= droite.Number)
 }
 
-compare_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Boolean = gauche.Number == droite.Number)
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EqualityExpression
+ * \{ */
+
+EqualityOperation :: énum {
+    Égal
+    Inégal
 }
 
-compare_inégal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+EqualityExpression :: struct {
+    empl  base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_equality_expression
+
+    opération: EqualityOperation
+    gauche: *NoeudSyntaxique
+    droite: *NoeudSyntaxique
+}
+
+crée_equality_expression :: fonc (opération: EqualityOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *EqualityExpression
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Boolean = gauche.Number != droite.Number)
+    résultat := loge(EqualityExpression)
+    résultat.opération = opération
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-equality-operators-runtime-semantics-evaluation */
+sur_exécution_equality_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *EqualityExpression
+    completion_gauche := exécute_noeud(noeud.gauche, interpréteuse)
+    saufsi completion_gauche.est_normal() {
+        retourne completion_gauche
+    }
+    completion_droite := exécute_noeud(noeud.droite, interpréteuse)
+    saufsi completion_droite.est_normal() {
+        retourne completion_droite
+    }
+    valeur_complétion_gauche := get_value(interpréteuse, completion_gauche.valeur)
+    saufsi valeur_complétion_gauche.est_normal() {
+        retourne valeur_complétion_gauche
+    }
+    valeur_complétion_droite := get_value(interpréteuse, completion_droite.valeur)
+    saufsi valeur_complétion_droite.est_normal() {
+        retourne valeur_complétion_droite
+    }
+    gauche := valeur_complétion_gauche.valeur.V
+    droite := valeur_complétion_droite.valeur.V
+    
+    discr noeud.opération {
+        Égal {
+            retourne is_loosely_equal(interpréteuse, gauche, droite)
+        }
+        Inégal {
+            complétion := is_loosely_equal(interpréteuse, gauche, droite)
+            saufsi complétion.est_normal() {
+                retourne complétion
+            }
+            résultat := complétion.valeur.V
+            si résultat.est_true() {
+                retourne normal_completion(Valeur(Boolean = faux))
+            }
+            retourne normal_completion(Valeur(Boolean = vrai))
+        }
+        sinon {
+            panique("noeud.opération non-initialisé")
+        }
+    }
+}
+
+donne_type :: fonc (valeur: Valeur) -> z32
+{
+    info := info_de(Valeur)
+    index := mémoire(((*valeur comme *octet) + info.décalage_index) comme *z32)
+    retourne index
+}
+
+/* 7.2.12 IsLooselyEqual ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-islooselyequal */
+is_loosely_equal :: fonc (interpréteuse: &Interpréteuse @inutilisée, x: Valeur, y: Valeur) -> CompletionRecord
+{
+    // 1. If Type(x) is Type(y), then
+    si x.donne_type() == y.donne_type() {
+        // a. Return IsStrictlyEqual(x, y).
+        retourne normal_completion(is_stricty_equal(x, y))
+    }
+
+    // 2. If x is null and y is undefined, return true.
+    si x.est_nulle() && y.est_undefined() {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    // 3. If x is undefined and y is null, return true.
+    si x.est_undefined() && y.est_nulle() {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    panique("is_loosely_equal non-implémenté")
+    // 4. NOTE: This step is replaced in section B.3.6.2.
+    // 5. If x is a Number and y is a String, return ! IsLooselyEqual(x, ! ToNumber(y)).
+    // 6. If x is a String and y is a Number, return ! IsLooselyEqual(! ToNumber(x), y).
+    // 7. If x is a BigInt and y is a String, then
+    //     a. Let n be StringToBigInt(y).
+    //     b. If n is undefined, return false.
+    //     c. Return ! IsLooselyEqual(x, n).
+    // 8. If x is a String and y is a BigInt, return ! IsLooselyEqual(y, x).
+    // 9. If x is a Boolean, return ! IsLooselyEqual(! ToNumber(x), y).
+    // 10. If y is a Boolean, return ! IsLooselyEqual(x, ! ToNumber(y)).
+    // 11. If x is either a String, a Number, a BigInt, or a Symbol and y is an Object, return ! IsLooselyEqual(x, ? ToPrimitive(y)).
+    // 12. If x is an Object and y is either a String, a Number, a BigInt, or a Symbol, return ! IsLooselyEqual(? ToPrimitive(x), y).
+    // 13. If x is a BigInt and y is a Number, or if x is a Number and y is a BigInt, then
+    //     a. If x is not finite or y is not finite, return false.
+    //     b. If ℝ(x) = ℝ(y), return true; otherwise return false.
+    // 14. Return false.
+}
+
+/* 7.2.10 SameValueNonNumber ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-samevaluenonnumber */
+same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
+{
+    // 1. Assert: Type(x) is Type(y).
+
+    // 2. If x is either null or undefined, return true.
+    si x.est_nulle() || x.est_undefined() {
+        retourne Valeur(Boolean = vrai)
+    }
+
+    // À FAIRE(BigInt)
+    // 3. If x is a BigInt, then
+    // a. Return BigInt::equal(x, y).
+
+    // 4. If x is a String, then
+    si x.est_chaine() {
+        // a. If x and y have the same length and the same code units in the same positions, return true; otherwise, return false.
+        chnx := x.String
+        chny := y.String
+        retourne chnx.texte == chny.texte
+    }
+
+    // 5. If x is a Boolean, then
+    si x.est_boolean() {
+        // a. If x and y are both true or both false, return true; otherwise, return false.
+        boolx := x.Boolean
+        booly := y.Boolean
+        retourne boolx == booly
+    }
+
+    // 6. NOTE: All other ECMAScript language values are compared by identity.
+    // 7. If x is y, return true; otherwise, return false.
+    retourne x.donne_objet() == y.donne_objet()
+}
+
+/* 7.2.13 IsStrictlyEqual ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal */
+is_stricty_equal :: fonc (x: Valeur, y: Valeur) -> Valeur
+{
+    // 1. If Type(x) is not Type(y), return false.
+    si x.donne_type() != y.donne_type() {
+        retourne Valeur(Boolean = faux)
+    }
+
+    // 2. If x is a Number, then
+    si x.est_nombre() {
+        // a. Return Number::equal(x, y).
+        // À FAIRE : Numer::equal
+        valx := x.Number
+        valy := y.Number
+        retourne valx == valy
+    }
+
+    // 3. Return SameValueNonNumber(x, y).
+    retourne same_value_non_number(x, y)
 }
 
 /** \} */
