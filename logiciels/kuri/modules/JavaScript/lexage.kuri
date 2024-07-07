@@ -65,7 +65,7 @@ initialise_fanions_caractères :: fonc ()
             fanion |= (FanionCaractère.PeutSuivreOpérateur)
         }
 
-        si it == '"' {
+        si it == '"' || it == '\'' {
             fanion.DébuteChaineLittérale = vrai
         }
 
@@ -307,7 +307,7 @@ parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
     retourne convertis_nombre_scientifique_en_réel(données_nombre)
 }
 
-lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -> Résultat(Lexème, ErreurCompilation)
 {
     lexeuse.débute_lexème()
     /* N'incluons pas les guillemets. */
@@ -318,7 +318,7 @@ lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, E
     tantque !fini(lexeuse) {
         c := lexeuse.caractère_courant()
 
-        si c == '"' {
+        si c == caractère_final {
             eu_guillemet_fermant = vrai
             arrête
         }
@@ -413,7 +413,7 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
     fanion := fanions_caractères[c comme n8]
 
     si fanion.DébuteChaineLittérale {
-        retourne lèxe_chaine_littérale(lexeuse)
+        retourne lèxe_chaine_littérale(lexeuse, c)
     }
 
     si fanion.DébuteIdentifiant {
