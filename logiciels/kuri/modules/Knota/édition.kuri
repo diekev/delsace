@@ -493,3 +493,41 @@ donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: &CliqueSouris) -> 
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Zoom.
+ * \{ */
+
+applique_zoom :: fonc (graphe: *Graphe, souris: &CliqueSouris)
+{
+    delta := souris.delta
+
+    si delta == 0 {
+        retourne
+    }
+
+    valeur := graphe.zoom
+    si delta > 0 {
+        valeur *= Constantes(r32).PHI
+    }
+    sinon {
+        valeur *= Constantes(r32).PHI_INV
+    }
+
+    graphe.définis_zoom(valeur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Déplace le centre du graphe.
+ * \{ */
+
+déplace_graphe :: fonc (graphe: *Graphe, delta: Vec2)
+{
+    x := graphe.centre_x + delta.x
+    y := graphe.centre_y + delta.y
+    graphe.définis_position(x, y)
+}
+
+/** \} */
