@@ -94,6 +94,24 @@ est_undefined :: fonc (valeur: ValeurCompletion) -> bool
     }
 }
 
+est_empty :: fonc (valeur: ValeurCompletion) -> bool
+{
+    discr valeur {
+        R {
+            retourne faux
+        }
+        V {
+            retourne faux
+        }
+        P {
+            retourne faux
+        }
+        sinon {
+            retourne vrai
+        }
+    }
+}
+
 /* 6.2.5.3 IsSuperReference ( V )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-issuperreference */
 is_super_reference :: fonc (reference: ReferenceRecord) -> bool
@@ -296,6 +314,22 @@ return_completion :: fonc (valeur: Valeur) -> CompletionRecord
 return_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
 {
     retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
+}
+
+/* 6.2.4.3 UpdateEmpty ( completionRecord, value )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-updateempty */
+update_empty :: fonc (completion: CompletionRecord, valeur: Valeur) -> CompletionRecord
+{
+    // 1. Assert: If completionRecord is either a return completion or a throw completion, then completionRecord.[[Value]] is not empty.
+
+    // 2. If completionRecord.[[Value]] is not empty, return ? completionRecord.
+    saufsi completion.valeur.est_empty() {
+        retourne completion
+    }
+
+    // 3. Return Completion Record { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
+    completion.valeur = valeur
+    retourne completion
 }
 
 est_normal :: fonc (completion: CompletionRecord) -> bool
