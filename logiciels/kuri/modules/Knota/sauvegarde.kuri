@@ -1,0 +1,198 @@
+importe Sérialisation
+importe SysFichier
+
+/* ------------------------------------------------------------------------- */
+/** \nom Nombres magiques.
+ * \{ */
+
+nombre_magique_graphe :: fonc () -> [4]z8
+{
+    retourne [ 'G', 'R', 'A', 'P' ]
+}
+
+nombre_magique_connexion :: fonc () -> [4]z8
+{
+    retourne [ 'C', 'O', 'N', 'N' ]
+}
+
+nombre_magique_noeud :: fonc () -> [4]z8
+{
+    retourne [ 'N', 'O', 'E', 'U' ]
+}
+
+nombre_magique_table_de_noms_graphe :: fonc () -> [4]z8
+{
+    retourne [ 'N', 'O', 'M', 'G' ]
+}
+
+nombre_magique_cache_noeud :: fonc () -> [4]z8
+{
+    retourne [ 'C', 'A', 'N', 'O' ]
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sauvegarde de graphes via Sauvegardeuse.
+ * \{ */
+
+sauvegarde_graphe :: fonc (sauvegardeuse: *Sauvegardeuse, graphe: *Graphe)
+{
+    // Nombre magique pour un graphe.
+    écris_valeur(sauvegardeuse, nombre_magique_graphe())
+
+    // informations interface
+    écris_valeur(sauvegardeuse, graphe.zoom)
+    écris_valeur(sauvegardeuse, graphe.centre_x)
+    écris_valeur(sauvegardeuse, graphe.centre_y)
+
+    // noeud actif
+    si graphe.noeud_actif {
+        écris_chaine(sauvegardeuse, graphe.noeud_actif.nom)
+    }
+    sinon {
+        écris_chaine(sauvegardeuse, "")
+    }
+
+    sauvegarde_items(sauvegardeuse, graphe.items)
+    sauvegarde_connexions(sauvegardeuse, graphe.connexions)
+    sauvegarde_table_de_noms(sauvegardeuse, graphe)
+}
+
+sauvegarde_items :: fonc (sauvegardeuse: *Sauvegardeuse, items: []*ItemGraphe)
+{
+    écris_valeur(sauvegardeuse, items.taille)
+
+    pour items {
+        sauvegarde_un_noeud(sauvegardeuse, it comme *Noeud)
+    }
+}
+
+sauvegarde_un_noeud :: fonc (sauvegardeuse: *Sauvegardeuse, noeud: *Noeud)
+{
+    écris_valeur(sauvegardeuse, nombre_magique_noeud())
+
+    écris_chaine(sauvegardeuse, noeud.identifiant())
+    écris_chaine(sauvegardeuse, noeud.nom)
+    écris_valeur(sauvegardeuse, noeud.position.x)
+    écris_valeur(sauvegardeuse, noeud.position.y)
+    écris_valeur(sauvegardeuse, noeud.drapeau_rendu)
+
+    /* Prises entrées. */
+    écris_valeur(sauvegardeuse, noeud.entrées.taille)
+    pour noeud.entrées {
+        sauvegarde_une_prise(sauvegardeuse, it)
+    }
+
+    /* Prises sorties. */
+    écris_valeur(sauvegardeuse, noeud.sorties.taille)
+    pour noeud.sorties {
+        sauvegarde_une_prise(sauvegardeuse, it)
+    }
+
+    table_paramètres := noeud.table_paramètres
+    si table_paramètres {
+        sauvegarde_paramètres(sauvegardeuse, table_paramètres)
+    }
+
+    /* Cache utilisateur. */
+    sauvegarde_cache_utilisateur(sauvegardeuse, noeud)
+
+    sous_graphe := donne_sous_graphe(noeud)
+    si sous_graphe {
+        sauvegarde_graphe(sauvegardeuse, sous_graphe)
+    }
+}
+
+sauvegarde_paramètres :: fonc (sauvegardeuse: *Sauvegardeuse, table_paramètres: *TableParamètres)
+{
+    écris_valeur(sauvegardeuse, table_paramètres.paramètres.taille)
+
+    pour table_paramètres.paramètres {
+        écris_chaine(sauvegardeuse, it.nom)
+        écris_valeur(sauvegardeuse, it.type comme z32)
+
+        infos := it.valeur.info
+        écris_valeur(sauvegardeuse, infos.taille_en_octet)
+
+        discr it.type {
+            CHAINE,
+            CHEMIN_FICHIER_ENTRÉE,
+            CHEMIN_FICHIER_SORTIE,
+            DOSSIER,
+            TEXTE {
+                valeur := it.lis_valeur_chaine()
+                écris_chaine(sauvegardeuse, valeur)
+            }
+            sinon {
+                /* Écris la valeur.
+                 * À FAIRE : courbes et rampes. */
+                octets: [..]octet
+                octets.pointeur = it.valeur.pointeur
+                octets.taille = infos.taille_en_octet comme z64
+
+                sérialise(*sauvegardeuse.sérialiseuse, octets)
+            }
+        }
+    }
+}
+
+sauvegarde_cache_utilisateur :: fonc (sauvegardeuse: *Sauvegardeuse, noeud: *Noeud)
+{
+    écris_valeur(sauvegardeuse, nombre_magique_cache_noeud())
+
+    cache := noeud.donne_cache_utilisateur()
+    nombre_entrées_à_sauvegarder := 0
+
+    pour cache.entrées {
+        si it.doit_persister_sur_disque {
+            nombre_entrées_à_sauvegarder += 1
+        }
+    }
+
+    écris_valeur(sauvegardeuse, nombre_entrées_à_sauvegarder)
+
+    si nombre_entrées_à_sauvegarder == 0 {
+        retourne
+    }
+
+    pour cache.entrées {
+        écris_chaine(sauvegardeuse, it.nom)
+        écris_valeur(sauvegardeuse, it.valeur.taille)
+        sérialise(*sauvegardeuse.sérialiseuse, it.valeur)
+    }
+}
+
+sauvegarde_connexions :: fonc (sauvegardeuse: *Sauvegardeuse, connexions: []*Connexion)
+{
+    écris_valeur(sauvegardeuse, nombre_magique_connexion())
+    écris_valeur(sauvegardeuse, connexions.taille)
+
+    pour connexions {
+        écris_chaine(sauvegardeuse, it.prise_entrée.noeud_parent.nom)
+        écris_chaine(sauvegardeuse, it.prise_entrée.nom)
+        écris_chaine(sauvegardeuse, it.prise_sortie.noeud_parent.nom)
+        écris_chaine(sauvegardeuse, it.prise_sortie.nom)
+    }
+}
+
+sauvegarde_une_prise :: fonc (sauvegardeuse: *Sauvegardeuse, prise: *Prise)
+{
+    écris_chaine(sauvegardeuse, prise.nom)
+    écris_valeur(sauvegardeuse, prise.rectangle)
+}
+
+sauvegarde_table_de_noms :: fonc (sauvegardeuse: *Sauvegardeuse, graphe: *Graphe)
+{
+    table := *graphe.noms_noeuds_existants
+
+    écris_valeur(sauvegardeuse, nombre_magique_table_de_noms_graphe())
+    écris_valeur(sauvegardeuse, table.paires_nom_et_compte.taille)
+
+    pour table.paires_nom_et_compte {
+        écris_chaine(sauvegardeuse, it.nom)
+        écris_valeur(sauvegardeuse, it.compte)
+    }
+}
+
+/** \} */
