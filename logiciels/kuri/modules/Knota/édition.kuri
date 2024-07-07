@@ -463,3 +463,33 @@ sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: &CliqueSou
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Accès du sous-graphe d'un noeud via un clic.
+ * \{ */
+
+donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: &CliqueSouris) -> *Graphe
+{
+    sélection := graphe.sélection
+    sélection.clic(donne_point_2d_réel(souris.état.où))
+
+    éléments := sélection.donne_éléments_sélectionnés()
+    si éléments.taille != 1 {
+        graphe.définis_noeud_actif(nul)
+        retourne nul
+    }
+
+    item := graphe.items[éléments[0]]
+    assert(item != nul)
+
+    saufsi item.type_item == Noeud {
+        graphe.définis_noeud_actif(nul)
+        retourne nul
+    }
+
+    noeud := item comme *Noeud
+    graphe.définis_noeud_actif(noeud)
+    retourne noeud.donne_sous_graphe()
+}
+
+/** \} */
