@@ -201,6 +201,13 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
         parseuse.consomme()
         init = parseuse.parse_expression()
     }
+    sinon si apparie(parseuse, GenreLexème.PointVirgule) {
+        parseuse.consomme()
+    }
+    sinon {
+        parseuse.rapporte_erreur("Attendu '=' ou ';' après l'identifiant")
+        retourne nul
+    }
 
     declarator := crée_variable_declarator(id, init)
 
