@@ -1272,6 +1272,22 @@ détruit_graphe :: fonc (graphe: *Graphe)
     }
 }
 
+arrête_observation_graphe :: fonc (base: *Observatrice, graphe: *Graphe)
+{
+    supprime_observatrice(graphe, base)
+    pour graphe.items {
+        supprime_observatrice(it, base)
+    }
+}
+
+observe_graphe :: fonc (base: *Observatrice, graphe: *Graphe)
+{
+    ajoute_observatrice(graphe, base)
+    pour graphe.items {
+        ajoute_observatrice(it, base)
+    }
+}
+
 identifiant_graphe :: fonc (graphe: *Graphe) -> chaine
 {
     /* Les graphes racines n'ont pas d'infos. */
