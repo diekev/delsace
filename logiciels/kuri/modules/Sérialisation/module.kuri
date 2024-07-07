@@ -444,3 +444,108 @@ marque_position_écriture_table_des_chaines :: fonc (sauvegardeuse: *Sauvegardeu
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Lectrice
+ * Structure contenant les données du fichiers à lire.
+ * \{ */
+
+Lectrice :: struct {
+    table_des_chaines: TableDeChaine
+
+    données_fichier: [..]octet
+    curseur: *octet
+
+    sur_rapporte_erreur: fonc(*Lectrice, chaine, ...eini)(rien)
+}
+
+initialise_lectrice :: fonc (lectrice: *Lectrice, données_fichier: [..]octet)
+{
+    lectrice.données_fichier = données_fichier
+    lectrice.curseur = lectrice.données_fichier.pointeur
+}
+
+rapporte_erreur :: fonc (base: *Lectrice, message: chaine, args: ...eini)
+{
+    si base.sur_rapporte_erreur {
+        base.sur_rapporte_erreur(base, message, ...args)
+    }
+}
+
+détruit_lectrice :: fonc (lectrice: *Lectrice, préserve_données := faux)
+{
+    détruit_table_des_chaines(*lectrice.table_des_chaines)
+    saufsi préserve_données {
+        déloge(lectrice.données_fichier)
+    }
+}
+
+lis_nombre_magique :: fonc (lectrice: *Lectrice, nombre_magique: [4]z8) -> bool
+{
+    valeur := lectrice.lis_valeur_typée([4]z8)
+
+    pour nombre_magique {
+        si it != valeur[index_it] {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+lis_valeur_typée :: fonc (lectrice: *Lectrice, $T: type_de_données) -> T
+{
+    taille := taille_de(T) comme z64
+    résultat: T
+
+    copie_mem_nonsur(src = lectrice.curseur, dst = *résultat, taille = taille)
+
+    lectrice.curseur += taille
+
+    retourne résultat
+}
+
+lis_chaine :: fonc (lectrice: *Lectrice) -> chaine
+{
+    index := lis_valeur_typée(lectrice, z64)
+    retourne lectrice.table_des_chaines.chaines[index]
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Lecture de la table des chaines.
+ * \{ */
+
+lis_table_des_chaines :: fonc (lectrice: *Lectrice)
+{
+    décalage := lis_valeur_typée(lectrice, z64)
+
+    ancien_curseur := lectrice.curseur
+    diffère lectrice.curseur = ancien_curseur
+
+    lectrice.curseur = lectrice.données_fichier.pointeur + décalage
+
+    table := *lectrice.table_des_chaines
+    table.provient_d_un_fichier = vrai
+
+    nombre_de_chaines := lis_valeur_typée(lectrice, z64)
+
+    table.index.taille = nombre_de_chaines + 1
+    table.index.pointeur = lectrice.curseur comme *z64
+
+    lectrice.curseur += (nombre_de_chaines + 1) * taille_de(z64) comme z64
+
+    pour nombre_de_chaines {
+        taille_chaine := table.index[index_it + 1] - table.index[index_it]
+
+        chn: chaine
+        chn.taille = taille_chaine
+        chn.pointeur = lectrice.curseur comme *z8
+        tableau_ajoute(*table.chaines, chn)
+
+        lectrice.curseur += chn.taille
+    }
+}
+
+/** \} */
