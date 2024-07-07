@@ -431,3 +431,35 @@ décale_verticalement_noeuds_en_aval :: fonc (amont: *Noeud, décalage: r32)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Noeud pour information.
+ * \{ */
+
+sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: &CliqueSouris) -> bool
+{
+    sélection := graphe.sélection
+    sélection.clic(donne_point_2d_réel(souris.état.où))
+
+    éléments := sélection.donne_éléments_sélectionnés()
+    si éléments.taille != 1 {
+        graphe.définis_noeud_actif(nul)
+        retourne faux
+    }
+
+    item := graphe.items[éléments[0]]
+    assert(item != nul)
+
+    saufsi item.type_item == Noeud {
+        graphe.définis_noeud_actif(nul)
+        retourne faux
+    }
+
+    noeud := item comme *Noeud
+
+    graphe.définis_noeud_pour_information(noeud)
+    graphe.définis_noeud_actif(noeud)
+    retourne vrai
+}
+
+/** \} */
