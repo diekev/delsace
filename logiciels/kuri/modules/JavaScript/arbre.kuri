@@ -1113,6 +1113,72 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom IfStatement
+ * \{ */
+
+IfStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_if_statement
+
+    test: *NoeudSyntaxique
+    consequent: *NoeudSyntaxique
+    alternate: *NoeudSyntaxique
+}
+
+crée_if_statement :: fonc (test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *IfStatement
+{
+    résultat := loge(IfStatement)
+    résultat.test = test
+    résultat.consequent = consequent
+    résultat.alternate = alternate
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-if-statement */
+sur_exécution_if_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    if := base comme *IfStatement
+
+    // 1. Let exprRef be ? Evaluation of Expression.
+    complétion_expr_ref := exécute_noeud(if.test, interpréteuse)
+    saufsi complétion_expr_ref.est_normal() {
+        retourne complétion_expr_ref
+    }
+    expr_ref := complétion_expr_ref.valeur
+
+    // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
+    complétion_valeur_expr_ref := get_value(interpréteuse, expr_ref)
+    saufsi complétion_valeur_expr_ref.est_normal() {
+        retourne complétion_valeur_expr_ref
+    }
+    expr_value := to_boolean(complétion_valeur_expr_ref.valeur.V)
+
+    stmt_completion: CompletionRecord
+
+    // 3. If exprValue is true, then
+    si expr_value.est_true() {
+        // a. Let stmtCompletion be Completion(Evaluation of the first Statement).
+        stmt_completion = exécute_noeud(if.consequent, interpréteuse)
+    }
+    // 4. Else,
+    sinon {
+        si if.alternate == nul {
+            /* NOTE : ceci provient du deuxième cas. */
+            retourne normal_completion(js_undefined)
+        }
+
+        // a. Let stmtCompletion be Completion(Evaluation of the second Statement).
+        stmt_completion = exécute_noeud(if.alternate, interpréteuse)
+    }
+
+    // 5. Return ? UpdateEmpty(stmtCompletion, undefined).
+    retourne update_empty(stmt_completion, js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 

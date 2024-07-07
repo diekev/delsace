@@ -138,6 +138,9 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         For {
             retourne parse_for_statement(parseuse)
         }
+        If {
+            retourne parse_if_statement(parseuse)
+        }
         sinon {
             panique("Instruction inconnue")
         }
@@ -279,6 +282,52 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *ForStatement
     }
 
     retourne crée_for_statement(init, test, update, body)
+}
+
+parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement
+{
+    parseuse.consomme()
+
+    saufsi parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse ouvrante")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    test := parseuse.parse_expression()
+
+    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse fermante")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    consequent := parseuse.parse_bloc_statement_ou_expression()
+
+    alternate: *NoeudSyntaxique
+    si parseuse.apparie(GenreLexème.Else) {
+        parseuse.consomme()
+
+        si parseuse.apparie(GenreLexème.If) {
+            alternate = parseuse.parse_if_statement()
+        }
+        sinon {
+            alternate = parseuse.parse_bloc_statement_ou_expression()
+        }
+    }
+
+    retourne crée_if_statement(test, consequent, alternate)
+}
+
+parse_bloc_statement_ou_expression :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
+{
+    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+        expressions := parse_bloc(parseuse, vrai)
+        diffère déloge(expressions)
+        retourne crée_block_statement(...expressions)
+    }
+
+    retourne parseuse.parse_expression()
 }
 
 parse_expression :: fonc (parseuse: *Parseuse, précédence : z32 = 0, associativité : Associativité = Associativité.Gauche) -> *NoeudSyntaxique
