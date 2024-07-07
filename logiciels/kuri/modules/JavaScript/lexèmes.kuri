@@ -40,6 +40,8 @@ GenreLexème :: énum {
     NonBinaireÉgal
     EstÉgal
     NEspaPasÉgal
+    EstÉgalStrict
+    NEspaPasÉgalStrict
     PlusPlus
     MoinsMoins
 
@@ -171,6 +173,8 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         NonBinaireÉgal,
         EstÉgal,
         NEspaPasÉgal,
+        EstÉgalStrict,
+        NEspaPasÉgalStrict,
         Point,
         ParenthèseOuvrante,
         CrochetOuvrant {
@@ -226,7 +230,9 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
             retourne 7
         }
         EstÉgal,
-        NEspaPasÉgal {
+        NEspaPasÉgal,
+        EstÉgalStrict,
+        NEspaPasÉgalStrict {
             retourne 8
         }
         Inférieur,
@@ -347,6 +353,8 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         NonBinaireÉgal,
         EstÉgal,
         NEspaPasÉgal,
+        EstÉgalStrict,
+        NEspaPasÉgalStrict,
         Point,
         ParenthèseOuvrante,
         CrochetOuvrant {

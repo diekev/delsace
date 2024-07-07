@@ -461,6 +461,12 @@ donne_opération_égalitaire_pour_genre_lexème :: fonc (genre: GenreLexème) ->
         NEspaPasÉgal {
             retourne EqualityOperation.Inégal
         }
+        EstÉgalStrict {
+            retourne EqualityOperation.ÉgalStrict
+        }
+        NEspaPasÉgalStrict {
+            retourne EqualityOperation.InégalStrict
+        }
         sinon {
             panique("genre opérateur non-géré")
         }
@@ -487,7 +493,9 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             retourne crée_binary_expression(opération, gauche, opérande_droite)
         }
         EstÉgal,
-        NEspaPasÉgal {
+        NEspaPasÉgal,
+        EstÉgalStrict,
+        NEspaPasÉgalStrict {
             opération := donne_opération_égalitaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(précédence, associativité)
