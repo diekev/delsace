@@ -1,3 +1,4 @@
+importe Ensemble
 importe Fondation
 importe Fràtzala
 importe Géométrie
@@ -528,6 +529,61 @@ déplace_graphe :: fonc (graphe: *Graphe, delta: Vec2)
     x := graphe.centre_x + delta.x
     y := graphe.centre_y + delta.y
     graphe.définis_position(x, y)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Copie de la sélection.
+ * \{ */
+
+TypeMimeCopieNoeud :: "knota/copie-noeud"
+
+crée_fichier_de_copie_pour_sélection :: fonc (graphe: *Graphe) -> Optionnel([..]octet)
+{
+    sélection := graphe.sélection
+    éléments := sélection.donne_éléments_sélectionnés()
+
+    si éléments.taille == 0 {
+        retourne
+    }
+
+    noeuds_à_copier: [..]*ItemGraphe
+    connexions_à_copier: [..]*Connexion
+
+    pour éléments {
+        item := graphe.items[éléments[0]]
+        saufsi item.type_item == Noeud {
+            continue
+        }
+
+        ensemble_ajoute(*noeuds_à_copier, item)
+    }
+
+    pour noeuds_à_copier {
+        noeud := it comme *Noeud
+        pour entrée dans noeud.entrées {
+            saufsi entrée.connexion {
+                continue
+            }
+
+            noeud_sortie := entrée.connexion.donne_noeud_sortie()
+            si ensemble_possède(*noeuds_à_copier, noeud_sortie) {
+                ensemble_ajoute(*connexions_à_copier, entrée.connexion)
+            }
+        }
+
+        pour sortie dans noeud.sorties {
+            pour connexion dans sortie.connexions {
+                noeud_entrée := connexion.donne_noeud_entrée()
+                si ensemble_possède(*noeuds_à_copier, noeud_entrée) {
+                    ensemble_ajoute(*connexions_à_copier, connexion)
+                }
+            }
+        }
+    }
+
+    retourne crée_fichier_de_copie(noeuds_à_copier, connexions_à_copier)
 }
 
 /** \} */

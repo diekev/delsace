@@ -1,6 +1,7 @@
 importe Fràtzala
 importe Fondation
 importe Géométrie
+importe Périphériques
 importe Sérialisation
 importe SysFichier
 
@@ -31,6 +32,11 @@ nombre_magique_table_de_noms_graphe :: fonc () -> [4]z8
 nombre_magique_cache_noeud :: fonc () -> [4]z8
 {
     retourne [ 'C', 'A', 'N', 'O' ]
+}
+
+nombre_magique_fichier_copie :: fonc () -> [4]z8
+{
+    retourne [ 'C', 'O', 'P', 'I' ]
 }
 
 /** \} */
@@ -678,6 +684,82 @@ lis_table_des_noms :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
         paire.nom = copie_chaine(nom)
         paire.compte = compte
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fichiers de copie.
+ * \{ */
+
+crée_fichier_de_copie :: fonc (items: []*ItemGraphe, connexions: []*Connexion) -> [..]octet
+{
+    sauvegardeuse: Sauvegardeuse
+    initialise_sauvegardeuse(*sauvegardeuse)
+    diffère détruit_sauvegardeuse(*sauvegardeuse, faux)
+
+    // Nombre magique pour un fichier de copie.
+    écris_valeur(*sauvegardeuse, nombre_magique_fichier_copie())
+
+    // décalage pour la table de chaines
+    marque_position_écriture_table_des_chaines(*sauvegardeuse)
+
+    sauvegarde_items(*sauvegardeuse, items)
+    sauvegarde_connexions(*sauvegardeuse, connexions)
+
+    écris_table_des_chaines(*sauvegardeuse)
+
+    retourne aplatis_fichier(sauvegardeuse.fichier)
+}
+
+lis_fichier_copie :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe, souris: *ÉtatSouris)
+{
+    saufsi lis_nombre_magique(lectrice, nombre_magique_fichier_copie()) {
+        rapporte_erreur(lectrice, "Impossible de lire la copie, le nombre magique est erroné.")
+        retourne
+    }
+
+    lis_table_des_chaines(lectrice)
+
+    graphe_tmp: Graphe
+    graphe_tmp.infos = graphe.infos
+    graphe_tmp.table_noeuds = graphe.table_noeuds
+    diffère détruit_graphe(*graphe_tmp)
+
+    lis_noeuds(lectrice, *graphe_tmp)
+    lis_connexions(lectrice, *graphe_tmp)
+
+    delta_pos_x := souris.où.x comme r32 - graphe_tmp.items[0].position.x
+    delta_pos_y := souris.où.y comme r32 - graphe_tmp.items[0].position.y
+
+    sélection := graphe.sélection
+
+    pour graphe_tmp.items {
+        it.position.x += delta_pos_x
+        it.position.y += delta_pos_y
+        // À FAIRE(items)
+        graphe.insère_noeud(it comme *Noeud, faux)
+
+        /* Garantis nom unique. */
+        nom := it.nom
+        it.nom = ""
+        it.définis_nom(nom)
+        déloge(nom)
+
+        /* Sélectionne */
+        si index_it == 0 {
+            sélection.clic(it.position)
+        }
+        sinon {
+            sélection.clic_majuscule(it.position)
+        }
+    }
+    graphe_tmp.items.taille = 0
+
+    pour graphe_tmp.connexions {
+        tableau_ajoute(*graphe.connexions, it)
+    }
+    graphe_tmp.connexions.taille = 0
 }
 
 /** \} */
