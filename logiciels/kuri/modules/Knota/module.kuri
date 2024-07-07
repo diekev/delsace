@@ -11,6 +11,7 @@ charge "danjo"
 charge "édition"
 charge "graphviz"
 charge "paramètres"
+charge "rendu_qt"
 charge "sauvegarde"
 
 /* ------------------------------------------------------------------------- */
