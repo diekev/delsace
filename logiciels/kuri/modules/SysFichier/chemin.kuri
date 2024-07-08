@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe Structures
 importe POSIX
@@ -438,25 +439,19 @@ est_chemin_parent_de :: fonc (base: CheminFichier, chemin: CheminFichier) -> boo
  */
 développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, chaine)
 {
-    tampon : [TAILLE_MAX_CHEMIN]z8
+    tampon: TamponChemin
 
     chn := chemin.chn
-
-    sortie := *tampon[0]
-    fin_sortie := sortie + TAILLE_MAX_CHEMIN
 
     index : z64 = 0
     tantque index < chn.taille {
         it := chn.pointeur[index]
 
         si it != '$' {
-            mémoire(sortie) = it
-            sortie += 1
-            index += 1
-
-            si sortie == fin_sortie {
+            saufsi ajoute(*tampon, it) {
                 retourne copie_chaine("Résultat trop grand pour la sortie")
             }
+            index += 1
             continue
         }
 
@@ -499,9 +494,9 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
                 retourne copie_chaine("Nom de variable vide entre '{}'")
             }
 
-            sortie = copie_variable_environnement(sortie, fin_sortie, mot)
-            saufsi sortie {
-                retourne imprime_chaine("Valeur de variable '%' inexistante ou trop longue pour la sortie", mot)
+            opt_erreur := copie_variable_environnement(*tampon, mot)
+            si opt_erreur.possède_valeur() {
+                retourne opt_erreur.Quelque
             }
             continue
         }
@@ -524,44 +519,134 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
             retourne copie_chaine("Nom de variable vide entre '$/'")
         }
 
-        sortie = copie_variable_environnement(sortie, fin_sortie, mot)
-        saufsi sortie {
-            retourne imprime_chaine("Valeur de variable '%' inexistante ou trop longue pour la sortie", mot)
+        opt_erreur := copie_variable_environnement(*tampon, mot)
+        si opt_erreur.possède_valeur() {
+            retourne opt_erreur.Quelque
         }
     }
 
-    début_tampon := *tampon[0]
-    /* sortie dépasse la fin de 1 donc inutile d'ajouter 1. */
-    taille_résultat := (sortie - début_tampon)
-
-    résultat: chaine = ---
-    résultat.pointeur = début_tampon
-    résultat.taille = taille_résultat
-
-    retourne CheminFichier(copie_chaine(résultat))
+    retourne donne_copie_chemin(*tampon)
 }
 
-/* Copie la valeur de la variable d'environnement dans la sortie et retourne un
- * pointeur se situant à la fin de l'insertion.
- * Si la copie est impossible, retourne nul.
+/* Copie la valeur de la variable d'environnement dans le tampon.
+ * Si la copie est impossible, retourne une erreur.
  */
-copie_variable_environnement :: fonc (résultat: *z8, fin_résultat: *z8, variable: chaine) -> *z8
+copie_variable_environnement :: fonc (tampon: *TamponChemin, variable: chaine) -> Optionnel(chaine)
 {
     valeur := chaine_environnement(variable)
     saufsi valeur {
-        retourne nul
+        retourne imprime_chaine("Variable d'environnement '%' introuvable", valeur)
     }
 
-    si résultat + valeur.taille >= fin_résultat {
-        retourne nul
+    saufsi ajoute(tampon, valeur) {
+        retourne imprime_chaine("Variable d'environnement '%' trop longue pour la sortie", valeur)
     }
+}
 
-    pour valeur {
-        mémoire(résultat) = it
-        résultat += 1
-    }
+/** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom TamponChemin
+ * Structure auxiliaire pour créer des chemins de fichier.
+ * La structure respectent la taille maximale d'un chemin pour le système.
+ * La structure peut-être réutilisée en sauvegardant la position d'insertion,
+ * permettant ainsi de créer plusieurs chemins depuis un dossier en évitant
+ * les allocations inutiles.
+ * \{ */
+
+TamponChemin :: struct {
+    /* +1 pour le terminateur des chaines C */
+    données : [TAILLE_MAX_CHEMIN + 1]z8 = ---
+    occupés: z32
+    sauvegarde: z32
+}
+
+donne_copie_chemin :: fonc (tampon: *TamponChemin) -> CheminFichier
+{
+    retourne CheminFichier(copie_chaine(donne_chaine_statique(tampon)))
+}
+
+donne_chaine_statique :: fonc (tampon: *TamponChemin) -> chaine
+{
+    résultat : chaine = ---
+    résultat.pointeur = *tampon.données[0]
+    résultat.taille = tampon.occupés
     retourne résultat
+}
+
+donne_chaine_c_statique :: fonc (tampon: *TamponChemin) -> ChaineC
+{
+    tampon.données[tampon.occupés] = '\0'
+    retourne ChaineC(*tampon.données[0])
+}
+
+ajoute :: fonc (tampon: *TamponChemin, chn: chaine) -> bool
+{
+    saufsi chn {
+        retourne vrai
+    }
+
+    si chn[0] == séparateur_chemin() && donne_dernier_caractère(tampon) == séparateur_chemin() {
+        chn = avance(chn, 1)
+    }
+
+    saufsi chn {
+        retourne vrai
+    }
+
+    si tampon.occupés + chn.taille > TAILLE_MAX_CHEMIN {
+        retourne faux
+    }
+
+    src := chn.pointeur
+    dst := *tampon.données[tampon.occupés]
+    taille := chn.taille
+
+    copie_mem_nonsur(src = src, dst = dst, taille = taille)
+
+    tampon.occupés += chn.taille comme z32
+    retourne vrai
+}
+
+ajoute :: fonc (tampon: *TamponChemin, caractère: z8) -> bool
+{
+    si caractère == séparateur_chemin() && tampon.donne_dernier_caractère() == caractère {
+        retourne vrai
+    }
+
+    si tampon.occupés + 1 > TAILLE_MAX_CHEMIN {
+        retourne faux
+    }
+
+    tampon.données[tampon.occupés] = caractère
+    tampon.occupés += 1
+    retourne vrai
+}
+
+ajoute_avec_séparateur :: fonc (tampon: *TamponChemin, chn: chaine) -> bool
+{
+    saufsi ajoute(tampon, séparateur_fichier()) {
+        retourne faux
+    }
+    retourne ajoute(tampon, chn)
+}
+
+donne_dernier_caractère :: fonc (tampon: *TamponChemin) -> z8
+{
+    si tampon.occupés == 0 {
+        retourne 0
+    }
+    retourne tampon.données[tampon.occupés - 1]
+}
+
+sauvegarde_position :: fonc (tampon: *TamponChemin)
+{
+    tampon.sauvegarde = tampon.occupés
+}
+
+restore_position :: fonc (tampon: *TamponChemin)
+{
+    tampon.occupés = tampon.sauvegarde
 }
 
 /** \} */
