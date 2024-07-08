@@ -48,10 +48,35 @@ RésultatExécutionCommande :: énum {
     ANNULÉ
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom GroupeDeCommandes
+ * \{ */
+
 IDGroupeCommande :: z32
 
+GroupeDeCommandes :: struct {
+    groupe_parent: *GroupeDeCommandes
+    nom: chaine
+
+    commandes: [..]*Commande
+    id: IDGroupeCommande
+}
+
+ajoute_commande :: fonc (groupe: *GroupeDeCommandes, nom: chaine) -> *Commande
+{
+    résultat := loge(Commande)
+    tableau_ajoute(*groupe.commandes, résultat)
+    résultat.nom = nom
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Commande
+ * \{ */
+
 Commande :: struct {
-    contexte: IDGroupeCommande
     nom: chaine
     raccourcis: Optionnel(RaccourcisClavier)
     bouton_souris: Optionnel(BoutonSouris)
@@ -63,11 +88,59 @@ Commande :: struct {
     termine_modal: fonc(*ContexteExécutionCommande)(rien)
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom GestionnaireCommande
+ * \{ */
+
 GestionnaireCommande :: struct {
-    commandes: [..]*Commande
+    groupes: [..]*GroupeDeCommandes
 
     ctx_modal: ContexteExécutionCommande
     commande_modale: *Commande
+}
+
+détruit_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
+{
+    pour gestionnaire.groupes {
+        déloge_tableau_et_ses_éléments(it.commandes)
+    }
+    déloge_tableau_et_ses_éléments(gestionnaire.groupes)
+    déloge(gestionnaire)
+}
+
+crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, id: IDGroupeCommande, nom: chaine) -> *GroupeDeCommandes
+{
+    existant := trouve_groupe_pour_id(gestionnaire, id)
+    si existant {
+        retourne existant
+    }
+
+    résultat := loge(GroupeDeCommandes)
+    tableau_ajoute(*gestionnaire.groupes, résultat)
+    résultat.nom = nom
+    résultat.id = id
+    retourne résultat
+}
+
+crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, parent: *GroupeDeCommandes, id: IDGroupeCommande, nom: chaine) -> *GroupeDeCommandes
+{
+    résultat := crée_groupe(gestionnaire, id, nom)
+    assert(résultat.groupe_parent == nul)
+    résultat.groupe_parent = parent
+    retourne résultat
+}
+
+trouve_groupe_pour_id :: fonc (gestionnaire: *GestionnaireCommande, id: IDGroupeCommande) -> *GroupeDeCommandes
+{
+    pour gestionnaire.groupes {
+        si it.id == id {
+            retourne it
+        }
+    }
+
+    retourne nul
 }
 
 sauvegarde_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, commande_modale: *Commande, ctx: *ContexteExécutionCommande)
@@ -76,41 +149,28 @@ sauvegarde_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, command
     gestionnaire.ctx_modal = mémoire(ctx)
 }
 
-détruit_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
-{
-    déloge_tableau_et_ses_éléments(gestionnaire.commandes)
-    déloge(gestionnaire)
-}
-
-ajoute_commande :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, nom: chaine) -> *Commande
-{
-    résultat := loge(Commande)
-    tableau_ajoute(*gestionnaire.commandes, résultat)
-    résultat.nom = nom
-    résultat.contexte = contexte
-    retourne résultat
-}
-
 trouve_commande_pour_clique :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, souris: CliqueSouris) -> *Commande
 {
-    pour gestionnaire.commandes {
-        si it.contexte != contexte {
-            continue
+    groupe := trouve_groupe_pour_id(gestionnaire, contexte)
+
+    tantque groupe != nul {
+        pour groupe.commandes {
+            saufsi a_valeur(it.bouton_souris, souris.bouton) {
+                continue
+            }
+
+            saufsi a_valeur(it.action_souris, souris.action) {
+                continue
+            }
+
+            si souris.état.modificateur != ModificateurClavier.zéro && !a_valeur(it.modificateur, souris.état.modificateur) {
+                continue
+            }
+
+            retourne it
         }
 
-        saufsi a_valeur(it.bouton_souris, souris.bouton) {
-            continue
-        }
-
-        saufsi a_valeur(it.action_souris, souris.action) {
-            continue
-        }
-
-        si souris.état.modificateur != ModificateurClavier.zéro && !a_valeur(it.modificateur, souris.état.modificateur) {
-            continue
-        }
-
-        retourne it
+        groupe = groupe.groupe_parent
     }
 
     retourne nul
@@ -118,16 +178,18 @@ trouve_commande_pour_clique :: fonc (gestionnaire: *GestionnaireCommande, contex
 
 trouve_commande_pour_raccourcis :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, raccourcis: RaccourcisClavier) -> *Commande
 {
-    pour gestionnaire.commandes {
-        si it.contexte != contexte {
-            continue
+    groupe := trouve_groupe_pour_id(gestionnaire, contexte)
+
+    tantque groupe != nul {
+        pour groupe.commandes {
+            saufsi a_valeur(it.raccourcis, raccourcis) {
+                continue
+            }
+
+            retourne it
         }
 
-        saufsi a_valeur(it.raccourcis, raccourcis) {
-            continue
-        }
-
-        retourne it
+        groupe = groupe.groupe_parent
     }
 
     retourne nul
@@ -135,12 +197,14 @@ trouve_commande_pour_raccourcis :: fonc (gestionnaire: *GestionnaireCommande, co
 
 trouve_commande_pour_nom :: fonc (gestionnaire: *GestionnaireCommande, nom: chaine) -> *Commande
 {
-    pour gestionnaire.commandes {
-        si it.nom != nom {
-            continue
-        }
+    pour gestionnaire.groupes {
+        pour commande dans it.commandes {
+            si commande.nom != nom {
+                continue
+            }
 
-        retourne it
+            retourne commande
+        }
     }
 
     retourne nul
@@ -258,3 +322,5 @@ achève_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *Cont
     gestionnaire.ctx_modal = ContexteExécutionCommande()
     retourne vrai
 }
+
+/** \} */
