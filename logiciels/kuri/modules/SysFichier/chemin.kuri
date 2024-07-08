@@ -434,7 +434,7 @@ est_chemin_parent_de :: fonc (base: CheminFichier, chemin: CheminFichier) -> boo
  * Pour la première forme, l'extraction du nom de la variable s'arrête au premier slash.
  * Pour la deuxième forme, tous les caractères entre les accolades sont condidérés.
  *
- * Cette fonction n'est pas récurisve : si une variable d'environnement possède une
+ * Cette fonction n'est pas récursive : si une variable d'environnement possède une
  * référence à une autre variable elle ne sera pas développée.
  */
 développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, chaine)
