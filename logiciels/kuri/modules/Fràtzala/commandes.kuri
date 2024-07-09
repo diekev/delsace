@@ -88,6 +88,27 @@ Commande :: struct {
     termine_modal: fonc(*ContexteExécutionCommande)(rien)
 }
 
+est_commande_clavier :: fonc (commande: *Commande) -> bool
+{
+    saufsi commande.raccourcis.possède_valeur() {
+        retourne faux
+    }
+
+    si commande.bouton_souris.possède_valeur() {
+        retourne faux
+    }
+
+    si commande.action_souris.possède_valeur() {
+        retourne faux
+    }
+
+    si commande.modificateur.possède_valeur() {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
