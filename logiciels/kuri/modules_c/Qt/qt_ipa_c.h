@@ -1101,11 +1101,20 @@ enum QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void);
 /** \name QT_Shortcut
  * \{ */
 
+#define ENUMERE_SHORTCUT_CONTEXTS(O)                                                              \
+    O(QT_SHORTCUT_CONTEXT_WidgetShortcut, Qt::WidgetShortcut)                                     \
+    O(QT_SHORTCUT_CONTEXT_WidgetWithChildrenShortcut, Qt::WidgetWithChildrenShortcut)             \
+    O(QT_SHORTCUT_CONTEXT_WindowShortcut, Qt::WindowShortcut)                                     \
+    O(QT_SHORTCUT_CONTEXT_ApplicationShortcut, Qt::ApplicationShortcut)
+
+enum QT_Shortcut_Context { ENUMERE_SHORTCUT_CONTEXTS(ENUMERE_DECLARATION_ENUM_IPA) };
+
 struct QT_Shortcut *QT_shortcut_cree(union QT_Generic_Widget parent);
 void QT_shortcut_definis_touches(struct QT_Shortcut *shortcut,
                                  enum QT_Keyboard_Modifier mod,
                                  enum QT_Key key);
 void QT_shortcut_sur_activation(struct QT_Shortcut *shortcut, struct QT_Rappel_Generique *rappel);
+void QT_shortcut_definis_contexte(struct QT_Shortcut *shortcut, enum QT_Shortcut_Context context);
 
 /** \} */
 

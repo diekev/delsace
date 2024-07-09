@@ -904,6 +904,14 @@ static QT_Key qt_key_vers_ipa(Qt::Key key)
 /** \name QT_Shortcut
  * \{ */
 
+static Qt::ShortcutContext convertis_shortcut_context(QT_Shortcut_Context context)
+{
+    switch (context) {
+        ENUMERE_SHORTCUT_CONTEXTS(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::WindowShortcut;
+}
+
 QT_Shortcut *QT_shortcut_cree(QT_Generic_Widget parent)
 {
     VERS_QT(parent);
@@ -926,6 +934,12 @@ void QT_shortcut_sur_activation(QT_Shortcut *shortcut, QT_Rappel_Generique *rapp
 
     VERS_QT(shortcut);
     QObject::connect(qshortcut, &QShortcut::activated, [=]() { rappel->sur_rappel(rappel); });
+}
+
+void QT_shortcut_definis_contexte(struct QT_Shortcut *shortcut, enum QT_Shortcut_Context context)
+{
+    VERS_QT(shortcut);
+    qshortcut->setContext(convertis_shortcut_context(context));
 }
 
 /** \} */
