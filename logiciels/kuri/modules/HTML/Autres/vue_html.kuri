@@ -667,6 +667,7 @@ ressource_eu_erreur :: fonc (ressource: *Ressource)
 
 Requête :: struct {
     ressource: *Ressource
+    message: MessageServeuseHTTP
 }
 
 est_http :: fonc (requête: *Requête) -> bool
@@ -820,7 +821,8 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
 
         message := finalise_message(parseuse)
 
-        ressource_fut_chargée(requête.ressource, copie_chaine(message.contenu))
+        requête.message = message
+        ressource_fut_chargée(requête.ressource, message.contenu)
 
         réinitialise(parseuse)
 
