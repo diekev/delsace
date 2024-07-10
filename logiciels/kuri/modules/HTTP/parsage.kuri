@@ -358,6 +358,8 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
             parseuse.données_message.position_contenu.fin = parseuse.données_message.position_contenu.début + parseuse.taille_contenu
             retourne RésultatParsage.TERMINÉ
         }
+
+        retourne RésultatParsage.MESSAGE_INCOMPLET
     }
     sinon si parseuse.contenu_chunked {
         taille := 0
