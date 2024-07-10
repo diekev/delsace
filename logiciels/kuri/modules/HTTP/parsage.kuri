@@ -258,6 +258,10 @@ parse_état_entêtes :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         pos_courante := parseuse.parseuse_chaine.curseur
         pos_nouvelle_ligne := trouve_prochain(*parseuse.parseuse_chaine, "\r\n")
 
+        si pos_nouvelle_ligne < 0 {
+            retourne RésultatParsage.MESSAGE_INCOMPLET
+        }
+
         // une ligne vide indique la fin des entêtes
         si pos_nouvelle_ligne == parseuse.parseuse_chaine.curseur {
             avance(*parseuse.parseuse_chaine, 2)
