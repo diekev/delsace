@@ -37,8 +37,10 @@
 #include <QSortFilterProxyModel>
 #include <QSpinBox>
 #include <QSplitter>
+#include <QSslSocket>
 #include <QStatusBar>
 #include <QTableView>
+#include <QTcpSocket>
 #include <QTimer>
 #include <QToolButton>
 #include <QToolTip>
@@ -108,6 +110,11 @@ inline QGraphicsItem *vers_qt(QT_Generic_GraphicsItem item)
 inline QAbstractItemModel *vers_qt(QT_Generic_ItemModel model)
 {
     return reinterpret_cast<QAbstractItemModel *>(model.item_model);
+}
+
+inline QAbstractSocket *vers_qt(QT_AbstractSocket socket)
+{
+    return reinterpret_cast<QAbstractSocket *>(socket.tcp);
 }
 
 inline QColor vers_qt(QT_Color color)
@@ -213,6 +220,7 @@ ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_GRAPHICS_ITEM(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_BOX_LAYOUTS(TRANSTYPAGE_WIDGETS)
 ENUMERE_TYPES_ITEM_MODEL(TRANSTYPAGE_WIDGETS)
+ENUMERE_TYPES_SOCKETS(TRANSTYPAGE_WIDGETS)
 
 #undef TRANSTYPAGE_WIDGETS
 
@@ -532,6 +540,11 @@ void QT_application_beep()
 QT_Clipboard *QT_application_donne_clipboard()
 {
     return vers_ipa(QApplication::clipboard());
+}
+
+void QT_application_process_events()
+{
+    QCoreApplication::processEvents();
 }
 
 /** \} */
@@ -3898,6 +3911,94 @@ void QT_doublespinbox_definis_symboles_boutons(QT_DoubleSpinBox *doublespinbox,
 {
     VERS_QT(doublespinbox);
     qdoublespinbox->setButtonSymbols(convertis_spinbox_button_symbols(symbols));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AbstractSocket
+ * \{ */
+
+static void connecte_rappels_socket(QTcpSocket *socket, QT_Rappels_Socket *rappels)
+{
+    if (!rappels) {
+        return;
+    }
+
+    rappels->socket.tcp = vers_ipa(socket);
+    if (rappels->sur_connexion) {
+        QObject::connect(
+            socket, &QTcpSocket::connected, [=]() { rappels->sur_connexion(rappels); });
+    }
+    if (rappels->sur_deconnexion) {
+        QObject::connect(
+            socket, &QTcpSocket::disconnected, [=]() { rappels->sur_deconnexion(rappels); });
+    }
+    if (rappels->sur_erreur) {
+        QObject::connect(socket,
+                         qOverload<QAbstractSocket::SocketError>(&QAbstractSocket::error),
+                         [=](QAbstractSocket::SocketError) { rappels->sur_erreur(rappels); });
+    }
+    if (rappels->sur_resolution_hote) {
+        QObject::connect(
+            socket, &QTcpSocket::hostFound, [=]() { rappels->sur_resolution_hote(rappels); });
+    }
+    if (rappels->sur_pret_a_lire) {
+        QObject::connect(
+            socket, &QTcpSocket::readyRead, [=]() { rappels->sur_pret_a_lire(rappels); });
+    }
+}
+
+QT_TcpSocket *QT_cree_tcp_socket_rappels(QT_Generic_Object parent, QT_Rappels_Socket *rappels)
+{
+    VERS_QT(parent);
+    auto résultat = new QTcpSocket(qparent);
+    connecte_rappels_socket(résultat, rappels);
+    return vers_ipa(résultat);
+}
+
+QT_SslSocket *QT_cree_ssl_socket_rappels(QT_Generic_Object parent, QT_Rappels_Socket *rappels)
+{
+    VERS_QT(parent);
+    auto résultat = new QSslSocket(qparent);
+    connecte_rappels_socket(résultat, rappels);
+    return vers_ipa(résultat);
+}
+
+void QT_abstract_socket_connect_to_host(QT_AbstractSocket socket,
+                                        QT_Chaine host_name,
+                                        int16_t port)
+{
+    VERS_QT(socket);
+    VERS_QT(host_name);
+    qsocket->connectToHost(qhost_name, port);
+}
+
+void QT_ssl_socket_connect_to_host_encrypted(QT_SslSocket *socket,
+                                             QT_Chaine host_name,
+                                             int16_t port)
+{
+    VERS_QT(socket);
+    VERS_QT(host_name);
+    qsocket->connectToHostEncrypted(qhost_name, port);
+}
+
+void QT_abstract_socket_close(QT_AbstractSocket socket)
+{
+    VERS_QT(socket);
+    qsocket->close();
+}
+
+int64_t QT_abstract_socket_read(QT_AbstractSocket socket, int8_t *donnees, int64_t max)
+{
+    VERS_QT(socket);
+    return qsocket->read(reinterpret_cast<char *>(donnees), max);
+}
+
+int64_t QT_abstract_socket_write(QT_AbstractSocket socket, int8_t *donnees, int64_t max)
+{
+    VERS_QT(socket);
+    return qsocket->write(reinterpret_cast<char *>(donnees), max);
 }
 
 /** \} */

@@ -220,6 +220,26 @@ union QT_Generic_ItemModel {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_AbstractSocket
+ * \{ */
+
+#define ENUMERE_TYPES_SOCKETS(O)                                                                  \
+    O(QTcpSocket, QT_TcpSocket, tcp)                                                              \
+    O(QSslSocket, QT_SslSocket, ssl)
+
+#define PRODECLARE_TYPES_SOCKETS(nom_qt, nom_classe, nom_union) struct nom_classe;
+ENUMERE_TYPES_SOCKETS(PRODECLARE_TYPES_SOCKETS)
+#undef PRODECLARE_TYPES_SOCKETS
+
+union QT_AbstractSocket {
+#define PRODECLARE_TYPES_SOCKETS(nom_qt, nom_classe, nom_union) struct nom_classe *nom_union;
+    ENUMERE_TYPES_SOCKETS(PRODECLARE_TYPES_SOCKETS)
+#undef PRODECLARE_TYPES_SOCKETS
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Generic_Object
  * \{ */
 
@@ -250,6 +270,8 @@ union QT_Generic_Object {
     ENUMERE_TYPES_WIDGETS(DECLARE_TYPES_WIDGETS)
     /* Item models. */
     ENUMERE_TYPES_ITEM_MODEL(DECLARE_TYPES_WIDGETS)
+    /* Sockets. */
+    ENUMERE_TYPES_SOCKETS(DECLARE_TYPES_WIDGETS)
 #undef DECLARE_TYPES_WIDGETS
 };
 
@@ -460,6 +482,8 @@ void QT_application_sur_fin_boucle_evenement(struct QT_Application *app,
 
 void QT_application_beep();
 struct QT_Clipboard *QT_application_donne_clipboard();
+
+void QT_application_process_events();
 
 /** \} */
 
@@ -2685,6 +2709,39 @@ void QT_doublespinbox_definis_pas(struct QT_DoubleSpinBox *doublespinbox, double
 void QT_doublespinbox_definis_lecture_seule(struct QT_DoubleSpinBox *doublespinbox, bool ouinon);
 void QT_doublespinbox_definis_symboles_boutons(struct QT_DoubleSpinBox *doublespinbox,
                                                enum QT_SpinBox_Button_Symbols symbols);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AbstractSocket
+ * \{ */
+
+struct QT_Rappels_Socket {
+    union QT_AbstractSocket socket;
+
+    void (*sur_connexion)(struct QT_Rappels_Socket *);
+    void (*sur_deconnexion)(struct QT_Rappels_Socket *);
+    void (*sur_erreur)(struct QT_Rappels_Socket *);
+    void (*sur_resolution_hote)(struct QT_Rappels_Socket *);
+    // void proxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator)
+    // void stateChanged(QAbstractSocket::SocketState socketState)
+
+    void (*sur_pret_a_lire)(struct QT_Rappels_Socket *);
+};
+
+struct QT_TcpSocket *QT_cree_tcp_socket_rappels(union QT_Generic_Object parent,
+                                                struct QT_Rappels_Socket *rappels);
+struct QT_SslSocket *QT_cree_ssl_socket_rappels(union QT_Generic_Object parent,
+                                                struct QT_Rappels_Socket *rappels);
+void QT_abstract_socket_connect_to_host(union QT_AbstractSocket socket,
+                                        struct QT_Chaine host_name,
+                                        int16_t port);
+void QT_ssl_socket_connect_to_host_encrypted(struct QT_SslSocket *socket,
+                                             struct QT_Chaine host_name,
+                                             int16_t port);
+void QT_abstract_socket_close(union QT_AbstractSocket socket);
+int64_t QT_abstract_socket_read(union QT_AbstractSocket socket, int8_t *donnees, int64_t max);
+int64_t QT_abstract_socket_write(union QT_AbstractSocket socket, int8_t *donnees, int64_t max);
 
 /** \} */
 

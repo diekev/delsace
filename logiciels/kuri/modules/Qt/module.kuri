@@ -16,6 +16,7 @@ libQt5Widgets :: #bibliothèque "Qt5Widgets"
 libQt5OpenGL :: #bibliothèque "Qt5OpenGL"
 libQt5Core :: #bibliothèque "Qt5Core"
 libQt5Gui :: #bibliothèque "Qt5Gui"
+libQt5Network :: #bibliothèque "Qt5Network"
 
 libqt_entetes :: #bibliothèque "qt_entetes"
 
@@ -25,6 +26,7 @@ libqt_entetes :: #bibliothèque "qt_entetes"
 #dépendance_bibliothèque libqt libQt5OpenGL
 #dépendance_bibliothèque libqt libQt5Core
 #dépendance_bibliothèque libqt libQt5Gui
+#dépendance_bibliothèque libqt libQt5Network
 
 /* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
