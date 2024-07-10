@@ -2,6 +2,7 @@ importe Allocatrices
 importe Chaine
 importe Fondation
 importe HTML
+importe Internet
 importe Qt
 importe SysFichier
 
@@ -67,27 +68,16 @@ principale :: fonc () -> z32
     QT_widget_affiche_maximisee(fenêtre)
 
     contenu := contenu_fichier_texte(chemin_fichier)
+    uri: URI
+    uri.schéma = "file"
+    uri.schéma_est_défini = vrai
+    uri.autorité_est_définie = vrai
+    uri.chemin = chemin_fichier
 
-    rappels_fenêtre.parsat = parse_document(contenu)
-    rappels_fenêtre.contenu = contenu
+    page_web := crée_page_web(uri, contenu)
 
     /* Création widgets. */
-    tabs := QT_cree_tab_widget(nul, fenêtre)
-    QT_tab_widget_definis_tabs_fermable(tabs, 0)
-
-    widget_arbre := crée_widget_arbre_pour_dom(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_arbre, "DOM")
-
-    widget_source := crée_widget_vue_source(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_source, "Source")
-
-    widget_texte := crée_widget_vue_texte(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_texte, "Texte")
-
-    widget_arbre_disposition := crée_widget_vue_arbre_de_disposition(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_arbre_disposition, "Arbre de Disposition")
-
-    QT_fenetre_principale_definis_widget_central(fenêtre, tabs)
+    crée_widget_pour_page(fenêtre, page_web)
 
     retourne QT_application_exec(app)
 }
@@ -111,9 +101,7 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 {    
     rappel := base comme *RappelFermetureApp
 
-    détruit(rappel.rappels_fenêtre.parsat)
-    déloge(rappel.rappels_fenêtre.contenu)
-    détruit_arbre(rappel.rappels_fenêtre.arbre_de_disposition)
+    détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
 
     /* Restaure le contexte. */
     __contexte_fil_principal = contexte_entrée
@@ -128,15 +116,71 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom PageWeb
+ * \{ */
+
+PageWeb :: struct {
+    uri: URI
+    parsat: ParsatHTML
+    contenu: chaine
+    arbre_de_disposition: *ArbreDeDisposition
+}
+
+crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
+{
+    résultat: PageWeb
+    résultat.uri = uri
+    résultat.contenu = contenu
+    résultat.parsat = parse_document(contenu)
+    retourne résultat
+}
+
+détruit_données_page_web :: fonc (page: *PageWeb)
+{
+    détruit(page.parsat)
+    déloge(page.contenu)
+    détruit_arbre(page.arbre_de_disposition)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Données fenêtre principale.
  * \{ */
 
 RappelsFenetrePrincipale :: struct {
     empl base : QT_Rappels_Fenetre_Principale
 
-    parsat: ParsatHTML
-    contenu: chaine
-    arbre_de_disposition: *ArbreDeDisposition
+    page_web: PageWeb
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Widget page.
+ * \{ */
+
+crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: PageWeb)
+{
+    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
+    rappels.page_web = page_web
+
+    tabs := QT_cree_tab_widget(nul, fenêtre)
+    QT_tab_widget_definis_tabs_fermable(tabs, 0)
+
+    widget_source := crée_widget_vue_source(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_source, "Source")
+
+    widget_arbre := crée_widget_arbre_pour_dom(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_arbre, "DOM")
+
+    widget_texte := crée_widget_vue_texte(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_texte, "Texte")
+
+    widget_arbre_disposition := crée_widget_vue_arbre_de_disposition(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_arbre_disposition, "Arbre de Disposition")
+
+    QT_fenetre_principale_definis_widget_central(fenêtre, tabs)
 }
 
 /** \} */
@@ -194,7 +238,7 @@ crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: Q
 
     résultat := crée_widget_arbre(nul, parent)
 
-    parsat := rappels.parsat
+    parsat := rappels.page_web.parsat
     si parsat.document {
         titre := parsat.document.donne_title_element()
         si titre {
@@ -274,7 +318,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
 crée_widget_vue_source :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_PlainTextEdit
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    contenu := rappels.contenu
+    contenu := rappels.page_web.contenu
 
     résultat := QT_cree_plain_text_edit(nul, parent)
     QT_plain_text_edit_definis_lecture_seule(résultat, vrai)
@@ -292,7 +336,7 @@ crée_widget_vue_source :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Ge
 crée_widget_vue_texte :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_PlainTextEdit
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    document := rappels.parsat.document
+    document := rappels.page_web.parsat.document
 
     résultat := QT_cree_plain_text_edit(nul, parent)
     QT_plain_text_edit_definis_lecture_seule(résultat, vrai)
@@ -315,7 +359,7 @@ crée_widget_vue_texte :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Gen
 crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    document := rappels.parsat.document
+    document := rappels.page_web.parsat.document
 
     résultat := crée_widget_arbre(nul, parent)
 
@@ -331,7 +375,7 @@ crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale,
             ajoute_item_pour_noeud(item_document, it)
         }
 
-        rappels.arbre_de_disposition = arbre
+        rappels.page_web.arbre_de_disposition = arbre
     }
     retourne résultat
 }
