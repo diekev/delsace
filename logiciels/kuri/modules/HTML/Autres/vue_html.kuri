@@ -821,6 +821,22 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
 
         message := finalise_message(parseuse)
 
+        content_type := entête(*message, "Content-Type")
+        si content_type {
+            // imprime("Content-Type : %\n", content_type.valeur)
+
+            position_charset := cherche_aiguille_par_force_brute(content_type.valeur, "charset=")
+            si position_charset != -1 {
+                charset := avance(content_type.valeur, position_charset + "charset=".taille)
+
+                si charset == "ISO-8859-1" {
+                    nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
+                    déloge(message.contenu)
+                    message.contenu = nouveau_contenu
+                }
+            }
+        }
+
         requête.message = message
         ressource_fut_chargée(requête.ressource, message.contenu)
 
@@ -840,6 +856,61 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
 rappels_interface_sur_spin_event_loop :: fonc (base: *RappelsInterface @inutilisée)
 {
     QT_application_process_events()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Conversion jeu de caractères.
+ * \{ */
+
+/* https://www.charset.org/charsets/iso-8859-1 */
+convertis_iso_8859_1_vers_utf8 :: fonc (texte: chaine) -> chaine
+{
+    taille_résultat := texte.taille
+
+    pour texte {
+        si it < 0 {
+            taille_résultat += 1
+        }
+    }
+
+    si taille_résultat == texte.taille {
+        retourne copie_chaine(texte)
+    }
+
+    résultat := loge_chaine(taille_résultat)
+
+    ptr_sortie := résultat.pointeur comme *n8
+
+    pour texte {
+        si it >= 0 {
+            mémoire(ptr_sortie) = it comme n8
+            ptr_sortie += 1
+            continue
+        }
+
+        naturel := it comme n8
+
+        si 0xA0 <= naturel <= 0xBF {
+            mémoire(ptr_sortie) = 0xC2
+            ptr_sortie += 1
+            mémoire(ptr_sortie) = naturel
+            ptr_sortie += 1
+        }
+        sinon si naturel >= 0xA0 {
+            mémoire(ptr_sortie) = 0xC3
+            ptr_sortie += 1
+            mémoire(ptr_sortie) = naturel - 0x40
+            ptr_sortie += 1
+        }
+        sinon {
+            imprime("%\n", naturel)
+            assert(faux)
+        }
+    }
+
+    retourne résultat
 }
 
 /** \} */
