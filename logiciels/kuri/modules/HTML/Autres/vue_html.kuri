@@ -2,6 +2,7 @@ importe Allocatrices
 importe Chaine
 importe Fondation
 importe HTML
+importe HTTP
 importe Internet
 importe Qt
 importe SysFichier
@@ -39,10 +40,7 @@ principale :: fonc () -> z32
     chemin_fichier: chaine
     si arguments.taille > 1 {
         arg1 := convertis_chaine_c_statique(ChaineC(arguments[1]))
-
-        si est_un_fichier_régulier(CheminFichier(arg1)) {
-            chemin_fichier = arg1
-        }
+        chemin_fichier = arg1
     }
 
     /* Création application. */
@@ -67,17 +65,12 @@ principale :: fonc () -> z32
     QT_widget_definis_titre_fenetre(fenêtre, vers_qt("HTML"))
     QT_widget_affiche_maximisee(fenêtre)
 
-    contenu := contenu_fichier_texte(chemin_fichier)
-    uri: URI
-    uri.schéma = "file"
-    uri.schéma_est_défini = vrai
-    uri.autorité_est_définie = vrai
-    uri.chemin = chemin_fichier
+    rappels_fenêtre.chargeuse_ressource.rappels_interface = crée_rappels_interface_qt(fenêtre)
 
-    page_web := crée_page_web(uri, contenu)
-
-    /* Création widgets. */
-    crée_widget_pour_page(fenêtre, page_web)
+    si chemin_fichier {
+        ressource := crée_ressource_pour_chargement_page_web(fenêtre, chemin_fichier)
+        charge_ressource(*rappels_fenêtre.chargeuse_ressource, ressource, vrai)
+    }
 
     retourne QT_application_exec(app)
 }
@@ -152,6 +145,7 @@ RappelsFenetrePrincipale :: struct {
     empl base : QT_Rappels_Fenetre_Principale
 
     page_web: PageWeb
+    chargeuse_ressource: ChargeuseRessource
 }
 
 /** \} */
@@ -525,6 +519,312 @@ crée_noeud_pour_élément :: fonc (arbre: *ArbreDeDisposition, parent: *NoeudDe
 
         crée_noeud_pour_élément(arbre, résultat, it)
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsInterface
+ * \{ */
+
+RappelsInterface :: struct {
+    sur_lancement_requête: fonc(*RappelsInterface, *Requête)(rien)
+    sur_spin_event_loop: fonc(*RappelsInterface)(rien)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ChargeuseRessource
+ * \{ */
+
+ChargeuseRessource :: struct {
+    ressources_en_chargement: [..]*Ressource
+    rappels_interface: *RappelsInterface
+}
+
+charge_ressource :: fonc (chargeuse: *ChargeuseRessource, ressource: *Ressource, async: bool)
+{
+    si est_fichier(ressource) {
+        contenu := contenu_fichier_texte(ressource.uri.chemin)
+        ressource_fut_chargée(ressource, contenu)
+        retourne
+    }
+
+    requête := loge(Requête)
+    requête.ressource = ressource
+    lance_requête(chargeuse, requête)
+
+    saufsi async {
+        tantque !ressource.chargement_terminé {
+            spin_event_loop(chargeuse)
+        }
+    }
+}
+
+lance_requête :: fonc (chargeuse: *ChargeuseRessource, requête: *Requête)
+{
+    rappels := chargeuse.rappels_interface
+    saufsi rappels && rappels.sur_lancement_requête {
+        retourne
+    }
+
+    rappels.sur_lancement_requête(rappels, requête)
+}
+
+spin_event_loop :: fonc (chargeuse: *ChargeuseRessource)
+{
+    rappels := chargeuse.rappels_interface
+    saufsi rappels && rappels.sur_spin_event_loop {
+        retourne
+    }
+
+    rappels.sur_spin_event_loop(rappels)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Ressource
+ * \{ */
+
+Ressource :: struct {
+    sur_chargement: fonc(*Ressource, chaine)(rien)
+    sur_erreur: fonc(*Ressource)(rien)
+
+    uri: URI
+    type: chaine // application/javascript, text/html, etc.
+
+    chargement_terminé := faux
+
+    fenêtre: *QT_Fenetre_Principale
+}
+
+crée_ressource_pour_chargement_page_web :: fonc (fenêtre: *QT_Fenetre_Principale, chemin: chaine) -> *Ressource
+{
+    sur_chargement :: fonc (ressource: *Ressource, données: chaine)
+    {
+        page_web := crée_page_web(ressource.uri, données)
+        crée_widget_pour_page(ressource.fenêtre, page_web)
+    }
+
+    résultat := loge(Ressource)
+    résultat.sur_chargement = sur_chargement
+    résultat.type = "text/html"
+    résultat.fenêtre = fenêtre
+
+    si est_un_fichier_régulier(CheminFichier(chemin)) {
+        uri: URI
+        uri.schéma = "file"
+        uri.schéma_est_défini = vrai
+        uri.autorité_est_définie = vrai
+        uri.chemin = chemin
+        résultat.uri = uri
+    }
+    sinon {
+        résultat.uri = tente parse_uri_standard(chemin) piège nonatteignable
+    }
+
+    retourne résultat
+}
+
+est_fichier :: fonc (ressource: *Ressource) -> bool
+{
+    uri := ressource.uri
+
+    si uri.schéma == "file" {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+ressource_fut_chargée :: fonc (ressource: *Ressource, données: chaine)
+{
+    si ressource.sur_chargement {
+        ressource.sur_chargement(ressource, données)
+    }
+
+    ressource.chargement_terminé = vrai
+}
+
+ressource_eu_erreur :: fonc (ressource: *Ressource)
+{
+    si ressource.sur_erreur {
+        ressource.sur_erreur(ressource)
+    }
+
+    ressource.chargement_terminé = vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Requête
+ * \{ */
+
+Requête :: struct {
+    ressource: *Ressource
+}
+
+est_http :: fonc (requête: *Requête) -> bool
+{
+    assert(requête.ressource != nul)
+    retourne requête.ressource.uri.schéma == "http"
+}
+
+est_https :: fonc (requête: *Requête) -> bool
+{
+    assert(requête.ressource != nul)
+    retourne requête.ressource.uri.schéma == "https"
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsInterfaceQt
+ * \{ */
+
+RappelsInterfaceQt :: struct {
+    empl base: RappelsInterface
+    fenêtre: *QT_Fenetre_Principale
+}
+
+crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *RappelsInterfaceQt
+{
+    résultat := loge(RappelsInterfaceQt)
+    résultat.fenêtre = fenêtre
+    résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
+    résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
+    retourne résultat
+}
+
+rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Requête)
+{
+    rappels := base comme *RappelsInterfaceQt
+
+    rappels_socket := crée_rappel_socket_pour_requête(requête)
+
+    parent := rappels.fenêtre
+
+    uri := requête.ressource.uri
+    hôte := uri.hôte
+    port := port_pour_uri(uri) comme z16
+
+    si requête.est_http() {
+        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
+        QT_abstract_socket_connect_to_host(prise, hôte.vers_qt(), port)
+    }
+    sinon {
+        assert(requête.est_https())
+        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
+        QT_ssl_socket_connect_to_host_encrypted(prise, hôte.vers_qt(), port)
+    }
+}
+
+crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_Socket
+{
+    RappelsRequête :: struct {
+        empl base: QT_Rappels_Socket
+
+        requête: *Requête
+        parseuse: ParseuseMessageServeuseHTTP
+    }
+
+    sur_connexion :: fonc (base: *QT_Rappels_Socket)
+    {
+        rappels := base comme *RappelsRequête
+
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+        diffère détruit_tampons(*enchaineuse)
+
+        uri := rappels.requête.ressource.uri
+
+        ajoute_au_tampon(*enchaineuse, "GET ")
+        si uri.chemin {
+            ajoute_au_tampon(*enchaineuse, uri.chemin)
+        }
+        sinon {
+            ajoute_au_tampon(*enchaineuse, "/")
+        }
+        si uri.requête {
+            ajoute_au_tampon(*enchaineuse, "?")
+            ajoute_au_tampon(*enchaineuse, uri.requête)
+        }
+
+        ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n")
+        ajoute_au_tampon(*enchaineuse, "Host: ")
+        ajoute_au_tampon(*enchaineuse, uri.hôte)
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+        ajoute_au_tampon(*enchaineuse, "Accept-Encoding: identity\r\n")
+        ajoute_au_tampon(*enchaineuse, "Accept-Charset: utf-8, iso-8859-1q=0.5\r\n")
+        ajoute_au_tampon(*enchaineuse, "Accept: text/html,application/xhtml+xml,application/xmlq=0.9,image/webp,image/apng,*/ *q=0.8\r\n")
+        ajoute_au_tampon(*enchaineuse, "User-Agent: delsace\r\n")
+        ajoute_au_tampon(*enchaineuse, "Connection: close\r\n")
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+
+        texte_requête := chaine_depuis_enchaineuse(*enchaineuse)
+        diffère déloge(texte_requête)
+
+        _ := QT_abstract_socket_write(rappels.socket, texte_requête.pointeur, texte_requête.taille)
+        // imprime("Écris : % / %\n", écris, texte_requête.taille)
+    }
+
+    sur_erreur :: fonc (base: *QT_Rappels_Socket)
+    {
+        rappels := base comme *RappelsRequête
+        imprime("Erreur\n")
+        ressource_eu_erreur(rappels.requête.ressource)
+    }
+
+    sur_prêt_à_lire :: fonc (base: *QT_Rappels_Socket)
+    {
+        rappels := base comme *RappelsRequête
+        parseuse := *rappels.parseuse
+        requête := rappels.requête
+
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+        diffère détruit_tampons(*enchaineuse)
+
+        octets_lu := QT_abstract_socket_read(rappels.socket, *enchaineuse.tampon_courant.données[0], TAILLE_TAMPON_ENCHAINEUSE)
+
+        enchaineuse.tampon_courant.occupé = octets_lu comme z32
+
+        lu := chaine_depuis_enchaineuse(*enchaineuse)
+        ajourne_données(parseuse, lu)
+
+        si message_est_erroné(parseuse) {
+            imprime("Erreur de parsage")
+            QT_abstract_socket_close(rappels.socket)
+            retourne
+        }
+
+        saufsi message_prêt_pour_finalisation(parseuse) {
+            retourne
+        }
+
+        message := finalise_message(parseuse)
+
+        ressource_fut_chargée(requête.ressource, copie_chaine(message.contenu))
+
+        réinitialise(parseuse)
+
+        QT_abstract_socket_close(rappels.socket)
+    }
+
+    rappels := loge(RappelsRequête)
+    rappels.requête = requête
+    rappels.sur_pret_a_lire = sur_prêt_à_lire
+    rappels.sur_connexion = sur_connexion
+    rappels.sur_erreur = sur_erreur
+    retourne rappels
+}
+
+rappels_interface_sur_spin_event_loop :: fonc (base: *RappelsInterface @inutilisée)
+{
+    QT_application_process_events()
 }
 
 /** \} */
