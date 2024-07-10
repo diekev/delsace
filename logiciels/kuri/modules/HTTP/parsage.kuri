@@ -361,79 +361,79 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
         retourne RésultatParsage.MESSAGE_INCOMPLET
     }
-    sinon si parseuse.contenu_chunked {
-        taille := 0
 
-        boucle {
-            pos_courante := parseuse.parseuse_chaine.curseur
+    assert(parseuse.contenu_chunked)
+    taille := 0
 
-            /* ** read chunk-size, chunk-extension (if any) and CRLF ** */
+    boucle {
+        pos_courante := parseuse.parseuse_chaine.curseur
 
-            // À FAIRE: chunk-extension
+        /* ** read chunk-size, chunk-extension (if any) and CRLF ** */
 
-            // parse la taille du chunk
-            pos_nouvelle_ligne := trouve_prochain(*parseuse.parseuse_chaine, "\r\n")
+        // À FAIRE: chunk-extension
 
-            si pos_nouvelle_ligne <= 0 {
-                retourne RésultatParsage.MESSAGE_INCOMPLET
-            }
+        // parse la taille du chunk
+        pos_nouvelle_ligne := trouve_prochain(*parseuse.parseuse_chaine, "\r\n")
 
-            valeur := sous_chaine_jusque_index(*parseuse.parseuse_chaine, pos_nouvelle_ligne)
-
-            taille_chunk := tente parse_hexadécimal_z32(valeur) piège _ {
-                retourne erreur_de_parsage("pas de nombre héxadécimal pour la taille du chunk")
-            }
-
-            /* Fin du message. */
-            si taille_chunk == 0 {
-                arrête
-            }
-
-            positionne(*parseuse.parseuse_chaine, pos_nouvelle_ligne + 2)
-
-            index_fin_chunk := parseuse.parseuse_chaine.curseur + taille_chunk
-
-            si index_fin_chunk >= parseuse.parseuse_chaine.chn.taille {
-                positionne(*parseuse.parseuse_chaine, pos_courante)
-                retourne RésultatParsage.MESSAGE_INCOMPLET
-            }
-
-            /* ** append chunk-data to entity-body ** */
-            données := sous_chaine_jusque_index(*parseuse.parseuse_chaine, index_fin_chunk)
-
-            positionne(*parseuse.parseuse_chaine, index_fin_chunk)
-
-            si !consomme(*parseuse.parseuse_chaine, "\r\n") {
-                positionne(*parseuse.parseuse_chaine, pos_courante)
-                retourne RésultatParsage.MESSAGE_INCOMPLET
-            }
-
-            taille += données.taille comme z32
-            chaine_ajoute(*parseuse.données_message.contenu, données)
+        si pos_nouvelle_ligne <= 0 {
+            retourne RésultatParsage.MESSAGE_INCOMPLET
         }
 
-        // À FAIRE : entêtes "trailing"
+        valeur := sous_chaine_jusque_index(*parseuse.parseuse_chaine, pos_nouvelle_ligne)
 
-        /*
-
-        length := 0
-        read chunk-size, chunk-extension (if any) and CRLF
-        while (chunk-size > 0) {
-            read chunk-data and CRLF
-            append chunk-data to entity-body
-            length := length + chunk-size
-            read chunk-size and CRLF
+        taille_chunk := tente parse_hexadécimal_z32(valeur) piège _ {
+            retourne erreur_de_parsage("pas de nombre héxadécimal pour la taille du chunk")
         }
-        read entity-header
-        while (entity-header not empty) {
-            append entity-header to existing header fields
-            read entity-header
-        }
-        Content-Length := length
-        Remove "chunked" from Transfer-Encoding
 
-        */
+        /* Fin du message. */
+        si taille_chunk == 0 {
+            arrête
+        }
+
+        positionne(*parseuse.parseuse_chaine, pos_nouvelle_ligne + 2)
+
+        index_fin_chunk := parseuse.parseuse_chaine.curseur + taille_chunk
+
+        si index_fin_chunk >= parseuse.parseuse_chaine.chn.taille {
+            positionne(*parseuse.parseuse_chaine, pos_courante)
+            retourne RésultatParsage.MESSAGE_INCOMPLET
+        }
+
+        /* ** append chunk-data to entity-body ** */
+        données := sous_chaine_jusque_index(*parseuse.parseuse_chaine, index_fin_chunk)
+
+        positionne(*parseuse.parseuse_chaine, index_fin_chunk)
+
+        si !consomme(*parseuse.parseuse_chaine, "\r\n") {
+            positionne(*parseuse.parseuse_chaine, pos_courante)
+            retourne RésultatParsage.MESSAGE_INCOMPLET
+        }
+
+        taille += données.taille comme z32
+        chaine_ajoute(*parseuse.données_message.contenu, données)
     }
+
+    // À FAIRE : entêtes "trailing"
+
+    /*
+
+    length := 0
+    read chunk-size, chunk-extension (if any) and CRLF
+    while (chunk-size > 0) {
+        read chunk-data and CRLF
+        append chunk-data to entity-body
+        length := length + chunk-size
+        read chunk-size and CRLF
+    }
+    read entity-header
+    while (entity-header not empty) {
+        append entity-header to existing header fields
+        read entity-header
+    }
+    Content-Length := length
+    Remove "chunked" from Transfer-Encoding
+
+    */
 
     retourne RésultatParsage.TERMINÉ
 } @FonctionLongue
