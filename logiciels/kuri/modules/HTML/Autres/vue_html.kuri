@@ -6,6 +6,7 @@ importe HTTP
 importe Internet
 importe Qt
 importe SysFichier
+importe Temps
 
 DÉBOGUE_ALLOCATIONS :: faux
 
@@ -125,6 +126,7 @@ crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
     résultat.uri = uri
     résultat.contenu = contenu
     résultat.parsat = parse_document(contenu)
+    imprime("Temps de parsage : %\n", résultat.parsat.temps)
     retourne résultat
 }
 
@@ -729,11 +731,16 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
 
         requête: *Requête
         parseuse: ParseuseMessageServeuseHTTP
+
+        temps_parsage_http: z64
+        début_requête: Instantané
     }
 
     sur_connexion :: fonc (base: *QT_Rappels_Socket)
     {
         rappels := base comme *RappelsRequête
+
+        rappels.début_requête = maintenant_précis()
 
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)
@@ -793,7 +800,10 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
         enchaineuse.tampon_courant.occupé = octets_lu comme z32
 
         lu := chaine_depuis_enchaineuse(*enchaineuse)
+
+        début_parsage_http := maintenant_précis()
         ajourne_données(parseuse, lu)
+        rappels.temps_parsage_http += début_parsage_http.temps_écoulé_microsecondes()
 
         si message_est_erroné(parseuse) {
             imprime("Erreur de parsage")
@@ -804,6 +814,9 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
         saufsi message_prêt_pour_finalisation(parseuse) {
             retourne
         }
+
+        imprime("Temps de parsage HTTP : %\n", rappels.temps_parsage_http)
+        imprime("Temps requête         : %\n", rappels.début_requête.temps_écoulé_microsecondes())
 
         message := finalise_message(parseuse)
 
