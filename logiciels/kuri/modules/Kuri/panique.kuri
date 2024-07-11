@@ -33,11 +33,15 @@ imprime_trace_appel :: fonc () #sanstrace
     }
 }
 
+appelé_depuis_signal_système := faux
+
 imprime_panique :: fonc () -> rien #sanstrace #sansretour
 {
     imprime_trace_appel()
     imprime("\nL'exécution du programme a été arrêtée à cause d'une panique.\n")
-    exit(1)
+    saufsi appelé_depuis_signal_système {
+        exit(1)
+    }
 }
 
 panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface #sansretour

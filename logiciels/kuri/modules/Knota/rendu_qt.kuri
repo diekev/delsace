@@ -1,0 +1,694 @@
+importe Couleur
+importe Fondation
+importe Fràtzala
+importe Géométrie
+importe Math
+importe Qt
+
+ThèmeGraphe :: struct {
+    couleur_texte: CouleurRVBA
+    couleur_connexion: CouleurRVBA
+    couleur_connexion_interactive: CouleurRVBA
+    couleur_connexion_originelle: CouleurRVBA
+    couleur_connexion_survol: CouleurRVBA
+}
+
+donne_qt_color :: fonc (couleur: CouleurRVBA) -> QT_Color
+{
+    retourne QT_Color(couleur.r, couleur.v, couleur.b, couleur.a)
+}
+
+dessine_graphe_qt :: fonc (graphe: *Graphe, thème: *ThèmeGraphe, scène: *QT_GraphicsScene, vue_graphiques: *QT_GraphicsView)
+{
+    QT_graphics_scene_efface(scène)
+    // assert(scène_graphiques->items().size() == 0);
+
+    saufsi graphe {
+        retourne
+    }
+
+    parent_ligne: *QT_GraphicsItem
+
+    pour graphe.items {
+        saufsi it.type_item == Noeud {
+            continue
+        }
+        noeud := it comme *Noeud
+        item := crée_item_noeud(thème, noeud, faux, noeud == graphe.noeud_actif)
+        QT_graphics_scene_ajoute_item(scène, item)
+
+        pour prise dans noeud.entrées {
+            connexion := prise.connexion
+            saufsi connexion {
+                continue
+            }
+
+            rectangle_prise := prise.rectangle
+            rectangle_lien := connexion.prise_sortie.rectangle
+
+            p1 := rectangle_prise.donne_point_central()
+            p2 := rectangle_lien.donne_point_central()
+
+            pen: QT_Pen
+            pen.width = 2.0
+
+            si graphe.connexion_interactive && connexion == graphe.connexion_interactive.connexion_originelle {
+                pen.color = donne_qt_color(thème.couleur_connexion_originelle)
+            }
+            sinon si connexion == graphe.connexion_pour_survol_noeud {
+                pen.color = donne_qt_color(thème.couleur_connexion_survol)
+            }
+            sinon {
+                pen.color = donne_qt_color(thème.couleur_connexion)
+            }
+
+            ligne := QT_cree_graphics_line_item(parent_ligne)
+            QT_graphics_line_item_definis_pinceau(ligne, *pen)
+            QT_graphics_line_item_definis_ligne(ligne, p1.x, p1.y, p2.x, p2.y)
+
+            QT_graphics_scene_ajoute_item(scène, ligne)
+        }
+    }
+
+    dessine_connexion_interactive(graphe, thème, parent_ligne, scène)
+    dessine_outil_sélection(graphe, scène)
+
+    si graphe.noeud_pour_information {
+        affiche_informations_noeud(vue_graphiques, graphe.noeud_pour_information)
+    }
+
+    /* La scène désormais peuplée, nous pouvons calculer les limites de son rectangle. */
+
+    QT_graphics_view_reinit_transforme(vue_graphiques)
+
+    /* vue_graphiques->centerOn ne semble pas fonctionner donc on modifie le rectangle
+     * de la scène_graphiques */
+    rect_scène: QT_RectF
+    QT_graphics_scene_donne_rect_scene(scène, *rect_scène)
+    largeur := rect_scène.largeur comme r32
+    hauteur := rect_scène.hauteur comme r32
+    rect_scène.x = graphe.centre_x - largeur * 0.5
+    rect_scène.y = graphe.centre_y - hauteur * 0.5
+    QT_graphics_scene_definis_rect_scene(scène, rect_scène)
+
+    QT_graphics_view_definis_echelle_taille(vue_graphiques, graphe.zoom, graphe.zoom)
+}
+
+dessine_connexion_interactive :: fonc (graphe: *Graphe, thème: *ThèmeGraphe, parent_ligne: *QT_GraphicsItem, scène: *QT_GraphicsScene)
+{
+    saufsi graphe.connexion_interactive {
+        retourne
+    }
+
+    connexion := graphe.connexion_interactive
+
+    /* Nous pouvons recevoir une notification avant que les données furent mises en place. */
+    saufsi connexion.prise_entrée || connexion.prise_sortie {
+        retourne
+    }
+
+    p1 := si connexion.prise_entrée != nul {
+        prise_entrée := connexion.prise_entrée
+        prise_entrée.rectangle.donne_point_central()
+    }
+    sinon {
+        prise_sortie := connexion.prise_sortie
+        prise_sortie.rectangle.donne_point_central()
+    }
+
+    p2 := Point2D(r32)(connexion.x, connexion.y)
+
+    ligne := QT_cree_graphics_line_item(parent_ligne)
+    pinceau_connexion := QT_Pen(donne_qt_color(thème.couleur_connexion_interactive), 2.0)
+    QT_graphics_line_item_definis_pinceau(ligne, *pinceau_connexion)
+    QT_graphics_line_item_definis_ligne(ligne, p1.x, p1.y, p2.x, p2.y)
+
+    QT_graphics_scene_ajoute_item(scène, ligne)
+}
+
+dessine_outil_sélection :: fonc (graphe: *Graphe, scène: *QT_GraphicsScene)
+{
+    saufsi graphe.utilise_outil_sélection {
+        retourne
+    }
+
+    sélection := graphe.sélection
+    chemin := sélection.donne_chemin_sélection()
+
+    opt_ancre := chemin.donne_ancre()
+    saufsi opt_ancre.possède_valeur() {
+        retourne
+    }
+
+    opt_fin_active := chemin.donne_fin_active()
+    saufsi opt_fin_active.possède_valeur() {
+        retourne
+    }
+
+    ancre := opt_ancre.Quelque
+    fin_active := opt_fin_active.Quelque
+
+    pinceau: QT_Pen
+    pinceau.color = QT_Color(0.0, 0.0, 1.0, 1.0)
+    pinceau.width = 1.0
+
+    brosse := QT_Brush(QT_Color(0.0, 0.0, 1.0, 0.5))
+
+    rect_item := QT_RectF(ancre.x, ancre.y, fin_active.x - ancre.x, fin_active.y - ancre.y)
+
+    parent: *QT_GraphicsItem
+    item := QT_cree_graphics_rect_item(parent)
+    QT_graphics_rect_item_definis_pinceau(item, *pinceau)
+    QT_graphics_rect_item_definis_brosse(item, *brosse)
+    QT_graphics_rect_item_definis_rect(item, *rect_item)
+
+    QT_graphics_scene_ajoute_item(scène, item)
+}
+
+imprime_données_section :: fonc (enchaineuse: *Enchaineuse, section: InformationsNoeud.Section)
+{
+    si section.infos.taille == 0 {
+        retourne
+    }
+
+    ajoute_au_tampon(enchaineuse, "<hr/>")
+
+    si section.titre {
+        ajoute_au_tampon(enchaineuse, "<h3>", section.titre, "</h3>")
+    }
+
+    pour section.infos {
+        ajoute_au_tampon(enchaineuse, "<p>", it.nom)
+
+        si it.texte {
+            ajoute_au_tampon(enchaineuse, " : ", it.texte)
+        }
+
+        ajoute_au_tampon(enchaineuse, "</p>")
+    }
+}
+
+affiche_informations_noeud :: fonc (vue_graphiques: *QT_GraphicsView, noeud: *Noeud)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "<p>Noeud : ", noeud.nom, "</p>")
+
+    infos := noeud.donne_informations()
+    imprime_données_section(*enchaineuse, infos.entête)
+
+    pour infos.sections {
+        imprime_données_section(*enchaineuse, it)
+    }
+
+    point := QT_PointF(noeud.position.x, noeud.position.y)
+    position_tooltip: QT_Point
+    QT_graphics_view_mappe_depuis_scene(vue_graphiques, *point, *position_tooltip)
+    QT_widget_transforme_point_vers_global(vue_graphiques, *position_tooltip, *position_tooltip)
+
+    texte := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(texte)
+
+    QT_tooltip_montre_texte(position_tooltip, vers_qt(texte))
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom ItemNoeud
+ * \{ */
+
+brosse_pour_couleur :: fonc (couleur: CouleurTSL) -> QT_Brush
+{
+    couleur_qt: QT_Color
+    QT_color_depuis_tsl(couleur.t, couleur.s, couleur.l, 1.0, *couleur_qt)
+    retourne QT_Brush(couleur_qt)
+}
+
+// brosse_pour_noeud :: fonc (noeud: *Noeud) -> QT_Brush
+// {
+//     couleur_prise := couleur_pour_type_noeud(noeud)
+//     retourne brosse_pour_couleur(couleur_prise)
+// }
+
+brosse_pour_noeud :: fonc (noeud: *Noeud @inutilisée) -> QT_Brush
+{
+    retourne brosse_pour_couleur(CouleurTSL(0.35, 0.75, 0.3))
+}
+
+ajourne_rectangle :: fonc (prise: *Prise, x: r32, y: r32, hauteur: r32, largeur: r32)
+{
+    prise.rectangle.x = x
+    prise.rectangle.y = y
+    prise.rectangle.hauteur = hauteur
+    prise.rectangle.largeur = largeur
+}
+
+crée_item_noeud :: fonc (thème: *ThèmeGraphe, noeud: *Noeud, est_noeud_détail: bool, est_sélectionné: bool) -> *QT_GraphicsRectItem
+{
+    si est_noeud_détail {
+        retourne dessine_noeud_détail(thème, noeud, est_sélectionné)
+    }
+
+    retourne dessine_noeud_générique(thème, noeud, est_sélectionné)
+}
+
+donne_police_pour_texte_noeud :: fonc () -> QT_Font
+{
+    résultat: QT_Font
+    résultat.taille_point = 16
+    retourne résultat
+}
+
+crée_item_texte :: fonc (parent: QT_Generic_GraphicsItem, thème: *ThèmeGraphe, texte: chaine, police: *QT_Font) -> *QT_GraphicsTextItem
+{
+    résultat := QT_cree_graphics_text_item(vers_qt(texte), parent)
+    QT_graphics_text_item_definis_police(résultat, police)
+    couleur := donne_qt_color(thème.couleur_texte)
+    QT_graphics_text_item_definis_couleur_defaut(résultat, *couleur)
+    retourne résultat
+}
+
+DimensionTextePrises :: struct {
+    largeur: r32
+    hauteur: r32
+}
+
+dessine_noeud_détail :: fonc (thème: *ThèmeGraphe, noeud: *Noeud, est_sélectionné: bool) -> *QT_GraphicsRectItem
+{
+    pos_x := noeud.position.x
+    pos_y := noeud.position.y
+
+    parent: *QT_GraphicsItem
+    résultat := QT_cree_graphics_rect_item(parent)
+
+    police := donne_police_pour_texte_noeud()
+
+    /* crée le texte en premier pour calculer sa taille */
+    texte := crée_item_texte(résultat, thème, noeud.nom, *police)
+
+    décalage_texte := 8.0
+    rect_texte: QT_RectF
+    QT_graphics_text_item_donne_rect(texte, *rect_texte)
+    largeur_texte := rect_texte.largeur comme r32 + décalage_texte * 2.0
+    hauteur_texte := rect_texte.hauteur comme r32
+
+    /* crée le texte pour chacune des entrées/sorties */
+    hauteur_prise := 32.0
+    largeur_prise := 32.0
+
+    textes_entrées, dimensions_prises_entrées := crée_textes_pour_prises(noeud.entrées, résultat, thème, *police, largeur_prise)
+    diffère déloge(textes_entrées)
+
+    textes_sorties, dimensions_prises_sorties := crée_textes_pour_prises(noeud.sorties, résultat, thème, *police, largeur_prise)
+    diffère déloge(textes_sorties)
+
+    hauteur_noeud := hauteur_texte + décalage_texte + max(dimensions_prises_entrées.hauteur, dimensions_prises_sorties.hauteur)
+    largeur_noeud := max(largeur_texte, dimensions_prises_entrées.largeur + dimensions_prises_sorties.largeur + 2 * décalage_texte)
+
+    /* Positionne le nom du noeud. */
+    position_nom_noeud: QT_PointF
+    position_nom_noeud.x = pos_x + décalage_texte + (largeur_noeud - largeur_texte) / 2
+    position_nom_noeud.y = pos_y
+    QT_graphics_text_item_definis_position(texte, *position_nom_noeud)
+
+    /* Séparation entête. */
+    ligne := QT_cree_graphics_line_item(résultat)
+    pinceau := QT_Pen(QT_white(), 1.0)
+    QT_graphics_line_item_definis_pinceau(ligne, *pinceau)
+    QT_graphics_line_item_definis_ligne(ligne, pos_x, pos_y + hauteur_texte, pos_x + largeur_noeud, pos_y + hauteur_texte)
+
+    /* Positionne les prises et leurs textes. */
+    pos_textes_x := pos_x + largeur_prise + décalage_texte
+    positionne_textes_prises(textes_entrées, pos_textes_x, pos_y, hauteur_texte, décalage_texte, faux)
+
+    pos_textes_x = pos_x + largeur_noeud - décalage_texte - largeur_prise
+    positionne_textes_prises(textes_sorties, pos_textes_x, pos_y, hauteur_texte, décalage_texte, vrai)
+
+    positionne_rects_prises(résultat, noeud.entrées, pos_x, pos_y, hauteur_texte, décalage_texte, largeur_prise, hauteur_prise)
+    positionne_rects_prises(résultat, noeud.sorties, pos_x + largeur_noeud - largeur_prise, pos_y, hauteur_texte, décalage_texte, largeur_prise, hauteur_prise)
+
+    finalise_dessin(résultat, noeud, est_sélectionné, pos_x, pos_y, largeur_noeud, hauteur_noeud)
+
+    retourne résultat
+}
+
+crée_textes_pour_prises :: fonc (prises: []*$T, parent: QT_Generic_GraphicsItem, thème: *ThèmeGraphe, police: *QT_Font, largeur_prise: r32) -> ([..]*QT_GraphicsTextItem, DimensionTextePrises)
+{
+    résultat: [..]*QT_GraphicsTextItem
+
+    largeur_prises := 0.0
+    hauteur_prises := 0.0
+
+    pour prises {
+        texte_prise := crée_item_texte(parent, thème, it.nom, police)
+        tableau_ajoute(*résultat, texte_prise)
+
+        rect: QT_RectF
+        QT_graphics_text_item_donne_rect(texte_prise, *rect)
+
+        si rect.largeur > largeur_prises {
+            largeur_prises = rect.largeur comme r32
+        }
+
+        hauteur_prises += rect.hauteur comme r32
+    }
+
+    si prises.taille != 0 {
+        largeur_prises += largeur_prise
+    }
+
+    retourne résultat, DimensionTextePrises(largeur_prises, hauteur_prises)
+}
+
+positionne_textes_prises :: fonc (textes: []*QT_GraphicsTextItem, pos_x: r32, pos_y: r32, hauteur_texte: r32, décalage_texte: r32, pour_sorties: bool)
+{
+    pos_y_texte := hauteur_texte + décalage_texte
+
+    position: QT_PointF
+    position.x = pos_x
+
+    pour textes {
+        si pour_sorties {
+            rect: QT_RectF
+            QT_graphics_text_item_donne_rect(it, *rect)
+            position.x = pos_x - rect.largeur
+        }
+
+        position.y = pos_y + pos_y_texte
+
+        QT_graphics_text_item_definis_position(it, *position)
+        pos_y_texte += hauteur_texte
+    }
+}
+
+positionne_rects_prises :: fonc (parent: QT_Generic_GraphicsItem, prises: []*$T, pos_x: r32, pos_y: r32, hauteur_texte: r32, décalage_texte: r32, hauteur_prise: r32, largeur_prise: r32)
+{
+    pos_y_prise := hauteur_texte + décalage_texte
+
+    pour prises {
+        crée_géométrie_prise(parent, it, pos_x, pos_y + pos_y_prise, hauteur_prise, largeur_prise)
+        pos_y_prise += hauteur_texte
+    }
+}
+
+ajourne_rectangles_noeuds :: fonc (noeud: *Noeud)
+{
+    pos_x := noeud.position.x
+    pos_y := noeud.position.y
+
+    hauteur_icone := 64.0
+    largeur_icone := 64.0
+
+    hauteur_prise := 16.0
+    largeur_prise := hauteur_prise
+
+    hauteur_noeud := hauteur_icone
+    largeur_noeud := 4.0 * largeur_icone
+    noeud.largeur = largeur_noeud
+    noeud.hauteur = hauteur_noeud
+
+    espace_entre_prise_et_noeud := 0.25 * hauteur_prise
+
+    décalage_icone_y := pos_y
+    décalage_texte_x := largeur_noeud
+    décalage_texte_y := pos_y
+    décalage_sorties_y := pos_y + hauteur_icone + espace_entre_prise_et_noeud
+
+    /* Prises entrées */
+    étendue_entrée := (largeur_noeud / noeud.entrées.taille comme r32)
+    pos_debut_entrées := étendue_entrée * 0.5 - largeur_prise * 0.5
+    pos_entrée := pos_x + pos_debut_entrées
+
+    pour noeud.entrées {
+        // À FAIRE : connexions multiples
+        it.rectangle.x = pos_entrée
+        it.rectangle.y = pos_y - hauteur_prise - espace_entre_prise_et_noeud
+        it.rectangle.hauteur = hauteur_prise
+        it.rectangle.largeur = largeur_prise
+
+        pos_entrée += étendue_entrée
+    }
+
+    /* Prises sorties */
+    étendue_sortie := (largeur_noeud / noeud.sorties.taille comme r32)
+    pos_debut_sorties := étendue_sortie * 0.5 - largeur_prise * 0.5
+    pos_sortie := pos_x + pos_debut_sorties
+
+    pour noeud.sorties {
+        it.rectangle.x = pos_sortie
+        it.rectangle.y = décalage_sorties_y
+        it.rectangle.hauteur = hauteur_prise
+        it.rectangle.largeur = largeur_prise
+
+        pos_sortie += étendue_sortie
+    }
+
+    /* Icone. */
+    noeud.rectangle_icone.x = pos_x + 1 + 1.5 * largeur_icone
+    noeud.rectangle_icone.y = décalage_icone_y + 1
+    noeud.rectangle_icone.largeur = largeur_icone - 2
+    noeud.rectangle_icone.hauteur = hauteur_icone - 2
+
+    /* Texte. La hauteur et la largeur seront renseignées lors du dessin. */
+    décalage_texte := 8.0
+    noeud.rectangle_texte.x = pos_x + décalage_texte_x + décalage_texte
+    noeud.rectangle_texte.y = décalage_texte_y + hauteur_icone / 2
+
+    /* Drapeau. */
+    LARGEUR_DRAPEAU :: 24.0
+    noeud.rectangle_drapeau.x = noeud.position.x + noeud.largeur - LARGEUR_DRAPEAU
+    noeud.rectangle_drapeau.y = noeud.position.y
+    noeud.rectangle_drapeau.largeur = LARGEUR_DRAPEAU
+    noeud.rectangle_drapeau.hauteur = noeud.hauteur
+}
+
+donne_couleur_pour_noeud :: fonc (noeud: *Noeud) -> QT_Color
+{
+    si noeud.erreurs {
+        retourne QT_Color(1.0, 0.7, 0.04, 1.0)
+    }
+
+    si noeud.est_dans_la_sélection {
+        retourne QT_Color(0.17647 * 1.5, 0.17647 * 1.5, 0.17647 * 1.5, 1.0)
+    }
+
+    /* 0.17647 = 45 / 255 */
+    retourne QT_Color(0.17647, 0.17647, 0.17647, 1.0)
+}
+
+donne_pinceau_contour_noeud :: fonc (est_sélectionné: bool) -> QT_Pen
+{
+    résultat: QT_Pen
+    si est_sélectionné {
+        résultat.color = QT_yellow()
+        résultat.width = 1.0
+    }
+    sinon {
+        résultat.color = QT_white()
+        résultat.width = 0.5
+    }
+    retourne résultat
+}
+
+donne_brosse_pour_drapeau_noeud :: fonc (noeud: *Noeud) -> QT_Brush
+{
+    si noeud.drapeau_rendu {
+        retourne QT_Brush(QT_Color(1.0, 0.5, 1.0, 1.0))
+    }
+
+    retourne donne_brosse_pour_corps_noeud(noeud)
+}
+
+donne_brosse_pour_corps_noeud :: fonc (noeud: *Noeud) -> QT_Brush
+{
+    retourne QT_Brush(donne_couleur_pour_noeud(noeud))
+}
+
+dessine_noeud_générique :: fonc (thème: *ThèmeGraphe, noeud: *Noeud, est_sélectionné: bool) -> *QT_GraphicsRectItem
+{
+    ajourne_rectangles_noeuds(noeud)
+
+    parent: *QT_GraphicsItem
+    résultat := crée_géométrie_noeud(parent, noeud, est_sélectionné)
+
+    /* nom du noeud */
+    police := donne_police_pour_texte_noeud()
+    texte := crée_item_texte(résultat, thème, noeud.nom, *police)
+
+    /* ajourne rect_texte et position du nom */
+    rect_texte: QT_RectF
+    QT_graphics_text_item_donne_rect(texte, *rect_texte)
+    noeud.rectangle_texte.y -= rect_texte.hauteur comme r32 / 2.0
+    noeud.rectangle_texte.largeur = rect_texte.largeur comme r32
+    noeud.rectangle_texte.hauteur = rect_texte.hauteur comme r32
+    position_nom_noeud := QT_PointF(noeud.rectangle_texte.x, noeud.rectangle_texte.y)
+    QT_graphics_text_item_definis_position(texte, *position_nom_noeud)
+
+    /* entrées du noeud */
+    pour noeud.entrées {
+        crée_géométrie_prise(résultat, it)
+    }
+
+    /* sorties du noeud */
+    pour noeud.sorties {
+        crée_géométrie_prise(résultat, it)
+    }
+
+    /* icone */
+    rect_icone := donne_qrectf(noeud.rectangle_icone)
+    brosse_couleur := brosse_pour_noeud(noeud)
+    pinceau := QT_Pen()
+
+    icone := QT_cree_graphics_rect_item(résultat)
+    QT_graphics_rect_item_definis_rect(icone, *rect_icone)
+    QT_graphics_rect_item_definis_pinceau(icone, *pinceau)
+    QT_graphics_rect_item_definis_brosse(icone, *brosse_couleur)
+
+    /* drapeau */
+    rect_drapeau := donne_qrectf(noeud.rectangle_drapeau)
+    brosse_drapeau := donne_brosse_pour_drapeau_noeud(noeud)
+    pinceau_drapeau := donne_pinceau_contour_noeud(faux)
+
+    drapeau := QT_cree_graphics_rect_item(résultat)
+    QT_graphics_rect_item_definis_rect(drapeau, *rect_drapeau)
+    QT_graphics_rect_item_definis_pinceau(drapeau, *pinceau_drapeau)
+    QT_graphics_rect_item_definis_brosse(drapeau, *brosse_drapeau)
+
+    retourne résultat
+}
+
+finalise_dessin :: fonc (item: *QT_GraphicsRectItem,
+                         noeud: *Noeud,
+                         est_sélectionné: bool,
+                         pos_x: r32,
+                         pos_y: r32,
+                         largeur_noeud: r32,
+                         hauteur_noeud: r32)
+{
+    pinceau := donne_pinceau_contour_noeud(est_sélectionné)
+    QT_graphics_rect_item_definis_pinceau(item, *pinceau)
+    brosse := donne_brosse_pour_corps_noeud(noeud)
+    QT_graphics_rect_item_definis_brosse(item, *brosse)
+    rect_item := QT_RectF(pos_x, pos_y, largeur_noeud, hauteur_noeud)
+    QT_graphics_rect_item_definis_rect(item, *rect_item)
+
+    noeud.largeur = largeur_noeud
+    noeud.hauteur = hauteur_noeud
+}
+
+donne_qrectf :: fonc (rect: RectanglePosDim(r32)) -> QT_RectF
+{
+    retourne QT_RectF(rect.x, rect.y, rect.largeur, rect.hauteur)
+}
+
+crée_géométrie_prise :: fonc (parent: QT_Generic_GraphicsItem, prise: *Prise @inutilisée, x: r32, y: r32, hauteur: r32, largeur: r32)
+{
+    rect_item := QT_RectF(x, y, largeur, hauteur)
+    pinceau := donne_pinceau_contour_noeud(faux)
+    // brosse := brosse_pour_couleur(prise.donne_description().couleur)
+    brosse := brosse_pour_couleur(CouleurTSL(0.35, 0.75, 0.3))
+
+    item := QT_cree_graphics_ellipse_item(parent)
+    QT_graphics_ellipse_item_definis_rect(item, *rect_item)
+    QT_graphics_ellipse_item_definis_pinceau(item, *pinceau)
+    QT_graphics_ellipse_item_definis_brosse(item, *brosse)
+}
+
+crée_géométrie_prise :: fonc (parent: QT_Generic_GraphicsItem, prise: *Prise)
+{
+    rect_item := donne_qrectf(prise.rectangle)
+    pinceau := donne_pinceau_contour_noeud(faux)
+    // brosse := brosse_pour_couleur(prise.donne_description().couleur)
+    brosse := brosse_pour_couleur(CouleurTSL(0.35, 0.75, 0.3))
+
+    item := QT_cree_graphics_ellipse_item(parent)
+    QT_graphics_ellipse_item_definis_rect(item, *rect_item)
+    QT_graphics_ellipse_item_definis_pinceau(item, *pinceau)
+    QT_graphics_ellipse_item_definis_brosse(item, *brosse)
+}
+
+crée_géométrie_noeud :: fonc (parent: QT_Generic_GraphicsItem, noeud: *Noeud, est_sélectionné: bool) -> *QT_GraphicsRectItem
+{
+    pinceau := donne_pinceau_contour_noeud(est_sélectionné)
+    brosse := donne_brosse_pour_corps_noeud(noeud)
+    rect_item := donne_qrectf(noeud.rectangle())
+
+    item := QT_cree_graphics_rect_item(parent)
+    QT_graphics_rect_item_definis_pinceau(item, *pinceau)
+    QT_graphics_rect_item_definis_brosse(item, *brosse)
+    QT_graphics_rect_item_definis_rect(item, *rect_item)
+    retourne item
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Menu
+ * \{ */
+
+affiche_menu_noeuds_pour_graphe :: fonc (graphe: *Graphe, gestionnaire: *DNJ_Gestionnaire_Interface, pilote_clique: *DNJ_Pilote_Clique)
+{
+    menu := donne_menu_pour_graphe(graphe, gestionnaire, pilote_clique)
+    saufsi menu {
+        retourne
+    }
+    QT_menu_popup(menu, QT_cursor_pos())
+}
+
+donne_menu_pour_graphe :: fonc (graphe: *Graphe, gestionnaire: *DNJ_Gestionnaire_Interface, pilote_clique: *DNJ_Pilote_Clique) -> *QT_Menu
+{
+    saufsi graphe {
+        retourne nul
+    }
+
+    /* Tente de trouver un menu déjà créé. */
+    identifiant := graphe.identifiant_graphe()
+    saufsi identifiant {
+        retourne nul
+    }
+
+    résultat := DNJ_gestionnaire_donne_menu(gestionnaire, vers_qt(identifiant))
+    si résultat {
+        retourne résultat
+    }
+
+    /* Crée un nouveau menu dans ce cas. */
+    catégorisation := graphe.catégorisation_noeuds()
+    saufsi catégorisation {
+        retourne nul
+    }
+
+    texte := texte_danjo_pour_menu_catégorisation(catégorisation, identifiant)
+    diffère déloge(texte)
+
+    ctx_danjo: DNJ_Contexte_Interface
+    ctx_danjo.pilote_clique = pilote_clique
+
+    retourne DNJ_gestionaire_compile_menu_texte(gestionnaire, *ctx_danjo, vers_qt(texte))
+}
+
+texte_danjo_pour_menu_catégorisation :: fonc (catégorisation: *CatégorisationNoeuds, identifiant: chaine) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "menu \"", identifiant, "\" {\n")
+
+    pour catégorie dans catégorisation.catégories {
+        ajoute_au_tampon(*enchaineuse, "    menu \"", catégorie.nom, "\" {\n")
+
+        pour noeud dans catégorie.noeuds {
+            ajoute_au_tampon(*enchaineuse, "        action(valeur=\"", noeud, "\"; attache=ajouter_noeud; métadonnée=\"", noeud, "\")\n")
+        }
+
+        ajoute_au_tampon(*enchaineuse, "    }\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "}\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+/** \} */

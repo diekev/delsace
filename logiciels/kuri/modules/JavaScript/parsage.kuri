@@ -138,6 +138,9 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         For {
             retourne parse_for_statement(parseuse)
         }
+        If {
+            retourne parse_if_statement(parseuse)
+        }
         sinon {
             panique("Instruction inconnue")
         }
@@ -200,6 +203,13 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
     si apparie(parseuse, GenreLexème.Égal) {
         parseuse.consomme()
         init = parseuse.parse_expression()
+    }
+    sinon si apparie(parseuse, GenreLexème.PointVirgule) {
+        parseuse.consomme()
+    }
+    sinon {
+        parseuse.rapporte_erreur("Attendu '=' ou ';' après l'identifiant")
+        retourne nul
     }
 
     declarator := crée_variable_declarator(id, init)
@@ -274,6 +284,52 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *ForStatement
     retourne crée_for_statement(init, test, update, body)
 }
 
+parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement
+{
+    parseuse.consomme()
+
+    saufsi parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse ouvrante")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    test := parseuse.parse_expression()
+
+    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse fermante")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    consequent := parseuse.parse_bloc_statement_ou_expression()
+
+    alternate: *NoeudSyntaxique
+    si parseuse.apparie(GenreLexème.Else) {
+        parseuse.consomme()
+
+        si parseuse.apparie(GenreLexème.If) {
+            alternate = parseuse.parse_if_statement()
+        }
+        sinon {
+            alternate = parseuse.parse_bloc_statement_ou_expression()
+        }
+    }
+
+    retourne crée_if_statement(test, consequent, alternate)
+}
+
+parse_bloc_statement_ou_expression :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
+{
+    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+        expressions := parse_bloc(parseuse, vrai)
+        diffère déloge(expressions)
+        retourne crée_block_statement(...expressions)
+    }
+
+    retourne parseuse.parse_expression()
+}
+
 parse_expression :: fonc (parseuse: *Parseuse, précédence : z32 = 0, associativité : Associativité = Associativité.Gauche) -> *NoeudSyntaxique
 {
     saufsi parseuse.apparie_expression() {
@@ -319,6 +375,18 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
             parseuse.consomme()
             valeur := parse_nombre_depuis_lexème(lexème)
             retourne crée_literal(valeur)
+        }
+        True {
+            parseuse.consomme()
+            retourne crée_boolean_literal(vrai)
+        }
+        False {
+            parseuse.consomme()
+            retourne crée_boolean_literal(faux)
+        }
+        Null {
+            parseuse.consomme()
+            retourne crée_null_literal()
         }
         Identifiant {
             parseuse.consomme()
@@ -388,18 +456,34 @@ donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> Bin
         SupérieurÉgal {
             retourne BinaryOperation.SupérieurÉgal
         }
-        EstÉgal {
-            retourne BinaryOperation.Égal
-        }
-        NEspaPasÉgal {
-            retourne BinaryOperation.Inégal
-        }
         sinon {
             panique("genre opérateur non-géré")
         }
     }
 
     retourne BinaryOperation.Plus
+}
+
+donne_opération_égalitaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> EqualityOperation
+{
+    discr genre {
+        EstÉgal {
+            retourne EqualityOperation.Égal
+        }
+        NEspaPasÉgal {
+            retourne EqualityOperation.Inégal
+        }
+        EstÉgalStrict {
+            retourne EqualityOperation.ÉgalStrict
+        }
+        NEspaPasÉgalStrict {
+            retourne EqualityOperation.InégalStrict
+        }
+        sinon {
+            panique("genre opérateur non-géré")
+        }
+    }
+    retourne EqualityOperation.Égal
 }
 
 parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, précédence: z32, associativité: Associativité) -> *NoeudSyntaxique
@@ -414,13 +498,20 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         Inférieur,
         Supérieur,
         InférieurÉgal,
-        SupérieurÉgal,
-        EstÉgal,
-        NEspaPasÉgal {
+        SupérieurÉgal {
             opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(précédence, associativité)
             retourne crée_binary_expression(opération, gauche, opérande_droite)
+        }
+        EstÉgal,
+        NEspaPasÉgal,
+        EstÉgalStrict,
+        NEspaPasÉgalStrict {
+            opération := donne_opération_égalitaire_pour_genre_lexème(lexème.genre)
+            parseuse.consomme()
+            opérande_droite := parseuse.parse_expression(précédence, associativité)
+            retourne crée_equality_expression(opération, gauche, opérande_droite)
         }
         PlusPlus,
         MoinsMoins {
@@ -511,6 +602,11 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         PlusPlus,
         MoinsMoins {
             parseuse.rapporte_erreur("++/-- unaire non-géré")
+        }
+        Typeof {
+            parseuse.consomme()
+            argument := parseuse.parse_expression_primaire()
+            retourne crée_typeof_operator(argument)
         }
         sinon {
             parseuse.rapporte_erreur("genre de lexème non géré dans parse_expression_unaire")
