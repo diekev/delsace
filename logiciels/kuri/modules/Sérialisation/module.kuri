@@ -1,4 +1,5 @@
 importe Fondation
+importe SysFichier
 
 // -----------------------------------------------------------------
 // Désérialisation de données depuis un tampon d'octets
@@ -325,6 +326,226 @@ ajoute :: fonc (tampon: *TamponFixe($T, $N), v: T) #enligne
 {
     tampon.données[tampon.curseur] = v
     tampon.curseur += 1
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TableDeChaine
+ * Structure pour tenir et dédupliquer des chaines à sérialiser.
+ * \{ */
+
+TableDeChaine :: struct {
+    /* Pour chaque chaine à l'index i, donne la position de celle-ci dans l'enchaineuse. */
+    index: [..]z64
+    chaines: [..]chaine
+    taille_données_chaines: z64
+
+    /* Si la table provient d'un fichier, l'index n'est pas logé en mémoire
+     * mais pointe simplement vers les données du fichier, donc il ne doit
+     * pas être délogé. */
+    provient_d_un_fichier: bool
+}
+
+ajoute_chaine :: fonc (table: *TableDeChaine, chn: chaine) -> z64
+{
+    pour table.chaines {
+        si it == chn {
+            retourne index_it
+        }
+    }
+
+    index_chaine := table.chaines.taille
+
+    tableau_ajoute(*table.chaines, chn)
+    tableau_ajoute(*table.index, table.taille_données_chaines)
+
+    table.taille_données_chaines += chn.taille
+
+    retourne index_chaine
+}
+
+détruit_table_des_chaines :: fonc (table: *TableDeChaine)
+{
+    saufsi table.provient_d_un_fichier {
+        déloge(table.index)
+    }
+    déloge(table.chaines)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sauvegardeuse
+ * Structure pour sérialiser des données dans un FichierPaginéMémoire.
+ * Elle utilise une TableDeChaine qui devra être soigneusement écrite.
+ * \{ */
+
+Sauvegardeuse :: struct {
+    table_des_chaines: TableDeChaine
+    fichier: FichierPaginéMémoire
+    sérialiseuse: SérialiseuseFichier
+    position_pointeur_table_chaines: Optionnel(SérialiseuseFichier.Position)
+}
+
+initialise_sauvegardeuse :: fonc (sauvegardeuse: *Sauvegardeuse)
+{
+    sauvegardeuse.sérialiseuse = crée_sérialiseuse(*sauvegardeuse.fichier)
+}
+
+détruit_sauvegardeuse :: fonc (sauvegardeuse: *Sauvegardeuse, préserve_fichier: bool)
+{
+    déloge(sauvegardeuse.table_des_chaines.index)
+    déloge(sauvegardeuse.table_des_chaines.chaines)
+
+    saufsi préserve_fichier {
+        déloge_toutes_les_pages(*sauvegardeuse.fichier)
+    }
+}
+
+écris_chaine :: fonc (sauvegardeuse: *Sauvegardeuse, chn: chaine)
+{
+    index_chaine := ajoute_chaine(*sauvegardeuse.table_des_chaines, chn)
+    écris_valeur(sauvegardeuse, index_chaine)
+}
+
+écris_valeur :: fonc (sauvegardeuse: *Sauvegardeuse, valeur: $T)
+{
+    sérialise(*sauvegardeuse.sérialiseuse, valeur)
+}
+
+marque_position_écriture_table_des_chaines :: fonc (sauvegardeuse: *Sauvegardeuse)
+{
+    /* Nous écrivons d'abord une valeur par défaut, nous ajournerons le pointeur
+     * via #écris_table_des_chaines. */
+    sauvegardeuse.position_pointeur_table_chaines = position_courante(*sauvegardeuse.sérialiseuse)
+    écris_valeur(sauvegardeuse, 0 comme z64)
+}
+
+écris_table_des_chaines :: fonc (sauvegardeuse: *Sauvegardeuse)
+{
+    saufsi sauvegardeuse.position_pointeur_table_chaines.possède_valeur() {
+        retourne
+    }
+
+    /* Écris les chaines. */
+    position_table_chaines := position_courante(*sauvegardeuse.sérialiseuse)
+    écris_valeur(sauvegardeuse, sauvegardeuse.table_des_chaines.index.taille)
+    écris_valeur(sauvegardeuse, sauvegardeuse.table_des_chaines.index)
+    écris_valeur(sauvegardeuse, sauvegardeuse.table_des_chaines.taille_données_chaines)
+
+    pour sauvegardeuse.table_des_chaines.chaines {
+        écris_valeur(sauvegardeuse, it)
+    }
+
+    /* Écris la position de la table des chaines au début du fichier. */
+    positionne(*sauvegardeuse.sérialiseuse, sauvegardeuse.position_pointeur_table_chaines.Quelque)
+    écris_valeur(sauvegardeuse, position_table_chaines.taille_données_totales)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Lectrice
+ * Structure contenant les données du fichiers à lire.
+ * \{ */
+
+Lectrice :: struct {
+    table_des_chaines: TableDeChaine
+
+    données_fichier: [..]octet
+    curseur: *octet
+
+    sur_rapporte_erreur: fonc(*Lectrice, chaine, ...eini)(rien)
+}
+
+initialise_lectrice :: fonc (lectrice: *Lectrice, données_fichier: [..]octet)
+{
+    lectrice.données_fichier = données_fichier
+    lectrice.curseur = lectrice.données_fichier.pointeur
+}
+
+rapporte_erreur :: fonc (base: *Lectrice, message: chaine, args: ...eini)
+{
+    si base.sur_rapporte_erreur {
+        base.sur_rapporte_erreur(base, message, ...args)
+    }
+}
+
+détruit_lectrice :: fonc (lectrice: *Lectrice, préserve_données := faux)
+{
+    détruit_table_des_chaines(*lectrice.table_des_chaines)
+    saufsi préserve_données {
+        déloge(lectrice.données_fichier)
+    }
+}
+
+lis_nombre_magique :: fonc (lectrice: *Lectrice, nombre_magique: [4]z8) -> bool
+{
+    valeur := lectrice.lis_valeur_typée([4]z8)
+
+    pour nombre_magique {
+        si it != valeur[index_it] {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+lis_valeur_typée :: fonc (lectrice: *Lectrice, $T: type_de_données) -> T
+{
+    taille := taille_de(T) comme z64
+    résultat: T
+
+    copie_mem_nonsur(src = lectrice.curseur, dst = *résultat, taille = taille)
+
+    lectrice.curseur += taille
+
+    retourne résultat
+}
+
+lis_chaine :: fonc (lectrice: *Lectrice) -> chaine
+{
+    index := lis_valeur_typée(lectrice, z64)
+    retourne lectrice.table_des_chaines.chaines[index]
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Lecture de la table des chaines.
+ * \{ */
+
+lis_table_des_chaines :: fonc (lectrice: *Lectrice)
+{
+    décalage := lis_valeur_typée(lectrice, z64)
+
+    ancien_curseur := lectrice.curseur
+    diffère lectrice.curseur = ancien_curseur
+
+    lectrice.curseur = lectrice.données_fichier.pointeur + décalage
+
+    table := *lectrice.table_des_chaines
+    table.provient_d_un_fichier = vrai
+
+    nombre_de_chaines := lis_valeur_typée(lectrice, z64)
+
+    table.index.taille = nombre_de_chaines + 1
+    table.index.pointeur = lectrice.curseur comme *z64
+
+    lectrice.curseur += (nombre_de_chaines + 1) * taille_de(z64) comme z64
+
+    pour nombre_de_chaines {
+        taille_chaine := table.index[index_it + 1] - table.index[index_it]
+
+        chn: chaine
+        chn.taille = taille_chaine
+        chn.pointeur = lectrice.curseur comme *z8
+        tableau_ajoute(*table.chaines, chn)
+
+        lectrice.curseur += chn.taille
+    }
 }
 
 /** \} */
