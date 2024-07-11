@@ -1,0 +1,901 @@
+importe Chaine
+importe Fondation
+importe Math
+
+avance :: fonc (chn: &ChaineUTF32, n: z32)
+{
+    chn.points_de_code.taille -= n
+    assert(chn.points_de_code.taille >= 0)
+    chn.points_de_code.pointeur += n
+}
+
+FIN_DE_FICHIER : n32 : 0xffffffff
+
+opérateur - :: fonc (a: n32, b: z8) -> n32
+{
+    retourne a - b comme n32
+}
+
+opérateur == :: fonc (a: n32, b: z8) -> bool
+{
+    retourne a == b comme n32
+}
+
+opérateur != :: fonc (a: n32, b: z8) -> bool
+{
+    retourne a != b comme n32
+}
+
+opérateur <= :: fonc (a: n32, b: z8) -> bool
+{
+    retourne a <= b comme n32
+}
+
+opérateur <= :: fonc (a: z8, b: n32) -> bool
+{
+    retourne a comme n32 <= b
+}
+
+est_chiffre :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne '0' <= point_de_code <= '9'
+}
+
+est_chiffre_hex :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne '0' <= point_de_code <= '9' || 'a' <= point_de_code <= 'f' || 'A' <= point_de_code <= 'Z'
+}
+
+est_lettre_majuscule :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne 'A' <= point_de_code <= 'Z'
+}
+
+est_lettre_minuscule :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne 'a' <= point_de_code <= 'z'
+}
+
+est_lettre :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne est_lettre_majuscule(point_de_code) || est_lettre_minuscule(point_de_code)
+}
+
+est_non_ascii :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne point_de_code >= 0x80
+}
+
+est_début_ident :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne est_lettre(point_de_code) || est_non_ascii(point_de_code) || point_de_code == '_'
+}
+
+est_point_de_code_ident :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne est_début_ident(point_de_code) || est_chiffre(point_de_code) || point_de_code == '-'
+}
+
+est_non_imprimable :: fonc (point_de_code: n32) -> bool #enligne
+{
+    BACKSPACE :: 0x8
+    LINE_TABULATION :: 0xB
+    SHIFT_OUT :: 0xE
+    INFORMATION_SEPARATOR_ONE :: 0xF1
+    DELETE :: 0x7F
+
+    retourne (0 <= point_de_code <= BACKSPACE) || (point_de_code == LINE_TABULATION) || (SHIFT_OUT <= point_de_code <= INFORMATION_SEPARATOR_ONE) || point_de_code == DELETE
+}
+
+est_nouvelle_ligne :: fonc (point_de_code: n32) -> bool #enligne
+{
+    LINE_FEED : n32 : 0xA
+    retourne point_de_code == LINE_FEED
+}
+
+est_espace_blanche :: fonc (point_de_code: n32) -> bool #enligne
+{
+    CHARACTER_TABULATION : n32 : 0x9
+    SPACE : n32 : 0x20
+    retourne est_nouvelle_ligne(point_de_code) || point_de_code == CHARACTER_TABULATION || point_de_code == SPACE
+}
+
+point_de_code_maximal_autorisé :: fonc () -> n32 #enligne
+{
+    retourne 0x10FFFF
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4 Tokenization
+ * https://www.w3.org/TR/css-syntax-3/#tokenization
+ * \{ */
+
+GenreLexème :: énum n8 {
+    Ident
+    Function
+    At_Keyword
+    Hash
+    String
+    Bad_String
+    Url
+    Bad_Url
+    Delim
+    Number
+    Percentage
+    Dimension
+    Whitespace
+    CDO
+    CDC
+    Colon
+    Semicolon
+    Comma
+    Open_Square_Bracket
+    Close_Square_Bracket
+    Open_Parenthesis
+    Close_Parenthesis
+    Open_Bracket
+    Close_Bracket
+    EOF
+}
+
+DrapeauxTypeHash :: énum n8 {
+    Unrestricted
+    Id
+}
+
+DrapeauxTypeNombre :: énum n8 {
+    Integer
+    Number
+}
+
+Lexème :: struct {
+    genre: GenreLexème
+
+    /* Pour Ident, Function, At_Keyword, Hash, String, et Url. */
+    valeur: ChaineUTF16
+
+    /* Pour Delim */
+    point_de_code: n32
+
+    /* Pour Hash */
+    drapeau_type_hash: DrapeauxTypeHash
+
+    /* Pour Number, Percentage, et Dimension */
+    numeric_value: r64
+
+    /* Pour Number et Dimension */
+    drapeau_type_nombre: DrapeauxTypeNombre
+
+    /* Pour Dimension */
+    unité: ChaineUTF16
+}
+
+Lexeuse :: struct {
+    contenu: ChaineUTF32
+    curseur: z64
+}
+
+apparie :: fonc (lexeuse: &Lexeuse, points_de_code: ...z8) -> bool
+{
+    si points_de_code.taille + lexeuse.curseur >= lexeuse.contenu.taille() {
+        retourne faux
+    }
+
+    pour points_de_code {
+        si lexeuse.contenu.points_de_code[lexeuse.curseur + index_it] != it {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+avance :: fonc (lexeuse: &Lexeuse, n := 1)
+{
+    lexeuse.curseur += n
+}
+
+consomme :: fonc (lexeuse: &Lexeuse)
+{
+    lexeuse.curseur += 1
+}
+
+point_de_code_suivant :: fonc (lexeuse: &Lexeuse) -> n32
+{
+    retourne lexeuse.contenu.points_de_code[lexeuse.curseur]
+}
+
+point_de_code_suivant :: fonc (lexeuse: &Lexeuse, décalage: z64) -> n32
+{
+    si lexeuse.curseur + décalage >= lexeuse.contenu.taille() {
+        retourne FIN_DE_FICHIER
+    }
+    retourne lexeuse.contenu.points_de_code[lexeuse.curseur]
+}
+
+consomme_point_de_code_suivant :: fonc (lexeuse: &Lexeuse) -> n32
+{
+    résultat := lexeuse.point_de_code_suivant()
+    lexeuse.consomme()
+    retourne résultat
+}
+
+reconsomme_point_de_code :: fonc (lexeuse: &Lexeuse)
+{
+    assert(lexeuse.curseur > 0)
+    lexeuse.curseur -= 1
+}
+
+consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)
+{
+    tantque !fini(lexeuse) && est_espace_blanche(lexeuse.point_de_code_suivant()) {
+        lexeuse.consomme()
+    }
+}
+
+rapporte_erreur :: fonc (lexeuse: &Lexeuse @inutilisée, message: chaine)
+{
+    imprime("%\n", message)
+}
+
+fini :: fonc (lexeuse: &Lexeuse) -> bool
+{
+    retourne lexeuse.curseur >= lexeuse.contenu.taille()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.3 Tokenizer Algorithms
+ * \{ */
+
+/* 4.3.1 Consume a token
+ * https://www.w3.org/TR/css-syntax-3/#consume-token */
+consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
+{
+    consomme_des_commentaires(lexeuse)
+
+    point_de_code := lexeuse.consomme_point_de_code_suivant()
+
+    si est_espace_blanche(point_de_code) {
+        lexeuse.consomme_espaces_blanches()
+        retourne Lexème(GenreLexème.Whitespace)
+    }
+
+    si point_de_code == '"' {
+        retourne lexeuse.consomme_un_lexème_chaine(point_de_code)
+    }
+
+    si point_de_code == '#' {
+        // If the next input code point is an ident code point or the next two input code points are a valid escape, then:
+        si est_point_de_code_ident(lexeuse.point_de_code_suivant()) || forment_un_échappement_valide(lexeuse) {
+            // 1. Create a <hash-token>.
+            résultat := Lexème(GenreLexème.Hash)
+
+            // 2. If the next 3 input code points would start an ident sequence, set the <hash-token>’s type flag to "id".
+            si vérifie_si_trois_points_de_code_commenceraient_un_ident(lexeuse) {
+                résultat.drapeau_type_hash = DrapeauxTypeHash.Id
+            }
+
+            // 3. Consume an ident sequence, and set the <hash-token>’s value to the returned string.
+            résultat.valeur = lexeuse.consomme_une_séquence_identifiante()
+
+            // 4. Return the <hash-token>.
+            retourne résultat
+        }
+
+        // Otherwise, return a <delim-token> with its value set to the current input code point.
+        retourne Lexème(GenreLexème.Delim, point_de_code = point_de_code)
+    }
+
+    si point_de_code == '\'' {
+        retourne lexeuse.consomme_un_lexème_chaine(point_de_code)
+    }
+
+    si point_de_code == '(' {
+        retourne Lexème(GenreLexème.Open_Parenthesis)
+    }
+
+    si point_de_code == ')' {
+        retourne Lexème(GenreLexème.Close_Parenthesis)
+    }
+
+    si point_de_code == '+' {
+        si est_chiffre(lexeuse.point_de_code_suivant()) {
+            lexeuse.reconsomme_point_de_code()
+            retourne lexeuse.consomme_un_lexème_numérique()
+        }
+
+        retourne Lexème(GenreLexème.Delim, point_de_code = point_de_code)
+    }
+
+    si point_de_code == ',' {
+        retourne Lexème(GenreLexème.Comma)
+    }
+
+    si point_de_code == '-' {
+        si est_chiffre(lexeuse.point_de_code_suivant()) {
+            lexeuse.reconsomme_point_de_code()
+            retourne lexeuse.consomme_un_lexème_numérique()
+        }
+
+        si apparie(lexeuse, '-', '>') {
+            lexeuse.avance(2)
+            retourne Lexème(GenreLexème.CDC)
+        }
+
+        si est_début_ident(lexeuse.point_de_code_suivant()) {
+            lexeuse.reconsomme_point_de_code()
+            retourne lexeuse.consomme_un_lexème_simili_ident()
+        }
+
+        retourne Lexème(GenreLexème.Delim, point_de_code = point_de_code)
+    }
+
+    si point_de_code == '.' {
+        si est_chiffre(lexeuse.point_de_code_suivant()) {
+            lexeuse.reconsomme_point_de_code()
+            retourne lexeuse.consomme_un_lexème_numérique()
+        }
+
+        retourne Lexème(GenreLexème.Delim, point_de_code = point_de_code)
+    }
+
+    si point_de_code == ':' {
+        retourne Lexème(GenreLexème.Colon)
+    }
+
+    si point_de_code == ';' {
+        retourne Lexème(GenreLexème.Semicolon)
+    }
+
+    si point_de_code == '<' {
+        si apparie(lexeuse, '!', '-', '-') {
+            lexeuse.avance(2)
+            retourne Lexème(GenreLexème.CDC)
+        }
+
+        retourne Lexème(GenreLexème.Delim, point_de_code = point_de_code)
+    }
+
+    si point_de_code == '@' {
+        si vérifie_si_trois_points_de_code_commenceraient_un_ident(lexeuse) {
+            ident := lexeuse.consomme_une_séquence_identifiante()
+            retourne Lexème(GenreLexème.At_Keyword, valeur = ident)
+        }
+
+        retourne Lexème(GenreLexème.Delim, point_de_code = point_de_code)
+    }
+
+    si point_de_code == '[' {
+        retourne Lexème(GenreLexème.Open_Bracket)
+    }
+
+    si point_de_code == '\\' {
+        si forment_un_échappement_valide(lexeuse, point_de_code) {
+            lexeuse.reconsomme_point_de_code()
+            retourne lexeuse.consomme_un_lexème_simili_ident()
+        }
+
+        retourne Lexème(GenreLexème.Delim, point_de_code = point_de_code)
+    }
+
+    si point_de_code == ']' {
+        retourne Lexème(GenreLexème.Close_Square_Bracket)
+    }
+
+    si point_de_code == '{' {
+        retourne Lexème(GenreLexème.Open_Bracket)
+    }
+
+    si point_de_code == '}' {
+        retourne Lexème(GenreLexème.Close_Bracket)
+    }
+
+    si est_chiffre(point_de_code) {
+        lexeuse.reconsomme_point_de_code()
+        retourne lexeuse.consomme_un_lexème_numérique()
+    }
+
+    si est_début_ident(point_de_code) {
+        lexeuse.reconsomme_point_de_code()
+        retourne lexeuse.consomme_un_lexème_simili_ident()
+    }
+
+    si point_de_code == FIN_DE_FICHIER {
+        retourne Lexème(GenreLexème.EOF)
+    }
+
+    retourne Lexème(GenreLexème.Delim, point_de_code = point_de_code)
+}
+
+/* 4.3.2 Consume comments
+ * https://www.w3.org/TR/css-syntax-3/#consume-comment */
+consomme_des_commentaires :: fonc (lexeuse: &Lexeuse)
+{
+    tantque apparie(lexeuse, '/', '*') {
+        lexeuse.avance(2)
+
+        si apparie(lexeuse, '*', '/') {
+            lexeuse.avance(2)
+        }
+        sinon si fini(lexeuse) {
+            lexeuse.rapporte_erreur("fin de fichier dans un commentaire")
+        }
+        sinon {
+            lexeuse.avance()
+        }
+    }
+}
+
+/* 4.3.3 Consume a numeric token
+ * https://www.w3.org/TR/css-syntax-3/#consume-numeric-token */
+consomme_un_lexème_numérique :: fonc (lexeuse: &Lexeuse) -> Lexème
+{
+    nombre, type := consomme_un_nombre(lexeuse)
+
+    si vérifie_si_trois_points_de_code_commenceraient_un_ident(lexeuse) {
+        unité := consomme_une_séquence_identifiante(lexeuse)
+        retourne Lexème(GenreLexème.Dimension, drapeau_type_nombre = type, numeric_value = nombre, unité = unité)
+    }
+
+    si lexeuse.point_de_code_suivant() == '%' {
+        lexeuse.consomme()
+        retourne Lexème(GenreLexème.Percentage, drapeau_type_nombre = type, numeric_value = nombre)
+    }
+
+    retourne Lexème(GenreLexème.Number, drapeau_type_nombre = type, numeric_value = nombre)
+}
+
+/* 4.3.4 Consume an ident-like token
+ * https://www.w3.org/TR/css-syntax-3/#consume-ident-like-token */
+consomme_un_lexème_simili_ident :: fonc (lexeuse: &Lexeuse) -> Lexème
+{
+    string := consomme_une_séquence_identifiante(lexeuse)
+
+    // À FAIRE : comparaison insensible à la casse
+    si string == "url" && lexeuse.point_de_code_suivant() == '(' {
+        lexeuse.consomme()
+
+        tantque est_espace_blanche(lexeuse.point_de_code_suivant()) {
+            lexeuse.consomme()
+        }
+
+        panique("non-implémenté")
+    }
+
+    si lexeuse.point_de_code_suivant() == '(' {
+        lexeuse.consomme()
+        retourne Lexème(GenreLexème.Function, valeur = string)
+    }
+
+    retourne Lexème(GenreLexème.Ident, valeur = string)
+}
+
+/* 4.3.5 Consume a string token
+ * https://www.w3.org/TR/css-syntax-3/#consume-string-token */
+consomme_un_lexème_chaine :: fonc (lexeuse: &Lexeuse, point_de_code_final: n32) -> Lexème
+{
+    valeur: ChaineUTF16
+
+    tantque !fini(lexeuse) {
+        point_de_code := lexeuse.consomme_point_de_code_suivant()
+
+        si point_de_code == point_de_code_final {
+            retourne Lexème(GenreLexème.String, valeur = valeur)
+        }
+
+        si est_nouvelle_ligne(point_de_code) {
+            lexeuse.rapporte_erreur("nouvelle ligne inattendu")
+            lexeuse.reconsomme_point_de_code()
+            retourne Lexème(GenreLexème.Bad_String, valeur = valeur)
+        }
+
+        si point_de_code == '\\' {
+            si lexeuse.point_de_code_suivant() == FIN_DE_FICHIER {
+                continue
+            }
+
+            si est_nouvelle_ligne(lexeuse.point_de_code_suivant()) {
+                lexeuse.consomme()
+                continue
+            }
+
+            point_de_code = consomme_un_point_de_code_échappé(lexeuse)
+            chaine_ajoute(*valeur, point_de_code)
+            continue
+        }
+
+        chaine_ajoute(*valeur, point_de_code)
+    }
+
+    retourne Lexème(GenreLexème.String, valeur = valeur)
+}
+
+/* 4.3.6 Consume a url token
+ * https://www.w3.org/TR/css-syntax-3/#consume-url-token */
+consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
+{
+    valeur: ChaineUTF16
+
+    lexeuse.consomme_espaces_blanches()
+
+    tantque !fini(lexeuse) {
+        point_de_code := lexeuse.consomme_point_de_code_suivant()
+
+        si point_de_code == ')' {
+            retourne Lexème(GenreLexème.Url, valeur = valeur)
+        }
+
+        si est_espace_blanche(point_de_code) {
+            lexeuse.consomme_espaces_blanches()
+
+            point_de_code = lexeuse.point_de_code_suivant()
+
+            si point_de_code == ')' {
+                lexeuse.consomme()
+                retourne Lexème(GenreLexème.Url, valeur = valeur)
+            }
+
+            si point_de_code == FIN_DE_FICHIER {
+                lexeuse.consomme() 
+                lexeuse.rapporte_erreur("fin de fichier inattendu")
+                retourne Lexème(GenreLexème.Url, valeur = valeur)
+            }
+
+            lexeuse.consomme_les_restes_d_un_url()
+            retourne Lexème(GenreLexème.Bad_Url, valeur = valeur)
+        }
+
+        si point_de_code == '"' || point_de_code == '\'' || point_de_code == '(' || est_non_imprimable(point_de_code) {
+            lexeuse.rapporte_erreur("caractère inattendu")
+            lexeuse.consomme_les_restes_d_un_url()
+            retourne Lexème(GenreLexème.Bad_Url, valeur = valeur)
+        }
+
+        si point_de_code == '\\' {
+            si forment_un_échappement_valide(lexeuse, point_de_code) {
+                point_de_code = consomme_un_point_de_code_échappé(lexeuse)
+                chaine_ajoute(*valeur, point_de_code)
+                continue
+            }
+
+            lexeuse.rapporte_erreur("caractère inattendu")
+            lexeuse.consomme_les_restes_d_un_url()
+            retourne Lexème(GenreLexème.Bad_Url, valeur = valeur)
+        }
+        
+        chaine_ajoute(*valeur, point_de_code)
+    }
+}
+
+/* 4.3.7 Consume an escaped code point
+ * https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point */
+consomme_un_point_de_code_échappé :: fonc (lexeuse: &Lexeuse) -> n32
+{
+    point_de_code := lexeuse.consomme_point_de_code_suivant()
+
+    si est_chiffre_hex(point_de_code) {
+        résultat := point_de_code // À FAIRE : convertis hex
+
+        pour 5 {
+            point_de_code = lexeuse.point_de_code_suivant()
+            saufsi est_chiffre_hex(point_de_code) {
+                arrête
+            }
+
+            résultat *= 16
+            résultat += point_de_code // À FAIRE : convertis hex
+        }
+
+        si est_espace_blanche(lexeuse.point_de_code_suivant()) {
+            lexeuse.consomme()
+        }
+
+        si résultat == 0 {
+            retourne 0xFFFD
+        }
+
+        retourne résultat
+    }
+
+    si point_de_code == FIN_DE_FICHIER {
+        lexeuse.rapporte_erreur("fin de fichier inattendu")
+        retourne 0xFFFD
+    }
+
+    retourne point_de_code
+}
+
+/* 4.3.8 Check if two code points are a valid escape
+ * https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape */
+forment_un_échappement_valide :: fonc (lexeuse: &Lexeuse) -> bool
+{
+    premier := lexeuse.point_de_code_suivant()
+    deuxième := lexeuse.point_de_code_suivant(1)
+    retourne sont_un_échappement_valide(premier, deuxième)
+}
+
+forment_un_échappement_valide :: fonc (lexeuse: &Lexeuse, premier: n32) -> bool
+{
+    retourne sont_un_échappement_valide(premier, lexeuse.point_de_code_suivant())
+}
+
+sont_un_échappement_valide :: fonc (premier: n32, deuxième: n32) -> bool
+{
+    si premier != '\\' {
+        retourne faux
+    }
+
+    si est_nouvelle_ligne(deuxième) {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+/* 4.3.9 Check if three code points would start an ident sequence
+ * https://www.w3.org/TR/css-syntax-3/#would-start-an-identifier */
+vérifie_si_trois_points_de_code_commenceraient_un_ident :: fonc (lexeuse: &Lexeuse) -> bool
+{
+    premier := lexeuse.point_de_code_suivant()
+    deuxième := lexeuse.point_de_code_suivant(1)
+    troisième := lexeuse.point_de_code_suivant(2)
+    retourne vérifie_si_trois_points_de_code_commenceraient_un_ident(premier, deuxième, troisième)
+}
+
+vérifie_si_trois_points_de_code_commenceraient_un_ident :: fonc (lexeuse: &Lexeuse, premier: n32) -> bool
+{
+    deuxième := lexeuse.point_de_code_suivant()
+    troisième := lexeuse.point_de_code_suivant(1)
+    retourne vérifie_si_trois_points_de_code_commenceraient_un_ident(premier, deuxième, troisième)
+}
+
+vérifie_si_trois_points_de_code_commenceraient_un_ident :: fonc (premier: n32, deuxième: n32, troisième: n32) -> bool
+{
+    si premier == '-' {
+        si (est_début_ident(deuxième) || deuxième == '-') || (sont_un_échappement_valide(deuxième, troisième)) {
+            retourne vrai
+        }
+
+        retourne faux
+    }
+
+    si est_début_ident(premier) {
+        retourne vrai
+    }
+
+    si premier == '\\' {
+        si sont_un_échappement_valide(premier, deuxième) {
+            retourne vrai
+        }
+
+        retourne faux
+    }
+
+    retourne faux
+}
+
+/* 4.3.10 Check if three code points would start a number
+ * https://www.w3.org/TR/css-syntax-3/#starts-with-a-number */
+vérifie_si_trois_points_de_code_commenceraient_un_nombre :: fonc (lexeuse: &Lexeuse, premier: n32) -> bool
+{
+    deuxième := lexeuse.point_de_code_suivant()
+    troisième := lexeuse.point_de_code_suivant(1)
+
+    si premier == '+' || premier == '-' {
+        si est_chiffre(deuxième) {
+            retourne vrai
+        }
+
+        si deuxième == '.' && est_chiffre(troisième) {
+            retourne vrai
+        }
+
+        retourne faux
+    }
+
+    si premier == '.' {
+        si est_chiffre(deuxième) {
+            retourne vrai
+        }
+
+        retourne faux
+    }
+
+    si est_chiffre(premier) {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* 4.3.11 Consume an ident sequence
+ * https://www.w3.org/TR/css-syntax-3/#consume-name */
+consomme_une_séquence_identifiante :: fonc (lexeuse: &Lexeuse) -> ChaineUTF16
+{
+    résultat: ChaineUTF16
+
+    tantque !fini(lexeuse) {
+        point_de_code := lexeuse.consomme_point_de_code_suivant()
+
+        si est_point_de_code_ident(point_de_code) {
+            chaine_ajoute(*résultat, point_de_code)
+            continue
+        }
+
+        si forment_un_échappement_valide(lexeuse, point_de_code) {
+            point_de_code = consomme_un_point_de_code_échappé(lexeuse)
+            chaine_ajoute(*résultat, point_de_code)
+            continue
+        }
+
+        lexeuse.reconsomme_point_de_code()
+        arrête
+    }
+
+    retourne résultat
+}
+
+/* 4.3.12 Consume a number
+ * https://www.w3.org/TR/css-syntax-3/#consume-number */
+consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> r64, DrapeauxTypeNombre
+{
+    type := DrapeauxTypeNombre.Integer
+
+    repr: ChaineUTF32
+    diffère détruit_chaine(repr)
+
+    point_de_code := lexeuse.point_de_code_suivant()
+    si point_de_code == '+' || point_de_code == '-' {
+        chaine_ajoute(*repr, point_de_code)
+        lexeuse.consomme()
+    }
+
+    tantque est_chiffre(lexeuse.point_de_code_suivant()) {
+        point_de_code = lexeuse.consomme_point_de_code_suivant()
+        chaine_ajoute(*repr, point_de_code)
+    }
+
+    si lexeuse.point_de_code_suivant() == '.' {
+        point_de_code = lexeuse.consomme_point_de_code_suivant()
+
+        si est_chiffre(lexeuse.point_de_code_suivant()) {
+            chaine_ajoute(*repr, point_de_code)
+            chaine_ajoute(*repr, lexeuse.consomme_point_de_code_suivant())
+
+            type = DrapeauxTypeNombre.Number
+
+            tantque est_chiffre(lexeuse.point_de_code_suivant()) {
+                point_de_code = lexeuse.consomme_point_de_code_suivant()
+                chaine_ajoute(*repr, point_de_code)
+            }
+        }
+        sinon {
+            lexeuse.reconsomme_point_de_code()
+        }
+    }
+
+    si lexeuse.point_de_code_suivant() == 'E' || lexeuse.point_de_code_suivant() == 'e' {
+        point_de_code = lexeuse.consomme_point_de_code_suivant()
+
+        point_de_code_signe: n32
+        si lexeuse.point_de_code_suivant() == '-' || lexeuse.point_de_code_suivant() == '+' {
+            point_de_code_signe = lexeuse.consomme_point_de_code_suivant()
+        }
+
+        si est_chiffre(lexeuse.point_de_code_suivant()) {
+            chaine_ajoute(*repr, point_de_code)
+            chaine_ajoute(*repr, point_de_code_signe)
+
+            type = DrapeauxTypeNombre.Number
+
+            tantque est_chiffre(lexeuse.point_de_code_suivant()) {
+                point_de_code = lexeuse.consomme_point_de_code_suivant()
+                chaine_ajoute(*repr, point_de_code)
+            }
+        }
+        sinon {
+            lexeuse.reconsomme_point_de_code()
+
+            si point_de_code_signe != 0 {
+                lexeuse.reconsomme_point_de_code()
+            }
+        }
+    }
+
+    valeur := convertis_une_chaine_en_un_nombre(repr)
+    retourne valeur, type
+}
+
+/* 4.3.13 Convert a string to a number
+ * https://www.w3.org/TR/css-syntax-3/#convert-string-to-number */
+convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
+{
+    si repr.est_vide() {
+        retourne 0.0
+    }
+
+    s : r64 = 1.0
+    si repr.points_de_code[0] == '+' {
+        repr.avance(1)
+    }
+    sinon si repr.points_de_code[0] == '-' {
+        s = -1.0
+        repr.avance(1)
+    }
+
+    i : r64 = 0.0
+    tantque repr.taille() != 0 {
+        saufsi est_chiffre(repr.points_de_code[0]) {
+            arrête
+        }
+
+        i *= 10.0
+        i += (repr.points_de_code[0] - '0') comme r64
+        repr.avance(1)
+    }
+
+    si repr.taille() != 0 && repr.points_de_code[0] == '.' {
+        repr.avance(1)
+    }
+
+    f : r64 = 0.0
+    d : r64 = 0.0
+    tantque repr.taille() != 0 {
+        saufsi est_chiffre(repr.points_de_code[0]) {
+            arrête
+        }
+
+        f *= 10.0
+        f += (repr.points_de_code[0] - '0') comme r64
+        d += 1.0
+        repr.avance(1)
+    }
+
+    si repr.taille() != 0 && (repr.points_de_code[0] == 'E' || repr.points_de_code[0] == 'e') {
+        repr.avance(1)
+    }
+
+    t : r64 = 1.0
+    si repr.taille() != 0 && repr.points_de_code[0] == '+' {
+        repr.avance(1)
+    }
+    sinon si repr.taille() != 0 && repr.points_de_code[0] == '-' {
+        t = -1.0
+        repr.avance(1)
+    }
+
+    e : r64 = 0.0
+    tantque repr.taille() != 0 {
+        saufsi est_chiffre(repr.points_de_code[0]) {
+            arrête
+        }
+
+        e *= 10.0
+        e += (repr.points_de_code[0] - '0') comme r64
+        repr.avance(1)
+    }
+
+    retourne s * (i + f * puissance(10.0, -d)) * puissance(10.0, t * e)
+}
+
+/* 4.3.14 Consume the remnants of a bad url
+ * https://www.w3.org/TR/css-syntax-3/#consume-remnants-of-bad-url */
+consomme_les_restes_d_un_url :: fonc (lexeuse: &Lexeuse) -> Lexème
+{
+    tantque !fini(lexeuse) {
+        point_de_code := lexeuse.consomme_point_de_code_suivant()
+
+        si point_de_code == ')' || point_de_code == FIN_DE_FICHIER {
+            retourne
+        }
+
+        si forment_un_échappement_valide(lexeuse, point_de_code) {
+            _ = consomme_un_point_de_code_échappé(lexeuse)
+            continue
+        }
+    }
+}
+
+/** \} */

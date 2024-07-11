@@ -212,9 +212,6 @@ BinaryOperation :: énum {
     Inférieur
     SupérieurÉgal
     InférieurÉgal
-
-    Égal
-    Inégal
 }
 
 BinaryExpression :: struct {
@@ -258,66 +255,101 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     }
     gauche := valeur_complétion_gauche.valeur.V
     droite := valeur_complétion_droite.valeur.V
-    retourne normal_completion(évalue_expression_binaire(noeud.opération, gauche, droite))
+    retourne évalue_expression_binaire(interpréteuse, noeud.opération, gauche, droite)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-applystringornumericbinaryoperator */
-évalue_expression_binaire :: fonc (opération: BinaryOperation, gauche: Valeur, droite: Valeur) -> Valeur
+évalue_expression_binaire :: fonc (interpréteuse: &Interpréteuse, opération: BinaryOperation, gauche: Valeur, droite: Valeur) -> CompletionRecord
 {
-    // si opération == BinaryOperation.Plus {
-    //     primitive_gauche := vers_primitive(gauche)
-    //     primitive_droite := vers_primitive(droite)
+    // 1. If opText is +, then
+    si opération == BinaryOperation.Plus {
+        // a. Let lprim be ? ToPrimitive(lval).
+        complétion_lprim := vers_primitive(interpréteuse, gauche)
+        saufsi complétion_lprim.est_normal() {
+            retourne complétion_lprim
+        }
+        lprim := complétion_lprim.valeur.V
+        // b. Let rprim be ? ToPrimitive(rval).
+        complétion_rprim := vers_primitive(interpréteuse, droite)
+        saufsi complétion_rprim.est_normal() {
+            retourne complétion_rprim
+        }
+        rprim := complétion_rprim.valeur.V
+        // c. If lprim is a String or rprim is a String, then
+        si lprim.est_chaine() || rprim.est_chaine() {
+            panique("concaténation chaine non-implémenté")
+            // i. Let lstr be ? ToString(lprim).
+            // ii. Let rstr be ? ToString(rprim).
+            // iii. Return the string-concatenation of lstr and rstr.
+        }
+    
+        // d. Set lval to lprim.
+        gauche = lprim
+        // e. Set rval to rprim.
+        droite = rprim
+    }
 
-    //     si primitive_gauche.est_chaine() || primitive_droite.est_chaine() {
-    //         str_gauche := primitive_gauche.vers_chaine()
-    //         str_droite := primitive_droite.vers_chaine()
+    // 2. NOTE: At this point, it must be a numeric operation.
 
-    //         retourne concatène(str_gauche, str_droite)
-    //     }
+    // 3. Let lnum be ? ToNumeric(lval).
+    complétion_lnum := to_numeric(interpréteuse, gauche)
+    saufsi complétion_lnum.est_normal() {
+        retourne complétion_lnum
+    }
+    gauche = complétion_lnum.valeur.V
 
-    //     gauche = primitive_gauche
-    //     droite = primitive_droite
+    // 4. Let rnum be ? ToNumeric(rval).
+    complétion_rnum := to_numeric(interpréteuse, droite)
+    saufsi complétion_rnum.est_normal() {
+        retourne complétion_rnum
+    }
+    droite = complétion_rnum.valeur.V
+
+    // 5. If Type(lnum) is not Type(rnum), throw a TypeError exception.
+    // si type(lum) != type(rnum) {
+    // À FAIRE
     // }
 
-    // nombre_gauche := vers_numeric(gauche)
-    // nombre_droite := vers_numeric(droite)
+    // À FAIRE : bigint
+    // 6. If lnum is a BigInt, then
+    // a. If opText is **, return ? BigInt::exponentiate(lnum, rnum).
+    // b. If opText is /, return ? BigInt::divide(lnum, rnum).
+    // c. If opText is %, return ? BigInt::remainder(lnum, rnum).
+    // d. If opText is >>>, return ? BigInt::unsignedRightShift(lnum, rnum).
 
-    // If Type(lnum) != Type(rnum)
+    // 7. Let operation be the abstract operation associated with opText and Type(lnum) in the following table:
+
+    // 8. Return operation(lnum, rnum).
+    valeur := js_undefined
 
     discr opération {
         Plus {
-            retourne ajoute_valeurs(gauche, droite)
+            valeur = ajoute_valeurs(gauche, droite)
         }
         Moins {
-            retourne soustrait_valeurs(gauche, droite)
+            valeur = soustrait_valeurs(gauche, droite)
         }
         Multiplie {
-            retourne multiplie_valeurs(gauche, droite)
+            valeur = multiplie_valeurs(gauche, droite)
         }
         Divise {
-            retourne divise_valeurs(gauche, droite)
+            valeur = divise_valeurs(gauche, droite)
         }
         Supérieur {
-            retourne compare_supérieur_valeurs(gauche, droite)
+            valeur = compare_supérieur_valeurs(gauche, droite)
         }
         Inférieur {
-            retourne compare_inférieur_valeurs(gauche, droite)
+            valeur = compare_inférieur_valeurs(gauche, droite)
         }
         SupérieurÉgal {
-            retourne compare_supérieur_égal_valeurs(gauche, droite)
+            valeur = compare_supérieur_égal_valeurs(gauche, droite)
         }
         InférieurÉgal {
-            retourne compare_inférieur_égal_valeurs(gauche, droite)
-        }
-        Égal {
-            retourne compare_égal_valeurs(gauche, droite)
-        }
-        Inégal {
-            retourne compare_inégal_valeurs(gauche, droite)
+            valeur = compare_inférieur_égal_valeurs(gauche, droite)
         }
     }
 
-    retourne js_undefined
+    retourne normal_completion(valeur)
 }
 
 ajoute_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
@@ -376,18 +408,194 @@ compare_inférieur_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Val
     retourne Valeur(Boolean = gauche.Number <= droite.Number)
 }
 
-compare_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Boolean = gauche.Number == droite.Number)
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EqualityExpression
+ * \{ */
+
+EqualityOperation :: énum {
+    Égal
+    Inégal
+    ÉgalStrict
+    InégalStrict
 }
 
-compare_inégal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+EqualityExpression :: struct {
+    empl  base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_equality_expression
+
+    opération: EqualityOperation
+    gauche: *NoeudSyntaxique
+    droite: *NoeudSyntaxique
+}
+
+crée_equality_expression :: fonc (opération: EqualityOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *EqualityExpression
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Boolean = gauche.Number != droite.Number)
+    résultat := loge(EqualityExpression)
+    résultat.opération = opération
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-equality-operators-runtime-semantics-evaluation */
+sur_exécution_equality_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *EqualityExpression
+    completion_gauche := exécute_noeud(noeud.gauche, interpréteuse)
+    saufsi completion_gauche.est_normal() {
+        retourne completion_gauche
+    }
+    completion_droite := exécute_noeud(noeud.droite, interpréteuse)
+    saufsi completion_droite.est_normal() {
+        retourne completion_droite
+    }
+    valeur_complétion_gauche := get_value(interpréteuse, completion_gauche.valeur)
+    saufsi valeur_complétion_gauche.est_normal() {
+        retourne valeur_complétion_gauche
+    }
+    valeur_complétion_droite := get_value(interpréteuse, completion_droite.valeur)
+    saufsi valeur_complétion_droite.est_normal() {
+        retourne valeur_complétion_droite
+    }
+    gauche := valeur_complétion_gauche.valeur.V
+    droite := valeur_complétion_droite.valeur.V
+    
+    discr noeud.opération {
+        Égal {
+            retourne is_loosely_equal(interpréteuse, gauche, droite)
+        }
+        Inégal {
+            complétion := is_loosely_equal(interpréteuse, gauche, droite)
+            saufsi complétion.est_normal() {
+                retourne complétion
+            }
+            résultat := complétion.valeur.V
+            si résultat.est_true() {
+                retourne normal_completion(Valeur(Boolean = faux))
+            }
+            retourne normal_completion(Valeur(Boolean = vrai))
+        }
+        ÉgalStrict {
+            retourne normal_completion(is_strictly_equal(gauche, droite))
+        }
+        InégalStrict {
+            résultat := is_strictly_equal(gauche, droite)
+            si résultat.est_true() {
+                retourne normal_completion(Valeur(Boolean = faux))
+            }
+            retourne normal_completion(Valeur(Boolean = vrai))
+        }
+        sinon {
+            panique("noeud.opération non-initialisé")
+        }
+    }
+}
+
+donne_type :: fonc (valeur: Valeur) -> z32
+{
+    info := info_de(Valeur)
+    index := mémoire(((*valeur comme *octet) + info.décalage_index) comme *z32)
+    retourne index
+}
+
+/* 7.2.12 IsLooselyEqual ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-islooselyequal */
+is_loosely_equal :: fonc (interpréteuse: &Interpréteuse @inutilisée, x: Valeur, y: Valeur) -> CompletionRecord
+{
+    // 1. If Type(x) is Type(y), then
+    si x.donne_type() == y.donne_type() {
+        // a. Return IsStrictlyEqual(x, y).
+        retourne normal_completion(is_strictly_equal(x, y))
+    }
+
+    // 2. If x is null and y is undefined, return true.
+    si x.est_nulle() && y.est_undefined() {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    // 3. If x is undefined and y is null, return true.
+    si x.est_undefined() && y.est_nulle() {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    panique("is_loosely_equal non-implémenté")
+    // 4. NOTE: This step is replaced in section B.3.6.2.
+    // 5. If x is a Number and y is a String, return ! IsLooselyEqual(x, ! ToNumber(y)).
+    // 6. If x is a String and y is a Number, return ! IsLooselyEqual(! ToNumber(x), y).
+    // 7. If x is a BigInt and y is a String, then
+    //     a. Let n be StringToBigInt(y).
+    //     b. If n is undefined, return false.
+    //     c. Return ! IsLooselyEqual(x, n).
+    // 8. If x is a String and y is a BigInt, return ! IsLooselyEqual(y, x).
+    // 9. If x is a Boolean, return ! IsLooselyEqual(! ToNumber(x), y).
+    // 10. If y is a Boolean, return ! IsLooselyEqual(x, ! ToNumber(y)).
+    // 11. If x is either a String, a Number, a BigInt, or a Symbol and y is an Object, return ! IsLooselyEqual(x, ? ToPrimitive(y)).
+    // 12. If x is an Object and y is either a String, a Number, a BigInt, or a Symbol, return ! IsLooselyEqual(? ToPrimitive(x), y).
+    // 13. If x is a BigInt and y is a Number, or if x is a Number and y is a BigInt, then
+    //     a. If x is not finite or y is not finite, return false.
+    //     b. If ℝ(x) = ℝ(y), return true; otherwise return false.
+    // 14. Return false.
+}
+
+/* 7.2.10 SameValueNonNumber ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-samevaluenonnumber */
+same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
+{
+    // 1. Assert: Type(x) is Type(y).
+
+    // 2. If x is either null or undefined, return true.
+    si x.est_nulle() || x.est_undefined() {
+        retourne Valeur(Boolean = vrai)
+    }
+
+    // À FAIRE(BigInt)
+    // 3. If x is a BigInt, then
+    // a. Return BigInt::equal(x, y).
+
+    // 4. If x is a String, then
+    si x.est_chaine() {
+        // a. If x and y have the same length and the same code units in the same positions, return true; otherwise, return false.
+        chnx := x.String
+        chny := y.String
+        retourne chnx.texte == chny.texte
+    }
+
+    // 5. If x is a Boolean, then
+    si x.est_boolean() {
+        // a. If x and y are both true or both false, return true; otherwise, return false.
+        boolx := x.Boolean
+        booly := y.Boolean
+        retourne boolx == booly
+    }
+
+    // 6. NOTE: All other ECMAScript language values are compared by identity.
+    // 7. If x is y, return true; otherwise, return false.
+    retourne x.donne_objet() == y.donne_objet()
+}
+
+/* 7.2.13 IsStrictlyEqual ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal */
+is_strictly_equal :: fonc (x: Valeur, y: Valeur) -> Valeur
+{
+    // 1. If Type(x) is not Type(y), return false.
+    si x.donne_type() != y.donne_type() {
+        retourne Valeur(Boolean = faux)
+    }
+
+    // 2. If x is a Number, then
+    si x.est_nombre() {
+        // a. Return Number::equal(x, y).
+        // À FAIRE : Numer::equal
+        valx := x.Number
+        valy := y.Number
+        retourne valx == valy
+    }
+
+    // 3. Return SameValueNonNumber(x, y).
+    retourne same_value_non_number(x, y)
 }
 
 /** \} */
@@ -421,6 +629,56 @@ sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom BooleanLiteral
+ * \{ */
+
+BooleanLiteral :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_boolean_literal
+
+    valeur: bool
+}
+
+crée_boolean_literal :: fonc (valeur: bool) -> *BooleanLiteral
+{
+    résultat := loge(BooleanLiteral)
+    résultat.valeur = valeur
+    retourne résultat
+}
+
+sur_exécution_boolean_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
+{
+    noeud := base comme *BooleanLiteral
+    retourne normal_completion(Valeur(Boolean = noeud.valeur))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NullLiteral
+ * \{ */
+
+NullLiteral :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_null_literal
+}
+
+crée_null_literal :: fonc () -> *NullLiteral
+{
+    résultat := loge(NullLiteral)
+    retourne résultat
+}
+
+sur_exécution_null_literal :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
+{
+    retourne normal_completion(js_null)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom StringLiteral
  * \{ */
 
@@ -430,6 +688,7 @@ StringLiteral :: struct {
     sur_exécution = sur_exécution_string_literal
 
     valeur: ECMAString
+    index_chaine : z64 = -1
 }
 
 crée_literal :: fonc (valeur: ECMAString) -> *StringLiteral
@@ -442,7 +701,20 @@ crée_literal :: fonc (valeur: ECMAString) -> *StringLiteral
 sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *StringLiteral
-    retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), noeud.valeur))
+
+    realm := interpréteuse.tas_de_mémoire.realm
+
+    chn: *PrimitiveChaine
+    si noeud.index_chaine == -1 {
+        chn = crée_chaine(interpréteuse.donne_tas_de_mémoire(), noeud.valeur)
+        tableau_ajoute(*realm.chaines_littérales, chn)
+        noeud.index_chaine = realm.chaines_littérales.taille - 1
+    }
+    sinon {
+        chn = realm.chaines_littérales[noeud.index_chaine]
+    }
+
+    retourne normal_completion(chn)
 }
 
 /** \} */
@@ -947,7 +1219,11 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         retourne lhs_value
     }
 
-    old_value := to_numeric(lhs_value.valeur.V)
+    complétion_old_value := to_numeric(interpréteuse, lhs_value.valeur.V)
+    saufsi complétion_old_value.est_normal() {
+        retourne complétion_old_value
+    }
+    old_value := complétion_old_value.valeur.V
 
     nouvelle_valeur: Valeur
 
@@ -1029,9 +1305,7 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
                 retourne valeur_complétion
             }
 
-            valeur := valeur_complétion.valeur.V
-            assert(valeur.est_boolean())
-
+            valeur := to_boolean(valeur_complétion.valeur.V)
             si valeur.est_false() {
                 arrête
             }
@@ -1051,6 +1325,162 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
     }
 
     retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom IfStatement
+ * \{ */
+
+IfStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_if_statement
+
+    test: *NoeudSyntaxique
+    consequent: *NoeudSyntaxique
+    alternate: *NoeudSyntaxique
+}
+
+crée_if_statement :: fonc (test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *IfStatement
+{
+    résultat := loge(IfStatement)
+    résultat.test = test
+    résultat.consequent = consequent
+    résultat.alternate = alternate
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-if-statement */
+sur_exécution_if_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    if := base comme *IfStatement
+
+    // 1. Let exprRef be ? Evaluation of Expression.
+    complétion_expr_ref := exécute_noeud(if.test, interpréteuse)
+    saufsi complétion_expr_ref.est_normal() {
+        retourne complétion_expr_ref
+    }
+    expr_ref := complétion_expr_ref.valeur
+
+    // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
+    complétion_valeur_expr_ref := get_value(interpréteuse, expr_ref)
+    saufsi complétion_valeur_expr_ref.est_normal() {
+        retourne complétion_valeur_expr_ref
+    }
+    expr_value := to_boolean(complétion_valeur_expr_ref.valeur.V)
+
+    stmt_completion: CompletionRecord
+
+    // 3. If exprValue is true, then
+    si expr_value.est_true() {
+        // a. Let stmtCompletion be Completion(Evaluation of the first Statement).
+        stmt_completion = exécute_noeud(if.consequent, interpréteuse)
+    }
+    // 4. Else,
+    sinon {
+        si if.alternate == nul {
+            /* NOTE : ceci provient du deuxième cas. */
+            retourne normal_completion(js_undefined)
+        }
+
+        // a. Let stmtCompletion be Completion(Evaluation of the second Statement).
+        stmt_completion = exécute_noeud(if.alternate, interpréteuse)
+    }
+
+    // 5. Return ? UpdateEmpty(stmtCompletion, undefined).
+    retourne update_empty(stmt_completion, js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TypeofOperator
+ * \{ */
+
+TypeofOperator :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_typeof_operator
+
+    argument: *NoeudSyntaxique
+}
+
+crée_typeof_operator :: fonc (argument: *NoeudSyntaxique) -> *TypeofOperator
+{
+    résultat := loge(TypeofOperator)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-typeof-operator-runtime-semantics-evaluation */
+sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    typeof := base comme *TypeofOperator
+
+    // 1. Let val be ? Evaluation of UnaryExpression.
+    completion_val := exécute_noeud(typeof.argument, interpréteuse)
+    saufsi completion_val.est_normal() {
+        retourne completion_val
+    }
+    val := completion_val.valeur
+
+    // 2. If val is a Reference Record, then
+    si est_reference_record(val) {
+        // a. If IsUnresolvableReference(val) is true, return "undefined".
+        si est_référence_non_résolvable(val) {
+            retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "undefined"))
+        }
+    }
+
+    // 3. Set val to ? GetValue(val).
+    completion_valeur := get_value(interpréteuse, val)
+    saufsi completion_valeur.est_normal() {
+        retourne completion_valeur
+    }
+    valeur := completion_valeur.valeur.V
+
+    // 4. If val is undefined, return "undefined".
+    si valeur.est_undefined() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "undefined"))
+    }
+
+    // 5. If val is null, return "object".
+    si valeur.est_nulle() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "object"))
+    }
+
+    // 6. If val is a String, return "string".
+    si valeur.est_chaine() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "string"))
+    }
+
+    // À FAIRE : 7. If val is a Symbol, return "symbol".
+
+    // 8. If val is a Boolean, return "boolean".
+    si valeur.est_boolean() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "boolean"))
+    }
+
+    // 9. If val is a Number, return "number".
+    si valeur.est_nombre() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "number"))
+    }
+
+    // À FAIRE : 10. If val is a BigInt, return "bigint".
+
+    // 11. Assert: val is an Object.
+    objet := valeur.donne_objet()
+
+    // À FAIRE : 12. NOTE: This step is replaced in section B.3.6.3.
+    // 13. If val has a [[Call]] internal slot, return "function".
+    si objet.sur_call {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "function"))
+    }
+
+    // 14. Return "object".
+    retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "object"))
 }
 
 /** \} */

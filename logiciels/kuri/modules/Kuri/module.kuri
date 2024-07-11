@@ -812,9 +812,18 @@ __initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *Trac
     ctx.stockage_temporaire = stockage_temporaire
 }
 
+__début_pile: *n64
+__init_début_pile :: fonc (adresse: *n64)
+{
+    __début_pile = adresse
+}
+
 __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sansbroyage
 {
     ctx := __init_contexte_kuri(argc, argv)
+
+    début_pile: n64
+    __init_début_pile(*début_pile)
 
     // initalise les autres membres du contexte
     info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
