@@ -382,6 +382,43 @@ remplis_tampon_extra :: fonc (empl tampon: *TamponRendu, paramètres: &Paramètr
     // }
 }
 
+crée_tableau_index_iota :: fonc (nombre_éléments: z64) -> [..]n32
+{
+    résultat: [..]n32
+    tableau_redimensionne(résultat, nombre_éléments)
+    tableau_iota(résultat, 0)
+    retourne résultat
+}
+
+remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommets: []Vec3, index: []n32)
+{
+    params: ParamètresCréationTampon
+    initialise_paramètres_tampon(*params, attribut, sommets, index)
+    tampon.remplis_tampon(params)
+}
+
+remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommets: []Vec3)
+{
+    index: []n32
+    params: ParamètresCréationTampon
+    initialise_paramètres_tampon(*params, attribut, sommets, index)
+    tampon.remplis_tampon(params)
+}
+
+remplis_tampon_extra :: fonc (tampon: *TamponRendu, attribut: chaine, données: []Vec3)
+{
+    params: ParamètresCréationTampon
+    initialise_paramètres_extra(*params, attribut, données)
+    tampon.remplis_tampon_extra(params)
+}
+
+remplis_tampon_extra :: fonc (tampon: *TamponRendu, attribut: chaine, données: []CouleurRVBA)
+{
+    params: ParamètresCréationTampon
+    initialise_paramètres_extra(*params, attribut, données)
+    tampon.remplis_tampon_extra(params)
+}
+
 dessine :: fonc (empl tampon: *TamponRendu, ctx: &ContexteRendu)
 {
     saufsi est_valide(programme) {

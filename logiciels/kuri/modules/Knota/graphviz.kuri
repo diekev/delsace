@@ -12,6 +12,15 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
     texte := donne_texte_graphviz(graphe, "BT")
     diffère déloge(texte)
 
+    DonnéesPositionNoeud :: struct {
+        nom: chaine
+        x: r32
+        y: r32
+    }
+
+    données_position_noeuds: [..]DonnéesPositionNoeud
+    diffère déloge(données_position_noeuds)
+
     discr ouvre_canal_de_communication("dot", "-Tplain") {
         Quelque(canal) {
             canal.écris(texte)
@@ -46,10 +55,17 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
                     continue
                 }
 
-                noeud := graphe.noeuds[index_noeud]
-                assert(noeud.nom == lexèmes[1])
+                données := tableau_ajoute_élément(*données_position_noeuds)
+                données.nom = lexèmes[1]
+                données.x = (x * 100.0) comme r32
+                données.y = (y * 100.0) comme r32
+            }
 
-                noeud.définis_position((x * 100.0) comme r32, (y * 100.0) comme r32)
+            // À FAIRE(items)
+            pour graphe.itère_noeuds() {
+                données := données_position_noeuds[index_it]
+                assert(it.nom == données.nom)
+                it.définis_position(données.x, données.y)
             }
         }
         sinon {
@@ -71,7 +87,7 @@ donne_texte_graphviz :: fonc (graphe: *Graphe, direction: chaine) -> chaine
     diffère détruit_tampons(*enchaineuse)
 
     taille_max_texte_noeud : r32 = 0.0
-    pour graphe.noeuds {
+    pour graphe.itère_noeuds() {
         taille_max_texte_noeud = max(taille_max_texte_noeud, it.rectangle_texte.largeur)
     }
 
@@ -88,7 +104,7 @@ donne_texte_graphviz :: fonc (graphe: *Graphe, direction: chaine) -> chaine
     ajoute_au_tampon(*enchaineuse, ",label=\"", graphe.noeud_parent.nom, "\"")
     ajoute_au_tampon(*enchaineuse, "]\n")
 
-    pour graphe.noeuds {
+    pour graphe.itère_noeuds() {
         imprime_noeud_graphviz(*enchaineuse, it, nom_police, taille_max_texte_noeud)
     }
 
