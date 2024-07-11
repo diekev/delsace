@@ -712,7 +712,7 @@ rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requ�
 
     uri := requête.ressource.uri
     hôte := uri.hôte
-    port := port_pour_uri(uri) comme z16
+    port := port_pour_uri(uri)
 
     si requête.est_http() {
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
