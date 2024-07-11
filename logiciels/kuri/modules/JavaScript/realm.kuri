@@ -59,10 +59,14 @@ Realm :: struct {
     empl base: Cellule
     type = #type_de_cette_structure
     sur_visite_graphe = realm_sur_visite_graphe
+    sur_destruction = realm_sur_destruction
 
     intrinsics: Intrinsics
     global_object: *Object
     global_environment: *GlobalEnvironment
+
+    /* Cache pour toutes les chaines littérales. */
+    chaines_littérales: [..]*PrimitiveChaine
 }
 
 realm_sur_visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
@@ -73,6 +77,16 @@ realm_sur_visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule
     visite_graphe(realm.global_object, visiteuse)
     visite_graphe(realm.global_environment, visiteuse)
     visite_intrinsics(realm.intrinsics, visiteuse)
+
+    pour realm.chaines_littérales {
+        visite_graphe(it, visiteuse)
+    }
+}
+
+realm_sur_destruction :: fonc (base: *Cellule)
+{
+    realm := base comme *Realm
+    déloge(realm.chaines_littérales)
 }
 
 /* 9.3.1 InitializeHostDefinedRealm ( )

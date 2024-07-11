@@ -16,6 +16,7 @@ libQt5Widgets :: #bibliothèque "Qt5Widgets"
 libQt5OpenGL :: #bibliothèque "Qt5OpenGL"
 libQt5Core :: #bibliothèque "Qt5Core"
 libQt5Gui :: #bibliothèque "Qt5Gui"
+libQt5Network :: #bibliothèque "Qt5Network"
 
 libqt_entetes :: #bibliothèque "qt_entetes"
 
@@ -25,6 +26,7 @@ libqt_entetes :: #bibliothèque "qt_entetes"
 #dépendance_bibliothèque libqt libQt5OpenGL
 #dépendance_bibliothèque libqt libQt5Core
 #dépendance_bibliothèque libqt libQt5Gui
+#dépendance_bibliothèque libqt libQt5Network
 
 /* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
@@ -220,6 +222,25 @@ donne_modificateur_clavier_depuis_qt :: fonc () -> ModificateurClavier
     retourne résultat
 }
 
+donne_modificateur_clavier_qt :: fonc (mod: ModificateurClavier) -> QT_Keyboard_Modifier
+{
+    résultat: QT_Keyboard_Modifier
+
+    si mod.MAJUSCULE {
+        résultat |= QT_Keyboard_Modifier.MAJ
+    }
+
+    si mod.CONTROL {
+        résultat |= QT_Keyboard_Modifier.CTRL
+    }
+
+    si mod.ALT {
+        résultat |= QT_Keyboard_Modifier.ALT
+    }
+
+    retourne résultat
+}
+
 donne_bouton_souris :: fonc (évènement: *QT_MouseEvent) -> BoutonSouris
 {
     bouton := QT_mouse_event_donne_bouton(évènement)
@@ -277,6 +298,17 @@ donne_raccourcis_clavier :: fonc (évènement: *QT_KeyEvent) -> RaccourcisClavie
     résultat.clé = table_conversion_clé[QT_key_event_donne_cle(évènement)]
     résultat.modificateur = donne_modificateur_clavier_depuis_qt()
     retourne résultat
+}
+
+donne_qt_key :: fonc (touche: CléClavier) -> QT_Key
+{
+    pour table_conversion_clé {
+        si it == touche {
+            retourne index_it comme z32 comme n32 comme QT_Key
+        }
+    }
+
+    retourne QT_Key.unknown
 }
 
 convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape

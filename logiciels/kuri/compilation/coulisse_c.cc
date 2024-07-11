@@ -1036,6 +1036,8 @@ typedef uint8_t bool;
 
 #define __point_d_entree_systeme main
 
+#define nan __builtin_nan("")
+
 typedef uint8_t octet;
 typedef void Ksnul;
 typedef int8_t ** KPKPKsz8;
