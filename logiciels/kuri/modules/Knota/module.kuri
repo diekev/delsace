@@ -11,6 +11,8 @@ charge "danjo"
 charge "édition"
 charge "graphviz"
 charge "paramètres"
+charge "rendu_qt"
+charge "sauvegarde"
 
 /* ------------------------------------------------------------------------- */
 /** \nom Messages des noeuds.
@@ -415,31 +417,108 @@ donne_entrée_cache_pour :: fonc (cache: *CacheUtilisateur, nom: chaine) -> *Cac
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ItemGraphe.
+ * \{ */
+
+ItemGraphe :: struct {
+    empl observable: Observable
+
+    type_item: type_de_données
+
+    /* Le graphe dans lequel l'item fut insérée. */
+    graphe_parent: *Graphe
+
+    position: Point2D(r32)
+
+    /* Nom unique pour l'item dans le graphe. */
+    nom: chaine
+
+    /* Pour la lecture des fichiers de changements, ceci sers à détecter les items qui doivent être détruits. */
+    est_actif: bool
+
+    est_dans_la_sélection := faux
+}
+
+détruit_données_item_graphe :: fonc (item: *ItemGraphe)
+{
+    détruit_données_observable(item)
+    déloge(item.nom)
+}
+
+détruit_item :: fonc (item: *ItemGraphe)
+{
+    si item.type_item == Noeud {
+        détruit_noeud(item comme *Noeud)
+    }
+    sinon {
+        imprime("item non-détruite : %\n", item.nom)
+    }
+}
+
+définis_position :: fonc (item: *ItemGraphe, x: r32, y: r32)
+{
+    si item.position.x == x && item.position.y == y {
+        retourne
+    }
+    item.position.x = x
+    item.position.y = y
+    /* À FAIRE : remplace ceci par ItemGraphe */
+    item.envoie_message(MessageObservable(info_de(Noeud), MessageNoeudPositionChangée))
+}
+
+/* Définit le nom de l'item.
+ * Si le graphe parent de l'item possède déjà un item nommé de la sorte, ceci
+ * modifiera le nom pour être unique.
+ * Si le nom possède des caracètres invalides, ceux-ci seront remplacés par un '_'. */
+définis_nom :: fonc (item: *ItemGraphe, nom: chaine)
+{
+    assert(item.graphe_parent != nul)
+
+    si item.nom == nom {
+        retourne
+    }
+
+    déloge(item.nom)
+
+    graphe := item.graphe_parent
+    item.nom = garantis_nom_valide_et_unique(*graphe.noms_noeuds_existants, nom)
+
+    si item.type_item == Noeud {
+        invalide_chemin_mémoire_vive(item comme *Noeud)
+    }
+}
+
+/* Définit le nom de l'item sans vérifier que le nom est unique ou valide.
+ * Ceci est uilisé lors de la lecture des fichiers de sauvegarde où nous
+ * savons que le nom fut déjà unique et valide. */
+définis_nom_sans_vérification :: fonc (item: *ItemGraphe, nom: chaine)
+{
+    déloge(item.nom)
+    item.nom = copie_chaine(nom)
+
+    si item.type_item == Noeud {
+        invalide_chemin_mémoire_vive(item comme *Noeud)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Noeud.
  * \{ */
 
 Noeud :: struct {
-    empl observable: Observable
+    empl item: ItemGraphe
+    type_item = #type_de_cette_structure
 
     table: *TableVirtuelleNoeud
-
-    /* Le graphe dans lequel le noeud fut inséré. */
-    graphe_parent: *Graphe
-
-    /* Nom unique pour le noeud dans le graphe. */
-    nom: chaine @accessible
 
     entrées: [..]*PriseEntrée @accessible
     sorties: [..]*PriseSortie @accessible
 
     erreurs: [..]ErreurNoeud @accessible
 
-    /* Pour la lecture des fichiers de changements, ceci sers à détecter les noeuds qui doivent être détruits. */
-    est_actif: bool
-
     nécessite_exécution := vrai
-
-    est_dans_la_sélection := faux
 
     /* Drapeau spécial pour les noeuds des simulations afin de réexécuter les noeuds quand la simulation doit être ajournée.
      * À FAIRE : meilleur système. */
@@ -447,9 +526,6 @@ Noeud :: struct {
 
     informations: InformationsNoeud
 
-    /* Informations interface. */
-    pos_x: r32 @mutable
-    pos_y: r32 @mutable
     hauteur: r32 @mutable
     largeur: r32 @mutable
 
@@ -492,37 +568,6 @@ identifiant :: fonc (noeud: *Noeud) -> chaine
     retourne noeud.table.identifiant
 }
 
-/* Définit le nom du noeud.
- * Si le graphe parent du noeud possède déjà un noeud nommé de la sorte, ceci
- * modifiera le nom pour être unique.
- * Si le nom possède des caracètres invalides, ceux-ci seront remplacés par un '_'. */
-définis_nom :: fonc (noeud: *Noeud, nom: chaine)
-{
-    assert(noeud.graphe_parent != nul)
-
-    si noeud.nom == nom {
-        retourne
-    }
-
-    déloge(noeud.nom)
-
-    graphe := noeud.graphe_parent
-    noeud.nom = garantis_nom_valide_et_unique(*graphe.noms_noeuds_existants, nom)
-
-    invalide_chemin_mémoire_vive(noeud)
-}
-
-/* Définit le nom du noeud sans vérifier que le nom est unique ou valide.
- * Ceci est uilisé lors de la lecture des fichiers de sauvegarde où nous
- * savons que le nom fut déjà unique et valide. */
-définis_nom_sans_vérification :: fonc (noeud: *Noeud, nom: chaine)
-{
-    déloge(noeud.nom)
-    noeud.nom = copie_chaine(nom)
-
-    invalide_chemin_mémoire_vive(noeud)
-}
-
 /* Invalide le chemin du noeud. Typiquement fait lors du changement de son nom. */
 invalide_chemin_mémoire_vive :: fonc (noeud: *Noeud)
 {
@@ -530,7 +575,7 @@ invalide_chemin_mémoire_vive :: fonc (noeud: *Noeud)
 
     graphe := noeud.donne_sous_graphe()
     si graphe {
-        pour graphe.noeuds {
+        pour graphe.itère_noeuds() {
             invalide_chemin_mémoire_vive(it)
         }
     }
@@ -560,7 +605,7 @@ donne_créateur :: fonc (noeud: *Noeud) -> *Noeud
 
 rectangle :: fonc (noeud: *Noeud) -> RectanglePosDim(r32)
 {
-    retourne RectanglePosDim(r32)(noeud.pos_x, noeud.pos_y, noeud.hauteur, noeud.largeur)
+    retourne RectanglePosDim(r32)(noeud.position.x, noeud.position.y, noeud.hauteur, noeud.largeur)
 }
 
 prise_entrée :: fonc (noeud: *Noeud, nom: chaine) -> *PriseEntrée
@@ -640,14 +685,13 @@ marques_connexions_inactives :: fonc (connexions: [..]*Connexion)
 
 détruit_noeud :: fonc (noeud: *Noeud)
 {
-    détruit_données_observable(noeud)
+    détruit_données_item_graphe(noeud)
     déloge_tableau_et_ses_éléments(noeud.entrées, déloge_prise_entrée)
     déloge_tableau_et_ses_éléments(noeud.sorties, déloge_prise_sortie)
 
     réinitialise_erreurs(noeud)
     réinitialise_informations(noeud)
 
-    déloge(noeud.nom)
     déloge(noeud.mémoire_vive.chemin)
     détruit_table_paramètres(noeud.table_paramètres)
     détruit_données_cache(*noeud.cache)
@@ -681,12 +725,15 @@ crée_noeud :: fonc (noeud_parent: *Noeud, identifiant: chaine, nom := "") -> R�
 
 enfants :: fonc (noeud_parent: *Noeud) -> []*Noeud
 {
+    // À FAIRE : fuite de mémoire, il faudra pouvoir utiliser ItératriceNoeud depuis Python
+    résultat: [..]*Noeud
     graphe := noeud_parent.donne_sous_graphe()
-    saufsi graphe {
-        résultat: []*Noeud
-        retourne résultat
+    si graphe {
+        pour graphe.itère_noeuds() {
+            tableau_ajoute(*résultat, it)
+        }
     }
-    retourne graphe.noeuds
+    retourne résultat
 } @Python "méthode"
 
 connecte_entrée :: fonc (noeud_parent: *Noeud, index_entrée: z32, noeud: *Noeud, index_sortie: z32)
@@ -938,16 +985,6 @@ donne_sous_graphe :: fonc (noeud: *Noeud) -> *Graphe
     retourne nul
 }
 
-définis_position :: fonc (noeud: *Noeud, x: r32, y: r32)
-{
-    si noeud.pos_x == x && noeud.pos_y == y {
-        retourne
-    }
-    noeud.pos_x = x
-    noeud.pos_y = y
-    noeud.envoie_message(MessageObservable(info_de(Noeud), MessageNoeudPositionChangée))
-}
-
 // --------------------------------------------------------------
 
 bascule_drapeau_rendu :: fonc (noeud: *Noeud)
@@ -1066,19 +1103,33 @@ initialise_adaptrice_éléments_noeuds :: fonc (graphe: *Graphe)
     donne_nombre_éléments :: fonc (base: *AdaptriceÉléments) -> z64
     {
         adaptrice := base comme *AdaptriceÉlémentsNoeuds
-        retourne adaptrice.graphe.noeuds.taille
+        retourne adaptrice.graphe.items.taille
     }
 
     donne_rectangle :: fonc (base: *AdaptriceÉléments, index: z64) -> RectanglePosDim(r32)
     {
         adaptrice := base comme *AdaptriceÉlémentsNoeuds
-        retourne adaptrice.graphe.noeuds[index].rectangle()
+        item := adaptrice.graphe.items[index]
+
+        saufsi item.type_item == Noeud {
+            résultat: RectanglePosDim(r32)
+            retourne résultat
+        }
+
+        noeud := item comme *Noeud
+        retourne noeud.rectangle()
     }
 
     intersecte_rectangle :: fonc (base: *AdaptriceÉléments, index: z64, rect: RectanglePosDim(r32)) -> bool
     {
         adaptrice := base comme *AdaptriceÉlémentsNoeuds
-        noeud := adaptrice.graphe.noeuds[index]
+        item := adaptrice.graphe.items[index]
+
+        saufsi item.type_item == Noeud {
+            retourne faux
+        }
+
+        noeud := item comme *Noeud
 
         si intersecte(rect, noeud.rectangle()) {
             retourne vrai
@@ -1124,7 +1175,7 @@ sur_rafraichissement_sélection_graphe :: fonc (base: *RappelRafraichissementSé
     graphe := rappel.graphe
 
     pour état_sélection_éléments {
-        graphe.noeuds[it.index].est_dans_la_sélection = it.est_sélectionné
+        graphe.items[it.index].est_dans_la_sélection = it.est_sélectionné
     }
 }
 
@@ -1139,7 +1190,7 @@ ModeInteractionGraphe :: énum {
 Graphe :: struct {
     empl observable: Observable
 
-    noeuds: [..]*Noeud @accessible
+    items: [..]*ItemGraphe
     connexions: [..]*Connexion
     infos: *InfoTypeStructure
     table_noeuds: *[..]*TableVirtuelleNoeud
@@ -1195,7 +1246,7 @@ initialise_graphe :: fonc (graphe: *Graphe, table_noeuds: *[..]*TableVirtuelleNo
 /* Détruit les données du graphe, mais pas le graphe lui-même. */
 détruit_données_graphe :: fonc (graphe: *Graphe)
 {
-    déloge_tableau_et_ses_éléments(graphe.noeuds, détruit_noeud)
+    déloge_tableau_et_ses_éléments(graphe.items, détruit_item)
     déloge_tableau_et_ses_éléments(graphe.connexions)
     détruit_données_déduplicatrice(*graphe.noms_noeuds_existants)
     si graphe.sélection {
@@ -1218,6 +1269,22 @@ détruit_graphe :: fonc (graphe: *Graphe)
         /* Sélection peut être nulle pour les graphes de copier/coller. */
         détruit_état_sélection(graphe.sélection)
         détruit_géométrie(graphe.géométrie_sélection)
+    }
+}
+
+arrête_observation_graphe :: fonc (base: *Observatrice, graphe: *Graphe)
+{
+    supprime_observatrice(graphe, base)
+    pour graphe.items {
+        supprime_observatrice(it, base)
+    }
+}
+
+observe_graphe :: fonc (base: *Observatrice, graphe: *Graphe)
+{
+    ajoute_observatrice(graphe, base)
+    pour graphe.items {
+        ajoute_observatrice(it, base)
     }
 }
 
@@ -1286,7 +1353,7 @@ crée_noeud_pour_identifiant_avec_nom :: fonc (graphe: *Graphe, identifiant: cha
 insère_noeud :: fonc (graphe: *Graphe, noeud: *Noeud, rend_actif: bool)
 {
     noeud.graphe_parent = graphe
-    tableau_ajoute(*graphe.noeuds, noeud)
+    tableau_ajoute(*graphe.items, noeud)
 
     si rend_actif {
         graphe.noeud_actif = noeud
@@ -1302,12 +1369,12 @@ supprime_noeud :: fonc (graphe: *Graphe, noeud: *Noeud)
     assert(graphe != nul)
     assert(graphe == noeud.graphe_parent)
 
-    pour n, index_noeud dans graphe.noeuds {
+    pour n, index_noeud dans graphe.items {
         saufsi n == noeud {
             continue
         }
 
-        tableau_supprime_index(*graphe.noeuds, index_noeud)
+        tableau_supprime_index(*graphe.items, index_noeud)
         arrête
     }
     sansarrêt {
@@ -1329,11 +1396,42 @@ supprime_noeud :: fonc (graphe: *Graphe, noeud: *Noeud)
     détruit_noeud(noeud)
 }
 
+ItératriceNoeud :: struct {
+    graphe: *Graphe
+}
+
+opérateur pour :: fonc (itératrice: ItératriceNoeud) -> *Noeud
+{
+    graphe := itératrice.graphe
+    index_noeud: z64
+
+    pour graphe.items {
+        si it.type_item != Noeud {
+            continue
+        }
+
+        noeud := it comme *Noeud
+
+        `it = noeud
+        `index_it = index_noeud
+
+        #corps_boucle
+
+        index_noeud += 1
+    }
+}
+
+itère_noeuds :: fonc (graphe: *Graphe) -> ItératriceNoeud
+{
+    retourne ItératriceNoeud(graphe)
+}
+
 trouve_noeud_pour_nom :: fonc (graphe: *Graphe, nom: chaine) -> *Noeud
 {
-    pour graphe.noeuds {
+    pour graphe.items {
         si it.nom == nom {
-            retourne it
+            assert(it.type_item == Noeud)
+            retourne it comme *Noeud
         }
     }
     retourne nul
@@ -1670,7 +1768,7 @@ propage_nécessite_exécution :: fonc (graphe: *Graphe)
     visiteuse: VisiteuseGraphe
     diffère détruit(visiteuse)
 
-    pour graphe.noeuds {
+    pour graphe.itère_noeuds() {
         saufsi it.nécessite_exécution {
             continue
         }

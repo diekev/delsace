@@ -1,0 +1,39 @@
+importe Chaine
+
+charge "lexage"
+
+lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
+{
+    chn := crée_chaine_utf32(contenu)
+    diffère détruit_chaine(chn)
+
+    prétraite(chn)
+
+    lexeuse: Lexeuse
+    lexeuse.contenu = chn
+
+    lexèmes: [..]Lexème
+
+    tantque !fini(lexeuse) {
+        lexème := consomme_un_lexème(lexeuse)
+        tableau_ajoute(*lexèmes, lexème)
+    }
+
+    retourne lexèmes
+}
+
+/* 3.3. Preprocessing the input stream
+ * https://www.w3.org/TR/css-syntax-3/#input-preprocessing */
+prétraite :: fonc (chn: &ChaineUTF32)
+{
+    CARRIAGE_RETURN : n32 : 0x0D
+    FORM_FEED : n32 : 0x0C
+    LINE_FEED : n32 : 0x0A
+    
+    pour & chn.points_de_code {
+        /* À FAIRE : \r\n => \n */
+        si it == CARRIAGE_RETURN || it == FORM_FEED {
+            it = LINE_FEED
+        }
+    }
+}

@@ -11,6 +11,10 @@ DÉBOGUGE_MÉMOIRE :: vrai
 TasDeMémoire :: struct {
     realm: *Realm
     blocs: [..]*BlocDeMémoire
+
+    doit_ébouer_à_chaque_allocation := faux
+    allocations_entre_ébouages := 1000
+    allocations_depuis_dernier_ébouage := 0
 }
 
 détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
@@ -31,6 +35,13 @@ alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
 
 alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
 {
+    si tas_de_mémoire.doit_ébouer_à_chaque_allocation {
+        éboue(tas_de_mémoire)
+    }
+    sinon si tas_de_mémoire.allocations_depuis_dernier_ébouage > tas_de_mémoire.allocations_entre_ébouages {
+        éboue(tas_de_mémoire)
+    }
+
     pour tas_de_mémoire.blocs {
         si taille > it.taille_cellule {
             continue
@@ -40,6 +51,8 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
         si cellule {
             retourne cellule
         }
+
+        arrête
     }
 
     mémoire_bloc := loge_mémoire_alignée(BlocDeMémoire.TAILLE_BLOC comme z64, BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), PositionCodeSource())
@@ -51,15 +64,25 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
     bloc.tas_de_mémoire = tas_de_mémoire
     tableau_ajoute(*tas_de_mémoire.blocs, bloc)
 
+    tas_de_mémoire.allocations_depuis_dernier_ébouage += 1
+
     retourne bloc.alloue_cellule()
 }
 
+TypeÉbouage :: énum {
+    RAMASSE_MIETTES
+    /* À n'utiliser que pour la destruction. */
+    RAMASSE_TOUT
+}
+
 /* Ramasse les miettes. */
-éboue :: fonc (tas_de_mémoire: *TasDeMémoire)
+éboue :: fonc (tas_de_mémoire: *TasDeMémoire, type_ébouage := TypeÉbouage.RAMASSE_MIETTES)
 {
     racines: [..]*Cellule
     diffère déloge(racines)
-    rassemble_racines(tas_de_mémoire, *racines)
+    si type_ébouage == TypeÉbouage.RAMASSE_MIETTES {
+        rassemble_racines(tas_de_mémoire, *racines)
+    }
 
     cellules_vivantes: [..]*Cellule
     diffère déloge(cellules_vivantes)
@@ -68,16 +91,61 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
     réinitialise_bits_de_marquage(tas_de_mémoire)
     marque_cellules_vivantes(tas_de_mémoire, *cellules_vivantes)
     balaie_cellules_mortes(tas_de_mémoire)
+
+    tas_de_mémoire.allocations_depuis_dernier_ébouage = 0
 }
 
 rassemble_racines :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule)
 {
-    ensemble_ajoute(racines, tas_de_mémoire.realm)
+    si tas_de_mémoire.realm {
+        ensemble_ajoute(racines, tas_de_mémoire.realm)
+    }
+
+    rassemble_racines_en_mémoire(tas_de_mémoire, racines)
 
     #si DÉBOGUGE_MÉMOIRE {
-        imprime("%\n", #nom_de_cette_fonction)
+        imprime("% (% racine(s))\n", #nom_de_cette_fonction, racines.taille)
         pour mémoire(racines) {
             imprime("    + %\n", it)
+        }
+    }
+}
+
+rassemble_racines_en_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule)
+{
+    /* Marqueur pour savoir la fin de la pile de données d'exécution. */
+    marqueur_pile: n64
+
+    /* Rassemble les cellules sur la pile d'exécution. */
+    début_pile := (*marqueur_pile) - 1
+    fin_pile := __début_pile
+    tantque début_pile < fin_pile {
+        cellule_possible := mémoire(début_pile) comme *Cellule
+        ajoute_racine_depuis_cellule_possible(tas_de_mémoire, cellule_possible, racines)
+        début_pile += 1
+    }
+}
+
+ajoute_racine_depuis_cellule_possible :: fonc (tas_de_mémoire: *TasDeMémoire, cellule_possible: *Cellule, racines: *[..]*Cellule)
+{
+    pour tas_de_mémoire.blocs {
+        saufsi it == donne_bloc_de_mémoire(cellule_possible) {
+            continue
+        }
+
+        adresse_bloc := (it + 1) comme *octet
+        assert(adresse_bloc == it.donne_cellule(0))
+        fin_bloc := it comme *octet + BlocDeMémoire.TAILLE_BLOC
+
+        saufsi adresse_bloc <= cellule_possible < fin_bloc {
+            continue
+        }
+
+        décalage_cellule := (cellule_possible - adresse_bloc) comme n64
+        index_cellule := décalage_cellule / it.taille_cellule
+
+        si cellule_possible.vivante && cellule_possible == it.donne_cellule(index_cellule) {
+            ensemble_ajoute(racines, cellule_possible)
         }
     }
 }
@@ -193,7 +261,7 @@ initialise_bloc :: fonc (bloc: *BlocDeMémoire, taille_cellule: n64)
         liste := it comme *BlocDeMémoire.EntréeListeLibre
         liste.vivante = faux
 
-        si index_it comme n64 == bloc.nombre_de_cellules() {
+        si index_it comme n64 == bloc.nombre_de_cellules() - 1 {
             liste.suivante = nul
         }
         sinon {

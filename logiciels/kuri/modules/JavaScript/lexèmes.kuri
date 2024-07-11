@@ -40,6 +40,8 @@ GenreLexème :: énum {
     NonBinaireÉgal
     EstÉgal
     NEspaPasÉgal
+    EstÉgalStrict
+    NEspaPasÉgalStrict
     PlusPlus
     MoinsMoins
 
@@ -64,6 +66,15 @@ GenreLexème :: énum {
     Var
     Let
     For
+    If
+    Of
+    In
+    Else
+    Typeof
+    Null
+    True
+    False
+    New
 }
 
 donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> GenreLexème
@@ -89,13 +100,28 @@ donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> 
 
 rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
 {
-    si identifiant.taille == 3 {
-        si identifiant == "var" { retourne GenreLexème.Var }
-        si identifiant == "let" { retourne GenreLexème.Let }
+    si identifiant.taille == 2 {
+        si identifiant == "if" { retourne GenreLexème.If }
+        si identifiant == "in" { retourne GenreLexème.In }
+        si identifiant == "of" { retourne GenreLexème.Of }
+    }
+    sinon si identifiant.taille == 3 {
         si identifiant == "for" { retourne GenreLexème.For }
+        si identifiant == "let" { retourne GenreLexème.Let }
+        si identifiant == "new" { retourne GenreLexème.New }
+        si identifiant == "var" { retourne GenreLexème.Var }
+    }
+    sinon si identifiant.taille == 4 {
+        si identifiant == "else" { retourne GenreLexème.Else }
+        si identifiant == "null" { retourne GenreLexème.Null }
+        si identifiant == "true" { retourne GenreLexème.True }
+    }
+    sinon si identifiant.taille == 5 {
+        si identifiant == "false" { retourne GenreLexème.False }
     }
     sinon si identifiant.taille == 6 {
         si identifiant == "return" { retourne GenreLexème.Return }
+        si identifiant == "typeof" { retourne GenreLexème.Typeof }
     }
     sinon si identifiant.taille == 8 {
         si identifiant == "function" { retourne GenreLexème.Function }
@@ -147,6 +173,8 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         NonBinaireÉgal,
         EstÉgal,
         NEspaPasÉgal,
+        EstÉgalStrict,
+        NEspaPasÉgalStrict,
         Point,
         ParenthèseOuvrante,
         CrochetOuvrant {
@@ -202,7 +230,9 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
             retourne 7
         }
         EstÉgal,
-        NEspaPasÉgal {
+        NEspaPasÉgal,
+        EstÉgalStrict,
+        NEspaPasÉgalStrict {
             retourne 8
         }
         Inférieur,
@@ -231,7 +261,8 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
             retourne 13
         }
         PlusPlus,
-        MoinsMoins {
+        MoinsMoins,
+        Typeof {
             retourne 14
         }
         Point,
@@ -254,7 +285,10 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         ChaineLittérale,
         NombreLittéral,
         ParenthèseOuvrante,
-        AccoladeOuvrante {
+        AccoladeOuvrante,
+        True,
+        False,
+        Null{
             retourne vrai
         }
         sinon {
@@ -271,7 +305,9 @@ est_lexème_expression_unaire :: fonc (genre: GenreLexème) -> bool
         Plus,
         Moins,
         NonBinaire,
-        NonLogique {
+        NonLogique,
+        New,
+        Typeof  {
             retourne vrai
         }
         sinon {
@@ -317,6 +353,8 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         NonBinaireÉgal,
         EstÉgal,
         NEspaPasÉgal,
+        EstÉgalStrict,
+        NEspaPasÉgalStrict,
         Point,
         ParenthèseOuvrante,
         CrochetOuvrant {
@@ -333,7 +371,8 @@ est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
     discr genre {
         For,
         Function,
-        Return {
+        Return,
+        If {
             retourne vrai
         }
         sinon {

@@ -2,8 +2,11 @@ importe Allocatrices
 importe Chaine
 importe Fondation
 importe HTML
+importe HTTP
+importe Internet
 importe Qt
 importe SysFichier
+importe Temps
 
 DÉBOGUE_ALLOCATIONS :: faux
 
@@ -38,10 +41,7 @@ principale :: fonc () -> z32
     chemin_fichier: chaine
     si arguments.taille > 1 {
         arg1 := convertis_chaine_c_statique(ChaineC(arguments[1]))
-
-        si est_un_fichier_régulier(CheminFichier(arg1)) {
-            chemin_fichier = arg1
-        }
+        chemin_fichier = arg1
     }
 
     /* Création application. */
@@ -66,25 +66,12 @@ principale :: fonc () -> z32
     QT_widget_definis_titre_fenetre(fenêtre, vers_qt("HTML"))
     QT_widget_affiche_maximisee(fenêtre)
 
-    contenu := contenu_fichier_texte(chemin_fichier)
+    rappels_fenêtre.chargeuse_ressource.rappels_interface = crée_rappels_interface_qt(fenêtre)
 
-    rappels_fenêtre.parsat = parse_document(contenu)
-    rappels_fenêtre.contenu = contenu
-
-    /* Création widgets. */
-    tabs := QT_cree_tab_widget(nul, fenêtre)
-    QT_tab_widget_definis_tabs_fermable(tabs, 0)
-
-    widget_arbre := crée_widget_arbre_pour_dom(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_arbre, "DOM")
-
-    widget_source := crée_widget_vue_source(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_source, "Source")
-
-    widget_texte := crée_widget_vue_texte(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_texte, "Texte")
-
-    QT_fenetre_principale_definis_widget_central(fenêtre, tabs)
+    si chemin_fichier {
+        ressource := crée_ressource_pour_chargement_page_web(fenêtre, chemin_fichier)
+        charge_ressource(*rappels_fenêtre.chargeuse_ressource, ressource, vrai)
+    }
 
     retourne QT_application_exec(app)
 }
@@ -108,8 +95,7 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 {    
     rappel := base comme *RappelFermetureApp
 
-    détruit(rappel.rappels_fenêtre.parsat)
-    déloge(rappel.rappels_fenêtre.contenu)
+    détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
 
     /* Restaure le contexte. */
     __contexte_fil_principal = contexte_entrée
@@ -124,14 +110,73 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom PageWeb
+ * \{ */
+
+PageWeb :: struct {
+    uri: URI
+    parsat: ParsatHTML
+    contenu: chaine
+    arbre_de_disposition: *ArbreDeDisposition
+}
+
+crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
+{
+    résultat: PageWeb
+    résultat.uri = uri
+    résultat.contenu = contenu
+    résultat.parsat = parse_document(contenu)
+    imprime("Temps de parsage : %\n", résultat.parsat.temps)
+    retourne résultat
+}
+
+détruit_données_page_web :: fonc (page: *PageWeb)
+{
+    détruit(page.parsat)
+    déloge(page.contenu)
+    détruit_arbre(page.arbre_de_disposition)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Données fenêtre principale.
  * \{ */
 
 RappelsFenetrePrincipale :: struct {
     empl base : QT_Rappels_Fenetre_Principale
 
-    parsat: ParsatHTML
-    contenu: chaine
+    page_web: PageWeb
+    chargeuse_ressource: ChargeuseRessource
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Widget page.
+ * \{ */
+
+crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: PageWeb)
+{
+    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
+    rappels.page_web = page_web
+
+    tabs := QT_cree_tab_widget(nul, fenêtre)
+    QT_tab_widget_definis_tabs_fermable(tabs, 0)
+
+    widget_source := crée_widget_vue_source(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_source, "Source")
+
+    widget_arbre := crée_widget_arbre_pour_dom(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_arbre, "DOM")
+
+    widget_texte := crée_widget_vue_texte(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_texte, "Texte")
+
+    widget_arbre_disposition := crée_widget_vue_arbre_de_disposition(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_arbre_disposition, "Arbre de Disposition")
+
+    QT_fenetre_principale_definis_widget_central(fenêtre, tabs)
 }
 
 /** \} */
@@ -189,7 +234,7 @@ crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: Q
 
     résultat := crée_widget_arbre(nul, parent)
 
-    parsat := rappels.parsat
+    parsat := rappels.page_web.parsat
     si parsat.document {
         titre := parsat.document.donne_title_element()
         si titre {
@@ -269,7 +314,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
 crée_widget_vue_source :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_PlainTextEdit
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    contenu := rappels.contenu
+    contenu := rappels.page_web.contenu
 
     résultat := QT_cree_plain_text_edit(nul, parent)
     QT_plain_text_edit_definis_lecture_seule(résultat, vrai)
@@ -287,7 +332,7 @@ crée_widget_vue_source :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Ge
 crée_widget_vue_texte :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_PlainTextEdit
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    document := rappels.parsat.document
+    document := rappels.page_web.parsat.document
 
     résultat := QT_cree_plain_text_edit(nul, parent)
     QT_plain_text_edit_definis_lecture_seule(résultat, vrai)
@@ -298,6 +343,573 @@ crée_widget_vue_texte :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Gen
         diffère déloge(texte)
         QT_plain_text_edit_definis_texte(résultat, texte)
     }
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Vue arbre de disposition
+ * \{ */
+
+crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
+{
+    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
+    document := rappels.page_web.parsat.document
+
+    résultat := crée_widget_arbre(nul, parent)
+
+    arbre := crée_arbre_de_disposition(document)
+    si arbre {
+        item_document := QT_cree_treewidgetitem(nul, nul)
+        QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+        texte := vers_qt("bloc")
+        QT_treewidgetitem_definis_texte(item_document, 0, *texte)
+        QT_treewidget_ajoute_item_racine(résultat, item_document)
+
+        pour arbre.racine.enfants {
+            ajoute_item_pour_noeud(item_document, it)
+        }
+
+        rappels.page_web.arbre_de_disposition = arbre
+    }
+    retourne résultat
+}
+
+ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *NoeudDeDisposition)
+{
+    item_noeud := QT_cree_treewidgetitem(nul, nul)
+    QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+    texte := si noeud.type == NoeudDeDispositionBloc {
+        "bloc"
+    }
+    sinon {
+        "texte"
+    }
+    qtexte := vers_qt(texte)
+    QT_treewidgetitem_definis_texte(item_noeud, 0, *qtexte)
+
+    QT_treewidgetitem_ajoute_enfant(parent, item_noeud)
+
+    pour noeud.enfants {
+        ajoute_item_pour_noeud(item_noeud, it)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Arbre de disposition
+ * \{ */
+
+ArbreDeDisposition :: struct {
+    racine: *NoeudDeDisposition
+
+    noeuds: [..]*NoeudDeDisposition
+}
+
+détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
+{
+    saufsi arbre {
+        retourne
+    }
+
+    pour arbre.noeuds {
+        déloge(it.enfants)
+
+        si it.type == NoeudDeDispositionBloc {
+            bloc := it comme *NoeudDeDispositionBloc
+            déloge(bloc)
+        }
+        sinon si it.type == NoeudDeDispositionTexte {
+            texte := it comme *NoeudDeDispositionBloc
+            déloge(texte)
+        }
+        sinon {
+            imprime("noeud inconnu !")
+            déloge(it)
+        }
+    }
+
+    déloge(arbre.noeuds)
+    déloge(arbre)
+}
+
+crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -> *TypeNoeud
+{
+    résultat := loge(TypeNoeud)
+    tableau_ajoute(*arbre.noeuds, résultat)
+    retourne résultat
+}
+
+NoeudDeDisposition :: struct {
+    type := #type_de_cette_structure
+
+    parent: *NoeudDeDisposition
+    enfants: [..]*NoeudDeDisposition
+
+    // sur_mesure: fonc (*NoeudDisposition)(rien)
+    // sur_dessin: fonc (*NoeudDisposition)(rien)
+}
+
+ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
+{
+    enfant.parent = parent
+    tableau_ajoute(*parent.enfants, enfant)
+}
+
+/* Créé pour chaque noeud hors texte */
+NoeudDeDispositionBloc :: struct {
+    empl base: NoeudDeDisposition
+    type = #type_de_cette_structure
+
+    élément: *Élément
+}
+
+/* Créé pour chaque élément contenant du texte. */
+NoeudDeDispositionTexte :: struct {
+    empl base: NoeudDeDisposition
+    type = #type_de_cette_structure
+
+    noeud_texte: *NoeudTexte
+}
+
+crée_arbre_de_disposition :: fonc (document: *Document) -> *ArbreDeDisposition
+{
+    saufsi document {
+        retourne nul
+    }
+
+    body := document.donne_élément_body()
+    saufsi body {
+        retourne nul
+    }
+
+    résultat := loge(ArbreDeDisposition)
+
+    racine := résultat.crée_noeud(NoeudDeDispositionBloc)
+    racine.élément = body
+
+    résultat.racine = racine
+
+    pour body.enfants {
+        crée_noeud_pour_élément(résultat, résultat.racine, it)
+    }
+
+    imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
+
+    retourne résultat
+}
+
+crée_noeud_pour_élément :: fonc (arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *Noeud)
+{
+    si noeud.est_élément_script() {
+        retourne
+    }
+
+    si noeud.est_texte() {
+        résultat := arbre.crée_noeud(NoeudDeDispositionTexte)
+        résultat.noeud_texte = noeud comme *NoeudTexte
+        parent.ajoute_enfant(résultat)
+        retourne
+    }
+
+    pour noeud.enfants {
+        résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
+        résultat.élément = it comme *Élément
+        parent.ajoute_enfant(résultat)
+
+        crée_noeud_pour_élément(arbre, résultat, it)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsInterface
+ * \{ */
+
+RappelsInterface :: struct {
+    sur_lancement_requête: fonc(*RappelsInterface, *Requête)(rien)
+    sur_spin_event_loop: fonc(*RappelsInterface)(rien)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ChargeuseRessource
+ * \{ */
+
+ChargeuseRessource :: struct {
+    ressources_en_chargement: [..]*Ressource
+    rappels_interface: *RappelsInterface
+}
+
+charge_ressource :: fonc (chargeuse: *ChargeuseRessource, ressource: *Ressource, async: bool)
+{
+    si est_fichier(ressource) {
+        contenu := contenu_fichier_texte(ressource.uri.chemin)
+        ressource_fut_chargée(ressource, contenu)
+        retourne
+    }
+
+    requête := loge(Requête)
+    requête.ressource = ressource
+    lance_requête(chargeuse, requête)
+
+    saufsi async {
+        tantque !ressource.chargement_terminé {
+            spin_event_loop(chargeuse)
+        }
+    }
+}
+
+lance_requête :: fonc (chargeuse: *ChargeuseRessource, requête: *Requête)
+{
+    rappels := chargeuse.rappels_interface
+    saufsi rappels && rappels.sur_lancement_requête {
+        retourne
+    }
+
+    rappels.sur_lancement_requête(rappels, requête)
+}
+
+spin_event_loop :: fonc (chargeuse: *ChargeuseRessource)
+{
+    rappels := chargeuse.rappels_interface
+    saufsi rappels && rappels.sur_spin_event_loop {
+        retourne
+    }
+
+    rappels.sur_spin_event_loop(rappels)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Ressource
+ * \{ */
+
+Ressource :: struct {
+    sur_chargement: fonc(*Ressource, chaine)(rien)
+    sur_erreur: fonc(*Ressource)(rien)
+
+    uri: URI
+    type: chaine // application/javascript, text/html, etc.
+
+    chargement_terminé := faux
+
+    fenêtre: *QT_Fenetre_Principale
+}
+
+crée_ressource_pour_chargement_page_web :: fonc (fenêtre: *QT_Fenetre_Principale, chemin: chaine) -> *Ressource
+{
+    sur_chargement :: fonc (ressource: *Ressource, données: chaine)
+    {
+        page_web := crée_page_web(ressource.uri, données)
+        crée_widget_pour_page(ressource.fenêtre, page_web)
+    }
+
+    résultat := loge(Ressource)
+    résultat.sur_chargement = sur_chargement
+    résultat.type = "text/html"
+    résultat.fenêtre = fenêtre
+
+    si est_un_fichier_régulier(CheminFichier(chemin)) {
+        uri: URI
+        uri.schéma = "file"
+        uri.schéma_est_défini = vrai
+        uri.autorité_est_définie = vrai
+        uri.chemin = chemin
+        résultat.uri = uri
+    }
+    sinon {
+        résultat.uri = tente parse_uri_standard(chemin) piège nonatteignable
+    }
+
+    retourne résultat
+}
+
+est_fichier :: fonc (ressource: *Ressource) -> bool
+{
+    uri := ressource.uri
+
+    si uri.schéma == "file" {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+ressource_fut_chargée :: fonc (ressource: *Ressource, données: chaine)
+{
+    si ressource.sur_chargement {
+        ressource.sur_chargement(ressource, données)
+    }
+
+    ressource.chargement_terminé = vrai
+}
+
+ressource_eu_erreur :: fonc (ressource: *Ressource)
+{
+    si ressource.sur_erreur {
+        ressource.sur_erreur(ressource)
+    }
+
+    ressource.chargement_terminé = vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Requête
+ * \{ */
+
+Requête :: struct {
+    ressource: *Ressource
+    message: MessageServeuseHTTP
+}
+
+est_http :: fonc (requête: *Requête) -> bool
+{
+    assert(requête.ressource != nul)
+    retourne requête.ressource.uri.schéma == "http"
+}
+
+est_https :: fonc (requête: *Requête) -> bool
+{
+    assert(requête.ressource != nul)
+    retourne requête.ressource.uri.schéma == "https"
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsInterfaceQt
+ * \{ */
+
+RappelsInterfaceQt :: struct {
+    empl base: RappelsInterface
+    fenêtre: *QT_Fenetre_Principale
+}
+
+crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *RappelsInterfaceQt
+{
+    résultat := loge(RappelsInterfaceQt)
+    résultat.fenêtre = fenêtre
+    résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
+    résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
+    retourne résultat
+}
+
+rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Requête)
+{
+    rappels := base comme *RappelsInterfaceQt
+
+    rappels_socket := crée_rappel_socket_pour_requête(requête)
+
+    parent := rappels.fenêtre
+
+    uri := requête.ressource.uri
+    hôte := uri.hôte
+    port := port_pour_uri(uri) comme z16
+
+    si requête.est_http() {
+        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
+        QT_abstract_socket_connect_to_host(prise, hôte.vers_qt(), port)
+    }
+    sinon {
+        assert(requête.est_https())
+        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
+        QT_ssl_socket_connect_to_host_encrypted(prise, hôte.vers_qt(), port)
+    }
+}
+
+crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_Socket
+{
+    RappelsRequête :: struct {
+        empl base: QT_Rappels_Socket
+
+        requête: *Requête
+        parseuse: ParseuseMessageServeuseHTTP
+
+        temps_parsage_http: z64
+        début_requête: Instantané
+    }
+
+    sur_connexion :: fonc (base: *QT_Rappels_Socket)
+    {
+        rappels := base comme *RappelsRequête
+
+        rappels.début_requête = maintenant_précis()
+
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+        diffère détruit_tampons(*enchaineuse)
+
+        uri := rappels.requête.ressource.uri
+
+        ajoute_au_tampon(*enchaineuse, "GET ")
+        si uri.chemin {
+            ajoute_au_tampon(*enchaineuse, uri.chemin)
+        }
+        sinon {
+            ajoute_au_tampon(*enchaineuse, "/")
+        }
+        si uri.requête {
+            ajoute_au_tampon(*enchaineuse, "?")
+            ajoute_au_tampon(*enchaineuse, uri.requête)
+        }
+
+        ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n")
+        ajoute_au_tampon(*enchaineuse, "Host: ")
+        ajoute_au_tampon(*enchaineuse, uri.hôte)
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+        ajoute_au_tampon(*enchaineuse, "Accept-Encoding: identity\r\n")
+        ajoute_au_tampon(*enchaineuse, "Accept-Charset: utf-8, iso-8859-1q=0.5\r\n")
+        ajoute_au_tampon(*enchaineuse, "Accept: text/html,application/xhtml+xml,application/xmlq=0.9,image/webp,image/apng,*/ *q=0.8\r\n")
+        ajoute_au_tampon(*enchaineuse, "User-Agent: delsace\r\n")
+        ajoute_au_tampon(*enchaineuse, "Connection: close\r\n")
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+
+        texte_requête := chaine_depuis_enchaineuse(*enchaineuse)
+        diffère déloge(texte_requête)
+
+        _ := QT_abstract_socket_write(rappels.socket, texte_requête.pointeur, texte_requête.taille)
+        // imprime("Écris : % / %\n", écris, texte_requête.taille)
+    }
+
+    sur_erreur :: fonc (base: *QT_Rappels_Socket)
+    {
+        rappels := base comme *RappelsRequête
+        imprime("Erreur\n")
+        ressource_eu_erreur(rappels.requête.ressource)
+    }
+
+    sur_prêt_à_lire :: fonc (base: *QT_Rappels_Socket)
+    {
+        rappels := base comme *RappelsRequête
+        parseuse := *rappels.parseuse
+        requête := rappels.requête
+
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+        diffère détruit_tampons(*enchaineuse)
+
+        octets_lu := QT_abstract_socket_read(rappels.socket, *enchaineuse.tampon_courant.données[0], TAILLE_TAMPON_ENCHAINEUSE)
+
+        enchaineuse.tampon_courant.occupé = octets_lu comme z32
+
+        lu := chaine_depuis_enchaineuse(*enchaineuse)
+
+        début_parsage_http := maintenant_précis()
+        ajourne_données(parseuse, lu)
+        rappels.temps_parsage_http += début_parsage_http.temps_écoulé_microsecondes()
+
+        si message_est_erroné(parseuse) {
+            imprime("Erreur de parsage")
+            QT_abstract_socket_close(rappels.socket)
+            retourne
+        }
+
+        saufsi message_prêt_pour_finalisation(parseuse) {
+            retourne
+        }
+
+        imprime("Temps de parsage HTTP : %\n", rappels.temps_parsage_http)
+        imprime("Temps requête         : %\n", rappels.début_requête.temps_écoulé_microsecondes())
+
+        message := finalise_message(parseuse)
+
+        content_type := entête(*message, "Content-Type")
+        si content_type {
+            // imprime("Content-Type : %\n", content_type.valeur)
+
+            position_charset := cherche_aiguille_par_force_brute(content_type.valeur, "charset=")
+            si position_charset != -1 {
+                charset := avance(content_type.valeur, position_charset + "charset=".taille)
+
+                si charset == "ISO-8859-1" {
+                    nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
+                    déloge(message.contenu)
+                    message.contenu = nouveau_contenu
+                }
+            }
+        }
+
+        requête.message = message
+        ressource_fut_chargée(requête.ressource, message.contenu)
+
+        réinitialise(parseuse)
+
+        QT_abstract_socket_close(rappels.socket)
+    }
+
+    rappels := loge(RappelsRequête)
+    rappels.requête = requête
+    rappels.sur_pret_a_lire = sur_prêt_à_lire
+    rappels.sur_connexion = sur_connexion
+    rappels.sur_erreur = sur_erreur
+    retourne rappels
+}
+
+rappels_interface_sur_spin_event_loop :: fonc (base: *RappelsInterface @inutilisée)
+{
+    QT_application_process_events()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Conversion jeu de caractères.
+ * \{ */
+
+/* https://www.charset.org/charsets/iso-8859-1 */
+convertis_iso_8859_1_vers_utf8 :: fonc (texte: chaine) -> chaine
+{
+    taille_résultat := texte.taille
+
+    pour texte {
+        si it < 0 {
+            taille_résultat += 1
+        }
+    }
+
+    si taille_résultat == texte.taille {
+        retourne copie_chaine(texte)
+    }
+
+    résultat := loge_chaine(taille_résultat)
+
+    ptr_sortie := résultat.pointeur comme *n8
+
+    pour texte {
+        si it >= 0 {
+            mémoire(ptr_sortie) = it comme n8
+            ptr_sortie += 1
+            continue
+        }
+
+        naturel := it comme n8
+
+        si 0xA0 <= naturel <= 0xBF {
+            mémoire(ptr_sortie) = 0xC2
+            ptr_sortie += 1
+            mémoire(ptr_sortie) = naturel
+            ptr_sortie += 1
+        }
+        sinon si naturel >= 0xA0 {
+            mémoire(ptr_sortie) = 0xC3
+            ptr_sortie += 1
+            mémoire(ptr_sortie) = naturel - 0x40
+            ptr_sortie += 1
+        }
+        sinon {
+            imprime("%\n", naturel)
+            assert(faux)
+        }
+    }
+
     retourne résultat
 }
 
