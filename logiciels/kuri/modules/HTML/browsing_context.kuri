@@ -1,0 +1,556 @@
+importe Fondation
+importe Internet
+importe Temps
+
+/* https://w3c.github.io/hr-time/#dfn-unsafe-shared-current-time */
+unsafe_shared_current_time :: fonc () -> Instantané
+{
+    retourne maintenant()
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-2 */
+DocumentState :: struct {
+    document: *Document
+    initiator_origin: Optionnel(Origin)
+    origin: Origin
+    navigable_target_name: chaine
+    about_base_url: Optionnel(URI)
+    // À FAIRE : complète
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#session-history-entry */
+SessionHistoryEntry :: struct {
+    // step, a non-negative integer or "pending", initially "pending".
+
+    url: URI
+    document_state: DocumentState
+
+    // classic history API state, which is serialized state, initially StructuredSerializeForStorage(null).
+
+    // navigation API state, which is a serialized state, initially StructuredSerializeForStorage(undefined).
+
+    // navigation API key, which is a string, initially set to the result of generating a random UUID.
+
+    // navigation API ID, which is a string, initially set to the result of generating a random UUID.
+
+    // scroll restoration mode, a scroll restoration mode, initially "auto".
+
+    // scroll position data, which is scroll position data for the document's restorable scrollable regions.
+
+    // persisted user state, which is implementation-defined, initially null
+}
+
+donne_document :: fonc (she: *SessionHistoryEntry) -> *Document
+{
+    retourne she.document_state.document
+}
+
+UserAgent :: struct {
+    /* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable-set */
+    top_level_traversables: [..]*TraversableNavigable
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.3.1 Navigables
+ * https://html.spec.whatwg.org/multipage/document-sequences.html#navigables
+ * \{ */
+
+IDNavigable :: z32
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#navigable */
+Navigable :: struct {
+    type := #type_de_cette_structure
+
+    id: IDNavigable
+    parent: *Navigable
+    current_session_history_entry: SessionHistoryEntry
+    active_session_history_entry: SessionHistoryEntry
+    is_closing: bool
+    is_delaying_load_events: bool
+}
+
+initialise_navigable :: fonc (navigable: *Navigable, document_state: DocumentState, parent: *Navigable = nul)
+{
+    // 1. Assert: documentState's document is non-null.
+    assertt(document_state.document != nul)
+
+    // 2. Let entry be a new session history entry, with
+    entry: SessionHistoryEntry
+    entry.url = document_state.document.url
+    entry.document_state = document_state
+
+    // 3. Set navigable's current session history entry to entry.
+    navigable.current_session_history_entry = entry
+
+    // 4. Set navigable's active session history entry to entry.
+    navigable.active_session_history_entry = entry
+
+    // 5. Set navigable's parent to parent.
+    navigable.parent = parent
+}
+
+donne_active_document :: fonc (navigable: *Navigable) -> *Document
+{
+    retourne donne_document(*navigable.active_session_history_entry)
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#traversable-navigables */
+TraversableNavigable :: struct {
+    empl base: Navigable
+    type = #type_de_cette_structure
+
+    // A current session history step, a number, initially 0.
+    session_history_entries: [..]SessionHistoryEntry
+    // A session history traversal queue, a session history traversal parallel queue, the result of starting a new session history traversal parallel queue.
+    // A running nested apply history step boolean, initially false.
+    // A system visibility state, which is either "hidden" or "visible".
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable */
+est_top_level_traversable :: fonc (navigable: *Navigable) -> bool
+{
+    retourne navigable.type == TraversableNavigable && navigable.parent == nul
+}
+
+donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *Navigable
+{
+    // 1. Let navigable be inputNavigable.
+    navigable := input_navigable
+
+    // 2. While navigable's parent is not null, set navigable to navigable's parent.
+    tantque navigable.parent != nul {
+        navigable = navigable.parent
+    }
+
+    // 3. Return navigable.
+    retourne navigable
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-top-level-traversable */
+crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: *BrowsingContext, target_name: chaine, openerNavigableForWebDriver : *Navigable = nul) -> *TraversableNavigable
+{
+    // 1. Let document be null.
+    document: *Document = nul
+
+    // 2. If opener is null, then set document to the second return value of creating a new top-level browsing context and document.
+    si opener == nul {
+        _, document_ := crée_un_nouveau_top_level_browsing_context_et_document()
+        document = document_
+    }
+    // 3. Otherwise, set document to the second return value of creating a new auxiliary browsing context and document given opener.
+    sinon {
+        panique("crée_un_nouveau_auxiliary_browsing_context_and_document")
+    }
+
+    // 4. Let documentState be a new document state, with
+    //    document              : document
+    //    initiator origin      : null if opener is null; otherwise, document's origin
+    //    origin                : document's origin
+    //    navigable target name : targetName
+    //    about base URL        : document's about base URL
+    document_state: DocumentState
+    document_state.document = document
+    si opener != nul {
+        document_state.initiator_origin = document.origin
+    }
+    document_state.origin = document.origin
+    document_state.navigable_target_name = target_name
+    document_state.about_base_url = document.about_base_url
+
+    // 5. Let traversable be a new traversable navigable.
+    traversable := loge(TraversableNavigable)
+
+    // 6. Initialize the navigable traversable given documentState.
+    initialise_navigable(traversable, document_state)
+
+    // À FAIRE 7. Let initialHistoryEntry be traversable's active session history entry.
+
+    // À FAIRE 8. Set initialHistoryEntry's step to 0.
+
+    // À FAIRE 9. Append initialHistoryEntry to traversable's session history entries.
+
+    // À FAIRE 10. If opener is non-null, then legacy-clone a traversable storage shed given opener's top-level traversable and traversable. [STORAGE]
+
+    // 11. Append traversable to the user agent's top-level traversable set.
+    tableau_ajoute(*user_agent.top_level_traversables, traversable)
+
+    // À FAIRE 12. Invoke WebDriver BiDi navigable created with traversable and openerNavigableForWebDriver.
+
+    // 13. Return traversable.
+    retourne traversable
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#create-a-fresh-top-level-traversable
+ * À FAIRE :  optional POST resource-or-null initialNavigationPostResource (default null) */
+crée_un_fresh_top_level_traversable :: fonc (user_agent: *UserAgent, initial_navigation_url: URI) -> *Navigable
+{
+    // 1. Let traversable be the result of creating a new top-level traversable given null and the empty string.
+    traversable := crée_un_nouveau_top_level_traversable(user_agent, nul, "")
+
+    // À FAIRE 2. Navigate traversable to initialNavigationURL using traversable's active document, with documentResource set to initialNavigationPostResource.
+
+    // 3. Return traversable.
+    retourne traversable
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BrowsingContext
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#sandboxing-flag-set */
+SandboxingFlags :: énum_drapeau n16 {
+    /* Drapaux pour BrowsingContext */
+    Navigation
+    AuxiliaryNavigation
+    TopLevelNavigationWithoutUserActionvation
+    TopLevelNavigationWithUserActionvation
+    Origin
+    Forms
+    PointerLock
+    Scripts
+    AutomaticFeature
+    DocumentDomain
+    PropagatesToAuxiliary
+    Modals
+    OrientationLock
+    Presentation
+    CustomProtocolsNavigation
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#determining-the-creation-sandboxing-flags */
+détermine_drapeaux_sanboxing :: fonc (context: *BrowsingContext @inutilisée, embedder: *Élément @inutilisée) -> SandboxingFlags
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne SandboxingFlags.zéro
+}
+
+/* À FAIRE : https://url.spec.whatwg.org/#concept-host */
+Host :: chaine
+
+/* https://url.spec.whatwg.org/#concept-domain */
+Domain :: chaine
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#concept-origin-opaque */
+Origin :: struct {
+    est_opaque: bool // À FAIRE : sépare en deux structures ?
+    valeur_opaque: z32
+
+    scheme: chaine // ASCII
+    host: Host
+    port: Optionnel(n16)
+    domain: Optionnel(Domain)
+}
+
+/* https://url.spec.whatwg.org/#concept-url-origin */
+donne_origin :: fonc (uri: URI) -> Origin
+{
+    /* The origin of a URL url is the origin returned by running these steps, switching on url’s scheme: */
+
+    schéma := uri.schéma
+
+    si schéma == "blob" {
+        imprime("À FAIRE : origine pour blob")
+        // 1. If url’s blob URL entry is non-null, then return url’s blob URL entry’s environment’s origin.
+
+        // 2. Let pathURL be the result of parsing the result of URL path serializing url.
+
+        // 3. If pathURL is failure, then return a new opaque origin.
+
+        // 4. If pathURL’s scheme is "http", "https", or "file", then return pathURL’s origin.
+
+        // 5. Return a new opaque origin.
+        retourne crée_nouvelle_origin_opaque()
+    }
+
+    si schéma == "ftp" || schéma == "http" || schéma == "https" || schéma == "ws" || schéma == "wss" {
+        retourne Origin(scheme = schéma, host = url.hôte, port = donne_port_pour_uri(uri))
+    }
+
+    si schéma == "file" {
+        /* Unfortunate as it is, this is left as an exercise to the reader.
+         * When in doubt, return a new opaque origin. */
+        retourne crée_nouvelle_origin_opaque()
+    }
+
+    /* Return a new opaque origin. */
+    retourne crée_nouvelle_origin_opaque()
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#determining-the-origin */
+détermine_origin :: fonc (opt_url: Optionnel(URI), sanbox_flags: SandboxingFlags, source_origin: Optionnel(Origin)) -> Origin
+{
+    // 1. If sandboxFlags has its sandboxed origin browsing context flag set, then return a new opaque origin.
+    si sanbox_flags.Origin {
+        retourne crée_nouvelle_origin_opaque()
+    }
+
+    // 2. If url is null, then return a new opaque origin.
+    saufsi opt_url.possède_valeur() {
+        retourne crée_nouvelle_origin_opaque
+    }
+
+    url := opt_url.Quelque
+
+    // 3. If url is about:srcdoc, then:
+    si url.chn == "about:srcdoc" {
+        // 1. Assert: sourceOrigin is non-null.
+        assert(source_origin.possède_valeur())
+
+        // 2. Return sourceOrigin.
+        retourne source_origin.Quelque
+    }
+
+    // 4. If url matches about:blank and sourceOrigin is non-null, then return sourceOrigin.
+    si url.chn == "about:blank" && source_origin.possède_valeur() {
+        retourne source_origin.Quelque
+    }
+
+    // 5. Return url's origin.
+    retourne donne_origin(url)
+}
+
+/* Valeur unique pour chaque origine opaque */
+valeur_origine_opaque: z32
+
+crée_nouvelle_origin_opaque :: fonc () -> Origin
+{
+    valeur_origine_opaque += 1
+    retourne Origin(vrai, valeur_origine_opaque)
+}
+
+Window :: struct {
+    document: *Document
+}
+
+WindowProxy :: struct {
+    /* [[Window]] */
+    window: *Window
+}
+
+BrowsingContextGroup :: struct {
+    contexts: [..]*BrowsingContext
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#windows */
+BrowsingContext :: struct {
+    window_proxy: *WindowProxy
+
+    opener_browsing_context: *BrowsingContext
+    opener_origin_at_creation: Optionnel(Origin)
+    popup: bool
+    is_auxiliary: bool
+    initial_url: Optionnel(URI)
+
+    virtual_browsing_context_group_id: z32
+
+    group: *BrowsingContextGroup
+}
+
+/* A browsing context's active window is its WindowProxy object's [[Window]]
+ * internal slot value. */
+donne_active_window :: fonc (browsing_context: *BrowsingContext) -> *Window
+{
+    saufsi browsing_context {
+        retourne nul
+    }
+    saufsi browsing_context.window_proxy {
+        retourne nul
+    }
+    retourne browsing_context.window_proxy.window
+}
+
+/* A browsing context's active document is its active window's associated Document. */
+donne_active_document :: fonc (browsing_context: *BrowsingContext) -> *Document
+{
+    active_window := donne_active_window(browsing_context)
+    sausfi active_window {
+        retourne nul
+    }
+    retourne active_window.document
+}
+
+/* A browsing context's top-level traversable is its active document's 
+ * navigable's top-level traversable. */
+donne_top_level_traversable :: fonc (browsing_context: *BrowsingContext) -> *rien
+{
+    active_document := donne_active_document(browsing_context)
+    saufsi active_document {
+        retourne nul
+    }
+    navigable := active_document.donne_navigable()
+    saufsi navigable {
+        retourne nul
+    }
+    retourne navigable.donne_top_level_traversable()
+}
+
+/* A browsing context whose is auxiliary is true is known as an auxiliary
+ * browsing context. Auxiliary browsing contexts are always top-level browsing
+ * contexts. */
+est_top_level_browsing_context :: fonc (browsing_context: *BrowsingContext) -> bool
+{
+    retourne browsing_context != nul && browsing_context.is_auxiliary
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-browsing-contexts */
+crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élément, group: *BrowsingContextGroup) -> *BrowsingContext, *Document
+{
+    // 1. Let browsingContext be a new browsing context.
+    browsing_context := loge(BrowsingContext)
+
+    // 2. Let unsafeContextCreationTime be the unsafe shared current time.
+    unsafe_context_creation_time := unsafe_shared_current_time()
+
+    // 3. Let creatorOrigin be null.
+    creator_origin: Optionnel(Origin)
+
+    // 4. Let creatorBaseURL be null.
+    creator_base_url: Optionnel(URI)
+
+    // 5. If creator is non-null, then:
+    si creator {
+        // 1. Set creatorOrigin to creator's origin.
+        creator_origin = creator.origin
+
+        // 2. Set creatorBaseURL to creator's document base URL.
+        creator_base_url =  creator.donne_base_url()
+
+        // 3. Set browsingContext's virtual browsing context group ID to creator's browsing context's top-level browsing context's virtual browsing context group ID.
+        creator_browsing_context := creator.browsing_context {
+            top_level_browsing_context := creator_browsing_context.donne_top_level_browsing_context()
+            si top_level_browsing_context {
+                browsing_context.virtual_browsing_context_group_id = top_level_browsing_context.virtual_browsing_context_group_id
+            }
+        }
+    }
+
+    // 6. Let sandboxFlags be the result of determining the creation sandboxing flags given browsingContext and embedder.
+    sanbox_flags := détermine_drapeaux_sanboxing(browsing_context, embedder)
+
+    // 7. Let origin be the result of determining the origin given about:blank, sandboxFlags, and creatorOrigin.
+    origin := détermine_origin(URI("about:blank"), sandbox_flags, creator_origin)
+
+    // 8. Let permissionsPolicy be the result of creating a permissions policy given embedder and origin. [PERMISSIONSPOLICY]
+    permissions_policy := crée_permisions_policy_pour_navigable(embedder, origin)
+
+    // 9. Let agent be the result of obtaining a similar-origin window agent given origin, group, and false.
+    agent := obtain_similar_origin_window_agent(origin, group, faux)
+
+    // 10. Let realm execution context be the result of creating a new realm given agent and the following customizations:
+    //     For the global object, create a new Window object.
+    //     For the global this binding, use browsingContext's WindowProxy object.
+    realm_execution_context := crée_un_nouveau_realm(agent)
+
+    // 11. Let topLevelCreationURL be about:blank if embedder is null; otherwise embedder's relevant settings object's top-level creation URL.
+    top_level_creation_url := "about:blank"
+    si embedder {
+        // À FAIRE(settings object)
+    }
+
+    // 12. Let topLevelOrigin be origin if embedder is null; otherwise embedder's relevant settings object's top-level origin.
+    top_level_origin := origin
+    si embedder {
+        // À FAIRE(settings object)
+    }
+
+    // 13. Set up a window environment settings object with about:blank, realm execution context, null, topLevelCreationURL, and topLevelOrigin.
+    set_up_window_environnement_context(URI("about:blank"), realm_execution_context, nul, top_level_creation_url, top_level_origin)
+
+    // 14. Let loadTimingInfo be a new document load timing info with its
+    //     navigation start time set to the result of calling coarsen time with
+    //     unsafeContextCreationTime and the new environment settings object's
+    //     cross-origin isolated capability.
+    load_timing_info: DocumentLoadTimingInfo
+    // À FAIRE
+
+    // 15. Let document be a new Document, with:
+    //     type "html"
+    //     content type = "text/html"
+    //     mode = "quirks"
+    //     origin = origin
+    //     browsing context = browsingContext
+    //     permissions policy = permissionsPolicy
+    //     active sandboxing flag set = sandboxFlags
+    //     load timing info = loadTimingInfo
+    //     is initial about:blank = true
+    //     about base URL = creatorBaseURL
+    //     allow declarative shadow roots = true
+    document := crée_noeud_document()
+    document.type = "html"
+    document.type_contenu = "text/html"
+    document.mode = ModeDocument.QUIRKS
+    document.origin = origin
+    document.browsing_context = browsing_context
+    document.permissions_policy = permissions_policy
+    document.active_sandboxing_flags = sandbox_flags
+    document.load_timing_info = load_timing_info
+    document.is_initial_about_blank = vrai
+    document.about_base_url = creator_base_url
+    document.permets_racines_shadow_déclaratives = vrai
+
+    // 16. If creator is non-null, then:
+    si creator {
+        // 1. Set document's referrer to the serialization of creator's URL.
+        // À FAIRE : sérialise l'url https://url.spec.whatwg.org/#concept-url-serializer
+        document.referrer = creator.url
+
+        // À FAIRE : 2. Set document's policy container to a clone of creator's policy container.
+
+        // 3. If creator's origin is same origin with creator's relevant settings
+        //    object's top-level origin, then set document's cross-origin opener
+        //    policy to creator's browsing context's top-level browsing context's
+        //    active document's cross-origin opener policy.
+        // À FAIRE
+    }
+
+    // À FAIRE 17. Assert: document's URL and document's relevant settings object's creation URL are about:blank.
+
+    // À FAIRE 18. Mark document as ready for post-load tasks.
+
+    // À FAIRE 19. Populate with html/head/body given document.
+
+    // À FAIRE 20. Make active document.
+
+    // À FAIRE 21. Completely finish loading document.
+
+    // 22. Return browsingContext and document.
+    retourne browsing_context, document
+}
+
+/* https://w3c.github.io/webappsec-permissions-policy/#policies */
+DeclaredPolicy :: struct {
+}
+
+PermissionsPolicy :: struct {
+}
+
+/* https://w3c.github.io/webappsec-permissions-policy/#algo-create-for-navigable */
+crée_permisions_policy_pour_navigable :: fonc (container: *Élément @inutilisée, origin: Origin @inutilisée) -> PermissionsPolicy
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne PermissionsPolicy()
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#obtain-similar-origin-window-agent */
+obtain_similar_origin_window_agent :: fonc (origin: Origin @inutilisée, groupe: *BrowsingContextGroup @inutilisée, requestsOAC: bool @inutilisée) -> *rien
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-new-javascript-realm */
+crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée) -> *rien
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#set-up-a-window-environment-settings-object */
+set_up_window_environnement_context :: fonc (creation_url: URI @inutilisée, execution_context: *rien @inutilisée, reserved_environment: *rien @inutilisée, top_level_creation_url: URI @inutilisée, top_level_origin: Origin @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+/** \} */

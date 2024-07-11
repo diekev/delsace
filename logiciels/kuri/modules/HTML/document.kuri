@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe Internet
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.
@@ -36,12 +37,25 @@ formatte_mode_document :: fonc (enchaineuse: *Enchaineuse, mode: *ModeDocument)
     }
 } @FormattageImpression
 
+DOMHighResTimeStamp :: r64
+
+/* https://html.spec.whatwg.org/multipage/dom.html#document-load-timing-info */
+DocumentLoadTimingInfo :: struct {
+    navigation_start_time: z64
+    DOM_interactive_time: DOMHighResTimeStamp
+    DOM_content_loaded_event_start_time: DOMHighResTimeStamp
+    DOM_content_loaded_event_end_time: DOMHighResTimeStamp
+    DOM_complete_time: DOMHighResTimeStamp
+    load_event_start_time: DOMHighResTimeStamp
+    load_event_end_time: DOMHighResTimeStamp
+}
+
 Document :: struct {
     empl base: Noeud
 
     type_contenu: chaine
     type: chaine
-    url: chaine
+    url: URI
     encodage: Encodage
     mode: ModeDocument
     permets_racines_shadow_déclaratives: bool
@@ -49,6 +63,17 @@ Document :: struct {
     pending_parsing_blocking_script: *HTMLScriptElement
 
     la_parseuse_ne_peut_changer_le_mode: bool
+
+    origin: Origin
+    browsing_context: *BrowsingContext
+    permissions_policy: PermissionsPolicy
+    active_sandboxing_flags: SandboxingFlags
+    load_timing_info: DocumentLoadTimingInfo
+    about_base_url: Optionnel(URI)
+
+    referrer: chaine /* Peut être vide. */
+
+    is_initial_about_blank: bool
 }
 
 crée_noeud_document :: fonc () -> *Document
@@ -59,7 +84,7 @@ crée_noeud_document :: fonc () -> *Document
     document.mode = ModeDocument.NO_QUIRKS
     document.type_contenu = "application/xml"
     document.type = "xml"
-    document.url = "about:blank"
+    document.url = URI("about:blank")
     document.document = document
 
     retourne document
@@ -73,7 +98,7 @@ est_en_mode_quirks :: fonc (document: *Document) -> bool
 /* https://html.spec.whatwg.org/multipage/iframe-embed-object.html#an-iframe-srcdoc-document */
 est_iframe_srcdoc :: fonc (document: *Document) -> bool
 {
-    retourne document.url == "about:srcdoc"
+    retourne document.url.uri == "about:srcdoc"
 }
 
 donne_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
