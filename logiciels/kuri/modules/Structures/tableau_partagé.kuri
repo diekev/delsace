@@ -1,0 +1,126 @@
+
+TableauPartagé :: struct ($T: type_de_données, $CopieValeur: fonc(T)(T), $DétruitValeur: fonc(T)(T)) {
+    valeurs: [..]T
+    compte_de_référence: *z32
+
+    est_comprimée: bool
+    valeur_constante: T
+}
+
+crée_tableau_partagé :: fonc ($T: type_de_données, $CopieValeur: fonc(T)(T), $DétruitValeur: fonc(T)(T)) -> TableauPartagé(T, CopieValeur, DétruitValeur)
+{
+    résultat: TableauPartagé(T)
+    résultat.compte_de_référence = loge(z32)
+    résultat.référence()
+    retourne résultat
+}
+
+taille :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> z64
+{
+    si tableau.est_comprimée {
+        retourne TAILLE_PAGE
+    }
+
+    retourne tableau.valeurs.taille
+}
+
+nombre_de_références :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> z32
+{
+    retourne mémoire(tableau.compte_de_référence)
+}
+
+référence :: fonc (tableau: &TableauPartagé($T, $C, $D))
+{
+    mémoire(tableau.compte_de_référence) += 1
+}
+
+déréférence :: fonc (tableau: &TableauPartagé($T, $C, $D))
+{
+    mémoire(tableau.compte_de_référence) -= 1
+}
+
+est_vide :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> bool
+{
+    retourne tableau.taille() == 0
+}
+
+copie :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> TableauPartagé(T, C, D)
+{
+    tableau.référence()
+    résultat : TableauPartagé(T) = tableau
+    retourne résultat
+}
+
+est_unique :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> bool
+{
+    retourne tableau.nombre_de_références() == 1
+}
+
+rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D))
+{
+    si tableau.nombre_de_références() == 1 {
+        retourne
+    }
+
+    tableau.déréférence()
+
+    tableau.valeurs = tableau_copie(tableau.valeurs)
+    tableau.compte_de_référence = loge(z32)
+    tableau.référence()
+}
+
+rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D), copie: fonc(*T)(T))
+{
+    si tableau.nombre_de_références() == 1 {
+        retourne
+    }
+
+    si copie {
+        pour & tableau.valeurs {
+            it = copie(*it) 
+        }
+    }
+
+    tableau.déréférence()
+
+    tableau.valeurs = tableau_copie(tableau.valeurs)
+    tableau.compte_de_référence = loge(z32)
+    tableau.référence()
+}
+
+détruit :: fonc (tableau: &TableauPartagé($T, $C, $D))
+{
+    tableau.déréférence()
+    si mémoire(tableau.compte_de_référence) == 0 {
+        déloge(tableau.valeurs)
+        déloge(tableau.compte_de_référence)
+    }
+}
+
+définis_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), index: z64, valeur: T)
+{
+    tableau.rends_unique()
+
+    si tableau.est_comprimée {
+        tableau_redimensionne(tableau.valeurs, TAILLE_PAGE)
+        pour & tableau.valeurs {
+            it = tableau.valeur_constante
+        }
+        tableau.est_comprimée = faux
+    }
+
+    tableau.valeurs[index] = valeur
+}
+
+donne_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), index: z64) -> T
+{
+    si tableau.est_comprimée {
+        retourne tableau.valeur_constante
+    }
+    retourne tableau.valeurs[index]
+}
+
+mémoire_utilisée :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> z64
+{
+    retourne tableau.valeurs.taille * (taille_de(T) comme z64)
+}
