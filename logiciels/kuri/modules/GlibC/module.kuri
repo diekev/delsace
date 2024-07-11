@@ -650,16 +650,19 @@ sigaction :: fonc (sig: z32, new_act: *sigaction_struct, old_act: *sigaction_str
 
 action_pour_erreur_de_segmentation :: fonc (signum: z32 @inutilisée)
 {
+    appelé_depuis_signal_système = vrai
     panique("violation de segmentation")
 }
 
 action_pour_exception_en_point_flottant :: fonc (signum: z32 @inutilisée)
 {
+    appelé_depuis_signal_système = vrai
     panique("exception en point flottant")
 }
 
 action_pour_avortement :: fonc (signum: z32 @inutilisée)
 {
+    appelé_depuis_signal_système = vrai
     panique("avortement")
 }
 
