@@ -1,0 +1,19 @@
+importe Chaine
+importe CSS
+importe Fondation
+importe SysFichier
+
+principale :: fonc () -> z32
+{
+    contenu := contenu_fichier_texte("/home/kevin/stylesheet.css")
+    diffère déloge(contenu)
+
+    lexèmes := lèxe_style(contenu)
+    imprime("% lexèmes\n", lexèmes.taille)
+
+    // pour lexèmes {
+    //     imprime("%\n", it)
+    // }
+
+    retourne 0
+}
