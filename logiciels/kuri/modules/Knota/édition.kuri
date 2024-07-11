@@ -1,3 +1,4 @@
+importe Ensemble
 importe Fondation
 importe Fràtzala
 importe Géométrie
@@ -26,7 +27,9 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
             retourne
         }
 
-        noeud_actif := graphe.noeuds[éléments[0]]
+        // À FAIRE(items)
+        noeud_actif := graphe.items[éléments[0]] comme *Noeud
+        assert(noeud_actif.type_item == Noeud)
         si commence_connexion_interactive(graphe, noeud_actif, point) {
             graphe.mode_interaction = ModeInteractionGraphe.CONNEXION_INTERACTIVE
         }
@@ -50,7 +53,9 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
         retourne
     }
 
-    noeud_actif := graphe.noeuds[éléments[0]]
+    // À FAIRE(items)
+    noeud_actif := graphe.items[éléments[0]] comme *Noeud
+    assert(noeud_actif.type_item == Noeud)
     assert(noeud_actif != graphe.noeud_actif)
 
     graphe.définis_noeud_actif(noeud_actif)
@@ -85,8 +90,8 @@ ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris, d
             guette_survol_connexion(graphe)
 
             pour éléments_sélectionnées {
-                noeud := graphe.noeuds[it]
-                noeud.définis_position(noeud.pos_x + delta.x, noeud.pos_y + delta.y)
+                item := graphe.items[it]
+                item.définis_position(item.position.x + delta.x, item.position.y + delta.y)
             }
         }
         UTILISE_OUTIL_SÉLECTION {
@@ -142,7 +147,8 @@ termine_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
                 éléments_sélectionnées := sélection.donne_éléments_sélectionnés()
 
                 assert(éléments_sélectionnées.taille == 1) 
-                noeud := graphe.noeuds[éléments_sélectionnées[0]]
+                noeud := graphe.items[éléments_sélectionnées[0]] comme *Noeud
+                assert(noeud.type_item == Noeud)
 
                 connexion := graphe.connexion_pour_survol_noeud
 
@@ -161,22 +167,22 @@ termine_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
                 noeud_amont := prise_sortie.noeud_parent
                 noeud_aval := prise_entrée.noeud_parent
 
-                pos_y_amont := noeud_amont.pos_y
-                pos_y_aval := noeud_aval.pos_y
+                pos_y_amont := noeud_amont.position.y
+                pos_y_aval := noeud_aval.position.y
 
-                si (noeud.pos_y - pos_y_amont) < (3.0 * noeud.rectangle().hauteur) {
-                    décalage := (3.0 * noeud.rectangle().hauteur) - (noeud.pos_y - pos_y_amont)
+                si (noeud.position.y - pos_y_amont) < (3.0 * noeud.rectangle().hauteur) {
+                    décalage := (3.0 * noeud.rectangle().hauteur) - (noeud.position.y - pos_y_amont)
                     noeud.décale_verticalement_noeuds_en_amont(-décalage)
                 }
 
-                si (pos_y_aval - noeud.pos_y) < (3.0 * noeud.rectangle().hauteur) {
-                    décalage := (3.0 * noeud.rectangle().hauteur) - (pos_y_aval - noeud.pos_y)
+                si (pos_y_aval - noeud.position.y) < (3.0 * noeud.rectangle().hauteur) {
+                    décalage := (3.0 * noeud.rectangle().hauteur) - (pos_y_aval - noeud.position.y)
                     noeud.décale_verticalement_noeuds_en_aval(décalage)
                 }
 
                 /* Positionne le noeud horizontalement à mi-chemin entre les prises. */
-                pos_x := (noeud_aval.pos_x + noeud_amont.pos_x) * 0.5
-                noeud.définis_position(pos_x, noeud.pos_y)
+                pos_x := (noeud_aval.position.x + noeud_amont.position.x) * 0.5
+                noeud.définis_position(pos_x, noeud.position.y)
                 
                 graphe.connexion_pour_survol_noeud = nul
                 graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGraphePositionChangée))
@@ -204,7 +210,11 @@ supprime_sélection :: fonc (graphe: *Graphe) -> bool
     diffère déloge(noeuds_à_supprimer)
 
     pour sélection.donne_éléments_sélectionnés() {
-        tableau_ajoute(*noeuds_à_supprimer, graphe.noeuds[it])
+        item := graphe.items[it]
+        saufsi item.type_item == Noeud {
+            continue
+        }
+        tableau_ajoute(*noeuds_à_supprimer, item comme *Noeud)
     }
 
     si noeuds_à_supprimer.taille == 0 {
@@ -252,7 +262,7 @@ trouve_noeud :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *Noeud
     noeud_le_plus_proche: *Noeud
     distance_la_plus_proche := R32_MAX
 
-    pour graphe.noeuds {
+    pour graphe.itère_noeuds() {
         rectangle_noeud := it.rectangle()
 
         centre := rectangle_noeud.donne_point_central()
@@ -330,9 +340,8 @@ finalise_ajout_noeud :: fonc (graphe: *Graphe, noeud: *Noeud)
     /* Définis actif et ajout à la sélection. */
     graphe.définis_noeud_actif(noeud)
 
-    position := Point2D(r32)(noeud.pos_x, noeud.pos_y)
     sélection := graphe.sélection
-    sélection.clic(position)
+    sélection.clic(noeud.position)
 }
 
 commence_connexion_interactive :: fonc (graphe: *Graphe, noeud: *Noeud, point: Point2D(r32)) -> bool
@@ -370,7 +379,11 @@ guette_survol_connexion :: fonc (graphe: *Graphe)
         retourne
     }
 
-    noeud := graphe.noeuds[éléments_sélectionnées[0]]
+    item := graphe.items[éléments_sélectionnées[0]]
+    saufsi item.type_item == Noeud {
+        retourne
+    }
+    noeud := item comme *Noeud
     si noeud.entrées.taille == 0 || noeud.sorties.taille == 0 {
         retourne
     }
@@ -401,7 +414,7 @@ décale_verticalement_noeuds_en_amont :: fonc (aval: *Noeud, décalage: r32)
     pour aval.entrées {
         si it.connexion {
             amont := it.connexion.prise_sortie.noeud_parent
-            amont.définis_position(amont.pos_x, amont.pos_y + décalage)
+            amont.définis_position(amont.position.x, amont.position.y + décalage)
             décale_verticalement_noeuds_en_amont(amont, décalage)
         }
     }
@@ -412,10 +425,165 @@ décale_verticalement_noeuds_en_aval :: fonc (amont: *Noeud, décalage: r32)
     pour amont.sorties {
         pour connexion dans it.connexions {
             aval := connexion.prise_entrée.noeud_parent
-            aval.définis_position(aval.pos_x, aval.pos_y + décalage)
+            aval.définis_position(aval.position.x, aval.position.y + décalage)
             décale_verticalement_noeuds_en_aval(aval, décalage)
         }
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Noeud pour information.
+ * \{ */
+
+sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: &CliqueSouris) -> bool
+{
+    sélection := graphe.sélection
+    sélection.clic(donne_point_2d_réel(souris.état.où))
+
+    éléments := sélection.donne_éléments_sélectionnés()
+    si éléments.taille != 1 {
+        graphe.définis_noeud_actif(nul)
+        retourne faux
+    }
+
+    item := graphe.items[éléments[0]]
+    assert(item != nul)
+
+    saufsi item.type_item == Noeud {
+        graphe.définis_noeud_actif(nul)
+        retourne faux
+    }
+
+    noeud := item comme *Noeud
+
+    graphe.définis_noeud_pour_information(noeud)
+    graphe.définis_noeud_actif(noeud)
+    retourne vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Accès du sous-graphe d'un noeud via un clic.
+ * \{ */
+
+donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: &CliqueSouris) -> *Graphe
+{
+    sélection := graphe.sélection
+    sélection.clic(donne_point_2d_réel(souris.état.où))
+
+    éléments := sélection.donne_éléments_sélectionnés()
+    si éléments.taille != 1 {
+        graphe.définis_noeud_actif(nul)
+        retourne nul
+    }
+
+    item := graphe.items[éléments[0]]
+    assert(item != nul)
+
+    saufsi item.type_item == Noeud {
+        graphe.définis_noeud_actif(nul)
+        retourne nul
+    }
+
+    noeud := item comme *Noeud
+    graphe.définis_noeud_actif(noeud)
+    retourne noeud.donne_sous_graphe()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Zoom.
+ * \{ */
+
+applique_zoom :: fonc (graphe: *Graphe, souris: &CliqueSouris)
+{
+    delta := souris.delta
+
+    si delta == 0 {
+        retourne
+    }
+
+    valeur := graphe.zoom
+    si delta > 0 {
+        valeur *= Constantes(r32).PHI
+    }
+    sinon {
+        valeur *= Constantes(r32).PHI_INV
+    }
+
+    graphe.définis_zoom(valeur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Déplace le centre du graphe.
+ * \{ */
+
+déplace_graphe :: fonc (graphe: *Graphe, delta: Vec2)
+{
+    x := graphe.centre_x + delta.x
+    y := graphe.centre_y + delta.y
+    graphe.définis_position(x, y)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Copie de la sélection.
+ * \{ */
+
+TypeMimeCopieNoeud :: "knota/copie-noeud"
+
+crée_fichier_de_copie_pour_sélection :: fonc (graphe: *Graphe) -> Optionnel([..]octet)
+{
+    sélection := graphe.sélection
+    éléments := sélection.donne_éléments_sélectionnés()
+
+    si éléments.taille == 0 {
+        retourne
+    }
+
+    noeuds_à_copier: [..]*ItemGraphe
+    connexions_à_copier: [..]*Connexion
+
+    pour éléments {
+        item := graphe.items[éléments[0]]
+        saufsi item.type_item == Noeud {
+            continue
+        }
+
+        ensemble_ajoute(*noeuds_à_copier, item)
+    }
+
+    pour noeuds_à_copier {
+        noeud := it comme *Noeud
+        pour entrée dans noeud.entrées {
+            saufsi entrée.connexion {
+                continue
+            }
+
+            noeud_sortie := entrée.connexion.donne_noeud_sortie()
+            si ensemble_possède(*noeuds_à_copier, noeud_sortie) {
+                ensemble_ajoute(*connexions_à_copier, entrée.connexion)
+            }
+        }
+
+        pour sortie dans noeud.sorties {
+            pour connexion dans sortie.connexions {
+                noeud_entrée := connexion.donne_noeud_entrée()
+                si ensemble_possède(*noeuds_à_copier, noeud_entrée) {
+                    ensemble_ajoute(*connexions_à_copier, connexion)
+                }
+            }
+        }
+    }
+
+    retourne crée_fichier_de_copie(noeuds_à_copier, connexions_à_copier)
 }
 
 /** \} */
