@@ -1,0 +1,569 @@
+importe Fondation
+importe Internet
+
+/* https://w3c.github.io/navigation-timing/#sec-performance-navigation-types */
+NavigationTimingType :: énum {
+    navigate
+    reload
+    back_forward
+    prerender
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigation-id */
+NavigationID :: chaine
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigation-params */
+NavigationParams :: struct {
+    id: NavigationID
+    navigable: *Navigable
+    request: *Request
+    response: *Response
+    fetch_controller: *FetchController
+    /* null or an algorithm accepting a Document, once it has been created */
+    commit_early_hints: *rien
+    
+    //COOP enforcement result
+    //    a cross-origin opener policy enforcement result, used for reporting and potentially for causing a browsing context group switch
+    // reserved environment
+    //    null or an environment reserved for the new Document
+    
+    origin: Origin
+    
+    //policy container
+    //  a policy container to use for the new Document
+
+    final_sandboxing_flag: SandboxingFlags
+    //cross-origin opener policy
+    //  a cross-origin opener policy to use for the new Document
+    
+    navigation_timing_type: NavigationTimingType
+    
+    about_base_URL: Optionnel(URI)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#source-snapshot-params */
+SourceSnapshotParams :: struct {
+    has_transient_activation: bool
+    sandboxing_flags: SandboxingFlags
+    allows_downloading: bool
+    fetch_client: *rien // À FAIRE(settings object)
+    source_policy_container: *rien // À FAIRE
+}
+
+snapshot_source_snapshot_params :: fonc (source_document: *Document) -> SourceSnapshotParams
+{
+    résultat: SourceSnapshotParams
+    imprime("À FAIRE : %\n", #nom_de_cette_fonction)
+    // has transient activation = true if sourceDocument's relevant global object has transient activation; otherwise false
+    // sandboxing flags = sourceDocument's active sandboxing flag set
+    // allows downloading = false if sourceDocument's active sandboxing flag set has the sandboxed downloads browsing context flag set; otherwise true
+    // fetch client = sourceDocument's relevant settings object
+    // source policy container = sourceDocument's policy container
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#target-snapshot-params */
+TargetSnapshotParams :: struct {
+    sandboxing_flags: SandboxingFlags
+}
+
+snapshot_target_snapshot_params :: fonc (target_navigable: *Navigable) -> TargetSnapshotParams
+{
+    résultat: SourceSnapshotParams
+    résultat.sandboxing_flags = détermine_drapeaux_sanboxing(target_navigable.donne_active_browsing_context(), target_navigable.donne_container())
+    retourne résultat
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.4.2.2 Beginning navigation
+ * https://html.spec.whatwg.org/multipage/browsing-the-web.html#beginning-navigation
+ * \{ */
+
+/*
+To navigate a
+
+navigable navigable
+URL url
+Document sourceDocument, 
+optional POST resource, string, or null documentResource (default null)
+an optional response-or-null response (default null)
+an optional boolean exceptionsEnabled (default false)
+an optional NavigationHistoryBehavior historyHandling (default "auto")
+an optional serialized state-or-null navigationAPIState (default null)
+an optional entry list or null formDataEntryList (default null)
+an optional referrer policy referrerPolicy (default the empty string)
+and an optional user navigation involvement userInvolvement (default "none"):
+*/
+navigate :: fonc (navigable: *Navigable, url: &URI, source_document: *Document)
+{
+    // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
+
+    // 2. Let sourceSnapshotParams be the result of snapshotting source snapshot params given sourceDocument.
+    source_snapshot_params := snapshot_source_snapshot_params(source_document)
+
+    // 3. Let initiatorOriginSnapshot be sourceDocument's origin.
+
+    // 4. Let initiatorBaseURLSnapshot be sourceDocument's document base URL.
+
+    // 5. If sourceDocument's node navigable is not allowed by sandboxing to navigate navigable given sourceSnapshotParams, then:
+
+        // 1. If exceptionsEnabled is true, then throw a "SecurityError" DOMException.
+
+        // 2. Return.
+
+    // 6. Let navigationId be the result of generating a random UUID. [WEBCRYPTO]
+
+    // 7. If the surrounding agent is equal to navigable's active document's relevant agent, then continue these steps. Otherwise, queue a global task on the navigation and traversal task source given navigable's active window to continue these steps.
+
+    // 8. If navigable's active document's unload counter is greater than 0, then invoke WebDriver BiDi navigation failed with a WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url, and return.
+
+    // 9. Let container be navigable's container.
+
+    // 10. If container is an iframe element and will lazy load element steps given container returns true, then stop intersection-observing a lazy loading element container and set container's lazy load resumption steps to null.
+
+    // 11. If historyHandling is "auto", then:
+
+        // 1. If url equals navigable's active document's URL, and initiatorOriginSnapshot is same origin with targetNavigable's active document's origin, then set historyHandling to "replace".
+
+        // 2. Otherwise, set historyHandling to "push".
+
+    // 12. If the navigation must be a replace given url and navigable's active document, then set historyHandling to "replace".
+
+    // 13. If all of the following are true:
+    //     documentResource is null;
+    //     response is null;
+    //     url equals navigable's active session history entry's URL with exclude fragments set to true; and
+    //     url's fragment is non-null,
+    //     then:
+
+        // 1. Navigate to a fragment given navigable, url, historyHandling, userInvolvement, navigationAPIState, and navigationId.
+
+        // 2. Return.
+
+    // 14. If navigable's parent is non-null, then set navigable's is delaying load events to true.
+    si navigable.parent {
+        navigable.is_delaying_load_events = vrai
+    }
+
+    // 15. Let targetBrowsingContext be navigable's active browsing context.
+    // target_browsing_context := navigable.donne_active_browsing_context()
+
+    // 16. Let targetSnapshotParams be the result of snapshotting target snapshot params given navigable.
+    target_snapshot_params := snapshot_target_snapshot_params(navigable)
+
+    // 17. Invoke WebDriver BiDi navigation started with targetBrowsingContext, and a new WebDriver BiDi navigation status whose id is navigationId, status is "pending", and url is url.
+
+    // 18. If navigable's ongoing navigation is "traversal", then:
+
+        // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
+
+        // 2. Return.
+
+    // 19. Set the ongoing navigation for navigable to navigationId.
+
+    // 20. If url's scheme is "javascript", then:
+
+        // 1. Queue a global task on the navigation and traversal task source given navigable's active window to navigate to a javascript: URL given navigable, url, historyHandling, initiatorOriginSnapshot, and cspNavigationType.
+
+        // 2. Return.
+
+    // 21. If all of the following are true:
+    //     userInvolvement is not "browser UI";
+    //     navigable's active document's origin is same origin-domain with sourceDocument's origin;
+    //     navigable's active document's is initial about:blank is false; and
+    //     url's scheme is a fetch scheme,
+    //     then:
+
+        // 1. Let navigation be navigable's active window's navigation API.
+
+        // 2. Let entryListForFiring be formDataEntryList if documentResource is a POST resource; otherwise, null.
+
+        // 3. Let navigationAPIStateForFiring be navigationAPIState if navigationAPIState is not null; otherwise, StructuredSerializeForStorage(undefined).
+
+        // 4. Let continue be the result of firing a push/replace/reload navigate event at navigation with navigationType set to historyHandling, isSameDocument set to false, userInvolvement set to userInvolvement, formDataEntryList set to entryListForFiring, destinationURL set to url, and navigationAPIState set to navigationAPIStateForFiring.
+
+        // 5. If continue is false, then return.
+
+    // 22. In parallel, run these steps:
+    navigate_parallel_steps(navigable, url, source_snapshot_params, target_snapshot_params)
+}
+
+navigate_parallel_steps :: fonc (navigable: *Navigable, url: &URI, source_snapshot_params: &SourceSnapshotParams, target_snapshot_params: &TargetSnapshotParams)
+{
+    // 1. Let unloadPromptCanceled be the result of checking if unloading is
+    //    canceled for navigable's active document's inclusive descendant navigables.
+
+    // 2. If unloadPromptCanceled is true, or navigable's ongoing navigation is no longer navigationId, then:
+
+        // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
+
+        // 2. Abort these steps.
+
+    // 3. Queue a global task on the navigation and traversal task source given navigable's active window to abort a document and its descendants given navigable's active document.
+
+    // 4. Let documentState be a new document state with
+    //     request referrer policy    referrerPolicy
+    //     initiator origin    initiatorOriginSnapshot
+    //     resource    documentResource
+    //     navigable target name    navigable's target name
+
+    // 5. If url matches about:blank or is about:srcdoc, then:
+
+        // 1. Set documentState's origin to initiatorOriginSnapshot.
+
+        // 2. Set documentState's about base URL to initiatorBaseURLSnapshot.
+
+    // 6. Let historyEntry be a new session history entry, with its URL set to url and its document state set to documentState.
+
+    // 7. Let navigationParams be null.
+    navigation_params: *NavigationParams
+
+    // 8. If response is non-null:
+
+        // 1. Let policyContainer be the result of determining navigation params policy container given response's URL, null, a clone of the sourceDocument's policy container, navigable's container document's policy container, and null.
+
+        // 2. Let finalSandboxFlags be the union of targetSnapshotParams's sandboxing flags and policyContainer's CSP list's CSP-derived sandboxing flags.
+
+        // 3. Let responseOrigin be the result of determining the origin given response's URL, finalSandboxFlags, and documentState's initiator origin.
+
+        // 4. Let coop be a new cross-origin opener policy.
+
+        // 5. Let coopEnforcementResult be a new cross-origin opener policy enforcement result with
+        //     url    response's URL
+        //     origin     responseOrigin
+        //     cross-origin opener policy     coop
+
+        // 6. Set navigationParams to a new navigation params, with
+        //     id     navigationId
+        //     navigable    navigable
+        //     request    null
+        //     response    response
+        //     fetch controller    null
+        //     commit early hints    null
+        //     COOP enforcement result    coopEnforcementResult
+        //     reserved environment    null
+        //     origin    responseOrigin
+        //     policy container    policyContainer
+        //     final sandboxing flag set    finalSandboxFlags
+        //     cross-origin opener policy    coop
+        //     navigation timing type    "navigate"
+        //     about base URL    documentState's about base URL
+
+    // 9. Attempt to populate the history entry's document for historyEntry, given navigable, "navigate", sourceSnapshotParams, targetSnapshotParams, navigationId, navigationParams, cspNavigationType, with allowPOST set to true and completionSteps set to the following step:
+    attempt_to_populate_the_history_entry_document(history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_params)
+
+        // 1. Append session history traversal steps to navigable's traversable to finalize a cross-document navigation given navigable, historyHandling, and historyEntry.
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.4.5
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#attempt-to-populate-the-history-entry's-document
+
+To attempt to populate the history entry's document for a
+    session history entry entry
+    navigable navigable
+    NavigationTimingType navTimingType
+    source snapshot params sourceSnapshotParams
+    target snapshot params targetSnapshotParams
+    optional navigation ID-or-null navigationId (default null)
+    an optional navigation params-or-null navigationParams (default null)
+    an optional string cspNavigationType (default "other")
+    an optional boolean allowPOST (default false)
+    and optional algorithm steps completionSteps (default an empty algorithm)
+ */
+attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEntry,
+                                                        navigable: *Navigable,
+                                                        nav_timing_type: NavigationTimingType,
+                                                        source_snapshot_params: &SourceSnapshotParams,
+                                                        target_snapshot_params: &TargetSnapshotParams,
+                                                        navigation_params : *NavigationParams = nul)
+{
+    // 1. Assert: this is running in parallel.
+
+    // 2. Assert: if navigationParams is non-null, then navigationParams's response is non-null.
+
+    // 3. Let currentBrowsingContext be navigable's active browsing context.
+
+    // 4. Let documentResource be entry's document state's resource.
+
+    // 5. If navigationParams is null, then:
+    si navigation_params == nul {
+        // 1. If documentResource is a string, then set navigationParams to the result of creating navigation params from a srcdoc resource given entry, navigable, targetSnapshotParams, navigationId, and navTimingType.
+
+        // 2. Otherwise, if all of the following are true:
+        //     entry's URL's scheme is a fetch scheme; and
+        //     documentResource is null, or allowPOST is true and documentResource's request body is not failure,
+
+        // then set navigationParams to the result of creating navigation params by fetching given entry, navigable, sourceSnapshotParams, targetSnapshotParams, cspNavigationType, navigationId, and navTimingType.
+        navigation_params = create_navigation_params_by_fetching(entry, navigable, source_snapshot_params, target_snapshot_params, nav_timing_type)
+
+        // 3. Otherwise, if entry's URL's scheme is not a fetch scheme, then set navigationParams to a new non-fetch scheme navigation params, with
+        //     id  navigationId
+        //     navigable   navigable
+        //     URL entry's URL
+        //     target snapshot sandboxing flags    targetSnapshotParams's sandboxing flags
+        //     source snapshot has transient activation    sourceSnapshotParams's has transient activation
+        //     initiator origin    entry's document state's initiator origin
+        //     navigation timing type  navTimingType
+    }
+
+    // À FAIRE : 6.
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
+    To create navigation params by fetching given a session history entry entry, a navigable navigable, a source snapshot params sourceSnapshotParams, a target snapshot params targetSnapshotParams, a string cspNavigationType, a navigation ID-or-null navigationId, and a NavigationTimingType navTimingType, perform the following steps. They return a navigation params, a non-fetch scheme navigation params, or null.
+ */
+create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
+                                              navigable: *Navigable,
+                                              source_snapshot_params: &SourceSnapshotParams,
+                                              target_snapshot_params: &TargetSnapshotParams,
+                                              nav_timing_type: NavigationTimingType) -> *NavigationParams
+{
+    // 1. Assert: this is running in parallel.
+
+    // 2. Let documentResource be entry's document state's resource.
+
+    // 3. Let request be a new request, with
+    //     url entry's URL
+    //     client  sourceSnapshotParams's fetch client
+    //     destination "document"
+    //     credentials mode    "include"
+    //     use-URL-credentials flag    set
+    //     redirect mode   "manual"
+    //     replaces client id  navigable's active document's relevant settings object's id
+    //     mode    "navigate"
+    //     referrer    entry's document state's request referrer
+    //     referrer policy entry's document state's request referrer policy
+    request := loge(Request)
+    request.url = entry.url
+    request.client = source_snapshot_params.fetch_client
+    request.destination = "document"
+    request.credentials_mode = "include"
+    request.use_url_credentials = vrai
+    request.redirect_mode = "manual"
+    // À FAIRE replaces_client_id
+    request.mode = "navigate"
+    request.referrer = entry.document_state.request_referrer
+    request.referrer_policy = entry.document_state.request_referrer_policy
+
+    // 4. If documentResource is a POST resource, then:
+
+        // 1. Set request's method to `POST`.
+
+        // 2. Set request's body to documentResource's request body.
+
+        // 3. Set `Content-Type` to documentResource's request content-type in request's header list.
+
+    // 5. If entry's document state's reload pending is true, then set request's reload-navigation flag.
+    si entry.document_state.reload_pending {
+        request.reload_navigation = vrai
+    }
+    // 6. Otherwise, if entry's document state's ever populated is true, then set request's history-navigation flag.
+    sinon si entry.document_state.ever_populated {
+        request.history_navigation = vrai
+    }
+
+    // 7. If sourceSnapshotParams's has transient activation is true, then set request's user-activation to true.
+    si source_snapshot_params.has_transient_activation {
+        request.user_activation = vrai
+    }
+
+    // 8. If navigable's container is non-null:
+
+        // 1. If the navigable's container has a browsing context scope origin, then set request's origin to that browsing context scope origin.
+
+        // 2. Set request's destination to navigable's container's local name.
+
+        // 3. If sourceSnapshotParams's fetch client is navigable's container document's relevant settings object, then set request's initiator type to navigable's container's local name.
+
+    // 9. Let response be null.
+    response: *Response
+
+    // 10. Let responseOrigin be null.
+
+    // 11. Let fetchController be null.
+    fetch_controller: *fetchController
+
+    // 12. Let coopEnforcementResult be a new cross-origin opener policy enforcement result, with
+    //     url navigable's active document's URL
+    //     origin  navigable's active document's origin
+    //     cross-origin opener policy  navigable's active document's cross-origin opener policy
+    //     current context is navigation source    true if navigable's active document's origin is same origin with entry's document state's initiator origin otherwise false
+
+    // 13. Let finalSandboxFlags be an empty sandboxing flag set.
+    final_sanboxing_flags: SandboxingFlags
+
+    // 14. Let responsePolicyContainer be null.
+
+    // 15. Let responseCOOP be a new cross-origin opener policy.
+
+    // 16. Let locationURL be null.
+
+    // 17. Let currentURL be request's current URL.
+    current_url := request.donne_url_courant()
+
+    // 18. Let commitEarlyHints be null.
+
+    // 19. While true:
+    boucle {
+        // 1. If request's reserved client is not null and currentURL's origin is not the same as request's reserved client's creation URL's origin, then:
+
+            // 1. Run the environment discarding steps for request's reserved client.
+
+            // 2. Set request's reserved client to null.
+
+            // 3. Set commitEarlyHints to null.
+            
+        // 2. If request's reserved client is null, then:
+
+            // 1. Let topLevelCreationURL be currentURL.
+
+            // 2. Let topLevelOrigin be null.
+
+            // 3. If navigable is not a top-level traversable, then:
+
+                // 1. Let parentEnvironment be navigable's parent's active document's relevant settings object.
+
+                // 2. Set topLevelCreationURL to parentEnvironment's top-level creation URL.
+
+                // 3. Set topLevelOrigin to parentEnvironment's top-level origin.
+
+            // 4. Set request's reserved client to a new environment whose id is a unique opaque string, target browsing context is navigable's active browsing context, creation URL is currentURL, top-level creation URL is topLevelCreationURL, and top-level origin is topLevelOrigin.
+
+        // 3. If the result of should navigation request of type be blocked by Content Security Policy? given request and cspNavigationType is "Blocked", then set response to a network error and break. [CSP]
+
+        // 4. Set response to null.
+        response = nul
+
+        // 5. If fetchController is null, then set fetchController to the result of fetching request, with processEarlyHintsResponse set to processEarlyHintsResponse as defined below, processResponse set to processResponse as defined below, and useParallelQueue set to true.
+        si fetch_controller == nul {
+            //     Let processEarlyHintsResponse be the following algorithm given a response earlyResponse:
+            //     1. If commitEarlyHints is null, then set commitEarlyHints to the result of processing early hint headers given earlyResponse and request's reserved client.
+
+            //     Let processResponse be the following algorithm given a response fetchedResponse:
+            //     1. Set response to fetchedResponse.
+            fetch_controller = fetch(request)
+        }
+        // 6. Otherwise, process the next manual redirect for fetchController.
+        sinon {
+
+        }
+
+        // 7. Wait until either response is non-null, or navigable's ongoing navigation changes to no longer equal navigationId.
+        //     If the latter condition occurs, then abort fetchController, and return.
+        //     Otherwise, proceed onward.
+        tantque response == nul {
+            continue
+        }
+
+        // 8. If request's body is null, then set entry's document state's resource to null.
+
+        // 9. Set responsePolicyContainer to the result of creating a policy container from a fetch response given response and request's reserved client.
+
+        // 10. Set finalSandboxFlags to the union of targetSnapshotParams's sandboxing flags and responsePolicyContainer's CSP list's CSP-derived sandboxing flags.
+
+        // 11. Set responseOrigin to the result of determining the origin given response's URL, finalSandboxFlags, and entry's document state's initiator origin.
+
+        // 12. If navigable is a top-level traversable, then:
+
+            // 1. Set responseCOOP to the result of obtaining a cross-origin opener policy given response and request's reserved client.
+
+            // 2. Set coopEnforcementResult to the result of enforcing the response's cross-origin opener policy given navigable's active browsing context, response's URL, responseOrigin, responseCOOP, coopEnforcementResult and request's referrer.
+
+            // 3. If finalSandboxFlags is not empty and responseCOOP's value is not "unsafe-none", then set response to an appropriate network error and break.
+
+        // 13. If response is not a network error, navigable is a child navigable, and the result of performing a cross-origin resource policy check with navigable's container document's origin, navigable's container document's relevant settings object, request's destination, response, and true is blocked, then set response to a network error and break.
+
+        // 14. Set locationURL to response's location URL given currentURL's fragment.
+
+        // 15. If locationURL is failure or null, then break.
+        arrête
+
+        // 16. Assert: locationURL is a URL.
+
+        // 17. Set entry's classic history API state to StructuredSerializeForStorage(null).
+
+        // 18. Let oldDocState be entry's document state.
+
+        // 19. Set entry's document state to a new document state, with
+        //     history policy container    a clone of the oldDocState's history policy container if it is non-null; null otherwise
+        //     request referrer    oldDocState's request referrer
+        //     request referrer policy oldDocState's request referrer policy
+        //     initiator origin    oldDocState's initiator origin
+        //     origin  oldDocState's origin
+        //     about base URL  oldDocState's about base URL
+        //     resource    oldDocState's resource
+        //     ever populated  oldDocState's ever populated
+        //     navigable target name   oldDocState's navigable target name
+
+        // 20. If locationURL's scheme is not an HTTP(S) scheme, then:
+
+            // 1. Set entry's document state's resource to null.
+
+            // 2. Break.
+
+        // 21. Set currentURL to locationURL.
+
+        // 22. Set entry's URL to currentURL.
+    }
+
+    // 20. If locationURL is a URL whose scheme is not a fetch scheme, then return a new non-fetch scheme navigation params, with
+    //     id  navigationId
+    //     navigable   navigable
+    //     URL locationURL
+    //     target snapshot sandboxing flags    targetSnapshotParams's sandboxing flags
+    //     source snapshot has transient activation    sourceSnapshotParams's has transient activation
+    //     initiator origin    responseOrigin
+    //     navigation timing type  navTimingType
+
+    // 21. If any of the following are true:
+    //     response is a network error;
+    //     locationURL is failure; or
+    //     locationURL is a URL whose scheme is a fetch scheme,
+    //     then return null.
+
+    // 22. Assert: locationURL is null and response is not a network error.
+
+    // 23. Let resultPolicyContainer be the result of determining navigation params policy container given response's URL, entry's document state's history policy container, sourceSnapshotParams's source policy container, null, and responsePolicyContainer.
+
+    // 24. If navigable's container is an iframe, and response's timing allow passed flag is set, then set container's pending resource-timing start time to null.
+
+    // 25. Return a new navigation params, with
+    //     id  navigationId
+    //     navigable   navigable
+    //     request request
+    //     response    response
+    //     fetch controller    fetchController
+    //     commit early hints  commitEarlyHints
+    //     cross-origin opener policy  responseCOOP
+    //     reserved environment    request's reserved client
+    //     origin  responseOrigin
+    //     policy container    resultPolicyContainer
+    //     final sandboxing flag set   finalSandboxFlags
+    //     COOP enforcement result coopEnforcementResult
+    //     navigation timing type  navTimingType
+    //     about base URL  entry's document state's about base URL
+    résultat := loge(NavigationParams)
+    //     id  navigationId
+    résultat.navigable = navigable
+    résultat.request = request
+    résultat.response = response
+    résultat.fetch_controller = fetch_controller
+    //     commit early hints  commitEarlyHints
+    //     cross-origin opener policy  responseCOOP
+    //     reserved environment    request's reserved client
+    //     origin  responseOrigin
+    //     policy container    resultPolicyContainer
+    //     final sandboxing flag set   finalSandboxFlags
+    //     COOP enforcement result coopEnforcementResult
+    //     navigation timing type  navTimingType
+    //     about base URL  entry's document state's about base URL
+    retourne résultat
+}
+
+/** } */
+
