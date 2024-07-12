@@ -189,6 +189,7 @@ Realm :: struct {
     intrinsics: Intrinsics
     global_object: *Object
     global_environment: *GlobalEnvironment
+    host_defined: HostDefined
 
     /* Cache pour toutes les chaines littérales. */
     chaines_littérales: [..]*PrimitiveChaine
