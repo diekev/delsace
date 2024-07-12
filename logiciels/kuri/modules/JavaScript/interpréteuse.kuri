@@ -131,6 +131,11 @@ is_super_reference :: fonc (reference: ReferenceRecord) -> bool
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
 get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) -> CompletionRecord
 {
+    retourne get_value(interpréteuse.donne_realm(), valeur)
+}
+
+get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
+{
     // 1. If V is not a Reference Record, return V.
     saufsi valeur.est_reference_record() {
         retourne normal_completion(valeur.V)
@@ -139,7 +144,7 @@ get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) ->
     // 2. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
     si est_référence_non_résolvable(valeur) {
         message := imprime_chaine("\"%\" is not defined", valeur.R.referenced_name)
-        exception := crée_reference_error(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.reference_error_prototype, message)
+        exception := crée_reference_error(realm.donne_tas_de_mémoire(), realm.intrinsics.reference_error_prototype, message)
         retourne throw_completion(exception)
     }
 
@@ -147,7 +152,7 @@ get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) ->
     si est_référence_propriété(valeur) {
         V := valeur.R
         // a. Let baseObj be ? ToObject(V.[[Base]]).
-        base_object := vers_objet(interpréteuse, V.base.V)
+        base_object := vers_objet(realm, V.base.V)
 
         // À FAIRE
         // b. If IsPrivateReference(V) is true, then
@@ -186,7 +191,7 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
         // a. If V.[[Strict]] is true, throw a ReferenceError exception.
         si record.strict {
             message := imprime_chaine("assignment to undeclared variable \"%\"", record.referenced_name)
-            exception := crée_reference_error(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.reference_error_prototype, message)
+            exception := crée_reference_error(interpréteuse.donne_tas_de_mémoire(), interpréteuse.donne_realm().intrinsics.reference_error_prototype, message)
             retourne throw_completion(exception)
         }
 
@@ -206,7 +211,7 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
     // 3. If IsPropertyReference(V) is true, then
     si est_référence_propriété(record) {
         // a. Let baseObj be ? ToObject(V.[[Base]]).
-        base_obj := vers_objet(interpréteuse, record.base.V)
+        base_obj := vers_objet(interpréteuse.donne_realm(), record.base.V)
 
         // À FAIRE
         // b. If IsPrivateReference(V) is true, then
@@ -376,10 +381,7 @@ FrameScope :: struct {
 
 Interpréteuse :: struct {
     pile_scope: [..]FrameScope
-    tas_de_mémoire: TasDeMémoire
-
-    realm: *Realm
-    lexical_environment: *Environment
+    mv: *MachineVirtuelle
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse @inutilisée)
@@ -389,8 +391,6 @@ initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse @inutilisée)
 détruit_données_interpreteuse :: fonc (interpréteuse: &Interpréteuse)
 {
     déloge(interpréteuse.pile_scope)
-    éboue(*interpréteuse.tas_de_mémoire, TypeÉbouage.RAMASSE_TOUT)
-    détruit_données_tas_de_mémoire(*interpréteuse.tas_de_mémoire)
 }
 
 exécute :: fonc (interpréteuse: &Interpréteuse, programme: *Programme) -> CompletionRecord
@@ -443,12 +443,29 @@ sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
 
 donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoire
 {
-    retourne *interpréteuse.tas_de_mémoire
+    retourne interpréteuse.mv.donne_tas_de_mémoire()
 }
 
 donne_scope_courant :: fonc (interpréteuse: &Interpréteuse) -> *FrameScope
 {
     retourne *interpréteuse.pile_scope[interpréteuse.pile_scope.taille -1]
+}
+
+donne_running_execution_context :: fonc (interpréteuse: &Interpréteuse) -> *ExecutionContext
+{
+    retourne interpréteuse.mv.donne_running_execution_context()
+}
+
+donne_lexical_environement :: fonc (interpréteuse: &Interpréteuse) -> *Environment
+{
+    rec := interpréteuse.donne_running_execution_context()
+    retourne rec.lexical_environment
+}
+
+donne_realm :: fonc (interpréteuse: &Interpréteuse) -> *Realm
+{
+    rec := interpréteuse.donne_running_execution_context()
+    retourne rec.realm
 }
 
 /** \} */
@@ -465,7 +482,7 @@ resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, envir
     // À FAIRE : undefined
     saufsi environment {
         // a. Set env to the running execution context's LexicalEnvironment.
-        environment = interpréteuse.lexical_environment
+        environment = interpréteuse.donne_lexical_environement()
     }
 
     // 2. Assert: env is an Environment Record.
@@ -483,8 +500,9 @@ resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, envir
 get_global_object :: fonc (interpréteuse: &Interpréteuse) -> *Object
 {
     // 1. Let currentRealm be the current Realm Record.
+    current_realm := interpréteuse.donne_realm()
     // 2. Return currentRealm.[[GlobalObject]].
-    retourne interpréteuse.realm.global_object
+    retourne current_realm.global_object
 }
 
 /** } */

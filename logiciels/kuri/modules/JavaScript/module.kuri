@@ -247,7 +247,7 @@ TypePréféré :: énum {
     Number
 }
 
-vers_objet :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> *Object
+vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> *Object
 {
     si valeur.est_object() {
         retourne valeur.donne_objet()
@@ -257,7 +257,7 @@ vers_objet :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> *Object
 
     chn := valeur.String
     saufsi chn.objet {
-        chn.objet = crée_chaine(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.string_prototype, valeur.String)
+        chn.objet = crée_chaine(realm.donne_tas_de_mémoire(), realm.intrinsics.string_prototype, valeur.String)
     }
     retourne Valeur(Object = chn.objet)
 }
@@ -1008,7 +1008,7 @@ type_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellu
 
 lance_type_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
 {
-    exception := crée_type_error(*interpréteuse.tas_de_mémoire, interpréteuse.realm.intrinsics.type_error_prototype, message)
+    exception := crée_type_error(interpréteuse.donne_tas_de_mémoire(), interpréteuse.donne_realm().intrinsics.type_error_prototype, message)
     retourne throw_completion(exception)
 }
 

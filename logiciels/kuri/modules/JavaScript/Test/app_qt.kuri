@@ -195,42 +195,42 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
 
     sauvegarde_fichier(contenu)
 
-    discr compile_script(contenu) {
-        Ok(script) {
-            diffère détruit_script(script)
-            // imprime_arbre(script.programme)
+    mv: MachineVirtuelle
+    diffère détruit_données_mv(*mv)
+    initialise_mv(*mv)
 
-            interpréteuse: Interpréteuse
-            diffère détruit_données_interpreteuse(interpréteuse)
-            initialise_interpréteuse(interpréteuse)
+    diffère éboue(donne_tas_de_mémoire(*mv))
 
-            rappels_hôte: RappelsHôteTest
-            rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+    rappels_hôte: RappelsHôteTest
+    rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
 
-            realm := initialise_host_defined_realm(*interpréteuse.tas_de_mémoire, *rappels_hôte)
-            interpréteuse.realm = realm
-            interpréteuse.tas_de_mémoire.realm = realm
-            interpréteuse.lexical_environment = realm.global_environment
+    realm := initialise_host_defined_realm(*mv, *rappels_hôte)
 
-            résultat := interpréteuse.exécute(script.programme)
-            texte_résultat := imprime_chaine("%\n", get_value(interpréteuse, résultat.valeur))
-            diffère déloge(texte_résultat)
-
-            éboue(interpréteuse.donne_tas_de_mémoire())
-
-            chn_texte_résultat := texte_résultat.vers_qt()
-            QT_plain_text_edit_definis_texte(sortie, *chn_texte_résultat)
+    script: *Script
+    discr parse_script(contenu, realm) {
+        Ok(s) {
+            script = s
         }
         Erreur(e) {
             chn := e.message.vers_qt()
             QT_plain_text_edit_definis_texte(sortie, *chn)
             déloge(e.message)
+            retourne
         }
         sinon {
             chn := "Erreur inconnue".vers_qt()
             QT_plain_text_edit_definis_texte(sortie, *chn)
+            retourne
         }
     }
+
+    résultat := script_evaluation(script)
+
+    texte_résultat := imprime_chaine("%\n", get_value(realm, résultat.valeur))
+    diffère déloge(texte_résultat)
+
+    chn := texte_résultat.vers_qt()
+    QT_plain_text_edit_definis_texte(sortie, *chn)
 }
 
 /** \} */

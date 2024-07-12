@@ -9,7 +9,7 @@ DÉBOGUGE_MÉMOIRE :: vrai
  * \{ */
 
 TasDeMémoire :: struct {
-    realm: *Realm
+    mv: *MachineVirtuelle
     blocs: [..]*BlocDeMémoire
 
     doit_ébouer_à_chaque_allocation := faux
@@ -24,6 +24,11 @@ détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
     }
 
     déloge(tas_de_mémoire.blocs)
+}
+
+donne_mv :: fonc (tas_de_mémoire: *TasDeMémoire) -> *MachineVirtuelle
+{
+    retourne tas_de_mémoire.mv
 }
 
 alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
@@ -97,9 +102,7 @@ TypeÉbouage :: énum {
 
 rassemble_racines :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule)
 {
-    si tas_de_mémoire.realm {
-        ensemble_ajoute(racines, tas_de_mémoire.realm)
-    }
+    rassemble_racines(tas_de_mémoire.mv, racines)
 
     rassemble_racines_en_mémoire(tas_de_mémoire, racines)
 
