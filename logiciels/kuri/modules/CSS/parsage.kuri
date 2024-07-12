@@ -1,0 +1,347 @@
+importe Chaine
+importe Fondation
+importe Internet
+
+/* ------------------------------------------------------------------------- */
+/** \nom 5. Parsing
+ * https://www.w3.org/TR/css-syntax-3/#parsing
+ * \{ */
+
+ParsedStyleSheet :: struct {
+    location: URI
+    value: [..]*ParsedRule
+}
+
+ParsedRule :: struct {
+    prelude: [..]ComponentValue
+    bloc: ParsedSimpleBlock
+}
+
+ParsedAtRule :: struct {
+    empl rule: ParsedRule
+    name: ChaineUTF16
+}
+
+ParsedQualifiedRule :: struct {
+    empl rule: ParsedRule
+}
+
+ParsedSimpleBlock :: struct {
+    token: Lexème
+    value: [..]ComponentValue
+}
+
+ParsedDeclaration :: struct {
+    name: ChaineUTF16
+    prelude: [..]ComponentValue
+    important: bool
+}
+
+ParsedFunction :: struct {
+    name: ChaineUTF16
+    value: [..]ComponentValue
+}
+
+ComponentValue :: union {
+    lexème: Lexème
+    function: ParsedFunction
+    bloc: ParsedSimpleBlock
+}
+
+Parseuse :: struct {
+    lexèmes: [..]Lexème
+    curseur: z64
+}
+
+initialise_parseuse :: fonc (parseuse: &Parseuse, lexèmes: [..]Lexème)
+{
+    parseuse.lexèmes = lexèmes
+}
+
+lexème_courant :: fonc (parseuse: &Parseuse) -> Lexème
+{
+    retourne parseuse.lexèmes[parseuse.curseur]
+}
+
+lexème_suivant :: fonc (parseuse: &Parseuse) -> Lexème
+{
+    retourne parseuse.lexèmes[parseuse.curseur + 1]
+}
+
+consomme_le_lexème_en_entrée_suivant :: fonc (parseuse: &Parseuse) -> Lexème
+{
+    résultat := parseuse.lexème_courant()
+    parseuse.curseur += 1
+    retourne résultat
+}
+
+reconsomme_le_lexème_courant :: fonc (parseuse: &Parseuse)
+{
+    parseuse.curseur -= 1
+}
+
+fini :: fonc (parseuse: &Parseuse) -> bool
+{
+    retourne parseuse.curseur >= parseuse.lexèmes.taille
+}
+
+rapporte_erreur :: fonc (parseuse: &Parseuse @inutilisée, message: chaine)
+{
+    imprime("%\n", message)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Parser Entry Points.
+ * \{ */
+
+/* 5.3.1 Parse something according to a CSS grammar */
+
+/* 5.3.2 Parse A Comma-Separated List According To A CSS Grammar */
+
+/* 5.3.3 Parse a stylesheet */
+parse_a_stylesheet :: fonc (input: [..]Lexème) -> ParsedStyleSheet
+{
+    // 1. If input is a byte stream for stylesheet, decode bytes from input, and set input to the result.
+    // 2. Normalize input, and set input to the result.
+
+    // 3. Create a new stylesheet, with its location set to location (or null, if location was not passed).
+    résultat: ParsedStyleSheet
+
+    // 4. Consume a list of rules from input, with the top-level flag set, and set the stylesheet’s value to the result.
+    parseuse: Parseuse
+    initialise_parseuse(parseuse, input)
+    résultat.value = consomme_une_liste_de_règles(parseuse, vrai)
+
+    // 5. Return the stylesheet.
+    retourne résultat
+}
+
+/* 5.3.4 Parse a list of rules */
+
+/* 5.3.5 Parse a rule */
+
+/* 5.3.6 Parse a declaration */
+
+/* 5.3.7 Parse a style block’s contents */
+
+/* 5.3.8 Parse a list of declarations */
+
+/* 5.3.9 Parse a component value */
+
+/* 5.3.10 Parse a list of component values */
+
+/* 5.3.11 Parse a comma-separated list of component values */
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 5.4 Parser Algorithms.
+ * https://www.w3.org/TR/css-syntax-3/#parser-algorithms
+ * \{ */
+
+/* 5.4.1 Consume a list of rules */
+consomme_une_liste_de_règles :: fonc (parseuse: &Parseuse, top_level: bool) -> [..]*ParsedRule
+{
+    résultat: [..]*ParsedRule
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.genre == GenreLexème.Whitespace {
+            continue
+        }
+
+        si lexème.genre == GenreLexème.EOF {
+            retourne résultat
+        }
+
+        si lexème.genre == GenreLexème.CDO || lexème.genre == GenreLexème.CDC {
+            si top_level {
+                continue
+            }
+
+            parseuse.reconsomme_le_lexème_courant()
+
+            règle := parseuse.consomme_une_règle_qualifiée()
+            si règle {
+                tableau_ajoute(*résultat, règle)
+            }
+            continue
+        }
+
+        si lexème.genre == GenreLexème.At_Keyword {
+            parseuse.reconsomme_le_lexème_courant()
+            règle := parseuse.consomme_une_règle_arobase()
+            tableau_ajoute(*résultat, règle)
+            continue
+        }
+
+        parseuse.reconsomme_le_lexème_courant()
+
+        règle := parseuse.consomme_une_règle_qualifiée()
+        si règle {
+            tableau_ajoute(*résultat, règle)
+        }
+    }
+
+    retourne résultat
+}
+
+/* 5.4.2 Consume an at-rule */
+consomme_une_règle_arobase :: fonc (parseuse: &Parseuse) -> *ParsedAtRule
+{
+    _ := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+    résultat := loge(ParsedAtRule)
+    résultat.name = parseuse.lexème_courant().valeur
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.genre == GenreLexème.Semicolon {
+            retourne résultat
+        }
+
+        si lexème.genre == GenreLexème.EOF {
+            parseuse.rapporte_erreur("fin de fichier dans une @-rule")
+            retourne résultat
+        }
+
+        // @Incomplet : simple block with <{-token}>
+
+        si lexème.genre == GenreLexème.Open_Bracket {
+            bloc := parseuse.consomme_un_bloc_simple(lexème)
+            résultat.bloc = bloc
+            retourne résultat
+        }
+
+        parseuse.reconsomme_le_lexème_courant()
+        valeur := parseuse.consomme_une_valeur_composante()
+        tableau_ajoute(*résultat.prelude, valeur)
+    }
+
+    retourne résultat
+}
+
+/* 5.4.3 Consume a qualified rule */
+consomme_une_règle_qualifiée :: fonc (parseuse: &Parseuse) -> *ParsedQualifiedRule
+{
+    résultat := loge(ParsedQualifiedRule)
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.genre == GenreLexème.EOF {
+            parseuse.rapporte_erreur("fin de fichier dans une qualified-rule")
+            // À FAIRE détruit le résultat
+            retourne nul
+        }
+
+        // @Incomplet : simple block with <{-token}>
+
+        si lexème.genre == GenreLexème.Open_Bracket {
+            bloc := parseuse.consomme_un_bloc_simple(lexème)
+            résultat.bloc = bloc
+            retourne résultat
+        }
+
+        parseuse.reconsomme_le_lexème_courant()
+        valeur := parseuse.consomme_une_valeur_composante()
+        tableau_ajoute(*résultat.prelude, valeur)
+    }
+
+    retourne résultat
+}
+
+/* 5.4.4 Consume a style block’s contents */
+
+/* 5.4.5 Consume a list of declarations */
+
+/* 5.4.6 Consume a declaration */
+
+/* 5.4.7 Consume a component value */
+consomme_une_valeur_composante :: fonc (parseuse: &Parseuse) -> ComponentValue
+{
+    lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+    si lexème.genre == GenreLexème.Open_Bracket || lexème.genre == GenreLexème.Open_Square_Bracket || lexème.genre == GenreLexème.Open_Parenthesis {
+        retourne parseuse.consomme_un_bloc_simple(lexème)
+    }
+
+    si lexème.genre == GenreLexème.Function {
+        retourne parseuse.consomme_une_fonction()
+    }
+
+    // XXX - parseuse.lexème_courant() ?
+    retourne lexème
+}
+
+donne_genre_lexème_mirroir :: fonc (genre: GenreLexème) -> GenreLexème
+{
+    si genre == GenreLexème.Open_Bracket {
+        retourne GenreLexème.Close_Bracket
+    }
+    si genre == GenreLexème.Open_Square_Bracket {
+        retourne GenreLexème.Close_Square_Bracket
+    }
+    assert(genre == GenreLexème.Open_Parenthesis)
+    retourne GenreLexème.Close_Parenthesis
+}
+
+/* 5.4.8 Consume a simple block */
+consomme_un_bloc_simple :: fonc (parseuse: &Parseuse, lexème_associé: &Lexème) -> ParsedSimpleBlock
+{
+    genre_lexème_fin := donne_genre_lexème_mirroir(lexème_associé.genre)
+
+    résultat: ParsedSimpleBlock
+    résultat.token = lexème_associé
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.genre == genre_lexème_fin {
+            retourne résultat
+        }
+
+        si lexème.genre == GenreLexème.EOF {
+            parseuse.rapporte_erreur("fin de fichier dans un bloc simple")
+            retourne résultat
+        }
+
+        parseuse.reconsomme_le_lexème_courant()
+        valeur := parseuse.consomme_une_valeur_composante()
+        tableau_ajoute(*résultat.value, valeur)
+    }
+
+    retourne résultat
+}
+
+/* 5.4.9 Consume a function */
+consomme_une_fonction :: fonc (parseuse: &Parseuse) -> ParsedFunction
+{
+    résultat: ParsedFunction
+    résultat.name = parseuse.lexème_courant().valeur
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.genre == GenreLexème.Close_Parenthesis {
+            retourne résultat
+        }
+
+        si lexème.genre == GenreLexème.EOF {
+            parseuse.rapporte_erreur("fin de fichier dans une fonction")
+            retourne résultat
+        }
+
+        parseuse.reconsomme_le_lexème_courant()
+        valeur := parseuse.consomme_une_valeur_composante()
+        tableau_ajoute(*résultat.value, valeur)
+    }
+
+    retourne résultat
+}
+
+/** \} */
