@@ -416,14 +416,17 @@ consomme_des_commentaires :: fonc (lexeuse: &Lexeuse)
     tantque apparie(lexeuse, '/', '*') {
         lexeuse.avance(2)
 
-        si apparie(lexeuse, '*', '/') {
-            lexeuse.avance(2)
-        }
-        sinon si fini(lexeuse) {
-            lexeuse.rapporte_erreur("fin de fichier dans un commentaire")
-        }
-        sinon {
+        tantque !fini(lexeuse) {
+            si apparie(lexeuse, '*', '/') {
+                lexeuse.avance(2)
+                arrête
+            }
+
             lexeuse.avance()
+        }
+
+        si fini(lexeuse) {
+            lexeuse.rapporte_erreur("fin de fichier dans un commentaire")
         }
     }
 }
