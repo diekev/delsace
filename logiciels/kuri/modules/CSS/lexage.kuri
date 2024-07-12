@@ -368,7 +368,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
     }
 
     si point_de_code == '[' {
-        retourne Lexème(GenreLexème.Open_Bracket)
+        retourne Lexème(GenreLexème.Open_Square_Bracket)
     }
 
     si point_de_code == '\\' {
