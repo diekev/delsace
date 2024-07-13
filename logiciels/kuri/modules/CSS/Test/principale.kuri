@@ -23,6 +23,16 @@ principale :: fonc () -> z32
 
     imprime("% règle(s)\n", stylesheet.value.taille)
 
+    pour stylesheet.value {
+        si it.type == ParsedQualifiedRule {
+            /* selectors */_ := parse_selector_list(it.prelude)
+
+            // pour lexème dans it.prelude {
+            //     imprime("%\n", lexème)
+            // }
+        }
+    }
+
     // pour stylesheet.value {
     //     imprime("-- valeurs pour règle : prélude % | bloc %\n", it.prelude.taille, it.bloc.value.taille)
     // }

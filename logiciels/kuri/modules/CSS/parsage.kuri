@@ -13,17 +13,20 @@ ParsedStyleSheet :: struct {
 }
 
 ParsedRule :: struct {
+    type: type_de_données
     prelude: [..]ComponentValue
     bloc: ParsedSimpleBlock
 }
 
 ParsedAtRule :: struct {
     empl rule: ParsedRule
+    type = #type_de_cette_structure
     name: ChaineUTF16
 }
 
 ParsedQualifiedRule :: struct {
     empl rule: ParsedRule
+    type = #type_de_cette_structure
 }
 
 ParsedSimpleBlock :: struct {
@@ -48,9 +51,51 @@ ComponentValue :: union {
     bloc: ParsedSimpleBlock
 }
 
+est_simple_bloc_de_genre :: fonc (value: ComponentValue, genre: GenreLexème) -> bool
+{
+    discr value {
+        bloc(b) {
+            retourne b.token.genre == genre
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+donne_bloc_simple :: fonc (value: ComponentValue) -> ParsedSimpleBlock
+{
+    retourne value.bloc
+}
+
+est_lexème_de_genre :: fonc (value: ComponentValue, genre: GenreLexème) -> bool
+{
+    discr value {
+        lexème(l) {
+            retourne est_lexème_de_genre(l, genre)
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_lexème_delim :: fonc (value: ComponentValue, point_de_code: n32) -> bool
+{
+    discr value {
+        lexème(l) {
+            retourne est_lexème_delim(l, point_de_code)
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 Parseuse :: struct ($T: type_de_données) {
     lexèmes: [..]T
     curseur: z64
+    curseur_sauvegardé: z64
 }
 
 initialise_une_parseuse :: fonc (lexèmes: [..]$T) -> Parseuse(T)
@@ -62,6 +107,10 @@ initialise_une_parseuse :: fonc (lexèmes: [..]$T) -> Parseuse(T)
 
 lexème_courant :: fonc (parseuse: &Parseuse($T)) -> T
 {
+    si parseuse.fini() {
+        retourne Lexème(GenreLexème.EOF)
+    }
+
     retourne parseuse.lexèmes[parseuse.curseur]
 }
 
@@ -80,6 +129,38 @@ consomme_le_lexème_en_entrée_suivant :: fonc (parseuse: &Parseuse($T)) -> T
 reconsomme_le_lexème_courant :: fonc (parseuse: &Parseuse($T))
 {
     parseuse.curseur -= 1
+}
+
+avance :: fonc (parseuse: &Parseuse($T))
+{
+    parseuse.curseur += 1
+}
+
+sauvegarde_position :: fonc (parseuse: &Parseuse($T))
+{
+    parseuse.curseur_sauvegardé = parseuse.curseur
+}
+
+restaure_position :: fonc (parseuse: &Parseuse($T))
+{
+    parseuse.curseur = parseuse.curseur_sauvegardé
+}
+
+consomme_espaces_blanches :: fonc (parseuse: &Parseuse($T))
+{
+    tantque !fini(parseuse) {
+        si parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Whitespace) {
+            parseuse.avance()
+            continue
+        }
+
+        arrête
+    }
+}
+
+apparie_lexème_ident :: fonc (parseuse: &Parseuse($T)) -> bool #enligne
+{
+    retourne parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Ident)
 }
 
 fini :: fonc (parseuse: &Parseuse($T)) -> bool
@@ -210,11 +291,14 @@ consomme_une_règle_arobase :: fonc (parseuse: &Parseuse($T)) -> *ParsedAtRule
             retourne résultat
         }
 
-        // @Incomplet : simple block with <{-token}>
-
         si lexème.est_lexème_de_genre(GenreLexème.Open_Bracket) {
             bloc := parseuse.consomme_un_bloc_simple(lexème)
             résultat.bloc = bloc
+            retourne résultat
+        }
+
+        si lexème.est_simple_bloc_de_genre(GenreLexème.Open_Bracket) {
+            résultat.bloc = lexème.donne_bloc_simple()
             retourne résultat
         }
 
@@ -240,11 +324,14 @@ consomme_une_règle_qualifiée :: fonc (parseuse: &Parseuse($T)) -> *ParsedQuali
             retourne nul
         }
 
-        // @Incomplet : simple block with <{-token}>
-
         si lexème.est_lexème_de_genre(GenreLexème.Open_Bracket) {
             bloc := parseuse.consomme_un_bloc_simple(lexème)
             résultat.bloc = bloc
+            retourne résultat
+        }
+
+        si lexème.est_simple_bloc_de_genre(GenreLexème.Open_Bracket) {
+            résultat.bloc = lexème.donne_bloc_simple()
             retourne résultat
         }
 
@@ -343,6 +430,498 @@ consomme_une_fonction :: fonc (parseuse: &Parseuse($T)) -> ParsedFunction
     }
 
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Selectors.
+ * https://www.w3.org/TR/selectors-4/#grammar
+ * \{ */
+
+ParseuseSelector :: Parseuse(ComponentValue)
+
+/* <selector-list> = <complex-selector-list> */
+parse_selector_list :: fonc (prelude: [..]ComponentValue) -> Optionnel(SelectorList)
+{
+    parseuse := initialise_une_parseuse(prelude)
+    retourne parse_selector_list(parseuse)
+}
+
+parse_selector_list :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SelectorList)
+{
+    imprime("---------------------------\n[%]\n", #nom_de_cette_fonction)
+    résultat: SelectorList
+    parse_complex_selector_list(parseuse, *résultat)
+    retourne résultat
+}
+
+/* <complex-selector-list> = <complex-selector># */
+parse_complex_selector_list :: fonc (parseuse: &ParseuseSelector, list: *SelectorList)
+{
+    consomme_espaces_blanches(parseuse)
+
+    imprime("[%]\n", #nom_de_cette_fonction)
+    tantque !fini(parseuse) {
+        complex := parse_complex_selector(parseuse)
+        saufsi complex.possède_valeur() {
+            arrête
+        }
+
+        tableau_ajoute(*list.complex_selectors, complex.Quelque)
+
+        saufsi parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Comma) {
+            arrête
+        }
+
+        imprime("-- virgule\n")
+        _ := parseuse.consomme_le_lexème_en_entrée_suivant()
+    }
+
+    consomme_espaces_blanches(parseuse)
+}
+
+/* <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ]* */
+parse_complex_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(ComplexSelector)
+{
+    consomme_espaces_blanches(parseuse)
+
+    résultat: ComplexSelector
+
+    imprime("[%]\n", #nom_de_cette_fonction)
+    tantque !fini(parseuse) {
+        compound := parse_compound_selector(parseuse)
+        saufsi compound.possède_valeur() {
+            arrête
+        }
+
+        tableau_ajoute(*résultat.compound_selectors, compound)
+
+        saufsi apparie_combinateur(parseuse) {
+            arrête
+        }
+
+        parseuse.parse_combinateur()
+    }
+
+    consomme_espaces_blanches(parseuse)
+
+    si résultat.compound_selectors.taille == 0 {
+        retourne
+    }
+
+    retourne résultat
+}
+
+/* <compound-selector>  = [ <type-selector>? <subclass-selector>*
+ *                        [ <pseudo-element-selector> <pseudo-class-selector>* ]* ]! */
+parse_compound_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(CompoundSelector)
+{
+    imprime("[%]\n", #nom_de_cette_fonction)
+
+    résultat: CompoundSelector
+
+    imprime("-- position : %\n", parseuse.curseur)
+
+    /* <type-selector>? */
+    type_selector := parseuse.parse_type_selector()
+    si type_selector.possède_valeur() {
+        imprime("-- %\n", type_selector.Quelque)
+        tableau_ajoute(*résultat.simple_selectors, type_selector.Quelque)
+    }
+
+    /* <subclass-selector>* */
+    tantque !fini(parseuse) {
+        subclass_selector := parseuse.parse_subclass_selector()
+        saufsi subclass_selector.possède_valeur() {
+            arrête
+        }
+
+        imprime("-- %\n", subclass_selector.Quelque)
+        tableau_ajoute(*résultat.simple_selectors, subclass_selector.Quelque)
+    }
+
+    /* [ <pseudo-element-selector> <pseudo-class-selector>* ]* */
+    tantque !fini(parseuse) {
+        pseudo_element_selector := parseuse.parse_pseudo_element_selector()
+        saufsi pseudo_element_selector.possède_valeur() {
+            arrête
+        }
+        imprime("-- %\n", pseudo_element_selector.Quelque)
+        tableau_ajoute(*résultat.simple_selectors, pseudo_element_selector.Quelque)
+
+        tantque !fini(parseuse) {
+            subclass_selector := parseuse.parse_subclass_selector()
+            saufsi subclass_selector.possède_valeur() {
+                arrête
+            }
+
+            imprime("-- %\n", subclass_selector.Quelque)
+            tableau_ajoute(*résultat.simple_selectors, subclass_selector.Quelque)
+        }
+    }
+
+    imprime("-- position : %\n", parseuse.curseur)
+
+    si résultat.simple_selectors.taille == 0 {
+        retourne
+    }
+
+    retourne résultat
+}
+
+/* <type-selector> = <wq-name> | <ns-prefix>? '*' */
+parse_type_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+{
+    parseuse_locale : ParseuseSelector = parseuse
+
+    opt_wq_name := parseuse_locale.parse_wq_name()
+    si opt_wq_name.possède_valeur() {
+        wq_name := opt_wq_name.Quelque
+
+        parseuse.curseur = parseuse_locale.curseur
+        retourne crée_type_selector(ChaineUTF16(), wq_name.ident)
+    }
+
+    parseuse_locale = parseuse
+
+    ns_prefix := parseuse_locale.parse_ns_prefix()
+    saufsi ns_prefix.possède_valeur() {
+        parseuse_locale = parseuse
+    }
+
+    si parseuse_locale.lexème_courant().est_lexème_fois() {
+        parseuse.curseur = parseuse_locale.curseur
+        retourne crée_universal_selector(ChaineUTF16())
+    }
+}
+
+/* <wq-name> = <ns-prefix>? <ident-token> */
+WQName :: struct {
+    ns_prefix: Optionnel(NSPrefix)
+    ident: ChaineUTF16
+}
+
+parse_wq_name :: fonc (parseuse: &ParseuseSelector) -> Optionnel(WQName)
+{
+    résultat: WQName
+    
+    parseuse_locale : ParseuseSelector = parseuse
+    résultat.ns_prefix = parseuse_locale.parse_ns_prefix()
+
+    saufsi résultat.ns_prefix.possède_valeur() {
+        parseuse_locale = parseuse
+    }
+
+    si parseuse_locale.apparie_lexème_ident() {
+        résultat.ident = parseuse_locale.lexème_courant().lexème.valeur
+        parseuse_locale.avance()
+
+        parseuse.curseur = parseuse_locale.curseur
+        retourne résultat
+    }
+}
+
+/* <ns-prefix> = [ <ident-token> | '*' ]? '|' */
+NSPrefix :: struct {
+    /* Un identifiant ou '*' */
+    espace: ChaineUTF16
+}
+
+parse_ns_prefix :: fonc (parseuse: &ParseuseSelector) -> Optionnel(NSPrefix)
+{
+    résultat: NSPrefix
+
+    si parseuse.apparie_lexème_ident() {
+        résultat.espace = parseuse.lexème_courant().lexème.valeur
+        parseuse.avance()
+    }
+    sinon si parseuse.lexème_courant().est_lexème_fois() {
+        // À FAIRE : fuit de mémoire
+        chaine_ajoute(*résultat.espace, '*' comme n16)
+        parseuse.avance()
+    }
+
+    si parseuse.lexème_courant().est_lexème_pipe() {
+        parseuse.avance()
+        retourne résultat
+    }
+}
+
+/* <subclass-selector> = <id-selector> | <class-selector> |
+                      <attribute-selector> | <pseudo-class-selector> */
+parse_subclass_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+{
+    opt_id_selector := parseuse.parse_id_selector()
+    si opt_id_selector.possède_valeur() {
+        retourne opt_id_selector
+    }
+
+    opt_class_selector := parseuse.parse_class_selector()
+    si opt_class_selector.possède_valeur() {
+        retourne opt_class_selector
+    }
+
+    opt_attribute_selector := parseuse.parse_attribute_selector()
+    si opt_attribute_selector.possède_valeur() {
+        retourne opt_attribute_selector
+    }
+
+    opt_pseudo_class_selector := parseuse.parse_pseudo_class_selector()
+    si opt_pseudo_class_selector.possède_valeur() {
+        retourne opt_pseudo_class_selector
+    }
+}
+
+/* <id-selector> = <hash-token> */
+parse_id_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+{
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Hash) {
+        retourne
+    }
+
+    si lexème.lexème.valeur.taille() == 0 {
+        retourne
+    }
+
+    parseuse.avance()
+    retourne crée_id_selector(lexème.lexème.valeur)
+}
+
+/* <class-selector> = '.' <ident-token> */
+parse_class_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+{
+    parseuse_locale : ParseuseSelector = parseuse
+
+    lexème := parseuse_locale.lexème_courant()
+    saufsi lexème.est_lexème_point() {
+        retourne
+    }
+    parseuse_locale.avance()
+
+    saufsi parseuse_locale.apparie_lexème_ident() {
+        retourne
+    }
+
+    ident := parseuse_locale.lexème_courant().lexème.valeur
+    parseuse_locale.avance()
+
+    parseuse.curseur = parseuse_locale.curseur
+    retourne crée_class_selector(ident)
+}
+
+/* <attribute-selector> = '[' <wq-name> ']' |
+ *                        '[' <wq-name> <attr-matcher> [ <string-token> | <ident-token> ] <attr-modifier>? ']'
+ * <attr-modifier> = i | s */
+parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+{
+    saufsi parseuse.lexème_courant().est_simple_bloc_de_genre(GenreLexème.Open_Square_Bracket) {
+        retourne
+    }
+
+    bloc := parseuse.lexème_courant().bloc
+
+    parseuse_locale := initialise_une_parseuse(bloc.value)
+
+    opt_wq_name := parseuse_locale.parse_wq_name()
+    saufsi opt_wq_name.possède_valeur() {
+        parseuse_locale.rapporte_erreur("wq_name invalide pour le selécteur d'attribut")
+        retourne
+    }
+    wq_name := opt_wq_name.Quelque
+    
+    si parseuse_locale.fini() {
+        parseuse.avance()
+        retourne crée_attribute_selector(wq_name.ident)
+    }
+
+    matcher := parseuse_locale.parse_attribute_matcher()
+    saufsi matcher.possède_valeur() {
+        parseuse_locale.rapporte_erreur("matcher invalide")
+        retourne
+    }
+
+    lexème_courant := parseuse_locale.lexème_courant()
+    attribute_value: ChaineUTF16
+
+    si lexème_courant.est_lexème_de_genre(GenreLexème.String) || lexème_courant.est_lexème_de_genre(GenreLexème.Ident) {
+        attribute_value = lexème_courant.lexème.valeur
+        parseuse_locale.avance()
+    }
+    sinon {
+        parseuse_locale.rapporte_erreur("Attendu une chaine ou un identifiant pour la valeur de l'attribut")
+        retourne
+    }
+
+    parseuse_locale.consomme_espaces_blanches()
+
+    lexème_courant = parseuse_locale.lexème_courant()
+    modifier: Optionnel(SimpleSelector.AttributeModifier)
+
+    si lexème_courant.est_lexème_de_genre(GenreLexème.Ident) {
+        valeur := lexème_courant.lexème.valeur
+
+        si valeur == "i" || valeur == "I" {
+            modifier = SimpleSelector.AttributeModifier.I
+        }
+        sinon si valeur == "s" || valeur == "S" {
+            modifier = SimpleSelector.AttributeModifier.S
+        }
+        sinon {
+            // erreur
+            retourne
+        }
+    }
+    sinon si !parseuse_locale.fini() {
+        parseuse_locale.rapporte_erreur("Attendu un i ou s")
+        retourne
+    }
+
+    parseuse.avance()
+    retourne crée_attribute_selector(wq_name.ident, matcher.Quelque, attribute_value, modifier)
+}
+
+/* <attr-matcher> = [ '~' | '|' | '^' | '$' | '*' ]? '=' */
+parse_attribute_matcher :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector.AttributeMatcher)
+{
+    matcher: Optionnel(SimpleSelector.AttributeMatcher)
+
+    lexème_courant := parseuse.lexème_courant()
+
+    si lexème_courant.est_lexème_tilde() {
+        matcher = SimpleSelector.AttributeMatcher.INCLUS
+        parseuse.avance()
+    }
+    sinon si lexème_courant.est_lexème_pipe() {
+        matcher = SimpleSelector.AttributeMatcher.DASHMATCH
+        parseuse.avance()
+    }
+    sinon si lexème_courant.est_lexème_circonflèxe() {
+        matcher = SimpleSelector.AttributeMatcher.PREFIXMATCH
+        parseuse.avance()
+    }
+    sinon si lexème_courant.est_lexème_dollar() {
+        matcher = SimpleSelector.AttributeMatcher.SUFFIXMATCH
+        parseuse.avance()
+    }
+    sinon si lexème_courant.est_lexème_fois() {
+        matcher = SimpleSelector.AttributeMatcher.SUBSTRINGMATCH
+        parseuse.avance()
+    }
+
+    lexème_courant = parseuse.lexème_courant()
+
+    saufsi lexème_courant.est_lexème_égal() {
+        parseuse.rapporte_erreur("Attendu '=' pour le matcher")
+        retourne
+    }
+    parseuse.avance()
+
+    saufsi matcher.possède_valeur() {
+        matcher = SimpleSelector.AttributeMatcher.EST_ÉGAL
+    }
+
+    retourne matcher
+}
+
+/* <pseudo-class-selector> = ':' <ident-token> |
+                             ':' <function-token> <any-value> ')' */
+parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+{
+    parseuse_locale : ParseuseSelector = parseuse
+
+    saufsi parseuse_locale.lexème_courant().est_lexème_de_genre(GenreLexème.Colon) {
+        retourne
+    }
+
+    parseuse_locale.avance()
+    saufsi parseuse_locale.apparie_lexème_ident() {
+        // À FAIRE : fonctions
+        retourne
+    }
+
+    ident := parseuse_locale.lexème_courant().lexème.valeur
+    parseuse_locale.avance()
+
+    parseuse.curseur = parseuse_locale.curseur
+    retourne crée_pseudo_class_selector(ident)
+}
+
+/* <pseudo-element-selector> = ':' <pseudo-class-selector> */
+parse_pseudo_element_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+{
+    parseuse_locale : ParseuseSelector = parseuse
+
+    saufsi parseuse_locale.lexème_courant().est_lexème_de_genre(GenreLexème.Colon) {
+        retourne
+    }
+
+    parseuse_locale.avance()
+
+    pseudo_class := parseuse_locale.parse_pseudo_class_selector()
+    saufsi pseudo_class.possède_valeur() {
+        retourne
+    }
+
+    parseuse.curseur = parseuse_locale.curseur
+    résultat := pseudo_class.Quelque
+    résultat.type = SimpleSelector.Type.PseudoElement
+    retourne résultat
+}
+
+/* <combinator> = '>' | '+' | '~' | [ '|' '|' ] */
+apparie_combinateur :: fonc (parseuse: &ParseuseSelector) -> bool
+{
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_greater() {
+        retourne vrai
+    }
+
+    si lexème.est_lexème_plus() {
+        retourne vrai
+    }
+
+    si lexème.est_lexème_tilde() {
+        retourne vrai
+    }
+
+    si lexème.est_lexème_pipe() {
+        parseuse.sauvegarde_position()
+        diffère parseuse.restaure_position()
+
+        _ := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si parseuse.lexème_courant().est_lexème_pipe() {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+parse_combinateur :: fonc (parseuse: &ParseuseSelector)
+{
+    imprime("[%]\n", #nom_de_cette_fonction)
+    lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+    si lexème.est_lexème_greater() {
+        imprime("   combinator >\n")
+    }
+
+    si lexème.est_lexème_plus() {
+        imprime("   combinator +\n")
+    }
+
+    si lexème.est_lexème_tilde() {
+        imprime("   combinator ~\n")
+    }
+
+    si lexème.est_lexème_pipe() {
+        _ := parseuse.consomme_le_lexème_en_entrée_suivant()
+        imprime("   combinator ||\n")
+    }
 }
 
 /** \} */

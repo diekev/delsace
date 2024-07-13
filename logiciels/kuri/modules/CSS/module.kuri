@@ -1,4 +1,5 @@
 importe Chaine
+importe Fondation
 importe Internet
 
 charge "lexage"
@@ -64,24 +65,22 @@ Rule :: struct {
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Selectors
+ * https://www.w3.org/TR/selectors-4/
+ * \{ */
 
-/*
-SelectorsGroup :: struct {
-    selectors: [..]Selector
+SelectorList :: struct {
+    complex_selectors: [..]ComplexSelector
 }
 
-Combinator :: énum {
-    ESPACE  // " "
-    PLUS    // "+"
-    PLUS_GRAND // ">"
-    TILDE // "~"
+ComplexSelector :: struct {
+    compound_selectors: [..]CompoundSelector
 }
 
-Selector :: struct {
-    simple_selector_sequence: [..]SimpleSelector
-    combinators: [..]Combinator
+CompoundSelector :: struct {
+    simple_selectors: [..]SimpleSelector
 }
-
 
 SimpleSelector :: struct {
     Type :: énum {
@@ -95,108 +94,155 @@ SimpleSelector :: struct {
         Negation
     }
 
-    namespace_prefix: chaine
-    ident: chaine
+    AttributeMatcher :: énum {
+        EST_ÉGAL /* = */
+        INCLUS /* ~= */
+        DASHMATCH /* |= */
+        PREFIXMATCH /* ^= */
+        SUFFIXMATCH /* $= */
+        SUBSTRINGMATCH /* *= */
+    }
+
+    AttributeModifier :: énum {
+        I
+        S
+    }
+
+    type: Type
+    namespace_prefix: ChaineUTF16
+    ident: ChaineUTF16
+
+    /* Pour Attrib. */
+    matcher: Optionnel(AttributeMatcher)
+    /* Valeur pour AttributeMatcher. */
+    attribute_value: ChaineUTF16
+    attribute_modifier: Optionnel(AttributeModifier)
 }
 
-ParseuseSelector :: struct {
-
-}
-
-parse_selectors_group :: fonc (parseuse: *ParseuseSelector) -> Optionnel(SelectorsGroup)
+imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSelector)
 {
-    selector := parse_selector(parseuse)
+    saufsi selector {
+        ajoute_au_tampon(enchaineuse, "nul")
+        retourne
+    }
 
+    ajoute_au_tampon(enchaineuse, selector.type, " : ")
+    discr selector.type {
+        Type {
+            si selector.namespace_prefix.taille() != 0 {
+                ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|")
+            }
+            ajoute_au_tampon(enchaineuse, selector.ident)
+        }
+        Universal {
+            si selector.namespace_prefix.taille() != 0 {
+                ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|")
+            }
+            ajoute_au_tampon(enchaineuse, "*")
+        }
+        PseudoClass {
+            ajoute_au_tampon(enchaineuse, ":", selector.ident)
+        }
+        PseudoElement {
+            ajoute_au_tampon(enchaineuse, "::", selector.ident)
+        }
+        ID {
+            ajoute_au_tampon(enchaineuse, "#", selector.ident)
+        }
+        Class {
+            ajoute_au_tampon(enchaineuse, ".", selector.ident)
+        }
+        Attrib {
+            ajoute_au_tampon(enchaineuse, "[", selector.ident)
 
-}
+            si selector.matcher.possède_valeur() {
+                matcher := selector.matcher.Quelque
 
-parse_selector :: fonc (parseuse: *ParseuseSelector) -> Optionnel(Selector)
+                discr matcher {
+                    EST_ÉGAL {
+                        ajoute_au_tampon(enchaineuse, "=")
+                    }
+                    INCLUS {
+                        ajoute_au_tampon(enchaineuse, "~=")
+                    }
+                    DASHMATCH {
+                        ajoute_au_tampon(enchaineuse, "|=")
+                    }
+                    PREFIXMATCH {
+                        ajoute_au_tampon(enchaineuse, "^=")
+                    }
+                    SUFFIXMATCH {
+                        ajoute_au_tampon(enchaineuse, "$=")
+                    }
+                    SUBSTRINGMATCH {
+                        ajoute_au_tampon(enchaineuse, "*=")
+                    }
+                }
+
+                ajoute_au_tampon(enchaineuse, selector.attribute_value)
+
+                si selector.attribute_modifier.possède_valeur() {
+                    modifier := selector.attribute_modifier.Quelque
+
+                    si modifier == SimpleSelector.AttributeModifier.I {
+                        ajoute_au_tampon(enchaineuse, " i")
+                    }
+                    sinon {
+                        ajoute_au_tampon(enchaineuse, " s")
+                    }
+                }
+            }
+            ajoute_au_tampon(enchaineuse, "]")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "IMPRESSION À FAIRE")
+        }
+    }
+} @FormattageImpression
+
+crée_type_selector :: fonc (namespace_prefix: ChaineUTF16, ident: ChaineUTF16) -> SimpleSelector
 {
-    sequence := parse_simple_selector_sequence(parseuse)
+    retourne SimpleSelector(SimpleSelector.Type.Type, namespace_prefix, ident)
 }
 
-parse_simple_selector_sequence :: fonc (parseuse: *ParseuseSelector) -> Optionnel([..]SimpleSelector)
+crée_universal_selector :: fonc (namespace_prefix: ChaineUTF16) -> SimpleSelector
 {
-
+    retourne SimpleSelector(SimpleSelector.Type.Universal, namespace_prefix)
 }
 
+crée_id_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.ID, ChaineUTF16(), ident)
+}
 
-selectors_group
-  : selector [ COMMA S* selector ]*
-  ;
+crée_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.Class, ChaineUTF16(), ident)
+}
 
-selector
-  : simple_selector_sequence [ combinator simple_selector_sequence ]*
-  ;
+crée_attribute_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), ident)
+}
 
-combinator
-  /* combinators can be surrounded by whitespace */
-  : PLUS S* | GREATER S* | TILDE S* | S+
-  ;
+crée_attribute_selector :: fonc (ident: ChaineUTF16, matcher: SimpleSelector.AttributeMatcher, value: ChaineUTF16, modifier: Optionnel(SimpleSelector.AttributeModifier)) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), ident, matcher, value, modifier)
+}
 
-simple_selector_sequence
-  : [ type_selector | universal ]
-    [ HASH | class | attrib | pseudo | negation ]*
-  | [ HASH | class | attrib | pseudo | negation ]+
-  ;
+crée_pseudo_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), ident)
+}
 
-type_selector
-  : [ namespace_prefix ]? element_name
-  ;
+/** \} */
 
-namespace_prefix
-  : [ IDENT | '*' ]? '|'
-  ;
-
-element_name
-  : IDENT
-  ;
-
-universal
-  : [ namespace_prefix ]? '*'
-  ;
-
-class
-  : '.' IDENT
-  ;
-
-attrib
-  : '[' S* [ namespace_prefix ]? IDENT S*
-        [ [ PREFIXMATCH |
-            SUFFIXMATCH |
-            SUBSTRINGMATCH |
-            '=' |
-            INCLUDES |
-            DASHMATCH ] S* [ IDENT | STRING ] S*
-        ]? ']'
-  ;
-
-pseudo
-  /* '::' starts a pseudo-element, ':' a pseudo-class */
-  /* Exceptions: :first-line, :first-letter, :before and :after. */
-  /* Note that pseudo-elements are restricted to one per selector and */
-  /* occur only in the last simple_selector_sequence. */
-  : ':' ':'? [ IDENT | functional_pseudo ]
-  ;
-
-functional_pseudo
-  : FUNCTION S* expression ')'
-  ;
-
-expression
-  /* In CSS3, the expressions are identifiers, strings, */
-  /* or of the form "an+b" */
-  : [ [ PLUS | '-' | DIMENSION | NUMBER | STRING | IDENT ] S* ]+
-  ;
-
-negation
-  : NOT S* negation_arg S* ')'
-  ;
-
-negation_arg
-  : type_selector | universal | HASH | class | attrib | pseudo
-  ;
-
-
+/*
+Combinator :: énum {
+    ESPACE  // " "
+    PLUS    // "+"
+    PLUS_GRAND // ">"
+    TILDE // "~"
+}
 
 */

@@ -175,6 +175,79 @@ est_lexème_de_genre :: fonc (lexème: &Lexème, genre: GenreLexème) -> bool #e
     retourne lexème.genre == genre
 }
 
+est_lexème_delim :: fonc (lexème: &Lexème, point_de_code: n32) -> bool
+{
+    si lexème.genre != GenreLexème.Delim {
+        retourne faux
+    }
+
+    si lexème.point_de_code != point_de_code {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+/* Les fonctions suivantes sont génériques pour également accepter un ComponentValue. */
+est_lexème_greater :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '>' comme n32)
+}
+
+est_lexème_plus :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '+' comme n32)
+}
+
+est_lexème_tilde :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '~' comme n32)
+}
+
+est_lexème_pipe :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '|' comme n32)
+}
+
+est_lexème_fois :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '*' comme n32)
+}
+
+est_lexème_point :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '.' comme n32)
+}
+
+est_lexème_circonflèxe :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '^' comme n32)
+}
+
+est_lexème_dollar :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '$' comme n32)
+}
+
+est_lexème_égal :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '=' comme n32)
+}
+
+est_simple_bloc_de_genre :: fonc (lexème: &Lexème @inutilisée, genre: GenreLexème @inutilisée) -> bool
+{
+    /* Cette fonction n'existe que pour contenter les fonctions génériques
+     * travaillant sur Lexème ou ComponentValue. */
+    retourne faux
+}
+
+donne_bloc_simple :: fonc (lexème: &Lexème @inutilisée) -> ParsedSimpleBlock
+{
+    /* Cette fonction n'existe que pour contenter les fonctions génériques
+     * travaillant sur Lexème ou ComponentValue. */
+    retourne ParsedSimpleBlock()
+}
+
 Lexeuse :: struct {
     contenu: ChaineUTF32
     curseur: z64
