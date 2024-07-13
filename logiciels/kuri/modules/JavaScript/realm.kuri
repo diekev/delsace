@@ -243,7 +243,8 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, rappels : *Rappels
     // 9. Set the Realm of newContext to realm.
     new_context.realm = realm
 
-    // À FAIRE 10. Set the ScriptOrModule of newContext to null.
+    // 10. Set the ScriptOrModule of newContext to null.
+    new_context.script_or_module = nul
 
     // 11. Push newContext onto the execution context stack; newContext is now the running execution context.
     mv.empile_execution_context(new_context)
