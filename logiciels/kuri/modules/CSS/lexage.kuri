@@ -170,6 +170,11 @@ Lexème :: struct {
     unité: ChaineUTF16
 }
 
+est_lexème_de_genre :: fonc (lexème: &Lexème, genre: GenreLexème) -> bool #enligne
+{
+    retourne lexème.genre == genre
+}
+
 Lexeuse :: struct {
     contenu: ChaineUTF32
     curseur: z64
