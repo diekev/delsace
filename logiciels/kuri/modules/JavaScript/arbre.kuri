@@ -996,12 +996,14 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
         lref := completion_lref.valeur
 
         rval: Valeur
-        // À FAIRE
         // b. If IsAnonymousFunctionDefinition(AssignmentExpression) is true and IsIdentifierRef of LeftHandSideExpression is true, then
+        si is_anonymous_function_definition(noeud.droite) && is_identifier_ref(noeud.gauche) {
             // i. Let lhs be the StringValue of LeftHandSideExpression.
             // ii. Let rval be ? NamedEvaluation of AssignmentExpression with argument lhs.
+            panique("anonymous function assignment non-implémenté")
+        }
         // c. Else,
-        {
+        sinon {
             // i. Let rref be ? Evaluation of AssignmentExpression.
             completion_rref := exécute_noeud(noeud.droite, interpréteuse)
             saufsi completion_rref.est_normal() {
