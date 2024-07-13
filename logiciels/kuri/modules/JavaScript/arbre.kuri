@@ -114,6 +114,44 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom FunctionExpression
+ * \{ */
+
+FunctionExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_function_expression
+
+    id: *Identifier
+    params: [..]*NoeudSyntaxique
+    corps: *NoeudSyntaxique
+
+    generator := faux
+    expression := faux
+    async := faux
+}
+
+crée_function_expression :: fonc (id: *Identifier, params: []*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionExpression
+{
+    résultat := loge(FunctionExpression)
+    résultat.id = id
+    résultat.corps = corps
+    pour params {
+        tableau_ajoute(*résultat.params, it)
+    }
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-function-definitions-runtime-semantics-evaluation */
+sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    /* À FAIRE : */
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Identifier
  * \{ */
 

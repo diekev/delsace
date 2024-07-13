@@ -288,6 +288,7 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         AccoladeOuvrante,
         True,
         False,
+        Function,
         Null{
             retourne vrai
         }
