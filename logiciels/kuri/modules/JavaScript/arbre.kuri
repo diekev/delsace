@@ -182,8 +182,46 @@ crée_function_expression :: fonc (id: *Identifier, params: []*NoeudSyntaxique, 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-function-definitions-runtime-semantics-evaluation */
 sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
-    /* À FAIRE : */
-    retourne normal_completion(js_undefined)
+    expression := base comme *FunctionExpression
+    /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
+    closure := instantiate_ordinary_function_expression(interpréteuse, expression)
+    retourne normal_completion(Valeur(Function = closure))
+}
+
+/* 15.2.5 Runtime Semantics: InstantiateOrdinaryFunctionExpression
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-instantiateordinaryfunctionexpression */
+instantiate_ordinary_function_expression :: fonc (interpréteuse: &Interpréteuse, expression: *FunctionExpression, opt_name : *ECMAString = nul) -> *Function
+{
+    si expression.id == nul {
+        mv := interpréteuse.mv
+        running_execution_context := mv.donne_running_execution_context()
+
+        // 1. If name is not present, set name to "".
+        name: ECMAString
+        si opt_name {
+            name = mémoire(opt_name)
+        }
+
+        // 2. Let env be the LexicalEnvironment of the running execution context.
+        env := running_execution_context.lexical_environment
+
+        // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+        private_env := running_execution_context.private_environment
+
+        // À FAIRE 4. Let sourceText be the source text matched by FunctionExpression.
+
+        // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, NON-LEXICAL-THIS, env, privateEnv).
+        closure := ordinary_function_create(mv.donne_tas_de_mémoire(), expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
+
+        // À FAIRE 6. Perform SetFunctionName(closure, name).
+
+        // À FAIRE 7. Perform MakeConstructor(closure).
+
+        // 8. Return closure.
+        retourne closure
+    }
+
+    panique("instantiate_ordinary_function_expression non-implémenté")
 }
 
 /** \} */
