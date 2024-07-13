@@ -473,3 +473,58 @@ global_environment_with_base_object :: fonc (base: *Environment @inutilisée) ->
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 9.2 PrivateEnvironment
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-privateenvironment-records
+ * \{ */
+
+/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-private-names */
+PrivateName :: struct {
+    description: ECMAString // ou StringPrimitive?
+}
+
+PrivateEnvironment :: struct {
+    empl base: Cellule
+    type = #type_de_cette_structure
+
+    outer_private_environment: *PrivateEnvironment
+    names: [..]*PrivateName
+}
+
+/* 9.2.1.1 NewPrivateEnvironment ( outerPrivEnv ) */
+new_private_environment :: fonc (tas_de_mémoire: *TasDeMémoire, outer_priv_env: *PrivateEnvironment) -> *PrivateEnvironment
+{
+    // 1. Let names be a new empty List.
+    // 2. Return the PrivateEnvironment Record { [[OuterPrivateEnvironment]]: outerPrivEnv, [[Names]]: names }.
+    résultat := tas_de_mémoire.alloue(PrivateEnvironment)
+    résultat.outer_priv_env = outer_priv_env
+    retourne résultat
+}
+
+/* 9.2.1.2 ResolvePrivateIdentifier ( privEnv, identifier ) */
+resolve_private_identifier :: fonc (priv_env: *PrivateEnvironment, identifier: ECMAString) -> *PrivateName
+{
+    // 1. Let names be privEnv.[[Names]].
+    names := priv_env.names
+
+    // 2. For each Private Name pn of names, do
+    pour pn dans names {
+        // a. If pn.[[Description]] is identifier, then
+        si pn.description == identifier {
+            // i. Return pn.
+            retourne pn
+        }
+    }
+
+    // 3. Let outerPrivEnv be privEnv.[[OuterPrivateEnvironment]].
+    outer_priv_env := priv_env.outer_private_environment
+
+    // 4. Assert: outerPrivEnv is not null.
+    assert(outer_priv_env != nul)
+    
+    // 5. Return ResolvePrivateIdentifier(outerPrivEnv, identifier).
+    retourne resolve_private_identifier(outer_priv_env, identifier)
+}
+
+/** \} */

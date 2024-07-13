@@ -100,7 +100,7 @@ ExecutionContext :: struct {
     /* https://tc39.es/ecma262/#table-additional-state-components-for-ecmascript-code-execution-contexts */
     lexical_environment: *Environment
     variable_environment: *Environment
-    // private_environment: *PrivateEnvironment
+    private_environment: *PrivateEnvironment
 }
 
 crée_execution_context :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ExecutionContext
@@ -119,6 +119,7 @@ execution_context_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *Visiteu
 
     visite_graphe(execution_context.lexical_environment, visiteuse)
     visite_graphe(execution_context.variable_environment, visiteuse)
+    visite_graphe(execution_context.private_environment, visiteuse)
 }
 
 /** \} */
