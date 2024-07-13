@@ -1021,7 +1021,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 
         // d. Perform ? PutValue(lref, rval).
         completion_assignment := put_value(interpréteuse, lref, rval)
-        si completion_assignment.est_normal() {
+        saufsi completion_assignment.est_normal() {
             retourne completion_assignment
         }
 
