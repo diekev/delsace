@@ -63,6 +63,19 @@ is_identifier_ref :: fonc (noeud: *NoeudSyntaxique) -> bool
     retourne noeud.type == Identifier
 }
 
+/* 8.4.5 Runtime Semantics: NamedEvaluation
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-runtime-semantics-namedevaluation */
+named_evaluation :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxique, name: ECMAString) -> CompletionRecord
+{
+    si noeud.type == FunctionExpression {
+        // 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression with argument name.
+        résultat := instantiate_ordinary_function_expression(interpréteuse, noeud comme *FunctionExpression, *name)
+        retourne normal_completion(Valeur(Function = résultat))
+    }
+
+    panique("name_evaluation non-implémenté")
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1037,8 +1050,15 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
         // b. If IsAnonymousFunctionDefinition(AssignmentExpression) is true and IsIdentifierRef of LeftHandSideExpression is true, then
         si is_anonymous_function_definition(noeud.droite) && is_identifier_ref(noeud.gauche) {
             // i. Let lhs be the StringValue of LeftHandSideExpression.
+            lhs := (noeud.gauche comme *Identifier).nom
+
             // ii. Let rval be ? NamedEvaluation of AssignmentExpression with argument lhs.
-            panique("anonymous function assignment non-implémenté")
+            completion_rval := named_evaluation(interpréteuse, noeud.droite, lhs)
+            saufsi completion_rval.est_normal() {
+                retourne completion_rval
+            }
+
+            rval = completion_rval.valeur.V
         }
         // c. Else,
         sinon {
