@@ -167,7 +167,8 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
     // 7. Set the LexicalEnvironment of scriptContext to globalEnv.
     script_context.lexical_environment = global_env
 
-    // À FAIRE : 8. Set the PrivateEnvironment of scriptContext to null.
+    // 8. Set the PrivateEnvironment of scriptContext to null.
+    script_context.private_environment = nul
 
     // 9. Suspend the running execution context.
     mv.suspend_running_execution_context()
