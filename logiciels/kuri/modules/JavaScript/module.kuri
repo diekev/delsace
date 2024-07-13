@@ -784,12 +784,28 @@ string_prototype_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *Visiteus
 /** \nom Fonction
  * \{ */
 
+LEXICAL_THIS :: vrai
+NON_LEXICAL_THIS :: faux
+
+ThisMode :: énum {
+    GLOBAL
+    LEXICAL
+    STRICT
+}
+
 Function :: struct {
     empl objet: Object
     type = #type_de_cette_structure
 
     nom: ECMAString
     corps: *NoeudSyntaxique
+    formal_parameters: [..]*NoeudSyntaxique
+
+    environment: *Environment
+    private_environment: *PrivateEnvironment
+    this_mode: ThisMode
+    strict := faux
+    is_class_constructor := faux
 }
 
 crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
@@ -799,6 +815,67 @@ crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps:
     résultat.corps = corps
     résultat.sur_call = sur_appel_fonction_instruite
     retourne résultat
+}
+
+/* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
+ * À FAIRE : paramètres et étapes manquants */
+ordinary_function_create :: fonc (tas_de_mémoire: *TasDeMémoire, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *Function
+{
+    // 1. Let internalSlotsList be the internal slots listed in Table 30.
+    // 2. Let F be OrdinaryObjectCreate(functionPrototype, internalSlotsList).
+    F := tas_de_mémoire.alloue(Function)
+
+    // 3. Set F.[[Call]] to the definition specified in 10.2.1.
+    F.sur_call = sur_appel_fonction_instruite
+
+    // 4. Set F.[[SourceText]] to sourceText.
+
+    // 5. Set F.[[FormalParameters]] to ParameterList.
+    F.formal_parameters = params
+
+    // 6. Set F.[[ECMAScriptCode]] to Body.
+    F.corps = corps
+
+    // 7. Let Strict be IsStrict(Body).
+    strict := faux
+
+    // 8. Set F.[[Strict]] to Strict.
+    F.strict = strict
+
+    // 9. If thisMode is LEXICAL-THIS, set F.[[ThisMode]] to LEXICAL.
+    si this_mode == LEXICAL_THIS {
+        F.this_mode = ThisMode.LEXICAL
+    }
+    // 10. Else if Strict is true, set F.[[ThisMode]] to STRICT.
+    sinon si strict {
+        F.this_mode = ThisMode.STRICT
+    }
+    // 11. Else, set F.[[ThisMode]] to GLOBAL.
+    sinon {
+        F.this_mode = ThisMode.GLOBAL
+    }
+
+    // 12. Set F.[[IsClassConstructor]] to false.
+    F.is_class_constructor = faux
+
+    // 13. Set F.[[Environment]] to env.
+    F.environment = env
+
+    // 14. Set F.[[PrivateEnvironment]] to privateEnv.
+    F.private_environment = private_env
+
+    // 15. Set F.[[ScriptOrModule]] to GetActiveScriptOrModule().
+    // 16. Set F.[[Realm]] to the current Realm Record.
+    // 17. Set F.[[HomeObject]] to undefined.
+    // 18. Set F.[[Fields]] to a new empty List.
+    // 19. Set F.[[PrivateMethods]] to a new empty List.
+    // 20. Set F.[[ClassFieldInitializerName]] to EMPTY.
+    // 21. Let len be the ExpectedArgumentCount of ParameterList.
+
+    // 22. Perform SetFunctionLength(F, len).
+    // 23. Return F.
+    retourne F
 }
 
 /* 7.3.13 Call ( F, V [ , argumentsList ] )
