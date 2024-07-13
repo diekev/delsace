@@ -56,6 +56,13 @@ is_anonymous_function_definition :: fonc (noeud: *NoeudSyntaxique) -> bool
     retourne vrai
 }
 
+/* 8.4.4 Static Semantics: IsIdentifierRef
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-isidentifierref */
+is_identifier_ref :: fonc (noeud: *NoeudSyntaxique) -> bool
+{
+    retourne noeud.type == Identifier
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
