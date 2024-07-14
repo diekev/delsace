@@ -157,6 +157,50 @@ est_compatible_html5 :: fonc (élément: *Élément) -> bool
     }
 }
 
+/* https://dom.spec.whatwg.org/#concept-getelementsbyclassname */
+get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMString) -> *HTMLCollection
+{
+    // 1. Let classes be the result of running the ordered set parser on classNames.
+    classes := run_ordered_set_parser(class_names)
+
+    // 2. If classes is the empty set, return an empty HTMLCollection.
+    si classes.taille == 0 {
+        retourne loge(HTMLCollection)
+    }
+
+    // 3. Return an HTMLCollection rooted at root, whose filter matches
+    //    descendant elements that have all their classes in classes.
+    //    The comparisons for the classes must be done in an ASCII
+    //    case-insensitive manner if root’s node document’s mode is "quirks";
+    //    otherwise in an identical to manner.
+    résultat := loge(HTMLCollection)
+    résultat.root = élément
+    résultat.filter = crée_filtre_pour_class_name(classes)
+    initialise_collection_pour_filtre(résultat)
+    retourne résultat
+}
+
+/* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
+get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: *ChaineInternée) -> *HTMLCollection
+{   
+    résultat := loge(HTMLCollection)
+    résultat.root = élément
+
+    // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
+
+    // 2. Otherwise, if root’s node document is an HTML document, return an HTMLCollection rooted at root, whose filter matches the following descendant elements:
+
+    //     Whose namespace is the HTML namespace and whose qualified name is qualifiedName, in ASCII lowercase.
+
+    //     Whose namespace is not the HTML namespace and whose qualified name is qualifiedName.
+
+    // 3. Otherwise, return an HTMLCollection rooted at root, whose filter matches descendant elements whose qualified name is qualifiedName. 
+    résultat.filter = crée_filtre_pour_tag_name(qualified_name)
+
+    initialise_collection_pour_filtre(résultat)
+    retourne résultat
+}
+
 /** \} */
 
 fait_partie_de_catégorie_spécial :: fonc (nom: *ChaineInternée) -> bool

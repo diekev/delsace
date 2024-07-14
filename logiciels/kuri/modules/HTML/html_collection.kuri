@@ -1,0 +1,177 @@
+importe Chaine
+importe Ensemble
+importe Fondation
+
+/* https://dom.spec.whatwg.org/#concept-ordered-set-parser */
+run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
+{
+    // Let inputTokens be the result of splitting input on ASCII whitespace.
+    input_tokens := divise_sur_espaces_blanches_ascii(chn)
+    diffère déloge(input_tokens)
+
+    // Let tokens be a new ordered set.
+    tokens: [..]DOMString
+
+    // For each token in inputTokens, append token to tokens.
+    pour input_tokens {
+        ensemble_ajoute(*tokens, it)
+    }
+
+    // Return tokens.
+    retourne tokens
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLCollectionFilter
+ * Filtre pour les HTMLCollections.
+ * \{ */
+
+HTMLCollectionFilter :: struct {
+    sur_filtre: fonc (*HTMLCollectionFilter, *HTMLCollection, *Élément)(bool)
+    sur_destruction: fonc (*HTMLCollectionFilter)(rien)
+}
+
+crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollectionFilter
+{
+    ClassesFilter :: struct {
+        empl base: HTMLCollectionFilter
+        classes: [..]DOMString
+    }
+
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection, élément: *Élément) -> bool
+    {
+        si élément == collection.root {
+            retourne faux
+        }
+        filtre := base comme *ClassesFilter
+        valeur := élément.donne_attribut(ATTR_class)
+        saufsi valeur.possède_valeur() {
+            retourne faux
+        }
+
+        document := collection.root.document
+        classes_élément := divise_sur_espaces_blanches_ascii(valeur.Quelque)
+        diffère déloge(classes_élément)
+
+        pour classe_élément dans classes_élément {
+            pour class dans filtre.classes {
+                si document.mode == ModeDocument.QUIRKS {
+                    si compare_ascii_insensible_à_la_casse(class, classe_élément) {
+                        arrête
+                    }
+                }
+                sinon si class == classe_élément {
+                    arrête
+                }
+            }
+            sansarrêt {
+                retourne faux
+            }
+        }
+
+        retourne vrai
+    }
+
+    sur_destruction :: fonc (base: *HTMLCollectionFilter)
+    {
+        filtre := base comme *ClassesFilter
+        déloge(filtre.classes)
+        déloge(filtre)
+    }
+
+    résultat := loge(ClassesFilter)
+    résultat.classes = classes
+    résultat.sur_filtre = sur_filtre
+    résultat.sur_destruction = sur_destruction
+    retourne résultat
+}
+
+crée_filtre_pour_tag_name :: fonc (tag_name: *ChaineInternée) -> *HTMLCollectionFilter
+{
+    TagNameFilter :: struct {
+        empl base: HTMLCollectionFilter
+        tag_name: *ChaineInternée
+    }
+
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Élément) -> bool
+    {
+        filtre := base comme *TagNameFilter
+        // À FAIRE : qualified name
+        retourne élément.texte == filtre.tag_name
+    }
+
+    sur_destruction :: fonc (base: *HTMLCollectionFilter)
+    {
+        filtre := base comme *TagNameFilter
+        déloge(filtre)
+    }
+
+    résultat := loge(TagNameFilter)
+    résultat.tag_name = tag_name
+    résultat.sur_filtre = sur_filtre
+    résultat.sur_destruction = sur_destruction
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLCollection
+ * https://dom.spec.whatwg.org/#htmlcollection
+ * \{ */
+
+HTMLCollection :: struct {
+    // À FAIRE : la collection est vivante
+    root: *Noeud
+    filter: *HTMLCollectionFilter
+
+    éléments: [..]*Élément
+}
+
+ajoute_élément :: fonc (collection: *HTMLCollection, élément: *Élément)
+{
+    tableau_ajoute(*collection.éléments, élément)
+}
+
+initialise_collection_pour_filtre :: fonc (collection: *HTMLCollection)
+{
+    assert(collection.filter != nul)
+    initialise_collection_pour_filtre_récursif(collection.root, collection)
+}
+
+initialise_collection_pour_filtre_récursif :: fonc (racine: *Noeud, collection: *HTMLCollection)
+{
+    si racine.est_élément() {
+        élément := racine comme *Élément
+
+        si collection.filter.sur_filtre(collection.filter, collection, élément) {
+            ajoute_élément(collection, élément)
+        }
+    }
+
+    pour racine.enfants {
+        initialise_collection_pour_filtre_récursif(it, collection)
+    }
+}
+
+détruit_collection :: fonc (collection: *HTMLCollection)
+{
+    si collection.filter && collection.filter.sur_destruction {
+        collection.filter.sur_destruction(collection.filter)
+    }
+
+    déloge(collection.éléments)
+    déloge(collection)
+}
+
+donne_length :: fonc (collection: *HTMLCollection) -> z64
+{
+    retourne collection.éléments.taille
+}
+
+donne_index :: fonc (collection: *HTMLCollection, index: z64) -> *Élément
+{
+    retourne collection.éléments[index]
+}
+
+/** \} */
