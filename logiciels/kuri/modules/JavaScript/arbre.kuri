@@ -1466,6 +1466,66 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ForOfStatement
+ * \{ */
+
+ForOfStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_for_of_statement
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_for_of_statement :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForOfStatement
+{
+    résultat := loge(ForOfStatement)
+    résultat.left = left
+    résultat.right = right
+    résultat.body = body
+    retourne résultat
+}
+
+sur_exécution_for_of_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
+{
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ForInStatement
+ * \{ */
+
+ForInStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_for_in_statement
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_for_in_statement :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForInStatement
+{
+    résultat := loge(ForInStatement)
+    résultat.left = left
+    résultat.right = right
+    résultat.body = body
+    retourne résultat
+}
+
+sur_exécution_for_in_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
+{
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom IfStatement
  * \{ */
 
