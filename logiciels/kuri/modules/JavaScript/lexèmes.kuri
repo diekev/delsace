@@ -75,6 +75,7 @@ GenreLexème :: énum {
     True
     False
     New
+    Const
 }
 
 donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> GenreLexème
@@ -117,6 +118,7 @@ rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
         si identifiant == "true" { retourne GenreLexème.True }
     }
     sinon si identifiant.taille == 5 {
+        si identifiant == "const" { retourne GenreLexème.Const }
         si identifiant == "false" { retourne GenreLexème.False }
     }
     sinon si identifiant.taille == 6 {
@@ -281,6 +283,7 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
     discr genre {
         Var,
         Let,
+        Const,
         Identifiant,
         ChaineLittérale,
         NombreLittéral,

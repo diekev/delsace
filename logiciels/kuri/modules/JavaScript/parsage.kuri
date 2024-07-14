@@ -424,6 +424,9 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         Var {
             retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Var)
         }
+        Const {
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Const)
+        }
         Function {
             retourne parse_function_declaration(parseuse)
         }

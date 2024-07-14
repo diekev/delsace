@@ -1102,6 +1102,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
  * \{ */
 
 VariableDeclarationKind :: énum {
+    Const
     Let
     Var
 }
