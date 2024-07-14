@@ -247,19 +247,31 @@ TypePréféré :: énum {
     Number
 }
 
-vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> *Object
+/* 7.1.18 ToObject ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toobject */
+vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
 {
+    si valeur.est_undefined() {
+        retourne lance_type_error(realm, "undefined is not an Object")
+    }
+
+    si valeur.est_nulle() {
+        retourne lance_type_error(realm, "null is not an Object")
+    }
+
     si valeur.est_object() {
-        retourne valeur.donne_objet()
+        retourne normal_completion(Valeur(Object = valeur.donne_objet()))
     }
 
-    assert(valeur.est_chaine())
-
-    chn := valeur.String
-    saufsi chn.objet {
-        chn.objet = crée_chaine(realm.donne_tas_de_mémoire(), realm.intrinsics.string_prototype, valeur.String)
+    si valeur.est_chaine() {
+        chn := valeur.String
+        saufsi chn.objet {
+            chn.objet = crée_chaine(realm.donne_tas_de_mémoire(), realm.intrinsics.string_prototype, valeur.String)
+        }
+        retourne normal_completion(Valeur(Object = chn.objet))
     }
-    retourne Valeur(Object = chn.objet)
+
+    panique("vers_objet non-implémenté pour type")
 }
 
 vers_chaine :: fonc (valeur: Valeur) -> ECMAString
@@ -1085,7 +1097,12 @@ type_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellu
 
 lance_type_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
 {
-    exception := crée_type_error(interpréteuse.donne_tas_de_mémoire(), interpréteuse.donne_realm().intrinsics.type_error_prototype, message)
+    retourne lance_type_error(interpréteuse.donne_realm(), message)
+}
+
+lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
+{
+    exception := crée_type_error(realm.donne_tas_de_mémoire(), realm.intrinsics.type_error_prototype, message)
     retourne throw_completion(exception)
 }
 

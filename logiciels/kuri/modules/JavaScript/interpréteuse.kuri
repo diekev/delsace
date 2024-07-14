@@ -152,7 +152,11 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
     si est_référence_propriété(valeur) {
         V := valeur.R
         // a. Let baseObj be ? ToObject(V.[[Base]]).
-        base_object := vers_objet(realm, V.base.V)
+        completion_base_object := vers_objet(realm, V.base.V)
+        saufsi completion_base_object.est_normal() {
+            retourne completion_base_object
+        }
+        base_object := completion_base_object.valeur.V.donne_objet()
 
         // À FAIRE
         // b. If IsPrivateReference(V) is true, then
@@ -211,7 +215,11 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
     // 3. If IsPropertyReference(V) is true, then
     si est_référence_propriété(record) {
         // a. Let baseObj be ? ToObject(V.[[Base]]).
-        base_obj := vers_objet(interpréteuse.donne_realm(), record.base.V)
+        completion_base_obj := vers_objet(interpréteuse.donne_realm(), record.base.V)
+        saufsi completion_base_obj.est_normal() {
+            retourne completion_base_obj
+        }
+        base_obj := completion_base_obj.valeur.V.donne_objet()
 
         // À FAIRE
         // b. If IsPrivateReference(V) is true, then
