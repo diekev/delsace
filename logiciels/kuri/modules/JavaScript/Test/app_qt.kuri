@@ -59,12 +59,22 @@ principale :: fonc () -> z32
     QT_widget_definis_feuille_de_style(sortie, *feuille_de_style)
     QT_widget_definis_fonte(sortie, *fonte)
 
+    sortie_console := QT_cree_plain_text_edit(nul, widget)
+    QT_plain_text_edit_definis_lecture_seule(sortie_console, vrai)
+    QT_widget_definis_feuille_de_style(sortie_console, *feuille_de_style)
+    QT_widget_definis_fonte(sortie_console, *fonte)
+
     rappels_fenêtre.éditeur = éditeur
     rappels_fenêtre.sortie = sortie
+    rappels_fenêtre.sortie_console = sortie_console
+
+    dispv := QT_cree_vbox_layout(QT_widget_nul())
+    QT_layout_ajoute_widget(dispv, sortie)
+    QT_layout_ajoute_widget(dispv, sortie_console)
 
     disp := QT_cree_hbox_layout(widget)
     QT_layout_ajoute_widget(disp, éditeur)
-    QT_layout_ajoute_widget(disp, sortie)
+    QT_box_layout_ajoute_layout(disp, dispv)
 
     retourne QT_application_exec(app)
 }
@@ -100,6 +110,7 @@ RappelsFenetrePrincipale :: struct {
 
     éditeur: *QT_PlainTextEdit
     sortie: *QT_PlainTextEdit
+    sortie_console: *QT_PlainTextEdit
 }
 
 /** \} */
@@ -139,19 +150,38 @@ sauvegarde_fichier :: fonc (contenu: chaine)
 
 Console :: struct {
     empl enveloppable: Enveloppable
+    sortie: *QT_PlainTextEdit
     sur_création_enveloppe = console_sur_création_enveloppe
+
+    historique: chaine
 }
 
 console_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
 {
     fonction_native_log :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
     {
-        imprime("this_value : %\n", this_value)
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+        diffère détruit_tampons(*enchaineuse)
+
+        ajoute_au_tampon(*enchaineuse, console.historique)
 
         pour arguments {
-            imprime("%", it)
+            ajoute_au_tampon(*enchaineuse, it)
         }
-        imprime("\n")
+        ajoute_au_tampon(*enchaineuse, "\n")
+
+        texte := chaine_depuis_enchaineuse(*enchaineuse)
+        déloge(console.historique)
+        console.historique = texte
+
+        qtexte := texte.vers_qt()
+
+        sortie := console.sortie
+        QT_plain_text_edit_definis_texte(sortie, *qtexte)
 
         retourne normal_completion(js_undefined)
     }
@@ -183,7 +213,7 @@ crée_propriétés_hôte_objet_global :: fonc(base: *RappelsHôte, global: *Obje
 }
 
 sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
-{   
+{
     rappel := base comme *RappelSauvegarde
     rappels_fenêtre := rappel.rappels_fenêtre
 
@@ -202,6 +232,7 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
     diffère éboue(donne_tas_de_mémoire(*mv))
 
     rappels_hôte: RappelsHôteTest
+    rappels_hôte.console.sortie = rappels_fenêtre.sortie_console
     rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
 
     realm := initialise_host_defined_realm(*mv, *rappels_hôte)
