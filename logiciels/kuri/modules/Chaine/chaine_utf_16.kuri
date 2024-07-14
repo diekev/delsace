@@ -377,6 +377,55 @@ sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
     retourne résultat
 }
 
+est_espace_blanche_ascii :: fonc (rune: rune16) -> bool
+{
+    TAB : n32 : 0x09
+    LF : n32 : 0x0A
+    FF : n32 : 0x0C
+    CR : n32 : 0x0D
+    SPACE : n32 : 0x20
+    retourne rune == SPACE || rune == LF || rune == TAB || rune == FF || rune == CR
+}
+
+/* https://infra.spec.whatwg.org/#split-on-ascii-whitespace */
+divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16) -> [..]ChaineUTF16
+{
+    // 1. Let position be a position variable for input, initially pointing at the start of input.
+    position := 0
+
+    // 2. Let tokens be a list of strings, initially empty.
+    tokens: [..]ChaineUTF16
+
+    // 3. Skip ASCII whitespace within input given position.
+    tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        position += 1
+    }
+
+    // 4. While position is not past the end of input:
+    tantque position < chn.taille() {
+        // 1. Let token be the result of collecting a sequence of code points that are not ASCII whitespace from input, given position.
+        token: ChaineUTF16
+        token.unités.pointeur = chn.unités.pointeur + position
+        token.unités.taille = 0
+
+        tantque position < chn.taille() && !est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+            token.unités.taille += 1
+            position += 1
+        }
+
+        // 2. Append token to tokens.
+        tableau_ajoute(*tokens, token)
+
+        // 3. Skip ASCII whitespace within input given position.
+        tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+            position += 1
+        }
+    }
+
+    // 5. Return tokens.
+    retourne tokens
+}
+
 EnchaineuseUTF16 :: struct {
     Tampon :: struct {
         suivant: *Tampon
