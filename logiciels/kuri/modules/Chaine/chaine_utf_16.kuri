@@ -718,3 +718,134 @@ chaine_depuis_chaine_utf16 :: fonc (chn_utf16: ChaineUTF16) -> chaine
     imprime_chaine_utf16(*enchaineuse, *chn_utf16)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom ChaineUTF16Unique
+ * \{ */
+
+ChaineUTF16Unique :: struct {
+    valeur: n32
+}
+
+crée_chaine_utf16_unique :: fonc (chn: chaine) -> ChaineUTF16Unique
+{
+    tmp := crée_chaine_utf16(chn)
+    diffère détruit_chaine(tmp)
+    retourne crée_chaine_utf16_unique(tmp)
+}
+
+crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF16) -> ChaineUTF16Unique
+{
+    si chn.taille() == 1 {
+        unité := chn.unités[0]
+
+        si unité <= 127 {
+            retourne ChaineUTF16Unique(unité comme n32)
+        }
+    }
+
+    retourne crée_chaine_utf16_unique(__table_chaines_utf16_uniques, chn)
+}
+
+crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF32) -> ChaineUTF16Unique
+{
+    tmp := crée_chaine_utf16(chn)
+    diffère détruit_chaine(tmp)
+    retourne crée_chaine_utf16_unique(tmp)
+}
+
+est_caractère_ascii :: fonc (chn: ChaineUTF16Unique) -> bool #enligne
+{
+    retourne chn.valeur < 128
+}
+
+opérateur == :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
+{
+    retourne chn1.valeur == chn2.valeur
+}
+
+opérateur != :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
+{
+    retourne chn1.valeur != chn2.valeur
+}
+
+opérateur < :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
+{
+    si chn1.est_caractère_ascii() && chn2.est_caractère_ascii() {
+        retourne chn1.valeur < chn2.valeur
+    }
+
+    c1 := donne_chaine_utf16(chn1)
+    c2 := donne_chaine_utf16(chn2)
+    retourne c1 < c2
+}
+
+opérateur > :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
+{
+    si chn1.est_caractère_ascii() && chn2.est_caractère_ascii() {
+        retourne chn1.valeur > chn2.valeur
+    }
+
+    c1 := donne_chaine_utf16(chn1)
+    c2 := donne_chaine_utf16(chn2)
+    retourne c1 > c2
+}
+
+donne_chaine_utf16 :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16
+{
+    assert(!chn.est_caractère_ascii())
+    index := chn.valeur - 128
+    retourne donne_chaine_pour_index(__table_chaines_utf16_uniques, index)
+}
+
+imprime_chaine_utf16_unique :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16Unique)
+{
+    saufsi chn {
+        retourne
+    }
+
+    chn_utf16 := donne_chaine_utf16(mémoire(chn))
+    imprime_dans_enchaineuse(enchaineuse, "%", chn_utf16)
+} @FormattageImpression
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TableChainesUTF16Unique
+ * \{ */
+
+TableChainesUTF16Unique :: struct {
+    chaines: [..]ChaineUTF16
+}
+
+crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &ChaineUTF16) -> ChaineUTF16Unique
+{
+    pour table.chaines {
+        si it == chn {
+            retourne ChaineUTF16Unique(donne_valeur_chaine_pour_index(index_it))
+        }
+    }
+
+    index := donne_valeur_chaine_pour_index(table.chaines.taille)
+
+    tableau_ajoute(*table.chaines, chn)
+    chn.unités.pointeur = nul
+    chn.unités.taille = 0
+    chn.unités.capacité = 0
+
+    retourne ChaineUTF16Unique(index)
+}
+
+donne_valeur_chaine_pour_index :: fonc (index: z64) -> n32
+{
+    retourne (index + 128) comme n32
+}
+
+donne_chaine_pour_index :: fonc (table: &TableChainesUTF16Unique, index: n32) -> ChaineUTF16
+{
+    retourne table.chaines[index comme z64]
+}
+
+__table_chaines_utf16_uniques: TableChainesUTF16Unique
+
+/** } */
