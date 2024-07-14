@@ -65,16 +65,15 @@ en_minuscule :: fonc (unité: rune16) -> rune16
     retourne unité
 }
 
-compare_ascii_insensible_à_la_casse :: fonc (chn: &ChaineUTF16, chaine_native: chaine) -> bool
+compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
 {
-    // À FAIRE : convertis proprement vers utf16
-    si chn.taille() != chaine_native.taille {
+    si chn1.taille() != chn2.taille() {
         retourne faux
     }
 
-    pour chn.taille() {
-        c1 := chaine_native[it] comme n16
-        c2 := chn.unités[it]
+    pour chn1.taille() {
+        c1 := chn1.unités[it]
+        c2 := chn2.unités[it]
 
         c1_minuscule := en_minuscule(c1)
         c2_minuscule := en_minuscule(c2)
@@ -85,6 +84,13 @@ compare_ascii_insensible_à_la_casse :: fonc (chn: &ChaineUTF16, chaine_native: 
     }
 
     retourne vrai
+}
+
+compare_ascii_insensible_à_la_casse :: fonc (chn: &ChaineUTF16, chaine_native: chaine) -> bool
+{
+    chn2 := crée_chaine_utf16(chaine_native)
+    diffère détruit_chaine(chn2)
+    retourne compare_ascii_insensible_à_la_casse(chn, chn2)
 }
 
 opérateur == :: fonc (chn: ChaineUTF16, chaine_native: chaine) -> bool
