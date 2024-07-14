@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe HTML
 importe JavaScript
 importe Qt
 importe SysFichier
@@ -190,6 +191,142 @@ console_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, envel
     enveloppe.ajoute_fonction_native("log", fonction_native_log)
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom ObjetHTML
+ * \{ */
+
+ObjetHTML :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = objet_html_sur_création_enveloppe
+
+    enveloppe_document: EnveloppeDocument
+}
+
+objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+{
+    fonction_native_ouvre_document :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_html := this_value.donne_objet() comme *Enveloppe
+        html := envellope_html.enveloppable comme *ObjetHTML
+
+        si arguments.taille == 0 {
+            retourne lance_type_error(interpréteuse, "ouvre_document requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+        contenu := contenu_fichier_texte(texte)
+
+        parsat := parse_document(contenu)
+        html.enveloppe_document.document = parsat.document
+
+        tas_de_mémoire := object.donne_tas_de_mémoire()
+        document := crée_enveloppe(tas_de_mémoire, *html.enveloppe_document)
+        retourne normal_completion(Valeur(Object = document))
+    }
+
+    enveloppe.type = ObjetHTML
+    enveloppe.ajoute_fonction_native("ouvre_document", fonction_native_ouvre_document)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeDocument
+ * \{ */
+
+EnveloppeDocument :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = enveloppe_document_sur_création_enveloppe
+
+    document: *Document
+
+    enveloppe_élément: EnveloppeÉlément
+}
+
+enveloppe_document_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+{
+    fonction_native_get_element_by_id :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_document := envellope.enveloppable comme *EnveloppeDocument
+        document := enveloppe_document.document
+
+        si arguments.taille == 0 {
+            retourne lance_type_error(interpréteuse, "getElementByID requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+
+        chn := crée_chaine_utf16(texte)
+        diffère détruit_chaine(chn)
+
+        élément := document.get_element_by_id(chn)
+
+        saufsi élément {
+            retourne normal_completion(js_null)
+        }
+
+        enveloppe_document.enveloppe_élément.élément = élément
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        objet_élément := crée_enveloppe(tas_de_mémoire, *enveloppe_document.enveloppe_élément)
+        retourne normal_completion(Valeur(Object = objet_élément))
+    }
+
+    enveloppe.type = EnveloppeDocument
+    enveloppe.ajoute_fonction_native("getElementById", fonction_native_get_element_by_id)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeDocument
+ * \{ */
+
+EnveloppeÉlément :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = enveloppe_élément_sur_création_enveloppe
+
+    élément: *Élément
+}
+
+enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+{
+    fonction_native_get_element_by_class_name :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_élément := envellope.enveloppable comme *EnveloppeÉlément
+        élément := enveloppe_élément.élément
+
+        si arguments.taille == 0 {
+            retourne lance_type_error(interpréteuse, "getElementsByClassName requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+
+        imprime("getElementsByClassName : %\n", texte)
+
+        retourne normal_completion(js_null)
+    }
+
+    enveloppe.type = EnveloppeÉlément
+    enveloppe.ajoute_fonction_native("getElementsByClassName", fonction_native_get_element_by_class_name)
+}
+
+/** \} */
+
 fonction_native_éboue :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
 {
     imprime("<<<<< ébouage forcé\n")
@@ -202,6 +339,7 @@ RappelsHôteTest :: struct {
     empl base: RappelsHôte
 
     console: Console
+    html: ObjetHTML
 }
 
 crée_propriétés_hôte_objet_global :: fonc(base: *RappelsHôte, global: *Object)
@@ -210,6 +348,7 @@ crée_propriétés_hôte_objet_global :: fonc(base: *RappelsHôte, global: *Obje
 
     global.ajoute_fonction_native("rm", fonction_native_éboue)
     global.ajoute_objet_natif("console", *rappels.console)
+    global.ajoute_objet_natif("html", *rappels.html)
 }
 
 sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
