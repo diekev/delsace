@@ -346,4 +346,29 @@ est_vide :: fonc (noeud: *Noeud) -> bool
     retourne noeud.donne_longueur() == 0
 }
 
+/* https://dom.spec.whatwg.org/#ref-for-dom-nonelementparentnode-getelementbyid%E2%91%A1 */
+get_element_by_id :: fonc (noeud: *Noeud, chn: DOMString) -> *Élément
+{
+    retourne get_element_by_id_recursive(noeud, chn)
+}
+
+get_element_by_id_recursive :: fonc (noeud: *Noeud, chn: DOMString) -> *Élément
+{
+    si noeud.est_élément() {
+        valeur := noeud.donne_attribut(ATTR_id)
+        si valeur.possède_valeur() && valeur.Quelque == chn {
+            retourne noeud comme *Élément
+        }
+    }
+
+    pour noeud.enfants {
+        élément := get_element_by_id_recursive(it, chn)
+        si élément {
+            retourne élément
+        }
+    }
+
+    retourne nul
+}
+
 /** \} */
