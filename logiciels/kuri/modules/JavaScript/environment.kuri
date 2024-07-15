@@ -73,7 +73,7 @@ get_identifier_reference :: fonc (environment: *Environment, nom: ECMAString, st
         // a. Return the Reference Record { [[Base]]: env, [[ReferencedName]]: name, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
         résultat: ReferenceRecord
         résultat.base = environment
-        résultat.referenced_name = nom
+        résultat.referenced_name = Valeur(String = crée_chaine(environment.donne_tas_de_mémoire(), nom))
         résultat.strict = strict
         retourne normal_completion(résultat)
     }

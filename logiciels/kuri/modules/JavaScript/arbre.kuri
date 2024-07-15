@@ -1290,20 +1290,20 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     // À FAIRE : strict
     strict := faux
 
-    retourne evaluate_property_access_with_identifier_key(base_value, identifier, strict)
+    retourne evaluate_property_access_with_identifier_key(interpréteuse, base_value, identifier, strict)
 }
 
 /* 13.3.4 EvaluatePropertyAccessWithIdentifierKey ( baseValue, identifierName, strict )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluate-property-access-with-identifier-key */
-evaluate_property_access_with_identifier_key :: fonc (base_value: Valeur, identifier_name: *Identifier, strict: bool) -> CompletionRecord
+evaluate_property_access_with_identifier_key :: fonc (interpréteuse: &Interpréteuse, base_value: Valeur, identifier_name: *Identifier, strict: bool) -> CompletionRecord
 {
     // 1. Let propertyNameString be the StringValue of identifierName.
-    property_name_string := identifier_name.nom
+    property_name_string := crée_chaine(interpréteuse.donne_tas_de_mémoire(), identifier_name.nom)
 
     // 2. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyNameString, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
     résultat: ReferenceRecord
     résultat.base = base_value
-    résultat.referenced_name = property_name_string
+    résultat.referenced_name = Valeur(String = property_name_string)
     résultat.strict = strict
     retourne normal_completion(résultat)
 }

@@ -8,6 +8,42 @@ importe Fondation
 
 TypeUnresolvable :: #opaque z32
 
+/* Type pour ReferenceRecord.reference_name */
+ReferencedName :: union {
+    valeur: Valeur
+    nom: ECMAString // À FAIRE : supprime ceci, uniquement utilisé dans Environment pour référence non résovable
+    private_name: *PrivateName
+}
+
+is_property_key :: fonc (referenced_name: ReferencedName) -> bool
+{
+    discr referenced_name {
+        valeur(v) {
+            // À FAIRE: Symbol
+            retourne v.est_chaine()
+        }
+        nom {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+donne_property_key :: fonc (referenced_name: ReferencedName) -> ECMAString
+{
+    // À FAIRE: type PropertyKey
+    discr referenced_name {
+        nom(n) {
+            retourne n
+        }
+        sinon {
+            retourne referenced_name.valeur.String.texte
+        }
+    }
+}
+
 ReferenceRecord :: struct {
     Base :: union {
         V: Valeur
@@ -16,7 +52,7 @@ ReferenceRecord :: struct {
     }
 
     base: Base
-    referenced_name: ECMAString // À FAIRE ce doit être une Valeur
+    referenced_name: ReferencedName
     strict: bool
     valeur_this: Optionnel(Valeur)
 }
@@ -36,7 +72,7 @@ est_référence_propriété :: fonc (référence: ReferenceRecord) -> bool
     }
 }
 
-référence_non_résolvable :: fonc (nom: ECMAString, strict: bool) -> ReferenceRecord
+référence_non_résolvable :: fonc (nom: ReferencedName, strict: bool) -> ReferenceRecord
 {
     résultat: ReferenceRecord
     résultat.base = TypeUnresolvable(0)
@@ -127,6 +163,21 @@ is_super_reference :: fonc (reference: ReferenceRecord) -> bool
     }
 }
 
+/* 6.2.5.4 IsPrivateReference ( V )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isprivatereference */
+is_private_reference :: fonc (reference_record: &ReferenceRecord) -> bool
+{
+    // 1. If V.[[ReferencedName]] is a Private Name, return true; otherwise return false.
+    discr reference_record.referenced_name {
+        private_name {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 /* 6.2.5.5 GetValue
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
 get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) -> CompletionRecord
@@ -158,14 +209,19 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
         }
         base_object := completion_base_object.valeur.V.donne_objet()
 
-        // À FAIRE
         // b. If IsPrivateReference(V) is true, then
+        si is_private_reference(V) {
             // i. Return ? PrivateGet(baseObj, V.[[ReferencedName]]).
+            panique("get_value depuis private_reference non-implémenté")
+        }
         // c. If V.[[ReferencedName]] is not a property key, then
+        saufsi is_property_key(V.referenced_name) {
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
+            panique("get_value depuis !property_key non-implémenté")
+        }
 
         // d. Return ? baseObj.[[Get]](V.[[ReferencedName]], GetThisValue(V)).
-        retourne base_object.sur_get(base_object, V.referenced_name, get_this_value(V))
+        retourne base_object.sur_get(base_object, V.referenced_name.donne_property_key(), get_this_value(V))
     }
 
     // 4. Else,
@@ -176,7 +232,7 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
     // b. Assert: base is an Environment Record.
 
     // c. Return ? base.GetBindingValue(V.[[ReferencedName]], V.[[Strict]]) (see 9.1).
-    retourne base.get_binding_value(V.referenced_name, V.strict)
+    retourne base.get_binding_value(V.referenced_name.donne_property_key(), V.strict)
 }
 
 /* 6.2.5.6 PutValue
@@ -203,7 +259,7 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
         global_obj := get_global_object(interpréteuse)
 
         // c. Perform ? Set(globalObj, V.[[ReferencedName]], W, false).
-        completion := set(global_obj, record.referenced_name, valeur, faux)
+        completion := set(global_obj, record.referenced_name.donne_property_key(), valeur, faux)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -221,15 +277,20 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
         }
         base_obj := completion_base_obj.valeur.V.donne_objet()
 
-        // À FAIRE
         // b. If IsPrivateReference(V) is true, then
+        si is_private_reference(record) {
             // i. Return ? PrivateSet(baseObj, V.[[ReferencedName]], W).
+            panique("put_valeur avec private_reference non-implémenté")
+        }
         // c. If V.[[ReferencedName]] is not a property key, then
+        saufsi is_property_key(record.referenced_name) {
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
+            panique("put_value avec !property_key non-implémenté")
+        }
 
         // À FAIRE
         // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
-        base_obj.définis_valeur(record.referenced_name, valeur)
+        base_obj.définis_valeur(record.referenced_name.donne_property_key(), valeur)
         // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
         // f. Return UNUSED.
         retourne normal_completion(js_undefined)
@@ -241,7 +302,7 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
     // b. Assert: base is an Environment Record.
 
     // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
-    retourne base.set_mutable_binding(record.referenced_name, valeur, record.strict)
+    retourne base.set_mutable_binding(record.referenced_name.donne_property_key(), valeur, record.strict)
 }
 
 /* 6.2.5.7 GetThisValue ( V )
