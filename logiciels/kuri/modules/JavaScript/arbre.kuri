@@ -441,12 +441,14 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     // À FAIRE
     // }
 
-    // À FAIRE : bigint
     // 6. If lnum is a BigInt, then
-    // a. If opText is **, return ? BigInt::exponentiate(lnum, rnum).
-    // b. If opText is /, return ? BigInt::divide(lnum, rnum).
-    // c. If opText is %, return ? BigInt::remainder(lnum, rnum).
-    // d. If opText is >>>, return ? BigInt::unsignedRightShift(lnum, rnum).
+    si est_big_int(gauche) {
+        // a. If opText is **, return ? BigInt::exponentiate(lnum, rnum).
+        // b. If opText is /, return ? BigInt::divide(lnum, rnum).
+        // c. If opText is %, return ? BigInt::remainder(lnum, rnum).
+        // d. If opText is >>>, return ? BigInt::unsignedRightShift(lnum, rnum).
+        panique("big_int non-géré")
+    }
 
     // 7. Let operation be the abstract operation associated with opText and Type(lnum) in the following table:
 
@@ -682,9 +684,11 @@ same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
         retourne Valeur(Boolean = vrai)
     }
 
-    // À FAIRE(BigInt)
     // 3. If x is a BigInt, then
-    // a. Return BigInt::equal(x, y).
+    si est_big_int(x) {
+        // a. Return BigInt::equal(x, y).
+        retourne big_int_equal(x, y)
+    }
 
     // 4. If x is a String, then
     si x.est_chaine() {
@@ -1709,7 +1713,10 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
         retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_number))
     }
 
-    // À FAIRE : 10. If val is a BigInt, return "bigint".
+    // 10. If val is a BigInt, return "bigint".
+    si valeur.est_big_int() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_bigint))
+    }
 
     // 11. Assert: val is an Object.
     objet := valeur.donne_objet()

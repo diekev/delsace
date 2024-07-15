@@ -26,12 +26,22 @@ NaN : r64 : 0r7ff8000000000000
 UndefinedType :: #opaque z32
 NullType :: #opaque z32
 
+BigInt :: struct {
+    // À FAIRE : implémente proprement
+    valeur: z64
+}
+
+big_int_equal :: fonc (x: Valeur, y: Valeur) -> bool
+{
+    panique("big_int equal non-implémenté")
+}
+
 Valeur :: union {
     Undefined: UndefinedType
     Null: NullType
     Boolean: bool
     Number: r64
-    // BigInt
+    BigInt: BigInt
     String: *PrimitiveChaine
     // Symbol
     Function: *Function
@@ -235,6 +245,18 @@ est_false :: fonc (valeur: Valeur) -> bool
     }
 }
 
+est_big_int :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        BigInt {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 concatène :: fonc (str_gauche: ECMAString, str_droite: ECMAString) -> Valeur
 {
     résultat := enchaine(str_gauche, str_droite)
@@ -357,15 +379,17 @@ to_numeric :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> Completi
     }
     valeur_primitive := complétion_valeur_primitive.valeur.V
 
-    // À FAIRE(BigInt)
     // 2. If primValue is a BigInt, return primValue.
+    si valeur_primitive.est_big_int() {
+        retourne normal_completion(valeur_primitive)
+    }
 
     // 3. Return ? ToNumber(primValue).
     retourne vers_nombre(interpréteuse, valeur_primitive)
 }
 
 /* https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumber */
-vers_nombre :: fonc (interpréteuse: &Interpréteuse @inutilisée, valeur: Valeur) -> CompletionRecord
+vers_nombre :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> CompletionRecord
 {
     // 1. If argument is a Number, return argument.
     si valeur.est_nombre() {
@@ -373,6 +397,9 @@ vers_nombre :: fonc (interpréteuse: &Interpréteuse @inutilisée, valeur: Valeu
     }
 
     // 2. If argument is either a Symbol or a BigInt, throw a TypeError exception.
+    si valeur.est_big_int() {
+        retourne lance_type_error(interpréteuse, "can't convert BigInt to number")
+    }
 
     // 3. If argument is undefined, return NaN.
     si valeur.est_undefined() {
