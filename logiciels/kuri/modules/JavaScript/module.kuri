@@ -864,6 +864,7 @@ sur_visite_graphe_chaine :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
 
 /* ------------------------------------------------------------------------- */
 /** \nom ObjectPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-object-prototype-object
  * \{ */
 
 ObjectPrototype :: struct {
@@ -874,7 +875,52 @@ ObjectPrototype :: struct {
 crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectPrototype
 {
     résultat := tas_de_mémoire.alloue(ObjectPrototype)
+    résultat.ajoute_fonction_native(STR_hasOwnProperty, object_prototype_has_own_property)
     retourne résultat
+}
+
+/* 20.1.3.2 Object.prototype.hasOwnProperty ( V )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.prototype.hasownproperty */ 
+object_prototype_has_own_property :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this: Valeur, args: []Valeur) -> CompletionRecord
+{
+    si args.taille != 1 {
+        retourne normal_completion(js_undefined)
+    }
+
+    // 1. Let P be ? ToPropertyKey(V).
+    // À FAIRE : property_key
+    complétion_nom := vers_chaine(interpréteuse, args[0])
+    saufsi complétion_nom.est_normal() {
+        retourne complétion_nom
+    }
+    nom := complétion_nom.valeur.V.String.texte
+
+    // 2. Let O be ? ToObject(this value).
+    complétion_obj := vers_objet(interpréteuse.donne_realm(), this)
+    saufsi complétion_obj.est_normal() {
+        retourne complétion_obj
+    }
+    obj := complétion_obj.valeur.V.donne_objet()
+
+    // 3. Return ? HasOwnProperty(O, P).
+    retourne has_own_property(obj, nom)
+}
+
+/* 7.3.12 HasOwnProperty ( O, P )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
+has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
+{
+    completion_desc := object.sur_get_own_property(object, nom)
+    saufsi completion_desc.est_normal() {
+        retourne completion_desc
+    }
+
+    desc := completion_desc.valeur
+    si desc.est_undefined() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
 /** \} */
