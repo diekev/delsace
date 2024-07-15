@@ -160,7 +160,7 @@ Console :: struct {
 
 console_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
 {
-    fonction_native_log :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_log :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
     {
         envellope_console := this_value.donne_objet() comme *Enveloppe
         console := envellope_console.enveloppable comme *Console
@@ -171,8 +171,16 @@ console_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, envel
 
         ajoute_au_tampon(*enchaineuse, console.historique)
 
+        virgule := ""
         pour arguments {
-            ajoute_au_tampon(*enchaineuse, it)
+            complétion := vers_chaine(interpréteuse, it)
+            saufsi complétion.est_normal() {
+                retourne complétion
+            }
+            valeur := complétion.valeur.V
+
+            ajoute_au_tampon(*enchaineuse, virgule, valeur.String.texte.donne_chaine_utf16())
+            virgule = " "
         }
         ajoute_au_tampon(*enchaineuse, "\n")
 

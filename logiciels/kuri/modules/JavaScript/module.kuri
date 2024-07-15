@@ -293,6 +293,7 @@ js_undefined := Valeur(Undefined = UndefinedType(0))
 TypePréféré :: énum {
     Aucun
     Number
+    String
 }
 
 /* 7.1.18 ToObject ( argument )
@@ -320,11 +321,6 @@ vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
     }
 
     panique("vers_objet non-implémenté pour type")
-}
-
-vers_chaine :: fonc (valeur: Valeur) -> ECMAString
-{
-
 }
 
 /* 7.1.1 ToPrimitive ( input [ , preferredType ] )
@@ -449,6 +445,73 @@ vers_nombre :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> Complet
     // 9. Assert: primValue is not an Object.
     // 10. Return ? ToNumber(primValue).
     panique("to_number non-implémenté")
+}
+
+/* 7.1.17 ToString ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
+vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> CompletionRecord
+{
+    // 1. If argument is a String, return argument.
+    si argument.est_chaine() {
+        retourne normal_completion(argument)
+    }
+
+    // 2. If argument is a Symbol, throw a TypeError exception.
+    si argument.est_symbol() {
+        retourne lance_type_error(interpréteuse, "can't convert Symbol to string")
+    }
+
+    // 3. If argument is undefined, return "undefined".
+    si argument.est_undefined() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_undefined))
+    }
+
+    // 4. If argument is null, return "null".
+    si argument.est_nulle() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_null))
+    }
+
+    // 5. If argument is true, return "true".
+    si argument.est_true() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_true))
+    }
+
+    // 6. If argument is false, return "false".
+    si argument.est_false() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_false))
+    }
+
+    // 7. If argument is a Number, return Number::toString(argument, 10).
+    si argument.est_nombre() {
+        // À FAIRE : implémente selon le standard.
+        n := argument.Number
+        chn := imprime_chaine("%", n)
+        diffère déloge(chn)
+
+        résultat := crée_chaine_utf16_unique(chn)
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), résultat))
+    }
+
+    // 8. If argument is a BigInt, return BigInt::toString(argument, 10).
+    si argument.est_big_int() {
+        panique("vers_chaine sur big_int non-implémenté")
+    }
+
+    // 9. Assert: argument is an Object.
+    assert(argument.est_object())
+
+    // 10. Let primValue be ? ToPrimitive(argument, STRING).
+    completion_prim_value := vers_primitive(interpréteuse, argument, TypePréféré.String)
+    saufsi completion_prim_value.est_normal() {
+        retourne completion_prim_value
+    }
+    prim_value := completion_prim_value.valeur.V
+
+    // 11. Assert: primValue is not an Object.
+    assert(!prim_value.est_object())
+
+    // 12. Return ? ToString(primValue).
+    retourne vers_chaine(interpréteuse, prim_value)
 }
 
 /* 7.2.3 IsCallable ( argument )
