@@ -1015,7 +1015,7 @@ ordinary_function_create :: fonc (tas_de_mémoire: *TasDeMémoire, params: [..]*
     F.corps = corps
 
     // 7. Let Strict be IsStrict(Body).
-    strict := faux
+    strict := is_strict(corps)
 
     // 8. Set F.[[Strict]] to Strict.
     F.strict = strict

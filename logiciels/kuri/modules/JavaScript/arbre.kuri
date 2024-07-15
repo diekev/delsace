@@ -18,6 +18,14 @@ exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse
     retourne noeud.sur_exécution(noeud, interpréteuse)
 }
 
+/* 11.2.2.1 Static Semantics: IsStrict ( node )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-source-code.html#sec-isstrict */
+is_strict :: fonc (noeud: *NoeudSyntaxique @inutilisée) -> bool
+{
+    // À FAIRE 1. If the source text matched by node is strict mode code, return true; else return false.
+    retourne faux
+}
+
 /* 8.4.1 Static Semantics: HasName
  * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-hasname */
 has_name :: fonc (noeud: *NoeudSyntaxique) -> bool
@@ -1297,8 +1305,7 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     base_value := valeur_base_reference.valeur.V
 
     // 3. Let strict be IsStrict(this MemberExpression).
-    // À FAIRE : strict
-    strict := faux
+    strict := is_strict(membre)
 
     si membre.calculé {
         // MemberExpression : MemberExpression [ Expression ]

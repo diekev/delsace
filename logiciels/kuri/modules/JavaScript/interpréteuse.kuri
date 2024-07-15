@@ -537,6 +537,12 @@ donne_realm :: fonc (interpréteuse: &Interpréteuse) -> *Realm
     retourne rec.realm
 }
 
+donne_noeud_évalué_courant :: fonc (interpréteuse: &Interpréteuse @inutilisée) -> *NoeudSyntaxique
+{
+    // À FAIRE
+    retourne nul
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -557,8 +563,7 @@ resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, envir
     // 2. Assert: env is an Environment Record.
 
     // 3. Let strict be IsStrict(the syntactic production that is being evaluated).
-    // À FAIRE : is strict
-    strict := faux
+    strict := is_strict(interpréteuse.donne_noeud_évalué_courant())
 
     // 4. Return ? GetIdentifierReference(env, name, strict).
     retourne get_identifier_reference(environment, nom, strict)
