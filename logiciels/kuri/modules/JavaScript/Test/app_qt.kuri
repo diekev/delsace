@@ -218,8 +218,12 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
             retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
         }
 
-        texte := arguments[0].String.texte
-        contenu := contenu_fichier_texte(texte)
+        valeur_arg := arguments[0].String.texte
+        valeur_arg_utf16 := valeur_arg.donne_chaine_utf16()
+        chemin := imprime_chaine("%", valeur_arg_utf16)
+        diffère déloge(chemin)
+        
+        contenu := contenu_fichier_texte(chemin)
 
         parsat := parse_document(contenu)
         html.enveloppe_document.document = parsat.document
@@ -266,8 +270,7 @@ enveloppe_document_sur_création_enveloppe :: fonc (base: *Enveloppable @inutili
 
         texte := arguments[0].String.texte
 
-        chn := crée_chaine_utf16(texte)
-        diffère détruit_chaine(chn)
+        chn := donne_chaine_utf16(texte)
 
         élément := document.get_element_by_id(chn)
 
@@ -317,8 +320,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
 
         texte := arguments[0].String.texte
     
-        chn := crée_chaine_utf16(texte)
-        diffère détruit_chaine(chn)
+        chn := texte.donne_chaine_utf16()
 
         collection := élément.get_elements_by_class_name(chn)
 
@@ -346,7 +348,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
 
         texte := arguments[0].String.texte
     
-        chn := crée_chaine_internée(texte)
+        chn := crée_chaine_internée(imprime_chaine("%", texte.donne_chaine_utf16()))
 
         collection := élément.get_elements_by_tag_name(chn)
 
@@ -369,9 +371,9 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
         img := élément comme *HTMLImageElement
         src := img.donne_src()
 
-        str_src := crée_chaine(enveloppe.donne_tas_de_mémoire(), imprime_chaine("%", src))
+        str_src := crée_chaine(enveloppe.donne_tas_de_mémoire(), crée_chaine_utf16_unique(src))
 
-        enveloppe.ajoute_propriété("src", Valeur(String = str_src), faux, faux, faux)
+        enveloppe.ajoute_propriété(crée_chaine_utf16_unique("src"), Valeur(String = str_src), faux, faux, faux)
     }
 }
 
@@ -422,7 +424,7 @@ enveloppe_collection_sur_création_enveloppe :: fonc (base: *Enveloppable, envel
     collection := enveloppable.collection
 
     enveloppe.classe = EnveloppeHTMLCollection
-    enveloppe.ajoute_propriété("length", Valeur(Number = collection.éléments.taille comme r64), faux, faux, faux)
+    enveloppe.ajoute_propriété(crée_chaine_utf16_unique("length"), Valeur(Number = collection.éléments.taille comme r64), faux, faux, faux)
     enveloppe.ajoute_fonction_native("item", fonction_native_item)
 }
 

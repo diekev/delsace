@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 
 charge "arbre"
@@ -11,7 +12,7 @@ charge "realm"
 charge "script"
 charge "tas_de_mémoire"
 
-ECMAString :: chaine
+ECMAString :: ChaineUTF16Unique
 
 /* ------------------------------------------------------------------------- */
 /** \nom Valeur
@@ -331,7 +332,7 @@ to_boolean :: fonc (valeur: Valeur) -> Valeur
             // À FAIRE : NaN, 0ℤ
         }
         String(s) {
-            si s.texte == "" {
+            si s.texte == crée_chaine_utf16_unique("") {
                 retourne Valeur(Boolean = faux)
             }
         }
@@ -728,8 +729,8 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
     résultat.prototype = string_prototype
     résultat.chn = chn
 
-    résultat.ajoute_propriété("length", Valeur(Number = chn.texte.taille comme r64), faux, faux, faux)
-    résultat.ajoute_propriété("prototype", Valeur(Object = string_prototype), faux, faux, faux)
+    résultat.ajoute_propriété(crée_chaine_utf16_unique("length"), Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), faux, faux, faux)
+    résultat.ajoute_propriété(crée_chaine_utf16_unique("prototype"), Valeur(Object = string_prototype), faux, faux, faux)
 
     retourne résultat
 }
@@ -777,8 +778,8 @@ crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obj
 {
     résultat := tas_de_mémoire.alloue(StringPrototype)
     résultat.prototype = prototype
-    résultat.string_data = crée_chaine(tas_de_mémoire, "")
-    résultat.ajoute_propriété("length", Valeur(Number = 0.0), faux, faux, faux)
+    résultat.string_data = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))
+    résultat.ajoute_propriété(crée_chaine_utf16_unique("length"), Valeur(Number = 0.0), faux, faux, faux)
 
     retourne résultat
 }
@@ -947,6 +948,11 @@ ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: Type
     ajoute_propriété(objet, nom, Valeur(Function = fonction), faux, faux, faux)
 }
 
+ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonctionObjectCall)
+{
+    ajoute_fonction_native(objet, crée_chaine_utf16_unique(nom), sur_appel)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -957,7 +963,6 @@ PrimitiveChaine :: struct {
     empl cellule: Cellule
     classe = #type_de_cette_structure
     sur_visite_graphe = string_primitive_sur_visite_graphe
-    sur_destruction = sur_destruction_primitive_chaine
 
     texte: ECMAString
     objet: *Object
@@ -966,8 +971,13 @@ PrimitiveChaine :: struct {
 crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine
 {
     résultat := tas_de_mémoire.alloue(PrimitiveChaine)
-    résultat.texte = copie_chaine(texte)
+    résultat.texte = texte
     retourne résultat
+}
+
+crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: chaine) -> *PrimitiveChaine
+{
+    retourne crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(texte))
 }
 
 string_primitive_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
@@ -977,12 +987,6 @@ string_primitive_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *Visiteus
     si string_primitive.objet {
         sur_visite_graphe_objet(string_primitive.objet, visiteuse)
     }
-}
-
-sur_destruction_primitive_chaine :: fonc (base: *Cellule)
-{
-    primitive := base comme *PrimitiveChaine
-    déloge(primitive.texte)
 }
 
 /** \} */
@@ -1035,7 +1039,7 @@ crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Refe
 {
     résultat := tas_de_mémoire.alloue(ReferenceError)
     résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, message)
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
     retourne résultat
 }
 
@@ -1084,7 +1088,7 @@ crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeError
 {
     résultat := tas_de_mémoire.alloue(TypeError)
     résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, message)
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
     retourne résultat
 }
 

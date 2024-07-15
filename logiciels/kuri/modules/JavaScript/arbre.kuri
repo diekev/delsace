@@ -1,6 +1,6 @@
+importe Chaine
 importe Fondation
 importe Introspection
-
 
 /* ------------------------------------------------------------------------- */
 /** \nom NoeudSyntaxique
@@ -256,6 +256,11 @@ crée_identifier :: fonc (nom: ECMAString) -> *Identifier
     résultat := loge(Identifier)
     résultat.nom = nom
     retourne résultat
+}
+
+crée_identifier :: fonc (nom: chaine) -> *Identifier
+{
+    retourne crée_identifier(crée_chaine_utf16_unique(nom))
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-identifiers-runtime-semantics-evaluation */
@@ -822,6 +827,11 @@ crée_literal :: fonc (valeur: ECMAString) -> *StringLiteral
     résultat := loge(StringLiteral)
     résultat.valeur = valeur
     retourne résultat
+}
+
+crée_literal :: fonc (valeur: chaine) -> *StringLiteral
+{
+    retourne crée_literal(crée_chaine_utf16_unique(valeur))
 }
 
 sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord

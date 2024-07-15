@@ -1,3 +1,4 @@
+importe Chaine
 importe Ensemble
 importe Fondation
 
@@ -305,7 +306,7 @@ set_default_global_bindings :: fonc (realm: *Realm)
     // c. Perform ? DefinePropertyOrThrow(global, name, desc).
 
     // À FAIRE : DefinePropertyOrThrow
-    global.ajoute_propriété("globalThis", Valeur(Object = realm.global_environment.global_this_value), faux, faux, vrai)
+    global.ajoute_propriété(crée_chaine_utf16_unique("globalThis"), Valeur(Object = realm.global_environment.global_this_value), faux, faux, vrai)
 
     // 3. Return UNUSED.
 }
