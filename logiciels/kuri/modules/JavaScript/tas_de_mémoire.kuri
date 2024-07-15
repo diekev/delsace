@@ -15,6 +15,8 @@ TasDeMémoire :: struct {
     doit_ébouer_à_chaque_allocation := faux
     allocations_entre_ébouages := 1000
     allocations_depuis_dernier_ébouage := 0
+
+    imprime_statistiques := faux
 }
 
 détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
@@ -94,6 +96,31 @@ TypeÉbouage :: énum {
     réinitialise_bits_de_marquage(tas_de_mémoire)
     marque_cellules_vivantes(tas_de_mémoire, *cellules_vivantes)
     balaie_cellules_mortes(tas_de_mémoire)
+
+    si tas_de_mémoire.imprime_statistiques {
+        imprime("allocations_depuis_dernier_ébouage : %\n", tas_de_mémoire.allocations_depuis_dernier_ébouage)
+        imprime("nombre de blocs : %\n", tas_de_mémoire.blocs.taille)
+
+        blocs_pleins := 0
+        blocs_vides := 0
+        blocs_utilisables := 0
+
+        pour tas_de_mémoire.blocs {
+            si it.est_plein() {
+                blocs_pleins += 1
+            }
+            sinon si it.est_vide() {
+                blocs_vides += 1
+            }
+            sinon {
+                blocs_utilisables += 1
+            }
+        }
+
+        imprime("-- blocs pleins      : %\n", blocs_pleins)
+        imprime("-- blocs vides       : %\n", blocs_vides)
+        imprime("-- blocs utilisables : %\n", blocs_utilisables)
+    }
 
     tas_de_mémoire.allocations_depuis_dernier_ébouage = 0
 }
