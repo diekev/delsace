@@ -70,7 +70,7 @@ crée_texte_source :: fonc (texte: chaine) -> TexteSource
 
 Script :: struct {
     empl base: Cellule
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
     sur_destruction = sur_destruction_script
 
     source: TexteSource

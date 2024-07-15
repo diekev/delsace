@@ -96,7 +96,7 @@ DeclarativeEnvironment :: struct {
     empl base: Environment
 
     /* Cellule */
-    type = DeclarativeEnvironment
+    classe = #type_de_cette_structure
     sur_visite_graphe = environment_sur_visite_graphe
 
     /* Environment */
@@ -193,7 +193,7 @@ ObjectEnvironment :: struct {
     is_with_environment: bool
 
     /* Cellule */
-    type = ObjectEnvironment
+    classe = #type_de_cette_structure
     sur_visite_graphe = object_environment_sur_visite_graphe
 
     /* Environment */
@@ -340,7 +340,7 @@ GlobalEnvironment :: struct {
     empl base: Environment
 
     /* Cellule */
-    type = GlobalEnvironment
+    classe = #type_de_cette_structure
     sur_visite_graphe = global_environment_sur_visite_graphe
 
     /* Environment */
@@ -486,7 +486,7 @@ PrivateName :: struct {
 
 PrivateEnvironment :: struct {
     empl base: Cellule
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
 
     outer_private_environment: *PrivateEnvironment
     names: [..]*PrivateName

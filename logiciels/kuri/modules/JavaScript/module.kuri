@@ -62,11 +62,11 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
             ajoute_au_tampon(enchaineuse, n)
         }
         Object(o) {
-            si o.type == ReferenceError {
+            si o.classe == ReferenceError {
                 error := o comme *ReferenceError
                 ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
             }
-            sinon si o.type == TypeError {
+            sinon si o.classe == TypeError {
                 error := o comme *TypeError
                 ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
             }
@@ -477,7 +477,7 @@ TypeFonctionObjectCall :: fonc(*Object, &Interpréteuse, Valeur, []Valeur)(Compl
 
 Object :: struct {
     empl base: Cellule
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
     sur_destruction = sur_destruction_objet
     sur_visite_graphe = sur_visite_graphe_objet
 
@@ -716,7 +716,7 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
 
 ObjetChaine :: struct {
     empl objet: Object
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
     sur_visite_graphe = sur_visite_graphe_chaine
 
     chn: *PrimitiveChaine
@@ -749,7 +749,7 @@ sur_visite_graphe_chaine :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
 
 ObjectPrototype :: struct {
     empl objet: Object
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
 }
 
 crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectPrototype
@@ -767,7 +767,7 @@ crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectProto
 
 StringPrototype :: struct {
     empl objet: Object
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
     sur_visite_graphe = string_prototype_sur_visite_graphe
 
     string_data: *PrimitiveChaine
@@ -807,7 +807,7 @@ ThisMode :: énum {
 
 Function :: struct {
     empl objet: Object
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
 
     nom: ECMAString
     corps: *NoeudSyntaxique
@@ -916,7 +916,7 @@ call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeu
 
 sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
 {
-    assert(object.type == Function)
+    assert(object.classe == Function)
     fonction := object comme *Function
     retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
 }
@@ -929,7 +929,7 @@ sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpr�
 
 FunctionNative :: struct {
     empl function: Function
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
 }
 
 crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall) -> *FunctionNative
@@ -955,7 +955,7 @@ ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: Type
 
 PrimitiveChaine :: struct {
     empl cellule: Cellule
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
     sur_visite_graphe = string_primitive_sur_visite_graphe
     sur_destruction = sur_destruction_primitive_chaine
 
@@ -994,7 +994,7 @@ sur_destruction_primitive_chaine :: fonc (base: *Cellule)
 
 Error :: struct {
     empl objet: Object
-    type = Error
+    classe = #type_de_cette_structure
 }
 
 /** \} */
@@ -1006,7 +1006,7 @@ Error :: struct {
 
 ErrorPrototype :: struct {
     empl objet: Object
-    type = ErrorPrototype
+    classe = #type_de_cette_structure
 }
 
 crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ErrorPrototype
@@ -1025,7 +1025,7 @@ crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
 
 ReferenceError :: struct {
     empl error: Error
-    type = ReferenceError
+    classe = #type_de_cette_structure
     sur_visite_graphe = reference_error_sur_visite_graphe
 
     message: *PrimitiveChaine
@@ -1055,7 +1055,7 @@ reference_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *Visiteuse
 
 ReferenceErrorPrototype :: struct {
     empl objet: Object
-    type = ReferenceErrorPrototype
+    classe = #type_de_cette_structure
 }
 
 crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
@@ -1074,7 +1074,7 @@ crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, protot
 
 TypeError :: struct {
     empl error: Error
-    type = TypeError
+    classe = #type_de_cette_structure
     sur_visite_graphe = type_error_sur_visite_graphe
 
     message: *PrimitiveChaine
@@ -1115,7 +1115,7 @@ lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 
 TypeErrorPrototype :: struct {
     empl objet: Object
-    type = TypeErrorPrototype
+    classe = #type_de_cette_structure
 }
 
 crée_type_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *TypeErrorPrototype

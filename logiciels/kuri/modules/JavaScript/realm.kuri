@@ -90,7 +90,7 @@ rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
 
 ExecutionContext :: struct {
     empl base: Cellule
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
     sur_visite_graphe = execution_context_sur_visite_graphe
 
     realm: *Realm
@@ -183,7 +183,7 @@ RappelsHôte :: struct {
 
 Realm :: struct {
     empl base: Cellule
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
     sur_visite_graphe = realm_sur_visite_graphe
     sur_destruction = realm_sur_destruction
 

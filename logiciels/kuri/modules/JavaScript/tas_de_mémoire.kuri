@@ -330,7 +330,7 @@ opérateur pour :: fonc (bloc: *BlocDeMémoire) -> *Cellule
  * \{ */
 
 Cellule :: struct {
-    type := #type_de_cette_structure
+    classe := #type_de_cette_structure
     sur_destruction: fonc(*Cellule)(rien)
     sur_visite_graphe := cellule_sur_visite_graphe
 
@@ -340,7 +340,7 @@ Cellule :: struct {
 
 donne_nom_classe :: fonc (cellule: *Cellule) -> chaine
 {
-    infos := __table_des_types[cellule.type] comme *InfoTypeStructure
+    infos := __table_des_types[cellule.classe] comme *InfoTypeStructure
     retourne infos.nom
 }
 

@@ -188,7 +188,7 @@ console_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, envel
         retourne normal_completion(js_undefined)
     }
 
-    enveloppe.type = Console
+    enveloppe.classe = Console
     enveloppe.ajoute_fonction_native("log", fonction_native_log)
 }
 
@@ -229,7 +229,7 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
         retourne normal_completion(Valeur(Object = document))
     }
 
-    enveloppe.type = ObjetHTML
+    enveloppe.classe = ObjetHTML
     enveloppe.ajoute_fonction_native("ouvre_document", fonction_native_ouvre_document)
 }
 
@@ -282,7 +282,7 @@ enveloppe_document_sur_création_enveloppe :: fonc (base: *Enveloppable @inutili
         retourne normal_completion(Valeur(Object = objet_élément))
     }
 
-    enveloppe.type = EnveloppeDocument
+    enveloppe.classe = EnveloppeDocument
     enveloppe.ajoute_fonction_native("getElementById", fonction_native_get_element_by_id)
 }
 
@@ -361,7 +361,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
     enveloppe_élément := base comme *EnveloppeÉlément
     élément := enveloppe_élément.élément
 
-    enveloppe.type = EnveloppeÉlément
+    enveloppe.classe = EnveloppeÉlément
     enveloppe.ajoute_fonction_native("getElementsByClassName", fonction_native_get_element_by_class_name)
     enveloppe.ajoute_fonction_native("getElementsByTagName", fonction_native_get_element_by_tag_name)
 
@@ -421,7 +421,7 @@ enveloppe_collection_sur_création_enveloppe :: fonc (base: *Enveloppable, envel
     enveloppable := base comme *EnveloppeHTMLCollection
     collection := enveloppable.collection
 
-    enveloppe.type = EnveloppeHTMLCollection
+    enveloppe.classe = EnveloppeHTMLCollection
     enveloppe.ajoute_propriété("length", Valeur(Number = collection.éléments.taille comme r64), faux, faux, faux)
     enveloppe.ajoute_fonction_native("item", fonction_native_item)
 }

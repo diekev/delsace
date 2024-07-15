@@ -22,7 +22,7 @@ Enveloppable :: struct {
 
 Enveloppe :: struct {
     empl objet: Object
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
     sur_destruction = enveloppe_sur_destruction
 
     enveloppable: *Enveloppable
