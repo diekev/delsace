@@ -47,6 +47,8 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
         éboue(tas_de_mémoire)
     }
 
+    tas_de_mémoire.allocations_depuis_dernier_ébouage += 1
+
     pour tas_de_mémoire.blocs {
         si taille > it.taille_cellule {
             continue
@@ -68,8 +70,6 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
 
     bloc.tas_de_mémoire = tas_de_mémoire
     tableau_ajoute(*tas_de_mémoire.blocs, bloc)
-
-    tas_de_mémoire.allocations_depuis_dernier_ébouage += 1
 
     retourne bloc.alloue_cellule()
 }
