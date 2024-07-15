@@ -150,54 +150,386 @@ sauvegarde_fichier :: fonc (contenu: chaine)
     _ := écris(*fichier, contenu)
 }
 
+LogLevel :: énum {
+    LOG
+    WARN
+    ASSERT
+    DEBUG
+    ERROR
+    INFO
+    TIME_END
+    COUNT
+    COUNT_RESET
+}
+
 Console :: struct {
     empl enveloppable: Enveloppable
     sortie: *QT_PlainTextEdit
     sur_création_enveloppe = console_sur_création_enveloppe
 
     historique: chaine
+
+    Chronomètre :: struct {
+        nom: ECMAString
+        début: Instantané
+    }
+
+    chronomètres: [..]Chronomètre
+
+    Compteuse :: struct {
+        nom: ECMAString
+        compte: z32
+    }
+
+    compteuses: [..]Compteuse
+}
+
+/* https://console.spec.whatwg.org/#assert */
+assert :: fonc (console: *Console, interpréteuse: &Interpréteuse, condition: bool, arguments: []Valeur) -> CompletionRecord
+{
+    si condition {
+        retourne normal_completion(js_undefined)
+    }
+
+    nouveaux_arguments: [..]Valeur
+    tableau_réserve(*nouveaux_arguments, arguments.taille + 1)
+    diffère déloge(nouveaux_arguments)
+
+    si arguments.taille == 0 {
+        chn_message := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique("Assertion failed"))
+        tableau_ajoute(*nouveaux_arguments, Valeur(String = chn_message))
+    }
+    sinon {
+        chn_message := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique("Assertion failed:"))
+        tableau_ajoute(*nouveaux_arguments, Valeur(String = chn_message))
+
+        pour arguments {
+            tableau_ajoute(*nouveaux_arguments, it)
+        }
+    }
+
+    retourne logger(console, interpréteuse, LogLevel.ASSERT, nouveaux_arguments)
+}
+
+logger :: fonc (console: *Console, interpréteuse: &Interpréteuse, log_level: LogLevel, arguments: []Valeur) -> CompletionRecord
+{
+    retourne printer(console, interpréteuse, log_level, arguments)
+}
+
+printer :: fonc (console: *Console, interpréteuse: &Interpréteuse, log_level: LogLevel @inutilisée, arguments: []Valeur) -> CompletionRecord
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, console.historique)
+
+    virgule := ""
+    pour arguments {
+        complétion := vers_chaine(interpréteuse, it)
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+        valeur := complétion.valeur.V
+
+        ajoute_au_tampon(*enchaineuse, virgule, valeur.String.texte.donne_chaine_utf16())
+        virgule = " "
+    }
+    ajoute_au_tampon(*enchaineuse, "\n")
+
+    texte := chaine_depuis_enchaineuse(*enchaineuse)
+    déloge(console.historique)
+    console.historique = texte
+
+    qtexte := texte.vers_qt()
+
+    sortie := console.sortie
+    QT_plain_text_edit_definis_texte(sortie, *qtexte)
+
+    retourne normal_completion(js_undefined)
+}
+
+/* https://console.spec.whatwg.org/#time */
+time :: fonc (console: *Console, nom: ECMAString)
+{
+    pour console.chronomètres {
+        si it.nom == nom {
+            // À FAIRE : rapporte un avertissement
+            retourne
+        }
+    }
+
+    chronomètre: Console.Chronomètre
+    chronomètre.nom = nom
+    chronomètre.début = maintenant_précis()
+    tableau_ajoute(*console.chronomètres, chronomètre)
+}
+
+/* https://console.spec.whatwg.org/#timeend */
+time_end :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString) -> CompletionRecord
+{
+    résultat := normal_completion(js_undefined)
+
+    index_chronomètre : z64 = -1
+
+    pour console.chronomètres {
+        si it.nom != nom {
+            continue
+        }
+
+        temps := it.début.temps_écoulé_millisecondes()
+
+        chn_temps := imprime_chaine("%: % ms", nom, temps)
+
+        valeur_chn_temps := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(chn_temps)))
+
+        arguments: []Valeur
+        arguments.pointeur = *valeur_chn_temps
+        arguments.taille = 1
+
+        résultat = printer(console, interpréteuse, LogLevel.TIME_END, arguments)
+        index_chronomètre = index_it
+
+        déloge(chn_temps)
+        arrête
+    }
+    sansarrêt {
+        retourne résultat
+    }
+
+    tableau_supprime_index(*console.chronomètres, index_chronomètre)
+    retourne résultat
+}
+
+/* https://console.spec.whatwg.org/#count */
+count :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString)
+{
+    compteuse: Console.Compteuse
+
+    // 1. Let map be the associated count map.
+    // 2. If map[label] exists, set map[label] to map[label] + 1.
+    pour & console.compteuses {
+            si it.nom == nom {
+            it.compte += 1
+            compteuse = it
+            arrête
+        }
+    }
+    sansarrêt {
+        // 3. Otherwise, set map[label] to 1.
+        compteuse.nom = nom
+        compteuse.compte = 1
+        tableau_ajoute(*console.compteuses, compteuse)
+    }
+
+    // 4. Let concat be the concatenation of label, U+003A (:), U+0020 SPACE, and ToString(map[label]).
+    concat := imprime_chaine("%: %", nom, compteuse.compte)
+    diffère déloge(concat)
+
+    valeur_concat := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(concat)))
+
+    // 5. Perform Logger("count", « concat »).
+    arguments: []Valeur
+    arguments.pointeur = *valeur_concat
+    arguments.taille = 1
+
+    _ := printer(console, interpréteuse, LogLevel.COUNT, arguments)
+}
+
+/* https://console.spec.whatwg.org/#countreset */
+count_reset :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString)
+{
+    // 1. Let map be the associated count map.
+    // 2. If map[label] exists, set map[label] to 0.
+    pour & console.compteuses {
+        si it.nom == nom {
+            it.compte = 0
+            retourne
+        }
+    }
+
+    // 3. Otherwise:
+
+    // 1. Let message be a string without any formatting specifiers indicating
+    //    generically that the given label does not have an associated count.
+    message := imprime_chaine("Unknown counter '%'", nom)
+    diffère déloge(message)
+
+    chn_message := crée_chaine_utf16_unique(message)
+    valeur_message := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), chn_message))
+
+    // 2. Perform Logger("countReset", « message »);
+    arguments: []Valeur
+    arguments.pointeur = *valeur_message
+    arguments.taille = 1
+
+    _ := printer(console, interpréteuse, LogLevel.COUNT_RESET, arguments)
 }
 
 console_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
 {
+    /* https://console.spec.whatwg.org/#log */
     fonction_native_log :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
     {
         envellope_console := this_value.donne_objet() comme *Enveloppe
         console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.LOG, arguments)
+    }
 
-        enchaineuse: Enchaineuse
-        initialise_enchaineuse(*enchaineuse)
-        diffère détruit_tampons(*enchaineuse)
+    /* https://console.spec.whatwg.org/#warn */
+    fonction_native_warn :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.WARN, arguments)
+    }
 
-        ajoute_au_tampon(*enchaineuse, console.historique)
+    /* https://console.spec.whatwg.org/#debug */
+    fonction_native_debug :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.DEBUG, arguments)
+    }
 
-        virgule := ""
-        pour arguments {
-            complétion := vers_chaine(interpréteuse, it)
-            saufsi complétion.est_normal() {
-                retourne complétion
-            }
-            valeur := complétion.valeur.V
+    /* https://console.spec.whatwg.org/#info */
+    fonction_native_info :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.INFO, arguments)
+    }
 
-            ajoute_au_tampon(*enchaineuse, virgule, valeur.String.texte.donne_chaine_utf16())
-            virgule = " "
-        }
-        ajoute_au_tampon(*enchaineuse, "\n")
+    /* https://console.spec.whatwg.org/#error */
+    fonction_native_error :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.ERROR, arguments)
+    }
 
-        texte := chaine_depuis_enchaineuse(*enchaineuse)
-        déloge(console.historique)
-        console.historique = texte
-
-        qtexte := texte.vers_qt()
-
+    /* https://console.spec.whatwg.org/#clear */
+    fonction_native_clear :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur, arguments: []Valeur @inutilisée) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
         sortie := console.sortie
+        qtexte := "".vers_qt()
         QT_plain_text_edit_definis_texte(sortie, *qtexte)
+        retourne normal_completion(js_undefined)
+    }
+
+    /* https://console.spec.whatwg.org/#assert */
+    fonction_native_assert :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        condition := to_boolean(arguments[0]).Boolean
+
+        arguments.pointeur += 1
+        arguments.taille -= 1
+
+        retourne assert(console, interpréteuse, condition, arguments)
+    }
+
+    fonction_native_time :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+
+        console.time(nom)
+
+        retourne normal_completion(js_undefined)
+    }
+
+    fonction_native_time_end :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+        retourne console.time_end(interpréteuse, nom)
+    }
+
+    fonction_native_count :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+
+        console.count(interpréteuse, nom)
+
+        retourne normal_completion(js_undefined)
+    }
+
+    fonction_native_count_reset :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+
+        console.count_reset(interpréteuse, nom)
 
         retourne normal_completion(js_undefined)
     }
 
     enveloppe.classe = Console
     enveloppe.ajoute_fonction_native("log", fonction_native_log)
+    enveloppe.ajoute_fonction_native("warn", fonction_native_warn)
+    enveloppe.ajoute_fonction_native("debug", fonction_native_debug)
+    enveloppe.ajoute_fonction_native("info", fonction_native_info)
+    enveloppe.ajoute_fonction_native("error", fonction_native_error)
+    enveloppe.ajoute_fonction_native("clear", fonction_native_clear)
+    enveloppe.ajoute_fonction_native("assert", fonction_native_assert)
+    enveloppe.ajoute_fonction_native("time", fonction_native_time)
+    enveloppe.ajoute_fonction_native("timeEnd", fonction_native_time_end)
+    enveloppe.ajoute_fonction_native("count", fonction_native_count)
+    enveloppe.ajoute_fonction_native("countReset", fonction_native_count_reset)
 }
 
 /* ------------------------------------------------------------------------- */
