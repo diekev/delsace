@@ -627,7 +627,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             parseuse.consomme()
 
             propriété := crée_identifier(lexème.texte)
-            retourne crée_member_expression(gauche, propriété)
+            retourne crée_member_expression(gauche, propriété, faux)
         }
         ParenthèseOuvrante {
             parseuse.consomme()
@@ -645,6 +645,19 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             parseuse.consomme()
 
             retourne crée_call_expression(gauche, ...arguments)
+        }
+        CrochetOuvrant {
+            parseuse.consomme()
+
+            propriété := parseuse.parse_expression()
+
+            saufsi parseuse.apparie(GenreLexème.CrochetFermant) {
+                parseuse.rapporte_erreur("Attendu un crochet fermant à la fin de l'expression d'appel")
+                retourne nul
+            }
+            parseuse.consomme()
+
+            retourne crée_member_expression(gauche, propriété, vrai)
         }
         sinon {
             rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")

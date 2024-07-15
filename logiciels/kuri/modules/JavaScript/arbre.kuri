@@ -1254,11 +1254,12 @@ MemberExpression :: struct {
     calculé := faux
 }
 
-crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique) -> *MemberExpression
+crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique, calculé: bool) -> *MemberExpression
 {
     résultat := loge(MemberExpression)
     résultat.objet = objet
     résultat.propriété = propriété
+    résultat.calculé = calculé
     retourne résultat
 }
 
@@ -1266,11 +1267,6 @@ crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyn
 sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     membre := base comme *MemberExpression
-
-    assert(membre.propriété.type == Identifier)
-    identifier := membre.propriété comme *Identifier
-
-    // MemberExpression : MemberExpression . IdentifierName
 
     // 1. Let baseReference be ? Evaluation of MemberExpression.
     completion_base_reference := exécute_noeud(membre.objet, interpréteuse)
@@ -1290,7 +1286,46 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     // À FAIRE : strict
     strict := faux
 
+    si membre.calculé {
+        // MemberExpression : MemberExpression [ Expression ]
+        retourne evaluate_property_access_with_expression_key(interpréteuse, base_value, membre.propriété, strict)
+    }
+
+    // MemberExpression : MemberExpression . IdentifierName
+    assert(membre.propriété.type == Identifier)
+    identifier := membre.propriété comme *Identifier
+
     retourne evaluate_property_access_with_identifier_key(interpréteuse, base_value, identifier, strict)
+}
+
+/* 13.3.3 EvaluatePropertyAccessWithExpressionKey ( baseValue, expression, strict )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluate-property-access-with-expression-key */
+evaluate_property_access_with_expression_key :: fonc (interpréteuse: &Interpréteuse, base_value: Valeur, expression: *NoeudSyntaxique, strict: bool) -> CompletionRecord
+{
+    // 1. Let propertyNameReference be ? Evaluation of expression.
+    completion_expression := exécute_noeud(expression, interpréteuse)
+    saufsi completion_expression.est_normal() {
+        retourne completion_expression
+    }
+    property_name_reference := completion_expression.valeur
+
+    // 2. Let propertyNameValue be ? GetValue(propertyNameReference).
+    completion_value := get_value(interpréteuse, property_name_reference)
+    saufsi completion_value.est_normal() {
+        retourne completion_value
+    }
+    property_name_value := completion_value.valeur.V
+
+    // 3. NOTE: In most cases, ToPropertyKey will be performed on propertyNameValue
+    //    immediately after this step. However, in the case of a[b] = c, it will
+    //    not be performed until after evaluation of c.
+
+    // 4. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyNameValue, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
+    résultat: ReferenceRecord
+    résultat.base = base_value
+    résultat.referenced_name = property_name_value
+    résultat.strict = strict
+    retourne normal_completion(résultat)
 }
 
 /* 13.3.4 EvaluatePropertyAccessWithIdentifierKey ( baseValue, identifierName, strict )
