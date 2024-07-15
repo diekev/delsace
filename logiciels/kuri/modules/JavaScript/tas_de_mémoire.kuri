@@ -1,7 +1,7 @@
 importe Ensemble
 importe Fondation
 
-DÉBOGUGE_MÉMOIRE :: vrai
+DÉBOGUGE_MÉMOIRE :: faux
 
 /* ------------------------------------------------------------------------- */
 /** \nom TasDeMémoire
