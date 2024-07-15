@@ -31,7 +31,7 @@ BigInt :: struct {
     valeur: z64
 }
 
-big_int_equal :: fonc (x: Valeur, y: Valeur) -> bool
+big_int_equal :: fonc (x: Valeur @inutilisée, y: Valeur @inutilisée) -> bool
 {
     panique("big_int equal non-implémenté")
 }
@@ -325,7 +325,7 @@ vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
 
 /* 7.1.1 ToPrimitive ( input [ , preferredType ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toprimitive */
-vers_primitive :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
+vers_primitive :: fonc (interpréteuse: &Interpréteuse @inutilisée, valeur: Valeur, type_préféré := TypePréféré.Aucun @inutilisée) -> CompletionRecord
 {
     // 1. If input is an Object, then
     si valeur.est_object() {
