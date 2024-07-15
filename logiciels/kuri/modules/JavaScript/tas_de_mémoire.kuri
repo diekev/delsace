@@ -20,7 +20,7 @@ TasDeMémoire :: struct {
 détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
 {
     pour tas_de_mémoire.blocs {
-        déloge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, it, info_de(BlocDeMémoire), PositionCodeSource())
+        détruit_bloc(it)
     }
 
     déloge(tas_de_mémoire.blocs)
@@ -221,6 +221,10 @@ balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
         imprime("%\n", #nom_de_cette_fonction)
     }
 
+    blocs_utilisables: [..]*BlocDeMémoire
+    blocs_vides: [..]*BlocDeMémoire
+    diffère déloge(blocs_vides)
+
     pour tas_de_mémoire.blocs {
         pour cellule dans it {
             si cellule.vivante && !cellule.marqué {
@@ -230,6 +234,20 @@ balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
                 }
             }
         }
+
+        si it.est_vide() {
+            tableau_ajoute(*blocs_vides, it)
+        }
+        sinon {
+            tableau_ajoute(*blocs_utilisables, it)
+        }
+    }
+
+    déloge(tas_de_mémoire.blocs)
+    tas_de_mémoire.blocs = blocs_utilisables
+
+    pour blocs_vides {
+        détruit_bloc(it)
     }
 }
 
@@ -252,6 +270,8 @@ BlocDeMémoire :: struct {
     }
 
     liste_libre: *EntréeListeLibre
+
+    cellules_disponibles: n64
 }
 
 initialise_bloc :: fonc (bloc: *BlocDeMémoire, taille_cellule: n64)
@@ -271,11 +291,32 @@ initialise_bloc :: fonc (bloc: *BlocDeMémoire, taille_cellule: n64)
     }
 
     bloc.liste_libre = bloc.donne_cellule(0) comme *BlocDeMémoire.EntréeListeLibre
+    bloc.cellules_disponibles = bloc.nombre_de_cellules()
 }
 
-nombre_de_cellules :: fonc (bloc: *BlocDeMémoire) -> n64
+détruit_bloc :: fonc (bloc: *BlocDeMémoire)
+{
+    déloge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, bloc, info_de(BlocDeMémoire), PositionCodeSource())
+}
+
+nombre_de_cellules :: fonc (bloc: *BlocDeMémoire) -> n64 #enligne
 {
     retourne (BlocDeMémoire.TAILLE_BLOC - taille_de(BlocDeMémoire)) / bloc.taille_cellule
+}
+
+est_plein :: fonc (bloc: *BlocDeMémoire) -> bool #enligne
+{
+    retourne bloc.cellules_disponibles == 0
+}
+
+est_vide :: fonc (bloc: *BlocDeMémoire) -> bool #enligne
+{
+    retourne bloc.cellules_disponibles == bloc.nombre_de_cellules()
+}
+
+est_utilisable :: fonc (bloc: *BlocDeMémoire) -> bool #enligne
+{
+    retourne bloc.cellules_disponibles < bloc.nombre_de_cellules()
 }
 
 donne_cellule :: fonc (bloc: *BlocDeMémoire, index: n64) -> *Cellule
@@ -289,6 +330,8 @@ alloue_cellule :: fonc (bloc: *BlocDeMémoire) -> *Cellule
     saufsi bloc.liste_libre {
         retourne nul
     }
+
+    bloc.cellules_disponibles -= 1
 
     résultat := bloc.liste_libre
     bloc.liste_libre = bloc.liste_libre.suivante
@@ -306,6 +349,8 @@ désalloue :: fonc (bloc: *BlocDeMémoire, cellule: *Cellule)
     entrée.vivante = faux
     entrée.suivante = bloc.liste_libre
     bloc.liste_libre = entrée
+
+    bloc.cellules_disponibles += 1
 }
 
 opérateur pour :: fonc (bloc: *BlocDeMémoire) -> *Cellule
