@@ -4,6 +4,7 @@ importe HTML
 importe JavaScript
 importe Qt
 importe SysFichier
+importe Temps
 
 /* ------------------------------------------------------------------------- */
 /** \nom Fonction principale.
@@ -464,6 +465,8 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
 
     sauvegarde_fichier(contenu)
 
+    début := maintenant_précis()
+
     mv: MachineVirtuelle
     diffère détruit_données_mv(*mv)
     initialise_mv(*mv)
@@ -496,7 +499,7 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
 
     résultat := script_evaluation(script)
 
-    texte_résultat := imprime_chaine("%\n", get_value(realm, résultat.valeur))
+    texte_résultat := imprime_chaine("%\n\nTemps d'exécution : % ms\n", get_value(realm, résultat.valeur), début.temps_écoulé_millisecondes())
     diffère déloge(texte_résultat)
 
     chn := texte_résultat.vers_qt()
