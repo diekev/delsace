@@ -1,0 +1,55 @@
+importe Chaine
+importe Compilatrice
+importe Fondation
+
+/* Fichier déclarant des chaines connues lors de la compilation. */
+
+STR_boolean: ChaineUTF16Unique = ---
+STR_function: ChaineUTF16Unique = ---
+STR_globalThis: ChaineUTF16Unique = ---
+STR_length: ChaineUTF16Unique = ---
+STR_number: ChaineUTF16Unique = ---
+STR_object: ChaineUTF16Unique = ---
+STR_prototype: ChaineUTF16Unique = ---
+STR_string: ChaineUTF16Unique = ---
+STR_undefined: ChaineUTF16Unique = ---
+
+/* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
+ * métaprogrammes plus bas. */
+terminologie_initialisée := faux
+
+initialise_terminologie :: fonc ()
+#corps_texte {
+    retourne génère_fonction_pour_tags()
+}
+
+#ajoute_init initialise_terminologie()
+
+génère_fonction_pour_tags :: fonc () -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "    si terminologie_initialisée { retourne }\n")
+    ajoute_au_tampon(*enchaineuse, "    terminologie_initialisée = vrai\n")
+
+    lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
+
+    pour lexèmes {
+        si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
+            continue
+        }
+
+        si it.texte == "terminologie_initialisée" {
+            arrête
+        }
+
+        si it.texte.commence_par("STR_") {
+            nom_chn := it.texte.avance(4)
+            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_chn, "\")\n")
+        }
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}

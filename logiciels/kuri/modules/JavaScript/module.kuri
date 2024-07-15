@@ -11,6 +11,7 @@ charge "parsage"
 charge "realm"
 charge "script"
 charge "tas_de_mémoire"
+charge "terminologie"
 
 ECMAString :: ChaineUTF16Unique
 
@@ -729,8 +730,8 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
     résultat.prototype = string_prototype
     résultat.chn = chn
 
-    résultat.ajoute_propriété(crée_chaine_utf16_unique("length"), Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), faux, faux, faux)
-    résultat.ajoute_propriété(crée_chaine_utf16_unique("prototype"), Valeur(Object = string_prototype), faux, faux, faux)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), faux, faux, faux)
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), faux, faux, faux)
 
     retourne résultat
 }
@@ -779,7 +780,7 @@ crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obj
     résultat := tas_de_mémoire.alloue(StringPrototype)
     résultat.prototype = prototype
     résultat.string_data = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))
-    résultat.ajoute_propriété(crée_chaine_utf16_unique("length"), Valeur(Number = 0.0), faux, faux, faux)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), faux, faux, faux)
 
     retourne résultat
 }
@@ -973,11 +974,6 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *Pr
     résultat := tas_de_mémoire.alloue(PrimitiveChaine)
     résultat.texte = texte
     retourne résultat
-}
-
-crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: chaine) -> *PrimitiveChaine
-{
-    retourne crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(texte))
 }
 
 string_primitive_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
