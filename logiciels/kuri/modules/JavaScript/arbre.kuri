@@ -1701,7 +1701,10 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
         retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_string))
     }
 
-    // À FAIRE : 7. If val is a Symbol, return "symbol".
+    // 7. If val is a Symbol, return "symbol".
+    si valeur.est_symbol() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_symbol))
+    }
 
     // 8. If val is a Boolean, return "boolean".
     si valeur.est_boolean() {

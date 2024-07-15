@@ -19,8 +19,8 @@ is_property_key :: fonc (referenced_name: ReferencedName) -> bool
 {
     discr referenced_name {
         valeur(v) {
-            // À FAIRE: Symbol
-            retourne v.est_chaine()
+            // À FAIRE: property_key
+            retourne v.est_chaine() || v.est_symbol()
         }
         nom {
             retourne vrai

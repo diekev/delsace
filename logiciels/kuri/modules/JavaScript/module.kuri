@@ -36,6 +36,18 @@ big_int_equal :: fonc (x: Valeur, y: Valeur) -> bool
     panique("big_int equal non-implémenté")
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom 6.1.5 The Symbol Type
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types-symbol-type
+ * \{ */
+
+Symbol :: struct {
+    /* Soit undefined ou une chaine. */
+    description: Optionnel(ECMAString)
+}
+
+/** \} */
+
 Valeur :: union {
     Undefined: UndefinedType
     Null: NullType
@@ -43,7 +55,7 @@ Valeur :: union {
     Number: r64
     BigInt: BigInt
     String: *PrimitiveChaine
-    // Symbol
+    Symbol: *Symbol
     Function: *Function
     Object: *Object
 }
@@ -257,6 +269,18 @@ est_big_int :: fonc (valeur: Valeur) -> bool
     }
 }
 
+est_symbol :: fonc (valeur: Valeur) -> bool
+{
+    discr valeur {
+        Symbol {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 concatène :: fonc (str_gauche: ECMAString, str_droite: ECMAString) -> Valeur
 {
     résultat := enchaine(str_gauche, str_droite)
@@ -397,6 +421,9 @@ vers_nombre :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> Complet
     }
 
     // 2. If argument is either a Symbol or a BigInt, throw a TypeError exception.
+    si valeur.est_symbol() {
+        retourne lance_type_error(interpréteuse, "can't convert Symbol to number")
+    }
     si valeur.est_big_int() {
         retourne lance_type_error(interpréteuse, "can't convert BigInt to number")
     }
