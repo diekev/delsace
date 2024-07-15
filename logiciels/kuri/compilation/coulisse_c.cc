@@ -695,6 +695,11 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             }
 
             type_c.code_machine_fut_généré = true;
+
+#ifdef IMPRIME_COMMENTAIRE
+            enchaineuse << "// " << __func__ << " : " << chaine_type(type) << "\n";
+#endif
+
             POUR (type_composé->membres) {
                 if (it.type->est_type_pointeur()) {
                     continue;
@@ -724,6 +729,9 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         {
             auto type_union = type->comme_type_union();
             type_c.code_machine_fut_généré = true;
+#ifdef IMPRIME_COMMENTAIRE
+            enchaineuse << "// " << __func__ << " : " << chaine_type(type) << "\n";
+#endif
             POUR (type_union->membres) {
                 génère_code_pour_type(it.type, enchaineuse);
             }
@@ -733,6 +741,9 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto tableau_fixe = type->comme_type_tableau_fixe();
+#ifdef IMPRIME_COMMENTAIRE
+            enchaineuse << "// " << __func__ << " : " << chaine_type(type) << "\n";
+#endif
             génère_code_pour_type(tableau_fixe->type_pointé, enchaineuse);
             auto nom_broyé = génératrice_code.donne_nom_pour_type(type);
             kuri::chaine_statique préfixe = "";
@@ -815,6 +826,11 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 void ConvertisseuseTypeC::génère_déclaration_structure(
     Enchaineuse &enchaineuse, const NoeudDéclarationTypeComposé *type_composé)
 {
+#ifdef IMPRIME_COMMENTAIRE
+    enchaineuse << "// " << chaine_type(type_composé) << " (" << type_composé->genre << ')'
+                << '\n';
+#endif
+
     auto nom_type = génératrice_code.donne_nom_pour_type(type_composé);
     kuri::chaine_statique préfixe = "";
     auto nom_type_broyé = nom_type;
