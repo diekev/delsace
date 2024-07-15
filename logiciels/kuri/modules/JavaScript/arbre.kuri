@@ -1482,16 +1482,16 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
             }
         }
 
-        si for.update {
-            doit_continuer := exécute_noeud(for.update, interpréteuse)
-            saufsi doit_continuer.est_normal() {
-                retourne doit_continuer
-            }
-        }
-
         doit_continuer := exécute_noeud(for.body, interpréteuse)
         saufsi doit_continuer.est_normal() {
             retourne doit_continuer
+        }
+
+        si for.update {
+            doit_continuer = exécute_noeud(for.update, interpréteuse)
+            saufsi doit_continuer.est_normal() {
+                retourne doit_continuer
+            }
         }
     }
 
