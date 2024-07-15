@@ -298,7 +298,7 @@ EnveloppeÉlément :: struct {
     élément: *Élément
 }
 
-enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, enveloppe: *Enveloppe)
 {
     fonction_native_get_element_by_class_name :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
     {
@@ -315,14 +315,114 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable @inutil
         }
 
         texte := arguments[0].String.texte
+    
+        chn := crée_chaine_utf16(texte)
+        diffère détruit_chaine(chn)
 
-        imprime("getElementsByClassName : %\n", texte)
+        collection := élément.get_elements_by_class_name(chn)
 
-        retourne normal_completion(js_null)
+        enveloppe_collection := loge(EnveloppeHTMLCollection)
+        enveloppe_collection.collection = collection
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        résultat := crée_enveloppe(tas_de_mémoire, enveloppe_collection)
+        retourne normal_completion(Valeur(Object = résultat))
     }
+
+    fonction_native_get_element_by_tag_name :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_élément := envellope.enveloppable comme *EnveloppeÉlément
+        élément := enveloppe_élément.élément
+
+        si arguments.taille != 1 {
+            retourne lance_type_error(interpréteuse, "getElementsByTagName requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+    
+        chn := crée_chaine_internée(texte)
+
+        collection := élément.get_elements_by_tag_name(chn)
+
+        enveloppe_collection := loge(EnveloppeHTMLCollection)
+        enveloppe_collection.collection = collection
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        résultat := crée_enveloppe(tas_de_mémoire, enveloppe_collection)
+        retourne normal_completion(Valeur(Object = résultat))
+    }
+
+    enveloppe_élément := base comme *EnveloppeÉlément
+    élément := enveloppe_élément.élément
 
     enveloppe.type = EnveloppeÉlément
     enveloppe.ajoute_fonction_native("getElementsByClassName", fonction_native_get_element_by_class_name)
+    enveloppe.ajoute_fonction_native("getElementsByTagName", fonction_native_get_element_by_tag_name)
+
+    si élément.texte == TAG_img {
+        img := élément comme *HTMLImageElement
+        src := img.donne_src()
+
+        str_src := crée_chaine(enveloppe.donne_tas_de_mémoire(), imprime_chaine("%", src))
+
+        enveloppe.ajoute_propriété("src", Valeur(String = str_src), faux, faux, faux)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeHTMLCollection
+ * \{ */
+
+EnveloppeHTMLCollection :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = enveloppe_collection_sur_création_enveloppe
+
+    collection: *HTMLCollection
+}
+
+enveloppe_collection_sur_création_enveloppe :: fonc (base: *Enveloppable, enveloppe: *Enveloppe)
+{
+    fonction_native_item :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_collection := envellope.enveloppable comme *EnveloppeHTMLCollection
+        collection := enveloppe_collection.collection
+
+        si arguments.taille != 1 {
+            retourne lance_type_error(interpréteuse, "item requiers 1 argument")
+        }
+
+        completion_index := vers_nombre(interpréteuse, arguments[0])
+        saufsi completion_index.est_normal() {
+            retourne completion_index
+        }
+        index := completion_index.valeur.V.Number comme z64
+
+        si index < 0 || index >= collection.éléments.taille {
+            retourne normal_completion(js_null)
+        }
+
+        enveloppe_élément := loge(EnveloppeÉlément)
+        enveloppe_élément.élément = collection.éléments[index]
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        objet_élément := crée_enveloppe(tas_de_mémoire, enveloppe_élément)
+        retourne normal_completion(Valeur(Object = objet_élément))
+    }
+
+    enveloppable := base comme *EnveloppeHTMLCollection
+    collection := enveloppable.collection
+
+    enveloppe.type = EnveloppeHTMLCollection
+    enveloppe.ajoute_propriété("length", Valeur(Number = collection.éléments.taille comme r64), faux, faux, faux)
+    enveloppe.ajoute_fonction_native("item", fonction_native_item)
 }
 
 /** \} */
