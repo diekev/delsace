@@ -316,8 +316,23 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
     }
 
     // À FAIRE : 6.
+    {
+        // ...
 
-    entry.document_state.document = load_a_document(navigation_params, source_snapshot_params, Origin())
+        // 6.
+        entry.document_state.document = load_a_document(navigation_params, source_snapshot_params, Origin())
+
+        // 7. If entry's document state's document is not null, then:
+        si entry.document_state.document != nul {
+            // 1. Set entry's document state's ever populated to true.
+            entry.document_state.ever_populated = vrai
+
+            // À FAIRE : 2. 3.
+        }
+
+        // À FAIRE : 8. Run completionSteps.
+        navigable.active_session_history_entry = entry
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
@@ -447,12 +462,35 @@ create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
 
         // 5. If fetchController is null, then set fetchController to the result of fetching request, with processEarlyHintsResponse set to processEarlyHintsResponse as defined below, processResponse set to processResponse as defined below, and useParallelQueue set to true.
         si fetch_controller == nul {
-            //     Let processEarlyHintsResponse be the following algorithm given a response earlyResponse:
+            // À FAIRE :    Let processEarlyHintsResponse be the following algorithm given a response earlyResponse:
             //     1. If commitEarlyHints is null, then set commitEarlyHints to the result of processing early hint headers given earlyResponse and request's reserved client.
 
-            //     Let processResponse be the following algorithm given a response fetchedResponse:
+            // Let processResponse be the following algorithm given a response fetchedResponse:
             //     1. Set response to fetchedResponse.
-            fetch_controller = fetch(request)
+            RappelProcessResponse :: struct {
+                empl base: BaseProcessResponse
+
+                réponse: **Response
+            }
+
+            sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
+            {
+                rappel := base comme *RappelProcessResponse
+                mémoire(rappel.réponse) = réponse
+            }
+
+            sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
+            {
+                rappel := base comme *RappelProcessResponse
+                déloge(rappel)
+            }
+
+            process_response := loge(RappelProcessResponse)
+            process_response.réponse = *response
+            process_response.sur_rappel = sur_rappel_process_response
+            process_response.sur_destruction = sur_destruction_process_response
+
+            fetch_controller = fetch(request, process_response = process_response)
         }
         // 6. Otherwise, process the next manual redirect for fetchController.
         sinon {
@@ -613,9 +651,13 @@ load_a_document :: fonc (navigation_params: *NavigationParams, source_snapshot_p
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/document-lifecycle.html#navigate-html */
 load_an_html_document :: fonc (navigation_params: *NavigationParams) -> *Document
 {
-    panique("load_an_html_document non-implémenté")
+    // À FAIRE : implémente proprement
+    response := navigation_params.response
+    document := parse_document(response.body.Quelque).document
+    retourne document
 }
 
 /** } */

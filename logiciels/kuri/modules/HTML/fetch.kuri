@@ -1,5 +1,6 @@
 importe Fondation
 importe Internet
+importe SysFichier
 
 /* ------------------------------------------------------------------------- */
 /** \nom 2.2.5 Request
@@ -117,6 +118,10 @@ donne_url :: fonc (response: *Response) -> Optionnel(URI)
 
 donne_mime_type :: fonc (response: *Response) -> chaine
 {
+    si response.body_info {
+        retourne response.body_info.content_type
+    }
+
     imprime("À FAIRE : %\n", #nom_de_cette_fonction)
     retourne ""
 }
@@ -520,10 +525,19 @@ main_fetch :: fonc (fetch_params: *FetchParams, recursive := faux) -> *Response
         // 4. Fully read response’s body given processBody and processBodyError.
 
     // 23. Otherwise, run fetch response handover given fetchParams and response.
-
+    response_handover(fetch_params, response)
 
     // Non-spécifié
     retourne response
+}
+
+/* https://fetch.spec.whatwg.org/#fetch-finale */
+response_handover :: fonc (fetch_params: *FetchParams, response: *Response)
+{
+    // À FAIRE : implémente
+    si fetch_params.process_response {
+        fetch_params.process_response.sur_rappel(fetch_params.process_response, response)
+    }
 }
 
 /** \} */
@@ -553,7 +567,26 @@ scheme_fetch :: fonc (fetch_params: *FetchParams) -> *Response
         panique("data non-implémenté")
     }
     sinon si schéma == "file" {
-        panique("file non-implémenté")
+        chemin := CheminFichier(request.donne_url_courant().chemin)
+
+        /* À FAIRE : permissions. */
+        si est_un_fichier_régulier(chemin) && chemin.extension() == ".html" {
+            contenu := contenu_fichier_texte(chemin)
+
+            response := loge(Response)
+            response.status = 200
+
+            body_info := loge(ResponseBodyInfo)
+            body_info.decodede_size = contenu.taille comme z32
+            body_info.content_type = "text/html"
+
+            response.body_info = body_info
+            response.body = contenu
+
+            retourne response
+        }
+
+        retourne network_error()
     }
     sinon si schéma == "http" || schéma == "https" {
         panique("http(s) non-implémenté")

@@ -69,8 +69,8 @@ Navigable :: struct {
 
     id: IDNavigable
     parent: *Navigable
-    current_session_history_entry: SessionHistoryEntry
-    active_session_history_entry: SessionHistoryEntry
+    current_session_history_entry: *SessionHistoryEntry
+    active_session_history_entry: *SessionHistoryEntry
     is_closing: bool
     is_delaying_load_events: bool
 }
@@ -81,7 +81,7 @@ initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentSt
     assert(document_state.document != nul)
 
     // 2. Let entry be a new session history entry, with
-    entry: SessionHistoryEntry
+    entry := loge(SessionHistoryEntry)
     entry.url = document_state.document.url
     entry.document_state = document_state
 
@@ -97,7 +97,7 @@ initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentSt
 
 donne_active_document :: fonc (navigable: *Navigable) -> *Document
 {
-    retourne donne_document(*navigable.active_session_history_entry)
+    retourne donne_document(navigable.active_session_history_entry)
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-bc */
@@ -126,7 +126,7 @@ TraversableNavigable :: struct {
     type = #type_de_cette_structure
 
     // A current session history step, a number, initially 0.
-    session_history_entries: [..]SessionHistoryEntry
+    session_history_entries: [..]*SessionHistoryEntry
     // A session history traversal queue, a session history traversal parallel queue, the result of starting a new session history traversal parallel queue.
     // A running nested apply history step boolean, initially false.
     // A system visibility state, which is either "hidden" or "visible".
