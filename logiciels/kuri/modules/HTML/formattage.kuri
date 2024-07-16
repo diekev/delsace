@@ -85,21 +85,6 @@ initialise_contexte_formattage_minification :: fonc () -> ContexteFormattage
     retourne ctx
 }
 
-avance :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
-{
-    résultat := chn
-    résultat.unités.pointeur += pas
-    résultat.unités.taille -= pas
-    retourne résultat
-}
-
-recule :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
-{
-    résultat := chn
-    résultat.unités.taille -= pas
-    retourne résultat
-}
-
 // À FAIRE : gère proprement le texte, notamment vis-à-vis de l'indentation des tags, et les caractères échappés
 formatte_texte :: fonc (contexte_formattage: &ContexteFormattage, texte: ChaineUTF16) -> ChaineUTF16
 {

@@ -331,6 +331,21 @@ opérateur < :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
     retourne a.unités[n] < b.unités[n]
 }
 
+avance :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
+{
+    résultat := chn
+    résultat.unités.pointeur += pas
+    résultat.unités.taille -= pas
+    retourne résultat
+}
+
+recule :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
+{
+    résultat := chn
+    résultat.unités.taille -= pas
+    retourne résultat
+}
+
 donne_position_premier_caractère_non_blanc :: fonc (chn: ChaineUTF16) -> z64
 {
     pour chn.unités {
