@@ -201,8 +201,6 @@ tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
     classes := run_ordered_set_parser(chn_classe)
     diffère déloge(classes)
 
-    tri_rapide(classes, compare_chaine_utf16_unique)
-
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
     diffère détruit_tampons(enchaineuse)
