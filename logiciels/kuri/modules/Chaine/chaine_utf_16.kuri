@@ -741,15 +741,6 @@ imprime_chaine_utf16 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16)
     formatte_chaine_utf16(chn, flux_sortie)
 } @FormattageImpression
 
-chaine_depuis_chaine_utf16 :: fonc (chn_utf16: ChaineUTF16) -> chaine
-{
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
-    imprime_chaine_utf16(*enchaineuse, *chn_utf16)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
-}
-
 /* ------------------------------------------------------------------------- */
 /** \nom ChaineUTF16Unique
  * \{ */
