@@ -100,33 +100,13 @@ recule :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
     retourne résultat
 }
 
-est_espace_blanc :: fonc (unité: n16) -> bool #enligne
-{
-    retourne unité == ('\n' comme n16) || unité == (' ' comme n16) || unité == ('\t' comme n16)
-}
-
 // À FAIRE : gère proprement le texte, notamment vis-à-vis de l'indentation des tags, et les caractères échappés
 formatte_texte :: fonc (contexte_formattage: &ContexteFormattage, texte: ChaineUTF16) -> ChaineUTF16
 {
     saufsi contexte_formattage.supprime_espaces_blancs_texte {
         retourne texte
     }
-
-    tantque texte.taille() > 0 {
-        saufsi est_espace_blanc(texte.unités[0]) {
-            arrête
-        }
-        texte = avance(texte, 1)
-    }
-
-    tantque texte.taille() > 0 {
-        index := texte.taille() - 1
-        saufsi est_espace_blanc(texte.unités[index]) {
-            arrête
-        }
-        texte = recule(texte, 1)
-    }
-
+    supprime_espace_blanches_autour_en_place(*texte)
     retourne texte
 }
 
