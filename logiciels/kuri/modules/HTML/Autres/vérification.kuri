@@ -117,22 +117,6 @@ finalise_diagnostiques :: fonc (contexte_vérification: &ContexteVérification)
     }
 }
 
-rappel_pour_extraction_texte :: fonc (noeud_texte: *NoeudTexte, données: eini)
-{
-    chn := mémoire(données.pointeur comme **ChaineUTF16)
-    pour noeud_texte.données.unités {
-        chaine_ajoute(chn, it)
-    }
-}
-
-extrait_texte :: fonc (noeud: *Noeud) -> ChaineUTF16
-{
-    résultat : ChaineUTF16
-    ptr_résultat := *résultat
-    rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, ptr_résultat)
-    retourne résultat
-}
-
 vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *Noeud)
 {
     si noeud.genre == HTML.GenreNoeud.Texte {
@@ -170,7 +154,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             }
         }
         sinon si élément.texte == TAG_title {
-            texte := extrait_texte(élément)
+            texte := donne_contenu_texte_descandants(élément)
             si texte.taille() != 0 {
                 contexte_vérification.possède_titre = vrai
             }
@@ -267,7 +251,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
                 contexte_vérification.ajoute_diagnostique("<a> sans attribut de titre")
             }
 
-            texte_ancre := extrait_texte(élément)
+            texte_ancre := donne_contenu_texte_descandants(élément)
             diffère détruit_chaine(texte_ancre)
 
             si possède_titre && texte_ancre == possède_titre.valeur {
