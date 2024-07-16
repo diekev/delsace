@@ -106,8 +106,27 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
 
         message := QT_event_perso_donne_donnees(event) comme *ÉvènementCréationOnglet
 
-        ressource := crée_ressource_pour_chargement_page_web(rappels.fenetre, message.uri)
-        charge_ressource(*rappels.chargeuse_ressource, ressource, vrai)
+        // ressource := crée_ressource_pour_chargement_page_web(rappels.fenetre, message.uri)
+        // charge_ressource(*rappels.chargeuse_ressource, ressource, vrai)
+
+        uri: URI
+
+        si est_un_fichier_régulier(CheminFichier(message.uri)) {
+            uri.schéma = "file"
+            uri.schéma_est_défini = vrai
+            uri.autorité_est_définie = vrai
+            uri.chemin = message.uri
+            uri = uri
+        }
+        sinon {
+            uri = tente parse_uri_standard(message.uri) piège nonatteignable
+        }
+
+        navigable := crée_un_fresh_top_level_traversable(*rappels.user_agent, uri) comme *TraversableNavigable
+        tableau_ajoute(*rappels.user_agent.top_level_traversables, navigable)
+
+        page_web := crée_page_web(uri, navigable.donne_active_document())
+        crée_widget_pour_page(rappels.fenetre, page_web)
 
         déloge(message)
 
@@ -172,6 +191,14 @@ crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
     retourne résultat
 }
 
+crée_page_web :: fonc (uri: &URI, document: *Document) -> PageWeb
+{
+    résultat: PageWeb
+    résultat.uri = uri
+    résultat.parsat.document = document
+    retourne résultat
+}
+
 détruit_données_page_web :: fonc (page: *PageWeb)
 {
     détruit(page.parsat)
@@ -187,6 +214,8 @@ détruit_données_page_web :: fonc (page: *PageWeb)
 
 RappelsFenetrePrincipale :: struct {
     empl base : QT_Rappels_Fenetre_Principale
+
+    user_agent: UserAgent
 
     page_web: PageWeb
     chargeuse_ressource: ChargeuseRessource
