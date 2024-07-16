@@ -115,7 +115,9 @@ ParsatHTML :: struct {
 
 détruit :: fonc (parsat: &ParsatHTML)
 {
-    détruit_noeud(parsat.document)
+    si parsat.document {
+        détruit_noeud(parsat.document)
+    }
     déloge(parsat.erreurs)
 }
 
