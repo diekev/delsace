@@ -4,9 +4,11 @@ importe Fondation
 importe HTML
 importe HTTP
 importe Internet
+importe Math
 importe Qt
 importe SysFichier
 importe Temps
+importe Typographie
 
 DÉBOGUE_ALLOCATIONS :: faux
 
@@ -514,14 +516,52 @@ crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -
     retourne résultat
 }
 
+ContexteDisposition :: struct {
+    fonte: *Fonte
+    largeur_disponible: n32
+}
+
+ContexteDessin :: struct {
+    fonte: *Fonte
+}
+
 NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
     parent: *NoeudDeDisposition
     enfants: [..]*NoeudDeDisposition
 
-    // sur_mesure: fonc (*NoeudDisposition)(rien)
-    // sur_dessin: fonc (*NoeudDisposition)(rien)
+    position_x: n32
+    position_y: n32
+
+    largeur: n32
+    hauteur: n32
+
+    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
+    sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
+}
+
+décale :: fonc (noeud: *NoeudDeDisposition, x: n32, y: n32)
+{
+    noeud.position_x += x
+    noeud.position_y += y
+
+    pour noeud.enfants {
+        it.décale(x, y)
+    }
+}
+
+donne_nom_classe :: fonc (noeud: *NoeudDeDisposition) -> chaine
+{
+    infos := __table_des_types[noeud.type] comme *InfoTypeStructure
+    retourne infos.nom
+}
+
+mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDisposition)
+{
+    si noeud.sur_mesure {
+        noeud.sur_mesure(noeud, ctx)
+    }
 }
 
 ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
@@ -534,16 +574,89 @@ ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
 NoeudDeDispositionBloc :: struct {
     empl base: NoeudDeDisposition
     type = #type_de_cette_structure
+    sur_mesure = noeud_disposition_bloc_sur_mesure
 
     élément: *Élément
+}
+
+noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+{
+    noeud := base comme *NoeudDeDispositionBloc
+
+    pour noeud.enfants {
+        it.mesure(ctx)
+
+        it.décale(0, noeud.hauteur)
+
+        noeud.hauteur += it.hauteur
+        noeud.largeur = max(noeud.largeur, it.largeur)
+    }
 }
 
 /* Créé pour chaque élément contenant du texte. */
 NoeudDeDispositionTexte :: struct {
     empl base: NoeudDeDisposition
     type = #type_de_cette_structure
+    sur_mesure = noeud_disposition_texte_sur_mesure
 
     noeud_texte: *NoeudTexte
+}
+
+noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+{
+    noeud := base comme *NoeudDeDispositionTexte
+
+    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
+        noeud.hauteur = 0
+        noeud.largeur = 0
+        retourne
+    }
+
+    fonte := ctx.fonte
+
+    métriques := fonte.donne_métriques_fonte()
+
+    noeud.hauteur = (métriques.donne_hauteur_ligne() + 0.5) comme n32
+    noeud.largeur = fonte.donne_largeur_texte(noeud.noeud_texte.données) comme n32
+}
+
+est_display_none :: fonc (noeud: *Noeud) -> bool
+{
+    si noeud.est_texte() {
+        retourne faux
+    }
+
+    saufsi noeud.est_élément() {
+        retourne vrai
+    }
+
+    élément := noeud comme *Élément
+
+    tags_none := [
+        TAG_area,
+        TAG_base,
+        TAG_basefont,
+        // TAG_datalist,
+        TAG_head,
+        TAG_link,
+        TAG_meta,
+        TAG_noembed,
+        TAG_noframes,
+        TAG_param,
+        TAG_rp,
+        TAG_script,
+        TAG_style,
+        TAG_template,
+        TAG_title
+    ]
+
+    pour tags_none {
+        si élément.texte == it {
+            retourne vrai
+        }
+    }
+
+    retourne faux
 }
 
 crée_arbre_de_disposition :: fonc (document: *Document) -> *ArbreDeDisposition
@@ -552,33 +665,74 @@ crée_arbre_de_disposition :: fonc (document: *Document) -> *ArbreDeDisposition
         retourne nul
     }
 
-    body := document.donne_élément_body()
-    saufsi body {
+    html := document.donne_élément_html()
+    saufsi html {
         retourne nul
     }
 
     résultat := loge(ArbreDeDisposition)
 
     racine := résultat.crée_noeud(NoeudDeDispositionBloc)
-    racine.élément = body
+    racine.élément = html
 
     résultat.racine = racine
 
-    pour body.enfants {
+    pour html.enfants {
+        si est_display_none(it) {
+            continue
+        }
         crée_noeud_pour_élément(résultat, résultat.racine, it)
     }
 
     imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
 
+    ctx: ContexteDisposition
+    ctx.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 12.0)
+
+    mesure(racine, *ctx)
+
+    imprime_arbre(résultat)
+
     retourne résultat
+}
+
+imprime_arbre :: fonc (arbre: *ArbreDeDisposition)
+{
+    saufsi arbre.racine {
+        retourne
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    imprime_arbre(*enchaineuse, arbre.racine, 0)
+
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(résultat)
+
+    imprime("%\n", résultat)
+}
+
+imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, profondeur: n32)
+{
+    indentation := donne_chaine_indentation(profondeur comme z32)
+
+    imprime_dans_enchaineuse(enchaineuse, "%%", indentation, racine.donne_nom_classe())
+    si racine.type == NoeudDeDispositionBloc {
+        bloc := racine comme *NoeudDeDispositionBloc
+        imprime_dans_enchaineuse(enchaineuse, " %", bloc.élément.texte)
+    }
+
+    imprime_dans_enchaineuse(enchaineuse, " % % %x%\n", racine.position_x, racine.position_y, racine.largeur, racine.hauteur)
+
+    pour racine.enfants {
+        imprime_arbre(enchaineuse, it, profondeur + 1)
+    }
 }
 
 crée_noeud_pour_élément :: fonc (arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *Noeud)
 {
-    si noeud.est_élément_script() {
-        retourne
-    }
-
     si noeud.est_texte() {
         résultat := arbre.crée_noeud(NoeudDeDispositionTexte)
         résultat.noeud_texte = noeud comme *NoeudTexte
@@ -586,10 +740,14 @@ crée_noeud_pour_élément :: fonc (arbre: *ArbreDeDisposition, parent: *NoeudDe
         retourne
     }
 
+    résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
+    résultat.élément = noeud comme *Élément
+    parent.ajoute_enfant(résultat)
+
     pour noeud.enfants {
-        résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
-        résultat.élément = it comme *Élément
-        parent.ajoute_enfant(résultat)
+        si est_display_none(it) {
+            continue
+        }
 
         crée_noeud_pour_élément(arbre, résultat, it)
     }
