@@ -56,6 +56,8 @@ principale :: fonc () -> z32
     QT_core_application_definis_nom_organisation(vers_qt("delsace"))
     QT_core_application_definis_nom_application(vers_qt("HTML"))
 
+    initialise_évènements_personnalisés()
+
     /* Création fenêtre. */
     rappels_fenêtre : RappelsFenetrePrincipale
     rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
@@ -69,11 +71,51 @@ principale :: fonc () -> z32
     rappels_fenêtre.chargeuse_ressource.rappels_interface = crée_rappels_interface_qt(fenêtre)
 
     si chemin_fichier {
-        ressource := crée_ressource_pour_chargement_page_web(fenêtre, chemin_fichier)
-        charge_ressource(*rappels_fenêtre.chargeuse_ressource, ressource, vrai)
+        évènement := loge(ÉvènementCréationOnglet)
+        évènement.uri = chemin_fichier
+
+        QT_application_poste_evenement_et_donnees(fenêtre, évènement_sur_création_onglet, évènement)
     }
 
     retourne QT_application_exec(app)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Évènements
+ * \{ */
+
+évènement_sur_création_onglet : z32 = -1
+
+ÉvènementCréationOnglet :: struct {
+    uri: chaine
+}
+
+initialise_évènements_personnalisés :: fonc ()
+{
+    évènement_sur_création_onglet = QT_enregistre_evenement_personnel()
+}
+
+sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
+{
+    type := QT_evenement_donne_type(event) comme n32 comme z32
+
+    si type == évènement_sur_création_onglet {
+        rappels := base comme *RappelsFenetrePrincipale
+
+        message := QT_event_perso_donne_donnees(event) comme *ÉvènementCréationOnglet
+
+        ressource := crée_ressource_pour_chargement_page_web(rappels.fenetre, message.uri)
+        charge_ressource(*rappels.chargeuse_ressource, ressource, vrai)
+
+        déloge(message)
+
+        QT_evenement_accepte(event)
+        retourne 1
+    }
+
+    retourne 0
 }
 
 /** \} */
@@ -148,6 +190,9 @@ RappelsFenetrePrincipale :: struct {
 
     page_web: PageWeb
     chargeuse_ressource: ChargeuseRessource
+
+    /* Données rappels. */
+    sur_filtre_evenement = sur_filtre_evenement_impl
 }
 
 /** \} */
