@@ -370,6 +370,16 @@ supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16) -> ChaineUTF16
     retourne ChaineUTF16()
 }
 
+supprime_espace_blanches_autour_en_place :: fonc (chn: *ChaineUTF16)
+{
+    début := donne_position_premier_caractère_non_blanc(mémoire(chn))
+    fin := donne_position_dernier_caractère_non_blanc(mémoire(chn))
+
+    si début < fin {
+        mémoire(chn) = sous_chaine(mémoire(chn), début, fin)
+    }
+}
+
 sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
 {
     assert(début >= 0)
