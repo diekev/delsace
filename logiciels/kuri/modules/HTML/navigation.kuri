@@ -1,6 +1,27 @@
 importe Fondation
 importe Internet
 
+/* Structure pour implémenter les routines/callbacks/algorithms de la spec. */
+Algorithm :: struct {
+    sur_run: fonc(*Algorithm)(rien)
+    sur_destruction: fonc(*Algorithm)(rien)
+}
+
+run :: fonc (algorithm: *Algorithm)
+{
+    saufsi algorithm {
+        retourne
+    }
+
+    si algorithm.sur_run {
+        algorithm.sur_run(algorithm)
+    }
+
+    si algorithm.sur_destruction {
+        algorithm.sur_destruction(algorithm)
+    }
+}
+
 /* https://w3c.github.io/navigation-timing/#sec-performance-navigation-types */
 NavigationTimingType :: énum {
     navigate
@@ -74,6 +95,13 @@ snapshot_target_snapshot_params :: fonc (target_navigable: *Navigable) -> Target
     retourne résultat
 }
 
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigationhistorybehavior */
+NavigationHistoryBehavior :: énum {
+    PUSH
+    REPLACE
+    AUTO
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom 7.4.2.2 Beginning navigation
  * https://html.spec.whatwg.org/multipage/browsing-the-web.html#beginning-navigation
@@ -94,7 +122,7 @@ an optional entry list or null formDataEntryList (default null)
 an optional referrer policy referrerPolicy (default the empty string)
 and an optional user navigation involvement userInvolvement (default "none"):
 */
-navigate :: fonc (navigable: *Navigable, url: &URI, source_document: *Document)
+navigate :: fonc (navigable: *Navigable, url: &URI, source_document: *Document, history_handling := NavigationHistoryBehavior.AUTO)
 {
     // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
 
@@ -185,10 +213,10 @@ navigate :: fonc (navigable: *Navigable, url: &URI, source_document: *Document)
         // 5. If continue is false, then return.
 
     // 22. In parallel, run these steps:
-    navigate_parallel_steps(navigable, url, source_snapshot_params, target_snapshot_params)
+    navigate_parallel_steps(navigable, url, source_snapshot_params, target_snapshot_params, history_handling)
 }
 
-navigate_parallel_steps :: fonc (navigable: *Navigable, url: &URI, source_snapshot_params: &SourceSnapshotParams, target_snapshot_params: &TargetSnapshotParams)
+navigate_parallel_steps :: fonc (navigable: *Navigable, url: &URI, source_snapshot_params: &SourceSnapshotParams, target_snapshot_params: &TargetSnapshotParams, history_handling: NavigationHistoryBehavior)
 {
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
@@ -253,13 +281,112 @@ navigate_parallel_steps :: fonc (navigable: *Navigable, url: &URI, source_snapsh
         //     navigation timing type    "navigate"
         //     about base URL    documentState's about base URL
 
-    // 9. Attempt to populate the history entry's document for historyEntry, given navigable, "navigate", sourceSnapshotParams, targetSnapshotParams, navigationId, navigationParams, cspNavigationType, with allowPOST set to true and completionSteps set to the following step:
-    attempt_to_populate_the_history_entry_document(history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_params)
+    // 9. Attempt to populate the history entry's document for historyEntry, given
+    //    navigable, "navigate", sourceSnapshotParams, targetSnapshotParams, navigationId, navigationParams, cspNavigationType, with allowPOST set to true
+    //    and completionSteps set to the following step:
+    //        1. Append session history traversal steps to navigable's traversable to finalize a cross-document navigation given navigable, historyHandling, and historyEntry.
+    CompletionSteps :: struct {
+        empl base: Algorithm
 
-        // 1. Append session history traversal steps to navigable's traversable to finalize a cross-document navigation given navigable, historyHandling, and historyEntry.
+        navigable: *Navigable
+        history_handling: NavigationHistoryBehavior
+        history_entry: *SessionHistoryEntry
+    }
+
+    completion_steps_run :: fonc (base: *Algorithm)
+    {
+        steps := base comme *CompletionSteps
+        // À FAIRE : nous devons le mettre dans une file de tâche comme indiquer plus haut
+        finalize_a_cross_document_navigation(steps.navigable, steps.history_handling, steps.history_entry)
+    }
+
+    completion_steps_détruit :: fonc (base: *Algorithm)
+    {
+        steps := base comme *CompletionSteps
+        déloge(steps)
+    }
+
+    completion_steps := loge(CompletionSteps)
+    completion_steps.navigable = navigable
+    completion_steps.history_handling = history_handling
+    completion_steps.history_entry = history_entry
+    completion_steps.sur_run = completion_steps_run
+    completion_steps.sur_destruction = completion_steps_détruit
+
+    attempt_to_populate_the_history_entry_document(history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_params, completion_steps)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.4.2.3 Ending Navigation
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#finalize-a-cross-document-navigation */
+finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_handling: NavigationHistoryBehavior, history_entry: *SessionHistoryEntry)
+{
+    // À FAIRE : 1. Assert: this is running on navigable's traversable navigable's session history traversal queue.
+
+    // 2. Set navigable's is delaying load events to false.
+    navigable.is_delaying_load_events = faux
+
+    // 3. If historyEntry's document is null, then return.
+    si history_entry.donne_document() == nul {
+        retourne
+    }
+
+    // À FAIRE : 4. If all of the following are true:
+    //    navigable's parent is null;
+    //    historyEntry's document's browsing context is not an auxiliary browsing context whose opener browsing context is non-null; and
+    //    historyEntry's document's origin is not navigable's active document's origin,
+    // then set historyEntry's document state's navigable target name to the empty string.
+
+    // 5. Let entryToReplace be navigable's active session history entry if historyHandling is "replace", otherwise null.
+    entry_to_replace: *SessionHistoryEntry
+    si history_handling == NavigationHistoryBehavior.REPLACE {
+        entry_to_replace = navigable.active_session_history_entry
+    }
+
+    // 6. Let traversable be navigable's traversable navigable.
+    traversable := navigable.donne_traversable_navigable()
+
+    // 7. Let targetStep be null.
+    target_step: Optionnel(n32) 
+
+    // 8. Let targetEntries be the result of getting session history entries for navigable.
+    target_entries := donne_session_history_entries(navigable)
+
+    // 9. If entryToReplace is null, then:
+    si entry_to_replace == nul {
+        // À FAIRE : 1. Clear the forward session history of traversable.
+
+        // 2. Set targetStep to traversable's current session history step + 1.
+        target_step = traversable.current_session_history_entry.step + 1
+
+        // 3. Set historyEntry's step to targetStep.
+        history_entry.step = target_step.Quelque
+
+        // 4. Append historyEntry to targetEntries.
+        tableau_ajoute(target_entries, history_entry)
+    }
+    // Otherwise:
+    sinon {
+        // 1. Replace entryToReplace with historyEntry in targetEntries.
+
+        // 2. Set historyEntry's step to entryToReplace's step.
+
+        // 3. If historyEntry's document state's origin is same origin with entryToReplace's document state's origin, then set historyEntry's navigation API key to entryToReplace's navigation API key.
+
+        // 4. Set targetStep to traversable's current session history step.
+        panique("finalize_a_cross_document_navigation non-implémenté")
+    }
+
+    // À FAIRE : 10. Apply the push/replace history step targetStep to traversable given historyHandling.
+    navigable.current_session_history_entry = history_entry
+    navigable.active_session_history_entry = history_entry
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom 7.4.5
@@ -284,7 +411,8 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
                                                         nav_timing_type: NavigationTimingType,
                                                         source_snapshot_params: &SourceSnapshotParams,
                                                         target_snapshot_params: &TargetSnapshotParams,
-                                                        navigation_params : *NavigationParams = nul)
+                                                        navigation_params : *NavigationParams = nul,
+                                                        completion_steps : *Algorithm = nul)
 {
     // 1. Assert: this is running in parallel.
 
@@ -330,8 +458,8 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
             // À FAIRE : 2. 3.
         }
 
-        // À FAIRE : 8. Run completionSteps.
-        navigable.active_session_history_entry = entry
+        // 8. Run completionSteps.
+        run(completion_steps)
     }
 }
 
@@ -553,6 +681,7 @@ create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
         // 21. Set currentURL to locationURL.
 
         // 22. Set entry's URL to currentURL.
+        entry.url = current_url
     }
 
     // 20. If locationURL is a URL whose scheme is not a fetch scheme, then return a new non-fetch scheme navigation params, with

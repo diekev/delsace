@@ -24,7 +24,8 @@ DocumentState :: struct {
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#session-history-entry */
 SessionHistoryEntry :: struct {
-    // step, a non-negative integer or "pending", initially "pending".
+    /* a non-negative integer or "pending", initially "pending" */
+    step: n32
 
     url: URI
     document_state: *DocumentState
@@ -120,6 +121,50 @@ donne_container :: fonc (navigable: *Navigable) -> *Élément
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-traversable */
+donne_traversable_navigable :: fonc (input_navigable: *Navigable) -> *TraversableNavigable
+{
+    // 1. Let navigable be inputNavigable.
+    navigable := input_navigable
+
+    // 2. While navigable is not a traversable navigable, set navigable to navigable's parent.
+    tantque navigable.type != TraversableNavigable {
+        navigable = navigable.parent
+    }
+
+    // 3. Return navigable.
+    retourne navigable comme *TraversableNavigable
+}
+
+/*  https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-session-history-entries */
+donne_session_history_entries :: fonc (navigable: *Navigable) -> *[..]*SessionHistoryEntry
+{
+    // 1. Let traversable be navigable's traversable navigable.
+    traversable := donne_traversable_navigable(navigable)
+
+    // À FAIRE : 2. Assert: this is running within traversable's session history traversal queue.
+
+    // 3. If navigable is traversable, return traversable's session history entries.
+    si navigable == traversable {
+        retourne *traversable.session_history_entries
+    }
+
+    panique("donne_session_history_entries non-implémenté")
+    // Let docStates be an empty ordered set of document states.
+
+    // For each entry of traversable's session history entries, append entry's document state to docStates.
+
+    // For each docState of docStates:
+
+    // For each nestedHistory of docState's nested histories:
+
+    // If nestedHistory's id equals navigable's id, return nestedHistory's entries.
+
+    // For each entry of nestedHistory's entries, append entry's document state to docStates.
+
+    // Assert: this step is not reached.
+}
+
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#traversable-navigables */
 TraversableNavigable :: struct {
     empl base: Navigable
@@ -189,11 +234,14 @@ crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: 
     // 6. Initialize the navigable traversable given documentState.
     initialise_navigable(traversable, document_state)
 
-    // À FAIRE 7. Let initialHistoryEntry be traversable's active session history entry.
+    // 7. Let initialHistoryEntry be traversable's active session history entry.
+    initial_history_entry := traversable.active_session_history_entry
 
-    // À FAIRE 8. Set initialHistoryEntry's step to 0.
+    // 8. Set initialHistoryEntry's step to 0.
+    initial_history_entry.step = 0
 
-    // À FAIRE 9. Append initialHistoryEntry to traversable's session history entries.
+    // 9. Append initialHistoryEntry to traversable's session history entries.
+    tableau_ajoute(*traversable.session_history_entries, initial_history_entry)
 
     // À FAIRE 10. If opener is non-null, then legacy-clone a traversable storage shed given opener's top-level traversable and traversable. [STORAGE]
 
