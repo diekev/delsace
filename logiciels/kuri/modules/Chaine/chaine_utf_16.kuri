@@ -1,3 +1,4 @@
+importe Ensemble
 importe Fondation
 importe Numérique
 importe Unicode
@@ -816,17 +817,45 @@ imprime_chaine_utf16_unique :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF1
 
 TableChainesUTF16Unique :: struct {
     chaines: [..]ChaineUTF16
+
+    EntréeCache :: struct {
+        chn: ChaineUTF16
+        index: n32
+    }
+
+    ensemble: [..]EntréeCache
+}
+
+opérateur == :: fonc (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
+{
+    retourne entrée1.chn == entrée2.chn
+}
+
+opérateur != :: fonc (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
+{
+    retourne entrée1.chn != entrée2.chn
+}
+
+opérateur < :: fonc (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
+{
+    retourne entrée1.chn < entrée2.chn
 }
 
 crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &ChaineUTF16) -> ChaineUTF16Unique
 {
-    pour table.chaines {
-        si it == chn {
-            retourne ChaineUTF16Unique(donne_valeur_chaine_pour_index(index_it))
-        }
+    entrée: TableChainesUTF16Unique.EntréeCache
+    entrée.chn = chn
+
+    entrée_existante := ensemble_possède_retourne_index(*table.ensemble, entrée)
+    si entrée_existante != -1 {
+        entrée = table.ensemble[entrée_existante]
+        retourne ChaineUTF16Unique(entrée.index)
     }
 
     index := donne_valeur_chaine_pour_index(table.chaines.taille)
+    entrée.index = index
+
+    ensemble_ajoute(*table.ensemble, entrée)
 
     tableau_ajoute(*table.chaines, chn)
     chn.unités.pointeur = nul
