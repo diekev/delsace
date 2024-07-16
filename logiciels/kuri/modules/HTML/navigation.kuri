@@ -50,10 +50,10 @@ SourceSnapshotParams :: struct {
     source_policy_container: *rien // À FAIRE
 }
 
-snapshot_source_snapshot_params :: fonc (source_document: *Document) -> SourceSnapshotParams
+snapshot_source_snapshot_params :: fonc (source_document: *Document @inutilisée) -> SourceSnapshotParams
 {
     résultat: SourceSnapshotParams
-    imprime("À FAIRE : %\n", #nom_de_cette_fonction)
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     // has transient activation = true if sourceDocument's relevant global object has transient activation; otherwise false
     // sandboxing flags = sourceDocument's active sandboxing flag set
     // allows downloading = false if sourceDocument's active sandboxing flag set has the sandboxed downloads browsing context flag set; otherwise true
@@ -69,7 +69,7 @@ TargetSnapshotParams :: struct {
 
 snapshot_target_snapshot_params :: fonc (target_navigable: *Navigable) -> TargetSnapshotParams
 {
-    résultat: SourceSnapshotParams
+    résultat: TargetSnapshotParams
     résultat.sandboxing_flags = détermine_drapeaux_sanboxing(target_navigable.donne_active_browsing_context(), target_navigable.donne_container())
     retourne résultat
 }
@@ -201,11 +201,12 @@ navigate_parallel_steps :: fonc (navigable: *Navigable, url: &URI, source_snapsh
 
     // 3. Queue a global task on the navigation and traversal task source given navigable's active window to abort a document and its descendants given navigable's active document.
 
-    // 4. Let documentState be a new document state with
+    // À FAIRE : 4. Let documentState be a new document state with
     //     request referrer policy    referrerPolicy
     //     initiator origin    initiatorOriginSnapshot
     //     resource    documentResource
     //     navigable target name    navigable's target name
+    document_state := loge(DocumentState)
 
     // 5. If url matches about:blank or is about:srcdoc, then:
 
@@ -214,6 +215,9 @@ navigate_parallel_steps :: fonc (navigable: *Navigable, url: &URI, source_snapsh
         // 2. Set documentState's about base URL to initiatorBaseURLSnapshot.
 
     // 6. Let historyEntry be a new session history entry, with its URL set to url and its document state set to documentState.
+    history_entry := loge(SessionHistoryEntry)
+    history_entry.url = url
+    history_entry.document_state = document_state
 
     // 7. Let navigationParams be null.
     navigation_params: *NavigationParams
@@ -312,6 +316,8 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
     }
 
     // À FAIRE : 6.
+
+    entry.document_state.document = load_a_document(navigation_params, source_snapshot_params, Origin())
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
@@ -386,7 +392,7 @@ create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
     // 10. Let responseOrigin be null.
 
     // 11. Let fetchController be null.
-    fetch_controller: *fetchController
+    fetch_controller: *FetchController
 
     // 12. Let coopEnforcementResult be a new cross-origin opener policy enforcement result, with
     //     url navigable's active document's URL
@@ -563,6 +569,53 @@ create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
     //     navigation timing type  navTimingType
     //     about base URL  entry's document state's about base URL
     retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#loading-a-document */
+load_a_document :: fonc (navigation_params: *NavigationParams, source_snapshot_params: SourceSnapshotParams @inutilisée, initiator_origin: Origin @inutilisée) -> *Document
+{
+    // 1. Let type be the computed type of navigationParams's response.
+    mime_type := navigation_params.response.donne_mime_type()
+
+    // 2. If the user agent has been configured to process resources of the given
+    //    type using some mechanism other than rendering the content in a navigable,
+    //    then skip this step.
+    //    Otherwise, if the type is one of the following types:
+
+    // an HTML MIME type
+    si mime_type == "text/html" {
+        // Return the result of loading an HTML document, given navigationParams.
+        retourne load_an_html_document(navigation_params)
+    }
+
+    // an XML MIME type that is not an explicitly supported XML MIME type
+    // Return the result of loading an XML document given navigationParams and type.
+
+    // a JavaScript MIME type
+    // a JSON MIME type that is not an explicitly supported JSON MIME type
+    // "text/css"
+    // "text/plain"
+    // "text/vtt"
+    // Return the result of loading a text document given navigationParams and type.
+
+    // "multipart/x-mixed-replace"
+    // Return the result of loading a multipart/x-mixed-replace document, given navigationParams, sourceSnapshotParams, and initiatorOrigin.
+
+    // A supported image, video, or audio type
+    // Return the result of loading a media document given navigationParams and type.
+
+    // "application/pdf"
+    // "text/pdf"
+    // If the user agent's PDF viewer supported is true, return the result of creating
+    // a document for inline content that doesn't have a DOM given navigationParams's navigable.
+    
+    // Otherwise, proceed onward.
+    retourne nul
+}
+
+load_an_html_document :: fonc (navigation_params: *NavigationParams) -> *Document
+{
+    panique("load_an_html_document non-implémenté")
 }
 
 /** } */

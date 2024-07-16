@@ -51,6 +51,14 @@ Request :: struct {
     response_tainting := "basic"
 
     user_activation: bool
+
+    render_blocking: bool
+}
+
+donne_url_courant :: fonc (request: *Request) -> URI
+{
+    // À FAIRE : nous devons avoir une liste
+    retourne request.url
 }
 
 /** \} */
@@ -107,6 +115,12 @@ donne_url :: fonc (response: *Response) -> Optionnel(URI)
     retourne response.url_list[response.url_list.taille - 1]
 }
 
+donne_mime_type :: fonc (response: *Response) -> chaine
+{
+    imprime("À FAIRE : %\n", #nom_de_cette_fonction)
+    retourne ""
+}
+
 /* https://fetch.spec.whatwg.org/#concept-network-error */
 network_error :: fonc () -> *Response
 {
@@ -123,16 +137,54 @@ network_error :: fonc () -> *Response
 /** \nom FetchParams
  * https://fetch.spec.whatwg.org/#fetch-params
  * \{ */
+
+/* must be an algorithm accepting an integer representing the number of bytes transmitted */
+BaseProcessRequestBodyChunkLength :: struct {
+    sur_rappel: fonc(*BaseProcessRequestBodyChunkLength, n64)(rien)
+    sur_destruction: fonc (*BaseProcessRequestBodyChunkLength)(rien)
+} 
+
+/* must be an algorithm accepting no arguments */
+BaseProcessRequestEndOfBody :: struct {
+    sur_rappel: fonc(*BaseProcessRequestEndOfBody)(rien)
+    sur_destruction: fonc (*BaseProcessRequestEndOfBody)(rien)
+}
+
+/* must be an algorithm accepting a response */
+BaseProcessEarlyHintsResponse :: struct {
+    sur_rappel: fonc(*BaseProcessEarlyHintsResponse, *Response)(rien)
+    sur_destruction: fonc (*BaseProcessEarlyHintsResponse)(rien)
+}
+
+/* must be an algorithm accepting a response */
+BaseProcessResponse :: struct {
+    sur_rappel: fonc(*BaseProcessResponse, *Response)(rien)
+    sur_destruction: fonc (*BaseProcessResponse)(rien)
+}
+
+/* must be an algorithm accepting a response */
+BaseProcessResponseEndOfBody :: struct {
+    sur_rappel: fonc(*BaseProcessResponseEndOfBody, *Response)(rien)
+    sur_destruction: fonc (*BaseProcessResponseEndOfBody)(rien)
+}
+
+/* must be an algorithm accepting a response and null, failure, or a byte sequence */
+BaseProcessResponseConsumeBody :: struct {
+    /* À FAIRE : null, failure, or a byte sequence  */
+    sur_rappel: fonc(*BaseProcessResponseConsumeBody, []octet)(rien)
+    sur_destruction: fonc (*BaseProcessResponseConsumeBody)(rien)
+}
+
 FetchParams :: struct {
     request: *Request
 
     /* Null or an algorithm. */
-    process_request_body_chunk_length: *rien
-    process_request_end_of_body: *rien
-    process_early_hints_response: *rien
-    process_response: *rien
-    process_response_end_of_body: *rien
-    process_response_consume_body: *rien
+    process_request_body_chunk_length: *BaseProcessRequestBodyChunkLength
+    process_request_end_of_body: *BaseProcessRequestEndOfBody
+    process_early_hints_response: *BaseProcessEarlyHintsResponse
+    process_response: *BaseProcessResponse
+    process_response_end_of_body: *BaseProcessResponseEndOfBody
+    process_response_consume_body: *BaseProcessResponseConsumeBody
 
     /* Null, a global object, or a parallel queue. */
     task_destination: *rien
@@ -203,14 +255,23 @@ FetchTimingInfo :: struct {
  * https://fetch.spec.whatwg.org/#fetching
  * \{ */
 
-fetch :: fonc (request: *Request) -> *FetchController
+fetch :: fonc (request: *Request,
+               process_request_body_chunk_length: *BaseProcessRequestBodyChunkLength = nul,
+               process_request_end_of_body: *BaseProcessRequestEndOfBody = nul,
+               process_early_hints_response: *BaseProcessEarlyHintsResponse = nul,
+               process_response: *BaseProcessResponse = nul,
+               process_response_end_of_body: *BaseProcessResponseEndOfBody = nul,
+               process_response_consume_body: *BaseProcessResponseConsumeBody = nul,
+               use_parallel_queue := faux) -> *FetchController
 {
     // 1. Assert: request’s mode is "navigate" or processEarlyHintsResponse is null.
-    assert(request.mode == "navigate")
+    assert(request.mode == "navigate" || process_early_hints_response == nul)
 
     // 2. Let taskDestination be null.
+    task_destination: *rien
 
     // 3. Let crossOriginIsolatedCapability be false.
+    cross_origin_isolated_capability := faux
 
     // 4. If request’s client is non-null, then:
 
@@ -219,10 +280,36 @@ fetch :: fonc (request: *Request) -> *FetchController
         // 2. Set crossOriginIsolatedCapability to request’s client’s cross-origin isolated capability.
 
     // 5. If useParallelQueue is true, then set taskDestination to the result of starting a new parallel queue.
+    si use_parallel_queue {
+        panique("parallel queue non-implémentée")
+    }
 
-    // 6. Let timingInfo be a new fetch timing info whose start time and post-redirect start time are the coarsened shared current time given crossOriginIsolatedCapability, and render-blocking is set to request’s render-blocking.
+    // À FAIRE : 6. Let timingInfo be a new fetch timing info whose start time and post-redirect start time are the coarsened shared current time given crossOriginIsolatedCapability, and render-blocking is set to request’s render-blocking.
+    timing_info: FetchTimingInfo
+    timing_info.render_blocking = request.render_blocking
 
-    // 7. Let fetchParams be a new fetch params whose request is request, timing info is timingInfo, process request body chunk length is processRequestBodyChunkLength, process request end-of-body is processRequestEndOfBody, process early hints response is processEarlyHintsResponse, process response is processResponse, process response consume body is processResponseConsumeBody, process response end-of-body is processResponseEndOfBody, task destination is taskDestination, and cross-origin isolated capability is crossOriginIsolatedCapability.
+    // 7. Let fetchParams be a new fetch params whose
+    //    request is request,
+    //    timing info is timingInfo,
+    //    process request body chunk length is processRequestBodyChunkLength,
+    //    process request end-of-body is processRequestEndOfBody,
+    //    process early hints response is processEarlyHintsResponse,
+    //    process response is processResponse,
+    //    process response consume body is processResponseConsumeBody,
+    //    process response end-of-body is processResponseEndOfBody,
+    //    task destination is taskDestination, and
+    //    cross-origin isolated capability is crossOriginIsolatedCapability.
+    fetch_params := loge(FetchParams)
+    fetch_params.request = request
+    fetch_params.timing_info = timing_info
+    fetch_params.process_request_body_chunk_length = process_request_body_chunk_length
+    fetch_params.process_request_end_of_body = process_request_end_of_body
+    fetch_params.process_early_hints_response = process_early_hints_response
+    fetch_params.process_response = process_response
+    fetch_params.process_response_end_of_body = process_response_end_of_body
+    fetch_params.process_response_consume_body = process_response_consume_body
+    fetch_params.task_destination = task_destination
+    fetch_params.cross_origin_isolated_capability = cross_origin_isolated_capability
 
     // 8. If request’s body is a byte sequence, then set request’s body to request’s body as a body.
 
@@ -283,6 +370,7 @@ fetch :: fonc (request: *Request) -> *FetchController
         // 2. Append record to request’s client’s fetch group list of fetch records.
 
     // 17. Run main fetch given fetchParams.
+    _ := main_fetch(fetch_params)
 
     // 18. Return fetchParams’s controller.
     retourne fetch_params.controller

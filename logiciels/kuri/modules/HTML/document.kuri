@@ -101,6 +101,22 @@ est_iframe_srcdoc :: fonc (document: *Document) -> bool
     retourne document.url.uri == "about:srcdoc"
 }
 
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#fully-active */
+est_fully_active :: fonc (document: *Document @inutilisée) -> bool
+{
+    /* À FAIRE : A Document d is said to be fully active when d is the active document
+     *           of a navigable navigable, and either navigable is a top-level traversable
+     *           or navigable's container document is fully active. */
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#document-base-url */
+donne_base_url :: fonc (document: *Document) -> URI
+{
+    // À FAIRE : implémente
+    retourne document.url
+}
+
 donne_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 {
     pour document.enfants {
