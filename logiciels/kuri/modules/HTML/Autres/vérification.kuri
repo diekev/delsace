@@ -188,13 +188,13 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             }
 
             si attr_name {
-                si attr_name.valeur == "description" {
+                si attr_name.valeur == ATTR_description {
                     contexte_vérification.possède_description = vrai
                     saufsi attr_content {
                         contexte_vérification.ajoute_diagnostique("Aucune description pour le document bien qu'une balise méta de description existe !")
                     }
                 }
-                sinon si attr_name.valeur == "viewport" {
+                sinon si attr_name.valeur == ATTR_viewport {
                     // <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     contexte_vérification.possède_viewport = vrai
                     saufsi attr_content {
@@ -212,7 +212,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
                     contexte_vérification.ajoute_diagnostique("Balise meta avec [name] et [http-equiv], [name] sera ignoré")
                 }
 
-                si attr_http_equiv.valeur == "refresh" {
+                si attr_http_equiv.valeur == ATTR_refresh {
                     // https://web.dev/meta-refresh/?utm_source=lighthouse&utm_medium=devtools
                     contexte_vérification.ajoute_diagnostique("Balise meta avec [http-equiv=refresh], préférez utiliser Javascript pour rafraîchir la page")
                 }

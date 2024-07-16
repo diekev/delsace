@@ -116,7 +116,7 @@ donne_title_element :: fonc (document: *Document) -> *Élément
     retourne donne_premier_élément_de_type(document, TAG_title)
 }
 
-donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
+donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
 {
     si noeud.est_élément_type(tag) {
         retourne noeud comme *Élément
@@ -177,9 +177,9 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
 NoeudTypeDocument :: struct {
     empl base: Noeud
 
-    nom: ChaineUTF16
-    public_id: ChaineUTF16
-    system_id: ChaineUTF16
+    nom: DOMString
+    public_id: DOMString
+    system_id: DOMString
 }
 
 crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument

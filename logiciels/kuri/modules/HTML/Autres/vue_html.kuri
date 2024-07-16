@@ -270,9 +270,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
         initialise_enchaineuse(*enchaineuse)
         diffère détruit_tampons(*enchaineuse)
 
-        tag_natif := élément.texte.chaine_native()
-        diffère déloge(tag_natif)
-        ajoute_au_tampon(*enchaineuse, "<", tag_natif)
+        ajoute_au_tampon(*enchaineuse, "<", élément.texte)
 
         pour noeud.attributs {
             ajoute_au_tampon(*enchaineuse, " ", it.nom, "=\"", it.valeur, "\"")

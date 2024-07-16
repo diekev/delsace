@@ -104,7 +104,7 @@ gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: TypeFonctionModeInse
     mode(parseuse, lexème)
 }
 
-est_un_élément_parmis :: fonc (noeud: *Noeud, tags: ...*ChaineInternée) -> bool
+est_un_élément_parmis :: fonc (noeud: *Noeud, tags: ...DOMString) -> bool
 {
     saufsi noeud.est_élément() {
         retourne faux
@@ -200,7 +200,7 @@ crée_élément_pour_lexème :: fonc (parseuse: *Parseuse, lexème: Lexème, esp
 }
 
 /* https://dom.spec.whatwg.org/#concept-create-element */
-crée_un_élément :: fonc (parseuse: *Parseuse @inutilisée, document: *Document, nom_local: *ChaineInternée, espace_de_nom: EspaceDeNom) -> *Élément
+crée_un_élément :: fonc (parseuse: *Parseuse @inutilisée, document: *Document, nom_local: DOMString, espace_de_nom: EspaceDeNom) -> *Élément
 {
     /* INCOMPLET : optional prefix, is, and synchronous custom elements flag */
     résultat: *Élément = nul
@@ -265,7 +265,7 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        si lexème.nom != "html" ||
+        si lexème.nom != TAG_html ||
             lexème.doctype_public_id_absent == faux ||
             lexème.doctype_system_id_absent == faux ||
             lexème.identifiant_système_doctype != "about:legacy-compat" {
@@ -273,11 +273,9 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         doctype := crée_noeud_doctype(parseuse.document)
-        chn_nom := lexème.nom.chaine_native()
-        diffère déloge(chn_nom)
-        doctype.nom = crée_chaine_utf16(chn_nom)
-        doctype.public_id = crée_chaine_utf16(lexème.identifiant_public_doctype)
-        doctype.system_id = crée_chaine_utf16(lexème.identifiant_système_doctype)
+        doctype.nom = lexème.nom
+        doctype.public_id = crée_chaine_utf16_unique(lexème.identifiant_public_doctype)
+        doctype.system_id = crée_chaine_utf16_unique(lexème.identifiant_système_doctype)
 
         document := parseuse.document
         document.ajoute_enfant(doctype)
@@ -313,7 +311,7 @@ vérifie_lexème_doctype_pour_limited_quirks :: fonc (lexème: &Lexème) -> bool
         retourne vrai
     }
 
-    si lexème.nom != "html" {
+    si lexème.nom != TAG_html {
         retourne vrai
     }
 
@@ -1566,7 +1564,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == TAG_input {
             attr := cherche_attribut(*lexème, ATTR_type)
 
-            si attr == nul || !compare_ascii_insensible_à_la_casse(attr.valeur, "hidden") {
+            si attr == nul || !compare_ascii_insensible_à_la_casse(attr.valeur, ATTR_hidden) {
                 erreur_de_parsage(parseuse, "lexème inattendu dans table")
                 parseuse.adoption_activée = vrai
                 parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
@@ -2254,7 +2252,7 @@ génère_tags_fin_implicites :: fonc (parseuse: *Parseuse)
     }
 }
 
-génère_tags_fin_implicites_autres_que :: fonc (parseuse: *Parseuse, tag: *ChaineInternée)
+génère_tags_fin_implicites_autres_que :: fonc (parseuse: *Parseuse, tag: DOMString)
 {
     noeud := parseuse.noeud_courant()
 
@@ -2418,7 +2416,7 @@ ferme_un_élément_p :: fonc (parseuse: *Parseuse)
     dépile_tous_les_éléments_jusque(parseuse, TAG_p)
 }
 
-dépile_tous_les_éléments_jusque :: fonc (parseuse: *Parseuse, nom_tag: *ChaineInternée)
+dépile_tous_les_éléments_jusque :: fonc (parseuse: *Parseuse, nom_tag: DOMString)
 {
     noeud := parseuse.noeud_courant()
 

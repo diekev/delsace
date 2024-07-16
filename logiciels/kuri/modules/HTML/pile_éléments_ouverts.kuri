@@ -30,7 +30,7 @@ taille :: fonc (pile: *PileÉlémentsOuverts) -> z64 #enligne
     retourne pile.éléments.taille
 }
 
-possède_dans_portée_ex :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée, liste: ...*ChaineInternée) -> bool
+possède_dans_portée_ex :: fonc (pile: *PileÉlémentsOuverts, nom_tag: DOMString, liste: ...DOMString) -> bool
 {
     index := pile.éléments.taille - 1
 
@@ -52,27 +52,27 @@ possède_dans_portée_ex :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *Chaine
 }
 
 // À FAIRE : gestion des espaces de nom
-possède_dans_portée_button :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
+possède_dans_portée_button :: fonc (pile: *PileÉlémentsOuverts, nom_tag: DOMString) -> bool
 {
     retourne possède_dans_portée_ex(pile, nom_tag, TAG_button, TAG_applet, TAG_caption, TAG_html, TAG_table, TAG_td, TAG_th, TAG_marquee, TAG_object, TAG_template, TAG_mi, TAG_mo, TAG_mn, TAG_ms, TAG_mtext, TAG_annotation_xml, TAG_foreignObject, TAG_desc, TAG_title)
 }
 
-possède_dans_portée_list_item :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
+possède_dans_portée_list_item :: fonc (pile: *PileÉlémentsOuverts, nom_tag: DOMString) -> bool
 {
     retourne possède_dans_portée_ex(pile, nom_tag, TAG_ol, TAG_ul, TAG_applet, TAG_caption, TAG_html, TAG_table, TAG_td, TAG_th, TAG_marquee, TAG_object, TAG_template, TAG_mi, TAG_mo, TAG_mn, TAG_ms, TAG_mtext, TAG_annotation_xml, TAG_foreignObject, TAG_desc, TAG_title)
 }
 
-possède_dans_portée_table :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
+possède_dans_portée_table :: fonc (pile: *PileÉlémentsOuverts, nom_tag: DOMString) -> bool
 {
     retourne possède_dans_portée_ex(pile, nom_tag, TAG_html, TAG_table, TAG_template)
 }
 
-possède_dans_portée_select :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
+possède_dans_portée_select :: fonc (pile: *PileÉlémentsOuverts, nom_tag: DOMString) -> bool
 {
     retourne possède_dans_portée_ex(pile, nom_tag, TAG_optgroup, TAG_option)
 }
 
-possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
+possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, nom_tag: DOMString) -> bool
 {
     retourne possède_dans_portée_ex(
         pile,
@@ -120,7 +120,7 @@ possède :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> bool
     retourne faux
 }
 
-possède_élément_de_type :: fonc (pile: *PileÉlémentsOuverts, tag: *ChaineInternée) -> bool
+possède_élément_de_type :: fonc (pile: *PileÉlémentsOuverts, tag: DOMString) -> bool
 {
     pour pile.éléments {
         si it.est_élément_type(tag) {

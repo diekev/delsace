@@ -22,6 +22,8 @@ charge "parsage"
 charge "pile_éléments_ouverts"
 charge "tags_html"
 
+DOMString :: ChaineUTF16Unique
+
 imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien
 {
     imprime_tabulation(tab)

@@ -86,11 +86,11 @@ crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollection
     retourne résultat
 }
 
-crée_filtre_pour_tag_name :: fonc (tag_name: *ChaineInternée) -> *HTMLCollectionFilter
+crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilter
 {
     TagNameFilter :: struct {
         empl base: HTMLCollectionFilter
-        tag_name: *ChaineInternée
+        tag_name: DOMString
     }
 
     sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Élément) -> bool

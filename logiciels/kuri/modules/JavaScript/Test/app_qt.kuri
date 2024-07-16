@@ -610,9 +610,7 @@ enveloppe_document_sur_création_enveloppe :: fonc (base: *Enveloppable @inutili
 
         texte := arguments[0].String.texte
 
-        chn := donne_chaine_utf16(texte)
-
-        élément := document.get_element_by_id(chn)
+        élément := document.get_element_by_id(texte)
 
         saufsi élément {
             retourne normal_completion(js_null)
@@ -660,9 +658,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
 
         texte := arguments[0].String.texte
     
-        chn := texte.donne_chaine_utf16()
-
-        collection := élément.get_elements_by_class_name(chn)
+        collection := élément.get_elements_by_class_name(texte)
 
         enveloppe_collection := loge(EnveloppeHTMLCollection)
         enveloppe_collection.collection = collection
@@ -688,9 +684,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
 
         texte := arguments[0].String.texte
     
-        chn := crée_chaine_internée(imprime_chaine("%", texte.donne_chaine_utf16()))
-
-        collection := élément.get_elements_by_tag_name(chn)
+        collection := élément.get_elements_by_tag_name(texte)
 
         enveloppe_collection := loge(EnveloppeHTMLCollection)
         enveloppe_collection.collection = collection
@@ -711,9 +705,9 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
         img := élément comme *HTMLImageElement
         src := img.donne_src()
 
-        str_src := crée_chaine(enveloppe.donne_tas_de_mémoire(), crée_chaine_utf16_unique(src))
+        str_src := crée_chaine(enveloppe.donne_tas_de_mémoire(), src)
 
-        enveloppe.ajoute_propriété(crée_chaine_utf16_unique("src"), Valeur(String = str_src), faux, faux, faux)
+        enveloppe.ajoute_propriété(ATTR_src, Valeur(String = str_src), faux, faux, faux)
     }
 }
 

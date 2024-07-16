@@ -54,7 +54,7 @@ $htmlMin->doRemoveOmittedHtmlTags();                  // remove ommitted html ta
 
  */
 
-est_élément_optionnel :: fonc (tag: *ChaineInternée) -> bool
+est_élément_optionnel :: fonc (tag: DOMString) -> bool
 {
     retourne fait_partie_de(tag, TAG_html, TAG_head, TAG_body)
 }
@@ -148,13 +148,14 @@ nouvelle_ligne_après_tag_au_besoin :: fonc (contexte_formattage: &ContexteForma
     }
 }
 
-peut_ignorer_les_guillemets :: fonc (contexte_formattage: &ContexteFormattage, valeur: ChaineUTF16) -> bool
+peut_ignorer_les_guillemets :: fonc (contexte_formattage: &ContexteFormattage, valeur: ChaineUTF16Unique) -> bool
 {
     saufsi contexte_formattage.supprime_guillemets_attributs {
         retourne faux
     }
 
-    pour c dans valeur.unités {
+    chn := valeur.donne_chaine_utf16()
+    pour c dans chn.unités {
         si c == (' ' comme n16) || c == ('/' comme n16) {
             retourne faux
         }
@@ -163,7 +164,7 @@ peut_ignorer_les_guillemets :: fonc (contexte_formattage: &ContexteFormattage, v
     retourne vrai
 }
 
-peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage @inutilisée, tag: *ChaineInternée, attribut: Attribut) -> bool
+peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage @inutilisée, tag: DOMString, attribut: Attribut) -> bool
 {
     si tag == TAG_script {
         // "type" n'est pas requis en HTML5, "charset" et "language" sont dépréciés
@@ -176,7 +177,7 @@ peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage @inutili
     }
 
     si tag == TAG_input {
-        retourne attribut.nom == ATTR_value && attribut.valeur == ""
+        retourne attribut.nom == ATTR_value && attribut.valeur == crée_chaine_utf16_unique("")
     }
 
     retourne faux
@@ -195,12 +196,12 @@ compare_attribut :: fonc (a1: Attribut, a2: Attribut) -> z32
     retourne 1
 }
 
-tri_classes_css :: fonc (chn_classe: ChaineUTF16) -> ChaineUTF16
+tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
 {
-    classes := divise_chaine(chn_classe, ESPACE)
+    classes := run_ordered_set_parser(chn_classe)
     diffère déloge(classes)
 
-    tri_rapide(classes, compare_chaine_utf16)
+    tri_rapide(classes, compare_chaine_utf16_unique)
 
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
@@ -210,15 +211,14 @@ tri_classes_css :: fonc (chn_classe: ChaineUTF16) -> ChaineUTF16
         si index_it > 0 {
             enchaineuse.ajoute(' ')
         }
-        pour c dans it.unités {
-            enchaineuse.ajoute(c)
-        }
+        enchaineuse.ajoute(it.donne_chaine_utf16())
     }
 
-    retourne chaine_depuis_enchaineuse(enchaineuse)
+    résultat := chaine_depuis_enchaineuse(enchaineuse)
+    retourne crée_chaine_utf16_unique(résultat)
 }
 
-cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: *ChaineInternée, attributs: [..]Attribut) -> [..]Attribut
+cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: DOMString, attributs: [..]Attribut) -> [..]Attribut
 {
     résultat: [..]Attribut
 
@@ -230,14 +230,12 @@ cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag:
         si tag == TAG_a {
             // "name" est déprécié, remplace par "id"
             si it.nom == ATTR_name {
-                détruit_chaine(it.nom)
                 it.nom = ATTR_id
             }
         }
 
         si it.nom == ATTR_class {
             nouvelle_valeur := tri_classes_css(it.valeur)
-            détruit_chaine(it.valeur)
             it.valeur = nouvelle_valeur
         }
 
@@ -296,11 +294,8 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
                 garde_tag_sur_la_même_ligne = vrai
             }
 
-            chn_tag := chaine_native(élément.texte)
-            diffère déloge(chn_tag)
-
             /* Ouverture du tag. */
-            enchaineuse.imprime_dans_enchaineuse("<%", chn_tag)
+            enchaineuse.imprime_dans_enchaineuse("<%", élément.texte)
 
             /* Attributs. */
             attributs := cueille_et_tri_attributs(contexte_formattage, élément.texte, élément.attributs)
@@ -308,17 +303,19 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
 
             pour attributs {
                 enchaineuse.ajoute_au_tampon(" ")
-                formatte_chaine_utf16(*it.nom, flux_sortie)
+                nom_attribut := it.nom.donne_chaine_utf16()
+                valeur_attribut := it.valeur.donne_chaine_utf16()
+                formatte_chaine_utf16(*nom_attribut, flux_sortie)
                 enchaineuse.ajoute_au_tampon("=")
 
                 si peut_ignorer_les_guillemets(contexte_formattage, it.valeur) {
                     //enchaineuse.imprime_dans_enchaineuse(" %=%", it.nom, it.valeur)
-                    formatte_chaine_utf16(*it.valeur, flux_sortie)
+                    formatte_chaine_utf16(*valeur_attribut, flux_sortie)
                 }
                 sinon {
                     //enchaineuse.imprime_dans_enchaineuse(" %='%'", it.nom, it.valeur)
                     enchaineuse.ajoute_au_tampon("'")
-                    formatte_chaine_utf16(*it.valeur, flux_sortie)
+                    formatte_chaine_utf16(*valeur_attribut, flux_sortie)
                     enchaineuse.ajoute_au_tampon("'")
                 }
             }
@@ -357,7 +354,7 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
                 saufsi garde_tag_sur_la_même_ligne {
                     tabulation_au_besoin(contexte_formattage, enchaineuse)
                 }
-                enchaineuse.imprime_dans_enchaineuse("</%>", chn_tag)
+                enchaineuse.imprime_dans_enchaineuse("</%>", élément.texte)
                 saufsi garde_tag_sur_la_même_ligne {
                     nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
                 }
