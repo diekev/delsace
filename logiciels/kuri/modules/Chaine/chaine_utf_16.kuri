@@ -831,6 +831,13 @@ imprime_chaine_utf16_unique :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF1
         retourne
     }
 
+    si mémoire(chn).est_caractère_ascii() {
+        valeur := chn.valeur comme z8
+        chn_ascii := construit_chaine(*valeur, 1)
+        ajoute_au_tampon(enchaineuse, chn_ascii)
+        retourne
+    }
+
     chn_utf16 := donne_chaine_utf16(mémoire(chn))
     imprime_dans_enchaineuse(enchaineuse, "%", chn_utf16)
 } @FormattageImpression
