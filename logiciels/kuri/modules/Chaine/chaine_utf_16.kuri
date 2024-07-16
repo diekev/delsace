@@ -261,6 +261,11 @@ converti_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
     retourne résultat
 }
 
+converti_vers_chaine :: fonc (chn: ChaineUTF16) -> chaine
+{
+    retourne imprime_chaine("%", chn)
+}
+
 est_préfixe_de :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
 {
     i := 0
@@ -765,6 +770,11 @@ opérateur == :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
     retourne chn1.valeur == chn2.valeur
 }
 
+opérateur == :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16) -> bool
+{
+    retourne chn1.donne_chaine_utf16() == chn2
+}
+
 opérateur != :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
     retourne chn1.valeur != chn2.valeur
@@ -808,6 +818,55 @@ imprime_chaine_utf16_unique :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF1
     chn_utf16 := donne_chaine_utf16(mémoire(chn))
     imprime_dans_enchaineuse(enchaineuse, "%", chn_utf16)
 } @FormattageImpression
+
+est_vide :: fonc (chn: ChaineUTF16Unique) -> bool
+{
+    retourne chn.donne_chaine_utf16().est_vide()
+}
+
+divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16Unique) -> [..]ChaineUTF16Unique
+{
+    chn_utf16 := chn.donne_chaine_utf16()
+
+    résultat_tmp := chn_utf16.divise_sur_espaces_blanches_ascii()
+    diffère déloge(résultat_tmp)
+
+    résultat: [..]ChaineUTF16Unique
+    pour résultat_tmp {
+        tableau_ajoute(*résultat, crée_chaine_utf16_unique(it))
+    }
+
+    retourne résultat
+}
+
+compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
+{
+    si chn1 == chn2 {
+        retourne vrai
+    }
+
+    chn1_utf16 := chn1.donne_chaine_utf16()
+    chn2_utf16 := chn2.donne_chaine_utf16()
+    retourne compare_ascii_insensible_à_la_casse(chn1_utf16, chn2_utf16)
+}
+
+compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chn2: chaine) -> bool
+{
+    retourne compare_ascii_insensible_à_la_casse(chn1, crée_chaine_utf16_unique(chn2))
+}
+
+supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16Unique
+{
+    chn_utf16 := chn.donne_chaine_utf16()
+    chn_utf16 = supprime_espace_blanches_autour(chn_utf16)
+    retourne crée_chaine_utf16_unique(chn_utf16)
+}
+
+/* Comparaison pour tri_rapide. */
+compare_chaine_utf16_unique :: fonc (a1: ChaineUTF16Unique, a2: ChaineUTF16Unique) -> z32
+{
+    retourne compare_chaine_utf16(a1.donne_chaine_utf16(), a2.donne_chaine_utf16())
+}
 
 /** \} */
 
