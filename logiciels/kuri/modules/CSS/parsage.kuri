@@ -68,6 +68,18 @@ donne_bloc_simple :: fonc (value: ComponentValue) -> ParsedSimpleBlock
     retourne value.bloc
 }
 
+est_fonction :: fonc (value: ComponentValue) -> bool
+{
+    discr value {
+        function {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 est_lexème_de_genre :: fonc (value: ComponentValue, genre: GenreLexème) -> bool
 {
     discr value {
@@ -836,16 +848,79 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(S
     }
 
     parseuse_locale.avance()
-    saufsi parseuse_locale.apparie_lexème_ident() {
-        // À FAIRE : fonctions
-        retourne
+    si parseuse_locale.apparie_lexème_ident() {
+        ident := parseuse_locale.lexème_courant().lexème.valeur
+        parseuse_locale.avance()
+
+        parseuse.curseur = parseuse_locale.curseur
+        retourne crée_pseudo_class_selector(ident)
     }
 
-    ident := parseuse_locale.lexème_courant().lexème.valeur
-    parseuse_locale.avance()
+    si parseuse_locale.lexème_courant().est_fonction() {
+        fonction := parseuse_locale.lexème_courant().function
+        nom_fonction := fonction.name
 
-    parseuse.curseur = parseuse_locale.curseur
-    retourne crée_pseudo_class_selector(ident)
+        /* https://www.w3.org/TR/selectors-4/#negation */
+        si nom_fonction == "not" {
+            parseuse_locale.avance()
+
+            opt_selectors := parse_selector_list(fonction.value)
+            si opt_selectors.possède_valeur() {
+                parseuse.curseur = parseuse_locale.curseur
+                retourne crée_function_selector(nom_fonction, opt_selectors.Quelque)
+            }
+        }
+        /* https://www.w3.org/TR/selectors-4/#matches */
+        sinon si nom_fonction == "is" {
+            parseuse_locale.avance()
+
+            /* À FAIRE : ceci doit être parse_forgiving_selector_list */
+            opt_selectors := parse_selector_list(fonction.value)
+            si opt_selectors.possède_valeur() {
+                parseuse.curseur = parseuse_locale.curseur
+                retourne crée_function_selector(nom_fonction, opt_selectors.Quelque)
+            }
+        }
+        /* https://www.w3.org/TR/selectors-4/#zero-matches */
+        sinon si nom_fonction == "where" {
+            parseuse_locale.avance()
+
+            /* À FAIRE : ceci doit être parse_forgiving_selector_list */
+            opt_selectors := parse_selector_list(fonction.value)
+            si opt_selectors.possède_valeur() {
+                parseuse.curseur = parseuse_locale.curseur
+                retourne crée_function_selector(nom_fonction, opt_selectors.Quelque)
+            }
+        }
+        /* https://www.w3.org/TR/css-scoping-1/#selectordef-host0 */
+        sinon si nom_fonction == "host" {
+            parseuse_locale.avance()
+
+            /* À FAIRE : ceci doit être parse_compound_selector */
+            opt_selectors := parse_selector_list(fonction.value)
+            si opt_selectors.possède_valeur() {
+                parseuse.curseur = parseuse_locale.curseur
+                retourne crée_function_selector(nom_fonction, opt_selectors.Quelque)
+            }
+        }
+        /* https://www.w3.org/TR/selectors-4/#the-dir-pseudo */
+        sinon si nom_fonction == "dir" {
+            parseuse_locale.avance()
+
+            si fonction.value.taille == 1 && fonction.value[0].est_lexème_de_genre(GenreLexème.Ident) {
+                nom := fonction.value[0].lexème.valeur
+                si nom == "ltr" || nom == "rtl" {
+                    parseuse.curseur = parseuse_locale.curseur
+                    retourne crée_function_selector(nom_fonction, nom)
+                }
+            }
+        }
+        sinon {
+            imprime("fonction non supporté : %\n", nom_fonction)
+        }
+
+        retourne
+    }
 }
 
 /* <pseudo-element-selector> = ':' <pseudo-class-selector> */

@@ -117,6 +117,13 @@ SimpleSelector :: struct {
     /* Valeur pour AttributeMatcher. */
     attribute_value: ChaineUTF16
     attribute_modifier: Optionnel(AttributeModifier)
+
+    /* Pour les pseudos-classes fonctionnels. */
+    est_fonction: bool
+    selector_list: SelectorList
+
+    /* Pour :dir. */
+    arg: ChaineUTF16
 }
 
 imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSelector)
@@ -233,6 +240,27 @@ crée_attribute_selector :: fonc (ident: ChaineUTF16, matcher: SimpleSelector.At
 crée_pseudo_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
     retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), ident)
+}
+
+crée_function_selector :: fonc (ident: ChaineUTF16, arguments: SelectorList) -> SimpleSelector
+{
+    résultat: SimpleSelector
+    résultat.type = SimpleSelector.Type.PseudoClass
+    résultat.ident = ident
+    résultat.est_fonction = vrai
+    résultat.selector_list = arguments
+    retourne résultat
+}
+
+/* Pour :dir et peut-être d'autres. */
+crée_function_selector :: fonc (ident: ChaineUTF16, arg: ChaineUTF16) -> SimpleSelector
+{
+    résultat: SimpleSelector
+    résultat.type = SimpleSelector.Type.PseudoClass
+    résultat.ident = ident
+    résultat.est_fonction = vrai
+    résultat.arg = arg
+    retourne résultat
 }
 
 /** \} */
