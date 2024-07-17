@@ -36,6 +36,11 @@ donne_glyphe :: fonc (fonte: *Fonte, c: *z8) -> *texture_glyph_t
     retourne texture_font_get_glyph(fonte.font, c)
 }
 
+donne_glyphe :: fonc (fonte: *Fonte, point_de_code: n32) -> *texture_glyph_t
+{
+    retourne texture_font_get_glyph_codepoint(fonte.font, point_de_code)
+}
+
 donne_largeur_texte :: fonc (fonte: *Fonte, texte: chaine) -> z32
 {
     résultat := 0.0
@@ -55,6 +60,32 @@ donne_largeur_texte :: fonc (fonte: *Fonte, texte: chaine) -> z32
         résultat += glyph.advance_x
     }
     retourne résultat comme z32
+}
+
+donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16) -> z32
+{
+    résultat := 0.0
+    utilise_crénage := fonte.font.kerning != 0
+    dernier_glyphe: *texture_glyph_t
+    pour texte.unités {
+        glyph := donne_glyphe(fonte, it)
+        saufsi glyph {
+            continue
+        }
+
+        si utilise_crénage {
+            crénage := donne_crénage_avec(glyph, dernier_glyphe)
+            résultat += crénage
+        }
+        dernier_glyphe = glyph
+        résultat += glyph.advance_x
+    }
+    retourne résultat comme z32
+}
+
+donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16Unique) -> z32
+{
+    retourne donne_largeur_texte(fonte, texte.donne_chaine_utf16())
 }
 
 /** \} */
@@ -108,6 +139,15 @@ donne_crénage_avec :: fonc (glyphe: *texture_glyph_t, caractère: *z8) -> r32 #
     }
 
     retourne texture_glyph_get_kerning(glyphe, caractère)
+}
+
+donne_crénage_avec :: fonc (glyphe: *texture_glyph_t, point_de_code: n32) -> r32 #enligne
+{
+    saufsi caractère {
+        retourne 0.0
+    }
+
+    retourne texture_glyph_get_kerning_codepoint(glyphe, point_de_code)
 }
 
 /* Retourne le crénage de glyphe selon le glyphe qui le précède. */

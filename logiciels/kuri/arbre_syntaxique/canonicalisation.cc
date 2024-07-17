@@ -1331,17 +1331,18 @@ static void rassemble_opérations_chainées(EspaceDeTravail &espace,
     auto transtypage_à_transférer = NoeudComme::nul();
 
     if (opérande_gauche->est_comme()) {
-        /* Dans l'expression a < b < c, l'expression (a < b) est devenue ((a < b) comme type) car b
-         * doit être transtypé pour être comparé à c. */
         auto transtypage = opérande_gauche->comme_comme();
-        assert(transtypage->possède_drapeau(DrapeauxNoeud::TRANSTYPAGE_IMPLICITE));
-        assert(transtypage->expression->est_expression_binaire());
 
-        auto expression_binaire = transtypage->expression->comme_expression_binaire();
+        if (transtypage->expression->est_expression_binaire()) {
+            /* Dans l'expression a < b < c, l'expression (a < b) est devenue ((a < b) comme type)
+             * car b doit être transtypé pour être comparé à c. */
+            assert(transtypage->possède_drapeau(DrapeauxNoeud::TRANSTYPAGE_IMPLICITE));
+            auto expression_binaire = transtypage->expression->comme_expression_binaire();
 
-        if (est_opérateur_comparaison(expression_binaire->lexème->genre)) {
-            transtypage_à_transférer = transtypage;
-            opérande_gauche = transtypage->expression;
+            if (est_opérateur_comparaison(expression_binaire->lexème->genre)) {
+                transtypage_à_transférer = transtypage;
+                opérande_gauche = transtypage->expression;
+            }
         }
     }
 
