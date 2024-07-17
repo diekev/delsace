@@ -462,7 +462,7 @@ parse_selector_list :: fonc (prelude: [..]ComponentValue) -> Optionnel(SelectorL
 
 parse_selector_list :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SelectorList)
 {
-    imprime("---------------------------\n[%]\n", #nom_de_cette_fonction)
+    // imprime("---------------------------\n[%]\n", #nom_de_cette_fonction)
     résultat: SelectorList
     parse_complex_selector_list(parseuse, *résultat)
     retourne résultat
@@ -473,7 +473,7 @@ parse_complex_selector_list :: fonc (parseuse: &ParseuseSelector, list: *Selecto
 {
     consomme_espaces_blanches(parseuse)
 
-    imprime("[%]\n", #nom_de_cette_fonction)
+    // imprime("[%]\n", #nom_de_cette_fonction)
     tantque !fini(parseuse) {
         complex := parse_complex_selector(parseuse)
         saufsi complex.possède_valeur() {
@@ -486,7 +486,7 @@ parse_complex_selector_list :: fonc (parseuse: &ParseuseSelector, list: *Selecto
             arrête
         }
 
-        imprime("-- virgule\n")
+        // imprime("-- virgule\n")
         _ := parseuse.consomme_le_lexème_en_entrée_suivant()
     }
 
@@ -500,7 +500,7 @@ parse_complex_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Comple
 
     résultat: ComplexSelector
 
-    imprime("[%]\n", #nom_de_cette_fonction)
+    // imprime("[%]\n", #nom_de_cette_fonction)
     combinateur_courant: Optionnel(Combinator)
 
     tantque !fini(parseuse) {
@@ -536,16 +536,16 @@ parse_complex_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Comple
  *                        [ <pseudo-element-selector> <pseudo-class-selector>* ]* ]! */
 parse_compound_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(CompoundSelector)
 {
-    imprime("[%]\n", #nom_de_cette_fonction)
+    // imprime("[%]\n", #nom_de_cette_fonction)
 
     résultat: CompoundSelector
 
-    imprime("-- position : %\n", parseuse.curseur)
+    // imprime("-- position : %\n", parseuse.curseur)
 
     /* <type-selector>? */
     type_selector := parseuse.parse_type_selector()
     si type_selector.possède_valeur() {
-        imprime("-- %\n", type_selector.Quelque)
+        // imprime("-- %\n", type_selector.Quelque)
         tableau_ajoute(*résultat.simple_selectors, type_selector.Quelque)
     }
 
@@ -556,7 +556,7 @@ parse_compound_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Compo
             arrête
         }
 
-        imprime("-- %\n", subclass_selector.Quelque)
+        // imprime("-- %\n", subclass_selector.Quelque)
         tableau_ajoute(*résultat.simple_selectors, subclass_selector.Quelque)
     }
 
@@ -566,7 +566,7 @@ parse_compound_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Compo
         saufsi pseudo_element_selector.possède_valeur() {
             arrête
         }
-        imprime("-- %\n", pseudo_element_selector.Quelque)
+        // imprime("-- %\n", pseudo_element_selector.Quelque)
         tableau_ajoute(*résultat.simple_selectors, pseudo_element_selector.Quelque)
 
         tantque !fini(parseuse) {
@@ -575,12 +575,12 @@ parse_compound_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Compo
                 arrête
             }
 
-            imprime("-- %\n", subclass_selector.Quelque)
+            // imprime("-- %\n", subclass_selector.Quelque)
             tableau_ajoute(*résultat.simple_selectors, subclass_selector.Quelque)
         }
     }
 
-    imprime("-- position : %\n", parseuse.curseur)
+    // imprime("-- position : %\n", parseuse.curseur)
 
     si résultat.simple_selectors.taille == 0 {
         retourne
@@ -955,7 +955,7 @@ parse_pseudo_element_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel
 /* <combinator> = '>' | '+' | '~' | [ '|' '|' ] */
 parse_combinateur :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Combinator)
 {
-    imprime("[%]\n", #nom_de_cette_fonction)
+    // imprime("[%]\n", #nom_de_cette_fonction)
 
     résultat: Optionnel(Combinator)
 
