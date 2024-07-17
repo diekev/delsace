@@ -707,6 +707,11 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             }
 
             type_c.code_machine_fut_généré = true;
+
+#ifdef IMPRIME_COMMENTAIRE
+            enchaineuse << "// " << __func__ << " : " << chaine_type(type) << "\n";
+#endif
+
             POUR (type_composé->membres) {
                 if (it.type->est_type_pointeur()) {
                     continue;
@@ -721,21 +726,15 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             }
 
             génère_déclaration_structure(enchaineuse, type_composé);
-
-            POUR (type_composé->membres) {
-                if (it.type->est_type_pointeur()) {
-                    génère_code_pour_type(it.type->comme_type_pointeur()->type_pointé,
-                                          enchaineuse);
-                    continue;
-                }
-            }
-
             break;
         }
         case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
             type_c.code_machine_fut_généré = true;
+#ifdef IMPRIME_COMMENTAIRE
+            enchaineuse << "// " << __func__ << " : " << chaine_type(type) << "\n";
+#endif
             POUR (type_union->membres) {
                 génère_code_pour_type(it.type, enchaineuse);
             }
@@ -745,6 +744,9 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto tableau_fixe = type->comme_type_tableau_fixe();
+#ifdef IMPRIME_COMMENTAIRE
+            enchaineuse << "// " << __func__ << " : " << chaine_type(type) << "\n";
+#endif
             génère_code_pour_type(tableau_fixe->type_pointé, enchaineuse);
             auto nom_broyé = génératrice_code.donne_nom_pour_type(type);
             kuri::chaine_statique préfixe = "";
@@ -763,7 +765,6 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::VARIADIQUE:
         {
             auto variadique = type->comme_type_variadique();
-            génère_code_pour_type(variadique->type_pointé, enchaineuse);
             génère_code_pour_type(variadique->type_tranche, enchaineuse);
             return;
         }
@@ -776,12 +777,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
                 return;
             }
 
-            génère_code_pour_type(type_élément, enchaineuse);
-
             if (!type_c.code_machine_fut_généré) {
-                POUR (tableau_dynamique->membres) {
-                    génère_code_pour_type(it.type, enchaineuse);
-                }
                 génère_déclaration_structure(enchaineuse, tableau_dynamique);
             }
             break;
@@ -795,23 +791,13 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
                 return;
             }
 
-            génère_code_pour_type(type_élément, enchaineuse);
-
             if (!type_c.code_machine_fut_généré) {
-                POUR (tableau_dynamique->membres) {
-                    génère_code_pour_type(it.type, enchaineuse);
-                }
                 génère_déclaration_structure(enchaineuse, tableau_dynamique);
             }
             break;
         }
         case GenreNoeud::FONCTION:
         {
-            auto type_fonction = type->comme_type_fonction();
-            POUR (type_fonction->types_entrées) {
-                génère_code_pour_type(it, enchaineuse);
-            }
-            génère_code_pour_type(type_fonction->type_sortie, enchaineuse);
             break;
         }
         CAS_POUR_NOEUDS_HORS_TYPES:
@@ -827,6 +813,11 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 void ConvertisseuseTypeC::génère_déclaration_structure(
     Enchaineuse &enchaineuse, const NoeudDéclarationTypeComposé *type_composé)
 {
+#ifdef IMPRIME_COMMENTAIRE
+    enchaineuse << "// " << chaine_type(type_composé) << " (" << type_composé->genre << ')'
+                << '\n';
+#endif
+
     génère_déclaration_structure_cpp(enchaineuse, type_composé);
     return;
 

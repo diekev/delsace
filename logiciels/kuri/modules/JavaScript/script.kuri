@@ -63,29 +63,151 @@ crée_texte_source :: fonc (texte: chaine) -> TexteSource
     retourne résultat
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom 16.1.4 Script Record.
+ * https://tc39.es/ecma262/#sec-script-records
+ * \{ */
+
 Script :: struct {
+    empl base: Cellule
+    classe = #type_de_cette_structure
+    sur_destruction = sur_destruction_script
+
     source: TexteSource
 
     /* Les lexèmes du script, les lexèmes des noeuds sont des adresses dans ce tableau. */
     lexèmes: [..]Lexème
 
+    realm: *Realm
+
     /* Arbre syntaxique. */
-    programme: *Programme
+    ecma_script_code: *Programme
+
+    host_defined: HostDefined
 }
 
-crée_script :: fonc (texte: chaine) -> Script
+initialise_script :: fonc (résultat: *Script, realm: *Realm, script: *Programme, host_defined: HostDefined)
 {
-    retourne Script(source = crée_texte_source(texte))
+    résultat.realm = realm
+    résultat.ecma_script_code = script
+    résultat.host_defined = host_defined
 }
 
-détruit_script :: fonc (script: &Script)
+sur_destruction_script :: fonc (base: *Cellule)
+{
+    script := base comme *Script
+    détruit_données_script(script)
+}
+
+détruit_données_script :: fonc (script: *Script)
 {
     déloge(script.source.texte)
     déloge(script.lexèmes)
-    si script.programme {
-        détruit_arbre(script.programme)
+    si script.ecma_script_code {
+        détruit_arbre(script.ecma_script_code)
     }
 }
+
+/* 16.1.5 ParseScript ( sourceText, realm, hostDefined )
+ * https://tc39.es/ecma262/#sec-parse-script */
+parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostDefined()) -> Résultat(*Script, ErreurCompilation)
+{
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(Script)
+
+    // À FAIRE : standardise parseText
+    // 1. Let script be ParseText(sourceText, Script).
+    // 2. If script is a List of errors, return script.
+
+    script: *Programme
+    discr compile_script(source_texte, résultat) {
+        Ok(programme) {
+            script = programme
+        }
+        Erreur(e) {
+            détruit_données_script(résultat)
+            retourne e
+        }
+        sinon {
+            détruit_données_script(résultat)
+            retourne ErreurCompilation(copie_chaine("Erreur interne : la compilation a échoué pour raison inconnue"))
+        }
+    }
+    
+    // 3. Return Script Record { [[Realm]]: realm, [[ECMAScriptCode]]: script, [[LoadedModules]]: « », [[HostDefined]]: hostDefined }.
+    initialise_script(résultat, realm, script, host_defined)
+    retourne résultat
+}
+
+/* 16.1.6 ScriptEvaluation ( scriptRecord )
+ * https://tc39.es/ecma262/#sec-runtime-semantics-scriptevaluation */
+script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
+{
+    tas_de_mémoire := script_record.donne_tas_de_mémoire()
+    mv := tas_de_mémoire.donne_mv()
+
+    // 1. Let globalEnv be scriptRecord.[[Realm]].[[GlobalEnv]].
+    global_env := script_record.realm.global_environment
+
+    // 2. Let scriptContext be a new ECMAScript code execution context.
+    script_context := crée_execution_context(tas_de_mémoire)
+
+    // 3. Set the Function of scriptContext to null.
+    script_context.function = nul
+
+    // 4. Set the Realm of scriptContext to scriptRecord.[[Realm]].
+    script_context.realm = script_record.realm
+
+    // 5. Set the ScriptOrModule of scriptContext to scriptRecord.
+    script_context.script_or_module = script_record
+
+    // 6. Set the VariableEnvironment of scriptContext to globalEnv.
+    script_context.variable_environment = global_env
+
+    // 7. Set the LexicalEnvironment of scriptContext to globalEnv.
+    script_context.lexical_environment = global_env
+
+    // 8. Set the PrivateEnvironment of scriptContext to null.
+    script_context.private_environment = nul
+
+    // 9. Suspend the running execution context.
+    mv.suspend_running_execution_context()
+
+    // 10. Push scriptContext onto the execution context stack; scriptContext is now the running execution context.
+    mv.empile_execution_context(script_context)
+
+    // 11. Let script be scriptRecord.[[ECMAScriptCode]].
+    script := script_record.ecma_script_code
+
+    // À FAIRE : 12. Let result be Completion(GlobalDeclarationInstantiation(script, globalEnv)).
+    résultat := normal_completion(js_undefined)
+
+    // 13. If result is a normal completion, then
+    si résultat.est_normal() {
+        // a. Set result to Completion(Evaluation of script).
+        interpréteuse: Interpréteuse
+        diffère détruit_données_interpreteuse(interpréteuse)
+        interpréteuse.mv = mv
+        résultat = interpréteuse.exécute(script)
+
+        // À FAIRE : b. If result is a normal completion and result.[[Value]] is EMPTY, then
+        // i. Set result to NormalCompletion(undefined).
+    }
+
+    // 14. Suspend scriptContext and remove it from the execution context stack.
+    mv.suspend_running_execution_context()
+    mv.dépile_execution_context()
+
+    // 15. Assert: The execution context stack is not empty.
+    assert(mv.execution_contexts.taille != 0)
+
+    // 16. À FAIRE : Resume the context that is now on the top of the execution context stack as the running execution context.
+    
+    // 17. Return ? result.
+    retourne résultat
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Erreur de compilation.
@@ -140,37 +262,37 @@ crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: 
 
 /** \} */
 
-compile_script :: fonc (texte: chaine) -> Résultat(Script, ErreurCompilation)
+compile_script :: fonc (texte: chaine, script: *Script) -> Résultat(*Programme, ErreurCompilation)
 {
-    script := crée_script(texte)
+    script.source = crée_texte_source(texte)
 
     discr lèxe(script.source) {
         Ok(lexèmes) {
             script.lexèmes = lexèmes
         }
         Erreur(erreur_de_compilation) {
-            détruit_script(script)
+            détruit_données_script(script)
             retourne erreur_de_compilation
         }
         sinon {
-            détruit_script(script)
+            détruit_données_script(script)
             retourne ErreurCompilation(copie_chaine("Erreur interne : le lexage n'a rien retourné"))
         }
     }
 
-    discr parse(*script) {
+    discr parse(script) {
         Ok(programme) {
-            script.programme = programme
+            script.ecma_script_code = programme
         }
         Erreur(erreur_de_compilation) {
-            détruit_script(script)
+            détruit_données_script(script)
             retourne erreur_de_compilation
         }
         sinon {
-            détruit_script(script)
+            détruit_données_script(script)
             retourne ErreurCompilation(copie_chaine("Erreur interne : le syntaxage n'a rien retourné"))
         }
     }
 
-    retourne script
+    retourne script.ecma_script_code
 }
