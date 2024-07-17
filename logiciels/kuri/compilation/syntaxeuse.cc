@@ -629,6 +629,29 @@ void Syntaxeuse::analyse_une_chose()
         consomme();
     }
     else if (apparie_expression()) {
+        if (lexème_courant()->genre == GenreLexème::DIRECTIVE) {
+            consomme();
+
+            auto ident = lexème_courant()->ident;
+            if (ident == ID::portée_export) {
+                m_portée = PortéeSymbole::EXPORT;
+                consomme();
+                return;
+            }
+            if (ident == ID::portée_fichier) {
+                m_portée = PortéeSymbole::FICHIER;
+                consomme();
+                return;
+            }
+            if (ident == ID::portée_module) {
+                m_portée = PortéeSymbole::MODULE;
+                consomme();
+                return;
+            }
+
+            recule();
+        }
+
         auto noeud = analyse_expression({}, GenreLexème::INCONNU, GenreLexème::INCONNU);
 
         if (!noeud) {
@@ -638,6 +661,10 @@ void Syntaxeuse::analyse_une_chose()
 
         if (noeud->est_déclaration()) {
             noeud->drapeaux |= DrapeauxNoeud::EST_GLOBALE;
+
+            if (noeud->est_déclaration_symbole()) {
+                noeud->comme_déclaration_symbole()->portée = m_portée;
+            }
 
             if (noeud->est_base_déclaration_variable()) {
                 assert_rappel(noeud->bloc_parent, [&]() {

@@ -7,6 +7,29 @@
 #include "espace_de_travail.hh"
 #include "parsage/modules.hh"
 
+static bool peut_sélectionner_déclaration(NoeudDéclaration const *déclaration,
+                                          Module const *module,
+                                          Fichier const *fichier)
+{
+    if (!déclaration) {
+        return false;
+    }
+
+    if (déclaration->est_déclaration_symbole()) {
+        auto symbole = déclaration->comme_déclaration_symbole();
+        if (symbole->portée == PortéeSymbole::FICHIER &&
+            déclaration->lexème->fichier != fichier->id()) {
+            return false;
+        }
+
+        if (symbole->portée == PortéeSymbole::MODULE && fichier->module != module) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 NoeudDéclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode const *ident)
 {
     return bloc->declaration_pour_ident(ident);
@@ -98,6 +121,17 @@ NoeudDéclaration *trouve_dans_bloc(NoeudBloc const *bloc,
     return nullptr;
 }
 
+NoeudDéclaration *trouve_dans_module(ContexteRechecheSymbole const contexte,
+                                     Module const *module,
+                                     IdentifiantCode const *ident)
+{
+    auto decl = trouve_dans_bloc_seul(module->bloc, ident);
+    if (peut_sélectionner_déclaration(decl, module, contexte.fichier)) {
+        return decl;
+    }
+    return nullptr;
+}
+
 NoeudDéclaration *trouve_dans_bloc_ou_module(
     NoeudBloc const *bloc,
     IdentifiantCode const *ident,
@@ -107,7 +141,11 @@ NoeudDéclaration *trouve_dans_bloc_ou_module(
     auto decl = trouve_dans_bloc(bloc, ident, nullptr, fonction_courante);
 
     if (decl != nullptr) {
-        return decl;
+        if (peut_sélectionner_déclaration(decl, fichier->module, fichier)) {
+            return decl;
+        }
+
+        return nullptr;
     }
 
     /* cherche dans les modules importés */
@@ -115,6 +153,9 @@ NoeudDéclaration *trouve_dans_bloc_ou_module(
         decl = trouve_dans_bloc(module->bloc, ident, nullptr, fonction_courante);
 
         if (decl != nullptr) {
+            if (!peut_sélectionner_déclaration(decl, module, fichier)) {
+                decl = nullptr;
+            }
             return kuri::DécisionItération::Arrête;
         }
 
@@ -131,16 +172,27 @@ NoeudDéclaration *trouve_dans_bloc_ou_module(ContexteRechecheSymbole const cont
         contexte.bloc_racine, ident, contexte.fichier, contexte.fonction_courante);
 }
 
+void trouve_déclarations_dans_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+                                     Module const *module,
+                                     IdentifiantCode const *ident,
+                                     Fichier const *fichier)
+{
+    trouve_declarations_dans_bloc(declarations, module, module->bloc, ident, fichier);
+}
+
 void trouve_declarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+                                   Module const *module_du_bloc,
                                    NoeudBloc const *bloc,
-                                   IdentifiantCode const *ident)
+                                   IdentifiantCode const *ident,
+                                   Fichier const *fichier)
 {
     auto bloc_courant = bloc;
 
     while (bloc_courant != nullptr) {
         auto decl = bloc_courant->declaration_pour_ident(ident);
-        if (decl && decl->est_déclaration_symbole()) {
+        if (peut_sélectionner_déclaration(decl, module_du_bloc, fichier)) {
             auto déclaration_ajoutée = false;
+            auto symbole = decl->comme_déclaration_symbole();
 
             if (decl->est_entête_fonction()) {
                 auto entête = decl->comme_entête_fonction();
@@ -166,27 +218,29 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &declar
 }
 
 void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+                                             Module const *module_du_bloc,
                                              NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
 {
-    trouve_declarations_dans_bloc(declarations, bloc, ident);
+    trouve_declarations_dans_bloc(declarations, module_du_bloc, bloc, ident, fichier);
 
     /* cherche dans les modules importés */
     pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
-        trouve_declarations_dans_bloc(declarations, module->bloc, ident);
+        trouve_déclarations_dans_module(declarations, module, ident, fichier);
         return kuri::DécisionItération::Continue;
     });
 }
 
 void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
                                              kuri::ensemblon<Module const *, 10> &modules_visites,
+                                             Module const *module_du_bloc,
                                              NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
 {
     if (!modules_visites.possède(fichier->module)) {
-        trouve_declarations_dans_bloc(declarations, bloc, ident);
+        trouve_declarations_dans_bloc(declarations, module_du_bloc, bloc, ident, fichier);
     }
 
     modules_visites.insère(fichier->module);
@@ -197,7 +251,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 1
             return kuri::DécisionItération::Continue;
         }
         modules_visites.insère(module);
-        trouve_declarations_dans_bloc(declarations, module->bloc, ident);
+        trouve_déclarations_dans_module(declarations, module, ident, fichier);
         return kuri::DécisionItération::Continue;
     });
 }

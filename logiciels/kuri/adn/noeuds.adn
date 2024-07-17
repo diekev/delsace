@@ -310,6 +310,7 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
     DonnéesSymboleExterne * données_externes
 
     VisibilitéSymbole visibilité_symbole
+    PortéeSymbole portée [copie]
 }
 
 struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {

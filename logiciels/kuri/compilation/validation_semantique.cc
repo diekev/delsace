@@ -1725,8 +1725,14 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
                 return Attente::sur_symbole(structure->comme_référence_déclaration());
             }
 
-            auto déclaration_référée = trouve_dans_bloc(module_ref->bloc,
-                                                        expression_membre->ident);
+            auto contexte_recherche_symbole = ContexteRechecheSymbole{};
+            contexte_recherche_symbole.bloc_racine = expression_membre->bloc_parent;
+            contexte_recherche_symbole.fichier = m_compilatrice.fichier(
+                expression_membre->lexème->fichier);
+            contexte_recherche_symbole.fonction_courante = fonction_courante();
+
+            auto déclaration_référée = trouve_dans_module(
+                contexte_recherche_symbole, module_ref, expression_membre->ident);
             if (!déclaration_référée) {
                 return Attente::sur_symbole(expression_membre);
             }
