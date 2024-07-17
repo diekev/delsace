@@ -143,12 +143,7 @@ imprime_compound_selector :: fonc (enchaineuse: *Enchaineuse, compound_selectors
         retourne
     }
 
-    // À FAIRE : combinateurs
     pour * compound_selectors.simple_selectors {
-        si index_it > 0 {
-            ajoute_au_tampon(enchaineuse, " ")
-        }
-
         imprime_simple_selector(enchaineuse, it)
     }
 } @FormattageImpression
