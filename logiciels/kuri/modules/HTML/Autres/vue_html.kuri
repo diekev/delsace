@@ -745,6 +745,7 @@ NoeudDeDispositionTexte :: struct {
     sur_dessin = noeud_disposition_texte_sur_dessin
 
     noeud_texte: *NoeudTexte
+    texte: ChaineUTF16
 }
 
 noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
@@ -762,8 +763,11 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     métriques := fonte.donne_métriques_fonte()
 
+    texte := supprime_espace_blanches_autour(noeud.noeud_texte.données)
+    noeud.texte = texte
+
     noeud.hauteur = (métriques.donne_hauteur_ligne() + 0.5) comme n32
-    noeud.largeur = fonte.donne_largeur_texte(noeud.noeud_texte.données) comme n32
+    noeud.largeur = fonte.donne_largeur_texte(texte) comme n32
 }
 
 noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -774,7 +778,7 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
 
-    texte := noeud.noeud_texte.données
+    texte := noeud.texte
 
     peintre := ctx.peintre
     fonte := ctx.fonte
