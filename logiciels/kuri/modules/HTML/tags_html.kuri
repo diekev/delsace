@@ -30,6 +30,7 @@ TAG_center: DOMString = ---
 TAG_code: DOMString = ---
 TAG_col: DOMString = ---
 TAG_colgroup: DOMString = ---
+TAG_datalist: DOMString = ---
 TAG_dd: DOMString = ---
 TAG_desc: DOMString = ---
 TAG_details: DOMString = ---

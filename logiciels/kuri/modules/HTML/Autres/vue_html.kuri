@@ -801,7 +801,7 @@ est_display_none :: fonc (noeud: *Noeud) -> bool
         TAG_area,
         TAG_base,
         TAG_basefont,
-        // TAG_datalist,
+        TAG_datalist,
         TAG_head,
         TAG_link,
         TAG_meta,
