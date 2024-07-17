@@ -3,6 +3,7 @@
  * d'IGUMI pour dessiner des formes dans une interface graphique.
  */
 
+importe Chaine
 importe Couleur
 importe Dessin
 importe Géométrie
@@ -57,6 +58,7 @@ Peintre :: struct {
 
     /* Dessine le texte avec la fonte et la couleur données. */
     rappel_dessine_texte: fonc(*Peintre, *Fonte, chaine, RectanglePeintre, CouleurPeintre)(rien)
+    rappel_dessine_texte_utf16: fonc(*Peintre, *Fonte, ChaineUTF16, RectanglePeintre, CouleurPeintre)(rien)
 
     /* Dessine l'image dans le rectangle donné. */
     rappel_dessine_image: fonc(*Peintre, ImageIO, RectanglePeintre)(rien)
@@ -139,6 +141,11 @@ dessine_segments :: fonc (peintre: *Peintre, ligne: [..]LignePeintre, couleur: C
 dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_dessine_texte(peintre, fonte, texte, rectangle, couleur)
+}
+
+dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_texte_utf16(peintre, fonte, texte, rectangle, couleur)
 }
 
 dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle: RectanglePeintre) -> rien #enligne
@@ -497,6 +504,7 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre.rappel_dessine_segment = dessine_segment_igumi
     peintre.rappel_dessine_segments = dessine_segments_igumi
     peintre.rappel_dessine_texte = dessine_texte_igumi
+    peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_igumi
     peintre.rappel_dessine_image = dessine_image_igumi
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_igumi
     peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_igumi
@@ -719,6 +727,13 @@ dessine_segments_igumi :: fonc (peintre: *Peintre @inutilisée, segments_peintre
 }
 
 dessine_texte_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: chaine, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
+{
+    rect := donne_rectangle_igumi(rectangle_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+    dessine_texte(fonte, texte, rect.x, rect.y, couleur)
+}
+
+dessine_texte_utf16_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)

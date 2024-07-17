@@ -774,9 +774,7 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
 
-    // À FAIRE : utilise ChaineUTF16 dans peintre
-    texte := converti_vers_chaine(noeud.noeud_texte.données)
-    diffère déloge(texte)
+    texte := noeud.noeud_texte.données
 
     peintre := ctx.peintre
     fonte := ctx.fonte
