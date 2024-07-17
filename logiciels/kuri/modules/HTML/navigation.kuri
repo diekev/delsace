@@ -469,8 +469,8 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
 create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
                                               navigable: *Navigable,
                                               source_snapshot_params: &SourceSnapshotParams,
-                                              target_snapshot_params: &TargetSnapshotParams,
-                                              nav_timing_type: NavigationTimingType) -> *NavigationParams
+                                              target_snapshot_params: &TargetSnapshotParams @inutilisée,
+                                              nav_timing_type: NavigationTimingType @inutilisée) -> *NavigationParams
 {
     // 1. Assert: this is running in parallel.
 
@@ -544,7 +544,7 @@ create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
     //     current context is navigation source    true if navigable's active document's origin is same origin with entry's document state's initiator origin otherwise false
 
     // 13. Let finalSandboxFlags be an empty sandboxing flag set.
-    final_sanboxing_flags: SandboxingFlags
+    // final_sanboxing_flags: SandboxingFlags
 
     // 14. Let responsePolicyContainer be null.
 

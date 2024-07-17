@@ -115,7 +115,7 @@ donne_active_browsing_context :: fonc (navigable: *Navigable) -> *BrowsingContex
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-container */
-donne_container :: fonc (navigable: *Navigable) -> *Élément
+donne_container :: fonc (navigable: *Navigable @inutilisée) -> *Élément
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne nul
@@ -497,7 +497,7 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     browsing_context := loge(BrowsingContext)
 
     // 2. Let unsafeContextCreationTime be the unsafe shared current time.
-    unsafe_context_creation_time := unsafe_shared_current_time()
+    // unsafe_context_creation_time := unsafe_shared_current_time()
 
     // 3. Let creatorOrigin be null.
     creator_origin: Optionnel(Origin)
