@@ -1,6 +1,9 @@
 importe Chaine
+importe Fondation
+importe Internet
 
 charge "lexage"
+charge "parsage"
 
 lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
 {
@@ -37,3 +40,209 @@ prétraite :: fonc (chn: &ChaineUTF32)
         }
     }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom StyleSheet
+ * https://www.w3.org/TR/cssom-1/#css-style-sheets
+ * \{ */
+
+StyleSheet :: struct {
+    type := "text/css"
+    location: URI
+    rules: [..]*Rule
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Rule
+ * https://www.w3.org/TR/cssom-1/#css-rules
+ * \{ */
+
+Rule :: struct {
+
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Selectors
+ * https://www.w3.org/TR/selectors-4/
+ * \{ */
+
+SelectorList :: struct {
+    complex_selectors: [..]ComplexSelector
+}
+
+ComplexSelector :: struct {
+    compound_selectors: [..]CompoundSelector
+}
+
+CompoundSelector :: struct {
+    simple_selectors: [..]SimpleSelector
+}
+
+SimpleSelector :: struct {
+    Type :: énum {
+        Type
+        Universal
+        ID
+        Class
+        Attrib
+        PseudoElement
+        PseudoClass
+        Negation
+    }
+
+    AttributeMatcher :: énum {
+        EST_ÉGAL /* = */
+        INCLUS /* ~= */
+        DASHMATCH /* |= */
+        PREFIXMATCH /* ^= */
+        SUFFIXMATCH /* $= */
+        SUBSTRINGMATCH /* *= */
+    }
+
+    AttributeModifier :: énum {
+        I
+        S
+    }
+
+    type: Type
+    namespace_prefix: ChaineUTF16
+    ident: ChaineUTF16
+
+    /* Pour Attrib. */
+    matcher: Optionnel(AttributeMatcher)
+    /* Valeur pour AttributeMatcher. */
+    attribute_value: ChaineUTF16
+    attribute_modifier: Optionnel(AttributeModifier)
+}
+
+imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSelector)
+{
+    saufsi selector {
+        ajoute_au_tampon(enchaineuse, "nul")
+        retourne
+    }
+
+    ajoute_au_tampon(enchaineuse, selector.type, " : ")
+    discr selector.type {
+        Type {
+            si selector.namespace_prefix.taille() != 0 {
+                ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|")
+            }
+            ajoute_au_tampon(enchaineuse, selector.ident)
+        }
+        Universal {
+            si selector.namespace_prefix.taille() != 0 {
+                ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|")
+            }
+            ajoute_au_tampon(enchaineuse, "*")
+        }
+        PseudoClass {
+            ajoute_au_tampon(enchaineuse, ":", selector.ident)
+        }
+        PseudoElement {
+            ajoute_au_tampon(enchaineuse, "::", selector.ident)
+        }
+        ID {
+            ajoute_au_tampon(enchaineuse, "#", selector.ident)
+        }
+        Class {
+            ajoute_au_tampon(enchaineuse, ".", selector.ident)
+        }
+        Attrib {
+            ajoute_au_tampon(enchaineuse, "[", selector.ident)
+
+            si selector.matcher.possède_valeur() {
+                matcher := selector.matcher.Quelque
+
+                discr matcher {
+                    EST_ÉGAL {
+                        ajoute_au_tampon(enchaineuse, "=")
+                    }
+                    INCLUS {
+                        ajoute_au_tampon(enchaineuse, "~=")
+                    }
+                    DASHMATCH {
+                        ajoute_au_tampon(enchaineuse, "|=")
+                    }
+                    PREFIXMATCH {
+                        ajoute_au_tampon(enchaineuse, "^=")
+                    }
+                    SUFFIXMATCH {
+                        ajoute_au_tampon(enchaineuse, "$=")
+                    }
+                    SUBSTRINGMATCH {
+                        ajoute_au_tampon(enchaineuse, "*=")
+                    }
+                }
+
+                ajoute_au_tampon(enchaineuse, selector.attribute_value)
+
+                si selector.attribute_modifier.possède_valeur() {
+                    modifier := selector.attribute_modifier.Quelque
+
+                    si modifier == SimpleSelector.AttributeModifier.I {
+                        ajoute_au_tampon(enchaineuse, " i")
+                    }
+                    sinon {
+                        ajoute_au_tampon(enchaineuse, " s")
+                    }
+                }
+            }
+            ajoute_au_tampon(enchaineuse, "]")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "IMPRESSION À FAIRE")
+        }
+    }
+} @FormattageImpression
+
+crée_type_selector :: fonc (namespace_prefix: ChaineUTF16, ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.Type, namespace_prefix, ident)
+}
+
+crée_universal_selector :: fonc (namespace_prefix: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.Universal, namespace_prefix)
+}
+
+crée_id_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.ID, ChaineUTF16(), ident)
+}
+
+crée_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.Class, ChaineUTF16(), ident)
+}
+
+crée_attribute_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), ident)
+}
+
+crée_attribute_selector :: fonc (ident: ChaineUTF16, matcher: SimpleSelector.AttributeMatcher, value: ChaineUTF16, modifier: Optionnel(SimpleSelector.AttributeModifier)) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), ident, matcher, value, modifier)
+}
+
+crée_pseudo_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), ident)
+}
+
+/** \} */
+
+/*
+Combinator :: énum {
+    ESPACE  // " "
+    PLUS    // "+"
+    PLUS_GRAND // ">"
+    TILDE // "~"
+}
+
+*/
