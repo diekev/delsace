@@ -1,23 +1,18 @@
 importe Chaine
 
 Attribut :: struct {
-    nom: ChaineUTF16
-    valeur: ChaineUTF16
+    nom: DOMString
+    valeur: DOMString
 
     // À FAIRE(langage) élément: *Élément
 }
 
 détruit_attributs :: fonc (attributs: &[..]Attribut)
 {
-    pour attributs comme [..]Attribut {
-        détruit_chaine(it.nom)
-        détruit_chaine(it.valeur)
-    }
-
     déloge(attributs)
 }
 
-chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := ChaineUTF16()) -> ChaineUTF16
+chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := DOMString()) -> DOMString
 {
     si attribut {
         retourne attribut.valeur
@@ -26,7 +21,7 @@ chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := ChaineUTF16()) -> Cha
     retourne défaut
 }
 
-cherche_attribut :: fonc (attributs: [..]Attribut, nom: ChaineUTF16) -> *Attribut
+cherche_attribut :: fonc (attributs: [..]Attribut, nom: DOMString) -> *Attribut
 {
     pour * attributs {
         si it.nom == nom {
@@ -37,8 +32,8 @@ cherche_attribut :: fonc (attributs: [..]Attribut, nom: ChaineUTF16) -> *Attribu
     retourne nul
 }
 
-ajoute_attribut :: fonc (attributs: *[..]Attribut, nom: ChaineUTF16, valeur: ChaineUTF16)
+ajoute_attribut :: fonc (attributs: *[..]Attribut, nom: DOMString, valeur: DOMString)
 {
-    attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
+    attribut := Attribut(nom = nom, valeur = valeur)
     tableau_ajoute(attributs, attribut)
 }
