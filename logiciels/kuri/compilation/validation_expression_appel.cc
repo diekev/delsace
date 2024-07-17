@@ -178,15 +178,14 @@ CandidateAppariement CandidateAppariement::appel_pointeur(
 
 CandidateAppariement CandidateAppariement::initialisation_structure(
     double poids,
-    const NoeudExpression *noeud_decl,
-    const Type *type,
+    const Type *noeud_decl,
     kuri::tablet<NoeudExpression *, 10> &&exprs,
     kuri::tableau<TransformationType, int> &&transformations)
 {
     return crée_candidate(CANDIDATE_EST_INITIALISATION_STRUCTURE,
                           poids,
                           noeud_decl,
-                          type,
+                          nullptr,
                           std::move(exprs),
                           std::move(transformations));
 }
@@ -1259,7 +1258,6 @@ static RésultatAppariement apparie_construction_type_composé(
 
     return CandidateAppariement::initialisation_structure(poids_appariement,
                                                           déclaration_type_composé,
-                                                          déclaration_type_composé->type,
                                                           std::move(apparieuse_params.slots()),
                                                           std::move(transformations));
 }
@@ -2245,7 +2243,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
         expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
-        expr->type = const_cast<Type *>(candidate->type->comme_type_type_de_données()->type_connu);
+        expr->type = const_cast<Type *>(candidate->noeud_decl->comme_déclaration_type());
 
         for (auto i = 0; i < expr->paramètres_résolus.taille(); ++i) {
             if (expr->paramètres_résolus[i] != nullptr) {

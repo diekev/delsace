@@ -191,8 +191,7 @@ struct CandidateAppariement {
 
     static CandidateAppariement initialisation_structure(
         double poids,
-        NoeudExpression const *noeud_decl,
-        Type const *type,
+        Type const *noeud_decl,
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations);
 

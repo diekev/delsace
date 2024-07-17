@@ -5,7 +5,7 @@ importe SysFichier
 
 principale :: fonc () -> z32
 {
-    contenu := contenu_fichier_texte("/home/kevin/stylesheet.css")
+    contenu := contenu_fichier_texte("/home/kevin/defaults.css")
     diffère déloge(contenu)
 
     lexèmes := lèxe_style(contenu)
@@ -13,6 +13,28 @@ principale :: fonc () -> z32
 
     // pour lexèmes {
     //     imprime("%\n", it)
+
+    //     si index_it >= 89 {
+    //         arrête
+    //     }
+    // }
+
+    stylesheet := parse_a_stylesheet(lexèmes)
+
+    imprime("% règle(s)\n", stylesheet.value.taille)
+
+    pour stylesheet.value {
+        si it.type == ParsedQualifiedRule {
+            /* selectors */_ := parse_selector_list(it.prelude)
+
+            // pour lexème dans it.prelude {
+            //     imprime("%\n", lexème)
+            // }
+        }
+    }
+
+    // pour stylesheet.value {
+    //     imprime("-- valeurs pour règle : prélude % | bloc %\n", it.prelude.taille, it.bloc.value.taille)
     // }
 
     retourne 0
