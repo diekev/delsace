@@ -106,7 +106,7 @@ possède :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément
     retourne faux
 }
 
-élément_avant_marqueur :: fonc (liste: *ListeÉlémentsActifsFormattage, nom_tag: *ChaineInternée) -> *Élément
+élément_avant_marqueur :: fonc (liste: *ListeÉlémentsActifsFormattage, nom_tag: DOMString) -> *Élément
 {
     i := liste.entrées.taille - 1
     élément_trouvé : *Élément = nul
