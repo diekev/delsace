@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe Internet
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.
@@ -36,12 +37,25 @@ formatte_mode_document :: fonc (enchaineuse: *Enchaineuse, mode: *ModeDocument)
     }
 } @FormattageImpression
 
+DOMHighResTimeStamp :: r64
+
+/* https://html.spec.whatwg.org/multipage/dom.html#document-load-timing-info */
+DocumentLoadTimingInfo :: struct {
+    navigation_start_time: z64
+    DOM_interactive_time: DOMHighResTimeStamp
+    DOM_content_loaded_event_start_time: DOMHighResTimeStamp
+    DOM_content_loaded_event_end_time: DOMHighResTimeStamp
+    DOM_complete_time: DOMHighResTimeStamp
+    load_event_start_time: DOMHighResTimeStamp
+    load_event_end_time: DOMHighResTimeStamp
+}
+
 Document :: struct {
     empl base: Noeud
 
     type_contenu: chaine
     type: chaine
-    url: chaine
+    url: URI
     encodage: Encodage
     mode: ModeDocument
     permets_racines_shadow_déclaratives: bool
@@ -49,6 +63,17 @@ Document :: struct {
     pending_parsing_blocking_script: *HTMLScriptElement
 
     la_parseuse_ne_peut_changer_le_mode: bool
+
+    origin: Origin
+    browsing_context: *BrowsingContext
+    permissions_policy: PermissionsPolicy
+    active_sandboxing_flags: SandboxingFlags
+    load_timing_info: DocumentLoadTimingInfo
+    about_base_url: Optionnel(URI)
+
+    referrer: chaine /* Peut être vide. */
+
+    is_initial_about_blank: bool
 }
 
 crée_noeud_document :: fonc () -> *Document
@@ -59,7 +84,7 @@ crée_noeud_document :: fonc () -> *Document
     document.mode = ModeDocument.NO_QUIRKS
     document.type_contenu = "application/xml"
     document.type = "xml"
-    document.url = "about:blank"
+    document.url = URI("about:blank")
     document.document = document
 
     retourne document
@@ -73,7 +98,23 @@ est_en_mode_quirks :: fonc (document: *Document) -> bool
 /* https://html.spec.whatwg.org/multipage/iframe-embed-object.html#an-iframe-srcdoc-document */
 est_iframe_srcdoc :: fonc (document: *Document) -> bool
 {
-    retourne document.url == "about:srcdoc"
+    retourne document.url.uri == "about:srcdoc"
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#fully-active */
+est_fully_active :: fonc (document: *Document @inutilisée) -> bool
+{
+    /* À FAIRE : A Document d is said to be fully active when d is the active document
+     *           of a navigable navigable, and either navigable is a top-level traversable
+     *           or navigable's container document is fully active. */
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#document-base-url */
+donne_base_url :: fonc (document: *Document) -> URI
+{
+    // À FAIRE : implémente
+    retourne document.url
 }
 
 donne_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
@@ -91,7 +132,7 @@ donne_title_element :: fonc (document: *Document) -> *Élément
     retourne donne_premier_élément_de_type(document, TAG_title)
 }
 
-donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
+donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
 {
     si noeud.est_élément_type(tag) {
         retourne noeud comme *Élément
@@ -152,9 +193,9 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
 NoeudTypeDocument :: struct {
     empl base: Noeud
 
-    nom: ChaineUTF16
-    public_id: ChaineUTF16
-    system_id: ChaineUTF16
+    nom: DOMString
+    public_id: DOMString
+    system_id: DOMString
 }
 
 crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument

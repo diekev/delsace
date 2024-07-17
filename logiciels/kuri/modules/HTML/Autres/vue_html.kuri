@@ -1,12 +1,18 @@
 importe Allocatrices
 importe Chaine
+importe Couleur
 importe Fondation
+importe Géométrie
 importe HTML
 importe HTTP
 importe Internet
+importe Math
+importe OpenGL
+importe PeintureInterface
 importe Qt
 importe SysFichier
 importe Temps
+importe Typographie
 
 DÉBOGUE_ALLOCATIONS :: faux
 
@@ -56,6 +62,8 @@ principale :: fonc () -> z32
     QT_core_application_definis_nom_organisation(vers_qt("delsace"))
     QT_core_application_definis_nom_application(vers_qt("HTML"))
 
+    initialise_évènements_personnalisés()
+
     /* Création fenêtre. */
     rappels_fenêtre : RappelsFenetrePrincipale
     rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
@@ -69,11 +77,70 @@ principale :: fonc () -> z32
     rappels_fenêtre.chargeuse_ressource.rappels_interface = crée_rappels_interface_qt(fenêtre)
 
     si chemin_fichier {
-        ressource := crée_ressource_pour_chargement_page_web(fenêtre, chemin_fichier)
-        charge_ressource(*rappels_fenêtre.chargeuse_ressource, ressource, vrai)
+        évènement := loge(ÉvènementCréationOnglet)
+        évènement.uri = chemin_fichier
+
+        QT_application_poste_evenement_et_donnees(fenêtre, évènement_sur_création_onglet, évènement)
     }
 
     retourne QT_application_exec(app)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Évènements
+ * \{ */
+
+évènement_sur_création_onglet : z32 = -1
+
+ÉvènementCréationOnglet :: struct {
+    uri: chaine
+}
+
+initialise_évènements_personnalisés :: fonc ()
+{
+    évènement_sur_création_onglet = QT_enregistre_evenement_personnel()
+}
+
+sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
+{
+    type := QT_evenement_donne_type(event) comme n32 comme z32
+
+    si type == évènement_sur_création_onglet {
+        rappels := base comme *RappelsFenetrePrincipale
+
+        message := QT_event_perso_donne_donnees(event) comme *ÉvènementCréationOnglet
+
+        // ressource := crée_ressource_pour_chargement_page_web(rappels.fenetre, message.uri)
+        // charge_ressource(*rappels.chargeuse_ressource, ressource, vrai)
+
+        uri: URI
+
+        si est_un_fichier_régulier(CheminFichier(message.uri)) {
+            uri.schéma = "file"
+            uri.schéma_est_défini = vrai
+            uri.autorité_est_définie = vrai
+            uri.chemin = message.uri
+            uri = uri
+        }
+        sinon {
+            uri = tente parse_uri_standard(message.uri) piège nonatteignable
+        }
+
+        navigable := crée_un_fresh_top_level_traversable(*rappels.user_agent, uri) comme *TraversableNavigable
+        tableau_ajoute(*rappels.user_agent.top_level_traversables, navigable)
+
+        page_web := crée_page_web(uri, navigable.donne_active_document())
+        crée_widget_pour_page(rappels.fenetre, page_web)
+
+        déloge(message)
+
+        QT_evenement_accepte(event)
+        retourne 1
+    }
+
+    retourne 0
 }
 
 /** \} */
@@ -118,6 +185,7 @@ PageWeb :: struct {
     parsat: ParsatHTML
     contenu: chaine
     arbre_de_disposition: *ArbreDeDisposition
+    fonte: *Fonte
 }
 
 crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
@@ -127,6 +195,14 @@ crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
     résultat.contenu = contenu
     résultat.parsat = parse_document(contenu)
     imprime("Temps de parsage : %\n", résultat.parsat.temps)
+    retourne résultat
+}
+
+crée_page_web :: fonc (uri: &URI, document: *Document) -> PageWeb
+{
+    résultat: PageWeb
+    résultat.uri = uri
+    résultat.parsat.document = document
     retourne résultat
 }
 
@@ -146,8 +222,13 @@ détruit_données_page_web :: fonc (page: *PageWeb)
 RappelsFenetrePrincipale :: struct {
     empl base : QT_Rappels_Fenetre_Principale
 
+    user_agent: UserAgent
+
     page_web: PageWeb
     chargeuse_ressource: ChargeuseRessource
+
+    /* Données rappels. */
+    sur_filtre_evenement = sur_filtre_evenement_impl
 }
 
 /** \} */
@@ -163,6 +244,9 @@ crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: Page
 
     tabs := QT_cree_tab_widget(nul, fenêtre)
     QT_tab_widget_definis_tabs_fermable(tabs, 0)
+
+    widget_rendu := crée_widget_pour_rendu(fenêtre, tabs)
+    QT_tab_widget_ajoute_tab(tabs, widget_rendu, "Rendu")
 
     widget_source := crée_widget_vue_source(fenêtre, tabs)
     QT_tab_widget_ajoute_tab(tabs, widget_source, "Source")
@@ -270,9 +354,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
         initialise_enchaineuse(*enchaineuse)
         diffère détruit_tampons(*enchaineuse)
 
-        tag_natif := élément.texte.chaine_native()
-        diffère déloge(tag_natif)
-        ajoute_au_tampon(*enchaineuse, "<", tag_natif)
+        ajoute_au_tampon(*enchaineuse, "<", élément.texte)
 
         pour noeud.attributs {
             ajoute_au_tampon(*enchaineuse, " ", it.nom, "=\"", it.valeur, "\"")
@@ -355,11 +437,10 @@ crée_widget_vue_texte :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Gen
 crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    document := rappels.page_web.parsat.document
 
     résultat := crée_widget_arbre(nul, parent)
 
-    arbre := crée_arbre_de_disposition(document)
+    arbre := crée_arbre_de_disposition(*rappels.page_web)
     si arbre {
         item_document := QT_cree_treewidgetitem(nul, nul)
         QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
@@ -370,8 +451,6 @@ crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale,
         pour arbre.racine.enfants {
             ajoute_item_pour_noeud(item_document, it)
         }
-
-        rappels.page_web.arbre_de_disposition = arbre
     }
     retourne résultat
 }
@@ -394,6 +473,99 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *NoeudDeDispo
     pour noeud.enfants {
         ajoute_item_pour_noeud(item_noeud, it)
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom VueRendu
+ * \{ */
+
+crée_widget_pour_rendu :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_GLWidget
+{
+    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
+    résultat := crée_vue_rendu_page(parent, *rappels.page_web)
+    retourne résultat
+}
+
+VueRenduPage :: struct {
+    empl base: QT_Rappels_GLWidget
+
+    sur_destruction = vue_rendu_page_sur_destruction
+    sur_initialisation_gl = vue_rendu_page_sur_initialisation
+    sur_peinture_gl = vue_rendu_page_sur_peinture
+    sur_redimensionnement_gl = vue_rendu_page_sur_redimensionnement
+
+    page: *PageWeb
+
+    hauteur: z32
+    largeur: z32
+
+    peintre: *Peintre
+}
+
+crée_vue_rendu_page :: fonc (parent: QT_Generic_Widget, page: *PageWeb) -> *QT_GLWidget
+{
+    rappels := loge(VueRenduPage)
+    rappels.page = page
+    résultat := QT_cree_glwidget(rappels, parent)
+    QT_widget_definis_trackage_souris(résultat, vrai)
+    retourne résultat
+}
+
+vue_rendu_page_sur_destruction :: fonc (rappels: *QT_Rappels_GLWidget)
+{
+    vue_rendu_page := rappels comme *VueRenduPage
+    déloge(vue_rendu_page)
+}
+
+vue_rendu_page_sur_initialisation :: fonc (base: *QT_Rappels_GLWidget @inutilisée)
+{
+    glewExperimental = 1
+    erreur_ := glewInit()
+
+    si erreur_ != 0 {
+        imprime("Erreur lors de l'initilisation de GLEW !\n")
+        retourne
+    }
+}
+
+vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
+{
+    vue_rendu_page := base comme *VueRenduPage
+
+    taille_cannevas := Taille(largeur = Largeur(vue_rendu_page.largeur), hauteur = Hauteur(vue_rendu_page.hauteur))
+
+    saufsi vue_rendu_page.peintre {
+        vue_rendu_page.peintre = crée_peintre_igumi(taille_cannevas)
+    }
+
+    peintre := vue_rendu_page.peintre
+    peintre.définis_taille_cannevas(taille_cannevas)
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glClearColor(1.0, 1.0, 1.0, 1.0)
+
+    arbre := crée_arbre_de_disposition(vue_rendu_page.page)
+    saufsi arbre && arbre.racine {
+        retourne
+    }
+
+    page := vue_rendu_page.page
+
+    ctx: ContexteDessin
+    ctx.fonte = page.fonte
+    ctx.peintre = peintre
+    ctx.hauteur_vue = vue_rendu_page.hauteur
+
+    dessine(arbre.racine, *ctx)
+}
+
+vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, taille: QT_Taille)
+{
+    vue_rendu_page := rappels comme *VueRenduPage
+    vue_rendu_page.largeur = taille.largeur
+    vue_rendu_page.hauteur = taille.hauteur
 }
 
 /** \} */
@@ -442,14 +614,81 @@ crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -
     retourne résultat
 }
 
+ContexteDisposition :: struct {
+    fonte: *Fonte
+    largeur_disponible: n32
+}
+
+ContexteDessin :: struct {
+    fonte: *Fonte
+    peintre: *Peintre
+
+    hauteur_vue: z32
+}
+
+donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
+{
+    rect: RectanglePosDim(z32)
+    rect.x = noeud.position_x comme z32
+    /* Nous disposons les noeuds comme si leur origine était leur coin du haut
+     * gauche mais nous devons les dessiner comme si leur origine était leur
+     * coin du bas gauche.
+     * De plus, nous devons nous assurer que l'origine du document est le bas
+     * gauche de la page et non le haut gauche. */
+    rect.y = ctx.hauteur_vue - noeud.position_y comme z32 - noeud.hauteur comme z32
+    rect.largeur = noeud.largeur comme z32
+    rect.hauteur = noeud.hauteur comme z32
+    retourne rect
+}
+
 NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
     parent: *NoeudDeDisposition
     enfants: [..]*NoeudDeDisposition
 
-    // sur_mesure: fonc (*NoeudDisposition)(rien)
-    // sur_dessin: fonc (*NoeudDisposition)(rien)
+    position_x: n32
+    position_y: n32
+
+    largeur: n32
+    hauteur: n32
+
+    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
+    sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
+}
+
+décale :: fonc (noeud: *NoeudDeDisposition, x: n32, y: n32)
+{
+    noeud.position_x += x
+    noeud.position_y += y
+
+    pour noeud.enfants {
+        it.décale(x, y)
+    }
+}
+
+donne_nom_classe :: fonc (noeud: *NoeudDeDisposition) -> chaine
+{
+    infos := __table_des_types[noeud.type] comme *InfoTypeStructure
+    retourne infos.nom
+}
+
+mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDisposition)
+{
+    si noeud.sur_mesure {
+        noeud.sur_mesure(noeud, ctx)
+    }
+}
+
+dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    si noeud.largeur == 0 || noeud.hauteur == 0 {
+        retourne
+    }
+
+    si noeud.sur_dessin {
+        noeud.sur_dessin(noeud, ctx)
+    }
 }
 
 ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
@@ -462,51 +701,218 @@ ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
 NoeudDeDispositionBloc :: struct {
     empl base: NoeudDeDisposition
     type = #type_de_cette_structure
+    sur_mesure = noeud_disposition_bloc_sur_mesure
+    sur_dessin = noeud_disposition_bloc_sur_dessin
 
     élément: *Élément
+}
+
+noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+{
+    noeud := base comme *NoeudDeDispositionBloc
+
+    pour noeud.enfants {
+        it.mesure(ctx)
+
+        it.décale(0, noeud.hauteur)
+
+        noeud.hauteur += it.hauteur
+        noeud.largeur = max(noeud.largeur, it.largeur)
+    }
+}
+
+noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionBloc
+
+    // rect := ctx.donne_rectangle_corrigé(noeud)
+
+    // couleur := CouleurRVBA(0.5, 0.0, 0.5, 1.0)
+
+    // peintre := ctx.peintre
+    // peintre.dessine_rectangle(rect, couleur)
+
+    pour noeud.enfants {
+        dessine(it, ctx)
+    }
 }
 
 /* Créé pour chaque élément contenant du texte. */
 NoeudDeDispositionTexte :: struct {
     empl base: NoeudDeDisposition
     type = #type_de_cette_structure
+    sur_mesure = noeud_disposition_texte_sur_mesure
+    sur_dessin = noeud_disposition_texte_sur_dessin
 
     noeud_texte: *NoeudTexte
+    texte: ChaineUTF16
 }
 
-crée_arbre_de_disposition :: fonc (document: *Document) -> *ArbreDeDisposition
+noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
 {
+    noeud := base comme *NoeudDeDispositionTexte
+
+    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
+        noeud.hauteur = 0
+        noeud.largeur = 0
+        noeud.sur_dessin = nul
+        retourne
+    }
+
+    fonte := ctx.fonte
+
+    métriques := fonte.donne_métriques_fonte()
+
+    texte := supprime_espace_blanches_autour(noeud.noeud_texte.données)
+    noeud.texte = texte
+
+    noeud.hauteur = (métriques.donne_hauteur_ligne() + 0.5) comme n32
+    noeud.largeur = fonte.donne_largeur_texte(texte) comme n32
+}
+
+noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionTexte
+
+    rect := ctx.donne_rectangle_corrigé(noeud)
+
+    couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
+
+    texte := noeud.texte
+
+    peintre := ctx.peintre
+    fonte := ctx.fonte
+    peintre.dessine_texte(fonte, texte, rect, couleur)
+}
+
+est_display_none :: fonc (noeud: *Noeud) -> bool
+{
+    si noeud.est_texte() {
+        retourne faux
+    }
+
+    saufsi noeud.est_élément() {
+        retourne vrai
+    }
+
+    élément := noeud comme *Élément
+
+    tags_none := [
+        TAG_area,
+        TAG_base,
+        TAG_basefont,
+        // TAG_datalist,
+        TAG_head,
+        TAG_link,
+        TAG_meta,
+        TAG_noembed,
+        TAG_noframes,
+        TAG_param,
+        TAG_rp,
+        TAG_script,
+        TAG_style,
+        TAG_template,
+        TAG_title
+    ]
+
+    pour tags_none {
+        si élément.texte == it {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *ArbreDeDisposition
+{
+    si page.arbre_de_disposition {
+        retourne page.arbre_de_disposition
+    }
+
+    document := page.parsat.document
+
     saufsi document {
         retourne nul
     }
 
-    body := document.donne_élément_body()
-    saufsi body {
+    html := document.donne_élément_html()
+    saufsi html {
         retourne nul
     }
 
     résultat := loge(ArbreDeDisposition)
 
     racine := résultat.crée_noeud(NoeudDeDispositionBloc)
-    racine.élément = body
+    racine.élément = html
 
     résultat.racine = racine
 
-    pour body.enfants {
+    pour html.enfants {
+        si est_display_none(it) {
+            continue
+        }
         crée_noeud_pour_élément(résultat, résultat.racine, it)
+    }
+
+    saufsi page.fonte {
+        TAILLE_POLICE_DÉFAUT :: 16.0
+
+        page.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), TAILLE_POLICE_DÉFAUT)
     }
 
     imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
 
+    ctx: ContexteDisposition
+    ctx.fonte = page.fonte
+
+    mesure(racine, *ctx)
+
+    imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
+
+    // imprime_arbre(résultat)
+
+    page.arbre_de_disposition = résultat
     retourne résultat
+}
+
+imprime_arbre :: fonc (arbre: *ArbreDeDisposition)
+{
+    saufsi arbre.racine {
+        retourne
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    imprime_arbre(*enchaineuse, arbre.racine, 0)
+
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(résultat)
+
+    imprime("%\n", résultat)
+}
+
+imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, profondeur: n32)
+{
+    indentation := donne_chaine_indentation(profondeur comme z32)
+
+    imprime_dans_enchaineuse(enchaineuse, "%%", indentation, racine.donne_nom_classe())
+    si racine.type == NoeudDeDispositionBloc {
+        bloc := racine comme *NoeudDeDispositionBloc
+        imprime_dans_enchaineuse(enchaineuse, " %", bloc.élément.texte)
+    }
+
+    imprime_dans_enchaineuse(enchaineuse, " % % %x%\n", racine.position_x, racine.position_y, racine.largeur, racine.hauteur)
+
+    pour racine.enfants {
+        imprime_arbre(enchaineuse, it, profondeur + 1)
+    }
 }
 
 crée_noeud_pour_élément :: fonc (arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *Noeud)
 {
-    si noeud.est_élément_script() {
-        retourne
-    }
-
     si noeud.est_texte() {
         résultat := arbre.crée_noeud(NoeudDeDispositionTexte)
         résultat.noeud_texte = noeud comme *NoeudTexte
@@ -514,10 +920,14 @@ crée_noeud_pour_élément :: fonc (arbre: *ArbreDeDisposition, parent: *NoeudDe
         retourne
     }
 
+    résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
+    résultat.élément = noeud comme *Élément
+    parent.ajoute_enfant(résultat)
+
     pour noeud.enfants {
-        résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
-        résultat.élément = it comme *Élément
-        parent.ajoute_enfant(résultat)
+        si est_display_none(it) {
+            continue
+        }
 
         crée_noeud_pour_élément(arbre, résultat, it)
     }
@@ -712,7 +1122,7 @@ rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requ�
 
     uri := requête.ressource.uri
     hôte := uri.hôte
-    port := port_pour_uri(uri) comme z16
+    port := port_pour_uri(uri)
 
     si requête.est_http() {
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)

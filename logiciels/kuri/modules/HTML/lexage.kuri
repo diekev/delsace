@@ -29,11 +29,11 @@ Lexème :: struct {
     position: z32
 
     // général
-    nom : *ChaineInternée = TAG_vide
+    nom : DOMString = TAG_vide
 
     // doctype
-    identifiant_public_doctype: ChaineUTF32
-    identifiant_système_doctype: ChaineUTF32
+    identifiant_public_doctype: ChaineUTF16
+    identifiant_système_doctype: ChaineUTF16
     doctype_name_absent := vrai
     doctype_public_id_absent := vrai
     doctype_system_id_absent := vrai
@@ -52,6 +52,11 @@ Lexème :: struct {
 }
 
 cherche_attribut :: fonc (lexème: *Lexème, nom: ChaineUTF16) -> *Attribut
+{
+    retourne cherche_attribut(lexème.attributs, crée_chaine_utf16_unique(nom))
+}
+
+cherche_attribut :: fonc (lexème: *Lexème, nom: DOMString) -> *Attribut
 {
     retourne cherche_attribut(lexème.attributs, nom)
 }
@@ -197,16 +202,16 @@ Lexeuse :: struct {
 
     lexème_courant: Lexème
 
-    tampon_temporaire: ChaineUTF32
+    tampon_temporaire: ChaineUTF16
 
     /* Le nom du lexème courant, en cours de lexage. */
-    nom_lexème_courant: ChaineUTF32
+    nom_lexème_courant: ChaineUTF16
 
     nom_attribut_courant: ChaineUTF16
     valeur_attribut_courant: ChaineUTF16
 
     /* Le nom du dernier tag de début rencontré, mis en place lors de l'émission d'un lexème. */
-    nom_dernier_tag_début: *ChaineInternée
+    nom_dernier_tag_début: DOMString
 
     code_référence_caractère: n32
 
@@ -246,7 +251,7 @@ crée_lexème :: fonc (lexeuse: *Lexeuse, genre: GenreLexème) #enligne
 émet_lexème :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     saufsi lexeuse.nom_lexème_courant.est_vide() {
-        lexeuse.lexème_courant.nom = crée_chaine_internée(lexeuse.nom_lexème_courant)
+        lexeuse.lexème_courant.nom = crée_chaine_utf16_unique(lexeuse.nom_lexème_courant)
         réinitialise(lexeuse.nom_lexème_courant)
     }
 
@@ -262,7 +267,9 @@ crée_lexème :: fonc (lexeuse: *Lexeuse, genre: GenreLexème) #enligne
 ajoute_attribut :: fonc (lexeuse: *Lexeuse)
 {
     saufsi lexeuse.nom_attribut_courant.est_vide() && lexeuse.valeur_attribut_courant.est_vide() {
-        ajoute_attribut(*lexeuse.lexème_courant.attributs, lexeuse.nom_attribut_courant, lexeuse.valeur_attribut_courant)
+        nom_attribut := crée_chaine_utf16_unique(lexeuse.nom_attribut_courant)
+        valeur_attribut := crée_chaine_utf16_unique(lexeuse.valeur_attribut_courant)
+        ajoute_attribut(*lexeuse.lexème_courant.attributs, nom_attribut, valeur_attribut)
     }
 
     réinitialise(lexeuse.nom_attribut_courant)
@@ -1910,7 +1917,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 
 enfile_lexèmes_pour_tampon_temporaire :: fonc (lexeuse: *Lexeuse)
 {
-    pour lexeuse.tampon_temporaire.points_de_code {
+    pour lexeuse.tampon_temporaire.unités {
         enfile(lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(it))
     }
 }
@@ -1953,7 +1960,7 @@ flush_points_de_code_référence_caractère :: fonc (lexeuse: *Lexeuse) -> bool
 {
     // détermine si nous somme dans un attribut
     si nous_sommes_dans_attribut(lexeuse) {
-        pour lexeuse.tampon_temporaire.points_de_code {
+        pour lexeuse.tampon_temporaire.unités {
             chaine_ajoute(*lexeuse.valeur_attribut_courant, it)
         }
 
