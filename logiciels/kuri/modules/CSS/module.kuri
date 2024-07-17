@@ -3,6 +3,7 @@ importe Fondation
 importe Internet
 
 charge "lexage"
+charge "objets"
 charge "parsage"
 
 lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
@@ -40,30 +41,6 @@ prétraite :: fonc (chn: &ChaineUTF32)
         }
     }
 }
-
-/* ------------------------------------------------------------------------- */
-/** \nom StyleSheet
- * https://www.w3.org/TR/cssom-1/#css-style-sheets
- * \{ */
-
-StyleSheet :: struct {
-    type := "text/css"
-    location: URI
-    rules: [..]*Rule
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Rule
- * https://www.w3.org/TR/cssom-1/#css-rules
- * \{ */
-
-Rule :: struct {
-
-}
-
-/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Selectors

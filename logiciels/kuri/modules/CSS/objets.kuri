@@ -1,0 +1,101 @@
+importe Chaine
+importe Internet
+
+/* CSS Object Model https://www.w3.org/TR/cssom-1/ */
+
+CSSOMString :: ChaineUTF16
+
+/* ------------------------------------------------------------------------- */
+/** \nom Style Sheets
+ * https://www.w3.org/TR/cssom-1/#css-style-sheets
+ * \{ */
+
+/* https://www.w3.org/TR/cssom-1/#the-stylesheet-interface */
+StyleSheet :: struct {
+    /* "text/css" */
+    type: CSSOMString
+    location: URI
+}
+
+CSSStyleSheet :: struct {
+    empl base: StyleSheet
+
+    owner_rule: *CSSRule
+    rules: [..]*CSSRule
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSRule
+ * https://www.w3.org/TR/cssom-1/#the-cssrule-interface
+ * \{ */
+
+// the following attribute and constants are historical
+CSSRuleType :: énum n16 {
+    Invalide :: 0
+    Style :: 1
+    Import :: 3
+    Media :: 4
+    FontFace :: 5
+    Page :: 6
+    Keyframes :: 7
+    Keyframe :: 8
+    Margin :: 9
+    Namespace :: 10
+    CounterStyle :: 11
+    Supports :: 12
+    FontFeatureValues :: 14
+    Viewport :: 15
+}
+
+CSSRule :: struct {
+    parent_rule: *CSSRule
+    parent_style_sheet: *CSSStyleSheet
+
+    type: CSSRuleType
+
+    STYLE_RULE : n16 : 1
+    CHARSET_RULE : n16 : 2
+    IMPORT_RULE : n16 : 3
+    MEDIA_RULE : n16 : 4
+    FONT_FACE_RULE : n16 : 5
+    PAGE_RULE : n16 : 6
+    MARGIN_RULE : n16 : 9
+    NAMESPACE_RULE : n16 : 10
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSStyleRule
+ * \{ */
+
+CSSStyleRule :: struct {
+    empl base: CSSRule
+    type = CSSRuleType.Style
+
+    selector_list: SelectorList
+    déclarations: [..]*CSSDeclaration
+}
+
+ajoute_déclaration :: fonc (style: *CSSStyleRule, déclaration: *CSSDeclaration)
+{
+    tableau_ajoute(*style.déclarations, déclaration)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSDeclaration
+ * https://www.w3.org/TR/cssom-1/#css-declarations
+ * \{ */
+
+CSSDeclaration :: struct {
+    property_name: CSSOMString
+    value: [..]ComponentValue
+    important: bool
+    case_sensitive: bool
+}
+
+/** \} */
