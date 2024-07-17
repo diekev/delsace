@@ -99,18 +99,42 @@ imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: 
         retourne
     }
 
-    // À FAIRE : combinateurs
     pour * complex_selectors.compound_selectors {
         si index_it > 0 {
-            ajoute_au_tampon(enchaineuse, " ")
+            discr it.combinateur {
+                DESCENDANT {
+                    ajoute_au_tampon(enchaineuse, " ")
+                }
+                NEXT_SIBLING {
+                    ajoute_au_tampon(enchaineuse, " + ")
+                }
+                CHILD {
+                    ajoute_au_tampon(enchaineuse, " > ")
+                }
+                SUBSEQUENT_SIBLING {
+                    ajoute_au_tampon(enchaineuse, " ~ ")
+                }
+                COLUMN {
+                    ajoute_au_tampon(enchaineuse, " || ")
+                }
+            }
         }
 
         imprime_compound_selector(enchaineuse, it)
     }
 } @FormattageImpression
 
+Combinator :: énum {
+    DESCENDANT  // " "
+    NEXT_SIBLING    // "+"
+    CHILD // ">"
+    SUBSEQUENT_SIBLING // "~"
+    COLUMN // "||"
+}
+
 CompoundSelector :: struct {
     simple_selectors: [..]SimpleSelector
+    combinateur: Combinator
 }
 
 imprime_compound_selector :: fonc (enchaineuse: *Enchaineuse, compound_selectors: *CompoundSelector)
@@ -323,13 +347,3 @@ crée_function_selector :: fonc (ident: ChaineUTF16, arg: ChaineUTF16) -> Simple
 }
 
 /** \} */
-
-/*
-Combinator :: énum {
-    ESPACE  // " "
-    PLUS    // "+"
-    PLUS_GRAND // ">"
-    TILDE // "~"
-}
-
-*/

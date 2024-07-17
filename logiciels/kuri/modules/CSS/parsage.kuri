@@ -501,19 +501,26 @@ parse_complex_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Comple
     résultat: ComplexSelector
 
     imprime("[%]\n", #nom_de_cette_fonction)
+    combinateur_courant: Optionnel(Combinator)
+
     tantque !fini(parseuse) {
-        compound := parse_compound_selector(parseuse)
-        saufsi compound.possède_valeur() {
+        opt_compound := parse_compound_selector(parseuse)
+        saufsi opt_compound.possède_valeur() {
             arrête
+        }
+
+        compound := opt_compound.Quelque
+
+        si combinateur_courant.possède_valeur() {
+            compound.combinateur = combinateur_courant.Quelque
         }
 
         tableau_ajoute(*résultat.compound_selectors, compound)
 
-        saufsi apparie_combinateur(parseuse) {
+        combinateur_courant = parseuse.parse_combinateur()
+        saufsi combinateur_courant.possède_valeur() {
             arrête
         }
-
-        parseuse.parse_combinateur()
     }
 
     consomme_espaces_blanches(parseuse)
@@ -946,57 +953,52 @@ parse_pseudo_element_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel
 }
 
 /* <combinator> = '>' | '+' | '~' | [ '|' '|' ] */
-apparie_combinateur :: fonc (parseuse: &ParseuseSelector) -> bool
+parse_combinateur :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Combinator)
 {
+    imprime("[%]\n", #nom_de_cette_fonction)
+
+    résultat: Optionnel(Combinator)
+
+    si parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Whitespace) {
+        /* À FAIRE : nouvelle ligne ? */
+        résultat = Combinator.DESCENDANT
+    }
+
+    consomme_espaces_blanches(parseuse)
+
+    si parseuse.fini() {
+        retourne
+    }
+
     lexème := parseuse.lexème_courant()
 
     si lexème.est_lexème_greater() {
-        retourne vrai
+        parseuse.avance()
+        résultat = Combinator.CHILD
     }
-
-    si lexème.est_lexème_plus() {
-        retourne vrai
+    sinon si lexème.est_lexème_plus() {
+        parseuse.avance()
+        résultat = Combinator.NEXT_SIBLING
     }
-
-    si lexème.est_lexème_tilde() {
-        retourne vrai
+    sinon si lexème.est_lexème_tilde() {
+        parseuse.avance()
+        résultat = Combinator.SUBSEQUENT_SIBLING
     }
-
-    si lexème.est_lexème_pipe() {
-        parseuse.sauvegarde_position()
-        diffère parseuse.restaure_position()
-
-        _ := parseuse.consomme_le_lexème_en_entrée_suivant()
-
-        si parseuse.lexème_courant().est_lexème_pipe() {
-            retourne vrai
+    sinon si lexème.est_lexème_pipe() {
+        parseuse.avance()
+        lexème = parseuse.lexème_courant()
+        si lexème.est_lexème_pipe() {
+            parseuse.avance()
+            résultat = Combinator.COLUMN
+        }
+        sinon {
+            // erreur de parsage
+            retourne
         }
     }
 
-    retourne faux
-}
-
-parse_combinateur :: fonc (parseuse: &ParseuseSelector)
-{
-    imprime("[%]\n", #nom_de_cette_fonction)
-    lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
-
-    si lexème.est_lexème_greater() {
-        imprime("   combinator >\n")
-    }
-
-    si lexème.est_lexème_plus() {
-        imprime("   combinator +\n")
-    }
-
-    si lexème.est_lexème_tilde() {
-        imprime("   combinator ~\n")
-    }
-
-    si lexème.est_lexème_pipe() {
-        _ := parseuse.consomme_le_lexème_en_entrée_suivant()
-        imprime("   combinator ||\n")
-    }
+    consomme_espaces_blanches(parseuse)
+    retourne résultat
 }
 
 /** \} */
