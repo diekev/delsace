@@ -36,7 +36,7 @@ ParsedSimpleBlock :: struct {
 
 ParsedDeclaration :: struct {
     name: ChaineUTF16
-    prelude: [..]ComponentValue
+    value: [..]ComponentValue
     important: bool
 }
 
@@ -49,6 +49,11 @@ ComponentValue :: union {
     lexème: Lexème
     function: ParsedFunction
     bloc: ParsedSimpleBlock
+}
+
+donne_texte :: fonc (value: ComponentValue) -> ChaineUTF16 #enligne
+{
+    retourne value.lexème.valeur
 }
 
 est_simple_bloc_de_genre :: fonc (value: ComponentValue, genre: GenreLexème) -> bool
@@ -219,6 +224,18 @@ parse_a_stylesheet :: fonc (input: [..]Lexème) -> ParsedStyleSheet
 /* 5.3.6 Parse a declaration */
 
 /* 5.3.7 Parse a style block’s contents */
+StyleBlockContent :: struct {
+    decls: [..]ParsedDeclaration
+    rules: [..]*ParsedRule
+}
+
+parse_a_style_block_s_contents :: fonc (input: [..]ComponentValue) -> StyleBlockContent
+{
+    // 1. Normalize input, and set input to the result.
+    // 2. Consume a style block’s contents from input, and return the result.
+    parseuse := initialise_une_parseuse(input)
+    retourne consomme_le_contenu_d_un_bloc_de_style(parseuse)
+}
 
 /* 5.3.8 Parse a list of declarations */
 
@@ -289,7 +306,7 @@ consomme_une_règle_arobase :: fonc (parseuse: &Parseuse($T)) -> *ParsedAtRule
     _ := parseuse.consomme_le_lexème_en_entrée_suivant()
 
     résultat := loge(ParsedAtRule)
-    résultat.name = parseuse.lexème_courant().valeur
+    résultat.name = parseuse.lexème_courant().donne_texte()
 
     tantque !fini(parseuse) {
         lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -356,10 +373,158 @@ consomme_une_règle_qualifiée :: fonc (parseuse: &Parseuse($T)) -> *ParsedQuali
 }
 
 /* 5.4.4 Consume a style block’s contents */
+consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> StyleBlockContent
+{
+    decls: [..]ParsedDeclaration
+    rules: [..]*ParsedRule
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Whitespace) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+            // Extend decls with rules, then return decls.
+            arrête
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.At_Keyword) {
+            parseuse.reconsomme_le_lexème_courant()
+            rule := consomme_une_règle_arobase(parseuse)
+            tableau_ajoute(*rules, rule)
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            // Initialize a temporary list initially filled with the current input token.
+            temp: [..]T
+            tableau_ajoute(*temp, lexème)
+
+            // As long as the next input token is anything other than a <semicolon-token>
+            // or <EOF-token>, consume a component value and append it to the temporary list.
+            tantque !fini(parseuse) {
+                lexème = parseuse.lexème_courant()
+
+                si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+                    arrête
+                }
+
+                tableau_ajoute(*temp, lexème)
+                parseuse.avance()
+            }
+
+            // Consume a declaration from the temporary list.
+            // If anything was returned, append it to decls.
+            parseuse_decl := initialise_une_parseuse(temp)
+            decl := consomme_une_déclaration(parseuse_decl)
+            si decl.possède_valeur() {
+                tableau_ajoute(*decls, decl.Quelque)
+            }
+
+            // @Performance
+            déloge(temp)
+            continue
+        }
+
+        si lexème.est_lexème_esperluette() {
+            parseuse.reconsomme_le_lexème_courant()
+            rule := consomme_une_règle_qualifiée(parseuse)
+            si rule {
+                tableau_ajoute(*rules, rule)
+            }
+            continue
+        }
+
+        /* Anything else.
+         * This is a parse error. Reconsume the current input token.
+         * As long as the next input token is anything other than a
+         * <semicolon-token> or <EOF-token>, consume a component value
+         * and throw away the returned value. */
+        tantque !fini(parseuse) {
+            lexème = parseuse.lexème_courant()
+            si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+                arrête
+            }
+            parseuse.avance()
+        }
+    }
+
+    retourne StyleBlockContent(decls, rules)
+}
 
 /* 5.4.5 Consume a list of declarations */
 
 /* 5.4.6 Consume a declaration */
+consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedDeclaration)
+{
+    lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+    résultat: ParsedDeclaration
+    résultat.name = lexème.lexème.valeur
+
+    // 1. While the next input token is a <whitespace-token>, consume the next input token.
+    consomme_espaces_blanches(parseuse)
+
+    // 2. If the next input token is anything other than a <colon-token>, this is a parse error. Return nothing.
+    //    Otherwise, consume the next input token.
+    saufsi parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Colon) {
+        retourne
+    }
+    parseuse.avance()
+
+    // 3. While the next input token is a <whitespace-token>, consume the next input token.
+    consomme_espaces_blanches(parseuse)
+
+    // 4. As long as the next input token is anything other than an <EOF-token>, consume a component value and append it to the declaration’s value.
+    value: [..]ComponentValue
+    tantque !fini(parseuse) {
+        lexème = parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+            arrête
+        }
+
+        tableau_ajoute(*value, lexème)
+        parseuse.avance()
+    }
+
+    // 5. If the last two non-<whitespace-token>s in the declaration’s value are a <delim-token>
+    // with the value "!" followed by an <ident-token> with a value that is an ASCII case-insensitive
+    // match for "important", remove them from the declaration’s value and set the declaration’s
+    // important flag to true.
+    supprime_espaces_blanches_en_fin(*value)
+    si value.taille > 2 {
+        i0 := value.taille - 2
+        i1 := value.taille - 1
+
+        si value[i0].est_lexème_exclamation() && value[i1].est_lexème_de_genre(GenreLexème.Ident) && compare_ascii_insensible_à_la_casse(value[i1].lexème.valeur, "important") {
+            value.taille -= 2
+            résultat.important = vrai
+        }
+    }
+
+    // 6. While the last token in the declaration’s value is a <whitespace-token>, remove that token.
+    supprime_espaces_blanches_en_fin(*value)
+
+    // 7. Return the declaration.
+    résultat.value = value
+    retourne résultat
+}
+
+supprime_espaces_blanches_en_fin :: fonc (value: *[..]ComponentValue)
+{
+    nombre_d_espaces_blanches := 0
+    pour > mémoire(value) {
+        saufsi it.est_lexème_de_genre(GenreLexème.Whitespace) {
+            arrête
+        }
+        nombre_d_espaces_blanches += 1
+    }
+
+    value.taille -= nombre_d_espaces_blanches
+    assert(value.taille >= 0)
+}
 
 /* 5.4.7 Consume a component value */
 consomme_une_valeur_composante :: fonc (parseuse: &Parseuse($T)) -> ComponentValue
@@ -391,7 +556,7 @@ donne_genre_lexème_mirroir :: fonc (lexème: Lexème) -> GenreLexème
 }
 
 /* 5.4.8 Consume a simple block */
-consomme_un_bloc_simple :: fonc (parseuse: &Parseuse($T), lexème_associé: &Lexème) -> ParsedSimpleBlock
+consomme_un_bloc_simple :: fonc (parseuse: &Parseuse($T), lexème_associé: T) -> ParsedSimpleBlock
 {
     genre_lexème_fin := donne_genre_lexème_mirroir(lexème_associé)
 
@@ -422,7 +587,7 @@ consomme_un_bloc_simple :: fonc (parseuse: &Parseuse($T), lexème_associé: &Lex
 consomme_une_fonction :: fonc (parseuse: &Parseuse($T), lexème_function: T) -> ParsedFunction
 {
     résultat: ParsedFunction
-    résultat.name = lexème_function.valeur
+    résultat.name = lexème_function.donne_texte()
 
     tantque !fini(parseuse) {
         lexème := parseuse.consomme_le_lexème_en_entrée_suivant()

@@ -170,6 +170,11 @@ Lexème :: struct {
     unité: ChaineUTF16
 }
 
+donne_texte :: fonc (lexème: Lexème) -> ChaineUTF16 #enligne
+{
+    retourne lexème.valeur
+}
+
 est_lexème_de_genre :: fonc (lexème: &Lexème, genre: GenreLexème) -> bool #enligne
 {
     retourne lexème.genre == genre
@@ -232,6 +237,16 @@ est_lexème_dollar :: fonc (lexème: $T) -> bool
 est_lexème_égal :: fonc (lexème: $T) -> bool
 {
     retourne est_lexème_delim(lexème, '=' comme n32)
+}
+
+est_lexème_esperluette :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '&' comme n32)
+}
+
+est_lexème_exclamation :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '!' comme n32)
 }
 
 est_simple_bloc_de_genre :: fonc (lexème: &Lexème @inutilisée, genre: GenreLexème @inutilisée) -> bool

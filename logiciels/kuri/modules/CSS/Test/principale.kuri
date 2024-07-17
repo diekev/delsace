@@ -1,5 +1,6 @@
 importe Chaine
 importe CSS
+importe Ensemble
 importe Fondation
 importe SysFichier
 
@@ -23,14 +24,35 @@ principale :: fonc () -> z32
 
     imprime("% règle(s)\n", stylesheet.value.taille)
 
+    propriétés: [..]ChaineUTF16
+
     pour stylesheet.value {
         si it.type == ParsedQualifiedRule {
-            /* selectors */_ := parse_selector_list(it.prelude)
+            selectors := parse_selector_list(it.prelude)
+
+            saufsi selectors.possède_valeur() {
+                continue
+            }
+
+            imprime("% {\n", selectors.Quelque)
+
+            content := parse_a_style_block_s_contents(it.bloc.value)
+
+            pour decl dans content.decls {
+                imprime("    %\n", decl.name)
+                ensemble_ajoute(*propriétés, decl.name)
+            }
+            imprime("}\n")
 
             // pour lexème dans it.prelude {
             //     imprime("%\n", lexème)
             // }
         }
+    }
+
+    imprime("\nPropriétés :\n")
+    pour propriétés {
+        imprime("-- %\n", it)
     }
 
     // pour stylesheet.value {
