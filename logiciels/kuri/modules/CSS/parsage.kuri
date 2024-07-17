@@ -359,7 +359,7 @@ consomme_une_valeur_composante :: fonc (parseuse: &Parseuse($T)) -> ComponentVal
     }
 
     si lexème.est_lexème_de_genre(GenreLexème.Function) {
-        retourne parseuse.consomme_une_fonction()
+        retourne parseuse.consomme_une_fonction(lexème)
     }
 
     // XXX - parseuse.lexème_courant() ?
@@ -407,10 +407,10 @@ consomme_un_bloc_simple :: fonc (parseuse: &Parseuse($T), lexème_associé: &Lex
 }
 
 /* 5.4.9 Consume a function */
-consomme_une_fonction :: fonc (parseuse: &Parseuse($T)) -> ParsedFunction
+consomme_une_fonction :: fonc (parseuse: &Parseuse($T), lexème_function: T) -> ParsedFunction
 {
     résultat: ParsedFunction
-    résultat.name = parseuse.lexème_courant().valeur
+    résultat.name = lexème_function.valeur
 
     tantque !fini(parseuse) {
         lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
