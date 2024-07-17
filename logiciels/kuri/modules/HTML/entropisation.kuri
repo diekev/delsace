@@ -14,13 +14,13 @@ ContexteEntropisation :: struct {
     nombre_éléments_max: z32
 }
 
-choisis_un_de :: fonc (gna: *GNA, tags: ...*ChaineInternée) -> *ChaineInternée
+choisis_un_de :: fonc (gna: *GNA, tags: ...DOMString) -> DOMString
 {
     index := gna.uniforme(0.0, (tags.taille) comme r32) comme z64
     retourne tags[index]
 }
 
-tag_enfant_possible :: fonc (gna: *GNA, tag: *ChaineInternée) -> *ChaineInternée
+tag_enfant_possible :: fonc (gna: *GNA, tag: DOMString) -> DOMString
 {
     si tag == TAG_head {
         retourne gna.choisis_un_de(TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title, TAG_noscript)
@@ -33,7 +33,7 @@ tag_enfant_possible :: fonc (gna: *GNA, tag: *ChaineInternée) -> *ChaineIntern�
     retourne gna.choisis_un_de(TAG_script, TAG_aside, TAG_div, TAG_nav, TAG_article, TAG_footer, TAG_p, TAG_table)
 }
 
-nombre_enfants_possibles :: fonc (gna: *GNA, tag: *ChaineInternée) -> z32
+nombre_enfants_possibles :: fonc (gna: *GNA, tag: DOMString) -> z32
 {
     si tag == TAG_table {
         retourne 1

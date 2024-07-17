@@ -69,9 +69,6 @@ détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
         }
         TypeDocument {
             type_document := noeud comme *NoeudTypeDocument
-            détruit_chaine(type_document.nom)
-            détruit_chaine(type_document.public_id)
-            détruit_chaine(type_document.system_id)
             déloge(type_document)
         }
         FragmentDocument {
@@ -113,7 +110,7 @@ est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
     retourne nul
 }
 
-est_élément_type :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Élément
+est_élément_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
 {
     saufsi est_élément(noeud) {
         retourne nul
@@ -176,22 +173,22 @@ ajoute_enfant_dernier :: fonc (parent: *Noeud, enfant: *Noeud)
     tableau_ajoute(*parent.enfants, enfant)
 }
 
-ajoute_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16, valeur: ChaineUTF16)
+ajoute_attribut :: fonc (noeud: *Noeud, nom: DOMString, valeur: DOMString)
 {
     ajoute_attribut(*noeud.attributs, nom, valeur)
 }
 
-possède_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16) -> bool
+possède_attribut :: fonc (noeud: *Noeud, nom: DOMString) -> bool
 {
     retourne cherche_attribut(noeud.attributs, nom) != nul
 }
 
-cherche_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16) -> *Attribut
+cherche_attribut :: fonc (noeud: *Noeud, nom: DOMString) -> *Attribut
 {
     retourne cherche_attribut(noeud.attributs, nom)
 }
 
-donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: ChaineUTF16) -> Optionnel(ChaineUTF16)
+donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> Optionnel(DOMString)
 {
     attribut := cherche_attribut(noeud, nom_qualifié)
     saufsi attribut {
@@ -202,7 +199,7 @@ donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: ChaineUTF16) -> Optionnel(
 
 /* Retourne le premier enfant ayant le tag donné, ou nul si le noeud n'a pas
  * d'enfants ou aucun enfant du tag donné. */
-donne_premier_enfant_taggé :: fonc (noeud: *Noeud, tag: *ChaineInternée) -> *Noeud
+donne_premier_enfant_taggé :: fonc (noeud: *Noeud, tag: DOMString) -> *Noeud
 {
     saufsi noeud {
         retourne nul
@@ -344,6 +341,31 @@ donne_longueur :: fonc (noeud: *Noeud) -> z64
 est_vide :: fonc (noeud: *Noeud) -> bool
 {
     retourne noeud.donne_longueur() == 0
+}
+
+/* https://dom.spec.whatwg.org/#ref-for-dom-nonelementparentnode-getelementbyid%E2%91%A1 */
+get_element_by_id :: fonc (noeud: *Noeud, chn: DOMString) -> *Élément
+{
+    retourne get_element_by_id_recursive(noeud, chn)
+}
+
+get_element_by_id_recursive :: fonc (noeud: *Noeud, chn: DOMString) -> *Élément
+{
+    si noeud.est_élément() {
+        valeur := noeud.donne_attribut(ATTR_id)
+        si valeur.possède_valeur() && valeur.Quelque == chn {
+            retourne noeud comme *Élément
+        }
+    }
+
+    pour noeud.enfants {
+        élément := get_element_by_id_recursive(it, chn)
+        si élément {
+            retourne élément
+        }
+    }
+
+    retourne nul
 }
 
 /** \} */

@@ -367,6 +367,7 @@ void texture_font_delete(texture_font_t *self);
  *
  */
 texture_glyph_t *texture_font_get_glyph(texture_font_t *self, const char *codepoint);
+texture_glyph_t *texture_font_get_glyph_codepoint(texture_font_t *self, uint32_t codepoint);
 
 /**
  * Request an already loaded glyph from the font.
@@ -377,6 +378,7 @@ texture_glyph_t *texture_font_get_glyph(texture_font_t *self, const char *codepo
  * @return A pointer on the glyph or 0 if the glyph is not loaded
  */
 texture_glyph_t *texture_font_find_glyph(texture_font_t *self, const char *codepoint);
+texture_glyph_t *texture_font_find_glyph_codepoint(texture_font_t *self, uint32_t codepoint);
 
 /**
  * Request the loading of a given glyph.
@@ -387,6 +389,7 @@ texture_glyph_t *texture_font_find_glyph(texture_font_t *self, const char *codep
  * @return One if the glyph could be loaded, zero if not.
  */
 int texture_font_load_glyph(texture_font_t *self, const char *codepoint);
+int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint);
 
 /**
  * Request the loading of several glyphs at once.
@@ -422,6 +425,7 @@ void texture_font_enlarge_atlas(texture_font_t *self, size_t width_new, size_t h
  * @return x kerning value
  */
 float texture_glyph_get_kerning(const texture_glyph_t *self, const char *codepoint);
+float texture_glyph_get_kerning_codepoint(const texture_glyph_t *self, uint32_t codepoint);
 
 /**
  * Get the kerning between two horizontal glyphs.

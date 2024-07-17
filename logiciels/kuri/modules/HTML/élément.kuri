@@ -1,7 +1,7 @@
 importe Chaine
 importe Fondation
 
-est_tag_auto_fermant :: fonc (tag: *ChaineInternée) -> bool
+est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 {
     discr tag {
         TAG_area,
@@ -35,7 +35,7 @@ est_tag_auto_fermant :: fonc (tag: *ChaineInternée) -> bool
     empl base: Noeud
 
     espace_de_nom: chaine // DOMString @namespaceURI
-    texte: *ChaineInternée // DOMString @localName
+    texte: DOMString // DOMString @localName
 
     état_élément_custom: chaine
     définition_élément_custom: *rien
@@ -49,14 +49,14 @@ ajoute_attribut :: fonc (élément: *Élément, attribut: Attribut)
     /* INCOMPLET : 3. Handle attribute changes. */
 }
 
-initialise_élément :: fonc (élément: *Élément, document: *Document, texte: *ChaineInternée) -> rien
+initialise_élément :: fonc (élément: *Élément, document: *Document, texte: DOMString) -> rien
 {
     élément.genre = GenreNoeud.Élément
     élément.document = document
     élément.texte = texte
 }
 
-crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) -> *Élément
+crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élément
 {
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
     élément: *Élément
@@ -157,9 +157,53 @@ est_compatible_html5 :: fonc (élément: *Élément) -> bool
     }
 }
 
+/* https://dom.spec.whatwg.org/#concept-getelementsbyclassname */
+get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMString) -> *HTMLCollection
+{
+    // 1. Let classes be the result of running the ordered set parser on classNames.
+    classes := run_ordered_set_parser(class_names)
+
+    // 2. If classes is the empty set, return an empty HTMLCollection.
+    si classes.taille == 0 {
+        retourne loge(HTMLCollection)
+    }
+
+    // 3. Return an HTMLCollection rooted at root, whose filter matches
+    //    descendant elements that have all their classes in classes.
+    //    The comparisons for the classes must be done in an ASCII
+    //    case-insensitive manner if root’s node document’s mode is "quirks";
+    //    otherwise in an identical to manner.
+    résultat := loge(HTMLCollection)
+    résultat.root = élément
+    résultat.filter = crée_filtre_pour_class_name(classes)
+    initialise_collection_pour_filtre(résultat)
+    retourne résultat
+}
+
+/* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
+get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMString) -> *HTMLCollection
+{   
+    résultat := loge(HTMLCollection)
+    résultat.root = élément
+
+    // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
+
+    // 2. Otherwise, if root’s node document is an HTML document, return an HTMLCollection rooted at root, whose filter matches the following descendant elements:
+
+    //     Whose namespace is the HTML namespace and whose qualified name is qualifiedName, in ASCII lowercase.
+
+    //     Whose namespace is not the HTML namespace and whose qualified name is qualifiedName.
+
+    // 3. Otherwise, return an HTMLCollection rooted at root, whose filter matches descendant elements whose qualified name is qualifiedName. 
+    résultat.filter = crée_filtre_pour_tag_name(qualified_name)
+
+    initialise_collection_pour_filtre(résultat)
+    retourne résultat
+}
+
 /** \} */
 
-fait_partie_de_catégorie_spécial :: fonc (nom: *ChaineInternée) -> bool
+fait_partie_de_catégorie_spécial :: fonc (nom: DOMString) -> bool
 {
     // À FAIRE : utilisation d'une recherche binaire
     retourne fait_partie_de(nom,
@@ -185,7 +229,7 @@ fait_partie_de_catégorie_spécial :: fonc (nom: *ChaineInternée) -> bool
                             TAG_foreignObject, TAG_desc, TAG_title)
 }
 
-enfant_directe_avec_balise :: fonc (élément: *Élément, balise: *ChaineInternée) -> *Élément
+enfant_directe_avec_balise :: fonc (élément: *Élément, balise: DOMString) -> *Élément
 {
     pour élément.enfants {
         saufsi it.genre == GenreNoeud.Élément {
@@ -200,8 +244,6 @@ enfant_directe_avec_balise :: fonc (élément: *Élément, balise: *ChaineIntern
 
     retourne nul
 }
-
-DOMString :: ChaineUTF16
 
 /* ------------------------------------------------------------------------- */
 /** \nom HTMLElement
@@ -424,18 +466,17 @@ prépare :: fonc (script: *HTMLScriptElement)
 
     /* 8. */
     type_bloc_script := détermine_type_block_script(script)
-    diffère détruit_chaine(type_bloc_script)
     
     /* 9. */
     si est_type_mime_javascript(type_bloc_script) {
         script.type = TypeScript.CLASSIC
     }
     /* 10. */
-    sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, "module") {
+    sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, ATTR_module) {
         script.type = TypeScript.MODULE
     }
     /* 11. */
-    sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, "importmap") {
+    sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, ATTR_importmap) {
         script.type = TypeScript.IMPORTMAP
     }
     /* 12. */
@@ -486,11 +527,11 @@ prépare :: fonc (script: *HTMLScriptElement)
         valeur_event = supprime_espace_blanches_autour(valeur_event)
         valeur_for = supprime_espace_blanches_autour(valeur_for)
 
-        saufsi compare_ascii_insensible_à_la_casse(valeur_for, "window") {
+        saufsi compare_ascii_insensible_à_la_casse(valeur_for, ATTR_window) {
             retourne
         }
     
-        saufsi compare_ascii_insensible_à_la_casse(valeur_event, "onload") || compare_ascii_insensible_à_la_casse(valeur_event, "onload()") {
+        saufsi compare_ascii_insensible_à_la_casse(valeur_event, ATTR_onload) || compare_ascii_insensible_à_la_casse(valeur_event, "onload()") {
             retourne
         }
     }
@@ -559,7 +600,7 @@ scripting_est_désactivé :: fonc (script: *HTMLScriptElement @inutilisée) -> b
     retourne vrai
 }
 
-détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> ChaineUTF16
+détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
 {
     attr_type := script.cherche_attribut(ATTR_type)
     attr_language := script.cherche_attribut(ATTR_language)
@@ -567,7 +608,7 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> ChaineUTF16
     si (attr_type != nul && attr_type.valeur.est_vide()) ||
          (attr_type == nul && attr_language != nul && attr_language.valeur.est_vide()) ||
          (attr_type == nul && attr_language == nul) {
-        retourne crée_chaine_utf16("text/javascript")
+        retourne crée_chaine_utf16_unique("text/javascript")
     }
 
     si attr_type {
@@ -578,11 +619,11 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> ChaineUTF16
     assert(attr_language != nul)
     chn := imprime_chaine("text/%", attr_language.valeur)
     diffère déloge(chn)
-    retourne crée_chaine_utf16(chn)
+    retourne crée_chaine_utf16_unique(chn)
 }
 
 /* https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match */
-est_type_mime_javascript :: fonc (chn: ChaineUTF16) -> bool
+est_type_mime_javascript :: fonc (chn: DOMString) -> bool
 {
     mimes_possibles := [
         "application/ecmascript",
