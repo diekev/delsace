@@ -1,3 +1,129 @@
+importe Ensemble
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom HostDefined
+ * Cette structutre, non-spécifiée, nous sers à tenir les données définis par
+ * les hôtes pour les champs [[HostDefined]] définis par le standard.
+ * \{ */
+
+HostDefined :: struct {
+    données: *rien
+    infos: *InfoType
+}
+
+crée_host_defined :: fonc (données: *$T) -> HostDefined
+{
+    retourne HostDefined(données, info_de(T))
+}
+
+donne_données :: fonc (host_defined: &HostDefined, $T: type_de_données) -> *T
+{
+    assert(host_defined.infos == info_de(T))
+    retourne host_defined.données comme *T
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom MachineVirtuelle
+ * Cette structure, non-spécifiée, nous sers à tenir les données pour exécuter
+ * des scripts.
+ * Chaque client souhaitant exécuter du code JavaScript doit le faire via une
+ * instance de MachineVirtuelle.
+ * \{ */
+
+MachineVirtuelle :: struct {
+    tas_de_mémoire: TasDeMémoire
+    execution_contexts: [..]*ExecutionContext
+}
+
+initialise_mv :: fonc (mv: *MachineVirtuelle)
+{
+    mv.tas_de_mémoire.mv = mv
+}
+
+détruit_données_mv :: fonc (mv: *MachineVirtuelle)
+{
+    éboue(*mv.tas_de_mémoire, TypeÉbouage.RAMASSE_TOUT)
+    détruit_données_tas_de_mémoire(*mv.tas_de_mémoire)
+    déloge(mv.execution_contexts)
+}
+
+empile_execution_context :: fonc (mv: *MachineVirtuelle, execution_context: *ExecutionContext)
+{
+    tableau_ajoute(*mv.execution_contexts, execution_context)
+}
+
+dépile_execution_context :: fonc (mv: *MachineVirtuelle)
+{
+    assert(mv.execution_contexts.taille > 0)
+    mv.execution_contexts.taille -= 1
+}
+
+suspend_running_execution_context :: fonc (mv: *MachineVirtuelle @inutilisée)
+{
+}
+
+donne_tas_de_mémoire :: fonc (mv: *MachineVirtuelle) -> *TasDeMémoire
+{
+    retourne *mv.tas_de_mémoire
+}
+
+donne_running_execution_context :: fonc (mv: *MachineVirtuelle) -> *ExecutionContext
+{
+    retourne mv.execution_contexts[mv.execution_contexts.taille - 1]
+}
+
+rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
+{
+    pour mv.execution_contexts {
+        ensemble_ajoute(racines, it)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom https://tc39.es/ecma262/#sec-execution-contexts
+ * \{ */
+
+ExecutionContext :: struct {
+    empl base: Cellule
+    classe = #type_de_cette_structure
+    sur_visite_graphe = execution_context_sur_visite_graphe
+
+    realm: *Realm
+    function: *Function
+    script_or_module: *Script // ScriptOrModule
+
+    /* https://tc39.es/ecma262/#table-additional-state-components-for-ecmascript-code-execution-contexts */
+    lexical_environment: *Environment
+    variable_environment: *Environment
+    private_environment: *PrivateEnvironment
+}
+
+crée_execution_context :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ExecutionContext
+{
+    retourne tas_de_mémoire.alloue(ExecutionContext)
+}
+
+execution_context_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+{
+    cellule_sur_visite_graphe(base, visiteuse)
+
+    execution_context := base comme *ExecutionContext
+    visite_graphe(execution_context.realm, visiteuse)
+    visite_graphe(execution_context.function, visiteuse)
+    visite_graphe(execution_context.script_or_module, visiteuse)
+
+    visite_graphe(execution_context.lexical_environment, visiteuse)
+    visite_graphe(execution_context.variable_environment, visiteuse)
+    visite_graphe(execution_context.private_environment, visiteuse)
+}
+
+/** \} */
+
 /* ------------------------------------------------------------------------- */
 /** \nom Intrinsics
  * realm.[[Intrinsics]]
@@ -57,13 +183,14 @@ RappelsHôte :: struct {
 
 Realm :: struct {
     empl base: Cellule
-    type = #type_de_cette_structure
+    classe = #type_de_cette_structure
     sur_visite_graphe = realm_sur_visite_graphe
     sur_destruction = realm_sur_destruction
 
     intrinsics: Intrinsics
     global_object: *Object
     global_environment: *GlobalEnvironment
+    host_defined: HostDefined
 
     /* Cache pour toutes les chaines littérales. */
     chaines_littérales: [..]*PrimitiveChaine
@@ -91,8 +218,10 @@ realm_sur_destruction :: fonc (base: *Cellule)
 
 /* 9.3.1 InitializeHostDefinedRealm ( )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-initializehostdefinedrealm */
-initialise_host_defined_realm :: fonc (tas_de_mémoire: *TasDeMémoire, rappels : *RappelsHôte = nul) -> *Realm
+initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, rappels : *RappelsHôte = nul) -> *Realm
 {
+    tas_de_mémoire := mv.donne_tas_de_mémoire()
+
     // 1. Let realm be a new Realm Record.
     realm := tas_de_mémoire.alloue(Realm)
 
@@ -104,11 +233,21 @@ initialise_host_defined_realm :: fonc (tas_de_mémoire: *TasDeMémoire, rappels 
     // 4. Set realm.[[GlobalObject]] to undefined.
     // 5. Set realm.[[GlobalEnv]] to undefined.
     // 6. Set realm.[[TemplateMap]] to a new empty List.
+
     // 7. Let newContext be a new execution context.
+    new_context := crée_execution_context(tas_de_mémoire)
+
     // 8. Set the Function of newContext to null.
+    new_context.function = nul
+
     // 9. Set the Realm of newContext to realm.
+    new_context.realm = realm
+
     // 10. Set the ScriptOrModule of newContext to null.
+    new_context.script_or_module = nul
+
     // 11. Push newContext onto the execution context stack; newContext is now the running execution context.
+    mv.empile_execution_context(new_context)
 
     global : *Object = ---
     // 12. If the host requires use of an exotic object to serve as realm's global object, then
@@ -166,7 +305,7 @@ set_default_global_bindings :: fonc (realm: *Realm)
     // c. Perform ? DefinePropertyOrThrow(global, name, desc).
 
     // À FAIRE : DefinePropertyOrThrow
-    global.ajoute_propriété("globalThis", Valeur(Object = realm.global_environment.global_this_value), faux, faux, vrai)
+    global.ajoute_propriété(STR_globalThis, Valeur(Object = realm.global_environment.global_this_value), faux, faux, vrai)
 
     // 3. Return UNUSED.
 }
