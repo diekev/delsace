@@ -60,21 +60,53 @@ GenreLexème :: énum {
     CrochetOuvrant
     CrochetFermant
 
-    // mot-clé
-    Function
-    Return
-    Var
-    Let
-    For
-    If
-    Of
-    In
+    // mots-clés
+    As
+    Async
+    Await
+    Break
+    Case
+    Catch
+    Const
+    Continue
+    Debugger 
+    Default 
+    Delete 
+    Do
     Else
-    Typeof
-    Null
-    True
+    Enum
+    Export
+    Extends
     False
+    Finally
+    For
+    From
+    Function
+    Get
+    If
+    Import
+    In
+    Instanceof
+    Let
+    Meta
     New
+    Null
+    Of
+    Return
+    Set
+    Super
+    Switch
+    Target
+    This
+    Throw
+    True
+    Try
+    Typeof
+    Var
+    Void
+    While
+    With
+    Yield
 }
 
 donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> GenreLexème
@@ -101,30 +133,66 @@ donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> 
 rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
 {
     si identifiant.taille == 2 {
+        si identifiant == "as" { retourne GenreLexème.As }
+        si identifiant == "do" { retourne GenreLexème.Do }
         si identifiant == "if" { retourne GenreLexème.If }
         si identifiant == "in" { retourne GenreLexème.In }
         si identifiant == "of" { retourne GenreLexème.Of }
     }
     sinon si identifiant.taille == 3 {
         si identifiant == "for" { retourne GenreLexème.For }
+        si identifiant == "get" { retourne GenreLexème.Get }
         si identifiant == "let" { retourne GenreLexème.Let }
         si identifiant == "new" { retourne GenreLexème.New }
+        si identifiant == "set" { retourne GenreLexème.Set }
+        si identifiant == "try" { retourne GenreLexème.Try }
         si identifiant == "var" { retourne GenreLexème.Var }
     }
     sinon si identifiant.taille == 4 {
+        si identifiant == "case" { retourne GenreLexème.Case }
         si identifiant == "else" { retourne GenreLexème.Else }
+        si identifiant == "enum" { retourne GenreLexème.Enum }
+        si identifiant == "from" { retourne GenreLexème.From }
+        si identifiant == "meta" { retourne GenreLexème.Meta }
         si identifiant == "null" { retourne GenreLexème.Null }
+        si identifiant == "this" { retourne GenreLexème.This }
         si identifiant == "true" { retourne GenreLexème.True }
+        si identifiant == "void" { retourne GenreLexème.Void }
+        si identifiant == "With" { retourne GenreLexème.With }
     }
     sinon si identifiant.taille == 5 {
+        si identifiant == "async" { retourne GenreLexème.Async }
+        si identifiant == "await" { retourne GenreLexème.Await }
+        si identifiant == "break" { retourne GenreLexème.Break }
+        si identifiant == "catch" { retourne GenreLexème.Catch }
+        si identifiant == "const" { retourne GenreLexème.Const }
         si identifiant == "false" { retourne GenreLexème.False }
+        si identifiant == "super" { retourne GenreLexème.Super }
+        si identifiant == "throw" { retourne GenreLexème.Throw }
+        si identifiant == "while" { retourne GenreLexème.While }
+        si identifiant == "yield" { retourne GenreLexème.Yield }
     }
     sinon si identifiant.taille == 6 {
+        si identifiant == "delete" { retourne GenreLexème.Delete }
+        si identifiant == "export" { retourne GenreLexème.Export }
+        si identifiant == "import" { retourne GenreLexème.Import }
         si identifiant == "return" { retourne GenreLexème.Return }
+        si identifiant == "switch" { retourne GenreLexème.Switch }
+        si identifiant == "target" { retourne GenreLexème.Target }
         si identifiant == "typeof" { retourne GenreLexème.Typeof }
     }
+    sinon si identifiant.taille == 7 {
+        si identifiant == "default" { retourne GenreLexème.Default }
+        si identifiant == "extends" { retourne GenreLexème.Extends }
+        si identifiant == "finally" { retourne GenreLexème.Finally }
+    }
     sinon si identifiant.taille == 8 {
+        si identifiant == "continue" { retourne GenreLexème.Continue }
+        si identifiant == "debugger" { retourne GenreLexème.Debugger }
         si identifiant == "function" { retourne GenreLexème.Function }
+    }
+    sinon si identifiant.taille == 10 {
+        si identifiant == "instanceof" { retourne GenreLexème.Instanceof }
     }
 
     retourne GenreLexème.Identifiant
@@ -281,6 +349,7 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
     discr genre {
         Var,
         Let,
+        Const,
         Identifiant,
         ChaineLittérale,
         NombreLittéral,
@@ -288,6 +357,7 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         AccoladeOuvrante,
         True,
         False,
+        Function,
         Null{
             retourne vrai
         }
