@@ -1,0 +1,70 @@
+
+Style :: struct {
+    display: Display
+    // color: Color
+    // opacity: Opacity
+    // background: Background
+    // margin: Margin
+    // border: Border
+    // padding: Padding
+}
+
+/* https://drafts.csswg.org/css-backgrounds/ */
+// Background :: struct {
+//     color: Color
+// }
+
+// Border :: struct {
+//     width: [4]LineWidth
+//     color: [4]Color
+//     style: [4]LineStyle
+// }
+
+/* https://www.w3.org/TR/css-color-4/ */
+// Color :: struct {
+// }
+
+// Opacity :: struct {
+// }
+
+TypePropriété :: énum {
+    Display
+}
+
+/* https://drafts.csswg.org/css-display/#the-display-properties */
+Display :: struct {
+    Type :: énum n8 {
+        Block
+        Inline
+        RunIn
+        Flow
+        FlowRoot
+        Table
+        Flex
+        Grid
+        Ruby
+        ListItem
+        TableRowGroup
+        TableHeaderGroup
+        TableFooterGroup
+        TableRow
+        TableCell
+        TableColumnGroup
+        TableColumn
+        TableCaption
+        RubyBase
+        RubyText
+        RubyBaseContainer
+        RubyTextContainer
+        Contents
+        None
+        InlineBlock
+        InlineTable
+        InlineFlex
+        InlineGrid
+    }
+
+    /* Valeurs initiales. */
+    outer_type := Type.Inline
+    inner_type := Type.Flow
+}

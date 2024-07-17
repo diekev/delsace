@@ -5,6 +5,7 @@ importe Internet
 charge "lexage"
 charge "objets"
 charge "parsage"
+charge "style"
 
 lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
 {
