@@ -860,7 +860,18 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(S
         parseuse_locale.avance()
 
         parseuse.curseur = parseuse_locale.curseur
-        retourne crée_pseudo_class_selector(ident)
+
+        résultat := crée_pseudo_class_selector(ident)
+
+        /* Pour ces pseudo-classes, nous changeons le type en pseudo-élément
+         * directement au cas où nous ne serions pas appelés depuis
+         * parse_pseudo_element car il est possible de n'avoir qu'un seul
+         * double point pour ceux-ci pour des raisons historiques. */
+        si ident == "before" || ident == "after" || ident == "first-line" || ident == "first-letter" {
+            résultat.type = SimpleSelector.Type.PseudoElement
+        }
+
+        retourne résultat
     }
 
     si parseuse_locale.lexème_courant().est_fonction() {
