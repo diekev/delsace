@@ -3967,7 +3967,7 @@ QT_SslSocket *QT_cree_ssl_socket_rappels(QT_Generic_Object parent, QT_Rappels_So
 
 void QT_abstract_socket_connect_to_host(QT_AbstractSocket socket,
                                         QT_Chaine host_name,
-                                        int16_t port)
+                                        uint16_t port)
 {
     VERS_QT(socket);
     VERS_QT(host_name);
@@ -3976,7 +3976,7 @@ void QT_abstract_socket_connect_to_host(QT_AbstractSocket socket,
 
 void QT_ssl_socket_connect_to_host_encrypted(QT_SslSocket *socket,
                                              QT_Chaine host_name,
-                                             int16_t port)
+                                             uint16_t port)
 {
     VERS_QT(socket);
     VERS_QT(host_name);

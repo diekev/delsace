@@ -33,6 +33,14 @@ Parseuse :: struct {
     noeuds: [..]octet
 }
 
+donne_parseuse_locale :: fonc (parseuse: *Parseuse) -> Parseuse
+{
+    résultat: Parseuse
+    résultat.lexèmes = parseuse.lexèmes
+    résultat.position = parseuse.position
+    retourne résultat
+}
+
 détruit_données_parseuse :: fonc (parseuse: *Parseuse @inutilisée)
 {
 }
@@ -149,17 +157,16 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
     retourne nul
 }
 
-parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
+/* À FAIRE : différencie proprement FunctionDeclaration et FunctionExpression */
+parse_function_declaration :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 {
     parseuse.consomme()
 
-    saufsi apparie(parseuse, GenreLexème.Identifiant) {
-        parseuse.rapporte_erreur("Attendu un identifiant après 'function'")
-        retourne nul
+    id: *Identifier
+    si apparie(parseuse, GenreLexème.Identifiant) {
+        id = crée_identifier(lexème_courant(parseuse).texte)
+        parseuse.consomme()
     }
-
-    id := crée_identifier(lexème_courant(parseuse).texte)
-    parseuse.consomme()
 
     saufsi apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
         parseuse.rapporte_erreur("Attendu une parenthèse ouvrante après le nom de la fonction")
@@ -184,7 +191,11 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
 
     bloc := crée_block_statement(...expressions)
 
-    retourne crée_function_déclaration(id, paramètres, bloc)
+    si id {
+        retourne crée_function_déclaration(id, paramètres, bloc)
+    }
+
+    retourne crée_function_expression(id, paramètres, bloc)
 }
 
 parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind) -> *VariableDeclaration
@@ -207,7 +218,7 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
     sinon si apparie(parseuse, GenreLexème.PointVirgule) {
         parseuse.consomme()
     }
-    sinon {
+    sinon si !apparie(parseuse, GenreLexème.Of) && !apparie(parseuse, GenreLexème.In) {
         parseuse.rapporte_erreur("Attendu '=' ou ';' après l'identifiant")
         retourne nul
     }
@@ -230,7 +241,34 @@ parse_return_statement :: fonc (parseuse: *Parseuse) -> *ReturnStatement
     retourne crée_return_statement(argument)
 }
 
-parse_for_statement :: fonc (parseuse: *Parseuse) -> *ForStatement
+TypeFor :: énum {
+    Normal
+    ForOf
+    ForIn
+}
+
+détermine_type_for :: fonc (parseuse: *Parseuse) -> TypeFor
+{
+    parseuse_locale := parseuse.donne_parseuse_locale()
+
+    tantque !fini(*parseuse_locale) {
+        si apparie(*parseuse_locale, GenreLexème.Of) {
+            retourne TypeFor.ForOf
+        }
+        si apparie(*parseuse_locale, GenreLexème.In) {
+            retourne TypeFor.ForIn
+        }
+        si apparie(*parseuse_locale, GenreLexème.ParenthèseFermante) {
+            arrête
+        }
+
+        consomme(*parseuse_locale)
+    }
+
+    retourne TypeFor.Normal
+}
+
+parse_for_statement :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 {
     parseuse.consomme()
 
@@ -239,6 +277,12 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *ForStatement
         retourne nul
     }
     parseuse.consomme()
+
+    type_for := détermine_type_for(parseuse)
+
+    si type_for != TypeFor.Normal {
+        retourne parseuse.parse_for_of_in_statement(type_for)
+    }
 
     init: *NoeudSyntaxique
     si parseuse.apparie_expression() {
@@ -282,6 +326,39 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *ForStatement
     }
 
     retourne crée_for_statement(init, test, update, body)
+}
+
+parse_for_of_in_statement :: fonc (parseuse: *Parseuse, type_for: TypeFor) -> *NoeudSyntaxique
+{
+    left := parseuse.parse_expression()
+
+    si type_for == TypeFor.ForOf && !apparie(parseuse, GenreLexème.Of) {
+        parseuse.rapporte_erreur("Attendu 'of'")
+        retourne nul
+    }
+    si type_for == TypeFor.ForIn && !apparie(parseuse, GenreLexème.In) {
+        parseuse.rapporte_erreur("Attendu 'in'")
+        retourne nul
+    }
+
+    /* Consomme in/of */
+    parseuse.consomme()
+
+    right := parseuse.parse_expression()
+
+    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+        parseuse.rapporte_erreur("Attendu une parenthèse fermante")
+        retourne nul
+    }
+    parseuse.consomme()
+
+    body := parseuse.parse_bloc_statement_ou_expression()
+
+    si type_for == TypeFor.ForIn {
+        retourne crée_for_in_statement(left, right, body)
+    }
+
+    retourne crée_for_of_statement(left, right, body)
 }
 
 parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement
@@ -421,6 +498,12 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         Var {
             retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Var)
         }
+        Const {
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Const)
+        }
+        Function {
+            retourne parse_function_declaration(parseuse)
+        }
         sinon {
             parseuse.rapporte_erreur("lexème non géré dans parse_expression_primaire")
         }
@@ -544,7 +627,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             parseuse.consomme()
 
             propriété := crée_identifier(lexème.texte)
-            retourne crée_member_expression(gauche, propriété)
+            retourne crée_member_expression(gauche, propriété, faux)
         }
         ParenthèseOuvrante {
             parseuse.consomme()
@@ -562,6 +645,19 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             parseuse.consomme()
 
             retourne crée_call_expression(gauche, ...arguments)
+        }
+        CrochetOuvrant {
+            parseuse.consomme()
+
+            propriété := parseuse.parse_expression()
+
+            saufsi parseuse.apparie(GenreLexème.CrochetFermant) {
+                parseuse.rapporte_erreur("Attendu un crochet fermant à la fin de l'expression d'appel")
+                retourne nul
+            }
+            parseuse.consomme()
+
+            retourne crée_member_expression(gauche, propriété, vrai)
         }
         sinon {
             rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")
