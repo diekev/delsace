@@ -74,13 +74,60 @@ SelectorList :: struct {
     complex_selectors: [..]ComplexSelector
 }
 
+imprime_selector_list :: fonc (enchaineuse: *Enchaineuse, selector_list: *SelectorList)
+{
+    saufsi selector_list {
+        retourne
+    }
+
+    pour * selector_list.complex_selectors {
+        si index_it > 0 {
+            ajoute_au_tampon(enchaineuse, ", ")
+        }
+
+        imprime_complex_selector(enchaineuse, it)
+    }
+} @FormattageImpression
+
 ComplexSelector :: struct {
     compound_selectors: [..]CompoundSelector
 }
 
+imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: *ComplexSelector)
+{
+    saufsi complex_selectors {
+        retourne
+    }
+
+    // À FAIRE : combinateurs
+    pour * complex_selectors.compound_selectors {
+        si index_it > 0 {
+            ajoute_au_tampon(enchaineuse, " ")
+        }
+
+        imprime_compound_selector(enchaineuse, it)
+    }
+} @FormattageImpression
+
 CompoundSelector :: struct {
     simple_selectors: [..]SimpleSelector
 }
+
+imprime_compound_selector :: fonc (enchaineuse: *Enchaineuse, compound_selectors: *CompoundSelector)
+{
+    saufsi compound_selectors {
+        retourne
+    }
+
+    // À FAIRE : combinateurs
+    pour * compound_selectors.simple_selectors {
+        si index_it > 0 {
+            ajoute_au_tampon(enchaineuse, " ")
+        }
+
+        imprime_simple_selector(enchaineuse, it)
+    }
+} @FormattageImpression
 
 SimpleSelector :: struct {
     Type :: énum {
@@ -91,7 +138,6 @@ SimpleSelector :: struct {
         Attrib
         PseudoElement
         PseudoClass
-        Negation
     }
 
     AttributeMatcher :: énum {
@@ -133,7 +179,7 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
         retourne
     }
 
-    ajoute_au_tampon(enchaineuse, selector.type, " : ")
+    // ajoute_au_tampon(enchaineuse, selector.type, " : ")
     discr selector.type {
         Type {
             si selector.namespace_prefix.taille() != 0 {
@@ -149,6 +195,19 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
         }
         PseudoClass {
             ajoute_au_tampon(enchaineuse, ":", selector.ident)
+            si selector.est_fonction {
+                ajoute_au_tampon(enchaineuse, "(")
+
+                si selector.ident == "dir" {
+                    ajoute_au_tampon(enchaineuse, selector.arg)
+                }
+                sinon {
+                    imprime_selector_list(enchaineuse, *selector.selector_list)
+                }
+
+                ajoute_au_tampon(enchaineuse, ")")
+                retourne
+            }
         }
         PseudoElement {
             ajoute_au_tampon(enchaineuse, "::", selector.ident)
