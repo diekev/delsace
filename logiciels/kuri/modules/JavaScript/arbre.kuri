@@ -1,6 +1,6 @@
+importe Chaine
 importe Fondation
 importe Introspection
-
 
 /* ------------------------------------------------------------------------- */
 /** \nom NoeudSyntaxique
@@ -18,12 +18,70 @@ exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: &Interpréteuse
     retourne noeud.sur_exécution(noeud, interpréteuse)
 }
 
+/* 11.2.2.1 Static Semantics: IsStrict ( node )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-source-code.html#sec-isstrict */
+is_strict :: fonc (noeud: *NoeudSyntaxique @inutilisée) -> bool
+{
+    // À FAIRE 1. If the source text matched by node is strict mode code, return true; else return false.
+    retourne faux
+}
+
+/* 8.4.1 Static Semantics: HasName
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-hasname */
+has_name :: fonc (noeud: *NoeudSyntaxique) -> bool
+{
+    // À FAIRE : implémente tous les cas
+    si noeud.type == FunctionExpression {
+        retourne (noeud comme *FunctionExpression).id != nul
+    }
+    retourne faux
+}
+
+/* 8.4.2 Static Semantics: IsFunctionDefinition
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-isfunctiondefinition */
+is_function_definition :: fonc (noeud: *NoeudSyntaxique) -> bool
+{
+    // À FAIRE : implémente tous les cas
+    retourne noeud.type == FunctionExpression
+}
+
 /* 8.4.3 Static Semantics: IsAnonymousFunctionDefinition
  * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-isanonymousfunctiondefinition */
-is_anonymous_function_definition :: fonc (noeud: *NoeudSyntaxique @inutilisée) -> bool
+is_anonymous_function_definition :: fonc (noeud: *NoeudSyntaxique) -> bool
 {
-    // À FAIRE
-    retourne faux
+    // 1. If IsFunctionDefinition of expr is false, return false.
+    saufsi is_function_definition(noeud) {
+        retourne faux
+    }
+
+    // 2. Let hasName be HasName of expr.
+    // 3. If hasName is true, return false.
+    si has_name(noeud) {
+        retourne faux
+    }
+
+    // 4. Return true.
+    retourne vrai
+}
+
+/* 8.4.4 Static Semantics: IsIdentifierRef
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-isidentifierref */
+is_identifier_ref :: fonc (noeud: *NoeudSyntaxique) -> bool
+{
+    retourne noeud.type == Identifier
+}
+
+/* 8.4.5 Runtime Semantics: NamedEvaluation
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-runtime-semantics-namedevaluation */
+named_evaluation :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxique, name: ECMAString) -> CompletionRecord
+{
+    si noeud.type == FunctionExpression {
+        // 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression with argument name.
+        résultat := instantiate_ordinary_function_expression(interpréteuse, noeud comme *FunctionExpression, *name)
+        retourne normal_completion(Valeur(Function = résultat))
+    }
+
+    panique("name_evaluation non-implémenté")
 }
 
 /** \} */
@@ -114,6 +172,82 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom FunctionExpression
+ * \{ */
+
+FunctionExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_function_expression
+
+    id: *Identifier
+    params: [..]*NoeudSyntaxique
+    corps: *NoeudSyntaxique
+
+    generator := faux
+    expression := faux
+    async := faux
+}
+
+crée_function_expression :: fonc (id: *Identifier, params: []*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionExpression
+{
+    résultat := loge(FunctionExpression)
+    résultat.id = id
+    résultat.corps = corps
+    pour params {
+        tableau_ajoute(*résultat.params, it)
+    }
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-function-definitions-runtime-semantics-evaluation */
+sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    expression := base comme *FunctionExpression
+    /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
+    closure := instantiate_ordinary_function_expression(interpréteuse, expression)
+    retourne normal_completion(Valeur(Function = closure))
+}
+
+/* 15.2.5 Runtime Semantics: InstantiateOrdinaryFunctionExpression
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-instantiateordinaryfunctionexpression */
+instantiate_ordinary_function_expression :: fonc (interpréteuse: &Interpréteuse, expression: *FunctionExpression, opt_name : *ECMAString = nul) -> *Function
+{
+    si expression.id == nul {
+        mv := interpréteuse.mv
+        running_execution_context := mv.donne_running_execution_context()
+
+        // 1. If name is not present, set name to "".
+        name: ECMAString
+        si opt_name {
+            name = mémoire(opt_name)
+        }
+
+        // 2. Let env be the LexicalEnvironment of the running execution context.
+        env := running_execution_context.lexical_environment
+
+        // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+        private_env := running_execution_context.private_environment
+
+        // À FAIRE 4. Let sourceText be the source text matched by FunctionExpression.
+
+        // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, NON-LEXICAL-THIS, env, privateEnv).
+        closure := ordinary_function_create(mv.donne_tas_de_mémoire(), expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
+
+        // À FAIRE 6. Perform SetFunctionName(closure, name).
+
+        // À FAIRE 7. Perform MakeConstructor(closure).
+
+        // 8. Return closure.
+        retourne closure
+    }
+
+    panique("instantiate_ordinary_function_expression non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Identifier
  * \{ */
 
@@ -130,6 +264,11 @@ crée_identifier :: fonc (nom: ECMAString) -> *Identifier
     résultat := loge(Identifier)
     résultat.nom = nom
     retourne résultat
+}
+
+crée_identifier :: fonc (nom: chaine) -> *Identifier
+{
+    retourne crée_identifier(crée_chaine_utf16_unique(nom))
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-identifiers-runtime-semantics-evaluation */
@@ -310,12 +449,14 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     // À FAIRE
     // }
 
-    // À FAIRE : bigint
     // 6. If lnum is a BigInt, then
-    // a. If opText is **, return ? BigInt::exponentiate(lnum, rnum).
-    // b. If opText is /, return ? BigInt::divide(lnum, rnum).
-    // c. If opText is %, return ? BigInt::remainder(lnum, rnum).
-    // d. If opText is >>>, return ? BigInt::unsignedRightShift(lnum, rnum).
+    si est_big_int(gauche) {
+        // a. If opText is **, return ? BigInt::exponentiate(lnum, rnum).
+        // b. If opText is /, return ? BigInt::divide(lnum, rnum).
+        // c. If opText is %, return ? BigInt::remainder(lnum, rnum).
+        // d. If opText is >>>, return ? BigInt::unsignedRightShift(lnum, rnum).
+        panique("big_int non-géré")
+    }
 
     // 7. Let operation be the abstract operation associated with opText and Type(lnum) in the following table:
 
@@ -551,9 +692,11 @@ same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
         retourne Valeur(Boolean = vrai)
     }
 
-    // À FAIRE(BigInt)
     // 3. If x is a BigInt, then
-    // a. Return BigInt::equal(x, y).
+    si est_big_int(x) {
+        // a. Return BigInt::equal(x, y).
+        retourne big_int_equal(x, y)
+    }
 
     // 4. If x is a String, then
     si x.est_chaine() {
@@ -698,11 +841,16 @@ crée_literal :: fonc (valeur: ECMAString) -> *StringLiteral
     retourne résultat
 }
 
+crée_literal :: fonc (valeur: chaine) -> *StringLiteral
+{
+    retourne crée_literal(crée_chaine_utf16_unique(valeur))
+}
+
 sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *StringLiteral
 
-    realm := interpréteuse.tas_de_mémoire.realm
+    realm := interpréteuse.donne_realm()
 
     chn: *PrimitiveChaine
     si noeud.index_chaine == -1 {
@@ -921,12 +1069,21 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
         lref := completion_lref.valeur
 
         rval: Valeur
-        // À FAIRE
         // b. If IsAnonymousFunctionDefinition(AssignmentExpression) is true and IsIdentifierRef of LeftHandSideExpression is true, then
+        si is_anonymous_function_definition(noeud.droite) && is_identifier_ref(noeud.gauche) {
             // i. Let lhs be the StringValue of LeftHandSideExpression.
+            lhs := (noeud.gauche comme *Identifier).nom
+
             // ii. Let rval be ? NamedEvaluation of AssignmentExpression with argument lhs.
+            completion_rval := named_evaluation(interpréteuse, noeud.droite, lhs)
+            saufsi completion_rval.est_normal() {
+                retourne completion_rval
+            }
+
+            rval = completion_rval.valeur.V
+        }
         // c. Else,
-        {
+        sinon {
             // i. Let rref be ? Evaluation of AssignmentExpression.
             completion_rref := exécute_noeud(noeud.droite, interpréteuse)
             saufsi completion_rref.est_normal() {
@@ -944,7 +1101,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 
         // d. Perform ? PutValue(lref, rval).
         completion_assignment := put_value(interpréteuse, lref, rval)
-        si completion_assignment.est_normal() {
+        saufsi completion_assignment.est_normal() {
             retourne completion_assignment
         }
 
@@ -967,6 +1124,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
  * \{ */
 
 VariableDeclarationKind :: énum {
+    Const
     Let
     Var
 }
@@ -1098,7 +1256,7 @@ crée_object_expression :: fonc () -> *ObjectExpression
 
 sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
-    objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.realm.intrinsics.object_prototype)
+    objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.donne_realm().intrinsics.object_prototype)
     retourne normal_completion(Valeur(Object = objet))
 }
 
@@ -1118,11 +1276,12 @@ MemberExpression :: struct {
     calculé := faux
 }
 
-crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique) -> *MemberExpression
+crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique, calculé: bool) -> *MemberExpression
 {
     résultat := loge(MemberExpression)
     résultat.objet = objet
     résultat.propriété = propriété
+    résultat.calculé = calculé
     retourne résultat
 }
 
@@ -1130,11 +1289,6 @@ crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyn
 sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     membre := base comme *MemberExpression
-
-    assert(membre.propriété.type == Identifier)
-    identifier := membre.propriété comme *Identifier
-
-    // MemberExpression : MemberExpression . IdentifierName
 
     // 1. Let baseReference be ? Evaluation of MemberExpression.
     completion_base_reference := exécute_noeud(membre.objet, interpréteuse)
@@ -1151,23 +1305,61 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     base_value := valeur_base_reference.valeur.V
 
     // 3. Let strict be IsStrict(this MemberExpression).
-    // À FAIRE : strict
-    strict := faux
+    strict := is_strict(membre)
 
-    retourne evaluate_property_access_with_identifier_key(base_value, identifier, strict)
+    si membre.calculé {
+        // MemberExpression : MemberExpression [ Expression ]
+        retourne evaluate_property_access_with_expression_key(interpréteuse, base_value, membre.propriété, strict)
+    }
+
+    // MemberExpression : MemberExpression . IdentifierName
+    assert(membre.propriété.type == Identifier)
+    identifier := membre.propriété comme *Identifier
+
+    retourne evaluate_property_access_with_identifier_key(interpréteuse, base_value, identifier, strict)
+}
+
+/* 13.3.3 EvaluatePropertyAccessWithExpressionKey ( baseValue, expression, strict )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluate-property-access-with-expression-key */
+evaluate_property_access_with_expression_key :: fonc (interpréteuse: &Interpréteuse, base_value: Valeur, expression: *NoeudSyntaxique, strict: bool) -> CompletionRecord
+{
+    // 1. Let propertyNameReference be ? Evaluation of expression.
+    completion_expression := exécute_noeud(expression, interpréteuse)
+    saufsi completion_expression.est_normal() {
+        retourne completion_expression
+    }
+    property_name_reference := completion_expression.valeur
+
+    // 2. Let propertyNameValue be ? GetValue(propertyNameReference).
+    completion_value := get_value(interpréteuse, property_name_reference)
+    saufsi completion_value.est_normal() {
+        retourne completion_value
+    }
+    property_name_value := completion_value.valeur.V
+
+    // 3. NOTE: In most cases, ToPropertyKey will be performed on propertyNameValue
+    //    immediately after this step. However, in the case of a[b] = c, it will
+    //    not be performed until after evaluation of c.
+
+    // 4. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyNameValue, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
+    résultat: ReferenceRecord
+    résultat.base = base_value
+    résultat.referenced_name = property_name_value
+    résultat.strict = strict
+    retourne normal_completion(résultat)
 }
 
 /* 13.3.4 EvaluatePropertyAccessWithIdentifierKey ( baseValue, identifierName, strict )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluate-property-access-with-identifier-key */
-evaluate_property_access_with_identifier_key :: fonc (base_value: Valeur, identifier_name: *Identifier, strict: bool) -> CompletionRecord
+evaluate_property_access_with_identifier_key :: fonc (interpréteuse: &Interpréteuse, base_value: Valeur, identifier_name: *Identifier, strict: bool) -> CompletionRecord
 {
     // 1. Let propertyNameString be the StringValue of identifierName.
-    property_name_string := identifier_name.nom
+    property_name_string := crée_chaine(interpréteuse.donne_tas_de_mémoire(), identifier_name.nom)
 
     // 2. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyNameString, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
     résultat: ReferenceRecord
     résultat.base = base_value
-    résultat.referenced_name = property_name_string
+    résultat.referenced_name = Valeur(String = property_name_string)
     résultat.strict = strict
     retourne normal_completion(résultat)
 }
@@ -1311,19 +1503,79 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: &I
             }
         }
 
-        si for.update {
-            doit_continuer := exécute_noeud(for.update, interpréteuse)
-            saufsi doit_continuer.est_normal() {
-                retourne doit_continuer
-            }
-        }
-
         doit_continuer := exécute_noeud(for.body, interpréteuse)
         saufsi doit_continuer.est_normal() {
             retourne doit_continuer
         }
+
+        si for.update {
+            doit_continuer = exécute_noeud(for.update, interpréteuse)
+            saufsi doit_continuer.est_normal() {
+                retourne doit_continuer
+            }
+        }
     }
 
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ForOfStatement
+ * \{ */
+
+ForOfStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_for_of_statement
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_for_of_statement :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForOfStatement
+{
+    résultat := loge(ForOfStatement)
+    résultat.left = left
+    résultat.right = right
+    résultat.body = body
+    retourne résultat
+}
+
+sur_exécution_for_of_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
+{
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ForInStatement
+ * \{ */
+
+ForInStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_for_in_statement
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_for_in_statement :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForInStatement
+{
+    résultat := loge(ForInStatement)
+    résultat.left = left
+    résultat.right = right
+    résultat.body = body
+    retourne résultat
+}
+
+sur_exécution_for_in_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse @inutilisée) -> CompletionRecord
+{
     retourne normal_completion(js_undefined)
 }
 
@@ -1430,7 +1682,7 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     si est_reference_record(val) {
         // a. If IsUnresolvableReference(val) is true, return "undefined".
         si est_référence_non_résolvable(val) {
-            retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "undefined"))
+            retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_undefined))
         }
     }
 
@@ -1443,32 +1695,38 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     // 4. If val is undefined, return "undefined".
     si valeur.est_undefined() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "undefined"))
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_undefined))
     }
 
     // 5. If val is null, return "object".
     si valeur.est_nulle() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "object"))
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_object))
     }
 
     // 6. If val is a String, return "string".
     si valeur.est_chaine() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "string"))
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_string))
     }
 
-    // À FAIRE : 7. If val is a Symbol, return "symbol".
+    // 7. If val is a Symbol, return "symbol".
+    si valeur.est_symbol() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_symbol))
+    }
 
     // 8. If val is a Boolean, return "boolean".
     si valeur.est_boolean() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "boolean"))
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_boolean))
     }
 
     // 9. If val is a Number, return "number".
     si valeur.est_nombre() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "number"))
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_number))
     }
 
-    // À FAIRE : 10. If val is a BigInt, return "bigint".
+    // 10. If val is a BigInt, return "bigint".
+    si valeur.est_big_int() {
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_bigint))
+    }
 
     // 11. Assert: val is an Object.
     objet := valeur.donne_objet()
@@ -1476,11 +1734,11 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     // À FAIRE : 12. NOTE: This step is replaced in section B.3.6.3.
     // 13. If val has a [[Call]] internal slot, return "function".
     si objet.sur_call {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "function"))
+        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_function))
     }
 
     // 14. Return "object".
-    retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), "object"))
+    retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_object))
 }
 
 /** \} */

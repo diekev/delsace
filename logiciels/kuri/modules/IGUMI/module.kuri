@@ -1,4 +1,5 @@
 importe Compilatrice
+importe Chaine
 importe Couleur
 importe FTGL
 importe Fondation
@@ -524,6 +525,75 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     dernier_caractère : *texture_glyph_t = nul
     pour * c dans texte {
         glyph := fonte.donne_glyphe(c)
+
+        si glyph == nul {
+            continue
+        }
+
+        kerning := glyph.donne_crénage_avec(dernier_caractère)
+        x += kerning
+
+        x0 := (x + glyph.offset_x comme r32)
+        y0 := (y + glyph.offset_y comme r32)
+        x1 := x0 + glyph.width comme r32
+        y1 := y0 - glyph.height comme r32
+        s0 := glyph.s0
+        t0 := glyph.t0
+        s1 := glyph.s1
+        t1 := glyph.t1
+
+        p0 := Vec3(x = x0, y = y0)
+        p1 := Vec3(x = x0, y = y1)
+        p2 := Vec3(x = x1, y = y1)
+        p3 := Vec3(x = x1, y = y0)
+
+        uv0 := Vec2(x = s0, y = t0)
+        uv1 := Vec2(x = s0, y = t1)
+        uv2 := Vec2(x = s1, y = t1)
+        uv3 := Vec2(x = s1, y = t0)
+
+        quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
+
+        x += glyph.advance_x
+
+        dernier_caractère = glyph
+    }
+
+    termine_immédiat(ModeImmédiat.TRIANGLES)
+}
+
+dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleur: CouleurRVBA)
+{
+    commence_immédiat()
+
+    ancienne_fonction_mélange: z32
+    glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
+    diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
+    diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
+    glEnable(GL_BLEND)
+
+    utilise_nuanceur(nuanceur_texte)
+
+    // met en place la texture de la fonte sur le nuanceur
+    glGenTextures(1, *fonte.atlas.id)
+    diffère glDeleteTextures(1, *fonte.atlas.id)
+
+    // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
+    params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
+    définis_texture_2d(fonte.atlas.id, *params)
+
+    glUseProgram(nuanceur_texte.programme)
+
+    glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
+
+    définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32)
+
+    dernier_caractère : *texture_glyph_t = nul
+    pour texte.unités {
+        glyph := fonte.donne_glyphe(it)
 
         si glyph == nul {
             continue

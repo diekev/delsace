@@ -2735,10 +2735,10 @@ struct QT_SslSocket *QT_cree_ssl_socket_rappels(union QT_Generic_Object parent,
                                                 struct QT_Rappels_Socket *rappels);
 void QT_abstract_socket_connect_to_host(union QT_AbstractSocket socket,
                                         struct QT_Chaine host_name,
-                                        int16_t port);
+                                        uint16_t port);
 void QT_ssl_socket_connect_to_host_encrypted(struct QT_SslSocket *socket,
                                              struct QT_Chaine host_name,
-                                             int16_t port);
+                                             uint16_t port);
 void QT_abstract_socket_close(union QT_AbstractSocket socket);
 int64_t QT_abstract_socket_read(union QT_AbstractSocket socket, int8_t *donnees, int64_t max);
 int64_t QT_abstract_socket_write(union QT_AbstractSocket socket, int8_t *donnees, int64_t max);
