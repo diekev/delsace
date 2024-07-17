@@ -229,6 +229,12 @@ StyleBlockContent :: struct {
     rules: [..]*ParsedRule
 }
 
+détruit_content :: fonc (content: &StyleBlockContent)
+{
+    déloge(content.rules)
+    déloge(content.decls)
+}
+
 parse_a_style_block_s_contents :: fonc (input: [..]ComponentValue) -> StyleBlockContent
 {
     // 1. Normalize input, and set input to the result.

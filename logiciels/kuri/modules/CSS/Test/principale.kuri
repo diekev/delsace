@@ -4,60 +4,121 @@ importe Ensemble
 importe Fondation
 importe SysFichier
 
+parse_propriété_display :: fonc (parseuse: &Parseuse(ComponentValue))
+{
+    
+}
+
+ContexteParsageFeuilleDeStyle :: struct {
+    propriétés_non_supportées: [..]ChaineUTF16
+}
+
+rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
+{
+    pour ctx.propriétés_non_supportées {
+        imprime("[CSS] propriété non-supportée : %\n", it)
+    }
+}
+
+détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
+{
+    déloge(ctx.propriétés_non_supportées)
+}
+
+propriété_est_supportée :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> bool
+{
+    si nom == "display" {
+        retourne vrai
+    }
+
+    ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
+    retourne faux
+}
+
+/* https://www.w3.org/TR/css-syntax-3/#parse-a-css-stylesheet */
+parse_a_css_style_sheet :: fonc (ctx: *ContexteParsageFeuilleDeStyle, contenu: chaine) -> *CSSStyleSheet
+{
+    lexèmes := lèxe_style(contenu)
+    diffère déloge(lexèmes)
+
+    stylesheet := parse_a_stylesheet(lexèmes)
+
+    résultat := loge(CSSStyleSheet)
+    résultat.type = crée_chaine_utf16("text/css")
+
+    pour stylesheet.value {
+        si it.type == ParsedQualifiedRule {
+            parse_a_style_rule(ctx, résultat, it comme *ParsedQualifiedRule)
+        }
+    }
+
+    retourne résultat
+}
+
+/* https://www.w3.org/TR/css-syntax-3/#style-rules */
+parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedQualifiedRule)
+{
+    selectors := parse_selector_list(parsed_rule.prelude)
+    saufsi selectors.possède_valeur() {
+        /* Si nous n'arrivons pas à parser les sélecteurs,
+         * nous devons ignorer la règle. */
+        retourne
+    }
+
+    résultat := loge(CSSStyleRule)
+    résultat.parent_style_sheet = parent_style_sheet
+    résultat.selector_list = selectors.Quelque
+
+    content := parse_a_style_block_s_contents(parsed_rule.bloc.value)
+    diffère détruit_content(content)
+
+    /* Ne considère que les déclarations.
+     * À FAIRE : @nest peut être préservé. */
+    pour content.decls {
+        /* À FAIRE : parse les propriétés. */
+        saufsi propriété_est_supportée(ctx, it.name) {
+            continue
+        }
+
+        déclaration := loge(CSSDeclaration)
+        déclaration.property_name = it.name
+        déclaration.value = it.value
+        déclaration.important = it.important
+
+        résultat.ajoute_déclaration(déclaration)
+    }
+
+    si résultat.déclarations.taille == 0 {
+        déloge(résultat)
+        retourne
+    }
+
+    tableau_ajoute(*parent_style_sheet.rules, résultat)
+}
+
 principale :: fonc () -> z32
 {
     contenu := contenu_fichier_texte("/home/kevin/defaults.css")
     diffère déloge(contenu)
 
-    lexèmes := lèxe_style(contenu)
-    imprime("% lexèmes\n", lexèmes.taille)
+    ctx: ContexteParsageFeuilleDeStyle
+    diffère détruit_données_contexte(*ctx)
 
-    // pour lexèmes {
-    //     imprime("%\n", it)
+    stylesheet := parse_a_css_style_sheet(*ctx, contenu)
 
-    //     si index_it >= 89 {
-    //         arrête
-    //     }
-    // }
+    pour stylesheet.rules {
+        si it.type == CSSRuleType.Style {
+            style_rule := it comme *CSSStyleRule
+            imprime("% {\n", style_rule.selector_list)
 
-    stylesheet := parse_a_stylesheet(lexèmes)
-
-    imprime("% règle(s)\n", stylesheet.value.taille)
-
-    propriétés: [..]ChaineUTF16
-
-    pour stylesheet.value {
-        si it.type == ParsedQualifiedRule {
-            selectors := parse_selector_list(it.prelude)
-
-            saufsi selectors.possède_valeur() {
-                continue
+            pour déclaration dans style_rule.déclarations {
+                imprime("    %: ;\n", déclaration.property_name)
             }
 
-            imprime("% {\n", selectors.Quelque)
-
-            content := parse_a_style_block_s_contents(it.bloc.value)
-
-            pour decl dans content.decls {
-                imprime("    %\n", decl.name)
-                ensemble_ajoute(*propriétés, decl.name)
-            }
             imprime("}\n")
-
-            // pour lexème dans it.prelude {
-            //     imprime("%\n", lexème)
-            // }
         }
     }
 
-    imprime("\nPropriétés :\n")
-    pour propriétés {
-        imprime("-- %\n", it)
-    }
-
-    // pour stylesheet.value {
-    //     imprime("-- valeurs pour règle : prélude % | bloc %\n", it.prelude.taille, it.bloc.value.taille)
-    // }
-
+    rapporte_propriétés_non_supportées(*ctx)
     retourne 0
 }
