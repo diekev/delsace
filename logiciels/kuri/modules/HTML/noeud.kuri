@@ -197,6 +197,12 @@ donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> Optionnel(DO
     retourne attribut.valeur
 }
 
+/* https://dom.spec.whatwg.org/#concept-node-document */
+donne_node_document :: fonc (noeud: *Noeud) -> *Document #enligne
+{
+    retourne noeud.document
+}
+
 /* Retourne le premier enfant ayant le tag donné, ou nul si le noeud n'a pas
  * d'enfants ou aucun enfant du tag donné. */
 donne_premier_enfant_taggé :: fonc (noeud: *Noeud, tag: DOMString) -> *Noeud
