@@ -1728,7 +1728,7 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
             auto déclaration_référée = trouve_dans_bloc(module_ref->bloc,
                                                         expression_membre->ident);
             if (!déclaration_référée) {
-                return Attente::sur_symbole(structure->comme_référence_déclaration());
+                return Attente::sur_symbole(expression_membre);
             }
 
             if (!déclaration_référée->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
