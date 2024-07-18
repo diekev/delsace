@@ -1,4 +1,5 @@
 importe Chaine
+importe Fondation
 importe Internet
 
 /* CSS Object Model https://www.w3.org/TR/cssom-1/ */
