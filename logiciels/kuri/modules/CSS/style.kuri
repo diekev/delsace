@@ -5,6 +5,18 @@ ValeurDeStyle :: union {
     mot_clé: CSSOMString
 }
 
+est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool
+{
+    discr valeur {
+        mot_clé(m) {
+            retourne m == mot_clé
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeStyle)
 {
     saufsi valeur {
