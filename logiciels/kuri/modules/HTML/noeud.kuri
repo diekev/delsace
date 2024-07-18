@@ -6,6 +6,8 @@ importe Fondation
  * https://dom.spec.whatwg.org/#node
  * \{ */
 
+#portée_module
+
 TableVirtuelleNoeud :: struct {
     /* Appelé quand le noeud est détruit. */
     sur_destruction: fonc(*Noeud)(rien)
@@ -16,6 +18,8 @@ TableVirtuelleNoeud :: struct {
     /* Appelé quand le noeud devinent déconnecté. */
     sur_déconnexion: fonc(*Noeud)(rien)
 }
+
+#portée_export
 
 /* Ces valeurs sont tirées de la spécification. */
 ELEMENT_NODE : n16 : 1

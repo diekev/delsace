@@ -31,12 +31,16 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
  * https://dom.spec.whatwg.org/#element
  * \{ */
 
+#portée_module
+
 TableVirtuelleÉlément :: struct {
     empl base: TableVirtuelleNoeud
 
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
     sur_dépilement: fonc(*Élément)(rien)
 }
+
+#portée_export
 
 Élément :: struct {
     empl base: Noeud
