@@ -1,6 +1,7 @@
 importe Allocatrices
 importe Chaine
 importe Couleur
+importe #inemployé CSS
 importe Fondation
 importe Géométrie
 importe HTML
@@ -644,6 +645,8 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositi
 NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
+    propriétés: CSS.PropriétésDeStyle
+
     parent: *NoeudDeDisposition
     enfants: [..]*NoeudDeDisposition
 
@@ -785,43 +788,29 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
     peintre.dessine_texte(fonte, texte, rect, couleur)
 }
 
-est_display_none :: fonc (noeud: *Noeud) -> bool
+est_display_none :: fonc (propriétés: *CSS.PropriétésDeStyle) -> bool
 {
-    si noeud.est_texte() {
+    display := CSS.donne_déclaration(propriétés, crée_chaine_utf16("display"))
+    saufsi display {
+        /* Le défaut est inline. */
         retourne faux
     }
 
-    saufsi noeud.est_élément() {
-        retourne vrai
-    }
+    retourne CSS.est_mot_clé(display.value[0], crée_chaine_utf16("none"))
+}
 
-    élément := noeud comme *Élément
+donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
+{
+    contenu := contenu_fichier_texte("/home/kevin/defaults.css")
+    diffère déloge(contenu)
 
-    tags_none := [
-        TAG_area,
-        TAG_base,
-        TAG_basefont,
-        TAG_datalist,
-        TAG_head,
-        TAG_link,
-        TAG_meta,
-        TAG_noembed,
-        TAG_noframes,
-        TAG_param,
-        TAG_rp,
-        TAG_script,
-        TAG_style,
-        TAG_template,
-        TAG_title
-    ]
+    ctx: CSS.ContexteParsageFeuilleDeStyle
+    diffère CSS.détruit_données_contexte(*ctx)
 
-    pour tags_none {
-        si élément.texte == it {
-            retourne vrai
-        }
-    }
+    stylesheet := CSS.parse_a_css_style_sheet(*ctx, contenu)
+    CSS.rapporte_propriétés_non_supportées(*ctx)
 
-    retourne faux
+    retourne stylesheet
 }
 
 crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *ArbreDeDisposition
@@ -831,10 +820,11 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *ArbreDeDisposition
     }
 
     document := page.parsat.document
-
     saufsi document {
         retourne nul
     }
+
+    document.ajoute_feuille_de_style(donne_feuille_de_style_défaut())
 
     html := document.donne_élément_html()
     saufsi html {
@@ -843,16 +833,15 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *ArbreDeDisposition
 
     résultat := loge(ArbreDeDisposition)
 
+    feuille_de_style := document.feuilles_de_style[0]
+
     racine := résultat.crée_noeud(NoeudDeDispositionBloc)
     racine.élément = html
 
     résultat.racine = racine
 
     pour html.enfants {
-        si est_display_none(it) {
-            continue
-        }
-        crée_noeud_pour_élément(résultat, résultat.racine, it)
+        crée_noeud_pour_élément(feuille_de_style, résultat, résultat.racine, it)
     }
 
     saufsi page.fonte {
@@ -911,7 +900,7 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, p
     }
 }
 
-crée_noeud_pour_élément :: fonc (arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *Noeud)
+crée_noeud_pour_élément :: fonc (stylesheet: *CSS.CSSStyleSheet, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *Noeud)
 {
     si noeud.est_texte() {
         résultat := arbre.crée_noeud(NoeudDeDispositionTexte)
@@ -920,16 +909,33 @@ crée_noeud_pour_élément :: fonc (arbre: *ArbreDeDisposition, parent: *NoeudDe
         retourne
     }
 
+    saufsi noeud.est_élément() {
+        retourne
+    }
+
+    élément := noeud comme *Élément
+
+    règles := CSS.collecte_les_règles_appropriées(stylesheet, élément.texte.donne_chaine_utf16())
+    imprime("% règle(s) pour %\n", règles.taille, élément.texte)
+
+    propriétés: CSS.PropriétésDeStyle
+    pour règles {
+        CSS.imprime_règle(it)
+        pour déclaration dans it.déclarations {
+            CSS.ajoute_déclaration(*propriétés, déclaration)
+        }
+    }
+
+    si est_display_none(*propriétés) {
+        retourne
+    }
+
     résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
     résultat.élément = noeud comme *Élément
     parent.ajoute_enfant(résultat)
 
     pour noeud.enfants {
-        si est_display_none(it) {
-            continue
-        }
-
-        crée_noeud_pour_élément(arbre, résultat, it)
+        crée_noeud_pour_élément(stylesheet, arbre, résultat, it)
     }
 }
 
