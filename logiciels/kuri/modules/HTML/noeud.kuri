@@ -60,21 +60,17 @@ Noeud :: struct {
     document: *Document
 }
 
-détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
+détruit_noeud :: fonc (noeud: *Noeud)
 {
+    détruit_attributs(noeud.attributs)
+    déloge_tableau_et_ses_éléments(noeud.enfants, détruit_noeud)
+    
     si noeud.table && noeud.table.sur_destruction {
         noeud.table.sur_destruction(noeud)
         retourne
     }
 
     déloge(noeud)
-}
-
-détruit_noeud :: fonc (noeud: *Noeud)
-{
-    détruit_attributs(noeud.attributs)
-    déloge_tableau_et_ses_éléments(noeud.enfants, détruit_noeud)
-    détruit_noeud_selon_genre(noeud)
 }
 
 est_document :: fonc (noeud: *Noeud) -> bool
