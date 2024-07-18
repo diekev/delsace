@@ -249,6 +249,16 @@ est_lexème_exclamation :: fonc (lexème: $T) -> bool
     retourne est_lexème_delim(lexème, '!' comme n32)
 }
 
+est_identifiant :: fonc (lexème: $T, ident: chaine) -> bool
+{
+    retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == ident
+}
+
+est_identifiant :: fonc (lexème: $T, ident: CSSOMString) -> bool
+{
+    retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == ident
+}
+
 est_simple_bloc_de_genre :: fonc (lexème: &Lexème @inutilisée, genre: GenreLexème @inutilisée) -> bool
 {
     /* Cette fonction n'existe que pour contenter les fonctions génériques

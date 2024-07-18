@@ -4,9 +4,50 @@ importe Ensemble
 importe Fondation
 importe SysFichier
 
-parse_propriété_display :: fonc (parseuse: &Parseuse(ComponentValue))
+/* https://www.w3.org/TR/css-cascade/#defaulting-keywords */
+parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
 {
-    
+    mots_clés := ["initial", "inherit", "unset", "revert"]
+    lexème := parseuse.lexème_courant()
+
+    pour mots_clés {
+        si lexème.est_identifiant(it) {
+            parseuse.avance()
+            retourne lexème.donne_texte()
+        }
+    }
+}
+
+/* https://drafts.csswg.org/css-display/#the-display-properties */
+parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    mot_clé := parseuse.parse_display_outside()
+    si mot_clé.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
+        retourne résultat
+    }
+}
+
+parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+{
+    opt_mot_clé := parse_css_wide_keyword(parseuse)
+    si opt_mot_clé.possède_valeur() {
+        retourne opt_mot_clé
+    }
+
+    /* block | inline | run-in */
+    mots_clés := ["block", "inline", "run-in"]
+    lexème := parseuse.lexème_courant()
+
+    pour mots_clés {
+        si lexème.est_identifiant(it) {
+            parseuse.avance()
+            retourne lexème.donne_texte()
+        }
+    }
 }
 
 ContexteParsageFeuilleDeStyle :: struct {
@@ -80,9 +121,20 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
             continue
         }
 
+        valeur: [..]ValeurDeStyle
+        si it.name == "display" {
+            opt_valeur := parse_propriété_display(it.value)
+            saufsi opt_valeur.possède_valeur() {
+                imprime("Impossible de parser 'display'")
+                continue
+            }
+
+            valeur = opt_valeur.Quelque
+        }
+
         déclaration := loge(CSSDeclaration)
         déclaration.property_name = it.name
-        déclaration.value = it.value
+        déclaration.value = valeur
         déclaration.important = it.important
 
         résultat.ajoute_déclaration(déclaration)
@@ -111,7 +163,13 @@ imprime_règle :: fonc (règle: *CSSStyleRule)
     imprime("% {\n", règle.selector_list)
 
     pour déclaration dans règle.déclarations {
-        imprime("    %: ;\n", déclaration.property_name)
+        imprime("    %:", déclaration.property_name)
+
+        pour valeur dans déclaration.value {
+            imprime(" %", valeur)
+        }
+
+        imprime(";\n")
     }
 
     imprime("}\n")

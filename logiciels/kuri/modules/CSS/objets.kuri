@@ -93,7 +93,7 @@ ajoute_déclaration :: fonc (style: *CSSStyleRule, déclaration: *CSSDeclaration
 
 CSSDeclaration :: struct {
     property_name: CSSOMString
-    value: [..]ComponentValue
+    value: [..]ValeurDeStyle
     important: bool
     case_sensitive: bool
 }

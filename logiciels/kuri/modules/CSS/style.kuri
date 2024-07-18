@@ -1,3 +1,25 @@
+importe Fondation
+
+/* https://www.w3.org/TR/css-values/#value-defs */
+ValeurDeStyle :: union {
+    mot_clé: CSSOMString
+}
+
+imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeStyle)
+{
+    saufsi valeur {
+        retourne
+    }
+
+    discr mémoire(valeur) {
+        mot_clé(m) {
+            ajoute_au_tampon(enchaineuse, m)
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "VALEUR INVALIDE OU À IMPRIMER")
+        }
+    }
+} @FormattageImpression
 
 Style :: struct {
     display: Display
