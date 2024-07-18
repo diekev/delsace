@@ -21,6 +21,48 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
     }
 } @FormattageImpression
 
+/* ------------------------------------------------------------------------- */
+/** \nom PropriétésDeStyle
+ * Cette structure représente les propriétés finales d'un élément après la
+ * cascade.
+ * \{ */
+
+PropriétésDeStyle :: struct {
+    déclarations: [..]*CSSDeclaration
+}
+
+détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
+{
+    déloge(propriétés.déclarations)
+}
+
+détruit_propriétés :: fonc (propriétés: *PropriétésDeStyle)
+{
+    détruit_données_propriétés(propriétés)
+    déloge(propriétés)
+}
+
+ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *CSSDeclaration)
+{
+    existante := propriétés.donne_déclaration(déclaration.property_name)
+    si existante {
+        retourne
+    }
+    tableau_ajoute(*propriétés.déclarations, déclaration)
+}
+
+donne_déclaration :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString) -> *CSSDeclaration
+{
+    pour propriétés.déclarations {
+        si it.property_name == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+/** \} */
+
 Style :: struct {
     display: Display
     // color: Color

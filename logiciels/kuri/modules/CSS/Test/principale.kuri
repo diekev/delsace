@@ -226,12 +226,22 @@ principale :: fonc () -> z32
 
     élément := crée_chaine_utf16("p")
 
+    propriétés: PropriétésDeStyle
+
     règles := collecte_les_règles_appropriées(stylesheet, élément)
 
     imprime("% règle(s) pour %\n", règles.taille, élément)
+    // pour règles {
+    //     imprime_règle(it)
+    // }
+
     pour règles {
-        imprime_règle(it)
+        pour déclaration dans it.déclarations {
+            ajoute_déclaration(*propriétés, déclaration)
+        }
     }
+
+    imprime("% déclaration(s)\n", propriétés.déclarations.taille)
 
     retourne 0
 }
