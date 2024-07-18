@@ -79,6 +79,7 @@ Document :: struct {
 
     /* CSS. */
     feuilles_de_style: [..]*CSS.CSSStyleSheet
+    arbre_de_disposition: *CSS.ArbreDeDisposition
 }
 
 #portée_fichier
@@ -90,6 +91,7 @@ table_virtuelle_document := TableVirtuelleÉlément(
 document_sur_destruction :: fonc (base: *Noeud)
 {
     document := base comme *Document
+    CSS.détruit_arbre(document.arbre_de_disposition)
     déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
     déloge(document)
 }

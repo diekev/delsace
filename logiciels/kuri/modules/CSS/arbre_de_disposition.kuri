@@ -235,11 +235,11 @@ est_display_none :: fonc (propriétés: *PropriétésDeStyle) -> bool
     retourne est_mot_clé(display.value[0], crée_chaine_utf16("none"))
 }
 
-crée_arbre_de_disposition :: fonc (document: *HTML.Document, fonte: *Fonte) -> *ArbreDeDisposition
+crée_arbre_de_disposition :: fonc (document: *HTML.Document, fonte: *Fonte)
 {
     html := HTML.donne_élément_html(document)
     saufsi html {
-        retourne nul
+        retourne
     }
 
     résultat := loge(ArbreDeDisposition)
@@ -266,7 +266,11 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, fonte: *Fonte) -> 
 
     // imprime_arbre(résultat)
 
-    retourne résultat
+    si document.arbre_de_disposition {
+        détruit_arbre(document.arbre_de_disposition)
+    }
+
+    document.arbre_de_disposition = résultat
 }
 
 imprime_arbre :: fonc (arbre: *ArbreDeDisposition)

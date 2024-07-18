@@ -591,10 +591,6 @@ donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
 
 crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
 {
-    si page.arbre_de_disposition {
-        retourne page.arbre_de_disposition
-    }
-
     document := page.parsat.document
     saufsi document {
         retourne nul
@@ -607,9 +603,8 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
     }
 
     document.ajoute_feuille_de_style(donne_feuille_de_style_défaut())
-    résultat := CSS.crée_arbre_de_disposition(document, page.fonte)
-    page.arbre_de_disposition = résultat
-    retourne résultat
+    CSS.crée_arbre_de_disposition(document, page.fonte)
+    retourne document.arbre_de_disposition
 }
 
 /** \} */
