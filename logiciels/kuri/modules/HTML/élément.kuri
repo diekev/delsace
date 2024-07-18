@@ -724,8 +724,18 @@ HTMLStyleElement :: struct {
 #portée_fichier
 
 table_virtuelle_style_element := TableVirtuelleÉlément(
+    sur_connexion = style_element_sur_connexion_ou_déconnexion,
+    sur_déconnexion = style_element_sur_connexion_ou_déconnexion,
     sur_dépilement = style_element_sur_dépilement
 )
+
+style_element_sur_connexion_ou_déconnexion :: fonc (base: *Noeud)
+{
+    style := base comme *HTMLStyleElement
+    saufsi style.est_sur_pile_éléments_ouvert {
+        ajourne_style_block(style)
+    }
+}
 
 style_element_sur_dépilement :: fonc (base: *Élément)
 {
@@ -738,7 +748,7 @@ style_element_sur_dépilement :: fonc (base: *Élément)
  * À FAIRE : implémente tous les cas
  * The user agent must run the update a style block algorithm whenever any of the following conditions occur:
  * [X] The element is popped off the stack of open elements of an HTML parser or XML parser.
- * [ ] The element is not on the stack of open elements of an HTML parser or XML parser, and it becomes connected or disconnected.
+ * [X] The element is not on the stack of open elements of an HTML parser or XML parser, and it becomes connected or disconnected.
  * [ ] The element's children changed steps run.
  */
 ajourne_style_block :: fonc (style: *HTMLStyleElement)

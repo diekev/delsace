@@ -12,7 +12,7 @@ TableVirtuelleNoeud :: struct {
     /* Appelé quand le noeud devinent connecté. */
     sur_connexion: fonc(*Noeud)(rien)
     /* Appelé quand le noeud devinent déconnecté. */
-    sur_déconnxion: fonc(*Noeud)(rien)
+    sur_déconnexion: fonc(*Noeud)(rien)
 }
 
 /* Ces valeurs sont tirées de la spécification. */
