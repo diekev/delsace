@@ -34,6 +34,12 @@ imprime_style_sheet :: fonc (stylesheet: *CSSStyleSheet)
     }
 }
 
+détruit_feuille_de_style :: fonc (stylesheet: *CSSStyleSheet)
+{
+    /* À FAIRE : détruit les règles. */
+    déloge(stylesheet)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
