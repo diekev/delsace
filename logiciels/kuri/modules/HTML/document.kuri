@@ -209,6 +209,7 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
 /** \nom CSS
  * \{ */
 
+/* À FAIRE : standardise https://drafts.csswg.org/cssom/#add-a-css-style-sheet */
 ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSSStyleSheet)
 {
     tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
