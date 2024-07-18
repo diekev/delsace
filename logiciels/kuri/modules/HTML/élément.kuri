@@ -86,6 +86,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_script {
         élément = loge(HTMLScriptElement)
     }
+    sinon si tag == TAG_style {
+        élément = loge(HTMLStyleElement)
+    }
     sinon si tag == TAG_video {
         élément = loge(HTMLVideoElement)
     }
@@ -128,6 +131,10 @@ détruit_élément :: fonc (base: *Élément)
     }
     sinon si tag == TAG_script {
         élément := base comme *HTMLScriptElement
+        déloge(élément)
+    }
+    sinon si tag == TAG_style {
+        élément := base comme *HTMLStyleElement
         déloge(élément)
     }
     sinon si tag == TAG_video {
@@ -687,6 +694,43 @@ le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élém
     /* À FAIRE. */
 
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLStyleElement
+ * https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLStyleElement
+ * \{ */
+
+HTMLStyleElement :: struct {
+    empl html_element: HTMLElement
+
+    sur_dépilement = style_element_sur_dépilement
+}
+
+style_element_sur_dépilement :: fonc (base: *Élément)
+{
+    style := base comme *HTMLStyleElement
+    ajourne_style_block(style)
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#update-a-style-block
+ *
+ * À FAIRE : implémente tous les cas
+ * The user agent must run the update a style block algorithm whenever any of the following conditions occur:
+ * [X] The element is popped off the stack of open elements of an HTML parser or XML parser.
+ * [ ] The element is not on the stack of open elements of an HTML parser or XML parser, and it becomes connected or disconnected.
+ * [ ] The element's children changed steps run.
+ */
+ajourne_style_block :: fonc (style: *HTMLStyleElement)
+{
+    // À FAIRE : implémente
+    texte_source := extrait_texte_noeud(style)
+    diffère déloge(texte_source)
+
+    imprime("[%]\n%\n", #nom_de_cette_fonction, texte_source)
 }
 
 /** \} */
