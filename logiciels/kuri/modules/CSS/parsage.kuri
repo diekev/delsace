@@ -1265,7 +1265,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
         si it.name == "display" {
             opt_valeur := parse_propriété_display(it.value)
             saufsi opt_valeur.possède_valeur() {
-                imprime("Impossible de parser 'display'")
+                imprime("Impossible de parser 'display'\n")
                 continue
             }
 
@@ -1325,6 +1325,13 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
         tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
         retourne résultat
     }
+
+    mot_clé = parseuse.parse_display_box()
+    si mot_clé.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
+        retourne résultat
+    }
 }
 
 parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
@@ -1336,6 +1343,25 @@ parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel
 
     /* block | inline | run-in */
     mots_clés := ["block", "inline", "run-in"]
+    lexème := parseuse.lexème_courant()
+
+    pour mots_clés {
+        si lexème.est_identifiant(it) {
+            parseuse.avance()
+            retourne lexème.donne_texte()
+        }
+    }
+}
+
+parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+{
+    opt_mot_clé := parse_css_wide_keyword(parseuse)
+    si opt_mot_clé.possède_valeur() {
+        retourne opt_mot_clé
+    }
+
+    /* contents | none */
+    mots_clés := ["contents", "none"]
     lexème := parseuse.lexème_courant()
 
     pour mots_clés {
