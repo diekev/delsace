@@ -96,6 +96,65 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
     tableau_ajoute(*parent_style_sheet.rules, résultat)
 }
 
+imprime_style_sheet :: fonc (stylesheet: *CSSStyleSheet)
+{
+    pour stylesheet.rules {
+        si it.type == CSSRuleType.Style {
+            style_rule := it comme *CSSStyleRule
+            imprime_règle(style_rule)
+        }
+    }
+}
+
+imprime_règle :: fonc (règle: *CSSStyleRule)
+{
+    imprime("% {\n", règle.selector_list)
+
+    pour déclaration dans règle.déclarations {
+        imprime("    %: ;\n", déclaration.property_name)
+    }
+
+    imprime("}\n")
+}
+
+collecte_les_règles_appropriées :: fonc (stylesheet: *CSSStyleSheet, élément: CSSOMString) -> [..]*CSSStyleRule
+{
+    règles: [..]*CSSStyleRule
+
+    pour règle dans stylesheet.rules {
+        si règle.type != CSSRuleType.Style {
+            continue
+        }
+
+        règle_de_style := règle comme *CSSStyleRule
+
+        pour complex dans règle_de_style.selector_list.complex_selectors {
+            pour * compound dans complex.compound_selectors {
+                si apparie_sélecteur(compound, élément) {
+                    tableau_ajoute(*règles, règle_de_style)
+                }
+            }
+        }
+    }
+
+    retourne règles
+}
+
+apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: CSSOMString) -> bool
+{
+    si compound.simple_selectors.taille != 1 {
+        retourne faux
+    }
+
+    simple := compound.simple_selectors[0]
+
+    si simple.type != SimpleSelector.Type.Type {
+        retourne faux
+    }
+
+    retourne simple.ident == élément
+}
+
 principale :: fonc () -> z32
 {
     contenu := contenu_fichier_texte("/home/kevin/defaults.css")
@@ -105,20 +164,16 @@ principale :: fonc () -> z32
     diffère détruit_données_contexte(*ctx)
 
     stylesheet := parse_a_css_style_sheet(*ctx, contenu)
+    rapporte_propriétés_non_supportées(*ctx)
 
-    pour stylesheet.rules {
-        si it.type == CSSRuleType.Style {
-            style_rule := it comme *CSSStyleRule
-            imprime("% {\n", style_rule.selector_list)
+    élément := crée_chaine_utf16("p")
 
-            pour déclaration dans style_rule.déclarations {
-                imprime("    %: ;\n", déclaration.property_name)
-            }
+    règles := collecte_les_règles_appropriées(stylesheet, élément)
 
-            imprime("}\n")
-        }
+    imprime("% règle(s) pour %\n", règles.taille, élément)
+    pour règles {
+        imprime_règle(it)
     }
 
-    rapporte_propriétés_non_supportées(*ctx)
     retourne 0
 }
