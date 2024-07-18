@@ -6,6 +6,15 @@ importe Fondation
  * https://dom.spec.whatwg.org/#node
  * \{ */
 
+TableVirtuelleNoeud :: struct {
+    /* Appelé quand le noeud est insérer dans un noeud parent. */
+    sur_insertion: fonc(*Noeud)(rien)
+    /* Appelé quand le noeud devinent connecté. */
+    sur_connexion: fonc(*Noeud)(rien)
+    /* Appelé quand le noeud devinent déconnecté. */
+    sur_déconnxion: fonc(*Noeud)(rien)
+}
+
 /* Ces valeurs sont tirées de la spécification. */
 ELEMENT_NODE : n16 : 1
 ATTRIBUTE_NODE : n16 : 2
@@ -33,6 +42,8 @@ GenreNoeud :: énum n16 {
 }
 
 Noeud :: struct {
+    table: *TableVirtuelleNoeud
+
     genre: GenreNoeud
 
     parent: *Noeud
@@ -165,6 +176,15 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
 {
     enfant.parent = parent
     tableau_ajoute(*parent.enfants, enfant)
+
+    si enfant.table  {
+        si enfant.table.sur_insertion {
+            enfant.table.sur_insertion(enfant)
+        }
+        si enfant.table.sur_connexion && enfant.est_connecté() {
+            enfant.table.sur_connexion(enfant)
+        }
+    }
 }
 
 ajoute_attribut :: fonc (noeud: *Noeud, nom: DOMString, valeur: DOMString)

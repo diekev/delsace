@@ -31,6 +31,13 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
  * https://dom.spec.whatwg.org/#element
  * \{ */
 
+TableVirtuelleÉlément :: struct {
+    empl base: TableVirtuelleNoeud
+
+    /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
+    sur_dépilement: fonc(*Élément)(rien)
+}
+
 Élément :: struct {
     empl base: Noeud
 
@@ -42,11 +49,6 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 
     état_élément_custom: chaine
     définition_élément_custom: *rien
-
-    /* Table virtuelle. */
-
-    /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
-    sur_dépilement: fonc(*Élément)(rien)
 }
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-append */
@@ -151,8 +153,13 @@ détruit_élément :: fonc (base: *Élément)
 
 élément_fut_dépilé_de_la_pile_des_éléments_ouverts :: fonc (élément: *Élément)
 {
-    si élément.sur_dépilement {
-        élément.sur_dépilement(élément)
+    saufsi élément.table {
+        retourne
+    }
+
+    table_virtuelle := élément.table comme *TableVirtuelleÉlément    
+    si table_virtuelle.sur_dépilement  {
+        table_virtuelle.sur_dépilement(élément)
     }
 }
 
@@ -707,11 +714,18 @@ le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élém
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLStyleElement
  * \{ */
 
+#portée_export
+
 HTMLStyleElement :: struct {
     empl html_element: HTMLElement
-
-    sur_dépilement = style_element_sur_dépilement
+    table = *table_virtuelle_style_element
 }
+
+#portée_fichier
+
+table_virtuelle_style_element := TableVirtuelleÉlément(
+    sur_dépilement = style_element_sur_dépilement
+)
 
 style_element_sur_dépilement :: fonc (base: *Élément)
 {
