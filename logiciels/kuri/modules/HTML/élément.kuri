@@ -40,6 +40,7 @@ TableVirtuelleÉlément :: struct {
 
 Élément :: struct {
     empl base: Noeud
+    table = *table_virtuelle_élément
 
     /* Uniquement utilisé lors du parsage. */
     est_sur_pile_éléments_ouvert: bool
@@ -50,6 +51,20 @@ TableVirtuelleÉlément :: struct {
     état_élément_custom: chaine
     définition_élément_custom: *rien
 }
+
+#portée_fichier
+
+table_virtuelle_élément := TableVirtuelleÉlément(
+    sur_destruction = élément_sur_destruction
+)
+
+élément_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *Élément
+    déloge(élément)
+}
+
+#portée_export
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-append */
 ajoute_attribut :: fonc (élément: *Élément, attribut: Attribut)
@@ -103,52 +118,6 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
 
     initialise_élément(élément, document, tag)
     retourne élément
-}
-
-détruit_élément :: fonc (base: *Élément)
-{
-    /* Ne pas détruire le texte, c'est un pointeur partagé ! */
-    tag := base.texte
-
-    si tag == TAG_a {
-        élément := base comme *HTMLAnchorElement
-        déloge(élément)
-    }
-    sinon si tag == TAG_body {
-        élément := base comme *HTMLBodyElement
-        déloge(élément)
-    }
-    sinon si tag == TAG_form {
-        élément := base comme *HTMLFormElement
-        déloge(élément)
-    }
-    sinon si tag == TAG_head {
-        élément := base comme *HTMLHeadElement
-        déloge(élément)
-    }
-    sinon si tag == TAG_html {
-        élément := base comme *HTMLHtmlElement
-        déloge(élément)
-    }
-    sinon si tag == TAG_img {
-        élément := base comme *HTMLImageElement
-        déloge(élément)
-    }
-    sinon si tag == TAG_script {
-        élément := base comme *HTMLScriptElement
-        déloge(élément)
-    }
-    sinon si tag == TAG_style {
-        élément := base comme *HTMLStyleElement
-        déloge(élément)
-    }
-    sinon si tag == TAG_video {
-        élément := base comme *HTMLVideoElement
-        déloge(élément)
-    }
-    sinon {
-        déloge(base)
-    }
 }
 
 élément_fut_dépilé_de_la_pile_des_éléments_ouverts :: fonc (élément: *Élément)
@@ -291,8 +260,11 @@ HTMLElement :: struct {
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLAnchorElement
  * \{ */
 
+#portée_export
+
 HTMLAnchorElement :: struct {
     empl html_element: HTMLElement
+    table = *table_virtuelle_anchor_element
 }
 
 est_hyperlien :: fonc (anchor: *HTMLAnchorElement) -> bool
@@ -309,6 +281,18 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
     retourne DOMString()
 }
 
+#portée_fichier
+
+table_virtuelle_anchor_element := TableVirtuelleÉlément(
+    sur_destruction = anchor_element_sur_destruction
+)
+
+anchor_element_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *HTMLAnchorElement
+    déloge(élément)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -317,8 +301,23 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLBodyElement
  * \{ */
 
+#portée_export
+
 HTMLBodyElement :: struct {
     empl base_élément: Élément
+    table = *table_virtuelle_body_element
+}
+
+#portée_fichier
+
+table_virtuelle_body_element := TableVirtuelleÉlément(
+    sur_destruction = body_element_sur_destruction
+)
+
+body_element_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *HTMLBodyElement
+    déloge(élément)
 }
 
 /** \} */
@@ -329,8 +328,23 @@ HTMLBodyElement :: struct {
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement
  * \{ */
 
+#portée_export
+
 HTMLFormElement :: struct {
     empl base_élément: Élément
+    table = *table_virtuelle_form_element
+}
+
+#portée_fichier
+
+table_virtuelle_form_element := TableVirtuelleÉlément(
+    sur_destruction = form_element_sur_destruction
+)
+
+form_element_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *HTMLFormElement
+    déloge(élément)
 }
 
 /** \} */
@@ -341,8 +355,23 @@ HTMLFormElement :: struct {
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHeadElement
  * \{ */
 
+#portée_export
+
 HTMLHeadElement :: struct {
     empl base_élément: Élément
+    table = *table_virtuelle_head_element
+}
+
+#portée_fichier
+
+table_virtuelle_head_element := TableVirtuelleÉlément(
+    sur_destruction = head_element_sur_destruction
+)
+
+head_element_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *HTMLHeadElement
+    déloge(élément)
 }
 
 /** \} */
@@ -353,8 +382,23 @@ HTMLHeadElement :: struct {
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHtmlElement
  * \{ */
 
+#portée_export
+
 HTMLHtmlElement :: struct {
     empl base_élément: Élément
+    table = *table_virtuelle_html_element
+}
+
+#portée_fichier
+
+table_virtuelle_html_element := TableVirtuelleÉlément(
+    sur_destruction = html_element_sur_destruction
+)
+
+html_element_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *HTMLHtmlElement
+    déloge(élément)
 }
 
 /** \} */
@@ -365,8 +409,11 @@ HTMLHtmlElement :: struct {
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement
  * \{ */
 
+#portée_export
+
 HTMLImageElement :: struct {
     empl html_element: HTMLElement
+    table = *table_virtuelle_image_element
 }
 
 donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
@@ -378,6 +425,18 @@ donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
     retourne DOMString()
 }
 
+#portée_fichier
+
+table_virtuelle_image_element := TableVirtuelleÉlément(
+    sur_destruction = image_element_sur_destruction
+)
+
+image_element_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *HTMLImageElement
+    déloge(élément)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -385,6 +444,8 @@ donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
  * https://html.spec.whatwg.org/multipage/media.html#htmlmediaelement
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement
  * \{ */
+
+#portée_export
 
 HTMLMediaElement :: struct {
     empl html_element: HTMLElement
@@ -407,8 +468,23 @@ donne_src :: fonc (anchor: *HTMLMediaElement) -> DOMString
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement
  * \{ */
 
+#portée_export
+
 HTMLVideoElement :: struct {
     empl html_media: HTMLMediaElement
+    table = *table_virtuelle_video_element
+}
+
+#portée_fichier
+
+table_virtuelle_video_element := TableVirtuelleÉlément(
+    sur_destruction = video_element_sur_destruction
+)
+
+video_element_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *HTMLVideoElement
+    déloge(élément)
 }
 
 /** \} */
@@ -418,6 +494,8 @@ HTMLVideoElement :: struct {
  * https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement
  * \{ */
+
+#portée_export
 
 TypeScript :: énum {
     NUL
@@ -438,6 +516,7 @@ OptionsFetchScript :: struct {
 
 HTMLScriptElement :: struct {
     empl html_element: HTMLElement
+    table = *table_virtuelle_script_element
 
     document_parseur: *Document
     document_du_temps_de_préparation: *Document
@@ -460,6 +539,20 @@ donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString
     }
     retourne DOMString()
 }
+
+#portée_fichier
+
+table_virtuelle_script_element := TableVirtuelleÉlément(
+    sur_destruction = script_element_sur_destruction
+)
+
+script_element_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *HTMLScriptElement
+    déloge(élément)
+}
+
+#portée_export
 
 /* https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element */
 prépare :: fonc (script: *HTMLScriptElement)
@@ -724,10 +817,17 @@ HTMLStyleElement :: struct {
 #portée_fichier
 
 table_virtuelle_style_element := TableVirtuelleÉlément(
+    sur_destruction = style_element_sur_destruction,
     sur_connexion = style_element_sur_connexion_ou_déconnexion,
     sur_déconnexion = style_element_sur_connexion_ou_déconnexion,
     sur_dépilement = style_element_sur_dépilement
 )
+
+style_element_sur_destruction :: fonc (base: *Noeud)
+{
+    élément := base comme *HTMLStyleElement
+    déloge(élément)
+}
 
 style_element_sur_connexion_ou_déconnexion :: fonc (base: *Noeud)
 {

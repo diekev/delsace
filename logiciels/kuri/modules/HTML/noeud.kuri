@@ -7,6 +7,8 @@ importe Fondation
  * \{ */
 
 TableVirtuelleNoeud :: struct {
+    /* Appelé quand le noeud est détruit. */
+    sur_destruction: fonc(*Noeud)(rien)
     /* Appelé quand le noeud est insérer dans un noeud parent. */
     sur_insertion: fonc(*Noeud)(rien)
     /* Appelé quand le noeud devinent connecté. */
@@ -56,37 +58,12 @@ Noeud :: struct {
 
 détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
 {
-    discr noeud.genre {
-        Document {
-            document := noeud comme *Document
-            déloge(document)
-        }
-        Élément {
-            élément := noeud comme *Élément
-            détruit_élément(élément)
-        }
-        Commentaire,
-        Section_CDATA,
-        Texte {
-            texte := noeud comme *NoeudDonnéesCaractères
-            détruit_chaine(texte.données)
-            déloge(texte)
-        }
-        ProcessingInstruction {
-            pi := noeud comme *NoeudProcessingInstruction
-            détruit_chaine(pi.données)
-            détruit_chaine(pi.cible)
-            déloge(pi)
-        }
-        TypeDocument {
-            type_document := noeud comme *NoeudTypeDocument
-            déloge(type_document)
-        }
-        FragmentDocument {
-            fragment := noeud comme *NoeudFragmentDocument
-            déloge(fragment)
-        }
+    si noeud.table && noeud.table.sur_destruction {
+        noeud.table.sur_destruction(noeud)
+        retourne
     }
+
+    déloge(noeud)
 }
 
 détruit_noeud :: fonc (noeud: *Noeud)
