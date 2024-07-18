@@ -34,6 +34,9 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 Élément :: struct {
     empl base: Noeud
 
+    /* Uniquement utilisé lors du parsage. */
+    est_sur_pile_éléments_ouvert: bool
+
     espace_de_nom: chaine // DOMString @namespaceURI
     texte: DOMString // DOMString @localName
 
