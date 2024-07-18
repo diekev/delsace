@@ -153,6 +153,7 @@ dernier_enfant :: fonc (noeud: *Noeud) -> *Noeud
     retourne noeud.enfants[noeud.enfants.taille - 1]
 }
 
+/* À FAIRE : implémente proprement https://dom.spec.whatwg.org/#concept-node-insert */
 ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
 {
     enfant.parent = parent
