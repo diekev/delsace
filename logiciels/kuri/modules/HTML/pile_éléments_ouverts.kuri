@@ -22,6 +22,11 @@ empile :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) #enligne
 
 dépile :: fonc (pile: *PileÉlémentsOuverts) #enligne
 {
+    assert(pile.éléments.taille > 0)
+
+    élément := pile.éléments[pile.éléments.taille - 1]
+    élément_fut_dépilé_de_la_pile_des_éléments_ouverts(élément)
+
     pile.éléments.taille -= 1
 }
 

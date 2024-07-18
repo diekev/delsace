@@ -39,6 +39,11 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 
     état_élément_custom: chaine
     définition_élément_custom: *rien
+
+    /* Table virtuelle. */
+
+    /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
+    sur_dépilement: fonc(*Élément)(rien)
 }
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-append */
@@ -131,6 +136,13 @@ détruit_élément :: fonc (base: *Élément)
     }
     sinon {
         déloge(base)
+    }
+}
+
+élément_fut_dépilé_de_la_pile_des_éléments_ouverts :: fonc (élément: *Élément)
+{
+    si élément.sur_dépilement {
+        élément.sur_dépilement(élément)
     }
 }
 
