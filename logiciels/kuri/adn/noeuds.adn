@@ -223,6 +223,7 @@ struct NoeudInstructionImporte : NoeudExpression {
 
     UniteCompilation * unité
     NoeudExpression * expression [code enfant construction]
+    bool est_employé
 }
 
 struct NoeudExpressionNonIntialisation : NoeudExpression {

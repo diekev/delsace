@@ -586,6 +586,17 @@ void Syntaxeuse::analyse_une_chose()
     if (genre_lexème == GenreLexème::IMPORTE) {
         consomme();
 
+        auto est_employé = true;
+        if (apparie(GenreLexème::DIRECTIVE)) {
+            consomme();
+
+            if (lexème_courant()->ident != ID::inemployé) {
+                rapporte_erreur("Directive invlide après « importe »");
+            }
+            consomme();
+            est_employé = false;
+        }
+
         auto expression = NoeudExpression::nul();
         if (apparie(GenreLexème::CHAINE_LITTERALE)) {
             expression = m_tacheronne.assembleuse->crée_littérale_chaine(lexème_courant());
@@ -599,6 +610,7 @@ void Syntaxeuse::analyse_une_chose()
 
         auto noeud = m_tacheronne.assembleuse->crée_importe(lexème, expression);
         noeud->bloc_parent->ajoute_expression(noeud);
+        noeud->est_employé = est_employé;
 
         requiers_typage(noeud);
         m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;

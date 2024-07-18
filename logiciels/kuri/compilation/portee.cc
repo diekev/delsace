@@ -150,10 +150,14 @@ NoeudDéclaration *trouve_dans_bloc_ou_module(
 
     /* cherche dans les modules importés */
     pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
-        decl = trouve_dans_bloc(module->bloc, ident, nullptr, fonction_courante);
+        if (!module.est_employé) {
+            return kuri::DécisionItération::Continue;
+        }
+
+        decl = trouve_dans_bloc(module.module->bloc, ident, nullptr, fonction_courante);
 
         if (decl != nullptr) {
-            if (!peut_sélectionner_déclaration(decl, module, fichier)) {
+            if (!peut_sélectionner_déclaration(decl, module.module, fichier)) {
                 decl = nullptr;
             }
             return kuri::DécisionItération::Arrête;
@@ -227,7 +231,10 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 1
 
     /* cherche dans les modules importés */
     pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
-        trouve_déclarations_dans_module(declarations, module, ident, fichier);
+        if (!module.est_employé) {
+            return kuri::DécisionItération::Continue;
+        }
+        trouve_déclarations_dans_module(declarations, module.module, ident, fichier);
         return kuri::DécisionItération::Continue;
     });
 }
@@ -247,11 +254,14 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 1
 
     /* cherche dans les modules importés */
     pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
-        if (modules_visites.possède(module)) {
+        if (!module.est_employé) {
             return kuri::DécisionItération::Continue;
         }
-        modules_visites.insère(module);
-        trouve_déclarations_dans_module(declarations, module, ident, fichier);
+        if (modules_visites.possède(module.module)) {
+            return kuri::DécisionItération::Continue;
+        }
+        modules_visites.insère(module.module);
+        trouve_déclarations_dans_module(declarations, module.module, ident, fichier);
         return kuri::DécisionItération::Continue;
     });
 }

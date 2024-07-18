@@ -6669,9 +6669,9 @@ static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
         if (it == fichier) {
             continue;
         }
-        pour_chaque_élément(it->modules_importés, [&](Module *module_) {
-            if (module_->nom() == expression->ident) {
-                module = module_;
+        pour_chaque_élément(it->modules_importés, [&](ModuleImporté const &module_) {
+            if (module_.module->nom() == expression->ident) {
+                module = module_.module;
                 return kuri::DécisionItération::Arrête;
             }
 
@@ -6712,7 +6712,7 @@ RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionI
         }
     }
     else {
-        fichier->modules_importés.insère(module);
+        fichier->modules_importés.insère({module, inst->est_employé});
         auto noeud_module = m_assembleuse->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(inst->lexème)
                                 ->comme_déclaration_module();
         noeud_module->module = module;

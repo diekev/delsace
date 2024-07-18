@@ -18,6 +18,7 @@ Directives pour le compilateur
 #portée_export          indique que les symboles suivants sont visibles dans les fichiers important le module (défaut)
 #portée_module          indique que les symboles suivants ne sont visibles que dans le module
 #portée_fichier         indique que les symboles suivants ne sont visibles que dans le fichier courant
+#inemployé              après « importe », indique que les symboles du modules ne sont accessibles que via un accès de membre
 
 Directive pour la métaprogrammation
 
