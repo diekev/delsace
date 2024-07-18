@@ -1,4 +1,5 @@
 importe Chaine
+importe #inemployé CSS
 importe Fondation
 importe Internet
 
@@ -75,6 +76,9 @@ Document :: struct {
     referrer: chaine /* Peut être vide. */
 
     is_initial_about_blank: bool
+
+    /* CSS. */
+    feuilles_de_style: [..]*CSS.CSSStyleSheet
 }
 
 #portée_fichier
@@ -86,6 +90,7 @@ table_virtuelle_document := TableVirtuelleÉlément(
 document_sur_destruction :: fonc (base: *Noeud)
 {
     document := base comme *Document
+    déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
     déloge(document)
 }
 
@@ -196,6 +201,17 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
         }
     }
     retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSS
+ * \{ */
+
+ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSSStyleSheet)
+{
+    tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
 }
 
 /** \} */
