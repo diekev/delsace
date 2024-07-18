@@ -167,12 +167,6 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     tableau_ajoute(*parent.enfants, enfant)
 }
 
-ajoute_enfant_dernier :: fonc (parent: *Noeud, enfant: *Noeud)
-{
-    enfant.parent = parent
-    tableau_ajoute(*parent.enfants, enfant)
-}
-
 ajoute_attribut :: fonc (noeud: *Noeud, nom: DOMString, valeur: DOMString)
 {
     ajoute_attribut(*noeud.attributs, nom, valeur)
