@@ -24,6 +24,16 @@ CSSStyleSheet :: struct {
     rules: [..]*CSSRule
 }
 
+imprime_style_sheet :: fonc (stylesheet: *CSSStyleSheet)
+{
+    pour stylesheet.rules {
+        si it.type == CSSRuleType.Style {
+            style_rule := it comme *CSSStyleRule
+            imprime_règle(style_rule)
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -82,6 +92,23 @@ CSSStyleRule :: struct {
 ajoute_déclaration :: fonc (style: *CSSStyleRule, déclaration: *CSSDeclaration)
 {
     tableau_ajoute(*style.déclarations, déclaration)
+}
+
+imprime_règle :: fonc (règle: *CSSStyleRule)
+{
+    imprime("% {\n", règle.selector_list)
+
+    pour déclaration dans règle.déclarations {
+        imprime("    %:", déclaration.property_name)
+
+        pour valeur dans déclaration.value {
+            imprime(" %", valeur)
+        }
+
+        imprime(";\n")
+    }
+
+    imprime("}\n")
 }
 
 /** \} */

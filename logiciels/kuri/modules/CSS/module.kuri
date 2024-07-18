@@ -43,6 +43,44 @@ prétraite :: fonc (chn: &ChaineUTF32)
     }
 }
 
+collecte_les_règles_appropriées :: fonc (stylesheet: *CSSStyleSheet, élément: CSSOMString) -> [..]*CSSStyleRule
+{
+    règles: [..]*CSSStyleRule
+
+    pour règle dans stylesheet.rules {
+        si règle.type != CSSRuleType.Style {
+            continue
+        }
+
+        règle_de_style := règle comme *CSSStyleRule
+
+        pour complex dans règle_de_style.selector_list.complex_selectors {
+            pour * compound dans complex.compound_selectors {
+                si apparie_sélecteur(compound, élément) {
+                    tableau_ajoute(*règles, règle_de_style)
+                }
+            }
+        }
+    }
+
+    retourne règles
+}
+
+apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: CSSOMString) -> bool
+{
+    si compound.simple_selectors.taille != 1 {
+        retourne faux
+    }
+
+    simple := compound.simple_selectors[0]
+
+    si simple.type != SimpleSelector.Type.Type {
+        retourne faux
+    }
+
+    retourne simple.ident == élément
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Selectors
  * https://www.w3.org/TR/selectors-4/
