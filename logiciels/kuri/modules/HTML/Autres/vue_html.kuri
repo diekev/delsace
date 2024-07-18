@@ -596,6 +596,10 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
         retourne nul
     }
 
+    si document.arbre_de_disposition {
+        retourne document.arbre_de_disposition
+    }
+
     saufsi page.fonte {
         TAILLE_POLICE_DÉFAUT :: 16.0
 
