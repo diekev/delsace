@@ -170,6 +170,22 @@ Lexème :: struct {
     unité: ChaineUTF16
 }
 
+détruit_lexèmes :: fonc (lexèmes: *[..]Lexème)
+{
+    tmp := mémoire(lexèmes)
+    pour tmp {
+        détruit_chaine(it.valeur)
+        détruit_chaine(it.unité)
+    }
+    déloge(tmp)
+    mémoire(lexèmes) = tmp
+}
+
+donne_texte :: fonc (lexème: Lexème) -> ChaineUTF16 #enligne
+{
+    retourne lexème.valeur
+}
+
 est_lexème_de_genre :: fonc (lexème: &Lexème, genre: GenreLexème) -> bool #enligne
 {
     retourne lexème.genre == genre
@@ -234,6 +250,26 @@ est_lexème_égal :: fonc (lexème: $T) -> bool
     retourne est_lexème_delim(lexème, '=' comme n32)
 }
 
+est_lexème_esperluette :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '&' comme n32)
+}
+
+est_lexème_exclamation :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '!' comme n32)
+}
+
+est_identifiant :: fonc (lexème: $T, ident: chaine) -> bool
+{
+    retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == ident
+}
+
+est_identifiant :: fonc (lexème: $T, ident: CSSOMString) -> bool
+{
+    retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == ident
+}
+
 est_simple_bloc_de_genre :: fonc (lexème: &Lexème @inutilisée, genre: GenreLexème @inutilisée) -> bool
 {
     /* Cette fonction n'existe que pour contenter les fonctions génériques
@@ -280,6 +316,9 @@ consomme :: fonc (lexeuse: &Lexeuse)
 
 point_de_code_suivant :: fonc (lexeuse: &Lexeuse) -> n32
 {
+    si lexeuse.curseur >= lexeuse.contenu.taille() {
+        retourne FIN_DE_FICHIER
+    }
     retourne lexeuse.contenu.points_de_code[lexeuse.curseur]
 }
 

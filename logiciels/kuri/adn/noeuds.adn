@@ -222,6 +222,7 @@ struct NoeudInstructionImporte : NoeudExpression {
 
     UniteCompilation * unité
     NoeudExpression * expression [code enfant construction]
+    bool est_employé
 }
 
 struct NoeudExpressionNonIntialisation : NoeudExpression {
@@ -310,6 +311,7 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
     DonnéesSymboleExterne * données_externes
 
     VisibilitéSymbole visibilité_symbole
+    PortéeSymbole portée [copie]
 }
 
 struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
