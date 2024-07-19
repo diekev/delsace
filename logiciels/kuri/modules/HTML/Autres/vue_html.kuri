@@ -217,6 +217,9 @@ donne_document :: fonc (page: *PageWeb) -> *Document
 détruit_données_page_web :: fonc (page: *PageWeb)
 {
     détruit(page.parsat)
+    si page.fonte {
+        détruit_fonte(page.fonte)
+    }
     déloge(page.contenu)
 }
 
@@ -523,6 +526,9 @@ crée_vue_rendu_page :: fonc (parent: QT_Generic_Widget, page: *PageWeb) -> *QT_
 vue_rendu_page_sur_destruction :: fonc (rappels: *QT_Rappels_GLWidget)
 {
     vue_rendu_page := rappels comme *VueRenduPage
+    si vue_rendu_page.peintre {
+        détruit_peintre_igumi(vue_rendu_page.peintre)
+    }
     déloge(vue_rendu_page)
 }
 
