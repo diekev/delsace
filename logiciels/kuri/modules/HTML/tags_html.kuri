@@ -209,30 +209,29 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
             continue
         }
 
+        si pour_impression {
+            ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ")\n")
+            continue
+        }
+
+        nom_tag: chaine
         si it.texte.commence_par("TAG_") {
-            si pour_impression {
-                ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ".chn)\n")
-            }
-            sinon {
-                nom_tag := it.texte.avance(4)
-                si nom_tag == "annotation_xml" {
-                    nom_tag = "annotation-xml"
-                }
-                ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_tag, "\")\n")
+            nom_tag = it.texte.avance(4)
+            si nom_tag == "annotation_xml" {
+                nom_tag = "annotation-xml"
             }
         }
         sinon si it.texte.commence_par("ATTR_") {
-            si pour_impression {
-                ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ")\n")
-            }
-            sinon {
-                nom_attr := it.texte.avance(5)
-                si nom_attr == "http_equiv" {
-                    nom_attr = "http-equiv"
-                }
-                ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_attr, "\")\n")
+            nom_tag = it.texte.avance(5)
+            si nom_tag == "http_equiv" {
+                nom_tag = "http-equiv"
             }
         }
+        sinon {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_tag, "\")\n")
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
