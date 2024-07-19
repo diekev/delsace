@@ -122,6 +122,24 @@ std::ostream &operator<<(std::ostream &os, PositionCodeNoeud const drapeaux);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name PortéeSymbole
+ * Définis la portée d'un symbole (sa visibilité au sein ou hors d'un module).
+ * \{ */
+
+enum class PortéeSymbole : uint8_t {
+    /* Le symbole est visible dans les fichiers important le module (défaut). */
+    EXPORT = 0,
+    /* Le symbole n'est visible que dans le module. */
+    MODULE = 1,
+    /* Le symbole n'est visible que dans le fichier où il fut défini. */
+    FICHIER = 2,
+};
+
+std::ostream &operator<<(std::ostream &os, PortéeSymbole const portée);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Drapeaux pour les fonctions.
  * \{ */
 

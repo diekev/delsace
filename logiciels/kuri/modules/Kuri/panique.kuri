@@ -34,6 +34,7 @@ imprime_trace_appel :: fonc () #sanstrace
 }
 
 appelé_depuis_signal_système := faux
+nous_sommes_dans_une_panique := faux
 
 imprime_panique :: fonc () -> rien #sanstrace #sansretour
 {
@@ -46,6 +47,13 @@ imprime_panique :: fonc () -> rien #sanstrace #sansretour
 
 panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface #sansretour
 {
+    si nous_sommes_dans_une_panique {
+        exit(1)
+        retourne
+    }
+
+    nous_sommes_dans_une_panique = vrai
+
     rappel := contexte().rappel_panique
     si rappel != nul {
         rappel()

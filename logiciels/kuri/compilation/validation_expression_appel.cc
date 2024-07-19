@@ -524,8 +524,12 @@ static void trouve_candidates_pour_expression(
 {
     auto modules_visités = kuri::ensemblon<Module const *, 10>();
     auto déclarations = kuri::tablet<NoeudDéclaration *, 10>();
-    trouve_declarations_dans_bloc_ou_module(
-        déclarations, modules_visités, appelée->bloc_parent, appelée->ident, fichier);
+    trouve_declarations_dans_bloc_ou_module(déclarations,
+                                            modules_visités,
+                                            fichier->module,
+                                            appelée->bloc_parent,
+                                            appelée->ident,
+                                            fichier);
 
     if (contexte.fonction_courante()) {
         auto fonction_courante = contexte.fonction_courante();
@@ -542,6 +546,7 @@ static void trouve_candidates_pour_expression(
                 auto anciens_modules_visités = modules_visités;
                 trouve_declarations_dans_bloc_ou_module(déclarations,
                                                         modules_visités,
+                                                        fichier_site->module,
                                                         site_monomorphisation->bloc_parent,
                                                         appelée->ident,
                                                         fichier_site);
@@ -1444,7 +1449,7 @@ static CodeRetourValidation trouve_candidates_pour_appel(
         if (accès->déclaration_référée) {
             auto module = espace.compilatrice().module(accédé->ident);
             auto declarations = kuri::tablet<NoeudDéclaration *, 10>();
-            trouve_declarations_dans_bloc(declarations, module->bloc, accès->ident);
+            trouve_déclarations_dans_module(declarations, module, accès->ident, fichier);
 
             POUR (declarations) {
                 candidates.ajoute({CANDIDATE_EST_DÉCLARATION, it});
