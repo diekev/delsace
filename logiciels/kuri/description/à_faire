@@ -38,9 +38,6 @@ Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un
 // ----------------------------------------------------------------------------
 // Directives
 
-- ajout de #portée_fichier
-- ajout de #portée_module
-- ajout de #portée_export
 - ajout de #convention_c
 - ajout de #thread_local
 - ajout de #macro

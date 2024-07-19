@@ -62,6 +62,14 @@ NavigationParams :: struct {
     about_base_URL: Optionnel(URI)
 }
 
+détruit_navigation_params :: fonc (navigation_params: *NavigationParams)
+{
+    détruit_fetch_controller(navigation_params.fetch_controller)
+    détruit_response(navigation_params.response)
+    détruit_request(navigation_params.request)
+    déloge(navigation_params)
+}
+
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#source-snapshot-params */
 SourceSnapshotParams :: struct {
     has_transient_activation: bool
@@ -460,6 +468,7 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
 
         // 8. Run completionSteps.
         run(completion_steps)
+        détruit_navigation_params(navigation_params)
     }
 }
 
@@ -469,8 +478,8 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
 create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
                                               navigable: *Navigable,
                                               source_snapshot_params: &SourceSnapshotParams,
-                                              target_snapshot_params: &TargetSnapshotParams,
-                                              nav_timing_type: NavigationTimingType) -> *NavigationParams
+                                              target_snapshot_params: &TargetSnapshotParams @inutilisée,
+                                              nav_timing_type: NavigationTimingType @inutilisée) -> *NavigationParams
 {
     // 1. Assert: this is running in parallel.
 
@@ -544,7 +553,7 @@ create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
     //     current context is navigation source    true if navigable's active document's origin is same origin with entry's document state's initiator origin otherwise false
 
     // 13. Let finalSandboxFlags be an empty sandboxing flag set.
-    final_sanboxing_flags: SandboxingFlags
+    // final_sanboxing_flags: SandboxingFlags
 
     // 14. Let responsePolicyContainer be null.
 
@@ -785,7 +794,10 @@ load_an_html_document :: fonc (navigation_params: *NavigationParams) -> *Documen
 {
     // À FAIRE : implémente proprement
     response := navigation_params.response
-    document := parse_document(response.body.Quelque).document
+    parsat := parse_document(response.body.Quelque)
+    diffère détruit(parsat)
+    document := parsat.document
+    parsat.document = nul
     retourne document
 }
 

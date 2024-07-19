@@ -6,6 +6,23 @@ importe Fondation
  * https://dom.spec.whatwg.org/#node
  * \{ */
 
+#portée_module
+
+TableVirtuelleNoeud :: struct {
+    /* Appelé quand le noeud est détruit. */
+    sur_destruction: fonc(*Noeud)(rien)
+    /* Appelé quand le noeud est insérer dans un noeud parent. */
+    sur_insertion: fonc(*Noeud)(rien)
+    /* Appelé quand le noeud devinent connecté. */
+    sur_connexion: fonc(*Noeud)(rien)
+    /* Appelé quand le noeud devinent déconnecté. */
+    sur_déconnexion: fonc(*Noeud)(rien)
+    /* Appelé quand les enfants sont changés. */
+    sur_changement_enfants: fonc(*Noeud)(rien)
+}
+
+#portée_export
+
 /* Ces valeurs sont tirées de la spécification. */
 ELEMENT_NODE : n16 : 1
 ATTRIBUTE_NODE : n16 : 2
@@ -33,6 +50,8 @@ GenreNoeud :: énum n16 {
 }
 
 Noeud :: struct {
+    table: *TableVirtuelleNoeud
+
     genre: GenreNoeud
 
     parent: *Noeud
@@ -43,46 +62,17 @@ Noeud :: struct {
     document: *Document
 }
 
-détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
-{
-    discr noeud.genre {
-        Document {
-            document := noeud comme *Document
-            déloge(document)
-        }
-        Élément {
-            élément := noeud comme *Élément
-            détruit_élément(élément)
-        }
-        Commentaire,
-        Section_CDATA,
-        Texte {
-            texte := noeud comme *NoeudDonnéesCaractères
-            détruit_chaine(texte.données)
-            déloge(texte)
-        }
-        ProcessingInstruction {
-            pi := noeud comme *NoeudProcessingInstruction
-            détruit_chaine(pi.données)
-            détruit_chaine(pi.cible)
-            déloge(pi)
-        }
-        TypeDocument {
-            type_document := noeud comme *NoeudTypeDocument
-            déloge(type_document)
-        }
-        FragmentDocument {
-            fragment := noeud comme *NoeudFragmentDocument
-            déloge(fragment)
-        }
-    }
-}
-
 détruit_noeud :: fonc (noeud: *Noeud)
 {
     détruit_attributs(noeud.attributs)
     déloge_tableau_et_ses_éléments(noeud.enfants, détruit_noeud)
-    détruit_noeud_selon_genre(noeud)
+    
+    si noeud.table && noeud.table.sur_destruction {
+        noeud.table.sur_destruction(noeud)
+        retourne
+    }
+
+    déloge(noeud)
 }
 
 est_document :: fonc (noeud: *Noeud) -> bool
@@ -161,16 +151,24 @@ dernier_enfant :: fonc (noeud: *Noeud) -> *Noeud
     retourne noeud.enfants[noeud.enfants.taille - 1]
 }
 
+/* À FAIRE : implémente proprement https://dom.spec.whatwg.org/#concept-node-insert */
 ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
 {
     enfant.parent = parent
     tableau_ajoute(*parent.enfants, enfant)
-}
 
-ajoute_enfant_dernier :: fonc (parent: *Noeud, enfant: *Noeud)
-{
-    enfant.parent = parent
-    tableau_ajoute(*parent.enfants, enfant)
+    si enfant.table  {
+        si enfant.table.sur_insertion {
+            enfant.table.sur_insertion(enfant)
+        }
+        si enfant.table.sur_connexion && enfant.est_connecté() {
+            enfant.table.sur_connexion(enfant)
+        }
+    }
+
+    si parent.table && parent.table.sur_changement_enfants {
+        parent.table.sur_changement_enfants(parent)
+    }
 }
 
 ajoute_attribut :: fonc (noeud: *Noeud, nom: DOMString, valeur: DOMString)
@@ -195,6 +193,12 @@ donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> Optionnel(DO
         retourne
     }
     retourne attribut.valeur
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-document */
+donne_node_document :: fonc (noeud: *Noeud) -> *Document #enligne
+{
+    retourne noeud.document
 }
 
 /* Retourne le premier enfant ayant le tag donné, ou nul si le noeud n'a pas

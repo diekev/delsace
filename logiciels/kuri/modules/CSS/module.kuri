@@ -3,7 +3,9 @@ importe Fondation
 importe Internet
 
 charge "lexage"
+charge "objets"
 charge "parsage"
+charge "style"
 
 lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
 {
@@ -41,29 +43,43 @@ prétraite :: fonc (chn: &ChaineUTF32)
     }
 }
 
-/* ------------------------------------------------------------------------- */
-/** \nom StyleSheet
- * https://www.w3.org/TR/cssom-1/#css-style-sheets
- * \{ */
+collecte_les_règles_appropriées :: fonc (stylesheet: *CSSStyleSheet, élément: CSSOMString) -> [..]*CSSStyleRule
+{
+    règles: [..]*CSSStyleRule
 
-StyleSheet :: struct {
-    type := "text/css"
-    location: URI
-    rules: [..]*Rule
+    pour règle dans stylesheet.rules {
+        si règle.type != CSSRuleType.Style {
+            continue
+        }
+
+        règle_de_style := règle comme *CSSStyleRule
+
+        pour complex dans règle_de_style.selector_list.complex_selectors {
+            pour * compound dans complex.compound_selectors {
+                si apparie_sélecteur(compound, élément) {
+                    tableau_ajoute(*règles, règle_de_style)
+                }
+            }
+        }
+    }
+
+    retourne règles
 }
 
-/** \} */
+apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: CSSOMString) -> bool
+{
+    si compound.simple_selectors.taille != 1 {
+        retourne faux
+    }
 
-/* ------------------------------------------------------------------------- */
-/** \nom Rule
- * https://www.w3.org/TR/cssom-1/#css-rules
- * \{ */
+    simple := compound.simple_selectors[0]
 
-Rule :: struct {
+    si simple.type != SimpleSelector.Type.Type {
+        retourne faux
+    }
 
+    retourne simple.ident == élément
 }
-
-/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Selectors
@@ -74,13 +90,106 @@ SelectorList :: struct {
     complex_selectors: [..]ComplexSelector
 }
 
+détruit_données_selector_list :: fonc (selector: *SelectorList)
+{
+    pour * selector.complex_selectors {
+        détruit_données_complex_selector(it)
+    }
+
+    déloge(selector.complex_selectors)
+}
+
+imprime_selector_list :: fonc (enchaineuse: *Enchaineuse, selector_list: *SelectorList)
+{
+    saufsi selector_list {
+        retourne
+    }
+
+    pour * selector_list.complex_selectors {
+        si index_it > 0 {
+            ajoute_au_tampon(enchaineuse, ", ")
+        }
+
+        imprime_complex_selector(enchaineuse, it)
+    }
+} @FormattageImpression
+
 ComplexSelector :: struct {
     compound_selectors: [..]CompoundSelector
 }
 
+détruit_données_complex_selector :: fonc (selector: *ComplexSelector)
+{
+    pour * selector.compound_selectors {
+        détruit_données_compound_selector(it)
+    }
+
+    déloge(selector.compound_selectors)
+}
+
+imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: *ComplexSelector)
+{
+    saufsi complex_selectors {
+        retourne
+    }
+
+    pour * complex_selectors.compound_selectors {
+        si index_it > 0 {
+            discr it.combinateur {
+                DESCENDANT {
+                    ajoute_au_tampon(enchaineuse, " ")
+                }
+                NEXT_SIBLING {
+                    ajoute_au_tampon(enchaineuse, " + ")
+                }
+                CHILD {
+                    ajoute_au_tampon(enchaineuse, " > ")
+                }
+                SUBSEQUENT_SIBLING {
+                    ajoute_au_tampon(enchaineuse, " ~ ")
+                }
+                COLUMN {
+                    ajoute_au_tampon(enchaineuse, " || ")
+                }
+            }
+        }
+
+        imprime_compound_selector(enchaineuse, it)
+    }
+} @FormattageImpression
+
+Combinator :: énum {
+    DESCENDANT  // " "
+    NEXT_SIBLING    // "+"
+    CHILD // ">"
+    SUBSEQUENT_SIBLING // "~"
+    COLUMN // "||"
+}
+
 CompoundSelector :: struct {
     simple_selectors: [..]SimpleSelector
+    combinateur: Combinator
 }
+
+détruit_données_compound_selector :: fonc (selector: *CompoundSelector)
+{
+    pour * selector.simple_selectors {
+        détruit_données_simple_selector(it)
+    }
+
+    déloge(selector.simple_selectors)
+}
+
+imprime_compound_selector :: fonc (enchaineuse: *Enchaineuse, compound_selectors: *CompoundSelector)
+{
+    saufsi compound_selectors {
+        retourne
+    }
+
+    pour * compound_selectors.simple_selectors {
+        imprime_simple_selector(enchaineuse, it)
+    }
+} @FormattageImpression
 
 SimpleSelector :: struct {
     Type :: énum {
@@ -91,7 +200,6 @@ SimpleSelector :: struct {
         Attrib
         PseudoElement
         PseudoClass
-        Negation
     }
 
     AttributeMatcher :: énum {
@@ -117,6 +225,22 @@ SimpleSelector :: struct {
     /* Valeur pour AttributeMatcher. */
     attribute_value: ChaineUTF16
     attribute_modifier: Optionnel(AttributeModifier)
+
+    /* Pour les pseudos-classes fonctionnels. */
+    est_fonction: bool
+    selector_list: SelectorList
+
+    /* Pour :dir. */
+    arg: ChaineUTF16
+}
+
+détruit_données_simple_selector :: fonc (selector: *SimpleSelector)
+{
+    détruit_chaine(selector.namespace_prefix)
+    détruit_chaine(selector.ident)
+    détruit_chaine(selector.attribute_value)
+    détruit_chaine(selector.arg)
+    détruit_données_selector_list(*selector.selector_list)
 }
 
 imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSelector)
@@ -126,7 +250,7 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
         retourne
     }
 
-    ajoute_au_tampon(enchaineuse, selector.type, " : ")
+    // ajoute_au_tampon(enchaineuse, selector.type, " : ")
     discr selector.type {
         Type {
             si selector.namespace_prefix.taille() != 0 {
@@ -142,6 +266,19 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
         }
         PseudoClass {
             ajoute_au_tampon(enchaineuse, ":", selector.ident)
+            si selector.est_fonction {
+                ajoute_au_tampon(enchaineuse, "(")
+
+                si selector.ident == "dir" {
+                    ajoute_au_tampon(enchaineuse, selector.arg)
+                }
+                sinon {
+                    imprime_selector_list(enchaineuse, *selector.selector_list)
+                }
+
+                ajoute_au_tampon(enchaineuse, ")")
+                retourne
+            }
         }
         PseudoElement {
             ajoute_au_tampon(enchaineuse, "::", selector.ident)
@@ -202,47 +339,58 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
 
 crée_type_selector :: fonc (namespace_prefix: ChaineUTF16, ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Type, namespace_prefix, ident)
+    retourne SimpleSelector(SimpleSelector.Type.Type, copie_chaine(namespace_prefix), copie_chaine(ident))
 }
 
 crée_universal_selector :: fonc (namespace_prefix: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Universal, namespace_prefix)
+    retourne SimpleSelector(SimpleSelector.Type.Universal, copie_chaine(namespace_prefix))
 }
 
 crée_id_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.ID, ChaineUTF16(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.ID, ChaineUTF16(), copie_chaine(ident))
 }
 
 crée_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Class, ChaineUTF16(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.Class, ChaineUTF16(), copie_chaine(ident))
 }
 
 crée_attribute_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), copie_chaine(ident))
 }
 
 crée_attribute_selector :: fonc (ident: ChaineUTF16, matcher: SimpleSelector.AttributeMatcher, value: ChaineUTF16, modifier: Optionnel(SimpleSelector.AttributeModifier)) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), ident, matcher, value, modifier)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), copie_chaine(ident), matcher, copie_chaine(value), modifier)
 }
 
 crée_pseudo_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), copie_chaine(ident))
+}
+
+crée_function_selector :: fonc (ident: ChaineUTF16, arguments: SelectorList) -> SimpleSelector
+{
+    résultat: SimpleSelector
+    résultat.type = SimpleSelector.Type.PseudoClass
+    résultat.ident = copie_chaine(ident)
+    résultat.est_fonction = vrai
+    résultat.selector_list = arguments
+    retourne résultat
+}
+
+/* Pour :dir et peut-être d'autres. */
+crée_function_selector :: fonc (ident: ChaineUTF16, arg: ChaineUTF16) -> SimpleSelector
+{
+    résultat: SimpleSelector
+    résultat.type = SimpleSelector.Type.PseudoClass
+    résultat.ident = copie_chaine(ident)
+    résultat.est_fonction = vrai
+    résultat.arg = copie_chaine(arg)
+    retourne résultat
 }
 
 /** \} */
-
-/*
-Combinator :: énum {
-    ESPACE  // " "
-    PLUS    // "+"
-    PLUS_GRAND // ">"
-    TILDE // "~"
-}
-
-*/

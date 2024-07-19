@@ -1,0 +1,166 @@
+importe Chaine
+importe Fondation
+importe Internet
+
+/* CSS Object Model https://www.w3.org/TR/cssom-1/ */
+
+CSSOMString :: ChaineUTF16
+
+/* ------------------------------------------------------------------------- */
+/** \nom Style Sheets
+ * https://www.w3.org/TR/cssom-1/#css-style-sheets
+ * \{ */
+
+/* https://www.w3.org/TR/cssom-1/#the-stylesheet-interface */
+StyleSheet :: struct {
+    /* "text/css" */
+    type: CSSOMString
+    location: URI
+}
+
+CSSStyleSheet :: struct {
+    empl base: StyleSheet
+
+    owner_rule: *CSSRule
+    rules: [..]*CSSRule
+}
+
+imprime_style_sheet :: fonc (stylesheet: *CSSStyleSheet)
+{
+    pour stylesheet.rules {
+        si it.type == CSSRuleType.Style {
+            style_rule := it comme *CSSStyleRule
+            imprime_règle(style_rule)
+        }
+    }
+}
+
+détruit_feuille_de_style :: fonc (stylesheet: *CSSStyleSheet)
+{
+    pour stylesheet.rules {
+        si it.type == CSSRuleType.Style {
+            détruit_style_rule(it comme *CSSStyleRule)
+        }
+    }
+
+    détruit_chaine(stylesheet.type)
+    déloge(stylesheet.rules)
+    déloge(stylesheet)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSRule
+ * https://www.w3.org/TR/cssom-1/#the-cssrule-interface
+ * \{ */
+
+// the following attribute and constants are historical
+CSSRuleType :: énum n16 {
+    Invalide :: 0
+    Style :: 1
+    Import :: 3
+    Media :: 4
+    FontFace :: 5
+    Page :: 6
+    Keyframes :: 7
+    Keyframe :: 8
+    Margin :: 9
+    Namespace :: 10
+    CounterStyle :: 11
+    Supports :: 12
+    FontFeatureValues :: 14
+    Viewport :: 15
+}
+
+CSSRule :: struct {
+    parent_rule: *CSSRule
+    parent_style_sheet: *CSSStyleSheet
+
+    type: CSSRuleType
+
+    STYLE_RULE : n16 : 1
+    CHARSET_RULE : n16 : 2
+    IMPORT_RULE : n16 : 3
+    MEDIA_RULE : n16 : 4
+    FONT_FACE_RULE : n16 : 5
+    PAGE_RULE : n16 : 6
+    MARGIN_RULE : n16 : 9
+    NAMESPACE_RULE : n16 : 10
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSStyleRule
+ * \{ */
+
+CSSStyleRule :: struct {
+    empl base: CSSRule
+    type = CSSRuleType.Style
+
+    selector_list: SelectorList
+    déclarations: [..]*CSSDeclaration
+}
+
+détruit_style_rule :: fonc (rule: *CSSStyleRule)
+{
+    détruit_données_selector_list(*rule.selector_list)
+    
+    pour rule.déclarations {
+        détruit_déclaration(it)
+    }
+
+    déloge(rule.déclarations)
+    déloge(rule)
+}
+
+ajoute_déclaration :: fonc (style: *CSSStyleRule, déclaration: *CSSDeclaration)
+{
+    tableau_ajoute(*style.déclarations, déclaration)
+}
+
+imprime_règle :: fonc (règle: *CSSStyleRule)
+{
+    imprime("% {\n", règle.selector_list)
+
+    pour déclaration dans règle.déclarations {
+        imprime("    %:", déclaration.property_name)
+
+        pour valeur dans déclaration.value {
+            imprime(" %", valeur)
+        }
+
+        imprime(";\n")
+    }
+
+    imprime("}\n")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSDeclaration
+ * https://www.w3.org/TR/cssom-1/#css-declarations
+ * \{ */
+
+CSSDeclaration :: struct {
+    property_name: CSSOMString
+    value: [..]ValeurDeStyle
+    important: bool
+    case_sensitive: bool
+}
+
+détruit_déclaration :: fonc (déclaration: *CSSDeclaration)
+{
+    détruit_chaine(déclaration.property_name)
+
+    pour * déclaration.value {
+        détruit_valeur_de_style(it)
+    }
+
+    déloge(déclaration.value)
+    déloge(déclaration)
+}
+
+/** \} */

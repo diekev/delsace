@@ -251,8 +251,6 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                                       type_vers,
                                       std::get<IndexMembre>(résultat).valeur};
         }
-
-        return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
     if (type_vers->est_type_eini()) {
@@ -273,8 +271,6 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
             return TransformationType{TypeTransformation::EXTRAIT_UNION, type_vers, index_it};
         }
-
-        return TransformationType(TypeTransformation::IMPOSSIBLE);
     }
 
     if (type_de->est_type_eini()) {

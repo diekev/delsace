@@ -122,6 +122,35 @@ std::ostream &operator<<(std::ostream &os, PositionCodeNoeud const position)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name PortéeSymbole
+ * Définis la portée d'un symbole (sa visibilité au sein ou hors d'un module).
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, PortéeSymbole const portée)
+{
+    switch (portée) {
+        case PortéeSymbole::EXPORT:
+        {
+            os << "EXPORT";
+            break;
+        }
+        case PortéeSymbole::MODULE:
+        {
+            os << "MODULE";
+            break;
+        }
+        case PortéeSymbole::FICHIER:
+        {
+            os << "FICHIER";
+            break;
+        }
+    }
+    return os;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name DrapeauxNoeudFonction
  * \{ */
 

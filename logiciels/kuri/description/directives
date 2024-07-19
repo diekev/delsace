@@ -15,6 +15,10 @@ Directives pour le compilateur
 #racine                 indique les fonctions racines qui seront considérées pour la compilation de fichiers objets, si aucune fonction n'est marquée comme racine, le fichier objet sera vide
 #sansbroyage            indique que le nom de la fonction ne doit pas être "broyé", c'est à dire que le nom sera utilisé tel quel dans le fichier objet ou l'exécutable généré
 #sanstrace              indique qu'une fonction n'a pas de trace d'appel
+#portée_export          indique que les symboles suivants sont visibles dans les fichiers important le module (défaut)
+#portée_module          indique que les symboles suivants ne sont visibles que dans le module
+#portée_fichier         indique que les symboles suivants ne sont visibles que dans le fichier courant
+#inemployé              après « importe », indique que les symboles du modules ne sont accessibles que via un accès de membre
 
 Directive pour la métaprogrammation
 

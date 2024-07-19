@@ -1,0 +1,550 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Event handler types.
+ * https://html.spec.whatwg.org/multipage/webappapis.html#event-handlers-on-elements,-document-objects,-and-window-objects
+ *
+ * Spécification pour UIEvents :
+ * https://w3c.github.io/uievents/
+ * \{ */
+
+EventType :: énum n8 {
+    /* The following are the event handlers (and their corresponding event
+     * handler event types) that must be supported by all HTML elements, as
+     * both event handler content attributes and event handler IDL attributes;
+     * and that must be supported by all Document and Window objects, as event
+     * handler IDL attributes. */
+    abort
+    auxclick
+    beforeinput
+    beforematch
+    beforetoggle
+    cancel
+    canplay
+    canplaythrough
+    change
+    click
+    close
+    contextlost
+    contextmenu
+    contextrestored
+    copy
+    cuechange
+    cut
+    dblclick
+    drag
+    dragend
+    dragenter
+    dragleave
+    dragover
+    dragstart
+    drop
+    durationchange
+    emptied
+    ended
+    formdata
+    input
+    invalid
+    keydown
+    keypress
+    keyup
+    loadeddata
+    loadedmetadata
+    loadstart
+    mousedown
+    mouseenter
+    mouseleave
+    mousemove
+    mouseout
+    mouseover
+    mouseup
+    paste
+    pause
+    play
+    playing
+    progress
+    ratechange
+    reset
+    scrollend
+    securitypolicyviolation
+    seeked
+    seeking
+    select
+    slotchange
+    stalled
+    submit
+    suspend
+    timeupdate
+    toggle
+    volumechange
+    waiting
+    webkitanimationend
+    webkitanimationiteration
+    webkitanimationstart
+    webkittransitionend
+    wheel
+
+    /* The following are the event handlers (and their corresponding event
+     * handler event types) that must be supported by all HTML elements other
+     * than body and frameset elements, as both event handler content attributes
+     * and event handler IDL attributes; that must be supported by all Document
+     * objects, as event handler IDL attributes; and that must be supported by
+     * all Window objects, as event handler IDL attributes on the Window objects
+     * themselves, and with corresponding event handler content attributes and
+     * event handler IDL attributes exposed on all body and frameset elements
+     * that are owned by that Window object's associated Document. */
+    blur
+    error
+    focus
+    load
+    resize
+    scroll
+
+    /* The following are the event handlers (and their corresponding event
+     * handler event types) that must be supported by Window objects, as event
+     * handler IDL attributes on the Window objects themselves, and with
+     * corresponding event handler content attributes and event handler IDL
+     * attributes exposed on all body and frameset elements that are owned by
+     * that Window object's associated Document. */
+    afterprint
+    beforeprint
+    beforeunload
+    hashchange
+    languagechange
+    message
+    messageerror
+    offline
+    online
+    pageswap
+    pagehide
+    pagereveal
+    pageshow
+    popstate
+    rejectionhandled
+    storage
+    unhandledrejection
+    unload
+
+    /* The following are the event handlers (and their corresponding event
+     * handler event types) that must be supported on Document objects as
+     * event handler IDL attributes. */
+    readystatechange
+    visibilitychange
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Event
+ * https://dom.spec.whatwg.org/#event
+ * \{ */
+
+Event :: struct {
+    target: *EventTarget
+    related_target: *EventTarget
+    current_target: *EventTarget
+    touche_target_list: [..]*EventTarget
+
+    /* Flags. */
+    dispatch: bool
+    initialized: bool
+    canceled: bool
+    stop_propagation: bool
+    stop_immediate_propagation: bool
+
+    /* Attributes. */
+    is_trusted: bool
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EventListener
+ * https://dom.spec.whatwg.org/#callbackdef-eventlistener
+ * \{ */
+
+EventListener :: struct {
+    sur_handle_event: fonc(*Event)(rien)
+}
+
+EventListenerOptions :: struct {
+    capture := faux
+}
+
+AddEventListenerOptions :: struct {
+    empl base: EventListenerOptions
+    passive: Optionnel(bool)
+    once := faux
+    signal: *AbortSignal
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EventTarget
+ * https://dom.spec.whatwg.org/#eventtarget
+ * \{ */
+
+EventTarget :: struct {
+    EventListenerEntry :: struct {
+        type: EventType
+        callback: *EventListener
+        capture: bool
+        passive: Optionnel(bool)
+        once: bool
+        signal: *AbortSignal
+        removed: bool
+    }
+
+    listeners: [..]EventListenerEntry
+}
+
+#portée_fichier
+
+/* https://dom.spec.whatwg.org/#add-an-event-listener */
+add_an_event_listener :: fonc (target: *EventTarget, listener: EventTarget.EventListenerEntry)
+{
+    // À FAIRE 1. If eventTarget is a ServiceWorkerGlobalScope object,
+    // its service worker’s script resource’s has ever been evaluated flag is set,
+    // and listener’s type matches the type attribute value of any of the service worker events,
+    // then report a warning to the console that this might not give the expected results.
+
+    // 2. If listener’s signal is not null and is aborted, then return.
+    si listener.signal != nul && listener.signal.aborted {
+        retourne
+    }
+
+    // 3. If listener’s callback is null, then return.
+    si listener.callback == nul {
+        retourne
+    }
+
+    // 4. If listener’s passive is null, then set it to the default passive value given listener’s type and eventTarget.
+    saufsi listener.passive.possède_valeur() {
+        listener.passive = default_passive_value(listener.type, target)
+    }
+
+    // 5. If eventTarget’s event listener list does not contain an event listener whose type is listener’s type,
+    //    callback is listener’s callback, and capture is listener’s capture, then append listener to
+    //    eventTarget’s event listener list.
+    pour target.listeners {
+        si it.type != listener.type {
+            continue
+        }
+        si it.callback != listener.callback {
+            continue
+        }
+        si it.capture != listener.capture {
+            continue
+        }
+
+        arrête
+    }
+    sansarrêt {
+        tableau_ajoute(*target.listeners, listener)
+    }
+
+    // À FAIRE 6. If listener’s signal is not null, then add the following abort steps to it:
+    //    1. Remove an event listener with eventTarget and listener.
+}
+
+/* https://dom.spec.whatwg.org/#remove-an-event-listener */
+remove_an_event_listener :: fonc (target: *EventTarget, event_listener: EventTarget.EventListenerEntry, index: z64)
+{
+    // À FAIRE 1. If eventTarget is a ServiceWorkerGlobalScope object and its service
+    //    worker’s set of event types to handle contains listener’s type, then
+    //    report a warning to the console that this might not give the expected
+    //    results.
+
+    // 2. Set listener’s removed to true and remove listener from eventTarget’s event listener list.
+    event_listener.removed = vrai
+    tableau_supprime_index(*target.event_listener, index)
+}
+
+/* https://dom.spec.whatwg.org/#remove-all-event-listeners */
+remove_all_listeners :: fonc (target: *EventTarget)
+{
+    pour > target.event_listener {
+        remove_an_event_listener(target, it, index_it)
+    }
+}
+
+/* https://dom.spec.whatwg.org/#default-passive-value */
+default_passive_value :: fonc (type: EventType, target: *EventTarget) -> bool
+{
+    // À FAIRE 1. Return true if all of the following are true:
+    //
+    //    type is one of "touchstart", "touchmove", "wheel", or "mousewheel".
+    //
+    //    eventTarget is a Window object, or is a node whose node document is eventTarget,
+    //    or is a node whose node document’s document element is eventTarget,
+    //    or is a node whose node document’s body element is eventTarget.
+
+    // 2. Return false.
+    retourne faux
+}
+
+#portée_export
+
+/* https://dom.spec.whatwg.org/#dom-eventtarget-addeventlistener */
+add_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *EventListener, options : *AddEventListenerOptions = nul)
+{
+    // 1. Let capture, passive, once, and signal be the result of flattening more options.
+    capture := faux
+    passive: Optionnel(bool)
+    once := faux
+    signal: *AbortSignal
+
+    si options {
+        capture = options.capture
+        passive = options.passive
+        once = options.once
+        signal = options.signal
+    }
+
+    // 2. Add an event listener with this and an event listener whose type is type,
+    //    callback is callback, capture is capture, passive is passive, once is once,
+    //    and signal is signal.
+    event_listener: EventListener.EventListenerEntry
+    event_listener.type = type
+    event_listener.callback = callback
+    event_listener.capture = capture
+    event_listener.passive = passive
+    event_listener.once = once
+    event_listener.signal = signal
+
+    add_an_event_listener(target, event_listener)
+}
+
+/* https://dom.spec.whatwg.org/#dom-eventtarget-removeeventlistener */
+remove_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *EventListener, options : *EventListenerOptions = nul)
+{
+    // 1. Let capture be the result of flattening options.
+    capture := faux
+    si options {
+        capture = options.capture
+    }
+
+    // 2. If this’s event listener list contains an event listener whose type is type, 
+    //    callback is callback, and capture is capture, then remove an event listener
+    //    with this and that event listener.
+    pour target.listeners {
+        si it.type != type {
+            continue
+        }
+        si it.callback != callback {
+            continue
+        }
+        si it.capture != capture {
+            continue
+        }
+
+        remove_an_event_listener(target, it, index_it)
+        arrête
+    }
+}
+
+/* https://dom.spec.whatwg.org/#dom-eventtarget-dispatchevent */
+dispatch_event :: fonc (target: *EventTarget, event: *Event) -> bool
+{
+    // 1. If event’s dispatch flag is set, or if its initialized flag is not set,
+    //    then throw an "InvalidStateError" DOMException.
+    si event.dispatch == vrai || event.initialized == faux {
+        imprime("[%] À FAIRE : throw an \"InvalidStateError\" DOMException\n", #nom_de_cette_fonction)
+        retourne faux
+    }
+
+    // 2. Initialize event’s isTrusted attribute to false.
+    event.is_trusted = faux
+
+    // 3. Return the result of dispatching event to this.
+    retourne dispatch(event, target)
+}
+
+/* https://dom.spec.whatwg.org/#concept-event-dispatch */
+dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : *bool = nul, legacy_output_did_listeners_throw : *bool = nul) -> bool
+{
+    imprime("[HTML] À FAIRE : %\n", #nom_de_cette_fonction)
+
+    // 1. Set event’s dispatch flag.
+    event.dispatch = vrai
+
+    // 2. Let targetOverride be target, if legacy target override flag is not given, and target’s associated Document otherwise.
+    target_override: *EventTarget
+    saufsi legacy_target_override {
+        target_override = target
+    }
+    sinon {
+        target_override = target.donne_document_associé()
+    }
+
+    // 3. Let activationTarget be null.
+    activation_target: *EventTarget
+
+    // 4. Let relatedTarget be the result of retargeting event’s relatedTarget against target.
+    related_target := retarget(event.related_target, target)
+    
+    // 5. If target is not relatedTarget or target is event’s relatedTarget, then:
+    clear_targets := faux
+
+    si target != related_target || target == event.related_target {
+        // 1. Let touchTargets be a new list.
+        touch_targets: [..]*EventTarget
+
+        // 2. For each touchTarget of event’s touch target list, append the result of retargeting touchTarget against target to touchTargets.
+        pour event.touch_target_list {
+            tableau_ajoute(*touch_targets, retarget(it, target))
+        }
+
+        // 3. Append to an event path with event, target, targetOverride, relatedTarget, touchTargets, and false.
+        append_event_path(event, target, target_override, related_target, touch_targets, faux)
+
+        // À FAIRE 4. Let isActivationEvent be true, if event is a MouseEvent object and event’s type attribute is "click"; otherwise false.
+        is_activation_event := faux
+
+        // 5. If isActivationEvent is true and target has activation behavior, then set activationTarget to target.
+        si is_activation_event && target.possède_activation_behavior() {
+            activation_target = target
+        }
+
+        // À FAIRE 6. Let slottable be target, if target is a slottable and is assigned, and null otherwise.
+        slottable: *EventTarget
+
+        // 7. Let slot-in-closed-tree be false.
+        slot_in_closed_tree := faux
+
+        // 8. Let parent be the result of invoking target’s get the parent with event.
+        parent := get_the_parent(target, event)
+
+        // 9. While parent is non-null:
+        tantque parent != nul {
+            // 1. If slottable is non-null:
+
+                // 1. Assert: parent is a slot.
+
+                // 2. Set slottable to null.
+
+                // 3. If parent’s root is a shadow root whose mode is "closed", then set slot-in-closed-tree to true.
+
+            // 2. If parent is a slottable and is assigned, then set slottable to parent.
+
+            // 3. Let relatedTarget be the result of retargeting event’s relatedTarget against parent.
+            related_target = retarget(related_target, parent)
+
+            // 4. Let touchTargets be a new list.
+
+            // 5. For each touchTarget of event’s touch target list, append the result of retargeting touchTarget against parent to touchTargets.
+
+            // 6. If parent is a Window object, or parent is a node and target’s root is a shadow-including inclusive ancestor of parent, then:
+
+                // 1. If isActivationEvent is true, event’s bubbles attribute is true, activationTarget is null, and parent has activation behavior, then set activationTarget to parent.
+
+                // 2. Append to an event path with event, parent, null, relatedTarget, touchTargets, and slot-in-closed-tree.
+
+            // 7. Otherwise, if parent is relatedTarget, then set parent to null.
+            si parent == related_target {
+                parent = nul
+            }
+            // 8. Otherwise, set target to parent and then:
+            sinon {
+                // 1. If isActivationEvent is true, activationTarget is null, and target has activation behavior, then set activationTarget to target.
+                si is_activation_event == vrai && activation_target == nul && target.possède_activation_behavior() {
+                    activation_target = target
+                }
+
+                // 2. Append to an event path with event, parent, target, relatedTarget, touchTargets, and slot-in-closed-tree.
+                append_event_path(event, parent, target, related_target, touch_targets, slot_in_closed_tree)
+            }
+
+            // 9. If parent is non-null, then set parent to the result of invoking parent’s get the parent with event.
+            si parent != nul {
+                parent = get_the_parent(parent, event)
+            }
+
+            // 10. Set slot-in-closed-tree to false.
+            slot_in_closed_tree = faux
+        }
+
+        // 10. Let clearTargetsStruct be the last struct in event’s path whose shadow-adjusted target is non-null.
+
+        // 11. Let clearTargets be true if clearTargetsStruct’s shadow-adjusted target, clearTargetsStruct’s relatedTarget, or an EventTarget object in clearTargetsStruct’s touch target list is a node and its root is a shadow root; otherwise false.
+
+        // 12. If activationTarget is non-null and activationTarget has legacy-pre-activation behavior, then run activationTarget’s legacy-pre-activation behavior.
+
+        // 13. For each struct in event’s path, in reverse order:
+
+            // 1. If struct’s shadow-adjusted target is non-null, then set event’s eventPhase attribute to AT_TARGET.
+
+            // 2. Otherwise, set event’s eventPhase attribute to CAPTURING_PHASE.
+
+            // 3. Invoke with struct, event, "capturing", and legacyOutputDidListenersThrowFlag if given.
+
+        // 14. For each struct in event’s path:
+
+            // 1. If struct’s shadow-adjusted target is non-null, then set event’s eventPhase attribute to AT_TARGET.
+
+            // 2. Otherwise:
+
+                // 1. If event’s bubbles attribute is false, then continue.
+
+                // 2. Set event’s eventPhase attribute to BUBBLING_PHASE.
+
+            // 3. Invoke with struct, event, "bubbling", and legacyOutputDidListenersThrowFlag if given.
+    }
+
+    // 6. Set event’s eventPhase attribute to NONE.
+    event.event_phase = EventPhase.NONE
+
+    // 7. Set event’s currentTarget attribute to null.
+    event.current_target = nul
+
+    // 8. Set event’s path to the empty list.
+    déloge(event.path)
+
+    // 9. Unset event’s dispatch flag, stop propagation flag, and stop immediate propagation flag.
+    event.dispatch = faux
+    event.stop_propagation = faux
+    event.stop_immediate_propagation = faux
+
+    // 10. If clearTargets, then:
+    si clear_targets {
+        // 1. Set event’s target to null.
+        event.target = nul
+
+        // 2. Set event’s relatedTarget to null.
+        event.related_target = nul
+
+        // 3. Set event’s touch target list to the empty list.
+        déloge(event.touch_target_list)
+    }
+
+    // 11. If activationTarget is non-null, then:
+    si activation_target {
+        // 1. If event’s canceled flag is unset, then run activationTarget’s activation behavior with event.
+        saufsi event.canceled {
+            run_activation_behavior(activation_target, event)
+        }
+        // 2. Otherwise, if activationTarget has legacy-canceled-activation behavior, then run activationTarget’s legacy-canceled-activation behavior.
+        sinon {
+            run_legacy_canceled_activation_behavior(activation_target, event)
+        }
+    }
+
+    // 12. Return false if event’s canceled flag is set; otherwise true.
+    retourne event.canceled == faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom AbortSignal
+ * https://dom.spec.whatwg.org/#abortsignal
+ * \{ */
+
+AbortSignal :: struct {
+    empl event_target: EventTarget
+
+    aborted: bool
+}
+
+/** \} */
