@@ -58,7 +58,7 @@ Peintre :: struct {
 
     /* Dessine le texte avec la fonte et la couleur données. */
     rappel_dessine_texte: fonc(*Peintre, *Fonte, chaine, RectanglePeintre, CouleurPeintre)(rien)
-    rappel_dessine_texte_utf16: fonc(*Peintre, *Fonte, ChaineUTF16, RectanglePeintre, CouleurPeintre)(rien)
+    rappel_dessine_texte_utf16: fonc(*Peintre, *Fonte, ChaineUTF16, RectanglePeintre, CouleurPeintre, *EffetsTexte)(rien)
 
     /* Dessine l'image dans le rectangle donné. */
     rappel_dessine_image: fonc(*Peintre, ImageIO, RectanglePeintre)(rien)
@@ -143,9 +143,9 @@ dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangl
     peintre.rappel_dessine_texte(peintre, fonte, texte, rectangle, couleur)
 }
 
-dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
+dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rectangle: RectanglePeintre, couleur: CouleurPeintre, effets : *EffetsTexte = nul) -> rien #enligne
 {
-    peintre.rappel_dessine_texte_utf16(peintre, fonte, texte, rectangle, couleur)
+    peintre.rappel_dessine_texte_utf16(peintre, fonte, texte, rectangle, couleur, effets)
 }
 
 dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle: RectanglePeintre) -> rien #enligne
@@ -733,11 +733,11 @@ dessine_texte_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, text
     dessine_texte(fonte, texte, rect.x, rect.y, couleur)
 }
 
-dessine_texte_utf16_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
+dessine_texte_utf16_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
-    dessine_texte(fonte, texte, rect.x, rect.y, couleur)
+    dessine_texte(fonte, texte, rect.x, rect.y, couleur, effets)
 }
 
 dessine_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: ImageIO, rectangle_peintre: RectanglePeintre)

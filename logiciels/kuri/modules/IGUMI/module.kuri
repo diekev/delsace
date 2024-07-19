@@ -549,7 +549,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     termine_immédiat(ModeImmédiat.TRIANGLES)
 }
 
-dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleur: CouleurRVBA)
+dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
     commence_immédiat()
 
@@ -578,6 +578,8 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
 
     définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32)
 
+    caractère_nul := fonte.donne_glyphe_nul()
+
     dernier_caractère : *texture_glyph_t = nul
     pour texte.unités {
         glyph := fonte.donne_glyphe(it)
@@ -590,6 +592,18 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
         x += kerning
 
         glyphe_immédiat(glyph, x, y, couleur)
+
+        si effets {
+            si effets.surlignage {
+                surlignage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_surlignage)
+            }
+            si effets.souslignage {
+                souslignage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_souslignage)
+            }
+            si effets.barrage {
+                barrage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_barrage)
+            }
+        }
 
         x += glyph.advance_x
 
@@ -609,6 +623,45 @@ glyphe_immédiat :: fonc (glyph: *texture_glyph_t, x: r32, y: r32, couleur: Coul
     t0 := glyph.t0
     s1 := glyph.s1
     t1 := glyph.t1
+
+    p0 := Vec3(x = x0, y = y0)
+    p1 := Vec3(x = x0, y = y1)
+    p2 := Vec3(x = x1, y = y1)
+    p3 := Vec3(x = x1, y = y0)
+
+    uv0 := Vec2(x = s0, y = t0)
+    uv1 := Vec2(x = s0, y = t1)
+    uv2 := Vec2(x = s1, y = t1)
+    uv3 := Vec2(x = s1, y = t0)
+
+    quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
+}
+
+souslignage_glyphe_immédiat :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
+{
+    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.font.underline_position, couleur)
+}
+
+surlignage_glyphe_immédiat :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
+{
+    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.font.ascender, couleur)
+}
+
+barrage_glyphe_immédiat :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
+{
+    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.font.ascender * 0.33, couleur)
+}
+
+ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
+{
+    x0 := x
+    y0 := y
+    x1 := x0 + glyph.advance_x
+    y1 := y0 - fonte.font.underline_thickness
+    s0 := caractère_nul.s0
+    t0 := caractère_nul.t0
+    s1 := caractère_nul.s1
+    t1 := caractère_nul.t1
 
     p0 := Vec3(x = x0, y = y0)
     p1 := Vec3(x = x0, y = y1)
