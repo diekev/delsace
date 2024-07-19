@@ -447,6 +447,35 @@ vers_nombre :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> Complet
     panique("to_number non-implémenté")
 }
 
+/* 7.1.4.1.1 StringToNumber ( str )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-stringtonumber */
+string_to_number :: fonc (valeur: Valeur) -> Valeur
+{
+    str := valeur.String.texte
+
+    // À FAIRE : standardise
+    // 1. Let literal be ParseText(str, StringNumericLiteral).
+    // 2. If literal is a List of errors, return NaN.
+    // 3. Return the StringNumericValue of literal.
+
+    source: TexteSource
+    source.texte = converti_vers_chaine(str.donne_chaine_utf16())
+    diffère déloge(source.texte)
+
+    lexeuse: Lexeuse
+    initialise_lexeuse_depuis_source(lexeuse, source)
+
+    résultat := lèxe_nombre(lexeuse)
+    discr résultat {
+        Ok(lexème) {
+            retourne Valeur(Number = parse_nombre_depuis_lexème(*lexème))
+        }
+        sinon {
+            retourne Valeur(Number = NaN)
+        }
+    }
+}
+
 /* 7.1.17 ToString ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
 vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> CompletionRecord
