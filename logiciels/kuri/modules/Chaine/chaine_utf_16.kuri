@@ -936,7 +936,7 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
         pour 128 {
             chn_ascii: ChaineUTF16
             chaine_ajoute(*chn_ascii, it comme n16)
-            tableau_ajoute(*table.chaines, chn)
+            tableau_ajoute(*table.chaines, chn_ascii)
         }
     }
 
