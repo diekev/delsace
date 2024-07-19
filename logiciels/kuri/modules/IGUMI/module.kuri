@@ -116,7 +116,7 @@ crée_nuanceur_depuis_fichier :: fonc (source_vertex: chaine, source_fragment: c
 
 recharge_nuanceur :: fonc (nuanceur: *NuanceurGL, source_vertex: chaine, source_fragment: chaine)
 {
-    détruit_nuanceur(nuanceur)
+    détruit_données_nuanceur(nuanceur)
     opt_programme := compile_un_programme(source_vertex, source_fragment)
     saufsi opt_programme.possède_valeur() {
         retourne
@@ -124,9 +124,15 @@ recharge_nuanceur :: fonc (nuanceur: *NuanceurGL, source_vertex: chaine, source_
     nuanceur.programme = opt_programme.Quelque
 }
 
+détruit_données_nuanceur :: fonc (nuanceur: *NuanceurGL)
+{
+    détruit_programme(nuanceur.programme)
+}
+
 détruit_nuanceur :: fonc (nuanceur: *NuanceurGL)
 {
     détruit_programme(nuanceur.programme)
+    déloge(nuanceur)
 }
 
 CheminsNuanceurs :: struct {
