@@ -216,7 +216,17 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     rect := ctx.donne_rectangle_corrigé(noeud)
 
-    couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
+    propriétés := *noeud.parent.propriétés
+
+    couleur := CouleurRVBAN8(0, 0, 0, 255)
+
+    chn_color := crée_chaine_utf16("color")
+    diffère détruit_chaine(chn_color)
+
+    color := donne_déclaration(propriétés, chn_color)
+    si color {
+        couleur = color.value[0]
+    }
 
     texte := noeud.texte
 

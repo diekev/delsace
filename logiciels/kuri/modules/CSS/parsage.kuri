@@ -1,4 +1,5 @@
 importe Chaine
+importe Couleur
 importe Ensemble
 importe Fondation
 importe Internet
@@ -1278,7 +1279,7 @@ détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
 
 propriété_est_supportée :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> bool
 {
-    si nom == "display" {
+    si nom == "display" || nom == "color" {
         retourne vrai
     }
 
@@ -1341,6 +1342,15 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
             opt_valeur := parse_propriété_display(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'display'\n")
+                continue
+            }
+
+            valeur = opt_valeur.Quelque
+        }
+        sinon si it.name == "color" {
+            opt_valeur := parse_propriété_color(it.value)
+            saufsi opt_valeur.possède_valeur() {
+                imprime("Impossible de parser 'color'\n")
                 continue
             }
 
@@ -1444,6 +1454,87 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSS
             parseuse.avance()
             retourne lexème.donne_texte()
         }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Color
+ * \{ */
+
+valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
+{
+    si 'A' <= unité <= 'F' {
+        retourne unité comme n8 - ('A' comme n8) + 10
+    }
+
+    si 'a' <= unité <= 'z' {
+        retourne unité comme n8 - ('a' comme n8) + 10
+    }
+
+    retourne unité comme n8 - ('0' comme n8)
+}
+
+parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    lexème := parseuse.lexème_courant()
+
+    résultat: [..]ValeurDeStyle
+
+    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        opt_couleur := trouve_couleur_pour_mot_clé(lexème.donne_texte())
+        si opt_couleur.possède_valeur() {
+            tableau_ajoute(*résultat, ValeurDeStyle(couleur = opt_couleur.Quelque))
+            retourne résultat
+        }
+    }
+
+    /* https://www.w3.org/TR/css-color-4/#typedef-hex-color */
+    si lexème.est_lexème_de_genre(GenreLexème.Hash) {
+        valeur := lexème.donne_texte()
+
+        pour valeur.unités {
+            saufsi est_chiffre_hex(it) {
+                imprime("[%] couleur hexadécimal inconnu : %\n", #nom_de_cette_fonction, valeur)
+                retourne
+            }
+        }
+
+        couleur: CouleurRVBAN8
+        si valeur.taille() == 3 {
+            couleur.r = (valeur_hex_depuis_unité(valeur.unités[0]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.v = (valeur_hex_depuis_unité(valeur.unités[1]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.b = (valeur_hex_depuis_unité(valeur.unités[2]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.a = 255
+        }
+        sinon si valeur.taille() == 4 {
+            couleur.r = (valeur_hex_depuis_unité(valeur.unités[0]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.v = (valeur_hex_depuis_unité(valeur.unités[1]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.b = (valeur_hex_depuis_unité(valeur.unités[2]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.a = (valeur_hex_depuis_unité(valeur.unités[3]) comme r32 / 15.0 * 255.0) comme n8
+        }
+        sinon si valeur.taille() == 6 {
+            couleur.r = valeur_hex_depuis_unité(valeur.unités[0]) * 16 + valeur_hex_depuis_unité(valeur.unités[1])
+            couleur.v = valeur_hex_depuis_unité(valeur.unités[2]) * 16 + valeur_hex_depuis_unité(valeur.unités[3])
+            couleur.b = valeur_hex_depuis_unité(valeur.unités[4]) * 16 + valeur_hex_depuis_unité(valeur.unités[5])
+            couleur.a = 255
+        }
+        sinon si valeur.taille() == 8 {
+            couleur.r = valeur_hex_depuis_unité(valeur.unités[0]) * 16 + valeur_hex_depuis_unité(valeur.unités[1])
+            couleur.v = valeur_hex_depuis_unité(valeur.unités[2]) * 16 + valeur_hex_depuis_unité(valeur.unités[3])
+            couleur.b = valeur_hex_depuis_unité(valeur.unités[4]) * 16 + valeur_hex_depuis_unité(valeur.unités[5])
+            couleur.a = valeur_hex_depuis_unité(valeur.unités[6]) * 16 + valeur_hex_depuis_unité(valeur.unités[7])
+        }
+        sinon {
+            imprime("[%] couleur hexadécimal inconnu : %\n", #nom_de_cette_fonction, valeur)
+            retourne
+        }
+
+        tableau_ajoute(*résultat, ValeurDeStyle(couleur = couleur))
+        retourne résultat
     }
 }
 
