@@ -166,6 +166,104 @@ ATTR_refresh : DOMString = ---
 ATTR_viewport : DOMString = ---
 ATTR_window : DOMString = ---
 
+/* Évènements */
+
+EVT_onabort : DOMString = ---
+EVT_onauxclick : DOMString = ---
+EVT_onbeforeinput : DOMString = ---
+EVT_onbeforematch : DOMString = ---
+EVT_onbeforetoggle : DOMString = ---
+EVT_oncancel : DOMString = ---
+EVT_oncanplay : DOMString = ---
+EVT_oncanplaythrough : DOMString = ---
+EVT_onchange : DOMString = ---
+EVT_onclick : DOMString = ---
+EVT_onclose : DOMString = ---
+EVT_oncontextlost : DOMString = ---
+EVT_oncontextmenu : DOMString = ---
+EVT_oncontextrestored : DOMString = ---
+EVT_oncopy : DOMString = ---
+EVT_oncuechange : DOMString = ---
+EVT_oncut : DOMString = ---
+EVT_ondblclick : DOMString = ---
+EVT_ondrag : DOMString = ---
+EVT_ondragend : DOMString = ---
+EVT_ondragenter : DOMString = ---
+EVT_ondragleave : DOMString = ---
+EVT_ondragover : DOMString = ---
+EVT_ondragstart : DOMString = ---
+EVT_ondrop : DOMString = ---
+EVT_ondurationchange : DOMString = ---
+EVT_onemptied : DOMString = ---
+EVT_onended : DOMString = ---
+EVT_onformdata : DOMString = ---
+EVT_oninput : DOMString = ---
+EVT_oninvalid : DOMString = ---
+EVT_onkeydown : DOMString = ---
+EVT_onkeypress : DOMString = ---
+EVT_onkeyup : DOMString = ---
+EVT_onloadeddata : DOMString = ---
+EVT_onloadedmetadata : DOMString = ---
+EVT_onloadstart : DOMString = ---
+EVT_onmousedown : DOMString = ---
+EVT_onmouseenter : DOMString = ---
+EVT_onmouseleave : DOMString = ---
+EVT_onmousemove : DOMString = ---
+EVT_onmouseout : DOMString = ---
+EVT_onmouseover : DOMString = ---
+EVT_onmouseup : DOMString = ---
+EVT_onpaste : DOMString = ---
+EVT_onpause : DOMString = ---
+EVT_onplay : DOMString = ---
+EVT_onplaying : DOMString = ---
+EVT_onprogress : DOMString = ---
+EVT_onratechange : DOMString = ---
+EVT_onreset : DOMString = ---
+EVT_onscrollend : DOMString = ---
+EVT_onsecuritypolicyviolation : DOMString = ---
+EVT_onseeked : DOMString = ---
+EVT_onseeking : DOMString = ---
+EVT_onselect : DOMString = ---
+EVT_onslotchange : DOMString = ---
+EVT_onstalled : DOMString = ---
+EVT_onsubmit : DOMString = ---
+EVT_onsuspend : DOMString = ---
+EVT_ontimeupdate : DOMString = ---
+EVT_ontoggle : DOMString = ---
+EVT_onvolumechange : DOMString = ---
+EVT_onwaiting : DOMString = ---
+EVT_onwebkitanimationend : DOMString = ---
+EVT_onwebkitanimationiteration : DOMString = ---
+EVT_onwebkitanimationstart : DOMString = ---
+EVT_onwebkittransitionend : DOMString = ---
+EVT_onwheel : DOMString = ---
+EVT_onblur : DOMString = ---
+EVT_onerror : DOMString = ---
+EVT_onfocus : DOMString = ---
+EVT_onload : DOMString = ---
+EVT_onresize : DOMString = ---
+EVT_onscroll : DOMString = ---
+EVT_onafterprint : DOMString = ---
+EVT_onbeforeprint : DOMString = ---
+EVT_onbeforeunload : DOMString = ---
+EVT_onhashchange : DOMString = ---
+EVT_onlanguagechange : DOMString = ---
+EVT_onmessage : DOMString = ---
+EVT_onmessageerror : DOMString = ---
+EVT_onoffline : DOMString = ---
+EVT_ononline : DOMString = ---
+EVT_onpageswap : DOMString = ---
+EVT_onpagehide : DOMString = ---
+EVT_onpagereveal : DOMString = ---
+EVT_onpageshow : DOMString = ---
+EVT_onpopstate : DOMString = ---
+EVT_onrejectionhandled : DOMString = ---
+EVT_onstorage : DOMString = ---
+EVT_onunhandledrejection : DOMString = ---
+EVT_onunload : DOMString = ---
+EVT_onreadystatechange : DOMString = ---
+EVT_onvisibilitychange : DOMString = ---
+
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
  * métaprogrammes plus bas. */
 tags_initialisés := faux
@@ -226,6 +324,9 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
             si nom_tag == "http_equiv" {
                 nom_tag = "http-equiv"
             }
+        }
+        sinon si it.texte.commence_par("EVT_") {
+            nom_tag = it.texte.avance(4)
         }
         sinon {
             continue
