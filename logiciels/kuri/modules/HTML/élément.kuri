@@ -59,6 +59,8 @@ TableVirtuelleÉlément :: struct {
 
     état_élément_custom: chaine
     définition_élément_custom: *rien
+
+    pseudo_class: DOMString
 }
 
 #portée_fichier
@@ -334,13 +336,31 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 #portée_fichier
 
 table_virtuelle_anchor_element := TableVirtuelleÉlément(
-    sur_destruction = anchor_element_sur_destruction
+    sur_destruction = anchor_element_sur_destruction,
+    sur_changement_attribut = anchor_element_sur_changement_attribut
 )
 
 anchor_element_sur_destruction :: fonc (base: *Noeud)
 {
     élément := base comme *HTMLAnchorElement
     déloge(élément)
+}
+
+anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString)
+{
+    élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur)
+
+    anchor := base comme *HTMLAnchorElement
+
+    si local_name == ATTR_href {
+        // À FAIRE : chaine vide
+        si valeur == nul {
+            anchor.pseudo_class = TAG_vide
+        }
+        sinon {
+            anchor.pseudo_class = TAG_link
+        }
+    }
 }
 
 /** \} */
