@@ -1,4 +1,5 @@
 importe Chaine
+importe #inemployé CSS
 importe Fondation
 importe Internet
 
@@ -52,6 +53,7 @@ DocumentLoadTimingInfo :: struct {
 
 Document :: struct {
     empl base: Noeud
+    table = *table_virtuelle_document
 
     type_contenu: chaine
     type: chaine
@@ -74,7 +76,27 @@ Document :: struct {
     referrer: chaine /* Peut être vide. */
 
     is_initial_about_blank: bool
+
+    /* CSS. */
+    feuilles_de_style: [..]*CSS.CSSStyleSheet
+    arbre_de_disposition: *CSS.ArbreDeDisposition
 }
+
+#portée_fichier
+
+table_virtuelle_document := TableVirtuelleÉlément(
+    sur_destruction = document_sur_destruction
+)
+
+document_sur_destruction :: fonc (base: *Noeud)
+{
+    document := base comme *Document
+    CSS.détruit_arbre(document.arbre_de_disposition)
+    déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
+    déloge(document)
+}
+
+#portée_export
 
 crée_noeud_document :: fonc () -> *Document
 {
@@ -186,12 +208,25 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom CSS
+ * \{ */
+
+/* À FAIRE : standardise https://drafts.csswg.org/cssom/#add-a-css-style-sheet */
+ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSSStyleSheet)
+{
+    tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom NoeudTypeDocument.
  * https://dom.spec.whatwg.org/#documenttype
  * \{ */
 
 NoeudTypeDocument :: struct {
     empl base: Noeud
+    table = *table_virtuelle_type_document
 
     nom: DOMString
     public_id: DOMString
@@ -207,6 +242,20 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
     retourne doctype
 }
 
+#portée_fichier
+
+table_virtuelle_type_document := TableVirtuelleÉlément(
+    sur_destruction = type_document_sur_destruction
+)
+
+type_document_sur_destruction :: fonc (base: *Noeud)
+{
+    type_document := base comme *NoeudTypeDocument
+    déloge(type_document)
+}
+
+#portée_export
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -216,6 +265,7 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 
 NoeudFragmentDocument :: struct {
     empl base: Noeud
+    table = *table_virtuelle_fragment_document
 }
 
 crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDocument
@@ -226,6 +276,20 @@ crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDoc
 
     retourne doctype
 }
+
+#portée_fichier
+
+table_virtuelle_fragment_document := TableVirtuelleÉlément(
+    sur_destruction = fragment_document_sur_destruction
+)
+
+fragment_document_sur_destruction :: fonc (base: *Noeud)
+{
+    fragment_document := base comme *NoeudFragmentDocument
+    déloge(fragment_document)
+}
+
+#portée_export
 
 /** \} */
 
@@ -264,6 +328,7 @@ est_données_caractères :: fonc (noeud: Noeud)
 
 NoeudTexte :: struct {
     empl base_données: NoeudDonnéesCaractères
+    table = *table_virtuelle_texte
 }
 
 crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
@@ -281,6 +346,21 @@ est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
     retourne est_vide_ou_uniquement_espaces_blanches(texte.données)
 }
 
+#portée_fichier
+
+table_virtuelle_texte := TableVirtuelleÉlément(
+    sur_destruction = texte_sur_destruction
+)
+
+texte_sur_destruction :: fonc (base: *Noeud)
+{
+    texte := base comme *NoeudTexte
+    détruit_chaine(texte.données)
+    déloge(texte)
+}
+
+#portée_export
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -290,6 +370,7 @@ est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
 
 NoeudSectionCDATA :: struct {
     empl base_texte: NoeudTexte
+    table = *table_virtuelle_section_cdata
 }
 
 crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
@@ -301,6 +382,21 @@ crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
     retourne texte
 }
 
+#portée_fichier
+
+table_virtuelle_section_cdata := TableVirtuelleÉlément(
+    sur_destruction = section_cdata_sur_destruction
+)
+
+section_cdata_sur_destruction :: fonc (base: *Noeud)
+{
+    section_cdata := base comme *NoeudSectionCDATA
+    détruit_chaine(section_cdata.données)
+    déloge(section_cdata)
+}
+
+#portée_export
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -310,6 +406,7 @@ crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
 
 NoeudCommentaire :: struct {
     empl base_données: NoeudDonnéesCaractères
+    table = *table_virtuelle_commentaire
 }
 
 crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
@@ -322,6 +419,21 @@ crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> 
     retourne commentaire
 }
 
+#portée_fichier
+
+table_virtuelle_commentaire := TableVirtuelleÉlément(
+    sur_destruction = commentaire_sur_destruction
+)
+
+commentaire_sur_destruction :: fonc (base: *Noeud)
+{
+    commentaire := base comme *NoeudCommentaire
+    détruit_chaine(commentaire.données)
+    déloge(commentaire)
+}
+
+#portée_export
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -331,6 +443,7 @@ crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> 
 
 NoeudProcessingInstruction :: struct {
     empl base_données: NoeudDonnéesCaractères
+    table = *table_virtuelle_processing_instruction
 
     cible: ChaineUTF16
 }
@@ -344,5 +457,21 @@ crée_noeud_processing_instruction :: fonc (document: *Document, données: Chain
 
     retourne résultat
 }
+
+#portée_fichier
+
+table_virtuelle_processing_instruction := TableVirtuelleÉlément(
+    sur_destruction = processing_instruction_sur_destruction
+)
+
+processing_instruction_sur_destruction :: fonc (base: *Noeud)
+{
+    processing_instruction := base comme *NoeudProcessingInstruction
+    détruit_chaine(processing_instruction.données)
+    détruit_chaine(processing_instruction.cible)
+    déloge(processing_instruction)
+}
+
+#portée_export
 
 /** \} */
