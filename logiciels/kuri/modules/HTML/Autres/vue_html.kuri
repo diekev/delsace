@@ -183,6 +183,7 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 PageWeb :: struct {
     uri: URI
     parsat: ParsatHTML
+    document: *Document
     contenu: chaine
     fonte: *Fonte
 }
@@ -201,8 +202,16 @@ crée_page_web :: fonc (uri: &URI, document: *Document) -> PageWeb
 {
     résultat: PageWeb
     résultat.uri = uri
-    résultat.parsat.document = document
+    résultat.document = document
     retourne résultat
+}
+
+donne_document :: fonc (page: *PageWeb) -> *Document
+{
+    si page.document {
+        retourne page.document
+    }
+    retourne page.parsat.document
 }
 
 détruit_données_page_web :: fonc (page: *PageWeb)
@@ -316,9 +325,9 @@ crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: Q
 
     résultat := crée_widget_arbre(nul, parent)
 
-    parsat := rappels.page_web.parsat
-    si parsat.document {
-        titre := parsat.document.donne_title_element()
+    document := donne_document(*rappels.page_web)
+    si document {
+        titre := document.donne_title_element()
         si titre {
             texte_titre := extrait_texte_noeud(titre)
             diffère déloge(texte_titre)
@@ -332,7 +341,7 @@ crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: Q
         QT_treewidgetitem_definis_texte(item_document, 0, *texte)
         QT_treewidget_ajoute_item_racine(résultat, item_document)
 
-        pour parsat.document.enfants {
+        pour document.enfants {
             ajoute_item_pour_noeud(item_document, it)
         }
     }
@@ -412,7 +421,7 @@ crée_widget_vue_source :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Ge
 crée_widget_vue_texte :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_PlainTextEdit
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    document := rappels.page_web.parsat.document
+    document := donne_document(*rappels.page_web)
 
     résultat := QT_cree_plain_text_edit(nul, parent)
     QT_plain_text_edit_definis_lecture_seule(résultat, vrai)
@@ -588,7 +597,7 @@ donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
 
 crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
 {
-    document := page.parsat.document
+    document := donne_document(page)
     saufsi document {
         retourne nul
     }
