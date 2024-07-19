@@ -1,0 +1,157 @@
+importe Chaine
+importe Fondation
+
+/* https://www.w3.org/TR/css-values/#value-defs */
+ValeurDeStyle :: union {
+    mot_clé: CSSOMString
+}
+
+détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
+{
+    discr mémoire(value) {
+        mot_clé(m) {
+            détruit_chaine(m)
+        }
+        sinon {}
+    }
+}
+
+est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool
+{
+    discr valeur {
+        mot_clé(m) {
+            retourne m == mot_clé
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeStyle)
+{
+    saufsi valeur {
+        retourne
+    }
+
+    discr mémoire(valeur) {
+        mot_clé(m) {
+            ajoute_au_tampon(enchaineuse, m)
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "VALEUR INVALIDE OU À IMPRIMER")
+        }
+    }
+} @FormattageImpression
+
+/* ------------------------------------------------------------------------- */
+/** \nom PropriétésDeStyle
+ * Cette structure représente les propriétés finales d'un élément après la
+ * cascade.
+ * \{ */
+
+PropriétésDeStyle :: struct {
+    déclarations: [..]*CSSDeclaration
+}
+
+détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
+{
+    déloge(propriétés.déclarations)
+}
+
+détruit_propriétés :: fonc (propriétés: *PropriétésDeStyle)
+{
+    détruit_données_propriétés(propriétés)
+    déloge(propriétés)
+}
+
+ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *CSSDeclaration)
+{
+    existante := propriétés.donne_déclaration(déclaration.property_name)
+    si existante {
+        retourne
+    }
+    tableau_ajoute(*propriétés.déclarations, déclaration)
+}
+
+donne_déclaration :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString) -> *CSSDeclaration
+{
+    pour propriétés.déclarations {
+        si it.property_name == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+/** \} */
+
+Style :: struct {
+    display: Display
+    // color: Color
+    // opacity: Opacity
+    // background: Background
+    // margin: Margin
+    // border: Border
+    // padding: Padding
+}
+
+/* https://drafts.csswg.org/css-backgrounds/ */
+// Background :: struct {
+//     color: Color
+// }
+
+// Border :: struct {
+//     width: [4]LineWidth
+//     color: [4]Color
+//     style: [4]LineStyle
+// }
+
+/* https://www.w3.org/TR/css-color-4/ */
+// Color :: struct {
+// }
+
+// Opacity :: struct {
+// }
+
+TypePropriété :: énum {
+    Display
+}
+
+/* https://drafts.csswg.org/css-display/#the-display-properties */
+Display :: struct {
+    Type :: énum n8 {
+        Block
+        Inline
+        RunIn
+        Flow
+        FlowRoot
+        Table
+        Flex
+        Grid
+        Ruby
+        ListItem
+        TableRowGroup
+        TableHeaderGroup
+        TableFooterGroup
+        TableRow
+        TableCell
+        TableColumnGroup
+        TableColumn
+        TableCaption
+        RubyBase
+        RubyText
+        RubyBaseContainer
+        RubyTextContainer
+        Contents
+        None
+        InlineBlock
+        InlineTable
+        InlineFlex
+        InlineGrid
+    }
+
+    /* Valeurs initiales. */
+    outer_type := Type.Inline
+    inner_type := Type.Flow
+}
