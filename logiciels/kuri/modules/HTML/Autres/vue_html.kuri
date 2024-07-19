@@ -130,7 +130,6 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
         }
 
         navigable := crée_un_fresh_top_level_traversable(*rappels.user_agent, uri) comme *TraversableNavigable
-        tableau_ajoute(*rappels.user_agent.top_level_traversables, navigable)
 
         page_web := crée_page_web(uri, navigable.donne_active_document())
         crée_widget_pour_page(rappels.fenetre, page_web)
