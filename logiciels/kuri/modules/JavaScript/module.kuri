@@ -440,11 +440,25 @@ vers_nombre :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> Complet
     }
 
     // 6. If argument is a String, return StringToNumber(argument).
+    si valeur.est_chaine() {
+        retourne normal_completion(string_to_number(valeur))
+    }
+
     // 7. Assert: argument is an Object.
+    assert(valeur.est_object())
+
     // 8. Let primValue be ? ToPrimitive(argument, NUMBER).
+    completion_primitive := vers_primitive(interpréteuse, valeur, TypePréféré.Number)
+    saufsi completion_primitive.est_normal() {
+        retourne completion_primitive
+    }
+    prim_value := completion_primitive.valeur.V
+
     // 9. Assert: primValue is not an Object.
+    assert(prim_value.est_object() == faux)
+
     // 10. Return ? ToNumber(primValue).
-    panique("to_number non-implémenté")
+    retourne vers_nombre(interpréteuse, prim_value)
 }
 
 /* 7.1.4.1.1 StringToNumber ( str )
