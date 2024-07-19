@@ -586,6 +586,17 @@ void Syntaxeuse::analyse_une_chose()
     if (genre_lexème == GenreLexème::IMPORTE) {
         consomme();
 
+        auto est_employé = true;
+        if (apparie(GenreLexème::DIRECTIVE)) {
+            consomme();
+
+            if (lexème_courant()->ident != ID::inemployé) {
+                rapporte_erreur("Directive invlide après « importe »");
+            }
+            consomme();
+            est_employé = false;
+        }
+
         auto expression = NoeudExpression::nul();
         if (apparie(GenreLexème::CHAINE_LITTERALE)) {
             expression = m_tacheronne.assembleuse->crée_littérale_chaine(lexème_courant());
@@ -599,6 +610,7 @@ void Syntaxeuse::analyse_une_chose()
 
         auto noeud = m_tacheronne.assembleuse->crée_importe(lexème, expression);
         noeud->bloc_parent->ajoute_expression(noeud);
+        noeud->est_employé = est_employé;
 
         requiers_typage(noeud);
         m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
@@ -629,6 +641,29 @@ void Syntaxeuse::analyse_une_chose()
         consomme();
     }
     else if (apparie_expression()) {
+        if (lexème_courant()->genre == GenreLexème::DIRECTIVE) {
+            consomme();
+
+            auto ident = lexème_courant()->ident;
+            if (ident == ID::portée_export) {
+                m_portée = PortéeSymbole::EXPORT;
+                consomme();
+                return;
+            }
+            if (ident == ID::portée_fichier) {
+                m_portée = PortéeSymbole::FICHIER;
+                consomme();
+                return;
+            }
+            if (ident == ID::portée_module) {
+                m_portée = PortéeSymbole::MODULE;
+                consomme();
+                return;
+            }
+
+            recule();
+        }
+
         auto noeud = analyse_expression({}, GenreLexème::INCONNU, GenreLexème::INCONNU);
 
         if (!noeud) {
@@ -638,6 +673,10 @@ void Syntaxeuse::analyse_une_chose()
 
         if (noeud->est_déclaration()) {
             noeud->drapeaux |= DrapeauxNoeud::EST_GLOBALE;
+
+            if (noeud->est_déclaration_symbole()) {
+                noeud->comme_déclaration_symbole()->portée = m_portée;
+            }
 
             if (noeud->est_base_déclaration_variable()) {
                 assert_rappel(noeud->bloc_parent, [&]() {
