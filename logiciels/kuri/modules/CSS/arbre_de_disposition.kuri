@@ -52,6 +52,32 @@ crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -
     retourne résultat
 }
 
+donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
+{
+    noeud := donne_noeud_pour_position(arbre.racine, x, y)
+    saufsi noeud {
+        retourne nul
+    }
+    retourne noeud.donne_élément()
+}
+
+donne_noeud_pour_position :: fonc (noeud: *NoeudDeDisposition, x: z32, y: z32) -> *NoeudDeDisposition
+{
+    rect := noeud.donne_rectangle()
+    saufsi rect.contient(x, y) {
+        retourne nul
+    }
+
+    pour noeud.enfants {
+        résultat := donne_noeud_pour_position(it, x, y)
+        si résultat {
+            retourne résultat
+        }
+    }
+
+    retourne noeud
+}
+
 ContexteDisposition :: struct {
     fonte: *Fonte
     largeur_disponible: n32
@@ -95,6 +121,31 @@ NoeudDeDisposition :: struct {
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
+}
+
+donne_rectangle :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
+{
+    rect: RectanglePosDim(z32)
+    rect.x = noeud.position_x comme z32
+    rect.y = noeud.position_y comme z32
+    rect.largeur = noeud.largeur comme z32
+    rect.hauteur = noeud.hauteur comme z32
+    retourne rect
+}
+
+donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
+{
+    noeud_courant := noeud
+
+    tantque noeud_courant != nul && noeud_courant.type != NoeudDeDispositionBloc {
+        noeud_courant = noeud_courant.parent
+    }
+
+    si noeud_courant {
+        retourne (noeud_courant comme *NoeudDeDispositionBloc).élément
+    }
+
+    retourne nul
 }
 
 décale :: fonc (noeud: *NoeudDeDisposition, x: n32, y: n32)
