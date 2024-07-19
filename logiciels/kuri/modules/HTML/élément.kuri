@@ -824,7 +824,8 @@ table_virtuelle_style_element := TableVirtuelleÉlément(
     sur_destruction = style_element_sur_destruction,
     sur_connexion = style_element_sur_connexion_ou_déconnexion,
     sur_déconnexion = style_element_sur_connexion_ou_déconnexion,
-    sur_dépilement = style_element_sur_dépilement
+    sur_dépilement = style_element_sur_dépilement,
+    sur_changement_enfants = style_element_sur_changement_enfants
 )
 
 style_element_sur_destruction :: fonc (base: *Noeud)
@@ -847,13 +848,18 @@ style_element_sur_dépilement :: fonc (base: *Élément)
     ajourne_style_block(style)
 }
 
+style_element_sur_changement_enfants :: fonc (base: *Noeud)
+{
+    style := base comme *HTMLStyleElement
+    ajourne_style_block(style)
+}
+
 /* https://html.spec.whatwg.org/multipage/semantics.html#update-a-style-block
  *
- * À FAIRE : implémente tous les cas
  * The user agent must run the update a style block algorithm whenever any of the following conditions occur:
- * [X] The element is popped off the stack of open elements of an HTML parser or XML parser.
- * [X] The element is not on the stack of open elements of an HTML parser or XML parser, and it becomes connected or disconnected.
- * [ ] The element's children changed steps run.
+ *     The element is popped off the stack of open elements of an HTML parser or XML parser.
+ *     The element is not on the stack of open elements of an HTML parser or XML parser, and it becomes connected or disconnected.
+ *     The element's children changed steps run.
  */
 ajourne_style_block :: fonc (style: *HTMLStyleElement)
 {
