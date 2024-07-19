@@ -1,4 +1,5 @@
 importe Chaine
+importe #inemployé HTML
 importe Fondation
 importe Internet
 
@@ -43,7 +44,7 @@ prétraite :: fonc (chn: &ChaineUTF32)
     }
 }
 
-collecte_les_règles_appropriées :: fonc (stylesheet: *CSSStyleSheet, élément: CSSOMString) -> [..]*CSSStyleRule
+collecte_les_règles_appropriées :: fonc (stylesheet: *CSSStyleSheet, élément: *HTML.Élément) -> [..]*CSSStyleRule
 {
     règles: [..]*CSSStyleRule
 
@@ -66,7 +67,7 @@ collecte_les_règles_appropriées :: fonc (stylesheet: *CSSStyleSheet, élément
     retourne règles
 }
 
-apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: CSSOMString) -> bool
+apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: *HTML.Élément) -> bool
 {
     si compound.simple_selectors.taille != 1 {
         retourne faux
@@ -78,7 +79,7 @@ apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: CSSOMString)
         retourne faux
     }
 
-    retourne simple.ident == élément
+    retourne simple.ident == élément.texte
 }
 
 /* ------------------------------------------------------------------------- */

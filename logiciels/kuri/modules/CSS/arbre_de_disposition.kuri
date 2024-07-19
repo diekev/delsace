@@ -329,7 +329,7 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
 
     élément := noeud comme *HTML.Élément
 
-    règles := collecte_les_règles_appropriées(stylesheet, élément.texte.donne_chaine_utf16())
+    règles := collecte_les_règles_appropriées(stylesheet, élément)
     diffère déloge(règles)
 
     imprime("% règle(s) pour %\n", règles.taille, élément.texte)
