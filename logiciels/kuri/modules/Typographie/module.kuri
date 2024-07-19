@@ -1,4 +1,5 @@
 importe Chaine
+importe Couleur
 importe FTGL
 importe SysFichier
 
@@ -34,6 +35,11 @@ détruit_fonte :: fonc (fonte: *Fonte)
 donne_glyphe :: fonc (fonte: *Fonte, c: *z8) -> *texture_glyph_t
 {
     retourne texture_font_get_glyph(fonte.font, c)
+}
+
+donne_glyphe_nul :: fonc (fonte: *Fonte) -> *texture_glyph_t
+{
+    retourne texture_font_get_glyph(fonte.font, nul)
 }
 
 donne_glyphe :: fonc (fonte: *Fonte, point_de_code: n32) -> *texture_glyph_t
@@ -158,6 +164,27 @@ donne_crénage_avec :: fonc (glyphe: *texture_glyph_t, glyphe_précédent: *text
     }
 
     retourne texture_glyph_get_kerning_glyph(glyphe, glyphe_précédent)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EffetsTexte
+ * Effets pour le rendu.
+ * \{ */
+
+EffetsTexte :: struct {
+    /* Le texte sera surligné. */
+    surlignage: bool
+    couleur_surlignage: CouleurRVBA
+
+    /* Le texte sera sousligné. */
+    souslignage: bool
+    couleur_souslignage: CouleurRVBA
+
+    /* Le texte sera barré. */
+    barrage: bool
+    couleur_barrage: CouleurRVBA
 }
 
 /** \} */
