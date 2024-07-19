@@ -484,13 +484,13 @@ donne_active_document :: fonc (browsing_context: *BrowsingContext) -> *Document
 
 /* A browsing context's top-level traversable is its active document's 
  * navigable's top-level traversable. */
-donne_top_level_traversable :: fonc (browsing_context: *BrowsingContext) -> *rien
+donne_top_level_traversable :: fonc (browsing_context: *BrowsingContext) -> *TraversableNavigable
 {
     active_document := donne_active_document(browsing_context)
     saufsi active_document {
         retourne nul
     }
-    navigable := active_document.donne_navigable()
+    navigable := active_document.donne_node_navigable()
     saufsi navigable {
         retourne nul
     }
