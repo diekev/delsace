@@ -46,6 +46,7 @@ RappelsInterface :: struct {
     sur_destruction: fonc(*RappelsInterface)(rien)
     sur_lancement_requête: fonc(*RappelsInterface, *Requête)(rien)
     sur_spin_event_loop: fonc(*RappelsInterface)(rien)
+    sur_élément_survolé: fonc(*RappelsInterface)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -53,6 +54,16 @@ détruit_rappels :: fonc (rappels: *RappelsInterface)
     si rappels.sur_destruction {
         rappels.sur_destruction(rappels)
     }
+}
+
+notifie_élément_survolé :: fonc (user_agent: *UserAgent)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_élément_survolé {
+        retourne
+    }
+
+    rappels.sur_élément_survolé(rappels)
 }
 
 /** \} */

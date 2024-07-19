@@ -210,7 +210,7 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom CSS
+/** \nom CSS, Interface
  * \{ */
 
 /* À FAIRE : standardise https://drafts.csswg.org/cssom/#add-a-css-style-sheet */
@@ -225,8 +225,20 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
         retourne
     }
 
-    // À FAIRE : ajout de :hover, curseur
+    // À FAIRE : ajout de :hover
     document.noeud_survolé = noeud
+
+    browsing_context := document.browsing_context
+    saufsi browsing_context {
+        /* Permet d'appeler cette fonction en dehors d'un contexte de navigation. */
+        retourne
+    }
+
+    assert(browsing_context.group != nul)
+    assert(browsing_context.group.user_agent != nul)
+
+    user_agent := browsing_context.group.user_agent
+    user_agent.notifie_élément_survolé()
 }
 
 /** \} */

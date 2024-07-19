@@ -92,6 +92,9 @@ principale :: fonc () -> z32
     QT_widget_definis_titre_fenetre(fenêtre, vers_qt("HTML"))
     QT_widget_affiche_maximisee(fenêtre)
 
+    rappels_user_agent := crée_rappels_interface_qt(fenêtre)
+    définis_rappels_interface(*rappels_fenêtre.user_agent, rappels_user_agent)
+
     rappels_fenêtre.chargeuse_ressource.rappels_interface = crée_rappels_interface_qt(fenêtre)
 
     si chemin_fichier {
@@ -111,6 +114,7 @@ principale :: fonc () -> z32
  * \{ */
 
 évènement_sur_création_onglet : z32 = -1
+évènement_sur_survole_élément : z32 = -1
 
 ÉvènementCréationOnglet :: struct {
     uri: chaine
@@ -119,6 +123,7 @@ principale :: fonc () -> z32
 initialise_évènements_personnalisés :: fonc ()
 {
     évènement_sur_création_onglet = QT_enregistre_evenement_personnel()
+    évènement_sur_survole_élément = QT_enregistre_evenement_personnel()
 }
 
 sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
@@ -152,6 +157,26 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
         crée_widget_pour_page(rappels.fenetre, page_web)
 
         déloge(message)
+
+        QT_evenement_accepte(event)
+        retourne 1
+    }
+
+    si type == évènement_sur_survole_élément {
+        rappels := base comme *RappelsFenetrePrincipale
+        document := donne_document(*rappels.page_web)
+
+        /* Restaure toujours le curseur pour éviter d'être bloqué avec un curseur quand
+         * nous passons d'un élément à un autre ayant le même curseur : ceci empilera un
+         * nouveau curseur et une restauration suivante nous renverraient sur le curseur
+         * du premier élément. */
+        QT_gui_application_restaure_curseur()
+
+        // À FAIRE : utilise CSS
+        élément := document.noeud_survolé
+        si élément && élément.texte == TAG_a {
+            QT_gui_application_definis_curseur(QT_CursorShape.POINTING_HAND)
+        }
 
         QT_evenement_accepte(event)
         retourne 1
@@ -721,9 +746,23 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
 {
     résultat := loge(RappelsInterfaceQt)
     résultat.fenêtre = fenêtre
+    résultat.sur_destruction = rappels_interface_sur_destruction
+    résultat.sur_élément_survolé = rappels_interface_sur_élément_survolé
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
     résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
     retourne résultat
+}
+
+rappels_interface_sur_destruction :: fonc (base: *RappelsInterface)
+{
+    rappels := base comme *RappelsInterfaceQt
+    déloge(rappels)
+}
+
+rappels_interface_sur_élément_survolé :: fonc (base: *RappelsInterface)
+{
+    rappels := base comme *RappelsInterfaceQt
+    QT_application_poste_evenement(rappels.fenêtre, évènement_sur_survole_élément)
 }
 
 rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Requête)
