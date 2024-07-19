@@ -345,7 +345,6 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
     imprime("% règle(s) pour %\n", règles.taille, élément.texte)
 
     propriétés: PropriétésDeStyle
-    diffère détruit_données_propriétés(*propriétés)
 
     pour règles {
         imprime_règle(it)
@@ -355,11 +354,13 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
     }
 
     si est_display_none(*propriétés) {
+        détruit_données_propriétés(*propriétés)
         retourne
     }
 
     résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
     résultat.élément = élément
+    résultat.propriétés = propriétés
     parent.ajoute_enfant(résultat)
 
     pour noeud.enfants {
