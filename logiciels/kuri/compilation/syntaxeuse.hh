@@ -4,6 +4,8 @@
 #pragma once
 
 #include "arbre_syntaxique/prodeclaration.hh"
+#include "arbre_syntaxique/utilitaires.hh"
+
 #include "parsage/base_syntaxeuse.hh"
 #include "structures/pile.hh"
 
@@ -40,6 +42,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
     kuri::pile<NoeudDéclarationEntêteFonction *> fonctions_courantes{};
 
     bool m_fonction_courante_retourne_plusieurs_valeurs = false;
+
+    PortéeSymbole m_portée = PortéeSymbole::EXPORT;
 
   public:
     Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite);

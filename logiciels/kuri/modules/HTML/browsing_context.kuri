@@ -45,6 +45,13 @@ SessionHistoryEntry :: struct {
     // persisted user state, which is implementation-defined, initially null
 }
 
+détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
+{
+    détruit_noeud(she.document_state.document)
+    déloge(she.document_state)
+    déloge(she)
+}
+
 donne_document :: fonc (she: *SessionHistoryEntry) -> *Document
 {
     retourne she.document_state.document
@@ -55,6 +62,12 @@ UserAgent :: struct {
     top_level_traversables: [..]*TraversableNavigable
     /* https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context-group-set */
     browsing_context_groups: [..]*BrowsingContextGroup
+}
+
+détruit_données_user_agent :: fonc (user_agent: *UserAgent)
+{
+    déloge_tableau_et_ses_éléments(user_agent.top_level_traversables, détruit_traversable)
+    déloge_tableau_et_ses_éléments(user_agent.browsing_context_groups, détruit_browsing_context_group)
 }
 
 /* ------------------------------------------------------------------------- */
@@ -115,7 +128,7 @@ donne_active_browsing_context :: fonc (navigable: *Navigable) -> *BrowsingContex
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-container */
-donne_container :: fonc (navigable: *Navigable) -> *Élément
+donne_container :: fonc (navigable: *Navigable @inutilisée) -> *Élément
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne nul
@@ -175,6 +188,12 @@ TraversableNavigable :: struct {
     // A session history traversal queue, a session history traversal parallel queue, the result of starting a new session history traversal parallel queue.
     // A running nested apply history step boolean, initially false.
     // A system visibility state, which is either "hidden" or "visible".
+}
+
+détruit_traversable :: fonc (traversable: *TraversableNavigable)
+{
+    déloge_tableau_et_ses_éléments(traversable.session_history_entries, détruit_session_history_entry)
+    déloge(traversable)
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable */
@@ -408,6 +427,15 @@ BrowsingContextGroup :: struct {
     contexts: [..]*BrowsingContext
 }
 
+détruit_browsing_context_group :: fonc (group: *BrowsingContextGroup)
+{
+    pour group.contexts {
+        détruit_browsing_context(it)
+    }
+    déloge(group.contexts)
+    déloge(group)
+}
+
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#windows */
 BrowsingContext :: struct {
     window_proxy: *WindowProxy
@@ -421,6 +449,11 @@ BrowsingContext :: struct {
     virtual_browsing_context_group_id: z32
 
     group: *BrowsingContextGroup
+}
+
+détruit_browsing_context :: fonc (browsing_context: *BrowsingContext)
+{
+    déloge(browsing_context)
 }
 
 /* A browsing context's active window is its WindowProxy object's [[Window]]
@@ -497,7 +530,7 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     browsing_context := loge(BrowsingContext)
 
     // 2. Let unsafeContextCreationTime be the unsafe shared current time.
-    unsafe_context_creation_time := unsafe_shared_current_time()
+    // unsafe_context_creation_time := unsafe_shared_current_time()
 
     // 3. Let creatorOrigin be null.
     creator_origin: Optionnel(Origin)
