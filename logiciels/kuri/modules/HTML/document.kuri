@@ -80,6 +80,8 @@ Document :: struct {
     /* CSS. */
     feuilles_de_style: [..]*CSS.CSSStyleSheet
     arbre_de_disposition: *CSS.ArbreDeDisposition
+
+    noeud_survolé: *Élément
 }
 
 #portée_fichier
@@ -215,6 +217,16 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
 ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSSStyleSheet)
 {
     tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
+}
+
+définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
+{
+    si document.noeud_survolé == noeud {
+        retourne
+    }
+
+    // À FAIRE : ajout de :hover, curseur
+    document.noeud_survolé = noeud
 }
 
 /** \} */
