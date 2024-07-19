@@ -62,6 +62,14 @@ NavigationParams :: struct {
     about_base_URL: Optionnel(URI)
 }
 
+détruit_navigation_params :: fonc (navigation_params: *NavigationParams)
+{
+    détruit_fetch_controller(navigation_params.fetch_controller)
+    détruit_response(navigation_params.response)
+    détruit_request(navigation_params.request)
+    déloge(navigation_params)
+}
+
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#source-snapshot-params */
 SourceSnapshotParams :: struct {
     has_transient_activation: bool
@@ -460,6 +468,7 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
 
         // 8. Run completionSteps.
         run(completion_steps)
+        détruit_navigation_params(navigation_params)
     }
 }
 
@@ -785,7 +794,10 @@ load_an_html_document :: fonc (navigation_params: *NavigationParams) -> *Documen
 {
     // À FAIRE : implémente proprement
     response := navigation_params.response
-    document := parse_document(response.body.Quelque).document
+    parsat := parse_document(response.body.Quelque)
+    diffère détruit(parsat)
+    document := parsat.document
+    parsat.document = nul
     retourne document
 }
 
