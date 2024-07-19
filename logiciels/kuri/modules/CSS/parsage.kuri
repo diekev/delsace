@@ -13,6 +13,30 @@ ParsedStyleSheet :: struct {
     value: [..]*ParsedRule
 }
 
+détruit_données_stylesheet :: fonc (stylesheet: *ParsedStyleSheet)
+{
+    imprime("[%] : % value(s)\n", #nom_de_cette_fonction, stylesheet.value.taille)
+    pour stylesheet.value {
+        détruit_tableau_component_value(*it.prelude)
+        détruit_données_bloc(*it.bloc)
+        
+        si it.type == ParsedQualifiedRule {
+            qualified := it comme *ParsedQualifiedRule
+            déloge(qualified)
+        }
+        sinon si it.type == ParsedAtRule {
+            at := it comme *ParsedAtRule
+            détruit_chaine(at.name)
+            déloge(at)
+        }
+        sinon {
+            déloge(it)
+        }
+    }
+
+    déloge(stylesheet.value)
+}
+
 ParsedRule :: struct {
     type: type_de_données
     prelude: [..]ComponentValue
@@ -35,10 +59,21 @@ ParsedSimpleBlock :: struct {
     value: [..]ComponentValue
 }
 
+détruit_données_bloc :: fonc (bloc: *ParsedSimpleBlock)
+{
+    détruit_tableau_component_value(*bloc.value)
+}
+
 ParsedDeclaration :: struct {
     name: ChaineUTF16
     value: [..]ComponentValue
     important: bool
+}
+
+détruit_données_déclaration :: fonc (déclaration: *ParsedDeclaration)
+{
+    détruit_chaine(déclaration.name)
+    détruit_tableau_component_value(*déclaration.value)
 }
 
 ParsedFunction :: struct {
@@ -46,10 +81,35 @@ ParsedFunction :: struct {
     value: [..]ComponentValue
 }
 
+détruit_données_function :: fonc (function: *ParsedFunction)
+{
+    détruit_chaine(function.name)
+    détruit_tableau_component_value(*function.value)
+}
+
 ComponentValue :: union {
     lexème: Lexème
     function: ParsedFunction
     bloc: ParsedSimpleBlock
+}
+
+détruit_tableau_component_value :: fonc (value: *[..]ComponentValue)
+{
+    tmp := mémoire(value)
+    pour tmp {
+        discr it {
+            function(f) {
+                détruit_données_function(*f)
+            }
+            bloc(b) {
+                détruit_données_bloc(*b)
+            }
+            sinon {}
+        }
+    }
+
+    déloge(tmp)
+    mémoire(value) = tmp
 }
 
 donne_texte :: fonc (value: ComponentValue) -> ChaineUTF16 #enligne
@@ -232,6 +292,11 @@ StyleBlockContent :: struct {
 
 détruit_content :: fonc (content: &StyleBlockContent)
 {
+    pour content.decls {
+        détruit_chaine(it.name)
+        déloge(it.value)
+    }
+
     déloge(content.rules)
     déloge(content.decls)
 }
@@ -314,6 +379,7 @@ consomme_une_règle_arobase :: fonc (parseuse: &Parseuse($T)) -> *ParsedAtRule
 
     résultat := loge(ParsedAtRule)
     résultat.name = parseuse.lexème_courant().donne_texte()
+    résultat.name = copie_chaine(résultat.name)
 
     tantque !fini(parseuse) {
         lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -469,7 +535,7 @@ consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedD
     lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
 
     résultat: ParsedDeclaration
-    résultat.name = lexème.lexème.valeur
+    résultat.name = copie_chaine(lexème.lexème.valeur)
 
     // 1. While the next input token is a <whitespace-token>, consume the next input token.
     consomme_espaces_blanches(parseuse)
@@ -595,6 +661,7 @@ consomme_une_fonction :: fonc (parseuse: &Parseuse($T), lexème_function: T) -> 
 {
     résultat: ParsedFunction
     résultat.name = lexème_function.donne_texte()
+    résultat.name = copie_chaine(résultat.name)
 
     tantque !fini(parseuse) {
         lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -1203,6 +1270,9 @@ rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeSty
 
 détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
 {
+    pour ctx.propriétés_non_supportées {
+        détruit_chaine(it)
+    }
     déloge(ctx.propriétés_non_supportées)
 }
 
@@ -1212,7 +1282,11 @@ propriété_est_supportée :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CS
         retourne vrai
     }
 
-    ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
+    /* Protection pour la copie. */
+    saufsi ensemble_possède(*ctx.propriétés_non_supportées, nom) {
+        ensemble_ajoute(*ctx.propriétés_non_supportées, copie_chaine(nom))
+    }
+
     retourne faux
 }
 
@@ -1220,9 +1294,10 @@ propriété_est_supportée :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CS
 parse_a_css_style_sheet :: fonc (ctx: *ContexteParsageFeuilleDeStyle, contenu: chaine) -> *CSSStyleSheet
 {
     lexèmes := lèxe_style(contenu)
-    diffère déloge(lexèmes)
+    diffère détruit_lexèmes(*lexèmes)
 
     stylesheet := parse_a_stylesheet(lexèmes)
+    diffère détruit_données_stylesheet(*stylesheet)
 
     résultat := loge(CSSStyleSheet)
     résultat.type = crée_chaine_utf16("text/css")
@@ -1273,7 +1348,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
         }
 
         déclaration := loge(CSSDeclaration)
-        déclaration.property_name = it.name
+        déclaration.property_name = copie_chaine(it.name)
         déclaration.value = valeur
         déclaration.important = it.important
 
@@ -1281,7 +1356,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
     }
 
     si résultat.déclarations.taille == 0 {
-        déloge(résultat)
+        détruit_style_rule(résultat)
         retourne
     }
 
@@ -1322,14 +1397,14 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
     mot_clé := parseuse.parse_display_outside()
     si mot_clé.possède_valeur() {
         résultat: [..]ValeurDeStyle
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
+        tableau_ajoute(*résultat, ValeurDeStyle(copie_chaine(mot_clé.Quelque)))
         retourne résultat
     }
 
     mot_clé = parseuse.parse_display_box()
     si mot_clé.possède_valeur() {
         résultat: [..]ValeurDeStyle
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
+        tableau_ajoute(*résultat, ValeurDeStyle(copie_chaine(mot_clé.Quelque)))
         retourne résultat
     }
 }

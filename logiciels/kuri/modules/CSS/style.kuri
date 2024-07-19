@@ -1,8 +1,19 @@
+importe Chaine
 importe Fondation
 
 /* https://www.w3.org/TR/css-values/#value-defs */
 ValeurDeStyle :: union {
     mot_clé: CSSOMString
+}
+
+détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
+{
+    discr mémoire(value) {
+        mot_clé(m) {
+            détruit_chaine(m)
+        }
+        sinon {}
+    }
 }
 
 est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool

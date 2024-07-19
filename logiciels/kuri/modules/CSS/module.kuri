@@ -90,6 +90,15 @@ SelectorList :: struct {
     complex_selectors: [..]ComplexSelector
 }
 
+détruit_données_selector_list :: fonc (selector: *SelectorList)
+{
+    pour * selector.complex_selectors {
+        détruit_données_complex_selector(it)
+    }
+
+    déloge(selector.complex_selectors)
+}
+
 imprime_selector_list :: fonc (enchaineuse: *Enchaineuse, selector_list: *SelectorList)
 {
     saufsi selector_list {
@@ -107,6 +116,15 @@ imprime_selector_list :: fonc (enchaineuse: *Enchaineuse, selector_list: *Select
 
 ComplexSelector :: struct {
     compound_selectors: [..]CompoundSelector
+}
+
+détruit_données_complex_selector :: fonc (selector: *ComplexSelector)
+{
+    pour * selector.compound_selectors {
+        détruit_données_compound_selector(it)
+    }
+
+    déloge(selector.compound_selectors)
 }
 
 imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: *ComplexSelector)
@@ -151,6 +169,15 @@ Combinator :: énum {
 CompoundSelector :: struct {
     simple_selectors: [..]SimpleSelector
     combinateur: Combinator
+}
+
+détruit_données_compound_selector :: fonc (selector: *CompoundSelector)
+{
+    pour * selector.simple_selectors {
+        détruit_données_simple_selector(it)
+    }
+
+    déloge(selector.simple_selectors)
 }
 
 imprime_compound_selector :: fonc (enchaineuse: *Enchaineuse, compound_selectors: *CompoundSelector)
@@ -205,6 +232,15 @@ SimpleSelector :: struct {
 
     /* Pour :dir. */
     arg: ChaineUTF16
+}
+
+détruit_données_simple_selector :: fonc (selector: *SimpleSelector)
+{
+    détruit_chaine(selector.namespace_prefix)
+    détruit_chaine(selector.ident)
+    détruit_chaine(selector.attribute_value)
+    détruit_chaine(selector.arg)
+    détruit_données_selector_list(*selector.selector_list)
 }
 
 imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSelector)
@@ -303,44 +339,44 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
 
 crée_type_selector :: fonc (namespace_prefix: ChaineUTF16, ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Type, namespace_prefix, ident)
+    retourne SimpleSelector(SimpleSelector.Type.Type, copie_chaine(namespace_prefix), copie_chaine(ident))
 }
 
 crée_universal_selector :: fonc (namespace_prefix: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Universal, namespace_prefix)
+    retourne SimpleSelector(SimpleSelector.Type.Universal, copie_chaine(namespace_prefix))
 }
 
 crée_id_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.ID, ChaineUTF16(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.ID, ChaineUTF16(), copie_chaine(ident))
 }
 
 crée_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Class, ChaineUTF16(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.Class, ChaineUTF16(), copie_chaine(ident))
 }
 
 crée_attribute_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), copie_chaine(ident))
 }
 
 crée_attribute_selector :: fonc (ident: ChaineUTF16, matcher: SimpleSelector.AttributeMatcher, value: ChaineUTF16, modifier: Optionnel(SimpleSelector.AttributeModifier)) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), ident, matcher, value, modifier)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, ChaineUTF16(), copie_chaine(ident), matcher, copie_chaine(value), modifier)
 }
 
 crée_pseudo_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), copie_chaine(ident))
 }
 
 crée_function_selector :: fonc (ident: ChaineUTF16, arguments: SelectorList) -> SimpleSelector
 {
     résultat: SimpleSelector
     résultat.type = SimpleSelector.Type.PseudoClass
-    résultat.ident = ident
+    résultat.ident = copie_chaine(ident)
     résultat.est_fonction = vrai
     résultat.selector_list = arguments
     retourne résultat
@@ -351,9 +387,9 @@ crée_function_selector :: fonc (ident: ChaineUTF16, arg: ChaineUTF16) -> Simple
 {
     résultat: SimpleSelector
     résultat.type = SimpleSelector.Type.PseudoClass
-    résultat.ident = ident
+    résultat.ident = copie_chaine(ident)
     résultat.est_fonction = vrai
-    résultat.arg = arg
+    résultat.arg = copie_chaine(arg)
     retourne résultat
 }
 

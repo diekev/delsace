@@ -170,6 +170,17 @@ Lexème :: struct {
     unité: ChaineUTF16
 }
 
+détruit_lexèmes :: fonc (lexèmes: *[..]Lexème)
+{
+    tmp := mémoire(lexèmes)
+    pour tmp {
+        détruit_chaine(it.valeur)
+        détruit_chaine(it.unité)
+    }
+    déloge(tmp)
+    mémoire(lexèmes) = tmp
+}
+
 donne_texte :: fonc (lexème: Lexème) -> ChaineUTF16 #enligne
 {
     retourne lexème.valeur
