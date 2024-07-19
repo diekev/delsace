@@ -36,6 +36,11 @@ donne_glyphe :: fonc (fonte: *Fonte, c: *z8) -> *texture_glyph_t
     retourne texture_font_get_glyph(fonte.font, c)
 }
 
+donne_glyphe_nul :: fonc (fonte: *Fonte) -> *texture_glyph_t
+{
+    retourne texture_font_get_glyph(fonte.font, nul)
+}
+
 donne_glyphe :: fonc (fonte: *Fonte, point_de_code: n32) -> *texture_glyph_t
 {
     retourne texture_font_get_glyph_codepoint(fonte.font, point_de_code)
