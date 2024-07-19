@@ -38,6 +38,9 @@ TableVirtuelleÉlément :: struct {
 
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
     sur_dépilement: fonc(*Élément)(rien)
+
+    /* Appelé quand un attribut est ajouté, modifié, ou supprimé. */
+    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(rien)
 }
 
 #portée_export
@@ -73,9 +76,32 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 /* https://dom.spec.whatwg.org/#concept-element-attributes-append */
 ajoute_attribut :: fonc (élément: *Élément, attribut: Attribut)
 {
-    // attribut.élément = élément
+    // 1. Append attribute to element’s attribute list.
     ajoute_attribut(élément, attribut.nom, attribut.valeur)
-    /* INCOMPLET : 3. Handle attribute changes. */
+
+    // À FAIRE 2. Set attribute’s element to element.
+
+    // 3. Handle attribute changes for attribute with element, null, and attribute’s value.
+    gère_changement_attribute(attribut, élément, nul, *attribut.valeur)
+}
+
+/* https://dom.spec.whatwg.org/#handle-attribute-changes */
+gère_changement_attribute :: fonc (attribut: Attribut, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
+{
+    // À FAIRE 1. Queue a mutation record of "attributes" for element with attribute’s local name,
+    //    attribute’s namespace, oldValue, « », « », null, and null.
+
+    // À FAIRE 2. If element is custom, then enqueue a custom element callback reaction with element,
+    //    callback name "attributeChangedCallback", and an argument list containing attribute’s
+    //    local name, oldValue, newValue, and attribute’s namespace.
+
+    // 3. Run the attribute change steps with element, attribute’s local name, oldValue, newValue,
+    //    and attribute’s namespace.
+    // À FAIRE : espace de nom pour l'attribut
+    table := élément.table comme *TableVirtuelleÉlément
+    si table && table.sur_changement_attribut {
+        table.sur_changement_attribut(élément, attribut.nom, vieille_valeur, nouvelle_valeur)
+    }
 }
 
 initialise_élément :: fonc (élément: *Élément, document: *Document, texte: DOMString) -> rien
