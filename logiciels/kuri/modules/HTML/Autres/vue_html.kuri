@@ -184,7 +184,6 @@ PageWeb :: struct {
     uri: URI
     parsat: ParsatHTML
     contenu: chaine
-    arbre_de_disposition: *CSS.ArbreDeDisposition
     fonte: *Fonte
 }
 
@@ -210,7 +209,6 @@ détruit_données_page_web :: fonc (page: *PageWeb)
 {
     détruit(page.parsat)
     déloge(page.contenu)
-    CSS.détruit_arbre(page.arbre_de_disposition)
 }
 
 /** \} */
