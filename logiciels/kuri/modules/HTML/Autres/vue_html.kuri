@@ -26,7 +26,13 @@ contexte_entrée: ContexteProgramme
 
 mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
 {
-    imprime("%\n", c)
+    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier("fuites_de_mémoire.txt"), pour_écriture_tronquée) piège _ {
+        imprime("%\n", c)
+        retourne
+    }
+
+    _ := écris(*fichier, c)
+    _ := ferme(*fichier)
 }
 
 principale :: fonc () -> z32
@@ -35,12 +41,23 @@ principale :: fonc () -> z32
 
     /* Nous ne pouvons pas utiliser un nouveau contexte car la fonction principale
      * peut ne pas se terminer (lors des fermetures de fenêtres). */
+    __contexte_fil_principal.logueur = mon_logueur
     contexte_entrée = __contexte_fil_principal
 
     #si DÉBOGUE_ALLOCATIONS {
-        __contexte_fil_principal.logueur = mon_logueur
         __contexte_fil_principal.allocatrice = allocation_gardée
         __contexte_fil_principal.données_allocatrice = *allocatrice_gardée
+    }
+
+    diffère {
+        /* Restaure le contexte. */
+        __contexte_fil_principal = contexte_entrée
+
+        imprime("mémoire_utilisée %\n", mémoire_utilisée() - mémoire_entrée)
+
+        #si DÉBOGUE_ALLOCATIONS {
+            imprime_liste_mémoire(*allocatrice_gardée)
+        }
     }
 
     arguments := __arguments_ligne_commande
@@ -161,17 +178,11 @@ RappelFermetureApp :: struct {
 sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 {    
     rappel := base comme *RappelFermetureApp
-
     détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
+    détruit_données_user_agent(*rappel.rappels_fenêtre.user_agent)
 
-    /* Restaure le contexte. */
-    __contexte_fil_principal = contexte_entrée
-
-    imprime("mémoire_utilisée %\n", mémoire_utilisée() - rappel.mémoire_entrée)
-
-    #si DÉBOGUE_ALLOCATIONS {
-        imprime_liste_mémoire(*allocatrice_gardée)
-    }
+    rappels_interface := rappel.rappels_fenêtre.chargeuse_ressource.rappels_interface comme *RappelsInterfaceQt
+    déloge(rappels_interface)
 }
 
 /** \} */
