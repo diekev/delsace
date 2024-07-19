@@ -75,6 +75,10 @@ apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: *HTML.Élém
 
     simple := compound.simple_selectors[0]
 
+    si simple.type == SimpleSelector.Type.PseudoClass {
+        retourne simple.ident == élément.pseudo_class
+    }
+
     si simple.type != SimpleSelector.Type.Type {
         retourne faux
     }
