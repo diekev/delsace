@@ -17,6 +17,8 @@ TableVirtuelleNoeud :: struct {
     sur_connexion: fonc(*Noeud)(rien)
     /* Appelé quand le noeud devinent déconnecté. */
     sur_déconnexion: fonc(*Noeud)(rien)
+    /* Appelé quand les enfants sont changés. */
+    sur_changement_enfants: fonc(*Noeud)(rien)
 }
 
 #portée_export
@@ -162,6 +164,10 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
         si enfant.table.sur_connexion && enfant.est_connecté() {
             enfant.table.sur_connexion(enfant)
         }
+    }
+
+    si parent.table && parent.table.sur_changement_enfants {
+        parent.table.sur_changement_enfants(parent)
     }
 }
 
