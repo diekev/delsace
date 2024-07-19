@@ -40,7 +40,7 @@ TableVirtuelleÉlément :: struct {
     sur_dépilement: fonc(*Élément)(rien)
 
     /* Appelé quand un attribut est ajouté, modifié, ou supprimé. */
-    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(rien)
+    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(rien) = élément_sur_changement_attribut
 }
 
 #portée_export
@@ -48,6 +48,8 @@ TableVirtuelleÉlément :: struct {
 Élément :: struct {
     empl base: Noeud
     table = *table_virtuelle_élément
+
+    id: DOMString
 
     /* Uniquement utilisé lors du parsage. */
     est_sur_pile_éléments_ouvert: bool
@@ -62,13 +64,31 @@ TableVirtuelleÉlément :: struct {
 #portée_fichier
 
 table_virtuelle_élément := TableVirtuelleÉlément(
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = élément_sur_changement_attribut
 )
 
 élément_sur_destruction :: fonc (base: *Noeud)
 {
     élément := base comme *Élément
     déloge(élément)
+}
+
+élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString @inutilisée, valeur: *DOMString)
+{
+    /* https://dom.spec.whatwg.org/#concept-id */
+    si local_name == ATTR_id {
+        // À FAIRE espace de nom pour attribut
+        // 1. If localName is id, namespace is null, and value is null or the empty string, then unset element’s ID.
+        // À FAIRE : chaine vide
+        si valeur == nul {
+            élément.id = DOMString()
+        }
+        // 2. Otherwise, if localName is id, namespace is null, then set element’s ID to value.
+        sinon {
+            élément.id = mémoire(valeur)
+        }
+    }
 }
 
 #portée_export
