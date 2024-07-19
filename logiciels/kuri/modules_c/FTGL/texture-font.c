@@ -416,7 +416,7 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
     /* codepoint NULL is special : it is used for line drawing (overline,
      * underline, strikethrough) and background.
      */
-    if (!codepoint) {
+    if (codepoint == -1) {
         ivec4 region_ = texture_atlas_get_region(self->atlas, 5, 5);
         texture_glyph_t *glyph_ = texture_glyph_new();
         static unsigned char data[4 * 4 * 3] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
