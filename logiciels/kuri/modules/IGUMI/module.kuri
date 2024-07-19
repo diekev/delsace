@@ -539,26 +539,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
         kerning := glyph.donne_crénage_avec(dernier_caractère)
         x += kerning
 
-        x0 := (x + glyph.offset_x comme r32)
-        y0 := (y + glyph.offset_y comme r32)
-        x1 := x0 + glyph.width comme r32
-        y1 := y0 - glyph.height comme r32
-        s0 := glyph.s0
-        t0 := glyph.t0
-        s1 := glyph.s1
-        t1 := glyph.t1
-
-        p0 := Vec3(x = x0, y = y0)
-        p1 := Vec3(x = x0, y = y1)
-        p2 := Vec3(x = x1, y = y1)
-        p3 := Vec3(x = x1, y = y0)
-
-        uv0 := Vec2(x = s0, y = t0)
-        uv1 := Vec2(x = s0, y = t1)
-        uv2 := Vec2(x = s1, y = t1)
-        uv3 := Vec2(x = s1, y = t0)
-
-        quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
+        glyphe_immédiat(glyph, x, y, couleur)
 
         x += glyph.advance_x
 
@@ -608,26 +589,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
         kerning := glyph.donne_crénage_avec(dernier_caractère)
         x += kerning
 
-        x0 := (x + glyph.offset_x comme r32)
-        y0 := (y + glyph.offset_y comme r32)
-        x1 := x0 + glyph.width comme r32
-        y1 := y0 - glyph.height comme r32
-        s0 := glyph.s0
-        t0 := glyph.t0
-        s1 := glyph.s1
-        t1 := glyph.t1
-
-        p0 := Vec3(x = x0, y = y0)
-        p1 := Vec3(x = x0, y = y1)
-        p2 := Vec3(x = x1, y = y1)
-        p3 := Vec3(x = x1, y = y0)
-
-        uv0 := Vec2(x = s0, y = t0)
-        uv1 := Vec2(x = s0, y = t1)
-        uv2 := Vec2(x = s1, y = t1)
-        uv3 := Vec2(x = s1, y = t0)
-
-        quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
+        glyphe_immédiat(glyph, x, y, couleur)
 
         x += glyph.advance_x
 
@@ -635,6 +597,30 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
     }
 
     termine_immédiat(ModeImmédiat.TRIANGLES)
+}
+
+glyphe_immédiat :: fonc (glyph: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
+{
+    x0 := (x + glyph.offset_x comme r32)
+    y0 := (y + glyph.offset_y comme r32)
+    x1 := x0 + glyph.width comme r32
+    y1 := y0 - glyph.height comme r32
+    s0 := glyph.s0
+    t0 := glyph.t0
+    s1 := glyph.s1
+    t1 := glyph.t1
+
+    p0 := Vec3(x = x0, y = y0)
+    p1 := Vec3(x = x0, y = y1)
+    p2 := Vec3(x = x1, y = y1)
+    p3 := Vec3(x = x1, y = y0)
+
+    uv0 := Vec2(x = s0, y = t0)
+    uv1 := Vec2(x = s0, y = t1)
+    uv2 := Vec2(x = s1, y = t1)
+    uv3 := Vec2(x = s1, y = t0)
+
+    quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
 }
 
 /** \} */
