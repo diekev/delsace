@@ -671,6 +671,7 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
     browsing_context, document := crée_browsing_context_et_document(nul, nul, group)
 
     // 4. Append browsingContext to group.
+    browsing_context.group = group
     tableau_ajoute(*group.contexts, browsing_context)
 
     // 5. Return group and document.
