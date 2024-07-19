@@ -64,6 +64,26 @@ enum class FonctionnalitéLangage : uint16_t {
 };
 DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage)
 
+struct ModuleImporté {
+    Module *module = nullptr;
+    bool est_employé = false;
+};
+
+inline bool operator==(ModuleImporté const a, ModuleImporté const b)
+{
+    return a.module == b.module;
+}
+
+namespace std {
+template <>
+struct hash<ModuleImporté> {
+    size_t operator()(const ModuleImporté &module) const
+    {
+        return reinterpret_cast<size_t>(module.module);
+    }
+};
+}  // namespace std
+
 struct Fichier {
     double temps_analyse = 0.0;
     double temps_chargement = 0.0;
@@ -88,7 +108,7 @@ struct Fichier {
     bool en_lexage = false;
     bool fut_parsé = false;
 
-    kuri::ensemblon<Module *, 16> modules_importés{};
+    kuri::ensemblon<ModuleImporté, 16> modules_importés{};
 
     Module *module = nullptr;
     MetaProgramme *métaprogramme_corps_texte = nullptr;
