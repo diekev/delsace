@@ -426,6 +426,8 @@ WindowProxy :: struct {
 
 BrowsingContextGroup :: struct {
     contexts: [..]*BrowsingContext
+    /* À FAIRE : stocke ça ailleurs ou passe le aux fonctions. */
+    user_agent: *UserAgent
 }
 
 détruit_browsing_context_group :: fonc (group: *BrowsingContextGroup)
@@ -664,6 +666,7 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
 {
     // 1. Let group be a new browsing context group.
     group := loge(BrowsingContextGroup)
+    group.user_agent = user_agent
 
     // 2. Append group to the user agent's browsing context group set.
     tableau_ajoute(*user_agent.browsing_context_groups, group)
