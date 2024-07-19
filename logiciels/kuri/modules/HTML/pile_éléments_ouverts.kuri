@@ -17,11 +17,18 @@ noeud_précédent :: fonc (pile: *PileÉlémentsOuverts) -> *Élément #enligne
 
 empile :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) #enligne
 {
+    élément.est_sur_pile_éléments_ouvert = vrai
     tableau_ajoute(*pile.éléments, élément)
 }
 
 dépile :: fonc (pile: *PileÉlémentsOuverts) #enligne
 {
+    assert(pile.éléments.taille > 0)
+
+    élément := pile.éléments[pile.éléments.taille - 1]
+    élément.est_sur_pile_éléments_ouvert = faux
+    élément_fut_dépilé_de_la_pile_des_éléments_ouverts(élément)
+
     pile.éléments.taille -= 1
 }
 

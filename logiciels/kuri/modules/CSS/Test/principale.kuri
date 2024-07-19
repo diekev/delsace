@@ -1,5 +1,6 @@
 importe Chaine
 importe CSS
+importe Ensemble
 importe Fondation
 importe SysFichier
 
@@ -8,34 +9,30 @@ principale :: fonc () -> z32
     contenu := contenu_fichier_texte("/home/kevin/defaults.css")
     diffère déloge(contenu)
 
-    lexèmes := lèxe_style(contenu)
-    imprime("% lexèmes\n", lexèmes.taille)
+    ctx: ContexteParsageFeuilleDeStyle
+    diffère détruit_données_contexte(*ctx)
 
-    // pour lexèmes {
-    //     imprime("%\n", it)
+    stylesheet := parse_a_css_style_sheet(*ctx, contenu)
+    rapporte_propriétés_non_supportées(*ctx)
 
-    //     si index_it >= 89 {
-    //         arrête
-    //     }
+    élément := crée_chaine_utf16("p")
+
+    propriétés: PropriétésDeStyle
+
+    règles := collecte_les_règles_appropriées(stylesheet, élément)
+
+    imprime("% règle(s) pour %\n", règles.taille, élément)
+    // pour règles {
+    //     imprime_règle(it)
     // }
 
-    stylesheet := parse_a_stylesheet(lexèmes)
-
-    imprime("% règle(s)\n", stylesheet.value.taille)
-
-    pour stylesheet.value {
-        si it.type == ParsedQualifiedRule {
-            /* selectors */_ := parse_selector_list(it.prelude)
-
-            // pour lexème dans it.prelude {
-            //     imprime("%\n", lexème)
-            // }
+    pour règles {
+        pour déclaration dans it.déclarations {
+            ajoute_déclaration(*propriétés, déclaration)
         }
     }
 
-    // pour stylesheet.value {
-    //     imprime("-- valeurs pour règle : prélude % | bloc %\n", it.prelude.taille, it.bloc.value.taille)
-    // }
+    imprime("% déclaration(s)\n", propriétés.déclarations.taille)
 
     retourne 0
 }

@@ -32,6 +32,10 @@ NoeudDéclaration *trouve_dans_bloc(
     NoeudBloc const *bloc_final = nullptr,
     const NoeudDéclarationEntêteFonction *fonction_courante = nullptr);
 
+NoeudDéclaration *trouve_dans_module(ContexteRechecheSymbole const contexte,
+                                     Module const *module,
+                                     IdentifiantCode const *ident);
+
 NoeudDéclaration *trouve_dans_bloc_ou_module(
     NoeudBloc const *bloc,
     IdentifiantCode const *ident,
@@ -41,17 +45,26 @@ NoeudDéclaration *trouve_dans_bloc_ou_module(
 NoeudDéclaration *trouve_dans_bloc_ou_module(ContexteRechecheSymbole const contexte,
                                              IdentifiantCode const *ident);
 
+void trouve_déclarations_dans_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+                                     Module const *module,
+                                     IdentifiantCode const *ident,
+                                     Fichier const *fichier);
+
 void trouve_declarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+                                   Module const *module_du_bloc,
                                    NoeudBloc const *bloc,
-                                   IdentifiantCode const *ident);
+                                   IdentifiantCode const *ident,
+                                   Fichier const *fichier);
 
 void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+                                             Module const *module_du_bloc,
                                              NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier);
 
 void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
                                              kuri::ensemblon<Module const *, 10> &modules_visites,
+                                             Module const *module_du_bloc,
                                              NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier);
