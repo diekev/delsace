@@ -777,6 +777,7 @@ dessine_tampon_sur_écran_igumi :: fonc (peintre: *Peintre @inutilisée)
 détruit_peintre_igumi :: fonc (peintre: *Peintre)
 {
     issitialise_igumi()
+    déloge(peintre)
 }
 
 définis_ciseau_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre)
