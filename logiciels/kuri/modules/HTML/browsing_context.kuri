@@ -202,7 +202,7 @@ est_top_level_traversable :: fonc (navigable: *Navigable) -> bool
     retourne navigable.type == TraversableNavigable && navigable.parent == nul
 }
 
-donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *Navigable
+donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *TraversableNavigable
 {
     // 1. Let navigable be inputNavigable.
     navigable := input_navigable
@@ -213,7 +213,8 @@ donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *Navigable
     }
 
     // 3. Return navigable.
-    retourne navigable
+    assert(navigable.type == TraversableNavigable)
+    retourne navigable comme *TraversableNavigable
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-top-level-traversable */
