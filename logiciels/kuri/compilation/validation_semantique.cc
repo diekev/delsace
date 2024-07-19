@@ -1725,10 +1725,16 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
                 return Attente::sur_symbole(structure->comme_référence_déclaration());
             }
 
-            auto déclaration_référée = trouve_dans_bloc(module_ref->bloc,
-                                                        expression_membre->ident);
+            auto contexte_recherche_symbole = ContexteRechecheSymbole{};
+            contexte_recherche_symbole.bloc_racine = expression_membre->bloc_parent;
+            contexte_recherche_symbole.fichier = m_compilatrice.fichier(
+                expression_membre->lexème->fichier);
+            contexte_recherche_symbole.fonction_courante = fonction_courante();
+
+            auto déclaration_référée = trouve_dans_module(
+                contexte_recherche_symbole, module_ref, expression_membre->ident);
             if (!déclaration_référée) {
-                return Attente::sur_symbole(structure->comme_référence_déclaration());
+                return Attente::sur_symbole(expression_membre);
             }
 
             if (!déclaration_référée->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -6669,9 +6675,9 @@ static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
         if (it == fichier) {
             continue;
         }
-        pour_chaque_élément(it->modules_importés, [&](Module *module_) {
-            if (module_->nom() == expression->ident) {
-                module = module_;
+        pour_chaque_élément(it->modules_importés, [&](ModuleImporté const &module_) {
+            if (module_.module->nom() == expression->ident) {
+                module = module_.module;
                 return kuri::DécisionItération::Arrête;
             }
 
@@ -6712,7 +6718,7 @@ RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionI
         }
     }
     else {
-        fichier->modules_importés.insère(module);
+        fichier->modules_importés.insère({module, inst->est_employé});
         auto noeud_module = m_assembleuse->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(inst->lexème)
                                 ->comme_déclaration_module();
         noeud_module->module = module;
