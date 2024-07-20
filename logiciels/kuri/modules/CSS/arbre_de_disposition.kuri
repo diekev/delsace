@@ -254,7 +254,23 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     métriques := fonte.donne_métriques_fonte()
 
-    texte := supprime_espace_blanches_autour(noeud.noeud_texte.données)
+    /* À FAIRE : meilleur algorithme, respect du standard. */
+    morceaux := divise_sur_espaces_blanches_ascii(noeud.noeud_texte.données)
+    diffère déloge(morceaux)
+
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    virgule := ChaineUTF16Unique(0x20).donne_chaine_utf16()
+    pour morceaux {
+        si index_it > 0 {
+            ajoute(enchaineuse, virgule)
+        }
+        ajoute(enchaineuse, it)
+    }
+
+    texte := chaine_depuis_enchaineuse(enchaineuse)
     noeud.texte = texte
 
     noeud.hauteur = (métriques.donne_hauteur_ligne() + 0.5) comme n32
