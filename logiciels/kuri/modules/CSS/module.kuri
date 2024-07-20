@@ -3,6 +3,7 @@ importe #inemployé HTML
 importe Fondation
 importe Internet
 
+charge "globales"
 charge "lexage"
 charge "objets"
 charge "parsage"

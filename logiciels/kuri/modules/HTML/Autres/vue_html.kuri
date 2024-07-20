@@ -602,9 +602,11 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     }
 
     page := vue_rendu_page.page
+    document := donne_document(page)
 
     ctx: CSS.ContexteDessin
-    ctx.fonte = page.fonte
+    ctx.globales = document.globales_dessin
+    ctx.fonte = CSS.donne_fonte_défaut(ctx.globales)
     ctx.peintre = peintre
     ctx.hauteur_vue = vue_rendu_page.hauteur
 
@@ -670,14 +672,8 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
         retourne document.arbre_de_disposition
     }
 
-    saufsi page.fonte {
-        TAILLE_POLICE_DÉFAUT :: 16.0
-
-        page.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), TAILLE_POLICE_DÉFAUT)
-    }
-
     document.ajoute_feuille_de_style(donne_feuille_de_style_défaut())
-    CSS.crée_arbre_de_disposition(document, page.fonte)
+    CSS.crée_arbre_de_disposition(document)
     retourne document.arbre_de_disposition
 }
 

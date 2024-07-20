@@ -80,6 +80,7 @@ Document :: struct {
     /* CSS. */
     feuilles_de_style: [..]*CSS.CSSStyleSheet
     arbre_de_disposition: *CSS.ArbreDeDisposition
+    globales_dessin: *CSS.GlobalesDessin
 
     noeud_survolé: *Élément
 }
@@ -94,6 +95,7 @@ document_sur_destruction :: fonc (base: *Noeud)
 {
     document := base comme *Document
     CSS.détruit_arbre(document.arbre_de_disposition)
+    CSS.détruit_globales_dessin(document.globales_dessin)
     déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
     déloge(document)
 }
