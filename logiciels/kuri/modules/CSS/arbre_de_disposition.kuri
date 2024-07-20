@@ -360,6 +360,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document)
 
     racine := résultat.crée_noeud(NoeudDeDispositionBloc)
     racine.élément = html
+    html.noeud_de_disposition = racine
 
     résultat.racine = racine
 
@@ -457,6 +458,7 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
 
     résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
     résultat.élément = élément
+    élément.noeud_de_disposition = résultat
     résultat.propriétés = propriétés
     parent.ajoute_enfant(résultat)
 
