@@ -488,18 +488,29 @@ string_to_number :: fonc (valeur: Valeur) -> Valeur
     source.texte = converti_vers_chaine(str.donne_chaine_utf16())
     diffère déloge(source.texte)
 
-    lexeuse: Lexeuse
-    initialise_lexeuse_depuis_source(lexeuse, source)
+    lexèmes: [..]Lexème
+    diffère déloge(lexèmes)
 
-    résultat := lèxe_nombre(lexeuse)
-    discr résultat {
-        Ok(lexème) {
-            retourne Valeur(Number = parse_nombre_depuis_lexème(*lexème))
+    résultat_lexage := lèxe(source)
+    discr résultat_lexage {
+        Ok(l) {
+            lexèmes = l
         }
         sinon {
             retourne Valeur(Number = NaN)
         }
     }
+
+    si lexèmes.taille != 1 {
+        retourne Valeur(Number = NaN)
+    }
+
+    /* À FAIRE : prend en compte les signes +/-. */
+    si lexèmes[0].genre != GenreLexème.NombreLittéral {
+        retourne Valeur(Number = NaN)
+    }
+
+    retourne Valeur(Number = parse_nombre_depuis_lexème(*lexèmes[0]))
 }
 
 /* 7.1.17 ToString ( argument )
