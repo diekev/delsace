@@ -447,7 +447,7 @@ struct MembreTypeComposé {
     Type *type = nullptr;
     IdentifiantCode *nom = nullptr;
     unsigned decalage = 0;
-    int valeur = 0;                                       // pour les énumérations
+    uint64_t valeur = 0;                                  // pour les énumérations
     NoeudExpression *expression_valeur_defaut = nullptr;  // pour les membres des structures
     int drapeaux = 0;
     uint32_t rembourrage = 0;
