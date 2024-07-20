@@ -453,6 +453,56 @@ bigint_unary_minus :: fonc (x: Valeur @inutilisée) -> Valeur
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom LogicalNot
+ * \{ */
+
+LogicalNot :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_logical_not
+
+    argument: *NoeudSyntaxique
+}
+
+crée_logical_not :: fonc (argument: *NoeudSyntaxique) -> *LogicalNot
+{
+    résultat := loge(LogicalNot)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-logical-not-operator */
+sur_exécution_logical_not :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *LogicalNot
+    unary_expression := noeud.argument
+
+    // 1. Let expr be ? Evaluation of UnaryExpression.
+    completion := exécute_noeud(unary_expression, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr := completion.valeur
+
+    // 2. Let oldValue be ToBoolean(? GetValue(expr)).
+    completion = get_value(interpréteuse, expr)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    old_value := to_boolean(completion.valeur.V)
+
+    // 3. If oldValue is true, return false.
+    si old_value.est_true() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    // 4. Return true.
+    retourne normal_completion(Valeur(Boolean = vrai))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom BinaryExpression
  * \{ */
 

@@ -699,9 +699,13 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
             argument := parseuse.parse_expression_primaire()
             retourne crée_unary_minus_operator(argument)
         }
-        NonBinaire,
-        NonLogique {
+        NonBinaire {
             parseuse.rapporte_erreur("opérateur unaire non-géré")
+        }
+        NonLogique {
+            parseuse.consomme()
+            argument := parseuse.parse_expression_primaire()
+            retourne crée_logical_not(argument)
         }
         PlusPlus,
         MoinsMoins {
