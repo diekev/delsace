@@ -78,6 +78,19 @@ donne_noeud_pour_position :: fonc (noeud: *NoeudDeDisposition, x: z32, y: z32) -
     retourne noeud
 }
 
+donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
+{
+    chn_cursor := crée_chaine_utf16("cursor")
+    diffère détruit_chaine(chn_cursor)
+
+    cursor := donne_déclaration(*noeud.propriétés, chn_cursor)
+    saufsi cursor {
+        retourne CursorType.auto
+    }
+
+    retourne donne_type_cursor(cursor.value[0].mot_clé)
+}
+
 ContexteDisposition :: struct {
     globales: *GlobalesDessin
     fonte: *Fonte
