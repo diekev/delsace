@@ -77,7 +77,11 @@ apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: *HTML.Élém
     simple := compound.simple_selectors[0]
 
     si simple.type == SimpleSelector.Type.PseudoClass {
-        retourne simple.ident == élément.pseudo_class
+        si simple.est_fonction {
+            retourne faux
+        }
+
+        retourne (élément.pseudo_classes & simple.pseudo_classe) == simple.pseudo_classe
     }
 
     si simple.type != SimpleSelector.Type.Type {
@@ -86,6 +90,743 @@ apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: *HTML.Élém
 
     retourne simple.ident == élément.texte
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom PseudoClasses
+ * Pseudo classes non-fonctionnelles possibles.
+ *
+ * Tirées de :
+ * https://html.spec.whatwg.org/multipage/semantics-other.html#pseudo-classes
+ * https://developer.mozilla.org/fr/docs/Web/CSS/Pseudo-classes
+ * \{ */
+
+PseudoClasses :: énum_drapeau n64 {
+    Active
+    AnyLink
+    Blank
+    Checked
+    Current
+    Default
+    Defined
+    Disabled
+    Drop
+    Empty
+    Enabled
+    First
+    FirstChild
+    FirstOfType
+    Fullscreen
+    Future
+    Focus
+    FocusVisible
+    FocusWithin
+    Host
+    Hover
+    Indeterminate
+    InRange
+    Invalid
+    Is
+    LastChild
+    LastOfType
+    Left
+    Link
+    LocalLink
+    OnlyChild
+    OnlyOfType
+    Optional
+    OutOfRange
+    Past
+    PlaceholderShown
+    ReadOnly
+    ReadWrite
+    Required
+    Right
+    Root
+    Scope
+    Target
+    TargetWithin
+    UserInvalid
+    Valid
+    Visited
+    Playing
+    Paused
+    Seeking
+    Buffering
+    Stalled
+    Muted
+    VolumeLocked
+    PopoverOpen
+    UserValid
+    Autofill
+    Modal
+    Backdrop
+}
+
+donne_pseudo_classe_pour_nom :: fonc (nom: CSSOMString) -> PseudoClasses
+{
+    si compare_ascii_insensible_à_la_casse(nom, "active") {
+        retourne PseudoClasses.Active
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "any-link") {
+        retourne PseudoClasses.AnyLink
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "blank") {
+        retourne PseudoClasses.Blank
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "checked") {
+        retourne PseudoClasses.Checked
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "current") {
+        retourne PseudoClasses.Current
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "default") {
+        retourne PseudoClasses.Default
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "defined") {
+        retourne PseudoClasses.Defined
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "disabled") {
+        retourne PseudoClasses.Disabled
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "drop") {
+        retourne PseudoClasses.Drop
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "empty") {
+        retourne PseudoClasses.Empty
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "enabled") {
+        retourne PseudoClasses.Enabled
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "first") {
+        retourne PseudoClasses.First
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "first-child") {
+        retourne PseudoClasses.FirstChild
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "first-of-type") {
+        retourne PseudoClasses.FirstOfType
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "fullscreen") {
+        retourne PseudoClasses.Fullscreen
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "future") {
+        retourne PseudoClasses.Future
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "focus") {
+        retourne PseudoClasses.Focus
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "focus-visible") {
+        retourne PseudoClasses.FocusVisible
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "focus-within") {
+        retourne PseudoClasses.FocusWithin
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "host") {
+        retourne PseudoClasses.Host
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "hover") {
+        retourne PseudoClasses.Hover
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "indeterminate") {
+        retourne PseudoClasses.Indeterminate
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "in-range") {
+        retourne PseudoClasses.InRange
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "invalid") {
+        retourne PseudoClasses.Invalid
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "is") {
+        retourne PseudoClasses.Is
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "last-child") {
+        retourne PseudoClasses.LastChild
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "last-of-type") {
+        retourne PseudoClasses.LastOfType
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "left") {
+        retourne PseudoClasses.Left
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "link") {
+        retourne PseudoClasses.Link
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "local-link") {
+        retourne PseudoClasses.LocalLink
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "only-child") {
+        retourne PseudoClasses.OnlyChild
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "only-of-type") {
+        retourne PseudoClasses.OnlyOfType
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "optional") {
+        retourne PseudoClasses.Optional
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "out-of-range") {
+        retourne PseudoClasses.OutOfRange
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "past") {
+        retourne PseudoClasses.Past
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "placeholder-shown") {
+        retourne PseudoClasses.PlaceholderShown
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "read-only") {
+        retourne PseudoClasses.ReadOnly
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "read-write") {
+        retourne PseudoClasses.ReadWrite
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "required") {
+        retourne PseudoClasses.Required
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "right") {
+        retourne PseudoClasses.Right
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "root") {
+        retourne PseudoClasses.Root
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "scope") {
+        retourne PseudoClasses.Scope
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "target") {
+        retourne PseudoClasses.Target
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "target-within") {
+        retourne PseudoClasses.TargetWithin
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "user-invalid") {
+        retourne PseudoClasses.UserInvalid
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "valid") {
+        retourne PseudoClasses.Valid
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "visited") {
+        retourne PseudoClasses.Visited
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "playing") {
+        retourne PseudoClasses.Playing
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "paused") {
+        retourne PseudoClasses.Paused
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "seeking") {
+        retourne PseudoClasses.Seeking
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "buffering") {
+        retourne PseudoClasses.Buffering
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "stalled") {
+        retourne PseudoClasses.Stalled
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "muted") {
+        retourne PseudoClasses.Muted
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "volume-locked") {
+        retourne PseudoClasses.VolumeLocked
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "popover-open") {
+        retourne PseudoClasses.PopoverOpen
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "user-valid") {
+        retourne PseudoClasses.UserValid
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "autofill") {
+        retourne PseudoClasses.Autofill
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "modal") {
+        retourne PseudoClasses.Modal
+    }
+    si compare_ascii_insensible_à_la_casse(nom, "backdrop") {
+        retourne PseudoClasses.Backdrop
+    }
+
+    imprime("pseudo classe : %\n", nom)
+    panique("Pseudo classe inconnue.")
+}
+
+donne_chaine_pour_pseudo_classe :: fonc (pseudo_classe: PseudoClasses) -> chaine
+{
+    si pseudo_classe == PseudoClasses.Active {
+        retourne "active"
+    }
+    si pseudo_classe == PseudoClasses.AnyLink {
+        retourne "any-link"
+    }
+    si pseudo_classe == PseudoClasses.Blank {
+        retourne "blank"
+    }
+    si pseudo_classe == PseudoClasses.Checked {
+        retourne "checked"
+    }
+    si pseudo_classe == PseudoClasses.Current {
+        retourne "current"
+    }
+    si pseudo_classe == PseudoClasses.Default {
+        retourne "default"
+    }
+    si pseudo_classe == PseudoClasses.Defined {
+        retourne "defined"
+    }
+    si pseudo_classe == PseudoClasses.Disabled {
+        retourne "disabled"
+    }
+    si pseudo_classe == PseudoClasses.Drop {
+        retourne "drop"
+    }
+    si pseudo_classe == PseudoClasses.Empty {
+        retourne "empty"
+    }
+    si pseudo_classe == PseudoClasses.Enabled {
+        retourne "enabled"
+    }
+    si pseudo_classe == PseudoClasses.First {
+        retourne "first"
+    }
+    si pseudo_classe == PseudoClasses.FirstChild {
+        retourne "first-child"
+    }
+    si pseudo_classe == PseudoClasses.FirstOfType {
+        retourne "first-of-type"
+    }
+    si pseudo_classe == PseudoClasses.Fullscreen {
+        retourne "fullscreen"
+    }
+    si pseudo_classe == PseudoClasses.Future {
+        retourne "future"
+    }
+    si pseudo_classe == PseudoClasses.Focus {
+        retourne "focus"
+    }
+    si pseudo_classe == PseudoClasses.FocusVisible {
+        retourne "focus-visible"
+    }
+    si pseudo_classe == PseudoClasses.FocusWithin {
+        retourne "focus-within"
+    }
+    si pseudo_classe == PseudoClasses.Host {
+        retourne "host"
+    }
+    si pseudo_classe == PseudoClasses.Hover {
+        retourne "hover"
+    }
+    si pseudo_classe == PseudoClasses.Indeterminate {
+        retourne "indeterminate"
+    }
+    si pseudo_classe == PseudoClasses.InRange {
+        retourne "in-range"
+    }
+    si pseudo_classe == PseudoClasses.Invalid {
+        retourne "invalid"
+    }
+    si pseudo_classe == PseudoClasses.Is {
+        retourne "is"
+    }
+    si pseudo_classe == PseudoClasses.LastChild {
+        retourne "last-child"
+    }
+    si pseudo_classe == PseudoClasses.LastOfType {
+        retourne "last-of-type"
+    }
+    si pseudo_classe == PseudoClasses.Left {
+        retourne "left"
+    }
+    si pseudo_classe == PseudoClasses.Link {
+        retourne "link"
+    }
+    si pseudo_classe == PseudoClasses.LocalLink {
+        retourne "local-link"
+    }
+    si pseudo_classe == PseudoClasses.OnlyChild {
+        retourne "only-child"
+    }
+    si pseudo_classe == PseudoClasses.OnlyOfType {
+        retourne "only-of-type"
+    }
+    si pseudo_classe == PseudoClasses.Optional {
+        retourne "optional"
+    }
+    si pseudo_classe == PseudoClasses.OutOfRange {
+        retourne "out-of-range"
+    }
+    si pseudo_classe == PseudoClasses.Past {
+        retourne "past"
+    }
+    si pseudo_classe == PseudoClasses.PlaceholderShown {
+        retourne "placeholder-shown"
+    }
+    si pseudo_classe == PseudoClasses.ReadOnly {
+        retourne "read-only"
+    }
+    si pseudo_classe == PseudoClasses.ReadWrite {
+        retourne "read-write"
+    }
+    si pseudo_classe == PseudoClasses.Required {
+        retourne "required"
+    }
+    si pseudo_classe == PseudoClasses.Right {
+        retourne "right"
+    }
+    si pseudo_classe == PseudoClasses.Root {
+        retourne "root"
+    }
+    si pseudo_classe == PseudoClasses.Scope {
+        retourne "scope"
+    }
+    si pseudo_classe == PseudoClasses.Target {
+        retourne "target"
+    }
+    si pseudo_classe == PseudoClasses.TargetWithin {
+        retourne "target-within"
+    }
+    si pseudo_classe == PseudoClasses.UserInvalid {
+        retourne "user-invalid"
+    }
+    si pseudo_classe == PseudoClasses.Valid {
+        retourne "valid"
+    }
+    si pseudo_classe == PseudoClasses.Visited {
+        retourne "visited"
+    }
+    si pseudo_classe == PseudoClasses.Playing {
+        retourne "playing"
+    }
+    si pseudo_classe == PseudoClasses.Paused {
+        retourne "paused"
+    }
+    si pseudo_classe == PseudoClasses.Seeking {
+        retourne "seeking"
+    }
+    si pseudo_classe == PseudoClasses.Buffering {
+        retourne "buffering"
+    }
+    si pseudo_classe == PseudoClasses.Stalled {
+        retourne "stalled"
+    }
+    si pseudo_classe == PseudoClasses.Muted {
+        retourne "muted"
+    }
+    si pseudo_classe == PseudoClasses.VolumeLocked {
+        retourne "volume-locked"
+    }
+    si pseudo_classe == PseudoClasses.PopoverOpen {
+        retourne "popover-open"
+    }
+    si pseudo_classe == PseudoClasses.UserValid {
+        retourne "user-valid"
+    }
+    si pseudo_classe == PseudoClasses.Autofill {
+        retourne "autofill"
+    }
+    si pseudo_classe == PseudoClasses.Modal {
+        retourne "modal"
+    }
+    retourne "pseudo classe inconnue"
+}
+/*
+donne_pseudo_classe_pour_nom :: fonc (nom: CSSOMString) -> PseudoClasses
+{
+    si compare_ascii_insensible_à_la_casse(nom, PC_active) {
+        retourne PseudoClasses.Active
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_any_link) {
+        retourne PseudoClasses.AnyLink
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_blank) {
+        retourne PseudoClasses.Blank
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_checked) {
+        retourne PseudoClasses.Checked
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_current) {
+        retourne PseudoClasses.Current
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_default) {
+        retourne PseudoClasses.Default
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_defined) {
+        retourne PseudoClasses.Defined
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_disabled) {
+        retourne PseudoClasses.Disabled
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_drop) {
+        retourne PseudoClasses.Drop
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_empty) {
+        retourne PseudoClasses.Empty
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_enabled) {
+        retourne PseudoClasses.Enabled
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_first) {
+        retourne PseudoClasses.First
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_first_child) {
+        retourne PseudoClasses.FirstChild
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_first_of_type) {
+        retourne PseudoClasses.FirstOfType
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_fullscreen) {
+        retourne PseudoClasses.Fullscreen
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_future) {
+        retourne PseudoClasses.Future
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_focus) {
+        retourne PseudoClasses.Focus
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_focus_visible) {
+        retourne PseudoClasses.FocusVisible
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_focus_within) {
+        retourne PseudoClasses.FocusWithin
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_host) {
+        retourne PseudoClasses.Host
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_hover) {
+        retourne PseudoClasses.Hover
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_indeterminate) {
+        retourne PseudoClasses.Indeterminate
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_in_range) {
+        retourne PseudoClasses.InRange
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_invalid) {
+        retourne PseudoClasses.Invalid
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_is) {
+        retourne PseudoClasses.Is
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_last_child) {
+        retourne PseudoClasses.LastChild
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_last_of_type) {
+        retourne PseudoClasses.LastOfType
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_left) {
+        retourne PseudoClasses.Left
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_link) {
+        retourne PseudoClasses.Link
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_local_link) {
+        retourne PseudoClasses.LocalLink
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_only_child) {
+        retourne PseudoClasses.OnlyChild
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_only_of_type) {
+        retourne PseudoClasses.OnlyOfType
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_optional) {
+        retourne PseudoClasses.Optional
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_out_of_range) {
+        retourne PseudoClasses.OutOfRange
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_past) {
+        retourne PseudoClasses.Past
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_placeholder_shown) {
+        retourne PseudoClasses.PlaceholderShown
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_read_only) {
+        retourne PseudoClasses.ReadOnly
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_read_write) {
+        retourne PseudoClasses.ReadWrite
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_required) {
+        retourne PseudoClasses.Required
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_right) {
+        retourne PseudoClasses.Right
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_root) {
+        retourne PseudoClasses.Root
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_scope) {
+        retourne PseudoClasses.Scope
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_target) {
+        retourne PseudoClasses.Target
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_target_within) {
+        retourne PseudoClasses.TargetWithin
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_user_invalid) {
+        retourne PseudoClasses.UserInvalid
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_valid) {
+        retourne PseudoClasses.Valid
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_visited) {
+        retourne PseudoClasses.Visited
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_playing) {
+        retourne PseudoClasses.Playing
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_paused) {
+        retourne PseudoClasses.Paused
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_seeking) {
+        retourne PseudoClasses.Seeking
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_buffering) {
+        retourne PseudoClasses.Buffering
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_stalled) {
+        retourne PseudoClasses.Stalled
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_muted) {
+        retourne PseudoClasses.Muted
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_volume_locked) {
+        retourne PseudoClasses.VolumeLocked
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_popover_open) {
+        retourne PseudoClasses.PopoverOpen
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_user_valid) {
+        retourne PseudoClasses.UserValid
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_autofill) {
+        retourne PseudoClasses.Autofill
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_modal) {
+        retourne PseudoClasses.Modal
+    }
+    si compare_ascii_insensible_à_la_casse(nom, PC_backdrop) {
+        retourne PseudoClasses.Backdrop
+    }
+}
+
+PC_active: CSSOMString = ---
+PC_any_link: CSSOMString = ---
+PC_blank: CSSOMString = ---
+PC_checked: CSSOMString = ---
+PC_current: CSSOMString = ---
+PC_default: CSSOMString = ---
+PC_defined: CSSOMString = ---
+PC_disabled: CSSOMString = ---
+PC_drop: CSSOMString = ---
+PC_empty: CSSOMString = ---
+PC_enabled: CSSOMString = ---
+PC_first: CSSOMString = ---
+PC_first_child: CSSOMString = ---
+PC_first_of_type: CSSOMString = ---
+PC_fullscreen: CSSOMString = ---
+PC_future: CSSOMString = ---
+PC_focus: CSSOMString = ---
+PC_focus_visible: CSSOMString = ---
+PC_focus_within: CSSOMString = ---
+PC_host: CSSOMString = ---
+PC_hover: CSSOMString = ---
+PC_indeterminate: CSSOMString = ---
+PC_in_range: CSSOMString = ---
+PC_invalid: CSSOMString = ---
+PC_is: CSSOMString = ---
+PC_last_child: CSSOMString = ---
+PC_last_of_type: CSSOMString = ---
+PC_left: CSSOMString = ---
+PC_link: CSSOMString = ---
+PC_local_link: CSSOMString = ---
+PC_only_child: CSSOMString = ---
+PC_only_of_type: CSSOMString = ---
+PC_optional: CSSOMString = ---
+PC_out_of_range: CSSOMString = ---
+PC_past: CSSOMString = ---
+PC_placeholder_shown: CSSOMString = ---
+PC_read_only: CSSOMString = ---
+PC_read_write: CSSOMString = ---
+PC_required: CSSOMString = ---
+PC_right: CSSOMString = ---
+PC_root: CSSOMString = ---
+PC_scope: CSSOMString = ---
+PC_target: CSSOMString = ---
+PC_target_within: CSSOMString = ---
+PC_user_invalid: CSSOMString = ---
+PC_valid: CSSOMString = ---
+PC_visited: CSSOMString = ---
+PC_playing: CSSOMString = ---
+PC_paused: CSSOMString = ---
+PC_seeking: CSSOMString = ---
+PC_buffering: CSSOMString = ---
+PC_stalled: CSSOMString = ---
+PC_muted: CSSOMString = ---
+PC_volume_locked: CSSOMString = ---
+PC_popover_open: CSSOMString = ---
+PC_user_valid: CSSOMString = ---
+PC_autofill: CSSOMString = ---
+PC_modal: CSSOMString = ---
+PC_backdrop: CSSOMString = ---
+    PC_active = crée_chaine_uft16_unique("active")
+    PC_any_link = crée_chaine_uft16_unique("any-link")
+    PC_blank = crée_chaine_uft16_unique("blank")
+    PC_checked = crée_chaine_uft16_unique("checked")
+    PC_current = crée_chaine_uft16_unique("current")
+    PC_default = crée_chaine_uft16_unique("default")
+    PC_defined = crée_chaine_uft16_unique("defined")
+    PC_disabled = crée_chaine_uft16_unique("disabled")
+    PC_drop = crée_chaine_uft16_unique("drop")
+    PC_empty = crée_chaine_uft16_unique("empty")
+    PC_enabled = crée_chaine_uft16_unique("enabled")
+    PC_first = crée_chaine_uft16_unique("first")
+    PC_first_child = crée_chaine_uft16_unique("first-child")
+    PC_first_of_type = crée_chaine_uft16_unique("first-of-type")
+    PC_fullscreen = crée_chaine_uft16_unique("fullscreen")
+    PC_future = crée_chaine_uft16_unique("future")
+    PC_focus = crée_chaine_uft16_unique("focus")
+    PC_focus_visible = crée_chaine_uft16_unique("focus-visible")
+    PC_focus_within = crée_chaine_uft16_unique("focus-within")
+    PC_host = crée_chaine_uft16_unique("host")
+    PC_hover = crée_chaine_uft16_unique("hover")
+    PC_indeterminate = crée_chaine_uft16_unique("indeterminate")
+    PC_in_range = crée_chaine_uft16_unique("in-range")
+    PC_invalid = crée_chaine_uft16_unique("invalid")
+    PC_is = crée_chaine_uft16_unique("is")
+    PC_last_child = crée_chaine_uft16_unique("last-child")
+    PC_last_of_type = crée_chaine_uft16_unique("last-of-type")
+    PC_left = crée_chaine_uft16_unique("left")
+    PC_link = crée_chaine_uft16_unique("link")
+    PC_local_link = crée_chaine_uft16_unique("local-link")
+    PC_only_child = crée_chaine_uft16_unique("only-child")
+    PC_only_of_type = crée_chaine_uft16_unique("only-of-type")
+    PC_optional = crée_chaine_uft16_unique("optional")
+    PC_out_of_range = crée_chaine_uft16_unique("out-of-range")
+    PC_past = crée_chaine_uft16_unique("past")
+    PC_placeholder_shown = crée_chaine_uft16_unique("placeholder-shown")
+    PC_read_only = crée_chaine_uft16_unique("read-only")
+    PC_read_write = crée_chaine_uft16_unique("read-write")
+    PC_required = crée_chaine_uft16_unique("required")
+    PC_right = crée_chaine_uft16_unique("right")
+    PC_root = crée_chaine_uft16_unique("root")
+    PC_scope = crée_chaine_uft16_unique("scope")
+    PC_target = crée_chaine_uft16_unique("target")
+    PC_target_within = crée_chaine_uft16_unique("target-within")
+    PC_user_invalid = crée_chaine_uft16_unique("user-invalid")
+    PC_valid = crée_chaine_uft16_unique("valid")
+    PC_visited = crée_chaine_uft16_unique("visited")
+    PC_playing = crée_chaine_uft16_unique("playing")
+    PC_paused = crée_chaine_uft16_unique("paused")
+    PC_seeking = crée_chaine_uft16_unique("seeking")
+    PC_buffering = crée_chaine_uft16_unique("buffering")
+    PC_stalled = crée_chaine_uft16_unique("stalled")
+    PC_muted = crée_chaine_uft16_unique("muted")
+    PC_volume_locked = crée_chaine_uft16_unique("volume-locked")
+    PC_popover_open = crée_chaine_uft16_unique("popover-open")
+    PC_user_valid = crée_chaine_uft16_unique("user-valid")
+    PC_autofill = crée_chaine_uft16_unique("autofill")
+    PC_modal = crée_chaine_uft16_unique("modal")
+    PC_backdrop = crée_chaine_uft16_unique("backdrop")
+*/
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Selectors
@@ -232,7 +973,11 @@ SimpleSelector :: struct {
     attribute_value: ChaineUTF16
     attribute_modifier: Optionnel(AttributeModifier)
 
-    /* Pour les pseudos-classes fonctionnels. */
+    /* Pour les pseudos-classes non-fonctionnelles.
+     * Ne doit pas avoir plus que 1 bit actif. */
+    pseudo_classe: PseudoClasses
+
+    /* Pour les pseudos-classes fonctionnelles. */
     est_fonction: bool
     selector_list: SelectorList
 
@@ -271,9 +1016,11 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
             ajoute_au_tampon(enchaineuse, "*")
         }
         PseudoClass {
-            ajoute_au_tampon(enchaineuse, ":", selector.ident)
-            si selector.est_fonction {
-                ajoute_au_tampon(enchaineuse, "(")
+            saufsi selector.est_fonction {
+                ajoute_au_tampon(enchaineuse, ":", donne_chaine_pour_pseudo_classe(selector.pseudo_classe))
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, ":", selector.ident, "(")
 
                 si selector.ident == "dir" {
                     ajoute_au_tampon(enchaineuse, selector.arg)
@@ -375,7 +1122,7 @@ crée_attribute_selector :: fonc (ident: ChaineUTF16, matcher: SimpleSelector.At
 
 crée_pseudo_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), copie_chaine(ident))
+    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), pseudo_classe = donne_pseudo_classe_pour_nom(ident))
 }
 
 crée_pseudo_element_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector

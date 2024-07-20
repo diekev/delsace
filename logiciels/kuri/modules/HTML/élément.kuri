@@ -61,7 +61,7 @@ TableVirtuelleÉlément :: struct {
     état_élément_custom: chaine
     définition_élément_custom: *rien
 
-    pseudo_class: DOMString
+    pseudo_classes: CSS.PseudoClasses
 
     /* CSS */
     noeud_de_disposition: *CSS.NoeudDeDisposition
@@ -300,6 +300,22 @@ enfant_directe_avec_balise :: fonc (élément: *Élément, balise: DOMString) ->
 }
 
 /* ------------------------------------------------------------------------- */
+/** \nom CSS
+ * \{ */
+
+ajoute_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
+{
+    élément.pseudo_classes |= pseudo_classe
+}
+
+enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
+{
+    élément.pseudo_classes &= ~pseudo_classe
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom HTMLElement
  * https://html.spec.whatwg.org/multipage/dom.html#htmlelement
  * \{ */
@@ -359,10 +375,10 @@ anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DO
     si local_name == ATTR_href {
         // À FAIRE : chaine vide
         si valeur == nul {
-            anchor.pseudo_class = TAG_vide
+            anchor.enlève_pseudo_classe(CSS.PseudoClasses.Link)
         }
         sinon {
-            anchor.pseudo_class = TAG_link
+            anchor.ajoute_pseudo_classe(CSS.PseudoClasses.Link)
         }
     }
 }
