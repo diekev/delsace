@@ -378,6 +378,11 @@ crée_pseudo_class_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
     retourne SimpleSelector(SimpleSelector.Type.PseudoClass, ChaineUTF16(), copie_chaine(ident))
 }
 
+crée_pseudo_element_selector :: fonc (ident: ChaineUTF16) -> SimpleSelector
+{
+    retourne SimpleSelector(SimpleSelector.Type.PseudoElement, ChaineUTF16(), copie_chaine(ident))
+}
+
 crée_function_selector :: fonc (ident: ChaineUTF16, arguments: SelectorList) -> SimpleSelector
 {
     résultat: SimpleSelector

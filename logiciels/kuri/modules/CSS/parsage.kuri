@@ -926,7 +926,7 @@ parse_subclass_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simpl
         retourne opt_attribute_selector
     }
 
-    opt_pseudo_class_selector := parseuse.parse_pseudo_class_selector()
+    opt_pseudo_class_selector := parseuse.parse_pseudo_class_selector(faux)
     si opt_pseudo_class_selector.possède_valeur() {
         retourne opt_pseudo_class_selector
     }
@@ -1086,7 +1086,7 @@ parse_attribute_matcher :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simpl
 
 /* <pseudo-class-selector> = ':' <ident-token> |
                              ':' <function-token> <any-value> ')' */
-parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_element: bool) -> Optionnel(SimpleSelector)
 {
     parseuse_locale : ParseuseSelector = parseuse
 
@@ -1101,17 +1101,15 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(S
 
         parseuse.curseur = parseuse_locale.curseur
 
-        résultat := crée_pseudo_class_selector(ident)
-
         /* Pour ces pseudo-classes, nous changeons le type en pseudo-élément
          * directement au cas où nous ne serions pas appelés depuis
          * parse_pseudo_element car il est possible de n'avoir qu'un seul
          * double point pour ceux-ci pour des raisons historiques. */
-        si ident == "before" || ident == "after" || ident == "first-line" || ident == "first-letter" {
-            résultat.type = SimpleSelector.Type.PseudoElement
+        si pour_pseudo_element || ident == "before" || ident == "after" || ident == "first-line" || ident == "first-letter" {
+            retourne crée_pseudo_element_selector(ident)
         }
 
-        retourne résultat
+        retourne crée_pseudo_class_selector(ident)
     }
 
     si parseuse_locale.lexème_courant().est_fonction() {
@@ -1192,15 +1190,11 @@ parse_pseudo_element_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel
 
     parseuse_locale.avance()
 
-    pseudo_class := parseuse_locale.parse_pseudo_class_selector()
-    saufsi pseudo_class.possède_valeur() {
-        retourne
+    pseudo_class := parseuse_locale.parse_pseudo_class_selector(vrai)
+    si pseudo_class.possède_valeur() {
+        parseuse.curseur = parseuse_locale.curseur
+        retourne pseudo_class
     }
-
-    parseuse.curseur = parseuse_locale.curseur
-    résultat := pseudo_class.Quelque
-    résultat.type = SimpleSelector.Type.PseudoElement
-    retourne résultat
 }
 
 /* <combinator> = '>' | '+' | '~' | [ '|' '|' ] */
