@@ -338,6 +338,121 @@ sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpr�
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom UnaryPlusOperator
+ * \{ */
+
+UnaryPlusOperator :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_unary_plus_operator
+
+    argument: *NoeudSyntaxique
+}
+
+crée_unary_plus_operator :: fonc (argument: *NoeudSyntaxique) -> *UnaryPlusOperator
+{
+    résultat := loge(UnaryPlusOperator)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-unary-plus-operator-runtime-semantics-evaluation */
+sur_exécution_unary_plus_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *UnaryPlusOperator
+    unary_expression := noeud.argument
+
+    // 1. Let expr be ? Evaluation of UnaryExpression.
+    completion := exécute_noeud(unary_expression, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr := completion.valeur
+
+    // 2. Return ? ToNumber(? GetValue(expr)).
+    completion = get_value(interpréteuse, expr)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    retourne vers_nombre(interpréteuse, completion.valeur.V)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom UnaryMinusOperator
+ * \{ */
+
+UnaryMinusOperator :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_unary_minus_operator
+
+    argument: *NoeudSyntaxique
+}
+
+crée_unary_minus_operator :: fonc (argument: *NoeudSyntaxique) -> *UnaryMinusOperator
+{
+    résultat := loge(UnaryMinusOperator)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-unary-minus-operator-runtime-semantics-evaluation */
+sur_exécution_unary_minus_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *UnaryMinusOperator
+    unary_expression := noeud.argument
+
+    // 1. Let expr be ? Evaluation of UnaryExpression.
+    completion := exécute_noeud(unary_expression, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr := completion.valeur
+
+    // 2. Let oldValue be ? ToNumeric(? GetValue(expr)).
+    completion = get_value(interpréteuse, expr)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    completion = to_numeric(interpréteuse, completion.valeur.V)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    old_value := completion.valeur.V
+
+    // 3. If oldValue is a Number, then
+    si old_value.est_nombre() {
+        // a. Return Number::unaryMinus(oldValue).
+        retourne normal_completion(number_unary_minus(old_value))
+    }
+    // 4. Else,
+    // a. Assert: oldValue is a BigInt.
+    assert(old_value.est_big_int())
+    // b. Return BigInt::unaryMinus(oldValue).
+    retourne normal_completion(bigint_unary_minus(old_value))
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-unaryMinus */
+number_unary_minus :: fonc (x: Valeur) -> Valeur
+{
+    // 1. If x is NaN, return NaN.
+    // À FAIRE : est_nan
+
+    // 2. Return the negation of x; that is, compute a Number with the same magnitude but opposite sign.
+    retourne Valeur(Number = -x.Number)
+}
+
+bigint_unary_minus :: fonc (x: Valeur @inutilisée) -> Valeur
+{
+    panique("big_int unary minus non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom BinaryExpression
  * \{ */
 

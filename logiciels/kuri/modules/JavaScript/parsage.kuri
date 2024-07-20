@@ -689,8 +689,16 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
     lexème := parseuse.lexème_courant()
 
     discr lexème.genre {
-        Plus,
-        Moins,
+        Plus {
+            parseuse.consomme()
+            argument := parseuse.parse_expression_primaire()
+            retourne crée_unary_plus_operator(argument)
+        }
+        Moins {
+            parseuse.consomme()
+            argument := parseuse.parse_expression_primaire()
+            retourne crée_unary_minus_operator(argument)
+        }
         NonBinaire,
         NonLogique {
             parseuse.rapporte_erreur("opérateur unaire non-géré")
