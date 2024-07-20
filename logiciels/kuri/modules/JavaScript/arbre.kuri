@@ -416,10 +416,20 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         rprim := complétion_rprim.valeur.V
         // c. If lprim is a String or rprim is a String, then
         si lprim.est_chaine() || rprim.est_chaine() {
-            panique("concaténation chaine non-implémenté")
             // i. Let lstr be ? ToString(lprim).
+            completion_lstr := vers_chaine(interpréteuse, gauche)
+            saufsi completion_lstr.est_normal() {
+                retourne completion_lstr
+            }
+            lstr := completion_lstr.valeur.V
             // ii. Let rstr be ? ToString(rprim).
+            completion_rstr := vers_chaine(interpréteuse, droite)
+            saufsi completion_rstr.est_normal() {
+                retourne completion_rstr
+            }
+            rstr := completion_rstr.valeur.V
             // iii. Return the string-concatenation of lstr and rstr.
+            retourne normal_completion(Valeur(String = concatène(lstr.String, rstr.String)))
         }
     
         // d. Set lval to lprim.
