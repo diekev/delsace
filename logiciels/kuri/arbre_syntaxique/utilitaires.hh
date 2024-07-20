@@ -494,3 +494,5 @@ struct InformationMembreTypeCompose {
     MembreTypeComposé membre{};
     int index_membre = -1;
 };
+
+kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud);

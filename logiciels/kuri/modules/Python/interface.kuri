@@ -1263,7 +1263,7 @@ Py_compare_énum_énum :: fonc (valeur1: $T, op: z32, valeur2: T) -> *PyObject
 Py_compare_énum_chaine :: fonc (valeur_énum: $T, op: z32, valeur_chaine: chaine) -> *PyObject
 {
     infos := info_de(T)
-    valeur_énum_comme_chaine := donne_nom_énum_pour_valeur(infos, valeur_énum comme z32)
+    valeur_énum_comme_chaine := donne_nom_énum_pour_valeur(infos, valeur_énum)
 
     si op == Py_EQ {
         si valeur_chaine == valeur_énum_comme_chaine {
