@@ -295,11 +295,34 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
         couleur = color.value[0]
     }
 
+    chn_text_decoration := crée_chaine_utf16("text-decoration")
+    diffère détruit_chaine(chn_text_decoration)
+
+    effets: EffetsTexte
+
+    text_decoration := donne_déclaration(propriétés, chn_text_decoration)
+    si text_decoration {
+        pour text_decoration.value {
+            si it.est_mot_clé(crée_chaine_utf16_unique("underline").donne_chaine_utf16()) {
+                effets.souslignage = vrai
+                effets.couleur_souslignage = vers_couleur_rvba(couleur)
+            }
+            sinon si it.est_mot_clé(crée_chaine_utf16_unique("overline").donne_chaine_utf16()) {
+                effets.surlignage = vrai
+                effets.couleur_surlignage = vers_couleur_rvba(couleur)
+            }
+            sinon si it.est_mot_clé(crée_chaine_utf16_unique("line-through").donne_chaine_utf16()) {
+                effets.barrage = vrai
+                effets.couleur_barrage = vers_couleur_rvba(couleur)
+            }
+        }
+    }
+
     texte := noeud.texte
 
     peintre := ctx.peintre
     fonte := ctx.fonte
-    peintre.dessine_texte(fonte, texte, rect, couleur)
+    peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
 }
 
 est_display_none :: fonc (propriétés: *PropriétésDeStyle) -> bool
