@@ -343,8 +343,10 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             if (déclaration->est_déclaration_type()) {
-                référence->substitution = assem->crée_référence_type(référence->lexème,
-                                                                     déclaration->type);
+                /* Crée un type de données au cas où la déclaration ne fut pas encore validée... */
+                référence->substitution = assem->crée_référence_type(
+                    référence->lexème,
+                    typeuse.type_type_de_donnees(déclaration->comme_déclaration_type()));
                 return référence->substitution;
             }
 
