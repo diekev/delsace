@@ -1460,6 +1460,64 @@ crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPro
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ArrayConstructor
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array-constructor
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_array_constructor := TableVirtuelleCellule(classe = ArrayConstructor, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ArrayConstructor :: struct {
+    empl objet: Object
+    table = *table_virtuelle_objet_array
+}
+
+/* À FAIRE : standardise */
+crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype) -> *ArrayConstructor
+{
+    résultat := tas_de_mémoire.alloue(ArrayConstructor)
+    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-constructor */
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
+    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro)
+    résultat.sur_call = array_constructor_call
+
+    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.constructor */
+    array_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/* À FAIRE : standardise
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array */
+array_constructor_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur) -> CompletionRecord
+{
+    realm := interpréteuse.donne_realm()
+
+    résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
+
+    si arguments.taille != 0 {
+        completion := vers_nombre(interpréteuse, arguments[0])
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        len := completion.valeur.V.Number
+
+        completion = set(résultat, STR_length, Valeur(Number = len), vrai)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+    }
+
+    retourne normal_completion(Valeur(Object = résultat))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ArrayPrototype
  * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-prototype-object
  * \{ */

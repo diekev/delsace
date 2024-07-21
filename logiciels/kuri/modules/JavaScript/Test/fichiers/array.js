@@ -1,3 +1,4 @@
+// Littérale
 var a = [1, 2, 3];
 
 console.log(a.toString());
@@ -11,3 +12,8 @@ for (var i = 0; i < a.length; i++) {
 }
 
 console.log("résultat push : " + push_result);
+
+// Constructeur
+var b = Array(16);
+
+console.log(b.toString());

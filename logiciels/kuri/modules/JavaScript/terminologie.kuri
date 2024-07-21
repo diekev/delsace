@@ -6,6 +6,7 @@ importe Fondation
 
 STR_bigint: ChaineUTF16Unique = ---
 STR_boolean: ChaineUTF16Unique = ---
+STR_constructor: ChaineUTF16Unique = ---
 STR_false: ChaineUTF16Unique = ---
 STR_function: ChaineUTF16Unique = ---
 STR_globalThis: ChaineUTF16Unique = ---
@@ -22,6 +23,7 @@ STR_symbol: ChaineUTF16Unique = ---
 STR_toString: ChaineUTF16Unique = ---
 STR_true: ChaineUTF16Unique = ---
 STR_undefined: ChaineUTF16Unique = ---
+STR_Array: ChaineUTF16Unique = ---
 
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
  * métaprogrammes plus bas. */

@@ -130,6 +130,8 @@ Intrinsics :: struct {
     error_prototype: *ErrorPrototype
     reference_error_prototype: *ReferenceErrorPrototype
     type_error_prototype: *TypeErrorPrototype
+
+    array: *ArrayConstructor
 }
 
 /* 9.3.2 CreateIntrinsics ( realmRec )
@@ -144,6 +146,8 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.error_prototype = crée_error_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
+
+    realm.intrinsics.array = crée_array_constructor(tas_de_mémoire, realm.intrinsics.array_prototype)
 }
 
 /** \} */
@@ -283,6 +287,10 @@ set_default_global_bindings :: fonc (realm: *Realm)
     desc.value = Valeur(Object = realm.global_environment.global_this_value)
     desc.configurable = vrai
     _ := define_property_or_throw(global, STR_globalThis, desc)
+
+    desc = PropertyDescriptor()
+    desc.value = Valeur(Object = realm.intrinsics.array)
+    _ := define_property_or_throw(global, STR_Array, desc)
 
     // 3. Return UNUSED.
 }
