@@ -1,134 +1,495 @@
+importe Chaine
 importe Fondation
+importe HTML
+importe JavaScript
+importe Qt
 importe SysFichier
+importe Temps
 
-importe "../../JavaScript"
-
-construit_programme_1 :: fonc () -> *Programme
-{
-    // function foo() { return (1 + 2) + 3 }
-    // foo()
-    bin_op := crée_binary_expression(BinaryOperation.Plus, crée_literal(1), crée_literal(2))
-    bin_op = crée_binary_expression(BinaryOperation.Plus, bin_op, crée_literal(3))
-    return := crée_return_statement(bin_op)
-    corps := crée_block_statement(return)
-    foo := crée_identifier("foo")
-    fonction := crée_function_déclaration(foo, corps)
-
-    appel := crée_call_expression(foo)
-    expression := crée_expression_statement(appel)
-
-    retourne crée_programme(fonction, expression)
-}
-
-construit_programme_2 :: fonc () -> *Programme
-{
-    // c = 1
-    // function foo()
-    // {
-    //     var a = 5
-    //     var b = 7
-    //     return (a + b) + c
-    // }
-    // foo()
-
-    c := crée_identifier("c")
-    un := crée_literal(1)
-
-    assignment := crée_assignment_expression(AssignmentOperation.Assigne, c, un)
-    expr_assignment := crée_expression_statement(assignment)
-
-    a := crée_identifier("a")
-    declarator_a := crée_variable_declarator(a, crée_literal(5))
-    declaration_a := crée_variable_declaration(declarator_a)
-
-    b := crée_identifier("b")
-    declarator_b := crée_variable_declarator(b, crée_literal(7))
-    declaration_b := crée_variable_declaration(declarator_b)
-
-    bin_op := crée_binary_expression(BinaryOperation.Plus, a, b)
-    bin_op = crée_binary_expression(BinaryOperation.Plus, bin_op, c)
-    return := crée_return_statement(bin_op)
-    corps := crée_block_statement(declaration_a, declaration_b, return)
-    foo := crée_identifier("foo")
-    fonction := crée_function_déclaration(foo, corps)
-
-    appel := crée_call_expression(foo)
-    expression := crée_expression_statement(appel)
-
-    retourne crée_programme(expr_assignment, fonction, expression)
-}
-
-construit_programme_3 :: fonc () -> *Programme
-{
-    // function foo()
-    // {
-    //     var x = {};
-    //     rm();
-    // }
-    // foo();
-
-    x := crée_identifier("x")
-    rm := crée_identifier("rm")
-
-    declarator_x := crée_variable_declarator(x, crée_object_expression())
-    declaration_x := crée_variable_declaration(declarator_x)
-
-    appel_rm := crée_call_expression(rm)
-    expression_rm := crée_expression_statement(appel_rm)
-
-    corps := crée_block_statement(declaration_x, expression_rm)
-    foo := crée_identifier("foo")
-    fonction := crée_function_déclaration(foo, corps)
-
-    appel := crée_call_expression(foo)
-    expression := crée_expression_statement(appel)
-
-    retourne crée_programme(fonction, expression)
-}
-
-construit_programme_4 :: fonc () -> *Programme
-{
-    // "hello friends".length
-    retourne crée_programme(crée_member_expression(crée_literal("hello friends"), crée_identifier("length")))
-}
-
-test_programme :: fonc ()
-{
-    programme := construit_programme_4()
-
-    imprime_arbre(programme)
-
-    interpréteuse: Interpréteuse
-    initialise_interpréteuse(interpréteuse)
-
-    résultat := interpréteuse.exécute(programme)
-    imprime("%\n", résultat)
-
-    imprime("Ébouage...\n")
-    éboue(interpréteuse.donne_tas_de_mémoire())
-}
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction principale.
+ * \{ */
 
 principale :: fonc () -> z32
 {
-    pour ExploratriceFichier(CheminFichier("fichiers/")) {
-        contenu := contenu_fichier_texte(it.chn)
-        imprime("%\n", contenu)
+    mémoire_entrée := mémoire_utilisée()
 
-        discr compile_script(contenu) {
-            Ok(script) {
-                // pour lexème dans script.lexèmes {
-                //     imprime("%\n", lexème)
-                // }
+    arguments := __arguments_ligne_commande
 
-                // imprime_arbre(script.programme)
-            }
-            Erreur(e) {
-                imprime("%\n", e.message)
-            }
-            sinon {
-            }
+    /* Création application. */
+    taille_arguments := arguments.taille comme z32
+    app := QT_cree_application(*taille_arguments, arguments.pointeur)
+    diffère QT_detruit_application(app)
+
+    rappel_fermeture: RappelFermetureApp
+    rappel_fermeture.mémoire_entrée = mémoire_entrée
+    QT_application_sur_fin_boucle_evenement(app, *rappel_fermeture)
+
+    QT_core_application_definis_nom_organisation(vers_qt("delsace"))
+    QT_core_application_definis_nom_application(vers_qt("JavaScript"))
+
+    /* Création fenêtre. */
+    rappels_fenêtre : RappelsFenetrePrincipale
+
+    fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
+    diffère QT_detruit_fenetre_principale(fenêtre)
+
+    rappel_sauvegarde: RappelSauvegarde
+    rappel_sauvegarde.rappels_fenêtre = *rappels_fenêtre
+    raccourcis := QT_shortcut_cree(fenêtre)
+    QT_shortcut_definis_touches(raccourcis, QT_Keyboard_Modifier.CTRL, QT_Key.S)
+    QT_shortcut_sur_activation(raccourcis, *rappel_sauvegarde)
+
+    QT_widget_definis_titre_fenetre(fenêtre, vers_qt("JavaScript"))
+    QT_widget_affiche_maximisee(fenêtre)
+
+    /* Création widgets. */
+    widget := QT_cree_widget(nul, fenêtre)
+    QT_fenetre_principale_definis_widget_central(fenêtre, widget)
+
+    fonte: QT_Font
+    fonte.famille = vers_qt("Monospace")
+    feuille_de_style := vers_qt("QPlainTextEdit { background: black; color: white; }")
+
+    éditeur := QT_cree_plain_text_edit(nul, widget)
+    QT_widget_definis_feuille_de_style(éditeur, *feuille_de_style)
+    QT_widget_definis_fonte(éditeur, *fonte)
+    ouvre_fichier(éditeur)
+
+    sortie := QT_cree_plain_text_edit(nul, widget)
+    QT_plain_text_edit_definis_lecture_seule(sortie, vrai)
+    QT_widget_definis_feuille_de_style(sortie, *feuille_de_style)
+    QT_widget_definis_fonte(sortie, *fonte)
+
+    sortie_console := QT_cree_plain_text_edit(nul, widget)
+    QT_plain_text_edit_definis_lecture_seule(sortie_console, vrai)
+    QT_widget_definis_feuille_de_style(sortie_console, *feuille_de_style)
+    QT_widget_definis_fonte(sortie_console, *fonte)
+
+    rappels_fenêtre.éditeur = éditeur
+    rappels_fenêtre.sortie = sortie
+    rappels_fenêtre.sortie_console = sortie_console
+
+    dispv := QT_cree_vbox_layout(QT_widget_nul())
+    QT_layout_ajoute_widget(dispv, sortie)
+    QT_layout_ajoute_widget(dispv, sortie_console)
+
+    disp := QT_cree_hbox_layout(widget)
+    QT_layout_ajoute_widget(disp, éditeur)
+    QT_box_layout_ajoute_layout(disp, dispv)
+
+    retourne QT_application_exec(app)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sur fermeture application.
+ * \{ */
+
+RappelFermetureApp :: struct {
+    empl base: QT_Rappel_Generique
+
+    mémoire_entrée: z64
+
+    sur_rappel = sur_fermeture_application
+}
+
+sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
+{
+    rappel := base comme *RappelFermetureApp
+    imprime("mémoire_utilisée %\n", mémoire_utilisée() - rappel.mémoire_entrée)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Données fenêtre principale.
+ * \{ */
+
+RappelsFenetrePrincipale :: struct {
+    empl base : QT_Rappels_Fenetre_Principale
+
+    éditeur: *QT_PlainTextEdit
+    sortie: *QT_PlainTextEdit
+    sortie_console: *QT_PlainTextEdit
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sauvegarde/Évaluation du fichier de test.
+ * \{ */
+
+RappelSauvegarde :: struct {
+    empl base: QT_Rappel_Generique
+
+    rappels_fenêtre: *RappelsFenetrePrincipale
+
+    sur_rappel = sur_rappel_sauvegarde
+}
+
+ouvre_fichier :: fonc (éditeur: *QT_PlainTextEdit)
+{
+    contenu := contenu_fichier_texte("/tmp/test.js")
+    qcontenu := contenu.vers_qt()
+    QT_plain_text_edit_definis_texte(éditeur, *qcontenu)
+    déloge(contenu)
+}
+
+sauvegarde_fichier :: fonc (contenu: chaine)
+{
+    chemin := "/tmp/test.js"
+    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin), pour_écriture_tronquée) piège err {
+        imprime("%\n", err)
+        retourne
+    }
+
+    diffère _ := ferme(*fichier)
+
+    _ := écris(*fichier, contenu)
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjetHTML
+ * \{ */
+
+ObjetHTML :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = objet_html_sur_création_enveloppe
+
+    enveloppe_document: EnveloppeDocument
+}
+
+objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+{
+    fonction_native_ouvre_document :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_html := this_value.donne_objet() comme *Enveloppe
+        html := envellope_html.enveloppable comme *ObjetHTML
+
+        si arguments.taille == 0 {
+            retourne lance_type_error(interpréteuse, "ouvre_document requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        valeur_arg := arguments[0].String.texte
+        valeur_arg_utf16 := valeur_arg.donne_chaine_utf16()
+        chemin := imprime_chaine("%", valeur_arg_utf16)
+        diffère déloge(chemin)
+        
+        contenu := contenu_fichier_texte(chemin)
+
+        parsat := parse_document(contenu)
+        html.enveloppe_document.document = parsat.document
+
+        tas_de_mémoire := object.donne_tas_de_mémoire()
+        document := crée_enveloppe(tas_de_mémoire, *html.enveloppe_document)
+        retourne normal_completion(Valeur(Object = document))
+    }
+
+    enveloppe.ajoute_fonction_native("ouvre_document", fonction_native_ouvre_document)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeDocument
+ * \{ */
+
+EnveloppeDocument :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = enveloppe_document_sur_création_enveloppe
+
+    document: *Document
+
+    enveloppe_élément: EnveloppeÉlément
+}
+
+enveloppe_document_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+{
+    fonction_native_get_element_by_id :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_document := envellope.enveloppable comme *EnveloppeDocument
+        document := enveloppe_document.document
+
+        si arguments.taille == 0 {
+            retourne lance_type_error(interpréteuse, "getElementByID requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+
+        élément := document.get_element_by_id(texte)
+
+        saufsi élément {
+            retourne normal_completion(js_null)
+        }
+
+        enveloppe_document.enveloppe_élément.élément = élément
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        objet_élément := crée_enveloppe(tas_de_mémoire, *enveloppe_document.enveloppe_élément)
+        retourne normal_completion(Valeur(Object = objet_élément))
+    }
+
+    enveloppe.ajoute_fonction_native("getElementById", fonction_native_get_element_by_id)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeDocument
+ * \{ */
+
+EnveloppeÉlément :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = enveloppe_élément_sur_création_enveloppe
+
+    élément: *Élément
+}
+
+enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, enveloppe: *Enveloppe)
+{
+    fonction_native_get_element_by_class_name :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_élément := envellope.enveloppable comme *EnveloppeÉlément
+        élément := enveloppe_élément.élément
+
+        si arguments.taille == 0 {
+            retourne lance_type_error(interpréteuse, "getElementsByClassName requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+    
+        collection := élément.get_elements_by_class_name(texte)
+
+        enveloppe_collection := loge(EnveloppeHTMLCollection)
+        enveloppe_collection.collection = collection
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        résultat := crée_enveloppe(tas_de_mémoire, enveloppe_collection)
+        retourne normal_completion(Valeur(Object = résultat))
+    }
+
+    fonction_native_get_element_by_tag_name :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_élément := envellope.enveloppable comme *EnveloppeÉlément
+        élément := enveloppe_élément.élément
+
+        si arguments.taille != 1 {
+            retourne lance_type_error(interpréteuse, "getElementsByTagName requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+    
+        collection := élément.get_elements_by_tag_name(texte)
+
+        enveloppe_collection := loge(EnveloppeHTMLCollection)
+        enveloppe_collection.collection = collection
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        résultat := crée_enveloppe(tas_de_mémoire, enveloppe_collection)
+        retourne normal_completion(Valeur(Object = résultat))
+    }
+
+    enveloppe_élément := base comme *EnveloppeÉlément
+    élément := enveloppe_élément.élément
+
+    enveloppe.ajoute_fonction_native("getElementsByClassName", fonction_native_get_element_by_class_name)
+    enveloppe.ajoute_fonction_native("getElementsByTagName", fonction_native_get_element_by_tag_name)
+
+    si élément.texte == TAG_img {
+        img := élément comme *HTMLImageElement
+        src := img.donne_src()
+
+        str_src := crée_chaine(enveloppe.donne_tas_de_mémoire(), src)
+
+        enveloppe.ajoute_propriété(ATTR_src, Valeur(String = str_src), DrapeauxPropriété.zéro)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeHTMLCollection
+ * \{ */
+
+EnveloppeHTMLCollection :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = enveloppe_collection_sur_création_enveloppe
+
+    collection: *HTMLCollection
+}
+
+enveloppe_collection_sur_création_enveloppe :: fonc (base: *Enveloppable, enveloppe: *Enveloppe)
+{
+    fonction_native_item :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_collection := envellope.enveloppable comme *EnveloppeHTMLCollection
+        collection := enveloppe_collection.collection
+
+        si arguments.taille != 1 {
+            retourne lance_type_error(interpréteuse, "item requiers 1 argument")
+        }
+
+        completion_index := vers_nombre(interpréteuse, arguments[0])
+        saufsi completion_index.est_normal() {
+            retourne completion_index
+        }
+        index := completion_index.valeur.V.Number comme z64
+
+        si index < 0 || index >= collection.éléments.taille {
+            retourne normal_completion(js_null)
+        }
+
+        enveloppe_élément := loge(EnveloppeÉlément)
+        enveloppe_élément.élément = collection.éléments[index]
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        objet_élément := crée_enveloppe(tas_de_mémoire, enveloppe_élément)
+        retourne normal_completion(Valeur(Object = objet_élément))
+    }
+
+    enveloppable := base comme *EnveloppeHTMLCollection
+    collection := enveloppable.collection
+
+    enveloppe.ajoute_propriété(crée_chaine_utf16_unique("length"), Valeur(Number = collection.éléments.taille comme r64), DrapeauxPropriété.zéro)
+    enveloppe.ajoute_fonction_native("item", fonction_native_item)
+}
+
+/** \} */
+
+fonction_native_éboue :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+{
+    imprime("<<<<< ébouage forcé\n")
+    éboue(interpréteuse.donne_tas_de_mémoire())
+    imprime(">>>>> ébouage forcé\n")
+    retourne normal_completion(js_undefined)
+}
+
+RappelsHôteTest :: struct {
+    empl base: RappelsHôte
+
+    sortie_console: *QT_PlainTextEdit
+    html: ObjetHTML
+}
+
+crée_propriétés_hôte_objet_global :: fonc(base: *RappelsHôte, global: *Object)
+{
+    rappels := base comme *RappelsHôteTest
+
+    FluxSortieConsoleQt :: struct {
+        empl base: FluxSortieConsole
+
+        sortie_console: *QT_PlainTextEdit
+    }
+
+    flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
+    {
+        flux := base comme *FluxSortieConsoleQt
+        déloge(flux)
+    }
+
+    flux_sortie_sur_log :: fonc (base: *FluxSortieConsole, texte: chaine)
+    {
+        flux := base comme *FluxSortieConsoleQt
+        qtexte := texte.vers_qt()
+        sortie := flux.sortie_console
+        QT_plain_text_edit_definis_texte(sortie, *qtexte)
+    }
+
+    flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole)
+    {
+        flux := base comme *FluxSortieConsoleQt
+        sortie := flux.sortie_console
+        qtexte := "".vers_qt()
+        QT_plain_text_edit_definis_texte(sortie, *qtexte)
+    }
+
+    flux := loge(FluxSortieConsoleQt)
+    flux.sortie_console = rappels.sortie_console
+    flux.sur_destruction = flux_sortie_sur_destruction
+    flux.sur_log = flux_sortie_sur_log
+    flux.sur_efface = flux_sortie_sur_efface
+
+    console := crée_console(global.donne_tas_de_mémoire(), flux, nul)
+
+    global.ajoute_fonction_native("rm", fonction_native_éboue)
+    global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable)
+    global.ajoute_objet_natif("html", *rappels.html)
+}
+
+sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
+{
+    rappel := base comme *RappelSauvegarde
+    rappels_fenêtre := rappel.rappels_fenêtre
+
+    éditeur := rappels_fenêtre.éditeur
+    sortie := rappels_fenêtre.sortie
+
+    texte := QT_plain_text_edit_donne_texte(éditeur)
+    contenu := texte.vers_kuri()
+
+    sauvegarde_fichier(contenu)
+
+    début := maintenant_précis()
+
+    mv: MachineVirtuelle
+    diffère détruit_données_mv(*mv)
+    initialise_mv(*mv)
+
+    diffère éboue(donne_tas_de_mémoire(*mv))
+
+    rappels_hôte: RappelsHôteTest
+    rappels_hôte.sortie_console = rappels_fenêtre.sortie_console
+    rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+
+    realm := initialise_host_defined_realm(*mv, *rappels_hôte)
+
+    script: *Script
+    discr parse_script(contenu, realm) {
+        Ok(s) {
+            script = s
+        }
+        Erreur(e) {
+            chn := e.message.vers_qt()
+            QT_plain_text_edit_definis_texte(sortie, *chn)
+            déloge(e.message)
+            retourne
+        }
+        sinon {
+            chn := "Erreur inconnue".vers_qt()
+            QT_plain_text_edit_definis_texte(sortie, *chn)
+            retourne
         }
     }
 
-    retourne 0
+    résultat := script_evaluation(script)
+
+    texte_résultat := imprime_chaine("%\n\nTemps d'exécution : % ms\n", get_value(realm, résultat.valeur), début.temps_écoulé_millisecondes())
+    diffère déloge(texte_résultat)
+
+    chn := texte_résultat.vers_qt()
+    QT_plain_text_edit_definis_texte(sortie, *chn)
 }
+
+/** \} */

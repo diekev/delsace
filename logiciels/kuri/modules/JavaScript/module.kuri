@@ -86,11 +86,11 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
             ajoute_au_tampon(enchaineuse, n)
         }
         Object(o) {
-            si o.classe == ReferenceError {
+            si o.donne_classe() == ReferenceError {
                 error := o comme *ReferenceError
                 ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
             }
-            sinon si o.classe == TypeError {
+            sinon si o.donne_classe() == TypeError {
                 error := o comme *TypeError
                 ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
             }
@@ -281,10 +281,22 @@ est_symbol :: fonc (valeur: Valeur) -> bool
     }
 }
 
-concatène :: fonc (str_gauche: ECMAString, str_droite: ECMAString) -> Valeur
+concatène :: fonc (str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
 {
-    résultat := enchaine(str_gauche, str_droite)
-    retourne Valeur(String = résultat)
+    chn1 := str_gauche.texte.donne_chaine_utf16()
+    chn2 := str_droite.texte.donne_chaine_utf16()
+
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    ajoute(enchaineuse, chn1)
+    ajoute(enchaineuse, chn2)
+
+    chn := chaine_depuis_enchaineuse(enchaineuse)
+    chn_résultat := crée_chaine_utf16_unique(chn)
+
+    retourne Valeur(String = crée_chaine(str_gauche.donne_tas_de_mémoire(), chn_résultat))
 }
 
 js_null := Valeur(Null = NullType(0))
@@ -323,9 +335,58 @@ vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
     panique("vers_objet non-implémenté pour type")
 }
 
+/* 7.1.19 ToPropertyKey ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-topropertykey */
+to_property_key :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> CompletionRecord
+{
+    retourne to_property_key(interpréteuse.donne_realm(), key)
+}
+
+to_property_key :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
+{
+    // 1. Let key be ? ToPrimitive(argument, STRING).
+    completion := vers_primitive(realm, argument, TypePréféré.String)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    key := completion.valeur.V
+
+    // 2. If key is a Symbol, then
+    si key.est_symbol() {
+        // a. Return key.
+        retourne normal_completion(key)
+    }
+
+    // 3. Return ! ToString(key).
+    retourne vers_chaine(realm, key)
+}
+
+/* 7.1.20 ToLength ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tolength */
+to_length :: fonc (argument: Valeur) -> CompletionRecord
+{
+    assert(argument.est_nombre())
+    /* À FAIRE : ToIntegerOrInfinity. */
+    // 1. Let len be ? ToIntegerOrInfinity(argument).
+    len := argument.Number
+
+    // 2. If len ≤ 0, return +0𝔽.
+    si len <= 0.0 {
+        retourne normal_completion(Valeur(Number = 0.0))
+    }
+
+    // 3. Return 𝔽(min(len, 2**53 - 1)).
+    retourne normal_completion(argument)
+}
+
 /* 7.1.1 ToPrimitive ( input [ , preferredType ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toprimitive */
-vers_primitive :: fonc (interpréteuse: &Interpréteuse @inutilisée, valeur: Valeur, type_préféré := TypePréféré.Aucun @inutilisée) -> CompletionRecord
+vers_primitive :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
+{
+    retourne vers_primitive(interpréteuse.donne_realm(), valeur, type_préféré)
+}
+
+vers_primitive :: fonc (realm: *Realm @inutilisée, valeur: Valeur, type_préféré := TypePréféré.Aucun @inutilisée) -> CompletionRecord
 {
     // 1. If input is an Object, then
     si valeur.est_object() {
@@ -440,16 +501,75 @@ vers_nombre :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> Complet
     }
 
     // 6. If argument is a String, return StringToNumber(argument).
+    si valeur.est_chaine() {
+        retourne normal_completion(string_to_number(valeur))
+    }
+
     // 7. Assert: argument is an Object.
+    assert(valeur.est_object())
+
     // 8. Let primValue be ? ToPrimitive(argument, NUMBER).
+    completion_primitive := vers_primitive(interpréteuse, valeur, TypePréféré.Number)
+    saufsi completion_primitive.est_normal() {
+        retourne completion_primitive
+    }
+    prim_value := completion_primitive.valeur.V
+
     // 9. Assert: primValue is not an Object.
+    assert(prim_value.est_object() == faux)
+
     // 10. Return ? ToNumber(primValue).
-    panique("to_number non-implémenté")
+    retourne vers_nombre(interpréteuse, prim_value)
+}
+
+/* 7.1.4.1.1 StringToNumber ( str )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-stringtonumber */
+string_to_number :: fonc (valeur: Valeur) -> Valeur
+{
+    str := valeur.String.texte
+
+    // À FAIRE : standardise
+    // 1. Let literal be ParseText(str, StringNumericLiteral).
+    // 2. If literal is a List of errors, return NaN.
+    // 3. Return the StringNumericValue of literal.
+
+    source: TexteSource
+    source.texte = converti_vers_chaine(str.donne_chaine_utf16())
+    diffère déloge(source.texte)
+
+    lexèmes: [..]Lexème
+    diffère déloge(lexèmes)
+
+    résultat_lexage := lèxe(source)
+    discr résultat_lexage {
+        Ok(l) {
+            lexèmes = l
+        }
+        sinon {
+            retourne Valeur(Number = NaN)
+        }
+    }
+
+    si lexèmes.taille != 1 {
+        retourne Valeur(Number = NaN)
+    }
+
+    /* À FAIRE : prend en compte les signes +/-. */
+    si lexèmes[0].genre != GenreLexème.NombreLittéral {
+        retourne Valeur(Number = NaN)
+    }
+
+    retourne Valeur(Number = parse_nombre_depuis_lexème(*lexèmes[0]))
 }
 
 /* 7.1.17 ToString ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
 vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> CompletionRecord
+{
+    retourne vers_chaine(interpréteuse.donne_realm(), argument)
+}
+
+vers_chaine :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
 {
     // 1. If argument is a String, return argument.
     si argument.est_chaine() {
@@ -458,27 +578,27 @@ vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> Compl
 
     // 2. If argument is a Symbol, throw a TypeError exception.
     si argument.est_symbol() {
-        retourne lance_type_error(interpréteuse, "can't convert Symbol to string")
+        retourne lance_type_error(realm, "can't convert Symbol to string")
     }
 
     // 3. If argument is undefined, return "undefined".
     si argument.est_undefined() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_undefined))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_undefined))
     }
 
     // 4. If argument is null, return "null".
     si argument.est_nulle() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_null))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_null))
     }
 
     // 5. If argument is true, return "true".
     si argument.est_true() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_true))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_true))
     }
 
     // 6. If argument is false, return "false".
     si argument.est_false() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_false))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_false))
     }
 
     // 7. If argument is a Number, return Number::toString(argument, 10).
@@ -489,7 +609,7 @@ vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> Compl
         diffère déloge(chn)
 
         résultat := crée_chaine_utf16_unique(chn)
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), résultat))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), résultat))
     }
 
     // 8. If argument is a BigInt, return BigInt::toString(argument, 10).
@@ -501,7 +621,7 @@ vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> Compl
     assert(argument.est_object())
 
     // 10. Let primValue be ? ToPrimitive(argument, STRING).
-    completion_prim_value := vers_primitive(interpréteuse, argument, TypePréféré.String)
+    completion_prim_value := vers_primitive(realm, argument, TypePréféré.String)
     saufsi completion_prim_value.est_normal() {
         retourne completion_prim_value
     }
@@ -511,7 +631,7 @@ vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> Compl
     assert(!prim_value.est_object())
 
     // 12. Return ? ToString(primValue).
-    retourne vers_chaine(interpréteuse, prim_value)
+    retourne vers_chaine(realm, prim_value)
 }
 
 /* 7.2.3 IsCallable ( argument )
@@ -594,11 +714,25 @@ is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 
 TypeFonctionObjectCall :: fonc(*Object, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
 
+#portée_fichier
+
+table_virtuelle_objet := TableVirtuelleCellule(classe = Object, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+DrapeauxPropriété :: énum_drapeau n8 {
+    WRITABLE
+    ENUMERABLE
+    CONFIGURABLE
+}
+
+Configurable :: DrapeauxPropriété.CONFIGURABLE
+Enumerable :: DrapeauxPropriété.ENUMERABLE
+Writable :: DrapeauxPropriété.WRITABLE
+
 Object :: struct {
     empl base: Cellule
-    classe = #type_de_cette_structure
-    sur_destruction = sur_destruction_objet
-    sur_visite_graphe = sur_visite_graphe_objet
+    table = *table_virtuelle_objet
 
     /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-attributes */
     Propriété :: struct {
@@ -606,10 +740,7 @@ Object :: struct {
         valeur: Valeur
         get: fonc(*Object)(Valeur)
         set: fonc(*Object, Valeur)(rien)
-        /* À FAIRE : traite proprement ces valeurs. */
-        writable := vrai
-        configurable := vrai
-        enumerable := vrai
+        drapeaux: DrapeauxPropriété
     }
 
     propriétés: [..]Propriété
@@ -619,6 +750,7 @@ Object :: struct {
     /* Table virtuelle. */
     sur_get_prototype_of := ordinary_get_prototype_of
     sur_get_own_property := ordinary_get_own_property
+    sur_define_own_property := ordinary_define_own_property
     sur_get := ordinary_get
     sur_call: TypeFonctionObjectCall
 }
@@ -646,59 +778,64 @@ sur_destruction_objet :: fonc (base: *Cellule)
     déloge(objet.propriétés)
 }
 
-définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
+ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
-    propriété := trouve_propriété(objet, nom)
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
+}
+
+/* [[GetPrototypeOf]] */
+internal_get_prototype_of :: fonc (object: *Object) -> *Object
+{
+    retourne object.sur_get_prototype_of(object)
+}
+
+/* [[GetOwnProperty]] */
+internal_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+{
+    retourne object.sur_get_own_property(object, property_key)
+}
+
+/* [[DefineOwnProperty]] */
+internal_define_own_property :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    retourne object.sur_define_own_property(object, property_key, desc)
+}
+
+/* [[HasProperty]] */
+internal_has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+{
+    // À FAIRE : sur_has_property
+    propriété := trouve_propriété(object, property_key)
+    si propriété {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+    retourne normal_completion(Valeur(Boolean = faux))
+}
+
+/* [[Get]] */
+internal_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
+{
+    retourne object.sur_get(object, property_key, receiver)
+}
+
+/* [[Set]] */
+internal_set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
+{
+    // À FAIRE : sur_set
+    propriété := trouve_propriété(object, property_key)
     si propriété {
         propriété.valeur = valeur
-        retourne
+        retourne normal_completion(Valeur(Boolean = vrai))
     }
 
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur))
+    tableau_ajoute(*object.propriétés, Object.Propriété(property_key, valeur))
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
-ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, writable: bool, enumerable: bool, configurable: bool)
+/* [[Call]] */
+internal_call :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
 {
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, writable = writable, enumerable = enumerable, configurable = configurable))
-}
-
-get_prototype_of :: fonc (object: *Object) -> *Object
-{
-    retourne ordinary_get_prototype_of(object)
-}
-
-/* 7.3.2 Get
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
-get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
-{
-    // À FAIRE : type property_key
-    // 1. Return ? O.[[Get]](P, O).
-    retourne object.sur_get(object, property_key, Valeur(Object = object))
-}
-
-get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
-{
-    retourne ordinary_get_own_property(object, property_key)
-}
-
-/* 7.3.4 Set
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
-set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: bool) -> CompletionRecord
-{
-    // À FAIRE : type property_key
-
-    // 1. Let success be ? O.[[Set]](P, V, O).
-    // À FAIRE : différentes méthodes pour différents objets
-    définis_valeur(object, property_key, valeur)
-    succès := vrai
-
-    // 2. If success is false and Throw is true, throw a TypeError exception.
-    si succès == faux && throw == vrai {
-        panique("exceptions non-implémentées")
-    }
-
-    // 3. Return UNUSED.
-    retourne normal_completion(js_undefined)
+    retourne object.sur_call(object, interpréteuse, this_value, arguments)
 }
 
 trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
@@ -711,27 +848,167 @@ trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Proprié
     retourne nul
 }
 
-sur_visite_graphe_objet :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.3 Operations on Objects
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-operations-on-objects
+ * \{ */
+
+/* 7.3.2 Get
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
+get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
 {
-    cellule_sur_visite_graphe(base, visiteuse)
+    // À FAIRE : type property_key
+    // 1. Return ? O.[[Get]](P, O).
+    retourne object.internal_get(property_key, Valeur(Object = object))
+}
 
-    objet := base comme *Object
+/* 7.3.4 Set
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
+set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: bool) -> CompletionRecord
+{
+    // À FAIRE : type property_key
 
-    si objet.prototype {
-        visite_graphe(objet.prototype, visiteuse)
+    // 1. Let success be ? O.[[Set]](P, V, O).
+    completion := object.internal_set(property_key, valeur, Valeur(Object = object))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    succès := completion.valeur.V
+    // 2. If success is false and Throw is true, throw a TypeError exception.
+    si succès.est_false() && throw == vrai {
+        panique("exceptions non-implémentées")
     }
 
-    pour objet.propriétés {
-        si it.valeur.est_cellule() {
-            visite_graphe(it.valeur.donne_cellule(), visiteuse)
-        }
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
+/* 7.3.5 CreateDataProperty ( O, P, V )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdataproperty */
+create_data_property :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur) -> CompletionRecord
+{
+    // 1. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+    new_desc: PropertyDescriptor
+    new_desc.value = valeur
+    new_desc.writable = vrai
+    new_desc.enumerable = vrai
+    new_desc.configurable = vrai
+
+    // 2. Return ? O.[[DefineOwnProperty]](P, newDesc).
+    retourne internal_define_own_property(object, property_key, new_desc)
+}
+
+/* 7.3.6 CreateDataPropertyOrThrow ( O, P, V )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdatapropertyorthrow */
+create_data_property_or_throw :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur) -> CompletionRecord
+{
+    // 1. Let success be ? CreateDataProperty(O, P, V).
+    completion := create_data_property(object, property_key, valeur)
+    saufsi completion.est_normal() {
+        retourne completion
     }
+    success := completion.valeur.V
+
+    // 2. If success is false, throw a TypeError exception.
+    si success.est_false() {
+        panique("Exception non-implémentée")
+    }
+
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
+/* 7.3.8 DefinePropertyOrThrow ( O, P, desc )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definepropertyorthrow */
+define_property_or_throw :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    // 1. Let success be ? O.[[DefineOwnProperty]](P, desc).
+    completion := internal_define_own_property(object, property_key, desc)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    success := completion.valeur.V
+
+    // 2. If success is false, throw a TypeError exception.
+    si success.est_false() {
+        panique("Exception non-implémentée")
+    }
+
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
+/* 7.3.11 HasProperty ( O, P ) 
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasproperty */
+has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+{
+    // 1. Return ? O.[[HasProperty]](P).
+    retourne internal_has_property(object, property_key)
+}
+
+/* 7.3.12 HasOwnProperty ( O, P )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
+has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
+{
+    completion_desc := internal_get_own_property(object, nom)
+    saufsi completion_desc.est_normal() {
+        retourne completion_desc
+    }
+
+    desc := completion_desc.valeur
+    si desc.est_undefined() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    retourne normal_completion(Valeur(Boolean = vrai))
+}
+
+/* 7.3.13 Call ( F, V [ , argumentsList ] )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
+call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
+{
+    // 1. If argumentsList is not present, set argumentsList to a new empty List.
+    arguments: []Valeur
+    retourne call(interpréteuse, valeur, this_value, arguments)
+}
+
+call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // Continuation de la version sans arguments.
+    // 2. If IsCallable(F) is false, throw a TypeError exception.
+    saufsi is_callable(valeur) {
+        message := imprime_chaine("'%' is not callable", valeur)
+        retourne lance_type_error(interpréteuse, message)
+    }
+
+    object := valeur.donne_objet()
+
+    // 3. Return ? F.[[Call]](V, argumentsList).
+    retourne object.internal_call(interpréteuse, this_value, arguments)
+}
+
+/*7.3.18 LengthOfArrayLike ( obj )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-lengthofarraylike */
+length_of_array_like :: fonc (obj: *Object) -> CompletionRecord
+{
+    // 1. Return ℝ(? ToLength(? Get(obj, "length"))).
+    completion := get(obj, STR_length)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    completion = to_length(completion.valeur.V)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    retourne normal_completion(completion.valeur.V)
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Ordinary Object
+/** \nom 10.1 Ordinary Object Internal Methods and Internal Slots
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinary-object-internal-methods-and-internal-slots
  * \{ */
 
@@ -766,7 +1043,7 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
         D.value = propriété.valeur
 
         // b. Set D.[[Writable]] to the value of X's [[Writable]] attribute.
-        D.writable = propriété.writable
+        D.writable = propriété.drapeaux.WRITABLE == vrai
     }
     // 5. Else,
     sinon {
@@ -779,13 +1056,47 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
     }
 
     // 6. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
-    D.enumerable = propriété.enumerable
+    D.enumerable = propriété.drapeaux.ENUMERABLE == vrai
 
     // 7. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
-    D.configurable = propriété.configurable
+    D.configurable = propriété.drapeaux.CONFIGURABLE == vrai
 
     // 8. Return D.
     retourne normal_completion(D)
+}
+
+/* 10.1.6 [[DefineOwnProperty]] ( P, Desc )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydefineownproperty */
+ordinary_define_own_property :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    // À FAIRE : standardise
+    saufsi desc.value.possède_valeur() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    valeur := desc.value.Quelque
+    drapeaux: DrapeauxPropriété
+    si desc.writable.possède_valeur() {
+        writable := desc.writable.Quelque
+        si writable {
+            drapeaux.WRITABLE = vrai
+        }
+    }
+    si desc.configurable.possède_valeur() {
+        configurable := desc.configurable.Quelque
+        si configurable {
+            drapeaux.CONFIGURABLE = vrai
+        }
+    }
+    si desc.enumerable.possède_valeur() {
+        enumerable := desc.enumerable.Quelque
+        si enumerable {
+            drapeaux.ENUMERABLE = vrai
+        }
+    }
+
+    object.ajoute_propriété(property_key, valeur, drapeaux)
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
 /* 10.1.8.1 OrdinaryGet ( O, P, Receiver )
@@ -793,7 +1104,7 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
 ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
-    completion_desc := get_own_property(object, property_key)
+    completion_desc := internal_get_own_property(object, property_key)
     saufsi completion_desc.est_normal() {
         retourne completion_desc
     }
@@ -803,7 +1114,7 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
     // 2. If desc is undefined, then
     si desc.est_undefined() {
         // a. Let parent be ? O.[[GetPrototypeOf]]().
-        parent := get_prototype_of(object)
+        parent := internal_get_prototype_of(object)
 
         // b. If parent is null, return undefined.
         si parent == nul {
@@ -811,7 +1122,7 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
         }
 
         // c. Return ? parent.[[Get]](P, Receiver).
-        retourne parent.sur_get(parent, property_key, receiver)
+        retourne parent.internal_get(property_key, receiver)
     }
 
     // 3. If IsDataDescriptor(desc) is true, return desc.[[Value]].
@@ -833,10 +1144,15 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
  * https://tc39.es/ecma262/multipage/text-processing.html#sec-string-objects
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_objet_chaine := TableVirtuelleCellule(classe = ObjetChaine, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ObjetChaine :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
-    sur_visite_graphe = sur_visite_graphe_chaine
+    table = *table_virtuelle_objet_chaine
 
     chn: *PrimitiveChaine
 }
@@ -847,17 +1163,10 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
     résultat.prototype = string_prototype
     résultat.chn = chn
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), faux, faux, faux)
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), faux, faux, faux)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro)
 
     retourne résultat
-}
-
-sur_visite_graphe_chaine :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    objet_chaine := base comme *ObjetChaine
-    sur_visite_graphe_objet(objet_chaine, visiteuse)
-    cellule_sur_visite_graphe(objet_chaine.chn, visiteuse)
 }
 
 /** \} */
@@ -867,9 +1176,15 @@ sur_visite_graphe_chaine :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-object-prototype-object
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_object_prototype := TableVirtuelleCellule(classe = ObjectPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ObjectPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_object_prototype
 }
 
 crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectPrototype
@@ -906,23 +1221,6 @@ object_prototype_has_own_property :: fonc (object: *Object @inutilisée, interpr
     retourne has_own_property(obj, nom)
 }
 
-/* 7.3.12 HasOwnProperty ( O, P )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
-has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
-{
-    completion_desc := object.sur_get_own_property(object, nom)
-    saufsi completion_desc.est_normal() {
-        retourne completion_desc
-    }
-
-    desc := completion_desc.valeur
-    si desc.est_undefined() {
-        retourne normal_completion(Valeur(Boolean = faux))
-    }
-
-    retourne normal_completion(Valeur(Boolean = vrai))
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -930,10 +1228,15 @@ has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
  * https://tc39.es/ecma262/multipage/text-processing.html#sec-properties-of-the-string-prototype-object
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_string_prototype := TableVirtuelleCellule(classe = StringPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 StringPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
-    sur_visite_graphe = string_prototype_sur_visite_graphe
+    table = *table_virtuelle_string_prototype
 
     string_data: *PrimitiveChaine
 }
@@ -943,16 +1246,9 @@ crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obj
     résultat := tas_de_mémoire.alloue(StringPrototype)
     résultat.prototype = prototype
     résultat.string_data = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), faux, faux, faux)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
 
     retourne résultat
-}
-
-string_prototype_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    string_prototype := base comme *StringPrototype
-    sur_visite_graphe_objet(string_prototype, visiteuse)
-    cellule_sur_visite_graphe(string_prototype.string_data, visiteuse)
 }
 
 /** \} */
@@ -960,6 +1256,12 @@ string_prototype_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *Visiteus
 /* ------------------------------------------------------------------------- */
 /** \nom Fonction
  * \{ */
+
+#portée_fichier
+
+table_virtuelle_function := TableVirtuelleCellule(classe = Function, sur_destruction = sur_destruction_objet)
+
+#portée_export
 
 LEXICAL_THIS :: vrai
 NON_LEXICAL_THIS :: faux
@@ -972,7 +1274,7 @@ ThisMode :: énum {
 
 Function :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_function
 
     nom: ECMAString
     corps: *NoeudSyntaxique
@@ -1055,33 +1357,9 @@ ordinary_function_create :: fonc (tas_de_mémoire: *TasDeMémoire, params: [..]*
     retourne F
 }
 
-/* 7.3.13 Call ( F, V [ , argumentsList ] )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
-call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
-{
-    // 1. If argumentsList is not present, set argumentsList to a new empty List.
-    arguments: []Valeur
-    retourne call(interpréteuse, valeur, this_value, arguments)
-}
-
-call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
-{
-    // Continuation de la version sans arguments.
-    // 2. If IsCallable(F) is false, throw a TypeError exception.
-    saufsi is_callable(valeur) {
-        message := imprime_chaine("'%' is not callable", valeur)
-        retourne lance_type_error(interpréteuse, message)
-    }
-
-    object := valeur.donne_objet()
-
-    // 3. Return ? F.[[Call]](V, argumentsList).
-    retourne object.sur_call(object, interpréteuse, this_value, arguments)
-}
-
 sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
 {
-    assert(object.classe == Function)
+    assert(object.donne_classe() == Function)
     fonction := object comme *Function
     retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
 }
@@ -1092,29 +1370,36 @@ sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpr�
 /** \nom FunctionNative
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_function_native := TableVirtuelleCellule(classe = FunctionNative, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 FunctionNative :: struct {
     empl function: Function
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_function_native
 }
 
-crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall) -> *FunctionNative
+crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
     résultat.nom = nom
     résultat.sur_call = sur_appel
+    résultat.ajoute_propriété(STR_length, Valeur(Number = length comme r64), DrapeauxPropriété.zéro)
     retourne résultat
 }
 
-ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeFonctionObjectCall)
+ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length := 0)
 {
     tas_de_mémoire := objet.donne_tas_de_mémoire()
-    fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel)
-    ajoute_propriété(objet, nom, Valeur(Function = fonction), faux, faux, faux)
+    fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel, length)
+    ajoute_propriété(objet, nom, Valeur(Function = fonction), DrapeauxPropriété.zéro)
 }
 
-ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonctionObjectCall)
+ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonctionObjectCall, length := 0)
 {
-    ajoute_fonction_native(objet, crée_chaine_utf16_unique(nom), sur_appel)
+    ajoute_fonction_native(objet, crée_chaine_utf16_unique(nom), sur_appel, length)
 }
 
 /** \} */
@@ -1123,10 +1408,15 @@ ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonc
 /** \nom PrimitiveChaine
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_primitive_chaine := TableVirtuelleCellule(classe = PrimitiveChaine)
+
+#portée_export
+
 PrimitiveChaine :: struct {
     empl cellule: Cellule
-    classe = #type_de_cette_structure
-    sur_visite_graphe = string_primitive_sur_visite_graphe
+    table = *table_virtuelle_primitive_chaine
 
     texte: ECMAString
     objet: *Object
@@ -1139,13 +1429,272 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *Pr
     retourne résultat
 }
 
-string_primitive_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjetArray
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_objet_array := TableVirtuelleCellule(classe = ObjetArray, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ObjetArray :: struct {
+    empl objet: Object
+    table = *table_virtuelle_objet_array
+}
+
+crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype, nombre_éléments: z64) -> *ObjetArray
 {
-    string_primitive := base comme *PrimitiveChaine
-    cellule_sur_visite_graphe(string_primitive, visiteuse)
-    si string_primitive.objet {
-        sur_visite_graphe_objet(string_primitive.objet, visiteuse)
+    résultat := tas_de_mémoire.alloue(ObjetArray)
+    résultat.prototype = array_prototype
+
+    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrayConstructor
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array-constructor
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_array_constructor := TableVirtuelleCellule(classe = ArrayConstructor, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ArrayConstructor :: struct {
+    empl objet: Object
+    table = *table_virtuelle_objet_array
+}
+
+/* À FAIRE : standardise */
+crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype) -> *ArrayConstructor
+{
+    résultat := tas_de_mémoire.alloue(ArrayConstructor)
+    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-constructor */
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
+    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro)
+    résultat.sur_call = array_constructor_call
+
+    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.constructor */
+    array_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/* À FAIRE : standardise
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array */
+array_constructor_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur) -> CompletionRecord
+{
+    realm := interpréteuse.donne_realm()
+
+    résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
+
+    si arguments.taille != 0 {
+        completion := vers_nombre(interpréteuse, arguments[0])
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        len := completion.valeur.V.Number
+
+        completion = set(résultat, STR_length, Valeur(Number = len), vrai)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
     }
+
+    retourne normal_completion(Valeur(Object = résultat))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrayPrototype
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_array_prototype := TableVirtuelleCellule(classe = ArrayPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ArrayPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_array_prototype
+}
+
+crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ArrayPrototype
+{
+    résultat := tas_de_mémoire.alloue(ArrayPrototype)
+    résultat.prototype = prototype
+
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), Writable)
+    résultat.ajoute_fonction_native(STR_join, array_prototype_join)
+    résultat.ajoute_fonction_native(STR_push, array_prototype_push, 1)
+    résultat.ajoute_fonction_native(STR_toString, array_prototype_to_string)
+
+    retourne résultat
+}
+
+/* 23.1.3.18 Array.prototype.join ( separator )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.join */
+array_prototype_join :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // 1. Let O be ? ToObject(this value).
+    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.valeur.V.donne_objet()
+
+    // 2. Let len be ? LengthOfArrayLike(O).
+    completion = length_of_array_like(O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    len := completion.valeur.V.Number
+
+    // 3. If separator is undefined, let sep be ",".
+    sep: ECMAString
+    si arguments.taille == 0 {
+        sep = crée_chaine_utf16_unique(",")
+    }
+    // 4. Else, let sep be ? ToString(separator).
+    sinon {
+        completion = vers_chaine(interpréteuse, arguments[0])
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        sep = completion.valeur.V.String.texte
+    }
+
+    // 5. Let R be the empty String.
+    R: EnchaineuseUTF16
+    initialise_enchaineuse(R)
+    diffère détruit_tampons(R)
+
+    // 6. Let k be 0.
+    k := 0.0
+
+    // 7. Repeat, while k < len,
+    tantque k < len {
+        // a. If k > 0, set R to the string-concatenation of R and sep.
+        si k > 0.0 {
+            ajoute(R, sep.donne_chaine_utf16())
+        }
+
+        // b. Let element be ? Get(O, ! ToString(𝔽(k))).
+        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = k)).valeur.V.String.texte
+        completion = get(O, nom_propriété)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        element := completion.valeur.V
+
+        // c. If element is neither undefined nor null, then
+        saufsi element.est_nulle() || element.est_undefined() {
+            // i. Let S be ? ToString(element).
+            completion = vers_chaine(interpréteuse, element)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            S := completion.valeur.V.String.texte
+
+            // ii. Set R to the string-concatenation of R and S.
+            ajoute(R, S.donne_chaine_utf16())
+        }
+
+        // d. Set k to k + 1.
+        k += 1.0
+    }
+
+    // 8. Return R.
+    résultat := chaine_depuis_enchaineuse(R)
+    valeur_résultat := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(résultat))
+    retourne normal_completion(Valeur(String = valeur_résultat))
+}
+
+/* 23.1.3.23 Array.prototype.push ( ...items )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.push */
+array_prototype_push :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // 1. Let O be ? ToObject(this value).
+    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.valeur.V.donne_objet()
+
+    // 2. Let len be ? LengthOfArrayLike(O).
+    completion = length_of_array_like(O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    len := completion.valeur.V.Number
+
+    // 3. Let argCount be the number of elements in items.
+    // arg_count := arguments.taille
+
+    // À FAIRE : 4. If len + argCount > 2**53 - 1, throw a TypeError exception.
+
+    // 5. For each element E of items, do
+    pour arguments {
+        // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
+        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = len)).valeur.V.String.texte
+        completion = set(O, nom_propriété, it, vrai)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        // b. Set len to len + 1.
+        len += 1.0
+    }
+
+    // 6. Perform ? Set(O, "length", 𝔽(len), true).
+    completion = set(O, STR_length, Valeur(Number = len), vrai)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 7. Return 𝔽(len).
+    retourne normal_completion(Valeur(Number = len))
+}
+
+/* 23.1.3.36 Array.prototype.toString ( )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.tostring */
+array_prototype_to_string :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur @inutilisée) -> CompletionRecord
+{
+    // 1. Let array be ? ToObject(this value).
+    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    array := completion.valeur.V.donne_objet()
+
+    // 2. Let func be ? Get(array, "join").
+    completion = get(array, STR_join)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    func := completion.valeur.V
+
+    // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
+    saufsi is_callable(func) {
+        panique("%Object.prototype.toString% non-implémenté")
+    }
+
+    // 4. Return ? Call(func, array).
+    retourne call(interpréteuse, func, Valeur(Object = array))
 }
 
 /** \} */
@@ -1155,9 +1704,15 @@ string_primitive_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *Visiteus
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-error-objects
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_error := TableVirtuelleCellule(classe = Error, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 Error :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_error
 }
 
 /** \} */
@@ -1167,9 +1722,15 @@ Error :: struct {
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-error-prototype-object
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_error_prototype := TableVirtuelleCellule(classe = ErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ErrorPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_error_prototype
 }
 
 crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ErrorPrototype
@@ -1186,10 +1747,15 @@ crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-referenceerror
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_reference_error := TableVirtuelleCellule(classe = ReferenceError, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ReferenceError :: struct {
     empl error: Error
-    classe = #type_de_cette_structure
-    sur_visite_graphe = reference_error_sur_visite_graphe
+    table = *table_virtuelle_reference_error
 
     message: *PrimitiveChaine
 }
@@ -1202,13 +1768,6 @@ crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Refe
     retourne résultat
 }
 
-reference_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    reference_error := base comme *ReferenceError
-    sur_visite_graphe_objet(reference_error, visiteuse)
-    cellule_sur_visite_graphe(reference_error.message, visiteuse)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1216,9 +1775,15 @@ reference_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *Visiteuse
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_reference_error_prototype := TableVirtuelleCellule(classe = ReferenceErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ReferenceErrorPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_reference_error_prototype
 }
 
 crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
@@ -1235,10 +1800,15 @@ crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, protot
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-typeerror
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_type_error := TableVirtuelleCellule(classe = TypeError, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 TypeError :: struct {
     empl error: Error
-    classe = #type_de_cette_structure
-    sur_visite_graphe = type_error_sur_visite_graphe
+    table = *table_virtuelle_type_error
 
     message: *PrimitiveChaine
 }
@@ -1249,13 +1819,6 @@ crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeError
     résultat.prototype = prototype
     résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
     retourne résultat
-}
-
-type_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    type_error := base comme *TypeError
-    sur_visite_graphe_objet(type_error, visiteuse)
-    cellule_sur_visite_graphe(type_error.message, visiteuse)
 }
 
 lance_type_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
@@ -1276,9 +1839,15 @@ lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_type_error_prototype := TableVirtuelleCellule(classe = TypeErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 TypeErrorPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_type_error_prototype
 }
 
 crée_type_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *TypeErrorPrototype

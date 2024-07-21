@@ -92,6 +92,9 @@ principale :: fonc () -> z32
     QT_widget_definis_titre_fenetre(fenêtre, vers_qt("HTML"))
     QT_widget_affiche_maximisee(fenêtre)
 
+    rappels_user_agent := crée_rappels_interface_qt(fenêtre)
+    définis_rappels_interface(*rappels_fenêtre.user_agent, rappels_user_agent)
+
     rappels_fenêtre.chargeuse_ressource.rappels_interface = crée_rappels_interface_qt(fenêtre)
 
     si chemin_fichier {
@@ -111,6 +114,7 @@ principale :: fonc () -> z32
  * \{ */
 
 évènement_sur_création_onglet : z32 = -1
+évènement_sur_survole_élément : z32 = -1
 
 ÉvènementCréationOnglet :: struct {
     uri: chaine
@@ -119,6 +123,7 @@ principale :: fonc () -> z32
 initialise_évènements_personnalisés :: fonc ()
 {
     évènement_sur_création_onglet = QT_enregistre_evenement_personnel()
+    évènement_sur_survole_élément = QT_enregistre_evenement_personnel()
 }
 
 sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
@@ -157,7 +162,141 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
         retourne 1
     }
 
+    si type == évènement_sur_survole_élément {
+        rappels := base comme *RappelsFenetrePrincipale
+        document := donne_document(*rappels.page_web)
+
+        /* Restaure toujours le curseur pour éviter d'être bloqué avec un curseur quand
+         * nous passons d'un élément à un autre ayant le même curseur : ceci empilera un
+         * nouveau curseur et une restauration suivante nous renverraient sur le curseur
+         * du premier élément. */
+        QT_gui_application_restaure_curseur()
+
+        élément := document.noeud_survolé
+        si élément && élément.noeud_de_disposition {
+            curseur_qt := curseur_qt_depuis_css(CSS.donne_curseur(élément.noeud_de_disposition))
+            QT_gui_application_definis_curseur(curseur_qt)
+        }
+
+        QT_evenement_accepte(event)
+        retourne 1
+    }
+
     retourne 0
+}
+
+curseur_qt_depuis_css :: fonc (type: CSS.CursorType) -> QT_CursorShape
+{
+    discr type {
+        auto,
+        default {
+            retourne QT_CursorShape.ARROW
+        }
+        none {
+            retourne QT_CursorShape.BLANK
+        }
+        context_menu {
+            retourne QT_CursorShape.ARROW
+        }
+        help {
+            retourne QT_CursorShape.WHATS_THIS
+        }
+        pointer {
+            retourne QT_CursorShape.POINTING_HAND
+        }
+        progress {
+            retourne QT_CursorShape.BUSY
+        }
+        wait {
+            retourne QT_CursorShape.WAIT
+        }
+        cell {
+            retourne QT_CursorShape.ARROW
+        }
+        crosshair {
+            retourne QT_CursorShape.CROSS
+        }
+        text {
+            retourne QT_CursorShape.IBEAM
+        }
+        vertical_text {
+            retourne QT_CursorShape.ARROW
+        }
+        alias {
+            retourne QT_CursorShape.ARROW
+        }
+        copy {
+            retourne QT_CursorShape.ARROW
+        }
+        move {
+            retourne QT_CursorShape.ARROW
+        }
+        no_drop {
+            retourne QT_CursorShape.ARROW
+        }
+        not_allowed {
+            retourne QT_CursorShape.FORBIDDEN
+        }
+        grab {
+            retourne QT_CursorShape.OPEN_HAND
+        }
+        grabbing {
+            retourne QT_CursorShape.DRAG_MOVE
+        }
+        e_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        n_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        ne_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        nw_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        s_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        se_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        sw_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        w_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        ew_resize {
+            retourne QT_CursorShape.SIZE_HORIZONTAL
+        }
+        ns_resize {
+            retourne QT_CursorShape.SIZE_VERTICAL
+        }
+        nesw_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        nwse_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        col_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        row_resize {
+            retourne QT_CursorShape.ARROW
+        }
+        all_scroll {
+            retourne QT_CursorShape.ARROW
+        }
+        zoom_in {
+            retourne QT_CursorShape.ARROW
+        }
+        zoom_out {
+            retourne QT_CursorShape.ARROW
+        }
+    }
+
+    retourne QT_CursorShape.ARROW
 }
 
 /** \} */
@@ -516,6 +655,7 @@ VueRenduPage :: struct {
     sur_initialisation_gl = vue_rendu_page_sur_initialisation
     sur_peinture_gl = vue_rendu_page_sur_peinture
     sur_redimensionnement_gl = vue_rendu_page_sur_redimensionnement
+    sur_deplacement_souris = vue_rendu_page_sur_déplacement_souris
 
     page: *PageWeb
 
@@ -576,9 +716,11 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     }
 
     page := vue_rendu_page.page
+    document := donne_document(page)
 
     ctx: CSS.ContexteDessin
-    ctx.fonte = page.fonte
+    ctx.globales = document.globales_dessin
+    ctx.fonte = CSS.donne_fonte_défaut(ctx.globales)
     ctx.peintre = peintre
     ctx.hauteur_vue = vue_rendu_page.hauteur
 
@@ -590,6 +732,27 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
     vue_rendu_page := rappels comme *VueRenduPage
     vue_rendu_page.largeur = taille.largeur
     vue_rendu_page.hauteur = taille.hauteur
+}
+
+vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
+{
+    vue_rendu_page := base comme *VueRenduPage
+
+    document := donne_document(vue_rendu_page.page)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    position: QT_Position
+    QT_mouse_event_donne_position(event, *position)
+
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    document.définis_noeud_survolé(élément)
 }
 
 /** \} */
@@ -623,26 +786,9 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
         retourne document.arbre_de_disposition
     }
 
-    saufsi page.fonte {
-        TAILLE_POLICE_DÉFAUT :: 16.0
-
-        page.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), TAILLE_POLICE_DÉFAUT)
-    }
-
     document.ajoute_feuille_de_style(donne_feuille_de_style_défaut())
-    CSS.crée_arbre_de_disposition(document, page.fonte)
+    CSS.crée_arbre_de_disposition(document)
     retourne document.arbre_de_disposition
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom RappelsInterface
- * \{ */
-
-RappelsInterface :: struct {
-    sur_lancement_requête: fonc(*RappelsInterface, *Requête)(rien)
-    sur_spin_event_loop: fonc(*RappelsInterface)(rien)
 }
 
 /** \} */
@@ -698,104 +844,6 @@ spin_event_loop :: fonc (chargeuse: *ChargeuseRessource)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Ressource
- * \{ */
-
-Ressource :: struct {
-    sur_chargement: fonc(*Ressource, chaine)(rien)
-    sur_erreur: fonc(*Ressource)(rien)
-
-    uri: URI
-    type: chaine // application/javascript, text/html, etc.
-
-    chargement_terminé := faux
-
-    fenêtre: *QT_Fenetre_Principale
-}
-
-crée_ressource_pour_chargement_page_web :: fonc (fenêtre: *QT_Fenetre_Principale, chemin: chaine) -> *Ressource
-{
-    sur_chargement :: fonc (ressource: *Ressource, données: chaine)
-    {
-        page_web := crée_page_web(ressource.uri, données)
-        crée_widget_pour_page(ressource.fenêtre, page_web)
-    }
-
-    résultat := loge(Ressource)
-    résultat.sur_chargement = sur_chargement
-    résultat.type = "text/html"
-    résultat.fenêtre = fenêtre
-
-    si est_un_fichier_régulier(CheminFichier(chemin)) {
-        uri: URI
-        uri.schéma = "file"
-        uri.schéma_est_défini = vrai
-        uri.autorité_est_définie = vrai
-        uri.chemin = chemin
-        résultat.uri = uri
-    }
-    sinon {
-        résultat.uri = tente parse_uri_standard(chemin) piège nonatteignable
-    }
-
-    retourne résultat
-}
-
-est_fichier :: fonc (ressource: *Ressource) -> bool
-{
-    uri := ressource.uri
-
-    si uri.schéma == "file" {
-        retourne vrai
-    }
-
-    retourne faux
-}
-
-ressource_fut_chargée :: fonc (ressource: *Ressource, données: chaine)
-{
-    si ressource.sur_chargement {
-        ressource.sur_chargement(ressource, données)
-    }
-
-    ressource.chargement_terminé = vrai
-}
-
-ressource_eu_erreur :: fonc (ressource: *Ressource)
-{
-    si ressource.sur_erreur {
-        ressource.sur_erreur(ressource)
-    }
-
-    ressource.chargement_terminé = vrai
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Requête
- * \{ */
-
-Requête :: struct {
-    ressource: *Ressource
-    message: MessageServeuseHTTP
-}
-
-est_http :: fonc (requête: *Requête) -> bool
-{
-    assert(requête.ressource != nul)
-    retourne requête.ressource.uri.schéma == "http"
-}
-
-est_https :: fonc (requête: *Requête) -> bool
-{
-    assert(requête.ressource != nul)
-    retourne requête.ressource.uri.schéma == "https"
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom RappelsInterfaceQt
  * \{ */
 
@@ -808,9 +856,23 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
 {
     résultat := loge(RappelsInterfaceQt)
     résultat.fenêtre = fenêtre
+    résultat.sur_destruction = rappels_interface_sur_destruction
+    résultat.sur_élément_survolé = rappels_interface_sur_élément_survolé
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
     résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
     retourne résultat
+}
+
+rappels_interface_sur_destruction :: fonc (base: *RappelsInterface)
+{
+    rappels := base comme *RappelsInterfaceQt
+    déloge(rappels)
+}
+
+rappels_interface_sur_élément_survolé :: fonc (base: *RappelsInterface)
+{
+    rappels := base comme *RappelsInterfaceQt
+    QT_application_poste_evenement(rappels.fenêtre, évènement_sur_survole_élément)
 }
 
 rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Requête)

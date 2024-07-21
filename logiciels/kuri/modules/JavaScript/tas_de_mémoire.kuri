@@ -1,5 +1,6 @@
 importe Ensemble
 importe Fondation
+importe Introspection
 
 DÉBOGUGE_MÉMOIRE :: faux
 
@@ -89,12 +90,8 @@ TypeÉbouage :: énum {
         rassemble_racines(tas_de_mémoire, *racines)
     }
 
-    cellules_vivantes: [..]*Cellule
-    diffère déloge(cellules_vivantes)
-    visite_cellules_vivantes(tas_de_mémoire, racines, *cellules_vivantes)
+    visite_cellules_vivantes(tas_de_mémoire, racines)
 
-    réinitialise_bits_de_marquage(tas_de_mémoire)
-    marque_cellules_vivantes(tas_de_mémoire, *cellules_vivantes)
     balaie_cellules_mortes(tas_de_mémoire)
 
     si tas_de_mémoire.imprime_statistiques {
@@ -178,65 +175,46 @@ ajoute_racine_depuis_cellule_possible :: fonc (tas_de_mémoire: *TasDeMémoire, 
     }
 }
 
-visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, racines: []*Cellule, cellules_vivantes: *[..]*Cellule)
+visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, racines: []*Cellule)
 {
     VisiteuseVivance :: struct {
         empl base: VisiteuseCellule
-
-        cellules_vivantes: *[..]*Cellule
     }
 
-    sur_a_visité :: fonc (base: *VisiteuseCellule, cellule: *Cellule)
+    sur_a_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule)
     {
-        visiteuse := base comme *VisiteuseVivance
-        ensemble_ajoute(visiteuse.cellules_vivantes, cellule)
+        cellule.marqué = vrai
     }
 
-    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule, cellule: *Cellule) -> bool
+    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule) -> bool
     {
-        visiteuse := base comme *VisiteuseVivance
-        retourne ensemble_possède(visiteuse.cellules_vivantes, cellule)
+        retourne cellule.marqué
     }
 
     visiteuse: VisiteuseVivance
-    visiteuse.cellules_vivantes = cellules_vivantes
     visiteuse.sur_a_visité = sur_a_visité
     visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
 
     pour racines {
-        it.visite_graphe(*visiteuse)
+        visite_cellule_générique(*visiteuse, it)
     }
 
     #si DÉBOGUGE_MÉMOIRE {
-        imprime("%\n", #nom_de_cette_fonction)
-        pour mémoire(cellules_vivantes) {
+        pour racines {
             imprime("    @ %\n", it)
         }
+        imprime_cellules_vivantes(tas_de_mémoire)
     }
 }
 
-réinitialise_bits_de_marquage :: fonc (tas_de_mémoire: *TasDeMémoire)
+imprime_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire)
 {
-    pour tas_de_mémoire.blocs {
-        pour cellule dans it {
-            cellule.marqué = faux
-        }
-    }
-}
-
-marque_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, cellules_vivantes: *[..]*Cellule)
-{
-    #si DÉBOGUGE_MÉMOIRE {
-        imprime("%\n", #nom_de_cette_fonction)
-    }
+    imprime("%\n", #nom_de_cette_fonction)
 
     pour tas_de_mémoire.blocs {
         pour cellule dans it {
-            si ensemble_possède(cellules_vivantes, cellule) {
-                cellule.marqué = vrai
-                #si DÉBOGUGE_MÉMOIRE {
-                    imprime("    ! %\n", cellule)
-                }
+            si cellule.vivante && cellule.marqué {
+                imprime("    ! %\n", cellule)
             }
         }
     }
@@ -260,6 +238,7 @@ balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
                     imprime("    ~ %\n", cellule)
                 }
             }
+            cellule.marqué = faux
         }
 
         si it.est_vide() {
@@ -399,19 +378,39 @@ opérateur pour :: fonc (bloc: *BlocDeMémoire) -> *Cellule
  * Structure de base pour être éboué.
  * \{ */
 
-Cellule :: struct {
-    classe := #type_de_cette_structure
+TableVirtuelleCellule :: struct {
+    classe: type_de_données
     sur_destruction: fonc(*Cellule)(rien)
-    sur_visite_graphe := cellule_sur_visite_graphe
+}
 
+#portée_fichier
+
+table_virtuelle_cellule := TableVirtuelleCellule(classe = Cellule)
+
+#portée_export
+
+Cellule :: struct {
+    table := *table_virtuelle_cellule
     marqué := faux
     vivante := vrai
 }
 
+donne_info_type_cellule :: fonc (racine: *Cellule) -> *InfoTypeStructure
+{
+    résultat := __table_des_types[racine.table.classe] comme *InfoTypeStructure
+    assert(est_struct_ou_employeuse_de(résultat, info_de(Cellule)))
+    retourne résultat
+}
+
 donne_nom_classe :: fonc (cellule: *Cellule) -> chaine
 {
-    infos := __table_des_types[cellule.classe] comme *InfoTypeStructure
+    infos := donne_info_type_cellule(cellule)
     retourne infos.nom
+}
+
+donne_classe :: fonc (cellule: *Cellule) -> type_de_données
+{
+    retourne cellule.table.classe
 }
 
 imprime_cellule :: fonc (enchaineuse: *Enchaineuse, addr_cellule: **Cellule)
@@ -425,30 +424,10 @@ imprime_cellule :: fonc (enchaineuse: *Enchaineuse, addr_cellule: **Cellule)
     imprime_dans_enchaineuse(enchaineuse, "%{%}", cellule.donne_nom_classe(), cellule comme *rien)
 } @FormattageImpression
 
-cellule_sur_visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    visiteuse.a_visité(cellule)
-}
-
 détruit_cellule :: fonc (cellule: *Cellule)
 {
-    si cellule.sur_destruction {
-        cellule.sur_destruction(cellule)
-    }
-}
-
-visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    saufsi cellule {
-        retourne
-    }
-
-    si visiteuse.a_déjà_visité(cellule) {
-        retourne
-    }
-
-    si cellule.sur_visite_graphe {
-        cellule.sur_visite_graphe(cellule, visiteuse)
+    si cellule.table.sur_destruction {
+        cellule.table.sur_destruction(cellule)
     }
 }
 
@@ -489,6 +468,102 @@ a_déjà_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule) -> bo
     }
 
     retourne faux
+}
+
+visite_cellule_générique :: fonc (visiteuse: *VisiteuseCellule, racine: *Cellule)
+{
+    saufsi racine {
+        retourne
+    }
+
+    si a_déjà_visité(visiteuse, racine) {
+        retourne
+    }
+
+    a_visité(visiteuse, racine)
+
+    info := donne_info_type_cellule(racine)
+
+    valeur_eini : eini = ---
+    valeur_eini.pointeur = racine
+    valeur_eini.info = info
+
+    visite_structure(visiteuse, valeur_eini)
+}
+
+visite_structure :: fonc (visiteuse: *VisiteuseCellule, structure: eini)
+{
+    info := structure.info comme *InfoTypeStructure
+    pour info.membres {
+        membre := eini_depuis_info_membre(structure, it)
+        si possède_annotation(it, "NeVisitePas") {
+            retourne
+        }
+        visite_valeur(visiteuse, membre)
+    }
+}
+
+visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
+{
+    info := valeur.info
+
+    si info == info_de(*Cellule) {
+        cellule := mémoire(valeur.pointeur comme **Cellule)
+        si cellule == nul {
+            retourne
+        }
+
+        visite_cellule_générique(visiteuse, cellule)
+        retourne
+    }
+
+    si info.id == GenreInfoType.POINTEUR {
+        infos_pointeur := info comme *InfoTypePointeur
+        type_élément := infos_pointeur.type_pointé
+
+        saufsi type_élément.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(type_élément comme *InfoTypeStructure, info_de(Cellule)) {
+            retourne
+        }
+
+        /* À FAIRE : la cellule doit être le premier élément. */
+        cellule := mémoire(valeur.pointeur comme **Cellule)
+        visite_cellule_générique(visiteuse, cellule)
+        retourne
+    }
+
+    si info.id == GenreInfoType.STRUCTURE {
+        si info == info_de(Cellule) || info == info_de(Lexème) || info == info_de(ECMAString) {
+            retourne
+        }
+
+        visite_structure(visiteuse, valeur)
+        retourne
+    }
+
+    si info.id == GenreInfoType.UNION {
+        si info == info_de(Valeur) {
+            valeur_ := mémoire(valeur.pointeur comme *Valeur)
+            si valeur_.est_cellule() {
+                visite_cellule_générique(visiteuse, valeur_.donne_cellule())
+            }
+        }
+        retourne
+    }
+
+    si info.id == GenreInfoType.TABLEAU_FIXE || info.id == GenreInfoType.TABLEAU {
+        itératrice := crée_itératrice_tableau(valeur)
+        si itératrice.type_pointé == info == info_de(Lexème) {
+            retourne
+        }
+        boucle {
+            élément := itératrice.valeur_suivante()
+            saufsi élément.est_valide() {
+                arrête
+            }
+            visite_valeur(visiteuse, élément)
+        }
+        retourne
+    }
 }
 
 /** \} */

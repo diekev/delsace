@@ -447,7 +447,7 @@ struct MembreTypeComposé {
     Type *type = nullptr;
     IdentifiantCode *nom = nullptr;
     unsigned decalage = 0;
-    int valeur = 0;                                       // pour les énumérations
+    uint64_t valeur = 0;                                  // pour les énumérations
     NoeudExpression *expression_valeur_defaut = nullptr;  // pour les membres des structures
     int drapeaux = 0;
     uint32_t rembourrage = 0;
@@ -494,3 +494,5 @@ struct InformationMembreTypeCompose {
     MembreTypeComposé membre{};
     int index_membre = -1;
 };
+
+kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud);

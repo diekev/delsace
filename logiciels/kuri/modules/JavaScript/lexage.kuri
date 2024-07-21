@@ -17,6 +17,9 @@ FanionCaractère :: énum_drapeau n16 {
     PeutSuivreOpérateur
     DébuteChaineLittérale
     EstEspaceBlanche
+    DébuteLittéraleNumérique
+    /* Ce drapeau est différent de DébuteLittéraleNumérique car nous l'utilisons pour attraper les points. */
+    PeutDébuterLittéraleNumérique
 }
 
 initialise_fanions_caractères :: fonc ()
@@ -34,11 +37,25 @@ initialise_fanions_caractères :: fonc ()
 
         si ('0' comme z32) <= it <= ('9' comme z32) {
             fanion |= (FanionCaractère.EstChiffre | FanionCaractère.ContinueIdentifiant | FanionCaractère.PeutSuivreChiffre)
+            fanion.PeutDébuterLittéraleNumérique = vrai
+            fanion.DébuteLittéraleNumérique =  vrai
         }
 
         si it == '_' comme z32 {
             fanion |= FanionCaractère.ContinueIdentifiant
+            fanion |= FanionCaractère.PeutSuivreChiffre
         }
+
+        // si it == 'n' {
+        //     /* Suffixe pour BigInt */
+        //     fanion |= FanionCaractère.PeutSuivreChiffre
+        // }
+
+        // si it == 'o' || it == 'O' || it == 'x' || it == 'X' {
+        //     /* Octal et hexadécimal. */
+        //     fanion |= FanionCaractère.PeutSuivreChiffre
+        //     fanion |= FanionCaractère.PeutSuivreZéro
+        // }
 
         // À FAIRE : début de caractère Unicode
         si it > 127 {
@@ -50,7 +67,7 @@ initialise_fanions_caractères :: fonc ()
         }
 
         si it == '.' {
-            fanion = (FanionCaractère.Ponctuation | FanionCaractère.PeutSuivreChiffre | FanionCaractère.PeutSuivreZéro)
+            fanion = (FanionCaractère.Ponctuation | FanionCaractère.PeutSuivreChiffre | FanionCaractère.PeutSuivreZéro | FanionCaractère.PeutDébuterLittéraleNumérique)
         }
 
         si it == '+' || it == '-' || it == '*' || it == '/' || it == '<' || it == '>' || it == '&' || it == '|' || it == '^' || it == '%' || it == '!' || it == '~' {
@@ -199,6 +216,11 @@ avance :: fonc (empl lexeuse: &Lexeuse, n := 1) #enligne
     début_source += n
 }
 
+recule :: fonc (empl lexeuse: &Lexeuse, n := 1) #enligne
+{
+    début_source -= n
+}
+
 débute_lexème :: fonc (empl lexeuse: &Lexeuse) #enligne
 {
     début_mot = début_source
@@ -267,6 +289,7 @@ lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompil
 // 0.123
 // 0.123e789
 // 0e5
+/* https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#prod-NumericLiteral */
 parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
 {
     données_nombre: CompositionNombreScientifique
@@ -287,12 +310,13 @@ parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
     /* Part décimale. */
     si texte.taille > 0 && texte[0] == '.' {
         texte = avance(texte, 1)
+        texte_original = texte
 
         taille_part_décimale := 0
 
         tantque texte.taille > 0 && ('0' <= texte[0] <= '9') {
             texte = avance(texte, 1)
-            taille_part_entière += 1
+            taille_part_décimale += 1
         }
 
         données_nombre.partie_décimale = texte_original.sous_chaine(0, taille_part_décimale)
@@ -420,8 +444,17 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
         retourne lèxe_identifiant(lexeuse)
     }
 
-    si fanion.EstChiffre {
-        retourne lèxe_nombre(lexeuse)
+    si fanion.PeutDébuterLittéraleNumérique {
+        saufsi c == '.' {
+            retourne lèxe_nombre(lexeuse)
+        }
+
+        lexeuse.avance()
+        si !fini(lexeuse) && fanions_caractères[lexeuse.caractère_courant()].EstChiffre {
+            lexeuse.recule()
+            retourne lèxe_nombre(lexeuse)
+        }
+        lexeuse.recule()
     }
 
     si fanion.Ponctuation {

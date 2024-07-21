@@ -52,12 +52,53 @@ crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -
     retourne résultat
 }
 
+donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
+{
+    noeud := donne_noeud_pour_position(arbre.racine, x, y)
+    saufsi noeud {
+        retourne nul
+    }
+    retourne noeud.donne_élément()
+}
+
+donne_noeud_pour_position :: fonc (noeud: *NoeudDeDisposition, x: z32, y: z32) -> *NoeudDeDisposition
+{
+    rect := noeud.donne_rectangle()
+    saufsi rect.contient(x, y) {
+        retourne nul
+    }
+
+    pour noeud.enfants {
+        résultat := donne_noeud_pour_position(it, x, y)
+        si résultat {
+            retourne résultat
+        }
+    }
+
+    retourne noeud
+}
+
+donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
+{
+    chn_cursor := crée_chaine_utf16("cursor")
+    diffère détruit_chaine(chn_cursor)
+
+    cursor := donne_déclaration(*noeud.propriétés, chn_cursor)
+    saufsi cursor {
+        retourne CursorType.auto
+    }
+
+    retourne donne_type_cursor(cursor.value[0].mot_clé)
+}
+
 ContexteDisposition :: struct {
+    globales: *GlobalesDessin
     fonte: *Fonte
     largeur_disponible: n32
 }
 
 ContexteDessin :: struct {
+    globales: *GlobalesDessin
     fonte: *Fonte
     peintre: *Peintre
 
@@ -95,6 +136,31 @@ NoeudDeDisposition :: struct {
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
+}
+
+donne_rectangle :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
+{
+    rect: RectanglePosDim(z32)
+    rect.x = noeud.position_x comme z32
+    rect.y = noeud.position_y comme z32
+    rect.largeur = noeud.largeur comme z32
+    rect.hauteur = noeud.hauteur comme z32
+    retourne rect
+}
+
+donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
+{
+    noeud_courant := noeud
+
+    tantque noeud_courant != nul && noeud_courant.type != NoeudDeDispositionBloc {
+        noeud_courant = noeud_courant.parent
+    }
+
+    si noeud_courant {
+        retourne (noeud_courant comme *NoeudDeDispositionBloc).élément
+    }
+
+    retourne nul
 }
 
 décale :: fonc (noeud: *NoeudDeDisposition, x: n32, y: n32)
@@ -203,7 +269,23 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     métriques := fonte.donne_métriques_fonte()
 
-    texte := supprime_espace_blanches_autour(noeud.noeud_texte.données)
+    /* À FAIRE : meilleur algorithme, respect du standard. */
+    morceaux := divise_sur_espaces_blanches_ascii(noeud.noeud_texte.données)
+    diffère déloge(morceaux)
+
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    virgule := ChaineUTF16Unique(0x20).donne_chaine_utf16()
+    pour morceaux {
+        si index_it > 0 {
+            ajoute(enchaineuse, virgule)
+        }
+        ajoute(enchaineuse, it)
+    }
+
+    texte := chaine_depuis_enchaineuse(enchaineuse)
     noeud.texte = texte
 
     noeud.hauteur = (métriques.donne_hauteur_ligne() + 0.5) comme n32
@@ -216,13 +298,46 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     rect := ctx.donne_rectangle_corrigé(noeud)
 
-    couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
+    propriétés := *noeud.parent.propriétés
+
+    couleur := CouleurRVBAN8(0, 0, 0, 255)
+
+    chn_color := crée_chaine_utf16("color")
+    diffère détruit_chaine(chn_color)
+
+    color := donne_déclaration(propriétés, chn_color)
+    si color {
+        couleur = color.value[0]
+    }
+
+    chn_text_decoration := crée_chaine_utf16("text-decoration")
+    diffère détruit_chaine(chn_text_decoration)
+
+    effets: EffetsTexte
+
+    text_decoration := donne_déclaration(propriétés, chn_text_decoration)
+    si text_decoration {
+        pour text_decoration.value {
+            si it.est_mot_clé(crée_chaine_utf16_unique("underline").donne_chaine_utf16()) {
+                effets.souslignage = vrai
+                effets.couleur_souslignage = vers_couleur_rvba(couleur)
+            }
+            sinon si it.est_mot_clé(crée_chaine_utf16_unique("overline").donne_chaine_utf16()) {
+                effets.surlignage = vrai
+                effets.couleur_surlignage = vers_couleur_rvba(couleur)
+            }
+            sinon si it.est_mot_clé(crée_chaine_utf16_unique("line-through").donne_chaine_utf16()) {
+                effets.barrage = vrai
+                effets.couleur_barrage = vers_couleur_rvba(couleur)
+            }
+        }
+    }
 
     texte := noeud.texte
 
     peintre := ctx.peintre
     fonte := ctx.fonte
-    peintre.dessine_texte(fonte, texte, rect, couleur)
+    peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
 }
 
 est_display_none :: fonc (propriétés: *PropriétésDeStyle) -> bool
@@ -241,11 +356,15 @@ est_display_none :: fonc (propriétés: *PropriétésDeStyle) -> bool
     retourne est_mot_clé(display.value[0], chn_none)
 }
 
-crée_arbre_de_disposition :: fonc (document: *HTML.Document, fonte: *Fonte)
+crée_arbre_de_disposition :: fonc (document: *HTML.Document)
 {
     html := HTML.donne_élément_html(document)
     saufsi html {
         retourne
+    }
+
+    saufsi document.globales_dessin {
+        document.globales_dessin = crée_globales_dessin()
     }
 
     résultat := loge(ArbreDeDisposition)
@@ -254,6 +373,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, fonte: *Fonte)
 
     racine := résultat.crée_noeud(NoeudDeDispositionBloc)
     racine.élément = html
+    html.noeud_de_disposition = racine
 
     résultat.racine = racine
 
@@ -264,7 +384,8 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, fonte: *Fonte)
     imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
 
     ctx: ContexteDisposition
-    ctx.fonte = fonte
+    ctx.globales = document.globales_dessin
+    ctx.fonte = document.globales_dessin.donne_fonte_défaut()
 
     mesure(racine, *ctx)
 
@@ -329,13 +450,12 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
 
     élément := noeud comme *HTML.Élément
 
-    règles := collecte_les_règles_appropriées(stylesheet, élément.texte.donne_chaine_utf16())
+    règles := collecte_les_règles_appropriées(stylesheet, élément)
     diffère déloge(règles)
 
     imprime("% règle(s) pour %\n", règles.taille, élément.texte)
 
     propriétés: PropriétésDeStyle
-    diffère détruit_données_propriétés(*propriétés)
 
     pour règles {
         imprime_règle(it)
@@ -345,11 +465,14 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
     }
 
     si est_display_none(*propriétés) {
+        détruit_données_propriétés(*propriétés)
         retourne
     }
 
     résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
     résultat.élément = élément
+    élément.noeud_de_disposition = résultat
+    résultat.propriétés = propriétés
     parent.ajoute_enfant(résultat)
 
     pour noeud.enfants {

@@ -16,16 +16,6 @@ Environment :: struct {
     sur_with_base_object: fonc(*Environment)(Valeur)
 }
 
-environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    cellule_sur_visite_graphe(base, visiteuse)
-
-    environment := base comme *Environment
-    si environment.outer_environment {
-        environment_sur_visite_graphe(environment, visiteuse)
-    }
-}
-
 has_binding :: fonc (environment: *Environment, nom: ECMAString) -> CompletionRecord
 {
     assert(environment.sur_has_binding != nul)
@@ -92,12 +82,17 @@ get_identifier_reference :: fonc (environment: *Environment, nom: ECMAString, st
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_decl_env := TableVirtuelleCellule(classe = DeclarativeEnvironment)
+
+#portée_export
+
 DeclarativeEnvironment :: struct {
     empl base: Environment
 
     /* Cellule */
-    classe = #type_de_cette_structure
-    sur_visite_graphe = environment_sur_visite_graphe
+    table = *table_virtuelle_decl_env
 
     /* Environment */
     sur_has_binding = declarative_environment_has_binding
@@ -186,6 +181,12 @@ ModuleEnvironment :: struct {
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_obj_env := TableVirtuelleCellule(classe = ObjectEnvironment)
+
+#portée_export
+
 ObjectEnvironment :: struct {
     empl base: Environment
 
@@ -193,22 +194,13 @@ ObjectEnvironment :: struct {
     is_with_environment: bool
 
     /* Cellule */
-    classe = #type_de_cette_structure
-    sur_visite_graphe = object_environment_sur_visite_graphe
+    table = *table_virtuelle_obj_env
 
     /* Environment */
     sur_has_binding = object_environment_has_binding
     sur_get_binding_value = object_environment_get_binding_value
     sur_set_mutable_binding = object_environment_set_mutable_binding
     sur_with_base_object = object_environment_with_base_object
-}
-
-object_environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    environment := base comme *ObjectEnvironment
-    environment_sur_visite_graphe(environment, visiteuse)
-
-    sur_visite_graphe_objet(environment.binding_object, visiteuse)
 }
 
 /* 9.1.2.3 NewObjectEnvironment ( O, W, E )
@@ -241,10 +233,14 @@ object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> 
     binding_object := environment.binding_object
 
     // 2. Let foundBinding be ? HasProperty(bindingObject, N).
-    found_binding := trouve_propriété(binding_object, nom) // has_property(binding_object, nom)
+    completion := has_property(binding_object, nom)
+    saufsi completion.est_normal() {
+        retourne faux
+    }
+    found_binding := completion.valeur.V
 
     // 3. If foundBinding is false, return false.
-    saufsi found_binding {
+    si found_binding.est_false() {
         retourne faux
     }
 
@@ -273,17 +269,22 @@ object_environment_set_mutable_binding :: fonc (base: *Environment, nom: ECMAStr
     binding_object := environment.binding_object
 
     // 2. Let stillExists be ? HasProperty(bindingObject, N).
-    // À FAIRE : has_property
-    still_exists := trouve_propriété(binding_object, nom) != nul
+    completion := has_property(binding_object, nom)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    still_exists := completion.valeur.V
 
     // 3. If stillExists is false and S is true, throw a ReferenceError exception.
-    si !still_exists && strict == vrai {
+    si still_exists.est_false() && strict == vrai {
         panique("exceptions non-implémentées")
     }
 
     // 4. Perform ? Set(bindingObject, N, V, S).
-    // À FAIRE set
-    binding_object.définis_valeur(nom, valeur)
+    completion = set(binding_object, nom, valeur, strict)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
 
     // 5. Return UNUSED.
     retourne normal_completion(js_undefined)
@@ -299,10 +300,14 @@ object_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAStrin
     binding_object := environment.binding_object
 
     // 2. Let value be ? HasProperty(bindingObject, N).
-    value := trouve_propriété(binding_object, nom)
+    completion := has_property(binding_object, nom)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    value := completion.valeur.V
 
     // 3. If value is false, then
-    saufsi value {
+    si value.est_false() {
         // a. If S is false, return undefined; otherwise throw a ReferenceError exception.
         si strict == faux {
             retourne normal_completion(js_undefined)
@@ -336,12 +341,17 @@ object_environment_with_base_object :: fonc (base: *Environment) -> Valeur
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_glob_env := TableVirtuelleCellule(classe = GlobalEnvironment)
+
+#portée_export
+
 GlobalEnvironment :: struct {
     empl base: Environment
 
     /* Cellule */
-    classe = #type_de_cette_structure
-    sur_visite_graphe = global_environment_sur_visite_graphe
+    table = *table_virtuelle_glob_env
 
     /* Environment */
     object_record: *ObjectEnvironment
@@ -353,19 +363,6 @@ GlobalEnvironment :: struct {
     sur_get_binding_value = global_environment_get_binding_value
     sur_set_mutable_binding = global_environment_set_mutable_binding
     sur_with_base_object = global_environment_with_base_object
-}
-
-global_environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    environment := base comme *GlobalEnvironment
-    environment_sur_visite_graphe(environment, visiteuse)
-
-    environment_sur_visite_graphe(environment.object_record, visiteuse)
-    environment_sur_visite_graphe(environment.declarative_record, visiteuse)
-
-    si environment.global_this_value {
-        sur_visite_graphe_objet(environment.global_this_value, visiteuse)
-    }
 }
 
 /* 9.1.2.5 NewGlobalEnvironment ( G, thisValue )
@@ -484,9 +481,15 @@ PrivateName :: struct {
     description: ECMAString // ou StringPrimitive?
 }
 
+#portée_fichier
+
+table_virtuelle_priv_env := TableVirtuelleCellule(classe = PrivateEnvironment)
+
+#portée_export
+
 PrivateEnvironment :: struct {
     empl base: Cellule
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_priv_env
 
     outer_private_environment: *PrivateEnvironment
     names: [..]*PrivateName

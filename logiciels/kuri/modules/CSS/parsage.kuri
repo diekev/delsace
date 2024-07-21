@@ -1,4 +1,5 @@
 importe Chaine
+importe Couleur
 importe Ensemble
 importe Fondation
 importe Internet
@@ -925,7 +926,7 @@ parse_subclass_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simpl
         retourne opt_attribute_selector
     }
 
-    opt_pseudo_class_selector := parseuse.parse_pseudo_class_selector()
+    opt_pseudo_class_selector := parseuse.parse_pseudo_class_selector(faux)
     si opt_pseudo_class_selector.possède_valeur() {
         retourne opt_pseudo_class_selector
     }
@@ -1085,7 +1086,7 @@ parse_attribute_matcher :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simpl
 
 /* <pseudo-class-selector> = ':' <ident-token> |
                              ':' <function-token> <any-value> ')' */
-parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_element: bool) -> Optionnel(SimpleSelector)
 {
     parseuse_locale : ParseuseSelector = parseuse
 
@@ -1100,17 +1101,15 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(S
 
         parseuse.curseur = parseuse_locale.curseur
 
-        résultat := crée_pseudo_class_selector(ident)
-
         /* Pour ces pseudo-classes, nous changeons le type en pseudo-élément
          * directement au cas où nous ne serions pas appelés depuis
          * parse_pseudo_element car il est possible de n'avoir qu'un seul
          * double point pour ceux-ci pour des raisons historiques. */
-        si ident == "before" || ident == "after" || ident == "first-line" || ident == "first-letter" {
-            résultat.type = SimpleSelector.Type.PseudoElement
+        si pour_pseudo_element || ident == "before" || ident == "after" || ident == "first-line" || ident == "first-letter" {
+            retourne crée_pseudo_element_selector(ident)
         }
 
-        retourne résultat
+        retourne crée_pseudo_class_selector(ident)
     }
 
     si parseuse_locale.lexème_courant().est_fonction() {
@@ -1191,15 +1190,11 @@ parse_pseudo_element_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel
 
     parseuse_locale.avance()
 
-    pseudo_class := parseuse_locale.parse_pseudo_class_selector()
-    saufsi pseudo_class.possède_valeur() {
-        retourne
+    pseudo_class := parseuse_locale.parse_pseudo_class_selector(vrai)
+    si pseudo_class.possède_valeur() {
+        parseuse.curseur = parseuse_locale.curseur
+        retourne pseudo_class
     }
-
-    parseuse.curseur = parseuse_locale.curseur
-    résultat := pseudo_class.Quelque
-    résultat.type = SimpleSelector.Type.PseudoElement
-    retourne résultat
 }
 
 /* <combinator> = '>' | '+' | '~' | [ '|' '|' ] */
@@ -1278,7 +1273,7 @@ détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
 
 propriété_est_supportée :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> bool
 {
-    si nom == "display" {
+    si nom == "display" || nom == "color" || nom == "text-decoration" || nom == "cursor" {
         retourne vrai
     }
 
@@ -1331,7 +1326,6 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
     /* Ne considère que les déclarations.
      * À FAIRE : @nest peut être préservé. */
     pour content.decls {
-        /* À FAIRE : parse les propriétés. */
         saufsi propriété_est_supportée(ctx, it.name) {
             continue
         }
@@ -1341,6 +1335,33 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
             opt_valeur := parse_propriété_display(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'display'\n")
+                continue
+            }
+
+            valeur = opt_valeur.Quelque
+        }
+        sinon si it.name == "color" {
+            opt_valeur := parse_propriété_color(it.value)
+            saufsi opt_valeur.possède_valeur() {
+                imprime("Impossible de parser 'color'\n")
+                continue
+            }
+
+            valeur = opt_valeur.Quelque
+        }
+        sinon si it.name == "text-decoration" {
+            opt_valeur := parse_propriété_text_decoration(it.value)
+            saufsi opt_valeur.possède_valeur() {
+                imprime("Impossible de parser 'text-decoration'\n")
+                continue
+            }
+
+            valeur = opt_valeur.Quelque
+        }
+        sinon si it.name == "cursor" {
+            opt_valeur := parse_propriété_cursor(it.value)
+            saufsi opt_valeur.possède_valeur() {
+                imprime("Impossible de parser 'text-decoration'\n")
                 continue
             }
 
@@ -1444,6 +1465,373 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSS
             parseuse.avance()
             retourne lexème.donne_texte()
         }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Color
+ * \{ */
+
+valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
+{
+    si 'A' <= unité <= 'F' {
+        retourne unité comme n8 - ('A' comme n8) + 10
+    }
+
+    si 'a' <= unité <= 'z' {
+        retourne unité comme n8 - ('a' comme n8) + 10
+    }
+
+    retourne unité comme n8 - ('0' comme n8)
+}
+
+parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    lexème := parseuse.lexème_courant()
+
+    résultat: [..]ValeurDeStyle
+
+    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        opt_couleur := trouve_couleur_pour_mot_clé(lexème.donne_texte())
+        si opt_couleur.possède_valeur() {
+            tableau_ajoute(*résultat, ValeurDeStyle(couleur = opt_couleur.Quelque))
+            retourne résultat
+        }
+    }
+
+    /* https://www.w3.org/TR/css-color-4/#typedef-hex-color */
+    si lexème.est_lexème_de_genre(GenreLexème.Hash) {
+        valeur := lexème.donne_texte()
+
+        pour valeur.unités {
+            saufsi est_chiffre_hex(it) {
+                imprime("[%] couleur hexadécimal inconnu : %\n", #nom_de_cette_fonction, valeur)
+                retourne
+            }
+        }
+
+        couleur: CouleurRVBAN8
+        si valeur.taille() == 3 {
+            couleur.r = (valeur_hex_depuis_unité(valeur.unités[0]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.v = (valeur_hex_depuis_unité(valeur.unités[1]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.b = (valeur_hex_depuis_unité(valeur.unités[2]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.a = 255
+        }
+        sinon si valeur.taille() == 4 {
+            couleur.r = (valeur_hex_depuis_unité(valeur.unités[0]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.v = (valeur_hex_depuis_unité(valeur.unités[1]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.b = (valeur_hex_depuis_unité(valeur.unités[2]) comme r32 / 15.0 * 255.0) comme n8
+            couleur.a = (valeur_hex_depuis_unité(valeur.unités[3]) comme r32 / 15.0 * 255.0) comme n8
+        }
+        sinon si valeur.taille() == 6 {
+            couleur.r = valeur_hex_depuis_unité(valeur.unités[0]) * 16 + valeur_hex_depuis_unité(valeur.unités[1])
+            couleur.v = valeur_hex_depuis_unité(valeur.unités[2]) * 16 + valeur_hex_depuis_unité(valeur.unités[3])
+            couleur.b = valeur_hex_depuis_unité(valeur.unités[4]) * 16 + valeur_hex_depuis_unité(valeur.unités[5])
+            couleur.a = 255
+        }
+        sinon si valeur.taille() == 8 {
+            couleur.r = valeur_hex_depuis_unité(valeur.unités[0]) * 16 + valeur_hex_depuis_unité(valeur.unités[1])
+            couleur.v = valeur_hex_depuis_unité(valeur.unités[2]) * 16 + valeur_hex_depuis_unité(valeur.unités[3])
+            couleur.b = valeur_hex_depuis_unité(valeur.unités[4]) * 16 + valeur_hex_depuis_unité(valeur.unités[5])
+            couleur.a = valeur_hex_depuis_unité(valeur.unités[6]) * 16 + valeur_hex_depuis_unité(valeur.unités[7])
+        }
+        sinon {
+            imprime("[%] couleur hexadécimal inconnu : %\n", #nom_de_cette_fonction, valeur)
+            retourne
+        }
+
+        tableau_ajoute(*résultat, ValeurDeStyle(couleur = couleur))
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Text decoration
+ * https://drafts.csswg.org/css-text-decor/#text-decoration-property
+ * \{ */
+
+parse_propriété_text_decoration :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    // text-decoration-line
+    // 	   none | [ underline || overline || line-through || blink ]
+    // text-decoration-style
+    // 	   solid | double | dotted | dashed | wavy
+    // text-decoration-color
+    //     <color>
+    // text-decoration
+    //     <'text-decoration-line'> || <'text-decoration-style'> || <'text-decoration-color'>
+
+    eu_text_decoration_line := faux
+    eu_text_decoration_style := faux
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            mot_clé := lexème.donne_texte()
+
+            si mot_clé == "none" {
+                saufsi eu_text_decoration_line {
+                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(mot_clé)))
+                }
+                eu_text_decoration_line = vrai
+            }
+            sinon si mot_clé == "underline" || "overline" || "line-through" {
+                tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(mot_clé)))
+                eu_text_decoration_line = vrai
+            }
+            sinon si mot_clé == "blink" {
+                imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
+                déloge(résultat)
+                retourne
+            }
+            sinon si mot_clé == "solid" {
+                saufsi eu_text_decoration_style {
+                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(mot_clé)))
+                }
+                eu_text_decoration_style = vrai
+            }
+            sinon si mot_clé == "double" || mot_clé == "dotted" || mot_clé == "dashed" || mot_clé == "wavy" {
+                imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
+                déloge(résultat)
+                retourne
+            }
+            sinon {
+                imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
+                déloge(résultat)
+                retourne
+            }
+
+            parseuse.avance()
+        }
+        sinon {
+            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+            déloge(résultat)
+            retourne
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Cursor
+ * https://drafts.csswg.org/css-ui/#cursor
+ * \{ */
+
+CursorType :: énum {
+    auto
+    default
+    none
+    context_menu
+    help
+    pointer
+    progress
+    wait
+    cell
+    crosshair
+    text
+    vertical_text
+    alias
+    copy
+    move
+    no_drop
+    not_allowed
+    grab
+    grabbing
+    e_resize
+    n_resize
+    ne_resize
+    nw_resize
+    s_resize
+    se_resize
+    sw_resize
+    w_resize
+    ew_resize
+    ns_resize
+    nesw_resize
+    nwse_resize
+    col_resize
+    row_resize
+    all_scroll
+    zoom_in
+    zoom_out
+}
+
+donne_type_cursor :: fonc (chn: ChaineUTF16) -> CursorType
+{
+    si chn == "auto" {
+        retourne CursorType.auto;
+    }
+    si chn == "default" {
+        retourne CursorType.default;
+    }
+    si chn == "none" {
+        retourne CursorType.none;
+    }
+    si chn == "context_menu" {
+        retourne CursorType.context_menu;
+    }
+    si chn == "help" {
+        retourne CursorType.help;
+    }
+    si chn == "pointer" {
+        retourne CursorType.pointer;
+    }
+    si chn == "progress" {
+        retourne CursorType.progress;
+    }
+    si chn == "wait" {
+        retourne CursorType.wait;
+    }
+    si chn == "cell" {
+        retourne CursorType.cell;
+    }
+    si chn == "crosshair" {
+        retourne CursorType.crosshair;
+    }
+    si chn == "text" {
+        retourne CursorType.text;
+    }
+    si chn == "vertical_text" {
+        retourne CursorType.vertical_text;
+    }
+    si chn == "alias" {
+        retourne CursorType.alias;
+    }
+    si chn == "copy" {
+        retourne CursorType.copy;
+    }
+    si chn == "move" {
+        retourne CursorType.move;
+    }
+    si chn == "no_drop" {
+        retourne CursorType.no_drop;
+    }
+    si chn == "not_allowed" {
+        retourne CursorType.not_allowed;
+    }
+    si chn == "grab" {
+        retourne CursorType.grab;
+    }
+    si chn == "grabbing" {
+        retourne CursorType.grabbing;
+    }
+    si chn == "e_resize" {
+        retourne CursorType.e_resize;
+    }
+    si chn == "n_resize" {
+        retourne CursorType.n_resize;
+    }
+    si chn == "ne_resize" {
+        retourne CursorType.ne_resize;
+    }
+    si chn == "nw_resize" {
+        retourne CursorType.nw_resize;
+    }
+    si chn == "s_resize" {
+        retourne CursorType.s_resize;
+    }
+    si chn == "se_resize" {
+        retourne CursorType.se_resize;
+    }
+    si chn == "sw_resize" {
+        retourne CursorType.sw_resize;
+    }
+    si chn == "w_resize" {
+        retourne CursorType.w_resize;
+    }
+    si chn == "ew_resize" {
+        retourne CursorType.ew_resize;
+    }
+    si chn == "ns_resize" {
+        retourne CursorType.ns_resize;
+    }
+    si chn == "nesw_resize" {
+        retourne CursorType.nesw_resize;
+    }
+    si chn == "nwse_resize" {
+        retourne CursorType.nwse_resize;
+    }
+    si chn == "col_resize" {
+        retourne CursorType.col_resize;
+    }
+    si chn == "row_resize" {
+        retourne CursorType.row_resize;
+    }
+    si chn == "all_scroll" {
+        retourne CursorType.all_scroll;
+    }
+    si chn == "zoom_in" {
+        retourne CursorType.zoom_in;
+    }
+    si chn == "zoom_out" {
+        retourne CursorType.zoom_out;
+    }
+    panique("chn pour curseur invalide")
+}
+
+parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    mots_clés := [
+        "auto", "default", "none", "context-menu", "help", "pointer", "progress",
+        "wait", "cell", "crosshair", "text", "vertical-text", "alias", "copy",
+        "move", "no-drop", "not-allowed", "grab", "grabbing", "e-resize",
+        "n-resize", "ne-resize", "nw-resize", "s-resize", "se-resize", "sw-resize",
+        "w-resize", "ew-resize", "ns-resize", "nesw-resize", "nwse-resize",
+        "col-resize", "row-resize", "all-scroll", "zoom-in", "zoom-out"
+    ]
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            pour mots_clés {
+                si lexème.est_identifiant(it) {
+                    texte := lexème.donne_texte()
+                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(texte)))
+                    arrête
+                }
+            }
+            sansarrêt {
+                imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+                déloge(résultat)
+                retourne
+            }
+
+            parseuse.avance()
+        }
+        sinon {
+            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+            déloge(résultat)
+            retourne
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
     }
 }
 
