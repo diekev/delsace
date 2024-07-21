@@ -80,6 +80,9 @@ Document :: struct {
     /* CSS. */
     feuilles_de_style: [..]*CSS.CSSStyleSheet
     arbre_de_disposition: *CSS.ArbreDeDisposition
+    globales_dessin: *CSS.GlobalesDessin
+
+    noeud_survolé: *Élément
 }
 
 #portée_fichier
@@ -92,6 +95,7 @@ document_sur_destruction :: fonc (base: *Noeud)
 {
     document := base comme *Document
     CSS.détruit_arbre(document.arbre_de_disposition)
+    CSS.détruit_globales_dessin(document.globales_dessin)
     déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
     déloge(document)
 }
@@ -208,13 +212,35 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom CSS
+/** \nom CSS, Interface
  * \{ */
 
 /* À FAIRE : standardise https://drafts.csswg.org/cssom/#add-a-css-style-sheet */
 ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSSStyleSheet)
 {
     tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
+}
+
+définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
+{
+    si document.noeud_survolé == noeud {
+        retourne
+    }
+
+    // À FAIRE : ajout de :hover
+    document.noeud_survolé = noeud
+
+    browsing_context := document.browsing_context
+    saufsi browsing_context {
+        /* Permet d'appeler cette fonction en dehors d'un contexte de navigation. */
+        retourne
+    }
+
+    assert(browsing_context.group != nul)
+    assert(browsing_context.group.user_agent != nul)
+
+    user_agent := browsing_context.group.user_agent
+    user_agent.notifie_élément_survolé()
 }
 
 /** \} */

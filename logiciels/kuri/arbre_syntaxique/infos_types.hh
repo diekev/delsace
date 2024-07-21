@@ -104,7 +104,7 @@ struct InfoTypeFonction : public InfoType {
 
 struct InfoTypeÉnum : public InfoType {
     kuri::chaine_statique nom{};
-    kuri::tranche<int> valeurs{};  // À FAIRE typage selon énum
+    kuri::tranche<char> valeurs{};
     kuri::tranche<kuri::chaine_statique> noms{};
     bool est_drapeau = false;
     InfoTypeEntier *type_sous_jacent = nullptr;
@@ -136,7 +136,7 @@ struct InfoTypeVariadique : public InfoType {
 
 #define ENUME_TYPES_TRANCHES_INFO_TYPE(O)                                                         \
     O(Annotation const *, annotations)                                                            \
-    O(int, valeurs_énums)                                                                         \
+    O(char, valeurs_énums)                                                                        \
     O(kuri::chaine_statique, noms_énums)                                                          \
     O(InfoTypeMembreStructure *, membres)                                                         \
     O(InfoType *, tableau_info_type)                                                              \
@@ -162,4 +162,7 @@ struct AllocatriceInfosType {
 
     template <typename T>
     kuri::tranche<T> donne_tranche(kuri::tablet<T, 6> const &tableau);
+
+    template <typename T>
+    kuri::tranche<T> donne_tranche(kuri::tableau<T> const &tableau);
 };

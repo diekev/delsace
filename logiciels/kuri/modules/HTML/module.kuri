@@ -21,6 +21,7 @@ charge "noeud"
 charge "parsage"
 charge "pile_éléments_ouverts"
 charge "tags_html"
+charge "user_agent"
 
 DOMString :: ChaineUTF16Unique
 

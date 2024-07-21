@@ -51,6 +51,20 @@ kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tablet<T, 6> const &t
     return résultat;
 }
 
+template <typename T>
+kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tableau<T> const &tableau)
+{
+    auto pointeur = memoire::loge_tableau<T>("tranche", tableau.taille());
+    auto résultat = kuri::tranche(pointeur, tableau.taille());
+
+    POUR (tableau) {
+        *pointeur++ = it;
+    }
+
+    stocke_tranche(résultat);
+    return résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -370,8 +384,6 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
             auto noms = kuri::tablet<kuri::chaine_statique, 6>();
             noms.réserve(type_enum->membres.taille());
-            auto valeurs = kuri::tablet<int, 6>();
-            valeurs.réserve(type_enum->membres.taille());
 
             POUR (type_enum->membres) {
                 if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
@@ -379,8 +391,9 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 }
 
                 noms.ajoute(it.nom->nom);
-                valeurs.ajoute(it.valeur);
             }
+
+            auto valeurs = donne_tableau_valeurs_énum(*type_enum);
 
             info_type->noms = allocatrice_infos_types.donne_tranche(noms);
             info_type->valeurs = allocatrice_infos_types.donne_tranche(valeurs);

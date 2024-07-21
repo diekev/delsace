@@ -350,9 +350,13 @@ CompositionNombreScientifique :: struct {
 
 convertis_nombre_scientifique_en_réel :: fonc (composition: CompositionNombreScientifique) -> r64
 {
-    partie_entière := extrait_nombre_entier(composition.partie_entière)
+    partie_entière: r64
+    
+    si composition.partie_entière.taille != 0 {
+        partie_entière = extrait_nombre_entier(composition.partie_entière) comme r64
+    }
 
-    résultat := partie_entière comme r64
+    résultat := partie_entière
 
     si composition.partie_décimale.taille != 0 {
         partie_décimale := extrait_nombre_entier(composition.partie_décimale)

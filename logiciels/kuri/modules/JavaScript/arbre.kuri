@@ -164,7 +164,10 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
     fonction := crée_fonction(interpréteuse.donne_tas_de_mémoire(), noeud.id.nom, noeud.corps)
 
     objet_global := interpréteuse.get_global_object()
-    objet_global.définis_valeur(noeud.id.nom, Valeur(Function = fonction))
+    completion := set(objet_global, noeud.id.nom, Valeur(Function = fonction), Valeur(Object = objet_global))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
 
     retourne normal_completion(Valeur(Function = fonction))
 }
@@ -338,6 +341,171 @@ sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpr�
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom UnaryPlusOperator
+ * \{ */
+
+UnaryPlusOperator :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_unary_plus_operator
+
+    argument: *NoeudSyntaxique
+}
+
+crée_unary_plus_operator :: fonc (argument: *NoeudSyntaxique) -> *UnaryPlusOperator
+{
+    résultat := loge(UnaryPlusOperator)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-unary-plus-operator-runtime-semantics-evaluation */
+sur_exécution_unary_plus_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *UnaryPlusOperator
+    unary_expression := noeud.argument
+
+    // 1. Let expr be ? Evaluation of UnaryExpression.
+    completion := exécute_noeud(unary_expression, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr := completion.valeur
+
+    // 2. Return ? ToNumber(? GetValue(expr)).
+    completion = get_value(interpréteuse, expr)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    retourne vers_nombre(interpréteuse, completion.valeur.V)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom UnaryMinusOperator
+ * \{ */
+
+UnaryMinusOperator :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_unary_minus_operator
+
+    argument: *NoeudSyntaxique
+}
+
+crée_unary_minus_operator :: fonc (argument: *NoeudSyntaxique) -> *UnaryMinusOperator
+{
+    résultat := loge(UnaryMinusOperator)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-unary-minus-operator-runtime-semantics-evaluation */
+sur_exécution_unary_minus_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *UnaryMinusOperator
+    unary_expression := noeud.argument
+
+    // 1. Let expr be ? Evaluation of UnaryExpression.
+    completion := exécute_noeud(unary_expression, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr := completion.valeur
+
+    // 2. Let oldValue be ? ToNumeric(? GetValue(expr)).
+    completion = get_value(interpréteuse, expr)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    completion = to_numeric(interpréteuse, completion.valeur.V)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    old_value := completion.valeur.V
+
+    // 3. If oldValue is a Number, then
+    si old_value.est_nombre() {
+        // a. Return Number::unaryMinus(oldValue).
+        retourne normal_completion(number_unary_minus(old_value))
+    }
+    // 4. Else,
+    // a. Assert: oldValue is a BigInt.
+    assert(old_value.est_big_int())
+    // b. Return BigInt::unaryMinus(oldValue).
+    retourne normal_completion(bigint_unary_minus(old_value))
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-unaryMinus */
+number_unary_minus :: fonc (x: Valeur) -> Valeur
+{
+    // 1. If x is NaN, return NaN.
+    // À FAIRE : est_nan
+
+    // 2. Return the negation of x; that is, compute a Number with the same magnitude but opposite sign.
+    retourne Valeur(Number = -x.Number)
+}
+
+bigint_unary_minus :: fonc (x: Valeur @inutilisée) -> Valeur
+{
+    panique("big_int unary minus non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom LogicalNot
+ * \{ */
+
+LogicalNot :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_logical_not
+
+    argument: *NoeudSyntaxique
+}
+
+crée_logical_not :: fonc (argument: *NoeudSyntaxique) -> *LogicalNot
+{
+    résultat := loge(LogicalNot)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-logical-not-operator */
+sur_exécution_logical_not :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *LogicalNot
+    unary_expression := noeud.argument
+
+    // 1. Let expr be ? Evaluation of UnaryExpression.
+    completion := exécute_noeud(unary_expression, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr := completion.valeur
+
+    // 2. Let oldValue be ToBoolean(? GetValue(expr)).
+    completion = get_value(interpréteuse, expr)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    old_value := to_boolean(completion.valeur.V)
+
+    // 3. If oldValue is true, return false.
+    si old_value.est_true() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    // 4. Return true.
+    retourne normal_completion(Valeur(Boolean = vrai))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom BinaryExpression
  * \{ */
 
@@ -416,10 +584,20 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         rprim := complétion_rprim.valeur.V
         // c. If lprim is a String or rprim is a String, then
         si lprim.est_chaine() || rprim.est_chaine() {
-            panique("concaténation chaine non-implémenté")
             // i. Let lstr be ? ToString(lprim).
+            completion_lstr := vers_chaine(interpréteuse, gauche)
+            saufsi completion_lstr.est_normal() {
+                retourne completion_lstr
+            }
+            lstr := completion_lstr.valeur.V
             // ii. Let rstr be ? ToString(rprim).
+            completion_rstr := vers_chaine(interpréteuse, droite)
+            saufsi completion_rstr.est_normal() {
+                retourne completion_rstr
+            }
+            rstr := completion_rstr.valeur.V
             // iii. Return the string-concatenation of lstr and rstr.
+            retourne normal_completion(Valeur(String = concatène(lstr.String, rstr.String)))
         }
     
         // d. Set lval to lprim.
@@ -1058,9 +1236,8 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     noeud := base comme *AssignmentExpression
     assert(noeud.opération == AssignmentOperation.Assigne)
 
-    // À FAIRE : array literal
     // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
-    si noeud.gauche.type != ObjectExpression {
+    si noeud.gauche.type != ObjectExpression && noeud.gauche.type != ArrayLiteral {
         // a. Let lref be ? Evaluation of LeftHandSideExpression.
         completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
         saufsi completion_lref.est_normal() {
@@ -1258,6 +1435,61 @@ sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, i
 {
     objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.donne_realm().intrinsics.object_prototype)
     retourne normal_completion(Valeur(Object = objet))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrayLiteral
+ * \{ */
+
+ArrayLiteral :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_array_literal
+
+    éléments: [..]*NoeudSyntaxique
+}
+
+crée_array_literal :: fonc (éléments: [..]*NoeudSyntaxique) -> *ArrayLiteral
+{
+    résultat := loge(ArrayLiteral)
+    résultat.éléments = éléments
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-arrayaccumulation */
+sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    /* À FAIRE : standardise. */
+    noeud := base comme *ArrayLiteral
+
+    realm := interpréteuse.donne_realm()
+
+    résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
+
+    pour noeud.éléments {
+        completion := exécute_noeud(it, interpréteuse)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        completion = get_value(interpréteuse, completion.valeur)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        valeur := completion.valeur.V
+
+        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = index_it comme r64)).valeur.V.String.texte
+
+        _ := create_data_property(résultat, nom_propriété, valeur)
+    }
+
+    completion := set(résultat, STR_length, Valeur(Number = noeud.éléments.taille comme r64), vrai)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    retourne normal_completion(Valeur(Object = résultat))
 }
 
 /** \} */
