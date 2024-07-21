@@ -1,0 +1,143 @@
+importe SysFichier
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom GlobalesDessin
+ * \{ */
+
+GlobalesDessin :: struct {
+    /* Correspond à 1em. */
+    taille_fonte_défaut := 16.0
+
+    fonte_défaut_mono_grasse := "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf"
+    fonte_défaut_mono_italique_grasse := "/usr/share/fonts/truetype/liberation/LiberationMono-BoldItalic.ttf"
+    fonte_défaut_mono_italique := "/usr/share/fonts/truetype/liberation/LiberationMono-Italic.ttf"
+    fonte_défaut_mono := "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"
+
+    fonte_défaut_sans_grasse := "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
+    fonte_défaut_sans_italique_grasse := "/usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf"
+    fonte_défaut_sans_italique := "/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf"
+    fonte_défaut_sans := "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+
+    fonte_défaut_sans_narrow_grasse := "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Bold.ttf"
+    fonte_défaut_sans_narrow_italique_grasse := "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-BoldItalic.ttf"
+    fonte_défaut_sans_narrow_italique := "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Italic.ttf"
+    fonte_défaut_sans_narrow := "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Regular.ttf"
+
+    fonte_défaut_sérif_grasse := "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf"
+    fonte_défaut_sérif_italique_grasse := "/usr/share/fonts/truetype/liberation/LiberationSerif-BoldItalic.ttf"
+    fonte_défaut_sérif_italique := "/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf"
+    fonte_défaut_sérif := "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
+
+    FonteEnCache :: struct {
+        famille: chaine
+        style: chaine
+        graisse: GraisseFonte
+        taille: r32
+        fonte: *Fonte
+    }
+
+    fontes_en_cache: [..]FonteEnCache
+}
+
+crée_globales_dessin :: fonc () -> *GlobalesDessin
+{
+    retourne loge(GlobalesDessin)
+}
+
+détruit_globales_dessin :: fonc (globales: *GlobalesDessin)
+{
+    saufsi globales {
+        retourne
+    }
+
+    pour globales.fontes_en_cache {
+        détruit_fonte(it.fonte)
+    }
+
+    déloge(globales.fontes_en_cache)
+    déloge(globales)
+}
+
+GraisseFonte :: énum {
+    Normal
+    Gras
+}
+
+donne_fonte_défaut :: fonc (ctx: *GlobalesDessin) -> *Fonte
+{
+    retourne ctx.donne_fonte("sérif", "normal", GraisseFonte.Normal, ctx.taille_fonte_défaut)
+}
+
+donne_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, graisse: GraisseFonte, taille: r32) -> *Fonte
+{
+    existante := ctx.donne_fonte_en_cache(famille, style, graisse, taille)
+    si existante {
+        retourne existante
+    }
+
+    chemin := donne_chemin_fonte(ctx, famille, style, graisse)
+
+    fonte := crée_fonte(CheminFichier(chemin), taille)
+
+    fonte_en_cache := GlobalesDessin.FonteEnCache(famille, style, graisse, taille, fonte)
+    tableau_ajoute(*ctx.fontes_en_cache, fonte_en_cache)
+
+    retourne fonte
+}
+
+donne_fonte_en_cache :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, graisse: GraisseFonte, taille: r32) -> *Fonte
+{
+    pour ctx.fontes_en_cache {
+        si it.famille == famille && it.style == style && it.graisse == graisse && it.taille == taille {
+            retourne it.fonte
+        }
+    }
+    retourne nul
+}
+
+donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, graisse: GraisseFonte) -> chaine
+{
+    si famille == "sans-serif" {
+        si style == "italic" {
+            si graisse == GraisseFonte.Gras {
+                retourne ctx.fonte_défaut_sans_italique_grasse
+            }
+            retourne ctx.fonte_défaut_sans_italique
+        }
+
+        si graisse == GraisseFonte.Gras {
+            retourne ctx.fonte_défaut_sans_grasse
+        }
+        retourne ctx.fonte_défaut_sans
+    }
+
+    si famille == "monospace" {
+        si style == "italic" {
+            si graisse == GraisseFonte.Gras {
+                retourne ctx.fonte_défaut_mono_italique_grasse
+            }
+            retourne ctx.fonte_défaut_mono_italique
+        }
+
+        si graisse == GraisseFonte.Gras {
+            retourne ctx.fonte_défaut_mono_grasse
+        }
+        retourne ctx.fonte_défaut_mono
+    }
+
+    /* Défaut sérif. */
+    si style == "italic" {
+        si graisse == GraisseFonte.Gras {
+            retourne ctx.fonte_défaut_sérif_italique_grasse
+        }
+        retourne ctx.fonte_défaut_sérif_italique
+    }
+
+    si graisse == GraisseFonte.Gras {
+        retourne ctx.fonte_défaut_sérif_grasse
+    }
+    retourne ctx.fonte_défaut_sérif
+}
+
+/** \} */
