@@ -88,9 +88,15 @@ rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
 /** \nom https://tc39.es/ecma262/#sec-execution-contexts
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_execution_context := TableVirtuelleCellule(classe = ExecutionContext)
+
+#portée_export
+
 ExecutionContext :: struct {
     empl base: Cellule
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_execution_context
 
     realm: *Realm
     function: *Function
@@ -166,10 +172,15 @@ RappelsHôte :: struct {
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-code-realms
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_realm := TableVirtuelleCellule(classe = Realm, sur_destruction = realm_sur_destruction)
+
+#portée_export
+
 Realm :: struct {
     empl base: Cellule
-    classe = #type_de_cette_structure
-    sur_destruction = realm_sur_destruction
+    table = *table_virtuelle_realm
 
     intrinsics: Intrinsics
     global_object: *Object

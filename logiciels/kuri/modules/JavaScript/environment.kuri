@@ -82,11 +82,17 @@ get_identifier_reference :: fonc (environment: *Environment, nom: ECMAString, st
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_decl_env := TableVirtuelleCellule(classe = DeclarativeEnvironment)
+
+#portée_export
+
 DeclarativeEnvironment :: struct {
     empl base: Environment
 
     /* Cellule */
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_decl_env
 
     /* Environment */
     sur_has_binding = declarative_environment_has_binding
@@ -175,6 +181,12 @@ ModuleEnvironment :: struct {
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_obj_env := TableVirtuelleCellule(classe = ObjectEnvironment)
+
+#portée_export
+
 ObjectEnvironment :: struct {
     empl base: Environment
 
@@ -182,7 +194,7 @@ ObjectEnvironment :: struct {
     is_with_environment: bool
 
     /* Cellule */
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_obj_env
 
     /* Environment */
     sur_has_binding = object_environment_has_binding
@@ -316,11 +328,17 @@ object_environment_with_base_object :: fonc (base: *Environment) -> Valeur
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_glob_env := TableVirtuelleCellule(classe = GlobalEnvironment)
+
+#portée_export
+
 GlobalEnvironment :: struct {
     empl base: Environment
 
     /* Cellule */
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_glob_env
 
     /* Environment */
     object_record: *ObjectEnvironment
@@ -450,9 +468,15 @@ PrivateName :: struct {
     description: ECMAString // ou StringPrimitive?
 }
 
+#portée_fichier
+
+table_virtuelle_priv_env := TableVirtuelleCellule(classe = PrivateEnvironment)
+
+#portée_export
+
 PrivateEnvironment :: struct {
     empl base: Cellule
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_priv_env
 
     outer_private_environment: *PrivateEnvironment
     names: [..]*PrivateName

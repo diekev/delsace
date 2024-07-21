@@ -52,10 +52,15 @@ flux_sortie_efface :: fonc (flux_sortie: *FluxSortieConsole)
 
 #portée_export
 
+#portée_fichier
+
+table_virtuelle_console := TableVirtuelleCellule(classe = Console, sur_destruction = console_sur_destruction)
+
+#portée_export
+
 Console :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
-    sur_destruction = console_sur_destruction
+    table = *table_virtuelle_console
 
     flux_sortie: *FluxSortieConsole
 

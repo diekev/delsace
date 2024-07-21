@@ -86,11 +86,11 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
             ajoute_au_tampon(enchaineuse, n)
         }
         Object(o) {
-            si o.classe == ReferenceError {
+            si o.donne_classe() == ReferenceError {
                 error := o comme *ReferenceError
                 ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
             }
-            sinon si o.classe == TypeError {
+            sinon si o.donne_classe() == TypeError {
                 error := o comme *TypeError
                 ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
             }
@@ -660,10 +660,15 @@ is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 
 TypeFonctionObjectCall :: fonc(*Object, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
 
+#portée_fichier
+
+table_virtuelle_objet := TableVirtuelleCellule(classe = Object, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 Object :: struct {
     empl base: Cellule
-    classe = #type_de_cette_structure
-    sur_destruction = sur_destruction_objet
+    table = *table_virtuelle_objet
 
     /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-attributes */
     Propriété :: struct {
@@ -881,9 +886,15 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
  * https://tc39.es/ecma262/multipage/text-processing.html#sec-string-objects
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_objet_chaine := TableVirtuelleCellule(classe = ObjetChaine, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ObjetChaine :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_objet_chaine
 
     chn: *PrimitiveChaine
 }
@@ -907,9 +918,15 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-object-prototype-object
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_object_prototype := TableVirtuelleCellule(classe = ObjectPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ObjectPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_object_prototype
 }
 
 crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectPrototype
@@ -970,9 +987,15 @@ has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
  * https://tc39.es/ecma262/multipage/text-processing.html#sec-properties-of-the-string-prototype-object
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_string_prototype := TableVirtuelleCellule(classe = StringPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 StringPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_string_prototype
 
     string_data: *PrimitiveChaine
 }
@@ -993,6 +1016,12 @@ crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obj
 /** \nom Fonction
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_function := TableVirtuelleCellule(classe = Function, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 LEXICAL_THIS :: vrai
 NON_LEXICAL_THIS :: faux
 
@@ -1004,7 +1033,7 @@ ThisMode :: énum {
 
 Function :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_function
 
     nom: ECMAString
     corps: *NoeudSyntaxique
@@ -1113,7 +1142,7 @@ call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeu
 
 sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
 {
-    assert(object.classe == Function)
+    assert(object.donne_classe() == Function)
     fonction := object comme *Function
     retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
 }
@@ -1124,9 +1153,15 @@ sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpr�
 /** \nom FunctionNative
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_function_native := TableVirtuelleCellule(classe = FunctionNative, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 FunctionNative :: struct {
     empl function: Function
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_function_native
 }
 
 crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall) -> *FunctionNative
@@ -1155,9 +1190,15 @@ ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonc
 /** \nom PrimitiveChaine
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_primitive_chaine := TableVirtuelleCellule(classe = PrimitiveChaine)
+
+#portée_export
+
 PrimitiveChaine :: struct {
     empl cellule: Cellule
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_primitive_chaine
 
     texte: ECMAString
     objet: *Object
@@ -1177,9 +1218,15 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *Pr
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-error-objects
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_error := TableVirtuelleCellule(classe = Error, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 Error :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_error
 }
 
 /** \} */
@@ -1189,9 +1236,15 @@ Error :: struct {
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-error-prototype-object
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_error_prototype := TableVirtuelleCellule(classe = ErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ErrorPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_error_prototype
 }
 
 crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ErrorPrototype
@@ -1208,9 +1261,15 @@ crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-referenceerror
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_reference_error := TableVirtuelleCellule(classe = ReferenceError, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ReferenceError :: struct {
     empl error: Error
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_reference_error
 
     message: *PrimitiveChaine
 }
@@ -1230,9 +1289,15 @@ crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Refe
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_reference_error_prototype := TableVirtuelleCellule(classe = ReferenceErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 ReferenceErrorPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_reference_error_prototype
 }
 
 crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
@@ -1249,9 +1314,15 @@ crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, protot
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-typeerror
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_type_error := TableVirtuelleCellule(classe = TypeError, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 TypeError :: struct {
     empl error: Error
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_type_error
 
     message: *PrimitiveChaine
 }
@@ -1282,9 +1353,15 @@ lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_type_error_prototype := TableVirtuelleCellule(classe = TypeErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
 TypeErrorPrototype :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
+    table = *table_virtuelle_type_error_prototype
 }
 
 crée_type_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *TypeErrorPrototype

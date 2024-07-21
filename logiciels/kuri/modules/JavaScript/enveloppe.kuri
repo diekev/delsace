@@ -21,10 +21,15 @@ Enveloppable :: struct {
  * Structure de base pour envelopper les objets Enveloppables.
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_enveloppe := TableVirtuelleCellule(classe = Enveloppe, sur_destruction = enveloppe_sur_destruction)
+
+#portée_export
+
 Enveloppe :: struct {
     empl objet: Object
-    classe = #type_de_cette_structure
-    sur_destruction = enveloppe_sur_destruction
+    table = *table_virtuelle_enveloppe
 
     enveloppable: *Enveloppable
 }

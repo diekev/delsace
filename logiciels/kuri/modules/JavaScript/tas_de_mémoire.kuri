@@ -378,17 +378,26 @@ opérateur pour :: fonc (bloc: *BlocDeMémoire) -> *Cellule
  * Structure de base pour être éboué.
  * \{ */
 
-Cellule :: struct {
-    classe := #type_de_cette_structure
+TableVirtuelleCellule :: struct {
+    classe: type_de_données
     sur_destruction: fonc(*Cellule)(rien)
+}
 
+#portée_fichier
+
+table_virtuelle_cellule := TableVirtuelleCellule(classe = Cellule)
+
+#portée_export
+
+Cellule :: struct {
+    table := *table_virtuelle_cellule
     marqué := faux
     vivante := vrai
 }
 
 donne_info_type_cellule :: fonc (racine: *Cellule) -> *InfoTypeStructure
 {
-    résultat := __table_des_types[racine.classe] comme *InfoTypeStructure
+    résultat := __table_des_types[racine.table.classe] comme *InfoTypeStructure
     assert(est_struct_ou_employeuse_de(résultat, info_de(Cellule)))
     retourne résultat
 }
@@ -397,6 +406,11 @@ donne_nom_classe :: fonc (cellule: *Cellule) -> chaine
 {
     infos := donne_info_type_cellule(cellule)
     retourne infos.nom
+}
+
+donne_classe :: fonc (cellule: *Cellule) -> type_de_données
+{
+    retourne cellule.table.classe
 }
 
 imprime_cellule :: fonc (enchaineuse: *Enchaineuse, addr_cellule: **Cellule)
@@ -412,8 +426,8 @@ imprime_cellule :: fonc (enchaineuse: *Enchaineuse, addr_cellule: **Cellule)
 
 détruit_cellule :: fonc (cellule: *Cellule)
 {
-    si cellule.sur_destruction {
-        cellule.sur_destruction(cellule)
+    si cellule.table.sur_destruction {
+        cellule.table.sur_destruction(cellule)
     }
 }
 
