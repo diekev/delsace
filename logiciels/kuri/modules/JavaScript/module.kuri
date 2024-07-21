@@ -744,6 +744,28 @@ get_prototype_of :: fonc (object: *Object) -> *Object
     retourne ordinary_get_prototype_of(object)
 }
 
+get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+{
+    retourne ordinary_get_own_property(object, property_key)
+}
+
+trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
+{
+    pour * objet.propriétés {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.3 Operations on Objects
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-operations-on-objects
+ * \{ */
+
 /* 7.3.2 Get
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
 get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
@@ -751,11 +773,6 @@ get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
     // À FAIRE : type property_key
     // 1. Return ? O.[[Get]](P, O).
     retourne object.sur_get(object, property_key, Valeur(Object = object))
-}
-
-get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
-{
-    retourne ordinary_get_own_property(object, property_key)
 }
 
 /* 7.3.4 Set
@@ -778,20 +795,51 @@ set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: b
     retourne normal_completion(js_undefined)
 }
 
-trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
+/* 7.3.12 HasOwnProperty ( O, P )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
+has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
 {
-    pour * objet.propriétés {
-        si it.nom == nom {
-            retourne it
-        }
+    completion_desc := object.sur_get_own_property(object, nom)
+    saufsi completion_desc.est_normal() {
+        retourne completion_desc
     }
-    retourne nul
+
+    desc := completion_desc.valeur
+    si desc.est_undefined() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    retourne normal_completion(Valeur(Boolean = vrai))
+}
+
+/* 7.3.13 Call ( F, V [ , argumentsList ] )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
+call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
+{
+    // 1. If argumentsList is not present, set argumentsList to a new empty List.
+    arguments: []Valeur
+    retourne call(interpréteuse, valeur, this_value, arguments)
+}
+
+call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // Continuation de la version sans arguments.
+    // 2. If IsCallable(F) is false, throw a TypeError exception.
+    saufsi is_callable(valeur) {
+        message := imprime_chaine("'%' is not callable", valeur)
+        retourne lance_type_error(interpréteuse, message)
+    }
+
+    object := valeur.donne_objet()
+
+    // 3. Return ? F.[[Call]](V, argumentsList).
+    retourne object.sur_call(object, interpréteuse, this_value, arguments)
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Ordinary Object
+/** \nom 10.1 Ordinary Object Internal Methods and Internal Slots
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinary-object-internal-methods-and-internal-slots
  * \{ */
 
@@ -970,23 +1018,6 @@ object_prototype_has_own_property :: fonc (object: *Object @inutilisée, interpr
     retourne has_own_property(obj, nom)
 }
 
-/* 7.3.12 HasOwnProperty ( O, P )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
-has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
-{
-    completion_desc := object.sur_get_own_property(object, nom)
-    saufsi completion_desc.est_normal() {
-        retourne completion_desc
-    }
-
-    desc := completion_desc.valeur
-    si desc.est_undefined() {
-        retourne normal_completion(Valeur(Boolean = faux))
-    }
-
-    retourne normal_completion(Valeur(Boolean = vrai))
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1121,30 +1152,6 @@ ordinary_function_create :: fonc (tas_de_mémoire: *TasDeMémoire, params: [..]*
     // 22. Perform SetFunctionLength(F, len).
     // 23. Return F.
     retourne F
-}
-
-/* 7.3.13 Call ( F, V [ , argumentsList ] )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
-call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
-{
-    // 1. If argumentsList is not present, set argumentsList to a new empty List.
-    arguments: []Valeur
-    retourne call(interpréteuse, valeur, this_value, arguments)
-}
-
-call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
-{
-    // Continuation de la version sans arguments.
-    // 2. If IsCallable(F) is false, throw a TypeError exception.
-    saufsi is_callable(valeur) {
-        message := imprime_chaine("'%' is not callable", valeur)
-        retourne lance_type_error(interpréteuse, message)
-    }
-
-    object := valeur.donne_objet()
-
-    // 3. Return ? F.[[Call]](V, argumentsList).
-    retourne object.sur_call(object, interpréteuse, this_value, arguments)
 }
 
 sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
