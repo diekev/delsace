@@ -10,6 +10,7 @@ STR_false: ChaineUTF16Unique = ---
 STR_function: ChaineUTF16Unique = ---
 STR_globalThis: ChaineUTF16Unique = ---
 STR_hasOwnProperty: ChaineUTF16Unique = ---
+STR_join: ChaineUTF16Unique = ---
 STR_length: ChaineUTF16Unique = ---
 STR_null: ChaineUTF16Unique = ---
 STR_number: ChaineUTF16Unique = ---
@@ -18,6 +19,7 @@ STR_prototype: ChaineUTF16Unique = ---
 STR_push: ChaineUTF16Unique = ---
 STR_string: ChaineUTF16Unique = ---
 STR_symbol: ChaineUTF16Unique = ---
+STR_toString: ChaineUTF16Unique = ---
 STR_true: ChaineUTF16Unique = ---
 STR_undefined: ChaineUTF16Unique = ---
 
