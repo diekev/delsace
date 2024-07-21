@@ -90,12 +90,8 @@ TypeÉbouage :: énum {
         rassemble_racines(tas_de_mémoire, *racines)
     }
 
-    cellules_vivantes: [..]*Cellule
-    diffère déloge(cellules_vivantes)
-    visite_cellules_vivantes(tas_de_mémoire, racines, *cellules_vivantes)
+    visite_cellules_vivantes(tas_de_mémoire, racines)
 
-    réinitialise_bits_de_marquage(tas_de_mémoire)
-    marque_cellules_vivantes(tas_de_mémoire, *cellules_vivantes)
     balaie_cellules_mortes(tas_de_mémoire)
 
     si tas_de_mémoire.imprime_statistiques {
@@ -179,28 +175,23 @@ ajoute_racine_depuis_cellule_possible :: fonc (tas_de_mémoire: *TasDeMémoire, 
     }
 }
 
-visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, racines: []*Cellule, cellules_vivantes: *[..]*Cellule)
+visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, racines: []*Cellule)
 {
     VisiteuseVivance :: struct {
         empl base: VisiteuseCellule
-
-        cellules_vivantes: *[..]*Cellule
     }
 
-    sur_a_visité :: fonc (base: *VisiteuseCellule, cellule: *Cellule)
+    sur_a_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule)
     {
-        visiteuse := base comme *VisiteuseVivance
-        ensemble_ajoute(visiteuse.cellules_vivantes, cellule)
+        cellule.marqué = vrai
     }
 
-    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule, cellule: *Cellule) -> bool
+    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule) -> bool
     {
-        visiteuse := base comme *VisiteuseVivance
-        retourne ensemble_possède(visiteuse.cellules_vivantes, cellule)
+        retourne cellule.marqué
     }
 
     visiteuse: VisiteuseVivance
-    visiteuse.cellules_vivantes = cellules_vivantes
     visiteuse.sur_a_visité = sur_a_visité
     visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
 
@@ -209,35 +200,21 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, 
     }
 
     #si DÉBOGUGE_MÉMOIRE {
-        imprime("%\n", #nom_de_cette_fonction)
-        pour mémoire(cellules_vivantes) {
+        pour racines {
             imprime("    @ %\n", it)
         }
+        imprime_cellules_vivantes(tas_de_mémoire)
     }
 }
 
-réinitialise_bits_de_marquage :: fonc (tas_de_mémoire: *TasDeMémoire)
+imprime_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire)
 {
-    pour tas_de_mémoire.blocs {
-        pour cellule dans it {
-            cellule.marqué = faux
-        }
-    }
-}
-
-marque_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, cellules_vivantes: *[..]*Cellule)
-{
-    #si DÉBOGUGE_MÉMOIRE {
-        imprime("%\n", #nom_de_cette_fonction)
-    }
+    imprime("%\n", #nom_de_cette_fonction)
 
     pour tas_de_mémoire.blocs {
         pour cellule dans it {
-            si ensemble_possède(cellules_vivantes, cellule) {
-                cellule.marqué = vrai
-                #si DÉBOGUGE_MÉMOIRE {
-                    imprime("    ! %\n", cellule)
-                }
+            si cellule.vivante && cellule.marqué {
+                imprime("    ! %\n", cellule)
             }
         }
     }
@@ -261,6 +238,7 @@ balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
                     imprime("    ~ %\n", cellule)
                 }
             }
+            cellule.marqué = faux
         }
 
         si it.est_vide() {
