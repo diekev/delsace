@@ -831,6 +831,41 @@ set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: b
     retourne normal_completion(js_undefined)
 }
 
+/* 7.3.5 CreateDataProperty ( O, P, V )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdataproperty */
+create_data_property :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur) -> CompletionRecord
+{
+    // 1. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+    new_desc: PropertyDescriptor
+    new_desc.value = valeur
+    new_desc.writable = vrai
+    new_desc.enumerable = vrai
+    new_desc.configurable = vrai
+
+    // 2. Return ? O.[[DefineOwnProperty]](P, newDesc).
+    retourne internal_define_own_property(object, property_key, new_desc)
+}
+
+/* 7.3.6 CreateDataPropertyOrThrow ( O, P, V )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdatapropertyorthrow */
+create_data_property_or_throw :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur) -> CompletionRecord
+{
+    // 1. Let success be ? CreateDataProperty(O, P, V).
+    completion := create_data_property(object, property_key, valeur)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    success := completion.valeur.V
+
+    // 2. If success is false, throw a TypeError exception.
+    si success.est_false() {
+        panique("Exception non-implémentée")
+    }
+
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
 /* 7.3.8 DefinePropertyOrThrow ( O, P, desc )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definepropertyorthrow */
 define_property_or_throw :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
