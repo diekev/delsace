@@ -1759,6 +1759,12 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         opérande_gauche->comme_constante_réelle(), opérande_droite->comme_constante_réelle());    \
     return constructrice.crée_constante_booléenne(résultat)
 
+#define APPLIQUE_COMPARAISON_BOOL(nom)                                                            \
+    auto résultat = nom::applique_opération(                                                      \
+        opérande_gauche->comme_constante_booléenne()->valeur,                                     \
+        opérande_droite->comme_constante_booléenne()->valeur);                                    \
+    return constructrice.crée_constante_booléenne(résultat)
+
     switch (inst->op) {
         case OpérateurBinaire::Genre::Addition:
         {
@@ -1800,6 +1806,9 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         }
         case OpérateurBinaire::Genre::Comp_Egal:
         {
+            if (opérande_gauche->est_constante_booléenne()) {
+                APPLIQUE_COMPARAISON_BOOL(Égal);
+            }
             APPLIQUE_COMPARAISON_ENTIER(Égal);
         }
         case OpérateurBinaire::Genre::Comp_Egal_Reel:
@@ -1808,6 +1817,9 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         }
         case OpérateurBinaire::Genre::Comp_Inegal:
         {
+            if (opérande_gauche->est_constante_booléenne()) {
+                APPLIQUE_COMPARAISON_BOOL(Différent);
+            }
             APPLIQUE_COMPARAISON_ENTIER(Différent);
         }
         case OpérateurBinaire::Genre::Comp_Inegal_Reel:
