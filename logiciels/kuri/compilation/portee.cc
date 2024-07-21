@@ -196,7 +196,6 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &declar
         auto decl = bloc_courant->declaration_pour_ident(ident);
         if (peut_sélectionner_déclaration(decl, module_du_bloc, fichier)) {
             auto déclaration_ajoutée = false;
-            auto symbole = decl->comme_déclaration_symbole();
 
             if (decl->est_entête_fonction()) {
                 auto entête = decl->comme_entête_fonction();

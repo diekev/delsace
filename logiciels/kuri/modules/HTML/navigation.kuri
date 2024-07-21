@@ -797,6 +797,7 @@ load_an_html_document :: fonc (navigation_params: *NavigationParams) -> *Documen
     parsat := parse_document(response.body.Quelque)
     diffère détruit(parsat)
     document := parsat.document
+    document.browsing_context = navigation_params.navigable.donne_active_browsing_context()
     parsat.document = nul
     retourne document
 }
