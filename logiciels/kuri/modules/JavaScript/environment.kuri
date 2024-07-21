@@ -274,8 +274,10 @@ object_environment_set_mutable_binding :: fonc (base: *Environment, nom: ECMAStr
     }
 
     // 4. Perform ? Set(bindingObject, N, V, S).
-    // À FAIRE set
-    binding_object.définis_valeur(nom, valeur)
+    completion := set(binding_object, nom, valeur, strict)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
 
     // 5. Return UNUSED.
     retourne normal_completion(js_undefined)

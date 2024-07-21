@@ -164,7 +164,10 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
     fonction := crée_fonction(interpréteuse.donne_tas_de_mémoire(), noeud.id.nom, noeud.corps)
 
     objet_global := interpréteuse.get_global_object()
-    objet_global.définis_valeur(noeud.id.nom, Valeur(Function = fonction))
+    completion := set(objet_global, noeud.id.nom, Valeur(Function = fonction), Valeur(Object = objet_global))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
 
     retourne normal_completion(Valeur(Function = fonction))
 }

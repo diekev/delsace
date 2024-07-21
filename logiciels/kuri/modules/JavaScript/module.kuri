@@ -723,17 +723,6 @@ sur_destruction_objet :: fonc (base: *Cellule)
     déloge(objet.propriétés)
 }
 
-définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
-{
-    propriété := trouve_propriété(objet, nom)
-    si propriété {
-        propriété.valeur = valeur
-        retourne
-    }
-
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur))
-}
-
 ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
@@ -755,6 +744,20 @@ internal_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
 internal_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
 {
     retourne object.sur_get(object, property_key, receiver)
+}
+
+/* [[Set]] */
+internal_set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
+{
+    // À FAIRE : sur_set
+    propriété := trouve_propriété(object, property_key)
+    si propriété {
+        propriété.valeur = valeur
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    tableau_ajoute(*object.propriétés, Object.Propriété(property_key, valeur))
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
 /* [[Call]] */
@@ -796,12 +799,13 @@ set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: b
     // À FAIRE : type property_key
 
     // 1. Let success be ? O.[[Set]](P, V, O).
-    // À FAIRE : différentes méthodes pour différents objets
-    définis_valeur(object, property_key, valeur)
-    succès := vrai
-
+    completion := object.internal_set(property_key, valeur, Valeur(Object = object))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    succès := completion.valeur.V
     // 2. If success is false and Throw is true, throw a TypeError exception.
-    si succès == faux && throw == vrai {
+    si succès.est_false() && throw == vrai {
         panique("exceptions non-implémentées")
     }
 
