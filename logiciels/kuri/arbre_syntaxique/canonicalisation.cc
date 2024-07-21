@@ -343,8 +343,10 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             if (déclaration->est_déclaration_type()) {
-                référence->substitution = assem->crée_référence_type(référence->lexème,
-                                                                     déclaration->type);
+                /* Crée un type de données au cas où la déclaration ne fut pas encore validée... */
+                référence->substitution = assem->crée_référence_type(
+                    référence->lexème,
+                    typeuse.type_type_de_donnees(déclaration->comme_déclaration_type()));
                 return référence->substitution;
             }
 
@@ -2237,8 +2239,7 @@ NoeudExpression *Simplificatrice::simplifie_référence_membre(NoeudExpressionMe
         auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
         auto valeur_énum = type_enum->membres[ref_membre->index_membre].valeur;
 
-        auto valeur_lit_enum = assem->crée_littérale_entier(
-            lexème, type_enum, static_cast<unsigned>(valeur_énum));
+        auto valeur_lit_enum = assem->crée_littérale_entier(lexème, type_enum, valeur_énum);
         auto op = type_enum->table_opérateurs->opérateur_etb;
         auto et = assem->crée_expression_binaire(lexème, op, accédée, valeur_lit_enum);
 
@@ -2279,8 +2280,7 @@ NoeudExpression *Simplificatrice::simplifie_référence_membre(NoeudExpressionMe
     if (type_accédé->est_type_énum() || type_accédé->est_type_erreur()) {
         auto type_enum = static_cast<TypeEnum *>(type_accédé);
         auto valeur_énum = type_enum->membres[ref_membre->index_membre].valeur;
-        ref_membre->substitution = assem->crée_littérale_entier(
-            lexème, type_enum, static_cast<unsigned>(valeur_énum));
+        ref_membre->substitution = assem->crée_littérale_entier(lexème, type_enum, valeur_énum);
         return ref_membre;
     }
 
@@ -2323,7 +2323,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
 
     /* Crée la conjonction d'un drapeau avec la variable (a | DRAPEAU) */
     auto crée_conjonction_drapeau =
-        [&](NoeudExpression *ref_variable, TypeEnum *type_enum, unsigned valeur_énum) {
+        [&](NoeudExpression *ref_variable, TypeEnum *type_enum, uint64_t valeur_énum) {
             auto valeur_lit_enum = assem->crée_littérale_entier(lexème, type_enum, valeur_énum);
             auto op = type_enum->table_opérateurs->opérateur_oub;
             return assem->crée_expression_binaire(var->lexème, op, ref_variable, valeur_lit_enum);
@@ -2331,9 +2331,8 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
 
     /* Crée la disjonction d'un drapeau avec la variable (a & ~DRAPEAU) */
     auto crée_disjonction_drapeau =
-        [&](NoeudExpression *ref_variable, TypeEnum *type_enum, unsigned valeur_énum) {
-            auto valeur_lit_enum = assem->crée_littérale_entier(
-                lexème, type_enum, ~uint64_t(valeur_énum));
+        [&](NoeudExpression *ref_variable, TypeEnum *type_enum, uint64_t valeur_énum) {
+            auto valeur_lit_enum = assem->crée_littérale_entier(lexème, type_enum, ~valeur_énum);
             auto op = type_enum->table_opérateurs->opérateur_etb;
             return assem->crée_expression_binaire(var->lexème, op, ref_variable, valeur_lit_enum);
         };
@@ -2345,23 +2344,20 @@ NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpre
         /* Nous avons une expression littérale, donc nous pouvons choisir la bonne instruction. */
         if (expression->comme_littérale_bool()->valeur) {
             // a.DRAPEAU = vrai -> a = a | DRAPEAU
-            return crée_conjonction_drapeau(
-                nouvelle_ref, type_énum, static_cast<unsigned>(valeur_énum));
+            return crée_conjonction_drapeau(nouvelle_ref, type_énum, valeur_énum);
         }
         // a.DRAPEAU = faux -> a = a & ~DRAPEAU
-        return crée_disjonction_drapeau(
-            nouvelle_ref, type_énum, static_cast<unsigned>(valeur_énum));
+        return crée_disjonction_drapeau(nouvelle_ref, type_énum, valeur_énum);
     }
+
     /* Transforme en une expression « ternaire » sans branche (similaire à a = b ? v1 : v2 en
      * C/C++) :
      * v1 = (a | DRAPEAU)
      * v2 = (a & ~DRAPEAU)
      */
 
-    auto v1 = crée_conjonction_drapeau(
-        nouvelle_ref, type_énum, static_cast<unsigned>(valeur_énum));
-    auto v2 = crée_disjonction_drapeau(
-        nouvelle_ref, type_énum, static_cast<unsigned>(valeur_énum));
+    auto v1 = crée_conjonction_drapeau(nouvelle_ref, type_énum, valeur_énum);
+    auto v2 = crée_disjonction_drapeau(nouvelle_ref, type_énum, valeur_énum);
 
     simplifie(expression);
     auto ref_b = expression->substitution ? expression->substitution : expression;
@@ -2703,7 +2699,7 @@ NoeudExpression *Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
     return retiens;
 }
 
-static int valeur_énum(TypeEnum *type_énum, IdentifiantCode *ident)
+static uint64_t valeur_énum(TypeEnum *type_énum, IdentifiantCode *ident)
 {
     auto index_membre = 0;
 
@@ -2808,7 +2804,7 @@ NoeudExpression *Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
             if (N == DISCR_ENUM) {
                 auto valeur = valeur_énum(static_cast<TypeEnum *>(expression->type), expr->ident);
                 auto constante = assem->crée_littérale_entier(
-                    expr->lexème, expression->type, static_cast<uint64_t>(valeur));
+                    expr->lexème, expression->type, valeur);
                 comparaison.opérande_droite = constante;
             }
             else if (N == DISCR_UNION) {
