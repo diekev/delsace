@@ -46,6 +46,10 @@ struct ValeurExpression {
     {
     }
 
+    ValeurExpression(uint64_t e) : v(int64_t(e))
+    {
+    }
+
     ValeurExpression(double r) : v(r)
     {
     }
