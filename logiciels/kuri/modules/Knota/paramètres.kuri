@@ -744,9 +744,7 @@ lis_valeur_couleur :: fonc (param: *TableParamètres.Paramètre) -> CouleurRVBA
 
 lis_valeur_énum :: fonc (param: *TableParamètres.Paramètre) -> chaine
 {
-    info_énum := param.valeur.info comme *InfoTypeÉnum
-    valeur_énum := lis_valeur_entier_ex(param, info_énum.type_sous_jacent)
-    retourne donne_nom_énum_pour_valeur(info_énum, valeur_énum)
+    retourne donne_nom_énum_pour_valeur(param.valeur)
 }
 
 /* Valeur par défaut. */
