@@ -1,134 +1,845 @@
+importe Chaine
 importe Fondation
+importe HTML
+importe JavaScript
+importe Qt
 importe SysFichier
+importe Temps
 
-importe "../../JavaScript"
-
-construit_programme_1 :: fonc () -> *Programme
-{
-    // function foo() { return (1 + 2) + 3 }
-    // foo()
-    bin_op := crée_binary_expression(BinaryOperation.Plus, crée_literal(1), crée_literal(2))
-    bin_op = crée_binary_expression(BinaryOperation.Plus, bin_op, crée_literal(3))
-    return := crée_return_statement(bin_op)
-    corps := crée_block_statement(return)
-    foo := crée_identifier("foo")
-    fonction := crée_function_déclaration(foo, corps)
-
-    appel := crée_call_expression(foo)
-    expression := crée_expression_statement(appel)
-
-    retourne crée_programme(fonction, expression)
-}
-
-construit_programme_2 :: fonc () -> *Programme
-{
-    // c = 1
-    // function foo()
-    // {
-    //     var a = 5
-    //     var b = 7
-    //     return (a + b) + c
-    // }
-    // foo()
-
-    c := crée_identifier("c")
-    un := crée_literal(1)
-
-    assignment := crée_assignment_expression(AssignmentOperation.Assigne, c, un)
-    expr_assignment := crée_expression_statement(assignment)
-
-    a := crée_identifier("a")
-    declarator_a := crée_variable_declarator(a, crée_literal(5))
-    declaration_a := crée_variable_declaration(declarator_a)
-
-    b := crée_identifier("b")
-    declarator_b := crée_variable_declarator(b, crée_literal(7))
-    declaration_b := crée_variable_declaration(declarator_b)
-
-    bin_op := crée_binary_expression(BinaryOperation.Plus, a, b)
-    bin_op = crée_binary_expression(BinaryOperation.Plus, bin_op, c)
-    return := crée_return_statement(bin_op)
-    corps := crée_block_statement(declaration_a, declaration_b, return)
-    foo := crée_identifier("foo")
-    fonction := crée_function_déclaration(foo, corps)
-
-    appel := crée_call_expression(foo)
-    expression := crée_expression_statement(appel)
-
-    retourne crée_programme(expr_assignment, fonction, expression)
-}
-
-construit_programme_3 :: fonc () -> *Programme
-{
-    // function foo()
-    // {
-    //     var x = {};
-    //     rm();
-    // }
-    // foo();
-
-    x := crée_identifier("x")
-    rm := crée_identifier("rm")
-
-    declarator_x := crée_variable_declarator(x, crée_object_expression())
-    declaration_x := crée_variable_declaration(declarator_x)
-
-    appel_rm := crée_call_expression(rm)
-    expression_rm := crée_expression_statement(appel_rm)
-
-    corps := crée_block_statement(declaration_x, expression_rm)
-    foo := crée_identifier("foo")
-    fonction := crée_function_déclaration(foo, corps)
-
-    appel := crée_call_expression(foo)
-    expression := crée_expression_statement(appel)
-
-    retourne crée_programme(fonction, expression)
-}
-
-construit_programme_4 :: fonc () -> *Programme
-{
-    // "hello friends".length
-    retourne crée_programme(crée_member_expression(crée_literal("hello friends"), crée_identifier("length")))
-}
-
-test_programme :: fonc ()
-{
-    programme := construit_programme_4()
-
-    imprime_arbre(programme)
-
-    interpréteuse: Interpréteuse
-    initialise_interpréteuse(interpréteuse)
-
-    résultat := interpréteuse.exécute(programme)
-    imprime("%\n", résultat)
-
-    imprime("Ébouage...\n")
-    éboue(interpréteuse.donne_tas_de_mémoire())
-}
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction principale.
+ * \{ */
 
 principale :: fonc () -> z32
 {
-    pour ExploratriceFichier(CheminFichier("fichiers/")) {
-        contenu := contenu_fichier_texte(it.chn)
-        imprime("%\n", contenu)
+    mémoire_entrée := mémoire_utilisée()
 
-        discr compile_script(contenu) {
-            Ok(script) {
-                // pour lexème dans script.lexèmes {
-                //     imprime("%\n", lexème)
-                // }
+    arguments := __arguments_ligne_commande
 
-                // imprime_arbre(script.programme)
-            }
-            Erreur(e) {
-                imprime("%\n", e.message)
-            }
-            sinon {
-            }
+    /* Création application. */
+    taille_arguments := arguments.taille comme z32
+    app := QT_cree_application(*taille_arguments, arguments.pointeur)
+    diffère QT_detruit_application(app)
+
+    rappel_fermeture: RappelFermetureApp
+    rappel_fermeture.mémoire_entrée = mémoire_entrée
+    QT_application_sur_fin_boucle_evenement(app, *rappel_fermeture)
+
+    QT_core_application_definis_nom_organisation(vers_qt("delsace"))
+    QT_core_application_definis_nom_application(vers_qt("JavaScript"))
+
+    /* Création fenêtre. */
+    rappels_fenêtre : RappelsFenetrePrincipale
+
+    fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
+    diffère QT_detruit_fenetre_principale(fenêtre)
+
+    rappel_sauvegarde: RappelSauvegarde
+    rappel_sauvegarde.rappels_fenêtre = *rappels_fenêtre
+    raccourcis := QT_shortcut_cree(fenêtre)
+    QT_shortcut_definis_touches(raccourcis, QT_Keyboard_Modifier.CTRL, QT_Key.S)
+    QT_shortcut_sur_activation(raccourcis, *rappel_sauvegarde)
+
+    QT_widget_definis_titre_fenetre(fenêtre, vers_qt("JavaScript"))
+    QT_widget_affiche_maximisee(fenêtre)
+
+    /* Création widgets. */
+    widget := QT_cree_widget(nul, fenêtre)
+    QT_fenetre_principale_definis_widget_central(fenêtre, widget)
+
+    fonte: QT_Font
+    fonte.famille = vers_qt("Monospace")
+    feuille_de_style := vers_qt("QPlainTextEdit { background: black; color: white; }")
+
+    éditeur := QT_cree_plain_text_edit(nul, widget)
+    QT_widget_definis_feuille_de_style(éditeur, *feuille_de_style)
+    QT_widget_definis_fonte(éditeur, *fonte)
+    ouvre_fichier(éditeur)
+
+    sortie := QT_cree_plain_text_edit(nul, widget)
+    QT_plain_text_edit_definis_lecture_seule(sortie, vrai)
+    QT_widget_definis_feuille_de_style(sortie, *feuille_de_style)
+    QT_widget_definis_fonte(sortie, *fonte)
+
+    sortie_console := QT_cree_plain_text_edit(nul, widget)
+    QT_plain_text_edit_definis_lecture_seule(sortie_console, vrai)
+    QT_widget_definis_feuille_de_style(sortie_console, *feuille_de_style)
+    QT_widget_definis_fonte(sortie_console, *fonte)
+
+    rappels_fenêtre.éditeur = éditeur
+    rappels_fenêtre.sortie = sortie
+    rappels_fenêtre.sortie_console = sortie_console
+
+    dispv := QT_cree_vbox_layout(QT_widget_nul())
+    QT_layout_ajoute_widget(dispv, sortie)
+    QT_layout_ajoute_widget(dispv, sortie_console)
+
+    disp := QT_cree_hbox_layout(widget)
+    QT_layout_ajoute_widget(disp, éditeur)
+    QT_box_layout_ajoute_layout(disp, dispv)
+
+    retourne QT_application_exec(app)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sur fermeture application.
+ * \{ */
+
+RappelFermetureApp :: struct {
+    empl base: QT_Rappel_Generique
+
+    mémoire_entrée: z64
+
+    sur_rappel = sur_fermeture_application
+}
+
+sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
+{
+    rappel := base comme *RappelFermetureApp
+    imprime("mémoire_utilisée %\n", mémoire_utilisée() - rappel.mémoire_entrée)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Données fenêtre principale.
+ * \{ */
+
+RappelsFenetrePrincipale :: struct {
+    empl base : QT_Rappels_Fenetre_Principale
+
+    éditeur: *QT_PlainTextEdit
+    sortie: *QT_PlainTextEdit
+    sortie_console: *QT_PlainTextEdit
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sauvegarde/Évaluation du fichier de test.
+ * \{ */
+
+RappelSauvegarde :: struct {
+    empl base: QT_Rappel_Generique
+
+    rappels_fenêtre: *RappelsFenetrePrincipale
+
+    sur_rappel = sur_rappel_sauvegarde
+}
+
+ouvre_fichier :: fonc (éditeur: *QT_PlainTextEdit)
+{
+    contenu := contenu_fichier_texte("/tmp/test.js")
+    qcontenu := contenu.vers_qt()
+    QT_plain_text_edit_definis_texte(éditeur, *qcontenu)
+    déloge(contenu)
+}
+
+sauvegarde_fichier :: fonc (contenu: chaine)
+{
+    chemin := "/tmp/test.js"
+    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin), pour_écriture_tronquée) piège err {
+        imprime("%\n", err)
+        retourne
+    }
+
+    diffère _ := ferme(*fichier)
+
+    _ := écris(*fichier, contenu)
+}
+
+LogLevel :: énum {
+    LOG
+    WARN
+    ASSERT
+    DEBUG
+    ERROR
+    INFO
+    TIME_END
+    COUNT
+    COUNT_RESET
+}
+
+Console :: struct {
+    empl enveloppable: Enveloppable
+    sortie: *QT_PlainTextEdit
+    sur_création_enveloppe = console_sur_création_enveloppe
+
+    historique: chaine
+
+    Chronomètre :: struct {
+        nom: ECMAString
+        début: Instantané
+    }
+
+    chronomètres: [..]Chronomètre
+
+    Compteuse :: struct {
+        nom: ECMAString
+        compte: z32
+    }
+
+    compteuses: [..]Compteuse
+}
+
+/* https://console.spec.whatwg.org/#assert */
+assert :: fonc (console: *Console, interpréteuse: &Interpréteuse, condition: bool, arguments: []Valeur) -> CompletionRecord
+{
+    si condition {
+        retourne normal_completion(js_undefined)
+    }
+
+    nouveaux_arguments: [..]Valeur
+    tableau_réserve(*nouveaux_arguments, arguments.taille + 1)
+    diffère déloge(nouveaux_arguments)
+
+    si arguments.taille == 0 {
+        chn_message := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique("Assertion failed"))
+        tableau_ajoute(*nouveaux_arguments, Valeur(String = chn_message))
+    }
+    sinon {
+        chn_message := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique("Assertion failed:"))
+        tableau_ajoute(*nouveaux_arguments, Valeur(String = chn_message))
+
+        pour arguments {
+            tableau_ajoute(*nouveaux_arguments, it)
         }
     }
 
-    retourne 0
+    retourne logger(console, interpréteuse, LogLevel.ASSERT, nouveaux_arguments)
 }
+
+logger :: fonc (console: *Console, interpréteuse: &Interpréteuse, log_level: LogLevel, arguments: []Valeur) -> CompletionRecord
+{
+    retourne printer(console, interpréteuse, log_level, arguments)
+}
+
+printer :: fonc (console: *Console, interpréteuse: &Interpréteuse, log_level: LogLevel @inutilisée, arguments: []Valeur) -> CompletionRecord
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, console.historique)
+
+    virgule := ""
+    pour arguments {
+        complétion := vers_chaine(interpréteuse, it)
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+        valeur := complétion.valeur.V
+
+        ajoute_au_tampon(*enchaineuse, virgule, valeur.String.texte.donne_chaine_utf16())
+        virgule = " "
+    }
+    ajoute_au_tampon(*enchaineuse, "\n")
+
+    texte := chaine_depuis_enchaineuse(*enchaineuse)
+    déloge(console.historique)
+    console.historique = texte
+
+    qtexte := texte.vers_qt()
+
+    sortie := console.sortie
+    QT_plain_text_edit_definis_texte(sortie, *qtexte)
+
+    retourne normal_completion(js_undefined)
+}
+
+/* https://console.spec.whatwg.org/#time */
+time :: fonc (console: *Console, nom: ECMAString)
+{
+    pour console.chronomètres {
+        si it.nom == nom {
+            // À FAIRE : rapporte un avertissement
+            retourne
+        }
+    }
+
+    chronomètre: Console.Chronomètre
+    chronomètre.nom = nom
+    chronomètre.début = maintenant_précis()
+    tableau_ajoute(*console.chronomètres, chronomètre)
+}
+
+/* https://console.spec.whatwg.org/#timeend */
+time_end :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString) -> CompletionRecord
+{
+    résultat := normal_completion(js_undefined)
+
+    index_chronomètre : z64 = -1
+
+    pour console.chronomètres {
+        si it.nom != nom {
+            continue
+        }
+
+        temps := it.début.temps_écoulé_millisecondes()
+
+        chn_temps := imprime_chaine("%: % ms", nom, temps)
+
+        valeur_chn_temps := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(chn_temps)))
+
+        arguments: []Valeur
+        arguments.pointeur = *valeur_chn_temps
+        arguments.taille = 1
+
+        résultat = printer(console, interpréteuse, LogLevel.TIME_END, arguments)
+        index_chronomètre = index_it
+
+        déloge(chn_temps)
+        arrête
+    }
+    sansarrêt {
+        retourne résultat
+    }
+
+    tableau_supprime_index(*console.chronomètres, index_chronomètre)
+    retourne résultat
+}
+
+/* https://console.spec.whatwg.org/#count */
+count :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString)
+{
+    compteuse: Console.Compteuse
+
+    // 1. Let map be the associated count map.
+    // 2. If map[label] exists, set map[label] to map[label] + 1.
+    pour & console.compteuses {
+            si it.nom == nom {
+            it.compte += 1
+            compteuse = it
+            arrête
+        }
+    }
+    sansarrêt {
+        // 3. Otherwise, set map[label] to 1.
+        compteuse.nom = nom
+        compteuse.compte = 1
+        tableau_ajoute(*console.compteuses, compteuse)
+    }
+
+    // 4. Let concat be the concatenation of label, U+003A (:), U+0020 SPACE, and ToString(map[label]).
+    concat := imprime_chaine("%: %", nom, compteuse.compte)
+    diffère déloge(concat)
+
+    valeur_concat := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(concat)))
+
+    // 5. Perform Logger("count", « concat »).
+    arguments: []Valeur
+    arguments.pointeur = *valeur_concat
+    arguments.taille = 1
+
+    _ := printer(console, interpréteuse, LogLevel.COUNT, arguments)
+}
+
+/* https://console.spec.whatwg.org/#countreset */
+count_reset :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString)
+{
+    // 1. Let map be the associated count map.
+    // 2. If map[label] exists, set map[label] to 0.
+    pour & console.compteuses {
+        si it.nom == nom {
+            it.compte = 0
+            retourne
+        }
+    }
+
+    // 3. Otherwise:
+
+    // 1. Let message be a string without any formatting specifiers indicating
+    //    generically that the given label does not have an associated count.
+    message := imprime_chaine("Unknown counter '%'", nom)
+    diffère déloge(message)
+
+    chn_message := crée_chaine_utf16_unique(message)
+    valeur_message := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), chn_message))
+
+    // 2. Perform Logger("countReset", « message »);
+    arguments: []Valeur
+    arguments.pointeur = *valeur_message
+    arguments.taille = 1
+
+    _ := printer(console, interpréteuse, LogLevel.COUNT_RESET, arguments)
+}
+
+console_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+{
+    /* https://console.spec.whatwg.org/#log */
+    fonction_native_log :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.LOG, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#warn */
+    fonction_native_warn :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.WARN, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#debug */
+    fonction_native_debug :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.DEBUG, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#info */
+    fonction_native_info :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.INFO, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#error */
+    fonction_native_error :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        retourne logger(console, interpréteuse, LogLevel.ERROR, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#clear */
+    fonction_native_clear :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur, arguments: []Valeur @inutilisée) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+        sortie := console.sortie
+        qtexte := "".vers_qt()
+        QT_plain_text_edit_definis_texte(sortie, *qtexte)
+        retourne normal_completion(js_undefined)
+    }
+
+    /* https://console.spec.whatwg.org/#assert */
+    fonction_native_assert :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        condition := to_boolean(arguments[0]).Boolean
+
+        arguments.pointeur += 1
+        arguments.taille -= 1
+
+        retourne assert(console, interpréteuse, condition, arguments)
+    }
+
+    fonction_native_time :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+
+        console.time(nom)
+
+        retourne normal_completion(js_undefined)
+    }
+
+    fonction_native_time_end :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+        retourne console.time_end(interpréteuse, nom)
+    }
+
+    fonction_native_count :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+
+        console.count(interpréteuse, nom)
+
+        retourne normal_completion(js_undefined)
+    }
+
+    fonction_native_count_reset :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_console := this_value.donne_objet() comme *Enveloppe
+        console := envellope_console.enveloppable comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+
+        console.count_reset(interpréteuse, nom)
+
+        retourne normal_completion(js_undefined)
+    }
+
+    enveloppe.classe = Console
+    enveloppe.ajoute_fonction_native("log", fonction_native_log)
+    enveloppe.ajoute_fonction_native("warn", fonction_native_warn)
+    enveloppe.ajoute_fonction_native("debug", fonction_native_debug)
+    enveloppe.ajoute_fonction_native("info", fonction_native_info)
+    enveloppe.ajoute_fonction_native("error", fonction_native_error)
+    enveloppe.ajoute_fonction_native("clear", fonction_native_clear)
+    enveloppe.ajoute_fonction_native("assert", fonction_native_assert)
+    enveloppe.ajoute_fonction_native("time", fonction_native_time)
+    enveloppe.ajoute_fonction_native("timeEnd", fonction_native_time_end)
+    enveloppe.ajoute_fonction_native("count", fonction_native_count)
+    enveloppe.ajoute_fonction_native("countReset", fonction_native_count_reset)
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjetHTML
+ * \{ */
+
+ObjetHTML :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = objet_html_sur_création_enveloppe
+
+    enveloppe_document: EnveloppeDocument
+}
+
+objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+{
+    fonction_native_ouvre_document :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope_html := this_value.donne_objet() comme *Enveloppe
+        html := envellope_html.enveloppable comme *ObjetHTML
+
+        si arguments.taille == 0 {
+            retourne lance_type_error(interpréteuse, "ouvre_document requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        valeur_arg := arguments[0].String.texte
+        valeur_arg_utf16 := valeur_arg.donne_chaine_utf16()
+        chemin := imprime_chaine("%", valeur_arg_utf16)
+        diffère déloge(chemin)
+        
+        contenu := contenu_fichier_texte(chemin)
+
+        parsat := parse_document(contenu)
+        html.enveloppe_document.document = parsat.document
+
+        tas_de_mémoire := object.donne_tas_de_mémoire()
+        document := crée_enveloppe(tas_de_mémoire, *html.enveloppe_document)
+        retourne normal_completion(Valeur(Object = document))
+    }
+
+    enveloppe.classe = ObjetHTML
+    enveloppe.ajoute_fonction_native("ouvre_document", fonction_native_ouvre_document)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeDocument
+ * \{ */
+
+EnveloppeDocument :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = enveloppe_document_sur_création_enveloppe
+
+    document: *Document
+
+    enveloppe_élément: EnveloppeÉlément
+}
+
+enveloppe_document_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
+{
+    fonction_native_get_element_by_id :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_document := envellope.enveloppable comme *EnveloppeDocument
+        document := enveloppe_document.document
+
+        si arguments.taille == 0 {
+            retourne lance_type_error(interpréteuse, "getElementByID requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+
+        élément := document.get_element_by_id(texte)
+
+        saufsi élément {
+            retourne normal_completion(js_null)
+        }
+
+        enveloppe_document.enveloppe_élément.élément = élément
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        objet_élément := crée_enveloppe(tas_de_mémoire, *enveloppe_document.enveloppe_élément)
+        retourne normal_completion(Valeur(Object = objet_élément))
+    }
+
+    enveloppe.classe = EnveloppeDocument
+    enveloppe.ajoute_fonction_native("getElementById", fonction_native_get_element_by_id)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeDocument
+ * \{ */
+
+EnveloppeÉlément :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = enveloppe_élément_sur_création_enveloppe
+
+    élément: *Élément
+}
+
+enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, enveloppe: *Enveloppe)
+{
+    fonction_native_get_element_by_class_name :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_élément := envellope.enveloppable comme *EnveloppeÉlément
+        élément := enveloppe_élément.élément
+
+        si arguments.taille == 0 {
+            retourne lance_type_error(interpréteuse, "getElementsByClassName requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+    
+        collection := élément.get_elements_by_class_name(texte)
+
+        enveloppe_collection := loge(EnveloppeHTMLCollection)
+        enveloppe_collection.collection = collection
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        résultat := crée_enveloppe(tas_de_mémoire, enveloppe_collection)
+        retourne normal_completion(Valeur(Object = résultat))
+    }
+
+    fonction_native_get_element_by_tag_name :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_élément := envellope.enveloppable comme *EnveloppeÉlément
+        élément := enveloppe_élément.élément
+
+        si arguments.taille != 1 {
+            retourne lance_type_error(interpréteuse, "getElementsByTagName requiers 1 argument")
+        }
+
+        saufsi arguments[0].est_chaine() {
+            retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
+        }
+
+        texte := arguments[0].String.texte
+    
+        collection := élément.get_elements_by_tag_name(texte)
+
+        enveloppe_collection := loge(EnveloppeHTMLCollection)
+        enveloppe_collection.collection = collection
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        résultat := crée_enveloppe(tas_de_mémoire, enveloppe_collection)
+        retourne normal_completion(Valeur(Object = résultat))
+    }
+
+    enveloppe_élément := base comme *EnveloppeÉlément
+    élément := enveloppe_élément.élément
+
+    enveloppe.classe = EnveloppeÉlément
+    enveloppe.ajoute_fonction_native("getElementsByClassName", fonction_native_get_element_by_class_name)
+    enveloppe.ajoute_fonction_native("getElementsByTagName", fonction_native_get_element_by_tag_name)
+
+    si élément.texte == TAG_img {
+        img := élément comme *HTMLImageElement
+        src := img.donne_src()
+
+        str_src := crée_chaine(enveloppe.donne_tas_de_mémoire(), src)
+
+        enveloppe.ajoute_propriété(ATTR_src, Valeur(String = str_src), faux, faux, faux)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnveloppeHTMLCollection
+ * \{ */
+
+EnveloppeHTMLCollection :: struct {
+    empl enveloppable: Enveloppable
+    sur_création_enveloppe = enveloppe_collection_sur_création_enveloppe
+
+    collection: *HTMLCollection
+}
+
+enveloppe_collection_sur_création_enveloppe :: fonc (base: *Enveloppable, enveloppe: *Enveloppe)
+{
+    fonction_native_item :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        envellope := this_value.donne_objet() comme *Enveloppe
+        enveloppe_collection := envellope.enveloppable comme *EnveloppeHTMLCollection
+        collection := enveloppe_collection.collection
+
+        si arguments.taille != 1 {
+            retourne lance_type_error(interpréteuse, "item requiers 1 argument")
+        }
+
+        completion_index := vers_nombre(interpréteuse, arguments[0])
+        saufsi completion_index.est_normal() {
+            retourne completion_index
+        }
+        index := completion_index.valeur.V.Number comme z64
+
+        si index < 0 || index >= collection.éléments.taille {
+            retourne normal_completion(js_null)
+        }
+
+        enveloppe_élément := loge(EnveloppeÉlément)
+        enveloppe_élément.élément = collection.éléments[index]
+
+        tas_de_mémoire := envellope.donne_tas_de_mémoire()
+        objet_élément := crée_enveloppe(tas_de_mémoire, enveloppe_élément)
+        retourne normal_completion(Valeur(Object = objet_élément))
+    }
+
+    enveloppable := base comme *EnveloppeHTMLCollection
+    collection := enveloppable.collection
+
+    enveloppe.classe = EnveloppeHTMLCollection
+    enveloppe.ajoute_propriété(crée_chaine_utf16_unique("length"), Valeur(Number = collection.éléments.taille comme r64), faux, faux, faux)
+    enveloppe.ajoute_fonction_native("item", fonction_native_item)
+}
+
+/** \} */
+
+fonction_native_éboue :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+{
+    imprime("<<<<< ébouage forcé\n")
+    éboue(interpréteuse.donne_tas_de_mémoire())
+    imprime(">>>>> ébouage forcé\n")
+    retourne normal_completion(js_undefined)
+}
+
+RappelsHôteTest :: struct {
+    empl base: RappelsHôte
+
+    console: Console
+    html: ObjetHTML
+}
+
+crée_propriétés_hôte_objet_global :: fonc(base: *RappelsHôte, global: *Object)
+{
+    rappels := base comme *RappelsHôteTest
+
+    global.ajoute_fonction_native("rm", fonction_native_éboue)
+    global.ajoute_objet_natif("console", *rappels.console)
+    global.ajoute_objet_natif("html", *rappels.html)
+}
+
+sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
+{
+    rappel := base comme *RappelSauvegarde
+    rappels_fenêtre := rappel.rappels_fenêtre
+
+    éditeur := rappels_fenêtre.éditeur
+    sortie := rappels_fenêtre.sortie
+
+    texte := QT_plain_text_edit_donne_texte(éditeur)
+    contenu := texte.vers_kuri()
+
+    sauvegarde_fichier(contenu)
+
+    début := maintenant_précis()
+
+    mv: MachineVirtuelle
+    diffère détruit_données_mv(*mv)
+    initialise_mv(*mv)
+
+    diffère éboue(donne_tas_de_mémoire(*mv))
+
+    rappels_hôte: RappelsHôteTest
+    rappels_hôte.console.sortie = rappels_fenêtre.sortie_console
+    rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+
+    realm := initialise_host_defined_realm(*mv, *rappels_hôte)
+
+    script: *Script
+    discr parse_script(contenu, realm) {
+        Ok(s) {
+            script = s
+        }
+        Erreur(e) {
+            chn := e.message.vers_qt()
+            QT_plain_text_edit_definis_texte(sortie, *chn)
+            déloge(e.message)
+            retourne
+        }
+        sinon {
+            chn := "Erreur inconnue".vers_qt()
+            QT_plain_text_edit_definis_texte(sortie, *chn)
+            retourne
+        }
+    }
+
+    résultat := script_evaluation(script)
+
+    texte_résultat := imprime_chaine("%\n\nTemps d'exécution : % ms\n", get_value(realm, résultat.valeur), début.temps_écoulé_millisecondes())
+    diffère déloge(texte_résultat)
+
+    chn := texte_résultat.vers_qt()
+    QT_plain_text_edit_definis_texte(sortie, *chn)
+}
+
+/** \} */
