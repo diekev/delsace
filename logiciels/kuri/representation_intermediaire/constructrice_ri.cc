@@ -511,24 +511,32 @@ AtomeConstante *ConstructriceRI::crée_tranche_globale(IdentifiantCode &ident,
 }
 
 AtomeConstante *ConstructriceRI::crée_tranche_globale(IdentifiantCode &ident,
-                                                      AtomeConstante *tableau_fixe)
+                                                      AtomeConstante *tableau_fixe,
+                                                      Type *type_sous_jacent)
 {
     auto type_tableau_fixe = tableau_fixe->type->comme_type_tableau_fixe();
     auto globale_tableau_fixe = crée_globale(ident, type_tableau_fixe, tableau_fixe, false, true);
-    return crée_initialisation_tableau_global(globale_tableau_fixe, type_tableau_fixe);
+    return crée_initialisation_tableau_global(
+        globale_tableau_fixe, type_tableau_fixe, type_sous_jacent);
 }
 
 AtomeConstante *ConstructriceRI::crée_initialisation_tableau_global(
-    AtomeGlobale *globale_tableau_fixe, TypeTableauFixe const *type_tableau_fixe)
+    AtomeGlobale *globale_tableau_fixe,
+    TypeTableauFixe const *type_tableau_fixe,
+    Type *type_sous_jacent)
 {
     AtomeConstante *ptr_premier_élément = crée_accès_index_constant(globale_tableau_fixe, 0);
     auto valeur_taille = crée_z64(static_cast<unsigned>(type_tableau_fixe->taille));
     auto type_tranche = m_typeuse.crée_type_tranche(type_tableau_fixe->type_pointé);
 
     if (est_globale_pour_tableau_données_constantes(globale_tableau_fixe)) {
-        if (type_tableau_fixe->type_pointé != TypeBase::Z8) {
+        if (type_sous_jacent == nullptr) {
+            type_sous_jacent = type_tableau_fixe->type_pointé;
+        }
+
+        if (type_sous_jacent != TypeBase::Z8) {
             /* Nous devons transtypé vers le type pointeur idoine. */
-            auto type_cible = m_typeuse.type_pointeur_pour(type_tableau_fixe->type_pointé);
+            auto type_cible = m_typeuse.type_pointeur_pour(type_sous_jacent);
             ptr_premier_élément = crée_transtype_constant(type_cible, ptr_premier_élément);
         }
     }
@@ -4180,28 +4188,10 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto type_enum = static_cast<TypeEnum const *>(type);
 
             /* Les valeurs sont convertis en un tableau de données constantes. */
-            int nombre_de_membres_non_implicite = 0;
-            POUR (type_enum->membres) {
-                if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
-                    continue;
-                }
-
-                nombre_de_membres_non_implicite += 1;
-            }
-
-            kuri::tableau<char> tampon_valeurs_énum(nombre_de_membres_non_implicite * 4);
-            auto pointeur_tampon = reinterpret_cast<int *>(&tampon_valeurs_énum[0]);
-
-            POUR (type_enum->membres) {
-                if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
-                    continue;
-                }
-
-                *pointeur_tampon++ = it.valeur;
-            }
+            auto tampon_valeurs_énum = donne_tableau_valeurs_énum(*type_enum);
 
             auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
-                TypeBase::Z32, nombre_de_membres_non_implicite);
+                type_enum->type_sous_jacent, int32_t(tampon_valeurs_énum.taille()));
             auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
                 type_tableau, std::move(tampon_valeurs_énum));
 
@@ -4219,7 +4209,8 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             auto ident_valeurs = m_compilatrice.donne_identifiant_pour_globale("valeurs_énums");
             auto ident_noms = m_compilatrice.donne_identifiant_pour_globale("noms_valeus_énums");
-            auto tableau_valeurs = m_constructrice.crée_tranche_globale(*ident_valeurs, tableau);
+            auto tableau_valeurs = m_constructrice.crée_tranche_globale(
+                *ident_valeurs, tableau, TypeBase::OCTET);
             auto tableau_noms = m_constructrice.crée_tranche_globale(
                 *ident_noms, TypeBase::CHAINE, std::move(noms_enum));
 

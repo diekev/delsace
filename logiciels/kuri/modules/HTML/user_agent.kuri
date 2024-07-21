@@ -1,0 +1,164 @@
+importe HTTP
+importe Internet
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom UserAgent
+ * Structure pouvant être dérivée par les applications clientes peuvent pour
+ * définir des contextes de navigation.
+ * \{ */
+
+UserAgent :: struct {
+    /* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable-set */
+    top_level_traversables: [..]*TraversableNavigable
+    /* https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context-group-set */
+    browsing_context_groups: [..]*BrowsingContextGroup
+
+    /* Connexion avec l'interface graphique. */
+    rappels_interface: *RappelsInterface
+}
+
+détruit_données_user_agent :: fonc (user_agent: *UserAgent)
+{
+    déloge_tableau_et_ses_éléments(user_agent.top_level_traversables, détruit_traversable)
+    déloge_tableau_et_ses_éléments(user_agent.browsing_context_groups, détruit_browsing_context_group)
+    si user_agent.rappels_interface {
+        détruit_rappels(user_agent.rappels_interface)
+        user_agent.rappels_interface = nul
+    }
+}
+
+définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInterface)
+{
+    si user_agent.rappels_interface {
+        détruit_rappels(rappels)
+    }
+    user_agent.rappels_interface = rappels
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsInterface
+ * \{ */
+
+RappelsInterface :: struct {
+    sur_destruction: fonc(*RappelsInterface)(rien)
+    sur_lancement_requête: fonc(*RappelsInterface, *Requête)(rien)
+    sur_spin_event_loop: fonc(*RappelsInterface)(rien)
+    sur_élément_survolé: fonc(*RappelsInterface)(rien)
+}
+
+détruit_rappels :: fonc (rappels: *RappelsInterface)
+{
+    si rappels.sur_destruction {
+        rappels.sur_destruction(rappels)
+    }
+}
+
+notifie_élément_survolé :: fonc (user_agent: *UserAgent)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_élément_survolé {
+        retourne
+    }
+
+    rappels.sur_élément_survolé(rappels)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Ressource
+ * \{ */
+
+Ressource :: struct {
+    sur_chargement: fonc(*Ressource, chaine)(rien)
+    sur_erreur: fonc(*Ressource)(rien)
+
+    uri: URI
+    type: chaine // application/javascript, text/html, etc.
+
+    chargement_terminé := faux
+}
+
+crée_ressource_pour_chargement_page_web :: fonc (chemin: chaine) -> *Ressource
+{
+    sur_chargement :: fonc (ressource: *Ressource, données: chaine)
+    {
+        page_web := crée_page_web(ressource.uri, données)
+        crée_widget_pour_page(ressource.fenêtre, page_web)
+    }
+
+    résultat := loge(Ressource)
+    résultat.sur_chargement = sur_chargement
+    résultat.type = "text/html"
+
+    si est_un_fichier_régulier(CheminFichier(chemin)) {
+        uri: URI
+        uri.schéma = "file"
+        uri.schéma_est_défini = vrai
+        uri.autorité_est_définie = vrai
+        uri.chemin = chemin
+        résultat.uri = uri
+    }
+    sinon {
+        résultat.uri = tente parse_uri_standard(chemin) piège nonatteignable
+    }
+
+    retourne résultat
+}
+
+est_fichier :: fonc (ressource: *Ressource) -> bool
+{
+    uri := ressource.uri
+
+    si uri.schéma == "file" {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+ressource_fut_chargée :: fonc (ressource: *Ressource, données: chaine)
+{
+    si ressource.sur_chargement {
+        ressource.sur_chargement(ressource, données)
+    }
+
+    ressource.chargement_terminé = vrai
+}
+
+ressource_eu_erreur :: fonc (ressource: *Ressource)
+{
+    si ressource.sur_erreur {
+        ressource.sur_erreur(ressource)
+    }
+
+    ressource.chargement_terminé = vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Requête
+ * \{ */
+
+Requête :: struct {
+    ressource: *Ressource
+    message: MessageServeuseHTTP
+}
+
+est_http :: fonc (requête: *Requête) -> bool
+{
+    assert(requête.ressource != nul)
+    retourne requête.ressource.uri.schéma == "http"
+}
+
+est_https :: fonc (requête: *Requête) -> bool
+{
+    assert(requête.ressource != nul)
+    retourne requête.ressource.uri.schéma == "https"
+}
+
+/** \} */
