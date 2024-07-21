@@ -1347,24 +1347,25 @@ FunctionNative :: struct {
     table = *table_virtuelle_function_native
 }
 
-crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall) -> *FunctionNative
+crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
     résultat.nom = nom
     résultat.sur_call = sur_appel
+    résultat.ajoute_propriété(STR_length, Valeur(Number = length comme r64), DrapeauxPropriété.zéro)
     retourne résultat
 }
 
-ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeFonctionObjectCall)
+ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length := 0)
 {
     tas_de_mémoire := objet.donne_tas_de_mémoire()
-    fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel)
+    fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel, length)
     ajoute_propriété(objet, nom, Valeur(Function = fonction), DrapeauxPropriété.zéro)
 }
 
-ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonctionObjectCall)
+ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonctionObjectCall, length := 0)
 {
-    ajoute_fonction_native(objet, crée_chaine_utf16_unique(nom), sur_appel)
+    ajoute_fonction_native(objet, crée_chaine_utf16_unique(nom), sur_appel, length)
 }
 
 /** \} */
