@@ -696,6 +696,7 @@ Object :: struct {
     /* Table virtuelle. */
     sur_get_prototype_of := ordinary_get_prototype_of
     sur_get_own_property := ordinary_get_own_property
+    sur_define_own_property := ordinary_define_own_property
     sur_get := ordinary_get
     sur_call: TypeFonctionObjectCall
 }
@@ -738,6 +739,12 @@ internal_get_prototype_of :: fonc (object: *Object) -> *Object
 internal_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
 {
     retourne object.sur_get_own_property(object, property_key)
+}
+
+/* [[DefineOwnProperty]] */
+internal_define_own_property :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    retourne object.sur_define_own_property(object, property_key, desc)
 }
 
 /* [[HasProperty]] */
@@ -818,6 +825,26 @@ set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: b
     // 2. If success is false and Throw is true, throw a TypeError exception.
     si succès.est_false() && throw == vrai {
         panique("exceptions non-implémentées")
+    }
+
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
+/* 7.3.8 DefinePropertyOrThrow ( O, P, desc )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definepropertyorthrow */
+define_property_or_throw :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    // 1. Let success be ? O.[[DefineOwnProperty]](P, desc).
+    completion := internal_define_own_property(object, property_key, desc)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    success := completion.valeur.V
+
+    // 2. If success is false, throw a TypeError exception.
+    si success.est_false() {
+        panique("Exception non-implémentée")
     }
 
     // 3. Return UNUSED.
@@ -931,6 +958,40 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
 
     // 8. Return D.
     retourne normal_completion(D)
+}
+
+/* 10.1.6 [[DefineOwnProperty]] ( P, Desc )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydefineownproperty */
+ordinary_define_own_property :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    // À FAIRE : standardise
+    saufsi desc.value.possède_valeur() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    valeur := desc.value.Quelque
+    drapeaux: DrapeauxPropriété
+    si desc.writable.possède_valeur() {
+        writable := desc.writable.Quelque
+        si writable {
+            drapeaux.WRITABLE = vrai
+        }
+    }
+    si desc.configurable.possède_valeur() {
+        configurable := desc.configurable.Quelque
+        si configurable {
+            drapeaux.CONFIGURABLE = vrai
+        }
+    }
+    si desc.enumerable.possède_valeur() {
+        enumerable := desc.enumerable.Quelque
+        si enumerable {
+            drapeaux.ENUMERABLE = vrai
+        }
+    }
+
+    object.ajoute_propriété(property_key, valeur, drapeaux)
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
 /* 10.1.8.1 OrdinaryGet ( O, P, Receiver )

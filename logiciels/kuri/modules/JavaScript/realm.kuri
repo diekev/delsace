@@ -276,8 +276,11 @@ set_default_global_bindings :: fonc (realm: *Realm)
     // b. Let desc be the fully populated data Property Descriptor for the property, containing the specified attributes for the property. For properties listed in 19.2, 19.3, or 19.4 the value of the [[Value]] attribute is the corresponding intrinsic object from realmRec.
     // c. Perform ? DefinePropertyOrThrow(global, name, desc).
 
-    // À FAIRE : DefinePropertyOrThrow
-    global.ajoute_propriété(STR_globalThis, Valeur(Object = realm.global_environment.global_this_value), Configurable)
+    // À FAIRE : utilise la valeur de retour
+    desc: PropertyDescriptor
+    desc.value = Valeur(Object = realm.global_environment.global_this_value)
+    desc.configurable = vrai
+    _ := define_property_or_throw(global, STR_globalThis, desc)
 
     // 3. Return UNUSED.
 }
