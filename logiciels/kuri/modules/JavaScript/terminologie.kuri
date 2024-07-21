@@ -15,6 +15,7 @@ STR_null: ChaineUTF16Unique = ---
 STR_number: ChaineUTF16Unique = ---
 STR_object: ChaineUTF16Unique = ---
 STR_prototype: ChaineUTF16Unique = ---
+STR_push: ChaineUTF16Unique = ---
 STR_string: ChaineUTF16Unique = ---
 STR_symbol: ChaineUTF16Unique = ---
 STR_true: ChaineUTF16Unique = ---
