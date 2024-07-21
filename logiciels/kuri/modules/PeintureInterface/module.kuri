@@ -580,7 +580,7 @@ donne_couleur_igumi :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBA
             retourne couleur
         }
         CouleurRVBAN8(couleur) {
-            retourne CouleurRVBA(couleur.r comme r32 / 255.0, couleur.v comme r32 / 255.0, couleur.b comme r32 / 255.0, couleur.a comme r32 / 255.0)
+            retourne vers_couleur_rvba(couleur)
         }
         sinon {}
     }

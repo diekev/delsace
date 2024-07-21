@@ -217,11 +217,15 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
         // c. If V.[[ReferencedName]] is not a property key, then
         saufsi is_property_key(V.referenced_name) {
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
-            panique("get_value depuis !property_key non-implémenté")
+            completion := to_property_key(realm, V.referenced_name.valeur)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            V.referenced_name.valeur = completion.valeur.V
         }
 
         // d. Return ? baseObj.[[Get]](V.[[ReferencedName]], GetThisValue(V)).
-        retourne base_object.sur_get(base_object, V.referenced_name.donne_property_key(), get_this_value(V))
+        retourne base_object.internal_get(V.referenced_name.donne_property_key(), get_this_value(V))
     }
 
     // 4. Else,
@@ -285,13 +289,23 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
         // c. If V.[[ReferencedName]] is not a property key, then
         saufsi is_property_key(record.referenced_name) {
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
-            panique("put_value avec !property_key non-implémenté")
+            completion := to_property_key(interpréteuse.donne_realm(), record.referenced_name.valeur)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            record.referenced_name.valeur = completion.valeur.V
         }
 
-        // À FAIRE
         // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
-        base_obj.définis_valeur(record.referenced_name.donne_property_key(), valeur)
+        completion := base_obj.internal_set(record.referenced_name.donne_property_key(), valeur, get_this_value(record))
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        succeeded := completion.valeur.V
         // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
+        si succeeded.est_false() && record.strict {
+            panique("exceptions non-implémentées")
+        }
         // f. Return UNUSED.
         retourne normal_completion(js_undefined)
     }

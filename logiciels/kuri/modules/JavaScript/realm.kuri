@@ -88,10 +88,15 @@ rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
 /** \nom https://tc39.es/ecma262/#sec-execution-contexts
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_execution_context := TableVirtuelleCellule(classe = ExecutionContext)
+
+#portée_export
+
 ExecutionContext :: struct {
     empl base: Cellule
-    classe = #type_de_cette_structure
-    sur_visite_graphe = execution_context_sur_visite_graphe
+    table = *table_virtuelle_execution_context
 
     realm: *Realm
     function: *Function
@@ -108,20 +113,6 @@ crée_execution_context :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ExecutionC
     retourne tas_de_mémoire.alloue(ExecutionContext)
 }
 
-execution_context_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    cellule_sur_visite_graphe(base, visiteuse)
-
-    execution_context := base comme *ExecutionContext
-    visite_graphe(execution_context.realm, visiteuse)
-    visite_graphe(execution_context.function, visiteuse)
-    visite_graphe(execution_context.script_or_module, visiteuse)
-
-    visite_graphe(execution_context.lexical_environment, visiteuse)
-    visite_graphe(execution_context.variable_environment, visiteuse)
-    visite_graphe(execution_context.private_environment, visiteuse)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -135,9 +126,12 @@ execution_context_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *Visiteu
 Intrinsics :: struct {
     string_prototype: *StringPrototype
     object_prototype: *ObjectPrototype
+    array_prototype: *ArrayPrototype
     error_prototype: *ErrorPrototype
     reference_error_prototype: *ReferenceErrorPrototype
     type_error_prototype: *TypeErrorPrototype
+
+    array: *ArrayConstructor
 }
 
 /* 9.3.2 CreateIntrinsics ( realmRec )
@@ -148,18 +142,12 @@ create_intrinsics :: fonc (realm: *Realm)
 
     realm.intrinsics.object_prototype = crée_object_prototype(tas_de_mémoire)
     realm.intrinsics.string_prototype = crée_string_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
+    realm.intrinsics.array_prototype = crée_array_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.error_prototype = crée_error_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
-}
 
-visite_intrinsics :: fonc (intrinsics: &Intrinsics, visiteuse: *VisiteuseCellule)
-{
-    visite_graphe(intrinsics.object_prototype, visiteuse)
-    visite_graphe(intrinsics.string_prototype, visiteuse)
-    visite_graphe(intrinsics.error_prototype, visiteuse)
-    visite_graphe(intrinsics.reference_error_prototype, visiteuse)
-    visite_graphe(intrinsics.type_error_prototype, visiteuse)
+    realm.intrinsics.array = crée_array_constructor(tas_de_mémoire, realm.intrinsics.array_prototype)
 }
 
 /** \} */
@@ -181,11 +169,15 @@ RappelsHôte :: struct {
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-code-realms
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_realm := TableVirtuelleCellule(classe = Realm, sur_destruction = realm_sur_destruction)
+
+#portée_export
+
 Realm :: struct {
     empl base: Cellule
-    classe = #type_de_cette_structure
-    sur_visite_graphe = realm_sur_visite_graphe
-    sur_destruction = realm_sur_destruction
+    table = *table_virtuelle_realm
 
     intrinsics: Intrinsics
     global_object: *Object
@@ -194,20 +186,6 @@ Realm :: struct {
 
     /* Cache pour toutes les chaines littérales. */
     chaines_littérales: [..]*PrimitiveChaine
-}
-
-realm_sur_visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    cellule_sur_visite_graphe(cellule, visiteuse)
-
-    realm := cellule comme *Realm
-    visite_graphe(realm.global_object, visiteuse)
-    visite_graphe(realm.global_environment, visiteuse)
-    visite_intrinsics(realm.intrinsics, visiteuse)
-
-    pour realm.chaines_littérales {
-        visite_graphe(it, visiteuse)
-    }
 }
 
 realm_sur_destruction :: fonc (base: *Cellule)
@@ -304,8 +282,15 @@ set_default_global_bindings :: fonc (realm: *Realm)
     // b. Let desc be the fully populated data Property Descriptor for the property, containing the specified attributes for the property. For properties listed in 19.2, 19.3, or 19.4 the value of the [[Value]] attribute is the corresponding intrinsic object from realmRec.
     // c. Perform ? DefinePropertyOrThrow(global, name, desc).
 
-    // À FAIRE : DefinePropertyOrThrow
-    global.ajoute_propriété(STR_globalThis, Valeur(Object = realm.global_environment.global_this_value), faux, faux, vrai)
+    // À FAIRE : utilise la valeur de retour
+    desc: PropertyDescriptor
+    desc.value = Valeur(Object = realm.global_environment.global_this_value)
+    desc.configurable = vrai
+    _ := define_property_or_throw(global, STR_globalThis, desc)
+
+    desc = PropertyDescriptor()
+    desc.value = Valeur(Object = realm.intrinsics.array)
+    _ := define_property_or_throw(global, STR_Array, desc)
 
     // 3. Return UNUSED.
 }
