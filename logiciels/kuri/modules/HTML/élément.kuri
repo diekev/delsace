@@ -1,4 +1,5 @@
 importe Chaine
+importe #inemployé CSS
 importe Fondation
 
 est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
@@ -38,6 +39,9 @@ TableVirtuelleÉlément :: struct {
 
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
     sur_dépilement: fonc(*Élément)(rien)
+
+    /* Appelé quand un attribut est ajouté, modifié, ou supprimé. */
+    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(rien) = élément_sur_changement_attribut
 }
 
 #portée_export
@@ -45,6 +49,8 @@ TableVirtuelleÉlément :: struct {
 Élément :: struct {
     empl base: Noeud
     table = *table_virtuelle_élément
+
+    id: DOMString
 
     /* Uniquement utilisé lors du parsage. */
     est_sur_pile_éléments_ouvert: bool
@@ -54,12 +60,18 @@ TableVirtuelleÉlément :: struct {
 
     état_élément_custom: chaine
     définition_élément_custom: *rien
+
+    pseudo_classes: CSS.PseudoClasses
+
+    /* CSS */
+    noeud_de_disposition: *CSS.NoeudDeDisposition
 }
 
 #portée_fichier
 
 table_virtuelle_élément := TableVirtuelleÉlément(
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = élément_sur_changement_attribut
 )
 
 élément_sur_destruction :: fonc (base: *Noeud)
@@ -68,14 +80,54 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     déloge(élément)
 }
 
+élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString @inutilisée, valeur: *DOMString)
+{
+    /* https://dom.spec.whatwg.org/#concept-id */
+    si local_name == ATTR_id {
+        // À FAIRE espace de nom pour attribut
+        // 1. If localName is id, namespace is null, and value is null or the empty string, then unset element’s ID.
+        // À FAIRE : chaine vide
+        si valeur == nul {
+            élément.id = DOMString()
+        }
+        // 2. Otherwise, if localName is id, namespace is null, then set element’s ID to value.
+        sinon {
+            élément.id = mémoire(valeur)
+        }
+    }
+}
+
 #portée_export
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-append */
 ajoute_attribut :: fonc (élément: *Élément, attribut: Attribut)
 {
-    // attribut.élément = élément
+    // 1. Append attribute to element’s attribute list.
     ajoute_attribut(élément, attribut.nom, attribut.valeur)
-    /* INCOMPLET : 3. Handle attribute changes. */
+
+    // À FAIRE 2. Set attribute’s element to element.
+
+    // 3. Handle attribute changes for attribute with element, null, and attribute’s value.
+    gère_changement_attribute(attribut, élément, nul, *attribut.valeur)
+}
+
+/* https://dom.spec.whatwg.org/#handle-attribute-changes */
+gère_changement_attribute :: fonc (attribut: Attribut, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
+{
+    // À FAIRE 1. Queue a mutation record of "attributes" for element with attribute’s local name,
+    //    attribute’s namespace, oldValue, « », « », null, and null.
+
+    // À FAIRE 2. If element is custom, then enqueue a custom element callback reaction with element,
+    //    callback name "attributeChangedCallback", and an argument list containing attribute’s
+    //    local name, oldValue, newValue, and attribute’s namespace.
+
+    // 3. Run the attribute change steps with element, attribute’s local name, oldValue, newValue,
+    //    and attribute’s namespace.
+    // À FAIRE : espace de nom pour l'attribut
+    table := élément.table comme *TableVirtuelleÉlément
+    si table && table.sur_changement_attribut {
+        table.sur_changement_attribut(élément, attribut.nom, vieille_valeur, nouvelle_valeur)
+    }
 }
 
 initialise_élément :: fonc (élément: *Élément, document: *Document, texte: DOMString) -> rien
@@ -248,6 +300,22 @@ enfant_directe_avec_balise :: fonc (élément: *Élément, balise: DOMString) ->
 }
 
 /* ------------------------------------------------------------------------- */
+/** \nom CSS
+ * \{ */
+
+ajoute_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
+{
+    élément.pseudo_classes |= pseudo_classe
+}
+
+enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
+{
+    élément.pseudo_classes &= ~pseudo_classe
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom HTMLElement
  * https://html.spec.whatwg.org/multipage/dom.html#htmlelement
  * \{ */
@@ -288,13 +356,31 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 #portée_fichier
 
 table_virtuelle_anchor_element := TableVirtuelleÉlément(
-    sur_destruction = anchor_element_sur_destruction
+    sur_destruction = anchor_element_sur_destruction,
+    sur_changement_attribut = anchor_element_sur_changement_attribut
 )
 
 anchor_element_sur_destruction :: fonc (base: *Noeud)
 {
     élément := base comme *HTMLAnchorElement
     déloge(élément)
+}
+
+anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString)
+{
+    élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur)
+
+    anchor := base comme *HTMLAnchorElement
+
+    si local_name == ATTR_href {
+        // À FAIRE : chaine vide
+        si valeur == nul {
+            anchor.enlève_pseudo_classe(CSS.PseudoClasses.Link)
+        }
+        sinon {
+            anchor.ajoute_pseudo_classe(CSS.PseudoClasses.Link)
+        }
+    }
 }
 
 /** \} */

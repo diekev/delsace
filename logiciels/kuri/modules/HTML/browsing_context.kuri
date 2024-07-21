@@ -57,19 +57,6 @@ donne_document :: fonc (she: *SessionHistoryEntry) -> *Document
     retourne she.document_state.document
 }
 
-UserAgent :: struct {
-    /* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable-set */
-    top_level_traversables: [..]*TraversableNavigable
-    /* https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context-group-set */
-    browsing_context_groups: [..]*BrowsingContextGroup
-}
-
-détruit_données_user_agent :: fonc (user_agent: *UserAgent)
-{
-    déloge_tableau_et_ses_éléments(user_agent.top_level_traversables, détruit_traversable)
-    déloge_tableau_et_ses_éléments(user_agent.browsing_context_groups, détruit_browsing_context_group)
-}
-
 /* ------------------------------------------------------------------------- */
 /** \nom 7.3.1 Navigables
  * https://html.spec.whatwg.org/multipage/document-sequences.html#navigables
@@ -202,7 +189,7 @@ est_top_level_traversable :: fonc (navigable: *Navigable) -> bool
     retourne navigable.type == TraversableNavigable && navigable.parent == nul
 }
 
-donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *Navigable
+donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *TraversableNavigable
 {
     // 1. Let navigable be inputNavigable.
     navigable := input_navigable
@@ -213,7 +200,8 @@ donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *Navigable
     }
 
     // 3. Return navigable.
-    retourne navigable
+    assert(navigable.type == TraversableNavigable)
+    retourne navigable comme *TraversableNavigable
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-top-level-traversable */
@@ -425,6 +413,8 @@ WindowProxy :: struct {
 
 BrowsingContextGroup :: struct {
     contexts: [..]*BrowsingContext
+    /* À FAIRE : stocke ça ailleurs ou passe le aux fonctions. */
+    user_agent: *UserAgent
 }
 
 détruit_browsing_context_group :: fonc (group: *BrowsingContextGroup)
@@ -481,13 +471,13 @@ donne_active_document :: fonc (browsing_context: *BrowsingContext) -> *Document
 
 /* A browsing context's top-level traversable is its active document's 
  * navigable's top-level traversable. */
-donne_top_level_traversable :: fonc (browsing_context: *BrowsingContext) -> *rien
+donne_top_level_traversable :: fonc (browsing_context: *BrowsingContext) -> *TraversableNavigable
 {
     active_document := donne_active_document(browsing_context)
     saufsi active_document {
         retourne nul
     }
-    navigable := active_document.donne_navigable()
+    navigable := active_document.donne_node_navigable()
     saufsi navigable {
         retourne nul
     }
@@ -663,6 +653,7 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
 {
     // 1. Let group be a new browsing context group.
     group := loge(BrowsingContextGroup)
+    group.user_agent = user_agent
 
     // 2. Append group to the user agent's browsing context group set.
     tableau_ajoute(*user_agent.browsing_context_groups, group)
@@ -671,6 +662,7 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
     browsing_context, document := crée_browsing_context_et_document(nul, nul, group)
 
     // 4. Append browsingContext to group.
+    browsing_context.group = group
     tableau_ajoute(*group.contexts, browsing_context)
 
     // 5. Return group and document.

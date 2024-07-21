@@ -150,9 +150,14 @@ struct ConstructriceRI {
     AtomeConstante *crée_tranche_globale(IdentifiantCode &ident,
                                          Type const *type,
                                          kuri::tableau<AtomeConstante *> &&valeurs);
-    AtomeConstante *crée_tranche_globale(IdentifiantCode &ident, AtomeConstante *tableau_fixe);
+    /* NOTE : type_sous_jacent est pour les tableaux de valeurs des énums qui doivent être alignés
+     * selon le type de l'énum mais doivent être typés selon type_de(InfoTypeÉnum.valeurs). */
+    AtomeConstante *crée_tranche_globale(IdentifiantCode &ident,
+                                         AtomeConstante *tableau_fixe,
+                                         Type *type_sous_jacent = nullptr);
     AtomeConstante *crée_initialisation_tableau_global(AtomeGlobale *globale_tableau_fixe,
-                                                       TypeTableauFixe const *type_tableau_fixe);
+                                                       TypeTableauFixe const *type_tableau_fixe,
+                                                       Type *type_sous_jacent = nullptr);
 
     InstructionBranche *crée_branche(NoeudExpression const *site_,
                                      InstructionLabel *label,
