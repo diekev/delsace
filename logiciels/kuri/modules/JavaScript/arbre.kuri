@@ -1236,9 +1236,8 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     noeud := base comme *AssignmentExpression
     assert(noeud.opération == AssignmentOperation.Assigne)
 
-    // À FAIRE : array literal
     // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
-    si noeud.gauche.type != ObjectExpression {
+    si noeud.gauche.type != ObjectExpression && noeud.gauche.type != ArrayLiteral {
         // a. Let lref be ? Evaluation of LeftHandSideExpression.
         completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
         saufsi completion_lref.est_normal() {
@@ -1436,6 +1435,61 @@ sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, i
 {
     objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.donne_realm().intrinsics.object_prototype)
     retourne normal_completion(Valeur(Object = objet))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrayLiteral
+ * \{ */
+
+ArrayLiteral :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_array_literal
+
+    éléments: [..]*NoeudSyntaxique
+}
+
+crée_array_literal :: fonc (éléments: [..]*NoeudSyntaxique) -> *ArrayLiteral
+{
+    résultat := loge(ArrayLiteral)
+    résultat.éléments = éléments
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-arrayaccumulation */
+sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    /* À FAIRE : standardise. */
+    noeud := base comme *ArrayLiteral
+
+    realm := interpréteuse.donne_realm()
+
+    résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
+
+    pour noeud.éléments {
+        completion := exécute_noeud(it, interpréteuse)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        completion = get_value(interpréteuse, completion.valeur)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        valeur := completion.valeur.V
+
+        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = index_it comme r64)).valeur.V.String.texte
+
+        _ := create_data_property(résultat, nom_propriété, valeur)
+    }
+
+    completion := set(résultat, STR_length, Valeur(Number = noeud.éléments.taille comme r64), vrai)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    retourne normal_completion(Valeur(Object = résultat))
 }
 
 /** \} */

@@ -492,6 +492,20 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 
             retourne crée_object_expression()
         }
+        CrochetOuvrant {
+            parseuse.consomme()
+
+            éléments := parseuse.parse_expression_virgule()
+
+            saufsi apparie(parseuse, GenreLexème.CrochetFermant) {
+                déloge(éléments)
+                parseuse.rapporte_erreur("Attendu un crochet fermant à la fin de l'expression d'objet")
+                retourne nul
+            }
+            parseuse.consomme()
+
+            retourne crée_array_literal(éléments)
+        }
         Let {
             retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let)
         }
