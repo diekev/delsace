@@ -2703,3 +2703,72 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     });
     return nullptr;
 }
+
+template <typename T>
+static void remplis_tableau_valeurs_énum(NoeudEnum const &noeud, kuri::tableau<char> &résultat)
+{
+    auto pointeur_tampon = reinterpret_cast<T *>(&résultat[0]);
+
+    POUR (noeud.membres) {
+        if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
+            continue;
+        }
+
+        *pointeur_tampon++ = T(it.valeur);
+    }
+}
+
+kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud)
+{
+    int nombre_de_membres_non_implicite = 0;
+    POUR (noeud.membres) {
+        if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
+            continue;
+        }
+
+        nombre_de_membres_non_implicite += 1;
+    }
+
+    kuri::tableau<char> résultat(nombre_de_membres_non_implicite * int32_t(noeud.taille_octet));
+
+    if (noeud.type_sous_jacent == nullptr) {
+        /* À FAIRE : les métaprogrammes peuvent recevoir des infos-types nuls. */
+        return résultat;
+    }
+
+    auto const type_sous_jacent = type_entier_sous_jacent(noeud.type_sous_jacent);
+
+    if (type_sous_jacent->est_type_entier_naturel()) {
+        if (type_sous_jacent->taille_octet == 1) {
+            remplis_tableau_valeurs_énum<uint8_t>(noeud, résultat);
+        }
+        else if (type_sous_jacent->taille_octet == 2) {
+            remplis_tableau_valeurs_énum<uint16_t>(noeud, résultat);
+        }
+        else if (type_sous_jacent->taille_octet == 4) {
+            remplis_tableau_valeurs_énum<uint32_t>(noeud, résultat);
+        }
+        else {
+            assert(type_sous_jacent->taille_octet == 8);
+            remplis_tableau_valeurs_énum<uint64_t>(noeud, résultat);
+        }
+    }
+    else {
+        assert(type_sous_jacent->est_type_entier_relatif());
+        if (type_sous_jacent->taille_octet == 1) {
+            remplis_tableau_valeurs_énum<int8_t>(noeud, résultat);
+        }
+        else if (type_sous_jacent->taille_octet == 2) {
+            remplis_tableau_valeurs_énum<int16_t>(noeud, résultat);
+        }
+        else if (type_sous_jacent->taille_octet == 4) {
+            remplis_tableau_valeurs_énum<int32_t>(noeud, résultat);
+        }
+        else {
+            assert(type_sous_jacent->taille_octet == 8);
+            remplis_tableau_valeurs_énum<int64_t>(noeud, résultat);
+        }
+    }
+
+    return résultat;
+}
