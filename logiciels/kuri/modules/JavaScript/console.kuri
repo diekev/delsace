@@ -1,0 +1,443 @@
+importe Chaine
+importe Fondation
+importe Temps
+
+/* ------------------------------------------------------------------------- */
+/** \nom Console
+ * Objet console pour les applications clientes. Cet objet doit être
+ * explicitement créé par les applications clientes et ajouté à l'objet (global
+ * ou non) approprié.
+ *
+ * La Console implémente la spécification :
+ * https://console.spec.whatwg.org/
+ * \{ */
+
+FluxSortieConsole :: struct {
+    /* Appelé quand la console associée est détruite. */
+    sur_destruction: fonc(*FluxSortieConsole)(rien)
+    /* Appelé lors du logage. */
+    sur_log: fonc(*FluxSortieConsole, chaine)(rien)
+    /* Appelé sur console.clear() */
+    sur_efface: fonc(*FluxSortieConsole)(rien)
+}
+
+#portée_fichier
+
+flux_sortie_détruit :: fonc (flux_sortie: *FluxSortieConsole)
+{
+    saufsi flux_sortie && flux_sortie.sur_destruction {
+        retourne
+    }
+
+    flux_sortie.sur_destruction(flux_sortie)
+}
+
+flux_sortie_log :: fonc (flux_sortie: *FluxSortieConsole, texte: chaine)
+{
+    saufsi flux_sortie && flux_sortie.sur_log {
+        retourne
+    }
+
+    flux_sortie.sur_log(flux_sortie, texte)
+}
+
+flux_sortie_efface :: fonc (flux_sortie: *FluxSortieConsole)
+{
+    saufsi flux_sortie && flux_sortie.sur_efface {
+        retourne
+    }
+
+    flux_sortie.sur_efface(flux_sortie)
+}
+
+#portée_export
+
+Console :: struct {
+    empl objet: Object
+    classe = #type_de_cette_structure
+    sur_destruction = console_sur_destruction
+
+    flux_sortie: *FluxSortieConsole
+
+    historique: chaine
+
+    Chronomètre :: struct {
+        nom: ECMAString
+        début: Instantané
+    }
+
+    chronomètres: [..]Chronomètre
+
+    Compteuse :: struct {
+        nom: ECMAString
+        compte: z32
+    }
+
+    compteuses: [..]Compteuse
+}
+
+crée_console :: fonc (tas_de_mémoire: *TasDeMémoire, flux_sortie: *FluxSortieConsole, prototype: *ObjectPrototype) -> *Console
+{
+    résultat := tas_de_mémoire.alloue(Console)
+    initialise_console(résultat)
+    résultat.flux_sortie = flux_sortie
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+#portée_fichier
+
+console_sur_destruction :: fonc (base: *Cellule)
+{
+    console := base comme *Console
+    sur_destruction_objet(console)
+    flux_sortie_détruit(console.flux_sortie)
+    déloge(console.historique)
+    déloge(console.chronomètres)
+    déloge(console.compteuses)
+}
+
+LogLevel :: énum {
+    LOG
+    WARN
+    ASSERT
+    DEBUG
+    ERROR
+    INFO
+    TIME_END
+    COUNT
+    COUNT_RESET
+}
+
+/* https://console.spec.whatwg.org/#assert */
+console_assert :: fonc (console: *Console, interpréteuse: &Interpréteuse, condition: bool, arguments: []Valeur) -> CompletionRecord
+{
+    si condition {
+        retourne normal_completion(js_undefined)
+    }
+
+    nouveaux_arguments: [..]Valeur
+    tableau_réserve(*nouveaux_arguments, arguments.taille + 1)
+    diffère déloge(nouveaux_arguments)
+
+    si arguments.taille == 0 {
+        chn_message := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique("Assertion failed"))
+        tableau_ajoute(*nouveaux_arguments, Valeur(String = chn_message))
+    }
+    sinon {
+        chn_message := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique("Assertion failed:"))
+        tableau_ajoute(*nouveaux_arguments, Valeur(String = chn_message))
+
+        pour arguments {
+            tableau_ajoute(*nouveaux_arguments, it)
+        }
+    }
+
+    retourne logger(console, interpréteuse, LogLevel.ASSERT, nouveaux_arguments)
+}
+
+logger :: fonc (console: *Console, interpréteuse: &Interpréteuse, log_level: LogLevel, arguments: []Valeur) -> CompletionRecord
+{
+    retourne printer(console, interpréteuse, log_level, arguments)
+}
+
+printer :: fonc (console: *Console, interpréteuse: &Interpréteuse, log_level: LogLevel @inutilisée, arguments: []Valeur) -> CompletionRecord
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, console.historique)
+
+    virgule := ""
+    pour arguments {
+        complétion := vers_chaine(interpréteuse, it)
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+        valeur := complétion.valeur.V
+
+        ajoute_au_tampon(*enchaineuse, virgule, valeur.String.texte.donne_chaine_utf16())
+        virgule = " "
+    }
+    ajoute_au_tampon(*enchaineuse, "\n")
+
+    texte := chaine_depuis_enchaineuse(*enchaineuse)
+    déloge(console.historique)
+    console.historique = texte
+
+    flux_sortie_log(console.flux_sortie, texte)
+
+    retourne normal_completion(js_undefined)
+}
+
+/* https://console.spec.whatwg.org/#time */
+time :: fonc (console: *Console, nom: ECMAString)
+{
+    pour console.chronomètres {
+        si it.nom == nom {
+            // À FAIRE : rapporte un avertissement
+            retourne
+        }
+    }
+
+    chronomètre: Console.Chronomètre
+    chronomètre.nom = nom
+    chronomètre.début = maintenant_précis()
+    tableau_ajoute(*console.chronomètres, chronomètre)
+}
+
+/* https://console.spec.whatwg.org/#timeend */
+time_end :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString) -> CompletionRecord
+{
+    résultat := normal_completion(js_undefined)
+
+    index_chronomètre : z64 = -1
+
+    pour console.chronomètres {
+        si it.nom != nom {
+            continue
+        }
+
+        temps := it.début.temps_écoulé_millisecondes()
+
+        chn_temps := imprime_chaine("%: % ms", nom, temps)
+
+        valeur_chn_temps := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(chn_temps)))
+
+        arguments: []Valeur
+        arguments.pointeur = *valeur_chn_temps
+        arguments.taille = 1
+
+        résultat = printer(console, interpréteuse, LogLevel.TIME_END, arguments)
+        index_chronomètre = index_it
+
+        déloge(chn_temps)
+        arrête
+    }
+    sansarrêt {
+        retourne résultat
+    }
+
+    tableau_supprime_index(*console.chronomètres, index_chronomètre)
+    retourne résultat
+}
+
+/* https://console.spec.whatwg.org/#count */
+count :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString)
+{
+    compteuse: Console.Compteuse
+
+    // 1. Let map be the associated count map.
+    // 2. If map[label] exists, set map[label] to map[label] + 1.
+    pour & console.compteuses {
+            si it.nom == nom {
+            it.compte += 1
+            compteuse = it
+            arrête
+        }
+    }
+    sansarrêt {
+        // 3. Otherwise, set map[label] to 1.
+        compteuse.nom = nom
+        compteuse.compte = 1
+        tableau_ajoute(*console.compteuses, compteuse)
+    }
+
+    // 4. Let concat be the concatenation of label, U+003A (:), U+0020 SPACE, and ToString(map[label]).
+    concat := imprime_chaine("%: %", nom, compteuse.compte)
+    diffère déloge(concat)
+
+    valeur_concat := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(concat)))
+
+    // 5. Perform Logger("count", « concat »).
+    arguments: []Valeur
+    arguments.pointeur = *valeur_concat
+    arguments.taille = 1
+
+    _ := printer(console, interpréteuse, LogLevel.COUNT, arguments)
+}
+
+/* https://console.spec.whatwg.org/#countreset */
+count_reset :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString)
+{
+    // 1. Let map be the associated count map.
+    // 2. If map[label] exists, set map[label] to 0.
+    pour & console.compteuses {
+        si it.nom == nom {
+            it.compte = 0
+            retourne
+        }
+    }
+
+    // 3. Otherwise:
+
+    // 1. Let message be a string without any formatting specifiers indicating
+    //    generically that the given label does not have an associated count.
+    message := imprime_chaine("Unknown counter '%'", nom)
+    diffère déloge(message)
+
+    chn_message := crée_chaine_utf16_unique(message)
+    valeur_message := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), chn_message))
+
+    // 2. Perform Logger("countReset", « message »);
+    arguments: []Valeur
+    arguments.pointeur = *valeur_message
+    arguments.taille = 1
+
+    _ := printer(console, interpréteuse, LogLevel.COUNT_RESET, arguments)
+}
+
+initialise_console :: fonc (console: *Console)
+{
+    /* https://console.spec.whatwg.org/#log */
+    fonction_native_log :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+        retourne logger(console, interpréteuse, LogLevel.LOG, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#warn */
+    fonction_native_warn :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+        retourne logger(console, interpréteuse, LogLevel.WARN, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#debug */
+    fonction_native_debug :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+        retourne logger(console, interpréteuse, LogLevel.DEBUG, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#info */
+    fonction_native_info :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+        retourne logger(console, interpréteuse, LogLevel.INFO, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#error */
+    fonction_native_error :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+        retourne logger(console, interpréteuse, LogLevel.ERROR, arguments)
+    }
+
+    /* https://console.spec.whatwg.org/#clear */
+    fonction_native_clear :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur, arguments: []Valeur @inutilisée) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+        flux_sortie_efface(console.flux_sortie)
+        retourne normal_completion(js_undefined)
+    }
+
+    /* https://console.spec.whatwg.org/#assert */
+    fonction_native_assert :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        condition := to_boolean(arguments[0]).Boolean
+
+        arguments.pointeur += 1
+        arguments.taille -= 1
+
+        retourne console_assert(console, interpréteuse, condition, arguments)
+    }
+
+    fonction_native_time :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+
+        console.time(nom)
+
+        retourne normal_completion(js_undefined)
+    }
+
+    fonction_native_time_end :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+        retourne console.time_end(interpréteuse, nom)
+    }
+
+    fonction_native_count :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+
+        console.count(interpréteuse, nom)
+
+        retourne normal_completion(js_undefined)
+    }
+
+    fonction_native_count_reset :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    {
+        console := this_value.donne_objet() comme *Console
+
+        si arguments.taille == 0 {
+            retourne normal_completion(js_undefined)
+        }
+
+        complétion := vers_chaine(interpréteuse, arguments[0])
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+
+        nom := complétion.valeur.V.String.texte
+
+        console.count_reset(interpréteuse, nom)
+
+        retourne normal_completion(js_undefined)
+    }
+
+    console.ajoute_fonction_native("log", fonction_native_log)
+    console.ajoute_fonction_native("warn", fonction_native_warn)
+    console.ajoute_fonction_native("debug", fonction_native_debug)
+    console.ajoute_fonction_native("info", fonction_native_info)
+    console.ajoute_fonction_native("error", fonction_native_error)
+    console.ajoute_fonction_native("clear", fonction_native_clear)
+    console.ajoute_fonction_native("assert", fonction_native_assert)
+    console.ajoute_fonction_native("time", fonction_native_time)
+    console.ajoute_fonction_native("timeEnd", fonction_native_time_end)
+    console.ajoute_fonction_native("count", fonction_native_count)
+    console.ajoute_fonction_native("countReset", fonction_native_count_reset)
+}
+
+/** \} */
