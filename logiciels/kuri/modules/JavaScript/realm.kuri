@@ -91,7 +91,6 @@ rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
 ExecutionContext :: struct {
     empl base: Cellule
     classe = #type_de_cette_structure
-    sur_visite_graphe = execution_context_sur_visite_graphe
 
     realm: *Realm
     function: *Function
@@ -106,20 +105,6 @@ ExecutionContext :: struct {
 crée_execution_context :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ExecutionContext
 {
     retourne tas_de_mémoire.alloue(ExecutionContext)
-}
-
-execution_context_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    cellule_sur_visite_graphe(base, visiteuse)
-
-    execution_context := base comme *ExecutionContext
-    visite_graphe(execution_context.realm, visiteuse)
-    visite_graphe(execution_context.function, visiteuse)
-    visite_graphe(execution_context.script_or_module, visiteuse)
-
-    visite_graphe(execution_context.lexical_environment, visiteuse)
-    visite_graphe(execution_context.variable_environment, visiteuse)
-    visite_graphe(execution_context.private_environment, visiteuse)
 }
 
 /** \} */
@@ -184,7 +169,6 @@ RappelsHôte :: struct {
 Realm :: struct {
     empl base: Cellule
     classe = #type_de_cette_structure
-    sur_visite_graphe = realm_sur_visite_graphe
     sur_destruction = realm_sur_destruction
 
     intrinsics: Intrinsics
@@ -194,20 +178,6 @@ Realm :: struct {
 
     /* Cache pour toutes les chaines littérales. */
     chaines_littérales: [..]*PrimitiveChaine
-}
-
-realm_sur_visite_graphe :: fonc (cellule: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    cellule_sur_visite_graphe(cellule, visiteuse)
-
-    realm := cellule comme *Realm
-    visite_graphe(realm.global_object, visiteuse)
-    visite_graphe(realm.global_environment, visiteuse)
-    visite_intrinsics(realm.intrinsics, visiteuse)
-
-    pour realm.chaines_littérales {
-        visite_graphe(it, visiteuse)
-    }
 }
 
 realm_sur_destruction :: fonc (base: *Cellule)

@@ -16,16 +16,6 @@ Environment :: struct {
     sur_with_base_object: fonc(*Environment)(Valeur)
 }
 
-environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    cellule_sur_visite_graphe(base, visiteuse)
-
-    environment := base comme *Environment
-    si environment.outer_environment {
-        environment_sur_visite_graphe(environment, visiteuse)
-    }
-}
-
 has_binding :: fonc (environment: *Environment, nom: ECMAString) -> CompletionRecord
 {
     assert(environment.sur_has_binding != nul)
@@ -97,7 +87,6 @@ DeclarativeEnvironment :: struct {
 
     /* Cellule */
     classe = #type_de_cette_structure
-    sur_visite_graphe = environment_sur_visite_graphe
 
     /* Environment */
     sur_has_binding = declarative_environment_has_binding
@@ -194,21 +183,12 @@ ObjectEnvironment :: struct {
 
     /* Cellule */
     classe = #type_de_cette_structure
-    sur_visite_graphe = object_environment_sur_visite_graphe
 
     /* Environment */
     sur_has_binding = object_environment_has_binding
     sur_get_binding_value = object_environment_get_binding_value
     sur_set_mutable_binding = object_environment_set_mutable_binding
     sur_with_base_object = object_environment_with_base_object
-}
-
-object_environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    environment := base comme *ObjectEnvironment
-    environment_sur_visite_graphe(environment, visiteuse)
-
-    sur_visite_graphe_objet(environment.binding_object, visiteuse)
 }
 
 /* 9.1.2.3 NewObjectEnvironment ( O, W, E )
@@ -341,7 +321,6 @@ GlobalEnvironment :: struct {
 
     /* Cellule */
     classe = #type_de_cette_structure
-    sur_visite_graphe = global_environment_sur_visite_graphe
 
     /* Environment */
     object_record: *ObjectEnvironment
@@ -353,19 +332,6 @@ GlobalEnvironment :: struct {
     sur_get_binding_value = global_environment_get_binding_value
     sur_set_mutable_binding = global_environment_set_mutable_binding
     sur_with_base_object = global_environment_with_base_object
-}
-
-global_environment_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    environment := base comme *GlobalEnvironment
-    environment_sur_visite_graphe(environment, visiteuse)
-
-    environment_sur_visite_graphe(environment.object_record, visiteuse)
-    environment_sur_visite_graphe(environment.declarative_record, visiteuse)
-
-    si environment.global_this_value {
-        sur_visite_graphe_objet(environment.global_this_value, visiteuse)
-    }
 }
 
 /* 9.1.2.5 NewGlobalEnvironment ( G, thisValue )

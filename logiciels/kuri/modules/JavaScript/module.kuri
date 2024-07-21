@@ -664,7 +664,6 @@ Object :: struct {
     empl base: Cellule
     classe = #type_de_cette_structure
     sur_destruction = sur_destruction_objet
-    sur_visite_graphe = sur_visite_graphe_objet
 
     /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-attributes */
     Propriété :: struct {
@@ -777,23 +776,6 @@ trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Proprié
     retourne nul
 }
 
-sur_visite_graphe_objet :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    cellule_sur_visite_graphe(base, visiteuse)
-
-    objet := base comme *Object
-
-    si objet.prototype {
-        visite_graphe(objet.prototype, visiteuse)
-    }
-
-    pour objet.propriétés {
-        si it.valeur.est_cellule() {
-            visite_graphe(it.valeur.donne_cellule(), visiteuse)
-        }
-    }
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -902,7 +884,6 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
 ObjetChaine :: struct {
     empl objet: Object
     classe = #type_de_cette_structure
-    sur_visite_graphe = sur_visite_graphe_chaine
 
     chn: *PrimitiveChaine
 }
@@ -917,13 +898,6 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), faux, faux, faux)
 
     retourne résultat
-}
-
-sur_visite_graphe_chaine :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    objet_chaine := base comme *ObjetChaine
-    sur_visite_graphe_objet(objet_chaine, visiteuse)
-    cellule_sur_visite_graphe(objet_chaine.chn, visiteuse)
 }
 
 /** \} */
@@ -999,7 +973,6 @@ has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
 StringPrototype :: struct {
     empl objet: Object
     classe = #type_de_cette_structure
-    sur_visite_graphe = string_prototype_sur_visite_graphe
 
     string_data: *PrimitiveChaine
 }
@@ -1012,13 +985,6 @@ crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obj
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), faux, faux, faux)
 
     retourne résultat
-}
-
-string_prototype_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    string_prototype := base comme *StringPrototype
-    sur_visite_graphe_objet(string_prototype, visiteuse)
-    cellule_sur_visite_graphe(string_prototype.string_data, visiteuse)
 }
 
 /** \} */
@@ -1192,7 +1158,6 @@ ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonc
 PrimitiveChaine :: struct {
     empl cellule: Cellule
     classe = #type_de_cette_structure
-    sur_visite_graphe = string_primitive_sur_visite_graphe
 
     texte: ECMAString
     objet: *Object
@@ -1203,15 +1168,6 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *Pr
     résultat := tas_de_mémoire.alloue(PrimitiveChaine)
     résultat.texte = texte
     retourne résultat
-}
-
-string_primitive_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    string_primitive := base comme *PrimitiveChaine
-    cellule_sur_visite_graphe(string_primitive, visiteuse)
-    si string_primitive.objet {
-        sur_visite_graphe_objet(string_primitive.objet, visiteuse)
-    }
 }
 
 /** \} */
@@ -1255,7 +1211,6 @@ crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
 ReferenceError :: struct {
     empl error: Error
     classe = #type_de_cette_structure
-    sur_visite_graphe = reference_error_sur_visite_graphe
 
     message: *PrimitiveChaine
 }
@@ -1266,13 +1221,6 @@ crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Refe
     résultat.prototype = prototype
     résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
     retourne résultat
-}
-
-reference_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    reference_error := base comme *ReferenceError
-    sur_visite_graphe_objet(reference_error, visiteuse)
-    cellule_sur_visite_graphe(reference_error.message, visiteuse)
 }
 
 /** \} */
@@ -1304,7 +1252,6 @@ crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, protot
 TypeError :: struct {
     empl error: Error
     classe = #type_de_cette_structure
-    sur_visite_graphe = type_error_sur_visite_graphe
 
     message: *PrimitiveChaine
 }
@@ -1315,13 +1262,6 @@ crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeError
     résultat.prototype = prototype
     résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
     retourne résultat
-}
-
-type_error_sur_visite_graphe :: fonc (base: *Cellule, visiteuse: *VisiteuseCellule)
-{
-    type_error := base comme *TypeError
-    sur_visite_graphe_objet(type_error, visiteuse)
-    cellule_sur_visite_graphe(type_error.message, visiteuse)
 }
 
 lance_type_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
