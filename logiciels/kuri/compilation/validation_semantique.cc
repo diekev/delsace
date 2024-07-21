@@ -3656,7 +3656,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
             valeurs_legales |= valeur.entière();
         }
 
-        membres.ajoute({nullptr, decl, it->ident, 0, static_cast<int>(valeur.entière())});
+        membres.ajoute({nullptr, decl, it->ident, 0, uint64_t(valeur.entière())});
 
         derniere_valeur = valeur;
     }
@@ -3665,21 +3665,21 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                     TypeBase::Z32,
                     ID::nombre_elements,
                     0,
-                    membres.taille(),
+                    uint64_t(membres.taille()),
                     nullptr,
                     MembreTypeComposé::EST_IMPLICITE});
     membres.ajoute({nullptr,
                     decl,
                     ID::min,
                     0,
-                    static_cast<int>(valeur_enum_min),
+                    uint64_t(valeur_enum_min),
                     nullptr,
                     MembreTypeComposé::EST_IMPLICITE});
     membres.ajoute({nullptr,
                     decl,
                     ID::max,
                     0,
-                    static_cast<int>(valeur_enum_max),
+                    uint64_t(valeur_enum_max),
                     nullptr,
                     MembreTypeComposé::EST_IMPLICITE});
 
@@ -3688,14 +3688,14 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                         decl,
                         ID::valeurs_legales,
                         0,
-                        static_cast<int>(valeurs_legales),
+                        uint64_t(valeurs_legales),
                         nullptr,
                         MembreTypeComposé::EST_IMPLICITE});
         membres.ajoute({nullptr,
                         decl,
                         ID::valeurs_illegales,
                         0,
-                        static_cast<int>(~valeurs_legales),
+                        uint64_t(~valeurs_legales),
                         nullptr,
                         MembreTypeComposé::EST_IMPLICITE});
         membres.ajoute({nullptr, decl, ID::zero, 0, 0, nullptr, MembreTypeComposé::EST_IMPLICITE});

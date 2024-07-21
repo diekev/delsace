@@ -224,6 +224,32 @@ est_connecté :: fonc (noeud: *Noeud) -> bool
     retourne noeud.donne_racine_shadow_including().est_document()
 }
 
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#node-navigable */
+donne_node_navigable :: fonc (noeud: *Noeud) -> *Navigable
+{
+    document := noeud.document
+    saufsi document {
+        retourne nul
+    }
+    browsing_context := document.browsing_context
+    saufsi browsing_context {
+        retourne nul
+    }
+
+    assert(browsing_context.group != nul)
+    assert(browsing_context.group.user_agent != nul)
+    user_agent := browsing_context.group.user_agent
+
+    /* À FAIRE : il nous faut tous les navigables. */
+    pour user_agent.top_level_traversables {
+        si it.donne_active_document() == document {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
 /* https://dom.spec.whatwg.org/#concept-tree-root */
 donne_racine :: fonc (noeud: *Noeud) -> *Noeud
 {

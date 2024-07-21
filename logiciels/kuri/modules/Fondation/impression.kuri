@@ -681,38 +681,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             imprime_valeurs_tableau(enchaineuse, itératrice, profondeur)
         }
         ÉNUM {
-            info_arg := valeur.info comme *InfoTypeÉnum
-
-            si info_arg.est_drapeau {
-                valeur_énum := z64_depuis_pointeur(valeur.pointeur, info_arg.type_sous_jacent.taille_en_octet) comme z32
-                valeur_trouvée := faux
-                noms := info_arg.noms
-
-                pour v, i dans info_arg.valeurs {
-                    si (v & valeur_énum) != 0 {
-                        si valeur_trouvée {
-                            ajoute_au_tampon(enchaineuse, " | ")
-                        }
-
-                        ajoute_au_tampon(enchaineuse, noms[i])
-                        valeur_trouvée = vrai
-                    }
-                }
-
-                si !valeur_trouvée {
-                    ajoute_au_tampon(enchaineuse, "0")
-                }
-            }
-            sinon {
-                valeur_énum := z64_depuis_pointeur(valeur.pointeur, info_arg.type_sous_jacent.taille_en_octet) comme z32
-                chaine_valeur, trouvée := donne_nom_énum_pour_valeur(info_arg, valeur_énum)
-                si trouvée {
-                    ajoute_au_tampon(enchaineuse, chaine_valeur)
-                }
-                sinon {
-                    imprime_dans_enchaineuse(enchaineuse, "ERREUR VALEUR ÉNUM '%' INCONNUE POUR '%'", valeur_énum, info_arg.nom)
-                }
-            }
+            imprime_valeur_énum(enchaineuse, valeur)
         }
         TYPE_DE_DONNÉES {
             // XXX - ceci est un hack, il faudra plutôt imprimer le nom du type via une table de types
@@ -758,6 +727,64 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             imprime_valeur(enchaineuse, valeur, échappe_chn, profondeur)
         }
         VARIADIQUE {}
+    }
+}
+
+imprime_valeur_énum :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
+{
+    info_arg := valeur.info comme *InfoTypeÉnum
+    type_sous_jacent := info_arg.type_sous_jacent
+
+    si info_arg.est_drapeau {
+        si type_sous_jacent.taille_en_octet == 1 {
+            valeur_énum := valeur.comme_n8()
+            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum)
+        }
+        sinon si type_sous_jacent.taille_en_octet == 2 {
+            valeur_énum := valeur.comme_n16()
+            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum)
+        }
+        sinon si type_sous_jacent.taille_en_octet == 4 {
+            valeur_énum := valeur.comme_n32()
+            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum)
+        }
+        sinon {
+            valeur_énum := valeur.comme_n64()
+            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum)
+        }
+    }
+    sinon {
+        chaine_valeur := donne_nom_énum_pour_valeur(valeur)
+        si chaine_valeur {
+            ajoute_au_tampon(enchaineuse, chaine_valeur)
+        }
+        sinon {
+            imprime_dans_enchaineuse(enchaineuse, "ERREUR VALEUR ÉNUM INCONNUE POUR '%'", info_arg.nom)
+        }
+    }
+}
+
+imprime_valeur_énum_drapeau :: fonc (enchaineuse: *Enchaineuse, type_énum: *InfoTypeÉnum, valeur_énum: $T)
+{
+    valeur_trouvée := faux
+    valeurs := donne_valeurs_typées(type_énum, T)
+    noms := type_énum.noms
+
+    pour valeurs {
+        si (it & valeur_énum) == 0 {
+            continue
+        }
+
+        si valeur_trouvée {
+            ajoute_au_tampon(enchaineuse, " | ")
+        }
+
+        ajoute_au_tampon(enchaineuse, noms[index_it])
+        valeur_trouvée = vrai
+    }
+
+    si !valeur_trouvée {
+        ajoute_au_tampon(enchaineuse, "0")
     }
 }
 
