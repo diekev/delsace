@@ -287,12 +287,13 @@ parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
     /* Part décimale. */
     si texte.taille > 0 && texte[0] == '.' {
         texte = avance(texte, 1)
+        texte_original = texte
 
         taille_part_décimale := 0
 
         tantque texte.taille > 0 && ('0' <= texte[0] <= '9') {
             texte = avance(texte, 1)
-            taille_part_entière += 1
+            taille_part_décimale += 1
         }
 
         données_nombre.partie_décimale = texte_original.sous_chaine(0, taille_part_décimale)
