@@ -358,7 +358,8 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         True,
         False,
         Function,
-        Null{
+        Null, 
+        CrochetOuvrant {
             retourne vrai
         }
         sinon {

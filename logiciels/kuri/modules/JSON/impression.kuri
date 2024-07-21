@@ -82,38 +82,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
             ajoute_au_tampon(enchaineuse, "]")
         }
         ÉNUM {
-            info_arg := valeur.info comme *InfoTypeÉnum
-
-            valeur_ := mémoire(valeur.pointeur comme *z32)
-
-            si info_arg.est_drapeau {
-                valeur_trouvée := faux
-                noms := info_arg.noms
-
-                pour v, i dans info_arg.valeurs {
-                    si (v & valeur_) != 0 {
-                        si valeur_trouvée {
-                            ajoute_au_tampon(enchaineuse, " | ")
-                        }
-
-                        ajoute_au_tampon(enchaineuse, noms[i])
-                        valeur_trouvée = vrai
-                    }
-                }
-
-                si !valeur_trouvée {
-                    ajoute_au_tampon(enchaineuse, "0")
-                }
-            }
-            sinon {
-                chaine_valeur, trouvée := donne_nom_énum_pour_valeur(info_arg, valeur_)
-                si trouvée {
-                    ajoute_au_tampon(enchaineuse, chaine_valeur)
-                }
-                sinon {
-                    ajoute_au_tampon(enchaineuse, "ERREUR VALEUR ÉNUM INCONNUE")
-                }
-            }
+            imprime_valeur_énum(enchaineuse, valeur)
         }
         OPAQUE {
             info_arg := valeur.info comme *InfoTypeOpaque
