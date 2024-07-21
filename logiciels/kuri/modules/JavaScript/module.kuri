@@ -739,14 +739,28 @@ ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, dra
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
 }
 
-get_prototype_of :: fonc (object: *Object) -> *Object
+/* [[GetPrototypeOf]] */
+internal_get_prototype_of :: fonc (object: *Object) -> *Object
 {
-    retourne ordinary_get_prototype_of(object)
+    retourne object.sur_get_prototype_of(object)
 }
 
-get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+/* [[GetOwnProperty]] */
+internal_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
 {
-    retourne ordinary_get_own_property(object, property_key)
+    retourne object.sur_get_own_property(object, property_key)
+}
+
+/* [[Get]] */
+internal_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
+{
+    retourne object.sur_get(object, property_key, receiver)
+}
+
+/* [[Call]] */
+internal_call :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    retourne object.sur_call(object, interpréteuse, this_value, arguments)
 }
 
 trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
@@ -772,7 +786,7 @@ get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
 {
     // À FAIRE : type property_key
     // 1. Return ? O.[[Get]](P, O).
-    retourne object.sur_get(object, property_key, Valeur(Object = object))
+    retourne object.internal_get(property_key, Valeur(Object = object))
 }
 
 /* 7.3.4 Set
@@ -799,7 +813,7 @@ set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: b
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
 has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
 {
-    completion_desc := object.sur_get_own_property(object, nom)
+    completion_desc := internal_get_own_property(object, nom)
     saufsi completion_desc.est_normal() {
         retourne completion_desc
     }
@@ -833,7 +847,7 @@ call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeu
     object := valeur.donne_objet()
 
     // 3. Return ? F.[[Call]](V, argumentsList).
-    retourne object.sur_call(object, interpréteuse, this_value, arguments)
+    retourne object.internal_call(interpréteuse, this_value, arguments)
 }
 
 /** \} */
@@ -901,7 +915,7 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
 ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
-    completion_desc := get_own_property(object, property_key)
+    completion_desc := internal_get_own_property(object, property_key)
     saufsi completion_desc.est_normal() {
         retourne completion_desc
     }
@@ -911,7 +925,7 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
     // 2. If desc is undefined, then
     si desc.est_undefined() {
         // a. Let parent be ? O.[[GetPrototypeOf]]().
-        parent := get_prototype_of(object)
+        parent := internal_get_prototype_of(object)
 
         // b. If parent is null, return undefined.
         si parent == nul {
@@ -919,7 +933,7 @@ ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeu
         }
 
         // c. Return ? parent.[[Get]](P, Receiver).
-        retourne parent.sur_get(parent, property_key, receiver)
+        retourne parent.internal_get(property_key, receiver)
     }
 
     // 3. If IsDataDescriptor(desc) is true, return desc.[[Value]].

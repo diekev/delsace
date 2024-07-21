@@ -221,7 +221,7 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
         }
 
         // d. Return ? baseObj.[[Get]](V.[[ReferencedName]], GetThisValue(V)).
-        retourne base_object.sur_get(base_object, V.referenced_name.donne_property_key(), get_this_value(V))
+        retourne base_object.internal_get(V.referenced_name.donne_property_key(), get_this_value(V))
     }
 
     // 4. Else,
