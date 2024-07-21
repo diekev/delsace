@@ -233,10 +233,14 @@ object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> 
     binding_object := environment.binding_object
 
     // 2. Let foundBinding be ? HasProperty(bindingObject, N).
-    found_binding := trouve_propriété(binding_object, nom) // has_property(binding_object, nom)
+    completion := has_property(binding_object, nom)
+    saufsi completion.est_normal() {
+        retourne faux
+    }
+    found_binding := completion.valeur.V
 
     // 3. If foundBinding is false, return false.
-    saufsi found_binding {
+    si found_binding.est_false() {
         retourne faux
     }
 
@@ -265,16 +269,19 @@ object_environment_set_mutable_binding :: fonc (base: *Environment, nom: ECMAStr
     binding_object := environment.binding_object
 
     // 2. Let stillExists be ? HasProperty(bindingObject, N).
-    // À FAIRE : has_property
-    still_exists := trouve_propriété(binding_object, nom) != nul
+    completion := has_property(binding_object, nom)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    still_exists := completion.valeur.V
 
     // 3. If stillExists is false and S is true, throw a ReferenceError exception.
-    si !still_exists && strict == vrai {
+    si still_exists.est_false() && strict == vrai {
         panique("exceptions non-implémentées")
     }
 
     // 4. Perform ? Set(bindingObject, N, V, S).
-    completion := set(binding_object, nom, valeur, strict)
+    completion = set(binding_object, nom, valeur, strict)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -293,10 +300,14 @@ object_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAStrin
     binding_object := environment.binding_object
 
     // 2. Let value be ? HasProperty(bindingObject, N).
-    value := trouve_propriété(binding_object, nom)
+    completion := has_property(binding_object, nom)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    value := completion.valeur.V
 
     // 3. If value is false, then
-    saufsi value {
+    si value.est_false() {
         // a. If S is false, return undefined; otherwise throw a ReferenceError exception.
         si strict == faux {
             retourne normal_completion(js_undefined)

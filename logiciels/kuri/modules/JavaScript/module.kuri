@@ -740,6 +740,17 @@ internal_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
     retourne object.sur_get_own_property(object, property_key)
 }
 
+/* [[HasProperty]] */
+internal_has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+{
+    // À FAIRE : sur_has_property
+    propriété := trouve_propriété(object, property_key)
+    si propriété {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+    retourne normal_completion(Valeur(Boolean = faux))
+}
+
 /* [[Get]] */
 internal_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
 {
@@ -811,6 +822,14 @@ set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: b
 
     // 3. Return UNUSED.
     retourne normal_completion(js_undefined)
+}
+
+/* 7.3.11 HasProperty ( O, P ) 
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasproperty */
+has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+{
+    // 1. Return ? O.[[HasProperty]](P).
+    retourne internal_has_property(object, property_key)
 }
 
 /* 7.3.12 HasOwnProperty ( O, P )
