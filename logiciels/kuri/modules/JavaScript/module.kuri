@@ -335,9 +335,40 @@ vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
     panique("vers_objet non-implémenté pour type")
 }
 
+/* 7.1.19 ToPropertyKey ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-topropertykey */
+to_property_key :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> CompletionRecord
+{
+    retourne to_property_key(interpréteuse.donne_realm(), key)
+}
+
+to_property_key :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
+{
+    // 1. Let key be ? ToPrimitive(argument, STRING).
+    completion := vers_primitive(realm, argument, TypePréféré.String)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    key := completion.valeur.V
+
+    // 2. If key is a Symbol, then
+    si key.est_symbol() {
+        // a. Return key.
+        retourne normal_completion(key)
+    }
+
+    // 3. Return ! ToString(key).
+    retourne vers_chaine(realm, key)
+}
+
 /* 7.1.1 ToPrimitive ( input [ , preferredType ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toprimitive */
-vers_primitive :: fonc (interpréteuse: &Interpréteuse @inutilisée, valeur: Valeur, type_préféré := TypePréféré.Aucun @inutilisée) -> CompletionRecord
+vers_primitive :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
+{
+    retourne vers_primitive(interpréteuse.donne_realm(), valeur, type_préféré)
+}
+
+vers_primitive :: fonc (realm: *Realm @inutilisée, valeur: Valeur, type_préféré := TypePréféré.Aucun @inutilisée) -> CompletionRecord
 {
     // 1. If input is an Object, then
     si valeur.est_object() {
@@ -517,6 +548,11 @@ string_to_number :: fonc (valeur: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
 vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> CompletionRecord
 {
+    retourne vers_chaine(interpréteuse.donne_realm(), argument)
+}
+
+vers_chaine :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
+{
     // 1. If argument is a String, return argument.
     si argument.est_chaine() {
         retourne normal_completion(argument)
@@ -524,27 +560,27 @@ vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> Compl
 
     // 2. If argument is a Symbol, throw a TypeError exception.
     si argument.est_symbol() {
-        retourne lance_type_error(interpréteuse, "can't convert Symbol to string")
+        retourne lance_type_error(realm, "can't convert Symbol to string")
     }
 
     // 3. If argument is undefined, return "undefined".
     si argument.est_undefined() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_undefined))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_undefined))
     }
 
     // 4. If argument is null, return "null".
     si argument.est_nulle() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_null))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_null))
     }
 
     // 5. If argument is true, return "true".
     si argument.est_true() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_true))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_true))
     }
 
     // 6. If argument is false, return "false".
     si argument.est_false() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_false))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_false))
     }
 
     // 7. If argument is a Number, return Number::toString(argument, 10).
@@ -555,7 +591,7 @@ vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> Compl
         diffère déloge(chn)
 
         résultat := crée_chaine_utf16_unique(chn)
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), résultat))
+        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), résultat))
     }
 
     // 8. If argument is a BigInt, return BigInt::toString(argument, 10).
@@ -567,7 +603,7 @@ vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> Compl
     assert(argument.est_object())
 
     // 10. Let primValue be ? ToPrimitive(argument, STRING).
-    completion_prim_value := vers_primitive(interpréteuse, argument, TypePréféré.String)
+    completion_prim_value := vers_primitive(realm, argument, TypePréféré.String)
     saufsi completion_prim_value.est_normal() {
         retourne completion_prim_value
     }
@@ -577,7 +613,7 @@ vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> Compl
     assert(!prim_value.est_object())
 
     // 12. Return ? ToString(primValue).
-    retourne vers_chaine(interpréteuse, prim_value)
+    retourne vers_chaine(realm, prim_value)
 }
 
 /* 7.2.3 IsCallable ( argument )

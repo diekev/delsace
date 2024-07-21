@@ -217,7 +217,11 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
         // c. If V.[[ReferencedName]] is not a property key, then
         saufsi is_property_key(V.referenced_name) {
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
-            panique("get_value depuis !property_key non-implémenté")
+            completion := to_property_key(realm, V.referenced_name.valeur)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            V.referenced_name.valeur = completion.valeur.V
         }
 
         // d. Return ? baseObj.[[Get]](V.[[ReferencedName]], GetThisValue(V)).
@@ -285,7 +289,11 @@ put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletio
         // c. If V.[[ReferencedName]] is not a property key, then
         saufsi is_property_key(record.referenced_name) {
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
-            panique("put_value avec !property_key non-implémenté")
+            completion := to_property_key(interpréteuse.donne_realm(), record.referenced_name.valeur)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            record.referenced_name.valeur = completion.valeur.V
         }
 
         // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
