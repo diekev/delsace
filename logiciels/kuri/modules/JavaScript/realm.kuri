@@ -286,7 +286,7 @@ set_default_global_bindings :: fonc (realm: *Realm)
     // c. Perform ? DefinePropertyOrThrow(global, name, desc).
 
     // À FAIRE : DefinePropertyOrThrow
-    global.ajoute_propriété(STR_globalThis, Valeur(Object = realm.global_environment.global_this_value), faux, faux, vrai)
+    global.ajoute_propriété(STR_globalThis, Valeur(Object = realm.global_environment.global_this_value), Configurable)
 
     // 3. Return UNUSED.
 }

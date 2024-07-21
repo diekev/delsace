@@ -63,7 +63,7 @@ ajoute_objet_natif :: fonc (object: *Object, nom: ECMAString, enveloppable: *Env
 {
     tas_de_mémoire := object.donne_tas_de_mémoire()
     enveloppe := crée_enveloppe(tas_de_mémoire, enveloppable)
-    ajoute_propriété(object, nom, Valeur(Object = enveloppe), faux, faux, faux)
+    ajoute_propriété(object, nom, Valeur(Object = enveloppe), DrapeauxPropriété.zéro)
 }
 
 ajoute_objet_natif :: fonc (object: *Object, nom: chaine, enveloppable: *Enveloppable)

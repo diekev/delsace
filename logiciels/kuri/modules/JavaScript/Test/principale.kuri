@@ -322,7 +322,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
 
         str_src := crée_chaine(enveloppe.donne_tas_de_mémoire(), src)
 
-        enveloppe.ajoute_propriété(ATTR_src, Valeur(String = str_src), faux, faux, faux)
+        enveloppe.ajoute_propriété(ATTR_src, Valeur(String = str_src), DrapeauxPropriété.zéro)
     }
 }
 
@@ -372,7 +372,7 @@ enveloppe_collection_sur_création_enveloppe :: fonc (base: *Enveloppable, envel
     enveloppable := base comme *EnveloppeHTMLCollection
     collection := enveloppable.collection
 
-    enveloppe.ajoute_propriété(crée_chaine_utf16_unique("length"), Valeur(Number = collection.éléments.taille comme r64), faux, faux, faux)
+    enveloppe.ajoute_propriété(crée_chaine_utf16_unique("length"), Valeur(Number = collection.éléments.taille comme r64), DrapeauxPropriété.zéro)
     enveloppe.ajoute_fonction_native("item", fonction_native_item)
 }
 
@@ -434,7 +434,7 @@ crée_propriétés_hôte_objet_global :: fonc(base: *RappelsHôte, global: *Obje
     console := crée_console(global.donne_tas_de_mémoire(), flux, nul)
 
     global.ajoute_fonction_native("rm", fonction_native_éboue)
-    global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), vrai, vrai, vrai)
+    global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable)
     global.ajoute_objet_natif("html", *rappels.html)
 }
 

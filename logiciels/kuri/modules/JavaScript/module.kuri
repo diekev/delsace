@@ -666,6 +666,16 @@ table_virtuelle_objet := TableVirtuelleCellule(classe = Object, sur_destruction 
 
 #portée_export
 
+DrapeauxPropriété :: énum_drapeau n8 {
+    WRITABLE
+    ENUMERABLE
+    CONFIGURABLE
+}
+
+Configurable :: DrapeauxPropriété.CONFIGURABLE
+Enumerable :: DrapeauxPropriété.ENUMERABLE
+Writable :: DrapeauxPropriété.WRITABLE
+
 Object :: struct {
     empl base: Cellule
     table = *table_virtuelle_objet
@@ -676,10 +686,7 @@ Object :: struct {
         valeur: Valeur
         get: fonc(*Object)(Valeur)
         set: fonc(*Object, Valeur)(rien)
-        /* À FAIRE : traite proprement ces valeurs. */
-        writable := vrai
-        configurable := vrai
-        enumerable := vrai
+        drapeaux: DrapeauxPropriété
     }
 
     propriétés: [..]Propriété
@@ -727,9 +734,9 @@ définis_valeur :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur)
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur))
 }
 
-ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, writable: bool, enumerable: bool, configurable: bool)
+ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, writable = writable, enumerable = enumerable, configurable = configurable))
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
 }
 
 get_prototype_of :: fonc (object: *Object) -> *Object
@@ -819,7 +826,7 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
         D.value = propriété.valeur
 
         // b. Set D.[[Writable]] to the value of X's [[Writable]] attribute.
-        D.writable = propriété.writable
+        D.writable = propriété.drapeaux.WRITABLE == vrai
     }
     // 5. Else,
     sinon {
@@ -832,10 +839,10 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
     }
 
     // 6. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
-    D.enumerable = propriété.enumerable
+    D.enumerable = propriété.drapeaux.ENUMERABLE == vrai
 
     // 7. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
-    D.configurable = propriété.configurable
+    D.configurable = propriété.drapeaux.CONFIGURABLE == vrai
 
     // 8. Return D.
     retourne normal_completion(D)
@@ -905,8 +912,8 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
     résultat.prototype = string_prototype
     résultat.chn = chn
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), faux, faux, faux)
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), faux, faux, faux)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro)
 
     retourne résultat
 }
@@ -1005,7 +1012,7 @@ crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obj
     résultat := tas_de_mémoire.alloue(StringPrototype)
     résultat.prototype = prototype
     résultat.string_data = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), faux, faux, faux)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
 
     retourne résultat
 }
@@ -1176,7 +1183,7 @@ ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: Type
 {
     tas_de_mémoire := objet.donne_tas_de_mémoire()
     fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel)
-    ajoute_propriété(objet, nom, Valeur(Function = fonction), faux, faux, faux)
+    ajoute_propriété(objet, nom, Valeur(Function = fonction), DrapeauxPropriété.zéro)
 }
 
 ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonctionObjectCall)
