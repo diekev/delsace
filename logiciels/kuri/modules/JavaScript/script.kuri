@@ -68,10 +68,15 @@ crée_texte_source :: fonc (texte: chaine) -> TexteSource
  * https://tc39.es/ecma262/#sec-script-records
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_script := TableVirtuelleCellule(classe = Script, sur_destruction = sur_destruction_script)
+
+#portée_export
+
 Script :: struct {
     empl base: Cellule
-    classe = #type_de_cette_structure
-    sur_destruction = sur_destruction_script
+    table = *table_virtuelle_script
 
     source: TexteSource
 
