@@ -48,7 +48,8 @@ get_identifier_reference :: fonc (environment: *Environment, nom: ECMAString, st
     // 1. If env is null, then
     saufsi environment {
         // a. Return the Reference Record { [[Base]]: UNRESOLVABLE, [[ReferencedName]]: name, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
-        retourne normal_completion(référence_non_résolvable(nom, strict))
+        chn := crée_chaine(environment.donne_tas_de_mémoire(), nom)
+        retourne normal_completion(référence_non_résolvable(Valeur(String = chn), strict))
     }
 
     // 2. Let exists be ? env.HasBinding(name).

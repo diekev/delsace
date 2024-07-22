@@ -11,7 +11,6 @@ TypeUnresolvable :: #opaque z32
 /* Type pour ReferenceRecord.reference_name */
 ReferencedName :: union {
     valeur: Valeur
-    nom: ECMAString // À FAIRE : supprime ceci, uniquement utilisé dans Environment pour référence non résovable
     private_name: *PrivateName
 }
 
@@ -22,9 +21,6 @@ is_property_key :: fonc (referenced_name: ReferencedName) -> bool
             // À FAIRE: property_key
             retourne v.est_chaine() || v.est_symbol()
         }
-        nom {
-            retourne vrai
-        }
         sinon {
             retourne faux
         }
@@ -34,14 +30,7 @@ is_property_key :: fonc (referenced_name: ReferencedName) -> bool
 donne_property_key :: fonc (referenced_name: ReferencedName) -> ECMAString
 {
     // À FAIRE: type PropertyKey
-    discr referenced_name {
-        nom(n) {
-            retourne n
-        }
-        sinon {
-            retourne referenced_name.valeur.String.texte
-        }
-    }
+    retourne referenced_name.valeur.String.texte
 }
 
 ReferenceRecord :: struct {
