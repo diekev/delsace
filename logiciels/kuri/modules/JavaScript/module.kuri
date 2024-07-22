@@ -1203,8 +1203,7 @@ object_prototype_has_own_property :: fonc (object: *Object @inutilisée, interpr
     }
 
     // 1. Let P be ? ToPropertyKey(V).
-    // À FAIRE : property_key
-    complétion_nom := vers_chaine(interpréteuse, args[0])
+    complétion_nom := to_property_key(interpréteuse, args[0])
     saufsi complétion_nom.est_normal() {
         retourne complétion_nom
     }
