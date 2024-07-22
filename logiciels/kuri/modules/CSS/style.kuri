@@ -9,14 +9,8 @@ ValeurDeStyle :: union {
     longueur: Longueur
 }
 
-détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
+détruit_valeur_de_style :: fonc (value: *ValeurDeStyle @inutilisée)
 {
-    discr mémoire(value) {
-        mot_clé(m) {
-            détruit_chaine(m)
-        }
-        sinon {}
-    }
 }
 
 est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool
@@ -311,7 +305,7 @@ system_colors := [
 
 trouve_couleur_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> Optionnel(CouleurRVBAN8)
 {
-    si mot_clé == "transparent" {
+    si mot_clé == PROP_transparent {
         retourne CouleurRVBAN8(0, 0, 0, 255)
     }
 

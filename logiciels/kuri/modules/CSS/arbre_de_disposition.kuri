@@ -80,10 +80,7 @@ donne_noeud_pour_position :: fonc (noeud: *NoeudDeDisposition, x: z32, y: z32) -
 
 donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
 {
-    chn_cursor := crée_chaine_utf16("cursor")
-    diffère détruit_chaine(chn_cursor)
-
-    cursor := donne_déclaration(*noeud.propriétés, chn_cursor)
+    cursor := donne_déclaration(*noeud.propriétés, PROP_cursor)
     saufsi cursor {
         retourne CursorType.auto
     }
@@ -271,23 +268,17 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     graisse := GraisseFonte.Normal
     taille_fonte := globales.taille_fonte_défaut
 
-    chn_font_weight := crée_chaine_utf16("font-weight")
-    diffère détruit_chaine(chn_font_weight)
-
     propriétés := *noeud.parent.propriétés
-    font_weight := donne_déclaration(propriétés, chn_font_weight)
+    font_weight := donne_déclaration(propriétés, PROP_font_weight)
     si font_weight {
         mot_clé := font_weight.value[0].mot_clé
 
-        si mot_clé == "bold" {
+        si mot_clé == PROP_bold {
             graisse = GraisseFonte.Gras
         }
     }
 
-    chn_font_size := crée_chaine_utf16("font-size")
-    diffère détruit_chaine(chn_font_size)
-
-    font_size := donne_déclaration(propriétés, chn_font_size)
+    font_size := donne_déclaration(propriétés, PROP_font_size)
     si font_size {
         longueur := font_size.value[0].longueur
 
@@ -335,31 +326,25 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     couleur := CouleurRVBAN8(0, 0, 0, 255)
 
-    chn_color := crée_chaine_utf16("color")
-    diffère détruit_chaine(chn_color)
-
-    color := donne_déclaration(propriétés, chn_color)
+    color := donne_déclaration(propriétés, PROP_color)
     si color {
         couleur = color.value[0]
     }
 
-    chn_text_decoration := crée_chaine_utf16("text-decoration")
-    diffère détruit_chaine(chn_text_decoration)
-
     effets: EffetsTexte
 
-    text_decoration := donne_déclaration(propriétés, chn_text_decoration)
+    text_decoration := donne_déclaration(propriétés, PROP_text_decoration)
     si text_decoration {
         pour text_decoration.value {
-            si it.est_mot_clé(crée_chaine_utf16_unique("underline").donne_chaine_utf16()) {
+            si it.est_mot_clé(PROP_underline) {
                 effets.souslignage = vrai
                 effets.couleur_souslignage = vers_couleur_rvba(couleur)
             }
-            sinon si it.est_mot_clé(crée_chaine_utf16_unique("overline").donne_chaine_utf16()) {
+            sinon si it.est_mot_clé(PROP_overline) {
                 effets.surlignage = vrai
                 effets.couleur_surlignage = vers_couleur_rvba(couleur)
             }
-            sinon si it.est_mot_clé(crée_chaine_utf16_unique("line-through").donne_chaine_utf16()) {
+            sinon si it.est_mot_clé(PROP_line_through) {
                 effets.barrage = vrai
                 effets.couleur_barrage = vers_couleur_rvba(couleur)
             }
@@ -376,18 +361,13 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
 est_display_none :: fonc (propriétés: *PropriétésDeStyle) -> bool
 {
-    chn_display := crée_chaine_utf16("display")
-    diffère détruit_chaine(chn_display)
-
-    display := donne_déclaration(propriétés, chn_display)
+    display := donne_déclaration(propriétés, PROP_display)
     saufsi display {
         /* Le défaut est inline. */
         retourne faux
     }
 
-    chn_none := crée_chaine_utf16("none")
-    diffère détruit_chaine(chn_none)
-    retourne est_mot_clé(display.value[0], chn_none)
+    retourne est_mot_clé(display.value[0], PROP_none)
 }
 
 crée_arbre_de_disposition :: fonc (document: *HTML.Document)

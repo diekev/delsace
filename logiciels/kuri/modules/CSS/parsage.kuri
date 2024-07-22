@@ -27,7 +27,6 @@ détruit_données_stylesheet :: fonc (stylesheet: *ParsedStyleSheet)
         }
         sinon si it.type == ParsedAtRule {
             at := it comme *ParsedAtRule
-            détruit_chaine(at.name)
             déloge(at)
         }
         sinon {
@@ -47,7 +46,7 @@ ParsedRule :: struct {
 ParsedAtRule :: struct {
     empl rule: ParsedRule
     type = #type_de_cette_structure
-    name: ChaineUTF16
+    name: CSSOMString
 }
 
 ParsedQualifiedRule :: struct {
@@ -66,25 +65,23 @@ détruit_données_bloc :: fonc (bloc: *ParsedSimpleBlock)
 }
 
 ParsedDeclaration :: struct {
-    name: ChaineUTF16
+    name: CSSOMString
     value: [..]ComponentValue
     important: bool
 }
 
 détruit_données_déclaration :: fonc (déclaration: *ParsedDeclaration)
 {
-    détruit_chaine(déclaration.name)
     détruit_tableau_component_value(*déclaration.value)
 }
 
 ParsedFunction :: struct {
-    name: ChaineUTF16
+    name: CSSOMString
     value: [..]ComponentValue
 }
 
 détruit_données_function :: fonc (function: *ParsedFunction)
 {
-    détruit_chaine(function.name)
     détruit_tableau_component_value(*function.value)
 }
 
@@ -113,7 +110,7 @@ détruit_tableau_component_value :: fonc (value: *[..]ComponentValue)
     mémoire(value) = tmp
 }
 
-donne_texte :: fonc (value: ComponentValue) -> ChaineUTF16 #enligne
+donne_texte :: fonc (value: ComponentValue) -> CSSOMString #enligne
 {
     retourne value.lexème.valeur
 }
@@ -294,7 +291,6 @@ StyleBlockContent :: struct {
 détruit_content :: fonc (content: &StyleBlockContent)
 {
     pour content.decls {
-        détruit_chaine(it.name)
         déloge(it.value)
     }
 
@@ -380,7 +376,7 @@ consomme_une_règle_arobase :: fonc (parseuse: &Parseuse($T)) -> *ParsedAtRule
 
     résultat := loge(ParsedAtRule)
     résultat.name = parseuse.lexème_courant().donne_texte()
-    résultat.name = copie_chaine(résultat.name)
+    résultat.name = résultat.name
 
     tantque !fini(parseuse) {
         lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -536,7 +532,7 @@ consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedD
     lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
 
     résultat: ParsedDeclaration
-    résultat.name = copie_chaine(lexème.lexème.valeur)
+    résultat.name = lexème.donne_texte()
 
     // 1. While the next input token is a <whitespace-token>, consume the next input token.
     consomme_espaces_blanches(parseuse)
@@ -662,7 +658,7 @@ consomme_une_fonction :: fonc (parseuse: &Parseuse($T), lexème_function: T) -> 
 {
     résultat: ParsedFunction
     résultat.name = lexème_function.donne_texte()
-    résultat.name = copie_chaine(résultat.name)
+    résultat.name = résultat.name
 
     tantque !fini(parseuse) {
         lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -839,7 +835,7 @@ parse_type_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSel
         wq_name := opt_wq_name.Quelque
 
         parseuse.curseur = parseuse_locale.curseur
-        retourne crée_type_selector(ChaineUTF16(), wq_name.ident)
+        retourne crée_type_selector(CSSOMString(), wq_name.ident)
     }
 
     parseuse_locale = parseuse
@@ -851,14 +847,14 @@ parse_type_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSel
 
     si parseuse_locale.lexème_courant().est_lexème_fois() {
         parseuse.curseur = parseuse_locale.curseur
-        retourne crée_universal_selector(ChaineUTF16())
+        retourne crée_universal_selector(CSSOMString())
     }
 }
 
 /* <wq-name> = <ns-prefix>? <ident-token> */
 WQName :: struct {
     ns_prefix: Optionnel(NSPrefix)
-    ident: ChaineUTF16
+    ident: CSSOMString
 }
 
 parse_wq_name :: fonc (parseuse: &ParseuseSelector) -> Optionnel(WQName)
@@ -884,7 +880,7 @@ parse_wq_name :: fonc (parseuse: &ParseuseSelector) -> Optionnel(WQName)
 /* <ns-prefix> = [ <ident-token> | '*' ]? '|' */
 NSPrefix :: struct {
     /* Un identifiant ou '*' */
-    espace: ChaineUTF16
+    espace: CSSOMString
 }
 
 parse_ns_prefix :: fonc (parseuse: &ParseuseSelector) -> Optionnel(NSPrefix)
@@ -896,8 +892,7 @@ parse_ns_prefix :: fonc (parseuse: &ParseuseSelector) -> Optionnel(NSPrefix)
         parseuse.avance()
     }
     sinon si parseuse.lexème_courant().est_lexème_fois() {
-        // À FAIRE : fuit de mémoire
-        chaine_ajoute(*résultat.espace, '*' comme n16)
+        résultat.espace = ChaineUTF16Unique('*' comme n32)
         parseuse.avance()
     }
 
@@ -940,7 +935,7 @@ parse_id_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelec
         retourne
     }
 
-    si lexème.lexème.valeur.taille() == 0 {
+    si lexème.lexème.valeur.donne_chaine_utf16().taille() == 0 {
         retourne
     }
 
@@ -1002,7 +997,7 @@ parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simp
     }
 
     lexème_courant := parseuse_locale.lexème_courant()
-    attribute_value: ChaineUTF16
+    attribute_value: CSSOMString
 
     si lexème_courant.est_lexème_de_genre(GenreLexème.String) || lexème_courant.est_lexème_de_genre(GenreLexème.Ident) {
         attribute_value = lexème_courant.lexème.valeur
@@ -1021,10 +1016,10 @@ parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simp
     si lexème_courant.est_lexème_de_genre(GenreLexème.Ident) {
         valeur := lexème_courant.lexème.valeur
 
-        si valeur == "i" || valeur == "I" {
+        si valeur.valeur == ('i' comme n32) || valeur.valeur == ('I' comme n32) {
             modifier = SimpleSelector.AttributeModifier.I
         }
-        sinon si valeur == "s" || valeur == "S" {
+        sinon si valeur.valeur == ('s' comme n32) || valeur.valeur == ('S' comme n32) {
             modifier = SimpleSelector.AttributeModifier.S
         }
         sinon {
@@ -1105,7 +1100,7 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
          * directement au cas où nous ne serions pas appelés depuis
          * parse_pseudo_element car il est possible de n'avoir qu'un seul
          * double point pour ceux-ci pour des raisons historiques. */
-        si pour_pseudo_element || ident == "before" || ident == "after" || ident == "first-line" || ident == "first-letter" {
+        si pour_pseudo_element || ident == PROP_before || ident == PROP_after || ident == PROP_first_line || ident == PROP_first_letter {
             retourne crée_pseudo_element_selector(ident)
         }
 
@@ -1117,7 +1112,7 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
         nom_fonction := fonction.name
 
         /* https://www.w3.org/TR/selectors-4/#negation */
-        si nom_fonction == "not" {
+        si nom_fonction == PROP_not {
             parseuse_locale.avance()
 
             opt_selectors := parse_selector_list(fonction.value)
@@ -1127,7 +1122,7 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             }
         }
         /* https://www.w3.org/TR/selectors-4/#matches */
-        sinon si nom_fonction == "is" {
+        sinon si nom_fonction == PROP_is {
             parseuse_locale.avance()
 
             /* À FAIRE : ceci doit être parse_forgiving_selector_list */
@@ -1138,7 +1133,7 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             }
         }
         /* https://www.w3.org/TR/selectors-4/#zero-matches */
-        sinon si nom_fonction == "where" {
+        sinon si nom_fonction == PROP_where {
             parseuse_locale.avance()
 
             /* À FAIRE : ceci doit être parse_forgiving_selector_list */
@@ -1149,7 +1144,7 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             }
         }
         /* https://www.w3.org/TR/css-scoping-1/#selectordef-host0 */
-        sinon si nom_fonction == "host" {
+        sinon si nom_fonction == PROP_host {
             parseuse_locale.avance()
 
             /* À FAIRE : ceci doit être parse_compound_selector */
@@ -1160,12 +1155,12 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             }
         }
         /* https://www.w3.org/TR/selectors-4/#the-dir-pseudo */
-        sinon si nom_fonction == "dir" {
+        sinon si nom_fonction == PROP_dir {
             parseuse_locale.avance()
 
             si fonction.value.taille == 1 && fonction.value[0].est_lexème_de_genre(GenreLexème.Ident) {
                 nom := fonction.value[0].lexème.valeur
-                si nom == "ltr" || nom == "rtl" {
+                si nom == PROP_ltr || nom == PROP_rtl {
                     parseuse.curseur = parseuse_locale.curseur
                     retourne crée_function_selector(nom_fonction, nom)
                 }
@@ -1253,7 +1248,7 @@ parse_combinateur :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Combinator)
  * \{ */
 
 ContexteParsageFeuilleDeStyle :: struct {
-    propriétés_non_supportées: [..]ChaineUTF16
+    propriétés_non_supportées: [..]CSSOMString
 }
 
 rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
@@ -1265,23 +1260,16 @@ rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeSty
 
 détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
 {
-    pour ctx.propriétés_non_supportées {
-        détruit_chaine(it)
-    }
     déloge(ctx.propriétés_non_supportées)
 }
 
 propriété_est_supportée :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> bool
 {
-    si nom == "display" || nom == "color" || nom == "text-decoration" || nom == "cursor" || nom == "font-weight" || "font-size" {
+    si nom == PROP_display || nom == PROP_color || nom == PROP_text_decoration || nom == PROP_cursor || nom == PROP_font_weight || nom == PROP_font_size {
         retourne vrai
     }
 
-    /* Protection pour la copie. */
-    saufsi ensemble_possède(*ctx.propriétés_non_supportées, nom) {
-        ensemble_ajoute(*ctx.propriétés_non_supportées, copie_chaine(nom))
-    }
-
+    ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
     retourne faux
 }
 
@@ -1295,7 +1283,7 @@ parse_a_css_style_sheet :: fonc (ctx: *ContexteParsageFeuilleDeStyle, contenu: c
     diffère détruit_données_stylesheet(*stylesheet)
 
     résultat := loge(CSSStyleSheet)
-    résultat.type = crée_chaine_utf16("text/css")
+    résultat.type = crée_chaine_utf16_unique("text/css")
 
     pour stylesheet.value {
         si it.type == ParsedQualifiedRule {
@@ -1331,7 +1319,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
         }
 
         valeur: [..]ValeurDeStyle
-        si it.name == "display" {
+        si it.name == PROP_display {
             opt_valeur := parse_propriété_display(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'display'\n")
@@ -1340,7 +1328,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 
             valeur = opt_valeur.Quelque
         }
-        sinon si it.name == "color" {
+        sinon si it.name == PROP_color {
             opt_valeur := parse_propriété_color(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'color'\n")
@@ -1349,7 +1337,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 
             valeur = opt_valeur.Quelque
         }
-        sinon si it.name == "text-decoration" {
+        sinon si it.name == PROP_text_decoration {
             opt_valeur := parse_propriété_text_decoration(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'text-decoration'\n")
@@ -1358,7 +1346,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 
             valeur = opt_valeur.Quelque
         }
-        sinon si it.name == "cursor" {
+        sinon si it.name == PROP_cursor {
             opt_valeur := parse_propriété_cursor(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'cursor'\n")
@@ -1367,7 +1355,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 
             valeur = opt_valeur.Quelque
         }
-        sinon si it.name == "font-weight" {
+        sinon si it.name == PROP_font_weight {
             opt_valeur := parse_propriété_font_weight(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'font-weight'\n")
@@ -1376,7 +1364,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 
             valeur = opt_valeur.Quelque
         }
-        sinon si it.name == "font-size" {
+        sinon si it.name == PROP_font_size {
             opt_valeur := parse_propriété_font_size(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'font-size'\n")
@@ -1387,7 +1375,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
         }
 
         déclaration := loge(CSSDeclaration)
-        déclaration.property_name = copie_chaine(it.name)
+        déclaration.property_name = it.name
         déclaration.value = valeur
         déclaration.important = it.important
 
@@ -1436,14 +1424,14 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
     mot_clé := parseuse.parse_display_outside()
     si mot_clé.possède_valeur() {
         résultat: [..]ValeurDeStyle
-        tableau_ajoute(*résultat, ValeurDeStyle(copie_chaine(mot_clé.Quelque)))
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
         retourne résultat
     }
 
     mot_clé = parseuse.parse_display_box()
     si mot_clé.possède_valeur() {
         résultat: [..]ValeurDeStyle
-        tableau_ajoute(*résultat, ValeurDeStyle(copie_chaine(mot_clé.Quelque)))
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
         retourne résultat
     }
 }
@@ -1523,7 +1511,7 @@ parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel([..]Val
 
     /* https://www.w3.org/TR/css-color-4/#typedef-hex-color */
     si lexème.est_lexème_de_genre(GenreLexème.Hash) {
-        valeur := lexème.donne_texte()
+        valeur := lexème.donne_texte().donne_chaine_utf16()
 
         pour valeur.unités {
             saufsi est_chiffre_hex(it) {
@@ -1598,28 +1586,28 @@ parse_propriété_text_decoration :: fonc (value: [..]ComponentValue) -> Optionn
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
             mot_clé := lexème.donne_texte()
 
-            si mot_clé == "none" {
+            si mot_clé == PROP_none {
                 saufsi eu_text_decoration_line {
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(mot_clé)))
+                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = mot_clé))
                 }
                 eu_text_decoration_line = vrai
             }
-            sinon si mot_clé == "underline" || "overline" || "line-through" {
-                tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(mot_clé)))
+            sinon si mot_clé == PROP_underline || mot_clé == PROP_overline || mot_clé == PROP_line_through {
+                tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = mot_clé))
                 eu_text_decoration_line = vrai
             }
-            sinon si mot_clé == "blink" {
+            sinon si mot_clé == PROP_blink {
                 imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
                 déloge(résultat)
                 retourne
             }
-            sinon si mot_clé == "solid" {
+            sinon si mot_clé == PROP_solid {
                 saufsi eu_text_decoration_style {
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(mot_clé)))
+                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = mot_clé))
                 }
                 eu_text_decoration_style = vrai
             }
-            sinon si mot_clé == "double" || mot_clé == "dotted" || mot_clé == "dashed" || mot_clé == "wavy" {
+            sinon si mot_clé == PROP_double || mot_clé == PROP_dotted || mot_clé == PROP_dashed || mot_clé == PROP_wavy {
                 imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
                 déloge(résultat)
                 retourne
@@ -1692,114 +1680,114 @@ CursorType :: énum {
     zoom_out
 }
 
-donne_type_cursor :: fonc (chn: ChaineUTF16) -> CursorType
+donne_type_cursor :: fonc (chn: CSSOMString) -> CursorType
 {
-    si chn == "auto" {
+    si chn == PROP_auto {
         retourne CursorType.auto;
     }
-    si chn == "default" {
+    si chn == PROP_default {
         retourne CursorType.default;
     }
-    si chn == "none" {
+    si chn == PROP_none {
         retourne CursorType.none;
     }
-    si chn == "context_menu" {
+    si chn == PROP_context_menu {
         retourne CursorType.context_menu;
     }
-    si chn == "help" {
+    si chn == PROP_help {
         retourne CursorType.help;
     }
-    si chn == "pointer" {
+    si chn == PROP_pointer {
         retourne CursorType.pointer;
     }
-    si chn == "progress" {
+    si chn == PROP_progress {
         retourne CursorType.progress;
     }
-    si chn == "wait" {
+    si chn == PROP_wait {
         retourne CursorType.wait;
     }
-    si chn == "cell" {
+    si chn == PROP_cell {
         retourne CursorType.cell;
     }
-    si chn == "crosshair" {
+    si chn == PROP_crosshair {
         retourne CursorType.crosshair;
     }
-    si chn == "text" {
+    si chn == PROP_text {
         retourne CursorType.text;
     }
-    si chn == "vertical_text" {
+    si chn == PROP_vertical_text {
         retourne CursorType.vertical_text;
     }
-    si chn == "alias" {
+    si chn == PROP_alias {
         retourne CursorType.alias;
     }
-    si chn == "copy" {
+    si chn == PROP_copy {
         retourne CursorType.copy;
     }
-    si chn == "move" {
+    si chn == PROP_move {
         retourne CursorType.move;
     }
-    si chn == "no_drop" {
+    si chn == PROP_no_drop {
         retourne CursorType.no_drop;
     }
-    si chn == "not_allowed" {
+    si chn == PROP_not_allowed {
         retourne CursorType.not_allowed;
     }
-    si chn == "grab" {
+    si chn == PROP_grab {
         retourne CursorType.grab;
     }
-    si chn == "grabbing" {
+    si chn == PROP_grabbing {
         retourne CursorType.grabbing;
     }
-    si chn == "e_resize" {
+    si chn == PROP_e_resize {
         retourne CursorType.e_resize;
     }
-    si chn == "n_resize" {
+    si chn == PROP_n_resize {
         retourne CursorType.n_resize;
     }
-    si chn == "ne_resize" {
+    si chn == PROP_ne_resize {
         retourne CursorType.ne_resize;
     }
-    si chn == "nw_resize" {
+    si chn == PROP_nw_resize {
         retourne CursorType.nw_resize;
     }
-    si chn == "s_resize" {
+    si chn == PROP_s_resize {
         retourne CursorType.s_resize;
     }
-    si chn == "se_resize" {
+    si chn == PROP_se_resize {
         retourne CursorType.se_resize;
     }
-    si chn == "sw_resize" {
+    si chn == PROP_sw_resize {
         retourne CursorType.sw_resize;
     }
-    si chn == "w_resize" {
+    si chn == PROP_w_resize {
         retourne CursorType.w_resize;
     }
-    si chn == "ew_resize" {
+    si chn == PROP_ew_resize {
         retourne CursorType.ew_resize;
     }
-    si chn == "ns_resize" {
+    si chn == PROP_ns_resize {
         retourne CursorType.ns_resize;
     }
-    si chn == "nesw_resize" {
+    si chn == PROP_nesw_resize {
         retourne CursorType.nesw_resize;
     }
-    si chn == "nwse_resize" {
+    si chn == PROP_nwse_resize {
         retourne CursorType.nwse_resize;
     }
-    si chn == "col_resize" {
+    si chn == PROP_col_resize {
         retourne CursorType.col_resize;
     }
-    si chn == "row_resize" {
+    si chn == PROP_row_resize {
         retourne CursorType.row_resize;
     }
-    si chn == "all_scroll" {
+    si chn == PROP_all_scroll {
         retourne CursorType.all_scroll;
     }
-    si chn == "zoom_in" {
+    si chn == PROP_zoom_in {
         retourne CursorType.zoom_in;
     }
-    si chn == "zoom_out" {
+    si chn == PROP_zoom_out {
         retourne CursorType.zoom_out;
     }
     panique("chn pour curseur invalide")
@@ -1812,12 +1800,12 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
     résultat: [..]ValeurDeStyle
 
     mots_clés := [
-        "auto", "default", "none", "context-menu", "help", "pointer", "progress",
-        "wait", "cell", "crosshair", "text", "vertical-text", "alias", "copy",
-        "move", "no-drop", "not-allowed", "grab", "grabbing", "e-resize",
-        "n-resize", "ne-resize", "nw-resize", "s-resize", "se-resize", "sw-resize",
-        "w-resize", "ew-resize", "ns-resize", "nesw-resize", "nwse-resize",
-        "col-resize", "row-resize", "all-scroll", "zoom-in", "zoom-out"
+        PROP_auto, PROP_default, PROP_none, PROP_context_menu, PROP_help, PROP_pointer, PROP_progress,
+        PROP_wait, PROP_cell, PROP_crosshair, PROP_text, PROP_vertical_text, PROP_alias, PROP_copy,
+        PROP_move, PROP_no_drop, PROP_not_allowed, PROP_grab, PROP_grabbing, PROP_e_resize,
+        PROP_n_resize, PROP_ne_resize, PROP_nw_resize, PROP_s_resize, PROP_se_resize, PROP_sw_resize,
+        PROP_w_resize, PROP_ew_resize, PROP_ns_resize, PROP_nesw_resize, PROP_nwse_resize,
+        PROP_col_resize, PROP_row_resize, PROP_all_scroll, PROP_zoom_in, PROP_zoom_out
     ]
 
     tantque !fini(parseuse) {
@@ -1827,7 +1815,7 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
             pour mots_clés {
                 si lexème.est_identifiant(it) {
                     texte := lexème.donne_texte()
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(texte)))
+                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = texte))
                     arrête
                 }
             }
@@ -1877,7 +1865,7 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel([
             pour mots_clés {
                 si lexème.est_identifiant(it) {
                     texte := lexème.donne_texte()
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(texte)))
+                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = texte))
                     arrête
                 }
             }
@@ -1923,7 +1911,7 @@ parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel([..
             parseuse.avance()
             données_lexème := lexème.lexème
 
-            si données_lexème.unité != "em" {
+            si données_lexème.unité != PROP_em {
                 imprime("[%] unité inconnue %\n", #nom_de_cette_fonction, lexème)
                 déloge(résultat)
                 retourne
