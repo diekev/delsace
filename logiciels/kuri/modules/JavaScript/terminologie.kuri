@@ -13,6 +13,7 @@ STR_globalThis: ChaineUTF16Unique = ---
 STR_hasOwnProperty: ChaineUTF16Unique = ---
 STR_join: ChaineUTF16Unique = ---
 STR_length: ChaineUTF16Unique = ---
+STR_name: ChaineUTF16Unique = ---
 STR_null: ChaineUTF16Unique = ---
 STR_number: ChaineUTF16Unique = ---
 STR_object: ChaineUTF16Unique = ---

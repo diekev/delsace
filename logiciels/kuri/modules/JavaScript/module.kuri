@@ -1392,11 +1392,13 @@ Function :: struct {
     is_class_constructor := faux
 }
 
-crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
+crée_fonction :: fonc (function_prototype: *FunctionPrototype, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
 {
+    tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(Function)
     résultat.nom = nom
     résultat.corps = corps
+    résultat.prototype = function_prototype
     résultat.sur_call = sur_appel_fonction_instruite
     retourne résultat
 }
@@ -1404,11 +1406,14 @@ crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps:
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
-ordinary_function_create :: fonc (tas_de_mémoire: *TasDeMémoire, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *Function
+ordinary_function_create :: fonc (function_prototype: *FunctionPrototype, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *Function
 {
+    tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
+
     // 1. Let internalSlotsList be the internal slots listed in Table 30.
     // 2. Let F be OrdinaryObjectCreate(functionPrototype, internalSlotsList).
     F := tas_de_mémoire.alloue(Function)
+    F.prototype = function_prototype
 
     // 3. Set F.[[Call]] to the definition specified in 10.2.1.
     F.sur_call = sur_appel_fonction_instruite
@@ -1467,6 +1472,40 @@ sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpr�
     assert(object.donne_classe() == Function)
     fonction := object comme *Function
     retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-function-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_function_prototype := TableVirtuelleCellule(classe = FunctionPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+/* À FAIRE : is builtin function object */
+FunctionPrototype :: struct {
+    empl function: Function
+    table = *table_virtuelle_function_prototype
+}
+
+crée_function_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *FunctionPrototype
+{
+    résultat := tas_de_mémoire.alloue(FunctionPrototype)
+    résultat.prototype = prototype
+    résultat.sur_call = fonction_prototype_sur_call
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
+    retourne résultat
+}
+
+fonction_prototype_sur_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+{
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */

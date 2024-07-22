@@ -161,7 +161,11 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
 {
     noeud := base comme *FunctionDeclaration
 
-    fonction := crée_fonction(interpréteuse.donne_tas_de_mémoire(), noeud.id.nom, noeud.corps)
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    realm := running_execution_context.realm
+
+    fonction := crée_fonction(realm.intrinsics.function_prototype, noeud.id.nom, noeud.corps)
 
     objet_global := interpréteuse.get_global_object()
     completion := set(objet_global, noeud.id.nom, Valeur(Function = fonction), vrai)
@@ -235,7 +239,8 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: &Interpréteus
         // À FAIRE 4. Let sourceText be the source text matched by FunctionExpression.
 
         // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, NON-LEXICAL-THIS, env, privateEnv).
-        closure := ordinary_function_create(mv.donne_tas_de_mémoire(), expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
+        realm := running_execution_context.realm
+        closure := ordinary_function_create(realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
 
         // À FAIRE 6. Perform SetFunctionName(closure, name).
 
