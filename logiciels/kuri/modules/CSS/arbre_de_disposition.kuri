@@ -271,6 +271,19 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     graisse := GraisseFonte.Normal
     taille_fonte := globales.taille_fonte_défaut
 
+    chn_font_weight := crée_chaine_utf16("font-weight")
+    diffère détruit_chaine(chn_font_weight)
+
+    propriétés := *noeud.parent.propriétés
+    font_weight := donne_déclaration(propriétés, chn_font_weight)
+    si font_weight {
+        mot_clé := font_weight.value[0].mot_clé
+
+        si mot_clé == "bold" {
+            graisse = GraisseFonte.Gras
+        }
+    }
+
     fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
     noeud.fonte = fonte
     métriques := fonte.donne_métriques_fonte()

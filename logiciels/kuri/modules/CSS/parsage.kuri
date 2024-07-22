@@ -1273,7 +1273,7 @@ détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
 
 propriété_est_supportée :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> bool
 {
-    si nom == "display" || nom == "color" || nom == "text-decoration" || nom == "cursor" {
+    si nom == "display" || nom == "color" || nom == "text-decoration" || nom == "cursor" || nom == "font-weight" {
         retourne vrai
     }
 
@@ -1362,6 +1362,15 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
             opt_valeur := parse_propriété_cursor(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'cursor'\n")
+                continue
+            }
+
+            valeur = opt_valeur.Quelque
+        }
+        sinon si it.name == "font-weight" {
+            opt_valeur := parse_propriété_font_weight(it.value)
+            saufsi opt_valeur.possède_valeur() {
+                imprime("Impossible de parser 'font-weight'\n")
                 continue
             }
 
@@ -1800,6 +1809,56 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
         "n-resize", "ne-resize", "nw-resize", "s-resize", "se-resize", "sw-resize",
         "w-resize", "ew-resize", "ns-resize", "nesw-resize", "nwse-resize",
         "col-resize", "row-resize", "all-scroll", "zoom-in", "zoom-out"
+    ]
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            pour mots_clés {
+                si lexème.est_identifiant(it) {
+                    texte := lexème.donne_texte()
+                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = copie_chaine(texte)))
+                    arrête
+                }
+            }
+            sansarrêt {
+                imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+                déloge(résultat)
+                retourne
+            }
+
+            parseuse.avance()
+        }
+        sinon {
+            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+            déloge(résultat)
+            retourne
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Font Weight
+ * https://drafts.csswg.org/css-fonts/#font-weight-prop
+ * \{ */
+
+parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    mots_clés := [
+        "normal", "bold"
     ]
 
     tantque !fini(parseuse) {
