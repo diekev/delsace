@@ -720,7 +720,6 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     ctx: CSS.ContexteDessin
     ctx.globales = document.globales_dessin
-    ctx.fonte = CSS.donne_fonte_défaut(ctx.globales)
     ctx.peintre = peintre
     ctx.hauteur_vue = vue_rendu_page.hauteur
 

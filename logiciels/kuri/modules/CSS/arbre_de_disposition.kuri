@@ -93,13 +93,11 @@ donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
 
 ContexteDisposition :: struct {
     globales: *GlobalesDessin
-    fonte: *Fonte
     largeur_disponible: n32
 }
 
 ContexteDessin :: struct {
     globales: *GlobalesDessin
-    fonte: *Fonte
     peintre: *Peintre
 
     hauteur_vue: z32
@@ -252,6 +250,7 @@ NoeudDeDispositionTexte :: struct {
 
     noeud_texte: *HTML.NoeudTexte
     texte: ChaineUTF16
+    fonte: *Fonte
 }
 
 noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
@@ -265,8 +264,15 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
         retourne
     }
 
-    fonte := ctx.fonte
+    globales := ctx.globales
+    assert(globales != nul)
+    famille_fonte := "sérif"
+    style := "normal"
+    graisse := GraisseFonte.Normal
+    taille_fonte := globales.taille_fonte_défaut
 
+    fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
+    noeud.fonte = fonte
     métriques := fonte.donne_métriques_fonte()
 
     /* À FAIRE : meilleur algorithme, respect du standard. */
@@ -336,7 +342,8 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
     texte := noeud.texte
 
     peintre := ctx.peintre
-    fonte := ctx.fonte
+    fonte := noeud.fonte
+    assert(fonte != nul)
     peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
 }
 
@@ -385,7 +392,6 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document)
 
     ctx: ContexteDisposition
     ctx.globales = document.globales_dessin
-    ctx.fonte = document.globales_dessin.donne_fonte_défaut()
 
     mesure(racine, *ctx)
 
