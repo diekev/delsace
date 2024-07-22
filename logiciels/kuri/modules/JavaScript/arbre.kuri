@@ -623,9 +623,9 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     droite = complétion_rnum.valeur.V
 
     // 5. If Type(lnum) is not Type(rnum), throw a TypeError exception.
-    // si type(lum) != type(rnum) {
-    // À FAIRE
-    // }
+    si donne_type(gauche) != donne_type(droite) {
+        retourne lance_type_error(interpréteuse, "Incompatible types for binary expression")
+    }
 
     // 6. If lnum is a BigInt, then
     si est_big_int(gauche) {
