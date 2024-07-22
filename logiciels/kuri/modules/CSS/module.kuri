@@ -57,10 +57,9 @@ collecte_les_règles_appropriées :: fonc (stylesheet: *CSSStyleSheet, élément
         règle_de_style := règle comme *CSSStyleRule
 
         pour complex dans règle_de_style.selector_list.complex_selectors {
-            pour * compound dans complex.compound_selectors {
-                si apparie_sélecteur(compound, élément) {
-                    tableau_ajoute(*règles, règle_de_style)
-                }
+            si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
+                tableau_ajoute(*règles, règle_de_style)
+                arrête
             }
         }
     }
@@ -68,8 +67,14 @@ collecte_les_règles_appropriées :: fonc (stylesheet: *CSSStyleSheet, élément
     retourne règles
 }
 
-apparie_sélecteur :: fonc (compound: *CompoundSelector, élément: *HTML.Élément) -> bool
+apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément: *HTML.Élément) -> bool
 {
+    si selector.taille != 1 {
+        retourne faux
+    }
+
+    compound := selector[index]
+
     si compound.simple_selectors.taille != 1 {
         retourne faux
     }
