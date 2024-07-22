@@ -569,7 +569,7 @@ resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, envir
     strict := is_strict(interpréteuse.donne_noeud_évalué_courant())
 
     // 4. Return ? GetIdentifierReference(env, name, strict).
-    retourne get_identifier_reference(environment, nom, strict)
+    retourne get_identifier_reference(interpréteuse.donne_tas_de_mémoire(), environment, nom, strict)
 }
 
 /* 9.4.6 GetGlobalObject
