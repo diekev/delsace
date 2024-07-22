@@ -18,7 +18,6 @@ is_property_key :: fonc (referenced_name: ReferencedName) -> bool
 {
     discr referenced_name {
         valeur(v) {
-            // À FAIRE: property_key
             retourne v.est_chaine() || v.est_symbol()
         }
         sinon {
@@ -27,10 +26,19 @@ is_property_key :: fonc (referenced_name: ReferencedName) -> bool
     }
 }
 
-donne_property_key :: fonc (referenced_name: ReferencedName) -> ECMAString
+donne_property_key :: fonc (referenced_name: ReferencedName) -> PropertyKey
 {
-    // À FAIRE: type PropertyKey
-    retourne referenced_name.valeur.String.texte
+    discr referenced_name.valeur {
+        String(s) {
+            retourne s.texte
+        }
+        Symbol(s) {
+            retourne s
+        }
+        sinon {
+            panique("donne_property_key sur un referenced_name invalide")
+        }
+    }
 }
 
 ReferenceRecord :: struct {

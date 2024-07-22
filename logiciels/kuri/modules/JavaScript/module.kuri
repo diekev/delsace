@@ -730,13 +730,52 @@ Configurable :: DrapeauxPropriété.CONFIGURABLE
 Enumerable :: DrapeauxPropriété.ENUMERABLE
 Writable :: DrapeauxPropriété.WRITABLE
 
+PropertyKey :: union {
+    String: ECMAString
+    Symbol: *Symbol
+}
+
+opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
+{
+    discr p1 {
+        String(s1) {
+            discr p2 {
+                String(s2) {
+                    retourne s1 == s2
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        Symbol(s1) {
+            discr p2 {
+                Symbol(s2) {
+                    retourne s1 == s2
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
+{
+    retourne !(p1 == p2)
+}
+
 Object :: struct {
     empl base: Cellule
     table = *table_virtuelle_objet
 
     /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-attributes */
     Propriété :: struct {
-        nom: ECMAString
+        nom: PropertyKey
         valeur: Valeur
         get: fonc(*Object)(Valeur)
         set: fonc(*Object, Valeur)(rien)
@@ -778,7 +817,7 @@ sur_destruction_objet :: fonc (base: *Cellule)
     déloge(objet.propriétés)
 }
 
-ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, drapeaux: DrapeauxPropriété)
+ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
 }
@@ -790,19 +829,19 @@ internal_get_prototype_of :: fonc (object: *Object) -> *Object
 }
 
 /* [[GetOwnProperty]] */
-internal_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
     retourne object.sur_get_own_property(object, property_key)
 }
 
 /* [[DefineOwnProperty]] */
-internal_define_own_property :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
     retourne object.sur_define_own_property(object, property_key, desc)
 }
 
 /* [[HasProperty]] */
-internal_has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+internal_has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
     // À FAIRE : sur_has_property
     propriété := trouve_propriété(object, property_key)
@@ -813,13 +852,13 @@ internal_has_property :: fonc (object: *Object, property_key: ECMAString) -> Com
 }
 
 /* [[Get]] */
-internal_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
+internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
 {
     retourne object.sur_get(object, property_key, receiver)
 }
 
 /* [[Set]] */
-internal_set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
+internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
 {
     // À FAIRE : sur_set
     propriété := trouve_propriété(object, property_key)
@@ -838,7 +877,7 @@ internal_call :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_va
     retourne object.sur_call(object, interpréteuse, this_value, arguments)
 }
 
-trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
+trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
 {
     pour * objet.propriétés {
         si it.nom == nom {
@@ -857,19 +896,16 @@ trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Proprié
 
 /* 7.3.2 Get
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
-get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+get :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
-    // À FAIRE : type property_key
     // 1. Return ? O.[[Get]](P, O).
     retourne object.internal_get(property_key, Valeur(Object = object))
 }
 
 /* 7.3.4 Set
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
-set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: bool) -> CompletionRecord
+set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, throw: bool) -> CompletionRecord
 {
-    // À FAIRE : type property_key
-
     // 1. Let success be ? O.[[Set]](P, V, O).
     completion := object.internal_set(property_key, valeur, Valeur(Object = object))
     saufsi completion.est_normal() {
@@ -887,7 +923,7 @@ set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: b
 
 /* 7.3.5 CreateDataProperty ( O, P, V )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdataproperty */
-create_data_property :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur) -> CompletionRecord
+create_data_property :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
 {
     // 1. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
     new_desc: PropertyDescriptor
@@ -902,7 +938,7 @@ create_data_property :: fonc (object: *Object, property_key: ECMAString, valeur:
 
 /* 7.3.6 CreateDataPropertyOrThrow ( O, P, V )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdatapropertyorthrow */
-create_data_property_or_throw :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur) -> CompletionRecord
+create_data_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
 {
     // 1. Let success be ? CreateDataProperty(O, P, V).
     completion := create_data_property(object, property_key, valeur)
@@ -922,7 +958,7 @@ create_data_property_or_throw :: fonc (object: *Object, property_key: ECMAString
 
 /* 7.3.8 DefinePropertyOrThrow ( O, P, desc )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definepropertyorthrow */
-define_property_or_throw :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+define_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
     // 1. Let success be ? O.[[DefineOwnProperty]](P, desc).
     completion := internal_define_own_property(object, property_key, desc)
@@ -942,7 +978,7 @@ define_property_or_throw :: fonc (object: *Object, property_key: ECMAString, des
 
 /* 7.3.11 HasProperty ( O, P ) 
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasproperty */
-has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
     // 1. Return ? O.[[HasProperty]](P).
     retourne internal_has_property(object, property_key)
@@ -950,7 +986,7 @@ has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRe
 
 /* 7.3.12 HasOwnProperty ( O, P )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
-has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
+has_own_property :: fonc (object: *Object, nom: PropertyKey) -> CompletionRecord
 {
     completion_desc := internal_get_own_property(object, nom)
     saufsi completion_desc.est_normal() {
@@ -1022,7 +1058,7 @@ ordinary_get_prototype_of :: fonc (object: *Object) -> *Object
 
 /* 10.1.5.1 OrdinaryGetOwnProperty ( O, P )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetownproperty */
-ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
     propriété := object.trouve_propriété(property_key)
 
@@ -1067,7 +1103,7 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
 
 /* 10.1.6 [[DefineOwnProperty]] ( P, Desc )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydefineownproperty */
-ordinary_define_own_property :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
     // À FAIRE : standardise
     saufsi desc.value.possède_valeur() {
@@ -1101,7 +1137,7 @@ ordinary_define_own_property :: fonc (object: *Object, property_key: ECMAString,
 
 /* 10.1.8.1 OrdinaryGet ( O, P, Receiver )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver */
-ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
+ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
     completion_desc := internal_get_own_property(object, property_key)
