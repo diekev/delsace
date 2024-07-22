@@ -1919,7 +1919,7 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     si est_reference_record(val) {
         // a. If IsUnresolvableReference(val) is true, return "undefined".
         si est_référence_non_résolvable(val) {
-            retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_undefined))
+            retourne crée_string_value_completion(interpréteuse, STR_undefined)
         }
     }
 
@@ -1932,37 +1932,37 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     // 4. If val is undefined, return "undefined".
     si valeur.est_undefined() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_undefined))
+        retourne crée_string_value_completion(interpréteuse, STR_undefined)
     }
 
     // 5. If val is null, return "object".
     si valeur.est_nulle() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_object))
+        retourne crée_string_value_completion(interpréteuse, STR_object)
     }
 
     // 6. If val is a String, return "string".
     si valeur.est_chaine() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_string))
+        retourne crée_string_value_completion(interpréteuse, STR_string)
     }
 
     // 7. If val is a Symbol, return "symbol".
     si valeur.est_symbol() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_symbol))
+        retourne crée_string_value_completion(interpréteuse, STR_symbol)
     }
 
     // 8. If val is a Boolean, return "boolean".
     si valeur.est_boolean() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_boolean))
+        retourne crée_string_value_completion(interpréteuse, STR_boolean)
     }
 
     // 9. If val is a Number, return "number".
     si valeur.est_nombre() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_number))
+        retourne crée_string_value_completion(interpréteuse, STR_number)
     }
 
     // 10. If val is a BigInt, return "bigint".
     si valeur.est_big_int() {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_bigint))
+        retourne crée_string_value_completion(interpréteuse, STR_bigint)
     }
 
     // 11. Assert: val is an Object.
@@ -1971,11 +1971,11 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     // À FAIRE : 12. NOTE: This step is replaced in section B.3.6.3.
     // 13. If val has a [[Call]] internal slot, return "function".
     si objet.sur_call {
-        retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_function))
+        retourne crée_string_value_completion(interpréteuse, STR_function)
     }
 
     // 14. Return "object".
-    retourne normal_completion(crée_chaine(interpréteuse.donne_tas_de_mémoire(), STR_object))
+    retourne crée_string_value_completion(interpréteuse, STR_object)
 }
 
 /** \} */

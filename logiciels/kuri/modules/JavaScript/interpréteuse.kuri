@@ -1,3 +1,4 @@
+importe Chaine
 importe Ensemble
 importe Fondation
 
@@ -552,6 +553,18 @@ donne_noeud_évalué_courant :: fonc (interpréteuse: &Interpréteuse @inutilis�
 {
     // À FAIRE
     retourne nul
+}
+
+crée_string_value_completion :: fonc (interpréteuse: &Interpréteuse, texte: chaine) -> CompletionRecord
+{
+    retourne crée_string_value_completion(interpréteuse, crée_chaine_utf16_unique(texte))
+}
+
+crée_string_value_completion :: fonc (interpréteuse: &Interpréteuse, texte: ECMAString) -> CompletionRecord
+{
+    string := crée_chaine(interpréteuse.donne_tas_de_mémoire(), texte)
+    value := Valeur(String = string)
+    retourne normal_completion(value)
 }
 
 /** \} */
