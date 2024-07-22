@@ -1263,14 +1263,13 @@ détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
     déloge(ctx.propriétés_non_supportées)
 }
 
-propriété_est_supportée :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> bool
+donne_info_type_pour_nom :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> *InfoTypePropriété
 {
-    si nom == PROP_display || nom == PROP_color || nom == PROP_text_decoration || nom == PROP_cursor || nom == PROP_font_weight || nom == PROP_font_size {
-        retourne vrai
+    résultat := donne_info_type_pour_nom(nom)
+    saufsi résultat {
+        ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
     }
-
-    ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
-    retourne faux
+    retourne résultat
 }
 
 /* https://www.w3.org/TR/css-syntax-3/#parse-a-css-stylesheet */
@@ -1314,69 +1313,20 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
     /* Ne considère que les déclarations.
      * À FAIRE : @nest peut être préservé. */
     pour content.decls {
-        saufsi propriété_est_supportée(ctx, it.name) {
+        info_type_propriété := donne_info_type_pour_nom(ctx, it.name)
+        saufsi info_type_propriété {
             continue
         }
 
-        valeur: [..]ValeurDeStyle
-        si it.name == PROP_display {
-            opt_valeur := parse_propriété_display(it.value)
-            saufsi opt_valeur.possède_valeur() {
-                imprime("Impossible de parser 'display'\n")
-                continue
-            }
-
-            valeur = opt_valeur.Quelque
-        }
-        sinon si it.name == PROP_color {
-            opt_valeur := parse_propriété_color(it.value)
-            saufsi opt_valeur.possède_valeur() {
-                imprime("Impossible de parser 'color'\n")
-                continue
-            }
-
-            valeur = opt_valeur.Quelque
-        }
-        sinon si it.name == PROP_text_decoration {
-            opt_valeur := parse_propriété_text_decoration(it.value)
-            saufsi opt_valeur.possède_valeur() {
-                imprime("Impossible de parser 'text-decoration'\n")
-                continue
-            }
-
-            valeur = opt_valeur.Quelque
-        }
-        sinon si it.name == PROP_cursor {
-            opt_valeur := parse_propriété_cursor(it.value)
-            saufsi opt_valeur.possède_valeur() {
-                imprime("Impossible de parser 'cursor'\n")
-                continue
-            }
-
-            valeur = opt_valeur.Quelque
-        }
-        sinon si it.name == PROP_font_weight {
-            opt_valeur := parse_propriété_font_weight(it.value)
-            saufsi opt_valeur.possède_valeur() {
-                imprime("Impossible de parser 'font-weight'\n")
-                continue
-            }
-
-            valeur = opt_valeur.Quelque
-        }
-        sinon si it.name == PROP_font_size {
-            opt_valeur := parse_propriété_font_size(it.value)
-            saufsi opt_valeur.possède_valeur() {
-                imprime("Impossible de parser 'font-size'\n")
-                continue
-            }
-
-            valeur = opt_valeur.Quelque
+        opt_valeur := info_type_propriété.fonction_de_parsage(it.value)
+        saufsi opt_valeur.possède_valeur() {
+            imprime("Impossible de parser '%'\n", it.name)
+            continue
         }
 
         déclaration := loge(CSSDeclaration)
         déclaration.property_name = it.name
-        déclaration.value = valeur
+        déclaration.value = opt_valeur.Quelque
         déclaration.important = it.important
 
         résultat.ajoute_déclaration(déclaration)
@@ -1391,6 +1341,40 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom InfoTypePropriété
+ * \{ */
+
+#portée_fichier
+
+InfoTypePropriété :: struct {
+    nom: CSSOMString
+    fonction_de_parsage: fonc([..]ComponentValue)(Optionnel([..]ValeurDeStyle))
+}
+
+infos_types_propriétés := [
+    InfoTypePropriété(PROP_display, parse_propriété_display),
+    InfoTypePropriété(PROP_color, parse_propriété_color),
+    InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration),
+    InfoTypePropriété(PROP_cursor, parse_propriété_cursor),
+    InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight),
+    InfoTypePropriété(PROP_font_size, parse_propriété_font_size)
+]
+
+donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
+{
+    pour infos_types_propriétés {
+        si it.nom == nom {
+            retourne *infos_types_propriétés[index_it]
+        }
+    }
+    retourne nul
+}
+
+#portée_export
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Général
