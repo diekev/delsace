@@ -6,6 +6,7 @@ importe Fondation
 ValeurDeStyle :: union {
     mot_clé: CSSOMString
     couleur: CouleurRVBAN8
+    longueur: Longueur
 }
 
 détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
@@ -99,6 +100,15 @@ Style :: struct {
     // margin: Margin
     // border: Border
     // padding: Padding
+}
+
+Longueur :: struct {
+    Unité :: énum {
+        Em
+    }
+
+    valeur: r64
+    unité: Unité
 }
 
 /* https://drafts.csswg.org/css-backgrounds/ */

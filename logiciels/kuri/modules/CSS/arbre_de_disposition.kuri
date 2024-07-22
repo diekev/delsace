@@ -284,6 +284,20 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
         }
     }
 
+    chn_font_size := crée_chaine_utf16("font-size")
+    diffère détruit_chaine(chn_font_size)
+
+    font_size := donne_déclaration(propriétés, chn_font_size)
+    si font_size {
+        longueur := font_size.value[0].longueur
+
+        discr longueur.unité {
+            Em {
+                taille_fonte *= longueur.valeur comme r32
+            }
+        }
+    }
+
     fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
     noeud.fonte = fonte
     métriques := fonte.donne_métriques_fonte()

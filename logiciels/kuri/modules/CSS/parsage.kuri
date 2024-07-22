@@ -1273,7 +1273,7 @@ détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
 
 propriété_est_supportée :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> bool
 {
-    si nom == "display" || nom == "color" || nom == "text-decoration" || nom == "cursor" || nom == "font-weight" {
+    si nom == "display" || nom == "color" || nom == "text-decoration" || nom == "cursor" || nom == "font-weight" || "font-size" {
         retourne vrai
     }
 
@@ -1371,6 +1371,15 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
             opt_valeur := parse_propriété_font_weight(it.value)
             saufsi opt_valeur.possède_valeur() {
                 imprime("Impossible de parser 'font-weight'\n")
+                continue
+            }
+
+            valeur = opt_valeur.Quelque
+        }
+        sinon si it.name == "font-size" {
+            opt_valeur := parse_propriété_font_size(it.value)
+            saufsi opt_valeur.possède_valeur() {
+                imprime("Impossible de parser 'font-size'\n")
                 continue
             }
 
@@ -1879,6 +1888,49 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel([
             }
 
             parseuse.avance()
+        }
+        sinon {
+            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+            déloge(résultat)
+            retourne
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Font Size
+ * https://drafts.csswg.org/css-fonts/#font-size-prop
+ * \{ */
+
+parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+            parseuse.avance()
+            données_lexème := lexème.lexème
+
+            si données_lexème.unité != "em" {
+                imprime("[%] unité inconnue %\n", #nom_de_cette_fonction, lexème)
+                déloge(résultat)
+                retourne
+            }
+
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Em)
+            tableau_ajoute(*résultat, ValeurDeStyle(longueur = longueur))
         }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
