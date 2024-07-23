@@ -174,7 +174,9 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
         }
     }
 
-    si est_display_none(*propriétés) {
+    display := donne_display(*propriétés)
+
+    si display.outer_type == Display.Type.None {
         détruit_données_propriétés(*propriétés)
         retourne
     }

@@ -70,6 +70,8 @@ PROP_host : CSSOMString = ---
 PROP_dir : CSSOMString = ---
 PROP_ltr : CSSOMString = ---
 PROP_rtl : CSSOMString = ---
+PROP_block : CSSOMString = ---
+PROP_inline : CSSOMString = ---
 
 PC_active: CSSOMString = ---
 PC_any_link: CSSOMString = ---

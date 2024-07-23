@@ -86,15 +86,26 @@ donne_déclaration :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString
     retourne nul
 }
 
-est_display_none :: fonc (propriétés: *PropriétésDeStyle) -> bool
+donne_display :: fonc (propriétés: *PropriétésDeStyle) -> Display
 {
+    résultat: Display
+
     display := donne_déclaration(propriétés, PROP_display)
-    saufsi display {
-        /* Le défaut est inline. */
-        retourne faux
+    si display {
+        mot_clé := display.value[0].mot_clé
+
+        si mot_clé == PROP_none {
+            résultat.outer_type = Display.Type.None
+        }
+        sinon si mot_clé == PROP_block {
+            résultat.outer_type = Display.Type.Block
+        }
+        sinon {
+            assert(mot_clé == PROP_inline)
+        }
     }
 
-    retourne est_mot_clé(display.value[0], PROP_none)
+    retourne résultat
 }
 
 /** \} */
