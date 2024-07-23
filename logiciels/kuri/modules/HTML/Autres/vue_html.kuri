@@ -667,6 +667,8 @@ VueRenduPage :: struct {
     sur_peinture_gl = vue_rendu_page_sur_peinture
     sur_redimensionnement_gl = vue_rendu_page_sur_redimensionnement
     sur_deplacement_souris = vue_rendu_page_sur_déplacement_souris
+    sur_pression_souris = vue_rendu_page_sur_pression_souris
+    sur_relachement_souris = vue_rendu_page_sur_relachement_souris
 
     page: *PageWeb
 
@@ -763,6 +765,57 @@ vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, even
 
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     document.définis_noeud_survolé(élément)
+}
+
+vue_rendu_page_sur_pression_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
+{
+    vue_rendu_page := base comme *VueRenduPage
+
+    document := donne_document(vue_rendu_page.page)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    position: QT_Position
+    QT_mouse_event_donne_position(event, *position)
+
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    si élément {
+        élément.est_en_train_d_être_activé(vrai)
+    }
+    document.élément_en_cours_d_activation = élément
+}
+
+vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
+{
+    vue_rendu_page := base comme *VueRenduPage
+
+    document := donne_document(vue_rendu_page.page)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    position: QT_Position
+    QT_mouse_event_donne_position(event, *position)
+
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    si élément {
+        élément.est_en_train_d_être_activé(faux)
+    }
+    si document.élément_en_cours_d_activation && document.élément_en_cours_d_activation != élément {
+        document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
+    }
+    document.élément_en_cours_d_activation = nul
 }
 
 /** \} */

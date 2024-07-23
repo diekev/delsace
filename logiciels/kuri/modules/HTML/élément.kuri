@@ -325,6 +325,18 @@ enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoC
     élément.document.invalide_style(pseudo_classe)
 }
 
+est_en_train_d_être_activé :: fonc (élément: *Élément, ouinon: bool)
+{
+    /* À FAIRE : gère tous les cas/différencie les niveaux d'activation ?
+     * https://html.spec.whatwg.org/multipage/semantics-other.html#concept-selector-active */
+    si ouinon {
+        élément.ajoute_pseudo_classe(CSS.PseudoClasses.Active)
+    }
+    sinon {
+        élément.enlève_pseudo_classe(CSS.PseudoClasses.Active)
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
