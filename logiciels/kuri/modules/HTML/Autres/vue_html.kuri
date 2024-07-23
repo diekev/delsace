@@ -493,10 +493,16 @@ crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: Q
     si document {
         titre := document.donne_title_element()
         si titre {
-            texte_titre := extrait_texte_noeud(titre)
-            diffère déloge(texte_titre)
+            texte_titre := donne_contenu_texte_descandants(titre)
+            diffère détruit_chaine(texte_titre)
 
-            QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_titre))
+            texte_filtré := supprime_espace_blanches_autour(texte_titre)
+            diffère détruit_chaine(texte_filtré)
+
+            texte_natif := converti_vers_chaine(texte_filtré)
+            diffère déloge(texte_natif)
+
+            QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_natif))
         }
 
         item_document := QT_cree_treewidgetitem(nul, nul)
