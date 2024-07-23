@@ -83,6 +83,8 @@ Document :: struct {
     globales_dessin: *CSS.GlobalesDessin
 
     noeud_survolé: *Élément
+    /* L'élément sous la souris lors des pressions et relâchement. */
+    élément_en_cours_d_activation: *Élément
 }
 
 #portée_fichier
@@ -230,17 +232,36 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
     // À FAIRE : ajout de :hover
     document.noeud_survolé = noeud
 
+    user_agent := document.donne_user_agent()
+    si user_agent {
+        user_agent.notifie_élément_survolé()
+    }
+}
+
+/* Invalide le style suite à la modification d'une pseudo-classe. */
+invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @inutilisée)
+{
+    /* À FAIRE : utilise la pseudo-classe, et ne détruit pas l'arbre. */
+    CSS.détruit_arbre(document.arbre_de_disposition)
+    document.arbre_de_disposition = nul
+
+    user_agent := document.donne_user_agent()
+    si user_agent {
+        user_agent.requiers_rendu()
+    }
+}
+
+donne_user_agent :: fonc (document: *Document) -> *UserAgent
+{
     browsing_context := document.browsing_context
     saufsi browsing_context {
         /* Permet d'appeler cette fonction en dehors d'un contexte de navigation. */
-        retourne
+        retourne nul
     }
 
     assert(browsing_context.group != nul)
     assert(browsing_context.group.user_agent != nul)
-
-    user_agent := browsing_context.group.user_agent
-    user_agent.notifie_élément_survolé()
+    retourne browsing_context.group.user_agent
 }
 
 /** \} */

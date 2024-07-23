@@ -305,12 +305,24 @@ enfant_directe_avec_balise :: fonc (élément: *Élément, balise: DOMString) ->
 
 ajoute_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
 {
+    si (élément.pseudo_classes & pseudo_classe) == pseudo_classe {
+        retourne
+    }
+
     élément.pseudo_classes |= pseudo_classe
+    assert(élément.document != nul)
+    élément.document.invalide_style(pseudo_classe)
 }
 
 enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
 {
+    si (élément.pseudo_classes & pseudo_classe) != pseudo_classe {
+        retourne
+    }
+
     élément.pseudo_classes &= ~pseudo_classe
+    assert(élément.document != nul)
+    élément.document.invalide_style(pseudo_classe)
 }
 
 /** \} */
