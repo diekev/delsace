@@ -621,8 +621,10 @@ crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale,
     si arbre {
         item_document := QT_cree_treewidgetitem(nul, nul)
         QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-        texte := vers_qt("bloc")
-        QT_treewidgetitem_definis_texte(item_document, 0, *texte)
+        texte := donne_texte_item_pour_noeud(arbre.racine)
+        diffère déloge_si_logée(texte)
+        qtexte := vers_qt(texte)
+        QT_treewidgetitem_definis_texte(item_document, 0, *qtexte)
         QT_treewidget_ajoute_item_racine(résultat, item_document)
 
         pour arbre.racine.enfants {
@@ -636,12 +638,8 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeD
 {
     item_noeud := QT_cree_treewidgetitem(nul, nul)
     QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-    texte := si noeud.type == CSS.NoeudDeDispositionBloc {
-        "bloc"
-    }
-    sinon {
-        "texte"
-    }
+    texte := donne_texte_item_pour_noeud(noeud)
+    diffère déloge_si_logée(texte)
     qtexte := vers_qt(texte)
     QT_treewidgetitem_definis_texte(item_noeud, 0, *qtexte)
 
@@ -650,6 +648,16 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeD
     pour noeud.enfants {
         ajoute_item_pour_noeud(item_noeud, it)
     }
+}
+
+donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
+{
+    si noeud.type == CSS.NoeudDeDispositionTexte {
+        retourne "texte"
+    }
+
+    noeud_bloc := noeud comme *CSS.NoeudDeDispositionBloc
+    retourne imprime_chaine("% (%)", CSS.donne_nom_classe(noeud), noeud_bloc.élément.texte)
 }
 
 /** \} */
