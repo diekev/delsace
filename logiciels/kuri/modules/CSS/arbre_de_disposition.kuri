@@ -283,11 +283,14 @@ donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
 {
     noeud_courant := noeud
 
-    tantque noeud_courant != nul && noeud_courant.type != NoeudDeDispositionBloc {
+    tantque noeud_courant != nul && (noeud_courant.type != NoeudDeDispositionBloc && noeud_courant.type != NoeudDeDispositionInline) {
         noeud_courant = noeud_courant.parent
     }
 
     si noeud_courant {
+        si noeud_courant.type == NoeudDeDispositionInline {
+            retourne (noeud_courant comme *NoeudDeDispositionBloc).élément
+        }
         retourne (noeud_courant comme *NoeudDeDispositionBloc).élément
     }
 
