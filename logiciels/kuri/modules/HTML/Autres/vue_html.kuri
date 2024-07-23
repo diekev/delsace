@@ -657,7 +657,7 @@ donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
     }
 
     noeud_bloc := noeud comme *CSS.NoeudDeDispositionBloc
-    retourne imprime_chaine("% (%)", CSS.donne_nom_classe(noeud), noeud_bloc.élément.texte)
+    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), noeud_bloc.élément.texte, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
 }
 
 /** \} */
