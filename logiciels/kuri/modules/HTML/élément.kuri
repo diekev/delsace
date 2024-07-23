@@ -74,7 +74,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     sur_changement_attribut = élément_sur_changement_attribut
 )
 
-élément_sur_destruction :: fonc (base: *Noeud)
+élément_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *Élément
     déloge(élément)
@@ -384,7 +384,7 @@ table_virtuelle_anchor_element := TableVirtuelleÉlément(
     sur_changement_attribut = anchor_element_sur_changement_attribut
 )
 
-anchor_element_sur_destruction :: fonc (base: *Noeud)
+anchor_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLAnchorElement
     déloge(élément)
@@ -428,7 +428,7 @@ table_virtuelle_body_element := TableVirtuelleÉlément(
     sur_destruction = body_element_sur_destruction
 )
 
-body_element_sur_destruction :: fonc (base: *Noeud)
+body_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLBodyElement
     déloge(élément)
@@ -455,7 +455,7 @@ table_virtuelle_form_element := TableVirtuelleÉlément(
     sur_destruction = form_element_sur_destruction
 )
 
-form_element_sur_destruction :: fonc (base: *Noeud)
+form_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLFormElement
     déloge(élément)
@@ -482,7 +482,7 @@ table_virtuelle_head_element := TableVirtuelleÉlément(
     sur_destruction = head_element_sur_destruction
 )
 
-head_element_sur_destruction :: fonc (base: *Noeud)
+head_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHeadElement
     déloge(élément)
@@ -509,7 +509,7 @@ table_virtuelle_html_element := TableVirtuelleÉlément(
     sur_destruction = html_element_sur_destruction
 )
 
-html_element_sur_destruction :: fonc (base: *Noeud)
+html_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHtmlElement
     déloge(élément)
@@ -545,7 +545,7 @@ table_virtuelle_image_element := TableVirtuelleÉlément(
     sur_destruction = image_element_sur_destruction
 )
 
-image_element_sur_destruction :: fonc (base: *Noeud)
+image_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLImageElement
     déloge(élément)
@@ -595,7 +595,7 @@ table_virtuelle_video_element := TableVirtuelleÉlément(
     sur_destruction = video_element_sur_destruction
 )
 
-video_element_sur_destruction :: fonc (base: *Noeud)
+video_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLVideoElement
     déloge(élément)
@@ -660,7 +660,7 @@ table_virtuelle_script_element := TableVirtuelleÉlément(
     sur_destruction = script_element_sur_destruction
 )
 
-script_element_sur_destruction :: fonc (base: *Noeud)
+script_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLScriptElement
     déloge(élément)
@@ -938,7 +938,7 @@ table_virtuelle_style_element := TableVirtuelleÉlément(
     sur_changement_enfants = style_element_sur_changement_enfants
 )
 
-style_element_sur_destruction :: fonc (base: *Noeud)
+style_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLStyleElement
     déloge(élément)
