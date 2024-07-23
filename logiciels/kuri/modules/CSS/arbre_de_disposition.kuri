@@ -30,6 +30,10 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
             bloc := it comme *NoeudDeDispositionBloc
             déloge(bloc)
         }
+        sinon si it.type == NoeudDeDispositionInline {
+            noeud := it comme *NoeudDeDispositionInline
+            déloge(noeud)
+        }
         sinon si it.type == NoeudDeDispositionTexte {
             texte := it comme *NoeudDeDispositionTexte
             détruit_chaine(texte.texte)
@@ -181,8 +185,18 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
         retourne
     }
 
-    résultat := arbre.crée_noeud(NoeudDeDispositionBloc)
-    résultat.élément = élément
+    résultat: *NoeudDeDisposition
+    si display.outer_type == Display.Type.Block {
+        bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
+        bloc.élément = élément
+        résultat = bloc
+    }
+    sinon {
+        inline := arbre.crée_noeud(NoeudDeDispositionInline)
+        inline.élément = élément
+        résultat = inline
+    }
+
     élément.noeud_de_disposition = résultat
     résultat.propriétés = propriétés
     parent.ajoute_enfant(résultat)
@@ -367,19 +381,87 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 {
     noeud := base comme *NoeudDeDispositionBloc
 
+    /* À FAIRE : génère des noeuds anonymes, etc. */
+    doit_formatter_en_blocs := faux
+
     pour noeud.enfants {
-        it.mesure(ctx)
+        si it.type == NoeudDeDispositionBloc {
+            doit_formatter_en_blocs = vrai
+            arrête
+        }
+    }
 
-        it.décale(0, noeud.hauteur)
+    si doit_formatter_en_blocs {
+        pour noeud.enfants {
+            it.mesure(ctx)
 
-        noeud.hauteur += it.hauteur
-        noeud.largeur = max(noeud.largeur, it.largeur)
+            it.décale(0, noeud.hauteur)
+
+            noeud.hauteur += it.hauteur
+            noeud.largeur = max(noeud.largeur, it.largeur)
+        }
+    }
+    sinon {
+        pour noeud.enfants {
+            it.mesure(ctx)
+
+            it.décale(noeud.largeur, 0)
+
+            noeud.largeur += it.largeur
+            noeud.hauteur = max(noeud.hauteur, it.hauteur)
+        }
     }
 }
 
 noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionBloc
+
+    // rect := ctx.donne_rectangle_corrigé(noeud)
+
+    // couleur := CouleurRVBA(0.5, 0.0, 0.5, 1.0)
+
+    // peintre := ctx.peintre
+    // peintre.dessine_rectangle(rect, couleur)
+
+    pour noeud.enfants {
+        dessine(it, ctx)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionInline
+ * \{ */
+
+/* Créé pour chaque noeud hors texte */
+NoeudDeDispositionInline :: struct {
+    empl base: NoeudDeDisposition
+    type = #type_de_cette_structure
+    sur_mesure = noeud_disposition_inline_sur_mesure
+    sur_dessin = noeud_disposition_inline_sur_dessin
+
+    élément: *HTML.Élément
+}
+
+noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+{
+    noeud := base comme *NoeudDeDispositionInline
+
+    pour noeud.enfants {
+        it.mesure(ctx)
+
+        it.décale(noeud.largeur, 0)
+
+        noeud.largeur += it.largeur
+        noeud.hauteur = max(noeud.hauteur, it.hauteur)
+    }
+}
+
+noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionInline
 
     // rect := ctx.donne_rectangle_corrigé(noeud)
 
