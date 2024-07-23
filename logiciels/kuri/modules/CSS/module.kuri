@@ -75,12 +75,17 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
 
     compound := selector[index]
 
-    si compound.simple_selectors.taille != 1 {
-        retourne faux
+    pour compound.simple_selectors {
+        saufsi apparie_simple_selector(it, élément) {
+            retourne faux
+        }
     }
 
-    simple := compound.simple_selectors[0]
+    retourne vrai
+}
 
+apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élément) -> bool
+{
     si simple.type == SimpleSelector.Type.PseudoClass {
         si simple.est_fonction {
             retourne faux
