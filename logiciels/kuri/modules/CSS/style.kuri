@@ -86,6 +86,17 @@ donne_déclaration :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString
     retourne nul
 }
 
+est_display_none :: fonc (propriétés: *PropriétésDeStyle) -> bool
+{
+    display := donne_déclaration(propriétés, PROP_display)
+    saufsi display {
+        /* Le défaut est inline. */
+        retourne faux
+    }
+
+    retourne est_mot_clé(display.value[0], PROP_none)
+}
+
 /** \} */
 
 Style :: struct {
