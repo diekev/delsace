@@ -320,7 +320,7 @@ donne_contenu_texte_enfant :: fonc (noeud: *Noeud) -> ChaineUTF16
         }
 
         texte := noeud comme *NoeudTexte
-        ajoute_au_tampon(enchaineuse, texte.données)
+        ajoute(enchaineuse, texte.données)
     }
 
     retourne chaine_depuis_enchaineuse(enchaineuse)
