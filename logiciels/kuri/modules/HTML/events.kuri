@@ -185,7 +185,32 @@ AddEventListenerOptions :: struct {
  * https://dom.spec.whatwg.org/#eventtarget
  * \{ */
 
+#portée_module
+
+TableVirtuelleEventTarget :: struct {
+    /* Appelé quand la cible est détruite. */
+    sur_destruction: fonc(*EventTarget)(rien)
+    /* https://dom.spec.whatwg.org/#get-the-parent */
+    sur_get_the_parent: fonc(*EventTarget, *Event)(*EventTarget) = event_target_sur_get_the_parent
+    /* https://dom.spec.whatwg.org/#eventtarget-activation-behavior */
+    sur_activation_behavior: fonc(*EventTarget, *Event)(rien)
+    /* https://dom.spec.whatwg.org/#eventtarget-legacy-pre-activation-behavior */
+    sur_legacy_pre_activation_behavior: fonc(*EventTarget, *Event)(rien)
+    /* https://dom.spec.whatwg.org/#eventtarget-legacy-canceled-activation-behavior */
+    sur_legacy_canceled_activation_behavior: fonc(*EventTarget, *Event)(rien)
+}
+
+/* Implémentation défaut pour get_the_parent. */
+event_target_sur_get_the_parent :: fonc (target: *EventTarget @inutilisée, event: *Event @inutilisée) -> *EventTarget
+{
+    retourne nul
+}
+
+#portée_export
+
 EventTarget :: struct {
+    table: *TableVirtuelleEventTarget
+
     EventListenerEntry :: struct {
         type: EventType
         callback: *EventListener
@@ -200,6 +225,34 @@ EventTarget :: struct {
 }
 
 #portée_fichier
+
+get_the_parent :: fonc (target: *EventTarget, event: *Event) -> *EventTarget
+{
+    assert(target.table != nul)
+    assert(target.table.sur_get_the_parent != nul)
+    retourne target.table.sur_get_the_parent(target, event)
+}
+
+possède_activation_behavior :: fonc (target: *EventTarget)
+{
+    /* À FAIRE : nous pourrions avoir une condition plus subtile pour,
+     *  par exemple, les éléments ancres qui n'ont pas de href. */
+    retourne target.table != nul && target.sur_activation_behavior != nul
+}
+
+run_activation_behavior :: fonc (target: *EventTarget, event: *Event)
+{
+    assert(target.table != nul)
+    assert(target.table.sur_activation_behavior != nul)
+    target.table.sur_activation_behavior(target, event)
+}
+
+run_legacy_canceled_activation_behavior :: fonc (target: *EventTarget, event: *Event)
+{
+    assert(target.table != nul)
+    assert(target.table.sur_legacy_canceled_activation_behavior != nul)
+    target.table.sur_legacy_canceled_activation_behavior(target, event)
+}
 
 /* https://dom.spec.whatwg.org/#add-an-event-listener */
 add_an_event_listener :: fonc (target: *EventTarget, listener: EventTarget.EventListenerEntry)
