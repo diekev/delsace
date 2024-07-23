@@ -67,9 +67,11 @@ détruit_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 
 ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *CSSDeclaration)
 {
-    existante := propriétés.donne_déclaration(déclaration.property_name)
-    si existante {
-        retourne
+    pour propriétés.déclarations {
+        si it.property_name == déclaration.property_name {
+            propriétés.déclarations[index_it] = déclaration
+            retourne
+        }
     }
     tableau_ajoute(*propriétés.déclarations, déclaration)
 }
