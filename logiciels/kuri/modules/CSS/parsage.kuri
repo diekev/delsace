@@ -835,7 +835,7 @@ parse_type_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSel
         wq_name := opt_wq_name.Quelque
 
         parseuse.curseur = parseuse_locale.curseur
-        retourne crée_type_selector(CSSOMString(), wq_name.ident)
+        retourne crée_type_selector(crée_chaine_utf16_unique_vide(), wq_name.ident)
     }
 
     parseuse_locale = parseuse
@@ -847,14 +847,14 @@ parse_type_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSel
 
     si parseuse_locale.lexème_courant().est_lexème_fois() {
         parseuse.curseur = parseuse_locale.curseur
-        retourne crée_universal_selector(CSSOMString())
+        retourne crée_universal_selector(crée_chaine_utf16_unique_vide())
     }
 }
 
 /* <wq-name> = <ns-prefix>? <ident-token> */
 WQName :: struct {
     ns_prefix: Optionnel(NSPrefix)
-    ident: CSSOMString
+    ident := crée_chaine_utf16_unique_vide()
 }
 
 parse_wq_name :: fonc (parseuse: &ParseuseSelector) -> Optionnel(WQName)
@@ -880,7 +880,7 @@ parse_wq_name :: fonc (parseuse: &ParseuseSelector) -> Optionnel(WQName)
 /* <ns-prefix> = [ <ident-token> | '*' ]? '|' */
 NSPrefix :: struct {
     /* Un identifiant ou '*' */
-    espace: CSSOMString
+    espace := crée_chaine_utf16_unique_vide()
 }
 
 parse_ns_prefix :: fonc (parseuse: &ParseuseSelector) -> Optionnel(NSPrefix)

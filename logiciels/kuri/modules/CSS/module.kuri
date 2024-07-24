@@ -673,13 +673,13 @@ SimpleSelector :: struct {
     }
 
     type: Type
-    namespace_prefix: CSSOMString
-    ident: CSSOMString
+    namespace_prefix := crée_chaine_utf16_unique_vide()
+    ident := crée_chaine_utf16_unique_vide()
 
     /* Pour Attrib. */
     matcher: Optionnel(AttributeMatcher)
     /* Valeur pour AttributeMatcher. */
-    attribute_value: CSSOMString
+    attribute_value := crée_chaine_utf16_unique_vide()
     attribute_modifier: Optionnel(AttributeModifier)
 
     /* Pour les pseudos-classes non-fonctionnelles.
@@ -691,7 +691,7 @@ SimpleSelector :: struct {
     selector_list: SelectorList
 
     /* Pour :dir. */
-    arg: CSSOMString
+    arg := crée_chaine_utf16_unique_vide()
 }
 
 détruit_données_simple_selector :: fonc (selector: *SimpleSelector)
@@ -709,13 +709,13 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
     // ajoute_au_tampon(enchaineuse, selector.type, " : ")
     discr selector.type {
         Type {
-            si selector.namespace_prefix.donne_chaine_utf16().taille() != 0 {
+            saufsi selector.namespace_prefix.est_vide() {
                 ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|")
             }
             ajoute_au_tampon(enchaineuse, selector.ident)
         }
         Universal {
-            si selector.namespace_prefix.donne_chaine_utf16().taille() != 0 {
+            saufsi selector.namespace_prefix.est_vide() {
                 ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|")
             }
             ajoute_au_tampon(enchaineuse, "*")
@@ -807,32 +807,32 @@ crée_universal_selector :: fonc (namespace_prefix: CSSOMString) -> SimpleSelect
 
 crée_id_selector :: fonc (ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.ID, CSSOMString(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.ID, crée_chaine_utf16_unique_vide(), ident)
 }
 
 crée_class_selector :: fonc (ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Class, CSSOMString(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.Class, crée_chaine_utf16_unique_vide(), ident)
 }
 
 crée_attribute_selector :: fonc (ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, CSSOMString(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, crée_chaine_utf16_unique_vide(), ident)
 }
 
 crée_attribute_selector :: fonc (ident: CSSOMString, matcher: SimpleSelector.AttributeMatcher, value: CSSOMString, modifier: Optionnel(SimpleSelector.AttributeModifier)) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, CSSOMString(), ident, matcher, value, modifier)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, crée_chaine_utf16_unique_vide(), ident, matcher, value, modifier)
 }
 
 crée_pseudo_class_selector :: fonc (ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, CSSOMString(), pseudo_classe = donne_pseudo_classe_pour_nom(ident))
+    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, crée_chaine_utf16_unique_vide(), pseudo_classe = donne_pseudo_classe_pour_nom(ident))
 }
 
 crée_pseudo_element_selector :: fonc (ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.PseudoElement, CSSOMString(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.PseudoElement, crée_chaine_utf16_unique_vide(), ident)
 }
 
 crée_function_selector :: fonc (ident: CSSOMString, arguments: SelectorList) -> SimpleSelector
