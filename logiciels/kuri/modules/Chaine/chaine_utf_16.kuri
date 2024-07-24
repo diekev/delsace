@@ -759,6 +759,12 @@ crée_chaine_utf16_unique :: fonc (chn: chaine) -> ChaineUTF16Unique
     saufsi chn {
         retourne crée_chaine_utf16_unique_vide()
     }
+    si chn.taille == 1 {
+        unité := chn[0] comme n8
+        si unité <= 127 {
+            retourne ChaineUTF16Unique(unité comme n32)
+        }
+    }
 
     tmp := crée_chaine_utf16(chn)
     diffère détruit_chaine(tmp)
@@ -785,6 +791,13 @@ crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF32) -> ChaineUTF16Unique
 {
     si chn.taille() == 0 {
         retourne crée_chaine_utf16_unique_vide()
+    }
+    si chn.taille() == 1 {
+        point_de_code := chn.points_de_code[0]
+
+        si point_de_code <= 127 {
+            retourne ChaineUTF16Unique(point_de_code)
+        }
     }
     tmp := crée_chaine_utf16(chn)
     diffère détruit_chaine(tmp)
