@@ -746,11 +746,20 @@ imprime_chaine_utf16 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16)
  * \{ */
 
 ChaineUTF16Unique :: struct {
+    /* Valeurs magiques pour certaines chaines.
+     * Les caractères ASCII simples occupent les 128 premières valeurs. */
+    CHAINE_VIDE : n32 : 128
+    CHAINE_NULLE : n32 : 129
+
     valeur: n32
 }
 
 crée_chaine_utf16_unique :: fonc (chn: chaine) -> ChaineUTF16Unique
 {
+    saufsi chn {
+        retourne crée_chaine_utf16_unique_vide()
+    }
+
     tmp := crée_chaine_utf16(chn)
     diffère détruit_chaine(tmp)
     retourne crée_chaine_utf16_unique(tmp)
@@ -758,6 +767,9 @@ crée_chaine_utf16_unique :: fonc (chn: chaine) -> ChaineUTF16Unique
 
 crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF16) -> ChaineUTF16Unique
 {
+    si chn.taille() == 0 {
+        retourne crée_chaine_utf16_unique_vide()
+    }
     si chn.taille() == 1 {
         unité := chn.unités[0]
 
@@ -771,14 +783,32 @@ crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF16) -> ChaineUTF16Unique
 
 crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF32) -> ChaineUTF16Unique
 {
+    si chn.taille() == 0 {
+        retourne crée_chaine_utf16_unique_vide()
+    }
     tmp := crée_chaine_utf16(chn)
     diffère détruit_chaine(tmp)
     retourne crée_chaine_utf16_unique(tmp)
 }
 
+crée_chaine_utf16_unique_vide :: fonc () -> ChaineUTF16Unique #enligne
+{
+    retourne ChaineUTF16Unique(ChaineUTF16Unique.CHAINE_VIDE)
+}
+
+crée_chaine_utf16_unique_nulle :: fonc () -> ChaineUTF16Unique #enligne
+{
+    retourne ChaineUTF16Unique(ChaineUTF16Unique.CHAINE_NULLE)
+}
+
 est_caractère_ascii :: fonc (chn: ChaineUTF16Unique) -> bool #enligne
 {
     retourne chn.valeur < 128
+}
+
+taille :: fonc (chn: ChaineUTF16Unique) -> z64 #enligne
+{
+    retourne chn.donne_chaine_utf16().taille()
 }
 
 opérateur == :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
@@ -842,7 +872,7 @@ imprime_chaine_utf16_unique :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF1
 
 est_vide :: fonc (chn: ChaineUTF16Unique) -> bool
 {
-    retourne chn.donne_chaine_utf16().est_vide()
+    retourne chn.valeur == ChaineUTF16Unique.CHAINE_VIDE || chn.valeur == ChaineUTF16Unique.CHAINE_NULLE
 }
 
 divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16Unique) -> [..]ChaineUTF16Unique
@@ -938,6 +968,11 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
             chaine_ajoute(*chn_ascii, it comme n16)
             tableau_ajoute(*table.chaines, chn_ascii)
         }
+        chn_vide: ChaineUTF16
+        /* ChaineUTF16Unique.CHAINE_VIDE */
+        tableau_ajoute(*table.chaines, chn_vide)
+        /* ChaineUTF16Unique.CHAINE_NULLE (représentée par une chaine vide). */
+        tableau_ajoute(*table.chaines, chn_vide)
     }
 
     index := table.chaines.taille comme n32
