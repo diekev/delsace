@@ -155,7 +155,7 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
 
         navigable := crée_un_fresh_top_level_traversable(*rappels.user_agent, uri) comme *TraversableNavigable
 
-        page_web := crée_page_web(uri, navigable.donne_active_document())
+        page_web := crée_page_web(uri, navigable)
         crée_widget_pour_page(rappels.fenetre, page_web)
 
         déloge(message)
@@ -342,7 +342,7 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 PageWeb :: struct {
     uri: URI
     parsat: ParsatHTML
-    document: *Document
+    navigable: *Navigable
     contenu: chaine
     fonte: *Fonte
 }
@@ -357,18 +357,18 @@ crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
     retourne résultat
 }
 
-crée_page_web :: fonc (uri: &URI, document: *Document) -> PageWeb
+crée_page_web :: fonc (uri: &URI, navigable: *Navigable) -> PageWeb
 {
     résultat: PageWeb
     résultat.uri = uri
-    résultat.document = document
+    résultat.navigable = navigable
     retourne résultat
 }
 
 donne_document :: fonc (page: *PageWeb) -> *Document
 {
-    si page.document {
-        retourne page.document
+    si page.navigable {
+        retourne page.navigable.donne_active_document()
     }
     retourne page.parsat.document
 }
